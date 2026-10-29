@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "fetched_at": "2026-10-29T11:31:53Z",
+  "scryfall": {
+    "oracle_cards": {
+      "updated_at": "2026-10-29T09:02:02.225+00:00",
+      "uri": "https://data.scryfall.io/oracle-cards/oracle-cards-20261029090202.jsonl.gz",
+      "sha256": "0358af62f92ac10f685d5ee6ad9ab23dfbff6f41bc32dfe81b5ab18cf3088adb",
+      "size": 25212609
+    },
+    "rulings": {
+      "updated_at": "2026-10-29T09:00:32.907+00:00",
+      "uri": "https://data.scryfall.io/rulings/rulings-20261029090032.jsonl.gz",
+      "sha256": "b760c8c3e74b62d27294833708ef98f6942251d0c56021dc3f7c1eeb08d4c990",
+      "size": 5422271
+    }
+  },
+  "mtgjson": {
+    "version": "5.3.0+20261028",
+    "files": {
+      "CardTypes.json": {
+        "uri": "https://mtgjson.com/api/v5/CardTypes.json",
+        "sha256": "8dac75762848efc2dfa89107891dd25773dd21c6a8d4a22fd8293fff3bbbda38",
+        "size": 7102
+      },
+      "EnumValues.json": {
+        "uri": "https://mtgjson.com/api/v5/EnumValues.json",
+        "sha256": "4edff075f94e30c792535c9562903674d07a46c81cd8677308ba0b7ba2d38e17",
+        "size": 19499
+      },
+      "Keywords.json": {
+        "uri": "https://mtgjson.com/api/v5/Keywords.json",
+        "sha256": "a70550014d33e488bbeee383f7065871807022d6db06f6992b6346fb5ac7ff37",
+        "size": 4402
+      }
+    }
+  }
+}

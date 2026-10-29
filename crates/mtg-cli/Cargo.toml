@@ -1,0 +1,18 @@
+[package]
+name = "mtg-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "mtg"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+mtg-core = { path = "../mtg-core" }
+
+[lints]
+workspace = true

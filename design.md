@@ -1,6 +1,6 @@
 # MTG Engine: Design Document
 
-Status: draft v0.1, 2026-10-24
+Status: draft v0.2, 2026-10-29 (v0.1 2026-10-24)
 Target: Linux x86-64. Rust 2024 edition, MSRV 1.88.
 
 ## 1. Purpose
@@ -15,8 +15,13 @@ Magic:
 - RL agents, through an in-process Python environment (PettingZoo AEC API)
   and a state representation suitable for search (MCTS, IS-MCTS, PIMC).
 
-Everything else is secondary: no GUI, no matchmaking, no deck builder,
-no images.
+Humans need to be able to watch what those agents did. A web-based game
+review tool (§9.4) that lists recorded games and plays them back visually
+is part of the deliverable, because it is how rules bugs and agent
+behaviour get inspected.
+
+Everything else is secondary: no play GUI, no matchmaking, no deck
+builder, no card images.
 
 ### Non-goals (for now)
 
@@ -108,12 +113,20 @@ mtg-engine/
     mtg-scenario/  scenario test DSL and runner
     mtg-py/        PyO3 bindings, PettingZoo AEC env
     mtg-mcp/       rmcp server (stdio and streamable HTTP)
-    mtg-cli/       human/debug CLI, replay viewer
+    mtg-review/    game record store and web playback server (§9.4)
+    mtg-cli/       human/debug CLI
   data/
+    sources.lock   pinned Scryfall and MTGJSON snapshot (committed)
+    scryfall/      fetched bulk data (gitignored)
+    mtgjson/       fetched enumerations (gitignored)
     cr/            Comprehensive Rules txt (pinned version)
     cards/         DSL card files, one per Oracle name, by first letter
     scenarios/     scenario tests
 ```
+
+M0 scaffolds `mtg-core`, `mtg-dsl`, `mtg-cards`, `mtg-scenario`,
+`mtg-agents`, `mtg-sim`, and `mtg-cli`. `mtg-py`, `mtg-mcp`, and
+`mtg-review` are added in M4 when they have something to bind to.
 
 `mtg-core` has no async runtime, no I/O, no card-text knowledge. It
 depends only on `mtg-dsl`'s AST types (effects, costs, conditions). Card
@@ -354,6 +367,16 @@ Rules for the option list:
 - Serialization: `postcard` for compact binary snapshots and replay
   buffers, `serde_json` for the MCP and debugging surfaces. `bincode` is
   unmaintained as of its 3.0.0 tombstone release and is not used.
+- **Game records.** Because a game is fully determined by its
+  configuration, decks, seed, and action history, a `GameRecord` is just
+  those four things plus metadata (agents, result, duration, tags,
+  engine and card-corpus versions). It is the unit of storage for the
+  review tool (§9.4), for RL replay, and for regression tests: a record
+  can be re-simulated to produce every intermediate state. Records are
+  small (a few KB) and written by `mtg-sim`, the Python env, and the MCP
+  server whenever recording is enabled. The optional full event log is
+  stored alongside only when the caller asks for it, since it can be
+  regenerated.
 
 ## 5. Card database and ingest
 
@@ -365,7 +388,8 @@ Rules for the option list:
 - **Scryfall is a development-time dependency only.** `mtg-cards ingest`
   is an explicit command that downloads the bulk files into a gitignored
   `data/scryfall/` directory and writes a committed lockfile
-  (`data/scryfall.lock`: bulk `updated_at`, download URI, SHA-256). CI
+  (`data/sources.lock`: per file, the bulk `updated_at`, download URI,
+  SHA-256 and size; MTGJSON build version likewise). CI
   fetches the exact snapshot named in the lockfile. `cargo build` never
   touches the network. The DSL card files (§6) carry the printed
   characteristics the engine needs, plus the `oracle_id` they were
@@ -645,10 +669,65 @@ Play as a human against a baseline agent, replay a game from its action
 history, step through a scenario, and dump state. Primarily a debugging
 tool.
 
+### 9.4 Game review (`mtg-review`)
+
+A web application for humans to find and watch recorded games. It is how
+we inspect what an RL policy learned, read an LLM's reasoning next to the
+board it was looking at, and diagnose a rules bug reported as "game X,
+turn 7".
+
+**Store.** A directory of `GameRecord` files (§4.8) plus a SQLite index
+over their metadata: timestamp, format, deck names, agent names and
+versions, result, turn count, tags, and any free-text notes. `mtg-review
+import <dir>` indexes records produced by the other crates; `mtg-sim` can
+also write straight into the store.
+
+**Server.** A Rust binary (axum) serving a JSON API and static assets.
+Endpoints: list and filter games; fetch a game's metadata; fetch the
+sequence of step snapshots for a game. Snapshots are produced by
+re-simulating the record with `mtg-core`, which is deterministic, so
+nothing but the record is persisted. Each snapshot is the full public
+state plus, for the review view, both players' hidden information (a
+reviewer is allowed to see everything; a `redact` flag hides one side for
+reviewing play from a single seat). Snapshots for a game are cached in
+memory after first request.
+
+**Playback UI.** A single-page app served by the same binary:
+
+- Game list with filters (format, decks, agents, result, date, tags) and
+  search by game id or note text.
+- Board view per step: both players' life, mana pool, battlefield grouped
+  by controller with tapped/counters/attachments shown, hands, graveyards,
+  exile, libraries (count and known top cards), the stack with targets
+  drawn as arrows, and the current phase and priority holder.
+- A timeline: step forward and back, jump to a turn or phase, jump to the
+  next decision by a chosen player, scrub.
+- The event log alongside, synchronized with the timeline, with the
+  decision taken at each step and the full legal option list that was
+  available, so a reviewer can see what the agent could have done.
+- An agent-commentary panel: for LLM games, the model's reasoning text
+  for each decision, recorded by the MCP server; for RL games, the
+  policy's option scores if the trainer attached them.
+- Card rendering is text-only (name, cost, type line, Oracle text,
+  current characteristics), per the no-images policy in §10.
+
+**Technology.** Backend is Rust so it shares `mtg-core` types directly.
+The frontend stack is an open question (§12); the first version is a
+small TypeScript app with no framework commitments, built to static
+files and checked in. The server runs locally during development and can
+be deployed as a service later for sharing games.
+
+**Milestones.** The `GameRecord` format and deterministic re-simulation
+land in M1, since that is when determinism exists and when the CLI
+replay needs it. `mtg-review` v1 (store, list, playback with event log)
+is part of M4 alongside the Python and MCP surfaces, because those are
+what produce games worth reviewing. The agent-commentary panel follows
+once the MCP server records reasoning.
+
 ## 10. Data, licensing, and attribution
 
-- **Our code:** MIT or Apache-2.0 (decide before first public commit),
-  with an explicit statement that card names, Oracle text, rulings, and
+- **Our code:** MIT (decided 2026-10-29), with an explicit statement in
+  `LICENSE` and `README.md` that card names, Oracle text, rulings, and
   the Comprehensive Rules are property of Wizards of the Coast and are
   not covered by the code licence. This is the practice of arcana,
   Majik, MageZero and others.
@@ -690,7 +769,8 @@ Each milestone has an acceptance test. Nothing is "done" without it.
   resolution (CR 608), casting steps (CR 601), mana and payment
   canonicalization, combat (CR 506–511) including damage assignment
   order, SBA loop (CR 704), mulligans (CR 103.5), decision interface,
-  chance nodes, seeded determinism, event log.
+  chance nodes, seeded determinism, event log, `GameRecord` format with
+  re-simulation (`mtg-cli replay`).
 - Cards: basic lands, vanilla and French-vanilla creatures with evergreen
   evasion keywords, burn, simple pump, simple removal.
 - Agents: random, greedy.
@@ -711,12 +791,14 @@ Each milestone has an acceptance test. Nothing is "done" without it.
 - Accept: 500 Pauper cards supported through the gate; 1,000 ported
   XMage scenarios passing or adjudicated.
 
-**M4: Python and MCP (3–4 weeks)**
+**M4: Python, MCP, and review (4–6 weeks)**
 - `mtg-py` with PettingZoo AEC env and batch simulation; `mtg-mcp`
-  stdio and HTTP; `mtg-cli`.
+  stdio and HTTP; `mtg-cli`; `mtg-review` v1 with store, game list, and
+  step-by-step playback with the event log and legal option list.
 - Accept: a masked-PPO self-play run on a fixed Pauper matchup trains
   without env errors at ≥ 10k steps/s on 16 cores; Claude Code plays a
-  complete game via MCP.
+  complete game via MCP; that game is opened in the review UI and
+  stepped through from a recorded `GameRecord`.
 
 **M5: Coverage and hardening (ongoing)**
 - Pauper to ≥ 95% supported; Standard snapshot; modal and multi-face
@@ -743,7 +825,13 @@ Each milestone has an acceptance test. Nothing is "done" without it.
    escape hatch.
 7. **Commander and multiplayer.** APNAP ordering (CR 101.4) and
    multiplayer SBAs are designed in but untested until a later milestone.
-8. **Licence choice** between MIT and Apache-2.0.
+8. **Licence choice.** Resolved: MIT (2026-10-29).
+9. **Review UI frontend stack.** Plain TypeScript to start; whether to
+   adopt a framework, and whether to render the board as DOM or canvas,
+   is decided when the M4 playback view is built.
+10. **Review tool hosting.** Local-only in v1. If games are to be shared
+   with people outside the machine, it becomes a deployed service and
+   needs a decision on access control and on where game records live.
 
 ## 13. Sources
 

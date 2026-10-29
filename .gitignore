@@ -1,7 +1,6 @@
 # Rust
 /target/
 **/*.rs.bk
-Cargo.lock.orig
 
 # Python
 __pycache__/
@@ -10,9 +9,10 @@ __pycache__/
 *.egg-info/
 dist/
 
-# Fetched card data (pinned by data/scryfall.lock, see design.md §5)
+# Fetched card data (pinned by data/sources.lock, see design.md §5)
 /data/scryfall/
 /data/mtgjson/
+*.part
 
 # Editor / OS
 .idea/

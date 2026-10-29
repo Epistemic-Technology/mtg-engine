@@ -1,0 +1,24 @@
+# Verifies that the pinned card-data snapshot is still fetchable and that
+# its pool sizes match live Scryfall within 1% (design.md §11, M0 acceptance).
+# Runs weekly, on demand, and whenever the lockfile changes. Not part of the
+# per-commit CI because it needs the network and ~30 MB of downloads.
+name: data
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+  push:
+    paths:
+      - data/sources.lock
+      - crates/mtg-cards/**
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo run -p mtg-cards -- ingest --locked
+      - run: cargo run -p mtg-cards -- stats --check
