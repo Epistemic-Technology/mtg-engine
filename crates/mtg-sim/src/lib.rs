@@ -219,7 +219,7 @@ mod tests {
                     crate::decks::by_name(&pool, b).unwrap(),
                 ];
                 let stats = random_batch(&pool, &decks, games, 42, false);
-                assert!(stats.panics.is_empty(), "{a} vs {b}: {:?}", stats.panics);
+                assert_eq!(stats.panics.len(), 0, "{a} vs {b}: {:?}", stats.panics);
                 assert_eq!(stats.unfinished, 0, "{a} vs {b}");
                 assert_eq!(stats.wins[0] + stats.wins[1] + stats.draws, games);
             }

@@ -1874,7 +1874,7 @@ mod tests {
         let ids: Vec<ObjId> = (0..3).map(|_| sm.insert(())).collect();
         let subs = subsets(&ids);
         assert_eq!(subs.len(), 8);
-        assert!(subs[0].is_empty());
+        assert_eq!(subs[0].len(), 0);
         assert_eq!(subs[7].len(), 3);
         let blocks = block_assignments(&ids[..2], &[vec![ids[2]], vec![ids[2]]]);
         assert_eq!(blocks.len(), 4);

@@ -358,7 +358,7 @@ mod tests {
 
         let two_generic_r = ManaCost::parse("{2}{R}").unwrap().requirements(0);
         let left = pool.payment_plan(&two_generic_r).unwrap();
-        assert!(left.is_empty());
+        assert_eq!(left.total(), 0);
 
         let gg = ManaCost::parse("{G}{G}").unwrap().requirements(0);
         assert!(!pool.can_pay(&gg));
