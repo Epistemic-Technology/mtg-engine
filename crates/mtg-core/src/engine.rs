@@ -458,7 +458,9 @@ impl GameState {
                         .into_iter()
                         .map(Choice::Target)
                         .collect();
-                    debug_assert!(!options.is_empty(), "cast offered without legal targets");
+                    if options.is_empty() {
+                        unreachable!("cast offered without legal targets");
+                    }
                     return StepResult::Decision(Decision {
                         player: caster,
                         kind: DecisionKind::ChooseTarget {
@@ -579,7 +581,9 @@ impl GameState {
                             options.push(Choice::Blocks(assignment));
                         }
                     }
-                    debug_assert!(!options.is_empty());
+                    if options.is_empty() {
+                        unreachable!("no legal block declaration");
+                    }
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::DeclareBlockers,
