@@ -11,8 +11,11 @@ name = "mtg"
 path = "src/main.rs"
 
 [dependencies]
+anyhow.workspace = true
 clap.workspace = true
 mtg-core = { path = "../mtg-core" }
+mtg-sim = { path = "../mtg-sim" }
+serde_json.workspace = true
 
 [lints]
 workspace = true

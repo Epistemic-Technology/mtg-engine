@@ -1,6 +1,6 @@
 # MTG Engine: Design Document
 
-Status: draft v0.2, 2026-10-29 (v0.1 2026-10-24)
+Status: draft v0.3, 2026-10-30 (v0.1 2026-10-24, v0.2 2026-10-29)
 Target: Linux x86-64. Rust 2024 edition, MSRV 1.88.
 
 ## 1. Purpose
@@ -378,6 +378,59 @@ Rules for the option list:
   stored alongside only when the caller asks for it, since it can be
   regenerated.
 
+### 4.9 Lessons taken from MTG-Ichor and rustmage (read 2026-10-30)
+
+Before locking M1's representation we read the two most relevant alpha
+Rust engines. They sit at opposite ends of one axis: MTG-Ichor is
+callback-driven and rules-complete-first (the engine *calls* a decision
+provider), rustmage is a synchronous `legal_actions()` / `apply(action)`
+state machine tuned for two million decisions per second. What we took:
+
+- **Step function, with every in-flight decision on the state.** Ichor's
+  callback design left only about a third of its prompts forkable and
+  "pausing at a decision" is its largest pending redesign. Our `Flow`
+  enum holds partial casts, declarations, and damage assignment, so a
+  clone at any decision resumes. Keep it that way: no decision site may
+  hold outcome-affecting state outside `GameState`.
+- **Never-reused object identity.** Both engines mint a new identity per
+  zone change (CR 400.7). We use `slotmap` generational keys, so a stale
+  id can never alias a live object; the mover writes last-known
+  information, consumers never do.
+- **Plain cloned state, no undo journal, no per-action checkpoint.**
+  rustmage's full-state checkpoint plus `catch_unwind` on every action
+  costs it 27–32% of throughput and forces `panic=unwind`. We validate
+  before mutating. Copy-on-write (`Arc::make_mut`) is reserved for the
+  object arena and libraries if clone cost ever matters; at 2.8 µs it
+  does not yet.
+- **Board-wide layer passes, one coarse cache epoch.** Ichor computes
+  characteristics one board-wide pass per layer so later applications
+  in a layer see earlier ones, and caches with a single `layer_epoch`
+  audited in debug builds. rustmage's hand-ordered stat code cannot grow
+  a CR 613.8 dependency algorithm. M2 follows Ichor.
+- **One mutation chokepoint.** Ichor's proposed-action → replacement
+  pipeline → performed-event design is what let replacement effects,
+  triggers and the log plug in later; rustmage's per-family events forced
+  a panic-unwind hack for zone replacements. M2 introduces the chokepoint
+  before any replacement effect exists.
+- **SBA/trigger loop at every priority point**, including after each
+  resolution and the cleanup 514.3a probe, looping while triggers were
+  placed. rustmage defers the re-check to the next action, which is
+  subtly late. M1 already runs SBAs at every priority entry.
+- **Combat declarations: incremental with completion-preserving
+  filters** is rustmage's answer to open question 2 and avoids handing an
+  agent a 2^n option list. M1 enumerates full sets up to 1,024 options
+  and falls back to incremental above that; M4's action encoding decides
+  which becomes the default.
+- **Hidden information and chance are nobody's solved problem.** Neither
+  engine has determinization; Ichor calls its missing visibility model a
+  v1 blocker. M1 therefore ships `visible_to` and `observe(viewer)` from
+  the start. Shuffles are still sampled from the in-state RNG; exposing
+  chance nodes or a branch-reseed hook is an M2 item so search does not
+  replay the same future draws.
+- **Measured floors in CI.** Ichor enforces decisions-per-core-second
+  and clone-cost bounds in CI with a counting allocator. We add the same
+  once the numbers below have a few weeks of history.
+
 ## 5. Card database and ingest
 
 - **Primary corpus:** Scryfall `oracle_cards` bulk file (gzipped JSONL,
@@ -588,6 +641,22 @@ Targets are per core on the current dev box (16 cores). If milestone 1
 measurements miss by more than 3x, we revisit state layout before adding
 features.
 
+**M1 baseline (2026-10-30, release build, random agents, 60-card
+mono-colored decks, logging off):**
+
+| Metric | Measured |
+|---|---|
+| Games/s, one thread (mono-red vs mono-green, 2,000 games) | 2,620 |
+| Games/s, 16 threads (SMT) | 11,800 |
+| Mean decisions per game | ~490 |
+| Decisions/s, one thread | ~1.3 M |
+| `GameState::clone()` after 200 decisions | 2.8 µs |
+| 10,000 games across five deck pairs | 0 panics, 0 unfinished |
+
+The games/s target is met before any optimization; characteristics are
+recomputed on every query with no cache, so the first real cost will
+appear when M2 adds continuous effects at scale.
+
 ### 8.2 Techniques
 
 - Enums over trait objects in hot paths; `SmallVec` for zones and option
@@ -712,10 +781,13 @@ memory after first request.
   current characteristics), per the no-images policy in §10.
 
 **Technology.** Backend is Rust so it shares `mtg-core` types directly.
-The frontend stack is an open question (§12); the first version is a
-small TypeScript app with no framework commitments, built to static
-files and checked in. The server runs locally during development and can
-be deployed as a service later for sharing games.
+Frontend is TypeScript with SolidJS (decided 2026-10-30), built with Vite
+to static files that the Rust binary serves; the built assets are
+checked in so the server has no Node dependency at run time. Solid's
+fine-grained reactivity suits a playback view where a timeline scrub
+changes one step's worth of board state at a time. The server runs
+locally during development and can be deployed as a service later for
+sharing games.
 
 **Milestones.** The `GameRecord` format and deterministic re-simulation
 land in M1, since that is when determinism exists and when the CLI
@@ -764,7 +836,19 @@ Each milestone has an acceptance test. Nothing is "done" without it.
 - Accept: `cargo test` green; `mtg-cards stats` prints pool sizes
   matching Scryfall within 1%.
 
-**M1: Core loop with vanilla cards (4–6 weeks)**
+**M1: Core loop with vanilla cards (4–6 weeks; started 2026-10-30)**
+
+Status 2026-10-30: first cut complete and green. Zones, turn structure,
+priority, stack, casting with targets and canonical mana payment, combat
+(attack and block declaration as sets with incremental fallback,
+first/double strike, trample divisions, menace, flying/reach, deathtouch,
+lifelink, vigilance, haste, defender, indestructible, hexproof), SBAs,
+London mulligan, decision interface, event log, `GameRecord` with replay,
+`observe(viewer)`, random agent, parallel batch simulation, 28-card M1
+pool with five 60-card decks. Not yet: `mtg-cli replay` prints the log but
+there is no human play mode; no scenario DSL (M3), so rules tests beyond
+invariants are thin; no chance nodes; the engine source is one large
+file and wants splitting.
 - Zones, turn structure (CR 500–514), priority (CR 117), stack and
   resolution (CR 608), casting steps (CR 601), mana and payment
   canonicalization, combat (CR 506–511) including damage assignment
@@ -807,8 +891,9 @@ Each milestone has an acceptance test. Nothing is "done" without it.
 
 ## 12. Open questions
 
-1. **Flat clone vs. structural sharing.** Decided for flat clone; M1
-   measurements may overturn it. The API does not change either way.
+1. **Flat clone vs. structural sharing.** Decided for flat clone and
+   confirmed by M1 measurement (2.8 µs per clone mid-game, under the
+   5 µs target). Revisit only if M2's effect rows change the picture.
 2. **Attack/block declaration as sets vs. incremental.** Sets are
    cleaner for RL masking; combinatorial on wide boards. Proposed hybrid
    in §4.7; validate with the fuzzer on token decks.
@@ -826,9 +911,9 @@ Each milestone has an acceptance test. Nothing is "done" without it.
 7. **Commander and multiplayer.** APNAP ordering (CR 101.4) and
    multiplayer SBAs are designed in but untested until a later milestone.
 8. **Licence choice.** Resolved: MIT (2026-10-29).
-9. **Review UI frontend stack.** Plain TypeScript to start; whether to
-   adopt a framework, and whether to render the board as DOM or canvas,
-   is decided when the M4 playback view is built.
+9. **Review UI frontend stack.** Resolved: TypeScript + SolidJS
+   (2026-10-30). Whether to render the board as DOM or canvas is decided
+   when the M4 playback view is built.
 10. **Review tool hosting.** Local-only in v1. If games are to be shared
    with people outside the machine, it becomes a deployed service and
    needs a decision on access control and on where game records live.

@@ -5,8 +5,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Batch simulation, fuzzing, and benchmarks for the MTG engine"
 
 [dependencies]
+mtg-agents = { path = "../mtg-agents" }
+mtg-core = { path = "../mtg-core" }
+rayon.workspace = true
 
 [lints]
 workspace = true
