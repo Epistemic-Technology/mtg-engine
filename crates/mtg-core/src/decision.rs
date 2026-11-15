@@ -27,6 +27,9 @@ pub enum DecisionKind {
     AssignCombatDamage { attacker: ObjId },
     /// Discard to maximum hand size (CR 514.1).
     Discard,
+    /// Choose which of several triggered abilities to put on the stack next
+    /// (CR 603.3b). The one chosen first resolves last.
+    OrderTriggers,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -54,6 +57,9 @@ pub enum Choice {
     /// Combat damage division as (recipient, amount) pairs.
     Division(Vec<(Target, u32)>),
     Discard(ObjId),
+    /// Put the pending triggered ability at this index of
+    /// `GameState::pending_triggers` on the stack.
+    Trigger(usize),
 }
 
 impl Choice {
@@ -101,6 +107,13 @@ impl Choice {
                 .collect::<Vec<_>>()
                 .join(", "),
             Choice::Discard(id) => format!("discard {}", name(id)),
+            Choice::Trigger(i) => {
+                let source = state
+                    .pending_triggers
+                    .get(*i)
+                    .map_or("?", |t| state.name_of_or_lki(t.ability.source));
+                format!("put {source}'s trigger on the stack")
+            }
         }
     }
 }

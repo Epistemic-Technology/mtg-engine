@@ -3,12 +3,12 @@
 use smallvec::SmallVec;
 
 use crate::card::Modification;
-use crate::card::{AbilityDef, Effect, Keyword, PlayerRef, TargetSpec};
+use crate::card::{AbilityDef, Effect, Keyword, Recipient, TargetSpec};
 use crate::decision::Choice;
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
-use crate::state::{Affected, ContinuousEffect, Duration, GameState, Target, Zone};
+use crate::state::{Affected, ContinuousEffect, Duration, GameState, ObjKind, Target, Zone};
 
 impl GameState {
     // ----- priority actions --------------------------------------------------------
@@ -141,6 +141,10 @@ impl GameState {
             return;
         };
         let obj = self.objects[spell].clone();
+        if obj.kind == ObjKind::Ability {
+            self.resolve_ability(spell);
+            return;
+        }
         let def = self.pool.get(obj.def).clone();
         if let Some(spec) = def.enchant() {
             // CR 303.4f, 608.2b: an Aura spell whose target is illegal is
@@ -188,8 +192,16 @@ impl GameState {
                 spell,
                 def: obj.def,
             });
+            let ctx = EffectCtx {
+                source: spell,
+                controller: obj.controller,
+                targets: obj.targets.to_vec(),
+                legal,
+                trigger_obj: None,
+                trigger_player: None,
+            };
             for effect in effects {
-                self.apply_effect(spell, obj.controller, &obj.targets, &legal, effect);
+                self.apply_effect(&ctx, effect);
             }
         } else {
             self.emit(Event::Resolve {
@@ -209,36 +221,79 @@ impl GameState {
         }
     }
 
-    pub(super) fn apply_effect(
-        &mut self,
-        source: ObjId,
-        controller: PlayerId,
-        targets: &[Target],
-        legal: &[bool],
-        effect: &Effect,
-    ) {
-        let target_of = |i: usize| -> Option<Target> {
-            if legal.get(i).copied().unwrap_or(false) {
-                targets.get(i).copied()
-            } else {
-                None
+    /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
+    fn recipients(&self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
+        let mut out = SmallVec::new();
+        match r {
+            Recipient::Target(i) => {
+                if ctx.legal.get(i).copied().unwrap_or(false)
+                    && let Some(t) = ctx.targets.get(i)
+                {
+                    out.push(*t);
+                }
             }
+            Recipient::You => out.push(Target::Player(ctx.controller)),
+            Recipient::EachOpponent => {
+                out.extend(
+                    self.players_in_game()
+                        .filter(|p| *p != ctx.controller)
+                        .map(Target::Player),
+                );
+            }
+            Recipient::Source => {
+                if let Some(id) = self.current_object(ctx.source) {
+                    out.push(Target::Object(id));
+                }
+            }
+            Recipient::TriggeringObject => {
+                if let Some(id) = ctx.trigger_obj.and_then(|o| self.current_object(o)) {
+                    out.push(Target::Object(id));
+                }
+            }
+            Recipient::TriggeringPlayer => {
+                if let Some(p) = ctx.trigger_player {
+                    out.push(Target::Player(p));
+                }
+            }
+            Recipient::DefendingPlayer => {
+                let attacked = ctx
+                    .trigger_obj
+                    .and_then(|a| self.combat.as_ref()?.attacker(a).map(|at| at.attacking));
+                // If the attacker already left combat, the player it was
+                // attacking is the only opponent in a two-player game.
+                out.push(attacked.unwrap_or(Target::Player(self.opponent(ctx.controller))));
+            }
+        }
+        out
+    }
+
+    pub(super) fn apply_effect(&mut self, ctx: &EffectCtx, effect: &Effect) {
+        let on_battlefield = |st: &GameState, t: Target| match t {
+            Target::Object(id) => st
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+                .then_some(id),
+            Target::Player(_) => None,
         };
         match effect {
-            Effect::DealDamage { amount, target } => {
-                if let Some(t) = target_of(*target) {
-                    self.deal_damage(source, t, *amount, false);
+            Effect::DealDamage { amount, to } => {
+                for t in self.recipients(ctx, *to) {
+                    self.deal_damage(ctx.source, t, *amount, false);
                 }
             }
             Effect::Pump {
                 power,
                 toughness,
-                target,
+                to,
             } => {
-                if let Some(Target::Object(id)) = target_of(*target) {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
                     let timestamp = self.tick();
                     self.effects.push(ContinuousEffect {
-                        source: Some(source),
+                        source: Some(ctx.source),
                         timestamp,
                         duration: Duration::UntilEndOfTurn,
                         affected: Affected::Objects(smallvec::smallvec![id]),
@@ -250,32 +305,72 @@ impl GameState {
                     self.bump();
                 }
             }
-            Effect::Destroy { target } => {
-                if let Some(Target::Object(id)) = target_of(*target) {
-                    self.destroy(id);
+            Effect::Destroy { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.destroy(id);
+                    }
                 }
             }
-            Effect::GainLife { amount, player } => {
-                let PlayerRef::You = player;
-                self.change_life(controller, i32::try_from(*amount).unwrap_or(i32::MAX));
-            }
-            Effect::DrawCards { count, player } => {
-                let PlayerRef::You = player;
-                for _ in 0..*count {
-                    self.draw(controller);
+            Effect::GainLife { amount, who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.change_life(p, i32::try_from(*amount).unwrap_or(i32::MAX));
+                    }
                 }
             }
-            Effect::AddCounters {
-                kind,
-                count,
-                target,
-            } => {
-                if let Some(Target::Object(id)) = target_of(*target) {
-                    self.add_counters(id, *kind, *count);
+            Effect::LoseLife { amount, who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.change_life(p, -i32::try_from(*amount).unwrap_or(i32::MAX));
+                    }
+                }
+            }
+            Effect::DrawCards { count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        for _ in 0..*count {
+                            self.draw(p);
+                        }
+                    }
+                }
+            }
+            Effect::AddCounters { kind, count, to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.add_counters(id, *kind, *count);
+                    }
+                }
+            }
+            Effect::ReturnToHand { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    let in_zone = self
+                        .objects
+                        .get(id)
+                        .is_some_and(|o| matches!(o.zone, Zone::Battlefield | Zone::Graveyard));
+                    if in_zone {
+                        self.move_object(id, Zone::Hand, false);
+                    }
                 }
             }
         }
     }
+}
+
+/// What a resolving spell or ability knows while its effects apply.
+pub(super) struct EffectCtx {
+    /// The spell, or the ability's source (by the id it had when it
+    /// triggered).
+    pub source: ObjId,
+    pub controller: PlayerId,
+    pub targets: Vec<Target>,
+    /// Per target: still legal on resolution (CR 608.2b).
+    pub legal: Vec<bool>,
+    pub trigger_obj: Option<ObjId>,
+    pub trigger_player: Option<PlayerId>,
 }
 
 /// A canonical payment plan: which sources to tap, and for what, so that

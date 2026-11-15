@@ -101,6 +101,13 @@ pub enum Action {
         parts: Vec<(TargetRef, u32)>,
     },
     Discard(String),
+    /// `trigger "Source" [targeting ...]`: when the player orders several
+    /// pending triggers, put this source's trigger on the stack next; when
+    /// its targets are chosen, use these.
+    Trigger {
+        source: String,
+        targets: Vec<TargetRef>,
+    },
 }
 
 impl Action {
@@ -112,6 +119,7 @@ impl Action {
             Action::Block { .. } => "block",
             Action::Assign { .. } => "assign",
             Action::Discard(_) => "discard",
+            Action::Trigger { .. } => "trigger",
         }
     }
 }
@@ -171,6 +179,8 @@ pub enum Assertion {
     Attached(ObjRef, ObjRef),
     /// `no_abilities "X"`.
     NoAbilities(ObjRef),
+    /// `stack top "X"`: the top object of the stack is named X.
+    StackTop(String),
 }
 
 /// Step names accepted in scenario files.

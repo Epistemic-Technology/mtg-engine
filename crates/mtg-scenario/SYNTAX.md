@@ -53,6 +53,7 @@ scenario fails.
 | `block "Attacker" with "Blocker"` | `declare_blockers` | Several lines combine. The same attacker may be named twice to double-block it. |
 | `assign "Attacker" to "Blocker" 2, player B 4` | any combat damage step | Divide combat damage among blockers (and the player, with trample). Unscripted divisions take the engine's first option. |
 | `discard "Card"` | `cleanup` | Choice when discarding to hand size. |
+| `trigger "Blood Artist" targeting player B` | any step | A triggered ability of that source. When the player controls several triggers waiting to go on the stack, the scripted ones go first, in file order (the first put on the stack resolves last). `targeting` gives the ability's targets, chosen as it goes on the stack (CR 603.3d). Unscripted triggers take the engine's first option. |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 `begin_combat`, `declare_attackers`, `declare_blockers`,
@@ -60,7 +61,8 @@ Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 (`main2`), `end`, `cleanup`.
 
 Unscripted decisions: keep the hand, pass priority, declare no attackers or
-blockers, take the first option otherwise.
+blockers, take the first option otherwise (including trigger order and
+trigger targets).
 
 Names resolve against the current state when the action fires. Where a
 player controls several objects of the same name, `attack` and `block`
@@ -91,6 +93,7 @@ assert damage "Hill Giant" 2
 assert tapped "Mountain"                assert untapped "Serra Angel"
 assert winner A      assert draw      assert game_over      assert not game_over
 assert turn 3        assert step precombat_main        assert stack count 0
+assert stack top "Blood Artist"         # a spell by name, or an ability by its source's name
 assert has "Grizzly Bears" flying       assert has not "Serra Angel" vigilance
 assert is "Humility" creature           assert is not "Urborg, Tomb of Yawgmoth" swamp
 assert is "Dryad Arbor" green           # types, supertypes, land/creature subtypes, colors

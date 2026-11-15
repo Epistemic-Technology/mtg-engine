@@ -87,11 +87,7 @@ impl GreedyAgent {
     }
 
     fn target_score(state: &GameState, me: PlayerId, spell: ObjId, t: Target) -> i32 {
-        let effects: Vec<Effect> = state
-            .def_of(spell)
-            .and_then(|d| d.spell_ability())
-            .map(|(_, e)| e.to_vec())
-            .unwrap_or_default();
+        let effects: Vec<Effect> = state.effects_of(spell).to_vec();
         let opp = state.opponent(me);
         // Auras: judge by the sign of their P/T change (or a granted keyword).
         let aura_delta: Option<i32> = state.def_of(spell).filter(|d| d.is_aura()).map(|d| {
@@ -186,7 +182,9 @@ impl Agent for GreedyAgent {
         let me = d.player;
         match d.kind {
             DecisionKind::Mulligan => Self::best_by(d, |c| i64::from(*c == Choice::Keep)),
-            DecisionKind::Bottom | DecisionKind::AssignCombatDamage { .. } => 0,
+            DecisionKind::Bottom
+            | DecisionKind::AssignCombatDamage { .. }
+            | DecisionKind::OrderTriggers => 0,
             DecisionKind::PriorityAction => Self::best_by(d, |c| match c {
                 Choice::PlayLand(_) => 1_000,
                 Choice::Cast(id) => {

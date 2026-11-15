@@ -28,6 +28,7 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
+            ability: None,
         })
     }
 
@@ -59,6 +60,7 @@ impl GameState {
             LastKnown {
                 object: old.clone(),
                 characteristics,
+                moved_to: None,
             },
         );
         // Locked-in effects stop applying to the object (CR 611.2c);
@@ -85,7 +87,19 @@ impl GameState {
             targets: SmallVec::new(),
             counters: SmallVec::new(),
             attached_to: None,
+            ability: None,
         });
+        if let Some(l) = self.lki.get_mut(&id) {
+            l.moved_to = Some(new);
+        }
+        if self.pool.get(old.def).has_triggers() {
+            if old.zone == Zone::Battlefield {
+                self.trigger_sources -= 1;
+            }
+            if to == Zone::Battlefield {
+                self.trigger_sources += 1;
+            }
+        }
         match to {
             Zone::Battlefield => self.battlefield.push(new),
             Zone::Stack => self.stack.push(new),

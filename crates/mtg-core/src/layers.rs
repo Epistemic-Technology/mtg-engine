@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype, Who,
+    AbilityDef, AbilityId, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype,
 };
 use crate::ids::{ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone};
@@ -86,38 +86,7 @@ impl Work<'_> {
             .filter(|id| {
                 let o = &self.state.objects[*id];
                 let c = &self.chars[self.index[id]];
-                if filter.other && source == Some(*id) {
-                    return false;
-                }
-                if let Some(w) = filter.who
-                    && let Some(ctl) = controller
-                {
-                    let ok = match w {
-                        Who::Any => true,
-                        Who::You => o.controller == ctl,
-                        Who::Opponents => o.controller != ctl,
-                    };
-                    if !ok {
-                        return false;
-                    }
-                }
-                if !c.types.contains_all(filter.types) || c.types.intersects(filter.not_types) {
-                    return false;
-                }
-                if !c.supertypes.contains_all(filter.supertypes)
-                    || c.supertypes.intersects(filter.not_supertypes)
-                {
-                    return false;
-                }
-                if let Some(cs) = filter.colors
-                    && !c.colors.intersects(cs)
-                {
-                    return false;
-                }
-                if c.subtypes.iter().any(|s| filter.not_subtypes.contains(s)) {
-                    return false;
-                }
-                !filter.no_abilities || c.has_no_abilities()
+                filter.matches(*id, o.controller, c, source, controller)
             })
             .collect()
     }

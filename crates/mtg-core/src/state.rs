@@ -12,7 +12,7 @@ use smallvec::SmallVec;
 
 pub use crate::card::Layer;
 use crate::card::{
-    AbilitySet, CardDef, CardPool, CardRef, CardType, CounterKind, Keyword, KeywordSet,
+    AbilityId, AbilitySet, CardDef, CardPool, CardRef, CardType, CounterKind, Keyword, KeywordSet,
     Modification, ObjFilter, SubtypeSet, SupertypeSet, TargetSpec, TypeSet,
 };
 use crate::event::Event;
@@ -45,6 +45,41 @@ impl Zone {
 pub enum ObjKind {
     Card,
     Token,
+    /// An ability on the stack (CR 113.2b). Ceases to exist when it leaves
+    /// the stack.
+    Ability,
+}
+
+/// What an ability object on the stack is an instance of.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct StackAbility {
+    pub ability: AbilityId,
+    /// The object the ability came from, by the id it had when it triggered
+    /// (possibly no longer on the battlefield; see `GameState::lki`).
+    pub source: ObjId,
+    /// The object whose action triggered it, if any.
+    pub trigger_obj: Option<ObjId>,
+    /// The player whose action triggered it, if any.
+    pub trigger_player: Option<PlayerId>,
+}
+
+/// A triggered ability that has triggered but is not yet on the stack
+/// (CR 603.3).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct PendingTrigger {
+    pub controller: PlayerId,
+    pub ability: StackAbility,
+    pub timestamp: Timestamp,
+}
+
+/// A permanent as it was just before a batch of simultaneous zone changes,
+/// for leaves-the-battlefield triggers (CR 603.10a).
+#[derive(Clone, Debug)]
+pub struct Lookback {
+    pub id: ObjId,
+    pub controller: PlayerId,
+    pub tapped: bool,
+    pub characteristics: Characteristics,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -75,6 +110,8 @@ pub struct GameObject {
     pub counters: SmallVec<[(CounterKind, u32); 2]>,
     /// For Auras and Equipment: what this is attached to (CR 301.5, 303.4).
     pub attached_to: Option<ObjId>,
+    /// For `ObjKind::Ability` objects.
+    pub ability: Option<StackAbility>,
 }
 
 impl GameObject {
@@ -279,6 +316,9 @@ impl std::fmt::Debug for DerivedCache {
 pub struct LastKnown {
     pub object: GameObject,
     pub characteristics: Characteristics,
+    /// The object it became in its new zone (CR 400.7), if it moved rather
+    /// than ceased to exist.
+    pub moved_to: Option<ObjId>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -329,6 +369,11 @@ pub enum Flow {
     },
     /// Cleanup discard to maximum hand size (CR 514.1).
     Discarding,
+    /// `player` controls several triggered abilities waiting to go on the
+    /// stack and chooses their order (CR 603.3b).
+    OrderTriggers {
+        player: PlayerId,
+    },
     /// All players passed with an empty stack: the step ends.
     EndStep,
     GameOver,
@@ -359,6 +404,14 @@ pub struct GameState {
     pub combat: Option<CombatState>,
     pub effects: Vec<ContinuousEffect>,
     pub lki: HashMap<ObjId, LastKnown>,
+    /// Triggered abilities waiting to be put on the stack (CR 603.3).
+    pub pending_triggers: Vec<PendingTrigger>,
+    /// Battlefield objects whose definition has a triggered ability, so
+    /// that events on trigger-free boards cost nothing to detect over.
+    pub trigger_sources: u32,
+    /// Set during a batch of simultaneous zone changes: the battlefield as
+    /// it was before the batch (CR 603.10a).
+    pub lookback: Option<Vec<Lookback>>,
     pub rng: ChaCha8Rng,
     pub next_timestamp: Timestamp,
     pub flow: Flow,
@@ -415,9 +468,63 @@ impl GameState {
         self.version += 1;
     }
 
+    /// Record an event: triggered abilities that watch it trigger (CR 603.2),
+    /// then it is logged.
     pub fn emit(&mut self, event: Event) {
+        // Cheap test first: nothing on the battlefield (or just leaving it)
+        // can have a triggered ability on most boards.
+        let may_trigger = self.trigger_sources > 0
+            || self.lookback.is_some()
+            || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
+        if may_trigger {
+            self.detect_triggers(&event);
+        }
         if self.logging {
             self.log.push(event);
+        }
+    }
+
+    /// The object `id` is now, following zone changes (CR 400.7), if it
+    /// still exists.
+    pub fn current_object(&self, mut id: ObjId) -> Option<ObjId> {
+        for _ in 0..8 {
+            if self.objects.contains_key(id) {
+                return Some(id);
+            }
+            id = self.lki.get(&id)?.moved_to?;
+        }
+        None
+    }
+
+    /// Name of an object, including one that has left the game.
+    pub fn name_of_or_lki(&self, id: ObjId) -> &str {
+        let def = self
+            .objects
+            .get(id)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&id).map(|l| l.object.def));
+        def.map_or("?", |d| self.pool.get(d).name.as_str())
+    }
+
+    /// Targets a stack object needs: a spell's cast targets or an ability's.
+    pub fn targets_of(&self, id: ObjId) -> &[TargetSpec] {
+        let Some(o) = self.objects.get(id) else {
+            return &[];
+        };
+        match o.ability {
+            Some(a) => self.pool.ability(a.ability).targets(),
+            None => self.pool.get(o.def).cast_targets(),
+        }
+    }
+
+    /// Effects a stack object applies on resolution.
+    pub fn effects_of(&self, id: ObjId) -> &[crate::card::Effect] {
+        let Some(o) = self.objects.get(id) else {
+            return &[];
+        };
+        match o.ability {
+            Some(a) => self.pool.ability(a.ability).effects(),
+            None => self.pool.get(o.def).spell_ability().map_or(&[], |(_, e)| e),
         }
     }
 
@@ -545,5 +652,23 @@ impl GameState {
         (0..self.num_players())
             .map(|i| PlayerId(u8::try_from(i).unwrap_or(0)))
             .filter(move |p| self.player(*p).lost.is_none())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `GameObject` is cloned on every zone change and `Characteristics` on
+    /// every rules query; keep them small (design §8).
+    #[test]
+    fn hot_structs_stay_small() {
+        let (o, c) = (
+            std::mem::size_of::<GameObject>(),
+            std::mem::size_of::<Characteristics>(),
+        );
+        eprintln!("GameObject {o} bytes, Characteristics {c} bytes");
+        assert!(o <= 136, "GameObject is {o} bytes");
+        assert!(c <= 72, "Characteristics is {c} bytes");
     }
 }

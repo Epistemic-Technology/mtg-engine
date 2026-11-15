@@ -1,0 +1,477 @@
+# Triggered abilities (CR 603): detection from events, APNAP placement on
+# the stack with the controller ordering their own, targets chosen on
+# placement, intervening "if" clauses, look-back for dies triggers, and
+# abilities removed by Humility not triggering.
+
+# ---- enters the battlefield ---------------------------------------------------------
+
+scenario "an enters trigger draws a card after the creature resolves" {
+  battlefield A: 2 "Forest"
+  hand A: "Elvish Visionary"
+  library A: "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Elvish Visionary"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Elvish Visionary"
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A count 1
+}
+
+scenario "the trigger goes on the stack and resolves before the next step" {
+  battlefield A: 2 "Plains"
+  hand A: "Wall of Omens"
+  library A: "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Wall of Omens"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+  assert stack count 0
+}
+
+scenario "soul warden gains life for another creature entering, not for itself" {
+  battlefield A: 2 "Plains", "Forest", "Forest"
+  hand A: "Soul Warden", "Grizzly Bears"
+  turn 1 A: cast "Soul Warden"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert life A 21
+}
+
+scenario "soul warden triggers for an opponent's creature too" {
+  battlefield A: "Soul Warden"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert life A 21
+}
+
+scenario "a lifegain trigger chains off an enters trigger" {
+  # Grizzly Bears enters -> Soul Warden: gain 1 -> Pridemate: +1/+1 counter.
+  battlefield A: "Soul Warden", "Ajani's Pridemate", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert life A 21
+  assert counters "Ajani's Pridemate" +1/+1 1
+  assert power "Ajani's Pridemate" 3
+}
+
+scenario "pridemate grows from lifelink damage" {
+  battlefield A: "Ajani's Pridemate", "Vampire Nighthawk"
+  turn 1 A: attack "Vampire Nighthawk"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert counters "Ajani's Pridemate" +1/+1 1
+}
+
+scenario "pridemate does not trigger on an opponent's lifegain" {
+  battlefield A: "Ajani's Pridemate"
+  battlefield B: "Plains"
+  hand B: "Healing Salve"
+  start turn 2 B
+  turn 2 B: cast "Healing Salve"
+  run_to turn 2 begin_combat
+  assert life B 23
+  assert counters "Ajani's Pridemate" +1/+1 0
+}
+
+scenario "flametongue kavu's enters trigger kills the targeted creature" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Flametongue Kavu"
+  turn 1 A: cast "Flametongue Kavu"
+  turn 1 A: trigger "Flametongue Kavu" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Flametongue Kavu"
+}
+
+scenario "flametongue kavu must target itself when it is the only creature" {
+  battlefield A: 4 "Mountain"
+  hand A: "Flametongue Kavu"
+  turn 1 A: cast "Flametongue Kavu"
+  turn 1 A: trigger "Flametongue Kavu" targeting "Flametongue Kavu"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Flametongue Kavu"
+}
+
+scenario "under humility an enters trigger does not trigger" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Humility", "Hill Giant"
+  hand A: "Flametongue Kavu"
+  turn 1 A: cast "Flametongue Kavu"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert stack count 0
+}
+
+scenario "a scripted trigger target that is not legal fails" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Flametongue Kavu"
+  turn 1 A: cast "Flametongue Kavu"
+  turn 1 A: trigger "Flametongue Kavu" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+}
+
+# ---- dies -------------------------------------------------------------------------
+
+scenario "blood artist drains when another creature dies" {
+  battlefield A: "Blood Artist", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "blood artist drains when it dies itself" {
+  battlefield A: "Blood Artist"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Blood Artist"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Blood Artist"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "blood artist sees a creature that dies at the same time as it" {
+  # Both die to combat damage in the same SBA check; CR 603.10a: Blood
+  # Artist's ability looks back and triggers for both deaths.
+  battlefield A: "Blood Artist", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Trained Armodon"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Trained Armodon"
+  turn 2 A: block "Hill Giant" with "Blood Artist"
+  turn 2 A: block "Trained Armodon" with "Grizzly Bears"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Blood Artist"
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "zulaport cutthroat triggers only for creatures you control" {
+  battlefield A: "Zulaport Cutthroat", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 B: cast "Shock" targeting B "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "festering goblin's death shrinks a creature until end of turn" {
+  battlefield A: "Festering Goblin"
+  battlefield B: "Savannah Lions", "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Festering Goblin"
+  turn 2 A: trigger "Festering Goblin" targeting "Savannah Lions"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Festering Goblin"
+  assert graveyard B contains "Savannah Lions"      # 2/1 -> 1/0
+}
+
+scenario "a dies trigger's damage comes from the dead creature via last-known information" {
+  battlefield A: "Perilous Myr"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Perilous Myr"
+  turn 2 A: trigger "Perilous Myr" targeting player B
+  run_to turn 2 begin_combat
+  assert life B 18
+}
+
+scenario "perilous myr can finish off the creature that killed it" {
+  battlefield A: "Perilous Myr"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Perilous Myr"
+  turn 2 A: trigger "Perilous Myr" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Perilous Myr"
+  assert graveyard B contains "Grizzly Bears"       # 1 combat + 2 from the trigger
+}
+
+scenario "rancor returns to hand after its creature dies" {
+  # Bears dies -> SBA 704.5m puts Rancor in the graveyard -> its trigger
+  # returns the new graveyard object (CR 400.7) to hand.
+  battlefield A: "Grizzly Bears", "Rancor" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Rancor"
+  assert hand A contains "Rancor"
+}
+
+scenario "rancor grants +2/+0 and trample while attached" {
+  battlefield A: "Grizzly Bears", "Rancor" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" trample
+}
+
+# ---- beginning of step ----------------------------------------------------------------
+
+scenario "phyrexian arena draws and drains at its controller's upkeep only" {
+  battlefield A: "Phyrexian Arena"
+  library A: "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert life A 20
+  run_to turn 3 precombat_main
+  assert hand A count 2        # one from the Arena, one from the draw step
+  assert life A 19
+}
+
+scenario "juzam djinn hurts its controller each upkeep" {
+  battlefield A: "Juzám Djinn"
+  run_to turn 1 precombat_main
+  assert life A 19
+  run_to turn 3 precombat_main
+  assert life A 18
+}
+
+scenario "howling mine gives each player an extra card when untapped" {
+  battlefield A: "Howling Mine"
+  library A: "Grizzly Bears", "Grizzly Bears", "Grizzly Bears"
+  library B: "Hill Giant", "Hill Giant", "Hill Giant"
+  start turn 2 A
+  run_to turn 2 precombat_main
+  assert hand A count 2
+  run_to turn 3 precombat_main
+  assert hand B count 2
+}
+
+scenario "a tapped howling mine does not trigger (intervening if)" {
+  # A's tapped Mine stays tapped through B's turn.
+  battlefield A: "Howling Mine" tapped
+  library B: "Hill Giant", "Hill Giant"
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert hand B count 1
+}
+
+scenario "the turn-based draw happens before the howling mine trigger resolves" {
+  battlefield A: "Howling Mine"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A draw
+  run_to turn 2 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+}
+
+# ---- combat ---------------------------------------------------------------------------
+
+scenario "benalish cavalry gets +1/+1 when it attacks" {
+  battlefield A: "Benalish Cavalry"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Benalish Cavalry"
+  turn 1 B: block "Benalish Cavalry" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Benalish Cavalry"
+  assert power "Benalish Cavalry" 3
+  run_to turn 2 upkeep
+  assert power "Benalish Cavalry" 2
+}
+
+scenario "benalish cavalry gets +1/+1 when it blocks" {
+  battlefield A: "Benalish Cavalry"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Benalish Cavalry"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Benalish Cavalry"
+}
+
+scenario "an attack trigger resolves before blockers are declared" {
+  # The pump is on the stack in the declare attackers step; by the declare
+  # blockers step the Cavalry is already 3/3.
+  battlefield A: "Benalish Cavalry"
+  turn 1 A: attack "Benalish Cavalry"
+  run_to turn 1 declare_blockers
+  assert power "Benalish Cavalry" 3
+}
+
+scenario "hellrider pings for each attacking creature you control" {
+  battlefield A: "Hellrider", "Grizzly Bears", "Savannah Lions"
+  turn 1 A: attack "Hellrider", "Grizzly Bears", "Savannah Lions"
+  run_to turn 1 declare_blockers
+  assert life B 17
+  run_to turn 1 postcombat_main
+  assert life B 10        # 3 pings + 3 + 2 + 2 combat
+}
+
+scenario "hellrider does not trigger for the opponent's attackers" {
+  battlefield A: "Hellrider"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert life B 20
+}
+
+scenario "markov blademaster grows on combat damage to a player, once per strike" {
+  battlefield A: "Markov Blademaster"
+  turn 1 A: attack "Markov Blademaster"
+  run_to turn 1 postcombat_main
+  assert counters "Markov Blademaster" +1/+1 2
+  assert life B 17        # 1 first-strike + 2 regular (counter already on)
+}
+
+scenario "markov blademaster does not grow when blocked" {
+  battlefield A: "Markov Blademaster"
+  battlefield B: "Wall of Stone"
+  turn 1 A: attack "Markov Blademaster"
+  turn 1 B: block "Markov Blademaster" with "Wall of Stone"
+  run_to turn 1 postcombat_main
+  assert counters "Markov Blademaster" +1/+1 0
+  assert life B 20
+}
+
+# ---- keyword triggers: prowess ------------------------------------------------------
+
+scenario "prowess pumps for a noncreature spell" {
+  battlefield A: "Monastery Swiftspear", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Monastery Swiftspear" 2
+  assert toughness "Monastery Swiftspear" 3
+  run_to turn 2 upkeep
+  assert power "Monastery Swiftspear" 1
+}
+
+scenario "the prowess trigger goes on the stack above the spell, and a response above both" {
+  # Cast Giant Growth -> prowess triggers and goes on the stack before B
+  # gets priority -> B's Shock goes on top and resolves first, killing the
+  # 1/2. Giant Growth then fizzles and the pump finds nothing to pump.
+  battlefield A: "Monastery Swiftspear", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Giant Growth"
+  hand B: "Shock"
+  turn 1 A: cast "Giant Growth" targeting "Monastery Swiftspear"
+  turn 1 B: cast "Shock" targeting "Monastery Swiftspear" in response to "Giant Growth"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Monastery Swiftspear"
+  assert graveyard A contains "Giant Growth"
+  assert stack count 0
+}
+
+scenario "prowess does not trigger on a creature spell or an opponent's spell" {
+  battlefield A: "Monastery Swiftspear", 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 begin_combat
+  assert power "Monastery Swiftspear" 1
+}
+
+scenario "two noncreature spells give two prowess triggers" {
+  battlefield A: "Monastery Swiftspear", 2 "Mountain"
+  hand A: "Shock", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Monastery Swiftspear" 3
+}
+
+scenario "humility removes prowess" {
+  battlefield A: "Monastery Swiftspear", "Mountain"
+  battlefield B: "Humility"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Monastery Swiftspear" 1
+  assert stack count 0
+}
+
+# ---- ordering (CR 603.3b) ----------------------------------------------------------
+
+scenario "a player orders their own simultaneous triggers; the first chosen resolves last" {
+  # Grizzly Bears dies: both of A's abilities trigger. Scripting Zulaport
+  # first puts it on the stack first, so Blood Artist is on top.
+  battlefield A: "Blood Artist", "Zulaport Cutthroat", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 A: trigger "Zulaport Cutthroat"
+  turn 2 A: trigger "Blood Artist" targeting player B
+  run_to turn 2 begin_combat
+  assert life B 18
+  assert life A 22
+}
+
+scenario "triggers go on the stack in APNAP order: the active player's first" {
+  # Each player controls a Soul Warden; B's creature enters on B's turn.
+  # B is active, so B's trigger goes on the stack first and A's is on top.
+  battlefield A: "Soul Warden"
+  battlefield B: "Soul Warden", 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert life A 21
+  assert life B 21
+}
+
+scenario "a trigger with no legal target is removed rather than put on the stack" {
+  # Festering Goblin is the only creature; when it dies there is nothing
+  # to target (CR 603.3d). The game simply continues.
+  battlefield A: "Festering Goblin"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Festering Goblin"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Festering Goblin"
+  assert stack count 0
+}
+
+scenario "a trigger whose target became illegal does not resolve" {
+  # Shock kills the Goblin; A targets B's Lions with the trigger; B kills
+  # the Lions in response with a second Shock. The trigger fizzles.
+  battlefield A: "Festering Goblin"
+  battlefield B: "Savannah Lions", 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Festering Goblin"
+  turn 2 A: trigger "Festering Goblin" targeting "Savannah Lions"
+  turn 2 B: cast "Shock" targeting "Savannah Lions" in response to "Festering Goblin"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Savannah Lions"
+  assert stack count 0
+}

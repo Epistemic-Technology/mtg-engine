@@ -424,6 +424,7 @@ fn parse_statement(line: &mut Line, sc: &mut Scenario) -> Result<(), ParseError>
 }
 
 /// After `turn`: `N [step] P: action`.
+#[allow(clippy::too_many_lines)] // one arm per action kind
 fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseError> {
     let turn = line.unsigned()?;
     let explicit_step = if line.peek_step() {
@@ -501,6 +502,22 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (Action::Assign { attacker, parts }, None)
         }
         "discard" => (Action::Discard(line.string()?), Some(Step::Cleanup)),
+        "trigger" => {
+            let source = line.string()?;
+            let mut targets = Vec::new();
+            if line.peek_ident("targeting") {
+                line.pos += 1;
+                loop {
+                    targets.push(line.target_ref()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            (Action::Trigger { source, targets }, None)
+        }
         other => return line.fail(format!("unknown action `{other}`")),
     };
     Ok(ScriptedAction {
@@ -591,8 +608,13 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
         "turn" => Assertion::Turn(line.unsigned()?),
         "step" => Assertion::Step(line.step()?),
         "stack" => {
-            line.keyword("count")?;
-            Assertion::StackCount(line.count()?)
+            if line.peek_ident("top") {
+                line.pos += 1;
+                Assertion::StackTop(line.string()?)
+            } else {
+                line.keyword("count")?;
+                Assertion::StackCount(line.count()?)
+            }
         }
         "has" => {
             let negated = line.peek_ident("not");

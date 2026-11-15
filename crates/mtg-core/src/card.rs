@@ -173,6 +173,8 @@ pub enum Keyword {
     Indestructible,
     Lifelink,
     Menace,
+    /// CR 702.108: a triggered ability; see `CardPool::keyword_trigger`.
+    Prowess,
     Reach,
     Trample,
     Vigilance,
@@ -217,7 +219,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 14] = [
+    pub const ALL: [Keyword; 15] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -229,6 +231,7 @@ impl Keyword {
         Keyword::Indestructible,
         Keyword::Lifelink,
         Keyword::Menace,
+        Keyword::Prowess,
         Keyword::Reach,
         Keyword::Trample,
         Keyword::Vigilance,
@@ -482,6 +485,52 @@ impl ObjFilter {
         self.other = true;
         self
     }
+
+    /// Whether an object with characteristics `c` controlled by
+    /// `obj_controller` matches, judged for an effect or ability of `source`
+    /// controlled by `controller`. The `enchanted` field needs game state and
+    /// is the caller's job.
+    pub fn matches(
+        &self,
+        obj: crate::ids::ObjId,
+        obj_controller: crate::ids::PlayerId,
+        c: &crate::state::Characteristics,
+        source: Option<crate::ids::ObjId>,
+        controller: Option<crate::ids::PlayerId>,
+    ) -> bool {
+        if self.other && source == Some(obj) {
+            return false;
+        }
+        if let Some(w) = self.who
+            && let Some(ctl) = controller
+        {
+            let ok = match w {
+                Who::Any => true,
+                Who::You => obj_controller == ctl,
+                Who::Opponents => obj_controller != ctl,
+            };
+            if !ok {
+                return false;
+            }
+        }
+        if !c.types.contains_all(self.types) || c.types.intersects(self.not_types) {
+            return false;
+        }
+        if !c.supertypes.contains_all(self.supertypes)
+            || c.supertypes.intersects(self.not_supertypes)
+        {
+            return false;
+        }
+        if let Some(cs) = self.colors
+            && !c.colors.intersects(cs)
+        {
+            return false;
+        }
+        if c.subtypes.iter().any(|s| self.not_subtypes.contains(s)) {
+            return false;
+        }
+        !self.no_abilities || c.has_no_abilities()
+    }
 }
 
 /// A power or toughness value set by a layer 7b effect.
@@ -560,44 +609,136 @@ pub enum TargetSpec {
     Player,
 }
 
-/// Who an effect applies to when it does not say "target".
+/// Who or what an effect acts on.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
-pub enum PlayerRef {
+pub enum Recipient {
+    /// The `n`th chosen target.
+    Target(usize),
     /// The spell's or ability's controller ("you").
     You,
+    /// Every opponent of the controller.
+    EachOpponent,
+    /// The ability's source ("this creature", "~"); for an ability of an
+    /// object that changed zones, the object it became (CR 400.7).
+    Source,
+    /// The object whose action triggered the ability ("that creature").
+    TriggeringObject,
+    /// The player whose action triggered the ability ("that player", or the
+    /// active player for "at the beginning of each player's ..." triggers).
+    TriggeringPlayer,
+    /// The player the triggering creature is attacking.
+    DefendingPlayer,
 }
 
-/// Effects implemented in M1. `target` fields index into the ability's
-/// `targets` list.
+/// Effects of spells and abilities.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Effect {
     DealDamage {
         amount: u32,
-        target: usize,
+        to: Recipient,
     },
     /// +N/+N until end of turn (CR 611.2a; layer 7c).
     Pump {
         power: i32,
         toughness: i32,
-        target: usize,
+        to: Recipient,
     },
     Destroy {
-        target: usize,
+        to: Recipient,
     },
     GainLife {
         amount: u32,
-        player: PlayerRef,
+        who: Recipient,
+    },
+    LoseLife {
+        amount: u32,
+        who: Recipient,
     },
     DrawCards {
         count: u32,
-        player: PlayerRef,
+        who: Recipient,
     },
-    /// Put counters on the target (CR 122.6).
+    /// Put counters on a permanent (CR 122.6).
     AddCounters {
         kind: CounterKind,
         count: u32,
-        target: usize,
+        to: Recipient,
     },
+    /// Return a card to its owner's hand (from the battlefield or a
+    /// graveyard).
+    ReturnToHand {
+        what: Recipient,
+    },
+}
+
+/// What a triggered ability watches: its own source, or any object matching
+/// a filter (judged relative to the source and its controller).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TriggerObj {
+    This,
+    Filter(ObjFilter),
+}
+
+/// Trigger conditions (CR 603.1). Each names the event and, where the
+/// ability's text restricts it, which objects or players it watches.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TriggerSpec {
+    /// "When ~ enters" / "Whenever another creature enters".
+    Enters(TriggerObj),
+    /// "When ~ dies" / "Whenever a creature you control dies" (CR 700.4);
+    /// also "is put into a graveyard from the battlefield" for
+    /// noncreature permanents. A leaves-the-battlefield trigger: it looks
+    /// back in time (CR 603.10).
+    Dies(TriggerObj),
+    /// "At the beginning of [whose] <step>".
+    BeginningOfStep { step: crate::turn::Step, whose: Who },
+    /// "Whenever ~ attacks" / "Whenever a creature you control attacks".
+    Attacks(TriggerObj),
+    /// "Whenever ~ blocks".
+    Blocks(TriggerObj),
+    /// "Whenever ~ deals combat damage to a player".
+    DealsCombatDamageToPlayer(TriggerObj),
+    /// "Whenever you gain life".
+    GainsLife { whose: Who },
+    /// "Whenever you cast a spell" (`noncreature` restricts it).
+    CastsSpell { whose: Who, noncreature: bool },
+}
+
+impl TriggerSpec {
+    /// Whether this kind of trigger can see `event` at all, judged from the
+    /// event's kind alone. A cheap filter before the full check.
+    pub fn watches(&self, event: &crate::event::Event) -> bool {
+        use crate::event::Event as E;
+        matches!(
+            (self, event),
+            (
+                TriggerSpec::Enters(_) | TriggerSpec::Dies(_),
+                E::ZoneChange { .. }
+            ) | (TriggerSpec::BeginningOfStep { .. }, E::StepBegin { .. })
+                | (TriggerSpec::Attacks(_), E::Attack { .. })
+                | (TriggerSpec::Blocks(_), E::Block { .. })
+                | (TriggerSpec::DealsCombatDamageToPlayer(_), E::Damage { .. })
+                | (TriggerSpec::GainsLife { .. }, E::LifeChange { .. })
+                | (TriggerSpec::CastsSpell { .. }, E::Cast { .. })
+        )
+    }
+}
+
+/// An intervening "if" clause (CR 603.4), checked when the ability would
+/// trigger and again on resolution.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Condition {
+    SourceUntapped,
+}
+
+/// A triggered ability (CR 603).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct TriggeredAbility {
+    pub trigger: TriggerSpec,
+    pub condition: Option<Condition>,
+    /// Targets chosen when the ability is put on the stack (CR 603.3d).
+    pub targets: Vec<TargetSpec>,
+    pub effects: Vec<Effect>,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -614,6 +755,27 @@ pub enum AbilityDef {
     /// intrinsically (CR 305.6) and do not list this.
     TapForMana(Mana),
     Static(StaticAbility),
+    Triggered(TriggeredAbility),
+}
+
+impl AbilityDef {
+    /// Targets chosen when this ability goes on the stack.
+    pub fn targets(&self) -> &[TargetSpec] {
+        match self {
+            AbilityDef::Spell { targets, .. } => targets,
+            AbilityDef::Triggered(t) => &t.targets,
+            AbilityDef::Enchant(_) | AbilityDef::TapForMana(_) | AbilityDef::Static(_) => &[],
+        }
+    }
+
+    /// Effects applied when this ability resolves.
+    pub fn effects(&self) -> &[Effect] {
+        match self {
+            AbilityDef::Spell { effects, .. } => effects,
+            AbilityDef::Triggered(t) => &t.effects,
+            AbilityDef::Enchant(_) | AbilityDef::TapForMana(_) | AbilityDef::Static(_) => &[],
+        }
+    }
 }
 
 /// Printed characteristics plus abilities (CR 109.3, 200.1).
@@ -644,6 +806,9 @@ pub struct CardDef {
     /// Filled in by `CardPool::add`; see `cast_targets()`.
     #[serde(skip)]
     cast_targets: Vec<TargetSpec>,
+    /// Filled in by `CardPool::add`; see `has_triggers()`.
+    #[serde(skip)]
+    has_triggers: bool,
 }
 
 impl CardDef {
@@ -676,6 +841,30 @@ impl CardDef {
         self.abilities
             .iter()
             .any(|a| matches!(a, AbilityDef::Static(_)))
+    }
+
+    /// Has a printed triggered ability or a keyword that is one. Checked on
+    /// every event, so precomputed.
+    pub fn has_triggers(&self) -> bool {
+        self.has_triggers
+    }
+
+    /// Whether any printed triggered ability (or trigger keyword) could see
+    /// `event`, by event kind. Current characteristics decide for real.
+    pub fn may_watch(&self, pool: &CardPool, event: &crate::event::Event) -> bool {
+        if !self.has_triggers {
+            return false;
+        }
+        let keyword = self.keywords.iter().any(|k| {
+            pool.keyword_trigger(k).is_some_and(|id| {
+                matches!(pool.ability(id), AbilityDef::Triggered(t) if t.trigger.watches(event))
+            })
+        });
+        keyword
+            || self
+                .abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.watches(event)))
     }
 
     pub fn is_creature(&self) -> bool {
@@ -717,6 +906,8 @@ pub struct CardPool {
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
     abilities: Vec<AbilityDef>,
+    /// The triggered ability prowess stands for (CR 702.108a).
+    prowess: AbilityId,
 }
 
 impl Default for CardPool {
@@ -733,12 +924,41 @@ impl CardPool {
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
             abilities: Vec::new(),
+            prowess: AbilityId(0),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
             debug_assert_eq!(id, Subtype::basic(c));
         }
+        pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::CastsSpell {
+                whose: Who::You,
+                noncreature: true,
+            },
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Pump {
+                power: 1,
+                toughness: 1,
+                to: Recipient::Source,
+            }],
+        }));
         pool
+    }
+
+    fn register(&mut self, a: AbilityDef) -> AbilityId {
+        let id = AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
+        self.abilities.push(a);
+        id
+    }
+
+    /// The triggered ability a keyword stands for, for keywords that are
+    /// triggered abilities (CR 702.108 prowess).
+    pub fn keyword_trigger(&self, k: Keyword) -> Option<AbilityId> {
+        match k {
+            Keyword::Prowess => Some(self.prowess),
+            _ => None,
+        }
     }
 
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
@@ -751,18 +971,19 @@ impl CardPool {
             .collect();
         def.ability_ids = def
             .abilities
-            .iter()
-            .map(|a| {
-                let id =
-                    AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
-                self.abilities.push(a.clone());
-                id
-            })
+            .clone()
+            .into_iter()
+            .map(|a| self.register(a))
             .collect();
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
         };
+        def.has_triggers = def.keywords.contains(Keyword::Prowess)
+            || def
+                .abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Triggered(_)));
         def.printed = Some(crate::state::Characteristics {
             def: r,
             colors: def.colors(),
@@ -847,6 +1068,7 @@ impl Builder {
             ability_ids: AbilitySet::new(),
             printed: None,
             cast_targets: Vec::new(),
+            has_triggers: false,
         })
     }
 
@@ -1050,7 +1272,7 @@ pub fn m1_pool() -> CardPool {
                 targets: vec![TargetSpec::Any],
                 effects: vec![Effect::DealDamage {
                     amount: 3,
-                    target: 0,
+                    to: Recipient::Target(0),
                 }],
             })
             .text("Lightning Bolt deals 3 damage to any target.")
@@ -1063,7 +1285,7 @@ pub fn m1_pool() -> CardPool {
                 targets: vec![TargetSpec::Any],
                 effects: vec![Effect::DealDamage {
                     amount: 2,
-                    target: 0,
+                    to: Recipient::Target(0),
                 }],
             })
             .text("Shock deals 2 damage to any target.")
@@ -1076,7 +1298,7 @@ pub fn m1_pool() -> CardPool {
                 targets: vec![TargetSpec::PlayerOrPlaneswalker],
                 effects: vec![Effect::DealDamage {
                     amount: 5,
-                    target: 0,
+                    to: Recipient::Target(0),
                 }],
             })
             .text("Lava Axe deals 5 damage to target player or planeswalker.")
@@ -1090,7 +1312,7 @@ pub fn m1_pool() -> CardPool {
                 effects: vec![Effect::Pump {
                     power: 3,
                     toughness: 3,
-                    target: 0,
+                    to: Recipient::Target(0),
                 }],
             })
             .text("Target creature gets +3/+3 until end of turn.")
@@ -1101,7 +1323,9 @@ pub fn m1_pool() -> CardPool {
             .types([Instant])
             .ability(AbilityDef::Spell {
                 targets: vec![TargetSpec::Creature],
-                effects: vec![Effect::Destroy { target: 0 }],
+                effects: vec![Effect::Destroy {
+                    to: Recipient::Target(0),
+                }],
             })
             .text("Destroy target creature.")
             .build(),
@@ -1113,7 +1337,7 @@ pub fn m1_pool() -> CardPool {
                 targets: vec![],
                 effects: vec![Effect::DrawCards {
                     count: 2,
-                    player: PlayerRef::You,
+                    who: Recipient::You,
                 }],
             })
             .text("Draw two cards.")
@@ -1126,13 +1350,14 @@ pub fn m1_pool() -> CardPool {
                 targets: vec![],
                 effects: vec![Effect::GainLife {
                     amount: 3,
-                    player: PlayerRef::You,
+                    who: Recipient::You,
                 }],
             })
             .text("You gain 3 life.")
             .build(),
     );
     add_m2_cards(&mut pool);
+    add_trigger_cards(&mut pool);
     pool
 }
 
@@ -1313,10 +1538,253 @@ fn add_m2_cards(pool: &mut CardPool) {
                 effects: vec![Effect::AddCounters {
                     kind: CounterKind::PlusOnePlusOne,
                     count: 3,
-                    target: 0,
+                    to: Recipient::Target(0),
                 }],
             })
             .text("Put three +1/+1 counters on target creature.")
+            .build(),
+    );
+}
+
+/// Cards with triggered abilities for the event pipeline (M2 slice 2). All
+/// are real cards with simple Oracle text.
+#[allow(clippy::too_many_lines)]
+fn add_trigger_cards(pool: &mut CardPool) {
+    use CardType::{Artifact, Creature, Enchantment};
+    use Recipient::{DefendingPlayer, EachOpponent, Source, Target, TriggeringPlayer, You};
+    use TriggerObj::This;
+
+    let triggered = |trigger: TriggerSpec, targets: &[TargetSpec], effects: &[Effect]| {
+        AbilityDef::Triggered(TriggeredAbility {
+            trigger,
+            condition: None,
+            targets: targets.to_vec(),
+            effects: effects.to_vec(),
+        })
+    };
+    let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32| {
+        Builder::new(name, cost)
+            .types([Creature])
+            .subtypes(sub)
+            .pt(p, t)
+    };
+    let another_creature = || TriggerObj::Filter(ObjFilter::creatures().other());
+    let draw = |who: Recipient| Effect::DrawCards { count: 1, who };
+    let gain = |amount: u32, who: Recipient| Effect::GainLife { amount, who };
+    let lose = |amount: u32, who: Recipient| Effect::LoseLife { amount, who };
+    let damage = |amount: u32, to: Recipient| Effect::DealDamage { amount, to };
+    let pump = |power: i32, toughness: i32, to: Recipient| Effect::Pump {
+        power,
+        toughness,
+        to,
+    };
+    let counter = |to: Recipient| Effect::AddCounters {
+        kind: CounterKind::PlusOnePlusOne,
+        count: 1,
+        to,
+    };
+
+    // ---- enters the battlefield ----
+    pool.add(
+        creature("Elvish Visionary", "{1}{G}", &["Elf", "Shaman"], 1, 1)
+            .ability(triggered(TriggerSpec::Enters(This), &[], &[draw(You)]))
+            .text("When Elvish Visionary enters, draw a card.")
+            .build(),
+    );
+    pool.add(
+        creature("Wall of Omens", "{1}{W}", &["Wall"], 0, 4)
+            .keywords([Keyword::Defender])
+            .ability(triggered(TriggerSpec::Enters(This), &[], &[draw(You)]))
+            .text("Defender\nWhen Wall of Omens enters, draw a card.")
+            .build(),
+    );
+    pool.add(
+        creature("Soul Warden", "{W}", &["Human", "Cleric"], 1, 1)
+            .ability(triggered(
+                TriggerSpec::Enters(another_creature()),
+                &[],
+                &[gain(1, You)],
+            ))
+            .text("Whenever another creature enters, you gain 1 life.")
+            .build(),
+    );
+    pool.add(
+        creature("Flametongue Kavu", "{3}{R}", &["Kavu"], 4, 2)
+            .ability(triggered(
+                TriggerSpec::Enters(This),
+                &[TargetSpec::Creature],
+                &[damage(4, Target(0))],
+            ))
+            .text("When Flametongue Kavu enters, it deals 4 damage to target creature.")
+            .build(),
+    );
+    pool.add(
+        creature("Ajani's Pridemate", "{1}{W}", &["Cat", "Soldier"], 2, 2)
+            .ability(triggered(
+                TriggerSpec::GainsLife { whose: Who::You },
+                &[],
+                &[counter(Source)],
+            ))
+            .text("Whenever you gain life, put a +1/+1 counter on Ajani's Pridemate.")
+            .build(),
+    );
+
+    // ---- dies ----
+    pool.add(
+        creature("Blood Artist", "{1}{B}", &["Vampire"], 0, 1)
+            .ability(triggered(
+                TriggerSpec::Dies(TriggerObj::Filter(ObjFilter::creatures())),
+                &[TargetSpec::Player],
+                &[lose(1, Target(0)), gain(1, You)],
+            ))
+            .text("Whenever Blood Artist or another creature dies, target player loses 1 life and you gain 1 life.")
+            .build(),
+    );
+    pool.add(
+        creature("Zulaport Cutthroat", "{1}{B}", &["Human", "Rogue", "Ally"], 1, 1)
+            .ability(triggered(
+                TriggerSpec::Dies(TriggerObj::Filter(ObjFilter::creatures().who(Who::You))),
+                &[],
+                &[lose(1, EachOpponent), gain(1, You)],
+            ))
+            .text("Whenever Zulaport Cutthroat or another creature you control dies, each opponent loses 1 life and you gain 1 life.")
+            .build(),
+    );
+    pool.add(
+        creature("Festering Goblin", "{B}", &["Zombie", "Goblin"], 1, 1)
+            .ability(triggered(
+                TriggerSpec::Dies(This),
+                &[TargetSpec::Creature],
+                &[pump(-1, -1, Target(0))],
+            ))
+            .text("When Festering Goblin dies, target creature gets -1/-1 until end of turn.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Perilous Myr", "{2}")
+            .types([Artifact, Creature])
+            .subtypes(&["Myr"])
+            .pt(1, 1)
+            .ability(triggered(
+                TriggerSpec::Dies(This),
+                &[TargetSpec::Any],
+                &[damage(2, Target(0))],
+            ))
+            .text("When Perilous Myr dies, it deals 2 damage to any target.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Rancor", "{G}")
+            .types([Enchantment])
+            .subtypes(&["Aura"])
+            .ability(AbilityDef::Enchant(TargetSpec::Creature))
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::enchanted(),
+                parts: vec![
+                    Modification::ModifyPt {
+                        power: 2,
+                        toughness: 0,
+                    },
+                    Modification::AddKeywords(KeywordSet::of([Keyword::Trample])),
+                ],
+            }))
+            .ability(triggered(
+                TriggerSpec::Dies(This),
+                &[],
+                &[Effect::ReturnToHand { what: Source }],
+            ))
+            .text("Enchant creature\nEnchanted creature gets +2/+0 and has trample.\nWhen Rancor is put into a graveyard from the battlefield, return Rancor to its owner's hand.")
+            .build(),
+    );
+
+    // ---- beginning of step ----
+    pool.add(
+        Builder::new("Phyrexian Arena", "{1}{B}{B}")
+            .types([Enchantment])
+            .ability(triggered(
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Upkeep,
+                    whose: Who::You,
+                },
+                &[],
+                &[draw(You), lose(1, You)],
+            ))
+            .text("At the beginning of your upkeep, you draw a card and you lose 1 life.")
+            .build(),
+    );
+    pool.add(
+        creature("Juzám Djinn", "{2}{B}{B}", &["Djinn"], 5, 5)
+            .ability(triggered(
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Upkeep,
+                    whose: Who::You,
+                },
+                &[],
+                &[damage(1, You)],
+            ))
+            .text("At the beginning of your upkeep, Juzám Djinn deals 1 damage to you.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Howling Mine", "{2}")
+            .types([Artifact])
+            .ability(AbilityDef::Triggered(TriggeredAbility {
+                trigger: TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Draw,
+                    whose: Who::Any,
+                },
+                condition: Some(Condition::SourceUntapped),
+                targets: Vec::new(),
+                effects: vec![draw(TriggeringPlayer)],
+            }))
+            .text("At the beginning of each player's draw step, if Howling Mine is untapped, that player draws an additional card.")
+            .build(),
+    );
+
+    // ---- combat ----
+    pool.add(
+        creature("Benalish Cavalry", "{1}{W}", &["Human", "Knight"], 2, 2)
+            .ability(triggered(
+                TriggerSpec::Attacks(This),
+                &[],
+                &[pump(1, 1, Source)],
+            ))
+            .ability(triggered(
+                TriggerSpec::Blocks(This),
+                &[],
+                &[pump(1, 1, Source)],
+            ))
+            .text("Whenever Benalish Cavalry attacks or blocks, it gets +1/+1 until end of turn.")
+            .build(),
+    );
+    pool.add(
+        creature("Hellrider", "{2}{R}{R}", &["Devil"], 3, 3)
+            .keywords([Keyword::Haste])
+            .ability(triggered(
+                TriggerSpec::Attacks(TriggerObj::Filter(ObjFilter::creatures().who(Who::You))),
+                &[],
+                &[damage(1, DefendingPlayer)],
+            ))
+            .text("Haste\nWhenever a creature you control attacks, Hellrider deals 1 damage to the player or planeswalker it's attacking.")
+            .build(),
+    );
+    pool.add(
+        creature("Markov Blademaster", "{1}{R}{R}", &["Vampire", "Warrior"], 1, 1)
+            .keywords([Keyword::DoubleStrike])
+            .ability(triggered(
+                TriggerSpec::DealsCombatDamageToPlayer(This),
+                &[],
+                &[counter(Source)],
+            ))
+            .text("Double strike\nWhenever Markov Blademaster deals combat damage to a player, put a +1/+1 counter on it.")
+            .build(),
+    );
+
+    // ---- keyword triggers ----
+    pool.add(
+        creature("Monastery Swiftspear", "{R}", &["Human", "Monk"], 1, 2)
+            .keywords([Keyword::Haste, Keyword::Prowess])
+            .text("Haste\nProwess")
             .build(),
     );
 }

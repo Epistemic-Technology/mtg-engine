@@ -11,7 +11,7 @@ use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
 use mtg_core::engine::{Engine, PlayerSetup, Setup, SetupPermanent};
 use mtg_core::event::Event;
 use mtg_core::ids::{ObjId, PlayerId};
-use mtg_core::state::{GameResult, GameState, Target, Zone};
+use mtg_core::state::{GameResult, GameState, ObjKind, Target, Zone};
 use mtg_core::turn::Step;
 
 use crate::ast::{
@@ -333,12 +333,126 @@ impl Runner {
             DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
             DecisionKind::Bottom => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
-            DecisionKind::ChooseTarget { index, .. } => self.choose_target(d, index),
+            DecisionKind::ChooseTarget { spell, index } => {
+                if self.state().objects[spell].kind == ObjKind::Ability {
+                    self.choose_ability_target(d, spell, index, pos)
+                } else {
+                    self.choose_target(d, index)
+                }
+            }
             DecisionKind::DeclareAttackers => self.declare_attackers(d, pos),
             DecisionKind::DeclareBlockers => self.declare_blockers(d, pos),
             DecisionKind::AssignCombatDamage { attacker } => self.assign_damage(d, pos, attacker),
             DecisionKind::Discard => self.discard(d, pos),
+            DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
         }
+    }
+
+    /// Several of the player's triggers wait to go on the stack: the first
+    /// unfired scripted `trigger` naming one of their sources goes next;
+    /// otherwise the engine's first option.
+    fn order_triggers(&mut self, d: &Decision, pos: Position) -> ChoiceId {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Trigger { .. }));
+        for i in idxs {
+            let a = self.actions[i].clone();
+            let Action::Trigger { source, targets } = &a.action else {
+                unreachable!()
+            };
+            let found = d.options.iter().position(|c| match c {
+                Choice::Trigger(t) => self
+                    .state()
+                    .pending_triggers
+                    .get(*t)
+                    .is_some_and(|p| self.state().name_of_or_lki(p.ability.source) == source),
+                _ => false,
+            });
+            if let Some(idx) = found {
+                self.fired[i] = true;
+                self.pending_targets = (!targets.is_empty()).then(|| targets.clone());
+                return idx_u32(idx);
+            }
+        }
+        0
+    }
+
+    /// Targets for a triggered ability on the stack: those scripted with its
+    /// `trigger` line (fired now if the engine put the ability on the stack
+    /// without an ordering decision), else the first legal option.
+    fn choose_ability_target(
+        &mut self,
+        d: &Decision,
+        ability: ObjId,
+        index: usize,
+        pos: Position,
+    ) -> Res<ChoiceId> {
+        if self.pending_targets.is_none() {
+            let st = self.state();
+            let source = st.objects[ability]
+                .ability
+                .map(|a| st.name_of_or_lki(a.source).to_string())
+                .unwrap_or_default();
+            let idxs = self.matching(
+                d.player,
+                pos,
+                true,
+                |a| matches!(a, Action::Trigger { source: s, .. } if *s == source),
+            );
+            if let Some(&i) = idxs.first() {
+                self.fired[i] = true;
+                let Action::Trigger { targets, .. } = &self.actions[i].action else {
+                    unreachable!()
+                };
+                let needed = self.state().targets_of(ability).len();
+                if targets.len() != needed {
+                    return fail(
+                        self.actions[i].line,
+                        format!(
+                            "\"{source}\"'s trigger takes {needed} target(s) but {} were scripted",
+                            targets.len()
+                        ),
+                    );
+                }
+                self.pending_targets = Some(targets.clone());
+            } else {
+                return Ok(0);
+            }
+        }
+        let line = self.current_trigger_line();
+        let targets = self.pending_targets.clone().unwrap_or_default();
+        if index + 1 >= targets.len() {
+            // Last target of this ability: the next ability starts afresh.
+            self.pending_targets = None;
+        }
+        let Some(tr) = targets.get(index) else {
+            return fail(
+                line,
+                format!(
+                    "trigger needs target #{} but only {} scripted",
+                    index + 1,
+                    targets.len()
+                ),
+            );
+        };
+        let t = self.resolve_target(line, tr)?;
+        index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "{} is not a legal target; legal targets: {}",
+                self.describe_target(t),
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// Line of the most recently fired `trigger`, for target errors.
+    fn current_trigger_line(&self) -> usize {
+        self.actions
+            .iter()
+            .zip(&self.fired)
+            .filter(|(a, f)| **f && matches!(a.action, Action::Trigger { .. }))
+            .map(|(a, _)| a.line)
+            .next_back()
+            .unwrap_or(0)
     }
 
     fn priority_action(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
@@ -952,6 +1066,20 @@ impl Runner {
                 st.stack.len(),
                 *want,
             ),
+            Assertion::StackTop(want) => {
+                let have = st
+                    .stack
+                    .last()
+                    .map_or("nothing".to_string(), |id| st.name_of(*id).to_string());
+                if have == *want {
+                    Ok(())
+                } else {
+                    fail(
+                        line,
+                        format!("top of the stack is {have}, expected \"{want}\""),
+                    )
+                }
+            }
             Assertion::HasKeyword(r, kw, want) => {
                 let id = self.resolve_obj(line, r)?;
                 let c = st.characteristics(id).expect("object exists");
@@ -1109,6 +1237,13 @@ impl Runner {
             Choice::Done => "done".into(),
             Choice::Division(div) => format!("assign {}", self.describe_division(div)),
             Choice::Discard(id) => format!("discard {}", self.describe_ids(&[*id])),
+            Choice::Trigger(i) => format!(
+                "trigger of \"{}\"",
+                self.state()
+                    .pending_triggers
+                    .get(*i)
+                    .map_or("?", |t| self.state().name_of_or_lki(t.ability.source))
+            ),
         }
     }
 

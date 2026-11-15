@@ -6,6 +6,7 @@ mod casting;
 mod combat;
 mod objects;
 mod sba;
+mod triggers;
 
 use combat::{block_assignments, subsets};
 
@@ -21,6 +22,7 @@ use crate::card::{CardPool, CardRef, TargetSpec};
 use crate::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
+use crate::state::ObjKind;
 use crate::state::{
     CombatState, DamageAssignment, Duration, Flow, GameResult, GameState, PlayerState, Zone,
 };
@@ -176,6 +178,9 @@ impl Engine {
                 o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
                 state.battlefield.push(id);
+                if state.pool.get(perm.def).has_triggers() {
+                    state.trigger_sources += 1;
+                }
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -286,6 +291,9 @@ impl GameState {
             combat: None,
             effects: Vec::new(),
             lki: std::collections::HashMap::default(),
+            pending_triggers: Vec::new(),
+            trigger_sources: 0,
+            lookback: None,
             rng,
             next_timestamp: 1,
             flow: Flow::BeginStep,
@@ -356,6 +364,11 @@ impl GameState {
                     if self.sba_loop() {
                         continue; // game-over check first, then re-enter
                     }
+                    // CR 603.3, 117.5: triggered abilities go on the stack
+                    // before priority; then the SBA check repeats.
+                    if self.put_triggers_on_stack() {
+                        continue;
+                    }
                     let player = self.priority;
                     let options = self.priority_options(player);
                     return StepResult::Decision(Decision {
@@ -370,10 +383,15 @@ impl GameState {
                         continue;
                     };
                     let caster = obj.controller;
-                    let def = self.pool.get(obj.def);
-                    let specs: Vec<TargetSpec> = def.cast_targets().to_vec();
+                    let is_ability = obj.kind == ObjKind::Ability;
+                    let specs: Vec<TargetSpec> = self.targets_of(spell).to_vec();
                     if next_target >= specs.len() {
-                        self.finish_cast(spell);
+                        if is_ability {
+                            // Targets chosen; the ability is on the stack.
+                            self.flow = Flow::Priority;
+                        } else {
+                            self.finish_cast(spell);
+                        }
                         continue;
                     }
                     let options: Vec<Choice> = self
@@ -541,6 +559,20 @@ impl GameState {
                     return StepResult::Decision(Decision {
                         player: p,
                         kind: DecisionKind::Discard,
+                        options,
+                    });
+                }
+                Flow::OrderTriggers { player } => {
+                    let mine = self.triggers_of(player);
+                    if mine.len() <= 1 {
+                        // Nothing left to order.
+                        self.flow = Flow::Priority;
+                        continue;
+                    }
+                    let options: Vec<Choice> = mine.into_iter().map(Choice::Trigger).collect();
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::OrderTriggers,
                         options,
                     });
                 }
@@ -729,6 +761,9 @@ impl GameState {
                 self.emit(Event::Discard { player, card: id });
                 self.move_object(id, Zone::Graveyard, true);
             }
+            (Flow::OrderTriggers { .. }, Choice::Trigger(i)) => {
+                self.put_trigger(i);
+            }
             (flow, choice) => unreachable!("choice {choice:?} does not fit flow {flow:?}"),
         }
     }
@@ -876,7 +911,8 @@ impl GameState {
             self.emit(Event::EffectEnded { affected });
         }
         self.bump();
-        if self.sba_loop() {
+        let acted = self.sba_loop();
+        if acted || !self.pending_triggers.is_empty() {
             // CR 514.3a: players get priority, then another cleanup step.
             self.cleanup_repeat = true;
             self.give_priority(self.active_player);
@@ -1020,8 +1056,21 @@ mod tests {
                 .sum::<usize>()
                 + s.battlefield.len()
                 + s.stack.len();
-            assert_eq!(in_zones, total, "zone lists lost or duplicated objects");
-            assert_eq!(s.objects.len(), total, "arena out of sync with zones");
+            let abilities = s
+                .stack
+                .iter()
+                .filter(|id| s.objects[**id].kind == ObjKind::Ability)
+                .count();
+            assert_eq!(
+                in_zones - abilities,
+                total,
+                "zone lists lost or duplicated objects"
+            );
+            assert_eq!(
+                s.objects.len() - abilities,
+                total,
+                "arena out of sync with zones"
+            );
             let n = u32::try_from(e.current().decision().unwrap().options.len()).unwrap();
             e.step((i * 7) % n).unwrap();
             i += 1;

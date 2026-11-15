@@ -3,7 +3,7 @@
 use crate::card::CounterKind;
 use crate::event::Event;
 use crate::ids::PlayerId;
-use crate::state::{Flow, GameResult, GameState, LossReason, ObjKind, Zone};
+use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, ObjKind, Zone};
 
 impl GameState {
     // ----- state-based actions and game end ------------------------------------------
@@ -83,6 +83,11 @@ impl GameState {
                 self.objects.remove(id);
                 acted = true;
             }
+            // The zone changes below are simultaneous: leaves-the-battlefield
+            // triggers see the battlefield as it is now (CR 603.10a).
+            if !to_graveyard.is_empty() || !to_destroy.is_empty() {
+                self.lookback = Some(self.snapshot_battlefield());
+            }
             for (id, n) in annihilate {
                 let o = &mut self.objects[id];
                 o.remove_counters(CounterKind::PlusOnePlusOne, n);
@@ -104,12 +109,29 @@ impl GameState {
                 }
                 acted = true;
             }
+            self.lookback = None;
             if !acted {
                 break;
             }
             any = true;
         }
         any
+    }
+
+    /// The battlefield as it is now, for look-back trigger detection.
+    fn snapshot_battlefield(&self) -> Vec<Lookback> {
+        self.battlefield
+            .iter()
+            .filter_map(|id| {
+                let o = &self.objects[*id];
+                Some(Lookback {
+                    id: *id,
+                    controller: o.controller,
+                    tapped: o.tapped,
+                    characteristics: self.characteristics(*id)?,
+                })
+            })
+            .collect()
     }
 
     pub(super) fn check_game_over(&mut self) -> Option<GameResult> {

@@ -268,6 +268,37 @@ Triggered abilities are put on the stack the next time a player would
 receive priority, after SBAs (CR 117.5, 603.3). When one player controls
 several, they choose the order (CR 603.3b) as a `Decision`.
 
+**Status 2026-11-15 (M2 slice 2):** stages 2 and 3 are implemented; stage
+1 (replacement and prevention) is not. `GameState::emit` is the single
+chokepoint: every event runs `detect_triggers` before it is logged, so
+detection works with logging off. A card's triggered abilities are
+`AbilityDef::Triggered { trigger: TriggerSpec, condition, targets,
+effects }`; `TriggerSpec` names the event kind and what it watches (`This`
+or an `ObjFilter`). Detection reads abilities from *current*
+characteristics, so Humility stops triggers. Leaves-the-battlefield
+triggers look back (CR 603.10): the object that left is read from `lki`,
+and during a batch of simultaneous zone changes (the SBA loop) the whole
+battlefield is snapshotted into `GameState::lookback` first, so Blood
+Artist sees a creature that dies alongside it. Triggered abilities wait in
+`pending_triggers`; `Flow::Priority` puts them on the stack in APNAP order
+before anyone receives priority, with `Flow::OrderTriggers` /
+`DecisionKind::OrderTriggers` when a player has several (each choice puts
+one on the stack; the first chosen resolves last). An ability on the stack
+is a `GameObject` of `ObjKind::Ability` carrying a `StackAbility` (ability
+id, source id, triggering object and player); its targets are chosen
+through the same `Flow::Casting` path as a spell's (CR 603.3d; an ability
+with no legal target is removed instead), and it resolves through
+`resolve_ability`, which re-checks intervening "if" clauses (CR 603.4) and
+target legality. Effects name who they act on with `Recipient` (`Target(n)`,
+`You`, `EachOpponent`, `Source`, `TriggeringObject`, `TriggeringPlayer`,
+`DefendingPlayer`); `Recipient::Source` follows `LastKnown::moved_to`, so
+Rancor's trigger finds the graveyard object it became (CR 400.7). Keywords
+that are triggered abilities (prowess) are registered once in the pool and
+looked up by keyword during detection. Trigger-free boards pay nothing: a
+count of battlefield objects with printed triggers gates detection, and
+event kinds are matched against printed abilities before characteristics
+are computed.
+
 ### 4.6 State-based actions and the priority loop
 
 ```
@@ -679,6 +710,34 @@ rustc 1.100).** Baseline for the same binary before the layer system was
 | layers vs layers (Humility, Opalescence, Blood Moon...) | 770 | O(n²) dependency checks per layer |
 | `GameState::clone`, 200 decisions in | 3.1 µs | was 2.0 µs; counters and attachment fields |
 
+**M2 slice 2 (2026-11-15, release build, random agents, one thread, 3,000
+games, seed 11).** Same binary measured against the slice 1 commit on the
+same morning: mono-red vs mono-red 2,842 → 2,758 (−3%), layers vs layers
+767 → 740, mono-white vs mono-black 845 → 832.
+
+| Matchup | games/s/core | Note |
+|---|---|---|
+| mono-red vs mono-red (no effects, no triggers) | 2,758 | detection gated off by the trigger-source count |
+| mono-green vs mono-green (counters) | 1,899 | |
+| mono-white vs mono-black (anthems, auras) | 832 | |
+| layers vs layers | 740 | |
+| triggers vs mono-red | 802 | |
+| triggers vs triggers (every trigger card at once) | 351 | 691 decisions/game; counters and Rancor force a layer pass per event |
+| `GameState::clone`, 200 decisions in | 3.0 µs | |
+
+The trigger-heavy board is slow for the known reason: each event that a
+trigger could see asks for current characteristics, and with counters or
+statics on the board that is a full layer pass per event. Pre-filtering
+watchers by event kind (a `Tapped` event never wakes an enters trigger)
+took that matchup from 266 to 351 games/s; incremental recomputation of
+characteristics is still the real fix. Two cheaper lessons: a per-event
+scan of the battlefield for "does anything here have a trigger" cost 13%
+on trigger-free boards and was replaced by a maintained count, and boxing
+the new `GameObject::ability` field to shrink the struct made no
+measurable difference, so it stays inline. Variation between builds from
+code layout alone was about ±3% on this benchmark, which bounds what
+single-run comparisons can show.
+
 The first version of `characteristics()` returned a struct holding two
 `SmallVec`s and cost 42% of throughput even on effect-free boards; making
 `Characteristics` `Copy` (fixed-capacity lists) recovered all but 5%. The
@@ -903,6 +962,32 @@ file and wants splitting.
   examples pass; performance targets measured and recorded.
 
 **M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
+
+Status 2026-11-15, slice 2 (triggered abilities and the event pipeline)
+done: `mtg-core/src/engine/triggers.rs` implements CR 603 as described in
+§4.5: detection from every emitted event, look-back for leaves-the-
+battlefield triggers including simultaneous deaths, APNAP placement with
+an ordering decision, targets chosen on placement with CR 603.3d removal,
+intervening "if" clauses, and ability objects on the stack that resolve
+like spells. Seventeen trigger cards join the pool (Elvish Visionary, Wall
+of Omens, Soul Warden, Flametongue Kavu, Ajani's Pridemate, Blood Artist,
+Zulaport Cutthroat, Festering Goblin, Perilous Myr, Rancor, Phyrexian
+Arena, Juzám Djinn, Howling Mine, Benalish Cavalry, Hellrider, Markov
+Blademaster, Monastery Swiftspear), prowess is the first keyword
+implemented as a triggered ability, and `Recipient` replaces positional
+targets in `Effect` so abilities can act on "you", "each opponent", their
+source, or the triggering object or player. The scenario DSL gained
+`trigger "Source" [targeting ...]` for ordering and targeting triggers and
+`assert stack top`. The 41-scenario suite in `scenarios/m2/triggers.scn`
+covers Soul Warden + Pridemate chains, Flametongue Kavu forced to target
+itself, Blood Artist seeing a simultaneous death, Rancor returning after
+SBA 704.5m, Howling Mine's intervening if, prowess stack order against a
+response, and APNAP ordering. Authoring found two mis-authored tests
+(Boggart Brute has menace; a response resolves before a prowess trigger)
+and no engine bugs. Fuzz: 9,000 trigger-deck games, 0 panics. Not yet:
+replacement and prevention effects (stage 1 of §4.5), activated abilities,
+delayed triggers, copy effects, CDAs, control-changing effects, tokens,
+planeswalkers, emblems, the legend rule (slice 3).
 
 Status 2026-11-14, slice 1 (layers) done: `mtg-core/src/layers.rs`
 implements CR 613 over all battlefield objects at once: effects apply in

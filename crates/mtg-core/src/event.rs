@@ -1,10 +1,11 @@
 //! Game events. Every change to the game is an event; the log is the replay
-//! and the LLM-facing narration (design §4.5). M1 records events but does
-//! not yet run replacement effects or trigger detection over them.
+//! and the LLM-facing narration (design §4.5). Trigger detection runs over
+//! every event as it is emitted (`GameState::emit`); replacement effects do
+//! not yet.
 
 use serde::{Deserialize, Serialize};
 
-use crate::card::{CardRef, CounterKind};
+use crate::card::{AbilityId, CardRef, CounterKind};
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{GameResult, LossReason, Target, Zone};
 use crate::turn::Step;
@@ -108,6 +109,26 @@ pub enum Event {
     Attached {
         obj: ObjId,
         to: ObjId,
+    },
+    /// A triggered ability triggered (CR 603.2); it waits for the next time
+    /// a player would receive priority.
+    Triggered {
+        source: ObjId,
+        ability: AbilityId,
+        controller: PlayerId,
+    },
+    /// A triggered ability was put on the stack as object `obj` (CR 603.3).
+    TriggerOnStack {
+        obj: ObjId,
+        source: ObjId,
+        def: CardRef,
+    },
+    /// A triggered ability was removed without going on the stack or
+    /// without resolving: no legal targets (CR 603.3d) or its intervening
+    /// "if" no longer holds (CR 603.4).
+    TriggerRemoved {
+        source: ObjId,
+        def: CardRef,
     },
     PlayerLost {
         player: PlayerId,

@@ -69,10 +69,14 @@ impl GameState {
         let o = &self.objects[id];
         let c = self.characteristics(id).expect("object exists");
         let combat = self.combat.as_ref();
+        let mut name = self.pool.get(o.def).name.clone();
+        if o.kind == crate::state::ObjKind::Ability {
+            name.push_str(" (ability)");
+        }
         ObjectView {
             id,
             def: o.def,
-            name: self.pool.get(o.def).name.clone(),
+            name,
             controller: o.controller,
             tapped: o.tapped,
             damage: o.damage,

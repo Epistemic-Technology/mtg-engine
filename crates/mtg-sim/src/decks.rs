@@ -2,13 +2,14 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 6] = [
+pub const NAMES: [&str; 7] = [
     "mono-white",
     "mono-blue",
     "mono-black",
     "mono-red",
     "mono-green",
     "layers",
+    "triggers",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -94,6 +95,30 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Grizzly Bears", 4),
             ("Holy Strength", 3),
             ("Dead Weight", 2),
+        ],
+        // Triggered-ability stress deck: every trigger card at once.
+        "triggers" => &[
+            ("Plains", 6),
+            ("Swamp", 6),
+            ("Mountain", 6),
+            ("Forest", 4),
+            ("Elvish Visionary", 2),
+            ("Wall of Omens", 2),
+            ("Soul Warden", 3),
+            ("Flametongue Kavu", 2),
+            ("Ajani's Pridemate", 3),
+            ("Blood Artist", 3),
+            ("Zulaport Cutthroat", 2),
+            ("Festering Goblin", 3),
+            ("Perilous Myr", 2),
+            ("Rancor", 2),
+            ("Phyrexian Arena", 2),
+            ("Juzám Djinn", 1),
+            ("Howling Mine", 2),
+            ("Benalish Cavalry", 2),
+            ("Hellrider", 2),
+            ("Markov Blademaster", 2),
+            ("Monastery Swiftspear", 3),
         ],
         _ => return None,
     };

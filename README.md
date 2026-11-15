@@ -7,10 +7,11 @@ non-negotiable properties are rules fidelity (behaviour matches the
 Comprehensive Rules) and speed (thousands of complete games per second per
 core with cheap agents).
 
-Status: milestone M2 (continuous effects) in progress; the CR 613 layer
-system, Auras, and counters are in. Random agents play complete games with
-a 44-card pool at about 2,800 games per second per core on effect-free
-boards. A 109-scenario rules corpus passes. See [design.md](design.md)
+Status: milestone M2 (continuous effects and the event pipeline) in
+progress; the CR 613 layer system, Auras, counters, and triggered
+abilities (CR 603) are in. Random agents play complete games with a
+61-card pool at about 2,750 games per second per core on effect-free
+boards. A 150-scenario rules corpus passes. See [design.md](design.md)
 for the architecture, roadmap, and open questions.
 
 ```
