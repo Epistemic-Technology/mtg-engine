@@ -13,6 +13,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
+mtg-agents = { path = "../mtg-agents" }
 mtg-core = { path = "../mtg-core" }
 mtg-scenario = { path = "../mtg-scenario" }
 mtg-sim = { path = "../mtg-sim" }

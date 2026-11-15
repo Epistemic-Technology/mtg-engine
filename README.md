@@ -13,6 +13,8 @@ a 28-card vanilla pool at about 2,600 games per second per core. See
 
 ```
 cargo run --release -p mtg-cli -- sim --deck1 mono-red --deck2 mono-green --games 1000
+cargo run --release -p mtg-cli -- sim --agent1 greedy --agent2 random --games 1000
+cargo run --release -p mtg-cli -- play --deck mono-red --opponent mono-green
 cargo run --release -p mtg-cli -- bench
 cargo run -p mtg-cli -- scenario              # run the rules-test corpus in scenarios/
 ```

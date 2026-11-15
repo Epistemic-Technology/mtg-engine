@@ -1,5 +1,9 @@
-//! Baseline agents (design §1, §4.8). M1: a uniformly random agent, used for
-//! fuzzing and as the performance baseline.
+//! Baseline agents (design §1, §4.8): a uniformly random agent, used for
+//! fuzzing and as the performance baseline, and a one-ply greedy agent.
+
+mod greedy;
+
+pub use greedy::GreedyAgent;
 
 use mtg_core::decision::{Choice, ChoiceId, Decision};
 use mtg_core::state::GameState;
@@ -46,4 +50,14 @@ impl Agent for FirstOptionAgent {
     fn choose(&mut self, _state: &GameState, _decision: &Decision) -> ChoiceId {
         0
     }
+}
+
+/// Construct a baseline agent by name: `random` or `greedy`.
+pub fn by_name(name: &str, seed: u64) -> Option<Box<dyn Agent>> {
+    Some(match name {
+        "random" => Box::new(RandomAgent::new(seed)),
+        "greedy" => Box::new(GreedyAgent),
+        "first" => Box::new(FirstOptionAgent),
+        _ => return None,
+    })
 }

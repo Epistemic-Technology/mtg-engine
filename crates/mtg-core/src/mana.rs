@@ -291,9 +291,9 @@ impl ManaPool {
         let take = generic.min(left.colorless);
         left.colorless -= take;
         generic -= take;
-        for i in 0..5 {
-            let take = generic.min(left.colored[i]);
-            left.colored[i] -= take;
+        for slot in &mut left.colored {
+            let take = generic.min(*slot);
+            *slot -= take;
             generic -= take;
         }
         if generic == 0 { Some(left) } else { None }

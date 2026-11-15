@@ -126,6 +126,25 @@ pub fn random_batch(
     base_seed: u64,
     logging: bool,
 ) -> BatchStats {
+    batch(pool, decks, games, base_seed, logging, ["random", "random"])
+}
+
+/// Play `games` games between two named baseline agents (see
+/// `mtg_agents::by_name`), in parallel, seeds `base_seed..base_seed+games`.
+///
+/// # Panics
+/// If an agent name is unknown.
+pub fn batch(
+    pool: &Arc<CardPool>,
+    decks: &[Vec<CardRef>; 2],
+    games: usize,
+    base_seed: u64,
+    logging: bool,
+    agent_names: [&str; 2],
+) -> BatchStats {
+    for n in agent_names {
+        assert!(mtg_agents::by_name(n, 0).is_some(), "unknown agent {n}");
+    }
     let start = Instant::now();
     let summaries: Vec<GameSummary> = (0..games)
         .into_par_iter()
@@ -138,8 +157,10 @@ pub fn random_batch(
                 logging,
             };
             let mut agents: [Box<dyn Agent>; 2] = [
-                Box::new(RandomAgent::new(seed.wrapping_mul(31).wrapping_add(1))),
-                Box::new(RandomAgent::new(seed.wrapping_mul(31).wrapping_add(2))),
+                mtg_agents::by_name(agent_names[0], seed.wrapping_mul(31).wrapping_add(1))
+                    .expect("checked above"),
+                mtg_agents::by_name(agent_names[1], seed.wrapping_mul(31).wrapping_add(2))
+                    .expect("checked above"),
             ];
             play(pool, &config, &mut agents)
         })
@@ -224,5 +245,24 @@ mod tests {
                 assert_eq!(stats.wins[0] + stats.wins[1] + stats.draws, games);
             }
         }
+    }
+
+    /// The greedy agent must beat the random agent clearly; a regression here
+    /// means a heuristic broke (or the engine started offering bad options).
+    #[test]
+    fn greedy_beats_random() {
+        let pool = Arc::new(m1_pool());
+        let games = if cfg!(debug_assertions) { 40 } else { 200 };
+        let decks = [
+            crate::decks::by_name(&pool, "mono-green").unwrap(),
+            crate::decks::by_name(&pool, "mono-red").unwrap(),
+        ];
+        let stats = batch(&pool, &decks, games, 7, false, ["greedy", "random"]);
+        assert_eq!(stats.panics.len(), 0, "{:?}", stats.panics);
+        assert!(
+            stats.wins[0] * 10 >= games * 8,
+            "greedy won only {} of {games}",
+            stats.wins[0]
+        );
     }
 }

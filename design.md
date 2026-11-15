@@ -851,8 +851,12 @@ Status 2026-11-14: scenario runner (§7.1) added with a 72-scenario corpus
 covering combat keywords, the stack, timing, lands and mana, cleanup, and
 game end; all pass. Authoring the corpus found no engine bugs; it found
 three mis-authored tests (Murder is an instant; an instant scripted after
-a response fires in response). Remaining before M2: split `engine.rs`,
-greedy agent, human play mode, chance nodes.
+a response fires in response). `engine.rs` split into `engine/{mod,
+objects, casting, sba, combat}.rs`. Greedy one-ply agent added
+(`mtg-agents`; beats random 95% of games with the stronger deck, 72% with
+the weaker). `mtg play` gives terminal play against a baseline agent.
+Remaining for M1: chance nodes (deferred to M2, where the first random
+effects appear).
 
 Status 2026-10-30: first cut complete and green. Zones, turn structure,
 priority, stack, casting with targets and canonical mana payment, combat

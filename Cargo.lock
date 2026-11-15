@@ -724,6 +724,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "mtg-agents",
  "mtg-core",
  "mtg-scenario",
  "mtg-sim",

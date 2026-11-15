@@ -8,6 +8,8 @@ use clap::{Parser, Subcommand};
 use mtg_core::card::m1_pool;
 use mtg_core::record::GameRecord;
 
+mod play;
+
 #[derive(Parser)]
 #[command(name = "mtg", about = "MTG engine command line")]
 struct Cli {
@@ -32,6 +34,26 @@ enum Command {
         /// Keep event logs (slower; needed only for debugging).
         #[arg(long)]
         logging: bool,
+        /// Agent for player 1: random, greedy, or first.
+        #[arg(long, default_value = "random")]
+        agent1: String,
+        /// Agent for player 2.
+        #[arg(long, default_value = "random")]
+        agent2: String,
+    },
+    /// Play a game in the terminal against a baseline agent.
+    Play {
+        /// Your deck.
+        #[arg(long, default_value = "mono-red")]
+        deck: String,
+        /// The opponent's deck.
+        #[arg(long, default_value = "mono-green")]
+        opponent: String,
+        /// Opponent agent: greedy, random, or first.
+        #[arg(long, default_value = "greedy")]
+        agent: String,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
     },
     /// Re-simulate a game record (JSON) and print its event log.
     Replay { record: PathBuf },
@@ -63,12 +85,20 @@ fn main() -> Result<()> {
                 println!("{n}");
             }
         }
+        Command::Play {
+            deck,
+            opponent,
+            agent,
+            seed,
+        } => play::run(&deck, &opponent, &agent, seed)?,
         Command::Sim {
             deck1,
             deck2,
             games,
             seed,
             logging,
+            agent1,
+            agent2,
         } => {
             let pool = Arc::new(m1_pool());
             let Some(d1) = mtg_sim::decks::by_name(&pool, &deck1) else {
@@ -77,8 +107,16 @@ fn main() -> Result<()> {
             let Some(d2) = mtg_sim::decks::by_name(&pool, &deck2) else {
                 bail!("unknown deck {deck2}");
             };
-            let stats = mtg_sim::random_batch(&pool, &[d1, d2], games, seed, logging);
-            println!("{deck1} vs {deck2}: {} games, seeds {seed}..", stats.games);
+            for a in [&agent1, &agent2] {
+                if mtg_agents::by_name(a, 0).is_none() {
+                    bail!("unknown agent {a} (random, greedy, first)");
+                }
+            }
+            let stats = mtg_sim::batch(&pool, &[d1, d2], games, seed, logging, [&agent1, &agent2]);
+            println!(
+                "{deck1} ({agent1}) vs {deck2} ({agent2}): {} games, seeds {seed}..",
+                stats.games
+            );
             println!(
                 "wins: P1 {}  P2 {}  draws {}  unfinished {}  panics {}",
                 stats.wins[0],

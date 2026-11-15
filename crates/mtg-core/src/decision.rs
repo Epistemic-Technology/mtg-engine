@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{GameResult, Target};
+use crate::state::{GameResult, GameState, Target};
 
 /// Index into `Decision::options`.
 pub type ChoiceId = u32;
@@ -54,6 +54,55 @@ pub enum Choice {
     /// Combat damage division as (recipient, amount) pairs.
     Division(Vec<(Target, u32)>),
     Discard(ObjId),
+}
+
+impl Choice {
+    /// Human-readable form using card names from `state`.
+    pub fn describe(&self, state: &GameState) -> String {
+        let name = |id: &ObjId| state.name_of(*id).to_string();
+        let names = |ids: &[ObjId]| -> String {
+            if ids.is_empty() {
+                "nothing".to_string()
+            } else {
+                ids.iter().map(name).collect::<Vec<_>>().join(", ")
+            }
+        };
+        let target = |t: &Target| match t {
+            Target::Player(p) => format!("player {}", p.0 + 1),
+            Target::Object(id) => name(id),
+        };
+        match self {
+            Choice::Keep => "keep".into(),
+            Choice::Mulligan => "mulligan".into(),
+            Choice::Bottom(id) => format!("put {} on the bottom", name(id)),
+            Choice::Pass => "pass".into(),
+            Choice::PlayLand(id) => format!("play {}", name(id)),
+            Choice::Cast(id) => format!("cast {}", name(id)),
+            Choice::Target(t) => format!("target {}", target(t)),
+            Choice::Attackers(set) => format!("attack with {}", names(set)),
+            Choice::AddAttacker(id) => format!("add attacker {}", name(id)),
+            Choice::Blocks(set) => {
+                if set.is_empty() {
+                    "no blocks".into()
+                } else {
+                    set.iter()
+                        .map(|(b, a)| format!("{} blocks {}", name(b), name(a)))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                }
+            }
+            Choice::AddBlock { blocker, attacker } => {
+                format!("{} blocks {}", name(blocker), name(attacker))
+            }
+            Choice::Done => "done".into(),
+            Choice::Division(div) => div
+                .iter()
+                .map(|(t, n)| format!("{n} to {}", target(t)))
+                .collect::<Vec<_>>()
+                .join(", "),
+            Choice::Discard(id) => format!("discard {}", name(id)),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
