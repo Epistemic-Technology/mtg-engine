@@ -3,12 +3,17 @@
 use smallvec::SmallVec;
 
 use crate::card::Modification;
-use crate::card::{AbilityDef, Effect, Keyword, Recipient, TargetSpec};
+use crate::card::{
+    AbilityDef, Affects, Effect, Keyword, Recipient, Replacement, Replaces, TargetSpec,
+};
 use crate::decision::Choice;
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
-use crate::state::{Affected, ContinuousEffect, Duration, GameState, ObjKind, Target, Zone};
+use crate::state::{
+    Affected, ContinuousEffect, Duration, GameState, ObjKind, ReplacementEffect, RuleEffect,
+    Target, Zone,
+};
 
 impl GameState {
     // ----- priority actions --------------------------------------------------------
@@ -163,9 +168,10 @@ impl GameState {
                 spell,
                 def: obj.def,
             });
-            let new = self.move_object(spell, Zone::Battlefield, true);
-            self.objects[new].controller = obj.controller;
-            if let Some(Target::Object(t)) = target {
+            let new = self.put_onto_battlefield(spell, obj.controller);
+            if let Some(Target::Object(t)) = target
+                && self.objects.contains_key(new)
+            {
                 self.objects[new].attached_to = Some(t);
                 self.emit(Event::Attached { obj: new, to: t });
             }
@@ -213,8 +219,7 @@ impl GameState {
             && o.zone == Zone::Stack
         {
             if def.is_permanent_card() {
-                let new = self.move_object(spell, Zone::Battlefield, true);
-                self.objects[new].controller = obj.controller;
+                self.put_onto_battlefield(spell, obj.controller);
             } else {
                 self.move_object(spell, Zone::Graveyard, true);
             }
@@ -267,6 +272,7 @@ impl GameState {
         out
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per effect kind
     pub(super) fn apply_effect(&mut self, ctx: &EffectCtx, effect: &Effect) {
         let on_battlefield = |st: &GameState, t: Target| match t {
             Target::Object(id) => st
@@ -315,7 +321,7 @@ impl GameState {
             Effect::GainLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.change_life(p, i32::try_from(*amount).unwrap_or(i32::MAX));
+                        self.gain_life(p, *amount);
                     }
                 }
             }
@@ -356,7 +362,72 @@ impl GameState {
                     }
                 }
             }
+            Effect::RemoveCounters { kind, count, to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.remove_counters(id, *kind, *count);
+                    }
+                }
+            }
+            Effect::ExileAllGraveyards => {
+                let cards: Vec<ObjId> = self
+                    .players
+                    .iter()
+                    .flat_map(|p| p.graveyard.iter().copied())
+                    .collect();
+                for id in cards {
+                    self.move_object(id, Zone::Exile, true);
+                }
+            }
+            Effect::CreateReplacement(r) => self.create_replacement(ctx, r),
+            Effect::Rule(kind) => {
+                self.rules.push(RuleEffect {
+                    kind: *kind,
+                    duration: Duration::UntilEndOfTurn,
+                });
+                self.bump();
+            }
         }
+    }
+
+    /// Store a replacement or prevention effect until end of turn (CR 614.3,
+    /// 615.3). One aimed at a spell's target is locked to that target
+    /// (CR 611.2c) and is not created if the target became illegal.
+    fn create_replacement(&mut self, ctx: &EffectCtx, r: &crate::card::ReplacementAbility) {
+        let target = match &r.replaces {
+            Replaces::Damage {
+                to: Affects::Target(i),
+                ..
+            } => {
+                if !ctx.legal.get(*i).copied().unwrap_or(false) {
+                    return;
+                }
+                ctx.targets.get(*i).copied()
+            }
+            _ => None,
+        };
+        let remaining = match r.replacement {
+            Replacement::PreventNext(n) => n,
+            _ => 0,
+        };
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+            .expect("a resolving spell or its last known information exists");
+        let timestamp = self.tick();
+        self.replacements.push(ReplacementEffect {
+            source: Some(ctx.source),
+            def,
+            controller: ctx.controller,
+            timestamp,
+            duration: Duration::UntilEndOfTurn,
+            ability: r.clone(),
+            target,
+            remaining,
+        });
+        self.bump();
     }
 }
 

@@ -259,7 +259,7 @@ impl Line {
         Ok(TargetRef::Object(self.obj_ref()?))
     }
 
-    /// `[N] "name" [tapped]`.
+    /// `[N] "name" [tapped] [on "name"] [with N +1/+1]`.
     fn card_spec(&mut self) -> Result<CardSpec, ParseError> {
         let count = if matches!(self.peek(), Some(Tok::Num(_))) {
             self.count()?
@@ -279,11 +279,19 @@ impl Line {
         } else {
             None
         };
+        let mut counters = Vec::new();
+        if self.peek_ident("with") {
+            self.pos += 1;
+            let n = self.unsigned()?;
+            let kind = self.ident()?;
+            counters.push((kind, n));
+        }
         Ok(CardSpec {
             name,
             count,
             tapped,
             attached_to,
+            counters,
         })
     }
 }
@@ -518,6 +526,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             }
             (Action::Trigger { source, targets }, None)
         }
+        "apply" => (Action::Apply(line.string()?), None),
         other => return line.fail(format!("unknown action `{other}`")),
     };
     Ok(ScriptedAction {

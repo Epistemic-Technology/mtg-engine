@@ -8,11 +8,12 @@ Comprehensive Rules) and speed (thousands of complete games per second per
 core with cheap agents).
 
 Status: milestone M2 (continuous effects and the event pipeline) in
-progress; the CR 613 layer system, Auras, counters, and triggered
-abilities (CR 603) are in. Random agents play complete games with a
-61-card pool at about 2,750 games per second per core on effect-free
-boards. A 150-scenario rules corpus passes. See [design.md](design.md)
-for the architecture, roadmap, and open questions.
+progress; the CR 613 layer system, Auras, counters, triggered abilities
+(CR 603), and replacement and prevention effects (CR 614–616) are in.
+Random agents play complete games with a 78-card pool at about 2,600
+games per second per core on effect-free boards. A 197-scenario rules
+corpus passes. See [design.md](design.md) for the architecture, roadmap,
+and open questions.
 
 ```
 cargo run --release -p mtg-cli -- sim --deck1 mono-red --deck2 mono-green --games 1000

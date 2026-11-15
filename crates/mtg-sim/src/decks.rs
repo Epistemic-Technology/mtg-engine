@@ -2,7 +2,7 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 7] = [
+pub const NAMES: [&str; 8] = [
     "mono-white",
     "mono-blue",
     "mono-black",
@@ -10,6 +10,7 @@ pub const NAMES: [&str; 7] = [
     "mono-green",
     "layers",
     "triggers",
+    "replacement",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -27,6 +28,7 @@ fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
     deck
 }
 
+#[allow(clippy::too_many_lines)] // one entry per deck
 pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
     let spec: &[(&str, usize)] = match name {
         "mono-white" => &[
@@ -119,6 +121,36 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Hellrider", 2),
             ("Markov Blademaster", 2),
             ("Monastery Swiftspear", 3),
+        ],
+        // Replacement-effect stress deck: every replacement and prevention
+        // card at once, plus damage and life to replace.
+        "replacement" => &[
+            ("Plains", 7),
+            ("Mountain", 6),
+            ("Forest", 4),
+            ("Island", 3),
+            ("Azorius Guildgate", 2),
+            ("Fog", 2),
+            ("Holy Day", 1),
+            ("Safe Passage", 2),
+            ("Mending Hands", 2),
+            ("Bandage", 2),
+            ("Skullcrack", 2),
+            ("Furnace of Rath", 2),
+            ("Gratuitous Violence", 1),
+            ("Phantom Tiger", 3),
+            ("Sulfuric Vortex", 2),
+            ("Rhox Faithmender", 2),
+            ("Laboratory Maniac", 2),
+            ("Thought Reflection", 1),
+            ("Rest in Peace", 2),
+            ("Leyline of the Void", 1),
+            ("Hardened Scales", 2),
+            ("Ajani's Pridemate", 2),
+            ("Vampire Nighthawk", 2),
+            ("Savannah Lions", 2),
+            ("Lightning Bolt", 2),
+            ("Dromoka's Gift", 1),
         ],
         _ => return None,
     };

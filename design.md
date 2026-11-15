@@ -268,10 +268,41 @@ Triggered abilities are put on the stack the next time a player would
 receive priority, after SBAs (CR 117.5, 603.3). When one player controls
 several, they choose the order (CR 603.3b) as a `Decision`.
 
-**Status 2026-11-15 (M2 slice 2):** stages 2 and 3 are implemented; stage
-1 (replacement and prevention) is not. `GameState::emit` is the single
-chokepoint: every event runs `detect_triggers` before it is logged, so
-detection works with logging off. A card's triggered abilities are
+**Status 2026-11-15 (M2 slice 3):** all three stages are implemented.
+Stage 1 lives in `mtg-core/src/engine/replace.rs`: an event that can be
+replaced (damage, life gain, a draw, a zone change, counters) is a
+`Proposed` value that goes through `GameState::propose`, which collects
+every applicable replacement or prevention effect, applies them one at a
+time (each at most once per event, CR 614.5), and performs what is left.
+Effects come from the static abilities of battlefield permanents
+(`AbilityDef::Replacement`, read from current characteristics so Humility
+removes Phantom Tiger's shield), from the entering permanent's own
+"enters with" abilities (CR 614.1c; the CR 614.12 look-ahead through
+continuous effects is not modelled), and from effects stored by resolved
+spells (`GameState::replacements`: Fog's turn-long prevention, damage
+shields with a remaining amount per CR 615.7). When one event becomes
+several (draw two instead of one) each happens in turn with its own
+replacement check (CR 614.11a), so effects that become applicable only
+after another applied get their chance (CR 616.2). "Can't" effects
+(Skullcrack: players can't gain life, damage can't be prevented) are
+stored rules, not replacement effects (CR 614.17); unpreventable damage
+still runs prevention effects for their side effects without reducing a
+shield (CR 615.12). When two or more effects apply to one event the
+affected player (or the affected object's controller) chooses which
+applies first (CR 616.1) through `DecisionKind::ChooseReplacement`. That
+choice arises in the middle of applying an event, where the state machine
+cannot pause; rather than restructure every effect into a resumable queue,
+the engine records the question, lets the first option stand, and
+`Engine::advance` rolls the state back to a snapshot taken before the
+action and replays the action with the answer. The snapshot (a
+`GameState` clone, about 3 µs) is taken only when two or more replacement
+sources exist, so ordinary boards pay nothing; the replay is deterministic
+because the RNG is part of the state. The same mechanism will serve other
+mid-resolution choices (modes, "you may", sacrifices) in M3.
+
+Stage 3: `GameState::emit` is the single chokepoint: every event runs
+`detect_triggers` before it is logged, so detection works with logging
+off. A card's triggered abilities are
 `AbilityDef::Triggered { trigger: TriggerSpec, condition, targets,
 effects }`; `TriggerSpec` names the event kind and what it watches (`This`
 or an `ObjFilter`). Detection reads abilities from *current*
@@ -725,6 +756,29 @@ same morning: mono-red vs mono-red 2,842 → 2,758 (−3%), layers vs layers
 | triggers vs triggers (every trigger card at once) | 351 | 691 decisions/game; counters and Rancor force a layer pass per event |
 | `GameState::clone`, 200 decisions in | 3.0 µs | |
 
+**M2 slice 3 (2026-11-15, release build, random agents, one thread pinned
+with `taskset`, best of five runs of 2,000 games, seed 11).** The machine
+was shared with an unrelated eight-core job, hence best-of-five rather
+than one run. Same method on the slice 2 binary: mono-red vs mono-red
+2,679.
+
+| Matchup | games/s/core | Note |
+|---|---|---|
+| mono-red vs mono-red (no effects) | 2,579 | −3.7% against slice 2 |
+| mono-green vs mono-green (counters) | 1,820 | |
+| mono-white vs mono-black (anthems, auras) | 806 | |
+| layers vs layers | 723 | |
+| triggers vs triggers | 349 | |
+| replacement vs mono-red | 852 | |
+| replacement vs replacement (every replacement card at once) | 487 | 518 decisions/game; snapshots on most steps |
+
+The effect-free cost was chased with stub builds: removing the pipeline
+gate entirely, or the engine's snapshot bookkeeping, each recovered under
+1%, so most of the 3.7% is code layout (the crate grew by 700 lines under
+thin LTO with one codegen unit) rather than work done. One real cost was
+found and fixed on the way: an inline `Option<GameState>` snapshot field
+made `Option::take` copy 1.5 KB on every step; it is boxed.
+
 The trigger-heavy board is slow for the known reason: each event that a
 trigger could see asks for current characteristics, and with counters or
 statics on the board that is a full layer pass per event. Pre-filtering
@@ -962,6 +1016,37 @@ file and wants splitting.
   examples pass; performance targets measured and recorded.
 
 **M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
+
+Status 2026-11-15, slice 3 (replacement and prevention effects) done:
+`mtg-core/src/engine/replace.rs` implements CR 614–616 as stage 1 of the
+pipeline described in §4.5: damage, life gain, draws, zone changes, and
+counters are proposed, modified by every applicable effect once each, and
+performed, with the affected player choosing the order when several apply
+(a new `ChooseReplacement` decision, served by rolling the action back to
+a snapshot and replaying it with the answer). Also in this slice: "can't"
+effects (no life gain, damage can't be prevented), "enters tapped" and
+"enters with counters", damage shields, and winning the game as an
+effect. Seventeen cards join the pool (Fog, Holy Day, Safe Passage,
+Mending Hands, Bandage, Skullcrack, Furnace of Rath, Gratuitous Violence,
+Phantom Tiger, Sulfuric Vortex, Rhox Faithmender, Laboratory Maniac,
+Thought Reflection, Rest in Peace, Leyline of the Void, Hardened Scales,
+Azorius Guildgate), bringing it to 78. The scenario DSL gained `apply
+"Source"` for the CR 616.1 choice and `with N +1/+1` in setup. The
+47-scenario suite in `scenarios/m2/replacement.scn` covers shields used
+up across several damage events, Phantom Tiger losing a counter to
+unpreventable Skullcrack damage, two Furnaces quadrupling, the shield-
+before-or-after-doubling choice from both sides, Thought Reflection
+feeding Laboratory Maniac, Rest in Peace stopping dies triggers and
+Rancor's return, and Hardened Scales on counters a creature enters with.
+Authoring found one engine bug (both halves of "draw two instead" were
+checked for replacement before either happened, against CR 614.11a; fixed)
+and two mis-authored tests. Fuzz: 14,000 games with the replacement deck
+(random and greedy agents), 0 panics; records of games with mid-event
+decisions replay identically. Not yet: the CR 614.12 look-ahead for
+"enters" effects under Humility, redirection and regeneration, CR 615.7's
+choice of which simultaneous damage a shield prevents, activated
+abilities, delayed triggers, copy effects, CDAs, control-changing
+effects, tokens, planeswalkers, emblems, the legend rule (slice 4).
 
 Status 2026-11-15, slice 2 (triggered abilities and the event pipeline)
 done: `mtg-core/src/engine/triggers.rs` implements CR 603 as described in

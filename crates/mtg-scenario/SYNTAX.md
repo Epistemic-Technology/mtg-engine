@@ -22,7 +22,7 @@ scenario "name" {
 | Line | Meaning |
 |---|---|
 | `life A 15` | Starting life (default 20). |
-| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears"` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's). Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
+| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears", "Phantom Tiger" with 2 +1/+1` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's); `with N +1/+1` (or `-1/-1`) puts counters on it. Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
 | `hand A: "Lightning Bolt"` | Cards in hand. |
 | `graveyard A: ...`, `exile A: ...` | Likewise. |
 | `library A: "Top Card", "Next Card"` | The library, top card first, in exactly this order. Without this line the player gets 40 Plains so draws succeed. `library A:` with nothing gives an empty library. |
@@ -54,6 +54,7 @@ scenario fails.
 | `assign "Attacker" to "Blocker" 2, player B 4` | any combat damage step | Divide combat damage among blockers (and the player, with trample). Unscripted divisions take the engine's first option. |
 | `discard "Card"` | `cleanup` | Choice when discarding to hand size. |
 | `trigger "Blood Artist" targeting player B` | any step | A triggered ability of that source. When the player controls several triggers waiting to go on the stack, the scripted ones go first, in file order (the first put on the stack resolves last). `targeting` gives the ability's targets, chosen as it goes on the stack (CR 603.3d). Unscripted triggers take the engine's first option. |
+| `apply "Furnace of Rath"` | any step | When several replacement or prevention effects apply to one event, the affected player chooses which applies first (CR 616.1): apply the effect from that card. Unscripted choices take the engine's first option. |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 `begin_combat`, `declare_attackers`, `declare_blockers`,
@@ -61,8 +62,8 @@ Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 (`main2`), `end`, `cleanup`.
 
 Unscripted decisions: keep the hand, pass priority, declare no attackers or
-blockers, take the first option otherwise (including trigger order and
-trigger targets).
+blockers, take the first option otherwise (including trigger order, trigger
+targets, and the order of replacement effects).
 
 Names resolve against the current state when the action fires. Where a
 player controls several objects of the same name, `attack` and `block`

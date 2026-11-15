@@ -5,6 +5,7 @@
 mod casting;
 mod combat;
 mod objects;
+mod replace;
 mod sba;
 mod triggers;
 
@@ -85,6 +86,8 @@ pub struct SetupPermanent {
     /// For Auras: the name of a permanent (either player's) to attach to.
     /// Resolved after every permanent is placed; the first match wins.
     pub attached_to: Option<String>,
+    /// Counters already on the permanent.
+    pub counters: Vec<(crate::card::CounterKind, u32)>,
 }
 
 impl SetupPermanent {
@@ -93,14 +96,27 @@ impl SetupPermanent {
             def,
             tapped: false,
             attached_to: None,
+            counters: Vec::new(),
         }
     }
+}
+
+/// The state before an action that met a decision in the middle of an
+/// event (CR 616.1), kept so the action can be replayed with the answer.
+struct Snapshot {
+    state: GameState,
+    log_len: usize,
+    action: Option<(PlayerId, Choice)>,
+    answers: Vec<ChoiceId>,
 }
 
 pub struct Engine {
     state: GameState,
     current: StepResult,
     history: Vec<ChoiceId>,
+    /// Boxed: taking an inline `Option<GameState>` would copy it on every
+    /// step.
+    snapshot: Option<Box<Snapshot>>,
 }
 
 impl Engine {
@@ -136,12 +152,14 @@ impl Engine {
                 state.draw(p);
             }
         }
-        let current = state.run();
-        Engine {
+        let mut engine = Engine {
             state,
-            current,
+            current: StepResult::Over(GameResult::Draw),
             history: Vec::new(),
-        }
+            snapshot: None,
+        };
+        engine.advance(None, Vec::new());
+        engine
     }
 
     /// Start from a prepared position (design §7.1): objects are placed
@@ -177,10 +195,13 @@ impl Engine {
                 let o = &mut state.objects[id];
                 o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
-                state.battlefield.push(id);
-                if state.pool.get(perm.def).has_triggers() {
-                    state.trigger_sources += 1;
+                for (kind, n) in &perm.counters {
+                    o.add_counters(*kind, *n);
                 }
+                state.battlefield.push(id);
+                let def = state.pool.get(perm.def);
+                state.trigger_sources += u32::from(def.has_triggers());
+                state.replacement_sources += u32::from(def.has_replacements());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -205,12 +226,14 @@ impl Engine {
             player: setup.active_player,
         });
         state.flow = Flow::BeginStep;
-        let current = state.run();
-        Engine {
+        let mut engine = Engine {
             state,
-            current,
+            current: StepResult::Over(GameResult::Draw),
             history: Vec::new(),
-        }
+            snapshot: None,
+        };
+        engine.advance(None, Vec::new());
+        engine
     }
 
     pub fn current(&self) -> &StepResult {
@@ -244,9 +267,83 @@ impl Engine {
         let player = decision.player;
         let option = option.clone();
         self.history.push(choice);
-        self.state.apply_choice(player, option);
-        self.current = self.state.run();
+        if let Some(snap) = self.snapshot.take() {
+            // Answering a question met in the middle of an event: replay the
+            // action that raised it from the state before it, with the
+            // answer appended.
+            let snap = *snap;
+            let mut answers = snap.answers;
+            answers.push(choice);
+            self.restore(snap.state, snap.log_len);
+            self.advance(snap.action, answers);
+        } else {
+            self.advance(Some((player, option)), Vec::new());
+        }
         Ok(&self.current)
+    }
+
+    /// Apply `action` (if any) and run to the next decision. If a decision
+    /// is needed in the middle of an event (CR 616.1) the state is rolled
+    /// back to before the action and that decision is returned; `step`
+    /// replays the action once it is answered. The snapshot this needs is
+    /// taken only when such a decision is possible.
+    fn advance(&mut self, action: Option<(PlayerId, Choice)>, answers: Vec<ChoiceId>) {
+        // The common case: no replacement effects in play, nothing to
+        // snapshot or record.
+        if !self.state.may_need_mid_decision() && answers.is_empty() {
+            if let Some((p, c)) = action {
+                self.state.apply_choice(p, c);
+            }
+            self.current = self.state.run();
+            debug_assert!(self.state.mid.pending.is_none());
+            return;
+        }
+        let (snapshot, log_len) = self.snapshot();
+        let saved_action = action.clone();
+        self.state.mid = crate::state::MidDecision {
+            answers,
+            next: 0,
+            pending: None,
+        };
+        if let Some((p, c)) = action {
+            self.state.apply_choice(p, c);
+        }
+        let result = self.state.run();
+        if let Some(pending) = self.state.mid.pending.take() {
+            let answers = std::mem::take(&mut self.state.mid.answers);
+            self.restore(snapshot.clone(), log_len);
+            self.snapshot = Some(Box::new(Snapshot {
+                state: snapshot,
+                log_len,
+                action: saved_action,
+                answers,
+            }));
+            self.current = StepResult::Decision(pending);
+            return;
+        }
+        debug_assert_eq!(
+            self.state.mid.next,
+            self.state.mid.answers.len(),
+            "recorded answers were not all consumed on replay"
+        );
+        self.state.mid = crate::state::MidDecision::default();
+        self.current = result;
+    }
+
+    /// The state without its event log (restored separately).
+    fn snapshot(&mut self) -> (GameState, usize) {
+        let log = std::mem::take(&mut self.state.log);
+        let copy = self.state.clone();
+        let log_len = log.len();
+        self.state.log = log;
+        (copy, log_len)
+    }
+
+    fn restore(&mut self, state: GameState, log_len: usize) {
+        let mut log = std::mem::take(&mut self.state.log);
+        log.truncate(log_len);
+        self.state = state;
+        self.state.log = log;
     }
 }
 
@@ -290,6 +387,10 @@ impl GameState {
             stack: Vec::new(),
             combat: None,
             effects: Vec::new(),
+            replacements: Vec::new(),
+            rules: Vec::new(),
+            replacement_sources: 0,
+            mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
             trigger_sources: 0,
@@ -311,6 +412,11 @@ impl GameState {
     #[allow(clippy::too_many_lines)] // one arm per `Flow` variant
     fn run(&mut self) -> StepResult {
         loop {
+            // A decision was needed in the middle of an event: stop here;
+            // the `Engine` rolls back and asks (see `Engine::advance`).
+            if self.mid.pending.is_some() {
+                return StepResult::Decision(self.mid.pending.clone().expect("checked"));
+            }
             if let Some(result) = self.check_game_over() {
                 return StepResult::Over(result);
             }
@@ -906,6 +1012,10 @@ impl GameState {
             })
             .collect();
         self.effects
+            .retain(|e| e.duration != Duration::UntilEndOfTurn);
+        self.replacements
+            .retain(|e| e.duration != Duration::UntilEndOfTurn);
+        self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         for affected in ended {
             self.emit(Event::EffectEnded { affected });

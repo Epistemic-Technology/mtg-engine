@@ -3,6 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::card::CardRef;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{GameResult, GameState, Target};
 
@@ -30,6 +31,9 @@ pub enum DecisionKind {
     /// Choose which of several triggered abilities to put on the stack next
     /// (CR 603.3b). The one chosen first resolves last.
     OrderTriggers,
+    /// Several replacement or prevention effects apply to one event: the
+    /// affected player chooses which applies first (CR 616.1).
+    ChooseReplacement,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -60,6 +64,11 @@ pub enum Choice {
     /// Put the pending triggered ability at this index of
     /// `GameState::pending_triggers` on the stack.
     Trigger(usize),
+    /// Apply the `index`th applicable replacement effect, from card `def`.
+    Replacement {
+        index: usize,
+        def: CardRef,
+    },
 }
 
 impl Choice {
@@ -113,6 +122,9 @@ impl Choice {
                     .get(*i)
                     .map_or("?", |t| state.name_of_or_lki(t.ability.source));
                 format!("put {source}'s trigger on the stack")
+            }
+            Choice::Replacement { def, .. } => {
+                format!("apply {}'s effect", state.pool.get(*def).name)
             }
         }
     }

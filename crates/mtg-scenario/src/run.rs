@@ -146,11 +146,21 @@ impl Runner {
                 };
                 for _ in 0..card.count {
                     match z.zone {
-                        Zone::Battlefield => ps.battlefield.push(SetupPermanent {
-                            def,
-                            tapped: card.tapped,
-                            attached_to: card.attached_to.clone(),
-                        }),
+                        Zone::Battlefield => {
+                            let mut counters = Vec::new();
+                            for (kind, n) in &card.counters {
+                                let Some(k) = counter_kind_by_name(kind) else {
+                                    return fail(z.line, format!("unknown counter kind `{kind}`"));
+                                };
+                                counters.push((k, *n));
+                            }
+                            ps.battlefield.push(SetupPermanent {
+                                def,
+                                tapped: card.tapped,
+                                attached_to: card.attached_to.clone(),
+                                counters,
+                            });
+                        }
                         Zone::Hand => ps.hand.push(def),
                         Zone::Graveyard => ps.graveyard.push(def),
                         Zone::Exile => ps.exile.push(def),
@@ -345,7 +355,29 @@ impl Runner {
             DecisionKind::AssignCombatDamage { attacker } => self.assign_damage(d, pos, attacker),
             DecisionKind::Discard => self.discard(d, pos),
             DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
+            DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
         }
+    }
+
+    /// Several replacement effects apply to one event: the first unfired
+    /// scripted `apply` naming one of their sources goes first; otherwise
+    /// the engine's first option.
+    fn choose_replacement(&mut self, d: &Decision, pos: Position) -> ChoiceId {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Apply(_)));
+        for i in idxs {
+            let Action::Apply(source) = &self.actions[i].action else {
+                unreachable!()
+            };
+            let found = d.options.iter().position(|c| match c {
+                Choice::Replacement { def, .. } => self.state().pool.get(*def).name == *source,
+                _ => false,
+            });
+            if let Some(idx) = found {
+                self.fired[i] = true;
+                return idx_u32(idx);
+            }
+        }
+        0
     }
 
     /// Several of the player's triggers wait to go on the stack: the first
@@ -1109,10 +1141,8 @@ impl Runner {
             }
             Assertion::Counters(r, kind, want) => {
                 let id = self.resolve_obj(line, r)?;
-                let k = match kind.as_str() {
-                    "+1/+1" => CounterKind::PlusOnePlusOne,
-                    "-1/-1" => CounterKind::MinusOneMinusOne,
-                    other => return fail(line, format!("unknown counter kind `{other}`")),
+                let Some(k) = counter_kind_by_name(kind) else {
+                    return fail(line, format!("unknown counter kind `{kind}`"));
                 };
                 expect(
                     line,
@@ -1244,6 +1274,9 @@ impl Runner {
                     .get(*i)
                     .map_or("?", |t| self.state().name_of_or_lki(t.ability.source))
             ),
+            Choice::Replacement { def, .. } => {
+                format!("apply \"{}\"", self.state().pool.get(*def).name)
+            }
         }
     }
 
@@ -1296,6 +1329,14 @@ fn join(items: &[String]) -> String {
         "nothing".to_string()
     } else {
         items.join(", ")
+    }
+}
+
+fn counter_kind_by_name(name: &str) -> Option<CounterKind> {
+    match name {
+        "+1/+1" => Some(CounterKind::PlusOnePlusOne),
+        "-1/-1" => Some(CounterKind::MinusOneMinusOne),
+        _ => None,
     }
 }
 

@@ -1,0 +1,548 @@
+# Replacement and prevention effects (CR 614-616): prevention spells and
+# shields, damage doubling, life-gain and draw replacement, "exile instead",
+# counters, how permanents enter, "can't" effects, and the affected player's
+# choice of order when several effects apply (CR 616.1).
+
+# ---- prevention -------------------------------------------------------------------
+
+scenario "fog prevents all combat damage" {
+  battlefield A: "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Fog"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Savannah Lions"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Fog"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert damage "Grizzly Bears" 0
+  assert damage "Hill Giant" 0
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "fog does not prevent noncombat damage" {
+  battlefield A: "Forest", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Fog"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: cast "Fog" in response to "Lightning Bolt"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "holy day is fog" {
+  battlefield A: "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Holy Day"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: cast "Holy Day"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "safe passage protects you and your creatures but not the attacker" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Safe Passage"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Savannah Lions"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Safe Passage"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert damage "Grizzly Bears" 0
+  assert damage "Hill Giant" 2
+}
+
+scenario "a shield prevents the next 4 damage and the remainder is dealt (CR 615.7)" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: 2 "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lightning Bolt", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 2 A: cast "Mending Hands" targeting "Hill Giant" in response to "Lightning Bolt"
+  turn 2 begin_combat B: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 declare_attackers
+  assert damage "Hill Giant" 1
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "a shield on a player" {
+  battlefield A: "Plains"
+  battlefield B: 5 "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lava Axe"
+  start turn 2 B
+  turn 2 B: cast "Lava Axe" targeting player A
+  turn 2 A: cast "Mending Hands" targeting player A in response to "Lava Axe"
+  run_to turn 2 begin_combat
+  assert life A 19
+}
+
+scenario "a shield is used up across several damage events, then expires" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears", "Savannah Lions", "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears", "Savannah Lions"
+  turn 2 declare_blockers A: cast "Mending Hands" targeting player A
+  turn 2 postcombat_main B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 18
+}
+
+scenario "a shield lasts only until end of turn" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Mending Hands" targeting "Hill Giant"
+  turn 2 B: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "bandage prevents 1 and draws a card" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Bandage"
+  hand B: "Shock"
+  library A: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Hill Giant"
+  turn 2 A: cast "Bandage" targeting "Hill Giant" in response to "Shock"
+  run_to turn 2 begin_combat
+  assert damage "Hill Giant" 1
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "lifelink gains nothing from prevented damage" {
+  battlefield A: "Forest"
+  battlefield B: "Vampire Nighthawk"
+  hand A: "Fog"
+  start turn 2 B
+  turn 2 B: attack "Vampire Nighthawk"
+  turn 2 declare_blockers A: cast "Fog"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "deathtouch does nothing when the damage is prevented" {
+  battlefield A: "Forest", "Serra Angel"
+  battlefield B: "Typhoid Rats"
+  hand A: "Fog"
+  start turn 2 B
+  turn 2 B: attack "Typhoid Rats"
+  turn 2 A: block "Typhoid Rats" with "Serra Angel"
+  turn 2 declare_blockers A: cast "Fog"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield B contains "Typhoid Rats"
+}
+
+# ---- phantom tiger: enters with counters, prevention with a side effect ------------------
+
+scenario "phantom tiger enters with two +1/+1 counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Phantom Tiger"
+  turn 1 A: cast "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert counters "Phantom Tiger" +1/+1 2
+  assert power "Phantom Tiger" 3
+  assert toughness "Phantom Tiger" 2
+}
+
+scenario "phantom tiger prevents damage and loses a counter each time" {
+  battlefield A: "Phantom Tiger" with 2 +1/+1
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Phantom Tiger"
+  run_to turn 2 begin_combat
+  assert damage "Phantom Tiger" 0
+  assert counters "Phantom Tiger" +1/+1 1
+  assert toughness "Phantom Tiger" 1
+  turn 2 begin_combat B: cast "Shock" targeting "Phantom Tiger"
+  run_to turn 2 declare_attackers
+  assert graveyard A contains "Phantom Tiger"
+}
+
+scenario "humility removes phantom tiger's shield" {
+  battlefield A: "Phantom Tiger" with 2 +1/+1
+  battlefield B: "Humility", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Phantom Tiger"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Phantom Tiger"
+}
+
+# ---- "can't" effects (CR 614.17, 615.12) ----------------------------------------------
+
+scenario "skullcrack: damage can't be prevented, but the shield's side effect still happens" {
+  battlefield A: "Phantom Tiger" with 2 +1/+1
+  battlefield B: 3 "Mountain"
+  hand B: "Skullcrack", "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Skullcrack" targeting player A
+  turn 2 begin_combat B: cast "Lightning Bolt" targeting "Phantom Tiger"
+  run_to turn 2 declare_attackers
+  assert life A 17
+  assert graveyard A contains "Phantom Tiger"
+}
+
+scenario "skullcrack: players can't gain life this turn" {
+  battlefield A: "Plains", "Soul Warden", "Vampire Nighthawk"
+  battlefield B: 2 "Mountain", 2 "Forest", "Hill Giant"
+  hand A: "Healing Salve"
+  hand B: "Skullcrack", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Skullcrack" targeting player A
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 begin_combat A: cast "Healing Salve"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Vampire Nighthawk"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+}
+
+scenario "skullcrack's rules end with the turn" {
+  battlefield A: "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Healing Salve"
+  hand B: "Skullcrack"
+  start turn 2 B
+  turn 2 B: cast "Skullcrack" targeting player A
+  turn 3 A: cast "Healing Salve"
+  run_to turn 3 begin_combat
+  assert life A 20
+}
+
+# ---- damage doubling ----------------------------------------------------------------
+
+scenario "furnace of rath doubles spell and combat damage" {
+  battlefield A: "Furnace of Rath", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "two furnaces quadruple: each applies once (CR 614.5)" {
+  battlefield A: 2 "Furnace of Rath", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "gratuitous violence doubles only your creatures' damage" {
+  battlefield A: "Gratuitous Violence", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 16
+  assert life A 17
+}
+
+scenario "lifelink gains the doubled amount" {
+  battlefield A: "Furnace of Rath", "Vampire Nighthawk"
+  turn 1 A: attack "Vampire Nighthawk"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+}
+
+scenario "an ability's damage is doubled too" {
+  battlefield A: "Furnace of Rath", "Hellrider"
+  turn 1 A: attack "Hellrider"
+  run_to turn 1 declare_blockers
+  assert life B 18
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "furnace and fog: prevented whichever applies first" {
+  battlefield A: "Forest", "Hill Giant"
+  battlefield B: "Furnace of Rath", "Grizzly Bears"
+  hand A: "Fog"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Hill Giant"
+  turn 2 declare_blockers A: cast "Fog"
+  run_to turn 2 postcombat_main
+  assert damage "Hill Giant" 0
+  assert damage "Grizzly Bears" 0
+}
+
+# ---- the affected player chooses the order (CR 616.1) ------------------------------------
+
+scenario "shield first: 3 damage is all prevented and nothing is left to double" {
+  battlefield A: "Plains"
+  battlefield B: "Furnace of Rath", "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Mending Hands" targeting player A in response to "Lightning Bolt"
+  turn 2 A: apply "Mending Hands"
+  run_to turn 2 begin_combat
+  assert life A 20
+}
+
+scenario "doubling first: 6 damage, the shield takes 4, 2 is dealt" {
+  battlefield A: "Plains"
+  battlefield B: "Furnace of Rath", "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 A: cast "Mending Hands" targeting player A in response to "Lightning Bolt"
+  turn 2 A: apply "Furnace of Rath"
+  run_to turn 2 begin_combat
+  assert life A 18
+}
+
+scenario "the creature's controller chooses for damage to a creature" {
+  # B's Furnace, A's shield on A's Hill Giant: A chooses. Doubling first
+  # leaves 2 damage on the Giant.
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Furnace of Rath", "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 2 A: cast "Mending Hands" targeting "Hill Giant" in response to "Lightning Bolt"
+  turn 2 A: apply "Furnace of Rath"
+  run_to turn 2 begin_combat
+  assert damage "Hill Giant" 2
+}
+
+# ---- life gain ----------------------------------------------------------------------
+
+scenario "sulfuric vortex: no life gain, and 2 damage at each upkeep" {
+  battlefield A: "Sulfuric Vortex", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve"
+  run_to turn 1 begin_combat
+  assert life A 18
+  run_to turn 2 precombat_main
+  assert life B 18
+}
+
+scenario "no life gain means no lifegain trigger" {
+  battlefield A: "Sulfuric Vortex", "Ajani's Pridemate", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve"
+  run_to turn 1 begin_combat
+  assert counters "Ajani's Pridemate" +1/+1 0
+}
+
+scenario "rhox faithmender doubles life gain, including its own lifelink" {
+  battlefield A: "Rhox Faithmender", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve"
+  turn 1 A: attack "Rhox Faithmender"
+  run_to turn 1 postcombat_main
+  assert life A 28
+  assert life B 19
+}
+
+scenario "rhox faithmender doubles a triggered gain" {
+  battlefield A: "Rhox Faithmender", "Soul Warden", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert life A 22
+}
+
+scenario "rhox and vortex: nothing is gained in either order" {
+  battlefield A: "Rhox Faithmender", "Sulfuric Vortex", "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve"
+  run_to turn 1 begin_combat
+  assert life A 18
+}
+
+# ---- draws --------------------------------------------------------------------------
+
+scenario "drawing from an empty library loses" {
+  library A:
+  start turn 2 A upkeep
+  run_to end
+  assert winner B
+}
+
+scenario "laboratory maniac wins instead" {
+  battlefield A: "Laboratory Maniac"
+  library A:
+  start turn 2 A upkeep
+  run_to end
+  assert winner A
+}
+
+scenario "humility removes laboratory maniac's ability" {
+  battlefield A: "Laboratory Maniac"
+  battlefield B: "Humility"
+  library A:
+  start turn 2 A upkeep
+  run_to end
+  assert winner B
+}
+
+scenario "thought reflection draws two for each draw" {
+  battlefield A: "Thought Reflection", 3 "Island"
+  hand A: "Divination"
+  library A: 6 "Grizzly Bears"
+  start turn 2 A upkeep
+  turn 2 A: cast "Divination"
+  run_to turn 2 begin_combat
+  assert hand A count 6
+  assert library A count 0
+}
+
+scenario "thought reflection does not apply to the opponent" {
+  battlefield A: "Thought Reflection"
+  library B: 3 "Hill Giant"
+  start turn 2 B upkeep
+  run_to turn 2 precombat_main
+  assert hand B count 1
+}
+
+scenario "the second of two replaced draws can itself be replaced (CR 616.2)" {
+  # Draw step: Thought Reflection makes it two draws. The first empties the
+  # library; Laboratory Maniac replaces the second with winning.
+  battlefield A: "Thought Reflection", "Laboratory Maniac"
+  library A: "Grizzly Bears"
+  start turn 2 A upkeep
+  run_to end
+  assert winner A
+}
+
+# ---- graveyards ---------------------------------------------------------------------
+
+scenario "rest in peace exiles instead: no death, no dies trigger, no rancor return" {
+  battlefield A: "Rest in Peace", "Blood Artist"
+  battlefield B: "Grizzly Bears", "Rancor" on "Grizzly Bears", 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Rancor"
+  assert exile B contains "Murder"
+  assert graveyard B count 0
+  assert hand B lacks "Rancor"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "rest in peace exiles all graveyards as it enters" {
+  battlefield A: 2 "Plains"
+  hand A: "Rest in Peace"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Hill Giant", "Shock"
+  turn 1 A: cast "Rest in Peace"
+  run_to turn 1 begin_combat
+  assert graveyard A count 0
+  assert graveyard B count 0
+  assert exile A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Shock"
+}
+
+scenario "leyline of the void exiles only opponents' cards" {
+  battlefield A: "Leyline of the Void", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand A: "Lightning Bolt"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Lightning Bolt" targeting "Hill Giant" in response to "Shock"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert exile A count 0
+  assert exile B contains "Hill Giant"
+  assert exile B contains "Shock"
+  assert graveyard B count 0
+}
+
+scenario "rest in peace and leyline together exile a card once" {
+  battlefield A: "Rest in Peace", "Leyline of the Void"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard B count 0
+}
+
+# ---- counters -----------------------------------------------------------------------
+
+scenario "hardened scales adds one to each batch of counters" {
+  battlefield A: "Hardened Scales", "Ajani's Pridemate", 5 "Forest", "Plains"
+  hand A: "Dromoka's Gift", "Healing Salve"
+  turn 1 A: cast "Dromoka's Gift" targeting "Ajani's Pridemate"
+  turn 1 A: cast "Healing Salve"
+  run_to turn 1 begin_combat
+  assert counters "Ajani's Pridemate" +1/+1 6
+}
+
+scenario "hardened scales ignores the opponent's creatures" {
+  battlefield A: "Hardened Scales"
+  battlefield B: "Grizzly Bears", 5 "Forest"
+  hand B: "Dromoka's Gift"
+  start turn 2 B
+  turn 2 B: cast "Dromoka's Gift" targeting "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "hardened scales applies to counters a creature enters with (CR 122.6)" {
+  battlefield A: "Hardened Scales", 3 "Forest"
+  hand A: "Phantom Tiger"
+  turn 1 A: cast "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert counters "Phantom Tiger" +1/+1 3
+}
+
+scenario "two hardened scales add two" {
+  battlefield A: 2 "Hardened Scales", "Grizzly Bears", 5 "Forest"
+  hand A: "Dromoka's Gift"
+  turn 1 A: cast "Dromoka's Gift" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 5
+}
+
+# ---- enters tapped ------------------------------------------------------------------
+
+scenario "a guildgate enters tapped and is usable next turn" {
+  battlefield A: "Plains"
+  hand A: "Azorius Guildgate", "Crusade"
+  turn 1 A: play "Azorius Guildgate"
+  illegal turn 1 A: cast "Crusade"
+  run_to turn 1 begin_combat
+  assert tapped "Azorius Guildgate"
+  turn 3 A: cast "Crusade"
+  run_to turn 3 begin_combat
+  assert battlefield A contains "Crusade"
+}
+
+scenario "a guildgate taps for either of its colors" {
+  battlefield A: 2 "Plains", "Azorius Guildgate"
+  hand A: "Wind Drake"
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Wind Drake"
+}

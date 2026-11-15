@@ -184,7 +184,8 @@ impl Agent for GreedyAgent {
             DecisionKind::Mulligan => Self::best_by(d, |c| i64::from(*c == Choice::Keep)),
             DecisionKind::Bottom
             | DecisionKind::AssignCombatDamage { .. }
-            | DecisionKind::OrderTriggers => 0,
+            | DecisionKind::OrderTriggers
+            | DecisionKind::ChooseReplacement => 0,
             DecisionKind::PriorityAction => Self::best_by(d, |c| match c {
                 Choice::PlayLand(_) => 1_000,
                 Choice::Cast(id) => {

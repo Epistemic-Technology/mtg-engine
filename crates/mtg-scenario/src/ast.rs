@@ -41,6 +41,8 @@ pub struct CardSpec {
     pub tapped: bool,
     /// `on "Name"`: attach this Aura to that permanent.
     pub attached_to: Option<String>,
+    /// `with N +1/+1`: counters already on the permanent.
+    pub counters: Vec<(String, u32)>,
 }
 
 #[derive(Clone, Debug)]
@@ -108,6 +110,9 @@ pub enum Action {
         source: String,
         targets: Vec<TargetRef>,
     },
+    /// `apply "Source"`: when several replacement or prevention effects
+    /// apply to one event, apply this source's first (CR 616.1).
+    Apply(String),
 }
 
 impl Action {
@@ -120,6 +125,7 @@ impl Action {
             Action::Assign { .. } => "assign",
             Action::Discard(_) => "discard",
             Action::Trigger { .. } => "trigger",
+            Action::Apply(_) => "apply",
         }
     }
 }

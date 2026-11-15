@@ -430,6 +430,18 @@ pub enum Who {
     Opponents,
 }
 
+/// How a filter relates to the effect's own source.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum Relation {
+    /// The source may match like any other object.
+    #[default]
+    Any,
+    /// Excludes the source ("each other ...").
+    Other,
+    /// Only the source itself ("~", "this creature").
+    This,
+}
+
 /// Which battlefield objects a static ability's effect applies to
 /// (CR 611.3: re-evaluated as the layers are applied).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
@@ -445,8 +457,8 @@ pub struct ObjFilter {
     pub colors: Option<ColorSet>,
     /// Must have none of these subtypes ("non-Aura").
     pub not_subtypes: SubtypeSet,
-    /// Excludes the effect's source ("each other ...").
-    pub other: bool,
+    /// Whether the source itself is excluded or required.
+    pub relation: Relation,
     /// Only the object the source is attached to ("enchanted creature").
     pub enchanted: bool,
     /// Only objects with no abilities.
@@ -468,6 +480,14 @@ impl ObjFilter {
         }
     }
 
+    /// The source itself.
+    pub fn this() -> Self {
+        ObjFilter {
+            relation: Relation::This,
+            ..Default::default()
+        }
+    }
+
     #[must_use]
     pub fn who(mut self, w: Who) -> Self {
         self.who = Some(w);
@@ -482,7 +502,7 @@ impl ObjFilter {
 
     #[must_use]
     pub fn other(mut self) -> Self {
-        self.other = true;
+        self.relation = Relation::Other;
         self
     }
 
@@ -498,7 +518,13 @@ impl ObjFilter {
         source: Option<crate::ids::ObjId>,
         controller: Option<crate::ids::PlayerId>,
     ) -> bool {
-        if self.other && source == Some(obj) {
+        let is_source = source == Some(obj);
+        let relation_ok = match self.relation {
+            Relation::Any => true,
+            Relation::Other => !is_source,
+            Relation::This => is_source,
+        };
+        if !relation_ok {
             return false;
         }
         if let Some(w) = self.who
@@ -669,6 +695,122 @@ pub enum Effect {
     ReturnToHand {
         what: Recipient,
     },
+    /// Remove counters from a permanent.
+    RemoveCounters {
+        kind: CounterKind,
+        count: u32,
+        to: Recipient,
+    },
+    /// Exile every card in every graveyard.
+    ExileAllGraveyards,
+    /// Create a replacement or prevention effect that lasts until end of
+    /// turn (CR 614.3, 615.3): "Prevent all combat damage that would be
+    /// dealt this turn", "Prevent the next 4 damage that would be dealt to
+    /// any target this turn" (a shield, CR 615.7).
+    CreateReplacement(ReplacementAbility),
+    /// A "can't" effect that lasts until end of turn (CR 614.17).
+    Rule(RuleKind),
+}
+
+/// Effects that modify the rules rather than objects (CR 613.11, 614.17).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum RuleKind {
+    /// "Players can't gain life."
+    NoLifeGain,
+    /// "Damage can't be prevented." Prevention effects still apply but
+    /// prevent nothing (CR 615.12).
+    DamageCantBePrevented,
+}
+
+/// Who or what a replacement or prevention effect's event may affect.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Affects {
+    /// Any permanent or player.
+    Any,
+    /// The ability's source only ("if damage would be dealt to ~").
+    This,
+    /// The controller ("you").
+    You,
+    /// Players, relative to the controller.
+    Players(Who),
+    /// Battlefield objects matching a filter (judged for the source and
+    /// its controller).
+    Objects(ObjFilter),
+    /// The controller and objects matching a filter ("you and creatures
+    /// you control").
+    YouAnd(ObjFilter),
+    /// The spell's `n`th chosen target, locked in when the effect is
+    /// created (stored effects only).
+    Target(usize),
+}
+
+/// The event a replacement or prevention effect watches for (CR 614.1,
+/// 615.1).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Replaces {
+    /// Damage a source matching `from` (any source if `None`) would deal to
+    /// `to`; `combat` restricts to combat or noncombat damage.
+    Damage {
+        from: Option<ObjFilter>,
+        to: Affects,
+        combat: Option<bool>,
+    },
+    /// A player would gain life.
+    GainLife { whose: Who },
+    /// A player would draw a card; `library_empty` requires an empty
+    /// library (Laboratory Maniac).
+    Draw { whose: Who, library_empty: bool },
+    /// A card would be put into a graveyard owned by `whose`, from anywhere
+    /// or only from the battlefield.
+    ToGraveyard { whose: Who, from_battlefield: bool },
+    /// +1/+1 counters would be put on a permanent matching `on`, including
+    /// as it enters (CR 122.6).
+    PlusCounters { on: ObjFilter },
+    /// How this permanent itself enters the battlefield (CR 614.1c).
+    Enters,
+}
+
+/// What happens instead.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Replacement {
+    /// Prevent all of the damage, or the player gains no life.
+    Prevent,
+    /// A shield: prevent the next N damage (CR 615.7).
+    PreventNext(u32),
+    /// Double the damage or life.
+    Double,
+    /// That many plus one counters.
+    PlusOne,
+    /// Put the card into this zone instead.
+    Instead(crate::state::Zone),
+    /// Draw two cards instead of one.
+    DrawTwo,
+    /// The player wins the game instead.
+    WinGame,
+    /// Enters tapped.
+    EnterTapped,
+    /// Enters with counters.
+    EnterWithCounters { kind: CounterKind, n: u32 },
+}
+
+/// A replacement or prevention effect (CR 614, 615), either a static
+/// ability of a permanent or created by a resolving spell.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ReplacementAbility {
+    pub replaces: Replaces,
+    pub replacement: Replacement,
+    /// Effects that happen when this applies (CR 615.5): Phantom Tiger's
+    /// "Remove a +1/+1 counter from it".
+    pub then: Vec<Effect>,
+}
+
+impl ReplacementAbility {
+    pub fn is_prevention(&self) -> bool {
+        matches!(
+            self.replacement,
+            Replacement::Prevent | Replacement::PreventNext(_)
+        ) && matches!(self.replaces, Replaces::Damage { .. })
+    }
 }
 
 /// What a triggered ability watches: its own source, or any object matching
@@ -756,6 +898,10 @@ pub enum AbilityDef {
     TapForMana(Mana),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
+    /// A replacement or prevention effect generated while the source is on
+    /// the battlefield (CR 614.1a, 615.1a), or, for `Replaces::Enters`, as
+    /// it enters (CR 614.1c).
+    Replacement(ReplacementAbility),
 }
 
 impl AbilityDef {
@@ -764,7 +910,10 @@ impl AbilityDef {
         match self {
             AbilityDef::Spell { targets, .. } => targets,
             AbilityDef::Triggered(t) => &t.targets,
-            AbilityDef::Enchant(_) | AbilityDef::TapForMana(_) | AbilityDef::Static(_) => &[],
+            AbilityDef::Enchant(_)
+            | AbilityDef::TapForMana(_)
+            | AbilityDef::Static(_)
+            | AbilityDef::Replacement(_) => &[],
         }
     }
 
@@ -773,7 +922,10 @@ impl AbilityDef {
         match self {
             AbilityDef::Spell { effects, .. } => effects,
             AbilityDef::Triggered(t) => &t.effects,
-            AbilityDef::Enchant(_) | AbilityDef::TapForMana(_) | AbilityDef::Static(_) => &[],
+            AbilityDef::Enchant(_)
+            | AbilityDef::TapForMana(_)
+            | AbilityDef::Static(_)
+            | AbilityDef::Replacement(_) => &[],
         }
     }
 }
@@ -809,6 +961,12 @@ pub struct CardDef {
     /// Filled in by `CardPool::add`; see `has_triggers()`.
     #[serde(skip)]
     has_triggers: bool,
+    /// Filled in by `CardPool::add`; see `has_replacements()`.
+    #[serde(skip)]
+    has_replacements: bool,
+    /// Filled in by `CardPool::add`; see `modifies_entering()`.
+    #[serde(skip)]
+    modifies_entering: bool,
 }
 
 impl CardDef {
@@ -847,6 +1005,17 @@ impl CardDef {
     /// every event, so precomputed.
     pub fn has_triggers(&self) -> bool {
         self.has_triggers
+    }
+
+    /// Has a printed replacement or prevention ability that works from the
+    /// battlefield. Checked on every replaceable event, so precomputed.
+    pub fn has_replacements(&self) -> bool {
+        self.has_replacements
+    }
+
+    /// Has a printed "enters with" / "enters tapped" ability (CR 614.1c).
+    pub fn modifies_entering(&self) -> bool {
+        self.modifies_entering
     }
 
     /// Whether any printed triggered ability (or trigger keyword) could see
@@ -984,6 +1153,12 @@ impl CardPool {
                 .abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Triggered(_)));
+        def.has_replacements = def.abilities.iter().any(
+            |a| matches!(a, AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)),
+        );
+        def.modifies_entering = def.abilities.iter().any(
+            |a| matches!(a, AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters)),
+        );
         def.printed = Some(crate::state::Characteristics {
             def: r,
             colors: def.colors(),
@@ -1069,6 +1244,8 @@ impl Builder {
             printed: None,
             cast_targets: Vec::new(),
             has_triggers: false,
+            has_replacements: false,
+            modifies_entering: false,
         })
     }
 
@@ -1358,6 +1535,7 @@ pub fn m1_pool() -> CardPool {
     );
     add_m2_cards(&mut pool);
     add_trigger_cards(&mut pool);
+    add_replacement_cards(&mut pool);
     pool
 }
 
@@ -1433,7 +1611,7 @@ fn add_m2_cards(pool: &mut CardPool) {
         ObjFilter {
             types: TypeSet::of([Enchantment]),
             not_subtypes: SubtypeSet::from_slice(&[aura_subtype]),
-            other: true,
+            relation: Relation::Other,
             ..Default::default()
         },
         &[
@@ -1785,6 +1963,281 @@ fn add_trigger_cards(pool: &mut CardPool) {
         creature("Monastery Swiftspear", "{R}", &["Human", "Monk"], 1, 2)
             .keywords([Keyword::Haste, Keyword::Prowess])
             .text("Haste\nProwess")
+            .build(),
+    );
+}
+
+/// Cards with replacement and prevention effects (M2 slice 3). All are real
+/// cards with simple Oracle text.
+#[allow(clippy::too_many_lines)]
+fn add_replacement_cards(pool: &mut CardPool) {
+    use CardType::{Creature, Enchantment, Instant, Land};
+    use Recipient::{Source, Target, You};
+    use Replacement::{Double, DrawTwo, EnterTapped, Instead, PlusOne, Prevent, PreventNext};
+
+    let replacement = |replaces: Replaces, replacement: Replacement| {
+        AbilityDef::Replacement(ReplacementAbility {
+            replaces,
+            replacement,
+            then: Vec::new(),
+        })
+    };
+    let triggered = |trigger: TriggerSpec, effects: &[Effect]| {
+        AbilityDef::Triggered(TriggeredAbility {
+            trigger,
+            condition: None,
+            targets: Vec::new(),
+            effects: effects.to_vec(),
+        })
+    };
+    let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32| {
+        Builder::new(name, cost)
+            .types([Creature])
+            .subtypes(sub)
+            .pt(p, t)
+    };
+    let enchantment = |name: &str, cost: &str| Builder::new(name, cost).types([Enchantment]);
+    let instant = |name: &str, cost: &str, text: &str, effects: &[Effect]| {
+        Builder::new(name, cost)
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: Vec::new(),
+                effects: effects.to_vec(),
+            })
+            .text(text)
+            .build()
+    };
+    let any_damage = |to: Affects, combat: Option<bool>| Replaces::Damage {
+        from: None,
+        to,
+        combat,
+    };
+    let prevent = |replaces: Replaces| {
+        Effect::CreateReplacement(ReplacementAbility {
+            replaces,
+            replacement: Prevent,
+            then: Vec::new(),
+        })
+    };
+    let shield = |n: u32| {
+        Effect::CreateReplacement(ReplacementAbility {
+            replaces: any_damage(Affects::Target(0), None),
+            replacement: PreventNext(n),
+            then: Vec::new(),
+        })
+    };
+
+    // ---- prevention spells ----
+    pool.add(instant(
+        "Fog",
+        "{G}",
+        "Prevent all combat damage that would be dealt this turn.",
+        &[prevent(any_damage(Affects::Any, Some(true)))],
+    ));
+    pool.add(instant(
+        "Holy Day",
+        "{W}",
+        "Prevent all combat damage that would be dealt this turn.",
+        &[prevent(any_damage(Affects::Any, Some(true)))],
+    ));
+    pool.add(instant(
+        "Safe Passage",
+        "{2}{W}",
+        "Prevent all damage that would be dealt to you and creatures you control this turn.",
+        &[prevent(any_damage(
+            Affects::YouAnd(ObjFilter::creatures().who(Who::You)),
+            None,
+        ))],
+    ));
+    pool.add(
+        Builder::new("Mending Hands", "{W}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Any],
+                effects: vec![shield(4)],
+            })
+            .text("Prevent the next 4 damage that would be dealt to any target this turn.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Bandage", "{W}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Any],
+                effects: vec![
+                    shield(1),
+                    Effect::DrawCards {
+                        count: 1,
+                        who: You,
+                    },
+                ],
+            })
+            .text("Prevent the next 1 damage that would be dealt to any target this turn.\nDraw a card.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Skullcrack", "{1}{R}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::PlayerOrPlaneswalker],
+                effects: vec![
+                    Effect::DealDamage {
+                        amount: 3,
+                        to: Target(0),
+                    },
+                    Effect::Rule(RuleKind::NoLifeGain),
+                    Effect::Rule(RuleKind::DamageCantBePrevented),
+                ],
+            })
+            .text("Skullcrack deals 3 damage to target player or planeswalker. Players can't gain life this turn. Damage can't be prevented this turn.")
+            .build(),
+    );
+
+    // ---- damage replacement ----
+    pool.add(
+        enchantment("Furnace of Rath", "{1}{R}{R}{R}")
+            .ability(replacement(any_damage(Affects::Any, None), Double))
+            .text("If a source would deal damage to a permanent or player, it deals double that damage to that permanent or player instead.")
+            .build(),
+    );
+    pool.add(
+        enchantment("Gratuitous Violence", "{2}{R}{R}{R}")
+            .ability(replacement(
+                Replaces::Damage {
+                    from: Some(ObjFilter::creatures().who(Who::You)),
+                    to: Affects::Any,
+                    combat: None,
+                },
+                Double,
+            ))
+            .text("If a creature you control would deal damage to a permanent or player, it deals double that damage to that permanent or player instead.")
+            .build(),
+    );
+    pool.add(
+        creature("Phantom Tiger", "{2}{G}", &["Cat", "Spirit"], 1, 0)
+            .ability(replacement(
+                Replaces::Enters,
+                Replacement::EnterWithCounters {
+                    kind: CounterKind::PlusOnePlusOne,
+                    n: 2,
+                },
+            ))
+            .ability(AbilityDef::Replacement(ReplacementAbility {
+                replaces: any_damage(Affects::This, None),
+                replacement: Prevent,
+                then: vec![Effect::RemoveCounters {
+                    kind: CounterKind::PlusOnePlusOne,
+                    count: 1,
+                    to: Source,
+                }],
+            }))
+            .text("Phantom Tiger enters the battlefield with two +1/+1 counters on it.\nIf damage would be dealt to Phantom Tiger, prevent that damage. Remove a +1/+1 counter from Phantom Tiger.")
+            .build(),
+    );
+
+    // ---- life ----
+    pool.add(
+        enchantment("Sulfuric Vortex", "{1}{R}{R}")
+            .ability(triggered(
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Upkeep,
+                    whose: Who::Any,
+                },
+                &[Effect::DealDamage {
+                    amount: 2,
+                    to: Recipient::TriggeringPlayer,
+                }],
+            ))
+            .ability(replacement(Replaces::GainLife { whose: Who::Any }, Prevent))
+            .text("At the beginning of each player's upkeep, Sulfuric Vortex deals 2 damage to that player.\nIf a player would gain life, that player gains no life instead.")
+            .build(),
+    );
+    pool.add(
+        creature("Rhox Faithmender", "{3}{W}", &["Rhino", "Monk"], 1, 5)
+            .keywords([Keyword::Lifelink])
+            .ability(replacement(Replaces::GainLife { whose: Who::You }, Double))
+            .text("Lifelink\nIf you would gain life, you gain twice that much life instead.")
+            .build(),
+    );
+
+    // ---- draws ----
+    pool.add(
+        creature("Laboratory Maniac", "{2}{U}", &["Human", "Wizard"], 2, 2)
+            .ability(replacement(
+                Replaces::Draw {
+                    whose: Who::You,
+                    library_empty: true,
+                },
+                Replacement::WinGame,
+            ))
+            .text("If you would draw a card while your library has no cards in it, you win the game instead.")
+            .build(),
+    );
+    pool.add(
+        enchantment("Thought Reflection", "{4}{U}{U}{U}")
+            .ability(replacement(
+                Replaces::Draw {
+                    whose: Who::You,
+                    library_empty: false,
+                },
+                DrawTwo,
+            ))
+            .text("If you would draw a card, draw two cards instead.")
+            .build(),
+    );
+
+    // ---- graveyards ----
+    pool.add(
+        enchantment("Rest in Peace", "{1}{W}")
+            .ability(triggered(
+                TriggerSpec::Enters(TriggerObj::This),
+                &[Effect::ExileAllGraveyards],
+            ))
+            .ability(replacement(
+                Replaces::ToGraveyard {
+                    whose: Who::Any,
+                    from_battlefield: false,
+                },
+                Instead(crate::state::Zone::Exile),
+            ))
+            .text("When Rest in Peace enters, exile all cards from all graveyards.\nIf a card or token would be put into a graveyard from anywhere, exile it instead.")
+            .build(),
+    );
+    pool.add(
+        enchantment("Leyline of the Void", "{2}{B}{B}")
+            .ability(replacement(
+                Replaces::ToGraveyard {
+                    whose: Who::Opponents,
+                    from_battlefield: false,
+                },
+                Instead(crate::state::Zone::Exile),
+            ))
+            .text("If Leyline of the Void is in your opening hand, you may begin the game with it on the battlefield.\nIf a card would be put into an opponent's graveyard from anywhere, exile it instead.")
+            .build(),
+    );
+
+    // ---- counters ----
+    pool.add(
+        enchantment("Hardened Scales", "{G}")
+            .ability(replacement(
+                Replaces::PlusCounters {
+                    on: ObjFilter::creatures().who(Who::You),
+                },
+                PlusOne,
+            ))
+            .text("If one or more +1/+1 counters would be put on a creature you control, that many plus one +1/+1 counters are put on it instead.")
+            .build(),
+    );
+
+    // ---- enters tapped ----
+    pool.add(
+        Builder::new("Azorius Guildgate", "")
+            .types([Land])
+            .subtypes(&["Gate"])
+            .ability(replacement(Replaces::Enters, EnterTapped))
+            .ability(AbilityDef::TapForMana(Mana::Colored(Color::White)))
+            .ability(AbilityDef::TapForMana(Mana::Colored(Color::Blue)))
+            .text("Azorius Guildgate enters the battlefield tapped.\n{T}: Add {W} or {U}.")
             .build(),
     );
 }

@@ -13,8 +13,10 @@ use smallvec::SmallVec;
 pub use crate::card::Layer;
 use crate::card::{
     AbilityId, AbilitySet, CardDef, CardPool, CardRef, CardType, CounterKind, Keyword, KeywordSet,
-    Modification, ObjFilter, SubtypeSet, SupertypeSet, TargetSpec, TypeSet,
+    Modification, ObjFilter, ReplacementAbility, RuleKind, SubtypeSet, SupertypeSet, TargetSpec,
+    TypeSet,
 };
+use crate::decision::{ChoiceId, Decision};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId, Timestamp};
 use crate::mana::{ColorSet, ManaPool};
@@ -145,6 +147,8 @@ pub enum LossReason {
     LifeZeroOrLess,
     DrewFromEmptyLibrary,
     Conceded,
+    /// An effect made an opponent win the game (CR 104.2b).
+    OpponentWon,
 }
 
 #[derive(Clone, Debug)]
@@ -246,6 +250,45 @@ pub struct ContinuousEffect {
     pub duration: Duration,
     pub affected: Affected,
     pub parts: SmallVec<[Modification; 2]>,
+}
+
+/// A replacement or prevention effect created by a resolving spell or
+/// ability (CR 614.3, 615.3): Fog's "this turn" effect, a damage shield.
+/// Effects of static abilities are not stored; the pipeline reads them from
+/// the battlefield each time.
+#[derive(Clone, Debug)]
+pub struct ReplacementEffect {
+    pub source: Option<ObjId>,
+    /// The card the effect came from, for naming it.
+    pub def: CardRef,
+    pub controller: PlayerId,
+    pub timestamp: Timestamp,
+    pub duration: Duration,
+    pub ability: ReplacementAbility,
+    /// The spell's chosen target this effect is locked to (CR 611.2c).
+    pub target: Option<Target>,
+    /// Damage left on a shield (CR 615.7).
+    pub remaining: u32,
+}
+
+/// A "can't" effect from a resolved spell (CR 614.17), until end of turn.
+#[derive(Copy, Clone, Debug)]
+pub struct RuleEffect {
+    pub kind: RuleKind,
+    pub duration: Duration,
+}
+
+/// A decision taken in the middle of applying an event (CR 616.1: which
+/// of several replacement effects applies first). The engine cannot pause
+/// there, so it records the question, lets a default stand, and the
+/// `Engine` rolls the action back and replays it with the answer.
+#[derive(Clone, Debug, Default)]
+pub struct MidDecision {
+    /// Answers to consume on a replay, in order.
+    pub answers: Vec<ChoiceId>,
+    pub next: usize,
+    /// The first unanswered question met during this action.
+    pub pending: Option<Decision>,
 }
 
 /// An object's current characteristics (CR 109.3), derived from printed
@@ -403,6 +446,14 @@ pub struct GameState {
     pub stack: Vec<ObjId>,
     pub combat: Option<CombatState>,
     pub effects: Vec<ContinuousEffect>,
+    /// Replacement and prevention effects from resolved spells (CR 614.3).
+    pub replacements: Vec<ReplacementEffect>,
+    /// "Can't" effects from resolved spells (CR 614.17).
+    pub rules: Vec<RuleEffect>,
+    /// Battlefield objects whose definition has a replacement or
+    /// prevention ability, so that events on plain boards cost nothing.
+    pub replacement_sources: u32,
+    pub mid: MidDecision,
     pub lki: HashMap<ObjId, LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
@@ -526,6 +577,18 @@ impl GameState {
             Some(a) => self.pool.ability(a.ability).effects(),
             None => self.pool.get(o.def).spell_ability().map_or(&[], |(_, e)| e),
         }
+    }
+
+    /// Whether a "can't" effect of this kind is in force (CR 614.17).
+    pub fn rule_in_force(&self, kind: RuleKind) -> bool {
+        self.rules.iter().any(|r| r.kind == kind)
+    }
+
+    /// Whether applying an event could ask a player to choose among
+    /// replacement effects (CR 616.1): two or more effects must exist. The
+    /// `Engine` snapshots the state before an action when this holds.
+    pub fn may_need_mid_decision(&self) -> bool {
+        self.replacement_sources as usize + self.replacements.len() >= 2
     }
 
     /// Current characteristics of an object, computed through the layers

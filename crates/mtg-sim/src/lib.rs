@@ -247,6 +247,50 @@ mod tests {
         }
     }
 
+    /// Decisions taken in the middle of an event (which of several
+    /// replacement effects applies first, CR 616.1) make the engine roll an
+    /// action back and replay it. A record of such a game must re-simulate
+    /// to the same state.
+    #[test]
+    fn games_with_mid_event_decisions_replay_identically() {
+        use mtg_core::decision::{DecisionKind, StepResult};
+        use mtg_core::engine::Engine;
+        use mtg_core::record::GameRecord;
+        let pool = Arc::new(m1_pool());
+        let deck = crate::decks::by_name(&pool, "replacement").unwrap();
+        let mut mid_decisions = 0;
+        for seed in 0..12u64 {
+            let config = GameConfig {
+                decks: vec![deck.clone(), deck.clone()],
+                starting_life: 20,
+                seed,
+                logging: true,
+            };
+            let mut agents = [RandomAgent::new(seed), RandomAgent::new(seed + 1)];
+            let mut engine = Engine::new(pool.clone(), &config);
+            while let StepResult::Decision(d) = engine.current() {
+                if d.kind == DecisionKind::ChooseReplacement {
+                    mid_decisions += 1;
+                }
+                let choice = agents[d.player.index()].choose(engine.state(), d);
+                engine.step(choice).unwrap();
+            }
+            let record = GameRecord::from_engine(&engine, &pool, &config);
+            let again = record.replay(pool.clone(), true).unwrap();
+            assert_eq!(engine.state().version, again.state().version, "seed {seed}");
+            assert_eq!(
+                engine.state().log.len(),
+                again.state().log.len(),
+                "seed {seed}"
+            );
+            assert_eq!(engine.state().result, again.state().result, "seed {seed}");
+            for (p, q) in engine.state().players.iter().zip(&again.state().players) {
+                assert_eq!(p.life, q.life, "seed {seed}");
+            }
+        }
+        assert!(mid_decisions > 0, "no game asked a CR 616.1 question");
+    }
+
     /// The greedy agent must beat the random agent clearly; a regression here
     /// means a heuristic broke (or the engine started offering bad options).
     #[test]

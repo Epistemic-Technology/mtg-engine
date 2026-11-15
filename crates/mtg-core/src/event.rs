@@ -1,7 +1,7 @@
 //! Game events. Every change to the game is an event; the log is the replay
-//! and the LLM-facing narration (design §4.5). Trigger detection runs over
-//! every event as it is emitted (`GameState::emit`); replacement effects do
-//! not yet.
+//! and the LLM-facing narration (design §4.5). Replacement and prevention
+//! effects run before an event happens (`engine::replace`); trigger
+//! detection runs over every event as it is emitted (`GameState::emit`).
 
 use serde::{Deserialize, Serialize};
 
@@ -106,6 +106,11 @@ pub enum Event {
         kind: CounterKind,
         n: u32,
     },
+    CountersRemoved {
+        obj: ObjId,
+        kind: CounterKind,
+        n: u32,
+    },
     Attached {
         obj: ObjId,
         to: ObjId,
@@ -129,6 +134,22 @@ pub enum Event {
     TriggerRemoved {
         source: ObjId,
         def: CardRef,
+    },
+    /// A prevention effect of `by` prevented `amount` damage from `source`
+    /// to `target` (CR 615.6).
+    Prevented {
+        source: ObjId,
+        target: Target,
+        amount: u32,
+        by: CardRef,
+    },
+    /// A replacement effect of `by` modified an event (CR 614.6).
+    Replaced {
+        by: CardRef,
+    },
+    /// An effect made `player` win the game (CR 104.2b).
+    PlayerWon {
+        player: PlayerId,
     },
     PlayerLost {
         player: PlayerId,
