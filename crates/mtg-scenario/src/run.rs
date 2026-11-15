@@ -6,8 +6,9 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 
 use mtg_core::card::CardPool;
+use mtg_core::card::{CardType, CounterKind, Keyword, Supertype};
 use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
-use mtg_core::engine::{Engine, PlayerSetup, Setup};
+use mtg_core::engine::{Engine, PlayerSetup, Setup, SetupPermanent};
 use mtg_core::event::Event;
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::state::{GameResult, GameState, Target, Zone};
@@ -145,7 +146,11 @@ impl Runner {
                 };
                 for _ in 0..card.count {
                     match z.zone {
-                        Zone::Battlefield => ps.battlefield.push((def, card.tapped)),
+                        Zone::Battlefield => ps.battlefield.push(SetupPermanent {
+                            def,
+                            tapped: card.tapped,
+                            attached_to: card.attached_to.clone(),
+                        }),
                         Zone::Hand => ps.hand.push(def),
                         Zone::Graveyard => ps.graveyard.push(def),
                         Zone::Exile => ps.exile.push(def),
@@ -409,8 +414,7 @@ impl Runner {
                         let needed = self
                             .state()
                             .def_of(id)
-                            .and_then(|def| def.spell_ability())
-                            .map_or(0, |(specs, _)| specs.len());
+                            .map_or(0, |def| def.cast_targets().len());
                         if targets.len() != needed {
                             return fail(
                                 a.line,
@@ -948,6 +952,81 @@ impl Runner {
                 st.stack.len(),
                 *want,
             ),
+            Assertion::HasKeyword(r, kw, want) => {
+                let id = self.resolve_obj(line, r)?;
+                let c = st.characteristics(id).expect("object exists");
+                let Some(k) = keyword_by_name(kw) else {
+                    return fail(line, format!("unknown keyword `{kw}`"));
+                };
+                expect(line, format!("\"{}\" has {kw}", r.name), c.has(k), *want)
+            }
+            Assertion::Is(r, what, want) => {
+                let id = self.resolve_obj(line, r)?;
+                let c = st.characteristics(id).expect("object exists");
+                let lower = what.to_lowercase();
+                let have = if let Some(t) = card_type_by_name(&lower) {
+                    c.types.contains(t)
+                } else if let Some(t) = supertype_by_name(&lower) {
+                    c.supertypes.contains(t)
+                } else if let Some(col) = color_by_name(&lower) {
+                    c.colors.contains(col)
+                } else if lower == "colorless" {
+                    c.colors.is_colorless()
+                } else if let Some(sub) = st.pool.subtype_lookup(&capitalize(&lower)) {
+                    c.has_subtype(sub)
+                } else {
+                    return fail(line, format!("unknown type, subtype, or color `{what}`"));
+                };
+                expect(line, format!("\"{}\" is {what}", r.name), have, *want)
+            }
+            Assertion::Counters(r, kind, want) => {
+                let id = self.resolve_obj(line, r)?;
+                let k = match kind.as_str() {
+                    "+1/+1" => CounterKind::PlusOnePlusOne,
+                    "-1/-1" => CounterKind::MinusOneMinusOne,
+                    other => return fail(line, format!("unknown counter kind `{other}`")),
+                };
+                expect(
+                    line,
+                    format!("{kind} counters on \"{}\"", r.name),
+                    st.objects[id].counters(k),
+                    *want,
+                )
+            }
+            Assertion::Attached(aura, to) => {
+                let a = self.resolve_obj(line, aura)?;
+                let t = self.resolve_obj(line, to)?;
+                if st.objects[a].attached_to == Some(t) {
+                    return Ok(());
+                }
+                let have = st.objects[a]
+                    .attached_to
+                    .map_or("nothing".to_string(), |x| format!("\"{}\"", st.name_of(x)));
+                fail(
+                    line,
+                    format!(
+                        "\"{}\" is attached to {have}, expected \"{}\"",
+                        aura.name, to.name
+                    ),
+                )
+            }
+            Assertion::NoAbilities(r) => {
+                let id = self.resolve_obj(line, r)?;
+                let c = st.characteristics(id).expect("object exists");
+                if c.has_no_abilities() {
+                    Ok(())
+                } else {
+                    fail(
+                        line,
+                        format!(
+                            "\"{}\" has abilities: keywords {:?}, {} other",
+                            r.name,
+                            c.keywords,
+                            c.abilities.len()
+                        ),
+                    )
+                }
+            }
         }
     }
 
@@ -1082,6 +1161,58 @@ fn join(items: &[String]) -> String {
         "nothing".to_string()
     } else {
         items.join(", ")
+    }
+}
+
+fn keyword_by_name(name: &str) -> Option<Keyword> {
+    let lower = name.to_lowercase().replace('_', "");
+    Keyword::ALL
+        .into_iter()
+        .find(|k| format!("{k:?}").to_lowercase() == lower)
+}
+
+fn card_type_by_name(lower: &str) -> Option<CardType> {
+    Some(match lower {
+        "artifact" => CardType::Artifact,
+        "battle" => CardType::Battle,
+        "creature" => CardType::Creature,
+        "enchantment" => CardType::Enchantment,
+        "instant" => CardType::Instant,
+        "kindred" => CardType::Kindred,
+        "land" => CardType::Land,
+        "planeswalker" => CardType::Planeswalker,
+        "sorcery" => CardType::Sorcery,
+        _ => return None,
+    })
+}
+
+fn supertype_by_name(lower: &str) -> Option<Supertype> {
+    Some(match lower {
+        "basic" => Supertype::Basic,
+        "legendary" => Supertype::Legendary,
+        "snow" => Supertype::Snow,
+        "world" => Supertype::World,
+        _ => return None,
+    })
+}
+
+fn color_by_name(lower: &str) -> Option<mtg_core::mana::Color> {
+    use mtg_core::mana::Color;
+    Some(match lower {
+        "white" => Color::White,
+        "blue" => Color::Blue,
+        "black" => Color::Black,
+        "red" => Color::Red,
+        "green" => Color::Green,
+        _ => return None,
+    })
+}
+
+fn capitalize(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        None => String::new(),
     }
 }
 

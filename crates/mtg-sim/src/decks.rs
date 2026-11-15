@@ -2,12 +2,13 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 5] = [
+pub const NAMES: [&str; 6] = [
     "mono-white",
     "mono-blue",
     "mono-black",
     "mono-red",
     "mono-green",
+    "layers",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -30,22 +31,29 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
         "mono-white" => &[
             ("Plains", 24),
             ("Savannah Lions", 8),
-            ("Youthful Knight", 8),
-            ("Fencing Ace", 8),
-            ("Serra Angel", 8),
-            ("Healing Salve", 4),
+            ("Youthful Knight", 6),
+            ("Fencing Ace", 6),
+            ("Serra Angel", 6),
+            ("Healing Salve", 2),
+            ("Glorious Anthem", 3),
+            ("Crusade", 2),
+            ("Holy Strength", 3),
         ],
         "mono-blue" => &[
             ("Island", 24),
-            ("Wind Drake", 12),
-            ("Air Elemental", 12),
-            ("Divination", 12),
+            ("Wind Drake", 10),
+            ("Air Elemental", 10),
+            ("Divination", 8),
+            ("Flight", 4),
+            ("Levitation", 4),
         ],
         "mono-black" => &[
             ("Swamp", 24),
-            ("Typhoid Rats", 12),
-            ("Vampire Nighthawk", 12),
-            ("Murder", 12),
+            ("Typhoid Rats", 10),
+            ("Vampire Nighthawk", 10),
+            ("Murder", 8),
+            ("Dead Weight", 4),
+            ("Unholy Strength", 4),
         ],
         "mono-red" => &[
             ("Mountain", 24),
@@ -64,7 +72,28 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Giant Spider", 4),
             ("Craw Wurm", 4),
             ("Colossal Dreadmaw", 4),
-            ("Giant Growth", 8),
+            ("Giant Growth", 6),
+            ("Dromoka's Gift", 2),
+        ],
+        // Static-ability stress deck: every layer puzzle card at once.
+        "layers" => &[
+            ("Plains", 10),
+            ("Forest", 6),
+            ("Mountain", 4),
+            ("Darksteel Citadel", 2),
+            ("Dryad Arbor", 2),
+            ("Humility", 3),
+            ("Opalescence", 3),
+            ("Glorious Anthem", 3),
+            ("Crusade", 2),
+            ("Muraganda Petroglyphs", 3),
+            ("Blood Moon", 3),
+            ("Levitation", 2),
+            ("Savannah Lions", 4),
+            ("Serra Angel", 4),
+            ("Grizzly Bears", 4),
+            ("Holy Strength", 3),
+            ("Dead Weight", 2),
         ],
         _ => return None,
     };

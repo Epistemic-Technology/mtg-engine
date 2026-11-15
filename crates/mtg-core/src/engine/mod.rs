@@ -71,10 +71,28 @@ pub struct PlayerSetup {
     /// Bottom first; the last card is on top. Not shuffled.
     pub library: Vec<CardRef>,
     pub hand: Vec<CardRef>,
-    /// (card, tapped).
-    pub battlefield: Vec<(CardRef, bool)>,
+    pub battlefield: Vec<SetupPermanent>,
     pub graveyard: Vec<CardRef>,
     pub exile: Vec<CardRef>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SetupPermanent {
+    pub def: CardRef,
+    pub tapped: bool,
+    /// For Auras: the name of a permanent (either player's) to attach to.
+    /// Resolved after every permanent is placed; the first match wins.
+    pub attached_to: Option<String>,
+}
+
+impl SetupPermanent {
+    pub fn new(def: CardRef) -> Self {
+        SetupPermanent {
+            def,
+            tapped: false,
+            attached_to: None,
+        }
+    }
 }
 
 pub struct Engine {
@@ -133,6 +151,7 @@ impl Engine {
         let lives: Vec<i32> = setup.players.iter().map(|p| p.life).collect();
         let rng = ChaCha8Rng::seed_from_u64(setup.seed);
         let mut state = GameState::blank(pool, setup.active_player, &lives, rng, setup.logging);
+        let mut attachments: Vec<(ObjId, String)> = Vec::new();
         for (i, ps) in setup.players.iter().enumerate() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
             for def in &ps.library {
@@ -151,13 +170,25 @@ impl Engine {
                 let id = state.new_object(*def, p, Zone::Exile);
                 state.player_mut(p).exile.push(id);
             }
-            for (def, tapped) in &ps.battlefield {
-                let id = state.new_object(*def, p, Zone::Battlefield);
+            for perm in &ps.battlefield {
+                let id = state.new_object(perm.def, p, Zone::Battlefield);
                 let o = &mut state.objects[id];
-                o.tapped = *tapped;
+                o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
                 state.battlefield.push(id);
+                if let Some(name) = &perm.attached_to {
+                    attachments.push((id, name.clone()));
+                }
             }
+        }
+        for (aura, name) in attachments {
+            let target = state
+                .battlefield
+                .iter()
+                .copied()
+                .find(|id| *id != aura && state.name_of(*id) == name)
+                .unwrap_or_else(|| panic!("setup: no \"{name}\" on the battlefield to attach to"));
+            state.objects[aura].attached_to = Some(target);
         }
         state.turn_number = setup.turn_number;
         state.step = setup.step;
@@ -262,6 +293,7 @@ impl GameState {
             result: None,
             log: Vec::new(),
             logging,
+            cache: crate::state::DerivedCache::default(),
         }
     }
 
@@ -339,10 +371,7 @@ impl GameState {
                     };
                     let caster = obj.controller;
                     let def = self.pool.get(obj.def);
-                    let specs: Vec<TargetSpec> = def
-                        .spell_ability()
-                        .map(|(t, _)| t.to_vec())
-                        .unwrap_or_default();
+                    let specs: Vec<TargetSpec> = def.cast_targets().to_vec();
                     if next_target >= specs.len() {
                         self.finish_cast(spell);
                         continue;
@@ -836,7 +865,10 @@ impl GameState {
             .effects
             .iter()
             .filter(|e| e.duration == Duration::UntilEndOfTurn)
-            .map(|e| e.affected)
+            .flat_map(|e| match &e.affected {
+                crate::state::Affected::Objects(set) => set.to_vec(),
+                crate::state::Affected::Filter { .. } => Vec::new(),
+            })
             .collect();
         self.effects
             .retain(|e| e.duration != Duration::UntilEndOfTurn);

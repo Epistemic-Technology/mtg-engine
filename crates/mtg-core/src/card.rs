@@ -7,7 +7,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::mana::{Color, ColorSet, ManaCost};
+use crate::mana::{Color, ColorSet, Mana, ManaCost};
 
 /// Index of a definition in a [`CardPool`].
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -48,6 +48,19 @@ impl TypeSet {
 
     pub const fn contains(self, t: CardType) -> bool {
         self.0 & (1 << (t as u16)) != 0
+    }
+
+    pub const fn contains_all(self, other: TypeSet) -> bool {
+        self.0 & other.0 == other.0
+    }
+
+    pub const fn intersects(self, other: TypeSet) -> bool {
+        self.0 & other.0 != 0
+    }
+
+    #[must_use]
+    pub const fn union(self, other: TypeSet) -> Self {
+        TypeSet(self.0 | other.0)
     }
 
     pub const fn is_permanent_type(self) -> bool {
@@ -111,6 +124,14 @@ impl SupertypeSet {
 
     pub const fn contains(self, t: Supertype) -> bool {
         self.0 & (1 << (t as u8)) != 0
+    }
+
+    pub const fn contains_all(self, other: SupertypeSet) -> bool {
+        self.0 & other.0 == other.0
+    }
+
+    pub const fn intersects(self, other: SupertypeSet) -> bool {
+        self.0 & other.0 != 0
     }
 }
 
@@ -177,6 +198,11 @@ impl KeywordSet {
         KeywordSet(self.0 | other.0)
     }
 
+    #[must_use]
+    pub const fn difference(self, other: KeywordSet) -> Self {
+        KeywordSet(self.0 & !other.0)
+    }
+
     pub const fn contains(self, k: Keyword) -> bool {
         self.0 & (1 << (k as u32)) != 0
     }
@@ -213,6 +239,314 @@ impl fmt::Debug for KeywordSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
     }
+}
+
+/// An interned subtype (creature type, land type, ...). The five basic land
+/// types are interned first, in WUBRG order, so `Subtype::basic(color)` is
+/// constant.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct Subtype(pub u16);
+
+impl Subtype {
+    pub const fn basic(c: Color) -> Subtype {
+        Subtype(c as u16)
+    }
+
+    /// The color a basic land type produces (CR 305.6), if this is one.
+    pub fn basic_color(self) -> Option<Color> {
+        Color::ALL.get(self.0 as usize).copied()
+    }
+}
+
+/// A small fixed-capacity list of `Copy` items. `Characteristics` is copied
+/// on every rules query, so its lists must be plain data, not heap vectors.
+/// Items beyond the capacity are dropped (with a debug assertion); the DSL
+/// gate rejects cards that would need more.
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+pub struct FixedVec<T: Copy + Default, const N: usize> {
+    len: u8,
+    items: [T; N],
+}
+
+impl<T: Copy + Default, const N: usize> Default for FixedVec<T, N> {
+    fn default() -> Self {
+        FixedVec {
+            len: 0,
+            items: [T::default(); N],
+        }
+    }
+}
+
+impl<T: Copy + Default + PartialEq, const N: usize> FixedVec<T, N> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_slice(items: &[T]) -> Self {
+        let mut v = Self::new();
+        for i in items {
+            v.push(*i);
+        }
+        v
+    }
+
+    pub fn push(&mut self, item: T) {
+        let i = usize::from(self.len);
+        if i < N {
+            self.items[i] = item;
+            self.len += 1;
+        } else {
+            debug_assert!(false, "FixedVec capacity {N} exceeded");
+        }
+    }
+
+    pub fn as_slice(&self) -> &[T] {
+        &self.items[..usize::from(self.len)]
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, T> {
+        self.as_slice().iter()
+    }
+
+    pub fn len(&self) -> usize {
+        usize::from(self.len)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    pub fn contains(&self, item: &T) -> bool {
+        self.as_slice().contains(item)
+    }
+
+    pub fn clear(&mut self) {
+        self.len = 0;
+    }
+
+    pub fn retain(&mut self, mut keep: impl FnMut(&T) -> bool) {
+        let mut out = Self::new();
+        for i in self.as_slice() {
+            if keep(i) {
+                out.push(*i);
+            }
+        }
+        *self = out;
+    }
+}
+
+impl<T: Copy + Default + PartialEq, const N: usize> FromIterator<T> for FixedVec<T, N> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut v = Self::new();
+        for i in iter {
+            v.push(i);
+        }
+        v
+    }
+}
+
+impl<T: Copy + Default + fmt::Debug, const N: usize> fmt::Debug for FixedVec<T, N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list()
+            .entries(&self.items[..usize::from(self.len)])
+            .finish()
+    }
+}
+
+impl<T: Copy + Default + Serialize, const N: usize> Serialize for FixedVec<T, N> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.items[..usize::from(self.len)].serialize(serializer)
+    }
+}
+
+impl<'de, T: Copy + Default + PartialEq + Deserialize<'de>, const N: usize> Deserialize<'de>
+    for FixedVec<T, N>
+{
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let items: Vec<T> = Vec::deserialize(deserializer)?;
+        if items.len() > N {
+            return Err(serde::de::Error::custom(format!(
+                "list of {} exceeds capacity {N}",
+                items.len()
+            )));
+        }
+        Ok(FixedVec::from_slice(&items))
+    }
+}
+
+impl<'a, T: Copy + Default, const N: usize> IntoIterator for &'a FixedVec<T, N> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.items[..usize::from(self.len)].iter()
+    }
+}
+
+pub type SubtypeSet = FixedVec<Subtype, 6>;
+pub type AbilitySet = FixedVec<AbilityId, 8>;
+
+/// Reference to an ability definition in the pool.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct AbilityId(pub u32);
+
+/// CR 613 layers.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+pub enum Layer {
+    L1Copy,
+    L2Control,
+    L3Text,
+    L4Type,
+    L5Color,
+    L6Ability,
+    L7aCda,
+    L7bSetPt,
+    L7cModifyPt,
+    L7dSwitchPt,
+}
+
+impl Layer {
+    pub const ALL: [Layer; 10] = [
+        Layer::L1Copy,
+        Layer::L2Control,
+        Layer::L3Text,
+        Layer::L4Type,
+        Layer::L5Color,
+        Layer::L6Ability,
+        Layer::L7aCda,
+        Layer::L7bSetPt,
+        Layer::L7cModifyPt,
+        Layer::L7dSwitchPt,
+    ];
+}
+
+/// Whose objects a filter matches, relative to the effect's controller.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Who {
+    Any,
+    You,
+    Opponents,
+}
+
+/// Which battlefield objects a static ability's effect applies to
+/// (CR 611.3: re-evaluated as the layers are applied).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct ObjFilter {
+    pub who: Option<Who>,
+    /// Must have every one of these types.
+    pub types: TypeSet,
+    /// Must have none of these types.
+    pub not_types: TypeSet,
+    pub supertypes: SupertypeSet,
+    pub not_supertypes: SupertypeSet,
+    /// Must share a color with this set.
+    pub colors: Option<ColorSet>,
+    /// Must have none of these subtypes ("non-Aura").
+    pub not_subtypes: SubtypeSet,
+    /// Excludes the effect's source ("each other ...").
+    pub other: bool,
+    /// Only the object the source is attached to ("enchanted creature").
+    pub enchanted: bool,
+    /// Only objects with no abilities.
+    pub no_abilities: bool,
+}
+
+impl ObjFilter {
+    pub fn creatures() -> Self {
+        ObjFilter {
+            types: TypeSet::of([CardType::Creature]),
+            ..Default::default()
+        }
+    }
+
+    pub fn enchanted() -> Self {
+        ObjFilter {
+            enchanted: true,
+            ..Default::default()
+        }
+    }
+
+    #[must_use]
+    pub fn who(mut self, w: Who) -> Self {
+        self.who = Some(w);
+        self
+    }
+
+    #[must_use]
+    pub fn colors(mut self, c: ColorSet) -> Self {
+        self.colors = Some(c);
+        self
+    }
+
+    #[must_use]
+    pub fn other(mut self) -> Self {
+        self.other = true;
+        self
+    }
+}
+
+/// A power or toughness value set by a layer 7b effect.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PtValue {
+    Fixed(i32),
+    /// The object's mana value (CR 202.3).
+    ManaValue,
+}
+
+/// One part of a continuous effect. Each part applies in exactly one layer.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Modification {
+    /// "is a creature in addition to its other types" (layer 4).
+    AddTypes(TypeSet),
+    /// "is a Swamp in addition to its other land types" (layer 4; CR 305.7
+    /// does not apply).
+    AddLandType(Color),
+    /// "is a Mountain" (layer 4): loses its other land types and, per CR
+    /// 305.7, the abilities from its rules text (applied in layer 6).
+    SetLandType(Color),
+    /// "is white in addition to its other colors" (layer 5).
+    AddColors(ColorSet),
+    /// "is blue" (layer 5).
+    SetColors(ColorSet),
+    /// "has flying" (layer 6).
+    AddKeywords(KeywordSet),
+    /// "loses all abilities" (layer 6).
+    RemoveAllAbilities,
+    /// "has base power and toughness 1/1" (layer 7b).
+    SetPt { power: PtValue, toughness: PtValue },
+    /// "+1/+1" (layer 7c).
+    ModifyPt { power: i32, toughness: i32 },
+    /// "switch power and toughness" (layer 7d).
+    SwitchPt,
+}
+
+impl Modification {
+    pub const fn layer(&self) -> Layer {
+        match self {
+            Modification::AddTypes(_)
+            | Modification::AddLandType(_)
+            | Modification::SetLandType(_) => Layer::L4Type,
+            Modification::AddColors(_) | Modification::SetColors(_) => Layer::L5Color,
+            Modification::AddKeywords(_) | Modification::RemoveAllAbilities => Layer::L6Ability,
+            Modification::SetPt { .. } => Layer::L7bSetPt,
+            Modification::ModifyPt { .. } => Layer::L7cModifyPt,
+            Modification::SwitchPt => Layer::L7dSwitchPt,
+        }
+    }
+}
+
+/// A static ability (CR 604) that generates a continuous effect while its
+/// source is on the battlefield (CR 611.3).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct StaticAbility {
+    pub affected: ObjFilter,
+    pub parts: Vec<Modification>,
+}
+
+/// Kinds of counters (CR 122).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CounterKind {
+    PlusOnePlusOne,
+    MinusOneMinusOne,
 }
 
 /// What a spell's target must be. One entry per "target" word in the text.
@@ -258,17 +592,28 @@ pub enum Effect {
         count: u32,
         player: PlayerRef,
     },
+    /// Put counters on the target (CR 122.6).
+    AddCounters {
+        kind: CounterKind,
+        count: u32,
+        target: usize,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum AbilityDef {
-    /// Intrinsic mana ability of a basic land type (CR 305.6).
-    BasicLandMana(Color),
     /// The effect of an instant or sorcery spell when it resolves.
     Spell {
         targets: Vec<TargetSpec>,
         effects: Vec<Effect>,
     },
+    /// "Enchant <spec>" (CR 702.5): an Aura's targeting requirement and
+    /// attachment legality.
+    Enchant(TargetSpec),
+    /// "{T}: Add <mana>" (CR 605). Basic land types grant theirs
+    /// intrinsically (CR 305.6) and do not list this.
+    TapForMana(Mana),
+    Static(StaticAbility),
 }
 
 /// Printed characteristics plus abilities (CR 109.3, 200.1).
@@ -276,6 +621,8 @@ pub enum AbilityDef {
 pub struct CardDef {
     pub name: String,
     pub mana_cost: ManaCost,
+    /// Color indicator (CR 204), for cards whose color is not their cost's.
+    pub color_indicator: Option<ColorSet>,
     pub supertypes: SupertypeSet,
     pub types: TypeSet,
     pub subtypes: Vec<String>,
@@ -284,13 +631,51 @@ pub struct CardDef {
     pub keywords: KeywordSet,
     pub abilities: Vec<AbilityDef>,
     pub oracle_text: String,
+    /// Filled in by `CardPool::add`: `subtypes` interned.
+    #[serde(skip)]
+    pub subtype_ids: SubtypeSet,
+    /// Filled in by `CardPool::add`: `abilities` registered in the pool.
+    #[serde(skip)]
+    pub ability_ids: AbilitySet,
+    /// Filled in by `CardPool::add`: the printed characteristics, ready to
+    /// clone (CR 109.3 before any effect).
+    #[serde(skip)]
+    pub printed: Option<crate::state::Characteristics>,
+    /// Filled in by `CardPool::add`; see `cast_targets()`.
+    #[serde(skip)]
+    cast_targets: Vec<TargetSpec>,
 }
 
 impl CardDef {
-    /// Printed color (CR 202.2): derived from the mana cost. Color indicators
-    /// and CDAs come later.
+    /// Printed color (CR 202.2): the color indicator if any, else the mana
+    /// cost's colors.
     pub fn colors(&self) -> ColorSet {
-        self.mana_cost.colors()
+        self.color_indicator
+            .unwrap_or_else(|| self.mana_cost.colors())
+    }
+
+    pub fn is_aura(&self) -> bool {
+        self.enchant().is_some()
+    }
+
+    /// The Aura's enchant requirement, if it has one.
+    pub fn enchant(&self) -> Option<TargetSpec> {
+        self.abilities.iter().find_map(|a| match a {
+            AbilityDef::Enchant(t) => Some(*t),
+            _ => None,
+        })
+    }
+
+    /// Targets chosen when casting this card (CR 601.2c): a spell's
+    /// targets, or an Aura's enchant target.
+    pub fn cast_targets(&self) -> &[TargetSpec] {
+        &self.cast_targets
+    }
+
+    pub fn has_static(&self) -> bool {
+        self.abilities
+            .iter()
+            .any(|a| matches!(a, AbilityDef::Static(_)))
     }
 
     pub fn is_creature(&self) -> bool {
@@ -318,25 +703,77 @@ impl CardDef {
             AbilityDef::Spell { targets, effects } => {
                 Some((targets.as_slice(), effects.as_slice()))
             }
-            AbilityDef::BasicLandMana(_) => None,
+            _ => None,
         })
     }
 }
 
-/// All card definitions a game can use, with name lookup.
-#[derive(Clone, Debug, Default)]
+/// All card definitions a game can use, with name lookup, plus the interned
+/// subtypes and the registered abilities they refer to.
+#[derive(Clone, Debug)]
 pub struct CardPool {
     defs: Vec<CardDef>,
     by_name: HashMap<String, CardRef>,
+    subtypes: Vec<String>,
+    subtype_ids: HashMap<String, Subtype>,
+    abilities: Vec<AbilityDef>,
+}
+
+impl Default for CardPool {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CardPool {
     pub fn new() -> Self {
-        Self::default()
+        let mut pool = CardPool {
+            defs: Vec::new(),
+            by_name: HashMap::new(),
+            subtypes: Vec::new(),
+            subtype_ids: HashMap::new(),
+            abilities: Vec::new(),
+        };
+        for c in Color::ALL {
+            let id = pool.subtype(c.basic_land_type());
+            debug_assert_eq!(id, Subtype::basic(c));
+        }
+        pool
     }
 
-    pub fn add(&mut self, def: CardDef) -> CardRef {
+    pub fn add(&mut self, mut def: CardDef) -> CardRef {
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
+        def.subtype_ids = def
+            .subtypes
+            .clone()
+            .iter()
+            .map(|s| self.subtype(s))
+            .collect();
+        def.ability_ids = def
+            .abilities
+            .iter()
+            .map(|a| {
+                let id =
+                    AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
+                self.abilities.push(a.clone());
+                id
+            })
+            .collect();
+        def.cast_targets = match def.spell_ability() {
+            Some((t, _)) => t.to_vec(),
+            None => def.enchant().into_iter().collect(),
+        };
+        def.printed = Some(crate::state::Characteristics {
+            def: r,
+            colors: def.colors(),
+            supertypes: def.supertypes,
+            types: def.types,
+            subtypes: def.subtype_ids,
+            power: def.power.unwrap_or(0),
+            toughness: def.toughness.unwrap_or(0),
+            keywords: def.keywords,
+            abilities: def.ability_ids,
+        });
         self.by_name.insert(def.name.clone(), r);
         self.defs.push(def);
         r
@@ -348,6 +785,29 @@ impl CardPool {
 
     pub fn lookup(&self, name: &str) -> Option<CardRef> {
         self.by_name.get(name).copied()
+    }
+
+    /// Intern a subtype name.
+    pub fn subtype(&mut self, name: &str) -> Subtype {
+        if let Some(id) = self.subtype_ids.get(name) {
+            return *id;
+        }
+        let id = Subtype(u16::try_from(self.subtypes.len()).expect("too many subtypes"));
+        self.subtypes.push(name.to_string());
+        self.subtype_ids.insert(name.to_string(), id);
+        id
+    }
+
+    pub fn subtype_lookup(&self, name: &str) -> Option<Subtype> {
+        self.subtype_ids.get(name).copied()
+    }
+
+    pub fn subtype_name(&self, s: Subtype) -> &str {
+        self.subtypes.get(s.0 as usize).map_or("?", String::as_str)
+    }
+
+    pub fn ability(&self, id: AbilityId) -> &AbilityDef {
+        &self.abilities[id.0 as usize]
     }
 
     pub fn len(&self) -> usize {
@@ -374,6 +834,7 @@ impl Builder {
         Builder(CardDef {
             name: name.to_string(),
             mana_cost: ManaCost::parse(cost).unwrap_or_else(|e| panic!("{name}: {e}")),
+            color_indicator: None,
             supertypes: SupertypeSet::default(),
             types: TypeSet::default(),
             subtypes: Vec::new(),
@@ -382,7 +843,17 @@ impl Builder {
             keywords: KeywordSet::NONE,
             abilities: Vec::new(),
             oracle_text: String::new(),
+            subtype_ids: SubtypeSet::new(),
+            ability_ids: AbilitySet::new(),
+            printed: None,
+            cast_targets: Vec::new(),
         })
+    }
+
+    #[must_use]
+    pub fn color_indicator(mut self, c: impl IntoIterator<Item = Color>) -> Self {
+        self.0.color_indicator = Some(ColorSet::of(c));
+        self
     }
 
     #[must_use]
@@ -444,20 +915,16 @@ pub fn m1_pool() -> CardPool {
     };
 
     let mut pool = CardPool::new();
-    let basic = |name: &str, sub: &str, color: Color| {
-        Builder::new(name, "")
-            .supertypes([Supertype::Basic])
-            .types([Land])
-            .subtypes(&[sub])
-            .ability(AbilityDef::BasicLandMana(color))
-            .text(&format!("({{T}}: Add {{{}}}.)", color.letter()))
-            .build()
-    };
-    pool.add(basic("Plains", "Plains", Color::White));
-    pool.add(basic("Island", "Island", Color::Blue));
-    pool.add(basic("Swamp", "Swamp", Color::Black));
-    pool.add(basic("Mountain", "Mountain", Color::Red));
-    pool.add(basic("Forest", "Forest", Color::Green));
+    for c in Color::ALL {
+        pool.add(
+            Builder::new(c.basic_land_type(), "")
+                .supertypes([Supertype::Basic])
+                .types([Land])
+                .subtypes(&[c.basic_land_type()])
+                .text(&format!("({{T}}: Add {{{}}}.)", c.letter()))
+                .build(),
+        );
+    }
 
     let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32, kw: &[Keyword]| {
         Builder::new(name, cost)
@@ -665,7 +1132,193 @@ pub fn m1_pool() -> CardPool {
             .text("You gain 3 life.")
             .build(),
     );
+    add_m2_cards(&mut pool);
     pool
+}
+
+/// Cards with static abilities, Auras, and counters for the layer system
+/// (M2). All are real cards with simple Oracle text.
+#[allow(clippy::too_many_lines)]
+fn add_m2_cards(pool: &mut CardPool) {
+    use CardType::{Artifact, Creature, Enchantment, Instant, Land};
+    use Modification::{
+        AddKeywords, AddLandType, AddTypes, ModifyPt, RemoveAllAbilities, SetLandType, SetPt,
+    };
+
+    let aura_subtype = pool.subtype("Aura");
+    let enchantment =
+        |name: &str, cost: &str, text: &str, affected: ObjFilter, parts: &[Modification]| {
+            Builder::new(name, cost)
+                .types([Enchantment])
+                .ability(AbilityDef::Static(StaticAbility {
+                    affected,
+                    parts: parts.to_vec(),
+                }))
+                .text(text)
+                .build()
+        };
+    let aura = |name: &str, cost: &str, text: &str, parts: &[Modification]| {
+        Builder::new(name, cost)
+            .types([Enchantment])
+            .subtypes(&["Aura"])
+            .ability(AbilityDef::Enchant(TargetSpec::Creature))
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::enchanted(),
+                parts: parts.to_vec(),
+            }))
+            .text(text)
+            .build()
+    };
+    let pump = |p: i32, t: i32| ModifyPt {
+        power: p,
+        toughness: t,
+    };
+
+    pool.add(enchantment(
+        "Glorious Anthem",
+        "{1}{W}{W}",
+        "Creatures you control get +1/+1.",
+        ObjFilter::creatures().who(Who::You),
+        &[pump(1, 1)],
+    ));
+    pool.add(enchantment(
+        "Crusade",
+        "{W}{W}",
+        "White creatures get +1/+1.",
+        ObjFilter::creatures().colors(ColorSet::of([Color::White])),
+        &[pump(1, 1)],
+    ));
+    pool.add(enchantment(
+        "Humility",
+        "{2}{W}{W}",
+        "All creatures lose all abilities and have base power and toughness 1/1.",
+        ObjFilter::creatures(),
+        &[
+            RemoveAllAbilities,
+            SetPt {
+                power: PtValue::Fixed(1),
+                toughness: PtValue::Fixed(1),
+            },
+        ],
+    ));
+    pool.add(enchantment(
+        "Opalescence",
+        "{2}{W}{W}",
+        "Each other non-Aura enchantment is a creature in addition to its other types and has base power and toughness each equal to its mana value.",
+        ObjFilter {
+            types: TypeSet::of([Enchantment]),
+            not_subtypes: SubtypeSet::from_slice(&[aura_subtype]),
+            other: true,
+            ..Default::default()
+        },
+        &[
+            AddTypes(TypeSet::of([Creature])),
+            SetPt {
+                power: PtValue::ManaValue,
+                toughness: PtValue::ManaValue,
+            },
+        ],
+    ));
+    pool.add(enchantment(
+        "Muraganda Petroglyphs",
+        "{3}{G}",
+        "Creatures with no abilities get +2/+2.",
+        ObjFilter {
+            types: TypeSet::of([Creature]),
+            no_abilities: true,
+            ..Default::default()
+        },
+        &[pump(2, 2)],
+    ));
+    pool.add(enchantment(
+        "Levitation",
+        "{2}{U}{U}",
+        "Creatures you control have flying.",
+        ObjFilter::creatures().who(Who::You),
+        &[AddKeywords(KeywordSet::of([Keyword::Flying]))],
+    ));
+    pool.add(enchantment(
+        "Blood Moon",
+        "{2}{R}",
+        "Nonbasic lands are Mountains.",
+        ObjFilter {
+            types: TypeSet::of([Land]),
+            not_supertypes: SupertypeSet::of([Supertype::Basic]),
+            ..Default::default()
+        },
+        &[SetLandType(Color::Red)],
+    ));
+    pool.add(
+        Builder::new("Urborg, Tomb of Yawgmoth", "")
+            .supertypes([Supertype::Legendary])
+            .types([Land])
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter {
+                    types: TypeSet::of([Land]),
+                    ..Default::default()
+                },
+                parts: vec![AddLandType(Color::Black)],
+            }))
+            .text("Each land is a Swamp in addition to its other land types.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Darksteel Citadel", "")
+            .types([Artifact, Land])
+            .keywords([Keyword::Indestructible])
+            .ability(AbilityDef::TapForMana(Mana::Colorless))
+            .text("Indestructible\n{T}: Add {C}.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Dryad Arbor", "")
+            .color_indicator([Color::Green])
+            .types([Land, Creature])
+            .subtypes(&["Forest", "Dryad"])
+            .pt(1, 1)
+            .text("(Dryad Arbor isn't a spell, it's affected by summoning sickness, and it has \"{T}: Add {G}.\")")
+            .build(),
+    );
+
+    pool.add(aura(
+        "Holy Strength",
+        "{W}",
+        "Enchant creature\nEnchanted creature gets +1/+2.",
+        &[pump(1, 2)],
+    ));
+    pool.add(aura(
+        "Unholy Strength",
+        "{B}",
+        "Enchant creature\nEnchanted creature gets +2/+1.",
+        &[pump(2, 1)],
+    ));
+    pool.add(aura(
+        "Dead Weight",
+        "{B}",
+        "Enchant creature\nEnchanted creature gets -2/-2.",
+        &[pump(-2, -2)],
+    ));
+    pool.add(aura(
+        "Flight",
+        "{U}",
+        "Enchant creature\nEnchanted creature has flying.",
+        &[AddKeywords(KeywordSet::of([Keyword::Flying]))],
+    ));
+
+    pool.add(
+        Builder::new("Dromoka's Gift", "{4}{G}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Creature],
+                effects: vec![Effect::AddCounters {
+                    kind: CounterKind::PlusOnePlusOne,
+                    count: 3,
+                    target: 0,
+                }],
+            })
+            .text("Put three +1/+1 counters on target creature.")
+            .build(),
+    );
 }
 
 #[cfg(test)]

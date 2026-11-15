@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::card::CardRef;
+use crate::card::{CardRef, CounterKind};
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{GameResult, LossReason, Target, Zone};
 use crate::turn::Step;
@@ -99,6 +99,15 @@ pub enum Event {
     },
     EffectEnded {
         affected: ObjId,
+    },
+    CountersAdded {
+        obj: ObjId,
+        kind: CounterKind,
+        n: u32,
+    },
+    Attached {
+        obj: ObjId,
+        to: ObjId,
     },
     PlayerLost {
         player: PlayerId,

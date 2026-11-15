@@ -26,6 +26,17 @@ impl Color {
         Color::Green,
     ];
 
+    /// The basic land type that produces this color (CR 305.6).
+    pub const fn basic_land_type(self) -> &'static str {
+        match self {
+            Color::White => "Plains",
+            Color::Blue => "Island",
+            Color::Black => "Swamp",
+            Color::Red => "Mountain",
+            Color::Green => "Forest",
+        }
+    }
+
     pub const fn letter(self) -> char {
         match self {
             Color::White => 'W',
@@ -74,6 +85,15 @@ impl ColorSet {
 
     pub const fn is_colorless(self) -> bool {
         self.0 == 0
+    }
+
+    #[must_use]
+    pub const fn union(self, other: ColorSet) -> Self {
+        ColorSet(self.0 | other.0)
+    }
+
+    pub const fn intersects(self, other: ColorSet) -> bool {
+        self.0 & other.0 != 0
     }
 
     pub fn iter(self) -> impl Iterator<Item = Color> {

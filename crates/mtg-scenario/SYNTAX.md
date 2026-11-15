@@ -22,7 +22,7 @@ scenario "name" {
 | Line | Meaning |
 |---|---|
 | `life A 15` | Starting life (default 20). |
-| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped` | Permanents A controls. `N "name"` repeats; `tapped` taps. Permanents count as controlled since the turn began, so they may attack. |
+| `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears"` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's). Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
 | `hand A: "Lightning Bolt"` | Cards in hand. |
 | `graveyard A: ...`, `exile A: ...` | Likewise. |
 | `library A: "Top Card", "Next Card"` | The library, top card first, in exactly this order. Without this line the player gets 40 Plains so draws succeed. `library A:` with nothing gives an empty library. |
@@ -91,6 +91,12 @@ assert damage "Hill Giant" 2
 assert tapped "Mountain"                assert untapped "Serra Angel"
 assert winner A      assert draw      assert game_over      assert not game_over
 assert turn 3        assert step precombat_main        assert stack count 0
+assert has "Grizzly Bears" flying       assert has not "Serra Angel" vigilance
+assert is "Humility" creature           assert is not "Urborg, Tomb of Yawgmoth" swamp
+assert is "Dryad Arbor" green           # types, supertypes, land/creature subtypes, colors
+assert counters "Grizzly Bears" +1/+1 3
+assert attached "Holy Strength" to "Grizzly Bears"
+assert no_abilities "Serra Angel"
 ```
 
 Zones: `battlefield` (by controller), `hand`, `graveyard`, `library`,

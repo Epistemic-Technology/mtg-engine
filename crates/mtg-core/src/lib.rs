@@ -8,6 +8,7 @@ pub mod decision;
 pub mod engine;
 pub mod event;
 pub mod ids;
+pub mod layers;
 pub mod mana;
 pub mod record;
 pub mod state;

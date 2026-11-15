@@ -1,11 +1,14 @@
 //! Priority actions, casting (CR 601), mana payment, and resolution (CR 608).
 
+use smallvec::SmallVec;
+
+use crate::card::Modification;
 use crate::card::{AbilityDef, Effect, Keyword, PlayerRef, TargetSpec};
 use crate::decision::Choice;
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
-use crate::state::{ContinuousEffect, Duration, GameState, Layer, Modification, Target, Zone};
+use crate::state::{Affected, ContinuousEffect, Duration, GameState, Target, Zone};
 
 impl GameState {
     // ----- priority actions --------------------------------------------------------
@@ -15,6 +18,8 @@ impl GameState {
         let sorcery_timing =
             p == self.active_player && self.step.is_main() && self.stack.is_empty();
         let ps = self.player(p);
+        let sources = self.mana_sources(p);
+        let pool = ps.mana_pool;
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             if def.is_land() {
@@ -27,12 +32,13 @@ impl GameState {
             if !(instant_speed || sorcery_timing) {
                 continue;
             }
-            if !self.can_pay(p, &def.mana_cost.requirements(0)) {
+            if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0)).is_none() {
                 continue;
             }
-            let targets_ok = def.spell_ability().is_none_or(|(specs, _)| {
-                specs.iter().all(|s| !self.legal_targets(p, *s).is_empty())
-            });
+            let targets_ok = def
+                .cast_targets()
+                .iter()
+                .all(|s| !self.legal_targets(p, *s).is_empty());
             if targets_ok {
                 options.push(Choice::Cast(*id));
             }
@@ -58,65 +64,39 @@ impl GameState {
         out
     }
 
-    /// Untapped mana sources `p` controls, as (object, mana produced). M1:
-    /// basic lands only.
-    pub(super) fn mana_sources(&self, p: PlayerId) -> Vec<(ObjId, Mana)> {
-        self.permanents_of(p)
-            .filter(|id| !self.objects[*id].tapped)
-            .filter_map(|id| {
-                let def = self.pool.get(self.objects[id].def);
-                def.abilities.iter().find_map(|a| match a {
-                    AbilityDef::BasicLandMana(c) => Some((id, Mana::Colored(*c))),
-                    AbilityDef::Spell { .. } => None,
-                })
-            })
-            .collect()
-    }
-
-    /// A canonical payment plan: which sources to tap so that pool plus their
-    /// mana covers `req`. With single-color sources a greedy assignment
-    /// (colored symbols first, then generic from whatever is left) is exact.
-    pub(super) fn payment_plan(&self, p: PlayerId, req: &ManaRequirement) -> Option<Vec<ObjId>> {
-        let mut pool = self.player(p).mana_pool;
-        let mut sources = self.mana_sources(p);
-        let mut tapped = Vec::new();
-        for (ci, need) in req.colored.iter().enumerate() {
-            let mut need = *need;
-            let from_pool = need.min(pool.colored[ci]);
-            pool.colored[ci] -= from_pool;
-            need -= from_pool;
-            while need > 0 {
-                let pos = sources
-                    .iter()
-                    .position(|(_, m)| matches!(m, Mana::Colored(c) if *c as usize == ci))?;
-                tapped.push(sources.remove(pos).0);
-                need -= 1;
+    /// Untapped mana sources `p` controls, as (object, mana produced): one
+    /// entry per kind of mana a permanent can make. Basic land types give
+    /// their mana intrinsically (CR 305.6); other mana abilities are listed
+    /// on the card. Both are read from current characteristics, so a land
+    /// turned into a Mountain taps for red.
+    pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
+        let mut out = Sources::new();
+        for id in self.permanents_of(p) {
+            if self.objects[id].tapped {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            if c.is_land() {
+                for s in &c.subtypes {
+                    if let Some(color) = s.basic_color() {
+                        out.push((id, Mana::Colored(color)));
+                    }
+                }
+            }
+            for a in &c.abilities {
+                if let AbilityDef::TapForMana(m) = self.pool.ability(*a) {
+                    out.push((id, *m));
+                }
             }
         }
-        let mut need = req.colorless;
-        let from_pool = need.min(pool.colorless);
-        pool.colorless -= from_pool;
-        need -= from_pool;
-        while need > 0 {
-            let pos = sources.iter().position(|(_, m)| *m == Mana::Colorless)?;
-            tapped.push(sources.remove(pos).0);
-            need -= 1;
-        }
-        let mut generic = req.generic;
-        let from_pool = generic.min(pool.total());
-        generic -= from_pool;
-        while generic > 0 {
-            if sources.is_empty() {
-                return None;
-            }
-            tapped.push(sources.remove(0).0);
-            generic -= 1;
-        }
-        Some(tapped)
+        out
     }
 
-    pub(super) fn can_pay(&self, p: PlayerId, req: &ManaRequirement) -> bool {
-        self.payment_plan(p, req).is_some()
+    /// A canonical payment plan for `p`; see `payment_plan_from`.
+    pub(super) fn payment_plan(&self, p: PlayerId, req: &ManaRequirement) -> Option<Sources> {
+        payment_plan_from(&self.mana_sources(p), &self.player(p).mana_pool, req)
     }
 
     /// CR 601.2g–h: activate mana abilities per the plan, then pay from the
@@ -125,13 +105,7 @@ impl GameState {
         let plan = self
             .payment_plan(p, req)
             .expect("cast was offered only when payable");
-        for id in plan {
-            let mana = self
-                .mana_sources(p)
-                .into_iter()
-                .find(|(s, _)| *s == id)
-                .map(|(_, m)| m)
-                .expect("planned source produces mana");
+        for (id, mana) in plan {
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
         }
@@ -168,6 +142,32 @@ impl GameState {
         };
         let obj = self.objects[spell].clone();
         let def = self.pool.get(obj.def).clone();
+        if let Some(spec) = def.enchant() {
+            // CR 303.4f, 608.2b: an Aura spell whose target is illegal is
+            // countered; otherwise it enters attached to the target.
+            let target = obj.targets.first().copied();
+            let legal = target.is_some_and(|t| self.is_legal_target(obj.controller, spec, t));
+            if !legal {
+                self.emit(Event::Fizzle {
+                    spell,
+                    def: obj.def,
+                });
+                self.move_object(spell, Zone::Graveyard, true);
+                return;
+            }
+            self.emit(Event::Resolve {
+                spell,
+                def: obj.def,
+            });
+            let new = self.move_object(spell, Zone::Battlefield, true);
+            self.objects[new].controller = obj.controller;
+            if let Some(Target::Object(t)) = target {
+                self.objects[new].attached_to = Some(t);
+                self.emit(Event::Attached { obj: new, to: t });
+            }
+            self.bump();
+            return;
+        }
         if let Some((specs, effects)) = def.spell_ability() {
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
@@ -238,14 +238,14 @@ impl GameState {
                 if let Some(Target::Object(id)) = target_of(*target) {
                     let timestamp = self.tick();
                     self.effects.push(ContinuousEffect {
-                        layer: Layer::L7cModifyPt,
+                        source: Some(source),
                         timestamp,
-                        affected: id,
-                        modification: Modification::ModifyPt {
+                        duration: Duration::UntilEndOfTurn,
+                        affected: Affected::Objects(smallvec::smallvec![id]),
+                        parts: smallvec::smallvec![Modification::ModifyPt {
                             power: *power,
                             toughness: *toughness,
-                        },
-                        duration: Duration::UntilEndOfTurn,
+                        }],
                     });
                     self.bump();
                 }
@@ -265,6 +265,70 @@ impl GameState {
                     self.draw(controller);
                 }
             }
+            Effect::AddCounters {
+                kind,
+                count,
+                target,
+            } => {
+                if let Some(Target::Object(id)) = target_of(*target) {
+                    self.add_counters(id, *kind, *count);
+                }
+            }
         }
     }
+}
+
+/// A canonical payment plan: which sources to tap, and for what, so that
+/// `pool` plus their mana covers `req`. With single-color sources a greedy
+/// assignment (colored symbols first, then generic from whatever is left) is
+/// exact; multi-type lands are assigned to the first color that needs them.
+/// Mana sources, inline for typical board sizes.
+pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+fn payment_plan_from(
+    sources: &[(ObjId, Mana)],
+    pool: &crate::mana::ManaPool,
+    req: &ManaRequirement,
+) -> Option<Sources> {
+    let mut pool = *pool;
+    let mut sources: Sources = SmallVec::from_slice(sources);
+    let mut tapped = Sources::new();
+    let mut take = |sources: &mut Sources, pos: usize| {
+        let (id, mana) = sources[pos];
+        sources.retain(|(s, _)| *s != id);
+        tapped.push((id, mana));
+    };
+    for (ci, need) in req.colored.iter().enumerate() {
+        let mut need = *need;
+        let from_pool = need.min(pool.colored[ci]);
+        pool.colored[ci] -= from_pool;
+        need -= from_pool;
+        while need > 0 {
+            let pos = sources
+                .iter()
+                .position(|(_, m)| matches!(m, Mana::Colored(c) if *c as usize == ci))?;
+            take(&mut sources, pos);
+            need -= 1;
+        }
+    }
+    let mut need = req.colorless;
+    let from_pool = need.min(pool.colorless);
+    pool.colorless -= from_pool;
+    need -= from_pool;
+    while need > 0 {
+        let pos = sources.iter().position(|(_, m)| *m == Mana::Colorless)?;
+        take(&mut sources, pos);
+        need -= 1;
+    }
+    let mut generic = req.generic;
+    let from_pool = generic.min(pool.total());
+    generic -= from_pool;
+    while generic > 0 {
+        if sources.is_empty() {
+            return None;
+        }
+        take(&mut sources, 0);
+        generic -= 1;
+    }
+    Some(tapped)
 }

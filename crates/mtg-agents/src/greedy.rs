@@ -4,7 +4,7 @@
 //! or necessary. Deterministic. Useful as a stronger baseline than random
 //! and as the default opponent in human play.
 
-use mtg_core::card::{Effect, Keyword};
+use mtg_core::card::{AbilityDef, Effect, Keyword, Modification};
 use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind};
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::state::{Characteristics, GameState, Target};
@@ -93,7 +93,28 @@ impl GreedyAgent {
             .map(|(_, e)| e.to_vec())
             .unwrap_or_default();
         let opp = state.opponent(me);
-        let helps_target = effects.iter().any(|e| matches!(e, Effect::Pump { .. }));
+        // Auras: judge by the sign of their P/T change (or a granted keyword).
+        let aura_delta: Option<i32> = state.def_of(spell).filter(|d| d.is_aura()).map(|d| {
+            d.abilities
+                .iter()
+                .filter_map(|a| match a {
+                    AbilityDef::Static(sa) => Some(sa),
+                    _ => None,
+                })
+                .flat_map(|sa| sa.parts.iter())
+                .map(|m| match m {
+                    Modification::ModifyPt { power, toughness } => power + toughness,
+                    Modification::AddKeywords(_) => 1,
+                    Modification::RemoveAllAbilities => -1,
+                    _ => 0,
+                })
+                .sum()
+        });
+        let helps_target = effects
+            .iter()
+            .any(|e| matches!(e, Effect::Pump { .. } | Effect::AddCounters { .. }))
+            || aura_delta.is_some_and(|d| d > 0);
+        let destroys_aura = aura_delta.is_some_and(|d| d < 0);
         let damage: u32 = effects
             .iter()
             .map(|e| match e {
@@ -132,6 +153,7 @@ impl GreedyAgent {
                 } else if mine {
                     i32::MIN / 2
                 } else if destroys
+                    || destroys_aura
                     || (damage > 0
                         && !c.has(Keyword::Indestructible)
                         && i32::try_from(damage + state.objects[id].damage).unwrap_or(0)

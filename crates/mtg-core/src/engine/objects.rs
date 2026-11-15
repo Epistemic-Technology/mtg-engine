@@ -3,10 +3,11 @@
 use rand::seq::SliceRandom;
 use smallvec::SmallVec;
 
+use crate::card::CounterKind;
 use crate::card::{CardRef, Keyword};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{GameObject, GameState, LastKnown, ObjKind, Target, Zone};
+use crate::state::{Affected, GameObject, GameState, LastKnown, ObjKind, Target, Zone};
 
 impl GameState {
     // ----- objects and zones -------------------------------------------------
@@ -25,6 +26,8 @@ impl GameState {
             controlled_since_turn_start: false,
             timestamp,
             targets: SmallVec::new(),
+            counters: SmallVec::new(),
+            attached_to: None,
         })
     }
 
@@ -58,7 +61,15 @@ impl GameState {
                 characteristics,
             },
         );
-        self.effects.retain(|e| e.affected != id);
+        // Locked-in effects stop applying to the object (CR 611.2c);
+        // nothing else about them changes.
+        for e in &mut self.effects {
+            if let Affected::Objects(set) = &mut e.affected {
+                set.retain(|x| *x != id);
+            }
+        }
+        self.effects
+            .retain(|e| !matches!(&e.affected, Affected::Objects(set) if set.is_empty()));
         let timestamp = self.tick();
         let new = self.objects.insert(GameObject {
             def: old.def,
@@ -72,6 +83,8 @@ impl GameState {
             controlled_since_turn_start: false,
             timestamp,
             targets: SmallVec::new(),
+            counters: SmallVec::new(),
+            attached_to: None,
         });
         match to {
             Zone::Battlefield => self.battlefield.push(new),
@@ -201,6 +214,19 @@ impl GameState {
         if lifelink && let Some(c) = controller {
             self.change_life(c, i32::try_from(amount).unwrap_or(i32::MAX));
         }
+    }
+
+    /// CR 122.6: put counters on a permanent.
+    pub(super) fn add_counters(&mut self, id: ObjId, kind: CounterKind, n: u32) {
+        let Some(o) = self.objects.get_mut(id) else {
+            return;
+        };
+        if o.zone != Zone::Battlefield || n == 0 {
+            return;
+        }
+        o.add_counters(kind, n);
+        self.bump();
+        self.emit(Event::CountersAdded { obj: id, kind, n });
     }
 
     pub(super) fn destroy(&mut self, id: ObjId) {

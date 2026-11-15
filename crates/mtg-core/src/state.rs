@@ -1,6 +1,7 @@
 //! Game state: players, objects, zones, combat, continuous effects, and
 //! derived characteristics. A flat, clonable value (design §4.2).
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -9,8 +10,10 @@ use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use smallvec::SmallVec;
 
+pub use crate::card::Layer;
 use crate::card::{
-    CardDef, CardPool, CardRef, CardType, Keyword, KeywordSet, SupertypeSet, TypeSet,
+    AbilitySet, CardDef, CardPool, CardRef, CardType, CounterKind, Keyword, KeywordSet,
+    Modification, ObjFilter, SubtypeSet, SupertypeSet, TargetSpec, TypeSet,
 };
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId, Timestamp};
@@ -68,6 +71,36 @@ pub struct GameObject {
     pub timestamp: Timestamp,
     /// Chosen targets, for a spell on the stack.
     pub targets: SmallVec<[Target; 2]>,
+    /// Counters on the object (CR 122).
+    pub counters: SmallVec<[(CounterKind, u32); 2]>,
+    /// For Auras and Equipment: what this is attached to (CR 301.5, 303.4).
+    pub attached_to: Option<ObjId>,
+}
+
+impl GameObject {
+    pub fn counters(&self, kind: CounterKind) -> u32 {
+        self.counters
+            .iter()
+            .find(|(k, _)| *k == kind)
+            .map_or(0, |(_, n)| *n)
+    }
+
+    pub fn add_counters(&mut self, kind: CounterKind, n: u32) {
+        if let Some(slot) = self.counters.iter_mut().find(|(k, _)| *k == kind) {
+            slot.1 += n;
+        } else {
+            self.counters.push((kind, n));
+        }
+    }
+
+    pub fn remove_counters(&mut self, kind: CounterKind, n: u32) {
+        if let Some(i) = self.counters.iter().position(|(k, _)| *k == kind) {
+            self.counters[i].1 = self.counters[i].1.saturating_sub(n);
+            if self.counters[i].1 == 0 {
+                self.counters.remove(i);
+            }
+        }
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -147,52 +180,50 @@ impl CombatState {
     }
 }
 
-/// CR 613 layers. M1 uses only 7c; the rest are declared so effects can be
-/// placed correctly as they are added.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
-pub enum Layer {
-    L1Copy,
-    L2Control,
-    L3Text,
-    L4Type,
-    L5Color,
-    L6Ability,
-    L7aCda,
-    L7bSetPt,
-    L7cModifyPt,
-    L7dSwitchPt,
-}
-
-#[derive(Clone, Debug)]
-pub enum Modification {
-    ModifyPt { power: i32, toughness: i32 },
-}
-
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Duration {
     UntilEndOfTurn,
+    Permanent,
 }
 
+/// What a stored continuous effect applies to.
+#[derive(Clone, Debug)]
+pub enum Affected {
+    /// A set locked in when the effect was created (CR 611.2c).
+    Objects(SmallVec<[ObjId; 2]>),
+    /// A filter re-evaluated as the layers are applied (CR 611.3), judged
+    /// from `controller`'s point of view.
+    Filter {
+        filter: ObjFilter,
+        controller: PlayerId,
+    },
+}
+
+/// A continuous effect created by a resolving spell or ability (CR 611.2).
+/// Effects of static abilities are not stored; the layer algorithm derives
+/// them from the battlefield each time (CR 611.3).
 #[derive(Clone, Debug)]
 pub struct ContinuousEffect {
-    pub layer: Layer,
+    pub source: Option<ObjId>,
     pub timestamp: Timestamp,
-    pub affected: ObjId,
-    pub modification: Modification,
     pub duration: Duration,
+    pub affected: Affected,
+    pub parts: SmallVec<[Modification; 2]>,
 }
 
 /// An object's current characteristics (CR 109.3), derived from printed
 /// values plus continuous effects.
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Characteristics {
     pub def: CardRef,
     pub colors: ColorSet,
     pub supertypes: SupertypeSet,
     pub types: TypeSet,
+    pub subtypes: SubtypeSet,
     pub power: i32,
     pub toughness: i32,
     pub keywords: KeywordSet,
+    pub abilities: AbilitySet,
 }
 
 impl Characteristics {
@@ -200,8 +231,46 @@ impl Characteristics {
         self.types.contains(CardType::Creature)
     }
 
+    pub fn is_land(&self) -> bool {
+        self.types.contains(CardType::Land)
+    }
+
     pub fn has(&self, k: Keyword) -> bool {
         self.keywords.contains(k)
+    }
+
+    pub fn has_subtype(&self, s: crate::card::Subtype) -> bool {
+        self.subtypes.contains(&s)
+    }
+
+    /// No keyword or other abilities (Muraganda Petroglyphs).
+    pub fn has_no_abilities(&self) -> bool {
+        self.keywords.is_empty() && self.abilities.is_empty()
+    }
+}
+
+/// Derived characteristics for one `GameState::version`.
+pub enum Derived {
+    /// Nothing modifies anything: every object has its printed characteristics.
+    Printed,
+    /// Characteristics of battlefield objects; others are printed.
+    Battlefield(HashMap<ObjId, Characteristics>),
+}
+
+/// Cache of derived characteristics, valid for one `GameState::version`.
+/// Cloning a state yields an empty cache; it refills on first use.
+#[derive(Default)]
+pub struct DerivedCache(pub(crate) RefCell<Option<(u64, Derived)>>);
+
+impl Clone for DerivedCache {
+    fn clone(&self) -> Self {
+        DerivedCache::default()
+    }
+}
+
+impl std::fmt::Debug for DerivedCache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("DerivedCache")
     }
 }
 
@@ -298,6 +367,7 @@ pub struct GameState {
     pub result: Option<GameResult>,
     pub log: Vec<Event>,
     pub logging: bool,
+    pub cache: DerivedCache,
 }
 
 impl GameState {
@@ -352,43 +422,65 @@ impl GameState {
     }
 
     /// Current characteristics of an object, computed through the layers
-    /// (CR 613). M1 applies printed values, then layer 7c modifications in
-    /// timestamp order. Objects not on the battlefield have no effects
-    /// applied to them except those that explicitly apply elsewhere (none
-    /// in M1).
+    /// (CR 613). Cached per `version`. Objects off the battlefield have their
+    /// printed characteristics (no effect in the engine yet applies
+    /// elsewhere).
     pub fn characteristics(&self, id: ObjId) -> Option<Characteristics> {
         let obj = self.objects.get(id)?;
-        let def = self.pool.get(obj.def);
-        let mut c = Characteristics {
-            def: obj.def,
-            colors: def.colors(),
-            supertypes: def.supertypes,
-            types: def.types,
-            power: def.power.unwrap_or(0),
-            toughness: def.toughness.unwrap_or(0),
-            keywords: def.keywords,
-        };
-        if obj.zone == Zone::Battlefield {
-            let mut applicable: SmallVec<[&ContinuousEffect; 8]> =
-                self.effects.iter().filter(|e| e.affected == id).collect();
-            applicable.sort_by_key(|e| (e.layer, e.timestamp));
-            for e in applicable {
-                match e.modification {
-                    Modification::ModifyPt { power, toughness } => {
-                        c.power += power;
-                        c.toughness += toughness;
-                    }
-                }
+        if obj.zone != Zone::Battlefield {
+            return Some(self.printed(obj.def));
+        }
+        {
+            let cache = self.cache.0.borrow();
+            if let Some((v, derived)) = cache.as_ref()
+                && *v == self.version
+            {
+                return match derived {
+                    Derived::Printed => Some(self.printed(obj.def)),
+                    Derived::Battlefield(map) => map.get(&id).copied(),
+                };
             }
         }
-        Some(c)
+        let derived = crate::layers::compute_battlefield(self);
+        let out = match &derived {
+            Derived::Printed => Some(self.printed(obj.def)),
+            Derived::Battlefield(map) => map.get(&id).copied(),
+        };
+        *self.cache.0.borrow_mut() = Some((self.version, derived));
+        out
+    }
+
+    /// Printed characteristics of a card, before any effect.
+    pub fn printed(&self, def: CardRef) -> Characteristics {
+        self.pool
+            .get(def)
+            .printed
+            .expect("definitions in a pool have printed characteristics")
+    }
+
+    /// Whether an Aura with `spec` may be attached to `target` (CR 303.4c).
+    /// Unlike targeting, hexproof does not matter here.
+    pub fn is_legal_attachment(&self, spec: TargetSpec, target: ObjId) -> bool {
+        let Some(obj) = self.objects.get(target) else {
+            return false;
+        };
+        if obj.zone != Zone::Battlefield {
+            return false;
+        }
+        let Some(c) = self.characteristics(target) else {
+            return false;
+        };
+        match spec {
+            TargetSpec::Any | TargetSpec::Creature => c.is_creature(),
+            TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => false,
+        }
     }
 
     /// Characteristics of an object that may have left the game, falling
     /// back to last-known information.
     pub fn characteristics_or_lki(&self, id: ObjId) -> Option<Characteristics> {
         self.characteristics(id)
-            .or_else(|| self.lki.get(&id).map(|l| l.characteristics.clone()))
+            .or_else(|| self.lki.get(&id).map(|l| l.characteristics))
     }
 
     pub fn is_creature_on_battlefield(&self, id: ObjId) -> bool {

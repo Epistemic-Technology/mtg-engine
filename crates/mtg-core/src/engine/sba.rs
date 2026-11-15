@@ -1,5 +1,6 @@
 //! State-based actions (CR 704) and the game-over check.
 
+use crate::card::CounterKind;
 use crate::event::Event;
 use crate::ids::PlayerId;
 use crate::state::{Flow, GameResult, GameState, LossReason, ObjKind, Zone};
@@ -33,10 +34,12 @@ impl GameState {
                     acted = true;
                 }
             }
-            // 704.5d, 704.5f, 704.5g, 704.5h: collect first, act simultaneously.
+            // 704.5d, 704.5f, 704.5g, 704.5h, 704.5m, 704.5q: collect first,
+            // act simultaneously.
             let mut to_graveyard = Vec::new();
             let mut to_destroy = Vec::new();
             let mut tokens_gone = Vec::new();
+            let mut annihilate = Vec::new();
             for id in self.objects.keys().collect::<Vec<_>>() {
                 let o = &self.objects[id];
                 if o.kind == ObjKind::Token && o.zone != Zone::Battlefield {
@@ -44,6 +47,22 @@ impl GameState {
                     continue;
                 }
                 if o.zone != Zone::Battlefield {
+                    continue;
+                }
+                // 704.5q: +1/+1 and -1/-1 counters annihilate.
+                let plus = o.counters(CounterKind::PlusOnePlusOne);
+                let minus = o.counters(CounterKind::MinusOneMinusOne);
+                if plus > 0 && minus > 0 {
+                    annihilate.push((id, plus.min(minus)));
+                }
+                // 704.5m: an Aura not legally attached goes to its owner's
+                // graveyard.
+                if let Some(spec) = self.pool.get(o.def).enchant()
+                    && !o
+                        .attached_to
+                        .is_some_and(|t| self.is_legal_attachment(spec, t))
+                {
+                    to_graveyard.push(id);
                     continue;
                 }
                 let Some(c) = self.characteristics(id) else {
@@ -62,6 +81,13 @@ impl GameState {
             for id in tokens_gone {
                 self.remove_from_zone_list(id);
                 self.objects.remove(id);
+                acted = true;
+            }
+            for (id, n) in annihilate {
+                let o = &mut self.objects[id];
+                o.remove_counters(CounterKind::PlusOnePlusOne, n);
+                o.remove_counters(CounterKind::MinusOneMinusOne, n);
+                self.bump();
                 acted = true;
             }
             for id in to_graveyard {

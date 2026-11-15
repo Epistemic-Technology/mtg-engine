@@ -39,6 +39,8 @@ pub struct CardSpec {
     pub name: String,
     pub count: usize,
     pub tapped: bool,
+    /// `on "Name"`: attach this Aura to that permanent.
+    pub attached_to: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -158,6 +160,17 @@ pub enum Assertion {
     Turn(u32),
     Step(Step),
     StackCount(usize),
+    /// `has "X" flying` / `has not "X" flying`.
+    HasKeyword(ObjRef, String, bool),
+    /// `is "X" creature` / `is not "X" mountain`: a type, supertype, subtype,
+    /// or color.
+    Is(ObjRef, String, bool),
+    /// `counters "X" +1/+1 3`.
+    Counters(ObjRef, String, u32),
+    /// `attached "Aura" to "X"`.
+    Attached(ObjRef, ObjRef),
+    /// `no_abilities "X"`.
+    NoAbilities(ObjRef),
 }
 
 /// Step names accepted in scenario files.

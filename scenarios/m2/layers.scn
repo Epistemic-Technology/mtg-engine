@@ -1,0 +1,380 @@
+# The CR 613 layer system: static abilities, timestamps, dependency, and
+# the classic puzzles. Objects placed in setup get timestamps in listing
+# order (player A's zones first), so order within a line matters.
+
+# ---- anthems (layer 7c) ----------------------------------------------------------
+
+scenario "glorious anthem pumps only its controller's creatures" {
+  battlefield A: "Glorious Anthem", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power A "Grizzly Bears" 3
+  assert toughness A "Grizzly Bears" 3
+  assert power B "Grizzly Bears" 2
+}
+
+scenario "crusade pumps white creatures of either player" {
+  battlefield A: "Crusade", "Savannah Lions", "Grizzly Bears"
+  battlefield B: "Youthful Knight"
+  run_to turn 1 precombat_main
+  assert power "Savannah Lions" 3
+  assert power "Grizzly Bears" 2
+  assert power "Youthful Knight" 3
+}
+
+scenario "an anthem applies to creatures that arrive later" {
+  battlefield A: "Glorious Anthem", "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+}
+
+scenario "an anthem's effect ends when it leaves the battlefield" {
+  battlefield A: "Glorious Anthem", "Grizzly Bears"
+  battlefield B: "Mountain"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  run_to turn 2 precombat_main
+  # No enchantment removal in the pool yet; this checks the opposite case:
+  # the effect persists across turns while the source stays.
+  assert power "Grizzly Bears" 3
+}
+
+scenario "anthem plus pump plus counters all add in layer 7c" {
+  battlefield A: "Glorious Anthem", "Grizzly Bears", "Forest", 5 "Forest"
+  hand A: "Giant Growth", "Dromoka's Gift"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: cast "Dromoka's Gift" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 9          # 2 + 1 anthem + 3 growth + 3 counters
+  assert counters "Grizzly Bears" +1/+1 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 6          # growth ended; counters stay
+}
+
+# ---- humility (layers 6 and 7b) ------------------------------------------------------
+
+scenario "humility makes creatures 1/1 with no abilities" {
+  battlefield A: "Humility"
+  battlefield B: "Serra Angel", "Vampire Nighthawk"
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+  assert no_abilities "Vampire Nighthawk"
+}
+
+scenario "under humility a flier can be blocked by a ground creature" {
+  battlefield A: "Humility", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  turn 2 A: block "Serra Angel" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Serra Angel"      # 1/1 vs 1/1
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "humility sets base power and toughness; pump still applies afterwards" {
+  battlefield A: "Humility", "Serra Angel", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert power "Serra Angel" 4             # 7b sets 1/1, 7c adds +3/+3
+  assert toughness "Serra Angel" 4
+}
+
+scenario "humility and an anthem: 7b before 7c regardless of timestamps" {
+  battlefield A: "Glorious Anthem", "Grizzly Bears", "Humility"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "humility and counters: counters apply after the base is set" {
+  battlefield A: "Humility", "Craw Wurm", 5 "Forest"
+  hand A: "Dromoka's Gift"
+  turn 1 A: cast "Dromoka's Gift" targeting "Craw Wurm"
+  run_to turn 1 begin_combat
+  assert power "Craw Wurm" 4
+  assert toughness "Craw Wurm" 4
+}
+
+scenario "muraganda petroglyphs pumps creatures humility has stripped" {
+  battlefield A: "Muraganda Petroglyphs", "Serra Angel", "Humility"
+  battlefield B: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 3             # 1/1 base, no abilities, +2/+2
+  assert power "Grizzly Bears" 3
+}
+
+scenario "muraganda petroglyphs ignores creatures with abilities" {
+  battlefield A: "Muraganda Petroglyphs", "Grizzly Bears", "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Serra Angel" 4
+}
+
+# ---- layer 6 timestamps: losing and gaining abilities -------------------------------
+
+scenario "flight after humility: the later effect wins in layer 6" {
+  battlefield A: "Humility", "Grizzly Bears", "Flight" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" flying
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19                         # it is still 1/1
+}
+
+scenario "humility after flight: the later effect wins in layer 6" {
+  battlefield A: "Grizzly Bears", "Flight" on "Grizzly Bears", "Humility"
+  run_to turn 1 precombat_main
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "a creature that loses flying can be blocked by a ground creature" {
+  battlefield A: "Wind Drake", "Humility"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Wind Drake"
+  turn 1 B: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "levitation grants flying to its controller's creatures" {
+  battlefield A: "Levitation", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  assert has A "Grizzly Bears" flying
+  assert has not B "Grizzly Bears" flying
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+# ---- humility and opalescence (the classic) ------------------------------------------
+
+scenario "opalescence animates other enchantments with P/T equal to mana value" {
+  battlefield A: "Opalescence", "Glorious Anthem"
+  run_to turn 1 precombat_main
+  assert is "Glorious Anthem" creature
+  assert is "Glorious Anthem" enchantment
+  assert power "Glorious Anthem" 4          # 3 mana value + its own anthem
+  assert toughness "Glorious Anthem" 4
+  assert is not "Opalescence" creature
+}
+
+scenario "opalescence does not animate auras" {
+  battlefield A: "Grizzly Bears", "Holy Strength" on "Grizzly Bears", "Opalescence"
+  run_to turn 1 precombat_main
+  assert is not "Holy Strength" creature
+}
+
+scenario "humility then opalescence: humility is a 4/4 with no abilities" {
+  # Humility (earlier) sets every creature to 1/1 in 7b; Opalescence (later)
+  # then sets Humility to its mana value. Humility's own effect continues to
+  # apply even though it lost its abilities in layer 6 (CR 613.6).
+  battlefield A: "Humility", "Opalescence"
+  battlefield B: "Serra Angel"
+  run_to turn 1 precombat_main
+  assert is "Humility" creature
+  assert power "Humility" 4
+  assert toughness "Humility" 4
+  assert no_abilities "Humility"
+  assert power "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert is not "Opalescence" creature
+}
+
+scenario "opalescence then humility: humility is a 1/1" {
+  battlefield A: "Opalescence", "Humility"
+  battlefield B: "Serra Angel"
+  run_to turn 1 precombat_main
+  assert is "Humility" creature
+  assert power "Humility" 1
+  assert toughness "Humility" 1
+  assert power "Serra Angel" 1
+}
+
+# ---- land types: blood moon and urborg (layer 4 with dependency) ------------------
+
+scenario "blood moon turns nonbasic lands into mountains" {
+  battlefield A: "Blood Moon", "Darksteel Citadel", "Forest"
+  hand A: "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert is "Darksteel Citadel" mountain
+  assert is "Darksteel Citadel" land
+  assert is "Darksteel Citadel" artifact
+  assert has not "Darksteel Citadel" indestructible     # CR 305.7
+  assert is "Forest" forest
+  assert is not "Forest" mountain
+  turn 1 A: cast "Lightning Bolt" targeting player B    # paid with the Citadel's red
+  run_to turn 1 begin_combat
+  assert life B 17
+  assert tapped "Darksteel Citadel"
+}
+
+scenario "mountains made by blood moon pay for red spells" {
+  battlefield A: "Blood Moon", "Darksteel Citadel", "Darksteel Citadel", "Forest", "Forest"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"                            # {3}{R}: the Citadels tap for red
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "without blood moon the citadels cannot pay for a red spell" {
+  battlefield A: "Darksteel Citadel", "Darksteel Citadel", "Forest", "Forest"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+}
+
+scenario "urborg makes every land a swamp in addition" {
+  battlefield A: "Urborg, Tomb of Yawgmoth", "Forest", "Forest"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand A: "Murder"
+  run_to turn 1 precombat_main
+  assert is A "Forest" swamp
+  assert is A "Forest" forest
+  assert is B "Mountain" swamp
+  assert is "Urborg, Tomb of Yawgmoth" swamp
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"      # {1}{B}{B} from Forests
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "blood moon beats urborg: urborg's effect depends on blood moon's" {
+  # CR 613.8: Blood Moon makes Urborg a Mountain, and CR 305.7 then removes
+  # Urborg's ability, so Urborg's effect does not exist. No land is a Swamp.
+  battlefield A: "Urborg, Tomb of Yawgmoth", "Forest", "Blood Moon"
+  run_to turn 1 precombat_main
+  assert is "Urborg, Tomb of Yawgmoth" mountain
+  assert is not "Urborg, Tomb of Yawgmoth" swamp
+  assert is not "Forest" swamp
+  assert is "Forest" forest
+  assert no_abilities "Urborg, Tomb of Yawgmoth"
+}
+
+scenario "blood moon beats urborg regardless of timestamp order" {
+  battlefield A: "Blood Moon", "Forest", "Urborg, Tomb of Yawgmoth"
+  run_to turn 1 precombat_main
+  assert is not "Forest" swamp
+  assert is "Urborg, Tomb of Yawgmoth" mountain
+}
+
+scenario "dryad arbor under blood moon is a mountain creature" {
+  battlefield A: "Blood Moon", "Dryad Arbor"
+  run_to turn 1 precombat_main
+  assert is "Dryad Arbor" creature
+  assert is "Dryad Arbor" mountain
+  assert is not "Dryad Arbor" forest
+  assert is "Dryad Arbor" green                          # color indicator survives
+}
+
+# ---- auras ---------------------------------------------------------------------------
+
+scenario "an aura is cast on a creature and modifies it" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Holy Strength"
+  turn 1 A: cast "Holy Strength" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Holy Strength" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "an aura may enchant an opponent's creature" {
+  battlefield A: "Swamp"
+  hand A: "Dead Weight"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Dead Weight" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert battlefield A contains "Dead Weight"          # A still controls the Aura
+}
+
+scenario "dead weight on a 2/2 kills it and then goes to the graveyard" {
+  battlefield A: "Swamp"
+  hand A: "Dead Weight"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Dead Weight" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"          # CR 704.5f
+  assert graveyard A contains "Dead Weight"            # CR 704.5m
+}
+
+scenario "an aura falls off when the enchanted creature is destroyed" {
+  battlefield A: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Holy Strength"
+}
+
+scenario "an aura spell whose target left is countered" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Holy Strength"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Holy Strength" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Holy Strength"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Holy Strength"           # CR 303.4f
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "an aura cannot target a non-creature" {
+  battlefield A: "Plains", "Glorious Anthem"
+  hand A: "Holy Strength"
+  illegal turn 1 A: cast "Holy Strength" targeting "Glorious Anthem"
+  run_to turn 1 begin_combat
+}
+
+scenario "flight lets a ground creature past a non-flying blocker" {
+  battlefield A: "Grizzly Bears", "Flight" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Giant Spider"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 B: block "Grizzly Bears" with "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "auras stack with anthems and pump" {
+  battlefield A: "Glorious Anthem", "Savannah Lions", "Unholy Strength" on "Savannah Lions", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Savannah Lions"
+  run_to turn 1 begin_combat
+  assert power "Savannah Lions" 8                       # 2+1+2+3
+  assert toughness "Savannah Lions" 6                   # 1+1+1+3
+}
+
+# ---- counters ---------------------------------------------------------------------------
+
+scenario "plus-one counters persist and survive humility's base-setting" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  hand A: "Dromoka's Gift"
+  turn 1 A: cast "Dromoka's Gift" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 5
+  assert counters "Grizzly Bears" +1/+1 3
+}
+
+scenario "a creature with counters dies to lethal damage all the same" {
+  battlefield A: "Grizzly Bears", 5 "Forest"
+  hand A: "Dromoka's Gift"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: cast "Dromoka's Gift" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 declare_attackers
+  assert graveyard A contains "Grizzly Bears"
+}

@@ -666,6 +666,27 @@ The games/s target is met before any optimization; characteristics are
 recomputed on every query with no cache, so the first real cost will
 appear when M2 adds continuous effects at scale.
 
+**M2 slice 1 (2026-11-14, release build, random agents, one thread,
+rustc 1.100).** Baseline for the same binary before the layer system was
+2,965 games/s on mono-red vs mono-red.
+
+| Matchup | games/s/core | Note |
+|---|---|---|
+| mono-red vs mono-red (no effects) | 2,830 | fast path: printed characteristics |
+| mono-green vs mono-green (counters) | 1,950 | counters force the layer pass |
+| mono-white vs mono-black (anthems, auras) | 850 | |
+| layers vs mono-green | 1,130 | |
+| layers vs layers (Humility, Opalescence, Blood Moon...) | 770 | O(n²) dependency checks per layer |
+| `GameState::clone`, 200 decisions in | 3.1 µs | was 2.0 µs; counters and attachment fields |
+
+The first version of `characteristics()` returned a struct holding two
+`SmallVec`s and cost 42% of throughput even on effect-free boards; making
+`Characteristics` `Copy` (fixed-capacity lists) recovered all but 5%. The
+lesson generalises: anything the engine returns per rules query must be
+plain data. The slow path recomputes every battlefield object on each
+state version; incremental recomputation and memoised dependency checks
+are the obvious next steps once the effect model stops changing.
+
 ### 8.2 Techniques
 
 - Enums over trait objects in hot paths; `SmallVec` for zones and option
@@ -881,7 +902,34 @@ file and wants splitting.
 - Accept: 10k random-agent games with zero panics; CR 500–514 and 704
   examples pass; performance targets measured and recorded.
 
-**M2: Continuous effects and the event pipeline (6–8 weeks)**
+**M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
+
+Status 2026-11-14, slice 1 (layers) done: `mtg-core/src/layers.rs`
+implements CR 613 over all battlefield objects at once: effects apply in
+timestamp order within a layer, with CR 613.8 dependency ordering (an
+effect whose affected set would change, or whose ability would be removed,
+applies after the effect that would do that; cycles fall back to
+timestamps), CR 613.6 persistence (an effect that has started applying
+keeps applying in later layers even if its ability is removed), and CR
+305.7 for "is a Mountain" effects. Static abilities are derived from the
+battlefield each computation (CR 611.3); spell effects are stored with
+locked-in affected sets (CR 611.2c). Characteristics are cached per state
+version and are a `Copy` type (fixed-capacity subtype and ability lists)
+because the engine queries them dozens of times per decision. Also in
+this slice: Auras (enchant targeting, attachment, CR 303.4f, CR 704.5m),
++1/+1 and -1/-1 counters (layer 7c, CR 704.5q), color indicators, land
+subtypes as the source of intrinsic mana abilities (CR 305.6), and
+sixteen cards for the puzzle suite (Humility, Opalescence, Blood Moon,
+Urborg, Darksteel Citadel, Dryad Arbor, Glorious Anthem, Crusade,
+Muraganda Petroglyphs, Levitation, Holy/Unholy Strength, Dead Weight,
+Flight, Dromoka's Gift). The 37-scenario suite in `scenarios/m2/`
+includes Humility+Opalescence in both timestamp orders and Blood Moon
+beating Urborg in both orders. Not yet: triggered abilities and the event
+pipeline (slice 2), replacement and prevention effects, copy effects,
+CDAs, control-changing effects, tokens, planeswalkers, emblems, the
+legend rule (slice 3). Performance: effect-free boards cost 5% against
+M1; boards with static abilities run at 770–1,130 games/s (see §8), to be
+optimized with incremental recomputation once slice 2 settles the shape.
 - CR 613 layers with dependency, CDAs, copy effects (CR 707), LKI,
   replacement and prevention (CR 614–616), triggered abilities including
   ordering and "look back" (CR 603), delayed triggers, auras and

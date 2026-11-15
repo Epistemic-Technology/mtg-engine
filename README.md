@@ -7,9 +7,11 @@ non-negotiable properties are rules fidelity (behaviour matches the
 Comprehensive Rules) and speed (thousands of complete games per second per
 core with cheap agents).
 
-Status: milestone M1 (core loop). Random agents play complete games with
-a 28-card vanilla pool at about 2,600 games per second per core. See
-[design.md](design.md) for the architecture, roadmap, and open questions.
+Status: milestone M2 (continuous effects) in progress; the CR 613 layer
+system, Auras, and counters are in. Random agents play complete games with
+a 44-card pool at about 2,800 games per second per core on effect-free
+boards. A 109-scenario rules corpus passes. See [design.md](design.md)
+for the architecture, roadmap, and open questions.
 
 ```
 cargo run --release -p mtg-cli -- sim --deck1 mono-red --deck2 mono-green --games 1000

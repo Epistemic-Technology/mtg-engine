@@ -75,6 +75,12 @@ fn lex_line(line_no: usize, text: &str) -> Result<Vec<Tok>, ParseError> {
                 }
                 out.push(Tok::Str(s));
             }
+            '+' | '-' if text[i..].starts_with("+1/+1") || text[i..].starts_with("-1/-1") => {
+                out.push(Tok::Ident(text[i..i + 5].to_string()));
+                for _ in 0..4 {
+                    chars.next();
+                }
+            }
             c if c.is_ascii_digit() || c == '-' => {
                 let mut s = String::from(c);
                 while let Some((_, d)) = chars.peek() {
@@ -267,10 +273,17 @@ impl Line {
         } else {
             false
         };
+        let attached_to = if self.peek_ident("on") {
+            self.pos += 1;
+            Some(self.string()?)
+        } else {
+            None
+        };
         Ok(CardSpec {
             name,
             count,
             tapped,
+            attached_to,
         })
     }
 }
@@ -500,6 +513,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
     })
 }
 
+#[allow(clippy::too_many_lines)] // one arm per assertion kind
 fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
     let what = line.ident()?;
     Ok(match what.as_str() {
@@ -580,6 +594,35 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
             line.keyword("count")?;
             Assertion::StackCount(line.count()?)
         }
+        "has" => {
+            let negated = line.peek_ident("not");
+            if negated {
+                line.pos += 1;
+            }
+            let r = line.obj_ref()?;
+            let kw = line.ident()?;
+            Assertion::HasKeyword(r, kw, !negated)
+        }
+        "is" => {
+            let negated = line.peek_ident("not");
+            if negated {
+                line.pos += 1;
+            }
+            let r = line.obj_ref()?;
+            let what = line.ident()?;
+            Assertion::Is(r, what, !negated)
+        }
+        "counters" => {
+            let r = line.obj_ref()?;
+            let kind = line.ident()?;
+            Assertion::Counters(r, kind, line.unsigned()?)
+        }
+        "attached" => {
+            let aura = line.obj_ref()?;
+            line.keyword("to")?;
+            Assertion::Attached(aura, line.obj_ref()?)
+        }
+        "no_abilities" => Assertion::NoAbilities(line.obj_ref()?),
         other => return line.fail(format!("unknown assertion `{other}`")),
     })
 }
