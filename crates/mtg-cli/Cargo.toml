@@ -14,6 +14,7 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap.workspace = true
 mtg-core = { path = "../mtg-core" }
+mtg-scenario = { path = "../mtg-scenario" }
 mtg-sim = { path = "../mtg-sim" }
 serde_json.workspace = true
 

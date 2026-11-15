@@ -14,7 +14,12 @@ a 28-card vanilla pool at about 2,600 games per second per core. See
 ```
 cargo run --release -p mtg-cli -- sim --deck1 mono-red --deck2 mono-green --games 1000
 cargo run --release -p mtg-cli -- bench
+cargo run -p mtg-cli -- scenario              # run the rules-test corpus in scenarios/
 ```
+
+Rules tests are written as scenarios (set up a board, script actions,
+assert the result); see `scenarios/` and
+[crates/mtg-scenario/SYNTAX.md](crates/mtg-scenario/SYNTAX.md).
 
 ## Layout
 
@@ -27,6 +32,7 @@ crates/
   mtg-agents/    baseline agents
   mtg-sim/       batch simulation, fuzzing, benchmarks
   mtg-cli/       human/debug CLI
+scenarios/       rules-test corpus (*.scn)
 data/
   sources.lock   pinned Scryfall and MTGJSON snapshot (committed)
   scryfall/      fetched bulk data (gitignored)

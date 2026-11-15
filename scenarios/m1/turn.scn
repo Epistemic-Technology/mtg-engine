@@ -1,0 +1,153 @@
+# Turn structure, lands, mana, cleanup, and state-based actions.
+
+scenario "the starting player skips the first draw" {
+  run_to turn 1 precombat_main
+  assert hand A count 0                   # CR 103.8a
+  run_to turn 2 precombat_main
+  assert hand B count 1
+  run_to turn 3 precombat_main
+  assert hand A count 1
+  assert turn 3
+  assert step precombat_main
+}
+
+scenario "the active player's permanents untap" {
+  battlefield A: "Grizzly Bears" tapped, "Forest" tapped
+  battlefield B: "Hill Giant" tapped
+  run_to turn 1 upkeep
+  assert untapped "Grizzly Bears"
+  assert untapped "Forest"
+  assert tapped "Hill Giant"              # CR 502.3: only the active player's
+  run_to turn 2 upkeep
+  assert untapped "Hill Giant"
+}
+
+scenario "one land per turn" {
+  hand A: "Forest", "Forest"
+  turn 1 A: play "Forest"
+  illegal turn 1 A: play "Forest"
+  run_to turn 1 begin_combat
+  assert battlefield A count 1
+  assert hand A count 1
+  run_to turn 3 precombat_main
+  turn 3 A: play "Forest"
+  run_to turn 3 begin_combat
+  assert battlefield A count 2
+}
+
+scenario "lands cannot be played on an opponent's turn" {
+  hand B: "Forest"
+  illegal turn 1 B: play "Forest"
+  run_to turn 1 begin_combat
+  assert hand B count 1
+}
+
+scenario "a land played this turn can pay for a spell" {
+  hand A: "Forest", "Forest"
+  battlefield A: "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped A "Forest"
+}
+
+scenario "a spell cannot be cast without enough mana" {
+  battlefield A: "Mountain", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+scenario "a spell cannot be cast without mana of the right color" {
+  battlefield A: "Forest", "Forest", "Forest", "Forest"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+}
+
+scenario "generic mana can be paid with any color" {
+  battlefield A: "Forest", "Forest", "Forest", "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Mountain"
+}
+
+scenario "mana is spent and lands stay tapped" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "two spells in one turn with enough lands" {
+  battlefield A: 4 "Forest"
+  hand A: "Grizzly Bears", "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+}
+
+scenario "a player discards down to seven in the cleanup step" {
+  hand A: 9 "Plains"
+  run_to turn 2 upkeep
+  assert hand A count 7                   # CR 514.1
+  assert graveyard A count 2
+}
+
+scenario "the discarding player chooses which cards to discard" {
+  hand A: 7 "Plains", "Grizzly Bears"
+  turn 1 A: discard "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert hand A count 7
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "a player at zero life loses" {
+  life B 3
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to end
+  assert life B 0
+  assert winner A                         # CR 704.5a
+}
+
+scenario "a player who draws from an empty library loses" {
+  library B:
+  start turn 2 B
+  run_to end
+  assert winner A                         # CR 704.5b
+}
+
+scenario "lethal combat damage ends the game" {
+  life B 2
+  battlefield A: "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to end
+  assert winner A
+  assert game_over
+}
+
+scenario "the game continues while both players live" {
+  battlefield A: "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert not game_over
+}
+
+scenario "an explicit library is drawn from the top" {
+  library B: "Grizzly Bears", "Forest"
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert hand B contains "Grizzly Bears"
+  assert library B count 1
+}

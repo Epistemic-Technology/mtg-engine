@@ -1,0 +1,1191 @@
+//! Drives the engine through a parsed scenario (design §7.1). Scripted
+//! actions fail loudly when they are not among the legal options; unscripted
+//! decisions pass or take the first option.
+
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::Arc;
+
+use mtg_core::card::CardPool;
+use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
+use mtg_core::engine::{Engine, PlayerSetup, Setup};
+use mtg_core::event::Event;
+use mtg_core::ids::{ObjId, PlayerId};
+use mtg_core::state::{GameResult, GameState, Target, Zone};
+use mtg_core::turn::Step;
+
+use crate::ast::{
+    Action, Assertion, ObjRef, Position, RunTarget, Scenario, ScriptedAction, Statement, TargetRef,
+    player_name, step_name,
+};
+
+/// Safety valve against scenarios that never end.
+pub const MAX_DECISIONS: u32 = 20_000;
+
+/// Library given to a player whose scenario does not specify one, so that
+/// draws succeed. Forty cards covers any plausible scenario length.
+pub const DEFAULT_LIBRARY: (&str, usize) = ("Plains", 40);
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Failure {
+    /// Line of the statement that failed, or of the scenario header.
+    pub line: usize,
+    pub message: String,
+}
+
+impl std::fmt::Display for Failure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "line {}: {}", self.line, self.message)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Report {
+    pub name: String,
+    pub line: usize,
+    pub skipped: Option<String>,
+    pub failure: Option<Failure>,
+    /// Event log of the game, for diagnosis.
+    pub log: Vec<Event>,
+    pub decisions: u32,
+}
+
+impl Report {
+    pub fn passed(&self) -> bool {
+        self.failure.is_none() && self.skipped.is_none()
+    }
+}
+
+type Res<T> = Result<T, Failure>;
+
+fn fail<T>(line: usize, message: impl Into<String>) -> Res<T> {
+    Err(Failure {
+        line,
+        message: message.into(),
+    })
+}
+
+/// Run one scenario against the pool.
+pub fn run(pool: &Arc<CardPool>, sc: &Scenario) -> Report {
+    if let Some(reason) = &sc.skip {
+        return Report {
+            name: sc.name.clone(),
+            line: sc.line,
+            skipped: Some(reason.clone()),
+            failure: None,
+            log: Vec::new(),
+            decisions: 0,
+        };
+    }
+    let mut runner = match Runner::new(pool, sc) {
+        Ok(r) => r,
+        Err(failure) => {
+            return Report {
+                name: sc.name.clone(),
+                line: sc.line,
+                skipped: None,
+                failure: Some(failure),
+                log: Vec::new(),
+                decisions: 0,
+            };
+        }
+    };
+    let outcome = catch_unwind(AssertUnwindSafe(|| runner.execute(sc)));
+    let failure = match outcome {
+        Ok(Ok(())) => None,
+        Ok(Err(f)) => Some(f),
+        Err(payload) => {
+            let message = payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+                .unwrap_or_else(|| "non-string panic".to_string());
+            Some(Failure {
+                line: sc.line,
+                message: format!("engine panicked: {message}"),
+            })
+        }
+    };
+    Report {
+        name: sc.name.clone(),
+        line: sc.line,
+        skipped: None,
+        failure,
+        log: runner.engine.state().log.clone(),
+        decisions: runner.decisions,
+    }
+}
+
+struct Runner {
+    engine: Engine,
+    actions: Vec<ScriptedAction>,
+    fired: Vec<bool>,
+    decisions: u32,
+    /// Targets still to be chosen for the spell being cast.
+    pending_targets: Option<Vec<TargetRef>>,
+    /// Attackers still to be added in an incremental declaration.
+    attack_queue: Option<Vec<ObjId>>,
+    /// Blocks still to be added in an incremental declaration.
+    block_queue: Option<Vec<(ObjId, ObjId)>>,
+}
+
+impl Runner {
+    fn new(pool: &Arc<CardPool>, sc: &Scenario) -> Res<Runner> {
+        let (turn_number, active_player, step) =
+            sc.setup.start.unwrap_or((1, PlayerId(0), Step::Untap));
+        let mut players = vec![PlayerSetup::default(), PlayerSetup::default()];
+        let mut library_given = [false; 2];
+        for (i, p) in players.iter_mut().enumerate() {
+            p.life = sc.setup.life[i].unwrap_or(20);
+        }
+        for z in &sc.setup.zones {
+            let ps = &mut players[z.player.index()];
+            for card in &z.cards {
+                let Some(def) = pool.lookup(&card.name) else {
+                    return fail(z.line, format!("\"{}\" is not in the card pool", card.name));
+                };
+                for _ in 0..card.count {
+                    match z.zone {
+                        Zone::Battlefield => ps.battlefield.push((def, card.tapped)),
+                        Zone::Hand => ps.hand.push(def),
+                        Zone::Graveyard => ps.graveyard.push(def),
+                        Zone::Exile => ps.exile.push(def),
+                        Zone::Library => ps.library.push(def),
+                        Zone::Stack | Zone::Command => {
+                            return fail(z.line, "cannot set up the stack or command zone");
+                        }
+                    }
+                }
+            }
+            if z.zone == Zone::Library {
+                library_given[z.player.index()] = true;
+            }
+        }
+        for (i, p) in players.iter_mut().enumerate() {
+            if library_given[i] {
+                // Scenario files list the top card first; the engine wants
+                // the top card last.
+                p.library.reverse();
+            } else {
+                let def = pool
+                    .lookup(DEFAULT_LIBRARY.0)
+                    .expect("default library card is in the pool");
+                p.library = vec![def; DEFAULT_LIBRARY.1];
+            }
+        }
+        let setup = Setup {
+            players,
+            turn_number,
+            active_player,
+            step,
+            seed: sc.setup.seed.unwrap_or(0),
+            logging: true,
+        };
+        let actions: Vec<ScriptedAction> = sc
+            .statements
+            .iter()
+            .filter_map(|s| match s {
+                Statement::Action(a) => Some(a.clone()),
+                _ => None,
+            })
+            .collect();
+        Ok(Runner {
+            engine: Engine::from_setup(pool.clone(), &setup),
+            fired: vec![false; actions.len()],
+            actions,
+            decisions: 0,
+            pending_targets: None,
+            attack_queue: None,
+            block_queue: None,
+        })
+    }
+
+    fn state(&self) -> &GameState {
+        self.engine.state()
+    }
+
+    fn execute(&mut self, sc: &Scenario) -> Res<()> {
+        for st in &sc.statements {
+            match st {
+                Statement::Action(_) => {}
+                Statement::RunTo { line, target } => self.run_until(*line, *target)?,
+                Statement::Assert { line, assertion } => self.check(*line, assertion)?,
+            }
+        }
+        if let Some(i) = self.fired.iter().position(|f| !*f) {
+            let a = &self.actions[i];
+            return fail(
+                a.line,
+                format!(
+                    "scripted {} at turn {} was never reached (add a run_to past it, or the player never got that decision)",
+                    a.action.kind_name(),
+                    a.turn
+                ),
+            );
+        }
+        Ok(())
+    }
+
+    fn position(&self) -> Position {
+        Position {
+            turn: self.state().turn_number,
+            step: self.state().step,
+        }
+    }
+
+    fn run_until(&mut self, line: usize, target: RunTarget) -> Res<()> {
+        loop {
+            let decision = match self.engine.current() {
+                StepResult::Over(_) => return Ok(()),
+                StepResult::Decision(d) => d.clone(),
+            };
+            let pos = self.position();
+            if let RunTarget::Position(t) = target
+                && pos >= t
+            {
+                return Ok(());
+            }
+            self.check_overdue(pos)?;
+            if self.decisions >= MAX_DECISIONS {
+                return fail(
+                    line,
+                    format!("game did not reach the target within {MAX_DECISIONS} decisions"),
+                );
+            }
+            let choice = self.decide(&decision, pos)?;
+            self.engine.step(choice).map_err(|e| Failure {
+                line,
+                message: format!("engine rejected choice: {e}"),
+            })?;
+            self.decisions += 1;
+        }
+    }
+
+    /// A scripted action whose point has passed without firing is an
+    /// authoring error or a legality bug; either way, stop. An `illegal`
+    /// action whose decision was never offered at all (for example a block
+    /// when the player has no untapped creature) counts as satisfied.
+    fn check_overdue(&mut self, pos: Position) -> Res<()> {
+        for i in 0..self.actions.len() {
+            if self.fired[i] {
+                continue;
+            }
+            let a = &self.actions[i];
+            let overdue = match a.step {
+                Some(step) => Position { turn: a.turn, step } < pos,
+                None => a.turn < pos.turn,
+            };
+            if overdue && a.illegal {
+                self.fired[i] = true;
+                continue;
+            }
+            if overdue {
+                return fail(
+                    a.line,
+                    format!(
+                        "scripted {} for {} at turn {}{} was never offered a decision there (now at turn {} {})",
+                        a.action.kind_name(),
+                        player_name(a.player),
+                        a.turn,
+                        a.step
+                            .map_or(String::new(), |s| format!(" {}", step_name(s))),
+                        pos.turn,
+                        step_name(pos.step)
+                    ),
+                );
+            }
+        }
+        Ok(())
+    }
+
+    /// Indices of unfired actions for `player` at `pos` whose action matches `pred`.
+    fn matching(
+        &self,
+        player: PlayerId,
+        pos: Position,
+        any_step: bool,
+        pred: impl Fn(&Action) -> bool,
+    ) -> Vec<usize> {
+        self.actions
+            .iter()
+            .enumerate()
+            .filter(|(i, a)| {
+                !self.fired[*i]
+                    && a.player == player
+                    && a.turn == pos.turn
+                    && (if any_step {
+                        a.step.is_none() || a.step == Some(pos.step)
+                    } else {
+                        a.step == Some(pos.step)
+                    })
+                    && pred(&a.action)
+            })
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    fn decide(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        match d.kind {
+            DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
+            DecisionKind::Bottom => Ok(0),
+            DecisionKind::PriorityAction => self.priority_action(d, pos),
+            DecisionKind::ChooseTarget { index, .. } => self.choose_target(d, index),
+            DecisionKind::DeclareAttackers => self.declare_attackers(d, pos),
+            DecisionKind::DeclareBlockers => self.declare_blockers(d, pos),
+            DecisionKind::AssignCombatDamage { attacker } => self.assign_damage(d, pos, attacker),
+            DecisionKind::Discard => self.discard(d, pos),
+        }
+    }
+
+    fn priority_action(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        self.pending_targets = None;
+        let stack_names: Vec<String> = self
+            .state()
+            .stack
+            .iter()
+            .map(|id| self.state().name_of(*id).to_string())
+            .collect();
+        let candidates = self.matching(d.player, pos, false, |a| match a {
+            Action::Play(_) => true,
+            Action::Cast { respond_to, .. } => {
+                respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
+            }
+            _ => false,
+        });
+        for i in candidates {
+            let a = self.actions[i].clone();
+            let (name, option, targets) = match &a.action {
+                Action::Play(name) => {
+                    let id = self.in_hand(a.line, d.player, name)?;
+                    (name, Choice::PlayLand(id), None)
+                }
+                Action::Cast { name, targets, .. } => {
+                    let id = self.in_hand(a.line, d.player, name)?;
+                    (name, Choice::Cast(id), Some(targets.clone()))
+                }
+                _ => unreachable!("filtered to play/cast"),
+            };
+            let (Choice::PlayLand(id) | Choice::Cast(id)) = option else {
+                unreachable!()
+            };
+            let found = index_of(d, &option);
+            match (a.illegal, found) {
+                (true, Some(_)) => {
+                    return fail(
+                        a.line,
+                        format!(
+                            "{} \"{name}\" was legal for {} but the scenario says it must not be",
+                            a.action.kind_name(),
+                            player_name(d.player)
+                        ),
+                    );
+                }
+                (true, None) => {
+                    self.fired[i] = true;
+                }
+                (false, None) => {
+                    // Sorcery-speed actions wait for an empty stack; they are
+                    // retried at the player's next priority in this step.
+                    let def = self.state().def_of(id).expect("card in hand");
+                    let instant_speed =
+                        def.is_instant() || def.keywords.contains(mtg_core::card::Keyword::Flash);
+                    if !instant_speed && !self.state().stack.is_empty() {
+                        break;
+                    }
+                    return fail(
+                        a.line,
+                        format!(
+                            "{} \"{name}\" is not legal for {} at turn {} {}; legal options: {}",
+                            a.action.kind_name(),
+                            player_name(d.player),
+                            pos.turn,
+                            step_name(pos.step),
+                            self.describe_options(d)
+                        ),
+                    );
+                }
+                (false, Some(idx)) => {
+                    self.fired[i] = true;
+                    if let Some(targets) = targets {
+                        let needed = self
+                            .state()
+                            .def_of(id)
+                            .and_then(|def| def.spell_ability())
+                            .map_or(0, |(specs, _)| specs.len());
+                        if targets.len() != needed {
+                            return fail(
+                                a.line,
+                                format!(
+                                    "\"{name}\" takes {needed} target(s) but {} were scripted",
+                                    targets.len()
+                                ),
+                            );
+                        }
+                        self.pending_targets = Some(targets);
+                    }
+                    return Ok(idx);
+                }
+            }
+        }
+        index_of(d, &Choice::Pass).ok_or_else(|| self.unexpected(d, "no Pass option"))
+    }
+
+    fn choose_target(&mut self, d: &Decision, index: usize) -> Res<ChoiceId> {
+        let line = self.current_cast_line();
+        let Some(targets) = self.pending_targets.clone() else {
+            return fail(
+                line,
+                "the engine asked for a target but no scripted cast is in progress",
+            );
+        };
+        let Some(tr) = targets.get(index) else {
+            return fail(
+                line,
+                format!(
+                    "spell needs target #{} but only {} scripted",
+                    index + 1,
+                    targets.len()
+                ),
+            );
+        };
+        let t = self.resolve_target(line, tr)?;
+        index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "{} is not a legal target; legal targets: {}",
+                self.describe_target(t),
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// Line of the most recently fired cast, for target errors.
+    fn current_cast_line(&self) -> usize {
+        self.actions
+            .iter()
+            .zip(&self.fired)
+            .filter(|(a, f)| **f && matches!(a.action, Action::Cast { .. }))
+            .map(|(a, _)| a.line)
+            .next_back()
+            .unwrap_or(0)
+    }
+
+    fn declare_attackers(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        if self.attack_queue.is_none() {
+            let idxs = self.matching(d.player, pos, false, |a| matches!(a, Action::Attack(_)));
+            let mut legal = Vec::new();
+            let mut illegal = Vec::new();
+            for i in idxs {
+                self.fired[i] = true;
+                let a = self.actions[i].clone();
+                let Action::Attack(names) = &a.action else {
+                    unreachable!()
+                };
+                for name in names {
+                    let used: Vec<ObjId> = legal.iter().chain(&illegal).copied().collect();
+                    let id = self.creature_of(a.line, d.player, name, &used)?;
+                    if a.illegal {
+                        illegal.push(id);
+                    } else {
+                        legal.push(id);
+                    }
+                }
+                for id in &illegal {
+                    let offered = d.options.iter().any(|c| match c {
+                        Choice::Attackers(set) => set.contains(id),
+                        Choice::AddAttacker(x) => x == id,
+                        _ => false,
+                    });
+                    if offered {
+                        return fail(
+                            a.line,
+                            format!(
+                                "attacking with \"{}\" was legal but the scenario says it must not be",
+                                self.state().name_of(*id)
+                            ),
+                        );
+                    }
+                }
+            }
+            self.attack_queue = Some(legal);
+        }
+        let queue = self.attack_queue.clone().unwrap_or_default();
+        let line = self.line_of_kind(pos, d.player, "attack");
+        if d.options.iter().any(|c| matches!(c, Choice::Attackers(_))) {
+            self.attack_queue = None;
+            let idx = d.options.iter().position(|c| match c {
+                Choice::Attackers(set) => same_set(set, &queue),
+                _ => false,
+            });
+            return idx.map(idx_u32).ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "attacking with {} is not legal; legal declarations: {}",
+                    self.describe_ids(&queue),
+                    self.describe_options(d)
+                ),
+            });
+        }
+        // Incremental mode.
+        let Some(next) = queue.first().copied() else {
+            self.attack_queue = None;
+            return index_of(d, &Choice::Done).ok_or_else(|| self.unexpected(d, "no Done option"));
+        };
+        self.attack_queue = Some(queue[1..].to_vec());
+        index_of(d, &Choice::AddAttacker(next)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "attacking with \"{}\" is not legal",
+                self.state().name_of(next)
+            ),
+        })
+    }
+
+    fn declare_blockers(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        if self.block_queue.is_none() {
+            let idxs = self.matching(d.player, pos, false, |a| matches!(a, Action::Block { .. }));
+            let mut legal: Vec<(ObjId, ObjId)> = Vec::new();
+            let mut illegal: Vec<(ObjId, ObjId)> = Vec::new();
+            for i in idxs {
+                self.fired[i] = true;
+                let a = self.actions[i].clone();
+                let Action::Block { attacker, blocker } = &a.action else {
+                    unreachable!()
+                };
+                let used: Vec<ObjId> = legal.iter().chain(&illegal).map(|(b, _)| *b).collect();
+                let b = self.creature_of(a.line, d.player, blocker, &used)?;
+                let at = self.attacker_named(a.line, attacker)?;
+                if a.illegal {
+                    illegal.push((b, at));
+                } else {
+                    legal.push((b, at));
+                }
+            }
+            if !illegal.is_empty() {
+                let full: Vec<(ObjId, ObjId)> = legal.iter().chain(&illegal).copied().collect();
+                let offered = d.options.iter().any(|c| match c {
+                    Choice::Blocks(set) => same_set(set, &full),
+                    Choice::AddBlock { blocker, attacker } => {
+                        illegal.contains(&(*blocker, *attacker))
+                    }
+                    _ => false,
+                });
+                if offered {
+                    let line = self.line_of_kind(pos, d.player, "block");
+                    return fail(
+                        line,
+                        format!(
+                            "blocking {} was legal but the scenario says it must not be",
+                            self.describe_blocks(&illegal)
+                        ),
+                    );
+                }
+            }
+            self.block_queue = Some(legal);
+        }
+        let queue = self.block_queue.clone().unwrap_or_default();
+        let line = self.line_of_kind(pos, d.player, "block");
+        if d.options.iter().any(|c| matches!(c, Choice::Blocks(_))) {
+            self.block_queue = None;
+            let idx = d.options.iter().position(|c| match c {
+                Choice::Blocks(set) => same_set(set, &queue),
+                _ => false,
+            });
+            return idx.map(idx_u32).ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "blocking {} is not legal; legal declarations: {}",
+                    self.describe_blocks(&queue),
+                    self.describe_options(d)
+                ),
+            });
+        }
+        let Some((blocker, attacker)) = queue.first().copied() else {
+            self.block_queue = None;
+            return index_of(d, &Choice::Done).ok_or_else(|| self.unexpected(d, "no Done option"));
+        };
+        self.block_queue = Some(queue[1..].to_vec());
+        index_of(d, &Choice::AddBlock { blocker, attacker }).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "blocking {} is not legal",
+                self.describe_blocks(&[(blocker, attacker)])
+            ),
+        })
+    }
+
+    fn assign_damage(&mut self, d: &Decision, pos: Position, attacker: ObjId) -> Res<ChoiceId> {
+        let name = self.state().name_of(attacker).to_string();
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Assign { attacker, .. } if *attacker == name),
+        );
+        let Some(&i) = idxs.first() else {
+            return Ok(0);
+        };
+        self.fired[i] = true;
+        let a = self.actions[i].clone();
+        let Action::Assign { parts, .. } = &a.action else {
+            unreachable!()
+        };
+        let blockers: Vec<ObjId> = self
+            .state()
+            .combat
+            .as_ref()
+            .and_then(|c| c.attacker(attacker))
+            .map(|at| at.blockers.to_vec())
+            .unwrap_or_default();
+        let mut division: Vec<(Target, u32)> = Vec::new();
+        for (tr, amount) in parts {
+            let t = match tr {
+                TargetRef::Player(p) => Target::Player(*p),
+                TargetRef::Object(r) => {
+                    let id = blockers
+                        .iter()
+                        .copied()
+                        .find(|b| self.state().name_of(*b) == r.name)
+                        .ok_or_else(|| Failure {
+                            line: a.line,
+                            message: format!("\"{}\" is not blocking \"{name}\"", r.name),
+                        })?;
+                    Target::Object(id)
+                }
+            };
+            division.push((t, *amount));
+        }
+        let mut want = division.clone();
+        want.sort_by_key(|(t, n)| (format!("{t:?}"), *n));
+        let found = d.options.iter().position(|c| match c {
+            Choice::Division(div) => {
+                let mut have = div.clone();
+                have.sort_by_key(|(t, n)| (format!("{t:?}"), *n));
+                have == want
+            }
+            _ => false,
+        });
+        match (a.illegal, found) {
+            (true, Some(_)) => fail(
+                a.line,
+                format!(
+                    "damage division {} was legal but the scenario says it must not be",
+                    self.describe_division(&division)
+                ),
+            ),
+            (true, None) => Ok(0),
+            (false, Some(idx)) => Ok(idx_u32(idx)),
+            (false, None) => fail(
+                a.line,
+                format!(
+                    "damage division {} is not legal; legal divisions: {}",
+                    self.describe_division(&division),
+                    self.describe_options(d)
+                ),
+            ),
+        }
+    }
+
+    fn discard(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        let idxs = self.matching(d.player, pos, false, |a| matches!(a, Action::Discard(_)));
+        let Some(&i) = idxs.first() else {
+            return Ok(0);
+        };
+        self.fired[i] = true;
+        let a = self.actions[i].clone();
+        let Action::Discard(name) = &a.action else {
+            unreachable!()
+        };
+        let id = self.in_hand(a.line, d.player, name)?;
+        let found = index_of(d, &Choice::Discard(id));
+        match (a.illegal, found) {
+            (true, Some(_)) => fail(
+                a.line,
+                format!("discarding \"{name}\" was legal but the scenario says it must not be"),
+            ),
+            (true, None) => Ok(0),
+            (false, Some(idx)) => Ok(idx),
+            (false, None) => fail(a.line, format!("discarding \"{name}\" is not legal")),
+        }
+    }
+
+    // ----- name resolution ---------------------------------------------------
+
+    fn in_hand(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {
+        self.state()
+            .player(p)
+            .hand
+            .iter()
+            .copied()
+            .find(|id| self.state().name_of(*id) == name)
+            .ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "\"{name}\" is not in {}'s hand (hand: {})",
+                    player_name(p),
+                    self.describe_ids(&self.state().player(p).hand)
+                ),
+            })
+    }
+
+    /// A creature `p` controls named `name`, other than those in `used`.
+    fn creature_of(&self, line: usize, p: PlayerId, name: &str, used: &[ObjId]) -> Res<ObjId> {
+        let st = self.state();
+        st.battlefield
+            .iter()
+            .copied()
+            .filter(|id| st.objects[*id].controller == p && !used.contains(id))
+            .find(|id| st.name_of(*id) == name)
+            .ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "{} controls no (further) \"{name}\" (battlefield: {})",
+                    player_name(p),
+                    self.describe_ids(&st.permanents_of(p).collect::<Vec<_>>())
+                ),
+            })
+    }
+
+    fn attacker_named(&self, line: usize, name: &str) -> Res<ObjId> {
+        let st = self.state();
+        st.combat
+            .as_ref()
+            .map(|c| c.attackers.iter().map(|a| a.id).collect::<Vec<_>>())
+            .unwrap_or_default()
+            .into_iter()
+            .find(|id| st.name_of(*id) == name)
+            .ok_or_else(|| Failure {
+                line,
+                message: format!("\"{name}\" is not attacking"),
+            })
+    }
+
+    /// Resolve an object reference against the battlefield. One match is
+    /// required unless the reference names a controller, in which case the
+    /// first match under that controller is used.
+    fn resolve_obj(&self, line: usize, r: &ObjRef) -> Res<ObjId> {
+        let st = self.state();
+        let matches: Vec<ObjId> = st
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| r.player.is_none_or(|p| st.objects[*id].controller == p))
+            .filter(|id| st.name_of(*id) == r.name)
+            .collect();
+        match (matches.len(), r.player) {
+            (0, None) => fail(line, format!("no \"{}\" on the battlefield", r.name)),
+            (0, Some(p)) => fail(
+                line,
+                format!("{} controls no \"{}\"", player_name(p), r.name),
+            ),
+            (1, _) | (_, Some(_)) => Ok(matches[0]),
+            (n, None) => fail(
+                line,
+                format!(
+                    "{n} objects named \"{}\" on the battlefield; qualify with A or B",
+                    r.name
+                ),
+            ),
+        }
+    }
+
+    fn resolve_target(&self, line: usize, tr: &TargetRef) -> Res<Target> {
+        Ok(match tr {
+            TargetRef::Player(p) => Target::Player(*p),
+            TargetRef::Object(r) => Target::Object(self.resolve_obj(line, r)?),
+        })
+    }
+
+    fn line_of_kind(&self, pos: Position, player: PlayerId, kind: &str) -> usize {
+        self.actions
+            .iter()
+            .filter(|a| a.player == player && a.turn == pos.turn && a.action.kind_name() == kind)
+            .map(|a| a.line)
+            .next()
+            .unwrap_or(0)
+    }
+
+    fn unexpected(&self, d: &Decision, what: &str) -> Failure {
+        Failure {
+            line: 0,
+            message: format!(
+                "{what} in {:?} decision: {}",
+                d.kind,
+                self.describe_options(d)
+            ),
+        }
+    }
+
+    // ----- assertions --------------------------------------------------------
+
+    #[allow(clippy::too_many_lines)] // one arm per assertion kind
+    fn check(&self, line: usize, a: &Assertion) -> Res<()> {
+        let st = self.state();
+        match a {
+            Assertion::Life(p, want) => {
+                let have = st.player(*p).life;
+                expect(line, format!("life of {}", player_name(*p)), have, *want)
+            }
+            Assertion::ZoneContains {
+                zone,
+                player,
+                name,
+                count,
+            } => {
+                let have = self
+                    .zone_names(*zone, *player)
+                    .iter()
+                    .filter(|n| *n == name)
+                    .count();
+                match count {
+                    Some(want) => expect(
+                        line,
+                        format!(
+                            "copies of \"{name}\" in {}'s {zone:?}",
+                            player_name(*player)
+                        ),
+                        have,
+                        *want,
+                    ),
+                    None if have >= 1 => Ok(()),
+                    None => fail(
+                        line,
+                        format!(
+                            "{}'s {zone:?} does not contain \"{name}\" (contains: {})",
+                            player_name(*player),
+                            join(&self.zone_names(*zone, *player))
+                        ),
+                    ),
+                }
+            }
+            Assertion::ZoneLacks { zone, player, name } => {
+                if self.zone_names(*zone, *player).iter().any(|n| n == name) {
+                    fail(
+                        line,
+                        format!(
+                            "{}'s {zone:?} contains \"{name}\" but should not",
+                            player_name(*player)
+                        ),
+                    )
+                } else {
+                    Ok(())
+                }
+            }
+            Assertion::ZoneCount {
+                zone,
+                player,
+                count,
+            } => expect(
+                line,
+                format!("cards in {}'s {zone:?}", player_name(*player)),
+                self.zone_names(*zone, *player).len(),
+                *count,
+            ),
+            Assertion::Power(r, want) => {
+                let id = self.resolve_obj(line, r)?;
+                let c = st.characteristics(id).expect("object exists");
+                expect(line, format!("power of \"{}\"", r.name), c.power, *want)
+            }
+            Assertion::Toughness(r, want) => {
+                let id = self.resolve_obj(line, r)?;
+                let c = st.characteristics(id).expect("object exists");
+                expect(
+                    line,
+                    format!("toughness of \"{}\"", r.name),
+                    c.toughness,
+                    *want,
+                )
+            }
+            Assertion::Damage(r, want) => {
+                let id = self.resolve_obj(line, r)?;
+                expect(
+                    line,
+                    format!("damage on \"{}\"", r.name),
+                    st.objects[id].damage,
+                    *want,
+                )
+            }
+            Assertion::Tapped(r, want) => {
+                let id = self.resolve_obj(line, r)?;
+                expect(
+                    line,
+                    format!("tapped state of \"{}\"", r.name),
+                    st.objects[id].tapped,
+                    *want,
+                )
+            }
+            Assertion::Winner(p) => match st.result {
+                Some(GameResult::Win { winner }) if winner == *p => Ok(()),
+                other => fail(
+                    line,
+                    format!("expected {} to win; result is {other:?}", player_name(*p)),
+                ),
+            },
+            Assertion::Draw => match st.result {
+                Some(GameResult::Draw) => Ok(()),
+                other => fail(line, format!("expected a draw; result is {other:?}")),
+            },
+            Assertion::GameOver(want) => {
+                expect(line, "game over".to_string(), st.result.is_some(), *want)
+            }
+            Assertion::Turn(want) => expect(line, "turn".to_string(), st.turn_number, *want),
+            Assertion::Step(want) => {
+                if st.step == *want {
+                    Ok(())
+                } else {
+                    fail(
+                        line,
+                        format!(
+                            "step is {} but expected {}",
+                            step_name(st.step),
+                            step_name(*want)
+                        ),
+                    )
+                }
+            }
+            Assertion::StackCount(want) => expect(
+                line,
+                "objects on the stack".to_string(),
+                st.stack.len(),
+                *want,
+            ),
+        }
+    }
+
+    fn zone_names(&self, zone: Zone, p: PlayerId) -> Vec<String> {
+        let st = self.state();
+        let ids: Vec<ObjId> = match zone {
+            Zone::Battlefield => st.permanents_of(p).collect(),
+            Zone::Stack => st.stack.clone(),
+            Zone::Command => Vec::new(),
+            Zone::Library => st.player(p).library.iter().rev().copied().collect(),
+            z => st.player(p).zone_mut_free(z).to_vec(),
+        };
+        ids.iter().map(|id| st.name_of(*id).to_string()).collect()
+    }
+
+    // ----- descriptions for messages -------------------------------------------
+
+    fn describe_ids(&self, ids: &[ObjId]) -> String {
+        if ids.is_empty() {
+            return "nothing".to_string();
+        }
+        join(
+            &ids.iter()
+                .map(|id| format!("\"{}\"", self.state().name_of(*id)))
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    fn describe_target(&self, t: Target) -> String {
+        match t {
+            Target::Player(p) => format!("player {}", player_name(p)),
+            Target::Object(id) => format!("\"{}\"", self.state().name_of(id)),
+        }
+    }
+
+    fn describe_blocks(&self, blocks: &[(ObjId, ObjId)]) -> String {
+        if blocks.is_empty() {
+            return "nothing".to_string();
+        }
+        join(
+            &blocks
+                .iter()
+                .map(|(b, a)| {
+                    format!(
+                        "\"{}\" with \"{}\"",
+                        self.state().name_of(*a),
+                        self.state().name_of(*b)
+                    )
+                })
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    fn describe_division(&self, div: &[(Target, u32)]) -> String {
+        join(
+            &div.iter()
+                .map(|(t, n)| format!("{} {n}", self.describe_target(*t)))
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    fn describe_choice(&self, c: &Choice) -> String {
+        match c {
+            Choice::Keep => "keep".into(),
+            Choice::Mulligan => "mulligan".into(),
+            Choice::Bottom(id) => format!("bottom {}", self.describe_ids(&[*id])),
+            Choice::Pass => "pass".into(),
+            Choice::PlayLand(id) => format!("play {}", self.describe_ids(&[*id])),
+            Choice::Cast(id) => format!("cast {}", self.describe_ids(&[*id])),
+            Choice::Target(t) => self.describe_target(*t),
+            Choice::Attackers(set) => format!("attack with {}", self.describe_ids(set)),
+            Choice::AddAttacker(id) => format!("add attacker {}", self.describe_ids(&[*id])),
+            Choice::Blocks(set) => format!("block {}", self.describe_blocks(set)),
+            Choice::AddBlock { blocker, attacker } => {
+                format!(
+                    "add block {}",
+                    self.describe_blocks(&[(*blocker, *attacker)])
+                )
+            }
+            Choice::Done => "done".into(),
+            Choice::Division(div) => format!("assign {}", self.describe_division(div)),
+            Choice::Discard(id) => format!("discard {}", self.describe_ids(&[*id])),
+        }
+    }
+
+    fn describe_options(&self, d: &Decision) -> String {
+        let parts: Vec<String> = d
+            .options
+            .iter()
+            .take(12)
+            .map(|c| self.describe_choice(c))
+            .collect();
+        let more = d.options.len().saturating_sub(12);
+        if more > 0 {
+            format!("[{}; and {more} more]", parts.join("; "))
+        } else {
+            format!("[{}]", parts.join("; "))
+        }
+    }
+}
+
+trait ZoneFree {
+    fn zone_mut_free(&self, z: Zone) -> &[ObjId];
+}
+
+impl ZoneFree for mtg_core::state::PlayerState {
+    fn zone_mut_free(&self, z: Zone) -> &[ObjId] {
+        match z {
+            Zone::Hand => &self.hand,
+            Zone::Graveyard => &self.graveyard,
+            Zone::Exile => &self.exile,
+            Zone::Library => &self.library,
+            Zone::Battlefield | Zone::Stack | Zone::Command => &[],
+        }
+    }
+}
+
+fn index_of(d: &Decision, c: &Choice) -> Option<ChoiceId> {
+    d.options.iter().position(|o| o == c).map(idx_u32)
+}
+
+fn idx_u32(i: usize) -> ChoiceId {
+    u32::try_from(i).expect("option index fits in u32")
+}
+
+fn same_set<T: PartialEq>(a: &[T], b: &[T]) -> bool {
+    a.len() == b.len() && a.iter().all(|x| b.contains(x)) && b.iter().all(|x| a.contains(x))
+}
+
+fn join(items: &[String]) -> String {
+    if items.is_empty() {
+        "nothing".to_string()
+    } else {
+        items.join(", ")
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // call sites pass temporaries
+fn expect<T: PartialEq + std::fmt::Debug>(line: usize, what: String, have: T, want: T) -> Res<()> {
+    if have == want {
+        Ok(())
+    } else {
+        fail(line, format!("{what} is {have:?}, expected {want:?}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parse;
+    use mtg_core::card::m1_pool;
+
+    fn run_text(text: &str) -> Report {
+        let pool = Arc::new(m1_pool());
+        let scenarios = parse(text).expect("parses");
+        run(&pool, &scenarios[0])
+    }
+
+    #[test]
+    fn illegal_scripted_action_fails_the_scenario() {
+        let r = run_text(
+            r#"scenario "x" {
+  battlefield A: "Forest", "Forest", "Hill Giant"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}"#,
+        );
+        let f = r.failure.expect("summoning-sick attack must fail");
+        assert_eq!(f.line, 5);
+        assert!(f.message.contains("not legal"), "{}", f.message);
+    }
+
+    #[test]
+    fn wrong_assertion_fails_with_its_line() {
+        let r = run_text(
+            r#"scenario "x" {
+  battlefield A: "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}"#,
+        );
+        let f = r.failure.expect("wrong life must fail");
+        assert_eq!(f.line, 5);
+        assert!(f.message.contains("18"), "{}", f.message);
+    }
+
+    #[test]
+    fn unreached_action_fails() {
+        let r = run_text(
+            r#"scenario "x" {
+  battlefield A: "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 2 upkeep
+}"#,
+        );
+        let f = r.failure.expect("unreached action must fail");
+        assert_eq!(f.line, 3);
+        assert!(f.message.contains("never reached"), "{}", f.message);
+    }
+
+    #[test]
+    fn action_at_a_passed_point_fails() {
+        let r = run_text(
+            r#"scenario "x" {
+  hand A: "Forest"
+  turn 1 untap A: play "Forest"
+  run_to turn 2 upkeep
+}"#,
+        );
+        let f = r.failure.expect("nobody has priority in the untap step");
+        assert_eq!(f.line, 3);
+        assert!(f.message.contains("never offered"), "{}", f.message);
+    }
+
+    #[test]
+    fn unknown_card_and_bad_target_are_reported() {
+        let r = run_text("scenario \"x\" {\n  battlefield A: \"Black Lotus\"\n}");
+        assert_eq!(r.failure.expect("unknown card").line, 2);
+        let r = run_text(
+            r#"scenario "x" {
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+}"#,
+        );
+        let f = r.failure.expect("missing target");
+        assert_eq!(f.line, 4);
+        assert!(f.message.contains("no \"Hill Giant\""), "{}", f.message);
+    }
+
+    #[test]
+    fn skip_is_reported() {
+        let r = run_text("scenario \"x\" {\n  skip \"not yet\"\n}");
+        assert_eq!(r.skipped.as_deref(), Some("not yet"));
+        assert!(!r.passed());
+    }
+}

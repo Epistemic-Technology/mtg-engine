@@ -37,6 +37,14 @@ enum Command {
     Replay { record: PathBuf },
     /// List built-in decks.
     Decks,
+    /// Run scenario files (or directories of them). Defaults to the
+    /// repository corpus.
+    Scenario {
+        paths: Vec<PathBuf>,
+        /// Print the event log of each failing scenario.
+        #[arg(long, short)]
+        verbose: bool,
+    },
     /// Measure state clone cost on a mid-game state.
     Bench {
         #[arg(long, default_value_t = 200)]
@@ -97,6 +105,7 @@ fn main() -> Result<()> {
                 std::process::exit(1);
             }
         }
+        Command::Scenario { paths, verbose } => run_scenarios(paths, verbose),
         Command::Bench { warmup, iterations } => {
             let pool = Arc::new(m1_pool());
             let decks = [
@@ -119,6 +128,59 @@ fn main() -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn run_scenarios(paths: Vec<PathBuf>, verbose: bool) {
+    let pool = Arc::new(m1_pool());
+    let paths = if paths.is_empty() {
+        vec![mtg_scenario::corpus_dir()]
+    } else {
+        paths
+    };
+    let mut files = Vec::new();
+    for p in paths {
+        if p.is_dir() {
+            files.extend(mtg_scenario::find_files(&p));
+        } else {
+            files.push(p);
+        }
+    }
+    let (mut passed, mut failed, mut skipped) = (0, 0, 0);
+    for path in &files {
+        let reports = match mtg_scenario::run_file(&pool, path) {
+            Ok(r) => r,
+            Err(e) => {
+                println!("ERROR {e}");
+                failed += 1;
+                continue;
+            }
+        };
+        for r in reports {
+            let at = format!("{}:{}", path.display(), r.line);
+            if let Some(reason) = &r.skipped {
+                skipped += 1;
+                println!("skip  {at} \"{}\" ({reason})", r.name);
+            } else if let Some(f) = &r.failure {
+                failed += 1;
+                println!(
+                    "FAIL  {at} \"{}\"\n      line {}: {}",
+                    r.name, f.line, f.message
+                );
+                if verbose {
+                    for (i, e) in r.log.iter().enumerate() {
+                        println!("      {i:4} {e:?}");
+                    }
+                }
+            } else {
+                passed += 1;
+                println!("ok    {at} \"{}\" ({} decisions)", r.name, r.decisions);
+            }
+        }
+    }
+    println!("{passed} passed, {failed} failed, {skipped} skipped");
+    if failed > 0 {
+        std::process::exit(1);
+    }
 }
 
 fn rayon_threads() -> usize {

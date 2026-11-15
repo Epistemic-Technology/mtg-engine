@@ -1,0 +1,208 @@
+# Casting, targeting, resolution, and the stack (CR 601, 608, 115).
+
+scenario "lightning bolt kills a 3-toughness creature" {
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Lightning Bolt"
+  assert tapped "Mountain"
+}
+
+scenario "shock leaves a 3-toughness creature damaged" {
+  battlefield A: "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "lightning bolt to the face" {
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 17
+}
+
+scenario "lava axe targets only players" {
+  battlefield A: 5 "Mountain"
+  hand A: "Lava Axe"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Lava Axe" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 15
+  assert battlefield A count 5
+}
+
+scenario "giant growth pumps until end of turn" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2          # CR 514.2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "giant growth in response saves a creature from shock" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears" in response to "Shock"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert power "Grizzly Bears" 5
+}
+
+scenario "a pumped creature survives cleanup with damage that was not lethal while pumped" {
+  # Damage removal and end-of-turn effects expire simultaneously in cleanup
+  # (CR 514.2), so the creature survives. B bolts at beginning of combat,
+  # after the pump has resolved.
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert damage "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "murder destroys a creature" {
+  battlefield A: "Swamp", "Swamp", "Swamp"
+  hand A: "Murder"
+  battlefield B: "Serra Angel"
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "divination draws two cards" {
+  battlefield A: "Island", "Island", "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 begin_combat
+  assert hand A count 2
+  assert library A count 38
+}
+
+scenario "healing salve gains three life" {
+  battlefield A: "Plains"
+  hand A: "Healing Salve"
+  turn 1 A: cast "Healing Salve"
+  run_to turn 1 begin_combat
+  assert life A 23
+}
+
+scenario "a creature spell resolves onto the battlefield under its caster's control" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+  assert stack count 0
+}
+
+scenario "a spell whose only target is gone does not resolve" {
+  # CR 608.2b. A's Bolt targets B's Bears; B responds by shocking its own
+  # Bears. Bolt is countered on resolution; B's life is unchanged.
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand B: "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert life B 20
+}
+
+scenario "a spell cast in response resolves first" {
+  # CR 608.1: the top of the stack resolves first. B's Shock, cast in
+  # response, kills the 2/2 before Giant Growth can resolve; Growth is then
+  # countered for lack of a legal target (CR 608.2b).
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Giant Growth"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Giant Growth"
+  assert graveyard B contains "Shock"
+}
+
+scenario "sorcery-speed spells cannot be cast with a spell on the stack" {
+  battlefield A: "Forest", "Forest", "Mountain"
+  hand A: "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  illegal turn 1 A: cast "Grizzly Bears" in response to "Shock"
+  run_to turn 1 begin_combat
+  assert life A 18
+  assert hand A count 1
+}
+
+scenario "instants can be cast on an opponent's turn" {
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  battlefield A: "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "sorceries cannot be cast on an opponent's turn" {
+  battlefield B: 5 "Mountain"
+  hand B: "Lava Axe"
+  illegal turn 1 B: cast "Lava Axe" targeting player A
+  run_to turn 1 begin_combat
+  assert life A 20
+}
+
+scenario "sorceries can be cast in the postcombat main phase" {
+  battlefield A: 3 "Island"
+  hand A: "Divination"
+  turn 1 postcombat_main A: cast "Divination"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "sorceries cannot be cast outside a main phase" {
+  battlefield A: 3 "Island"
+  hand A: "Divination"
+  illegal turn 1 begin_combat A: cast "Divination"
+  illegal turn 1 end A: cast "Divination"
+  run_to turn 2 upkeep
+  assert hand A count 1
+}
+
+scenario "instants may be cast during combat" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}

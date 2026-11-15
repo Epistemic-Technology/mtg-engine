@@ -1,0 +1,15 @@
+# standup.toml — how to look at this project. Read every weekday morning by ~/projects/et/standup
+# for the "See for yourself" callout in the stand-up note. Maintained by this project's agent.
+# No web preview yet; when the game review tool (design §9.4) exists, add a [preview] block for it.
+
+[[probe]]
+name = "tests"
+command = "cargo test -q --workspace 2>&1 | grep -E 'test result' | awk '{p+=$4; f+=$6} END {print p \" passed, \" f \" failed\"}'"
+timeout = 600
+lines = 1
+
+[[probe]]
+name = "clippy"
+command = "cargo clippy -q --workspace --all-targets 2>&1 | grep -cE '^(warning|error)' | sed 's/$/ warnings or errors/'"
+timeout = 600
+lines = 1

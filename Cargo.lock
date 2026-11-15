@@ -725,6 +725,7 @@ dependencies = [
  "anyhow",
  "clap",
  "mtg-core",
+ "mtg-scenario",
  "mtg-sim",
  "serde_json",
 ]
@@ -748,6 +749,10 @@ version = "0.1.0"
 [[package]]
 name = "mtg-scenario"
 version = "0.1.0"
+dependencies = [
+ "mtg-core",
+ "thiserror",
+]
 
 [[package]]
 name = "mtg-sim"

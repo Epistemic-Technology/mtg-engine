@@ -1,0 +1,392 @@
+# Combat rules exercised with the M1 pool (CR 506–511, evergreen keywords).
+# Players are A (index 0) and B (index 1). Unless `start` says otherwise a
+# scenario begins at turn 1 with A active; A skips the first draw (CR 103.8a).
+
+scenario "unblocked attacker deals damage to the defending player" {
+  battlefield A: "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Grizzly Bears"          # CR 508.1f
+}
+
+scenario "blocked creatures of equal size trade" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "a blocked creature deals no damage to the player" {
+  battlefield A: "Craw Wurm"
+  battlefield B: "Wall of Stone"
+  turn 1 A: attack "Craw Wurm"
+  turn 1 B: block "Craw Wurm" with "Wall of Stone"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Wall of Stone" 6
+  assert damage "Craw Wurm" 0             # 0-power blocker deals nothing
+  assert battlefield B contains "Wall of Stone"
+}
+
+scenario "several attackers, one blocked" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Craw Wurm" 3
+}
+
+scenario "damage wears off in the cleanup step" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Craw Wurm"
+  run_to turn 1 end
+  assert damage "Craw Wurm" 3
+  run_to turn 2 upkeep
+  assert damage "Craw Wurm" 0             # CR 514.2
+}
+
+scenario "the defending player may decline to block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "attacking on the second player's turn" {
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert hand B count 1                   # B drew for the turn
+}
+
+# ---- deathtouch (CR 702.2) --------------------------------------------------
+
+scenario "deathtouch kills regardless of toughness" {
+  battlefield A: "Serra Angel"
+  battlefield B: "Typhoid Rats"
+  start turn 2 B
+  turn 2 B: attack "Typhoid Rats"
+  turn 2 A: block "Typhoid Rats" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Serra Angel"
+  assert graveyard B contains "Typhoid Rats"
+}
+
+scenario "deathtouch blocker kills a large attacker" {
+  battlefield A: "Craw Wurm"
+  battlefield B: "Typhoid Rats"
+  turn 1 A: attack "Craw Wurm"
+  turn 1 B: block "Craw Wurm" with "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Craw Wurm"
+  assert graveyard B contains "Typhoid Rats"
+}
+
+# ---- first strike and double strike (CR 702.7, 702.4, 510.4) ------------------
+
+scenario "first strike kills before regular damage is dealt" {
+  battlefield A: "Youthful Knight"
+  battlefield B: "Savannah Lions"
+  turn 1 A: attack "Youthful Knight"
+  turn 1 B: block "Youthful Knight" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Youthful Knight"
+  assert damage "Youthful Knight" 0
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "first striker that fails to kill its blocker takes damage normally" {
+  battlefield A: "Youthful Knight"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Youthful Knight"
+  turn 1 B: block "Youthful Knight" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Youthful Knight"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "two first strikers deal damage simultaneously" {
+  battlefield A: "Youthful Knight"
+  battlefield B: "Youthful Knight"
+  turn 1 A: attack "Youthful Knight"
+  turn 1 B: block "Youthful Knight" with "Youthful Knight"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Youthful Knight"
+  assert graveyard B contains "Youthful Knight"
+}
+
+scenario "double strike deals damage in both combat damage steps" {
+  battlefield A: "Fencing Ace"
+  turn 1 A: attack "Fencing Ace"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "double strike blocked by a 2/2 kills it and dies" {
+  battlefield A: "Fencing Ace"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Fencing Ace"
+  turn 1 B: block "Fencing Ace" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Fencing Ace"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "double strike blocked by a 1/1 survives" {
+  battlefield A: "Fencing Ace"
+  battlefield B: "Savannah Lions"
+  turn 1 A: attack "Fencing Ace"
+  turn 1 B: block "Fencing Ace" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fencing Ace"
+  assert damage "Fencing Ace" 0
+  assert graveyard B contains "Savannah Lions"
+}
+
+# ---- trample (CR 702.19) ----------------------------------------------------------
+
+scenario "trample assigns excess damage to the player" {
+  battlefield A: "Colossal Dreadmaw"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Colossal Dreadmaw"
+  turn 1 B: block "Colossal Dreadmaw" with "Grizzly Bears"
+  turn 1 A: assign "Colossal Dreadmaw" to "Grizzly Bears" 2, player B 4
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "trample may assign all its damage to the blocker" {
+  battlefield A: "Colossal Dreadmaw"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Colossal Dreadmaw"
+  turn 1 B: block "Colossal Dreadmaw" with "Grizzly Bears"
+  turn 1 A: assign "Colossal Dreadmaw" to "Grizzly Bears" 6
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "trample must assign lethal damage before any goes to the player" {
+  battlefield A: "Colossal Dreadmaw"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Colossal Dreadmaw"
+  turn 1 B: block "Colossal Dreadmaw" with "Grizzly Bears"
+  illegal turn 1 A: assign "Colossal Dreadmaw" to "Grizzly Bears" 1, player B 5
+  run_to turn 1 postcombat_main
+}
+
+scenario "trample counts damage already on the blocker as part of lethal" {
+  battlefield A: "Colossal Dreadmaw", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Colossal Dreadmaw"
+  turn 1 B: block "Colossal Dreadmaw" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: assign "Colossal Dreadmaw" to "Hill Giant" 1, player B 5   # CR 702.19b
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "trample whose blocker has left deals all its damage to the player" {
+  battlefield A: "Colossal Dreadmaw", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Colossal Dreadmaw"
+  turn 1 B: block "Colossal Dreadmaw" with "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 14                        # CR 702.19e
+}
+
+scenario "a blocked creature without trample whose blocker has left deals no damage" {
+  battlefield A: "Craw Wurm", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Craw Wurm"
+  turn 1 B: block "Craw Wurm" with "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20                        # CR 509.1h, 510.1c
+  assert graveyard B contains "Grizzly Bears"
+}
+
+# ---- menace (CR 702.110) ------------------------------------------------------------
+
+scenario "menace cannot be blocked by a single creature" {
+  battlefield A: "Boggart Brute"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Boggart Brute"
+  illegal turn 1 B: block "Boggart Brute" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "menace can be blocked by two creatures" {
+  battlefield A: "Boggart Brute"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Boggart Brute"
+  turn 1 B: block "Boggart Brute" with "Grizzly Bears"
+  turn 1 B: block "Boggart Brute" with "Hill Giant"
+  turn 1 A: assign "Boggart Brute" to "Grizzly Bears" 2, "Hill Giant" 1
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 1
+  assert graveyard A contains "Boggart Brute"
+}
+
+# Judgment call (design report 2026-10-30): CR 510.1c no longer imposes a
+# damage assignment order, and it sets no minimum per blocker, so an
+# attacker blocked by several creatures may assign nothing to one of them.
+scenario "an attacker blocked by two creatures may assign all damage to one" {
+  battlefield A: "Boggart Brute"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Boggart Brute"
+  turn 1 B: block "Boggart Brute" with "Grizzly Bears"
+  turn 1 B: block "Boggart Brute" with "Hill Giant"
+  turn 1 A: assign "Boggart Brute" to "Hill Giant" 3
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+# ---- flying and reach (CR 702.9, 702.17) ------------------------------------------
+
+scenario "flying cannot be blocked by a creature without flying or reach" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Wind Drake"
+  illegal turn 1 B: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "reach blocks flying" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Giant Spider"
+  turn 1 A: attack "Wind Drake"
+  turn 1 B: block "Wind Drake" with "Giant Spider"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Wind Drake"
+  assert battlefield B contains "Giant Spider"
+  assert damage "Giant Spider" 2
+}
+
+scenario "flying blocks flying" {
+  battlefield A: "Air Elemental"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Air Elemental"
+  turn 1 B: block "Air Elemental" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Air Elemental"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "a flier may block a ground creature" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+}
+
+# ---- vigilance, defender, haste, lifelink -------------------------------------------
+
+scenario "vigilance attacks without tapping" {
+  battlefield A: "Serra Angel"
+  turn 1 A: attack "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert untapped "Serra Angel"           # CR 702.20b
+}
+
+scenario "defender cannot attack" {
+  battlefield A: "Wall of Stone", "Grizzly Bears"
+  illegal turn 1 A: attack "Wall of Stone"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "a creature cast this turn cannot attack unless it has haste" {
+  battlefield A: "Forest", "Forest", "Mountain"
+  hand A: "Grizzly Bears", "Raging Goblin"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Raging Goblin"
+  illegal turn 1 A: attack "Grizzly Bears"
+  turn 1 A: attack "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 19                        # CR 302.6, 702.10
+  assert untapped "Grizzly Bears"
+}
+
+scenario "a creature controlled since the turn began may attack" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 3 declare_attackers
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+}
+
+scenario "a tapped creature cannot attack" {
+  battlefield B: "Savannah Lions" tapped, "Grizzly Bears"
+  start turn 1 B upkeep                   # after the untap step
+  illegal turn 1 B: attack "Savannah Lions"
+  turn 1 B: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 18                        # CR 508.1a
+  assert tapped "Savannah Lions"
+}
+
+scenario "a tapped creature cannot block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant" tapped
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18                        # CR 509.1a
+}
+
+scenario "lifelink gains life for its controller" {
+  battlefield A: "Vampire Nighthawk"
+  turn 1 A: attack "Vampire Nighthawk"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 18
+}
+
+scenario "lifelink also applies to damage dealt to a blocker" {
+  battlefield A: "Vampire Nighthawk"
+  battlefield B: "Air Elemental"
+  turn 1 A: attack "Vampire Nighthawk"
+  turn 1 B: block "Vampire Nighthawk" with "Air Elemental"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Vampire Nighthawk"
+  assert graveyard B contains "Air Elemental"   # deathtouch
+}

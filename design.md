@@ -574,25 +574,34 @@ is what passes it.
 ### 7.1 Scenario DSL
 
 Modelled on XMage's `CardTestPlayerBase` pattern, which has 1,900 files
-of precedent:
+of precedent. Implemented in `mtg-scenario` (pulled forward from M3 on
+2026-11-14 so that M1 rules claims rest on more than fuzzing; full syntax
+in `crates/mtg-scenario/SYNTAX.md`):
 
 ```
 scenario "deathtouch kills regardless of toughness" {
-  battlefield A: "Archangel of Thune"
+  battlefield A: "Serra Angel"
   battlefield B: "Typhoid Rats"
+  start turn 2 B
   turn 2 B: attack "Typhoid Rats"
-  turn 2 A: block "Archangel of Thune" with "Typhoid Rats"
+  turn 2 A: block "Typhoid Rats" with "Serra Angel"
   run_to turn 2 postcombat_main
-  assert life A 23
-  assert graveyard A contains "Archangel of Thune"
+  assert life A 20
+  assert graveyard A contains "Serra Angel"
   assert graveyard B contains "Typhoid Rats"
 }
 ```
 
-The runner drives the decision interface with a scripted agent that
-fails loudly if a scripted action is not among the legal options (this
-catches legality bugs as well as effect bugs). Unscripted decisions
-default to "pass" or the first option, and the scenario can pin them.
+The runner starts the engine from a prepared position
+(`Engine::from_setup`: objects placed directly in zones, no mulligans) and
+drives the ordinary decision interface. A scripted action that is not
+among the legal options fails the scenario, so the corpus checks legality
+as well as effects; `illegal turn 1 B: block ...` asserts the opposite.
+Unscripted decisions keep, pass, declare nothing, or take the first option.
+Spells can be scripted `in response to "X"`; sorcery-speed actions wait
+for an empty stack. The corpus lives in `scenarios/` and runs under
+`cargo test -p mtg-scenario`; `mtg scenario --verbose` prints the event
+log of a failing scenario.
 
 ### 7.2 Test sources, in priority order
 
@@ -837,6 +846,13 @@ Each milestone has an acceptance test. Nothing is "done" without it.
   matching Scryfall within 1%.
 
 **M1: Core loop with vanilla cards (4–6 weeks; started 2026-10-30)**
+
+Status 2026-11-14: scenario runner (§7.1) added with a 72-scenario corpus
+covering combat keywords, the stack, timing, lands and mana, cleanup, and
+game end; all pass. Authoring the corpus found no engine bugs; it found
+three mis-authored tests (Murder is an instant; an instant scripted after
+a response fires in response). Remaining before M2: split `engine.rs`,
+greedy agent, human play mode, chance nodes.
 
 Status 2026-10-30: first cut complete and green. Zones, turn structure,
 priority, stack, casting with targets and canonical mana payment, combat

@@ -1,0 +1,202 @@
+//! Syntax tree for scenario files. See `design.md` §7.1 and `SYNTAX.md`.
+
+use mtg_core::ids::PlayerId;
+use mtg_core::state::Zone;
+use mtg_core::turn::Step;
+
+/// Players are named `A` (index 0) and `B` (index 1).
+pub fn player_name(p: PlayerId) -> &'static str {
+    if p.index() == 0 { "A" } else { "B" }
+}
+
+/// A point in the game: turn number and step. Ordered lexicographically.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct Position {
+    pub turn: u32,
+    pub step: Step,
+}
+
+/// Where to stop running.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum RunTarget {
+    Position(Position),
+    /// Run until the game is over.
+    End,
+}
+
+#[derive(Clone, Debug)]
+pub struct Scenario {
+    pub name: String,
+    pub line: usize,
+    /// Set by `skip "reason"`: the scenario is parsed but not run.
+    pub skip: Option<String>,
+    pub setup: SetupSpec,
+    pub statements: Vec<Statement>,
+}
+
+#[derive(Clone, Debug)]
+pub struct CardSpec {
+    pub name: String,
+    pub count: usize,
+    pub tapped: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct ZoneSpec {
+    pub line: usize,
+    pub zone: Zone,
+    pub player: PlayerId,
+    pub cards: Vec<CardSpec>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct SetupSpec {
+    pub life: [Option<i32>; 2],
+    pub zones: Vec<ZoneSpec>,
+    /// `start turn N P [step]`.
+    pub start: Option<(u32, PlayerId, Step)>,
+    pub seed: Option<u64>,
+}
+
+#[derive(Clone, Debug)]
+pub enum Statement {
+    Action(ScriptedAction),
+    RunTo { line: usize, target: RunTarget },
+    Assert { line: usize, assertion: Assertion },
+}
+
+/// A reference to an object by name, optionally qualified by controller.
+#[derive(Clone, Debug)]
+pub struct ObjRef {
+    pub player: Option<PlayerId>,
+    pub name: String,
+}
+
+#[derive(Clone, Debug)]
+pub enum TargetRef {
+    Player(PlayerId),
+    Object(ObjRef),
+}
+
+#[derive(Clone, Debug)]
+pub enum Action {
+    Play(String),
+    Cast {
+        name: String,
+        targets: Vec<TargetRef>,
+        /// `in response to "X"`: fire only while an object named X is on
+        /// the stack.
+        respond_to: Option<String>,
+    },
+    Attack(Vec<String>),
+    Block {
+        attacker: String,
+        blocker: String,
+    },
+    /// Divide `attacker`'s combat damage.
+    Assign {
+        attacker: String,
+        parts: Vec<(TargetRef, u32)>,
+    },
+    Discard(String),
+}
+
+impl Action {
+    pub fn kind_name(&self) -> &'static str {
+        match self {
+            Action::Play(_) => "play",
+            Action::Cast { .. } => "cast",
+            Action::Attack(_) => "attack",
+            Action::Block { .. } => "block",
+            Action::Assign { .. } => "assign",
+            Action::Discard(_) => "discard",
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ScriptedAction {
+    pub line: usize,
+    pub turn: u32,
+    /// `None` means any step of the turn (used for damage assignment, which
+    /// may happen in the first-strike or regular damage step).
+    pub step: Option<Step>,
+    pub player: PlayerId,
+    pub action: Action,
+    /// `illegal ...`: the action must *not* be offered when its point is
+    /// reached; the default choice is taken instead.
+    pub illegal: bool,
+}
+
+#[derive(Clone, Debug)]
+pub enum Assertion {
+    Life(PlayerId, i32),
+    /// `zone P contains [N] "name"`: at least one, or exactly N.
+    ZoneContains {
+        zone: Zone,
+        player: PlayerId,
+        name: String,
+        count: Option<usize>,
+    },
+    ZoneLacks {
+        zone: Zone,
+        player: PlayerId,
+        name: String,
+    },
+    ZoneCount {
+        zone: Zone,
+        player: PlayerId,
+        count: usize,
+    },
+    Power(ObjRef, i32),
+    Toughness(ObjRef, i32),
+    Damage(ObjRef, u32),
+    Tapped(ObjRef, bool),
+    Winner(PlayerId),
+    Draw,
+    GameOver(bool),
+    Turn(u32),
+    Step(Step),
+    StackCount(usize),
+}
+
+/// Step names accepted in scenario files.
+pub const STEP_NAMES: [(&str, Step); 15] = [
+    ("untap", Step::Untap),
+    ("upkeep", Step::Upkeep),
+    ("draw", Step::Draw),
+    ("precombat_main", Step::PrecombatMain),
+    ("main1", Step::PrecombatMain),
+    ("begin_combat", Step::BeginningOfCombat),
+    ("declare_attackers", Step::DeclareAttackers),
+    ("declare_blockers", Step::DeclareBlockers),
+    ("first_strike_damage", Step::FirstStrikeDamage),
+    ("combat_damage", Step::CombatDamage),
+    ("end_combat", Step::EndOfCombat),
+    ("postcombat_main", Step::PostcombatMain),
+    ("main2", Step::PostcombatMain),
+    ("end", Step::End),
+    ("cleanup", Step::Cleanup),
+];
+
+pub fn step_by_name(name: &str) -> Option<Step> {
+    STEP_NAMES.iter().find(|(n, _)| *n == name).map(|(_, s)| *s)
+}
+
+pub fn step_name(step: Step) -> &'static str {
+    STEP_NAMES
+        .iter()
+        .find(|(_, s)| *s == step)
+        .map_or("?", |(n, _)| n)
+}
+
+pub fn zone_by_name(name: &str) -> Option<Zone> {
+    Some(match name {
+        "battlefield" => Zone::Battlefield,
+        "hand" => Zone::Hand,
+        "graveyard" => Zone::Graveyard,
+        "library" => Zone::Library,
+        "exile" => Zone::Exile,
+        _ => return None,
+    })
+}

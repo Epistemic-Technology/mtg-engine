@@ -50,6 +50,31 @@ pub enum EngineError {
     BadChoice { choice: ChoiceId, options: usize },
 }
 
+/// A prepared game position for scenario tests. See `Engine::from_setup`.
+#[derive(Clone, Debug)]
+pub struct Setup {
+    pub players: Vec<PlayerSetup>,
+    pub turn_number: u32,
+    /// The active player; also treated as the starting player.
+    pub active_player: PlayerId,
+    /// Play begins with this step's turn-based actions.
+    pub step: Step,
+    pub seed: u64,
+    pub logging: bool,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct PlayerSetup {
+    pub life: i32,
+    /// Bottom first; the last card is on top. Not shuffled.
+    pub library: Vec<CardRef>,
+    pub hand: Vec<CardRef>,
+    /// (card, tapped).
+    pub battlefield: Vec<(CardRef, bool)>,
+    pub graveyard: Vec<CardRef>,
+    pub exile: Vec<CardRef>,
+}
+
 pub struct Engine {
     state: GameState,
     current: StepResult,
@@ -62,48 +87,18 @@ impl Engine {
         assert_eq!(config.decks.len(), 2, "M1 supports exactly two players");
         let mut rng = ChaCha8Rng::seed_from_u64(config.seed);
         let starting_player = PlayerId(u8::from(rand::Rng::random_bool(&mut rng, 0.5)));
-        let mut state = GameState {
+        let mut state = GameState::blank(
             pool,
-            version: 0,
-            turn_number: 0,
-            active_player: starting_player,
             starting_player,
-            step: Step::Untap,
-            priority: starting_player,
-            consecutive_passes: 0,
-            players: (0..2)
-                .map(|_| PlayerState {
-                    life: config.starting_life,
-                    library: Vec::new(),
-                    hand: Vec::new(),
-                    graveyard: Vec::new(),
-                    exile: Vec::new(),
-                    mana_pool: crate::mana::ManaPool::default(),
-                    lands_played_this_turn: 0,
-                    max_hand_size: 7,
-                    drew_from_empty_library: false,
-                    lost: None,
-                    mulligans_taken: 0,
-                })
-                .collect(),
-            objects: SlotMap::with_key(),
-            battlefield: Vec::new(),
-            stack: Vec::new(),
-            combat: None,
-            effects: Vec::new(),
-            lki: std::collections::HashMap::default(),
+            &[config.starting_life; 2],
             rng,
-            next_timestamp: 1,
-            flow: Flow::Mulligan {
-                kept: [false; 2],
-                mulled: [false; 2],
-                decided: [false; 2],
-                current: starting_player,
-            },
-            cleanup_repeat: false,
-            result: None,
-            log: Vec::new(),
-            logging: config.logging,
+            config.logging,
+        );
+        state.flow = Flow::Mulligan {
+            kept: [false; 2],
+            mulled: [false; 2],
+            decided: [false; 2],
+            current: starting_player,
         };
         for (i, deck) in config.decks.iter().enumerate() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
@@ -119,6 +114,59 @@ impl Engine {
                 state.draw(p);
             }
         }
+        let current = state.run();
+        Engine {
+            state,
+            current,
+            history: Vec::new(),
+        }
+    }
+
+    /// Start from a prepared position (design §7.1): objects are placed
+    /// directly in their zones, there are no mulligans, and play begins with
+    /// the turn-based actions of `setup.step`. Permanents placed on the
+    /// battlefield count as controlled since the turn began.
+    pub fn from_setup(pool: Arc<CardPool>, setup: &Setup) -> Engine {
+        assert_eq!(setup.players.len(), 2, "M1 supports exactly two players");
+        let lives: Vec<i32> = setup.players.iter().map(|p| p.life).collect();
+        let rng = ChaCha8Rng::seed_from_u64(setup.seed);
+        let mut state = GameState::blank(pool, setup.active_player, &lives, rng, setup.logging);
+        for (i, ps) in setup.players.iter().enumerate() {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            for def in &ps.library {
+                let id = state.new_object(*def, p, Zone::Library);
+                state.player_mut(p).library.push(id);
+            }
+            for def in &ps.hand {
+                let id = state.new_object(*def, p, Zone::Hand);
+                state.player_mut(p).hand.push(id);
+            }
+            for def in &ps.graveyard {
+                let id = state.new_object(*def, p, Zone::Graveyard);
+                state.player_mut(p).graveyard.push(id);
+            }
+            for def in &ps.exile {
+                let id = state.new_object(*def, p, Zone::Exile);
+                state.player_mut(p).exile.push(id);
+            }
+            for (def, tapped) in &ps.battlefield {
+                let id = state.new_object(*def, p, Zone::Battlefield);
+                let o = &mut state.objects[id];
+                o.tapped = *tapped;
+                o.controlled_since_turn_start = true;
+                state.battlefield.push(id);
+            }
+        }
+        state.turn_number = setup.turn_number;
+        state.step = setup.step;
+        state.emit(Event::GameStart {
+            starting_player: setup.active_player,
+        });
+        state.emit(Event::TurnBegin {
+            turn: setup.turn_number,
+            player: setup.active_player,
+        });
+        state.flow = Flow::BeginStep;
         let current = state.run();
         Engine {
             state,
@@ -165,6 +213,56 @@ impl Engine {
 }
 
 impl GameState {
+    /// An empty game: players with the given life totals, no objects, turn 0
+    /// at the untap step, flow unset (`BeginStep`).
+    fn blank(
+        pool: Arc<CardPool>,
+        starting_player: PlayerId,
+        lives: &[i32],
+        rng: ChaCha8Rng,
+        logging: bool,
+    ) -> GameState {
+        GameState {
+            pool,
+            version: 0,
+            turn_number: 0,
+            active_player: starting_player,
+            starting_player,
+            step: Step::Untap,
+            priority: starting_player,
+            consecutive_passes: 0,
+            players: lives
+                .iter()
+                .map(|life| PlayerState {
+                    life: *life,
+                    library: Vec::new(),
+                    hand: Vec::new(),
+                    graveyard: Vec::new(),
+                    exile: Vec::new(),
+                    mana_pool: crate::mana::ManaPool::default(),
+                    lands_played_this_turn: 0,
+                    max_hand_size: 7,
+                    drew_from_empty_library: false,
+                    lost: None,
+                    mulligans_taken: 0,
+                })
+                .collect(),
+            objects: SlotMap::with_key(),
+            battlefield: Vec::new(),
+            stack: Vec::new(),
+            combat: None,
+            effects: Vec::new(),
+            lki: std::collections::HashMap::default(),
+            rng,
+            next_timestamp: 1,
+            flow: Flow::BeginStep,
+            cleanup_repeat: false,
+            result: None,
+            log: Vec::new(),
+            logging,
+        }
+    }
+
     // ----- objects and zones -------------------------------------------------
 
     fn new_object(&mut self, def: CardRef, owner: PlayerId, zone: Zone) -> ObjId {
