@@ -207,11 +207,7 @@ fn stored_effects(state: &GameState) -> Vec<Live> {
             Live {
                 origin: Origin::Stored(i),
                 source: e.source,
-                controller: controller.or_else(|| {
-                    e.source
-                        .and_then(|s| state.objects.get(s))
-                        .map(|o| o.controller)
-                }),
+                controller: Some(controller.unwrap_or(e.controller)),
                 timestamp: e.timestamp,
                 affected,
                 filter,
@@ -333,6 +329,7 @@ fn depends(work: &Work<'_>, _live: &[Live], a: &Live, b: &Live, layer: Layer) ->
             filter.types != crate::card::TypeSet::default()
                 || filter.not_types != crate::card::TypeSet::default()
                 || !filter.not_subtypes.is_empty()
+                || !filter.subtypes.is_empty()
         }
         Layer::L5Color => filter.colors.is_some(),
         Layer::L6Ability => filter.no_abilities,
@@ -382,6 +379,14 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             c.subtypes.retain(|s| s.basic_color().is_none());
             c.subtypes.push(Subtype::basic(*color));
         }
+        Modification::AddSubtype(s) => {
+            if !c.subtypes.contains(s) {
+                c.subtypes.push(*s);
+            }
+        }
+        // Control is not a characteristic; `GameState::sync_control`
+        // applies layer 2 to `GameObject::controller`.
+        Modification::Control => {}
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),

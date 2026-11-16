@@ -1,0 +1,608 @@
+# Activated abilities (CR 602), mana abilities of creatures (CR 605, 302.6),
+# Equipment (CR 301.5), tokens (CR 111), control-changing effects (CR
+# 613.1b), and the legend rule (CR 704.5j).
+
+# ---- activated abilities ----------------------------------------------------------
+
+scenario "a tap ability uses the stack and taps its source" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Savannah Lions"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Savannah Lions"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Savannah Lions"
+  assert tapped "Prodigal Sorcerer"
+}
+
+scenario "an instant-speed ability can be activated in the opponent's turn" {
+  battlefield A: "Prodigal Sorcerer"
+  start turn 2 B
+  turn 2 upkeep A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 2 precombat_main
+  assert life B 19
+}
+
+scenario "a tapped source cannot pay {T}" {
+  battlefield A: "Prodigal Sorcerer" tapped
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 20
+}
+
+scenario "a creature's {T} ability waits out summoning sickness (CR 302.6)" {
+  battlefield A: 3 "Island"
+  hand A: "Prodigal Sorcerer"
+  turn 1 A: cast "Prodigal Sorcerer"
+  illegal turn 1 postcombat_main A: activate "Prodigal Sorcerer" targeting player B
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 begin_combat
+  assert life B 19
+}
+
+scenario "a mana cost and {T} are both paid" {
+  battlefield A: "Rod of Ruin", 3 "Mountain"
+  turn 1 A: activate "Rod of Ruin" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 19
+  assert tapped "Rod of Ruin"
+  assert tapped A "Mountain"
+}
+
+scenario "an ability whose mana cost cannot be paid is not offered" {
+  battlefield A: "Rod of Ruin", 2 "Mountain"
+  illegal turn 1 A: activate "Rod of Ruin" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 20
+}
+
+scenario "an artifact's {T} ability has no summoning sickness" {
+  battlefield A: 7 "Mountain"
+  hand A: "Rod of Ruin"
+  turn 1 A: cast "Rod of Ruin"
+  turn 1 postcombat_main A: activate "Rod of Ruin" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "sacrifice as a cost happens on activation, before the ability resolves" {
+  battlefield A: "Mogg Fanatic", "Blood Artist"
+  turn 1 A: activate "Mogg Fanatic" targeting player B
+  turn 1 A: trigger "Blood Artist" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Mogg Fanatic"
+  assert life B 18
+  assert life A 21
+}
+
+scenario "sacrificing in response makes the removal spell fizzle" {
+  battlefield A: "Mogg Fanatic"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Mogg Fanatic"
+  turn 2 A: activate "Mogg Fanatic" targeting player B
+  run_to turn 2 begin_combat
+  assert life B 19
+  assert graveyard B contains "Shock"
+}
+
+scenario "an enchantment's sacrifice ability" {
+  battlefield A: "Seal of Fire"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Seal of Fire" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Seal of Fire"
+}
+
+scenario "an untargeted sacrifice ability" {
+  battlefield A: "Bottle Gnomes"
+  turn 1 A: activate "Bottle Gnomes"
+  run_to turn 1 begin_combat
+  assert life A 23
+  assert graveyard A contains "Bottle Gnomes"
+}
+
+scenario "an ability resolves even if its source has left (CR 113.7a)" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Savannah Lions", "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Savannah Lions"
+  turn 1 B: cast "Shock" targeting "Prodigal Sorcerer" in response to "Prodigal Sorcerer"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Prodigal Sorcerer"
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "an ability whose only target is gone does nothing" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Mogg Fanatic"
+  turn 1 A: activate "Prodigal Sorcerer" targeting "Mogg Fanatic"
+  turn 1 B: activate "Mogg Fanatic" targeting player A
+  run_to turn 1 begin_combat
+  assert life A 19
+  assert life B 20
+  assert graveyard B contains "Mogg Fanatic"
+}
+
+scenario "firebreathing pumps several times and wears off at cleanup" {
+  battlefield A: "Shivan Dragon", 3 "Mountain"
+  turn 1 A: activate "Shivan Dragon"
+  turn 1 A: activate "Shivan Dragon"
+  turn 1 A: activate "Shivan Dragon"
+  turn 1 A: attack "Shivan Dragon"
+  run_to turn 1 end
+  assert power "Shivan Dragon" 8
+  assert life B 12
+  run_to turn 2
+  assert power "Shivan Dragon" 5
+}
+
+scenario "pestilence damages each creature and each player, then sacrifices itself with no creatures" {
+  battlefield A: "Pestilence", 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Savannah Lions"
+  turn 1 A: activate "Pestilence"
+  turn 1 A: activate "Pestilence"
+  run_to turn 1 begin_combat
+  assert life A 18
+  assert life B 18
+  assert graveyard B contains "Savannah Lions"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Pestilence"
+  run_to turn 2
+  assert graveyard A contains "Pestilence"
+}
+
+scenario "pestilence stays while a creature survives (intervening if, CR 603.4)" {
+  battlefield A: "Pestilence", "Swamp", "Grizzly Bears"
+  turn 1 A: activate "Pestilence"
+  run_to turn 2
+  assert damage "Grizzly Bears" 0
+  assert battlefield A contains "Pestilence"
+  assert life A 19
+}
+
+scenario "royal assassin destroys a tapped attacker" {
+  battlefield A: "Royal Assassin"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Royal Assassin" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "royal assassin has no target while the attacker has vigilance" {
+  battlefield A: "Royal Assassin"
+  battlefield B: "Serra Angel"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  illegal turn 2 declare_attackers A: activate "Royal Assassin" targeting "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 16
+}
+
+scenario "icy manipulator taps a land before it can be used" {
+  battlefield A: "Icy Manipulator", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 upkeep A: activate "Icy Manipulator" targeting "Mountain"
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 begin_combat
+  assert tapped "Mountain"
+  assert life A 20
+}
+
+scenario "icy manipulator taps a creature so it cannot attack" {
+  battlefield A: "Icy Manipulator", "Plains"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  start turn 2 B
+  turn 2 begin_combat A: activate "Icy Manipulator" targeting "Hill Giant"
+  turn 2 B: attack "Savannah Lions"
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert life A 18
+}
+
+scenario "mishra's factory becomes an artifact creature land until end of turn" {
+  battlefield A: "Mishra's Factory", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mishra's Factory"
+  turn 1 A: attack "Mishra's Factory"
+  run_to turn 1 postcombat_main
+  assert is "Mishra's Factory" creature
+  assert is "Mishra's Factory" artifact
+  assert is "Mishra's Factory" land
+  assert is "Mishra's Factory" "Assembly-Worker"
+  assert power "Mishra's Factory" 2
+  assert life B 18
+  run_to turn 2
+  assert is not "Mishra's Factory" creature
+}
+
+scenario "a factory played this turn is summoning sick once animated" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Mishra's Factory"
+  turn 1 A: play "Mishra's Factory"
+  turn 1 A: activate "Mishra's Factory"
+  illegal turn 1 A: attack "Mishra's Factory"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert power "Mishra's Factory" 2
+}
+
+scenario "mishra's factory taps for colorless mana" {
+  battlefield A: "Mishra's Factory", 2 "Mountain"
+  hand A: "Bottle Gnomes"
+  turn 1 A: cast "Bottle Gnomes"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Bottle Gnomes"
+  assert tapped "Mishra's Factory"
+}
+
+scenario "a factory animated after humility is 2/2 (later timestamp in layer 7b)" {
+  battlefield A: "Humility", "Mishra's Factory", "Plains"
+  turn 1 A: activate "Mishra's Factory"
+  run_to turn 1 begin_combat
+  assert power "Mishra's Factory" 2
+  assert toughness "Mishra's Factory" 2
+  assert no_abilities "Mishra's Factory"
+}
+
+scenario "humility cast after the factory animates makes it 1/1" {
+  battlefield A: "Mishra's Factory", 5 "Plains"
+  hand A: "Humility"
+  turn 1 A: activate "Mishra's Factory"
+  turn 1 A: cast "Humility"
+  run_to turn 1 begin_combat
+  assert power "Mishra's Factory" 1
+  assert toughness "Mishra's Factory" 1
+}
+
+# ---- mana abilities of creatures ------------------------------------------------
+
+scenario "a mana creature taps for mana" {
+  battlefield A: "Llanowar Elves", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Llanowar Elves"
+}
+
+scenario "a mana creature cast this turn cannot tap for mana (CR 302.6)" {
+  battlefield A: 2 "Forest"
+  hand A: "Llanowar Elves", "Grizzly Bears"
+  turn 1 A: cast "Llanowar Elves"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# ---- Equipment ----------------------------------------------------------------------
+
+scenario "equip attaches and the bonus applies" {
+  battlefield A: "Bonesplitter", "Grizzly Bears", "Plains"
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "equip is sorcery speed only (CR 702.6a)" {
+  battlefield A: "Bonesplitter", "Grizzly Bears", "Plains"
+  start turn 2 B
+  illegal turn 2 upkeep A: activate "Bonesplitter" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "equipment stays on the battlefield unattached when its creature dies (CR 704.5n)" {
+  battlefield A: "Bonesplitter", "Grizzly Bears", "Plains"
+  battlefield B: 2 "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Bonesplitter"
+}
+
+scenario "re-equipping moves the equipment" {
+  battlefield A: "Bonesplitter", "Grizzly Bears", "Savannah Lions", 2 "Plains"
+  turn 1 A: activate "Bonesplitter" targeting "Grizzly Bears"
+  turn 1 A: activate "Bonesplitter" targeting "Savannah Lions"
+  run_to turn 1 begin_combat
+  assert attached "Bonesplitter" to "Savannah Lions"
+  assert power "Savannah Lions" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "loxodon warhammer grants trample and lifelink" {
+  battlefield A: "Loxodon Warhammer", "Hill Giant", 3 "Plains"
+  battlefield B: "Savannah Lions"
+  turn 1 A: activate "Loxodon Warhammer" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Savannah Lions"
+  turn 1 A: assign "Hill Giant" to "Savannah Lions" 1, player B 5
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 26
+  assert graveyard B contains "Savannah Lions"
+}
+
+# ---- tokens -------------------------------------------------------------------------
+
+scenario "raise the alarm creates two soldier tokens" {
+  battlefield A: 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Soldier"
+  assert power A "Soldier" 1
+  assert is A "Soldier" white
+}
+
+scenario "a token that dies ceases to exist (CR 704.5d)" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Raise the Alarm"
+  hand B: "Shock"
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 postcombat_main B: cast "Shock" targeting A "Soldier"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Soldier"
+  assert graveyard A lacks "Soldier"
+  assert graveyard A count 1
+}
+
+scenario "a dies trigger still sees a token die" {
+  battlefield A: 2 "Plains", "Blood Artist"
+  battlefield B: "Mountain"
+  hand A: "Raise the Alarm"
+  hand B: "Shock"
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 postcombat_main B: cast "Shock" targeting A "Soldier"
+  turn 1 postcombat_main A: trigger "Blood Artist" targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert life A 21
+}
+
+scenario "tokens entering trigger soul warden" {
+  battlefield A: 2 "Plains", "Soul Warden"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 begin_combat
+  assert life A 22
+}
+
+scenario "dragon fodder is a sorcery making goblins" {
+  battlefield A: 2 "Mountain"
+  hand A: "Dragon Fodder"
+  turn 1 A: cast "Dragon Fodder"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Goblin"
+  assert is A "Goblin" red
+  assert graveyard A contains "Dragon Fodder"
+}
+
+scenario "siege-gang commander brings goblins and sacrifices one of them" {
+  battlefield A: 7 "Mountain"
+  hand A: "Siege-Gang Commander"
+  turn 1 A: cast "Siege-Gang Commander"
+  turn 1 postcombat_main A: activate "Siege-Gang Commander" sacrificing "Goblin" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains 2 "Goblin"
+  assert life B 18
+}
+
+scenario "siege-gang commander can sacrifice itself and still deals its damage" {
+  battlefield A: "Siege-Gang Commander", 2 "Mountain"
+  turn 1 A: activate "Siege-Gang Commander" sacrificing "Siege-Gang Commander" targeting player B
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Siege-Gang Commander"
+  assert life B 18
+}
+
+scenario "a sacrifice cost only accepts matching permanents" {
+  battlefield A: "Siege-Gang Commander", "Grizzly Bears", 2 "Mountain"
+  illegal turn 1 A: activate "Siege-Gang Commander" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "bitterblossom makes a flying faerie each of your upkeeps" {
+  battlefield A: "Bitterblossom"
+  run_to turn 1 precombat_main
+  assert life A 19
+  assert battlefield A contains 1 "Faerie Rogue"
+  assert has "Faerie Rogue" flying
+  run_to turn 2 precombat_main
+  assert life A 19
+  assert battlefield A contains 1 "Faerie Rogue"
+  run_to turn 3 precombat_main
+  assert life A 18
+  assert battlefield A contains 2 "Faerie Rogue"
+}
+
+scenario "young pyromancer triggers on instants and sorceries only" {
+  battlefield A: "Young Pyromancer", 3 "Mountain"
+  hand A: "Shock", "Raging Goblin"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Raging Goblin"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Elemental"
+  assert life B 18
+}
+
+# ---- control-changing effects -------------------------------------------------------
+
+scenario "act of treason steals, untaps, and grants haste until end of turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 17
+  run_to turn 2
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "a creature returned at cleanup can attack for its owner next turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 17
+}
+
+scenario "a controller filter follows the stolen creature (CR 611.3)" {
+  battlefield A: 3 "Mountain", "Glorious Anthem"
+  battlefield B: "Hill Giant"
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 4
+  run_to turn 2
+  assert power "Hill Giant" 3
+}
+
+scenario "control magic takes a creature for as long as it stays attached" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  hand A: "Control Magic"
+  turn 1 A: cast "Control Magic" targeting "Hill Giant"
+  illegal turn 1 A: attack "Hill Giant"
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "a stolen creature that dies goes to its owner's graveyard" {
+  battlefield A: 4 "Island"
+  battlefield B: "Savannah Lions", "Mountain"
+  hand A: "Control Magic"
+  hand B: "Shock"
+  turn 1 A: cast "Control Magic" targeting "Savannah Lions"
+  turn 2 B: cast "Shock" targeting A "Savannah Lions"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Savannah Lions"
+  assert graveyard A contains "Control Magic"
+}
+
+scenario "destroying control magic gives the creature back" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", 2 "Plains"
+  hand A: "Control Magic"
+  hand B: "Disenchant"
+  turn 1 A: cast "Control Magic" targeting "Hill Giant"
+  turn 1 postcombat_main B: cast "Disenchant" targeting "Control Magic"
+  run_to turn 1 end
+  assert graveyard A contains "Control Magic"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}
+
+scenario "a stolen creature keeps its equipment, controlled by the equipment's owner" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant", "Bonesplitter" on "Hill Giant"
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Hill Giant"
+  assert battlefield B contains "Bonesplitter"
+  assert life B 15
+}
+
+# ---- the legend rule ----------------------------------------------------------------
+
+scenario "a second legendary permanent with the same name triggers the legend rule" {
+  battlefield A: "Isamaru, Hound of Konda", "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert graveyard A contains "Isamaru, Hound of Konda"
+}
+
+scenario "the controller chooses which legend to keep: the newest" {
+  battlefield A: "Isamaru, Hound of Konda" tapped, "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  turn 1 A: keep newest "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert untapped "Isamaru, Hound of Konda"
+}
+
+scenario "the controller chooses which legend to keep: the oldest" {
+  battlefield A: "Isamaru, Hound of Konda" tapped, "Plains"
+  hand A: "Isamaru, Hound of Konda"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Isamaru, Hound of Konda"
+  turn 1 A: keep oldest "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert tapped "Isamaru, Hound of Konda"
+}
+
+scenario "the legend rule is per controller" {
+  battlefield A: "Isamaru, Hound of Konda"
+  battlefield B: "Isamaru, Hound of Konda"
+  run_to turn 1 precombat_main
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert battlefield B contains 1 "Isamaru, Hound of Konda"
+}
+
+scenario "stealing a legend you already control invokes the legend rule" {
+  battlefield A: "Isamaru, Hound of Konda", 3 "Mountain"
+  battlefield B: "Isamaru, Hound of Konda"
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting B "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert graveyard B contains "Isamaru, Hound of Konda"
+  assert graveyard A lacks "Isamaru, Hound of Konda"
+}
+
+scenario "keeping the stolen legend sends your own to your graveyard, and the stolen one goes home" {
+  battlefield A: "Isamaru, Hound of Konda", 3 "Mountain"
+  battlefield B: "Isamaru, Hound of Konda"
+  hand A: "Act of Treason"
+  turn 1 A: cast "Act of Treason" targeting B "Isamaru, Hound of Konda"
+  turn 1 A: keep newest "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Isamaru, Hound of Konda"
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  run_to turn 2
+  assert battlefield B contains 1 "Isamaru, Hound of Konda"
+  assert battlefield A lacks "Isamaru, Hound of Konda"
+}
+
+scenario "two legendary lands" {
+  battlefield A: 2 "Urborg, Tomb of Yawgmoth"
+  run_to turn 1 precombat_main
+  assert battlefield A contains 1 "Urborg, Tomb of Yawgmoth"
+  assert graveyard A contains "Urborg, Tomb of Yawgmoth"
+}

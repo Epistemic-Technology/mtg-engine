@@ -55,7 +55,7 @@ impl GameState {
                     continue;
                 };
                 if let Some(cond) = t.condition
-                    && !condition_holds_for(cond, w)
+                    && !self.condition_holds_for(cond, w)
                 {
                     continue;
                 }
@@ -257,13 +257,19 @@ impl GameState {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
             (
-                TriggerSpec::CastsSpell { whose, noncreature },
+                TriggerSpec::CastsSpell {
+                    whose,
+                    noncreature,
+                    instant_or_sorcery,
+                },
                 Event::Cast {
                     player, spell, def, ..
                 },
             ) => {
+                let d = self.pool.get(*def);
                 let ok = whose_ok(*whose, *player)
-                    && (!*noncreature || !self.pool.get(*def).is_creature());
+                    && (!*noncreature || !d.is_creature())
+                    && (!*instant_or_sorcery || d.is_instant() || d.is_sorcery());
                 ok.then_some((Some(*spell), Some(*player)))
             }
             _ => None,
@@ -362,22 +368,25 @@ impl GameState {
             Flow::Casting {
                 spell: obj,
                 next_target: 0,
+                sacrifice: None,
             }
         };
     }
 
     // ----- resolution --------------------------------------------------------------
 
-    /// CR 608.2 for an ability object on top of the stack: check its
-    /// intervening "if" (CR 603.4) and targets, apply its effects, and
-    /// remove it (CR 608.2n).
+    /// CR 608.2 for an ability object (triggered or activated) on top of
+    /// the stack: check its intervening "if" (CR 603.4) and targets, apply
+    /// its effects, and remove it (CR 608.2n).
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
-        let AbilityDef::Triggered(t) = self.pool.ability(sa.ability).clone() else {
-            unreachable!("only triggered abilities go on the stack so far");
+        let (condition, targets, effects) = match self.pool.ability(sa.ability) {
+            AbilityDef::Triggered(t) => (t.condition, t.targets.clone(), t.effects.clone()),
+            AbilityDef::Activated(a) => (None, a.targets.clone(), a.effects.clone()),
+            _ => unreachable!("only triggered and activated abilities use the stack"),
         };
-        if let Some(cond) = t.condition
+        if let Some(cond) = condition
             && !self.condition_holds(cond, sa.source)
         {
             self.emit(Event::TriggerRemoved {
@@ -387,13 +396,12 @@ impl GameState {
             self.remove_from_game(id);
             return;
         }
-        let legal: Vec<bool> = t
-            .targets
+        let legal: Vec<bool> = targets
             .iter()
             .zip(obj.targets.iter())
             .map(|(spec, target)| self.is_legal_target(obj.controller, *spec, *target))
             .collect();
-        if !t.targets.is_empty() && legal.iter().all(|l| !l) {
+        if !targets.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
                 spell: id,
                 def: obj.def,
@@ -413,7 +421,7 @@ impl GameState {
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
         };
-        for effect in &t.effects {
+        for effect in &effects {
             self.apply_effect(&ctx, effect);
         }
         if self.objects.contains_key(id) {
@@ -428,7 +436,24 @@ impl GameState {
                 .objects
                 .get(source)
                 .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped),
+            Condition::NoCreatures => self.no_creatures(),
         }
+    }
+
+    /// The same, as the ability would trigger, for a watcher whose state
+    /// was captured with the event.
+    fn condition_holds_for(&self, cond: Condition, w: &Watcher) -> bool {
+        match cond {
+            Condition::SourceUntapped => !w.tapped,
+            Condition::NoCreatures => self.no_creatures(),
+        }
+    }
+
+    fn no_creatures(&self) -> bool {
+        !self
+            .battlefield
+            .iter()
+            .any(|id| self.is_creature_on_battlefield(*id))
     }
 
     /// Remove an object that ceases to exist (an ability leaving the stack).
@@ -436,11 +461,5 @@ impl GameState {
         self.remove_from_zone_list(id);
         self.objects.remove(id);
         self.bump();
-    }
-}
-
-fn condition_holds_for(cond: Condition, w: &Watcher) -> bool {
-    match cond {
-        Condition::SourceUntapped => !w.tapped,
     }
 }

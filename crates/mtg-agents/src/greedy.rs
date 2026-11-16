@@ -4,7 +4,7 @@
 //! or necessary. Deterministic. Useful as a stronger baseline than random
 //! and as the default opponent in human play.
 
-use mtg_core::card::{AbilityDef, Effect, Keyword, Modification};
+use mtg_core::card::{AbilityDef, AbilityId, Effect, Keyword, Modification};
 use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind};
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::state::{Characteristics, GameState, Target};
@@ -69,7 +69,8 @@ impl GreedyAgent {
         let incoming: i32 = state.combat.as_ref().map_or(0, |c| {
             c.attackers
                 .iter()
-                .map(|at| Self::chars(state, at.id).power.max(0))
+                .filter_map(|at| state.characteristics(at.id))
+                .map(|a| a.power.max(0))
                 .sum()
         });
         let mut score = 0;
@@ -86,10 +87,10 @@ impl GreedyAgent {
         score
     }
 
+    /// Worth of `t` as a target of the spell `spell` on the stack.
     fn target_score(state: &GameState, me: PlayerId, spell: ObjId, t: Target) -> i32 {
-        let effects: Vec<Effect> = state.effects_of(spell).to_vec();
-        let opp = state.opponent(me);
-        // Auras: judge by the sign of their P/T change (or a granted keyword).
+        // Auras: judge by the sign of their P/T change (or a granted keyword;
+        // taking control counts as removal).
         let aura_delta: Option<i32> = state.def_of(spell).filter(|d| d.is_aura()).map(|d| {
             d.abilities
                 .iter()
@@ -101,15 +102,34 @@ impl GreedyAgent {
                 .map(|m| match m {
                     Modification::ModifyPt { power, toughness } => power + toughness,
                     Modification::AddKeywords(_) => 1,
-                    Modification::RemoveAllAbilities => -1,
+                    Modification::RemoveAllAbilities | Modification::Control => -1,
                     _ => 0,
                 })
                 .sum()
         });
-        let helps_target = effects
-            .iter()
-            .any(|e| matches!(e, Effect::Pump { .. } | Effect::AddCounters { .. }))
-            || aura_delta.is_some_and(|d| d > 0);
+        Self::score_target(state, me, state.effects_of(spell), aura_delta, t)
+    }
+
+    /// Worth of `t` as a target of an activated ability about to be
+    /// activated.
+    fn ability_target_score(state: &GameState, me: PlayerId, ability: AbilityId, t: Target) -> i32 {
+        Self::score_target(state, me, state.pool.ability(ability).effects(), None, t)
+    }
+
+    fn score_target(
+        state: &GameState,
+        me: PlayerId,
+        effects: &[Effect],
+        aura_delta: Option<i32>,
+        t: Target,
+    ) -> i32 {
+        let opp = state.opponent(me);
+        let helps_target = effects.iter().any(|e| {
+            matches!(
+                e,
+                Effect::Pump { .. } | Effect::AddCounters { .. } | Effect::Attach { .. }
+            )
+        }) || aura_delta.is_some_and(|d| d > 0);
         let destroys_aura = aura_delta.is_some_and(|d| d < 0);
         let damage: u32 = effects
             .iter()
@@ -118,7 +138,12 @@ impl GreedyAgent {
                 _ => 0,
             })
             .sum();
-        let destroys = effects.iter().any(|e| matches!(e, Effect::Destroy { .. }));
+        let destroys = effects.iter().any(|e| {
+            matches!(
+                e,
+                Effect::Destroy { .. } | Effect::GainControl { .. } | Effect::Tap { .. }
+            )
+        });
         match t {
             Target::Player(p) => {
                 if helps_target {
@@ -186,6 +211,8 @@ impl Agent for GreedyAgent {
             | DecisionKind::AssignCombatDamage { .. }
             | DecisionKind::OrderTriggers
             | DecisionKind::ChooseReplacement => 0,
+            // Keep the newest (the engine lists them oldest first).
+            DecisionKind::LegendRule => u32::try_from(d.options.len() - 1).unwrap_or(0),
             DecisionKind::PriorityAction => Self::best_by(d, |c| match c {
                 Choice::PlayLand(_) => 1_000,
                 Choice::Cast(id) => {
@@ -207,6 +234,34 @@ impl Agent for GreedyAgent {
                                 })
                     });
                     if has_good_target { 100 + mv } else { -1 }
+                }
+                Choice::Activate {
+                    source, ability, ..
+                } => {
+                    // Targeted abilities with a worthwhile target are worth
+                    // using (damage, destruction, equipping); untargeted
+                    // ones (firebreathing, sacrifice outlets) are left alone.
+                    let specs = state.pool.ability(*ability).targets();
+                    if specs.is_empty() {
+                        return -5;
+                    }
+                    let good = state
+                        .battlefield
+                        .iter()
+                        .map(|o| Target::Object(*o))
+                        .chain(state.players_in_game().map(Target::Player))
+                        .any(|t| {
+                            specs.iter().any(|s| state.is_legal_target(me, *s, t))
+                                && Self::ability_target_score(state, me, *ability, t) > 0
+                        });
+                    if good {
+                        // Costs are paid from the same mana as spells: use
+                        // spare mana after casting.
+                        let _ = source;
+                        50
+                    } else {
+                        -5
+                    }
                 }
                 Choice::Pass => 0,
                 _ => -10,

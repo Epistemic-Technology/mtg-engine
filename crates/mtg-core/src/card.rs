@@ -455,6 +455,8 @@ pub struct ObjFilter {
     pub not_supertypes: SupertypeSet,
     /// Must share a color with this set.
     pub colors: Option<ColorSet>,
+    /// Must have every one of these subtypes ("Goblin").
+    pub subtypes: SubtypeSet,
     /// Must have none of these subtypes ("non-Aura").
     pub not_subtypes: SubtypeSet,
     /// Whether the source itself is excluded or required.
@@ -497,6 +499,12 @@ impl ObjFilter {
     #[must_use]
     pub fn colors(mut self, c: ColorSet) -> Self {
         self.colors = Some(c);
+        self
+    }
+
+    #[must_use]
+    pub fn subtype(mut self, s: Subtype) -> Self {
+        self.subtypes.push(s);
         self
     }
 
@@ -552,7 +560,9 @@ impl ObjFilter {
         {
             return false;
         }
-        if c.subtypes.iter().any(|s| self.not_subtypes.contains(s)) {
+        if c.subtypes.iter().any(|s| self.not_subtypes.contains(s))
+            || self.subtypes.iter().any(|s| !c.subtypes.contains(s))
+        {
             return false;
         }
         !self.no_abilities || c.has_no_abilities()
@@ -578,6 +588,11 @@ pub enum Modification {
     /// "is a Mountain" (layer 4): loses its other land types and, per CR
     /// 305.7, the abilities from its rules text (applied in layer 6).
     SetLandType(Color),
+    /// "is an Assembly-Worker" (layer 4): gains a creature type.
+    AddSubtype(Subtype),
+    /// The effect's controller controls the object (layer 2, CR 613.1b).
+    /// Applied by `GameState::sync_control`, not through characteristics.
+    Control,
     /// "is white in addition to its other colors" (layer 5).
     AddColors(ColorSet),
     /// "is blue" (layer 5).
@@ -597,9 +612,11 @@ pub enum Modification {
 impl Modification {
     pub const fn layer(&self) -> Layer {
         match self {
+            Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
             | Modification::AddLandType(_)
-            | Modification::SetLandType(_) => Layer::L4Type,
+            | Modification::SetLandType(_)
+            | Modification::AddSubtype(_) => Layer::L4Type,
             Modification::AddColors(_) | Modification::SetColors(_) => Layer::L5Color,
             Modification::AddKeywords(_) | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::SetPt { .. } => Layer::L7bSetPt,
@@ -633,6 +650,14 @@ pub enum TargetSpec {
     /// "target player or planeswalker".
     PlayerOrPlaneswalker,
     Player,
+    /// "target tapped creature".
+    TappedCreature,
+    /// "target creature you control" (equip, CR 702.6a).
+    CreatureYouControl,
+    /// "target artifact, creature, or land".
+    ArtifactCreatureOrLand,
+    /// "target artifact or enchantment".
+    ArtifactOrEnchantment,
 }
 
 /// Who or what an effect acts on.
@@ -654,6 +679,10 @@ pub enum Recipient {
     TriggeringPlayer,
     /// The player the triggering creature is attacking.
     DefendingPlayer,
+    /// Every creature on the battlefield.
+    EachCreature,
+    /// Every player in the game.
+    EachPlayer,
 }
 
 /// Effects of spells and abilities.
@@ -710,6 +739,47 @@ pub enum Effect {
     CreateReplacement(ReplacementAbility),
     /// A "can't" effect that lasts until end of turn (CR 614.17).
     Rule(RuleKind),
+    Tap {
+        to: Recipient,
+    },
+    Untap {
+        to: Recipient,
+    },
+    /// "gains haste until end of turn" (layer 6).
+    Grant {
+        keywords: KeywordSet,
+        to: Recipient,
+    },
+    /// "Gain control of target creature until end of turn" (layer 2,
+    /// CR 613.1b).
+    GainControl {
+        of: Recipient,
+    },
+    /// Sacrifice a permanent (CR 701.21): its controller puts it into its
+    /// owner's graveyard; indestructible does not help.
+    Sacrifice {
+        what: Recipient,
+    },
+    /// Create `count` tokens of a token definition under the recipient's
+    /// control (CR 111).
+    CreateToken {
+        token: CardRef,
+        count: u32,
+        who: Recipient,
+    },
+    /// Attach the ability's source to the recipient (equip, CR 701.3).
+    Attach {
+        to: Recipient,
+    },
+    /// "becomes a 2/2 Assembly-Worker artifact creature until end of turn.
+    /// It's still a land" (layers 4 and 7b).
+    Animate {
+        to: Recipient,
+        types: TypeSet,
+        subtypes: SubtypeSet,
+        power: i32,
+        toughness: i32,
+    },
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -842,8 +912,13 @@ pub enum TriggerSpec {
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
     GainsLife { whose: Who },
-    /// "Whenever you cast a spell" (`noncreature` restricts it).
-    CastsSpell { whose: Who, noncreature: bool },
+    /// "Whenever you cast a spell"; `noncreature` or `instant_or_sorcery`
+    /// restrict it.
+    CastsSpell {
+        whose: Who,
+        noncreature: bool,
+        instant_or_sorcery: bool,
+    },
 }
 
 impl TriggerSpec {
@@ -871,6 +946,8 @@ impl TriggerSpec {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Condition {
     SourceUntapped,
+    /// "if no creatures are on the battlefield" (Pestilence).
+    NoCreatures,
 }
 
 /// A triggered ability (CR 603).
@@ -881,6 +958,61 @@ pub struct TriggeredAbility {
     /// Targets chosen when the ability is put on the stack (CR 603.3d).
     pub targets: Vec<TargetSpec>,
     pub effects: Vec<Effect>,
+}
+
+/// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SacCost {
+    /// "Sacrifice ~".
+    This,
+    /// "Sacrifice a Goblin": the player chooses a matching permanent.
+    Filter(ObjFilter),
+}
+
+/// The cost of an activated ability (CR 118, 602.2b).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct Cost {
+    pub mana: ManaCost,
+    /// {T}: tap the source. A creature's {T} ability needs the source to
+    /// have been under its controller's control since their most recent
+    /// turn began (CR 302.6).
+    pub tap: bool,
+    pub sacrifice: Option<SacCost>,
+}
+
+impl Cost {
+    pub fn parse(mana: &str) -> Cost {
+        Cost {
+            mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
+            tap: false,
+            sacrifice: None,
+        }
+    }
+
+    #[must_use]
+    pub fn tap(mut self) -> Cost {
+        self.tap = true;
+        self
+    }
+
+    #[must_use]
+    pub fn sacrifice(mut self, what: SacCost) -> Cost {
+        self.sacrifice = Some(what);
+        self
+    }
+}
+
+/// An activated ability (CR 602): "[cost]: [effect]". Uses the stack like a
+/// spell; mana abilities are `AbilityDef::TapForMana` instead (CR 605).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ActivatedAbility {
+    pub cost: Cost,
+    pub targets: Vec<TargetSpec>,
+    pub effects: Vec<Effect>,
+    /// "Activate only as a sorcery" (CR 602.5a; equip, CR 702.6a).
+    pub sorcery_speed: bool,
+    /// The ability's text, for naming the choice.
+    pub text: String,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -896,6 +1028,7 @@ pub enum AbilityDef {
     /// "{T}: Add <mana>" (CR 605). Basic land types grant theirs
     /// intrinsically (CR 305.6) and do not list this.
     TapForMana(Mana),
+    Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
     /// A replacement or prevention effect generated while the source is on
@@ -910,6 +1043,7 @@ impl AbilityDef {
         match self {
             AbilityDef::Spell { targets, .. } => targets,
             AbilityDef::Triggered(t) => &t.targets,
+            AbilityDef::Activated(a) => &a.targets,
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::Static(_)
@@ -922,6 +1056,7 @@ impl AbilityDef {
         match self {
             AbilityDef::Spell { effects, .. } => effects,
             AbilityDef::Triggered(t) => &t.effects,
+            AbilityDef::Activated(a) => &a.effects,
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::Static(_)
@@ -945,6 +1080,8 @@ pub struct CardDef {
     pub keywords: KeywordSet,
     pub abilities: Vec<AbilityDef>,
     pub oracle_text: String,
+    /// A token definition (CR 111): created by effects, never in a deck.
+    pub token: bool,
     /// Filled in by `CardPool::add`: `subtypes` interned.
     #[serde(skip)]
     pub subtype_ids: SubtypeSet,
@@ -958,15 +1095,33 @@ pub struct CardDef {
     /// Filled in by `CardPool::add`; see `cast_targets()`.
     #[serde(skip)]
     cast_targets: Vec<TargetSpec>,
-    /// Filled in by `CardPool::add`; see `has_triggers()`.
+    /// Filled in by `CardPool::add`: facts the engine checks on hot paths.
     #[serde(skip)]
-    has_triggers: bool,
-    /// Filled in by `CardPool::add`; see `has_replacements()`.
-    #[serde(skip)]
-    has_replacements: bool,
-    /// Filled in by `CardPool::add`; see `modifies_entering()`.
-    #[serde(skip)]
-    modifies_entering: bool,
+    flags: DefFlags,
+}
+
+/// Precomputed facts about a definition (see `CardDef::has_triggers` and
+/// friends).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub struct DefFlags(u8);
+
+impl DefFlags {
+    const TRIGGERS: u8 = 1;
+    const REPLACEMENTS: u8 = 2;
+    const MODIFIES_ENTERING: u8 = 4;
+    const ACTIVATED: u8 = 8;
+    const CONTROL_STATIC: u8 = 16;
+    const EQUIPMENT: u8 = 32;
+
+    const fn has(self, f: u8) -> bool {
+        self.0 & f != 0
+    }
+
+    fn set(&mut self, f: u8, on: bool) {
+        if on {
+            self.0 |= f;
+        }
+    }
 }
 
 impl CardDef {
@@ -1004,24 +1159,49 @@ impl CardDef {
     /// Has a printed triggered ability or a keyword that is one. Checked on
     /// every event, so precomputed.
     pub fn has_triggers(&self) -> bool {
-        self.has_triggers
+        self.flags.has(DefFlags::TRIGGERS)
     }
 
     /// Has a printed replacement or prevention ability that works from the
     /// battlefield. Checked on every replaceable event, so precomputed.
     pub fn has_replacements(&self) -> bool {
-        self.has_replacements
+        self.flags.has(DefFlags::REPLACEMENTS)
     }
 
     /// Has a printed "enters with" / "enters tapped" ability (CR 614.1c).
     pub fn modifies_entering(&self) -> bool {
-        self.modifies_entering
+        self.flags.has(DefFlags::MODIFIES_ENTERING)
+    }
+
+    /// Has a printed activated ability other than a mana ability.
+    pub fn has_activated(&self) -> bool {
+        self.flags.has(DefFlags::ACTIVATED)
+    }
+
+    /// Has a printed static ability that changes control of something
+    /// (Control Magic).
+    pub fn has_control_static(&self) -> bool {
+        self.flags.has(DefFlags::CONTROL_STATIC)
+    }
+
+    /// Has the Equipment subtype (CR 301.5).
+    pub fn is_equipment(&self) -> bool {
+        self.flags.has(DefFlags::EQUIPMENT)
+    }
+
+    /// An Aura or Equipment: attaches to another permanent.
+    pub fn attaches(&self) -> bool {
+        self.is_aura() || self.is_equipment()
+    }
+
+    pub fn is_legendary(&self) -> bool {
+        self.supertypes.contains(Supertype::Legendary)
     }
 
     /// Whether any printed triggered ability (or trigger keyword) could see
     /// `event`, by event kind. Current characteristics decide for real.
     pub fn may_watch(&self, pool: &CardPool, event: &crate::event::Event) -> bool {
-        if !self.has_triggers {
+        if !self.has_triggers() {
             return false;
         }
         let keyword = self.keywords.iter().any(|k| {
@@ -1103,6 +1283,7 @@ impl CardPool {
             trigger: TriggerSpec::CastsSpell {
                 whose: Who::You,
                 noncreature: true,
+                instant_or_sorcery: false,
             },
             condition: None,
             targets: Vec::new(),
@@ -1148,17 +1329,44 @@ impl CardPool {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
         };
-        def.has_triggers = def.keywords.contains(Keyword::Prowess)
-            || def
-                .abilities
+        let mut flags = DefFlags::default();
+        flags.set(
+            DefFlags::TRIGGERS,
+            def.keywords.contains(Keyword::Prowess)
+                || def
+                    .abilities
+                    .iter()
+                    .any(|a| matches!(a, AbilityDef::Triggered(_))),
+        );
+        flags.set(
+            DefFlags::REPLACEMENTS,
+            def.abilities.iter().any(
+                |a| matches!(a, AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)),
+            ),
+        );
+        flags.set(
+            DefFlags::MODIFIES_ENTERING,
+            def.abilities.iter().any(
+                |a| matches!(a, AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters)),
+            ),
+        );
+        flags.set(
+            DefFlags::ACTIVATED,
+            def.abilities
                 .iter()
-                .any(|a| matches!(a, AbilityDef::Triggered(_)));
-        def.has_replacements = def.abilities.iter().any(
-            |a| matches!(a, AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)),
+                .any(|a| matches!(a, AbilityDef::Activated(_))),
         );
-        def.modifies_entering = def.abilities.iter().any(
-            |a| matches!(a, AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters)),
+        flags.set(
+            DefFlags::CONTROL_STATIC,
+            def.abilities.iter().any(
+                |a| matches!(a, AbilityDef::Static(s) if s.parts.contains(&Modification::Control)),
+            ),
         );
+        flags.set(
+            DefFlags::EQUIPMENT,
+            def.subtypes.iter().any(|s| s == "Equipment"),
+        );
+        def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
             colors: def.colors(),
@@ -1239,14 +1447,20 @@ impl Builder {
             keywords: KeywordSet::NONE,
             abilities: Vec::new(),
             oracle_text: String::new(),
+            token: false,
             subtype_ids: SubtypeSet::new(),
             ability_ids: AbilitySet::new(),
             printed: None,
             cast_targets: Vec::new(),
-            has_triggers: false,
-            has_replacements: false,
-            modifies_entering: false,
+            flags: DefFlags::default(),
         })
+    }
+
+    /// Mark this as a token definition (CR 111).
+    #[must_use]
+    pub fn token(mut self) -> Self {
+        self.0.token = true;
+        self
     }
 
     #[must_use]
@@ -1536,6 +1750,7 @@ pub fn m1_pool() -> CardPool {
     add_m2_cards(&mut pool);
     add_trigger_cards(&mut pool);
     add_replacement_cards(&mut pool);
+    add_activated_cards(&mut pool);
     pool
 }
 
@@ -2238,6 +2453,407 @@ fn add_replacement_cards(pool: &mut CardPool) {
             .ability(AbilityDef::TapForMana(Mana::Colored(Color::White)))
             .ability(AbilityDef::TapForMana(Mana::Colored(Color::Blue)))
             .text("Azorius Guildgate enters the battlefield tapped.\n{T}: Add {W} or {U}.")
+            .build(),
+    );
+}
+
+/// M2 slice 4: activated abilities (CR 602), tokens (CR 111), Equipment
+/// (CR 301.5), control-changing effects (CR 613.1b), and the legend rule
+/// (CR 704.5j).
+#[allow(clippy::too_many_lines)]
+fn add_activated_cards(pool: &mut CardPool) {
+    use CardType::{Artifact, Creature, Enchantment, Instant, Kindred, Land, Sorcery};
+    use Recipient::{Source, Target, You};
+
+    let goblin = pool.subtype("Goblin");
+    let assembly_worker = pool.subtype("Assembly-Worker");
+
+    let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32| {
+        Builder::new(name, cost)
+            .types([Creature])
+            .subtypes(sub)
+            .pt(p, t)
+    };
+    let activated = |cost: Cost, targets: &[TargetSpec], effects: &[Effect], text: &str| {
+        AbilityDef::Activated(ActivatedAbility {
+            cost,
+            targets: targets.to_vec(),
+            effects: effects.to_vec(),
+            sorcery_speed: false,
+            text: text.to_string(),
+        })
+    };
+    let triggered = |trigger: TriggerSpec, condition: Option<Condition>, effects: &[Effect]| {
+        AbilityDef::Triggered(TriggeredAbility {
+            trigger,
+            condition,
+            targets: Vec::new(),
+            effects: effects.to_vec(),
+        })
+    };
+    let damage = |amount: u32, to: Recipient| Effect::DealDamage { amount, to };
+    let tap_cost = || Cost::parse("").tap();
+    let sac_self = || Cost::parse("").sacrifice(SacCost::This);
+
+    // ---- tokens (CR 111) ----
+    let soldier = pool.add(
+        creature("Soldier", "", &["Soldier"], 1, 1)
+            .color_indicator([Color::White])
+            .token()
+            .build(),
+    );
+    let goblin_token = pool.add(
+        creature("Goblin", "", &["Goblin"], 1, 1)
+            .color_indicator([Color::Red])
+            .token()
+            .build(),
+    );
+    let faerie_rogue = pool.add(
+        creature("Faerie Rogue", "", &["Faerie", "Rogue"], 1, 1)
+            .color_indicator([Color::Black])
+            .keywords([Keyword::Flying])
+            .token()
+            .build(),
+    );
+    let elemental = pool.add(
+        creature("Elemental", "", &["Elemental"], 1, 1)
+            .color_indicator([Color::Red])
+            .token()
+            .build(),
+    );
+    let tokens = |token: CardRef, count: u32| Effect::CreateToken {
+        token,
+        count,
+        who: You,
+    };
+
+    // ---- activated abilities ----
+    pool.add(
+        creature("Prodigal Sorcerer", "{2}{U}", &["Human", "Wizard"], 1, 1)
+            .ability(activated(
+                tap_cost(),
+                &[TargetSpec::Any],
+                &[damage(1, Target(0))],
+                "{T}: deal 1 damage to any target",
+            ))
+            .text("{T}: Prodigal Sorcerer deals 1 damage to any target.")
+            .build(),
+    );
+    pool.add(
+        creature("Llanowar Elves", "{G}", &["Elf", "Druid"], 1, 1)
+            .ability(AbilityDef::TapForMana(Mana::Colored(Color::Green)))
+            .text("{T}: Add {G}.")
+            .build(),
+    );
+    pool.add(
+        creature("Mogg Fanatic", "{R}", &["Goblin"], 1, 1)
+            .ability(activated(
+                sac_self(),
+                &[TargetSpec::Any],
+                &[damage(1, Target(0))],
+                "Sacrifice: deal 1 damage to any target",
+            ))
+            .text("Sacrifice Mogg Fanatic: It deals 1 damage to any target.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Bottle Gnomes", "{3}")
+            .types([Artifact, Creature])
+            .subtypes(&["Gnome"])
+            .pt(1, 3)
+            .ability(activated(
+                sac_self(),
+                &[],
+                &[Effect::GainLife {
+                    amount: 3,
+                    who: You,
+                }],
+                "Sacrifice: you gain 3 life",
+            ))
+            .text("Sacrifice Bottle Gnomes: You gain 3 life.")
+            .build(),
+    );
+    pool.add(
+        creature("Shivan Dragon", "{4}{R}{R}", &["Dragon"], 5, 5)
+            .keywords([Keyword::Flying])
+            .ability(activated(
+                Cost::parse("{R}"),
+                &[],
+                &[Effect::Pump {
+                    power: 1,
+                    toughness: 0,
+                    to: Source,
+                }],
+                "{R}: +1/+0 until end of turn",
+            ))
+            .text("Flying\n{R}: Shivan Dragon gets +1/+0 until end of turn.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Rod of Ruin", "{4}")
+            .types([Artifact])
+            .ability(activated(
+                Cost::parse("{3}").tap(),
+                &[TargetSpec::Any],
+                &[damage(1, Target(0))],
+                "{3}, {T}: deal 1 damage to any target",
+            ))
+            .text("{3}, {T}: Rod of Ruin deals 1 damage to any target.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Pestilence", "{2}{B}{B}")
+            .types([Enchantment])
+            .ability(activated(
+                Cost::parse("{B}"),
+                &[],
+                &[
+                    damage(1, Recipient::EachCreature),
+                    damage(1, Recipient::EachPlayer),
+                ],
+                "{B}: deal 1 damage to each creature and each player",
+            ))
+            .ability(triggered(
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::End,
+                    whose: Who::Any,
+                },
+                Some(Condition::NoCreatures),
+                &[Effect::Sacrifice { what: Source }],
+            ))
+            .text(
+                "{B}: Pestilence deals 1 damage to each creature and each player.\nAt the beginning of the end step, if no creatures are on the battlefield, sacrifice Pestilence.",
+            )
+            .build(),
+    );
+    pool.add(
+        creature("Royal Assassin", "{1}{B}{B}", &["Human", "Assassin"], 1, 1)
+            .ability(activated(
+                tap_cost(),
+                &[TargetSpec::TappedCreature],
+                &[Effect::Destroy { to: Target(0) }],
+                "{T}: destroy target tapped creature",
+            ))
+            .text("{T}: Destroy target tapped creature.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Icy Manipulator", "{4}")
+            .types([Artifact])
+            .ability(activated(
+                Cost::parse("{1}").tap(),
+                &[TargetSpec::ArtifactCreatureOrLand],
+                &[Effect::Tap { to: Target(0) }],
+                "{1}, {T}: tap target artifact, creature, or land",
+            ))
+            .text("{1}, {T}: Tap target artifact, creature, or land.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Seal of Fire", "{R}")
+            .types([Enchantment])
+            .ability(activated(
+                sac_self(),
+                &[TargetSpec::Any],
+                &[damage(2, Target(0))],
+                "Sacrifice: deal 2 damage to any target",
+            ))
+            .text("Sacrifice Seal of Fire: It deals 2 damage to any target.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Mishra's Factory", "")
+            .types([Land])
+            .ability(AbilityDef::TapForMana(Mana::Colorless))
+            .ability(activated(
+                Cost::parse("{1}"),
+                &[],
+                &[Effect::Animate {
+                    to: Source,
+                    types: TypeSet::of([Artifact, Creature]),
+                    subtypes: SubtypeSet::from_slice(&[assembly_worker]),
+                    power: 2,
+                    toughness: 2,
+                }],
+                "{1}: becomes a 2/2 Assembly-Worker artifact creature until end of turn",
+            ))
+            .text(
+                "{T}: Add {C}.\n{1}: Mishra's Factory becomes a 2/2 Assembly-Worker artifact creature until end of turn. It's still a land.",
+            )
+            .build(),
+    );
+
+    // ---- Equipment (CR 301.5) ----
+    let equip = |cost: &str| {
+        AbilityDef::Activated(ActivatedAbility {
+            cost: Cost::parse(cost),
+            targets: vec![TargetSpec::CreatureYouControl],
+            effects: vec![Effect::Attach { to: Target(0) }],
+            sorcery_speed: true,
+            text: format!("Equip {cost}"),
+        })
+    };
+    pool.add(
+        Builder::new("Bonesplitter", "{1}")
+            .types([Artifact])
+            .subtypes(&["Equipment"])
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::enchanted(),
+                parts: vec![Modification::ModifyPt {
+                    power: 2,
+                    toughness: 0,
+                }],
+            }))
+            .ability(equip("{1}"))
+            .text("Equipped creature gets +2/+0.\nEquip {1}")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Loxodon Warhammer", "{3}")
+            .types([Artifact])
+            .subtypes(&["Equipment"])
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::enchanted(),
+                parts: vec![
+                    Modification::ModifyPt {
+                        power: 3,
+                        toughness: 0,
+                    },
+                    Modification::AddKeywords(KeywordSet::of([
+                        Keyword::Trample,
+                        Keyword::Lifelink,
+                    ])),
+                ],
+            }))
+            .ability(equip("{3}"))
+            .text("Equipped creature gets +3/+0 and has trample and lifelink.\nEquip {3}")
+            .build(),
+    );
+
+    // ---- tokens ----
+    pool.add(
+        Builder::new("Raise the Alarm", "{1}{W}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: Vec::new(),
+                effects: vec![tokens(soldier, 2)],
+            })
+            .text("Create two 1/1 white Soldier creature tokens.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Dragon Fodder", "{1}{R}")
+            .types([Sorcery])
+            .ability(AbilityDef::Spell {
+                targets: Vec::new(),
+                effects: vec![tokens(goblin_token, 2)],
+            })
+            .text("Create two 1/1 red Goblin creature tokens.")
+            .build(),
+    );
+    pool.add(
+        creature("Siege-Gang Commander", "{3}{R}{R}", &["Goblin"], 2, 2)
+            .ability(triggered(
+                TriggerSpec::Enters(TriggerObj::This),
+                None,
+                &[tokens(goblin_token, 3)],
+            ))
+            .ability(activated(
+                Cost::parse("{1}{R}").sacrifice(SacCost::Filter(ObjFilter {
+                    who: Some(Who::You),
+                    subtypes: SubtypeSet::from_slice(&[goblin]),
+                    ..Default::default()
+                })),
+                &[TargetSpec::Any],
+                &[damage(2, Target(0))],
+                "{1}{R}, Sacrifice a Goblin: deal 2 damage to any target",
+            ))
+            .text(
+                "When Siege-Gang Commander enters, create three 1/1 red Goblin creature tokens.\n{1}{R}, Sacrifice a Goblin: Siege-Gang Commander deals 2 damage to any target.",
+            )
+            .build(),
+    );
+    pool.add(
+        Builder::new("Bitterblossom", "{1}{B}")
+            .types([Kindred, Enchantment])
+            .subtypes(&["Faerie"])
+            .ability(triggered(
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Upkeep,
+                    whose: Who::You,
+                },
+                None,
+                &[
+                    Effect::LoseLife { amount: 1, who: You },
+                    tokens(faerie_rogue, 1),
+                ],
+            ))
+            .text(
+                "At the beginning of your upkeep, you lose 1 life and create a 1/1 black Faerie Rogue creature token with flying.",
+            )
+            .build(),
+    );
+    pool.add(
+        creature("Young Pyromancer", "{1}{R}", &["Human", "Shaman"], 2, 1)
+            .ability(triggered(
+                TriggerSpec::CastsSpell {
+                    whose: Who::You,
+                    noncreature: false,
+                    instant_or_sorcery: true,
+                },
+                None,
+                &[tokens(elemental, 1)],
+            ))
+            .text("Whenever you cast an instant or sorcery spell, create a 1/1 red Elemental creature token.")
+            .build(),
+    );
+
+    pool.add(
+        Builder::new("Disenchant", "{1}{W}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::ArtifactOrEnchantment],
+                effects: vec![Effect::Destroy { to: Target(0) }],
+            })
+            .text("Destroy target artifact or enchantment.")
+            .build(),
+    );
+
+    // ---- control (CR 613.1b) ----
+    pool.add(
+        Builder::new("Act of Treason", "{2}{R}")
+            .types([Sorcery])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Creature],
+                effects: vec![
+                    Effect::GainControl { of: Target(0) },
+                    Effect::Untap { to: Target(0) },
+                    Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::Haste]),
+                        to: Target(0),
+                    },
+                ],
+            })
+            .text("Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Control Magic", "{2}{U}{U}")
+            .types([Enchantment])
+            .subtypes(&["Aura"])
+            .ability(AbilityDef::Enchant(TargetSpec::Creature))
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::enchanted(),
+                parts: vec![Modification::Control],
+            }))
+            .text("Enchant creature\nYou control enchanted creature.")
+            .build(),
+    );
+
+    // ---- the legend rule (CR 704.5j) ----
+    pool.add(
+        creature("Isamaru, Hound of Konda", "{W}", &["Dog"], 2, 2)
+            .supertypes([Supertype::Legendary])
             .build(),
     );
 }

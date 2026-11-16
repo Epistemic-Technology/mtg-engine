@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::card::CardRef;
+use crate::card::{AbilityDef, AbilityId, CardRef};
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{GameResult, GameState, Target};
 
@@ -34,6 +34,9 @@ pub enum DecisionKind {
     /// Several replacement or prevention effects apply to one event: the
     /// affected player chooses which applies first (CR 616.1).
     ChooseReplacement,
+    /// A player controls two or more legendary permanents with the same
+    /// name and chooses which to keep (CR 704.5j).
+    LegendRule,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -68,6 +71,22 @@ pub enum Choice {
     Replacement {
         index: usize,
         def: CardRef,
+    },
+    /// Activate an ability of a permanent (CR 602); `sacrifice` is the
+    /// permanent chosen for a "sacrifice a Goblin" cost.
+    Activate {
+        source: ObjId,
+        ability: AbilityId,
+        sacrifice: Option<ObjId>,
+    },
+    /// Keep this legendary permanent; the others with its name go to the
+    /// graveyard (CR 704.5j). Asked in the middle of an action and so
+    /// possibly shown against the state before it: the card and the
+    /// permanent's rank by age (0 = oldest) describe it without the object.
+    KeepLegend {
+        obj: ObjId,
+        def: CardRef,
+        age: usize,
     },
 }
 
@@ -125,6 +144,32 @@ impl Choice {
             }
             Choice::Replacement { def, .. } => {
                 format!("apply {}'s effect", state.pool.get(*def).name)
+            }
+            Choice::Activate {
+                source,
+                ability,
+                sacrifice,
+            } => {
+                let text = match state.pool.ability(*ability) {
+                    AbilityDef::Activated(a) => a.text.as_str(),
+                    _ => "?",
+                };
+                match sacrifice {
+                    Some(s) => format!(
+                        "activate {}: {text} (sacrificing {})",
+                        name(source),
+                        name(s)
+                    ),
+                    None => format!("activate {}: {text}", name(source)),
+                }
+            }
+            Choice::KeepLegend { def, age, .. } => {
+                let name = &state.pool.get(*def).name;
+                if *age == 0 {
+                    format!("keep the oldest {name}")
+                } else {
+                    format!("keep {name} (#{} by age)", age + 1)
+                }
             }
         }
     }

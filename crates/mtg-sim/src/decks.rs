@@ -2,7 +2,7 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 8] = [
+pub const NAMES: [&str; 9] = [
     "mono-white",
     "mono-blue",
     "mono-black",
@@ -11,6 +11,7 @@ pub const NAMES: [&str; 8] = [
     "layers",
     "triggers",
     "replacement",
+    "activated",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -151,6 +152,37 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Savannah Lions", 2),
             ("Lightning Bolt", 2),
             ("Dromoka's Gift", 1),
+        ],
+        // Activated-ability stress deck: every slice 4 card at once (tokens,
+        // Equipment, control changes, the legend rule).
+        "activated" => &[
+            ("Mountain", 7),
+            ("Plains", 5),
+            ("Swamp", 4),
+            ("Island", 3),
+            ("Forest", 2),
+            ("Mishra's Factory", 2),
+            ("Prodigal Sorcerer", 2),
+            ("Llanowar Elves", 2),
+            ("Mogg Fanatic", 3),
+            ("Bottle Gnomes", 2),
+            ("Shivan Dragon", 1),
+            ("Rod of Ruin", 1),
+            ("Pestilence", 1),
+            ("Royal Assassin", 2),
+            ("Icy Manipulator", 1),
+            ("Seal of Fire", 2),
+            ("Bonesplitter", 2),
+            ("Loxodon Warhammer", 1),
+            ("Raise the Alarm", 2),
+            ("Dragon Fodder", 2),
+            ("Siege-Gang Commander", 2),
+            ("Bitterblossom", 1),
+            ("Young Pyromancer", 2),
+            ("Disenchant", 1),
+            ("Act of Treason", 2),
+            ("Control Magic", 2),
+            ("Isamaru, Hound of Konda", 3),
         ],
         _ => return None,
     };

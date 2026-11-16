@@ -151,6 +151,40 @@ pub enum Event {
     PlayerWon {
         player: PlayerId,
     },
+    /// An activated ability of `source` was put on the stack as `obj`, its
+    /// costs paid (CR 602.2).
+    Activated {
+        obj: ObjId,
+        source: ObjId,
+        def: CardRef,
+    },
+    /// A permanent was sacrificed (CR 701.21); the zone change follows.
+    Sacrificed {
+        obj: ObjId,
+        def: CardRef,
+    },
+    /// A token was created (CR 111.2) under `controller`'s control.
+    TokenCreated {
+        obj: ObjId,
+        def: CardRef,
+        controller: PlayerId,
+    },
+    /// Control of a permanent changed (CR 613.1b).
+    ControlChanged {
+        obj: ObjId,
+        from: PlayerId,
+        to: PlayerId,
+    },
+    /// An Equipment became unattached (CR 704.5n).
+    Unattached {
+        obj: ObjId,
+    },
+    /// A legendary permanent was put into its owner's graveyard by the
+    /// legend rule (CR 704.5j).
+    LegendRule {
+        obj: ObjId,
+        def: CardRef,
+    },
     PlayerLost {
         player: PlayerId,
         reason: LossReason,

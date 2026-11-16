@@ -113,6 +113,20 @@ pub enum Action {
     /// `apply "Source"`: when several replacement or prevention effects
     /// apply to one event, apply this source's first (CR 616.1).
     Apply(String),
+    /// `activate "Source" [sacrificing "X"] [targeting ...]`: activate an
+    /// ability of a permanent the player controls (CR 602).
+    Activate {
+        source: String,
+        sacrifice: Option<String>,
+        targets: Vec<TargetRef>,
+    },
+    /// `keep oldest|newest "Name"`: under the legend rule (CR 704.5j), keep
+    /// the oldest or newest of the player's legendary permanents of that
+    /// name.
+    Keep {
+        name: String,
+        newest: bool,
+    },
 }
 
 impl Action {
@@ -126,6 +140,8 @@ impl Action {
             Action::Discard(_) => "discard",
             Action::Trigger { .. } => "trigger",
             Action::Apply(_) => "apply",
+            Action::Activate { .. } => "activate",
+            Action::Keep { .. } => "keep",
         }
     }
 }

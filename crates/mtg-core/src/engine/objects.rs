@@ -181,14 +181,31 @@ impl GameState {
             l.moved_to = Some(new);
         }
         let def = self.pool.get(old.def);
-        let (triggers, replacements) = (def.has_triggers(), def.has_replacements());
+        let (triggers, replacements, control, legendary, activated) = (
+            def.has_triggers(),
+            def.has_replacements(),
+            def.has_control_static(),
+            def.is_legendary(),
+            def.has_activated(),
+        );
         if old.zone == Zone::Battlefield {
+            // CR 506.4: a permanent that leaves the battlefield leaves combat.
+            self.remove_from_combat(id);
             self.trigger_sources -= u32::from(triggers);
             self.replacement_sources -= u32::from(replacements);
+            self.control_sources -= u32::from(control);
+            self.legendary_count -= u32::from(legendary);
+            self.activated_sources -= u32::from(activated);
+            // Whatever it controlled goes back (CR 611.2c does not apply to
+            // static abilities).
+            self.control_dirty |= control;
         }
         if to == Zone::Battlefield {
             self.trigger_sources += u32::from(triggers);
             self.replacement_sources += u32::from(replacements);
+            self.control_sources += u32::from(control);
+            self.legendary_count += u32::from(legendary);
+            self.activated_sources += u32::from(activated);
         }
         match to {
             Zone::Battlefield => self.battlefield.push(new),
@@ -213,6 +230,34 @@ impl GameState {
             to,
         });
         new
+    }
+
+    /// CR 111.2: create a token under `controller`'s control. The token is
+    /// made in the command zone and put onto the battlefield through the
+    /// pipeline, so "enters" effects and triggers see it.
+    pub(super) fn create_token(&mut self, def: CardRef, controller: PlayerId) -> ObjId {
+        let id = self.new_object(def, controller, Zone::Command);
+        self.objects[id].kind = ObjKind::Token;
+        let new = self.put_onto_battlefield(id, controller);
+        self.emit(Event::TokenCreated {
+            obj: new,
+            def,
+            controller,
+        });
+        new
+    }
+
+    /// CR 701.21: sacrifice a permanent. Indestructible does not matter.
+    pub(super) fn sacrifice(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        if o.zone != Zone::Battlefield {
+            return;
+        }
+        let def = o.def;
+        self.emit(Event::Sacrificed { obj: id, def });
+        self.move_object(id, Zone::Graveyard, true);
     }
 
     pub(super) fn shuffle_library(&mut self, p: PlayerId) {

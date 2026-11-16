@@ -4,6 +4,7 @@
 
 mod casting;
 mod combat;
+mod control;
 mod objects;
 mod replace;
 mod sba;
@@ -202,6 +203,9 @@ impl Engine {
                 let def = state.pool.get(perm.def);
                 state.trigger_sources += u32::from(def.has_triggers());
                 state.replacement_sources += u32::from(def.has_replacements());
+                state.control_sources += u32::from(def.has_control_static());
+                state.legendary_count += u32::from(def.is_legendary());
+                state.activated_sources += u32::from(def.has_activated());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -390,6 +394,11 @@ impl GameState {
             replacements: Vec::new(),
             rules: Vec::new(),
             replacement_sources: 0,
+            control_sources: 0,
+            control_effects: 0,
+            control_dirty: false,
+            legendary_count: 0,
+            activated_sources: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
@@ -483,7 +492,11 @@ impl GameState {
                         options,
                     });
                 }
-                Flow::Casting { spell, next_target } => {
+                Flow::Casting {
+                    spell,
+                    next_target,
+                    sacrifice,
+                } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
                         continue;
@@ -493,8 +506,9 @@ impl GameState {
                     let specs: Vec<TargetSpec> = self.targets_of(spell).to_vec();
                     if next_target >= specs.len() {
                         if is_ability {
-                            // Targets chosen; the ability is on the stack.
-                            self.flow = Flow::Priority;
+                            // Targets chosen: an activated ability pays its
+                            // costs; a triggered one is already on the stack.
+                            self.finish_ability_targets(spell, sacrifice);
                         } else {
                             self.finish_cast(spell);
                         }
@@ -799,13 +813,32 @@ impl GameState {
                 self.flow = Flow::Casting {
                     spell,
                     next_target: 0,
+                    sacrifice: None,
                 };
             }
-            (Flow::Casting { spell, next_target }, Choice::Target(t)) => {
+            (
+                Flow::Priority,
+                Choice::Activate {
+                    source,
+                    ability,
+                    sacrifice,
+                },
+            ) => {
+                self.activate(player, source, ability, sacrifice);
+            }
+            (
+                Flow::Casting {
+                    spell,
+                    next_target,
+                    sacrifice,
+                },
+                Choice::Target(t),
+            ) => {
                 self.objects[spell].targets.push(t);
                 self.flow = Flow::Casting {
                     spell,
                     next_target: next_target + 1,
+                    sacrifice,
                 };
             }
             (Flow::DeclareAttackers { .. }, Choice::Attackers(set)) => {
@@ -1021,6 +1054,20 @@ impl GameState {
             self.emit(Event::EffectEnded { affected });
         }
         self.bump();
+        // Control effects that ended: permanents go back to their owners
+        // (or to whatever effect still applies).
+        let control_left = u32::try_from(
+            self.effects
+                .iter()
+                .filter(|e| e.parts.contains(&crate::card::Modification::Control))
+                .count(),
+        )
+        .unwrap_or(u32::MAX);
+        if control_left != self.control_effects {
+            self.control_effects = control_left;
+            self.control_dirty = true;
+        }
+        self.sync_control();
         let acted = self.sba_loop();
         if acted || !self.pending_triggers.is_empty() {
             // CR 514.3a: players get priority, then another cleanup step.

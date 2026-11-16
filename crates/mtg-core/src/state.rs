@@ -246,6 +246,10 @@ pub enum Affected {
 #[derive(Clone, Debug)]
 pub struct ContinuousEffect {
     pub source: Option<ObjId>,
+    /// The player who controlled the spell or ability that created it
+    /// (CR 611.2: the effect's controller), for "you" filters and control
+    /// changes.
+    pub controller: PlayerId,
     pub timestamp: Timestamp,
     pub duration: Duration,
     pub affected: Affected,
@@ -392,10 +396,13 @@ pub enum Flow {
     BeginStep,
     /// `priority` holds priority and must act.
     Priority,
-    /// Choosing targets for a spell being cast (CR 601.2c).
+    /// Choosing targets for a spell being cast (CR 601.2c) or an ability
+    /// being activated (CR 602.2b); `sacrifice` is the permanent chosen for
+    /// a "sacrifice a Goblin" cost, paid once targets are chosen.
     Casting {
         spell: ObjId,
         next_target: usize,
+        sacrifice: Option<ObjId>,
     },
     DeclareAttackers {
         chosen: Vec<ObjId>,
@@ -453,6 +460,20 @@ pub struct GameState {
     /// Battlefield objects whose definition has a replacement or
     /// prevention ability, so that events on plain boards cost nothing.
     pub replacement_sources: u32,
+    /// Battlefield objects whose definition has a control-changing static
+    /// ability (Control Magic), and stored effects with a control part;
+    /// `sync_control` does nothing while both are zero.
+    pub control_sources: u32,
+    pub control_effects: u32,
+    /// A control source or effect just went away: the next `sync_control`
+    /// must run even though the counts say nothing applies.
+    pub control_dirty: bool,
+    /// Legendary permanents on the battlefield, for the legend rule's
+    /// snapshot gate (see `may_need_mid_decision`).
+    pub legendary_count: u32,
+    /// Battlefield objects whose definition has an activated ability, so
+    /// that listing a player's options costs nothing extra without any.
+    pub activated_sources: u32,
     pub mid: MidDecision,
     pub lki: HashMap<ObjId, LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
@@ -584,11 +605,20 @@ impl GameState {
         self.rules.iter().any(|r| r.kind == kind)
     }
 
-    /// Whether applying an event could ask a player to choose among
-    /// replacement effects (CR 616.1): two or more effects must exist. The
+    /// Whether applying an action could ask a player a question in the
+    /// middle of an event: which of several replacement effects applies
+    /// first (CR 616.1; two or more effects must exist), or which legendary
+    /// permanent to keep under the legend rule (CR 704.5j; two legendary
+    /// permanents, or one and a legendary spell about to resolve). The
     /// `Engine` snapshots the state before an action when this holds.
     pub fn may_need_mid_decision(&self) -> bool {
         self.replacement_sources as usize + self.replacements.len() >= 2
+            || self.legendary_count >= 2
+            || (self.legendary_count == 1
+                && self
+                    .stack
+                    .iter()
+                    .any(|id| self.pool.get(self.objects[*id].def).is_legendary()))
     }
 
     /// Current characteristics of an object, computed through the layers
@@ -628,8 +658,10 @@ impl GameState {
             .expect("definitions in a pool have printed characteristics")
     }
 
-    /// Whether an Aura with `spec` may be attached to `target` (CR 303.4c).
-    /// Unlike targeting, hexproof does not matter here.
+    /// Whether an Aura with enchant `spec`, or an Equipment (CR 301.5c,
+    /// `TargetSpec::Creature`), may be attached to `target` (CR 303.4c,
+    /// 704.5n). Unlike targeting, hexproof and the "you control" of equip
+    /// do not matter here.
     pub fn is_legal_attachment(&self, spec: TargetSpec, target: ObjId) -> bool {
         let Some(obj) = self.objects.get(target) else {
             return false;
@@ -641,7 +673,16 @@ impl GameState {
             return false;
         };
         match spec {
-            TargetSpec::Any | TargetSpec::Creature => c.is_creature(),
+            TargetSpec::Any | TargetSpec::Creature | TargetSpec::CreatureYouControl => {
+                c.is_creature()
+            }
+            TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
+            TargetSpec::ArtifactCreatureOrLand => {
+                c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
+            }
+            TargetSpec::ArtifactOrEnchantment => {
+                c.types.contains(CardType::Artifact) || c.types.contains(CardType::Enchantment)
+            }
             TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => false,
         }
     }
@@ -702,6 +743,15 @@ impl GameState {
                 };
                 let type_ok = match spec {
                     TargetSpec::Any | TargetSpec::Creature => c.is_creature(),
+                    TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
+                    TargetSpec::CreatureYouControl => c.is_creature() && obj.controller == caster,
+                    TargetSpec::ArtifactCreatureOrLand => {
+                        c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
+                    }
+                    TargetSpec::ArtifactOrEnchantment => {
+                        c.types.contains(CardType::Artifact)
+                            || c.types.contains(CardType::Enchantment)
+                    }
                     TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => false,
                 };
                 let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);

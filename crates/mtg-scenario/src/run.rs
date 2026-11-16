@@ -356,7 +356,43 @@ impl Runner {
             DecisionKind::Discard => self.discard(d, pos),
             DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
+            DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
         }
+    }
+
+    /// The legend rule asks which permanent to keep: the first unfired
+    /// scripted `keep` naming them decides; otherwise the oldest (the
+    /// engine's first option).
+    fn keep_legend(&mut self, d: &Decision, pos: Position) -> ChoiceId {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Keep { .. }));
+        for i in idxs {
+            let Action::Keep { name, newest } = &self.actions[i].action else {
+                unreachable!()
+            };
+            // The state shown is the one before the action (the question is
+            // asked mid-event), so judge by the card, and by the order the
+            // engine lists them in (oldest first).
+            let found: Vec<usize> = d
+                .options
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| {
+                    matches!(c, Choice::KeepLegend { def, .. } if self.state().pool.get(*def).name == *name)
+                })
+                .map(|(k, _)| k)
+                .collect();
+            if found.is_empty() {
+                continue;
+            }
+            self.fired[i] = true;
+            let pick = if *newest {
+                found[found.len() - 1]
+            } else {
+                found[0]
+            };
+            return idx_u32(pick);
+        }
+        0
     }
 
     /// Several replacement effects apply to one event: the first unfired
@@ -449,7 +485,7 @@ impl Runner {
                 return Ok(0);
             }
         }
-        let line = self.current_trigger_line();
+        let line = self.current_ability_line();
         let targets = self.pending_targets.clone().unwrap_or_default();
         if index + 1 >= targets.len() {
             // Last target of this ability: the next ability starts afresh.
@@ -477,11 +513,13 @@ impl Runner {
     }
 
     /// Line of the most recently fired `trigger`, for target errors.
-    fn current_trigger_line(&self) -> usize {
+    fn current_ability_line(&self) -> usize {
         self.actions
             .iter()
             .zip(&self.fired)
-            .filter(|(a, f)| **f && matches!(a.action, Action::Trigger { .. }))
+            .filter(|(a, f)| {
+                **f && matches!(a.action, Action::Trigger { .. } | Action::Activate { .. })
+            })
             .map(|(a, _)| a.line)
             .next_back()
             .unwrap_or(0)
@@ -496,7 +534,7 @@ impl Runner {
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
         let candidates = self.matching(d.player, pos, false, |a| match a {
-            Action::Play(_) => true,
+            Action::Play(_) | Action::Activate { .. } => true,
             Action::Cast { respond_to, .. } => {
                 respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
             }
@@ -504,6 +542,17 @@ impl Runner {
         });
         for i in candidates {
             let a = self.actions[i].clone();
+            if let Action::Activate {
+                source,
+                sacrifice,
+                targets,
+            } = &a.action
+            {
+                match self.activation(d, &a, source, sacrifice.as_deref(), targets)? {
+                    Some(idx) => return Ok(idx),
+                    None => continue,
+                }
+            }
             let (name, option, targets) = match &a.action {
                 Action::Play(name) => {
                     let id = self.in_hand(a.line, d.player, name)?;
@@ -577,6 +626,95 @@ impl Runner {
             }
         }
         index_of(d, &Choice::Pass).ok_or_else(|| self.unexpected(d, "no Pass option"))
+    }
+
+    /// A scripted `activate`: the option activating an ability of the named
+    /// permanent (with the named sacrifice, if any). `Ok(None)` means the
+    /// action did not fire this time (illegal as required, or waiting for
+    /// an empty stack).
+    fn activation(
+        &mut self,
+        d: &Decision,
+        a: &ScriptedAction,
+        source: &str,
+        sacrifice: Option<&str>,
+        targets: &[TargetRef],
+    ) -> Res<Option<ChoiceId>> {
+        let found = {
+            let st = self.state();
+            d.options.iter().position(|c| match c {
+                Choice::Activate {
+                    source: s,
+                    sacrifice: sac,
+                    ..
+                } => {
+                    st.objects[*s].controller == d.player
+                        && st.name_of(*s) == source
+                        && match (sacrifice, sac) {
+                            (Some(want), Some(have)) => st.name_of(*have) == want,
+                            (None, _) => true,
+                            (Some(_), None) => false,
+                        }
+                }
+                _ => false,
+            })
+        };
+        let stack_empty = self.state().stack.is_empty();
+        let step = self.state().step;
+        let i = self
+            .actions
+            .iter()
+            .position(|x| x.line == a.line)
+            .expect("action exists");
+        match (a.illegal, found) {
+            (true, Some(_)) => fail(
+                a.line,
+                format!(
+                    "activating \"{source}\" was legal for {} but the scenario says it must not be",
+                    player_name(d.player)
+                ),
+            ),
+            (true, None) => {
+                self.fired[i] = true;
+                Ok(None)
+            }
+            (false, None) => {
+                // A sorcery-speed ability waits for an empty stack.
+                if !stack_empty {
+                    return Ok(None);
+                }
+                fail(
+                    a.line,
+                    format!(
+                        "activating \"{source}\" is not legal for {} at turn {} {}; legal options: {}",
+                        player_name(d.player),
+                        a.turn,
+                        step_name(step),
+                        self.describe_options(d)
+                    ),
+                )
+            }
+            (false, Some(idx)) => {
+                self.fired[i] = true;
+                let Choice::Activate { ability, .. } = &d.options[idx] else {
+                    unreachable!()
+                };
+                let needed = self.state().pool.ability(*ability).targets().len();
+                if targets.len() != needed {
+                    return fail(
+                        a.line,
+                        format!(
+                            "\"{source}\"'s ability takes {needed} target(s) but {} were scripted",
+                            targets.len()
+                        ),
+                    );
+                }
+                if needed > 0 {
+                    self.pending_targets = Some(targets.to_vec());
+                }
+                Ok(Some(idx_u32(idx)))
+            }
+        }
     }
 
     fn choose_target(&mut self, d: &Decision, index: usize) -> Res<ChoiceId> {
@@ -1132,7 +1270,11 @@ impl Runner {
                     c.colors.contains(col)
                 } else if lower == "colorless" {
                     c.colors.is_colorless()
-                } else if let Some(sub) = st.pool.subtype_lookup(&capitalize(&lower)) {
+                } else if let Some(sub) = st
+                    .pool
+                    .subtype_lookup(what)
+                    .or_else(|| st.pool.subtype_lookup(&capitalize(&lower)))
+                {
                     c.has_subtype(sub)
                 } else {
                     return fail(line, format!("unknown type, subtype, or color `{what}`"));
@@ -1276,6 +1418,19 @@ impl Runner {
             ),
             Choice::Replacement { def, .. } => {
                 format!("apply \"{}\"", self.state().pool.get(*def).name)
+            }
+            Choice::Activate {
+                source, sacrifice, ..
+            } => match sacrifice {
+                Some(s) => format!(
+                    "activate {} sacrificing {}",
+                    self.describe_ids(&[*source]),
+                    self.describe_ids(&[*s])
+                ),
+                None => format!("activate {}", self.describe_ids(&[*source])),
+            },
+            Choice::KeepLegend { def, age, .. } => {
+                format!("keep \"{}\" #{}", self.state().pool.get(*def).name, age + 1)
             }
         }
     }

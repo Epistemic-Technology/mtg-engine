@@ -1,8 +1,11 @@
 //! State-based actions (CR 704) and the game-over check.
 
-use crate::card::CounterKind;
+use std::collections::HashMap;
+
+use crate::card::{CardRef, CounterKind, TargetSpec};
+use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
-use crate::ids::PlayerId;
+use crate::ids::{ObjId, PlayerId};
 use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, ObjKind, Zone};
 
 impl GameState {
@@ -10,9 +13,13 @@ impl GameState {
 
     /// CR 704.3: perform all applicable state-based actions simultaneously,
     /// repeating until none apply. Returns whether any were performed.
+    #[allow(clippy::too_many_lines)] // one block per state-based action
     pub(super) fn sba_loop(&mut self) -> bool {
         let mut any = false;
         loop {
+            // Control-changing effects are continuous (CR 611.1); their
+            // consequences are settled before anything else is checked.
+            self.sync_control();
             let mut acted = false;
             // 704.5a, 704.5b
             for i in 0..self.num_players() {
@@ -40,6 +47,7 @@ impl GameState {
             let mut to_destroy = Vec::new();
             let mut tokens_gone = Vec::new();
             let mut annihilate = Vec::new();
+            let mut unattach = Vec::new();
             for id in self.objects.keys().collect::<Vec<_>>() {
                 let o = &self.objects[id];
                 if o.kind == ObjKind::Token && o.zone != Zone::Battlefield {
@@ -65,6 +73,14 @@ impl GameState {
                     to_graveyard.push(id);
                     continue;
                 }
+                // 704.5n: an Equipment attached to something it cannot
+                // equip becomes unattached.
+                if self.pool.get(o.def).is_equipment()
+                    && o.attached_to
+                        .is_some_and(|t| !self.is_legal_attachment(TargetSpec::Creature, t))
+                {
+                    unattach.push(id);
+                }
                 let Some(c) = self.characteristics(id) else {
                     continue;
                 };
@@ -78,15 +94,28 @@ impl GameState {
                     to_destroy.push(id);
                 }
             }
+            // 704.5j: the legend rule.
+            let legends_gone = self.legend_rule_victims();
             for id in tokens_gone {
                 self.remove_from_zone_list(id);
                 self.objects.remove(id);
                 acted = true;
             }
+            for id in unattach {
+                self.objects[id].attached_to = None;
+                self.bump();
+                self.emit(Event::Unattached { obj: id });
+                acted = true;
+            }
             // The zone changes below are simultaneous: leaves-the-battlefield
             // triggers see the battlefield as it is now (CR 603.10a).
-            if !to_graveyard.is_empty() || !to_destroy.is_empty() {
+            if !to_graveyard.is_empty() || !to_destroy.is_empty() || !legends_gone.is_empty() {
                 self.lookback = Some(self.snapshot_battlefield());
+            }
+            for (id, def) in legends_gone {
+                self.emit(Event::LegendRule { obj: id, def });
+                self.move_object(id, Zone::Graveyard, true);
+                acted = true;
             }
             for (id, n) in annihilate {
                 let o = &mut self.objects[id];
@@ -116,6 +145,48 @@ impl GameState {
             any = true;
         }
         any
+    }
+
+    /// CR 704.5j: for each player controlling two or more legendary
+    /// permanents with the same name, that player chooses one to keep; the
+    /// rest are returned, to go to their owners' graveyards.
+    fn legend_rule_victims(&mut self) -> Vec<(ObjId, CardRef)> {
+        if self.legendary_count < 2 {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        for i in 0..self.num_players() {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            let mut by_name: HashMap<&str, Vec<ObjId>> = HashMap::new();
+            for id in self.permanents_of(p) {
+                let def = self.pool.get(self.objects[id].def);
+                if def.is_legendary() {
+                    by_name.entry(def.name.as_str()).or_default().push(id);
+                }
+            }
+            let mut groups: Vec<Vec<ObjId>> =
+                by_name.into_values().filter(|g| g.len() >= 2).collect();
+            // Deterministic order for the questions.
+            groups.sort_by_key(|g| self.objects[g[0]].timestamp);
+            for group in groups {
+                let options = group
+                    .iter()
+                    .enumerate()
+                    .map(|(age, id)| Choice::KeepLegend {
+                        obj: *id,
+                        def: self.objects[*id].def,
+                        age,
+                    })
+                    .collect();
+                let keep = self.choose_mid(p, DecisionKind::LegendRule, options);
+                for (k, id) in group.into_iter().enumerate() {
+                    if k != keep {
+                        out.push((id, self.objects[id].def));
+                    }
+                }
+            }
+        }
+        out
     }
 
     /// The battlefield as it is now, for look-back trigger detection.

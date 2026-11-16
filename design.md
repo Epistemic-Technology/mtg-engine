@@ -232,6 +232,16 @@ Effects from resolving spells lock their affected set at resolution
 recomputation (CR 611.3). Both are first-class so the distinction is in
 the data, not in special cases.
 
+Control (layer 2) is the one layer not derived into `Characteristics`:
+the rest of the engine reads `GameObject::controller` directly, so
+`sync_control` (M2 slice 4) writes layer 2 into that field from the owner
+plus every control-changing effect in timestamp order. It runs when such
+an effect is created, when "until end of turn" effects end, and before
+each state-based-action check, and is gated to nothing by counts of
+control sources and effects on boards without any. A permanent whose
+controller changes leaves combat (CR 506.4) and loses "controlled since
+the turn began" (CR 302.6).
+
 ### 4.5 Event pipeline
 
 ```rust
@@ -772,6 +782,24 @@ than one run. Same method on the slice 2 binary: mono-red vs mono-red
 | replacement vs mono-red | 852 | |
 | replacement vs replacement (every replacement card at once) | 487 | 518 decisions/game; snapshots on most steps |
 
+**M2 slice 4 (2026-11-15, same method as slice 3, measured against the
+slice 3 binary built the same evening).** Enumerating activated abilities
+at every priority decision first cost 4–6% on effect-free boards (the
+stub build without it ran faster than slice 3); gating the enumeration
+and the mana-source ordering behind a maintained count of permanents
+with activated abilities brought the cost back to noise.
+
+| Matchup | games/s/core | slice 3 binary | Note |
+|---|---|---|---|
+| mono-red vs mono-red (no effects) | 2,595 | 2,606 | −0.4% |
+| mono-green vs mono-green (counters) | 1,840 | 1,853 | |
+| mono-white vs mono-black (anthems, auras) | 808 | | |
+| layers vs layers | 736 | | |
+| triggers vs triggers | 344 | 348 | |
+| replacement vs replacement | 487 | 495 | |
+| activated vs mono-red | 933 | | |
+| activated vs activated (every slice 4 card at once) | 267 | | 1,023 decisions/game; tokens, Equipment, Pestilence |
+
 The effect-free cost was chased with stub builds: removing the pipeline
 gate entirely, or the engine's snapshot bookkeeping, each recovered under
 1%, so most of the 3.7% is code layout (the crate grew by 700 lines under
@@ -1017,6 +1045,56 @@ file and wants splitting.
 
 **M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
 
+Status 2026-11-15, slice 4 (activated abilities, tokens, Equipment,
+control changes, the legend rule) done. Activated abilities (CR 602) are
+`AbilityDef::Activated` with a `Cost` of mana, {T}, and an optional
+sacrifice ("sacrifice ~" or "sacrifice a Goblin", the latter offered once
+per permanent that could be sacrificed, so the option list stays
+exhaustive); they are announced like spells, choose targets through the
+same `Flow::Casting`, then pay costs (source tapped first so it is not
+also tapped for mana, sacrifices last) and resolve through the same path
+as triggered abilities. A creature's {T} abilities and mana abilities
+respect summoning sickness (CR 302.6). Tokens (CR 111) are definitions
+flagged `token`, created in the command zone and put onto the battlefield
+through the pipeline so "enters" effects and triggers see them; the
+existing SBA removes them from other zones. Equipment (CR 301.5) reuses
+the attachment machinery of Auras with equip as a sorcery-speed activated
+ability and CR 704.5n unattaching instead of 704.5m's graveyard. Control
+(layer 2) is written into `GameObject::controller` by `sync_control`
+(§4.4) from "until end of turn" effects (Act of Treason) and static
+abilities (Control Magic), with Glorious Anthem following the stolen
+creature. The legend rule (CR 704.5j) is a state-based action that asks
+its question through the mid-event mechanism of slice 3; its options carry
+the card and the permanent's rank by age because the state shown is the
+one before the action. Twenty-two cards and four token definitions join
+the pool (Prodigal Sorcerer, Llanowar Elves, Mogg Fanatic, Bottle Gnomes,
+Shivan Dragon, Rod of Ruin, Pestilence, Royal Assassin, Icy Manipulator,
+Seal of Fire, Mishra's Factory, Bonesplitter, Loxodon Warhammer, Raise
+the Alarm, Dragon Fodder, Siege-Gang Commander, Bitterblossom, Young
+Pyromancer, Disenchant, Act of Treason, Control Magic, Isamaru, Hound of
+Konda), bringing it to 104. The scenario DSL gained `activate` (with
+`sacrificing` and `targeting`) and `keep oldest|newest`. The 56-scenario
+suite in `scenarios/m2/activated.scn` covers Mogg Fanatic dying to its
+own cost before Blood Artist's trigger, an ability resolving after its
+source is Shocked away, Pestilence's intervening "if" at the end step, a
+Mishra's Factory animated under Humility being 2/2 (and 1/1 when Humility
+comes later), Equipment surviving its creature, tokens vanishing from the
+graveyard but still seen by dies triggers, a stolen legend meeting the
+legend rule from both choices, and Disenchant on Control Magic giving the
+creature back. Authoring found no bugs in the slice's rules code; it
+found that the canonical payment plan tapped Mishra's Factory to pay for
+its own animation (plain lands are now tapped first), that the
+legend-rule choice named objects that did not exist in the rolled-back
+state (fixed by making the choice self-describing), and a latent greedy-
+agent crash on attackers that had left the battlefield (CR 506.4 removal
+from combat is now done by the engine too). Fuzz: 11,000 release games
+on the new deck with random and greedy agents and 500 debug-assert games,
+0 panics; records with legend-rule decisions replay identically. Not yet:
+copy effects, CDAs, delayed triggers, planeswalkers, emblems, "you may"
+and modal choices, costs other than mana/{T}/sacrifice, X costs, the CR
+614.12 look-ahead, and incremental characteristics recomputation (slice
+5).
+
 Status 2026-11-15, slice 3 (replacement and prevention effects) done:
 `mtg-core/src/engine/replace.rs` implements CR 614–616 as stage 1 of the
 pipeline described in §4.5: damage, life gain, draws, zone changes, and
@@ -1046,7 +1124,8 @@ decisions replay identically. Not yet: the CR 614.12 look-ahead for
 "enters" effects under Humility, redirection and regeneration, CR 615.7's
 choice of which simultaneous damage a shield prevents, activated
 abilities, delayed triggers, copy effects, CDAs, control-changing
-effects, tokens, planeswalkers, emblems, the legend rule (slice 4).
+effects, tokens, planeswalkers, emblems, the legend rule (slice 4, see
+above).
 
 Status 2026-11-15, slice 2 (triggered abilities and the event pipeline)
 done: `mtg-core/src/engine/triggers.rs` implements CR 603 as described in

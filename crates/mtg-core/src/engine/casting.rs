@@ -2,17 +2,17 @@
 
 use smallvec::SmallVec;
 
-use crate::card::Modification;
 use crate::card::{
-    AbilityDef, Affects, Effect, Keyword, Recipient, Replacement, Replaces, TargetSpec,
+    AbilityDef, AbilityId, Affects, Effect, Keyword, Modification, PtValue, Recipient, Replacement,
+    Replaces, SacCost, TargetSpec,
 };
 use crate::decision::Choice;
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
 use crate::state::{
-    Affected, ContinuousEffect, Duration, GameState, ObjKind, ReplacementEffect, RuleEffect,
-    Target, Zone,
+    Affected, ContinuousEffect, Duration, GameObject, GameState, ObjKind, ReplacementEffect,
+    RuleEffect, StackAbility, Target, Zone,
 };
 
 impl GameState {
@@ -48,8 +48,174 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        self.activation_options(p, sorcery_timing, &sources, &mut options);
         options.push(Choice::Pass);
         options
+    }
+
+    /// CR 602: activated abilities of permanents `p` controls whose costs
+    /// can be paid and whose targets exist. An ability with a "sacrifice a
+    /// Goblin" cost is offered once per permanent that could be sacrificed.
+    fn activation_options(
+        &self,
+        p: PlayerId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        options: &mut Vec<Choice>,
+    ) {
+        if self.activated_sources == 0 {
+            return;
+        }
+        let pool = self.player(p).mana_pool;
+        for id in self.permanents_of(p) {
+            let o = &self.objects[id];
+            if !self.pool.get(o.def).has_activated() {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            let sick = c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste);
+            for a in &c.abilities {
+                let AbilityDef::Activated(ab) = self.pool.ability(*a) else {
+                    continue;
+                };
+                if ab.sorcery_speed && !sorcery_timing {
+                    continue;
+                }
+                // CR 302.6: a creature's {T} needs it to have been controlled
+                // since the turn began.
+                if ab.cost.tap && (o.tapped || sick) {
+                    continue;
+                }
+                // A source tapped as a cost cannot also tap for mana.
+                let payable = if ab.cost.tap {
+                    let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
+                    payment_plan_from(&rest, &pool, &ab.cost.mana.requirements(0)).is_some()
+                } else {
+                    payment_plan_from(sources, &pool, &ab.cost.mana.requirements(0)).is_some()
+                };
+                if !payable {
+                    continue;
+                }
+                if !ab
+                    .targets
+                    .iter()
+                    .all(|s| !self.legal_targets(p, *s).is_empty())
+                {
+                    continue;
+                }
+                match &ab.cost.sacrifice {
+                    None | Some(SacCost::This) => options.push(Choice::Activate {
+                        source: id,
+                        ability: *a,
+                        sacrifice: None,
+                    }),
+                    Some(SacCost::Filter(f)) => {
+                        for s in self.permanents_of(p) {
+                            let sc = &self.objects[s];
+                            let ok = self.characteristics(s).is_some_and(|c| {
+                                f.matches(s, sc.controller, &c, Some(id), Some(p))
+                            });
+                            if ok {
+                                options.push(Choice::Activate {
+                                    source: id,
+                                    ability: *a,
+                                    sacrifice: Some(s),
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// CR 602.2a: announce an activated ability; it goes on the stack and
+    /// its targets are chosen next (`Flow::Casting`), then costs are paid
+    /// (`finish_activation`).
+    pub(super) fn activate(
+        &mut self,
+        player: PlayerId,
+        source: ObjId,
+        ability: AbilityId,
+        sacrifice: Option<ObjId>,
+    ) {
+        self.consecutive_passes = 0;
+        let def = self.objects[source].def;
+        let timestamp = self.tick();
+        let obj = self.objects.insert(GameObject {
+            def,
+            kind: ObjKind::Ability,
+            owner: player,
+            controller: player,
+            zone: Zone::Stack,
+            tapped: false,
+            damage: 0,
+            deathtouch_damage: false,
+            controlled_since_turn_start: false,
+            timestamp,
+            targets: SmallVec::new(),
+            counters: SmallVec::new(),
+            attached_to: None,
+            ability: Some(StackAbility {
+                ability,
+                source,
+                trigger_obj: None,
+                trigger_player: None,
+            }),
+        });
+        self.stack.push(obj);
+        self.bump();
+        self.flow = crate::state::Flow::Casting {
+            spell: obj,
+            next_target: 0,
+            sacrifice,
+        };
+    }
+
+    /// An ability object on the stack has its targets. An activated ability
+    /// now pays its costs; a triggered one is done.
+    pub(super) fn finish_ability_targets(&mut self, obj: ObjId, sacrifice: Option<ObjId>) {
+        let activated = self.objects[obj]
+            .ability
+            .is_some_and(|sa| matches!(self.pool.ability(sa.ability), AbilityDef::Activated(_)));
+        if activated {
+            self.finish_activation(obj, sacrifice);
+        } else {
+            self.flow = crate::state::Flow::Priority;
+        }
+    }
+
+    /// CR 602.2b, 601.2g–h: pay the ability's costs. The source is tapped
+    /// first so that it is not also tapped for mana; sacrifices come last,
+    /// so a "sacrifice ~" source is still there to be tapped.
+    fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>) {
+        let o = &self.objects[obj];
+        let (controller, def) = (o.controller, o.def);
+        let sa = o.ability.expect("ability object");
+        let AbilityDef::Activated(ab) = self.pool.ability(sa.ability).clone() else {
+            unreachable!("checked by finish_ability_targets");
+        };
+        if ab.cost.tap {
+            self.tap(sa.source);
+        }
+        self.pay(controller, &ab.cost.mana.requirements(0));
+        match ab.cost.sacrifice {
+            Some(SacCost::This) => self.sacrifice(sa.source),
+            Some(SacCost::Filter(_)) => {
+                if let Some(s) = sacrifice {
+                    self.sacrifice(s);
+                }
+            }
+            None => {}
+        }
+        self.emit(Event::Activated {
+            obj,
+            source: sa.source,
+            def,
+        });
+        self.give_priority(controller);
     }
 
     pub(super) fn legal_targets(&self, caster: PlayerId, spec: TargetSpec) -> Vec<Target> {
@@ -76,26 +242,40 @@ impl GameState {
     /// turned into a Mountain taps for red.
     pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
         let mut out = Sources::new();
+        // Sources with other uses (creatures, permanents with activated
+        // abilities such as Mishra's Factory) are listed last so that the
+        // canonical payment plan taps plain lands first.
+        let mut later = Sources::new();
         for id in self.permanents_of(p) {
-            if self.objects[id].tapped {
+            let o = &self.objects[id];
+            if o.tapped {
                 continue;
             }
             let Some(c) = self.characteristics(id) else {
                 continue;
             };
+            // CR 302.6: a creature's {T} abilities, mana abilities included,
+            // need it to have been controlled since the turn began.
+            if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
+                continue;
+            }
+            let other_use = c.is_creature()
+                || (self.activated_sources > 0 && self.pool.get(o.def).has_activated());
+            let list = if other_use { &mut later } else { &mut out };
             if c.is_land() {
                 for s in &c.subtypes {
                     if let Some(color) = s.basic_color() {
-                        out.push((id, Mana::Colored(color)));
+                        list.push((id, Mana::Colored(color)));
                     }
                 }
             }
             for a in &c.abilities {
                 if let AbilityDef::TapForMana(m) = self.pool.ability(*a) {
-                    out.push((id, *m));
+                    list.push((id, *m));
                 }
             }
         }
+        out.extend(later);
         out
     }
 
@@ -268,8 +448,37 @@ impl GameState {
                 // attacking is the only opponent in a two-player game.
                 out.push(attacked.unwrap_or(Target::Player(self.opponent(ctx.controller))));
             }
+            Recipient::EachCreature => {
+                out.extend(
+                    self.battlefield
+                        .iter()
+                        .copied()
+                        .filter(|id| self.is_creature_on_battlefield(*id))
+                        .map(Target::Object),
+                );
+            }
+            Recipient::EachPlayer => out.extend(self.players_in_game().map(Target::Player)),
         }
         out
+    }
+
+    /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
+    fn effect_until_end_of_turn(
+        &mut self,
+        ctx: &EffectCtx,
+        id: ObjId,
+        parts: SmallVec<[Modification; 2]>,
+    ) {
+        let timestamp = self.tick();
+        self.effects.push(ContinuousEffect {
+            source: Some(ctx.source),
+            controller: ctx.controller,
+            timestamp,
+            duration: Duration::UntilEndOfTurn,
+            affected: Affected::Objects(smallvec::smallvec![id]),
+            parts,
+        });
+        self.bump();
     }
 
     #[allow(clippy::too_many_lines)] // one arm per effect kind
@@ -297,18 +506,14 @@ impl GameState {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    let timestamp = self.tick();
-                    self.effects.push(ContinuousEffect {
-                        source: Some(ctx.source),
-                        timestamp,
-                        duration: Duration::UntilEndOfTurn,
-                        affected: Affected::Objects(smallvec::smallvec![id]),
-                        parts: smallvec::smallvec![Modification::ModifyPt {
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::ModifyPt {
                             power: *power,
                             toughness: *toughness,
                         }],
-                    });
-                    self.bump();
+                    );
                 }
             }
             Effect::Destroy { to } => {
@@ -386,6 +591,107 @@ impl GameState {
                     duration: Duration::UntilEndOfTurn,
                 });
                 self.bump();
+            }
+            Effect::Tap { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.tap(id);
+                    }
+                }
+            }
+            Effect::Untap { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.untap(id);
+                    }
+                }
+            }
+            Effect::Grant { keywords, to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::AddKeywords(*keywords)],
+                        );
+                    }
+                }
+            }
+            Effect::GainControl { of } => {
+                for t in self.recipients(ctx, *of) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::Control],
+                        );
+                        self.control_effects += 1;
+                    }
+                }
+                // Later effects of the same spell ("untap it") see the new
+                // controller.
+                self.sync_control();
+            }
+            Effect::Sacrifice { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.sacrifice(id);
+                    }
+                }
+            }
+            Effect::CreateToken { token, count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        for _ in 0..*count {
+                            self.create_token(*token, p);
+                        }
+                    }
+                }
+            }
+            Effect::Attach { to } => {
+                let Some(source) = self
+                    .current_object(ctx.source)
+                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                else {
+                    return;
+                };
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    // CR 701.3b: an attachment to an illegal object does
+                    // nothing.
+                    if id == source || !self.is_legal_attachment(TargetSpec::Creature, id) {
+                        continue;
+                    }
+                    self.objects[source].attached_to = Some(id);
+                    self.bump();
+                    self.emit(Event::Attached {
+                        obj: source,
+                        to: id,
+                    });
+                }
+            }
+            Effect::Animate {
+                to,
+                types,
+                subtypes,
+                power,
+                toughness,
+            } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let mut parts: SmallVec<[Modification; 2]> =
+                        smallvec::smallvec![Modification::AddTypes(*types)];
+                    parts.extend(subtypes.iter().map(|s| Modification::AddSubtype(*s)));
+                    parts.push(Modification::SetPt {
+                        power: PtValue::Fixed(*power),
+                        toughness: PtValue::Fixed(*toughness),
+                    });
+                    self.effect_until_end_of_turn(ctx, id, parts);
+                }
             }
         }
     }

@@ -527,6 +527,50 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (Action::Trigger { source, targets }, None)
         }
         "apply" => (Action::Apply(line.string()?), None),
+        "activate" => {
+            let source = line.string()?;
+            let sacrifice = if line.peek_ident("sacrificing") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
+            };
+            let mut targets = Vec::new();
+            if line.peek_ident("targeting") {
+                line.pos += 1;
+                loop {
+                    targets.push(line.target_ref()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            (
+                Action::Activate {
+                    source,
+                    sacrifice,
+                    targets,
+                },
+                Some(Step::PrecombatMain),
+            )
+        }
+        "keep" => {
+            let which = line.ident()?;
+            let newest = match which.as_str() {
+                "newest" => true,
+                "oldest" => false,
+                other => return line.fail(format!("expected `oldest` or `newest`, got `{other}`")),
+            };
+            (
+                Action::Keep {
+                    name: line.string()?,
+                    newest,
+                },
+                None,
+            )
+        }
         other => return line.fail(format!("unknown action `{other}`")),
     };
     Ok(ScriptedAction {
@@ -640,7 +684,12 @@ fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
                 line.pos += 1;
             }
             let r = line.obj_ref()?;
-            let what = line.ident()?;
+            // A quoted word for subtypes with punctuation ("Assembly-Worker").
+            let what = if matches!(line.peek(), Some(Tok::Str(_))) {
+                line.string()?
+            } else {
+                line.ident()?
+            };
             Assertion::Is(r, what, !negated)
         }
         "counters" => {
