@@ -1,0 +1,8 @@
+card "Wall of Mulch" {
+  oracle_id afd2141f-1b0f-46b5-b1ac-aa28982d16c0
+  cost {1}{G}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {G}, sacrifice Wall: draw 1 cards
+}

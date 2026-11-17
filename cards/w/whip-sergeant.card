@@ -1,0 +1,7 @@
+card "Whip Sergeant" {
+  oracle_id 1e25c9bd-2a6a-4856-80e6-775847a2c89f
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {R}: target creature gains haste
+}

@@ -1,0 +1,8 @@
+card "Moroii" {
+  oracle_id 418be12f-b40a-4018-86c1-98c9000a999a
+  cost {2}{U}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords flying
+  triggered at beginning of your upkeep: you loses 1 life
+}

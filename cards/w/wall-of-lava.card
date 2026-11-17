@@ -1,0 +1,8 @@
+card "Wall of Lava" {
+  oracle_id bf7734fb-011d-4f12-a174-1ae879dab95b
+  cost {1}{R}{R}
+  type Creature — Wall
+  pt 1/3
+  keywords defender
+  activated {R}: this gets +1/+1
+}

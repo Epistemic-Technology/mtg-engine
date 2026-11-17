@@ -1,0 +1,7 @@
+card "Spiritual Guardian" {
+  oracle_id d03860b4-c663-4230-9200-6b89fa849ae7
+  cost {3}{W}{W}
+  type Creature — Spirit
+  pt 3/4
+  triggered when this enters: you gains 4 life
+}

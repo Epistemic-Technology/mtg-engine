@@ -1,0 +1,6 @@
+card "Book of Rass" {
+  oracle_id a5e3ca74-ec33-4679-9366-8b1a45048783
+  cost {6}
+  type Artifact — Book
+  activated {2}, pay 2 life: draw 1 cards
+}

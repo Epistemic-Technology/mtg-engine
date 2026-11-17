@@ -1,0 +1,7 @@
+card "Scarland Thrinax" {
+  oracle_id 1a185f90-69eb-496b-8e38-8dcf241a84a4
+  cost {B}{R}{G}
+  type Creature — Lizard
+  pt 2/2
+  activated sacrifice creature: put 1 +1/+1 counters on this
+}

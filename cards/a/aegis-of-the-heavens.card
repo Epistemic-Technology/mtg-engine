@@ -1,0 +1,6 @@
+card "Aegis of the Heavens" {
+  oracle_id f8e1b38a-2a77-4cf1-8bef-31acb61ede10
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +1/+7
+}

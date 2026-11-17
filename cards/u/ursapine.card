@@ -1,0 +1,7 @@
+card "Ursapine" {
+  oracle_id fcf92abb-6c06-42d2-a3d1-f44ec997d56d
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 3/3
+  activated {G}: target creature gets +1/+1
+}

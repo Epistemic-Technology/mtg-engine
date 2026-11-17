@@ -1,0 +1,6 @@
+card "Scepter of Insight" {
+  oracle_id e2725411-a600-4ff3-94fb-5d52f5eda414
+  cost {1}{U}{U}
+  type Artifact
+  activated {3}{U}, {T}: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Rushwood Elemental" {
+  oracle_id d98edd47-c9de-46e9-a184-ba3bc0be42c4
+  cost {G}{G}{G}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  keywords trample
+  triggered at beginning of your upkeep: you may put 1 +1/+1 counters on this
+}

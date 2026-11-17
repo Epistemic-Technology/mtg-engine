@@ -1,0 +1,7 @@
+card "Iron Tusk Elephant" {
+  oracle_id a299470a-72ea-4848-833b-dc894db7be15
+  cost {4}{W}
+  type Creature — Elephant
+  pt 3/3
+  keywords trample
+}

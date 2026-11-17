@@ -1,0 +1,6 @@
+card "Ziatora's Proving Ground" {
+  oracle_id f7e7b78c-c769-4720-8585-1874773eb342
+  type Land — Swamp Mountain Forest
+  enters tapped
+  cycling {3}
+}

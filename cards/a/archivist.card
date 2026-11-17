@@ -1,0 +1,7 @@
+card "Archivist" {
+  oracle_id d137586f-83b0-40af-8100-443460b07ac0
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: draw 1 cards
+}

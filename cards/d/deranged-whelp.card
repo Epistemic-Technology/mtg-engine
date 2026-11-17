@@ -1,0 +1,7 @@
+card "Deranged Whelp" {
+  oracle_id 6f246109-8c8b-4909-9888-561bc46ad776
+  cost {1}{R}
+  type Creature — Wolf
+  pt 2/1
+  keywords menace
+}

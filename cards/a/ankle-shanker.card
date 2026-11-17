@@ -1,0 +1,8 @@
+card "Ankle Shanker" {
+  oracle_id 22052572-0b7d-4dd8-84a8-e2658f77b85e
+  cost {2}{R}{W}{B}
+  type Creature — Goblin Berserker
+  pt 2/2
+  keywords haste
+  triggered whenever this attacks: each creature you control gains first strike, deathtouch
+}

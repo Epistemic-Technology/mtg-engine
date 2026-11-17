@@ -1,0 +1,6 @@
+card "Elfhame Palace" {
+  oracle_id cade8b94-2998-4d23-87bb-9fbdddd19dea
+  type Land
+  enters tapped
+  mana {G} or {W}
+}

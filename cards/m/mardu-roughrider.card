@@ -1,0 +1,7 @@
+card "Mardu Roughrider" {
+  oracle_id 10177654-c342-4537-a141-887a3fef13e8
+  cost {2}{R}{W}{B}
+  type Creature — Orc Warrior
+  pt 5/4
+  triggered whenever this attacks: target creature can't block
+}

@@ -1,0 +1,9 @@
+card "Slagstorm" {
+  oracle_id 2ed1879a-83b8-48df-a6d2-fe28e912b4c5
+  cost {1}{R}{R}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to each creature
+    mode: deal 3 damage to each player
+  }
+}

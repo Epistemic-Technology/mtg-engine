@@ -1,0 +1,9 @@
+card "Fleeting Effigy" {
+  oracle_id d6d9b5d2-0ab6-4637-a468-5149b7c7d0cf
+  cost {R}
+  type Creature — Elemental
+  pt 2/2
+  keywords haste
+  triggered at beginning of your end step: return this to hand
+  activated {2}{R}: this gets +2/+0
+}

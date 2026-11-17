@@ -1,0 +1,9 @@
+card "Implode" {
+  oracle_id bfde73b2-46bd-4fdb-9468-35819af609f7
+  cost {4}{R}
+  type Sorcery
+  spell {
+    destroy target land
+    draw 1 cards
+  }
+}

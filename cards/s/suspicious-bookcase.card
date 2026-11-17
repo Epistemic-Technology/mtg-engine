@@ -1,0 +1,8 @@
+card "Suspicious Bookcase" {
+  oracle_id ca611c90-7753-43dd-af91-81694d004eeb
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {3}, {T}: target creature can't be blocked
+}

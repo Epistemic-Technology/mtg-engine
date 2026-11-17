@@ -1,0 +1,16 @@
+# Converted from XMage's cards/single/m21/CancelTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "CancelTest.counterTargetSpell" {
+  # from cards/single/m21/CancelTest.java
+  battlefield A: 3 "Island"
+  hand A: "Cancel"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  turn 2 precombat_main B: cast "Grizzly Bears" targeting auto
+  turn 2 precombat_main A: cast "Cancel" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains 1 "Grizzly Bears"
+  assert graveyard A contains 1 "Cancel"
+}

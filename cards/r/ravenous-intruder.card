@@ -1,0 +1,7 @@
+card "Ravenous Intruder" {
+  oracle_id 06a94ea3-6cda-42fe-ba3b-40a0e9044f8e
+  cost {1}{R}
+  type Creature — Gremlin
+  pt 1/2
+  activated sacrifice artifact: this gets +2/+2
+}

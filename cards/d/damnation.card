@@ -1,0 +1,6 @@
+card "Damnation" {
+  oracle_id d57a8f0b-7989-4db5-8756-6f2690097252
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy all creatures without regeneration
+}

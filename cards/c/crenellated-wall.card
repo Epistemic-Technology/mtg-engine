@@ -1,0 +1,8 @@
+card "Crenellated Wall" {
+  oracle_id ca9e41e8-7830-4721-b131-07d0b60297ad
+  cost {4}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}: target creature gets +0/+4
+}

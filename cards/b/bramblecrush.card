@@ -1,0 +1,6 @@
+card "Bramblecrush" {
+  oracle_id 367282d6-956b-470d-a131-d22beff610b0
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy target noncreature permanent
+}

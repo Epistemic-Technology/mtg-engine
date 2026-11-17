@@ -1,0 +1,7 @@
+card "Gurmag Swiftwing" {
+  oracle_id fc1256e9-eb92-43b6-abfc-ce19d910a929
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/2
+  keywords flying, first strike, haste
+}

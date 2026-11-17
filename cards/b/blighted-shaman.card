@@ -1,0 +1,8 @@
+card "Blighted Shaman" {
+  oracle_id 2f14e92d-307f-4854-b7ec-a2f6ce03dced
+  cost {1}{B}
+  type Creature — Human Cleric Shaman
+  pt 1/1
+  activated {T}, sacrifice Swamp: target creature gets +1/+1
+  activated {T}, sacrifice creature: target creature gets +2/+2
+}

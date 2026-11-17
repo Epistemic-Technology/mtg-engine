@@ -1,0 +1,7 @@
+card "Insatiable Harpy" {
+  oracle_id 6774c0ce-103e-471b-8de0-f325805674ca
+  cost {2}{B}{B}
+  type Creature — Harpy
+  pt 2/2
+  keywords flying, lifelink
+}

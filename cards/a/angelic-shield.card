@@ -1,0 +1,7 @@
+card "Angelic Shield" {
+  oracle_id 05b020fd-21be-495d-ae45-7de3b1224e6d
+  cost {W}{U}
+  type Enchantment
+  static creature you control: +0/+1
+  activated sacrifice this: return target creature to hand
+}

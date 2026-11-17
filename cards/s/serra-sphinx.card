@@ -1,0 +1,7 @@
+card "Serra Sphinx" {
+  oracle_id 9b344428-ec35-45b9-9714-9ca58a338f5c
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 4/4
+  keywords flying, vigilance
+}

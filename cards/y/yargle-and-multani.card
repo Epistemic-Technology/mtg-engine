@@ -1,0 +1,6 @@
+card "Yargle and Multani" {
+  oracle_id 980e1721-3717-4425-95a4-938dbf2ac661
+  cost {3}{B}{B}{G}
+  type Legendary Creature — Frog Spirit Elemental
+  pt 18/6
+}

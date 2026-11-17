@@ -1,0 +1,8 @@
+card "Geist of the Archives" {
+  oracle_id 345964ea-12b6-44be-b1a6-50178768b8f4
+  cost {2}{U}
+  type Creature — Spirit
+  pt 0/4
+  keywords defender
+  triggered at beginning of your upkeep: scry 1
+}

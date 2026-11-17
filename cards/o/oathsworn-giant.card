@@ -1,0 +1,8 @@
+card "Oathsworn Giant" {
+  oracle_id d3828907-1321-40ca-9531-30401e82a6b8
+  cost {4}{W}{W}
+  type Creature — Giant Soldier
+  pt 3/4
+  keywords vigilance
+  static other creature you control: +0/+2, has vigilance
+}

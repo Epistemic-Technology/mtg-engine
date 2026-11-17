@@ -1,0 +1,6 @@
+card "Cathars' Crusade" {
+  oracle_id cc65ac73-5bef-4ecb-ad8e-39199084c027
+  cost {3}{W}{W}
+  type Enchantment
+  triggered whenever creature you control enters: put 1 +1/+1 counters on each creature you control
+}

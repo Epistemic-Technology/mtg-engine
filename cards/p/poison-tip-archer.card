@@ -1,0 +1,8 @@
+card "Poison-Tip Archer" {
+  oracle_id d0e810bb-5f38-4045-a718-30d423c05659
+  cost {2}{B}{G}
+  type Creature — Elf Archer
+  pt 2/3
+  keywords reach, deathtouch
+  triggered whenever other creature dies: each opponent loses 1 life
+}

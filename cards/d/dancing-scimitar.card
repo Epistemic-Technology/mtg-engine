@@ -1,0 +1,7 @@
+card "Dancing Scimitar" {
+  oracle_id 82b13601-d460-45c5-94a1-07e146d463a9
+  cost {4}
+  type Artifact Creature — Spirit
+  pt 1/5
+  keywords flying
+}

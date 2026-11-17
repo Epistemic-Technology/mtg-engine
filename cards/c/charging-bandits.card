@@ -1,0 +1,7 @@
+card "Charging Bandits" {
+  oracle_id 0c67133b-be15-47d7-8cf6-79987a42044d
+  cost {4}{B}
+  type Creature — Human Rogue
+  pt 3/3
+  triggered whenever this attacks: this gets +2/+0
+}

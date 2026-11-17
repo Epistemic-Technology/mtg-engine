@@ -1,0 +1,6 @@
+card "Heroic Intervention" {
+  oracle_id 24882fa2-3fe9-4c1b-aa3d-0e6488b9db27
+  cost {1}{G}
+  type Instant
+  spell: each permanent you control gains hexproof, indestructible
+}

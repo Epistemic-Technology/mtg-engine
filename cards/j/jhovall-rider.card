@@ -1,0 +1,7 @@
+card "Jhovall Rider" {
+  oracle_id 84750c9a-ddf7-4ee1-b93b-3dc9ab73e4d5
+  cost {4}{W}
+  type Creature — Human Rebel
+  pt 3/3
+  keywords trample
+}

@@ -1,0 +1,7 @@
+card "Princess Lucrezia" {
+  oracle_id dd1d21f5-f5cd-43e4-8155-3cca85da80a9
+  cost {3}{U}{U}{B}
+  type Legendary Creature — Human Wizard
+  pt 5/4
+  mana {U}
+}

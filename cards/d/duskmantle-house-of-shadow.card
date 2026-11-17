@@ -1,0 +1,6 @@
+card "Duskmantle, House of Shadow" {
+  oracle_id 67b2cd0c-ecc8-4129-b1ac-820c9924190c
+  type Land
+  mana {C}
+  activated {U}{B}, {T}: target player mills 1 cards
+}

@@ -1,0 +1,7 @@
+card "Magus of the Bazaar" {
+  oracle_id e08d264d-5731-4e2a-ae6d-5a74ef648575
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 0/1
+  activated {T}: draw 2 cards then discard 3 cards
+}

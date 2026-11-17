@@ -1,0 +1,7 @@
+card "Spine of Ish Sah" {
+  oracle_id 02f062f5-8012-4440-ac12-49fc49822106
+  cost {7}
+  type Artifact
+  triggered when this enters: destroy target permanent
+  triggered when this dies: return this to hand
+}

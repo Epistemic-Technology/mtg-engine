@@ -1,0 +1,7 @@
+card "Invisible Stalker" {
+  oracle_id 1a137a67-4156-45c8-aae9-838f688e12bd
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords hexproof, can't be blocked
+}

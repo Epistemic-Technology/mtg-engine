@@ -1,0 +1,7 @@
+card "Flowstone Overseer" {
+  oracle_id 89a3a6a3-e5f9-4e28-8372-99219db3f976
+  cost {2}{R}{R}{R}
+  type Creature — Beast
+  pt 4/4
+  activated {R}{R}: target creature gets +1/-1
+}

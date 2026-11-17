@@ -1,0 +1,7 @@
+card "Hopping Automaton" {
+  oracle_id 7848e040-e1b4-4f81-922e-b1eca8fe4398
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  activated {0}: this gets -1/-1 and gains flying
+}

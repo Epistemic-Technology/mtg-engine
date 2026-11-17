@@ -1,0 +1,8 @@
+card "Veteran Beastrider" {
+  oracle_id 29f1484c-91b6-436a-a6be-3ab8b58c0fc1
+  cost {1}{G}{W}
+  type Creature — Human Knight
+  pt 3/4
+  triggered at beginning of your end step: untap each creature you control
+  activated {2}{G}{W}: each creature you control gets +1/+1
+}

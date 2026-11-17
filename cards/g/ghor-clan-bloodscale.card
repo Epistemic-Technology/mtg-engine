@@ -1,0 +1,8 @@
+card "Ghor-Clan Bloodscale" {
+  oracle_id e3367ed8-16a3-4b04-bc6a-e0a3c794e6d3
+  cost {3}{R}
+  type Creature — Lizard Warrior
+  pt 2/1
+  keywords first strike
+  activated {3}{G}, once: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Minotaur Aggressor" {
+  oracle_id 7576bfba-eb4f-4d3e-aec5-52daee84d1d6
+  cost {6}{R}
+  type Creature — Minotaur Berserker
+  pt 6/2
+  keywords first strike, haste
+}

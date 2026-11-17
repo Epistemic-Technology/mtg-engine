@@ -1,0 +1,6 @@
+card "Inferno" {
+  oracle_id 69e2df4e-c7f3-4c3a-be5b-1c4afb29cead
+  cost {5}{R}{R}
+  type Instant
+  spell: deal 6 damage to each creature and each player
+}

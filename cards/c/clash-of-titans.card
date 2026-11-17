@@ -1,0 +1,6 @@
+card "Clash of Titans" {
+  oracle_id 198c05ca-fb2d-4f15-a28f-1dad36466a4f
+  cost {3}{R}{R}
+  type Instant
+  spell: target creature fights another target creature
+}

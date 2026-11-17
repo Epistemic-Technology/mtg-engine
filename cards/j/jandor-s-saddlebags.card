@@ -1,0 +1,6 @@
+card "Jandor's Saddlebags" {
+  oracle_id 3aa0e73f-ac88-47a5-9cc5-0c941a939eae
+  cost {2}
+  type Artifact
+  activated {3}, {T}: untap target creature
+}

@@ -1,0 +1,6 @@
+card "Traumatic Critique" {
+  oracle_id 06c1f8a4-4948-435b-ae98-b1276b57e958
+  cost {X}{U}{R}
+  type Instant
+  spell: deal X damage to any target; draw 2 cards then discard 1 cards
+}

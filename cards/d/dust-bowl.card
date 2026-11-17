@@ -1,0 +1,6 @@
+card "Dust Bowl" {
+  oracle_id d3df7128-31dd-4d71-90be-87e2e9ff51b4
+  type Land
+  mana {C}
+  activated {3}, {T}, sacrifice land: destroy target nonbasic land
+}

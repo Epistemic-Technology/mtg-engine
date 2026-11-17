@@ -1,0 +1,6 @@
+card "Gaea's Anthem" {
+  oracle_id 3754dce0-3e97-406f-8807-a4942a222c41
+  cost {1}{G}{G}
+  type Enchantment
+  static creature you control: +1/+1
+}

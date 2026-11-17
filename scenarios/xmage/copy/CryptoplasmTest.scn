@@ -1,0 +1,13 @@
+# Converted from XMage's cards/copy/CryptoplasmTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "CryptoplasmTest.testTransform" {
+  # from cards/copy/CryptoplasmTest.java
+  battlefield A: "Cryptoplasm"
+  battlefield A: "Craw Wurm"
+  run_to turn 2 end
+  assert life A 20
+  assert life B 20
+  assert battlefield A contains 2 "Craw Wurm"
+}

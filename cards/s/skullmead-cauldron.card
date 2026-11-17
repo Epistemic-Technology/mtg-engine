@@ -1,0 +1,7 @@
+card "Skullmead Cauldron" {
+  oracle_id b6864a26-9c13-4c6d-b0e0-d5b5ed9864e8
+  cost {4}
+  type Artifact
+  activated {T}: you gains 1 life
+  activated {T}, discard 1 card: you gains 3 life
+}

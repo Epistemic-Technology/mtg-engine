@@ -1,0 +1,8 @@
+card "Pixie Queen" {
+  oracle_id 38a7d4ef-d296-4896-9b6b-2fd3ad518243
+  cost {2}{G}{G}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  activated {G}{G}{G}, {T}: target creature gains flying
+}

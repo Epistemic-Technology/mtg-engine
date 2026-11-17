@@ -1,0 +1,8 @@
+card "Affa Guard Hound" {
+  oracle_id 3819daab-fe35-4f99-9282-47bd05c7fcd6
+  cost {2}{W}
+  type Creature — Dog
+  pt 2/2
+  keywords flash
+  triggered when this enters: target creature gets +0/+3
+}

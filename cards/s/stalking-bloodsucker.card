@@ -1,0 +1,8 @@
+card "Stalking Bloodsucker" {
+  oracle_id 5ed1f550-b558-4e4b-ae89-9e19df035c81
+  cost {4}{B}{B}
+  type Creature — Vampire
+  pt 4/4
+  keywords flying
+  activated {1}{B}, discard 1 card: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Gorgon's Head" {
+  oracle_id 190cdc23-fa05-475f-b853-471ca0f21b71
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has deathtouch
+  equip {2}
+}

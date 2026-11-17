@@ -1,0 +1,7 @@
+card "Arachnoid" {
+  oracle_id 7116db6d-82ea-4675-a0cd-73aaf94be43f
+  cost {6}
+  type Artifact Creature — Spider
+  pt 2/6
+  keywords reach
+}

@@ -1,0 +1,7 @@
+card "Stampede Driver" {
+  oracle_id 3c652a31-3b56-4050-9613-d0481e54dfd7
+  cost {G}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {1}{G}, {T}, discard 1 card: each creature you control gets +1/+1 and gains trample
+}

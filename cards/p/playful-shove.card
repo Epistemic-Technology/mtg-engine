@@ -1,0 +1,9 @@
+card "Playful Shove" {
+  oracle_id 2094fb68-3859-401f-97f2-c8bae64a4822
+  cost {1}{R}
+  type Sorcery
+  spell {
+    deal 1 damage to any target
+    draw 1 cards
+  }
+}

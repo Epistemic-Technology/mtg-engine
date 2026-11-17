@@ -1,0 +1,6 @@
+card "Searing Wind" {
+  oracle_id b196045d-ece1-46ac-a647-b65f04225c10
+  cost {8}{R}
+  type Instant
+  spell: deal 10 damage to any target
+}

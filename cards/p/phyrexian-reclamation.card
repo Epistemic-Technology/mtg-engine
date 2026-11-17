@@ -1,0 +1,6 @@
+card "Phyrexian Reclamation" {
+  oracle_id 647ca69e-cc01-4b2b-b376-bee2a98331e8
+  cost {B}
+  type Enchantment
+  activated {1}{B}, pay 2 life: return target creature card from your graveyard to hand
+}

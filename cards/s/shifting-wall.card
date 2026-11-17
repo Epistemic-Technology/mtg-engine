@@ -1,0 +1,8 @@
+card "Shifting Wall" {
+  oracle_id 7c852dfe-8238-461e-814e-9667807f2cf5
+  cost {X}
+  type Artifact Creature — Wall
+  pt 0/0
+  keywords defender
+  enters with X +1/+1 counters
+}

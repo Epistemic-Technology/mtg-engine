@@ -1,0 +1,7 @@
+card "Martyred Rusalka" {
+  oracle_id 21bf5ae1-d7a0-406d-88fd-009dfa919096
+  cost {W}
+  type Creature — Spirit
+  pt 1/1
+  activated {W}, sacrifice creature: target creature can't attack
+}

@@ -1,0 +1,6 @@
+card "Vengeance" {
+  oracle_id 1d001145-5d14-43a9-bf3b-3ce5c20b2a46
+  cost {3}{W}
+  type Sorcery
+  spell: destroy target tapped creature
+}

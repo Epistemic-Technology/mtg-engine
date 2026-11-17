@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use mtg_cards::{DataDir, author, gate, ingest, stats};
+use mtg_cards::{DataDir, author, gate, ingest, stats, xmage};
 
 #[derive(Parser)]
 #[command(name = "mtg-cards", about = "Card data ingest and statistics")]
@@ -52,6 +52,17 @@ enum Command {
         /// Only these cards (by name), from any format.
         names: Vec<String>,
     },
+    /// Convert `XMage`'s card tests (data/xmage, see README) into scenarios.
+    /// Each converted test is run; those that fail are written with a
+    /// `skip` line naming the failure, for adjudication.
+    ConvertXmage {
+        /// Write the scenario files under this directory.
+        #[arg(long)]
+        out: Option<PathBuf>,
+        /// Show every skipped test with its reason.
+        #[arg(long)]
+        verbose: bool,
+    },
     /// How much of a format the corpus covers, and (with --scenarios) which
     /// corpus cards no scenario exercises (gate 2 of design.md §6.3).
     Coverage {
@@ -69,6 +80,17 @@ enum Command {
         #[arg(long)]
         check: bool,
     },
+}
+
+/// A scenario text with a `skip` line carrying the failure, for
+/// adjudication.
+fn skipped(text: &str, message: &str) -> String {
+    let reason: String = message
+        .replace(['"', '\n'], "'")
+        .chars()
+        .take(160)
+        .collect();
+    text.replacen('\n', &format!("\n  skip \"unadjudicated: {reason}\"\n"), 1)
 }
 
 fn main() -> ExitCode {
@@ -156,6 +178,136 @@ fn run() -> Result<ExitCode> {
                     written += 1;
                 }
                 println!("wrote {written} files to {}", dir.display());
+            }
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::ConvertXmage { out, verbose } => {
+            let root = data
+                .root()
+                .join("xmage/Mage.Tests/src/test/java/org/mage/test");
+            anyhow::ensure!(
+                root.is_dir(),
+                "no XMage checkout at {} (see README: data/sources.lock names the commit)",
+                root.display()
+            );
+            let cards = mtg_dsl::builtin_cards()?;
+            let corpus = xmage::Corpus::new(&cards);
+            let report = xmage::convert_dir(&root, &corpus)?;
+            if verbose {
+                for (class, method, reason) in &report.skipped {
+                    println!("skip     {class}.{method}: {reason}");
+                }
+            }
+            // Run each converted scenario; failures become `skip` lines.
+            let pool = std::sync::Arc::new(mtg_dsl::builtin_pool());
+            let mut passing = 0usize;
+            let mut failing: Vec<(String, String)> = Vec::new();
+            let mut by_file: std::collections::BTreeMap<String, Vec<String>> =
+                std::collections::BTreeMap::new();
+            for c in &report.converted {
+                let parsed = match mtg_scenario::parse(&c.text) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        failing.push((format!("{}.{}", c.class, c.method), format!("parse: {e}")));
+                        by_file
+                            .entry(c.source.clone())
+                            .or_default()
+                            .push(skipped(&c.text, &format!("parse: {e}")));
+                        continue;
+                    }
+                };
+                let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    parsed
+                        .iter()
+                        .map(|sc| mtg_scenario::run(&pool, sc))
+                        .collect::<Vec<_>>()
+                }));
+                let text = if let Ok(reports) = outcome {
+                    match reports.iter().find_map(|r| r.failure.as_ref()) {
+                        None => {
+                            passing += 1;
+                            c.text.clone()
+                        }
+                        Some(f) => {
+                            failing.push((format!("{}.{}", c.class, c.method), f.message.clone()));
+                            skipped(&c.text, &f.message)
+                        }
+                    }
+                } else {
+                    failing.push((
+                        format!("{}.{}", c.class, c.method),
+                        "engine panic".to_string(),
+                    ));
+                    skipped(&c.text, "engine panic")
+                };
+                by_file.entry(c.source.clone()).or_default().push(text);
+            }
+            if verbose {
+                for (name, msg) in &failing {
+                    println!("FAIL     {name}: {msg}");
+                }
+            }
+            println!();
+            println!(
+                "{} files, {} tests: {} converted ({passing} pass, {} fail), {} skipped",
+                report.files,
+                report.tests,
+                report.converted.len(),
+                failing.len(),
+                report.skipped.len()
+            );
+            println!();
+            println!("top skip reasons:");
+            for (reason, n) in report.reasons().iter().take(25) {
+                println!("{n:>6}  {reason}");
+            }
+            println!();
+            println!("cards most often missing from the corpus:");
+            let mut missing: Vec<(&String, &usize)> = report.missing_cards.iter().collect();
+            missing.sort_by(|a, b| b.1.cmp(a.1).then_with(|| a.0.cmp(b.0)));
+            for (name, n) in missing.iter().take(40) {
+                println!("{n:>6}  {name}");
+            }
+            let mut fail_reasons: std::collections::BTreeMap<String, usize> =
+                std::collections::BTreeMap::new();
+            for (_, m) in &failing {
+                let key: String = m.chars().take(60).collect();
+                *fail_reasons.entry(key).or_insert(0) += 1;
+            }
+            let mut fr: Vec<(String, usize)> = fail_reasons.into_iter().collect();
+            fr.sort_by_key(|x| std::cmp::Reverse(x.1));
+            println!();
+            println!("most common failures of converted tests:");
+            for (m, n) in fr.iter().take(25) {
+                println!("{n:>6}  {m}");
+            }
+            if let Some(out) = out {
+                let lock = ingest::verify(&data).ok();
+                let commit = lock
+                    .and_then(|l| l.xmage.map(|x| x.commit))
+                    .unwrap_or_else(|| "unknown".to_string());
+                let mut written = 0;
+                for (source, scenarios) in &by_file {
+                    let path = xmage::output_path(&out, source);
+                    if let Some(parent) = path.parent() {
+                        std::fs::create_dir_all(parent)?;
+                    }
+                    let mut text = format!(
+                        "# Converted from XMage's {source} (commit {commit}) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+"
+                    );
+                    text.push_str(&scenarios.join(
+                        "
+",
+                    ));
+                    std::fs::write(&path, text)?;
+                    written += 1;
+                }
+                println!();
+                println!("wrote {written} files under {}", out.display());
             }
             Ok(ExitCode::SUCCESS)
         }

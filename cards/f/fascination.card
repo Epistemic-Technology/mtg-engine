@@ -1,0 +1,9 @@
+card "Fascination" {
+  oracle_id 28f0765a-de09-4be3-b952-aee75b9ede03
+  cost {X}{U}{U}
+  type Sorcery
+  choose one {
+    mode: each player draws X cards
+    mode: each player mills X cards
+  }
+}

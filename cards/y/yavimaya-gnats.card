@@ -1,0 +1,8 @@
+card "Yavimaya Gnats" {
+  oracle_id 828c1a94-36e1-484b-afc8-87f85956d60d
+  cost {2}{G}
+  type Creature — Insect
+  pt 0/1
+  keywords flying
+  activated {G}: regenerate this
+}

@@ -1,0 +1,7 @@
+card "Kiora's Follower" {
+  oracle_id 22c044ad-77d7-4c93-953d-e2daa9686ff7
+  cost {G}{U}
+  type Creature — Merfolk
+  pt 2/2
+  activated {T}: untap another target permanent
+}

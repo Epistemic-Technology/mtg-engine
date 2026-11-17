@@ -1,0 +1,8 @@
+card "Spectral Sailor" {
+  oracle_id a8fdbcdf-479d-4582-9ad5-9fbd4c740c29
+  cost {U}
+  type Creature — Spirit Pirate
+  pt 1/1
+  keywords flash, flying
+  activated {3}{U}: draw 1 cards
+}

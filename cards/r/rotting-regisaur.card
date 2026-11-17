@@ -1,0 +1,7 @@
+card "Rotting Regisaur" {
+  oracle_id acdbaa99-18c9-4aa1-8797-69837ca7d8f5
+  cost {2}{B}
+  type Creature — Zombie Dinosaur
+  pt 7/6
+  triggered at beginning of your upkeep: discard 1 cards
+}

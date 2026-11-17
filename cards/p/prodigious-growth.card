@@ -1,0 +1,7 @@
+card "Prodigious Growth" {
+  oracle_id 15d63e5d-dc4d-4e5f-8043-78039a49732b
+  cost {4}{G}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +7/+7, has trample
+}

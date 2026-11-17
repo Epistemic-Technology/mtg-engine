@@ -1,0 +1,6 @@
+card "Altar's Light" {
+  oracle_id fa9b6be2-b88c-4302-b7e2-faf25a60bcb9
+  cost {2}{W}{W}
+  type Instant
+  spell: exile target artifact or enchantment
+}

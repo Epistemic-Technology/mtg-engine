@@ -1,0 +1,6 @@
+card "Glare of Heresy" {
+  oracle_id 6e127e6e-b292-4398-b3fa-8b520a7d26a3
+  cost {1}{W}
+  type Sorcery
+  spell: exile target white permanent
+}

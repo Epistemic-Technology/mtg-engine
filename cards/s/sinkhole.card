@@ -1,0 +1,6 @@
+card "Sinkhole" {
+  oracle_id 5a46ad2a-35b1-4dd5-b7c3-fec36b7c67ab
+  cost {B}{B}
+  type Sorcery
+  spell: destroy target land
+}

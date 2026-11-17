@@ -1,0 +1,8 @@
+card "Mantis Engine" {
+  oracle_id 57bea272-5b38-444e-acc2-6104af2ece22
+  cost {5}
+  type Artifact Creature — Insect
+  pt 3/3
+  activated {2}: this gains flying
+  activated {2}: this gains first strike
+}

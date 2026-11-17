@@ -1,0 +1,7 @@
+card "Eastern Paladin" {
+  oracle_id b445482a-9422-41c7-bedb-3b9f500d2f27
+  cost {2}{B}{B}
+  type Creature — Phyrexian Zombie Knight
+  pt 3/3
+  activated {B}{B}, {T}: destroy target green creature
+}

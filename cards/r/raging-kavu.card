@@ -1,0 +1,7 @@
+card "Raging Kavu" {
+  oracle_id d126bb08-be60-4046-91f1-65672ef42c63
+  cost {1}{R}{G}
+  type Creature — Kavu
+  pt 3/1
+  keywords flash, haste
+}

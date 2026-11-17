@@ -1,0 +1,8 @@
+card "Clickslither" {
+  oracle_id 436f9a5d-ec26-4c88-9851-b88fe742fa67
+  cost {1}{R}{R}{R}
+  type Creature — Insect
+  pt 3/3
+  keywords haste
+  activated sacrifice Goblin: this gets +2/+2 and gains trample
+}

@@ -1,0 +1,7 @@
+card "Primal Forcemage" {
+  oracle_id 0daed54c-ced9-4910-b62f-693f25190607
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered whenever other creature you control enters: that creature gets +3/+3
+}

@@ -1,0 +1,8 @@
+card "Killer Bees" {
+  oracle_id 5da1f1af-d2e5-4e14-914b-d93f15626636
+  cost {1}{G}{G}
+  type Creature — Insect
+  pt 0/1
+  keywords flying
+  activated {G}: this gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Stalking Assassin" {
+  oracle_id 12117089-67f7-4d0e-88db-82b27a4c7cdc
+  cost {1}{U}{B}
+  type Creature — Human Assassin
+  pt 1/1
+  activated {3}{U}, {T}: tap target creature
+  activated {3}{B}, {T}: destroy target tapped creature
+}

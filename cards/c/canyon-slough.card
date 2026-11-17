@@ -1,0 +1,6 @@
+card "Canyon Slough" {
+  oracle_id 2031b17c-0536-446f-a9aa-b46fe79b7ea7
+  type Land — Swamp Mountain
+  enters tapped
+  cycling {2}
+}

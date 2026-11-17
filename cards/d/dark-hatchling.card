@@ -1,0 +1,8 @@
+card "Dark Hatchling" {
+  oracle_id 36633b43-855b-4620-8afb-70c39fc07280
+  cost {4}{B}{B}
+  type Creature — Horror
+  pt 3/3
+  keywords flying
+  triggered when this enters: destroy target nonblack creature without regeneration
+}

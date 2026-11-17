@@ -1,0 +1,7 @@
+card "Darksteel Sentinel" {
+  oracle_id b91c8946-591b-4c0d-a37e-36803df40db7
+  cost {6}
+  type Artifact Creature — Golem
+  pt 3/3
+  keywords flash, vigilance, indestructible
+}

@@ -1,0 +1,7 @@
+card "Inspiring Unicorn" {
+  oracle_id 1f9797e2-7ebb-41f9-9199-e9ee575eefd3
+  cost {2}{W}{W}
+  type Creature — Unicorn
+  pt 2/2
+  triggered whenever this attacks: each creature you control gets +1/+1
+}

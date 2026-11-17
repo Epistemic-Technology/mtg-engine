@@ -1,0 +1,7 @@
+card "Ogre Battledriver" {
+  oracle_id c834c4b5-c122-4c63-81c7-884ca4c0dc3b
+  cost {2}{R}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  triggered whenever other creature you control enters: that creature gets +2/+0 and gains haste
+}

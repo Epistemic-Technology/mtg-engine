@@ -1,0 +1,6 @@
+card "Bloodstone Cameo" {
+  oracle_id 1ce6ae30-33c3-4f05-9286-69b0871b1c2d
+  cost {3}
+  type Artifact
+  mana {B} or {R}
+}

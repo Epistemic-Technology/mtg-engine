@@ -1,0 +1,9 @@
+card "Start from Scratch" {
+  oracle_id d8e255ec-7d66-43f6-b5f0-712f5957687f
+  cost {2}{R}
+  type Sorcery — Lesson
+  choose one {
+    mode: deal 1 damage to any target
+    mode: destroy target artifact
+  }
+}

@@ -1,0 +1,8 @@
+card "Herald of Faith" {
+  oracle_id cb97da84-1d13-4795-b68a-2bf111a50067
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 4/3
+  keywords flying
+  triggered whenever this attacks: you gains 2 life
+}

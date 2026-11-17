@@ -1,0 +1,8 @@
+card "Crowd Favorites" {
+  oracle_id 1ead750f-14a6-4f25-9eb8-9472c2fdac35
+  cost {6}{W}
+  type Creature — Human Soldier
+  pt 4/4
+  activated {3}{W}: tap target creature
+  activated {3}{W}: this gets +0/+5
+}

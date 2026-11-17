@@ -1,0 +1,8 @@
+card "Krakilin" {
+  oracle_id 3eb49097-42f8-4388-907d-32a738749d8a
+  cost {X}{G}{G}
+  type Creature — Beast
+  pt 0/0
+  enters with X +1/+1 counters
+  activated {1}{G}: regenerate this
+}

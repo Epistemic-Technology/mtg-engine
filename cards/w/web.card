@@ -1,0 +1,7 @@
+card "Web" {
+  oracle_id 5aa12aff-db3c-4be5-822b-3afdf536b33e
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2, has reach
+}

@@ -1,0 +1,6 @@
+card "Primal Rage" {
+  oracle_id d6464ee4-23fc-4d68-bbda-3b53772015d1
+  cost {1}{G}
+  type Enchantment
+  static creature you control: has trample
+}

@@ -1,0 +1,8 @@
+card "Bloodthirsty Aerialist" {
+  oracle_id ae78b6f9-8334-479e-8111-8e3acb2b7ca7
+  cost {1}{B}{B}
+  type Creature — Vampire Rogue
+  pt 2/3
+  keywords flying
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

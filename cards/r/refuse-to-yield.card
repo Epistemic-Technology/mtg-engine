@@ -1,0 +1,6 @@
+card "Refuse to Yield" {
+  oracle_id d05aeada-2a9f-464d-8a66-b6e90f43bae3
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+7; untap target 1
+}

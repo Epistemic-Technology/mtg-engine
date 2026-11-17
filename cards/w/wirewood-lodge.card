@@ -1,0 +1,6 @@
+card "Wirewood Lodge" {
+  oracle_id 1275653f-de4e-4fe9-aad8-88555fa11680
+  type Land
+  mana {C}
+  activated {G}, {T}: untap target Elf
+}

@@ -1,0 +1,6 @@
+card "Lush Portico" {
+  oracle_id d51831b1-7394-456e-a1de-6787a59f5932
+  type Land — Forest Plains
+  enters tapped
+  triggered when this enters: surveil 1
+}

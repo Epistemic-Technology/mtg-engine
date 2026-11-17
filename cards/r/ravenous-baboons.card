@@ -1,0 +1,7 @@
+card "Ravenous Baboons" {
+  oracle_id 1d9bd0a5-3ba0-44e5-9cb3-966f6b9dc14a
+  cost {3}{R}
+  type Creature — Monkey
+  pt 2/2
+  triggered when this enters: destroy target nonbasic land
+}

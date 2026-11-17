@@ -1,0 +1,8 @@
+card "Amaranthine Wall" {
+  oracle_id 3c9fcda6-3ebc-4f9d-9f73-2bb4252d9420
+  cost {4}
+  type Artifact Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {2}: this gains indestructible
+}

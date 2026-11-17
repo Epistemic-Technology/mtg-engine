@@ -1,0 +1,7 @@
+card "Cryptic Annelid" {
+  oracle_id 32ebc862-3bf6-4754-b7b8-8bb73f1651cf
+  cost {3}{U}
+  type Creature — Worm Beast
+  pt 1/4
+  triggered when this enters: scry 1 then scry 2 then scry 3
+}

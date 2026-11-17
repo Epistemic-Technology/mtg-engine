@@ -1,0 +1,7 @@
+card "Temple of Triumph" {
+  oracle_id 6f0d94d9-64bb-4175-83bc-301e8f79f54f
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {R} or {W}
+}

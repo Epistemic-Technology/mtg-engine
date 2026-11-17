@@ -1,0 +1,10 @@
+card "Bounty of Might" {
+  oracle_id 6f067bfd-1c59-463f-99e1-61161b43b405
+  cost {4}{G}{G}
+  type Instant
+  spell {
+    target creature gets +3/+3
+    target creature gets +3/+3
+    target creature gets +3/+3
+  }
+}

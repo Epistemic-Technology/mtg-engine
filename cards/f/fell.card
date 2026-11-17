@@ -1,0 +1,6 @@
+card "Fell" {
+  oracle_id 8f968470-ce00-43a3-95f5-2e3fe987be19
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target creature
+}

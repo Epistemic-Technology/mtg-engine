@@ -1,0 +1,6 @@
+card "Pyroclasm" {
+  oracle_id e4bcd4ea-e7cd-4471-8f3b-18bb51d3d70c
+  cost {1}{R}
+  type Sorcery
+  spell: deal 2 damage to each creature
+}

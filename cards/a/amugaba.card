@@ -1,0 +1,8 @@
+card "Amugaba" {
+  oracle_id 73a1552e-bbfa-445e-8306-b347354c0364
+  cost {5}{U}{U}
+  type Creature — Illusion
+  pt 6/6
+  keywords flying
+  activated {2}{U}, discard 1 card: return this to hand
+}

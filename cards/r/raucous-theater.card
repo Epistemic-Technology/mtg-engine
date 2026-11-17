@@ -1,0 +1,6 @@
+card "Raucous Theater" {
+  oracle_id 04e5e84f-8fd4-43ab-8f9d-5b24646f7ae5
+  type Land — Swamp Mountain
+  enters tapped
+  triggered when this enters: surveil 1
+}

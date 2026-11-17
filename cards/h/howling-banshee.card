@@ -1,0 +1,8 @@
+card "Howling Banshee" {
+  oracle_id 6156bd59-d623-4612-8e86-b5228d5de750
+  cost {2}{B}{B}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  triggered when this enters: each player loses 3 life
+}

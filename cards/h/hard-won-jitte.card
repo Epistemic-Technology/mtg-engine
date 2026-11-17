@@ -1,0 +1,7 @@
+card "Hard-Won Jitte" {
+  oracle_id ab433d41-e801-405c-81f7-06fa6640797d
+  cost {1}{R}
+  type Artifact — Equipment
+  static enchanted: has double strike
+  equip {2}
+}

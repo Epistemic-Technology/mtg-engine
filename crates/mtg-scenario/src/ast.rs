@@ -88,6 +88,18 @@ pub enum Pick {
 pub enum TargetRef {
     Player(PlayerId),
     Object(ObjRef),
+    /// `targeting auto`: every target takes the engine's first legal option
+    /// (how `XMage`'s tests target when only one choice exists).
+    Auto,
+}
+
+/// `targeting auto` stands for as many automatic targets as are needed.
+pub fn expand_auto(targets: &[TargetRef], needed: usize) -> Vec<TargetRef> {
+    if matches!(targets, [TargetRef::Auto]) {
+        vec![TargetRef::Auto; needed]
+    } else {
+        targets.to_vec()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -130,6 +142,9 @@ pub enum Action {
     /// `apply "Source"`: when several replacement or prevention effects
     /// apply to one event, apply this source's first (CR 616.1).
     Apply(String),
+    /// `wait`: pass priority until the stack is empty before any later
+    /// action of this player at the same point fires.
+    Wait,
     /// `activate "Source" [sacrificing "X"] [targeting ...]`: activate an
     /// ability of a permanent the player controls (CR 602).
     Activate {
@@ -174,6 +189,7 @@ impl Action {
             Action::YouMay { accept: true, .. } => "accept",
             Action::YouMay { accept: false, .. } => "decline",
             Action::Copy(_) => "copy",
+            Action::Wait => "wait",
         }
     }
 }

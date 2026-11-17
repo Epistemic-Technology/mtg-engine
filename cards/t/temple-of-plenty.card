@@ -1,0 +1,7 @@
+card "Temple of Plenty" {
+  oracle_id e521322b-0e83-458c-8936-7021a80ee279
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {G} or {W}
+}

@@ -1,0 +1,7 @@
+card "Energizer" {
+  oracle_id 708b0321-7de9-4ffd-9d7a-9f4813dd542e
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 2/2
+  activated {2}, {T}: put 1 +1/+1 counters on this
+}

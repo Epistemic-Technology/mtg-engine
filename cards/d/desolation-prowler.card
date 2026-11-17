@@ -1,0 +1,7 @@
+card "Desolation Prowler" {
+  oracle_id ed9d4bb1-7335-45fd-b2ea-97b1f6491d7a
+  cost {1}{B}
+  type Creature — Wolf
+  pt 2/2
+  activated pay 2 life, once: this gets +2/+2
+}

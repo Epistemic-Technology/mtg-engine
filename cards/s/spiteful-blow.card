@@ -1,0 +1,6 @@
+card "Spiteful Blow" {
+  oracle_id 25a20f94-1703-4bcd-862d-f2db7014ba90
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy target creature and target land
+}

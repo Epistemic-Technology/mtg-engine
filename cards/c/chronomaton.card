@@ -1,0 +1,7 @@
+card "Chronomaton" {
+  oracle_id 610f25b0-770f-457a-b0eb-6deb832f71d4
+  cost {1}
+  type Artifact Creature — Golem
+  pt 1/1
+  activated {1}, {T}: put 1 +1/+1 counters on this
+}

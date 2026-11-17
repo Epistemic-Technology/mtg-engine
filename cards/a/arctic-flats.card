@@ -1,0 +1,6 @@
+card "Arctic Flats" {
+  oracle_id 841f0a1d-6f84-45fb-81cc-f2d99fa9e9a2
+  type Snow Land
+  enters tapped
+  mana {G} or {W}
+}

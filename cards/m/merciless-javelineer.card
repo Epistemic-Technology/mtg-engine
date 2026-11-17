@@ -1,0 +1,7 @@
+card "Merciless Javelineer" {
+  oracle_id dd2b59b4-281e-4b51-8998-9b20a846ddbf
+  cost {2}{B}{R}
+  type Creature — Minotaur Warrior
+  pt 4/2
+  activated {2}, discard 1 card: put 1 -1/-1 counters on target creature; that creature can't block
+}

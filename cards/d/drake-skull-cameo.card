@@ -1,0 +1,6 @@
+card "Drake-Skull Cameo" {
+  oracle_id 8fbdec25-4222-4b96-aeea-82a4b5b8b80e
+  cost {3}
+  type Artifact
+  mana {U} or {B}
+}

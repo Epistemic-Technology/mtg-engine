@@ -1,0 +1,8 @@
+card "Crocodile of the Crossing" {
+  oracle_id e5e31d27-3907-4c65-a988-a754f217e061
+  cost {3}{G}
+  type Creature — Crocodile
+  pt 5/4
+  keywords haste
+  triggered when this enters: put 1 -1/-1 counters on target creature you control
+}

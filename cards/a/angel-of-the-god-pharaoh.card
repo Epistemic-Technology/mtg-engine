@@ -1,0 +1,8 @@
+card "Angel of the God-Pharaoh" {
+  oracle_id 701912d5-9995-4ac7-9858-188f78b2b8a3
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  cycling {2}
+}

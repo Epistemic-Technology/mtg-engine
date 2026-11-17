@@ -1,0 +1,8 @@
+card "Burning-Fist Minotaur" {
+  oracle_id 5460c76f-39dc-4db0-acf7-146d533d822b
+  cost {1}{R}
+  type Creature — Minotaur Wizard
+  pt 2/1
+  keywords first strike
+  activated {1}{R}, discard 1 card: this gets +2/+0
+}

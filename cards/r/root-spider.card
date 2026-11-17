@@ -1,0 +1,7 @@
+card "Root Spider" {
+  oracle_id d8fe0115-5d98-4251-a48c-5e849430a445
+  cost {3}{G}
+  type Creature — Spider
+  pt 2/2
+  triggered whenever this blocks: this gets +1/+0 and gains first strike
+}

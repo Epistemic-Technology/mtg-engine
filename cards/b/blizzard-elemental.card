@@ -1,0 +1,8 @@
+card "Blizzard Elemental" {
+  oracle_id dd489f30-d1cf-4236-8390-9c21cd8659e0
+  cost {5}{U}{U}
+  type Creature — Elemental
+  pt 5/5
+  keywords flying
+  activated {3}{U}: untap this
+}

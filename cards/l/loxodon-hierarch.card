@@ -1,0 +1,8 @@
+card "Loxodon Hierarch" {
+  oracle_id 2df404eb-fbfb-4902-b52b-71225b898dd4
+  cost {2}{G}{W}
+  type Creature — Elephant Cleric
+  pt 4/4
+  triggered when this enters: you gains 4 life
+  activated {G}{W}, sacrifice this: regenerate each creature you control
+}

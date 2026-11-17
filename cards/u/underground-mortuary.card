@@ -1,0 +1,6 @@
+card "Underground Mortuary" {
+  oracle_id 840119bf-e60f-4ff7-9c9b-d420d09df545
+  type Land — Swamp Forest
+  enters tapped
+  triggered when this enters: surveil 1
+}

@@ -1,0 +1,7 @@
+card "Kite Shield" {
+  oracle_id 24f9c64a-6ce6-41cd-948e-11554d7f17fb
+  cost {0}
+  type Artifact — Equipment
+  static enchanted: +0/+3
+  equip {3}
+}

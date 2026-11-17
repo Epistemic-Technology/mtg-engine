@@ -1,0 +1,6 @@
+card "Mox Jet" {
+  oracle_id 0677f49e-f8bf-4349-af52-2ccde9287c2e
+  cost {0}
+  type Artifact
+  mana {B}
+}

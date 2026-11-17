@@ -1,0 +1,7 @@
+card "Deeproot Champion" {
+  oracle_id 507c2921-7070-482d-8754-dc667e3315bd
+  cost {1}{G}
+  type Creature — Merfolk Shaman
+  pt 1/1
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

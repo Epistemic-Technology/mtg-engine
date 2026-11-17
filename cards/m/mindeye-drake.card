@@ -1,0 +1,8 @@
+card "Mindeye Drake" {
+  oracle_id 6e33ec9a-e148-4aa6-bff8-b356c45fb369
+  cost {4}{U}
+  type Creature — Drake
+  pt 2/5
+  keywords flying
+  triggered when this dies: target player mills 5 cards
+}

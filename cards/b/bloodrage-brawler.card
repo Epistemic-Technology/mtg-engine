@@ -1,0 +1,7 @@
+card "Bloodrage Brawler" {
+  oracle_id 8603e2d4-93f3-491a-91e7-a187fc6db599
+  cost {1}{R}
+  type Creature — Minotaur Warrior
+  pt 4/3
+  triggered when this enters: discard 1 cards
+}

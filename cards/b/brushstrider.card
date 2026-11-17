@@ -1,0 +1,7 @@
+card "Brushstrider" {
+  oracle_id 6dfcc4bb-7cd5-4b3e-ad79-3c246a3af2a8
+  cost {1}{G}
+  type Creature — Beast
+  pt 3/1
+  keywords vigilance
+}

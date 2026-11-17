@@ -1,0 +1,7 @@
+card "Seraph of the Suns" {
+  oracle_id 8354b70e-43fc-4581-bb53-b913335bf460
+  cost {5}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying, indestructible
+}

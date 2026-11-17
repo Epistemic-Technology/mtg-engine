@@ -1,0 +1,6 @@
+card "Sheltering Light" {
+  oracle_id 551ac58e-3a27-4ee3-ac91-16873562c0bc
+  cost {W}
+  type Instant
+  spell: target creature gains indestructible; scry 1
+}

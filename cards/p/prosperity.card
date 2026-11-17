@@ -1,0 +1,6 @@
+card "Prosperity" {
+  oracle_id c586312d-d04a-4bfb-bbb2-b41186ca178e
+  cost {X}{U}
+  type Sorcery
+  spell: each player draws X cards
+}

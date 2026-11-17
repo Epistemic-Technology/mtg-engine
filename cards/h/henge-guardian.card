@@ -1,0 +1,7 @@
+card "Henge Guardian" {
+  oracle_id 71744428-65ae-42ac-893d-0802fd41e9b4
+  cost {5}
+  type Artifact Creature — Dragon Wurm
+  pt 3/4
+  activated {2}: this gains trample
+}

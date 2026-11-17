@@ -1,0 +1,9 @@
+card "Execute" {
+  oracle_id 24d2cbf6-6268-4da3-8413-6c76679576fe
+  cost {2}{B}
+  type Instant
+  spell {
+    destroy target white creature without regeneration
+    draw 1 cards
+  }
+}

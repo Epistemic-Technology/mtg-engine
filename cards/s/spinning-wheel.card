@@ -1,0 +1,7 @@
+card "Spinning Wheel" {
+  oracle_id e0935a0f-7087-40cd-a094-89f200da6ef0
+  cost {3}
+  type Artifact
+  mana any
+  activated {5}, {T}: tap target creature
+}

@@ -1,0 +1,8 @@
+card "Viashino Sandstalker" {
+  oracle_id cbfccfc0-3117-4ca0-b7ce-8e2d67ec49ab
+  cost {1}{R}{R}
+  type Creature — Lizard Warrior
+  pt 4/2
+  keywords haste
+  triggered at beginning of each end step: return this to hand
+}

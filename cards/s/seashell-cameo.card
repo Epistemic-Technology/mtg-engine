@@ -1,0 +1,6 @@
+card "Seashell Cameo" {
+  oracle_id 383f6020-c26d-43e8-bb07-566886626d74
+  cost {3}
+  type Artifact
+  mana {W} or {U}
+}

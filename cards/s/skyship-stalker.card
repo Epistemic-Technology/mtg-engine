@@ -1,0 +1,10 @@
+card "Skyship Stalker" {
+  oracle_id bece52d6-fc25-486a-9811-cfc3aeca285b
+  cost {2}{R}{R}
+  type Creature — Cat Dragon
+  pt 3/3
+  keywords flying
+  activated {R}: this gets +1/+0
+  activated {R}: this gains first strike
+  activated {R}: this gains haste
+}

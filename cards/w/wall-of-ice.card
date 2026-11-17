@@ -1,0 +1,7 @@
+card "Wall of Ice" {
+  oracle_id 1945e165-7636-4727-89ba-3811251ef175
+  cost {2}{G}
+  type Creature — Wall
+  pt 0/7
+  keywords defender
+}

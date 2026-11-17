@@ -1,0 +1,7 @@
+card "Vicious Kavu" {
+  oracle_id 236fbf12-f908-4918-babb-1558e767cbe3
+  cost {1}{B}{R}
+  type Creature — Kavu
+  pt 2/2
+  triggered whenever this attacks: this gets +2/+0
+}

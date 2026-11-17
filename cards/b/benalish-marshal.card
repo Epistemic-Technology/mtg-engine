@@ -1,0 +1,7 @@
+card "Benalish Marshal" {
+  oracle_id 2cc439e8-d112-44e6-bc5a-6e99333c519a
+  cost {W}{W}{W}
+  type Creature — Human Knight
+  pt 3/3
+  static other creature you control: +1/+1
+}

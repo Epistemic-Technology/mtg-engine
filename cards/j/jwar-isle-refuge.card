@@ -1,0 +1,7 @@
+card "Jwar Isle Refuge" {
+  oracle_id 8b96f837-7c32-473a-b5ae-1d66527eaf7b
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {B}
+}

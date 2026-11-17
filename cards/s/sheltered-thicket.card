@@ -1,0 +1,6 @@
+card "Sheltered Thicket" {
+  oracle_id db8d8643-3d0b-4f20-bf53-f4cd26a0e8df
+  type Land — Mountain Forest
+  enters tapped
+  cycling {2}
+}

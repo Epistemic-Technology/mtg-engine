@@ -1,0 +1,8 @@
+card "Balshan Griffin" {
+  oracle_id 0ef74c49-0825-4201-b23b-dc6c6bbadacb
+  cost {3}{U}{U}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+  activated {1}{U}, discard 1 card: return this to hand
+}

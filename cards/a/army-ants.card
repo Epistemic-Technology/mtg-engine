@@ -1,0 +1,7 @@
+card "Army Ants" {
+  oracle_id c39112ab-ee1f-4f00-b18b-692b5fe32b80
+  cost {1}{B}{R}
+  type Creature — Insect
+  pt 1/1
+  activated {T}, sacrifice land: destroy target land
+}

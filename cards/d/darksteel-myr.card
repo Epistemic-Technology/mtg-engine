@@ -1,0 +1,7 @@
+card "Darksteel Myr" {
+  oracle_id f90fe86c-5cca-483b-93c2-6e856fa01c88
+  cost {3}
+  type Artifact Creature — Myr
+  pt 0/1
+  keywords indestructible
+}

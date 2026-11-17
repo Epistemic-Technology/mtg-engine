@@ -1,0 +1,8 @@
+card "Angler Drake" {
+  oracle_id 620d7146-b5b3-487c-a24b-f36b10f48df4
+  cost {4}{U}{U}
+  type Creature — Drake
+  pt 4/4
+  keywords flying
+  triggered when this enters: you may return target creature to hand
+}

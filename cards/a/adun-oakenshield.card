@@ -1,0 +1,7 @@
+card "Adun Oakenshield" {
+  oracle_id aefd49a4-ecec-42cb-b882-e5db7f81eff8
+  cost {B}{R}{G}
+  type Legendary Creature — Human Knight
+  pt 1/2
+  activated {B}{R}{G}, {T}: return target creature card from your graveyard to hand
+}

@@ -1,0 +1,7 @@
+card "Mythic Proportions" {
+  oracle_id e03322a0-e477-4223-969e-27f6772e3d6d
+  cost {4}{G}{G}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +8/+8, has trample
+}

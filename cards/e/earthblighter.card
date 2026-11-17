@@ -1,0 +1,7 @@
+card "Earthblighter" {
+  oracle_id 86b8fdad-0025-4b6f-8527-23686820a5cd
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {2}{B}, {T}, sacrifice Goblin: destroy target land
+}

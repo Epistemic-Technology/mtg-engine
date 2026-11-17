@@ -1,0 +1,6 @@
+card "Vindicate" {
+  oracle_id 63c1ac21-e3d8-40c2-8c09-3f31c52992ef
+  cost {1}{W}{B}
+  type Sorcery
+  spell: destroy target permanent
+}

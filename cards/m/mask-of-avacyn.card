@@ -1,0 +1,7 @@
+card "Mask of Avacyn" {
+  oracle_id ab66f8a8-eb3d-4c2d-95e9-26a53c66b237
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+2, has hexproof
+  equip {3}
+}

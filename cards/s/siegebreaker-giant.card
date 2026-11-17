@@ -1,0 +1,8 @@
+card "Siegebreaker Giant" {
+  oracle_id fcd281e3-f336-449f-a887-4b98dc14dfe7
+  cost {3}{R}{R}
+  type Creature — Giant Warrior
+  pt 6/3
+  keywords trample
+  activated {3}{R}: target creature can't block
+}

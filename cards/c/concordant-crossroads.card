@@ -1,0 +1,6 @@
+card "Concordant Crossroads" {
+  oracle_id ff01b408-6d17-40a3-9efd-a1b341ec1307
+  cost {G}
+  type World Enchantment
+  static creature: has haste
+}

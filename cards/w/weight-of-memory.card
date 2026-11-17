@@ -1,0 +1,6 @@
+card "Weight of Memory" {
+  oracle_id 826c5feb-9e82-49e0-bc6f-6c29004f8151
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 3 cards; target player mills 3 cards
+}

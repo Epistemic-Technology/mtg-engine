@@ -1,0 +1,6 @@
+card "Phyrexian Vault" {
+  oracle_id b628150b-08a1-4ea3-978d-60255dfb0b7e
+  cost {3}
+  type Artifact
+  activated {2}, {T}, sacrifice creature: draw 1 cards
+}

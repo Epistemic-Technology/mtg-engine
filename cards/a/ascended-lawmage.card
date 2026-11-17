@@ -1,0 +1,7 @@
+card "Ascended Lawmage" {
+  oracle_id 4317f4f1-d339-4940-b46e-659641035595
+  cost {2}{W}{U}
+  type Creature — Vedalken Wizard
+  pt 3/2
+  keywords flying, hexproof
+}

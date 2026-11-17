@@ -1,0 +1,9 @@
+card "Prognostic Sphinx" {
+  oracle_id 92c470c9-1373-4f3a-9805-5e9613874793
+  cost {3}{U}{U}
+  type Creature — Sphinx
+  pt 3/5
+  keywords flying
+  activated discard 1 card: this gains hexproof; tap this
+  triggered whenever this attacks: scry 3
+}

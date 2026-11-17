@@ -1,0 +1,7 @@
+card "Arrogant Vampire" {
+  oracle_id 5edfe083-391b-41ae-ac4d-d648042cfa5e
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 4/3
+  keywords flying
+}

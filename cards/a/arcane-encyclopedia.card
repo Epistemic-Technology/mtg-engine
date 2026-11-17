@@ -1,0 +1,6 @@
+card "Arcane Encyclopedia" {
+  oracle_id d91ea728-2d69-42cb-bb5d-e2b058f0d7b1
+  cost {3}
+  type Artifact — Book
+  activated {3}, {T}: draw 1 cards
+}

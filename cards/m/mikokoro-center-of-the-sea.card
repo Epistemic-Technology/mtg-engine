@@ -1,0 +1,6 @@
+card "Mikokoro, Center of the Sea" {
+  oracle_id a4580a1d-141e-449b-9018-e0258130634b
+  type Legendary Land
+  mana {C}
+  activated {2}, {T}: each player draws 1 cards
+}

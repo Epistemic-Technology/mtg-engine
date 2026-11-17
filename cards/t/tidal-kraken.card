@@ -1,0 +1,7 @@
+card "Tidal Kraken" {
+  oracle_id 104a8f76-d178-4a33-bb59-e8767da3d982
+  cost {5}{U}{U}{U}
+  type Creature — Kraken
+  pt 6/6
+  keywords can't be blocked
+}

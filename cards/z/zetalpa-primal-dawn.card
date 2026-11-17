@@ -1,0 +1,7 @@
+card "Zetalpa, Primal Dawn" {
+  oracle_id 7da0e5de-3e4c-420a-8685-991206100b9d
+  cost {6}{W}{W}
+  type Legendary Creature — Elder Dinosaur
+  pt 4/8
+  keywords flying, double strike, vigilance, trample, indestructible
+}

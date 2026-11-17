@@ -1,0 +1,8 @@
+card "Grixis Battlemage" {
+  oracle_id 89838d28-6026-417d-9ec3-0081911291fb
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {U}, {T}: draw 1 cards then discard 1 cards
+  activated {R}, {T}: target creature can't block
+}

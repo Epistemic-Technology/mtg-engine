@@ -1,0 +1,4 @@
+card "Savannah" {
+  oracle_id 703243f0-8cb3-420f-958f-5fd4bde30293
+  type Land — Forest Plains
+}

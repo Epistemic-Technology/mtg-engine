@@ -1,0 +1,6 @@
+card "Elephant Graveyard" {
+  oracle_id 8ada7388-fd8b-434c-a17a-bce19cf3e615
+  type Land
+  mana {C}
+  activated {T}: regenerate target Elephant
+}

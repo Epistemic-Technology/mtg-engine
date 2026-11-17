@@ -1,0 +1,8 @@
+card "Blazing Specter" {
+  oracle_id 4c046368-5899-42ef-9972-3a3a6c8fe3fd
+  cost {2}{B}{R}
+  type Creature — Specter
+  pt 2/2
+  keywords flying, haste
+  triggered whenever this deals combat damage to a player: that player discards 1 cards
+}

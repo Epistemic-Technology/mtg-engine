@@ -1,0 +1,7 @@
+card "Atog" {
+  oracle_id 3095f2cf-05c3-4381-929f-c526b6fc30a7
+  cost {1}{R}
+  type Creature — Atog
+  pt 1/2
+  activated sacrifice artifact: this gets +2/+2
+}

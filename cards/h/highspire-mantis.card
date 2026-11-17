@@ -1,0 +1,7 @@
+card "Highspire Mantis" {
+  oracle_id 6adff11d-5126-4a4b-b182-e2700d406995
+  cost {2}{R}{W}
+  type Creature — Insect
+  pt 3/3
+  keywords flying, trample
+}

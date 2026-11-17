@@ -1,0 +1,7 @@
+card "Raging Regisaur" {
+  oracle_id 3d563149-7d4e-43e5-b701-28e3212051ec
+  cost {2}{R}{G}
+  type Creature — Dinosaur
+  pt 4/4
+  triggered whenever this attacks: deal 1 damage to any target
+}

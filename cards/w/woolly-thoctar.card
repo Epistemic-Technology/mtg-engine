@@ -1,0 +1,6 @@
+card "Woolly Thoctar" {
+  oracle_id 220bfa3b-0e17-4350-a967-cfcf05b754ef
+  cost {R}{G}{W}
+  type Creature — Beast
+  pt 5/4
+}

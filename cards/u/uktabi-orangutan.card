@@ -1,0 +1,7 @@
+card "Uktabi Orangutan" {
+  oracle_id 6cc07a7e-e70c-45c5-83c5-a2704e57dbc5
+  cost {2}{G}
+  type Creature — Ape
+  pt 2/2
+  triggered when this enters: destroy target artifact
+}

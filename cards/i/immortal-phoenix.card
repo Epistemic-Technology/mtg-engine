@@ -1,0 +1,8 @@
+card "Immortal Phoenix" {
+  oracle_id 1d8bd391-b133-4c8b-95ad-7f7ab99137c7
+  cost {4}{R}{R}
+  type Creature — Phoenix
+  pt 5/3
+  keywords flying
+  triggered when this dies: return this to hand
+}

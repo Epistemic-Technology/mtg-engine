@@ -1,0 +1,7 @@
+card "Bull Cerodon" {
+  oracle_id 363f5ed8-a7a0-4cde-b09d-9baa26bad347
+  cost {4}{R}{W}
+  type Creature — Beast
+  pt 5/5
+  keywords vigilance, haste
+}

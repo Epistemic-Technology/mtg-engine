@@ -1,0 +1,7 @@
+card "Alert Shu Infantry" {
+  oracle_id 0f019387-4684-493f-80c4-de6023096306
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+}

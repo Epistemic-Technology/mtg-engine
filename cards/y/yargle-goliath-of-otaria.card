@@ -1,0 +1,6 @@
+card "Yargle, Goliath of Otaria" {
+  oracle_id 014d0bcd-b80f-4c43-8f00-f4c31e8f3370
+  cost {4}{U}
+  type Legendary Creature — Frog Spirit
+  pt 3/9
+}

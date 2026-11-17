@@ -1,0 +1,7 @@
+card "Scaled Behemoth" {
+  oracle_id abb39d0e-bf11-4982-b06a-ca7be16bce2c
+  cost {4}{G}{G}
+  type Creature — Crocodile
+  pt 6/7
+  keywords hexproof
+}

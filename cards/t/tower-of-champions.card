@@ -1,0 +1,6 @@
+card "Tower of Champions" {
+  oracle_id f7880784-e1dc-4250-812e-eda41fe91e36
+  cost {4}
+  type Artifact
+  activated {8}, {T}: target creature gets +6/+6
+}

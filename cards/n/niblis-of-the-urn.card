@@ -1,0 +1,8 @@
+card "Niblis of the Urn" {
+  oracle_id 3ea7a555-d6fa-4cc9-9348-784e6f9a8cfc
+  cost {1}{W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered whenever this attacks: you may tap target creature
+}

@@ -1,0 +1,8 @@
+card "Master of the Feast" {
+  oracle_id 01dc86f3-5ebb-4b10-bf68-8fc9f232c724
+  cost {1}{B}{B}
+  type Enchantment Creature — Demon
+  pt 5/5
+  keywords flying
+  triggered at beginning of your upkeep: each opponent draws 1 cards
+}

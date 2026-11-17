@@ -1,0 +1,7 @@
+card "Djinn of the Lamp" {
+  oracle_id 72b42c63-fe4d-4823-9692-30fb5bab384a
+  cost {5}{U}{U}
+  type Creature — Djinn
+  pt 5/6
+  keywords flying
+}

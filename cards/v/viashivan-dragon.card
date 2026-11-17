@@ -1,0 +1,9 @@
+card "Viashivan Dragon" {
+  oracle_id 86fb1fc1-7784-4c94-a80c-21ad87e50fc4
+  cost {2}{R}{R}{G}{G}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  activated {R}: this gets +1/+0
+  activated {G}: this gets +0/+1
+}

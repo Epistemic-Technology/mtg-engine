@@ -1,0 +1,8 @@
+card "Keening Banshee" {
+  oracle_id 56b69e46-a1e4-4545-99e2-ee4385b7e429
+  cost {2}{B}{B}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  triggered when this enters: target creature gets -2/-2
+}

@@ -1,0 +1,6 @@
+card "Hedge Maze" {
+  oracle_id ca4b6689-04ee-4227-9bdc-cb5a9590c745
+  type Land — Forest Island
+  enters tapped
+  triggered when this enters: surveil 1
+}

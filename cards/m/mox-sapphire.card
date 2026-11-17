@@ -1,0 +1,6 @@
+card "Mox Sapphire" {
+  oracle_id d5ed1233-df87-4b90-8918-13922ec95249
+  cost {0}
+  type Artifact
+  mana {U}
+}

@@ -1,0 +1,8 @@
+card "Bazaar Trademage" {
+  oracle_id 6c94a255-c031-48d7-aa07-1189ad3da3b6
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 3/4
+  keywords flying
+  triggered when this enters: draw 2 cards then discard 3 cards
+}

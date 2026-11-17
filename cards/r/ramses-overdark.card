@@ -1,0 +1,7 @@
+card "Ramses Overdark" {
+  oracle_id 6c9a9071-8159-4607-9465-de796f1dc2cc
+  cost {2}{U}{U}{B}{B}
+  type Legendary Creature — Human Assassin
+  pt 4/3
+  activated {T}: destroy target enchanted creature
+}

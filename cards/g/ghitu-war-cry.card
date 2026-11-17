@@ -1,0 +1,6 @@
+card "Ghitu War Cry" {
+  oracle_id 0439df39-0324-4110-b3f4-4a32393021de
+  cost {2}{R}
+  type Enchantment
+  activated {R}: target creature gets +1/+0
+}

@@ -1,0 +1,8 @@
+card "Slith Bloodletter" {
+  oracle_id fbad6038-93ed-4a28-b1f0-ada54608758b
+  cost {B}{B}
+  type Creature — Slith
+  pt 1/1
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+  activated {1}{B}: regenerate this
+}

@@ -1,0 +1,7 @@
+card "Icatian Priest" {
+  oracle_id 3a9d29ce-e8e2-402f-b0c2-873f70418234
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}{W}{W}: target creature gets +1/+1
+}

@@ -1,0 +1,6 @@
+card "Gnarled Effigy" {
+  oracle_id 5fa3cc1a-09ee-4152-8c50-ea719510fc20
+  cost {4}
+  type Artifact
+  activated {4}, {T}: put 1 -1/-1 counters on target creature
+}

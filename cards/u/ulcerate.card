@@ -1,0 +1,6 @@
+card "Ulcerate" {
+  oracle_id 4a9e73b7-8c8b-4489-b670-ce49c2c8a46a
+  cost {B}
+  type Instant
+  spell: target creature gets -3/-3; you loses 3 life
+}

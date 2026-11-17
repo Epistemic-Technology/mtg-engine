@@ -1,0 +1,7 @@
+card "Metallurgeon" {
+  oracle_id 09373283-a5c1-4d8e-ad25-19cd55b1e869
+  cost {1}{W}
+  type Artifact Creature — Human Artificer
+  pt 1/2
+  activated {W}, {T}: regenerate target artifact
+}

@@ -1,0 +1,6 @@
+card "Vizzerdrix" {
+  oracle_id a6649a99-c9cd-474e-91f2-cc8e75496864
+  cost {6}{U}
+  type Creature — Rabbit Beast
+  pt 6/6
+}

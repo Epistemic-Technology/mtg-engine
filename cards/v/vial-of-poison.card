@@ -1,0 +1,6 @@
+card "Vial of Poison" {
+  oracle_id 3d51077f-4ce5-475a-9e65-e9076d779825
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: target creature gains deathtouch
+}

@@ -1,0 +1,8 @@
+card "Darksteel Plate" {
+  oracle_id b5b4cf54-ed5e-42d0-9d98-5fec76b0b0b8
+  cost {3}
+  type Artifact — Equipment
+  keywords indestructible
+  static enchanted: has indestructible
+  equip {2}
+}

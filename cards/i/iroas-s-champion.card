@@ -1,0 +1,7 @@
+card "Iroas's Champion" {
+  oracle_id 8f2252f6-69b9-4c56-b078-803db301a874
+  cost {1}{R}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords double strike
+}

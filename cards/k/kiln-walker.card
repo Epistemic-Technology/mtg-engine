@@ -1,0 +1,7 @@
+card "Kiln Walker" {
+  oracle_id ca868ac4-6144-402e-ae23-629628d02883
+  cost {3}
+  type Artifact Creature — Phyrexian Construct
+  pt 0/3
+  triggered whenever this attacks: this gets +3/+0
+}

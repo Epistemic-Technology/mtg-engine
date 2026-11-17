@@ -1,0 +1,7 @@
+card "Desert Drake" {
+  oracle_id ce8f4eb4-08b8-404b-9147-1e28c1b14a65
+  cost {3}{R}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+}

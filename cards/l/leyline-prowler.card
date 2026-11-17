@@ -1,0 +1,8 @@
+card "Leyline Prowler" {
+  oracle_id 8ca3852a-fa37-46ef-a74d-3c7487ae50fc
+  cost {1}{B}{G}
+  type Creature — Nightmare Beast
+  pt 2/3
+  keywords deathtouch, lifelink
+  mana any
+}

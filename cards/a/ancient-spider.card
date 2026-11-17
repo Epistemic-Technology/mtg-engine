@@ -1,0 +1,7 @@
+card "Ancient Spider" {
+  oracle_id 28537019-3061-4efc-8e87-9bb805bf520f
+  cost {2}{G}{W}
+  type Creature — Spider
+  pt 2/5
+  keywords reach, first strike
+}

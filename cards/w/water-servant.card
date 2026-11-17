@@ -1,0 +1,8 @@
+card "Water Servant" {
+  oracle_id f8c32c80-9693-4ae4-a387-21ec8a3cdd40
+  cost {2}{U}{U}
+  type Creature — Elemental
+  pt 3/4
+  activated {U}: this gets +1/-1
+  activated {U}: this gets -1/+1
+}

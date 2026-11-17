@@ -1,0 +1,7 @@
+card "Adult Gold Dragon" {
+  oracle_id a361fdd1-7f97-4aed-8e24-ab2a03387f73
+  cost {3}{R}{W}
+  type Creature — Dragon
+  pt 4/3
+  keywords flying, lifelink, haste
+}

@@ -1,0 +1,8 @@
+card "Darkslick Drake" {
+  oracle_id cef11518-ecb2-4250-996c-a03fa9dfb09e
+  cost {2}{U}{U}
+  type Creature — Phyrexian Drake
+  pt 2/4
+  keywords flying
+  triggered when this dies: draw 1 cards
+}

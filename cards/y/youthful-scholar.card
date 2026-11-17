@@ -1,0 +1,7 @@
+card "Youthful Scholar" {
+  oracle_id 070bd1e8-6c61-4b0e-b179-e375b843410f
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this dies: draw 2 cards
+}

@@ -1,0 +1,7 @@
+card "Indrik Stomphowler" {
+  oracle_id de47a1e8-9c69-4af6-9d72-1bdd41352b32
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered when this enters: destroy target artifact or enchantment
+}

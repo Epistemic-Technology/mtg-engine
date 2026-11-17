@@ -1,0 +1,8 @@
+card "Havengul Vampire" {
+  oracle_id 616b3ee0-4678-4562-a21a-5f2d31b9964c
+  cost {3}{R}
+  type Creature — Vampire
+  pt 2/2
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+  triggered whenever other creature dies: put 1 +1/+1 counters on this
+}

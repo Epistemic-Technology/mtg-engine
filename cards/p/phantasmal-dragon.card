@@ -1,0 +1,8 @@
+card "Phantasmal Dragon" {
+  oracle_id 7f32c581-4d4a-4873-8e4b-b95e13790481
+  cost {2}{U}{U}
+  type Creature — Dragon Illusion
+  pt 5/5
+  keywords flying
+  triggered when this becomes targeted: sacrifice this
+}

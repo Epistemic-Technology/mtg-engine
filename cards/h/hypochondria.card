@@ -1,0 +1,7 @@
+card "Hypochondria" {
+  oracle_id 74c90ddc-4c6e-479d-ad68-b444d3109258
+  cost {1}{W}
+  type Enchantment
+  activated {W}, discard 1 card: prevent next 3 damage to any target this turn
+  activated {W}, sacrifice this: prevent next 3 damage to any target this turn
+}

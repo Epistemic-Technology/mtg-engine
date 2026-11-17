@@ -1,0 +1,6 @@
+card "Pacification Array" {
+  oracle_id b2c14195-2747-490e-99ef-5b71048ff51a
+  cost {1}
+  type Artifact
+  activated {2}, {T}: tap target artifact or creature
+}

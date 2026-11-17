@@ -1,0 +1,7 @@
+card "Ali Baba" {
+  oracle_id ef3fdfea-330d-4948-94ec-67e344b48086
+  cost {R}
+  type Creature — Human Rogue
+  pt 1/1
+  activated {R}: tap target Wall
+}

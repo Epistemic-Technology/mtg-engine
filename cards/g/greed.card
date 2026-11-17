@@ -1,0 +1,6 @@
+card "Greed" {
+  oracle_id 1ff62220-be95-4901-b8d8-812b9a1a1b0a
+  cost {3}{B}
+  type Enchantment
+  activated {B}, pay 2 life: draw 1 cards
+}

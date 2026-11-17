@@ -1,0 +1,6 @@
+card "Ozai's Cruelty" {
+  oracle_id aba5c046-2f8c-4749-b347-9a7d8cb1c865
+  cost {2}{B}
+  type Sorcery — Lesson
+  spell: deal 2 damage to target player; that player discards 2 cards
+}

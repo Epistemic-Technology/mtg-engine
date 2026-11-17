@@ -1,0 +1,7 @@
+card "Corpse Knight" {
+  oracle_id 0c77b805-728d-4ae4-88a9-223f4b7b52e0
+  cost {W}{B}
+  type Creature — Zombie Knight
+  pt 2/2
+  triggered whenever other creature you control enters: each opponent loses 1 life
+}

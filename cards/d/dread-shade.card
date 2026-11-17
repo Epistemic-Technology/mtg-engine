@@ -1,0 +1,7 @@
+card "Dread Shade" {
+  oracle_id 9b90c7d1-38c6-4210-bc76-68c5fcb91202
+  cost {B}{B}{B}
+  type Creature — Shade
+  pt 3/3
+  activated {B}: this gets +1/+1
+}

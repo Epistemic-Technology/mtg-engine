@@ -1,0 +1,7 @@
+card "Northern Paladin" {
+  oracle_id f5975294-508a-453e-893a-2fbea2487d17
+  cost {2}{W}{W}
+  type Creature — Human Knight
+  pt 3/3
+  activated {W}{W}, {T}: destroy target black permanent
+}

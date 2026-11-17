@@ -1,0 +1,8 @@
+card "Improvised Armor" {
+  oracle_id aca7c0a7-b365-421e-aeb0-49d3a9873e4f
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+5
+  cycling {3}
+}

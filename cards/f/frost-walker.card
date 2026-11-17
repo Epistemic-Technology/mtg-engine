@@ -1,0 +1,7 @@
+card "Frost Walker" {
+  oracle_id 54a22814-c0d5-4637-9aa9-a6bc96401914
+  cost {1}{U}
+  type Creature — Elemental
+  pt 4/1
+  triggered when this becomes targeted: sacrifice this
+}

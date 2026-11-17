@@ -1,0 +1,6 @@
+card "Sultai Ascendancy" {
+  oracle_id 06e92ab3-c781-4f32-9ada-09a388047067
+  cost {B}{G}{U}
+  type Enchantment
+  triggered at beginning of your upkeep: surveil 2
+}

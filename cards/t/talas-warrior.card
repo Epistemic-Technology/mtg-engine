@@ -1,0 +1,7 @@
+card "Talas Warrior" {
+  oracle_id 12beabf3-a84b-49c2-9462-8876a4ac74d4
+  cost {1}{U}{U}
+  type Creature — Human Pirate Warrior
+  pt 2/2
+  keywords can't be blocked
+}

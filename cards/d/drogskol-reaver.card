@@ -1,0 +1,8 @@
+card "Drogskol Reaver" {
+  oracle_id 68175b49-f1e6-4b34-aad9-20d61a43d427
+  cost {5}{W}{U}
+  type Creature — Spirit
+  pt 3/5
+  keywords flying, double strike, lifelink
+  triggered whenever you gain life: draw 1 cards
+}

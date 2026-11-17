@@ -1,0 +1,8 @@
+card "Stoneskin" {
+  oracle_id 6d1d53e3-60ee-40a1-89a5-0648760cd83f
+  cost {2}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +0/+10
+}

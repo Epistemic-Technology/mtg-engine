@@ -1,0 +1,7 @@
+card "Dwarven Demolition Team" {
+  oracle_id caf3c6ec-d17e-497c-8fe7-6f818ce93f96
+  cost {2}{R}
+  type Creature — Dwarf
+  pt 1/1
+  activated {T}: destroy target Wall
+}

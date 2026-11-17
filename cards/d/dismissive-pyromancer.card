@@ -1,0 +1,8 @@
+card "Dismissive Pyromancer" {
+  oracle_id f040310d-d6ac-4d77-9f76-ca325eddf306
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {R}, {T}, discard 1 card: draw 1 cards
+  activated {2}{R}, {T}, sacrifice this: deal 4 damage to target creature
+}

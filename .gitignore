@@ -12,6 +12,7 @@ dist/
 # Fetched card data (pinned by data/sources.lock, see design.md §5)
 /data/scryfall/
 /data/mtgjson/
+/data/xmage/
 *.part
 
 # Editor / OS

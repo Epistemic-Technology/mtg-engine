@@ -1,0 +1,7 @@
+card "Relentless Hunter" {
+  oracle_id 6881e3ac-9e3d-49d2-b2ac-63feb6f0f2ff
+  cost {1}{R}{G}
+  type Creature — Human Warrior
+  pt 3/3
+  activated {1}{R}{G}: this gets +1/+1 and gains trample
+}

@@ -1,0 +1,7 @@
+card "Syndicate Trafficker" {
+  oracle_id 2eb8397a-ba8b-497d-b1f5-a1b09c686597
+  cost {1}{B}
+  type Creature — Aetherborn Rogue
+  pt 3/1
+  activated {1}, sacrifice artifact: put 1 +1/+1 counters on this; this gains indestructible
+}

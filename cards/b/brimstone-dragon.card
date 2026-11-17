@@ -1,0 +1,7 @@
+card "Brimstone Dragon" {
+  oracle_id b20302d9-eb45-4895-9597-cf3af1abce56
+  cost {6}{R}{R}
+  type Creature — Dragon
+  pt 6/6
+  keywords flying, haste
+}

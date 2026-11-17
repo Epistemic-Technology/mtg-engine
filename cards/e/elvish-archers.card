@@ -1,0 +1,7 @@
+card "Elvish Archers" {
+  oracle_id 534ce8e2-53a1-407c-9881-d3b5347d43c3
+  cost {1}{G}
+  type Creature — Elf Archer
+  pt 2/1
+  keywords first strike
+}

@@ -1,0 +1,8 @@
+card "Lithatog" {
+  oracle_id 4c08b7e3-ebac-485d-9e79-fcc2599e219b
+  cost {1}{R}{G}
+  type Creature — Atog
+  pt 1/2
+  activated sacrifice artifact: this gets +1/+1
+  activated sacrifice land: this gets +1/+1
+}

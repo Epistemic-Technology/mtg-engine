@@ -1,0 +1,8 @@
+card "Electrostatic Infantry" {
+  oracle_id ba8883fc-db24-4c3d-ae36-05085089c9cc
+  cost {1}{R}
+  type Creature — Dwarf Wizard
+  pt 1/2
+  keywords trample
+  triggered whenever you cast an instant or sorcery spell: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Hulking Bugbear" {
+  oracle_id c336eb5b-e185-4d4b-b106-3a641ba9aad1
+  cost {1}{R}{R}
+  type Creature — Goblin
+  pt 3/3
+  keywords haste
+}

@@ -1,0 +1,8 @@
+card "Marrow Bats" {
+  oracle_id f20d96cc-3949-4888-a909-c7d67c4d31c7
+  cost {4}{B}
+  type Creature — Bat Skeleton
+  pt 4/1
+  keywords flying
+  activated pay 4 life: regenerate this
+}

@@ -1,0 +1,6 @@
+card "Desolate Lighthouse" {
+  oracle_id aa6dbdf2-2379-4ff5-8a6c-70258784dc35
+  type Land
+  mana {C}
+  activated {1}{U}{R}, {T}: draw 1 cards then discard 1 cards
+}

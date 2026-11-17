@@ -1,0 +1,7 @@
+card "Wall of Granite" {
+  oracle_id 8445094f-008b-491a-977c-e8582d5ab72c
+  cost {2}{R}
+  type Creature — Wall
+  pt 0/7
+  keywords defender
+}

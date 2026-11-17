@@ -1,0 +1,9 @@
+card "Savage Knuckleblade" {
+  oracle_id 5a4fabfe-a641-49b7-8134-9d9edeb8bf1b
+  cost {G}{U}{R}
+  type Creature — Ogre Warrior
+  pt 4/4
+  activated {2}{G}, once: this gets +2/+2
+  activated {2}{U}: return this to hand
+  activated {R}: this gains haste
+}

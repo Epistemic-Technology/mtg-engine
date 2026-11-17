@@ -1,0 +1,9 @@
+card "Tyrant of Kher Ridges" {
+  oracle_id e7c06af6-8d96-4bfa-8baf-9e80f741e8cb
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 4/5
+  keywords flying
+  triggered when this enters: deal 4 damage to any target
+  activated {R}: this gets +1/+0
+}

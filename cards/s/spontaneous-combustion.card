@@ -1,0 +1,7 @@
+card "Spontaneous Combustion" {
+  oracle_id 0f81064d-01cd-4a61-8aea-2544e4d14b70
+  cost {1}{B}{R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal 3 damage to each creature
+}

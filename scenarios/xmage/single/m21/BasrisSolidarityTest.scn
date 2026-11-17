@@ -1,0 +1,17 @@
+# Converted from XMage's cards/single/m21/BasrisSolidarityTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "BasrisSolidarityTest.addCountersToControlledCreatures" {
+  # from cards/single/m21/BasrisSolidarityTest.java
+  battlefield A: "Savannah Lions"
+  battlefield A: "Scryb Sprites"
+  battlefield B: "Raging Goblin"
+  battlefield A: 2 "Plains"
+  hand A: "Basri's Solidarity"
+  turn 1 precombat_main A: cast "Basri's Solidarity" targeting auto
+  run_to turn 1 postcombat_main
+  assert counters "Savannah Lions" +1/+1 1
+  assert counters "Scryb Sprites" +1/+1 1
+  assert counters "Raging Goblin" +1/+1 0
+}

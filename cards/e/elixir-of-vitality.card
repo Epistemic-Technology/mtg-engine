@@ -1,0 +1,8 @@
+card "Elixir of Vitality" {
+  oracle_id 635cc10e-ca25-49a2-af44-3b064263a254
+  cost {4}
+  type Artifact
+  enters tapped
+  activated {T}, sacrifice this: you gains 4 life
+  activated {8}, {T}, sacrifice this: you gains 8 life
+}

@@ -1,0 +1,7 @@
+card "Rusted Sentinel" {
+  oracle_id bab28608-b388-4c48-92a4-689943bbbf4a
+  cost {4}
+  type Artifact Creature — Golem
+  pt 3/4
+  enters tapped
+}

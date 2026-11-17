@@ -1,0 +1,7 @@
+card "Plated Crusher" {
+  oracle_id 411f3ea6-36ad-4bbc-8cde-e79662a08ee9
+  cost {4}{G}{G}{G}
+  type Creature — Beast
+  pt 7/6
+  keywords trample, hexproof
+}

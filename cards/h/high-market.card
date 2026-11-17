@@ -1,0 +1,6 @@
+card "High Market" {
+  oracle_id 86fb3749-37d6-48a6-8524-71e996850307
+  type Land
+  mana {C}
+  activated {T}, sacrifice creature: you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Skeletal Wurm" {
+  oracle_id d988ed15-2927-421b-9a6e-01f0261272c2
+  cost {7}{B}
+  type Creature — Skeleton Wurm
+  pt 7/6
+  activated {B}: regenerate this
+}

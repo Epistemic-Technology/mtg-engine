@@ -1,0 +1,7 @@
+card "Soul Snuffers" {
+  oracle_id cdd227fc-0809-45d6-bed0-e85c0c0b6c94
+  cost {2}{B}{B}
+  type Creature — Elemental Shaman
+  pt 3/3
+  triggered when this enters: put 1 -1/-1 counters on each creature
+}

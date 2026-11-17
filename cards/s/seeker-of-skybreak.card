@@ -1,0 +1,7 @@
+card "Seeker of Skybreak" {
+  oracle_id 704723f3-0490-4d96-930a-aacc6d19ba8d
+  cost {1}{G}
+  type Creature — Elf
+  pt 2/1
+  activated {T}: untap target creature
+}

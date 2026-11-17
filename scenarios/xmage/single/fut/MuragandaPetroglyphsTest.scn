@@ -1,0 +1,12 @@
+# Converted from XMage's cards/single/fut/MuragandaPetroglyphsTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "MuragandaPetroglyphsTest.CyclingAbilityTest" {
+  # from cards/single/fut/MuragandaPetroglyphsTest.java
+  battlefield A: "Hundroog"
+  battlefield A: "Muraganda Petroglyphs"
+  run_to turn 1 begin_combat
+  assert power A "Hundroog" 4
+  assert toughness A "Hundroog" 7
+}

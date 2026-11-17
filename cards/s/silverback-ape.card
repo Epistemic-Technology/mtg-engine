@@ -1,0 +1,6 @@
+card "Silverback Ape" {
+  oracle_id a72f9437-d652-4a64-99df-a307a6dd9a0d
+  cost {3}{G}{G}
+  type Creature — Ape
+  pt 5/5
+}

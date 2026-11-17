@@ -1,0 +1,8 @@
+card "Cunning Breezedancer" {
+  oracle_id ba997e44-fc80-4463-ad3f-6497be26df0f
+  cost {4}{W}{U}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: this gets +2/+2
+}

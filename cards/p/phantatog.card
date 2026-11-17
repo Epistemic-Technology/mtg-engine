@@ -1,0 +1,8 @@
+card "Phantatog" {
+  oracle_id edaff13c-1a07-4fcf-8b31-ed5acba207c5
+  cost {1}{W}{U}
+  type Creature — Atog
+  pt 1/2
+  activated sacrifice enchantment: this gets +1/+1
+  activated discard 1 card: this gets +1/+1
+}

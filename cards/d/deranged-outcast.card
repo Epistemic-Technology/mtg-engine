@@ -1,0 +1,7 @@
+card "Deranged Outcast" {
+  oracle_id 115f1397-fa24-4412-80b7-e2a6ddedcd4c
+  cost {1}{G}
+  type Creature — Human Rogue
+  pt 2/1
+  activated {1}{G}, sacrifice Human: put 2 +1/+1 counters on target creature
+}

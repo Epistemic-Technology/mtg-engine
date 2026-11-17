@@ -1,0 +1,9 @@
+card "Annihilate" {
+  oracle_id 28f55673-7aa0-497e-8434-aa70df1b5e04
+  cost {3}{B}{B}
+  type Instant
+  spell {
+    destroy target nonblack creature without regeneration
+    draw 1 cards
+  }
+}

@@ -1,0 +1,8 @@
+card "Primoc Escapee" {
+  oracle_id 28a1e053-eb14-4fbf-afd1-bfb6117a839a
+  cost {6}{U}
+  type Creature — Bird Beast
+  pt 4/4
+  keywords flying
+  cycling {2}
+}

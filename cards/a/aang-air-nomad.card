@@ -1,0 +1,8 @@
+card "Aang, Air Nomad" {
+  oracle_id e46b2ac6-97d6-48f2-aba3-cd92f8e092c6
+  cost {3}{W}{W}
+  type Legendary Creature — Human Avatar Ally
+  pt 5/4
+  keywords flying, vigilance
+  static other creature you control: has vigilance
+}

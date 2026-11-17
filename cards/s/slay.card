@@ -1,0 +1,9 @@
+card "Slay" {
+  oracle_id 64418e1f-4fb1-4029-a31e-135b2d2c0ab9
+  cost {2}{B}
+  type Instant
+  spell {
+    destroy target green creature without regeneration
+    draw 1 cards
+  }
+}

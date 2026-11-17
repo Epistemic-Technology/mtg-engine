@@ -1,0 +1,8 @@
+card "Malach of the Dawn" {
+  oracle_id c351a325-42cb-43ad-8648-c204e2317b50
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 2/4
+  keywords flying
+  activated {W}{W}{W}: regenerate this
+}

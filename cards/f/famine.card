@@ -1,0 +1,6 @@
+card "Famine" {
+  oracle_id 1f82fe6b-1ec7-400b-a80d-40921b359723
+  cost {3}{B}{B}
+  type Sorcery
+  spell: deal 3 damage to each creature and each player
+}

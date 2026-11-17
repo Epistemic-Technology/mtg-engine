@@ -1,0 +1,9 @@
+card "Hellkite Overlord" {
+  oracle_id 1d05e441-84d4-482f-95a8-7842e776cad2
+  cost {4}{B}{R}{R}{G}
+  type Creature — Dragon
+  pt 8/8
+  keywords flying, trample, haste
+  activated {R}: this gets +1/+0
+  activated {B}{G}: regenerate this
+}

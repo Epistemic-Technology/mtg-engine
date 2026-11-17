@@ -1,0 +1,7 @@
+card "Angel of Light" {
+  oracle_id d12cf640-ff60-4935-a2c7-28ab788de42c
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying, vigilance
+}

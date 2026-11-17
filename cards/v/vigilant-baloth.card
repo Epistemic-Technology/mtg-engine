@@ -1,0 +1,7 @@
+card "Vigilant Baloth" {
+  oracle_id caf1bc69-a8d7-454b-9cc6-2e4d003776a8
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords vigilance
+}

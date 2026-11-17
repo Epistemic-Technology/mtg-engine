@@ -1,0 +1,6 @@
+card "Fall of the Gavel" {
+  oracle_id 5ad33099-0392-4f68-a4c5-7fa3ef2d473e
+  cost {3}{W}{U}
+  type Instant
+  spell: counter target spell; you gains 5 life
+}

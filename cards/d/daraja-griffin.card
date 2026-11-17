@@ -1,0 +1,8 @@
+card "Daraja Griffin" {
+  oracle_id daa0d720-cac1-487a-93e2-33e18f91f19b
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  activated sacrifice this: destroy target black creature
+}

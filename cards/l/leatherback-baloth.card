@@ -1,0 +1,6 @@
+card "Leatherback Baloth" {
+  oracle_id 0ee14128-3bec-4b65-8ee4-619337d4ed45
+  cost {G}{G}{G}
+  type Creature — Beast
+  pt 4/5
+}

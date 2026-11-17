@@ -1,0 +1,8 @@
+card "Archwing Dragon" {
+  oracle_id a0a706b2-b237-4183-82fa-2140a23b89e3
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying, haste
+  triggered at beginning of each end step: return this to hand
+}

@@ -1,0 +1,6 @@
+card "Highland Weald" {
+  oracle_id 66d845a2-be4c-41bb-a357-3650461c03ed
+  type Snow Land
+  enters tapped
+  mana {R} or {G}
+}

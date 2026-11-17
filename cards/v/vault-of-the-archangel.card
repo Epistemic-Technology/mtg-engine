@@ -1,0 +1,6 @@
+card "Vault of the Archangel" {
+  oracle_id eeaac65a-3480-475a-bb28-e6375d53f487
+  type Land
+  mana {C}
+  activated {2}{W}{B}, {T}: each creature you control gains deathtouch, lifelink
+}

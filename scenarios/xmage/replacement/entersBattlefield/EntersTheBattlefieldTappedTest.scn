@@ -1,0 +1,12 @@
+# Converted from XMage's cards/replacement/entersBattlefield/EntersTheBattlefieldTappedTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "EntersTheBattlefieldTappedTest.testScryLandEntersTapped" {
+  # from cards/replacement/entersBattlefield/EntersTheBattlefieldTappedTest.java
+  hand A: "Temple of Enlightenment"
+  turn 1 precombat_main A: play "Temple of Enlightenment"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Temple of Enlightenment"
+  assert tapped "Temple of Enlightenment"
+}

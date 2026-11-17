@@ -1,0 +1,6 @@
+card "Fateful End" {
+  oracle_id a5495ab6-081a-42be-b50c-f89f15a587c8
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target; scry 1
+}

@@ -1,0 +1,6 @@
+card "Phyrexia's Core" {
+  oracle_id b6cc062c-eb39-46ee-bd6d-17f1db0ac50d
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice artifact: you gains 1 life
+}

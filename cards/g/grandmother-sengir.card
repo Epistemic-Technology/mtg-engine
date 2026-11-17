@@ -1,0 +1,7 @@
+card "Grandmother Sengir" {
+  oracle_id 4f92804f-a231-4406-9a16-f4e102517b06
+  cost {4}{B}
+  type Legendary Creature — Human Wizard
+  pt 3/3
+  activated {1}{B}, {T}: target creature gets -1/-1
+}

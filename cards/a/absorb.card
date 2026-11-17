@@ -1,0 +1,6 @@
+card "Absorb" {
+  oracle_id 132ca99a-a3c7-4ed6-b4d0-0edcd7140ca2
+  cost {W}{U}{U}
+  type Instant
+  spell: counter target spell; you gains 3 life
+}

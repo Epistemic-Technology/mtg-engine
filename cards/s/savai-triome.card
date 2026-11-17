@@ -1,0 +1,6 @@
+card "Savai Triome" {
+  oracle_id 00625242-9348-4ef4-b975-f2ac82fee21d
+  type Land — Mountain Plains Swamp
+  enters tapped
+  cycling {3}
+}

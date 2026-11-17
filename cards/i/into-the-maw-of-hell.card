@@ -1,0 +1,6 @@
+card "Into the Maw of Hell" {
+  oracle_id 5f0e8fd5-9db9-4507-a42f-cb99080b89e2
+  cost {4}{R}{R}
+  type Sorcery
+  spell: destroy target land; deal 13 damage to target creature
+}

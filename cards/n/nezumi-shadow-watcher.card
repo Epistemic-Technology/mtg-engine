@@ -1,0 +1,7 @@
+card "Nezumi Shadow-Watcher" {
+  oracle_id 3eae5419-b686-4321-a89d-cb602c487bfc
+  cost {B}
+  type Creature — Rat Warrior
+  pt 1/1
+  activated sacrifice this: destroy target Ninja
+}

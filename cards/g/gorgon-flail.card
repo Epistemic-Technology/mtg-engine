@@ -1,0 +1,7 @@
+card "Gorgon Flail" {
+  oracle_id 91dab3e2-039e-4db9-94e3-1146bced18ed
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has deathtouch
+  equip {2}
+}

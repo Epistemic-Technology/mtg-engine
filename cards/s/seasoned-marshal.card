@@ -1,0 +1,7 @@
+card "Seasoned Marshal" {
+  oracle_id 0c7239bf-dc8a-4d79-867e-7a4225568c49
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this attacks: you may tap target creature
+}

@@ -1,0 +1,6 @@
+card "Relic Barrier" {
+  oracle_id 90cd8274-3f21-4b78-8910-dcaa5f8fe25d
+  cost {2}
+  type Artifact
+  activated {T}: tap target artifact
+}

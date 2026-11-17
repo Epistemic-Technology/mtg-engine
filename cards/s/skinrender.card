@@ -1,0 +1,7 @@
+card "Skinrender" {
+  oracle_id c5c225a6-6a5e-4905-9412-dad15ba645b4
+  cost {2}{B}{B}
+  type Creature — Phyrexian Zombie
+  pt 3/3
+  triggered when this enters: put 3 -1/-1 counters on target creature
+}

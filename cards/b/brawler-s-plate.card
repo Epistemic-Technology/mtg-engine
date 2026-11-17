@@ -1,0 +1,7 @@
+card "Brawler's Plate" {
+  oracle_id 9249adf2-8607-424f-a73b-fcddaf124af9
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has trample
+  equip {4}
+}

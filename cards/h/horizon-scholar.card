@@ -1,0 +1,8 @@
+card "Horizon Scholar" {
+  oracle_id 29933a32-3738-4ec5-aa6d-ce3684e2e5a3
+  cost {5}{U}
+  type Creature — Sphinx
+  pt 4/4
+  keywords flying
+  triggered when this enters: scry 2
+}

@@ -723,6 +723,7 @@ dependencies = [
  "hex",
  "mtg-core",
  "mtg-dsl",
+ "mtg-scenario",
  "regex",
  "reqwest",
  "serde",

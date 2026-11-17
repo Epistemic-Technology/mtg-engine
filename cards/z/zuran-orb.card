@@ -1,0 +1,6 @@
+card "Zuran Orb" {
+  oracle_id 08cb8a30-9cb4-4517-bee5-8848aa60d1a2
+  cost {0}
+  type Artifact
+  activated sacrifice land: you gains 2 life
+}

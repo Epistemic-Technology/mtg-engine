@@ -1,0 +1,8 @@
+card "Firefly" {
+  oracle_id 6b151418-092f-4a43-8b21-3de64ea80cab
+  cost {3}{R}
+  type Creature — Insect
+  pt 1/1
+  keywords flying
+  activated {R}: this gets +1/+0
+}

@@ -1,0 +1,8 @@
+card "Manhole Cover" {
+  oracle_id 38f7ff90-4cdf-4403-ad10-1400e05c32e9
+  cost {2}
+  type Artifact
+  keywords flash
+  triggered when this enters: target creature gains indestructible
+  activated {2}, sacrifice this: target player draws 1 cards
+}

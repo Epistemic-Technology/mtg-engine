@@ -1,0 +1,7 @@
+card "Dictate of Heliod" {
+  oracle_id b989279c-665d-4f15-afc1-adf3872a4851
+  cost {3}{W}{W}
+  type Enchantment
+  keywords flash
+  static creature you control: +2/+2
+}

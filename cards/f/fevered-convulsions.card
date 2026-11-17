@@ -1,0 +1,6 @@
+card "Fevered Convulsions" {
+  oracle_id 83f35293-39e9-4c78-9c9f-25a1fc905676
+  cost {B}{B}
+  type Enchantment
+  activated {2}{B}{B}: put 1 -1/-1 counters on target creature
+}

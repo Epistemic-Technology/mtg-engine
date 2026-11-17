@@ -1,0 +1,6 @@
+card "Meticulous Archive" {
+  oracle_id ccfb8b4d-651c-418a-aa19-cb23105b3f2f
+  type Land — Plains Island
+  enters tapped
+  triggered when this enters: surveil 1
+}

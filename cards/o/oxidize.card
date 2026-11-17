@@ -1,0 +1,6 @@
+card "Oxidize" {
+  oracle_id 0ff78353-a26e-4b5a-948d-1c3b41d2dd1f
+  cost {G}
+  type Instant
+  spell: destroy target artifact without regeneration
+}

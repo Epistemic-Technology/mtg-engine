@@ -1,0 +1,7 @@
+card "Vampire of the Dire Moon" {
+  oracle_id 5a938371-8428-48e3-85ed-6a84a39b29c6
+  cost {B}
+  type Creature — Vampire
+  pt 1/1
+  keywords deathtouch, lifelink
+}

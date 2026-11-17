@@ -1,0 +1,7 @@
+card "Boros Swiftblade" {
+  oracle_id 377e4dad-866b-4e02-8c10-072bf7f000be
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  keywords double strike
+}

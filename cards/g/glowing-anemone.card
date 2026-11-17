@@ -1,0 +1,7 @@
+card "Glowing Anemone" {
+  oracle_id 52305f9d-2bfd-4b35-92b3-c08cdd758cde
+  cost {3}{U}
+  type Creature — Jellyfish Beast
+  pt 1/3
+  triggered when this enters: you may return target land to hand
+}

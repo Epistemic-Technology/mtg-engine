@@ -1,0 +1,7 @@
+card "Sea Spirit" {
+  oracle_id 0ebd8ab3-d4b7-480e-b7b1-267078edddf2
+  cost {4}{U}
+  type Creature — Elemental Spirit
+  pt 2/3
+  activated {U}: this gets +1/+0
+}

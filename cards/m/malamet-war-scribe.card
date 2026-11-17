@@ -1,0 +1,7 @@
+card "Malamet War Scribe" {
+  oracle_id 8978a30a-7918-4851-92ef-f40fdf90c379
+  cost {3}{W}{W}
+  type Creature — Cat Warrior
+  pt 4/3
+  triggered when this enters: each creature you control gets +2/+1
+}

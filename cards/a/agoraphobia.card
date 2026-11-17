@@ -1,0 +1,8 @@
+card "Agoraphobia" {
+  oracle_id b268fe15-2860-4730-865e-eed7f308fc45
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -5/-0
+  activated {2}{U}: return this to hand
+}

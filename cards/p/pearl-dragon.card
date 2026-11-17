@@ -1,0 +1,8 @@
+card "Pearl Dragon" {
+  oracle_id f4e0e2e0-8d64-40a3-92da-3951a696b5f3
+  cost {4}{W}{W}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  activated {1}{W}: this gets +0/+1
+}

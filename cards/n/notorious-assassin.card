@@ -1,0 +1,7 @@
+card "Notorious Assassin" {
+  oracle_id 455138dd-4f76-4b40-9715-f1b1d61f8f23
+  cost {3}{B}
+  type Creature — Human Spellshaper Assassin
+  pt 2/2
+  activated {2}{B}, {T}, discard 1 card: destroy target nonblack creature without regeneration
+}

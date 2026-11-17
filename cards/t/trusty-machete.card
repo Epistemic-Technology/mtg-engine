@@ -1,0 +1,7 @@
+card "Trusty Machete" {
+  oracle_id 394fae8f-3757-4e08-b97c-5d7c451f4e72
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +2/+1
+  equip {2}
+}

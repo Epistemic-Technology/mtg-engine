@@ -16,7 +16,7 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Action, Assertion, ObjRef, Pick, Position, RunTarget, Scenario, ScriptedAction, Statement,
-    TargetRef, player_name, step_name,
+    TargetRef, expand_auto, player_name, step_name,
 };
 
 /// Safety valve against scenarios that never end.
@@ -239,7 +239,12 @@ impl Runner {
                 Statement::Assert { line, assertion } => self.check(*line, assertion)?,
             }
         }
-        if let Some(i) = self.fired.iter().position(|f| !*f) {
+        if let Some(i) = self
+            .fired
+            .iter()
+            .enumerate()
+            .position(|(i, f)| !*f && !matches!(self.actions[i].action, Action::Wait))
+        {
             let a = &self.actions[i];
             return fail(
                 a.line,
@@ -634,6 +639,7 @@ impl Runner {
                     unreachable!()
                 };
                 let needed = self.state().targets_of(ability).len();
+                let targets = expand_auto(targets, needed);
                 if targets.len() != needed {
                     return fail(
                         self.actions[i].line,
@@ -664,6 +670,12 @@ impl Runner {
                 ),
             );
         };
+        if matches!(tr, TargetRef::Auto) {
+            if index + 1 == targets.len() {
+                self.pending_targets = None;
+            }
+            return Ok(0);
+        }
         let t = self.resolve_target(line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
@@ -703,7 +715,7 @@ impl Runner {
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
         let candidates = self.matching(d.player, pos, false, |a| match a {
-            Action::Play(_) | Action::Activate { .. } => true,
+            Action::Play(_) | Action::Activate { .. } | Action::Wait => true,
             Action::Cast { respond_to, .. } => {
                 respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
             }
@@ -711,6 +723,13 @@ impl Runner {
         });
         for i in candidates {
             let a = self.actions[i].clone();
+            if matches!(a.action, Action::Wait) {
+                if stack_names.is_empty() {
+                    self.fired[i] = true;
+                    continue;
+                }
+                return index_of(d, &Choice::Pass).ok_or_else(|| self.unexpected(d, "no pass"));
+            }
             if let Action::Activate {
                 source,
                 ability,
@@ -802,6 +821,7 @@ impl Runner {
                         let (needed, pending_mode) = self.cast_needs(a.line, id, name, mode)?;
                         self.pending_mode = pending_mode;
                         (self.pending_x, self.pending_sacrifice, self.pending_discard) = costs;
+                        let targets = expand_auto(&targets, needed);
                         if targets.len() != needed {
                             return fail(
                                 a.line,
@@ -937,6 +957,7 @@ impl Runner {
                     unreachable!()
                 };
                 let needed = self.state().pool.ability(*ability).targets().len();
+                let targets = expand_auto(targets, needed);
                 if targets.len() != needed {
                     return fail(
                         a.line,
@@ -947,7 +968,7 @@ impl Runner {
                     );
                 }
                 if needed > 0 {
-                    self.pending_targets = Some(targets.to_vec());
+                    self.pending_targets = Some(targets.clone());
                 }
                 Ok(Some(idx_u32(idx)))
             }
@@ -972,6 +993,12 @@ impl Runner {
                 ),
             );
         };
+        if matches!(tr, TargetRef::Auto) {
+            if index + 1 == targets.len() {
+                self.pending_targets = None;
+            }
+            return Ok(0);
+        }
         let t = self.resolve_target(line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
@@ -1178,6 +1205,7 @@ impl Runner {
         let mut division: Vec<(Target, u32)> = Vec::new();
         for (tr, amount) in parts {
             let t = match tr {
+                TargetRef::Auto => return fail(a.line, "`auto` is not a damage recipient"),
                 TargetRef::Player(p) => Target::Player(*p),
                 TargetRef::Object(r) => {
                     let id = blockers
@@ -1360,6 +1388,7 @@ impl Runner {
         Ok(match tr {
             TargetRef::Player(p) => Target::Player(*p),
             TargetRef::Object(r) => Target::Object(self.resolve_obj(line, r)?),
+            TargetRef::Auto => return fail(line, "`auto` cannot name a specific target"),
         })
     }
 

@@ -1,0 +1,8 @@
+card "Mistfire Adept" {
+  oracle_id 794255b1-d94d-4de4-ac0a-87ef743f9102
+  cost {3}{U}
+  type Creature — Human Monk
+  pt 3/3
+  keywords prowess
+  triggered whenever you cast a noncreature spell: target creature gains flying
+}

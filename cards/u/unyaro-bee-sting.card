@@ -1,0 +1,6 @@
+card "Unyaro Bee Sting" {
+  oracle_id a500313b-35e3-4ebc-9144-e9486784757b
+  cost {3}{G}
+  type Sorcery
+  spell: deal 2 damage to any target
+}

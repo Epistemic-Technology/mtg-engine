@@ -1,0 +1,8 @@
+card "Wall of Lost Thoughts" {
+  oracle_id 49b80368-d38a-4877-b1de-f3b5f3d40d4d
+  cost {1}{U}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  triggered when this enters: target player mills 4 cards
+}

@@ -1,0 +1,7 @@
+card "Patagia Golem" {
+  oracle_id 85308fb8-e5a1-4ff1-8606-283cf2056895
+  cost {4}
+  type Artifact Creature — Golem
+  pt 2/3
+  activated {3}: this gains flying
+}

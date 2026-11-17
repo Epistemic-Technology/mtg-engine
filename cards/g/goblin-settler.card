@@ -1,0 +1,7 @@
+card "Goblin Settler" {
+  oracle_id 04dd449f-ff3a-4ed7-8241-244d58b371dc
+  cost {3}{R}
+  type Creature — Goblin
+  pt 1/1
+  triggered when this enters: destroy target land
+}

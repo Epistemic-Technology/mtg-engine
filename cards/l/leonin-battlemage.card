@@ -1,0 +1,8 @@
+card "Leonin Battlemage" {
+  oracle_id 7c0e4731-d384-4f63-a36c-b571d8f79922
+  cost {3}{W}
+  type Creature — Cat Wizard
+  pt 2/3
+  activated {T}: target creature gets +1/+1
+  triggered whenever you cast a spell: you may untap this
+}

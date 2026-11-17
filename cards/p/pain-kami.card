@@ -1,0 +1,7 @@
+card "Pain Kami" {
+  oracle_id 7d972a9b-86c4-4538-868b-4c64f0c80b1a
+  cost {2}{R}
+  type Creature — Spirit
+  pt 2/2
+  activated {X}{R}, sacrifice this: deal X damage to target creature
+}

@@ -1,0 +1,8 @@
+card "Soulblade Djinn" {
+  oracle_id a598e6ce-21ee-49c1-989e-ee864208262f
+  cost {3}{U}{U}
+  type Creature — Djinn
+  pt 4/3
+  keywords flying
+  triggered whenever you cast a noncreature spell: each creature you control gets +1/+1
+}

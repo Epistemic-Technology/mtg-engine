@@ -1,0 +1,7 @@
+card "Flowstone Charger" {
+  oracle_id a19e0a7f-d356-4d2c-8414-70a40ce18674
+  cost {2}{R}{W}
+  type Creature — Beast
+  pt 2/5
+  triggered whenever this attacks: this gets +3/-3
+}

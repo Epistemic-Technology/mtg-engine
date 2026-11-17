@@ -1,0 +1,8 @@
+card "Cliffhaven Vampire" {
+  oracle_id 1915a311-209b-4628-8122-af3055a78fed
+  cost {2}{W}{B}
+  type Creature — Vampire Warrior Ally
+  pt 2/4
+  keywords flying
+  triggered whenever you gain life: each opponent loses 1 life
+}

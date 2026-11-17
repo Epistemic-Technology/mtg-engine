@@ -1,0 +1,6 @@
+card "Desert Twister" {
+  oracle_id 6f880348-6dc8-4cf8-9313-9893c41a70a3
+  cost {4}{G}{G}
+  type Sorcery
+  spell: destroy target permanent
+}

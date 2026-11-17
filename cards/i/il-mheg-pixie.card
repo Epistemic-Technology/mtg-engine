@@ -1,0 +1,8 @@
+card "Il Mheg Pixie" {
+  oracle_id c2c47e13-b581-41a8-a4af-542557a6249a
+  cost {1}{U}
+  type Creature — Faerie
+  pt 2/1
+  keywords flying
+  triggered whenever this attacks: surveil 1
+}

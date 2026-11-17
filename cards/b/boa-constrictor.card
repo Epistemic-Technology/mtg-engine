@@ -1,0 +1,7 @@
+card "Boa Constrictor" {
+  oracle_id f0ab6ca6-098a-416a-89b2-9a93c9d0e60b
+  cost {4}{G}
+  type Creature — Snake
+  pt 3/3
+  activated {T}: this gets +3/+3
+}

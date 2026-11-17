@@ -1,0 +1,7 @@
+card "Sokka, Wolf Cove's Protector" {
+  oracle_id 7dd518f9-1ddd-4950-add3-fc21f675f4dc
+  cost {2}{W}
+  type Legendary Creature — Human Warrior Ally
+  pt 3/3
+  keywords vigilance
+}

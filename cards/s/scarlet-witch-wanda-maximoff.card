@@ -1,0 +1,7 @@
+card "Scarlet Witch, Wanda Maximoff" {
+  oracle_id 488591d4-3dfb-4e1e-b0c4-1950ff92b848
+  cost {2}{R}
+  type Legendary Creature — Mutant Warlock Hero
+  pt 2/3
+  keywords menace
+}

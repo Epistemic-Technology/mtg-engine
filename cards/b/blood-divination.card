@@ -1,0 +1,7 @@
+card "Blood Divination" {
+  oracle_id c1cf9d74-e700-456a-9e5a-1c4df22db268
+  cost {3}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: draw 3 cards
+}

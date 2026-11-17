@@ -1,0 +1,6 @@
+card "Jetmir's Garden" {
+  oracle_id f5896356-5744-4f7e-a4e5-1cc36dde5958
+  type Land — Mountain Forest Plains
+  enters tapped
+  cycling {3}
+}

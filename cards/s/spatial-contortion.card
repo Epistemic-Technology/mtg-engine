@@ -1,0 +1,6 @@
+card "Spatial Contortion" {
+  oracle_id 7346337e-ac12-4dd2-826d-77ec0013e74f
+  cost {1}{C}
+  type Instant
+  spell: target creature gets +3/-3
+}

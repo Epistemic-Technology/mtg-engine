@@ -1,0 +1,7 @@
+card "Knight of Meadowgrain" {
+  oracle_id 4e6c71e8-aeaf-404e-84c2-c79f2a1cbe4b
+  cost {W}{W}
+  type Creature — Kithkin Knight
+  pt 2/2
+  keywords first strike, lifelink
+}

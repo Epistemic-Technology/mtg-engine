@@ -1,0 +1,7 @@
+card "Thallid Soothsayer" {
+  oracle_id eee801ea-e2dc-4b03-a9f9-e87566cb2ae8
+  cost {3}{B}
+  type Creature — Fungus
+  pt 2/3
+  activated {2}, sacrifice creature: draw 1 cards
+}

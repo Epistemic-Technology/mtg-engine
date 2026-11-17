@@ -1,0 +1,6 @@
+card "Overflowing Insight" {
+  oracle_id ff03a063-9634-4746-a208-9dbcde5c6bdb
+  cost {4}{U}{U}{U}
+  type Sorcery
+  spell: target player draws 7 cards
+}

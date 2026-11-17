@@ -1,0 +1,7 @@
+card "Trench Wurm" {
+  oracle_id 9cf65178-6408-46da-a940-f5cb0960b61f
+  cost {3}{B}
+  type Creature — Wurm
+  pt 3/3
+  activated {2}{R}, {T}: destroy target nonbasic land
+}

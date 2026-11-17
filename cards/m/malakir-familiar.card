@@ -1,0 +1,8 @@
+card "Malakir Familiar" {
+  oracle_id 12eeabe1-a02c-42a3-aa87-6774c4de7093
+  cost {2}{B}
+  type Creature — Bat
+  pt 2/1
+  keywords flying, deathtouch
+  triggered whenever you gain life: this gets +1/+1
+}

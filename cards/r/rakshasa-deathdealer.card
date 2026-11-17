@@ -1,0 +1,8 @@
+card "Rakshasa Deathdealer" {
+  oracle_id acdc17cf-8f8c-42ee-bede-481ce00cf4bf
+  cost {B}{G}
+  type Creature — Demon
+  pt 2/2
+  activated {B}{G}: this gets +2/+2
+  activated {B}{G}: regenerate this
+}

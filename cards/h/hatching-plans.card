@@ -1,0 +1,6 @@
+card "Hatching Plans" {
+  oracle_id cebc9fcc-25ec-4366-a914-b95afbd134b0
+  cost {1}{U}
+  type Enchantment
+  triggered when this dies: draw 3 cards
+}

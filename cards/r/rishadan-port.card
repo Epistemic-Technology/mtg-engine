@@ -1,0 +1,6 @@
+card "Rishadan Port" {
+  oracle_id f3e8dc56-2810-474e-a6a7-9c3555f94ae9
+  type Land
+  mana {C}
+  activated {1}, {T}: tap target land
+}

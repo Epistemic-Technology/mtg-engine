@@ -1,0 +1,7 @@
+card "Magma Giant" {
+  oracle_id f71d8073-d265-4387-8d08-0b9815fd2242
+  cost {5}{R}{R}
+  type Creature — Giant
+  pt 5/5
+  triggered when this enters: deal 2 damage to each creature and each player
+}

@@ -1,0 +1,7 @@
+card "Greatsword" {
+  oracle_id 51024f9a-6c6e-4555-a156-92b32255a0c9
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +3/+0
+  equip {3}
+}

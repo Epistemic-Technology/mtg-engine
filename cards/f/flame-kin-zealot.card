@@ -1,0 +1,7 @@
+card "Flame-Kin Zealot" {
+  oracle_id 4af23012-16eb-47be-b666-3e536d8f6c1b
+  cost {1}{R}{R}{W}
+  type Creature — Elemental Berserker
+  pt 2/2
+  triggered when this enters: each creature you control gets +1/+1 and gains haste
+}

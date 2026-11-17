@@ -1,0 +1,7 @@
+card "Mahamoti Djinn" {
+  oracle_id c39ea5f9-6ec0-4697-897b-779e326754a7
+  cost {4}{U}{U}
+  type Creature — Djinn
+  pt 5/6
+  keywords flying
+}

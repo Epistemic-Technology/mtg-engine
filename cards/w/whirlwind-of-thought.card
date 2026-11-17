@@ -1,0 +1,6 @@
+card "Whirlwind of Thought" {
+  oracle_id 6467cbb7-1e4e-482d-a20f-6cb9fc0f1ad1
+  cost {1}{U}{R}{W}
+  type Enchantment
+  triggered whenever you cast a noncreature spell: draw 1 cards
+}

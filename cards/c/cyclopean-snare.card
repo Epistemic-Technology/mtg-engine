@@ -1,0 +1,6 @@
+card "Cyclopean Snare" {
+  oracle_id 6f5a86bf-caa7-48c9-a59f-b13fb483a9d4
+  cost {2}
+  type Artifact
+  activated {3}, {T}: tap target creature then return this to hand
+}

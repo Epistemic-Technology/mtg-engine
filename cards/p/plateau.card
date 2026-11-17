@@ -1,0 +1,4 @@
+card "Plateau" {
+  oracle_id c7a15ca4-085f-4d92-8387-c3711c04c8fa
+  type Land — Mountain Plains
+}

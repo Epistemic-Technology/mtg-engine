@@ -1,0 +1,7 @@
+card "Madrush Cyclops" {
+  oracle_id f45a2a66-04cc-4622-9c70-f2dfc1391bb1
+  cost {1}{B}{R}{G}
+  type Creature — Cyclops Warrior
+  pt 3/4
+  static creature you control: has haste
+}

@@ -1,0 +1,7 @@
+card "Angel of Retribution" {
+  oracle_id 248dcf69-b99e-4a71-b9b3-7fd865f873ab
+  cost {6}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying, first strike
+}

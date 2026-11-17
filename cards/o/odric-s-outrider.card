@@ -1,0 +1,7 @@
+card "Odric's Outrider" {
+  oracle_id a5a9a314-81a0-4b11-9cf9-daeaea98b33c
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/4
+  triggered whenever creature you control dies: put 1 +1/+1 counters on target creature you control
+}

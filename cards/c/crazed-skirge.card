@@ -1,0 +1,7 @@
+card "Crazed Skirge" {
+  oracle_id 72a53d9e-0645-4024-a90f-73b05c2284c6
+  cost {3}{B}
+  type Creature — Phyrexian Imp
+  pt 2/2
+  keywords flying, haste
+}

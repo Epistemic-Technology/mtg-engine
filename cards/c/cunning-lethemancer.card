@@ -1,0 +1,7 @@
+card "Cunning Lethemancer" {
+  oracle_id d696aba9-ef3e-4f81-821a-c1df51431b8a
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered at beginning of your upkeep: each player discards 1 cards
+}

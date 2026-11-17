@@ -1,0 +1,6 @@
+card "Ajani's Welcome" {
+  oracle_id 4a782bf9-4051-4613-8852-33b0d85a0edd
+  cost {W}
+  type Enchantment
+  triggered whenever creature you control enters: you gains 1 life
+}

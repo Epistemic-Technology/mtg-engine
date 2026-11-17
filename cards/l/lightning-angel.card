@@ -1,0 +1,7 @@
+card "Lightning Angel" {
+  oracle_id 2be85439-4606-4e1e-8be7-56d9e31f77c4
+  cost {1}{U}{R}{W}
+  type Creature — Angel
+  pt 3/4
+  keywords flying, vigilance, haste
+}

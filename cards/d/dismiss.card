@@ -1,0 +1,9 @@
+card "Dismiss" {
+  oracle_id 5c828a5e-10ae-4f63-86fd-2f160af43cc3
+  cost {2}{U}{U}
+  type Instant
+  spell {
+    counter target spell
+    draw 1 cards
+  }
+}

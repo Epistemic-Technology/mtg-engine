@@ -1,0 +1,8 @@
+card "Wind Dancer" {
+  oracle_id e9903d75-f71d-45d0-ac5f-955c0c227e02
+  cost {1}{U}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  activated {T}: target creature gains flying
+}

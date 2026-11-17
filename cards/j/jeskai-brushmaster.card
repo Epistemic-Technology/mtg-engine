@@ -1,0 +1,7 @@
+card "Jeskai Brushmaster" {
+  oracle_id eff690a7-c2c7-4750-894c-0667d3151165
+  cost {1}{U}{R}{W}
+  type Creature — Orc Monk
+  pt 2/4
+  keywords double strike, prowess
+}

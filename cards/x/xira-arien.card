@@ -1,0 +1,8 @@
+card "Xira Arien" {
+  oracle_id 4a6e367c-7bc9-44a3-8ede-f2d0651abad3
+  cost {B}{R}{G}
+  type Legendary Creature — Insect Wizard
+  pt 1/2
+  keywords flying
+  activated {B}{R}{G}, {T}: target player draws 1 cards
+}

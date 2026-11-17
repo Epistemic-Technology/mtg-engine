@@ -1,0 +1,6 @@
+card "Dreadbore" {
+  oracle_id d685799f-cc1a-40d6-9df6-d05b8b1f5b13
+  cost {B}{R}
+  type Sorcery
+  spell: destroy target creature or planeswalker
+}

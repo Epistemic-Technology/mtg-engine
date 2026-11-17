@@ -1,0 +1,6 @@
+card "Treasure Trove" {
+  oracle_id 3c4a6b34-a9bb-426d-908c-7ae0011591df
+  cost {2}{U}{U}
+  type Enchantment
+  activated {2}{U}{U}: draw 1 cards
+}

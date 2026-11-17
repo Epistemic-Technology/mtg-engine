@@ -1,0 +1,8 @@
+card "Khenra Charioteer" {
+  oracle_id e75bc5df-f4a4-45af-a6fd-2711b98dd521
+  cost {1}{R}{G}
+  type Creature — Jackal Warrior
+  pt 3/3
+  keywords trample
+  static other creature you control: has trample
+}

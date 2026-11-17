@@ -1,0 +1,6 @@
+card "Kami of Old Stone" {
+  oracle_id 575d08b2-3150-47d2-8f83-e8bb1f184c0f
+  cost {3}{W}
+  type Creature — Spirit
+  pt 1/7
+}

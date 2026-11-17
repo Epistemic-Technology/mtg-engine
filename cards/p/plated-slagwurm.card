@@ -1,0 +1,7 @@
+card "Plated Slagwurm" {
+  oracle_id 4aec7624-e406-45a4-b2b6-2e8d29f6268a
+  cost {4}{G}{G}{G}
+  type Creature — Wurm
+  pt 8/8
+  keywords hexproof
+}

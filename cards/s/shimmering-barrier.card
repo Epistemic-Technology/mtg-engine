@@ -1,0 +1,8 @@
+card "Shimmering Barrier" {
+  oracle_id 94674840-c73c-4659-80b9-11140d1deaa3
+  cost {1}{W}
+  type Creature — Wall
+  pt 1/3
+  keywords defender, first strike
+  cycling {2}
+}

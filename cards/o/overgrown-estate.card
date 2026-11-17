@@ -1,0 +1,6 @@
+card "Overgrown Estate" {
+  oracle_id 4d52c4a5-e5c8-4fb4-be50-78d5482dd1ae
+  cost {W}{B}{G}
+  type Enchantment
+  activated sacrifice land: you gains 3 life
+}

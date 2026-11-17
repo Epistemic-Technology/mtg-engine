@@ -1,0 +1,8 @@
+card "Briarpack Alpha" {
+  oracle_id 5604c475-6e01-4e9d-b4e6-8e8d72874581
+  cost {3}{G}
+  type Creature — Wolf
+  pt 3/3
+  keywords flash
+  triggered when this enters: target creature gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Stronghold Assassin" {
+  oracle_id 35826db0-b6ff-47b5-be16-c5b878d9e842
+  cost {1}{B}{B}
+  type Creature — Phyrexian Zombie Assassin
+  pt 2/1
+  activated {T}, sacrifice creature: destroy target nonblack creature
+}

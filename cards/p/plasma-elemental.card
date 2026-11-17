@@ -1,0 +1,7 @@
+card "Plasma Elemental" {
+  oracle_id 419c501f-c107-4166-b56d-631672f2a5cc
+  cost {5}{U}
+  type Creature — Elemental
+  pt 4/1
+  keywords can't be blocked
+}

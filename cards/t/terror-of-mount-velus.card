@@ -1,0 +1,8 @@
+card "Terror of Mount Velus" {
+  oracle_id 8161248c-16a3-47db-a3ae-cdfd878d49e0
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, double strike
+  triggered when this enters: each creature you control gains double strike
+}

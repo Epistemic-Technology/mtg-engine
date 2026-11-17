@@ -1,0 +1,8 @@
+card "Shivan Devastator" {
+  oracle_id b7daa74c-6142-4107-9355-be98af6ccf13
+  cost {X}{R}
+  type Creature — Dragon Hydra
+  pt 0/0
+  keywords flying, haste
+  enters with X +1/+1 counters
+}

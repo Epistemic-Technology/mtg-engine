@@ -1,0 +1,9 @@
+card "Elas il-Kor, Sadistic Pilgrim" {
+  oracle_id a4d33e21-d3fe-4d5b-903c-b75e859d6f7f
+  cost {W}{B}
+  type Legendary Creature — Phyrexian Kor Cleric
+  pt 2/2
+  keywords deathtouch
+  triggered whenever other creature you control enters: you gains 1 life
+  triggered whenever other creature you control dies: each opponent loses 1 life
+}

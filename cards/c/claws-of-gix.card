@@ -1,0 +1,6 @@
+card "Claws of Gix" {
+  oracle_id c4d384d7-f294-4b2d-9971-a4689c150255
+  cost {0}
+  type Artifact
+  activated {1}, sacrifice permanent: you gains 1 life
+}

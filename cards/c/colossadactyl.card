@@ -1,0 +1,7 @@
+card "Colossadactyl" {
+  oracle_id 34ff281a-f294-4351-9665-863a5b2e882b
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 4/5
+  keywords reach, trample
+}

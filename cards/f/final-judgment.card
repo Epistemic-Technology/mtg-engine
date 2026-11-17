@@ -1,0 +1,6 @@
+card "Final Judgment" {
+  oracle_id 69ef9308-bc25-4f3c-a5fd-1ebaed6e4842
+  cost {4}{W}{W}
+  type Sorcery
+  spell: exile all creatures
+}

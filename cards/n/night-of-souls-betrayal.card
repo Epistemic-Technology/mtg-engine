@@ -1,0 +1,6 @@
+card "Night of Souls' Betrayal" {
+  oracle_id 916bd025-c44f-49c9-8d76-4b7b2f9a8ba3
+  cost {2}{B}{B}
+  type Legendary Enchantment
+  static creature: -1/-1
+}

@@ -1,0 +1,7 @@
+card "Nightveil Predator" {
+  oracle_id b94591b8-2e99-4983-8f36-9b52207bfd2e
+  cost {U}{U}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying, deathtouch, hexproof
+}

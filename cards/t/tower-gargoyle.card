@@ -1,0 +1,7 @@
+card "Tower Gargoyle" {
+  oracle_id 681ca1eb-2ef5-4d60-b834-58bd9b5a47b8
+  cost {1}{W}{U}{B}
+  type Artifact Creature — Gargoyle
+  pt 4/4
+  keywords flying
+}

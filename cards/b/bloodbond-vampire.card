@@ -1,0 +1,7 @@
+card "Bloodbond Vampire" {
+  oracle_id a2057118-9fd1-431d-9441-fef198d67ff2
+  cost {2}{B}{B}
+  type Creature — Vampire Shaman Ally
+  pt 3/3
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

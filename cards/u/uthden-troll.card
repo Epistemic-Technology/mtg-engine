@@ -1,0 +1,7 @@
+card "Uthden Troll" {
+  oracle_id d6329dcc-b450-482a-8ee3-45449f7a4b3d
+  cost {2}{R}
+  type Creature — Troll
+  pt 2/2
+  activated {R}: regenerate this
+}

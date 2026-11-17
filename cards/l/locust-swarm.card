@@ -1,0 +1,9 @@
+card "Locust Swarm" {
+  oracle_id 9963b6a9-d715-430e-9b5e-576fb688d944
+  cost {3}{G}
+  type Creature — Insect
+  pt 1/1
+  keywords flying
+  activated {G}: regenerate this
+  activated {G}, once: untap this
+}

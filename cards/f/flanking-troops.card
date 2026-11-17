@@ -1,0 +1,7 @@
+card "Flanking Troops" {
+  oracle_id 47bbb630-2bf7-47a2-93bb-266e491803c3
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this attacks: you may tap target creature
+}

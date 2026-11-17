@@ -1,0 +1,6 @@
+card "Fetid Pools" {
+  oracle_id 32b03b48-06da-4a74-a7ac-e5ae39a4f428
+  type Land — Island Swamp
+  enters tapped
+  cycling {2}
+}

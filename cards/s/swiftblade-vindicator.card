@@ -1,0 +1,7 @@
+card "Swiftblade Vindicator" {
+  oracle_id 44240b1e-c104-4eb4-8ab9-0d56607ba241
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords double strike, vigilance, trample
+}

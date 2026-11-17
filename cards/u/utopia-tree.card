@@ -1,0 +1,7 @@
+card "Utopia Tree" {
+  oracle_id 73a9122c-60d2-4fdc-bc7b-3576bcbca241
+  cost {1}{G}
+  type Creature — Plant
+  pt 0/2
+  mana any
+}

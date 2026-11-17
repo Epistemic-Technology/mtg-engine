@@ -1,0 +1,16 @@
+# Converted from XMage's cards/abilities/keywords/DeathtouchTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "DeathtouchTest.simpleDeathtouchDuringCombat" {
+  # from cards/abilities/keywords/DeathtouchTest.java
+  battlefield A: "Archangel of Thune"
+  battlefield B: "Typhoid Rats"
+  turn 2 B: attack "Typhoid Rats"
+  turn 2 A: block "Typhoid Rats" with "Archangel of Thune"
+  run_to turn 2 postcombat_main
+  assert life A 23
+  assert life B 20
+  assert graveyard A contains 1 "Archangel of Thune"
+  assert graveyard B contains 1 "Typhoid Rats"
+}

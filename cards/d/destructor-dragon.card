@@ -1,0 +1,8 @@
+card "Destructor Dragon" {
+  oracle_id b0104d66-5c28-482f-838a-416aabaeaf43
+  cost {4}{G}{G}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered when this dies: destroy target noncreature permanent
+}

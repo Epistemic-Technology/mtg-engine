@@ -1,0 +1,6 @@
+card "Skarrg, the Rage Pits" {
+  oracle_id 92bac34e-2045-4331-842f-185711c1ac56
+  type Land
+  mana {C}
+  activated {R}{G}, {T}: target creature gets +1/+1 and gains trample
+}

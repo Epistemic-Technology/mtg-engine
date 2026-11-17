@@ -1,0 +1,6 @@
+card "Caelorna, Coral Tyrant" {
+  oracle_id 4bbc5df9-60d7-46c1-8856-91c9c74abf18
+  cost {1}{U}
+  type Legendary Creature — Octopus
+  pt 0/8
+}

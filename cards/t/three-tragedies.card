@@ -1,0 +1,6 @@
+card "Three Tragedies" {
+  oracle_id b30e80ef-a4d7-48e2-918e-a347c2d9da59
+  cost {3}{B}{B}
+  type Sorcery — Arcane
+  spell: target player discards 3 cards
+}

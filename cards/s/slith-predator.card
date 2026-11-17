@@ -1,0 +1,8 @@
+card "Slith Predator" {
+  oracle_id fd9c984e-daa2-414c-bb90-ecc41aaa896d
+  cost {G}{G}
+  type Creature — Slith
+  pt 1/1
+  keywords trample
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

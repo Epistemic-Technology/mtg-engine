@@ -1,0 +1,6 @@
+card "Shivan Harvest" {
+  oracle_id 27c3d7cd-f92e-4203-9fb5-f6b4776f6ffd
+  cost {1}{R}
+  type Enchantment
+  activated {1}{R}, sacrifice creature: destroy target nonbasic land
+}

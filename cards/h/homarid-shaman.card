@@ -1,0 +1,7 @@
+card "Homarid Shaman" {
+  oracle_id 137e3974-74e1-4941-8597-10aeba6cac37
+  cost {2}{U}{U}
+  type Creature — Homarid Shaman
+  pt 2/1
+  activated {U}: tap target green creature
+}

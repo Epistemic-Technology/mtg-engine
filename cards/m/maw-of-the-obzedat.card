@@ -1,0 +1,7 @@
+card "Maw of the Obzedat" {
+  oracle_id ed8ec935-3359-42a1-8ac6-cac6f0e7f905
+  cost {3}{W}{B}
+  type Creature — Thrull
+  pt 3/3
+  activated sacrifice creature: each creature you control gets +1/+1
+}

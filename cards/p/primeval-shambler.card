@@ -1,0 +1,7 @@
+card "Primeval Shambler" {
+  oracle_id 7a2722c6-04a0-4790-be45-dafb7832bb41
+  cost {4}{B}
+  type Creature — Horror Mercenary
+  pt 3/3
+  activated {B}: this gets +1/+1
+}

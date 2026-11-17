@@ -1,0 +1,7 @@
+card "Brazen Scourge" {
+  oracle_id 422ef4ec-863a-450e-9577-a0707bc16532
+  cost {1}{R}{R}
+  type Creature — Gremlin
+  pt 3/3
+  keywords haste
+}

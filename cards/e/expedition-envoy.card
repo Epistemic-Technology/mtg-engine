@@ -1,0 +1,6 @@
+card "Expedition Envoy" {
+  oracle_id 8bc7c769-33e0-4482-95fc-b344b772e174
+  cost {W}
+  type Creature — Human Scout Ally
+  pt 2/1
+}

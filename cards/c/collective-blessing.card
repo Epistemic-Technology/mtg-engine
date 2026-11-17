@@ -1,0 +1,6 @@
+card "Collective Blessing" {
+  oracle_id 7f7049e8-49ed-46da-89f7-1e40aefb3b0c
+  cost {3}{G}{G}{W}
+  type Enchantment
+  static creature you control: +3/+3
+}

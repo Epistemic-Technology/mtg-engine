@@ -1,0 +1,6 @@
+card "Shivan Oasis" {
+  oracle_id 9b64c0f4-b917-4a0d-b033-30ab71aab807
+  type Land
+  enters tapped
+  mana {R} or {G}
+}

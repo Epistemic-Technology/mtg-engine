@@ -1,0 +1,8 @@
+card "Flowstone Mauler" {
+  oracle_id ea205569-b5a0-4c86-b825-67cd48d3b2e8
+  cost {4}{R}{R}
+  type Creature — Beast
+  pt 4/5
+  keywords trample
+  activated {R}: this gets +1/-1
+}

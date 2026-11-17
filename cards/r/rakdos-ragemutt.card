@@ -1,0 +1,7 @@
+card "Rakdos Ragemutt" {
+  oracle_id 8f4c7419-bbbe-4ddc-83ae-fd9ea3e86c3d
+  cost {3}{B}{R}
+  type Creature — Elemental Dog
+  pt 3/3
+  keywords lifelink, haste
+}

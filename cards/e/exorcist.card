@@ -1,0 +1,7 @@
+card "Exorcist" {
+  oracle_id 2a1ca3e2-e1d1-4525-a07e-13d5ba1ac431
+  cost {W}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}{W}, {T}: destroy target black creature
+}

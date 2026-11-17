@@ -1,0 +1,6 @@
+card "Sear" {
+  oracle_id 23b11fdc-61b5-4f5e-ad80-f81b729fc91d
+  cost {1}{R}
+  type Instant
+  spell: deal 4 damage to target creature or planeswalker
+}

@@ -1,0 +1,6 @@
+card "Strength of the Pack" {
+  oracle_id be78a76c-e126-4f09-9e8e-b773a437cfeb
+  cost {4}{G}{G}
+  type Sorcery
+  spell: put 2 +1/+1 counters on each creature you control
+}

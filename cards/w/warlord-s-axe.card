@@ -1,0 +1,7 @@
+card "Warlord's Axe" {
+  oracle_id ebe43cc6-42fe-44f6-b198-ef0212bf82cb
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +3/+1
+  equip {4}
+}

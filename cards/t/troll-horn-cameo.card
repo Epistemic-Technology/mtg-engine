@@ -1,0 +1,6 @@
+card "Troll-Horn Cameo" {
+  oracle_id 98e042de-05f4-4e2e-b12f-375b905e6600
+  cost {3}
+  type Artifact
+  mana {R} or {G}
+}

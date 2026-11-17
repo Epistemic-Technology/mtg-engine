@@ -1,0 +1,8 @@
+card "Naya Battlemage" {
+  oracle_id db4d2580-50f4-4986-8091-769b4d2f6d72
+  cost {2}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {R}, {T}: target creature gets +2/+0
+  activated {W}, {T}: tap target creature
+}

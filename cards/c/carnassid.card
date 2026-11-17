@@ -1,0 +1,8 @@
+card "Carnassid" {
+  oracle_id 97b386da-4bc0-4c39-a5cc-17e441c45127
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 5/4
+  keywords trample
+  activated {1}{G}: regenerate this
+}

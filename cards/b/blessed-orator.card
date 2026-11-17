@@ -1,0 +1,7 @@
+card "Blessed Orator" {
+  oracle_id c0856fea-cbdc-427b-ae00-bfd9311f284f
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  static other creature you control: +0/+1
+}

@@ -1,0 +1,6 @@
+card "Broadside Barrage" {
+  oracle_id dbf9feb3-0751-47bd-a8dc-ed1c076cf8c7
+  cost {1}{U}{R}
+  type Instant
+  spell: deal 5 damage to target creature or planeswalker; draw 1 cards then discard 1 cards
+}

@@ -1,0 +1,8 @@
+card "Audacity" {
+  oracle_id 4eb8d877-ee46-4bbe-99da-fee9e238ca58
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has trample
+  triggered when this dies: draw 1 cards
+}

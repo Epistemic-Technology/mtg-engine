@@ -1,0 +1,6 @@
+card "Aura Shards" {
+  oracle_id 8d03d050-391c-4311-8c42-4ee632d40fdc
+  cost {1}{G}{W}
+  type Enchantment
+  triggered whenever creature you control enters: you may destroy target artifact or enchantment
+}

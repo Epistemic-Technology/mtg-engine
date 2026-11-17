@@ -1,0 +1,8 @@
+card "Fleeting Image" {
+  oracle_id 623f3efb-5431-42d4-98aa-9caac40e4e83
+  cost {2}{U}
+  type Creature — Illusion
+  pt 2/1
+  keywords flying
+  activated {1}{U}: return this to hand
+}

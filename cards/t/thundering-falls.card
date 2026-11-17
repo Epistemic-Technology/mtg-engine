@@ -1,0 +1,6 @@
+card "Thundering Falls" {
+  oracle_id d2bcff58-7a8a-46ef-b6b3-39501d4c8e6e
+  type Land — Island Mountain
+  enters tapped
+  triggered when this enters: surveil 1
+}

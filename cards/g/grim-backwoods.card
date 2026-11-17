@@ -1,0 +1,6 @@
+card "Grim Backwoods" {
+  oracle_id 5effaa94-7f87-4485-8959-473d584c5034
+  type Land
+  mana {C}
+  activated {2}{B}{G}, {T}, sacrifice creature: draw 1 cards
+}

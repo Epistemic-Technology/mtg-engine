@@ -1,0 +1,6 @@
+card "Necrogen Mists" {
+  oracle_id db25d48e-e5eb-4364-9d7a-f9757ee4ccbe
+  cost {2}{B}
+  type Enchantment
+  triggered at beginning of each upkeep: that player discards 1 cards
+}

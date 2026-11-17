@@ -1,0 +1,7 @@
+card "Inspiring Cleric" {
+  oracle_id 65e19aec-e8ea-412f-a239-bd8d1b78249c
+  cost {2}{W}
+  type Creature — Vampire Cleric
+  pt 3/2
+  triggered when this enters: you gains 4 life
+}

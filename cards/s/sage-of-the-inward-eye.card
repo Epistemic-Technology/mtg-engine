@@ -1,0 +1,8 @@
+card "Sage of the Inward Eye" {
+  oracle_id 02c741d0-99d3-48e5-9846-0fea5a0a29fe
+  cost {2}{U}{R}{W}
+  type Creature — Djinn Wizard
+  pt 3/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: each creature you control gains lifelink
+}

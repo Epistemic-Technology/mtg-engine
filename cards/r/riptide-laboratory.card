@@ -1,0 +1,6 @@
+card "Riptide Laboratory" {
+  oracle_id 444d50dd-a44a-42db-bbf6-d0978e3bd6a3
+  type Land
+  mana {C}
+  activated {1}{U}, {T}: return target Wizard you control to hand
+}

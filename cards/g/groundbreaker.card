@@ -1,0 +1,8 @@
+card "Groundbreaker" {
+  oracle_id a14dc46f-b790-458e-8821-0c5646188680
+  cost {G}{G}{G}
+  type Creature — Elemental
+  pt 6/1
+  keywords trample, haste
+  triggered at beginning of each end step: sacrifice this
+}

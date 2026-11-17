@@ -1,0 +1,7 @@
+card "Shuko" {
+  oracle_id 8abe0577-8fdb-4e4a-a871-01b21732c961
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +1/+0
+  equip {0}
+}

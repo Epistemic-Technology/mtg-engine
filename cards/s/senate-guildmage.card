@@ -1,0 +1,8 @@
+card "Senate Guildmage" {
+  oracle_id 76f1cc7a-084e-410d-92cb-b8f6ab8da4e9
+  cost {W}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {W}, {T}: you gains 2 life
+  activated {U}, {T}: draw 1 cards then discard 1 cards
+}

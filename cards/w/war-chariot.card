@@ -1,0 +1,6 @@
+card "War Chariot" {
+  oracle_id 989c698a-600e-47d8-acaf-3ca140dcd150
+  cost {3}
+  type Artifact
+  activated {3}, {T}: target creature gains trample
+}

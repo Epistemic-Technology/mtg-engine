@@ -1,0 +1,8 @@
+card "Angel of Despair" {
+  oracle_id 02520741-d7f0-46e6-acbe-010b65fc24c0
+  cost {3}{W}{W}{B}{B}
+  type Creature — Angel
+  pt 5/5
+  keywords flying
+  triggered when this enters: destroy target permanent
+}

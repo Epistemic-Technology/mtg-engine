@@ -1,0 +1,8 @@
+card "Bonded Fetch" {
+  oracle_id 79d34537-4633-4728-a1b3-5822119f0c84
+  cost {2}{U}
+  type Creature — Homunculus
+  pt 0/2
+  keywords defender, haste
+  activated {T}: draw 1 cards then discard 1 cards
+}

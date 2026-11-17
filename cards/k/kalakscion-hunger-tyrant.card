@@ -1,0 +1,6 @@
+card "Kalakscion, Hunger Tyrant" {
+  oracle_id d85f5edb-60a8-4abd-82b0-f9a58f3d4185
+  cost {1}{B}{B}
+  type Legendary Creature — Crocodile
+  pt 7/2
+}

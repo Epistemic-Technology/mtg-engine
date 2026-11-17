@@ -1,0 +1,6 @@
+card "Indomitable Ancients" {
+  oracle_id 2764741c-1f3e-459a-a487-54cbac2c84a6
+  cost {2}{W}{W}
+  type Creature — Treefolk Warrior
+  pt 2/10
+}

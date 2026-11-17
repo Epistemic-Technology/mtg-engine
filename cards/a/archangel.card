@@ -1,0 +1,7 @@
+card "Archangel" {
+  oracle_id 9971697b-2acc-4bc2-a44e-074d03a51df7
+  cost {5}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying, vigilance
+}

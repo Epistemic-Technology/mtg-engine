@@ -1,0 +1,9 @@
+card "Grafted Identity" {
+  oracle_id e4fb97b5-0d4a-4c9a-bd51-42ff723b5854
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  additional cost sacrifice creature
+  enchant creature
+  static enchanted: control
+  static enchanted: +1/+1
+}

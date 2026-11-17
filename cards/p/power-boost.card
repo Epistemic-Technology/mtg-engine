@@ -1,0 +1,6 @@
+card "Power Boost" {
+  oracle_id fed58ccc-db56-4094-8b56-bd29b00e9327
+  cost {2}{R}
+  type Enchantment
+  static creature you control: +1/+0
+}

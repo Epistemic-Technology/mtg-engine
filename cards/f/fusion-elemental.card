@@ -1,0 +1,6 @@
+card "Fusion Elemental" {
+  oracle_id a152674f-be29-40ab-8dd9-376fd4eb3bb8
+  cost {W}{U}{B}{R}{G}
+  type Creature — Elemental
+  pt 8/8
+}

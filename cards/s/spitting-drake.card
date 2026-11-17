@@ -1,0 +1,8 @@
+card "Spitting Drake" {
+  oracle_id bfbc12ec-ecc0-4e23-a9d1-d13babd99a46
+  cost {3}{R}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  activated {R}, once: this gets +1/+0
+}

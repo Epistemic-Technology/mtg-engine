@@ -1,0 +1,6 @@
+card "Yavimaya Hollow" {
+  oracle_id 53d6113d-acdb-4754-9641-f7991a96c7b9
+  type Legendary Land
+  mana {C}
+  activated {G}, {T}: regenerate target creature
+}

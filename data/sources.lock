@@ -34,5 +34,11 @@
         "size": 4402
       }
     }
+  },
+  "xmage": {
+    "repository": "https://github.com/magefree/mage.git",
+    "commit": "d9b802438a24661ed9a5761f37360096a866adc9",
+    "date": "2026-11-16T22:18:17+04:00",
+    "path": "Mage.Tests/src/test/java/org/mage/test"
   }
 }

@@ -1,0 +1,6 @@
+card "Glimpse the Unthinkable" {
+  oracle_id 552f0163-a19d-4671-888f-044fc0354875
+  cost {U}{B}
+  type Sorcery
+  spell: target player mills 10 cards
+}

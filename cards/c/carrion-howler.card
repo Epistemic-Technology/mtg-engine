@@ -1,0 +1,7 @@
+card "Carrion Howler" {
+  oracle_id e139176f-483f-4f05-af3d-0176d0048b62
+  cost {3}{B}
+  type Creature — Zombie Wolf
+  pt 2/2
+  activated pay 1 life: this gets +2/-1
+}

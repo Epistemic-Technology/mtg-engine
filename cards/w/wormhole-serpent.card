@@ -1,0 +1,7 @@
+card "Wormhole Serpent" {
+  oracle_id 6eb21aca-116e-427b-9e75-8adaee0cc62a
+  cost {4}{U}
+  type Creature — Serpent
+  pt 3/5
+  activated {3}{U}: target creature can't be blocked
+}

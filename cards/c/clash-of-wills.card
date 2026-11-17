@@ -1,0 +1,6 @@
+card "Clash of Wills" {
+  oracle_id 56aec5bd-a8e8-403f-b339-0fc817426428
+  cost {X}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X}
+}

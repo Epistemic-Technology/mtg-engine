@@ -1,0 +1,7 @@
+card "Skyline Predator" {
+  oracle_id 9bc6d4ac-6fca-4574-9cd8-10a5528575b3
+  cost {4}{U}{U}
+  type Creature — Drake
+  pt 3/4
+  keywords flash, flying
+}

@@ -1,0 +1,8 @@
+card "Harmattan Efreet" {
+  oracle_id 84b1d4e1-ca8a-4eed-b5c4-364876938aee
+  cost {2}{U}{U}
+  type Creature — Efreet
+  pt 2/2
+  keywords flying
+  activated {1}{U}{U}: target creature gains flying
+}

@@ -1,0 +1,6 @@
+card "Attrition" {
+  oracle_id a85ee0cf-39ce-49f2-874a-f6f54ca1775f
+  cost {1}{B}{B}
+  type Enchantment
+  activated {B}, sacrifice creature: destroy target nonblack creature
+}

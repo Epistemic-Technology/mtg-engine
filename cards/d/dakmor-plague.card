@@ -1,0 +1,6 @@
+card "Dakmor Plague" {
+  oracle_id a6cc516d-5a4b-455a-ab16-367d64215527
+  cost {3}{B}{B}
+  type Sorcery
+  spell: deal 3 damage to each creature and each player
+}

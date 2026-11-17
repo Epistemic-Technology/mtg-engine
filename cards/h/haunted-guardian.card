@@ -1,0 +1,7 @@
+card "Haunted Guardian" {
+  oracle_id 20b9bc53-7f6d-4616-a2df-5783ab577707
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/1
+  keywords defender, first strike
+}

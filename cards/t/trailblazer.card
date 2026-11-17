@@ -1,0 +1,6 @@
+card "Trailblazer" {
+  oracle_id 53ae0359-aa3c-464b-bdbd-139ae17ebd76
+  cost {2}{G}{G}
+  type Instant
+  spell: target creature can't be blocked
+}

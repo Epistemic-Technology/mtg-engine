@@ -1,0 +1,7 @@
+card "Southern Paladin" {
+  oracle_id cab96aa8-13e3-4dd4-9d44-9e298f807388
+  cost {2}{W}{W}
+  type Creature — Human Knight
+  pt 3/3
+  activated {W}{W}, {T}: destroy target red permanent
+}

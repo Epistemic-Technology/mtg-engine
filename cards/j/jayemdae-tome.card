@@ -1,0 +1,6 @@
+card "Jayemdae Tome" {
+  oracle_id 39ee576a-0803-4063-9c84-f2b537e4d44c
+  cost {4}
+  type Artifact — Book
+  activated {4}, {T}: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Archon of Justice" {
+  oracle_id d551931d-4ebe-4acc-9e87-6c628897071a
+  cost {3}{W}{W}
+  type Creature — Archon
+  pt 4/4
+  keywords flying
+  triggered when this dies: exile target permanent
+}

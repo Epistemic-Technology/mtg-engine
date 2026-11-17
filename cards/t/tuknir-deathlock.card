@@ -1,0 +1,8 @@
+card "Tuknir Deathlock" {
+  oracle_id 0b6fa658-a344-4202-866b-e19997e32ff2
+  cost {R}{R}{G}{G}
+  type Legendary Creature — Human Wizard
+  pt 2/2
+  keywords flying
+  activated {R}{G}, {T}: target creature gets +2/+2
+}

@@ -1,0 +1,8 @@
+card "Wolfir Avenger" {
+  oracle_id 83deda94-66e8-4655-9cd5-6d97d809946d
+  cost {1}{G}{G}
+  type Creature — Wolf Warrior
+  pt 3/3
+  keywords flash
+  activated {1}{G}: regenerate this
+}

@@ -1,0 +1,8 @@
+card "Thaumatog" {
+  oracle_id 9845fb27-3a1e-4cad-b30b-2c7a9dbb6209
+  cost {1}{G}{W}
+  type Creature — Atog
+  pt 1/2
+  activated sacrifice land: this gets +1/+1
+  activated sacrifice enchantment: this gets +1/+1
+}

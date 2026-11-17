@@ -1,0 +1,7 @@
+card "Akoum Boulderfoot" {
+  oracle_id c16367eb-1c0a-4197-8e2f-2d74e4381024
+  cost {4}{R}{R}
+  type Creature — Giant Warrior
+  pt 4/5
+  triggered when this enters: deal 1 damage to any target
+}

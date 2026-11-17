@@ -1,0 +1,8 @@
+card "Living Wall" {
+  oracle_id 4844312c-3c9d-4ca1-986d-4ad35e68454e
+  cost {4}
+  type Artifact Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {1}: regenerate this
+}

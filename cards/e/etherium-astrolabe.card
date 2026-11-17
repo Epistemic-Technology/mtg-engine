@@ -1,0 +1,7 @@
+card "Etherium Astrolabe" {
+  oracle_id 8d7194f7-1525-4f6e-b974-b947a254f437
+  cost {2}{U}
+  type Artifact
+  keywords flash
+  activated {B}, {T}, sacrifice artifact: draw 1 cards
+}

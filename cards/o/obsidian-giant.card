@@ -1,0 +1,6 @@
+card "Obsidian Giant" {
+  oracle_id f7a96612-4fc5-4944-8b74-9eb6f24190b4
+  cost {4}{R}
+  type Creature — Giant
+  pt 4/4
+}

@@ -1,0 +1,7 @@
+card "Archweaver" {
+  oracle_id 2ceb76e2-1692-48fc-ab20-9587d1374172
+  cost {5}{G}{G}
+  type Creature — Spider
+  pt 5/5
+  keywords reach, trample
+}

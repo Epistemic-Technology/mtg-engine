@@ -1,0 +1,6 @@
+card "Jace's Ingenuity" {
+  oracle_id ce588fd3-642e-4df9-8061-6fcfc6e81270
+  cost {3}{U}{U}
+  type Instant
+  spell: draw 3 cards
+}

@@ -1,0 +1,7 @@
+card "Ethereal Champion" {
+  oracle_id f203671b-76f7-4be0-80a9-826fbb450fe7
+  cost {2}{W}{W}{W}
+  type Creature — Avatar
+  pt 3/4
+  activated pay 1 life: prevent next 1 damage to this this turn
+}

@@ -1,0 +1,6 @@
+card "Temple Bell" {
+  oracle_id fc8032e9-c83a-4cf9-92e1-b1d2d9642695
+  cost {3}
+  type Artifact
+  activated {T}: each player draws 1 cards
+}

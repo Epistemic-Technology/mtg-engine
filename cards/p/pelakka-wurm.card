@@ -1,0 +1,9 @@
+card "Pelakka Wurm" {
+  oracle_id d36075c2-de66-4202-9217-b1102a2bc14b
+  cost {4}{G}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  keywords trample
+  triggered when this enters: you gains 7 life
+  triggered when this dies: draw 1 cards
+}

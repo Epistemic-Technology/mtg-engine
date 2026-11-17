@@ -1,0 +1,5 @@
+card "Snow-Covered Wastes" {
+  oracle_id 46a07b53-ff58-4bd6-80dd-ded2eb0e29a3
+  type Basic Snow Land
+  mana {C}
+}

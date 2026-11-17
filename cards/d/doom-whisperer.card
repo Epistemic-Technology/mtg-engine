@@ -1,0 +1,8 @@
+card "Doom Whisperer" {
+  oracle_id 4a01db2e-cd43-4b1a-a480-169018f82501
+  cost {3}{B}{B}
+  type Creature — Nightmare Demon
+  pt 6/6
+  keywords flying, trample
+  activated pay 2 life: surveil 2
+}

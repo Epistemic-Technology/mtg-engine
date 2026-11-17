@@ -1,0 +1,8 @@
+card "Wall of Blood" {
+  oracle_id b26c3563-d289-4ca3-8736-9d89e191a840
+  cost {2}{B}
+  type Creature — Wall
+  pt 0/2
+  keywords defender
+  activated pay 1 life: this gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Scavenger Drake" {
+  oracle_id 7d51b860-f7a4-4b13-a83c-134931ae7baf
+  cost {3}{B}
+  type Creature — Drake
+  pt 1/1
+  keywords flying
+  triggered whenever other creature dies: you may put 1 +1/+1 counters on this
+}

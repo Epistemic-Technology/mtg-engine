@@ -1,0 +1,7 @@
+card "Dragon-Style Twins" {
+  oracle_id d150f456-c33a-4b19-ac73-b1d818d5db8f
+  cost {3}{R}{R}
+  type Creature — Human Monk
+  pt 3/3
+  keywords double strike, prowess
+}

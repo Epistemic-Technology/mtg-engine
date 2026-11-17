@@ -1,0 +1,6 @@
+card "Zagoth Triome" {
+  oracle_id fdd46004-eaba-4024-8687-39b23dc6a58c
+  type Land — Swamp Forest Island
+  enters tapped
+  cycling {3}
+}

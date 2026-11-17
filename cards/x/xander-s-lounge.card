@@ -1,0 +1,6 @@
+card "Xander's Lounge" {
+  oracle_id 8291543f-d086-48aa-b2b7-5481ca8c9198
+  type Land — Island Swamp Mountain
+  enters tapped
+  cycling {3}
+}

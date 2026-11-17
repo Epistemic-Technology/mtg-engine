@@ -1,0 +1,7 @@
+card "Vicious Conquistador" {
+  oracle_id 26b077df-7a05-459a-b5ff-bf27767bb519
+  cost {B}
+  type Creature — Vampire Soldier
+  pt 1/2
+  triggered whenever this attacks: each opponent loses 1 life
+}

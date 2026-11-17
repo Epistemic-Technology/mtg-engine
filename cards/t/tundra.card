@@ -1,0 +1,4 @@
+card "Tundra" {
+  oracle_id 02418479-9455-417f-a6a1-004356faff37
+  type Land — Plains Island
+}

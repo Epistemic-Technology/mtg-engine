@@ -1,0 +1,7 @@
+card "Compulsion" {
+  oracle_id 3fafb6b2-5cae-45b6-8550-3ff8daa02802
+  cost {1}{U}
+  type Enchantment
+  activated {1}{U}, discard 1 card: draw 1 cards
+  activated {1}{U}, sacrifice this: draw 1 cards
+}

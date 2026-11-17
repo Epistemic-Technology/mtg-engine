@@ -1,0 +1,8 @@
+card "Flowstone Hellion" {
+  oracle_id 69ea4ef2-794d-4c76-904f-0435b0efd6a0
+  cost {4}{R}
+  type Creature — Hellion Beast
+  pt 3/3
+  keywords haste
+  activated {0}: this gets +1/-1
+}

@@ -1,0 +1,7 @@
+card "Carrion Ants" {
+  oracle_id 87bc6be7-4734-4a11-806e-e9e4f5616fe0
+  cost {2}{B}{B}
+  type Creature — Insect
+  pt 0/1
+  activated {1}: this gets +1/+1
+}

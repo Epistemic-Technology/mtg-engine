@@ -1,0 +1,7 @@
+card "Reclamation Sage" {
+  oracle_id 032ec6e2-6cc3-4a97-9cc7-3233f5e11904
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/1
+  triggered when this enters: you may destroy target artifact or enchantment
+}

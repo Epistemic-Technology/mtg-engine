@@ -1,0 +1,6 @@
+card "Saltblast" {
+  oracle_id a6a9776b-87f4-4a08-8074-d49fbbe417ae
+  cost {3}{W}{W}
+  type Sorcery
+  spell: destroy target nonwhite permanent
+}

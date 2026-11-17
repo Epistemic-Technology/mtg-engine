@@ -1,0 +1,6 @@
+card "Memnite" {
+  oracle_id 7663ac7c-1de3-4250-b96a-fae9dbd66a27
+  cost {0}
+  type Artifact Creature — Construct
+  pt 1/1
+}

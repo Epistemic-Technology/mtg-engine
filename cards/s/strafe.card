@@ -1,0 +1,6 @@
+card "Strafe" {
+  oracle_id 6ac7990b-b86e-4725-974c-d6affa2af2f9
+  cost {R}
+  type Sorcery
+  spell: deal 3 damage to target nonred creature
+}

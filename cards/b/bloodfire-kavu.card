@@ -1,0 +1,7 @@
+card "Bloodfire Kavu" {
+  oracle_id a12880c4-1987-42af-8595-0b88981e1091
+  cost {2}{R}{R}
+  type Creature — Kavu
+  pt 2/2
+  activated {R}, sacrifice this: deal 2 damage to each creature
+}

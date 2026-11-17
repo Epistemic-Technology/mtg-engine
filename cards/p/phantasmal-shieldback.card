@@ -1,0 +1,8 @@
+card "Phantasmal Shieldback" {
+  oracle_id 8e514bc9-7c8c-4257-9dbc-19a78f61df05
+  cost {U}
+  type Creature — Turtle Illusion
+  pt 1/3
+  triggered when this becomes targeted: sacrifice this
+  triggered when this dies: draw 1 cards
+}

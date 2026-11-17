@@ -1,0 +1,6 @@
+card "Inspirit" {
+  oracle_id 90fd82e8-f638-4ba4-a03c-a30d46f93a39
+  cost {2}{W}
+  type Instant
+  spell: untap target creature; target 1 gets +2/+4
+}

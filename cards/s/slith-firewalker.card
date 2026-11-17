@@ -1,0 +1,8 @@
+card "Slith Firewalker" {
+  oracle_id ea1af948-686d-4b40-ad4e-cb48a0258269
+  cost {R}{R}
+  type Creature — Slith
+  pt 1/1
+  keywords haste
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

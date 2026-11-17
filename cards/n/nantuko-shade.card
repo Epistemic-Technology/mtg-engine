@@ -1,0 +1,7 @@
+card "Nantuko Shade" {
+  oracle_id 40d02b8c-fb0e-4607-855f-49fbcec2e209
+  cost {B}{B}
+  type Creature — Insect Shade
+  pt 2/1
+  activated {B}: this gets +1/+1
+}

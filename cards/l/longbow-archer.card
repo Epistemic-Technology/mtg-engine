@@ -1,0 +1,7 @@
+card "Longbow Archer" {
+  oracle_id 51531db1-ba59-4ccc-9a91-54de2887fc8b
+  cost {W}{W}
+  type Creature — Human Soldier Archer
+  pt 2/2
+  keywords reach, first strike
+}

@@ -1,0 +1,7 @@
+card "Farbog Boneflinger" {
+  oracle_id 46027ca0-9d06-42b3-8012-124861c6b558
+  cost {4}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered when this enters: target creature gets -2/-2
+}

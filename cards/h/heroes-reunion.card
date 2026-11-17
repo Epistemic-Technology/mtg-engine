@@ -1,0 +1,6 @@
+card "Heroes' Reunion" {
+  oracle_id beab66e0-2b6c-478f-ba42-8c0c216a527e
+  cost {G}{W}
+  type Instant
+  spell: target player gains 7 life
+}

@@ -1,0 +1,10 @@
+card "Esper Charm" {
+  oracle_id d40ea3d9-8c48-4846-b1f4-99018d4fd789
+  cost {W}{U}{B}
+  type Instant
+  choose one {
+    mode: destroy target enchantment
+    mode: draw 2 cards
+    mode: target player discards 2 cards
+  }
+}

@@ -1,0 +1,7 @@
+card "Akoum Refuge" {
+  oracle_id 354fecd1-2371-49e3-81c6-7e47728dbb1f
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {B} or {R}
+}

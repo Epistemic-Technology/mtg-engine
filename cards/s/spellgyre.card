@@ -1,0 +1,9 @@
+card "Spellgyre" {
+  oracle_id 7db31623-5dea-4165-8593-fbac568bf5b4
+  cost {2}{U}{U}
+  type Instant
+  choose one {
+    mode: counter target spell
+    mode: surveil 2 then draw 2 cards
+  }
+}

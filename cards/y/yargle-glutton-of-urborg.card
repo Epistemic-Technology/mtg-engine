@@ -1,0 +1,6 @@
+card "Yargle, Glutton of Urborg" {
+  oracle_id ed66cd31-958f-4b28-82a3-e04acc819afc
+  cost {4}{B}
+  type Legendary Creature — Frog Spirit
+  pt 9/3
+}

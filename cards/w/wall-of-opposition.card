@@ -1,0 +1,8 @@
+card "Wall of Opposition" {
+  oracle_id 30254aa2-2307-4f42-926a-54a416f55f87
+  cost {3}{R}{R}
+  type Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {1}: this gets +1/+0
+}

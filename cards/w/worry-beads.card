@@ -1,0 +1,6 @@
+card "Worry Beads" {
+  oracle_id ab050d55-a47d-4880-b65a-29f562773d7a
+  cost {3}
+  type Artifact
+  triggered at beginning of each upkeep: that player mills 1 cards
+}

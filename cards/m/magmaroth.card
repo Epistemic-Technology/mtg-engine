@@ -1,0 +1,8 @@
+card "Magmaroth" {
+  oracle_id ac5c2069-0706-4b85-a811-a522db016e3e
+  cost {3}{R}
+  type Creature — Elemental
+  pt 5/5
+  triggered at beginning of your upkeep: put 1 -1/-1 counters on this
+  triggered whenever you cast a noncreature spell: remove 1 -1/-1 counters from this
+}

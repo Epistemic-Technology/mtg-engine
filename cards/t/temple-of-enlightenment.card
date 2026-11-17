@@ -1,0 +1,7 @@
+card "Temple of Enlightenment" {
+  oracle_id 89f43e27-790b-4ca1-8ba7-0882b31e0783
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {W} or {U}
+}

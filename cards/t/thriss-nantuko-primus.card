@@ -1,0 +1,7 @@
+card "Thriss, Nantuko Primus" {
+  oracle_id 19ed8616-5d27-4f21-88a9-2af7cf5034ca
+  cost {5}{G}{G}
+  type Legendary Creature — Insect Druid
+  pt 5/5
+  activated {G}, {T}: target creature gets +5/+5
+}

@@ -1,0 +1,7 @@
+card "Jhovall Queen" {
+  oracle_id e1a48505-acbe-4eb4-8e83-3c76cf7a8829
+  cost {4}{W}{W}
+  type Creature — Cat Rebel
+  pt 4/7
+  keywords vigilance
+}

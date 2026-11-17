@@ -1,0 +1,15 @@
+# Converted from XMage's cards/prevention/PreventDamageToSourceTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "PreventDamageToSourceTest.test1DamagePrevented" {
+  # from cards/prevention/PreventDamageToSourceTest.java
+  battlefield A: 2 "Mountain"
+  battlefield A: "Revered Elder"
+  hand A: "Shock"
+  turn 1 precombat_main A: activate "Revered Elder" targeting auto
+  turn 1 postcombat_main A: cast "Shock" targeting "Revered Elder"
+  run_to turn 1 end
+  assert graveyard A contains 1 "Shock"
+  assert damage "Revered Elder" 1
+}

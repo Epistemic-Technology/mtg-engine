@@ -1,0 +1,7 @@
+card "Serpent Assassin" {
+  oracle_id 3bc7d3a7-ddb4-4eaa-882e-404d8f2926fb
+  cost {3}{B}{B}
+  type Creature — Snake Assassin
+  pt 2/2
+  triggered when this enters: you may destroy target nonblack creature
+}

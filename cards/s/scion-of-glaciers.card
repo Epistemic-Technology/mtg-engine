@@ -1,0 +1,7 @@
+card "Scion of Glaciers" {
+  oracle_id 9d49cef5-8f9c-46cd-aa5e-7861fc1dcaa4
+  cost {2}{U}{U}
+  type Creature — Elemental
+  pt 2/5
+  activated {U}: this gets +1/-1
+}

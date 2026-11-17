@@ -1,0 +1,7 @@
+card "Narcissism" {
+  oracle_id 59cd56d2-42f3-44de-b1b8-a5f9105dcaa8
+  cost {2}{G}
+  type Enchantment
+  activated {G}, discard 1 card: target creature gets +2/+2
+  activated {G}, sacrifice this: target creature gets +2/+2
+}

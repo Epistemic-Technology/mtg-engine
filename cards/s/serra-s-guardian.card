@@ -1,0 +1,8 @@
+card "Serra's Guardian" {
+  oracle_id c50cd7e7-8d53-44af-ac96-3e104587bdb3
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 5/5
+  keywords flying, vigilance
+  static other creature you control: has vigilance
+}

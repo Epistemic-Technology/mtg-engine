@@ -1,0 +1,7 @@
+card "Kei Takahashi" {
+  oracle_id f3229980-994e-4492-be98-267b781614c1
+  cost {2}{G}{W}
+  type Legendary Creature — Human Cleric
+  pt 2/2
+  activated {T}: prevent next 2 damage to target creature this turn
+}

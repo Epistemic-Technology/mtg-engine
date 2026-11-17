@@ -1,0 +1,7 @@
+card "Fires of Yavimaya" {
+  oracle_id e23d6f3b-0e18-423b-943b-15db7837255b
+  cost {1}{R}{G}
+  type Enchantment
+  static creature you control: has haste
+  activated sacrifice this: target creature gets +2/+2
+}

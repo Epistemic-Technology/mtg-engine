@@ -1,0 +1,8 @@
+card "Spiteful Motives" {
+  oracle_id a8f259b5-ef01-4f30-baa1-1b2a5419e61e
+  cost {3}{R}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +3/+0, has first strike
+}

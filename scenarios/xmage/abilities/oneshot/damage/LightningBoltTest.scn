@@ -1,0 +1,46 @@
+# Converted from XMage's cards/abilities/oneshot/damage/LightningBoltTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "LightningBoltTest.testDamageOpponent" {
+  # from cards/abilities/oneshot/damage/LightningBoltTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 17
+}
+
+scenario "LightningBoltTest.testDamageSelf" {
+  # from cards/abilities/oneshot/damage/LightningBoltTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting player A
+  run_to turn 1 begin_combat
+  assert life A 17
+  assert life B 20
+}
+
+scenario "LightningBoltTest.testDamageBigCreature" {
+  # from cards/abilities/oneshot/damage/LightningBoltTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Craw Wurm"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Craw Wurm"
+  run_to turn 1 begin_combat
+  assert battlefield B contains 1 "Craw Wurm"
+}
+
+scenario "LightningBoltTest.testDamageBigCreatureTwice" {
+  # from cards/abilities/oneshot/damage/LightningBoltTest.java
+  battlefield A: "Mountain"
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  hand A: "Lightning Bolt"
+  battlefield B: "Craw Wurm"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Craw Wurm"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Craw Wurm"
+  run_to turn 1 begin_combat
+  assert battlefield B lacks "Craw Wurm"
+}

@@ -1,0 +1,7 @@
+card "Goliath Spider" {
+  oracle_id 17415789-159e-43cf-93f8-9926405ee8f1
+  cost {6}{G}{G}
+  type Creature — Spider
+  pt 7/6
+  keywords reach
+}

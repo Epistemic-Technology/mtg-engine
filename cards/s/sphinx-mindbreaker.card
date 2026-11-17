@@ -1,0 +1,8 @@
+card "Sphinx Mindbreaker" {
+  oracle_id a5270cf7-1eb3-4907-9f47-d787f61940d3
+  cost {5}{U}{U}
+  type Creature — Sphinx
+  pt 6/6
+  keywords flying
+  triggered when this enters: each opponent mills 10 cards
+}

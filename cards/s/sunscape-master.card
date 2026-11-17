@@ -1,0 +1,8 @@
+card "Sunscape Master" {
+  oracle_id e3be8e19-cec1-43ae-9e22-d7cb374570bb
+  cost {2}{W}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {G}{G}, {T}: each creature you control gets +2/+2
+  activated {U}{U}, {T}: return target creature to hand
+}

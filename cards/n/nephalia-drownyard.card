@@ -1,0 +1,6 @@
+card "Nephalia Drownyard" {
+  oracle_id 6429b4ed-1845-4643-9a3d-85f7c12f2bba
+  type Land
+  mana {C}
+  activated {1}{U}{B}, {T}: target player mills 3 cards
+}

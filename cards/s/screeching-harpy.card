@@ -1,0 +1,8 @@
+card "Screeching Harpy" {
+  oracle_id 58bbd316-e22c-4c23-8024-364122d1e9a2
+  cost {2}{B}{B}
+  type Creature — Harpy Beast
+  pt 2/2
+  keywords flying
+  activated {1}{B}: regenerate this
+}

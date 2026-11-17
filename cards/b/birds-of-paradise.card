@@ -1,0 +1,8 @@
+card "Birds of Paradise" {
+  oracle_id d3a0b660-358c-41bd-9cd2-41fbf3491b1a
+  cost {G}
+  type Creature — Bird
+  pt 0/1
+  keywords flying
+  mana any
+}

@@ -1,0 +1,7 @@
+card "Meteor Golem" {
+  oracle_id d9f11aa1-9219-42a8-85a9-a8f204160706
+  cost {7}
+  type Artifact Creature — Golem
+  pt 3/3
+  triggered when this enters: destroy target nonland permanent an opponent controls
+}

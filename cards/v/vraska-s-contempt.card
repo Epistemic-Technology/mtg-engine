@@ -1,0 +1,6 @@
+card "Vraska's Contempt" {
+  oracle_id 38ddbe0b-07ef-4cdf-ad6c-cd8b8ba6d206
+  cost {2}{B}{B}
+  type Instant
+  spell: exile target creature or planeswalker; you gains 2 life
+}

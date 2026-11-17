@@ -1,0 +1,7 @@
+card "Filigree Sages" {
+  oracle_id d6e78c6a-7555-4818-8054-1cdc0fca92e6
+  cost {3}{U}
+  type Artifact Creature — Vedalken Wizard
+  pt 2/3
+  activated {2}{U}: untap target artifact
+}

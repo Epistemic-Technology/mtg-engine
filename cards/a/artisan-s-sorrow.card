@@ -1,0 +1,6 @@
+card "Artisan's Sorrow" {
+  oracle_id 115fd5ac-460b-49a3-83ed-9d56a7aecb14
+  cost {3}{G}
+  type Instant
+  spell: destroy target artifact or enchantment; scry 2
+}

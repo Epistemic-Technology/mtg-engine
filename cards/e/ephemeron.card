@@ -1,0 +1,8 @@
+card "Ephemeron" {
+  oracle_id e4f28144-71c8-4393-b383-047529fe8878
+  cost {4}{U}{U}
+  type Creature — Illusion
+  pt 4/4
+  keywords flying
+  activated discard 1 card: return this to hand
+}

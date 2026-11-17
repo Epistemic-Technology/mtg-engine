@@ -1,0 +1,7 @@
+card "Dauntless Veteran" {
+  oracle_id 97b2fb8b-0c69-4ed2-b2d0-8a780f9b5b97
+  cost {1}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this attacks: each creature you control gets +1/+1
+}

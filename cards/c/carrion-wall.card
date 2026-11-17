@@ -1,0 +1,8 @@
+card "Carrion Wall" {
+  oracle_id ce8750d4-1b74-4b02-afd8-6b639c1a9a78
+  cost {1}{B}{B}
+  type Creature — Wall
+  pt 3/2
+  keywords defender
+  activated {1}{B}: regenerate this
+}

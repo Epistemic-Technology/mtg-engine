@@ -1,0 +1,8 @@
+card "Mischievous Poltergeist" {
+  oracle_id c12b5b9a-a46e-4635-8603-62c2ca5ee58e
+  cost {2}{B}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  activated pay 1 life: regenerate this
+}

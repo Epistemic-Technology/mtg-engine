@@ -1,0 +1,6 @@
+card "Death Grasp" {
+  oracle_id a2335149-d2db-48c1-9699-0df8ce12d4dd
+  cost {X}{W}{B}
+  type Sorcery
+  spell: deal X damage to any target; you gains X life
+}

@@ -1,0 +1,6 @@
+card "Coastal Peak" {
+  oracle_id 0e25faa2-efb0-4ca5-b280-18c38faa860c
+  type Land — Island Mountain
+  enters tapped
+  cycling {2}
+}

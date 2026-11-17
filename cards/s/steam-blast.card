@@ -1,0 +1,6 @@
+card "Steam Blast" {
+  oracle_id 92f4bdfd-1c84-4541-bc46-2a65c39de717
+  cost {2}{R}
+  type Sorcery
+  spell: deal 2 damage to each creature and each player
+}

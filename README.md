@@ -18,11 +18,12 @@ look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
 DSL and authoring pipeline) is under way: cards are text files under
 `cards/` that compile to the engine's definitions and render back to
 Oracle text, and a gate checks that rendering against Scryfall. The
-corpus holds 2,717 cards (131 hand-written and scenario-tested, the rest
-authored from Oracle text by templates; 25% of Pauper), all matching
-their Oracle text. Random agents play complete games at about 5,000
-games per second per core on effect-free boards. A 393-scenario rules
-corpus passes. See [design.md](design.md) for the
+corpus holds 3,675 cards (131 hand-written and scenario-tested, the rest
+authored from Oracle text by templates; 25% of Pauper, 13% of Modern),
+all matching their Oracle text. Random agents play complete games at
+about 5,000 games per second per core on effect-free boards. A
+421-scenario rules corpus passes, 28 of them converted from XMage's
+tests. See [design.md](design.md) for the
 architecture, roadmap, and open questions.
 
 ```
@@ -91,7 +92,22 @@ cargo run -p mtg-cards -- stats --check     # compare with live Scryfall (within
 
 Data comes from [Scryfall](https://scryfall.com/docs/api) (card objects
 and rulings) and [MTGJSON](https://mtgjson.com) (keyword and type
-enumerations, MIT). Scryfall data is used under its API terms: this project
+enumerations, MIT). The rules tests under `scenarios/xmage/` are converted
+from [XMage](https://github.com/magefree/mage)'s card tests (MIT, copyright
+its contributors) by `mtg-cards convert-xmage`, which reads a sparse
+checkout of XMage's test directory at the commit named in
+`data/sources.lock`:
+
+```
+git clone --depth 1 --filter=blob:none --sparse https://github.com/magefree/mage.git data/xmage
+git -C data/xmage sparse-checkout set Mage.Tests/src/test/java/org/mage/test
+git -C data/xmage checkout <commit from data/sources.lock>
+cargo run -p mtg-cards -- convert-xmage --out scenarios/xmage
+```
+
+A test converts when every call in it is one the converter knows and every
+card it names is in the corpus; converted tests that the engine fails are
+written with a `skip` line naming the failure, for adjudication. Scryfall data is used under its API terms: this project
 is free, does not gate access to card data, and does not repackage or proxy
 Scryfall's database.
 

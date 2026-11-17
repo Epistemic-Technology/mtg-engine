@@ -1,0 +1,6 @@
+card "Mass Hysteria" {
+  oracle_id 4500131b-7417-4f30-a1b0-97d51b2e6458
+  cost {R}
+  type Enchantment
+  static creature: has haste
+}

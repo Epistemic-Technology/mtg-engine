@@ -1,0 +1,6 @@
+card "Salt Marsh" {
+  oracle_id 6a40823f-130c-4416-a987-75e205d3e1dd
+  type Land
+  enters tapped
+  mana {U} or {B}
+}

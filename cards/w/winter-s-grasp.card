@@ -1,0 +1,6 @@
+card "Winter's Grasp" {
+  oracle_id e9b8679d-52a9-4f0f-9365-f3e4b7a69805
+  cost {1}{G}{G}
+  type Sorcery
+  spell: destroy target land
+}

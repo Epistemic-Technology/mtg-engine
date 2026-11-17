@@ -1,0 +1,6 @@
+card "Sustenance" {
+  oracle_id d32a32d2-203d-4be1-8a33-e037747053c7
+  cost {1}{G}
+  type Enchantment
+  activated {1}, sacrifice land: target creature gets +1/+1
+}

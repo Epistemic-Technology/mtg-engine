@@ -1,0 +1,7 @@
+card "Windseeker Centaur" {
+  oracle_id b3d40cf7-a529-4bd0-8df7-231630a49bb8
+  cost {1}{R}{R}
+  type Creature — Centaur
+  pt 2/2
+  keywords vigilance
+}

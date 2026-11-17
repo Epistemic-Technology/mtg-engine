@@ -1,0 +1,7 @@
+card "Mind Control" {
+  oracle_id 5912546a-acc2-448c-b042-64bdac5ec129
+  cost {3}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+}

@@ -1,0 +1,8 @@
+card "Harrier Griffin" {
+  oracle_id 65dc3191-0eb2-4c10-bf2c-ee0e24888870
+  cost {5}{W}
+  type Creature — Griffin
+  pt 3/3
+  keywords flying
+  triggered at beginning of your upkeep: tap target creature
+}

@@ -1,0 +1,6 @@
+card "Blasted Landscape" {
+  oracle_id 9c8007ac-4b3d-4444-93e9-f583185e5d81
+  type Land
+  mana {C}
+  cycling {2}
+}

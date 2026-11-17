@@ -1,0 +1,7 @@
+card "Noble Panther" {
+  oracle_id bfb799d2-b2fa-4efb-91d7-a457230b370f
+  cost {1}{G}{W}
+  type Creature — Cat
+  pt 3/3
+  activated {1}: this gains first strike
+}

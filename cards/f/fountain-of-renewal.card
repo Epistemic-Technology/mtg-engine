@@ -1,0 +1,7 @@
+card "Fountain of Renewal" {
+  oracle_id df024c55-c008-48ec-a1a5-02ce336e3de6
+  cost {1}
+  type Artifact
+  triggered at beginning of your upkeep: you gains 1 life
+  activated {3}, sacrifice this: draw 1 cards
+}

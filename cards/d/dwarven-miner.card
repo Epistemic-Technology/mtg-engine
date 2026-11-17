@@ -1,0 +1,7 @@
+card "Dwarven Miner" {
+  oracle_id 0935377b-384f-4e4c-9fbb-8d2a7d5dc280
+  cost {1}{R}
+  type Creature — Dwarf
+  pt 1/2
+  activated {2}{R}, {T}: destroy target nonbasic land
+}

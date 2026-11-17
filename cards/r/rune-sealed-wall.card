@@ -1,0 +1,8 @@
+card "Rune-Sealed Wall" {
+  oracle_id 74d31e99-ab48-483a-a62e-5b424b27d017
+  cost {2}{U}
+  type Artifact Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {T}: surveil 1
+}

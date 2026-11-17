@@ -1,0 +1,8 @@
+card "Spirit Away" {
+  oracle_id 15b618f0-281f-4745-8504-bd70e7b4a267
+  cost {5}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  static enchanted: +2/+2, has flying
+}

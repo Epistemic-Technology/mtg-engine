@@ -1,0 +1,7 @@
+card "Sliptide Serpent" {
+  oracle_id 25ae99c5-83b7-428d-b049-8ad40e250696
+  cost {4}{U}{U}
+  type Creature — Serpent
+  pt 4/4
+  activated {3}{U}: return this to hand
+}

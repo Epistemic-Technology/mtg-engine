@@ -262,6 +262,10 @@ impl Line {
 
     /// `player A` | `"name"` | `A "name"`.
     fn target_ref(&mut self) -> Result<TargetRef, ParseError> {
+        if self.peek_ident("auto") {
+            self.pos += 1;
+            return Ok(TargetRef::Auto);
+        }
         if self.peek_ident("player") {
             self.pos += 1;
             return Ok(TargetRef::Player(self.player()?));
@@ -576,6 +580,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (Action::Trigger { source, targets }, None)
         }
         "apply" => (Action::Apply(line.string()?), None),
+        "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {
             let source = line.string()?;
             let ability = if line.peek_ident("ability") {

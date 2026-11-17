@@ -1,0 +1,8 @@
+card "Phantasmal Abomination" {
+  oracle_id f4925e05-1332-4466-b2ea-9f6f4ccf7db4
+  cost {1}{U}{U}
+  type Creature — Illusion
+  pt 5/5
+  keywords defender
+  triggered when this becomes targeted: sacrifice this
+}

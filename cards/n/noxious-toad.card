@@ -1,0 +1,7 @@
+card "Noxious Toad" {
+  oracle_id 2fdc484e-b3c3-4f4e-99a1-26a1134aa1cd
+  cost {2}{B}
+  type Creature — Frog
+  pt 1/1
+  triggered when this dies: each opponent discards 1 cards
+}

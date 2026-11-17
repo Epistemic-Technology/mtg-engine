@@ -1,0 +1,8 @@
+card "Jungle Troll" {
+  oracle_id f1bb17d7-5396-4c99-88bb-f7ab7d47b023
+  cost {1}{R}{G}
+  type Creature — Troll
+  pt 2/1
+  activated {R}: regenerate this
+  activated {G}: regenerate this
+}

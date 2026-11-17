@@ -1,0 +1,7 @@
+card "Treefolk Healer" {
+  oracle_id a5ef15b5-83d2-4b23-9403-a9a52be46154
+  cost {4}{G}
+  type Creature — Treefolk Cleric
+  pt 2/3
+  activated {2}{W}, {T}: prevent next 2 damage to any target this turn
+}

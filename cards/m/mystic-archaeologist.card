@@ -1,0 +1,7 @@
+card "Mystic Archaeologist" {
+  oracle_id b77dfe2a-ebc9-46b0-9134-2ecb2abdd8be
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {3}{U}{U}: draw 2 cards
+}

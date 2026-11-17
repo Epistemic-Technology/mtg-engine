@@ -1,0 +1,8 @@
+card "Ball Lightning" {
+  oracle_id 7485cf25-eb41-4397-be13-7f0b8c10c70a
+  cost {R}{R}{R}
+  type Creature — Elemental
+  pt 6/1
+  keywords trample, haste
+  triggered at beginning of each end step: sacrifice this
+}

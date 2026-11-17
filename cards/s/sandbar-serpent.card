@@ -1,0 +1,7 @@
+card "Sandbar Serpent" {
+  oracle_id 30fce201-03a8-4afc-a1ad-7a9b3fd59836
+  cost {4}{U}
+  type Creature — Serpent
+  pt 3/4
+  cycling {2}
+}

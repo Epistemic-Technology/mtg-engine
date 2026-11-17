@@ -1,0 +1,7 @@
+card "Temple of Epiphany" {
+  oracle_id 79f94050-d850-41ca-b1db-5ae0cf743f0a
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {U} or {R}
+}

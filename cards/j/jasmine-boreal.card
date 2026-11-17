@@ -1,0 +1,6 @@
+card "Jasmine Boreal" {
+  oracle_id 942407bf-862a-4a0b-b19d-b9f8ee833026
+  cost {3}{G}{W}
+  type Legendary Creature — Human
+  pt 4/5
+}

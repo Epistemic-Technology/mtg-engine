@@ -1,0 +1,6 @@
+card "Putrefy" {
+  oracle_id 9b271430-f53d-42d6-a547-2f286dd9bcb6
+  cost {1}{B}{G}
+  type Instant
+  spell: destroy target artifact or creature without regeneration
+}

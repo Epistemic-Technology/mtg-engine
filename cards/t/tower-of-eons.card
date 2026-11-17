@@ -1,0 +1,6 @@
+card "Tower of Eons" {
+  oracle_id 74a71bbd-c307-481c-b0cf-70e24b0c8ad4
+  cost {4}
+  type Artifact
+  activated {8}, {T}: you gains 10 life
+}

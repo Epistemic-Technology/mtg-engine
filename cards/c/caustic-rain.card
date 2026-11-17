@@ -1,0 +1,6 @@
+card "Caustic Rain" {
+  oracle_id 8df1cbbc-87fc-4948-b224-9175b9f396d9
+  cost {2}{B}{B}
+  type Sorcery
+  spell: exile target land
+}

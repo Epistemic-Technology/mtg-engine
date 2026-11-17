@@ -1,0 +1,6 @@
+card "Flamecast Wheel" {
+  oracle_id 58f70225-17b5-4aa6-a62a-89c57e31ecc1
+  cost {1}
+  type Artifact
+  activated {5}, {T}, sacrifice this: deal 3 damage to target creature
+}

@@ -1,0 +1,6 @@
+card "Glass Golem" {
+  oracle_id 24e48968-bfeb-4965-9e06-8b04397fcb53
+  cost {5}
+  type Artifact Creature — Golem
+  pt 6/2
+}

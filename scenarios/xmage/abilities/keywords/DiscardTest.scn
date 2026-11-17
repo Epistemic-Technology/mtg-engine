@@ -1,0 +1,14 @@
+# Converted from XMage's cards/abilities/keywords/DiscardTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "DiscardTest.testBazaarOfBaghdad" {
+  # from cards/abilities/keywords/DiscardTest.java
+  battlefield A: "Bazaar of Baghdad"
+  turn 1 precombat_main A: activate "Bazaar of Baghdad" targeting auto
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert hand A count 0
+  assert graveyard A count 2
+}

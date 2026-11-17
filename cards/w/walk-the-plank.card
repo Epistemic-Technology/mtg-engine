@@ -1,0 +1,6 @@
+card "Walk the Plank" {
+  oracle_id 9093e6f1-12bc-4dfb-bc78-6ead0752ad61
+  cost {B}{B}
+  type Sorcery
+  spell: destroy target non-Merfolk creature
+}

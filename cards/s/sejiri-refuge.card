@@ -1,0 +1,7 @@
+card "Sejiri Refuge" {
+  oracle_id 73b3e242-075d-4c4d-9b09-6fef1633c348
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {U}
+}

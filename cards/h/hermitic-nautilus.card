@@ -1,0 +1,8 @@
+card "Hermitic Nautilus" {
+  oracle_id 6bda307b-1508-4582-952b-c690db85e045
+  cost {1}{U}
+  type Artifact Creature — Nautilus
+  pt 1/4
+  keywords vigilance
+  activated {1}{U}: this gets +3/-3
+}

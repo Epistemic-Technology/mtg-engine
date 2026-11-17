@@ -1,0 +1,7 @@
+card "Oxidda Scrapmelter" {
+  oracle_id cef64ec6-cdfb-42a4-9a4a-3ef5448e93fc
+  cost {3}{R}
+  type Creature — Beast
+  pt 3/3
+  triggered when this enters: destroy target artifact
+}

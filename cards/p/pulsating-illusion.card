@@ -1,0 +1,8 @@
+card "Pulsating Illusion" {
+  oracle_id 17f78719-d86a-4a00-b83f-7a06bec844f7
+  cost {4}{U}
+  type Creature — Illusion
+  pt 0/1
+  keywords flying
+  activated discard 1 card, once: this gets +4/+4
+}

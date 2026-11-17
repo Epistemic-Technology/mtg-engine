@@ -1,0 +1,8 @@
+card "Swarm Guildmage" {
+  oracle_id 14b8b35e-57b6-4577-97a8-9d9c513db0b8
+  cost {B}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  activated {4}{B}, {T}: each creature you control gets +1/+0 and gains menace
+  activated {1}{G}, {T}: you gains 2 life
+}

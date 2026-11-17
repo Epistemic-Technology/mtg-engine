@@ -1,0 +1,7 @@
+card "Latch Seeker" {
+  oracle_id 4c1f62a8-d905-48aa-aba1-4bcb522a7ef6
+  cost {1}{U}{U}
+  type Creature — Spirit
+  pt 3/1
+  keywords can't be blocked
+}

@@ -1,0 +1,7 @@
+card "Persuasion" {
+  oracle_id a503d302-6b12-4d82-9ba6-73efbcb1b1a2
+  cost {3}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+}

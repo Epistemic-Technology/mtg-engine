@@ -1,0 +1,30 @@
+# Converted from XMage's cards/triggers/dies/RotcrownGhoulTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "RotcrownGhoulTest.testDiesTriggeredAbility" {
+  # from cards/triggers/dies/RotcrownGhoulTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Rotcrown Ghoul"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Rotcrown Ghoul"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert graveyard A count 6
+  assert graveyard B count 1
+}
+
+scenario "RotcrownGhoulTest.testDiesTriggeredAbilityForTwoCopies" {
+  skip "unadjudicated: 2 objects named 'Rotcrown Ghoul' on the battlefield; qualify with A or B, or oldest/newest"
+  # from cards/triggers/dies/RotcrownGhoulTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: 2 "Rotcrown Ghoul"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Rotcrown Ghoul"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert graveyard A count 6
+  assert graveyard B count 1
+}

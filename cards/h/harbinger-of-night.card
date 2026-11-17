@@ -1,0 +1,7 @@
+card "Harbinger of Night" {
+  oracle_id 9827d01d-c822-4f1b-9042-a2092c72c914
+  cost {2}{B}{B}
+  type Creature — Spirit
+  pt 2/3
+  triggered at beginning of your upkeep: put 1 -1/-1 counters on each creature
+}

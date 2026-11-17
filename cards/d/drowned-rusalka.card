@@ -1,0 +1,7 @@
+card "Drowned Rusalka" {
+  oracle_id 62e86e38-2f8d-4cee-aa7e-4519add79d4d
+  cost {U}
+  type Creature — Spirit
+  pt 1/1
+  activated {U}, sacrifice creature: discard 1 cards then draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Mardu Outrider" {
+  oracle_id 9bc5ed59-ae13-40df-94b9-c56c32673857
+  cost {1}{B}{B}
+  type Creature — Orc Warrior
+  pt 5/5
+  additional cost discard 1 card
+}

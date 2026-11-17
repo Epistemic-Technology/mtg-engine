@@ -1,0 +1,8 @@
+card "Ruins Recluse" {
+  oracle_id d99efecd-1419-434b-9de6-5fbb04f57dda
+  cost {1}{G}
+  type Creature — Spider
+  pt 1/1
+  keywords reach, deathtouch
+  activated {3}{G}: put 1 +1/+1 counters on this
+}

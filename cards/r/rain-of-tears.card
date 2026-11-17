@@ -1,0 +1,6 @@
+card "Rain of Tears" {
+  oracle_id 72cecab3-519e-4a23-9623-b423a5c5a251
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target land
+}

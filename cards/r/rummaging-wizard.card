@@ -1,0 +1,7 @@
+card "Rummaging Wizard" {
+  oracle_id 99002f0c-762b-4714-afe3-5b011350aefd
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {2}{U}: surveil 1
+}

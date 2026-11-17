@@ -1,0 +1,6 @@
+card "Trip Noose" {
+  oracle_id 456f2991-ab64-41bc-9bd1-a1b1e7993ed6
+  cost {2}
+  type Artifact
+  activated {2}, {T}: tap target creature
+}

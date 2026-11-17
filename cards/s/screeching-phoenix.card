@@ -1,0 +1,8 @@
+card "Screeching Phoenix" {
+  oracle_id 2b75759a-c3cc-432d-9609-4f8fa2456870
+  cost {4}{R}{R}
+  type Creature — Phoenix
+  pt 4/4
+  keywords flying
+  activated {2}{R}: each creature you control gets +1/+0
+}

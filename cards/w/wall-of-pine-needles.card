@@ -1,0 +1,8 @@
+card "Wall of Pine Needles" {
+  oracle_id 1d5bc31c-f4a1-4a59-b466-0347ddbbc7fb
+  cost {3}{G}
+  type Creature — Plant Wall
+  pt 3/3
+  keywords defender
+  activated {G}: regenerate this
+}

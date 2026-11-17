@@ -1,0 +1,8 @@
+card "Zealous Conscripts" {
+  oracle_id 1dae6f39-2cbd-485c-b190-017a26401fd4
+  cost {4}{R}
+  type Creature — Human Warrior
+  pt 3/3
+  keywords haste
+  triggered when this enters: gain control of target permanent; untap that target 1; target 1 gains haste
+}

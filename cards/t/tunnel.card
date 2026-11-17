@@ -1,0 +1,6 @@
+card "Tunnel" {
+  oracle_id 80559618-9dd9-4987-b3bc-1a1b5537bbc5
+  cost {R}
+  type Instant
+  spell: destroy target Wall without regeneration
+}

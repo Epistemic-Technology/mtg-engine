@@ -1,0 +1,7 @@
+card "Stronghold Biologist" {
+  oracle_id 1e2c4508-54ad-45c2-b35f-678f8c376b27
+  cost {2}{U}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {U}{U}, {T}, discard 1 card: counter target creature spell
+}

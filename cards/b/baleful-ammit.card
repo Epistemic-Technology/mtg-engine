@@ -1,0 +1,8 @@
+card "Baleful Ammit" {
+  oracle_id 1cfa9f7d-ef1f-4907-aeb1-15c0df33fccc
+  cost {2}{B}
+  type Creature — Crocodile Demon
+  pt 4/3
+  keywords lifelink
+  triggered when this enters: put 1 -1/-1 counters on target creature you control
+}

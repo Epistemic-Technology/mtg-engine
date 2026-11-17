@@ -18,6 +18,20 @@ pub struct Lockfile {
     pub scryfall: BTreeMap<String, ScryfallEntry>,
     /// MTGJSON files, keyed by file name (`Keywords.json`).
     pub mtgjson: Mtgjson,
+    /// The `XMage` checkout whose tests `scenarios/xmage/` were converted
+    /// from (design.md §7.2); fetched by hand, see README.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub xmage: Option<Xmage>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Xmage {
+    pub repository: String,
+    pub commit: String,
+    /// The commit's author date.
+    pub date: String,
+    /// The sparse-checkout path.
+    pub path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

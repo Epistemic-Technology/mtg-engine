@@ -1,0 +1,7 @@
+card "Stormcloud Spirit" {
+  oracle_id 0dc8bdbb-996b-47d7-a5e5-7bdb6d9280fe
+  cost {3}{U}{U}
+  type Creature — Spirit
+  pt 4/4
+  keywords flying
+}

@@ -1,0 +1,6 @@
+card "Peace of Mind" {
+  oracle_id 4f8c5fd7-f280-4b0c-bb84-6ff9b258c50f
+  cost {1}{W}
+  type Enchantment
+  activated {W}, discard 1 card: you gains 3 life
+}

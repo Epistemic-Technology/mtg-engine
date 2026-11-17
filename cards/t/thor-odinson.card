@@ -1,0 +1,7 @@
+card "Thor Odinson" {
+  oracle_id ec9b74d0-e4fe-4764-b628-992a62f2a1cf
+  cost {3}{R}{W}
+  type Legendary Creature — God Warrior Hero
+  pt 4/4
+  keywords flying, vigilance, prowess, prowess
+}

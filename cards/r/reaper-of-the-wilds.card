@@ -1,0 +1,9 @@
+card "Reaper of the Wilds" {
+  oracle_id 10494ce1-7a38-44ae-9881-a83e44daaf7b
+  cost {2}{B}{G}
+  type Creature — Gorgon
+  pt 4/5
+  triggered whenever other creature dies: scry 1
+  activated {B}: this gains deathtouch
+  activated {1}{G}: this gains hexproof
+}

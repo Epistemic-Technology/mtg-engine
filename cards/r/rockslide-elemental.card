@@ -1,0 +1,8 @@
+card "Rockslide Elemental" {
+  oracle_id c848a9d8-40d5-498d-9da9-e71a9ddeb5ab
+  cost {2}{R}
+  type Creature — Elemental
+  pt 1/1
+  keywords first strike
+  triggered whenever other creature dies: you may put 1 +1/+1 counters on this
+}

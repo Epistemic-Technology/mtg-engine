@@ -1,0 +1,6 @@
+card "Ketria Triome" {
+  oracle_id 6bae00e8-06cf-4ac4-a1cc-757e454109fe
+  type Land — Forest Island Mountain
+  enters tapped
+  cycling {3}
+}

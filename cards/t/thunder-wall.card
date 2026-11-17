@@ -1,0 +1,8 @@
+card "Thunder Wall" {
+  oracle_id 904b9056-ad76-4805-b14f-c426e4a57bae
+  cost {1}{U}{U}
+  type Creature — Wall
+  pt 0/2
+  keywords defender, flying
+  activated {U}: this gets +1/+1
+}

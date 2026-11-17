@@ -1,0 +1,6 @@
+card "Dark Deed" {
+  oracle_id e98cd00c-b812-4c6a-81d4-e3f94b64fc58
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -4/-4
+}

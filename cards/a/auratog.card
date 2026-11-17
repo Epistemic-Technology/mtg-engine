@@ -1,0 +1,7 @@
+card "Auratog" {
+  oracle_id fe47535e-e50c-49ad-beda-46750d33e6f4
+  cost {1}{W}
+  type Creature — Atog
+  pt 1/2
+  activated sacrifice enchantment: this gets +2/+2
+}

@@ -1,0 +1,4 @@
+card "Scrubland" {
+  oracle_id c8d95ca8-7d12-4072-aeaf-e20f248c7e39
+  type Land — Plains Swamp
+}

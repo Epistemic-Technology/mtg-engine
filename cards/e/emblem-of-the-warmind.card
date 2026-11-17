@@ -1,0 +1,7 @@
+card "Emblem of the Warmind" {
+  oracle_id 86e88219-0f8e-405d-8439-c3b4acf11330
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature you control
+  static creature you control: has haste
+}

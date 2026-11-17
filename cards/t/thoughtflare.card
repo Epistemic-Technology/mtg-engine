@@ -1,0 +1,6 @@
+card "Thoughtflare" {
+  oracle_id faad0f02-da5b-47f4-9634-0ea6ee2ff4f6
+  cost {3}{U}{R}
+  type Instant
+  spell: draw 4 cards then discard 2 cards
+}

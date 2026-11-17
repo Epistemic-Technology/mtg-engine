@@ -1,0 +1,6 @@
+card "Scorching Shot" {
+  oracle_id e13113ba-1923-493c-a48d-ca320b7adbde
+  cost {R}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature
+}

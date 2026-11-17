@@ -1,0 +1,6 @@
+card "Enormous Baloth" {
+  oracle_id 6189cd17-61aa-420a-ba53-5ddaf2bbc2ba
+  cost {6}{G}
+  type Creature — Beast
+  pt 7/7
+}

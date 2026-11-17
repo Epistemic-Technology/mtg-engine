@@ -1,0 +1,12 @@
+# Converted from XMage's cards/single/m21/ForgottenSentinelTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "ForgottenSentinelTest.etbTapped" {
+  # from cards/single/m21/ForgottenSentinelTest.java
+  hand A: "Forgotten Sentinel"
+  battlefield A: 4 "Forest"
+  turn 1 precombat_main A: cast "Forgotten Sentinel" targeting auto
+  run_to turn 1 postcombat_main
+  assert tapped "Forgotten Sentinel"
+}

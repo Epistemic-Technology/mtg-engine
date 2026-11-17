@@ -1,0 +1,7 @@
+card "Kazandu Refuge" {
+  oracle_id 03332772-18b0-446a-a7e2-a4bdf38c4f0c
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {R} or {G}
+}

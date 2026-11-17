@@ -1,0 +1,8 @@
+card "Vampiric Spirit" {
+  oracle_id dbd1fc9c-6316-4c89-a971-f2e08ca291a4
+  cost {2}{B}{B}
+  type Creature — Spirit
+  pt 4/3
+  keywords flying
+  triggered when this enters: you loses 4 life
+}

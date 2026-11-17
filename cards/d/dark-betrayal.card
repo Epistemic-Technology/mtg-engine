@@ -1,0 +1,6 @@
+card "Dark Betrayal" {
+  oracle_id d3ebe9ae-108f-4d23-a236-35d632889cf8
+  cost {B}
+  type Instant
+  spell: destroy target black creature
+}

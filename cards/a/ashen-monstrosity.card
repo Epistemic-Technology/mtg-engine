@@ -1,0 +1,7 @@
+card "Ashen Monstrosity" {
+  oracle_id 01906aae-fc53-40b0-a386-dae43e4f437f
+  cost {5}{R}{R}
+  type Creature — Spirit
+  pt 7/4
+  keywords haste, attacks each combat if able
+}

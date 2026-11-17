@@ -1,0 +1,7 @@
+card "Samut, Hazoret's Champion" {
+  oracle_id add02a36-8811-438b-a8e1-f5c8a8146b4e
+  cost {1}{R}
+  type Legendary Creature — Human Warrior Cleric
+  pt 2/2
+  static creature you control: has haste
+}

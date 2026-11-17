@@ -1,0 +1,6 @@
+card "Watchwolf" {
+  oracle_id a35c2e20-eb90-4132-b65f-be1fcb569819
+  cost {G}{W}
+  type Creature — Wolf
+  pt 3/3
+}

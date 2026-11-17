@@ -1,0 +1,7 @@
+card "Ravaging Horde" {
+  oracle_id b775b83c-0c3d-437d-9d3c-1d5c9cd418a8
+  cost {3}{R}{R}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered when this enters: destroy target land
+}

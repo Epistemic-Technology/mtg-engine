@@ -1,0 +1,8 @@
+card "Griselbrand" {
+  oracle_id f759d112-76db-4091-a22b-b9f19ab6fa5f
+  cost {4}{B}{B}{B}{B}
+  type Legendary Creature — Demon
+  pt 7/7
+  keywords flying, lifelink
+  activated pay 7 life: draw 7 cards
+}

@@ -1,0 +1,8 @@
+card "Mystic Snake" {
+  oracle_id 161b6d06-e6a7-488e-9f9c-d266c1402a3a
+  cost {1}{G}{U}{U}
+  type Creature — Snake
+  pt 2/2
+  keywords flash
+  triggered when this enters: counter target spell
+}

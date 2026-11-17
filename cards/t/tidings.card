@@ -1,0 +1,6 @@
+card "Tidings" {
+  oracle_id 72897780-094d-4a21-8b1c-419a9defd2fb
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 4 cards
+}

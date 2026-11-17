@@ -1,0 +1,6 @@
+card "Dread of Night" {
+  oracle_id b431a73b-cf4c-4154-810f-82b7c6099e66
+  cost {B}
+  type Enchantment
+  static white creature: -1/-1
+}

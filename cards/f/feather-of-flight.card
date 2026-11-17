@@ -1,0 +1,9 @@
+card "Feather of Flight" {
+  oracle_id c61b05b8-00f1-4371-9856-c65852b4ca02
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +1/+0, has flying
+}

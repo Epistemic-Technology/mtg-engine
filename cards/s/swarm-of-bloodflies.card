@@ -1,0 +1,9 @@
+card "Swarm of Bloodflies" {
+  oracle_id 767e4aa9-527f-425f-bffb-6d842e1fbb74
+  cost {4}{B}
+  type Creature — Insect
+  pt 0/0
+  keywords flying
+  enters with 2 +1/+1 counters
+  triggered whenever other creature dies: put 1 +1/+1 counters on this
+}

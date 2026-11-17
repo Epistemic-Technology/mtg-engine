@@ -1,0 +1,6 @@
+card "Dark Offering" {
+  oracle_id 102356a9-0de5-4034-b121-034da5deb4f2
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy target nonblack creature; you gains 3 life
+}

@@ -1,0 +1,4 @@
+card "Taiga" {
+  oracle_id 22e3cf1d-3559-4ce1-954c-8dc815342979
+  type Land — Mountain Forest
+}

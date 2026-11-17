@@ -1,0 +1,6 @@
+card "Pull from Tomorrow" {
+  oracle_id b1a23235-3076-475c-a68a-db29cf2a9dba
+  cost {X}{U}{U}
+  type Instant
+  spell: draw X cards then discard 1 cards
+}

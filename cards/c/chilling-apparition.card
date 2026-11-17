@@ -1,0 +1,8 @@
+card "Chilling Apparition" {
+  oracle_id 13cfc92c-142a-4016-b86f-ace6bda1a69c
+  cost {2}{B}
+  type Creature — Spirit
+  pt 1/1
+  activated {B}: regenerate this
+  triggered whenever this deals combat damage to a player: that player discards 1 cards
+}

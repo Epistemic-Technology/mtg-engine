@@ -1,0 +1,6 @@
+card "Sacred Armory" {
+  oracle_id 37d74df9-cf87-4b82-842a-3941064078fb
+  cost {2}
+  type Artifact
+  activated {2}: target creature gets +1/+0
+}

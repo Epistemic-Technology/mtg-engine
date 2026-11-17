@@ -1,0 +1,8 @@
+card "Akroan Phalanx" {
+  oracle_id 0edd4894-0df0-4a4e-8a96-d20360ea81c7
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords vigilance
+  activated {2}{R}: each creature you control gets +1/+0
+}

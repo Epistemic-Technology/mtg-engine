@@ -1,0 +1,8 @@
+card "Selfless Spirit" {
+  oracle_id 71d785a9-ddc8-472e-a778-a551b444a4bd
+  cost {1}{W}
+  type Creature — Spirit Cleric
+  pt 2/1
+  keywords flying
+  activated sacrifice this: each creature you control gains indestructible
+}

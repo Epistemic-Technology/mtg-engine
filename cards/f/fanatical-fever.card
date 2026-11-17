@@ -1,0 +1,6 @@
+card "Fanatical Fever" {
+  oracle_id f1231def-96fb-4408-a0c9-25d6932d7ead
+  cost {2}{G}{G}
+  type Instant
+  spell: target creature gets +3/+0 and gains trample
+}

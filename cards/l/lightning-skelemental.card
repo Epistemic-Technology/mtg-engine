@@ -1,0 +1,9 @@
+card "Lightning Skelemental" {
+  oracle_id 7c3f2b3d-1517-4818-9675-189949175623
+  cost {B}{R}{R}
+  type Creature — Elemental Skeleton
+  pt 6/1
+  keywords trample, haste
+  triggered whenever this deals combat damage to a player: that player discards 2 cards
+  triggered at beginning of each end step: sacrifice this
+}

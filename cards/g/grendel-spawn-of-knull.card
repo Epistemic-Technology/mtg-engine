@@ -1,0 +1,7 @@
+card "Grendel, Spawn of Knull" {
+  oracle_id a93f0735-9854-487d-b646-d55e2bee00c0
+  cost {3}{B}
+  type Legendary Creature — Symbiote Dragon Villain
+  pt 3/3
+  keywords flying, deathtouch
+}

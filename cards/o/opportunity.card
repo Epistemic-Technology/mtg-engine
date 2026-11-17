@@ -1,0 +1,6 @@
+card "Opportunity" {
+  oracle_id 1f544a9f-c238-4858-be19-d6cd7d023dcc
+  cost {4}{U}{U}
+  type Instant
+  spell: target player draws 4 cards
+}

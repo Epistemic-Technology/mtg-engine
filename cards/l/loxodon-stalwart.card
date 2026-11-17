@@ -1,0 +1,8 @@
+card "Loxodon Stalwart" {
+  oracle_id 6b2eb774-08f3-46cb-aeca-2ab82fdd5f03
+  cost {3}{W}{W}
+  type Creature — Elephant Soldier
+  pt 3/3
+  keywords vigilance
+  activated {W}: this gets +0/+1
+}

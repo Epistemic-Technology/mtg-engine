@@ -1,0 +1,6 @@
+card "Shadowy Backstreet" {
+  oracle_id 216a2a92-9ca3-4ca3-8af7-686c13b04290
+  type Land — Plains Swamp
+  enters tapped
+  triggered when this enters: surveil 1
+}

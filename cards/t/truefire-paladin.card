@@ -1,0 +1,9 @@
+card "Truefire Paladin" {
+  oracle_id 2a8a239c-7cc7-48d5-b34b-60b0da4e4b20
+  cost {R}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords vigilance
+  activated {R}{W}: this gets +2/+0
+  activated {R}{W}: this gains first strike
+}

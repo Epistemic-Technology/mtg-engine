@@ -1,0 +1,6 @@
+card "Mox Pearl" {
+  oracle_id 824597b8-c89a-47ec-8526-7efc6e24ef0e
+  cost {0}
+  type Artifact
+  mana {W}
+}

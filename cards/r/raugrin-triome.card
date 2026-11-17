@@ -1,0 +1,6 @@
+card "Raugrin Triome" {
+  oracle_id c7fa1dda-9312-4ec8-82cd-a1ba7bc33497
+  type Land — Island Mountain Plains
+  enters tapped
+  cycling {3}
+}

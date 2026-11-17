@@ -1,0 +1,7 @@
+card "Divine Transformation" {
+  oracle_id 292e7135-8804-43f2-a486-51ef97b83f77
+  cost {2}{W}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+}

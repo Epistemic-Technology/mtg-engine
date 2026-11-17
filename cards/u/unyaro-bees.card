@@ -1,0 +1,9 @@
+card "Unyaro Bees" {
+  oracle_id 7baff5c8-5919-4cbf-961e-962e740ebd8f
+  cost {G}{G}{G}
+  type Creature — Insect
+  pt 0/1
+  keywords flying
+  activated {G}: this gets +1/+1
+  activated {3}{G}, sacrifice this: deal 2 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Whetstone" {
+  oracle_id 940e461c-b205-4075-bd1f-a1534c33db6c
+  cost {3}
+  type Artifact
+  activated {3}: each player mills 2 cards
+}

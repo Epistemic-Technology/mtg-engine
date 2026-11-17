@@ -1,0 +1,6 @@
+card "Fiery Finish" {
+  oracle_id afa3eb61-624c-4abe-bf1e-58fa3b4c14a6
+  cost {4}{R}{R}
+  type Sorcery
+  spell: deal 7 damage to target creature
+}

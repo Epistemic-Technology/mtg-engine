@@ -1,0 +1,7 @@
+card "Vithian Renegades" {
+  oracle_id 78fa248d-7f45-4d43-b3e3-c726db938b0f
+  cost {1}{R}{G}
+  type Creature — Human Shaman
+  pt 3/2
+  triggered when this enters: destroy target artifact
+}

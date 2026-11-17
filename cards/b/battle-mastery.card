@@ -1,0 +1,7 @@
+card "Battle Mastery" {
+  oracle_id a06c7c1a-8534-40fb-8bb8-59f8f2530567
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has double strike
+}

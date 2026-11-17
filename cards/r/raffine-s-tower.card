@@ -1,0 +1,6 @@
+card "Raffine's Tower" {
+  oracle_id 6e9ef5ef-6aed-4d3e-a59b-9e3dc8740b1b
+  type Land — Plains Island Swamp
+  enters tapped
+  cycling {3}
+}

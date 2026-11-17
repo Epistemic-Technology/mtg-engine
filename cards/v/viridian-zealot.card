@@ -1,0 +1,7 @@
+card "Viridian Zealot" {
+  oracle_id 9410ae41-b6db-47c6-ae0a-4e33aad1d3ce
+  cost {G}{G}
+  type Creature — Elf Warrior
+  pt 2/1
+  activated {1}{G}, sacrifice this: destroy target artifact or enchantment
+}

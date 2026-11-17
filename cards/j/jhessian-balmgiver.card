@@ -1,0 +1,8 @@
+card "Jhessian Balmgiver" {
+  oracle_id 2be283da-6d5a-442b-bd07-d06c16cb1214
+  cost {1}{W}{U}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: prevent next 1 damage to any target this turn
+  activated {T}: target creature can't be blocked
+}

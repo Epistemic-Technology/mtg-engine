@@ -1,0 +1,6 @@
+card "Coastal Tower" {
+  oracle_id f0367926-4380-4d22-8cb8-46c2076f102a
+  type Land
+  enters tapped
+  mana {W} or {U}
+}

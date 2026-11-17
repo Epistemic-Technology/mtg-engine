@@ -1,0 +1,8 @@
+card "Shivan Phoenix" {
+  oracle_id 49ca8516-624b-4aa8-8e13-d145590cdfda
+  cost {4}{R}{R}
+  type Creature — Phoenix
+  pt 3/4
+  keywords flying
+  triggered when this dies: return this to hand
+}

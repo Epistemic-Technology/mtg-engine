@@ -1,0 +1,6 @@
+card "Undercity Sewers" {
+  oracle_id 08d80efc-9542-4ba2-824c-c8615d8d07f2
+  type Land — Island Swamp
+  enters tapped
+  triggered when this enters: surveil 1
+}

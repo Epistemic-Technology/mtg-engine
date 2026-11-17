@@ -1,0 +1,7 @@
+card "Endless Cockroaches" {
+  oracle_id 9f31dbb1-c350-46f8-bd1d-9f23a073d2f1
+  cost {1}{B}{B}
+  type Creature — Insect
+  pt 1/1
+  triggered when this dies: return this to hand
+}

@@ -1,0 +1,6 @@
+card "Shield of the Ages" {
+  oracle_id 65164450-b477-4096-8146-ebb80a709787
+  cost {2}
+  type Artifact
+  activated {2}: prevent next 1 damage to you this turn
+}

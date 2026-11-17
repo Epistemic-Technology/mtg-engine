@@ -1,0 +1,7 @@
+card "New Benalia" {
+  oracle_id 6e743fbf-b5b6-4176-a4f2-6933f521f2fe
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {W}
+}

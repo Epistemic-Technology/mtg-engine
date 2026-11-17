@@ -1,0 +1,8 @@
+card "Nightveil Sprite" {
+  oracle_id 8ac23863-0aa7-41bc-b9b7-c5f0566172cf
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/2
+  keywords flying
+  triggered whenever this attacks: surveil 1
+}

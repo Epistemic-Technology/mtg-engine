@@ -1,0 +1,6 @@
+card "Anguished Unmaking" {
+  oracle_id ad09b3c3-c8e7-481c-8c45-e7f234935117
+  cost {1}{W}{B}
+  type Instant
+  spell: exile target nonland permanent; you loses 3 life
+}

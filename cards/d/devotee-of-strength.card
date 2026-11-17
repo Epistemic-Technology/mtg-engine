@@ -1,0 +1,7 @@
+card "Devotee of Strength" {
+  oracle_id a6d8f944-f516-49d7-9aa8-77b98e862d6a
+  cost {2}{G}
+  type Creature — Snake Wizard
+  pt 3/2
+  activated {4}{G}: target creature gets +2/+2
+}

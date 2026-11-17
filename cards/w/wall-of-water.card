@@ -1,0 +1,8 @@
+card "Wall of Water" {
+  oracle_id 608cc65c-f99a-4ca3-be24-190d2556b411
+  cost {1}{U}{U}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  activated {U}: this gets +1/+0
+}

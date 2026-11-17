@@ -1,0 +1,8 @@
+card "Dual-Sun Adepts" {
+  oracle_id 155e01a1-5809-4be9-ad38-c11553a4a723
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords double strike
+  activated {5}: each creature you control gets +1/+1
+}

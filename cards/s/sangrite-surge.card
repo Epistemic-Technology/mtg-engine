@@ -1,0 +1,6 @@
+card "Sangrite Surge" {
+  oracle_id d8053319-b2a0-4df3-9787-3591d12cf1b9
+  cost {4}{R}{G}
+  type Sorcery
+  spell: target creature gets +3/+3 and gains double strike
+}

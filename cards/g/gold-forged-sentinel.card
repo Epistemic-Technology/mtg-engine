@@ -1,0 +1,7 @@
+card "Gold-Forged Sentinel" {
+  oracle_id c338fb29-2dd2-4f76-ba3d-fa6770adcce8
+  cost {6}
+  type Artifact Creature — Chimera
+  pt 4/4
+  keywords flying
+}

@@ -1,0 +1,6 @@
+card "Bad Moon" {
+  oracle_id fc5d3341-cbce-49e5-93cc-8add92479dca
+  cost {1}{B}
+  type Enchantment
+  static black creature: +1/+1
+}

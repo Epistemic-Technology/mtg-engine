@@ -1,0 +1,6 @@
+card "Sundial, Dawn Tyrant" {
+  oracle_id 9ca808c5-9338-4199-a45b-df1a1a20625e
+  cost {1}{W}
+  type Legendary Artifact Creature — Construct
+  pt 3/3
+}

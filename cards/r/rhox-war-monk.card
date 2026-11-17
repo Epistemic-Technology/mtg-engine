@@ -1,0 +1,7 @@
+card "Rhox War Monk" {
+  oracle_id 5c05c350-1b11-4dda-9de6-01c7e0f07ffc
+  cost {G}{W}{U}
+  type Creature — Rhino Monk
+  pt 3/4
+  keywords lifelink
+}

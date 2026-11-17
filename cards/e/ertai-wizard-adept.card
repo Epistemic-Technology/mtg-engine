@@ -1,0 +1,7 @@
+card "Ertai, Wizard Adept" {
+  oracle_id f2902dfd-888f-4b02-b8ad-1056f0059fc3
+  cost {2}{U}
+  type Legendary Creature — Human Wizard
+  pt 1/1
+  activated {2}{U}{U}, {T}: counter target spell
+}

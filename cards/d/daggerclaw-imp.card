@@ -1,0 +1,7 @@
+card "Daggerclaw Imp" {
+  oracle_id 689c5a47-24ec-4cbf-bc93-ebb492732cad
+  cost {2}{B}
+  type Creature — Imp
+  pt 3/1
+  keywords flying, can't block
+}

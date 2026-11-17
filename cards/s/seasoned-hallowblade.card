@@ -1,0 +1,7 @@
+card "Seasoned Hallowblade" {
+  oracle_id d03dbb60-e32b-4b74-ae8a-73d428d344cd
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 3/1
+  activated discard 1 card: tap this; this gains indestructible
+}

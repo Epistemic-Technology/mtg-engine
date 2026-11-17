@@ -1,0 +1,7 @@
+card "Dragon Sniper" {
+  oracle_id 913dbce2-6805-453f-a9c3-64f1cc658627
+  cost {G}
+  type Creature — Human Archer
+  pt 1/1
+  keywords reach, vigilance, deathtouch
+}

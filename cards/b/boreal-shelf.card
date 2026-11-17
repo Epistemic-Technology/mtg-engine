@@ -1,0 +1,6 @@
+card "Boreal Shelf" {
+  oracle_id 20b549e9-26db-40a5-8bcc-e8de6c559d32
+  type Snow Land
+  enters tapped
+  mana {W} or {U}
+}

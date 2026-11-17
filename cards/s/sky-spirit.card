@@ -1,0 +1,7 @@
+card "Sky Spirit" {
+  oracle_id fc7e288f-ade2-4997-b3fe-f873c26990b0
+  cost {1}{W}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying, first strike
+}

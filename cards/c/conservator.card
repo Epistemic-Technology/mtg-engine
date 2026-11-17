@@ -1,0 +1,6 @@
+card "Conservator" {
+  oracle_id 1940e56d-0972-4ca4-946c-bbd42dde1dcb
+  cost {4}
+  type Artifact
+  activated {3}, {T}: prevent next 2 damage to you this turn
+}

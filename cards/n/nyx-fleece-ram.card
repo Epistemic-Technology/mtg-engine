@@ -1,0 +1,7 @@
+card "Nyx-Fleece Ram" {
+  oracle_id 5a20113c-7ea8-4edf-af9f-148ccd326a88
+  cost {1}{W}
+  type Enchantment Creature — Sheep
+  pt 0/5
+  triggered at beginning of your upkeep: you gains 1 life
+}

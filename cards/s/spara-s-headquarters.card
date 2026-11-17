@@ -1,0 +1,6 @@
+card "Spara's Headquarters" {
+  oracle_id 3123ec89-8e95-4761-ba17-747ec667509f
+  type Land — Forest Plains Island
+  enters tapped
+  cycling {3}
+}

@@ -1,0 +1,6 @@
+card "Carnage Altar" {
+  oracle_id aa05900f-0f04-407e-931c-fea8f91e78e3
+  cost {2}
+  type Artifact
+  activated {3}, sacrifice creature: draw 1 cards
+}

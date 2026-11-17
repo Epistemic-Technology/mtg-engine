@@ -1,0 +1,8 @@
+card "Charging Strifeknight" {
+  oracle_id b0b9a7c1-f515-4627-a050-b595d6641611
+  cost {2}{R}
+  type Creature — Spirit Knight
+  pt 3/3
+  keywords haste
+  activated {T}, discard 1 card: draw 1 cards
+}

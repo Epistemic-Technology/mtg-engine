@@ -1,0 +1,7 @@
+card "Dawnstrider" {
+  oracle_id d2783a37-b6de-4184-b094-e1a23f185a94
+  cost {1}{G}
+  type Creature — Dryad Spellshaper
+  pt 1/1
+  activated {G}, {T}, discard 1 card: prevent all combat damage this turn
+}

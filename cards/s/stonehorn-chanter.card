@@ -1,0 +1,7 @@
+card "Stonehorn Chanter" {
+  oracle_id 22c5187b-e3db-4221-a173-e3b83a581fca
+  cost {5}{W}
+  type Creature — Rhino Cleric
+  pt 4/4
+  activated {5}{W}: this gains vigilance, lifelink
+}

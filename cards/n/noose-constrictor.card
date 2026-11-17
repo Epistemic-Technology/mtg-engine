@@ -1,0 +1,8 @@
+card "Noose Constrictor" {
+  oracle_id fb1d521f-cb64-4b87-b3f4-a74e91a60349
+  cost {1}{G}
+  type Creature — Snake
+  pt 2/2
+  keywords reach
+  activated discard 1 card: this gets +1/+1
+}

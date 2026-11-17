@@ -1,0 +1,6 @@
+card "Slayers' Stronghold" {
+  oracle_id 2de7367b-a5a4-43f4-8f8f-b931ea28150d
+  type Land
+  mana {C}
+  activated {R}{W}, {T}: target creature gets +2/+0 and gains vigilance, haste
+}

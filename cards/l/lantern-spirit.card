@@ -1,0 +1,8 @@
+card "Lantern Spirit" {
+  oracle_id cf590bb7-2ea4-446a-9ca2-1e0706c2c41e
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  activated {U}: return this to hand
+}

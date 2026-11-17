@@ -1,0 +1,6 @@
+card "Blood Feud" {
+  oracle_id fc401d42-80fa-4a17-937a-c230e9317543
+  cost {4}{R}{R}
+  type Sorcery
+  spell: target creature fights another target creature
+}

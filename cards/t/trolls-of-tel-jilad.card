@@ -1,0 +1,7 @@
+card "Trolls of Tel-Jilad" {
+  oracle_id 4478e843-fd25-4ad1-93f8-2dee605386fc
+  cost {5}{G}{G}
+  type Creature — Troll Shaman
+  pt 5/6
+  activated {1}{G}: regenerate target green creature
+}

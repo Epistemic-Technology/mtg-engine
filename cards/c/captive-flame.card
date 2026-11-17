@@ -1,0 +1,6 @@
+card "Captive Flame" {
+  oracle_id fada1102-bbb7-4c90-a72e-6c595c08a55d
+  cost {2}{R}
+  type Enchantment
+  activated {R}: target creature gets +1/+0
+}

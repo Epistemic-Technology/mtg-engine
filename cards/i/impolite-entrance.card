@@ -1,0 +1,9 @@
+card "Impolite Entrance" {
+  oracle_id b77764fe-bc79-410a-995a-ac392f5b46b8
+  cost {R}
+  type Sorcery
+  spell {
+    target creature gains trample, haste
+    draw 1 cards
+  }
+}

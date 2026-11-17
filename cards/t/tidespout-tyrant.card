@@ -1,0 +1,8 @@
+card "Tidespout Tyrant" {
+  oracle_id 331b44e4-cf08-44f4-8afd-a7374e5dc5ed
+  cost {5}{U}{U}{U}
+  type Creature — Djinn
+  pt 5/5
+  keywords flying
+  triggered whenever you cast a spell: return target permanent to hand
+}

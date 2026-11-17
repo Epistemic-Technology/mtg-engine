@@ -1,0 +1,7 @@
+card "Consumptive Goo" {
+  oracle_id 4bbfa49e-4460-439e-8f31-2e54316fbb5f
+  cost {B}{B}
+  type Creature — Ooze
+  pt 1/1
+  activated {2}{B}{B}: target creature gets -1/-1; put 1 +1/+1 counters on this
+}

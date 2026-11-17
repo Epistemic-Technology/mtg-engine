@@ -1,0 +1,6 @@
+card "Seaside Haven" {
+  oracle_id 4adc39dd-8de1-4298-947c-ff666ec3adeb
+  type Land
+  mana {C}
+  activated {W}{U}, {T}, sacrifice Bird: draw 1 cards
+}

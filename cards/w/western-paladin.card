@@ -1,0 +1,7 @@
+card "Western Paladin" {
+  oracle_id d2cbdbf9-9b08-419e-bb3e-482972d58e74
+  cost {2}{B}{B}
+  type Creature — Phyrexian Zombie Knight
+  pt 3/3
+  activated {B}{B}, {T}: destroy target white creature
+}

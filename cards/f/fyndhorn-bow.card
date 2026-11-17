@@ -1,0 +1,6 @@
+card "Fyndhorn Bow" {
+  oracle_id d37fb8bf-d293-4ac3-b744-74e4caade975
+  cost {2}
+  type Artifact
+  activated {3}, {T}: target creature gains first strike
+}

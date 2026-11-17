@@ -1,0 +1,9 @@
+card "Engineered Might" {
+  oracle_id 38462d26-f252-4055-9f1a-59bc3ab2c75e
+  cost {3}{G}{W}
+  type Sorcery
+  choose one {
+    mode: target creature gets +5/+5 and gains trample
+    mode: each creature you control gets +2/+2 and gains vigilance
+  }
+}

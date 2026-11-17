@@ -1,0 +1,7 @@
+card "Barbed Battlegear" {
+  oracle_id b81fed36-07c4-4903-b5b4-24e62d2ce239
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +4/-1
+  equip {2}
+}

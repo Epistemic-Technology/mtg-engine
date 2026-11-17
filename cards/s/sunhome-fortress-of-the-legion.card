@@ -1,0 +1,6 @@
+card "Sunhome, Fortress of the Legion" {
+  oracle_id a9f8344c-1705-4254-81d6-aa05e0c69c29
+  type Land
+  mana {C}
+  activated {2}{R}{W}, {T}: target creature gains double strike
+}

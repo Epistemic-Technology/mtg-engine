@@ -1,0 +1,6 @@
+card "Infernal Grasp" {
+  oracle_id 94f0a572-e91c-4b56-a5d1-6cbbeabd210d
+  cost {1}{B}
+  type Instant
+  spell: destroy target creature; you loses 2 life
+}

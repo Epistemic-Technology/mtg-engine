@@ -1,0 +1,8 @@
+card "Two-Headed Hellkite" {
+  oracle_id 27596982-f4ab-488f-a974-5b0404438504
+  cost {1}{W}{U}{B}{R}{G}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, menace, haste
+  triggered whenever this attacks: draw 2 cards
+}

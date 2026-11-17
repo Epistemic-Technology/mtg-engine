@@ -1,0 +1,18 @@
+# Converted from XMage's cards/single/avr/CavernOfSoulsTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "CavernOfSoulsTest.testDrakeCountered" {
+  # from cards/single/avr/CavernOfSoulsTest.java
+  battlefield A: 3 "Mountain"
+  hand A: "Island"
+  hand A: "Azure Drake"
+  hand B: "Remove Soul"
+  battlefield B: 2 "Island"
+  turn 1 precombat_main A: play "Island"
+  turn 1 precombat_main A: cast "Azure Drake" targeting auto
+  turn 1 precombat_main B: cast "Remove Soul" targeting auto
+  run_to turn 1 begin_combat
+  assert battlefield A lacks "Azure Drake"
+  assert graveyard A contains 1 "Azure Drake"
+}

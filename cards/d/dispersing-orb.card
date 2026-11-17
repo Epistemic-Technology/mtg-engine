@@ -1,0 +1,6 @@
+card "Dispersing Orb" {
+  oracle_id dabc4ba1-3f90-4cea-a737-d41537cce729
+  cost {3}{U}{U}
+  type Enchantment
+  activated {3}{U}, sacrifice permanent: return target permanent to hand
+}

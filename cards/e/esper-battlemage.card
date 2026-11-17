@@ -1,0 +1,8 @@
+card "Esper Battlemage" {
+  oracle_id 2551f383-7308-4670-9fda-406b20e372a5
+  cost {2}{U}
+  type Artifact Creature — Human Wizard
+  pt 2/2
+  activated {W}, {T}: prevent next 2 damage to you this turn
+  activated {B}, {T}: target creature gets -1/-1
+}

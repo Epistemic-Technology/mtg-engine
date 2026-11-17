@@ -1,0 +1,7 @@
+card "Soulbound Guardians" {
+  oracle_id 11f7f6e4-2c39-4478-8c10-4473dbf921a2
+  cost {4}{W}
+  type Creature — Kor Spirit
+  pt 4/5
+  keywords defender, flying
+}

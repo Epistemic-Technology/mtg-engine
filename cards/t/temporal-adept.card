@@ -1,0 +1,7 @@
+card "Temporal Adept" {
+  oracle_id fd9b5462-6578-4bf6-8026-23eaf5af3eee
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {U}{U}{U}, {T}: return target permanent to hand
+}

@@ -1,0 +1,8 @@
+card "Pardic Collaborator" {
+  oracle_id 9b06cfae-1655-4b0e-a160-9b32f27c7c9a
+  cost {3}{R}
+  type Creature — Human Barbarian
+  pt 2/2
+  keywords first strike
+  activated {B}: this gets +1/+1
+}

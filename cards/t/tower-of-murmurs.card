@@ -1,0 +1,6 @@
+card "Tower of Murmurs" {
+  oracle_id c383b28c-b319-49cd-acf1-4721a1301bbb
+  cost {4}
+  type Artifact
+  activated {8}, {T}: target player mills 8 cards
+}

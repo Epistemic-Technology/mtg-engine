@@ -1,0 +1,6 @@
+card "Knighthood" {
+  oracle_id 22f008b3-c263-4dcc-855f-403da9ca4cd9
+  cost {2}{W}
+  type Enchantment
+  static creature you control: has first strike
+}

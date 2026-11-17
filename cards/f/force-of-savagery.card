@@ -1,0 +1,7 @@
+card "Force of Savagery" {
+  oracle_id 26fbfab5-f479-49f2-b36b-a3ebf964741f
+  cost {2}{G}
+  type Creature — Elemental
+  pt 8/0
+  keywords trample
+}

@@ -1,0 +1,8 @@
+card "Abyssal Horror" {
+  oracle_id 6b60422a-765b-4168-a37b-68109103385a
+  cost {4}{B}{B}
+  type Creature — Horror
+  pt 2/2
+  keywords flying
+  triggered when this enters: target player discards 2 cards
+}

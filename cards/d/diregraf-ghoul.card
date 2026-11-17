@@ -1,0 +1,7 @@
+card "Diregraf Ghoul" {
+  oracle_id 6048fc70-0dcc-4b54-977d-16e240225f82
+  cost {B}
+  type Creature — Zombie
+  pt 2/2
+  enters tapped
+}

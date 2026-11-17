@@ -1,0 +1,7 @@
+card "Barrin, Master Wizard" {
+  oracle_id 8c6d6684-1943-4af3-98da-951604193911
+  cost {1}{U}{U}
+  type Legendary Creature — Human Wizard
+  pt 1/1
+  activated {2}, sacrifice permanent: return target creature to hand
+}

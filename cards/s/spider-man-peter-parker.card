@@ -1,0 +1,8 @@
+card "Spider-Man, Peter Parker" {
+  oracle_id 5be3243a-6840-4601-96c8-ffb756041d49
+  cost {3}{W}{W}
+  type Legendary Creature — Spider Human Hero
+  pt 4/4
+  keywords flying
+  triggered whenever you gain life: put 1 +1/+1 counters on target creature you control; target 1 gains indestructible
+}

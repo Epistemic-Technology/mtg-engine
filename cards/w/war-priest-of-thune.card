@@ -1,0 +1,7 @@
+card "War Priest of Thune" {
+  oracle_id 2e44fd5c-5c7f-4ca8-90cd-34015047eb26
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: you may destroy target enchantment
+}

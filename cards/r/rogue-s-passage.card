@@ -1,0 +1,6 @@
+card "Rogue's Passage" {
+  oracle_id f29dc596-2121-4421-8463-15f6c2e8b9b3
+  type Land
+  mana {C}
+  activated {4}, {T}: target creature can't be blocked
+}

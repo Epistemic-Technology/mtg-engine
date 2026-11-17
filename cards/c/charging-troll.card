@@ -1,0 +1,8 @@
+card "Charging Troll" {
+  oracle_id bbc1b96d-5a63-4091-a2c7-08bd289e0bf2
+  cost {2}{G}{W}
+  type Creature — Troll
+  pt 3/3
+  keywords vigilance
+  activated {G}: regenerate this
+}

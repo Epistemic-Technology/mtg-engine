@@ -1,0 +1,8 @@
+card "Scion of the Swarm" {
+  oracle_id ccaeabe1-42fa-4f29-bf80-d9b73498eec6
+  cost {3}{B}{B}
+  type Creature — Vampire Cleric
+  pt 3/3
+  keywords flying
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

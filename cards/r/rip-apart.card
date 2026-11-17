@@ -1,0 +1,9 @@
+card "Rip Apart" {
+  oracle_id cbdbf18f-0180-4ade-a79e-1e644dd42d6f
+  cost {R}{W}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to target creature or planeswalker
+    mode: destroy target artifact or enchantment
+  }
+}

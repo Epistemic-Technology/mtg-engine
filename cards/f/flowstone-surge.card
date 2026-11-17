@@ -1,0 +1,6 @@
+card "Flowstone Surge" {
+  oracle_id fb1755a0-3334-419b-8cb5-5a3ac7fa5b13
+  cost {1}{R}
+  type Enchantment
+  static creature you control: +1/-1
+}

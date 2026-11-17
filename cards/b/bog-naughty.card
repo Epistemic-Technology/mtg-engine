@@ -1,0 +1,8 @@
+card "Bog Naughty" {
+  oracle_id 74303ddb-d3b6-433d-a299-e0c4a7267461
+  cost {3}{B}{B}
+  type Creature — Faerie
+  pt 3/3
+  keywords flying
+  activated {2}{B}, sacrifice Food: target creature gets -3/-3
+}

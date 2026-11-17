@@ -1,0 +1,16 @@
+# Converted from XMage's cards/single/m21/AnointedChoristerTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "AnointedChoristerTest.buff" {
+  # from cards/single/m21/AnointedChoristerTest.java
+  battlefield A: "Anointed Chorister"
+  battlefield A: 10 "Plains"
+  turn 3 precombat_main A: activate "Anointed Chorister" targeting auto
+  turn 3 A: attack "Anointed Chorister"
+  run_to turn 4 precombat_main
+  assert life A 24
+  assert life B 16
+  assert power A "Anointed Chorister" 1
+  assert toughness A "Anointed Chorister" 1
+}

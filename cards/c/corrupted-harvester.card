@@ -1,0 +1,7 @@
+card "Corrupted Harvester" {
+  oracle_id f105ccdd-65bc-4880-bbfe-f57fc0e060ea
+  cost {4}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 6/3
+  activated {B}, sacrifice creature: regenerate this
+}

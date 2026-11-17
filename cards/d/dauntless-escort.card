@@ -1,0 +1,7 @@
+card "Dauntless Escort" {
+  oracle_id c0516c2c-d7c9-4763-9180-980f60205a28
+  cost {1}{G}{W}
+  type Creature — Rhino Soldier
+  pt 3/3
+  activated sacrifice this: each creature you control gains indestructible
+}

@@ -1,0 +1,7 @@
+card "Thunder Spirit" {
+  oracle_id 6efad3d6-4886-4b62-a4ff-bc0622f9672a
+  cost {1}{W}{W}
+  type Creature — Elemental Spirit
+  pt 2/2
+  keywords flying, first strike
+}

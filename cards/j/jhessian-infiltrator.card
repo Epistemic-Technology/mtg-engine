@@ -1,0 +1,7 @@
+card "Jhessian Infiltrator" {
+  oracle_id 6ec8dc98-adc7-4fc3-94e5-31037235ceab
+  cost {G}{U}
+  type Creature — Human Rogue
+  pt 2/2
+  keywords can't be blocked
+}

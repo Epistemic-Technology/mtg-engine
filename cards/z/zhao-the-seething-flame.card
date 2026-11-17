@@ -1,0 +1,7 @@
+card "Zhao, the Seething Flame" {
+  oracle_id 92ce3e30-dde3-43bb-a3d6-ccd91ff18bc3
+  cost {4}{R}
+  type Legendary Creature — Human Soldier
+  pt 5/5
+  keywords menace
+}

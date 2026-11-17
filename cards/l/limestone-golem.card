@@ -1,0 +1,7 @@
+card "Limestone Golem" {
+  oracle_id 0dddf5a9-fdf3-49e5-8103-a8cfd62f55c6
+  cost {6}
+  type Artifact Creature — Golem
+  pt 3/4
+  activated {2}, sacrifice this: target player draws 1 cards
+}

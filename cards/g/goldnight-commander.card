@@ -1,0 +1,7 @@
+card "Goldnight Commander" {
+  oracle_id 3dc51dfc-7a60-41bf-b944-6afad6b06c22
+  cost {3}{W}
+  type Creature — Human Cleric Soldier
+  pt 2/2
+  triggered whenever other creature you control enters: each creature you control gets +1/+1
+}

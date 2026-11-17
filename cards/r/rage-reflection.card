@@ -1,0 +1,6 @@
+card "Rage Reflection" {
+  oracle_id 03fb26b1-6d9c-455b-9b2f-a052a9222db7
+  cost {4}{R}{R}
+  type Enchantment
+  static creature you control: has double strike
+}

@@ -1,0 +1,7 @@
+card "Dakmor Lancer" {
+  oracle_id 00efb113-ba5a-4749-b42b-5693b980f26f
+  cost {4}{B}{B}
+  type Creature — Human Knight
+  pt 3/3
+  triggered when this enters: destroy target nonblack creature
+}

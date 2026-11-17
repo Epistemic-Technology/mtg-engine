@@ -1,0 +1,8 @@
+card "Fortress Cyclops" {
+  oracle_id 7790bd6c-75e2-4abd-87ab-e1c15f1d53ab
+  cost {3}{R}{W}
+  type Creature — Cyclops Soldier
+  pt 3/3
+  triggered whenever this attacks: this gets +3/+0
+  triggered whenever this blocks: this gets +0/+3
+}

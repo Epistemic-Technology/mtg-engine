@@ -1,0 +1,8 @@
+card "Spectral Shepherd" {
+  oracle_id d28b7c07-ef65-4187-a15e-2180bdc593d1
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  activated {1}{U}: return target Spirit you control to hand
+}

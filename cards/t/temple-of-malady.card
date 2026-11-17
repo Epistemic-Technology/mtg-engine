@@ -1,0 +1,7 @@
+card "Temple of Malady" {
+  oracle_id dc55421f-dee8-4263-9df0-2365df5f14bb
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {B} or {G}
+}

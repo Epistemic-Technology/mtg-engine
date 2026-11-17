@@ -1,0 +1,8 @@
+card "Windrider Patrol" {
+  oracle_id dea0f359-19a5-4aef-8c96-574eaa748a31
+  cost {3}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 4/3
+  keywords flying
+  triggered whenever this deals combat damage to a player: scry 2
+}

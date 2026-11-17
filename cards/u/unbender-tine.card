@@ -1,0 +1,6 @@
+card "Unbender Tine" {
+  oracle_id cdc0a1a5-d9e4-4923-b472-2fa78212167f
+  cost {2}{W}{U}
+  type Artifact
+  activated {T}: untap another target permanent
+}

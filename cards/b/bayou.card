@@ -1,0 +1,4 @@
+card "Bayou" {
+  oracle_id b76d1ae6-ad1d-4bac-b4c3-2e03e0e84d9b
+  type Land — Swamp Forest
+}

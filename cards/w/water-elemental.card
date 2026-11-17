@@ -1,0 +1,6 @@
+card "Water Elemental" {
+  oracle_id c470fbe1-0538-46ec-8741-3143f5e78af8
+  cost {3}{U}{U}
+  type Creature — Elemental
+  pt 5/4
+}

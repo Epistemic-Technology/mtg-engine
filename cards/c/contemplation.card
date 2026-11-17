@@ -1,0 +1,6 @@
+card "Contemplation" {
+  oracle_id fa7efcef-a688-4e25-a823-4d53b2e96508
+  cost {1}{W}{W}
+  type Enchantment
+  triggered whenever you cast a spell: you gains 1 life
+}

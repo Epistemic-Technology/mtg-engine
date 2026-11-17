@@ -1,0 +1,6 @@
+card "Whiptail Wurm" {
+  oracle_id 50fa6a63-e031-47cb-8fd5-a6c235203722
+  cost {6}{G}
+  type Creature — Wurm
+  pt 8/5
+}

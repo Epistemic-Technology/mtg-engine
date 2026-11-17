@@ -1,0 +1,7 @@
+card "Lance" {
+  oracle_id 5960dd01-6797-4c73-b48a-f637b9c288cc
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has first strike
+}

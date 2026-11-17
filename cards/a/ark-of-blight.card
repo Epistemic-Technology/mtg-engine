@@ -1,0 +1,6 @@
+card "Ark of Blight" {
+  oracle_id b4505b07-ac99-4706-88b2-6164389e447c
+  cost {2}
+  type Artifact
+  activated {3}, {T}, sacrifice this: destroy target land
+}

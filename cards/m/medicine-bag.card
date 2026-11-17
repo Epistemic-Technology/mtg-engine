@@ -1,0 +1,6 @@
+card "Medicine Bag" {
+  oracle_id 5801f773-e214-413d-968d-b84bf99f0642
+  cost {3}
+  type Artifact
+  activated {1}, {T}, discard 1 card: regenerate target creature
+}

@@ -1,0 +1,6 @@
+card "Stroke of Genius" {
+  oracle_id 0cc6d683-366f-4ae4-be60-20ad9621fdaf
+  cost {X}{2}{U}
+  type Instant
+  spell: target player draws X cards
+}

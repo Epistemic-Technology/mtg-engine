@@ -1,0 +1,6 @@
+card "Dragon Blood" {
+  oracle_id b751c1c6-195d-4023-9d0b-3c91d6b834d4
+  cost {3}
+  type Artifact
+  activated {3}, {T}: put 1 +1/+1 counters on target creature
+}

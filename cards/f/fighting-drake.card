@@ -1,0 +1,7 @@
+card "Fighting Drake" {
+  oracle_id b13cc6be-ee35-491e-a437-f7fc191f24c7
+  cost {2}{U}{U}
+  type Creature — Drake
+  pt 2/4
+  keywords flying
+}

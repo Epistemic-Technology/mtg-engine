@@ -1,0 +1,8 @@
+card "Epic Proportions" {
+  oracle_id ad8edfdf-6915-4fc2-9226-3aae95951935
+  cost {4}{G}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +5/+5, has trample
+}

@@ -1,0 +1,6 @@
+card "Voltaic Key" {
+  oracle_id 09aeea91-b1dc-443f-a509-4758f052c0a7
+  cost {1}
+  type Artifact
+  activated {1}, {T}: untap target artifact
+}

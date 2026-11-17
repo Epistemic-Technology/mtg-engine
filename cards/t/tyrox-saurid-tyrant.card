@@ -1,0 +1,6 @@
+card "Tyrox, Saurid Tyrant" {
+  oracle_id b24d95fa-3cf7-495e-9082-11f8db151906
+  cost {1}{R}
+  type Legendary Creature — Dinosaur Warrior
+  pt 4/1
+}

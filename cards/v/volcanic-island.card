@@ -1,0 +1,4 @@
+card "Volcanic Island" {
+  oracle_id c718911c-c955-4eb9-9e16-be4bd49a4e4e
+  type Land — Island Mountain
+}

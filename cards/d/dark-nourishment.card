@@ -1,0 +1,6 @@
+card "Dark Nourishment" {
+  oracle_id 95650a60-6f1d-4594-8b53-7fd406212207
+  cost {4}{B}
+  type Instant
+  spell: deal 3 damage to any target; you gains 3 life
+}

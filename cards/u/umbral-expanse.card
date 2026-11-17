@@ -1,0 +1,6 @@
+card "Umbral Expanse" {
+  oracle_id 5a1dfc60-645d-4bc0-8883-e06ed9c80706
+  type Land — Plains Swamp
+  enters tapped
+  cycling {2}
+}

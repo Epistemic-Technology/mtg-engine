@@ -1,0 +1,6 @@
+card "Mox Emerald" {
+  oracle_id 376ee366-e082-402f-b4db-6592fcfcacd2
+  cost {0}
+  type Artifact
+  mana {G}
+}

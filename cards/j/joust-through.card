@@ -1,0 +1,6 @@
+card "Joust Through" {
+  oracle_id 33c21ef1-33eb-447a-a318-a352f163a8a0
+  cost {W}
+  type Instant
+  spell: deal 3 damage to target attacking or blocking creature; you gains 1 life
+}

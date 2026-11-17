@@ -1,0 +1,6 @@
+card "Indatha Triome" {
+  oracle_id ec2b3779-55f7-4169-aa66-6312fb52721f
+  type Land — Plains Swamp Forest
+  enters tapped
+  cycling {3}
+}

@@ -1,0 +1,8 @@
+card "Glorifier of Dusk" {
+  oracle_id 6205c485-f46b-40af-8b73-03c668f9ea42
+  cost {3}{W}{W}
+  type Creature — Vampire Soldier
+  pt 4/4
+  activated pay 2 life: this gains flying
+  activated pay 2 life: this gains vigilance
+}

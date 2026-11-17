@@ -1,0 +1,6 @@
+card "Valor in Akros" {
+  oracle_id 56a60fcb-f9b7-438f-9221-eaca8fb2649b
+  cost {3}{W}
+  type Enchantment
+  triggered whenever creature you control enters: each creature you control gets +1/+1
+}

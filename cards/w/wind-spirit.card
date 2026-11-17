@@ -1,0 +1,7 @@
+card "Wind Spirit" {
+  oracle_id d4c22b68-c4cb-447a-97df-431e2f1e31f2
+  cost {4}{U}
+  type Creature — Elemental Spirit
+  pt 3/2
+  keywords flying, menace
+}

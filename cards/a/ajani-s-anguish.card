@@ -1,0 +1,7 @@
+card "Ajani's Anguish" {
+  oracle_id 4a37f4a0-2869-4f81-b51b-4c3e7e0e0671
+  cost {X}{R}
+  type Enchantment
+  triggered when this enters: deal X damage to any target
+  static creature you control: has trample
+}

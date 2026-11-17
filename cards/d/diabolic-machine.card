@@ -1,0 +1,7 @@
+card "Diabolic Machine" {
+  oracle_id afd9b232-3f46-40c5-b1cf-2a7e8c955eba
+  cost {7}
+  type Artifact Creature — Construct
+  pt 4/4
+  activated {3}: regenerate this
+}

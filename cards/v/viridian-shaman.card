@@ -1,0 +1,7 @@
+card "Viridian Shaman" {
+  oracle_id 5aa6d553-a144-4c5b-83fa-65e931903899
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered when this enters: destroy target artifact
+}

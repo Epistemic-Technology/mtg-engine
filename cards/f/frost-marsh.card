@@ -1,0 +1,6 @@
+card "Frost Marsh" {
+  oracle_id 75a49bce-ab48-44d6-906d-6f51a30702ba
+  type Snow Land
+  enters tapped
+  mana {U} or {B}
+}

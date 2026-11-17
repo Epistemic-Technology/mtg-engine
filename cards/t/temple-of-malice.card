@@ -1,0 +1,7 @@
+card "Temple of Malice" {
+  oracle_id 7c439c18-31dc-41fe-b03d-3fca06e6fc0b
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {B} or {R}
+}

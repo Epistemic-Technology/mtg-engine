@@ -1,0 +1,6 @@
+card "Quilled Slagwurm" {
+  oracle_id 5114f3e0-339d-46d6-9d44-97fa0afbd7c5
+  cost {4}{G}{G}{G}
+  type Creature — Phyrexian Wurm
+  pt 8/8
+}

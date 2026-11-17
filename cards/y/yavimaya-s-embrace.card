@@ -1,0 +1,8 @@
+card "Yavimaya's Embrace" {
+  oracle_id d5cb0370-a6f0-40c0-8b8f-553fca23778d
+  cost {5}{G}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  static enchanted: +2/+2, has trample
+}

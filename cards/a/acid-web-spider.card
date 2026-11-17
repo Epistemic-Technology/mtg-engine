@@ -1,0 +1,8 @@
+card "Acid Web Spider" {
+  oracle_id 23d4f436-a417-4a26-b5b8-c698f11a186b
+  cost {3}{G}{G}
+  type Creature — Spider
+  pt 3/5
+  keywords reach
+  triggered when this enters: you may destroy target Equipment
+}

@@ -1,0 +1,8 @@
+card "Sprite Dragon" {
+  oracle_id a9d8ab76-70a4-475e-b87e-4737c090553a
+  cost {U}{R}
+  type Creature — Faerie Dragon
+  pt 1/1
+  keywords flying, haste
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

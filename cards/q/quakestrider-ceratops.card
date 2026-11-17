@@ -1,0 +1,6 @@
+card "Quakestrider Ceratops" {
+  oracle_id e56629ba-82d4-470f-9a6b-40c29d835af2
+  cost {3}{G}{G}{G}
+  type Creature — Dinosaur
+  pt 12/8
+}

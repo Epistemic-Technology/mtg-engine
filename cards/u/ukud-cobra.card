@@ -1,0 +1,7 @@
+card "Ukud Cobra" {
+  oracle_id d38cbb37-0ddd-4768-bb05-f35b38730e44
+  cost {3}{B}
+  type Creature — Snake
+  pt 2/5
+  keywords deathtouch
+}

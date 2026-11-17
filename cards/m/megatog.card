@@ -1,0 +1,7 @@
+card "Megatog" {
+  oracle_id bde427fa-8a00-4eff-9371-81324bc75364
+  cost {4}{R}{R}
+  type Creature — Atog
+  pt 3/4
+  activated sacrifice artifact: this gets +3/+3 and gains trample
+}

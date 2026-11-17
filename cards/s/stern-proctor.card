@@ -1,0 +1,7 @@
+card "Stern Proctor" {
+  oracle_id 5120bfdc-7201-420d-85a1-eeb4aba6632b
+  cost {U}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  triggered when this enters: return target artifact or enchantment to hand
+}

@@ -1,0 +1,8 @@
+card "Deathless Angel" {
+  oracle_id 6098ba4b-ebfe-48da-a33d-b94c021ac559
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 5/7
+  keywords flying
+  activated {W}{W}: target creature gains indestructible
+}

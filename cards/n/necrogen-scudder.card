@@ -1,0 +1,8 @@
+card "Necrogen Scudder" {
+  oracle_id 93f37df7-e1c4-457b-bc22-00c49b0c4f79
+  cost {2}{B}
+  type Creature — Phyrexian Horror
+  pt 3/3
+  keywords flying
+  triggered when this enters: you loses 3 life
+}

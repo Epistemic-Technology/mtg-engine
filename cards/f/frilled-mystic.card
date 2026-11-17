@@ -1,0 +1,8 @@
+card "Frilled Mystic" {
+  oracle_id 724bc69c-cd09-4ff8-91e7-70500b9474e1
+  cost {G}{G}{U}{U}
+  type Creature — Elf Lizard Wizard
+  pt 3/2
+  keywords flash
+  triggered when this enters: you may counter target spell
+}

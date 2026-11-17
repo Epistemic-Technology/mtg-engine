@@ -1,0 +1,8 @@
+card "Steam Spitter" {
+  oracle_id 76ed34d2-e09e-4b53-98bd-d96b367fd315
+  cost {4}{G}
+  type Creature — Spider
+  pt 1/5
+  keywords reach
+  activated {R}: this gets +1/+0
+}

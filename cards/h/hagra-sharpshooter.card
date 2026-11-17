@@ -1,0 +1,7 @@
+card "Hagra Sharpshooter" {
+  oracle_id d2f59fa6-8e61-4a70-8044-196d7b26ec9e
+  cost {2}{B}
+  type Creature — Human Assassin Ally
+  pt 2/2
+  activated {4}{B}: target creature gets -1/-1
+}

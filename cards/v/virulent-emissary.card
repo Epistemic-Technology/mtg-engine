@@ -1,0 +1,8 @@
+card "Virulent Emissary" {
+  oracle_id 3d4bec90-7bbc-4385-a2b8-303c7a8d0a0f
+  cost {G}
+  type Creature — Elf Assassin
+  pt 1/1
+  keywords deathtouch
+  triggered whenever other creature you control enters: you gains 1 life
+}

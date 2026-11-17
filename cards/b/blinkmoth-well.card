@@ -1,0 +1,6 @@
+card "Blinkmoth Well" {
+  oracle_id dd3fd7cd-d8a1-48e2-861d-c7c40086dc75
+  type Land
+  mana {C}
+  activated {2}, {T}: tap target noncreature artifact
+}

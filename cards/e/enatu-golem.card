@@ -1,0 +1,7 @@
+card "Enatu Golem" {
+  oracle_id 1cb3f27c-2670-43b8-9305-8adf2e7bd3ae
+  cost {6}
+  type Artifact Creature — Golem
+  pt 3/5
+  triggered when this dies: you gains 4 life
+}

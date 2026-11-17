@@ -1,0 +1,6 @@
+card "Braidwood Cup" {
+  oracle_id d52b72ff-a82d-430e-94c7-675c83b43e50
+  cost {3}
+  type Artifact
+  activated {T}: you gains 1 life
+}

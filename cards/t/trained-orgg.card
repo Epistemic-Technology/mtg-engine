@@ -1,0 +1,6 @@
+card "Trained Orgg" {
+  oracle_id da67de0f-6b0d-4100-9260-334f8c235c59
+  cost {6}{R}
+  type Creature — Orgg
+  pt 6/6
+}

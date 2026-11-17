@@ -1,0 +1,7 @@
+card "Wall of Swords" {
+  oracle_id eb098958-50d3-4476-ba74-382033703ff9
+  cost {3}{W}
+  type Creature — Wall
+  pt 3/5
+  keywords defender, flying
+}

@@ -1,0 +1,8 @@
+card "Fallen Angel" {
+  oracle_id 1869a326-8b48-4331-b969-5ce83cf4ff8a
+  cost {3}{B}{B}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  activated sacrifice creature: this gets +2/+1
+}

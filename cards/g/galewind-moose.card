@@ -1,0 +1,7 @@
+card "Galewind Moose" {
+  oracle_id b0747a4f-d041-4750-aef5-a5d101696f65
+  cost {4}{G}{G}
+  type Creature — Elemental Elk
+  pt 6/6
+  keywords flash, reach, vigilance, trample
+}

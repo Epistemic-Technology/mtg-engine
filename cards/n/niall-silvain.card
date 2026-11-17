@@ -1,0 +1,7 @@
+card "Niall Silvain" {
+  oracle_id 9d2dd032-bcef-4d04-8836-1eaff1c56b98
+  cost {G}{G}{G}
+  type Creature — Ouphe
+  pt 2/2
+  activated {G}{G}{G}{G}, {T}: regenerate target creature
+}

@@ -1,0 +1,8 @@
+card "Twinblade Blessing" {
+  oracle_id b3e1674f-dba1-4570-9990-e5dc643e237d
+  cost {1}{W}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has double strike
+}

@@ -1,0 +1,8 @@
+card "Hall Monitor" {
+  oracle_id 937a04c2-41be-4ff3-8992-6628a9ee9792
+  cost {R}
+  type Creature — Lizard Shaman
+  pt 1/1
+  keywords haste
+  activated {1}{R}, {T}: target creature can't block
+}

@@ -1,0 +1,7 @@
+card "Blinking Spirit" {
+  oracle_id a26f6958-9bc8-46f8-8ca7-7f55098e1291
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/2
+  activated {0}: return this to hand
+}

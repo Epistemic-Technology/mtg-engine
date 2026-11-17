@@ -1,0 +1,7 @@
+card "Ebony Treefolk" {
+  oracle_id 04683bd7-b100-4fc8-8165-316c5508c255
+  cost {1}{B}{G}
+  type Creature — Treefolk
+  pt 3/3
+  activated {B}{G}: this gets +1/+1
+}

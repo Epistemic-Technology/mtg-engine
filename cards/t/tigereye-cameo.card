@@ -1,0 +1,6 @@
+card "Tigereye Cameo" {
+  oracle_id d2be289e-e560-405d-9728-d8a4ee9cbf56
+  cost {3}
+  type Artifact
+  mana {G} or {W}
+}

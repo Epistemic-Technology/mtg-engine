@@ -1,0 +1,8 @@
+card "Ranger en-Vec" {
+  oracle_id 04bb6731-5662-48d5-9e48-99d378c4adaf
+  cost {1}{G}{W}
+  type Creature — Human Soldier Archer Ranger
+  pt 2/2
+  keywords first strike
+  activated {G}: regenerate this
+}

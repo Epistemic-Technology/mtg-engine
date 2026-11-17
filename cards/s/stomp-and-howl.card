@@ -1,0 +1,6 @@
+card "Stomp and Howl" {
+  oracle_id 7cc809ed-5ce1-40d1-896d-014ca8e2b5a6
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target artifact and target enchantment
+}

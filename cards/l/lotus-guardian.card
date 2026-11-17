@@ -1,0 +1,8 @@
+card "Lotus Guardian" {
+  oracle_id 143d7a32-c15d-4a1f-ad81-cf1e6aa92bf3
+  cost {7}
+  type Artifact Creature — Dragon
+  pt 4/4
+  keywords flying
+  mana any
+}

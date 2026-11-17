@@ -1,0 +1,6 @@
+card "Fugue" {
+  oracle_id 724c8a20-bfb3-4c63-8cfa-5ad4c72ebe2f
+  cost {3}{B}{B}
+  type Sorcery
+  spell: target player discards 3 cards
+}

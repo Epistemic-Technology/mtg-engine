@@ -1,0 +1,7 @@
+card "Healer's Flock" {
+  oracle_id 0b3b2fb1-d5fe-4d14-985a-85f13cd60d9c
+  cost {W}{W}{W}
+  type Creature — Bird
+  pt 3/3
+  keywords flying, lifelink
+}

@@ -1,0 +1,8 @@
+card "Frenzied Devils" {
+  oracle_id 4c912e9a-21f9-4058-b28c-43f319e35d09
+  cost {4}{R}
+  type Creature — Devil
+  pt 3/3
+  keywords haste
+  triggered whenever you cast a noncreature spell: this gets +2/+2
+}

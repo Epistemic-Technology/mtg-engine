@@ -863,6 +863,30 @@ for an empty stack. The corpus lives in `scenarios/` and runs under
 `cargo test -p mtg-scenario`; `mtg scenario --verbose` prints the event
 log of a failing scenario.
 
+Status 2026-11-17 (M3 slice 4): the XMage converter is in
+(`mtg-cards convert-xmage [--out scenarios/xmage]`, source `xmage.rs` in
+`mtg-cards`). It reads a sparse checkout of XMage's test directory pinned
+in `data/sources.lock`, extracts each `@Test` method of a
+`CardTestPlayerBase` subclass, and maps the scripting API onto the
+scenario DSL: `addCard` to setup lines (library cards on top of thirty
+Plains, since XMage's test players draw from a real deck and ours from
+Plains), `castSpell`/`activateAbility`/`attack`/`block`/`playLand` to
+scripted actions (an `activateAbility` text prefix is matched against the
+rendered texts of the player's permanents' abilities), `waitStackResolved`
+to the new `wait` action, `setStopAt` to `run_to`, and the `assert*`
+family to assertions; XMage's implicit targeting became `targeting auto`.
+Each converted test is run; failures are written with a `skip` line
+naming the failure, for adjudication. The result is sobering: of 6,802
+tests, 28 convert and 27 pass. 5,895 name a card outside the corpus
+(XMage's tests are overwhelmingly per-card tests of complex cards; the
+2,565 distinct missing cards are each named by a handful of tests) and
+836 use custom harness code. Authoring every format's template-coverable
+cards (958 more, corpus 3,675) unblocked four tests. The 1,000-scenario
+acceptance target therefore waits on coverage, not on the converter: it
+needs the model-driven authoring of §6.4 and the engine primitives it will
+ask for. The converter's missing-card histogram is the ordering for that
+work.
+
 ### 7.2 Test sources, in priority order
 
 1. **CR worked examples.** The CR contains ~1,200 `NNN.N` rules, many
@@ -1752,6 +1776,15 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, slice 4 (XMage converter) done, with the honest
+result recorded in §7.1: the converter and its `wait`/`targeting auto`
+runner support are in and 27 of 28 convertible tests pass as
+`scenarios/xmage/`, but 5,895 of XMage's 6,802 tests name cards outside
+the corpus, so the 1,000-scenario target is a coverage problem. Authoring
+every format's template-coverable cards added 958 (corpus 3,675 cards,
+2,649 Pauper, 2,801 Modern; gate 3,674 of 3,674). Scenarios: 421 (393
+hand-written and primitive, 28 converted; 1 skipped for adjudication).
 
 Status 2026-11-17, slice 3 (engine primitives from the authoring
 backlog) done: counterspells including "unless its controller pays",

@@ -1,0 +1,8 @@
+card "Nimbus Swimmer" {
+  oracle_id ce02ef24-d53e-4025-bc45-ca27aba89fe9
+  cost {X}{G}{U}
+  type Creature — Leviathan
+  pt 0/0
+  keywords flying
+  enters with X +1/+1 counters
+}

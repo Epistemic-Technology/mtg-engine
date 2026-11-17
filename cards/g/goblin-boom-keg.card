@@ -1,0 +1,7 @@
+card "Goblin Boom Keg" {
+  oracle_id 8e819d68-3a6e-449a-8392-e072724b80f1
+  cost {4}
+  type Artifact
+  triggered at beginning of your upkeep: sacrifice this
+  triggered when this dies: deal 3 damage to any target
+}

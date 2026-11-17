@@ -1,0 +1,4 @@
+card "Tropical Island" {
+  oracle_id 74b7fe23-5d3a-4092-8d78-7c0eba8f6f73
+  type Land — Forest Island
+}

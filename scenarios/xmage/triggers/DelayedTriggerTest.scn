@@ -1,0 +1,16 @@
+# Converted from XMage's cards/triggers/DelayedTriggerTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "DelayedTriggerTest.testOtherworldlyJourney1" {
+  # from cards/triggers/DelayedTriggerTest.java
+  hand A: "Otherworldly Journey"
+  battlefield A: 2 "Plains"
+  battlefield A: "Silvercoat Lion"
+  turn 1 precombat_main A: cast "Otherworldly Journey" targeting "Silvercoat Lion"
+  run_to turn 2 draw
+  assert graveyard A contains 1 "Otherworldly Journey"
+  assert battlefield A contains 1 "Silvercoat Lion"
+  assert power A "Silvercoat Lion" 3
+  assert toughness A "Silvercoat Lion" 3
+}

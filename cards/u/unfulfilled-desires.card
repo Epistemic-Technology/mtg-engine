@@ -1,0 +1,6 @@
+card "Unfulfilled Desires" {
+  oracle_id a5827d57-ae8b-44b0-a81b-3d191a0ba2fa
+  cost {1}{U}{B}
+  type Enchantment
+  activated {1}, pay 1 life: draw 1 cards then discard 1 cards
+}

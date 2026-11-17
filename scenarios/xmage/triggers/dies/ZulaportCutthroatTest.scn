@@ -1,0 +1,16 @@
+# Converted from XMage's cards/triggers/dies/ZulaportCutthroatTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "ZulaportCutthroatTest.testDiesAndControllerDamage" {
+  # from cards/triggers/dies/ZulaportCutthroatTest.java
+  battlefield A: "Zulaport Cutthroat"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 precombat_main B: cast "Lightning Bolt" targeting "Zulaport Cutthroat"
+  run_to turn 1 begin_combat
+  assert graveyard B contains 1 "Lightning Bolt"
+  assert graveyard A contains 1 "Zulaport Cutthroat"
+  assert life A 21
+  assert life B 19
+}

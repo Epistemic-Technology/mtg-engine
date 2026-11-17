@@ -1,0 +1,7 @@
+card "Rorix Bladewing" {
+  oracle_id 48fe0f52-1676-49d5-acf6-5476081e8e1b
+  cost {3}{R}{R}{R}
+  type Legendary Creature — Dragon
+  pt 6/5
+  keywords flying, haste
+}

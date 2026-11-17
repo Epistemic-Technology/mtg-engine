@@ -1,0 +1,7 @@
+card "Starlit Angel" {
+  oracle_id e66e3450-bddb-46ac-bc7e-c7732e258374
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/4
+  keywords flying
+}

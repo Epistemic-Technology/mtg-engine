@@ -1,0 +1,6 @@
+card "Kalonian Tusker" {
+  oracle_id df7f697e-6886-4897-a024-61ae225c1b34
+  cost {G}{G}
+  type Creature — Beast
+  pt 3/3
+}

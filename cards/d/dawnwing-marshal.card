@@ -1,0 +1,8 @@
+card "Dawnwing Marshal" {
+  oracle_id 6640c234-8863-4670-a61f-ba6f59b60d69
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  keywords flying
+  activated {4}{W}: each creature you control gets +1/+1
+}

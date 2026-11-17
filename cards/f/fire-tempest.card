@@ -1,0 +1,6 @@
+card "Fire Tempest" {
+  oracle_id ede6a352-52de-4ae0-816f-50140033dedf
+  cost {5}{R}{R}
+  type Sorcery
+  spell: deal 6 damage to each creature and each player
+}

@@ -1,0 +1,8 @@
+card "Festerleech" {
+  oracle_id d14fdc1d-62bc-4e9c-b79b-8c9c3232f0bc
+  cost {B}
+  type Creature — Zombie Leech
+  pt 1/1
+  triggered whenever this deals combat damage to a player: you mills 2 cards
+  activated {1}{B}, once: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Seismic Mage" {
+  oracle_id a1f7e43a-f126-47d8-bd59-339ae052e81b
+  cost {3}{R}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {2}{R}, {T}, discard 1 card: destroy target land
+}

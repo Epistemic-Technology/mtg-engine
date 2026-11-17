@@ -1,0 +1,7 @@
+card "Dreadwing" {
+  oracle_id 446b9626-2e64-4933-afc8-891135b8e3d6
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  activated {1}{U}{R}: this gets +3/+0 and gains flying
+}

@@ -1,0 +1,7 @@
+card "Monoist Sentry" {
+  oracle_id 0b4cb111-ecf7-4ff7-a9e3-c944054f3370
+  cost {B}
+  type Artifact Creature — Robot
+  pt 4/1
+  keywords defender
+}

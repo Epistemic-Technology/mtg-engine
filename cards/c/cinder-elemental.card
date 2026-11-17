@@ -1,0 +1,7 @@
+card "Cinder Elemental" {
+  oracle_id 01805d0d-3a72-4d26-9475-3e68c278b7fe
+  cost {3}{R}
+  type Creature — Elemental
+  pt 2/2
+  activated {X}{R}, {T}, sacrifice this: deal X damage to any target
+}

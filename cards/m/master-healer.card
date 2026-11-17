@@ -1,0 +1,7 @@
+card "Master Healer" {
+  oracle_id 7695b61a-8d44-44b1-9783-ea3114111c3e
+  cost {4}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  activated {T}: prevent next 4 damage to any target this turn
+}

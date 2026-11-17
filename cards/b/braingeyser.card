@@ -1,0 +1,6 @@
+card "Braingeyser" {
+  oracle_id 9908e597-9470-4c13-8387-39431b380138
+  cost {X}{U}{U}
+  type Sorcery
+  spell: target player draws X cards
+}

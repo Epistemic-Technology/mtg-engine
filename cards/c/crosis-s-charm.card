@@ -1,0 +1,10 @@
+card "Crosis's Charm" {
+  oracle_id e59d70a2-40ac-45b0-995d-65b9caa290c8
+  cost {U}{B}{R}
+  type Instant
+  choose one {
+    mode: return target permanent to hand
+    mode: destroy target nonblack creature without regeneration
+    mode: destroy target artifact
+  }
+}

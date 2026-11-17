@@ -1,0 +1,6 @@
+card "Festering Thicket" {
+  oracle_id bdb9b2ce-342c-4935-8943-d0c3971b1e38
+  type Land — Swamp Forest
+  enters tapped
+  cycling {2}
+}

@@ -1,0 +1,7 @@
+card "Ambassador Laquatus" {
+  oracle_id 2df8f253-1d3c-4b1f-8549-93fb90623474
+  cost {1}{U}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 1/3
+  activated {3}: target player mills 3 cards
+}

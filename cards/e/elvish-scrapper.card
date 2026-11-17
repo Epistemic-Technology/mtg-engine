@@ -1,0 +1,7 @@
+card "Elvish Scrapper" {
+  oracle_id 81b2242b-40c9-475a-a198-28dd348235ec
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  activated {G}, {T}, sacrifice this: destroy target artifact
+}

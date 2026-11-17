@@ -1,0 +1,9 @@
+card "Gift of Strands" {
+  oracle_id 7a7789e5-f2ac-49b2-943e-7d49e4727fb6
+  cost {3}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: scry 2
+  static enchanted: +3/+3
+}

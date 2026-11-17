@@ -1,0 +1,7 @@
+card "Strongarm Monk" {
+  oracle_id 8711b732-8dab-41d4-a85b-b10edcd25e97
+  cost {4}{W}
+  type Creature — Human Monk
+  pt 3/3
+  triggered whenever you cast a noncreature spell: each creature you control gets +1/+1
+}

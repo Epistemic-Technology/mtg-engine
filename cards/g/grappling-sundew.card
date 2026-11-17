@@ -1,0 +1,8 @@
+card "Grappling Sundew" {
+  oracle_id a13e5a6c-e1aa-44dc-871e-120ea0390026
+  cost {1}{G}
+  type Creature — Plant
+  pt 0/4
+  keywords defender, reach
+  activated {4}{G}: this gains indestructible
+}

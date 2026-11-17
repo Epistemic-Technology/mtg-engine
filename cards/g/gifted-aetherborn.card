@@ -1,0 +1,7 @@
+card "Gifted Aetherborn" {
+  oracle_id 0c6a6587-2b3f-40d1-a5f2-06128da0d52e
+  cost {B}{B}
+  type Creature — Aetherborn Vampire
+  pt 2/3
+  keywords deathtouch, lifelink
+}

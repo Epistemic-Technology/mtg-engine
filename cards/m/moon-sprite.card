@@ -1,0 +1,7 @@
+card "Moon Sprite" {
+  oracle_id 1e41136b-afa7-45ee-8d04-d0c7514b5387
+  cost {1}{G}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+}

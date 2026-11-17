@@ -1,0 +1,7 @@
+card "Chitinous Cloak" {
+  oracle_id d5487098-fd24-49af-9634-4827a5c2eac4
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has menace
+  equip {3}
+}

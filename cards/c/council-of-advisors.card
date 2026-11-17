@@ -1,0 +1,7 @@
+card "Council of Advisors" {
+  oracle_id ff427657-173a-4845-89af-6f0a93467130
+  cost {2}{U}
+  type Creature — Human Advisor
+  pt 1/1
+  triggered when this enters: draw 1 cards
+}

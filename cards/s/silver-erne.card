@@ -1,0 +1,7 @@
+card "Silver Erne" {
+  oracle_id 6ca90451-861d-4aa8-93e7-3f3e02385530
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flying, trample
+}

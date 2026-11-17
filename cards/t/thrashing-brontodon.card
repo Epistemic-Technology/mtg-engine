@@ -1,0 +1,7 @@
+card "Thrashing Brontodon" {
+  oracle_id 60bc63dc-ac9f-4a2f-aef5-c90d0aa31553
+  cost {1}{G}{G}
+  type Creature — Dinosaur
+  pt 3/4
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

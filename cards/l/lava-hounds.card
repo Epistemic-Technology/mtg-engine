@@ -1,0 +1,8 @@
+card "Lava Hounds" {
+  oracle_id 86c0dc85-d146-4dfa-819e-f78835bfffff
+  cost {2}{R}{R}
+  type Creature — Dog
+  pt 4/4
+  keywords haste
+  triggered when this enters: deal 4 damage to you
+}

@@ -1,0 +1,46 @@
+# Converted from XMage's cards/triggers/dies/SelhoffOccultistTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "SelhoffOccultistTest.testDiesTriggeredAbility" {
+  # from cards/triggers/dies/SelhoffOccultistTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Selhoff Occultist"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Selhoff Occultist"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert graveyard A count 2
+  assert graveyard B count 1
+}
+
+scenario "SelhoffOccultistTest.testDiesTriggeredAbilityForTwoCopies" {
+  # from cards/triggers/dies/SelhoffOccultistTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: 2 "Selhoff Occultist"
+  battlefield B: "Ana Disciple"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Ana Disciple"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert graveyard A count 3
+  assert graveyard B count 1
+}
+
+scenario "SelhoffOccultistTest.testDiesTriggeredAbilityInOtherZone" {
+  # from cards/triggers/dies/SelhoffOccultistTest.java
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: 2 "Selhoff Occultist"
+  hand B: "Selhoff Occultist"
+  graveyard B: "Selhoff Occultist"
+  battlefield B: "Ana Disciple"
+  turn 1 precombat_main A: cast "Lightning Bolt" targeting "Ana Disciple"
+  run_to turn 1 begin_combat
+  assert life A 20
+  assert life B 20
+  assert graveyard A count 3
+  assert graveyard B count 2
+}

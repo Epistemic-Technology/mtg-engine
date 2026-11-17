@@ -1,0 +1,7 @@
+card "Rustspore Ram" {
+  oracle_id a45b3934-1c9b-4cff-98b1-c9ac2f7759ea
+  cost {4}
+  type Artifact Creature — Sheep
+  pt 1/3
+  triggered when this enters: destroy target Equipment
+}

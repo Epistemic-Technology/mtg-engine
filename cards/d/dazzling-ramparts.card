@@ -1,0 +1,8 @@
+card "Dazzling Ramparts" {
+  oracle_id 0527fc47-2bfc-4d02-90fa-5a1284f89a0a
+  cost {4}{W}
+  type Creature — Wall
+  pt 0/7
+  keywords defender
+  activated {1}{W}, {T}: tap target creature
+}

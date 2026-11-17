@@ -1,0 +1,7 @@
+card "Wall of Razors" {
+  oracle_id 19ed5429-5631-4a36-a69c-ab35860160b6
+  cost {1}{R}
+  type Creature — Wall
+  pt 4/1
+  keywords defender, first strike
+}

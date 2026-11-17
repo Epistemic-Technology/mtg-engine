@@ -1,0 +1,4 @@
+card "Underground Sea" {
+  oracle_id 4b22be3a-8ce1-47d1-b82e-6c3ccfb0548b
+  type Land — Island Swamp
+}

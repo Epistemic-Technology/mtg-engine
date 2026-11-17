@@ -1,0 +1,7 @@
+card "The Whizzer, Classic Speedster" {
+  oracle_id aa86bce1-9cde-44d8-9455-24502221f31d
+  cost {3}{R}
+  type Legendary Creature — Human Hero
+  pt 3/3
+  keywords first strike, haste
+}

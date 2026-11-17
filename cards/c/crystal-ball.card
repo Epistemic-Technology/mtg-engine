@@ -1,0 +1,6 @@
+card "Crystal Ball" {
+  oracle_id bd85fe4d-1d62-416f-ac2d-e287911c84e3
+  cost {3}
+  type Artifact
+  activated {1}, {T}: scry 2
+}

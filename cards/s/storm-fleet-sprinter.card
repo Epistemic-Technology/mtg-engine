@@ -1,0 +1,7 @@
+card "Storm Fleet Sprinter" {
+  oracle_id 8d244f4a-1d62-4697-81c7-fbc4de874add
+  cost {1}{U}{R}
+  type Creature — Human Pirate
+  pt 2/2
+  keywords haste, can't be blocked
+}

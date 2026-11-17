@@ -1,0 +1,7 @@
+card "Fireshrieker" {
+  oracle_id a02e1ca7-23c5-41e3-a744-72fc9e9dd8ba
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: has double strike
+  equip {2}
+}

@@ -1,0 +1,6 @@
+card "Human Frailty" {
+  oracle_id bd95c832-9ae9-404a-a2bc-0760a5b9ff56
+  cost {B}
+  type Instant
+  spell: destroy target Human creature
+}

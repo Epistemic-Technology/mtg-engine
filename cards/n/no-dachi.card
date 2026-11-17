@@ -1,0 +1,7 @@
+card "No-Dachi" {
+  oracle_id 417312f8-16ca-47a7-b991-906788691700
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +2/+0, has first strike
+  equip {3}
+}

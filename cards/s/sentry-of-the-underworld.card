@@ -1,0 +1,8 @@
+card "Sentry of the Underworld" {
+  oracle_id fd4d83fa-070c-46bf-a620-041f69acdea9
+  cost {3}{W}{B}
+  type Creature — Griffin Skeleton
+  pt 3/3
+  keywords flying, vigilance
+  activated {W}{B}, pay 3 life: regenerate this
+}

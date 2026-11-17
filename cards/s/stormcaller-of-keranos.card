@@ -1,0 +1,8 @@
+card "Stormcaller of Keranos" {
+  oracle_id 16a66bbe-90f6-4c29-a69d-6ff254082956
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  keywords haste
+  activated {1}{U}: scry 1
+}

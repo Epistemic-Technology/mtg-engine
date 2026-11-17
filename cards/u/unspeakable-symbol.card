@@ -1,0 +1,6 @@
+card "Unspeakable Symbol" {
+  oracle_id a5690d5f-633c-4a1e-afba-5fd79dcbf20e
+  cost {1}{B}{B}
+  type Enchantment
+  activated pay 3 life: put 1 +1/+1 counters on target creature
+}

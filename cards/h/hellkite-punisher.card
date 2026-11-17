@@ -1,0 +1,8 @@
+card "Hellkite Punisher" {
+  oracle_id c3ea33f4-17ac-41a4-8320-361b6f8aba0d
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 6/6
+  keywords flying
+  activated {R}: this gets +1/+0
+}

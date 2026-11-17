@@ -48,7 +48,7 @@ scenario fails.
 | Action | Default step | Notes |
 |---|---|---|
 | `play "Forest"` | `precombat_main` | Play a land from hand. |
-| `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs. Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
+| `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs; `targeting auto` takes the engine's first legal option for each (what converted XMage tests use when the test let XMage pick). Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
 | `cast "Abrade" mode 2 targeting "Rod of Ruin"` | `precombat_main` | A modal spell (CR 700.2): `mode N` (1-based) chooses the mode before targets; the targets are the mode's. Unscripted, the first mode with legal targets is chosen. |
 | `cast "Blaze" x 3 targeting player B` | `precombat_main` | `x N` chooses X for a spell with {X} in its cost (CR 601.2b); the scenario fails if the player cannot pay for it. Unscripted, X is 0. |
 | `cast "Bone Splinters" sacrificing "Goblin" targeting "Hill Giant"`, `cast "Tormenting Voice" discarding "Forest"` | `precombat_main` | Additional costs (CR 601.2h): what to sacrifice or discard. The order is `mode`, `x`, `sacrificing`, `discarding`, `targeting`. Unscripted, the engine's first option. |
@@ -61,6 +61,7 @@ scenario fails.
 | `activate "Prodigal Sorcerer" targeting player B` | `precombat_main` | Activate an ability of a permanent the player controls (CR 602). `ability N` picks the Nth of the permanent's activated abilities (a planeswalker's loyalty abilities, CR 606); `sacrificing "Goblin"` names the permanent paid for a "sacrifice a ..." cost and `discarding "Forest"` the card for a "discard a card" cost; `targeting` gives the ability's targets. A permanent with several activated abilities offers the first whose costs can be paid. Sorcery-speed abilities (equip) wait for an empty stack like sorceries. Mana abilities are not activated this way; the engine taps for mana as part of paying costs. |
 | `keep oldest "Isamaru, Hound of Konda"` / `keep newest ...` | any step | Under the legend rule (CR 704.5j), which of the player's legendary permanents of that name to keep. Unscripted, the oldest is kept. |
 | `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
+| `wait` | `precombat_main` | Pass priority until the stack is empty before any later action of this player at the same point fires (so a second spell is cast after the first resolves rather than in response to it). |
 | `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),

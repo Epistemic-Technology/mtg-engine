@@ -1,0 +1,7 @@
+card "Risen Sanctuary" {
+  oracle_id a2198d36-4e8c-4d64-bda5-a95d85398155
+  cost {5}{G}{W}
+  type Creature — Elemental
+  pt 8/8
+  keywords vigilance
+}

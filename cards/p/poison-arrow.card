@@ -1,0 +1,6 @@
+card "Poison Arrow" {
+  oracle_id 6d920c99-8a85-4b20-97c2-7aa0c79ae70a
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy target nonblack creature; you gains 3 life
+}

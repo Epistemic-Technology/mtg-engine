@@ -1,0 +1,7 @@
+card "The Terror of Serpent's Pass" {
+  oracle_id 771bf51d-cb32-4240-936c-f9d1e0c90cf0
+  cost {5}{U}{U}
+  type Legendary Creature — Serpent
+  pt 8/8
+  keywords hexproof
+}

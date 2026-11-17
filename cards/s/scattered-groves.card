@@ -1,0 +1,6 @@
+card "Scattered Groves" {
+  oracle_id 3c87ea85-ca29-45a7-b5b2-758c62898b0a
+  type Land — Forest Plains
+  enters tapped
+  cycling {2}
+}

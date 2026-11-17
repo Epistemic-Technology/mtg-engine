@@ -1,0 +1,7 @@
+card "Fleetfoot Dancer" {
+  oracle_id 8f606acf-db16-42cd-8907-dad88c4a1d54
+  cost {1}{R}{G}{W}
+  type Creature — Elf Druid
+  pt 4/4
+  keywords trample, lifelink, haste
+}

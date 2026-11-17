@@ -1,0 +1,6 @@
+card "Sands of Delirium" {
+  oracle_id c2cc67bf-59c5-4e06-93a3-dcaa1bf276ba
+  cost {3}
+  type Artifact
+  activated {X}, {T}: target player mills X cards
+}

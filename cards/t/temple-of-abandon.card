@@ -1,0 +1,7 @@
+card "Temple of Abandon" {
+  oracle_id 3baa8e38-ef93-435d-b63e-f781d5bfcc68
+  type Land
+  enters tapped
+  triggered when this enters: scry 1
+  mana {R} or {G}
+}

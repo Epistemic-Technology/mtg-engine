@@ -1,0 +1,7 @@
+card "Nim Abomination" {
+  oracle_id b0713b1e-544d-4549-9371-61ac7f6c2a6a
+  cost {2}{B}
+  type Creature — Zombie
+  pt 3/4
+  triggered at beginning of your end step if this is untapped: you loses 3 life
+}

@@ -1,0 +1,6 @@
+card "Day of Judgment" {
+  oracle_id d057289d-5e28-43d5-8ff3-4a1bc723477d
+  cost {2}{W}{W}
+  type Sorcery
+  spell: destroy all creatures
+}

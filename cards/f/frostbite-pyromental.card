@@ -1,0 +1,9 @@
+card "Frostbite Pyromental" {
+  oracle_id 9a104f73-597b-49e3-8088-13db31f61900
+  cost {U}{R}{R}
+  type Creature — Elemental
+  pt 4/4
+  keywords trample, haste
+  triggered whenever this deals combat damage to a player: draw 2 cards
+  triggered at beginning of each end step: sacrifice this
+}

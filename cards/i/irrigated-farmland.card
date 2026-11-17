@@ -1,0 +1,6 @@
+card "Irrigated Farmland" {
+  oracle_id 406eabe2-df62-49e2-bb39-c0227509d875
+  type Land — Plains Island
+  enters tapped
+  cycling {2}
+}

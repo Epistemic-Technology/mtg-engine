@@ -1,0 +1,8 @@
+card "Viashino Cutthroat" {
+  oracle_id 6dc1305a-d6ca-4280-ba5d-5ed91f78ced0
+  cost {2}{R}{R}
+  type Creature — Lizard
+  pt 5/3
+  keywords haste
+  triggered at beginning of each end step: return this to hand
+}

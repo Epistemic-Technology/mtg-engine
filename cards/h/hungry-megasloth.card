@@ -1,0 +1,8 @@
+card "Hungry Megasloth" {
+  oracle_id 90aacd34-ff76-4e7e-bdb3-9427d431b6e5
+  cost {2}{G}
+  type Creature — Sloth Beast
+  pt 3/3
+  keywords reach
+  activated {2}, {T}: put 1 +1/+1 counters on this
+}

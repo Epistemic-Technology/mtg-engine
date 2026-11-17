@@ -1,0 +1,7 @@
+card "Venomthrope" {
+  oracle_id efd70846-2226-43c6-80fe-6acdd15d4246
+  cost {1}{G}{U}
+  type Creature — Tyranid
+  pt 2/2
+  keywords flying, deathtouch, hexproof
+}

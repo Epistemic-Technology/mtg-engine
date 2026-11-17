@@ -12,6 +12,7 @@ pub mod ingest;
 pub mod lock;
 pub mod scryfall;
 pub mod stats;
+pub mod xmage;
 
 use std::path::{Path, PathBuf};
 

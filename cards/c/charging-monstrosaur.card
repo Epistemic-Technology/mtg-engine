@@ -1,0 +1,7 @@
+card "Charging Monstrosaur" {
+  oracle_id 21dd60d5-76c8-469e-8c4e-112e377d2d59
+  cost {4}{R}
+  type Creature — Dinosaur
+  pt 5/5
+  keywords trample, haste
+}

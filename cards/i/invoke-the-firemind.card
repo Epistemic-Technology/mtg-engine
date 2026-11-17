@@ -1,0 +1,9 @@
+card "Invoke the Firemind" {
+  oracle_id 2037659f-2efe-4321-afaf-961bbec35e9e
+  cost {X}{U}{U}{R}
+  type Sorcery
+  choose one {
+    mode: draw X cards
+    mode: deal X damage to any target
+  }
+}

@@ -1,0 +1,8 @@
+card "Citywatch Sphinx" {
+  oracle_id a63e0c27-cea8-408a-8e57-2f077826c50f
+  cost {5}{U}
+  type Creature — Sphinx
+  pt 5/4
+  keywords flying
+  triggered when this dies: surveil 2
+}

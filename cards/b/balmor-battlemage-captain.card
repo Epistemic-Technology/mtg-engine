@@ -1,0 +1,8 @@
+card "Balmor, Battlemage Captain" {
+  oracle_id 7da19fc5-cb85-4ec7-beea-95210378bbfe
+  cost {U}{R}
+  type Legendary Creature — Bird Wizard
+  pt 1/3
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: each creature you control gets +1/+0 and gains trample
+}

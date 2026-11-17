@@ -1,0 +1,6 @@
+card "Terrian, World Tyrant" {
+  oracle_id 856245a6-c697-4f03-90be-77d8eb2d274e
+  cost {2}{G}{G}{G}
+  type Legendary Creature — Dinosaur Ooze
+  pt 9/7
+}

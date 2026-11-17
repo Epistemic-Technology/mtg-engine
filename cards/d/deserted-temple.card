@@ -1,0 +1,6 @@
+card "Deserted Temple" {
+  oracle_id 9f12bf9a-6e1a-4377-b4af-e8cabd3ee58a
+  type Land
+  mana {C}
+  activated {1}, {T}: untap target land
+}

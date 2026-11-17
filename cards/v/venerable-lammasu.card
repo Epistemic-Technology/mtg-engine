@@ -1,0 +1,7 @@
+card "Venerable Lammasu" {
+  oracle_id 359c6272-fcb5-4d3f-a4b5-4209e354a044
+  cost {6}{W}
+  type Creature — Lammasu
+  pt 5/4
+  keywords flying
+}

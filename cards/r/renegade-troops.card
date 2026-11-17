@@ -1,0 +1,7 @@
+card "Renegade Troops" {
+  oracle_id 83a81308-4a15-49cd-b2f6-51431cca79e9
+  cost {4}{R}
+  type Creature — Human Soldier
+  pt 4/2
+  keywords haste
+}

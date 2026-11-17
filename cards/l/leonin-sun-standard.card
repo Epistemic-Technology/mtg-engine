@@ -1,0 +1,6 @@
+card "Leonin Sun Standard" {
+  oracle_id e235f988-55d2-421b-9cfd-0d30d2727aed
+  cost {2}
+  type Artifact
+  activated {1}{W}: each creature you control gets +1/+1
+}

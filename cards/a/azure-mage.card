@@ -1,0 +1,7 @@
+card "Azure Mage" {
+  oracle_id bbf9fd47-10e1-4749-b06f-4fe72200afc7
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {3}{U}: draw 1 cards
+}

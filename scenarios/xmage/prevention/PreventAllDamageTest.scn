@@ -1,0 +1,25 @@
+# Converted from XMage's cards/prevention/PreventAllDamageTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "PreventAllDamageTest.test_SafePassage" {
+  # from cards/prevention/PreventAllDamageTest.java
+  battlefield A: 3 "Plains"
+  hand A: "Safe Passage"
+  battlefield A: "Silvercoat Lion"
+  battlefield B: 2 "Pillarfield Ox"
+  battlefield B: 2 "Mountain"
+  hand B: 2 "Lightning Bolt"
+  turn 2 upkeep A: cast "Safe Passage" targeting auto
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting player A
+  turn 2 precombat_main B: cast "Lightning Bolt" targeting "Silvercoat Lion"
+  turn 2 B: attack "Pillarfield Ox"
+  turn 2 B: attack "Pillarfield Ox"
+  turn 2 A: block "Pillarfield Ox" with "Silvercoat Lion"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains 1 "Safe Passage"
+  assert battlefield A contains 1 "Silvercoat Lion"
+  assert graveyard B contains 2 "Lightning Bolt"
+  assert life A 20
+  assert life B 20
+}

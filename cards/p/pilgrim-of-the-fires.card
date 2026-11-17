@@ -1,0 +1,7 @@
+card "Pilgrim of the Fires" {
+  oracle_id 53390f91-a159-482f-9f64-f5adc812680b
+  cost {7}
+  type Artifact Creature — Golem
+  pt 6/4
+  keywords first strike, trample
+}
