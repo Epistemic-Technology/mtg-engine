@@ -48,7 +48,12 @@ cargo run -p mtg-cards -- gate                # every card against its Oracle te
 cargo run -p mtg-cards -- gate --diff "Pestilence"
 cargo run -p mtg-cards -- author --format pauper --write   # author what the templates cover
 cargo run -p mtg-cards -- coverage --format pauper --scenarios
+cargo run -p mtg-cards -- model-author --write "Sorin's Thirst"   # ask Claude (ANTHROPIC_API_KEY), gate, write
 ```
+
+`model-author` asks a model for the card file and scenarios, then accepts
+them only if the card renders to its Oracle text exactly and the scenarios
+pass; `--prompt-only` prints the prompt instead of calling the API.
 
 Fuzzing draws random two-color decks from the whole corpus:
 

@@ -9,6 +9,7 @@ pub mod author;
 pub mod gate;
 pub mod http;
 pub mod ingest;
+pub mod llm;
 pub mod lock;
 pub mod scryfall;
 pub mod stats;

@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use mtg_cards::{DataDir, author, gate, ingest, stats, xmage};
+use mtg_cards::{DataDir, author, gate, ingest, llm, stats, xmage};
 
 #[derive(Parser)]
 #[command(name = "mtg-cards", about = "Card data ingest and statistics")]
@@ -50,6 +50,25 @@ enum Command {
         #[arg(long)]
         verbose: bool,
         /// Only these cards (by name), from any format.
+        names: Vec<String>,
+    },
+    /// Author cards with a model (design.md §6.4): prompt, gate, feed back,
+    /// retry; write the card and its scenarios on acceptance.
+    ModelAuthor {
+        /// Model id for the Messages API.
+        #[arg(long, default_value = llm::DEFAULT_MODEL)]
+        model: String,
+        /// Attempts per card before giving up.
+        #[arg(long, default_value_t = 3)]
+        attempts: usize,
+        /// Write accepted cards into cards/ and their scenarios into
+        /// scenarios/llm/.
+        #[arg(long)]
+        write: bool,
+        /// Print the prompt pack for each card and make no API call.
+        #[arg(long)]
+        prompt_only: bool,
+        /// Card names.
         names: Vec<String>,
     },
     /// Convert `XMage`'s card tests (data/xmage, see README) into scenarios.
@@ -178,6 +197,75 @@ fn run() -> Result<ExitCode> {
                     written += 1;
                 }
                 println!("wrote {written} files to {}", dir.display());
+            }
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::ModelAuthor {
+            model,
+            attempts,
+            write,
+            prompt_only,
+            names,
+        } => {
+            let corpus = mtg_dsl::builtin_cards()?;
+            let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+            let (mut accepted, mut unsupported, mut rejected) = (0usize, 0usize, 0usize);
+            let (mut input, mut output, mut cached) = (0u64, 0u64, 0u64);
+            for name in &names {
+                if prompt_only {
+                    let scry = llm::record(&data, name)?;
+                    let rulings = llm::rulings(&data, scry.oracle_id.as_deref().unwrap_or(""))?;
+                    let examples =
+                        llm::similar(&corpus, scry.oracle_text.as_deref().unwrap_or(""), 6);
+                    println!("{}", llm::user_prompt(&scry, &rulings, &examples));
+                    continue;
+                }
+                println!("== {name}");
+                let mut log = |m: &str| println!("   {m}");
+                let (verdict, conv) =
+                    llm::author(&data, &corpus, name, &model, attempts, &mut log)?;
+                if let Some(c) = conv {
+                    input += c.input_tokens;
+                    output += c.output_tokens;
+                    cached += c.cache_read_tokens;
+                }
+                match verdict {
+                    llm::Verdict::Accepted { card, scenarios } => {
+                        accepted += 1;
+                        if write {
+                            let slug = mtg_dsl::slug(name);
+                            let dir = repo.join("cards").join(mtg_dsl::shard(&slug));
+                            std::fs::create_dir_all(&dir)?;
+                            std::fs::write(dir.join(format!("{slug}.card")), &card)?;
+                            let sp = llm::scenario_path(&repo, &slug);
+                            std::fs::create_dir_all(sp.parent().unwrap())?;
+                            let header = format!(
+                                "# {name}: card and scenarios authored by {model} through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+"
+                            );
+                            std::fs::write(&sp, format!("{header}{scenarios}"))?;
+                            println!(
+                                "   wrote cards/{}/{slug}.card and scenarios/llm/{slug}.scn",
+                                mtg_dsl::shard(&slug)
+                            );
+                        } else {
+                            println!(
+                                "{card}
+{scenarios}"
+                            );
+                        }
+                    }
+                    llm::Verdict::Unsupported(_) => unsupported += 1,
+                    llm::Verdict::Rejected(_) => rejected += 1,
+                }
+            }
+            if !prompt_only {
+                println!();
+                println!(
+                    "{accepted} accepted, {unsupported} unsupported, {rejected} rejected; tokens: {input} in ({cached} from cache), {output} out"
+                );
             }
             Ok(ExitCode::SUCCESS)
         }

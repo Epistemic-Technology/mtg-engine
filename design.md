@@ -818,7 +818,26 @@ had been written as two `spell` statements, of which the engine ran only
 the first; the compiler now rejects that, the author writes one `spell`
 block, and the 68 affected files were regenerated.
 
-The model-driven part is next. `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
+Slice 5 (2026-11-17) built the model-driven part: `mtg-cards
+model-author [--model claude-opus-5-5] [--attempts 3] [--write]
+<names...>` (`llm.rs`). For each card it assembles a prompt pack (the
+two syntax references as a cached system prompt; the card's Oracle text,
+rulings from the snapshot, the header lines pre-filled from Scryfall,
+the six corpus cards whose Oracle text shares the most words, and the
+common cards scenarios may use), asks the model for a card block and
+two to four scenarios, and runs the same gate the templates face: parse,
+compile into a copy of the pool, render back to Oracle text and compare,
+parse and run the scenarios. Any failure goes back to the model as the
+next turn, up to the attempt limit; `oracle_mismatch` is forbidden and
+the model may answer `unsupported: <reason>` instead, which is the
+signal for the next engine primitive. Only an accepted card is written
+(`cards/`, with its scenarios under `scenarios/llm/`), so model-authored
+cards are *verified* in the §6.3 sense from the start. `--prompt-only`
+prints the pack without calling the API. The first live run is the
+user's to make (it spends API credit); the candidates are the cards the
+template author skips for a sentence rather than a keyword.
+
+The plan as first written: `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
 (embedding search over Oracle text); prompt an LLM for the DSL and
 scenario tests; compile; run the gate; iterate up to M times on compiler
@@ -1776,6 +1795,14 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, slice 5 (model-driven authoring) built: `mtg-cards
+model-author` with the prompt pack, the gate-and-feedback loop, and
+verified-on-acceptance writing (§6.4). Not yet run against the API (a
+spend the user makes); the `--prompt-only` pack is checked. With this,
+every part of the M3 plan exists; what remains is running it to grow
+coverage, which is where the 500-card and 1,000-scenario targets now
+stand or fall.
 
 Status 2026-11-17, slice 4 (XMage converter) done, with the honest
 result recorded in §7.1: the converter and its `wait`/`targeting auto`
