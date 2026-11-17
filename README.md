@@ -64,15 +64,20 @@ uv venv && uv pip install maturin pytest pettingzoo gymnasium numpy
 .venv/bin/maturin develop --release -m crates/mtg-py/Cargo.toml
 .venv/bin/python -c "import mtg_engine as me; print(me.simulate_batch('mono-red', 'mono-green', games=200))"
 .venv/bin/python scripts/py_throughput.py     # env steps/s, one process and all cores
+uv pip install -p .venv/bin/python torch --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/python scripts/ppo_selfplay.py --iters 4   # masked-PPO self-play, win rate vs greedy
 ```
 
 MCP: `mtg-mcp` serves the engine to language models over stdio (the
-default) or streamable HTTP; `.mcp.json` registers it for Claude Code in
-this repo, so a fresh session can `new_game` and play with `act`:
+default) or streamable HTTP; `.mcp.json` registers the built binary for
+Claude Code in this repo (`cargo build --release -p mtg-mcp` first), so a
+session can `new_game` and play with `act`, and finished games land in
+`data/games` for the review tool:
 
 ```
 cargo run --release -p mtg-mcp                      # stdio
 cargo run --release -p mtg-mcp -- --http 127.0.0.1:8765   # http://127.0.0.1:8765/mcp
+claude -p --mcp-config .mcp.json "play a game of mono-red vs mono-green with the mtg-engine tools"
 ```
 
 Review: `mtg-review` indexes game records and serves a playback page

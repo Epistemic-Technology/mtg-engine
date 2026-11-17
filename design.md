@@ -1975,6 +1975,33 @@ greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
 
+Status 2026-11-17, M4 slice 4 (acceptance) done, which closes M4:
+(1) `scripts/ppo_selfplay.py` is a masked-PPO self-play trainer on the
+PettingZoo env (one policy for both seats, option-scoring network over
+the per-option feature rows, one worker per core each stepping several
+games in lockstep with batched inference, PPO update on the main
+process, win rate against the greedy agent after each iteration). On
+mono-red vs mono-green it trains without environment errors; rollout
+collection including the policy's forward passes runs at 10,000
+steps/s on 16 workers with eight games each (8,500 with four), which
+meets the ≥10k figure, while the CPU-side PPO update (9–10 s per
+32,768 samples, the option encoder over 64 slots) holds the end-to-end
+rate to about 2,100 steps/s; a GPU or a smaller option budget is the
+lever, and four short iterations show no learning yet (win rate
+0.06–0.12 against greedy, the random-policy level), which is expected
+and not the criterion. (2) A headless Claude Code session (`claude -p
+--model haiku --mcp-config .mcp.json`) played a complete game through
+the MCP server: new_game then 181 `act` calls, winning as mono-red on
+turn 17 against the greedy agent, inside a $6 spend cap. The first
+attempt timed out because `.mcp.json` launched the server through
+`cargo run`, whose up-to-date check took 37 s against the client's 30 s
+connect timeout; it now names `target/release/mtg-mcp` (build it
+first). (3) The server wrote the game's record to `data/games`, and
+`mtg-review serve` lists it (`mcp-…-g1`, source `mtg-mcp`) and replays
+its 361 actions into 362 snapshots, stepped through in the browser.
+`.venv` carries torch (CPU) for the trainer; it is not a dependency of
+the package.
+
 Status 2026-11-17, M4 slice 3 (review) done: `mtg-review` with the
 record store and SQLite index, re-simulated step snapshots with the
 decision and options at each step, the JSON API, and the single-file

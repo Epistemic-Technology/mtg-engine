@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "mtg-engine": {
-      "command": "cargo",
-      "args": ["run", "-q", "--release", "-p", "mtg-mcp", "--", "--record-dir", "data/games"]
+      "command": "target/release/mtg-mcp",
+      "args": ["--record-dir", "data/games"]
     }
   }
 }
