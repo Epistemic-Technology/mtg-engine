@@ -1,0 +1,7 @@
+card "Probe" {
+  oracle_id f8d227b6-1627-4ea1-b815-887094497abf
+  cost {2}{U}
+  type Sorcery
+  kicker {1}{B}
+  spell: draw 3 cards then discard 2 cards; if kicked, target player discards 2 cards
+}

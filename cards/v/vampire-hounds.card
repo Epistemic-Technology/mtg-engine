@@ -1,0 +1,7 @@
+card "Vampire Hounds" {
+  oracle_id 0184d74b-e9aa-4b5a-8db0-b15cecbc17fb
+  cost {2}{B}
+  type Creature — Vampire Dog
+  pt 2/2
+  activated discard a creature card: this gets +2/+2
+}

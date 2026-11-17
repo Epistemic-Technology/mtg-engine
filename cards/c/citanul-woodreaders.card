@@ -1,0 +1,8 @@
+card "Citanul Woodreaders" {
+  oracle_id a4555bd2-be42-442a-8ead-3398318e91c5
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 1/4
+  kicker {2}{G}
+  triggered when this enters if kicked: draw 2 cards
+}

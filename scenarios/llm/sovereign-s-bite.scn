@@ -1,0 +1,44 @@
+# Sovereign's Bite: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Sovereign's Bite drains the opponent" {
+  battlefield A: 2 "Swamp"
+  hand A: "Sovereign's Bite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sovereign's Bite" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert graveyard A contains "Sovereign's Bite"
+}
+
+scenario "Sovereign's Bite targeting yourself nets zero" {
+  battlefield A: 2 "Swamp"
+  hand A: "Sovereign's Bite"
+  life A 10
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sovereign's Bite" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 10
+  assert life B 20
+}
+
+scenario "Sovereign's Bite can finish an opponent" {
+  battlefield A: 2 "Swamp"
+  hand A: "Sovereign's Bite"
+  life B 3
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sovereign's Bite" targeting player B
+  run_to end
+  assert winner A
+}
+
+scenario "Sovereign's Bite is sorcery speed" {
+  battlefield A: 2 "Swamp"
+  hand A: "Sovereign's Bite"
+  start turn 2 B
+  illegal turn 2 upkeep A: cast "Sovereign's Bite" targeting player B
+  run_to turn 2 precombat_main
+  assert hand A contains "Sovereign's Bite"
+  assert life B 20
+}

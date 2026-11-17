@@ -1,0 +1,7 @@
+card "Flaring Pain" {
+  oracle_id cad19ad2-3ea9-43f5-bb5a-b0793402fab0
+  cost {1}{R}
+  type Instant
+  flashback {R}
+  spell: damage can't be prevented this turn
+}

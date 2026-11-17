@@ -1,0 +1,7 @@
+card "Simian Brawler" {
+  oracle_id 2497cfe2-a85c-47ea-af7a-9a745d84f8b4
+  cost {3}{G}
+  type Creature — Ape Warrior
+  pt 3/3
+  activated discard a land card: this gets +1/+1
+}

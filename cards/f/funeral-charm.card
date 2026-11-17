@@ -1,0 +1,10 @@
+card "Funeral Charm" {
+  oracle_id 8866272d-89cb-478c-82ae-20e1d510eab7
+  cost {B}
+  type Instant
+  choose one {
+    mode: target player discards 1 cards
+    mode: target creature gets +2/-1
+    mode: target creature gains swampwalk
+  }
+}

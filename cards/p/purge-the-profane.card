@@ -1,0 +1,6 @@
+card "Purge the Profane" {
+  oracle_id a0f29566-bca8-4fe8-86ce-4a051ece6d5a
+  cost {2}{W}{B}
+  type Sorcery
+  spell: target opponent discards 2 cards and you gain 2 life
+}

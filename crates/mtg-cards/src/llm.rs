@@ -230,7 +230,8 @@ impl Conversation {
         })
     }
 
-    /// Send `user` and return the assistant's text.
+    /// Send `user` and return the assistant's text. Rate limits and server
+    /// errors are retried a few times with backoff.
     pub fn ask(&mut self, user: &str) -> Result<String> {
         self.messages
             .push(serde_json::json!({"role": "user", "content": user}));
@@ -242,20 +243,29 @@ impl Conversation {
             "system": [{"type": "text", "text": self.system, "cache_control": {"type": "ephemeral"}}],
             "messages": self.messages,
         });
-        let resp = self
-            .client
-            .post("https://api.anthropic.com/v1/messages")
-            .header("content-type", "application/json")
-            .header("x-api-key", &self.key)
-            .header("anthropic-version", "2026-10-21")
-            .header("anthropic-beta", "server-side-fallback-2026-07-01")
-            .body(serde_json::to_string(&body)?)
-            .send()
-            .context("calling the Messages API")?;
-        let status = resp.status();
-        let text = resp.text()?;
-        if !status.is_success() {
-            bail!("Messages API returned {status}: {text}");
+        let body = serde_json::to_string(&body)?;
+        let mut text = String::new();
+        for attempt in 0..5u32 {
+            let resp = self
+                .client
+                .post("https://api.anthropic.com/v1/messages")
+                .header("content-type", "application/json")
+                .header("x-api-key", &self.key)
+                .header("anthropic-version", "2026-10-21")
+                .header("anthropic-beta", "server-side-fallback-2026-07-01")
+                .body(body.clone())
+                .send()
+                .context("calling the Messages API")?;
+            let status = resp.status();
+            text = resp.text()?;
+            if status.is_success() {
+                break;
+            }
+            let retry = status.as_u16() == 429 || status.is_server_error();
+            if !retry || attempt == 4 {
+                bail!("Messages API returned {status}: {text}");
+            }
+            std::thread::sleep(Duration::from_secs(5 << attempt));
         }
         let v: serde_json::Value =
             serde_json::from_str(&text).context("parsing the API response")?;
@@ -388,6 +398,47 @@ pub fn check(reply: &str, scry: &ScryCard, corpus: &[Card]) -> Verdict {
     }
 }
 
+/// The Scryfall records for `names`, in one pass over the snapshot. Names
+/// not in the snapshot are left out.
+pub fn records(data: &DataDir, names: &[String]) -> Result<HashMap<String, ScryCard>> {
+    let wanted: HashSet<&str> = names.iter().map(String::as_str).collect();
+    let path = data.scryfall_bulk("oracle_cards");
+    let mut out: HashMap<String, ScryCard> = HashMap::new();
+    for card in scryfall::read_cards(&path)? {
+        let card = card?;
+        if card.layout != "art_series"
+            && wanted.contains(card.name.as_str())
+            && !out.contains_key(&card.name)
+        {
+            out.insert(card.name.clone(), card);
+        }
+    }
+    Ok(out)
+}
+
+/// Rulings for a set of oracle ids, in one pass over the snapshot.
+#[allow(clippy::implicit_hasher)]
+pub fn rulings_for(data: &DataDir, ids: &HashSet<String>) -> Result<HashMap<String, Vec<String>>> {
+    #[derive(Deserialize)]
+    struct Ruling {
+        oracle_id: String,
+        comment: String,
+    }
+    let path = data.scryfall_bulk("rulings");
+    let file = std::fs::File::open(&path).with_context(|| format!("opening {}", path.display()))?;
+    let reader = std::io::BufReader::new(flate2::read::GzDecoder::new(file));
+    let mut out: HashMap<String, Vec<String>> = HashMap::new();
+    for line in reader.lines() {
+        let line = line?;
+        if let Ok(r) = serde_json::from_str::<Ruling>(&line)
+            && ids.contains(&r.oracle_id)
+        {
+            out.entry(r.oracle_id).or_default().push(r.comment);
+        }
+    }
+    Ok(out)
+}
+
 /// The Scryfall record for a card name.
 pub fn record(data: &DataDir, name: &str) -> Result<ScryCard> {
     let path = data.scryfall_bulk("oracle_cards");
@@ -412,15 +463,28 @@ pub fn author(
 ) -> Result<(Verdict, Option<Conversation>)> {
     let scry = record(data, name)?;
     let rulings = rulings(data, scry.oracle_id.as_deref().unwrap_or(""))?;
+    let (verdict, conv) = author_record(&scry, &rulings, corpus, model, attempts, log)?;
+    Ok((verdict, Some(conv)))
+}
+
+/// Author one card whose Scryfall record and rulings are in hand.
+pub fn author_record(
+    scry: &ScryCard,
+    rulings: &[String],
+    corpus: &[Card],
+    model: &str,
+    attempts: usize,
+    log: &mut dyn FnMut(&str),
+) -> Result<(Verdict, Conversation)> {
     let examples = similar(corpus, scry.oracle_text.as_deref().unwrap_or(""), 6);
-    let user = user_prompt(&scry, &rulings, &examples);
+    let user = user_prompt(scry, rulings, &examples);
     let mut conv = Conversation::new(model)?;
     let mut prompt = user;
     let mut last = Verdict::Rejected("no attempt".to_string());
     for attempt in 1..=attempts {
         log(&format!("attempt {attempt}: asking {model}"));
         let reply = conv.ask(&prompt)?;
-        last = check(&reply, &scry, corpus);
+        last = check(&reply, scry, corpus);
         match &last {
             Verdict::Accepted { .. } => {
                 log("accepted");
@@ -438,7 +502,7 @@ pub fn author(
             }
         }
     }
-    Ok((last, Some(conv)))
+    Ok((last, conv))
 }
 
 /// Where a scenario file for a model-authored card goes.

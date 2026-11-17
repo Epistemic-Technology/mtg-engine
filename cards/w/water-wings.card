@@ -1,0 +1,6 @@
+card "Water Wings" {
+  oracle_id 17f8e8cb-cd1b-4d94-9efa-ce268e8e7096
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature you control has base power and toughness 4/4 and gains flying and hexproof
+}

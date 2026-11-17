@@ -1,0 +1,6 @@
+card "Magnify" {
+  oracle_id 421c661a-24d9-4797-b538-2a4243825628
+  cost {G}
+  type Instant
+  spell: each creature gets +1/+1
+}

@@ -1,0 +1,7 @@
+card "Viscid Lemures" {
+  oracle_id 738d8d1c-4ceb-4115-89e1-1f2149fb4f5f
+  cost {4}{B}
+  type Creature — Spirit
+  pt 4/3
+  activated {0}: this gets -1/-0 and gains swampwalk
+}

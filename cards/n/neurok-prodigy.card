@@ -1,0 +1,8 @@
+card "Neurok Prodigy" {
+  oracle_id 910860ce-d617-48c1-b44d-b1d95cdd006f
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords flying
+  activated discard artifact card: return this to hand
+}

@@ -1,0 +1,7 @@
+card "River Bear" {
+  oracle_id 568c4d02-501e-44ce-871c-adf9e4b9d8d6
+  cost {3}{G}
+  type Creature — Bear
+  pt 3/3
+  keywords islandwalk
+}

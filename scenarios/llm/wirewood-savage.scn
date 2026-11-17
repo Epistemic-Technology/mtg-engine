@@ -1,0 +1,33 @@
+# Wirewood Savage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "a non-Beast creature entering does not draw a card" {
+  battlefield A: "Wirewood Savage", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Wirewood Savage entering itself does not draw a card" {
+  battlefield A: 3 "Forest"
+  hand A: "Wirewood Savage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wirewood Savage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wirewood Savage"
+  assert hand A count 0
+}
+
+scenario "an opponent's non-Beast creature entering does not draw a card" {
+  battlefield A: "Wirewood Savage"
+  battlefield B: 4 "Mountain"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert hand A count 0
+}

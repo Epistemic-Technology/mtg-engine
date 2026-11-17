@@ -1,0 +1,7 @@
+card "Pale Bears" {
+  oracle_id 0acb070b-6e81-4e0e-925d-14da9b931355
+  cost {2}{G}
+  type Creature — Bear
+  pt 2/2
+  keywords islandwalk
+}

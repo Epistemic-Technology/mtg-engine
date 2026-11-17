@@ -1,0 +1,7 @@
+card "Hurloon Battle Hymn" {
+  oracle_id 2f541bf9-1e5b-4d16-8558-a5cfce7e93ad
+  cost {2}{R}
+  type Instant
+  kicker {W}
+  spell: deal 4 damage to target creature or planeswalker; if kicked, you gains 4 life
+}

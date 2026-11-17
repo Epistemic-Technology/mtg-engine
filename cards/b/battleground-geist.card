@@ -1,0 +1,8 @@
+card "Battleground Geist" {
+  oracle_id 2450d35b-7d87-4885-b396-f8e1d3ac0b22
+  cost {4}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  static other Spirit creature you control: +1/+0
+}

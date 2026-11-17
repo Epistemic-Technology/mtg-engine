@@ -1,0 +1,7 @@
+card "Dematerialize" {
+  oracle_id d2fbad7d-d05a-4321-9aff-a93bd102a3f4
+  cost {3}{U}
+  type Sorcery
+  flashback {5}{U}{U}
+  spell: return target permanent to hand
+}

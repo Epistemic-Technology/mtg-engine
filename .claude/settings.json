@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo run -p mtg-cards -- model-author *)",
+      "Bash(cargo run -p mtg-cards --release -- model-author *)",
+      "Bash(./target/debug/mtg-cards model-author *)",
+      "Bash(./target/release/mtg-cards model-author *)",
+      "Bash(target/debug/mtg-cards model-author *)",
+      "Bash(target/release/mtg-cards model-author *)"
+    ]
+  }
+}

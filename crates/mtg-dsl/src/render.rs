@@ -140,6 +140,11 @@ pub fn keyword_name(k: Keyword) -> &'static str {
         Keyword::CantBlock => "can't block",
         Keyword::MustAttack => "attacks each combat if able",
         Keyword::Unblockable => "can't be blocked",
+        Keyword::Plainswalk => "plainswalk",
+        Keyword::Islandwalk => "islandwalk",
+        Keyword::Swampwalk => "swampwalk",
+        Keyword::Mountainwalk => "mountainwalk",
+        Keyword::Forestwalk => "forestwalk",
     }
 }
 
@@ -505,7 +510,9 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::NonlegendaryCreatureYouControl
             | TargetSpec::CreatureOrPlaneswalker
             | TargetSpec::CreatureWithSubtype(_)
-            | TargetSpec::AttackingOrBlockingCreature => "creature".to_string(),
+            | TargetSpec::AttackingOrBlockingCreature
+            | TargetSpec::AttackingCreature
+            | TargetSpec::BlockingCreature => "creature".to_string(),
             TargetSpec::PlayerOrPlaneswalker | TargetSpec::Player | TargetSpec::Opponent => {
                 "player".to_string()
             }
@@ -560,6 +567,8 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::Opponent => "target opponent",
         TargetSpec::ArtifactOrCreature => "target artifact or creature",
         TargetSpec::AttackingOrBlockingCreature => "target attacking or blocking creature",
+        TargetSpec::AttackingCreature => "target attacking creature",
+        TargetSpec::BlockingCreature => "target blocking creature",
     }
     .to_string()
 }
@@ -644,6 +653,19 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     s
 }
 
+/// A filter as a kind of card, with an article: "a creature card", "a
+/// nonblack card".
+fn card_filter_a(f: &Filter, card: &Card) -> String {
+    let p = filter_phrase(f, card, false);
+    let p = p.strip_suffix(" permanent").unwrap_or(&p);
+    let p = if p == "permanent" { "" } else { p };
+    if p.is_empty() {
+        "a card".to_string()
+    } else {
+        with_article(&format!("{p} card"))
+    }
+}
+
 /// A filter with an article: "a creature you control", "another creature".
 fn filter_a(f: &Filter, card: &Card) -> String {
     let p = filter_phrase(f, card, false);
@@ -699,6 +721,8 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             CostItem::Discard => {
                 if cost.discard_self {
                     parts.push("Discard this card".to_string());
+                } else if let Some(f) = &cost.discard_filter {
+                    parts.push(format!("Discard {}", card_filter_a(f, ctx.card)));
                 } else if cost.discard > 0 {
                     parts.push(format!(
                         "Discard {} {}",
@@ -1127,6 +1151,30 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::with_subject(*to, s, text)
         }
+        Effect::IfKicked(inner) => {
+            let body = sentences(inner, ctx);
+            let body = lowercase_first(&body);
+            Clause::imperative(format!(
+                "if this spell was kicked, {}",
+                body.trim_end_matches('.')
+            ))
+        }
+        Effect::SetBasePt {
+            to,
+            power,
+            toughness,
+        } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} base power and toughness {power}/{toughness}",
+                    ctx.verb(*to, "has", "have")
+                ),
+            )
+            .until_eot()
+        }
         Effect::YouMay(inner) => {
             if let [one] = inner.as_slice()
                 && let [Effect::BecomeCopy { of, except }] = one.effects.as_slice()
@@ -1188,6 +1236,9 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
     let mut out = String::new();
+    if s.eot_first {
+        out.push_str("until end of turn, ");
+    }
     let mut prev_subject: Option<Recipient> = None;
     for (i, c) in clauses.iter().enumerate() {
         if i > 0 {
@@ -1209,12 +1260,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         out.push_str(&c.text);
         if let Some(suffix) = c.suffix
             && !shared_suffix
+            && !s.eot_first
         {
             out.push(' ');
             out.push_str(suffix);
         }
     }
-    if shared_suffix {
+    if shared_suffix && !s.eot_first {
         out.push(' ');
         out.push_str(clauses[0].suffix.expect("shared"));
     }
@@ -1368,6 +1420,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             format!("if this {} is untapped", self_noun(ctx.card))
         }
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
+        Condition::Kicked => "if it was kicked".to_string(),
     }
 }
 
@@ -1843,6 +1896,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     for k in &card.keywords {
         lines.push(keyword_line(card, *k));
     }
+    if let Some(k) = &card.kicker {
+        lines.push(format!("Kicker {k}"));
+    }
     if let Some(cost) = &card.additional {
         let mut ctx = Ctx::new(card, lookup, &[]);
         let c = cost_text(cost, &mut ctx);
@@ -1865,6 +1921,17 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         }
         lines.push(ability_text(card, &card.abilities[i], lookup));
         i += 1;
+    }
+    if let Some(fb) = &card.flashback {
+        // "Flashback {4}{R}" for a mana cost; "Flashback—{1}{U}, Pay 3
+        // life." when the cost has other parts.
+        let mut ctx = Ctx::new(card, lookup, &[]);
+        let mana_only = !fb.tap && fb.life == 0 && fb.discard == 0 && fb.sacrifice.is_none();
+        if mana_only {
+            lines.push(format!("Flashback {}", fb.mana));
+        } else {
+            lines.push(format!("Flashback—{}.", cost_text(fb, &mut ctx)));
+        }
     }
     lines.join("\n")
 }

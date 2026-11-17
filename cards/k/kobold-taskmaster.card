@@ -1,0 +1,7 @@
+card "Kobold Taskmaster" {
+  oracle_id 372f2534-25dc-4ff3-9891-31ee42b33345
+  cost {1}{R}
+  type Creature — Kobold
+  pt 1/2
+  static other Kobold creature you control: +1/+0
+}

@@ -1,0 +1,6 @@
+card "Shrivel" {
+  oracle_id 1be478ee-87f3-4265-94d7-08521703c888
+  cost {1}{B}
+  type Sorcery
+  spell: each creature gets -1/-1
+}

@@ -1,0 +1,8 @@
+card "Skyshroud Vampire" {
+  oracle_id 58214e60-3258-4159-bf5a-b4069d80186d
+  cost {3}{B}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying
+  activated discard creature card: this gets +2/+2
+}

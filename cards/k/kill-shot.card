@@ -1,0 +1,6 @@
+card "Kill Shot" {
+  oracle_id e1ce32c7-a882-4d3a-9fd6-e5e2943382fb
+  cost {2}{W}
+  type Instant
+  spell: destroy target attacking creature
+}

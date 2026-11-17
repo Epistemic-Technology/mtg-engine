@@ -1,0 +1,10 @@
+card "Treva's Charm" {
+  oracle_id e9795590-0918-49f9-b37c-1278c8616ab1
+  cost {G}{W}{U}
+  type Instant
+  choose one {
+    mode: destroy target enchantment
+    mode: exile target attacking creature
+    mode: draw 1 cards then discard 1 cards
+  }
+}

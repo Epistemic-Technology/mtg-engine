@@ -1,0 +1,7 @@
+card "Cephalid Looter" {
+  oracle_id 412294bf-a25f-47c2-8043-12eb3e142b9e
+  cost {2}{U}
+  type Creature — Octopus Rogue
+  pt 2/1
+  activated {T}: target player draws 1 card then discards 1 card
+}

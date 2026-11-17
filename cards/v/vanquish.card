@@ -1,0 +1,6 @@
+card "Vanquish" {
+  oracle_id 683ec6d2-4ea7-46a7-911e-12c83e4c4a06
+  cost {2}{W}
+  type Instant
+  spell: destroy target blocking creature
+}

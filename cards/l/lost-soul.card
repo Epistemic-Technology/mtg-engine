@@ -1,0 +1,7 @@
+card "Lost Soul" {
+  oracle_id 1c68e877-ee47-42bf-a867-3f7f479eae1c
+  cost {1}{B}{B}
+  type Creature — Spirit Minion
+  pt 2/1
+  keywords swampwalk
+}

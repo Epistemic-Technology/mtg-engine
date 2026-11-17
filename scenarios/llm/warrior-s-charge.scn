@@ -1,0 +1,45 @@
+# Warrior's Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Warrior's Charge pumps only the caster's creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Warrior's Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warrior's Charge"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Warrior's Charge"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power "Wind Drake" 2
+  assert toughness "Wind Drake" 2
+}
+
+scenario "Warrior's Charge wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Warrior's Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warrior's Charge"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "pumped attacker survives combat with a 2/2 blocker" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Warrior's Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Warrior's Charge"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert life B 20
+}

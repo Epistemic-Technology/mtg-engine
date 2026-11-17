@@ -1,0 +1,7 @@
+card "Rock Badger" {
+  oracle_id 1f5ac983-a7a5-4b9d-a25c-727a7de6c465
+  cost {4}{R}
+  type Creature — Badger Beast
+  pt 3/3
+  keywords mountainwalk
+}

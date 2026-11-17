@@ -1,0 +1,40 @@
+# Veteran Swordsmith: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two swordsmiths pump each other but not themselves" {
+  battlefield A: 2 "Veteran Swordsmith"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power oldest A "Veteran Swordsmith" 4
+  assert power newest A "Veteran Swordsmith" 4
+  assert toughness oldest A "Veteran Swordsmith" 2
+}
+
+scenario "non-Soldier creatures are not pumped" {
+  battlefield A: "Veteran Swordsmith", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Veteran Swordsmith" 3
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "opponent's Soldiers are not pumped" {
+  battlefield A: "Veteran Swordsmith"
+  battlefield B: "Veteran Swordsmith"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power A "Veteran Swordsmith" 3
+  assert power B "Veteran Swordsmith" 3
+}
+
+scenario "bonus ends when the swordsmith dies" {
+  battlefield A: 2 "Veteran Swordsmith"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting oldest A "Veteran Swordsmith"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Veteran Swordsmith"
+  assert power A "Veteran Swordsmith" 3
+}

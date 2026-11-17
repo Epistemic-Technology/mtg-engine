@@ -1,0 +1,8 @@
+card "Dirtwater Wraith" {
+  oracle_id 0126f620-1dbf-405c-b5cf-f48b7ef02d32
+  cost {3}{B}
+  type Creature — Wraith
+  pt 1/3
+  keywords swampwalk
+  activated {B}: this gets +1/+0
+}

@@ -59,6 +59,8 @@ pub enum DecisionKind {
     Surveil { count: u32 },
     /// "Counter target spell unless its controller pays ...": pay or not.
     PayOrCounter { def: CardRef },
+    /// Whether to pay `spell`'s kicker (CR 702.33): `Accept` kicks.
+    Kicker { spell: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

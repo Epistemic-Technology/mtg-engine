@@ -1,0 +1,47 @@
+# Shield Wall: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Shield Wall gives only your creatures +0/+2 until end of turn" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Shield Wall"
+  turn 1 A: cast "Shield Wall"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 4
+  assert toughness "Hill Giant" 5
+  assert toughness "Wind Drake" 2
+  assert graveyard A contains "Shield Wall"
+  run_to turn 2 precombat_main
+  assert toughness "Grizzly Bears" 2
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Shield Wall in response saves a creature from Shock" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Shield Wall"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Shield Wall" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "Shield Wall lets a blocker survive combat" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Shield Wall"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Shield Wall"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert damage "Hill Giant" 2
+  assert life A 20
+}

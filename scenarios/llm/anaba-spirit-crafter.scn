@@ -1,0 +1,30 @@
+# Anaba Spirit Crafter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Anaba Spirit Crafter pumps itself but not non-Minotaurs" {
+  battlefield A: "Anaba Spirit Crafter", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Anaba Spirit Crafter" 2
+  assert toughness "Anaba Spirit Crafter" 3
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Anaba Spirit Crafter pumps Minotaurs on both sides" {
+  battlefield A: "Anaba Spirit Crafter"
+  battlefield B: "Anaba Spirit Crafter"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power A "Anaba Spirit Crafter" 3
+  assert power B "Anaba Spirit Crafter" 3
+  assert toughness A "Anaba Spirit Crafter" 3
+}
+
+scenario "Anaba Spirit Crafter attacks for 2" {
+  battlefield A: "Anaba Spirit Crafter"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Anaba Spirit Crafter"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

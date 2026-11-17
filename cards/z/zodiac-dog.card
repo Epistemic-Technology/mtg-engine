@@ -1,0 +1,7 @@
+card "Zodiac Dog" {
+  oracle_id 4431ec11-9bd7-4750-8bc7-378beba06201
+  cost {2}{R}
+  type Creature — Dog
+  pt 2/2
+  keywords mountainwalk
+}

@@ -1,0 +1,7 @@
+card "Raiding Nightstalker" {
+  oracle_id 5c4cb33d-2a79-4934-839f-d34e9ca284f8
+  cost {2}{B}
+  type Creature — Nightstalker
+  pt 2/2
+  keywords swampwalk
+}

@@ -1,0 +1,6 @@
+card "Charge" {
+  oracle_id 36b5022d-fa62-46ea-97ab-23c0f60f62a5
+  cost {W}
+  type Instant
+  spell: each creature you control gets +1/+1
+}

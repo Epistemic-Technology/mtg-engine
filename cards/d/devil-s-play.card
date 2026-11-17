@@ -1,0 +1,7 @@
+card "Devil's Play" {
+  oracle_id ee9f0b29-8a54-4cb8-8e2c-7bd67c2184ba
+  cost {X}{R}
+  type Sorcery
+  flashback {X}{R}{R}{R}
+  spell: deal X damage to any target
+}

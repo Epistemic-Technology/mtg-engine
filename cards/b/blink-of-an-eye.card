@@ -1,0 +1,7 @@
+card "Blink of an Eye" {
+  oracle_id 51acd176-e84d-42c2-acb2-cceeb28a9fec
+  cost {1}{U}
+  type Instant
+  kicker {1}{U}
+  spell: return target nonland permanent to hand; if kicked, draw 1 cards
+}

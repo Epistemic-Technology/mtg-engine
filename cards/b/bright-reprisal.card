@@ -1,0 +1,9 @@
+card "Bright Reprisal" {
+  oracle_id 1de2c216-0921-45eb-9613-a68d18fbee77
+  cost {4}{W}
+  type Instant
+  spell {
+    destroy target attacking creature
+    draw 1 cards
+  }
+}

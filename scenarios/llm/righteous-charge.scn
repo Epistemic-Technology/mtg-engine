@@ -1,0 +1,46 @@
+# Righteous Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Righteous Charge pumps only your creatures until end of turn" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Righteous Charge"
+  turn 1 A: cast "Righteous Charge"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 5
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+  assert graveyard A contains "Righteous Charge"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Creatures arriving after resolution are not pumped" {
+  battlefield A: "Hill Giant", 3 "Plains", 2 "Forest"
+  hand A: "Righteous Charge", "Grizzly Bears"
+  turn 1 A: cast "Righteous Charge"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Hill Giant" 5
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Pumped attacker wins combat" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Righteous Charge"
+  turn 1 A: cast "Righteous Charge"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}

@@ -1,0 +1,7 @@
+card "Goblin Mountaineer" {
+  oracle_id 356e2df2-2b41-4d9d-8723-3e6a17a090e8
+  cost {R}
+  type Creature — Goblin Scout
+  pt 1/1
+  keywords mountainwalk
+}

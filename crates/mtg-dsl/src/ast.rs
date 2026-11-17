@@ -38,6 +38,10 @@ pub struct Card {
     pub keywords: Vec<Keyword>,
     /// "As an additional cost to cast this spell, ..." (CR 601.2b).
     pub additional: Option<Cost>,
+    /// `kicker {R}` (CR 702.33).
+    pub kicker: Option<ManaCost>,
+    /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
+    pub flashback: Option<Cost>,
     pub abilities: Vec<Ability>,
     /// What this card's copy effects add to what they copy (CR 707.9b).
     pub except: Option<Except>,
@@ -63,6 +67,8 @@ pub struct Cost {
     pub tap: bool,
     pub life: u32,
     pub discard: u32,
+    /// `discard a creature card`: what the discarded card must match.
+    pub discard_filter: Option<Filter>,
     /// A loyalty ability's cost (CR 606).
     pub loyalty: Option<i32>,
     pub sacrifice: Option<SacCost>,
@@ -201,6 +207,9 @@ pub struct Sentence {
     pub effects: Vec<Effect>,
     /// Starts a new paragraph (a new line of Oracle text).
     pub para: bool,
+    /// Printed "Until end of turn, ..." with the duration first (Water
+    /// Wings) rather than after each clause.
+    pub eot_first: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
@@ -219,6 +228,7 @@ impl Sentence {
         Sentence {
             effects,
             para: false,
+            eot_first: false,
             joins,
         }
     }
@@ -479,6 +489,14 @@ pub enum Effect {
         toughness: i32,
     },
     YouMay(Vec<Sentence>),
+    /// "If this spell was kicked, ..." (CR 702.33c).
+    IfKicked(Vec<Sentence>),
+    /// "<what> has base power and toughness 4/4 until end of turn".
+    SetBasePt {
+        to: Recipient,
+        power: i32,
+        toughness: i32,
+    },
     /// A delayed triggered ability (CR 603.7) about `about`; `trigger_first`
     /// records whether the text puts the trigger before the effects.
     Delayed {

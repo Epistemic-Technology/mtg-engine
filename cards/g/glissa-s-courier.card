@@ -1,0 +1,7 @@
+card "Glissa's Courier" {
+  oracle_id 25fb2a67-fd7f-4a06-bd59-118d82c86d6e
+  cost {1}{G}{G}
+  type Creature — Phyrexian Horror
+  pt 2/3
+  keywords mountainwalk
+}

@@ -1,0 +1,7 @@
+card "Jawbone Skulkin" {
+  oracle_id 1cbcc073-1645-4d7f-98f4-7309d7b35692
+  cost {1}
+  type Artifact Creature — Scarecrow
+  pt 1/1
+  activated {2}: target red creature gains haste
+}

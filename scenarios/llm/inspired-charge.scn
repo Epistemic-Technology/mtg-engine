@@ -1,0 +1,55 @@
+# Inspired Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "inspired charge pumps only your creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Inspired Charge"
+  turn 1 A: cast "Inspired Charge"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Serra Angel" 6
+  assert toughness "Serra Angel" 5
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+  assert graveyard A contains "Inspired Charge"
+}
+
+scenario "inspired charge in response saves a creature from shock" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Inspired Charge"
+  hand B: "Shock"
+  turn 1 precombat_main B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 precombat_main A: cast "Inspired Charge" in response to "Shock"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "inspired charge wears off at end of turn" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Inspired Charge"
+  turn 1 A: cast "Inspired Charge"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "creatures entering after resolution are not pumped" {
+  battlefield A: 4 "Plains", 2 "Forest", "Hill Giant"
+  hand A: "Inspired Charge", "Grizzly Bears"
+  turn 1 A: cast "Inspired Charge"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 4
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

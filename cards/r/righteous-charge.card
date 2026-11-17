@@ -1,0 +1,6 @@
+card "Righteous Charge" {
+  oracle_id 252d9183-16eb-4345-8d15-56218b33abdd
+  cost {1}{W}{W}
+  type Sorcery
+  spell: each creature you control gets +2/+2
+}

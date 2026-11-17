@@ -1,0 +1,7 @@
+card "Fervent Denial" {
+  oracle_id 2e56bc34-1e35-4b95-9525-cb58ac8ba060
+  cost {3}{U}{U}
+  type Instant
+  flashback {5}{U}{U}
+  spell: counter target spell
+}

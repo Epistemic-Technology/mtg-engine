@@ -1,0 +1,7 @@
+card "Zodiac Horse" {
+  oracle_id f778bf66-e823-4b4c-8586-97e1d519efd8
+  cost {3}{G}
+  type Creature — Horse
+  pt 3/3
+  keywords islandwalk
+}

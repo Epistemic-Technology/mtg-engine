@@ -1,0 +1,7 @@
+card "Thrill of the Hunt" {
+  oracle_id 7b1f0b78-806f-4a7d-809b-d2bc60cf1b01
+  cost {G}
+  type Instant
+  flashback {W}
+  spell: target creature gets +1/+2
+}

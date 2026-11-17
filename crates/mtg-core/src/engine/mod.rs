@@ -412,6 +412,7 @@ impl GameState {
                     exile: Vec::new(),
                     mana_pool: crate::mana::ManaPool::default(),
                     lands_played_this_turn: 0,
+                    flashback_in_graveyard: 0,
                     max_hand_size: 7,
                     drew_from_empty_library: false,
                     lost: None,
@@ -526,6 +527,18 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingKicker { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Kicker { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingX { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -584,12 +597,11 @@ impl GameState {
                         }
                         if discard.is_none() && add.discard > 0 {
                             let options: Vec<Choice> = self
-                                .player(caster)
-                                .hand
-                                .iter()
+                                .discard_candidates(caster, add.discard_filter.as_ref(), spell)
+                                .into_iter()
                                 .map(|id| Choice::Discard {
-                                    card: *id,
-                                    def: self.objects[*id].def,
+                                    card: id,
+                                    def: self.objects[id].def,
                                 })
                                 .collect();
                             if options.is_empty() {
@@ -952,8 +964,12 @@ impl GameState {
             }
             (Flow::Priority, Choice::Cast(id)) => {
                 self.consecutive_passes = 0;
+                // CR 702.34a: a card cast from the graveyard is cast with
+                // flashback.
+                let flashback = self.objects[id].zone == Zone::Graveyard;
                 let spell = self.move_object(id, Zone::Stack, true);
                 self.objects[spell].controller = player;
+                self.objects[spell].cast.set_flashback(flashback);
                 // CR 601.2b: modes are chosen before X, X before targets.
                 let def = self.pool.get(self.objects[spell].def);
                 self.flow = if def.modes().is_some() {
@@ -963,7 +979,9 @@ impl GameState {
                 };
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
-                self.objects[spell].mode = u8::try_from(i).unwrap_or(0);
+                self.objects[spell]
+                    .cast
+                    .set_mode(u8::try_from(i).unwrap_or(0));
                 self.flow = self.after_mode(spell);
             }
             (Flow::ChoosingX { spell }, Choice::X(x)) => {
@@ -974,6 +992,13 @@ impl GameState {
                     sacrifice: None,
                     discard: None,
                 };
+            }
+            (Flow::ChoosingKicker { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_kicked(true);
+                self.flow = self.after_kicker(spell);
+            }
+            (Flow::ChoosingKicker { spell }, Choice::Decline) => {
+                self.flow = self.after_kicker(spell);
             }
             (
                 Flow::Priority,
@@ -1114,6 +1139,15 @@ impl GameState {
     /// The casting state after the mode (if any) is chosen: X if the cost
     /// has one, else targets.
     fn after_mode(&self, spell: ObjId) -> Flow {
+        // CR 601.2b: the kicker decision comes before X.
+        if self.kicker_payable(spell) {
+            Flow::ChoosingKicker { spell }
+        } else {
+            self.after_kicker(spell)
+        }
+    }
+
+    fn after_kicker(&self, spell: ObjId) -> Flow {
         if self.pool.get(self.objects[spell].def).mana_cost.has_x() {
             Flow::ChoosingX { spell }
         } else {

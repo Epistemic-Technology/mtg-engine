@@ -1,0 +1,7 @@
+card "Wild Ox" {
+  oracle_id a6aa245c-b620-486c-864b-0ea4e9bc4048
+  cost {3}{G}
+  type Creature — Ox
+  pt 3/3
+  keywords swampwalk
+}

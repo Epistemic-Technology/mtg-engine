@@ -14,8 +14,8 @@ use crate::card::{AbilityDef, AbilityId, Condition, TriggerObj, TriggerSpec, Who
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
-    Characteristics, Flow, GameObject, GameState, ObjKind, PendingTrigger, StackAbility, Target,
-    Zone,
+    CastInfo, Characteristics, Flow, GameObject, GameState, ObjKind, PendingTrigger, StackAbility,
+    Target, Zone,
 };
 
 use super::casting::EffectCtx;
@@ -374,7 +374,7 @@ impl GameState {
             def,
             card: def,
             except: None,
-            mode: 0,
+            cast: CastInfo::default(),
             kind: ObjKind::Ability,
             owner: t.controller,
             controller: t.controller,
@@ -477,6 +477,7 @@ impl GameState {
                 .get(source)
                 .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped),
             Condition::NoCreatures => self.no_creatures(),
+            Condition::Kicked => self.was_kicked(source),
         }
     }
 
@@ -486,7 +487,18 @@ impl GameState {
         match cond {
             Condition::SourceUntapped => !w.tapped,
             Condition::NoCreatures => self.no_creatures(),
+            Condition::Kicked => self.was_kicked(w.source),
         }
+    }
+
+    /// CR 702.33c: whether the object (or, once it has moved, the object it
+    /// was) was kicked.
+    pub(super) fn was_kicked(&self, id: ObjId) -> bool {
+        self.objects
+            .get(id)
+            .map(|o| o.cast.kicked())
+            .or_else(|| self.lki.get(&id).map(|l| l.object.cast.kicked()))
+            .unwrap_or(false)
     }
 
     fn no_creatures(&self) -> bool {

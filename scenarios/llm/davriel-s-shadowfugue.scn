@@ -1,0 +1,50 @@
+# Davriel's Shadowfugue: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "target player discards two cards and loses 2 life" {
+  battlefield A: "Swamp", 3 "Plains"
+  hand A: "Davriel's Shadowfugue"
+  hand B: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Davriel's Shadowfugue" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert graveyard A contains "Davriel's Shadowfugue"
+}
+
+scenario "with an empty hand the player still loses 2 life" {
+  battlefield A: "Swamp", 3 "Plains"
+  hand A: "Davriel's Shadowfugue"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Davriel's Shadowfugue" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert life B 18
+}
+
+scenario "with one card in hand the player discards it and loses 2 life" {
+  battlefield A: "Swamp", 3 "Plains"
+  hand A: "Davriel's Shadowfugue"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Davriel's Shadowfugue" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Lightning Bolt"
+  assert life B 18
+}
+
+scenario "only two of three cards are discarded" {
+  battlefield A: "Swamp", 3 "Plains"
+  hand A: "Davriel's Shadowfugue"
+  hand B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Davriel's Shadowfugue" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life B 18
+  assert life A 20
+}

@@ -18,12 +18,12 @@ look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
 DSL and authoring pipeline) is under way: cards are text files under
 `cards/` that compile to the engine's definitions and render back to
 Oracle text, and a gate checks that rendering against Scryfall. The
-corpus holds 3,675 cards (131 hand-written and scenario-tested, the rest
-authored from Oracle text by templates; 25% of Pauper, 13% of Modern),
-all matching their Oracle text. Random agents play complete games at
-about 5,000 games per second per core on effect-free boards. A
-421-scenario rules corpus passes, 28 of them converted from XMage's
-tests. See [design.md](design.md) for the
+corpus holds 3,929 cards (140 hand-written and 68 model-authored, all
+scenario-tested; the rest authored from Oracle text by templates; 27% of
+Pauper, 14% of Modern), all matching their Oracle text. Random agents
+play complete games at about 4,000 games per second per core on
+effect-free boards. A 670-scenario rules corpus passes, 29 of them
+converted from XMage's tests. See [design.md](design.md) for the
 architecture, roadmap, and open questions.
 
 ```
@@ -49,6 +49,7 @@ cargo run -p mtg-cards -- gate --diff "Pestilence"
 cargo run -p mtg-cards -- author --format pauper --write   # author what the templates cover
 cargo run -p mtg-cards -- coverage --format pauper --scenarios
 cargo run -p mtg-cards -- model-author --write "Sorin's Thirst"   # ask Claude (ANTHROPIC_API_KEY), gate, write
+cargo run -p mtg-cards -- model-author --write --list names.txt --jobs 6 --report report.tsv   # a batch
 ```
 
 `model-author` asks a model for the card file and scenarios, then accepts

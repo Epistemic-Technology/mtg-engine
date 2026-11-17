@@ -1,0 +1,7 @@
+card "Jukai Messenger" {
+  oracle_id a8ba7a21-b2fe-42fd-87dd-6611c3105096
+  cost {G}
+  type Creature — Human Monk
+  pt 1/1
+  keywords forestwalk
+}

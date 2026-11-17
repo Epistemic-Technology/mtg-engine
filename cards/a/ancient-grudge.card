@@ -1,0 +1,7 @@
+card "Ancient Grudge" {
+  oracle_id 306593b0-6ea8-476f-a3f2-e17876c1bab4
+  cost {1}{R}
+  type Instant
+  flashback {G}
+  spell: destroy target artifact
+}

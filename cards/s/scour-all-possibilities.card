@@ -1,0 +1,7 @@
+card "Scour All Possibilities" {
+  oracle_id 3fb9f0d9-6514-4005-b65a-7929f7c4df06
+  cost {1}{U}
+  type Sorcery
+  flashback {4}{U}
+  spell: scry 2 then draw 1 cards
+}

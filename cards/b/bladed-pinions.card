@@ -1,0 +1,7 @@
+card "Bladed Pinions" {
+  oracle_id c8cdc08a-975b-475f-8e30-85d61f6f3a9b
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has flying, first strike
+  equip {2}
+}

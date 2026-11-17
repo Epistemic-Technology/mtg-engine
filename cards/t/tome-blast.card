@@ -1,0 +1,7 @@
+card "Tome Blast" {
+  oracle_id f0163420-2f91-493c-bad4-2cd33e9856bf
+  cost {1}{R}
+  type Sorcery
+  flashback {4}{R}
+  spell: deal 2 damage to any target
+}

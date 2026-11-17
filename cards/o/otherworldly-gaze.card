@@ -1,0 +1,7 @@
+card "Otherworldly Gaze" {
+  oracle_id be668c2d-71ea-4346-8980-1fbf5e4cbed3
+  cost {U}
+  type Instant
+  flashback {1}{U}
+  spell: surveil 3
+}

@@ -1,0 +1,10 @@
+card "Piracy Charm" {
+  oracle_id dffde884-15bc-4985-90e2-a0888ef4cb48
+  cost {U}
+  type Instant
+  choose one {
+    mode: target creature gains islandwalk
+    mode: target creature gets +2/-1
+    mode: target player discards 1 cards
+  }
+}

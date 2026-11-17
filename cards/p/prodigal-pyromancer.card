@@ -1,0 +1,7 @@
+card "Prodigal Pyromancer" {
+  oracle_id 29b3cb3e-aeb1-43eb-8095-9f7881aa34bd
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: deal 1 damage to any target
+}

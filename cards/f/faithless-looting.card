@@ -1,0 +1,7 @@
+card "Faithless Looting" {
+  oracle_id 3d6fa57a-aa53-4b5c-b8af-a7612c823117
+  cost {R}
+  type Sorcery
+  flashback {2}{R}
+  spell: draw 2 cards then discard 2 cards
+}

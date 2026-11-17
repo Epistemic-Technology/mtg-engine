@@ -1,0 +1,8 @@
+card "Mold Shambler" {
+  oracle_id 7aba1039-f108-423e-8aa4-d9d8b4da2414
+  cost {3}{G}
+  type Creature — Fungus Beast
+  pt 3/3
+  kicker {1}{G}
+  triggered when this enters if kicked: destroy target noncreature permanent
+}

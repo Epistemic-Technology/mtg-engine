@@ -1,0 +1,7 @@
+card "Anaba Spirit Crafter" {
+  oracle_id e9bee79c-144f-41e4-a53d-17df8381f691
+  cost {2}{R}{R}
+  type Creature — Minotaur Shaman
+  pt 1/3
+  static Minotaur creature: +1/+0
+}

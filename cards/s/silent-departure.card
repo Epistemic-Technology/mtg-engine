@@ -1,0 +1,7 @@
+card "Silent Departure" {
+  oracle_id c41641f0-1abf-4776-9dec-1882f2d9badd
+  cost {U}
+  type Sorcery
+  flashback {4}{U}
+  spell: return target creature to hand
+}

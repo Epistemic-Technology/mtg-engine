@@ -1,0 +1,7 @@
+card "Phyrexian Espionage" {
+  oracle_id 32dce35e-182d-41be-9fb2-b0738d0781b8
+  cost {2}{U}
+  type Sorcery
+  kicker {1}{B}
+  spell: draw 2 cards; if kicked, each opponent discards 1 cards
+}

@@ -1,0 +1,7 @@
+card "Air Marshal" {
+  oracle_id 59b2edf0-00e4-4cd4-88ac-6dd74e9b1b14
+  cost {1}{U}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {3}: target Soldier gains flying
+}

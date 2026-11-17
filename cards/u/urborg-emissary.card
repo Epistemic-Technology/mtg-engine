@@ -1,0 +1,8 @@
+card "Urborg Emissary" {
+  oracle_id f30943f1-473f-4fa4-b6a7-3dfbd1995ba9
+  cost {2}{B}
+  type Creature — Human Wizard
+  pt 3/1
+  kicker {1}{U}
+  triggered when this enters if kicked: return target permanent to hand
+}

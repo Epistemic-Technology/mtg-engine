@@ -1,0 +1,34 @@
+# Cephalid Looter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "looter targets its controller: draw then discard" {
+  battlefield A: "Cephalid Looter"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cephalid Looter" targeting player A
+  run_to turn 2 postcombat_main
+  assert tapped "Cephalid Looter"
+  assert graveyard A contains "Island"
+  assert hand A count 0
+  assert library A contains "Plains"
+}
+
+scenario "looter can target an opponent" {
+  battlefield A: "Cephalid Looter"
+  library B: "Hill Giant", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Cephalid Looter" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 0
+  assert hand A count 0
+}
+
+scenario "tapped looter cannot activate" {
+  battlefield A: "Cephalid Looter" tapped
+  library A: "Island"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Cephalid Looter" targeting player A
+  run_to turn 2 postcombat_main
+  assert graveyard A lacks "Island"
+}

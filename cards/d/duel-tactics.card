@@ -1,0 +1,7 @@
+card "Duel Tactics" {
+  oracle_id 262c5ac9-af41-42d1-a53a-8a671eedd5a6
+  cost {R}
+  type Sorcery
+  flashback {1}{R}
+  spell: deal 1 damage to target creature; target 1 can't block
+}

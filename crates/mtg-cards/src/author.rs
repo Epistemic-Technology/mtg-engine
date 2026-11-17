@@ -19,8 +19,13 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 15] = [
+const KEYWORDS: [&str; 20] = [
     "Deathtouch",
+    "Plainswalk",
+    "Islandwalk",
+    "Swampwalk",
+    "Mountainwalk",
+    "Forestwalk",
     "Defender",
     "Double strike",
     "First strike",
@@ -38,7 +43,10 @@ const KEYWORDS: [&str; 15] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 8] = [
+const TEMPLATED_TAGS: [&str; 11] = [
+    "Kicker",
+    "Flashback",
+    "Landwalk",
     "Enchant",
     "Equip",
     "Regenerate",
@@ -561,9 +569,12 @@ impl Templates {
                     _ => return Err(Skip::Sentence(sentence)),
                 }
             }
-            let (may, body) = match sentence.strip_prefix("you may ") {
-                Some(rest) => (true, rest.to_string()),
-                None => (false, sentence.clone()),
+            let (prefix, body) = if let Some(rest) = sentence.strip_prefix("you may ") {
+                ("you may ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("If this spell was kicked, ") {
+                ("if kicked, ", rest.to_string())
+            } else {
+                ("", sentence.clone())
             };
             // "Draw a card, then discard a card": clauses joined by "then".
             let mut parts = Vec::new();
@@ -574,7 +585,7 @@ impl Templates {
                 parts.push(e);
             }
             let e = parts.join(" then ");
-            out.push(if may { format!("you may {e}") } else { e });
+            out.push(format!("{prefix}{e}"));
         }
         if out.is_empty() {
             return Err(Skip::Sentence(text.to_string()));
@@ -656,6 +667,14 @@ fn cost_text(s: &str) -> Option<String> {
             "discard 1 card".to_string()
         } else if part == "Discard this card" {
             "discard this".to_string()
+        } else if let Some(what) = part
+            .strip_prefix("Discard a ")
+            .or_else(|| part.strip_prefix("Discard an "))
+            .and_then(|r| r.strip_suffix(" card"))
+            .filter(|w| !w.contains(' '))
+        {
+            // "Discard a creature card": one card matching a filter.
+            format!("discard {what} card")
         } else {
             let n = part
                 .strip_prefix("Pay ")
@@ -763,6 +782,28 @@ impl Builder<'_> {
             .captures(line)
         {
             self.statements.push(format!("cycling {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Kicker ((?:\{[0-9XWUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("kicker {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Flashback ((?:\{[0-9XWUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("flashback {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Flashback—((?:\{[0-9XWUBRGC]+\})+), Pay (\d+) life\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("flashback {}, pay {} life", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         if line == "{T}: Add one mana of any color." {
@@ -894,6 +935,8 @@ impl Builder<'_> {
                 (" if this is untapped", r)
             } else if let Some(r) = rest.strip_prefix("if no creatures are on the battlefield, ") {
                 (" if no creatures are on the battlefield", r)
+            } else if let Some(r) = rest.strip_prefix("if it was kicked, ") {
+                (" if kicked", r)
             } else {
                 ("", rest)
             };

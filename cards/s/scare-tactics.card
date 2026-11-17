@@ -1,0 +1,6 @@
+card "Scare Tactics" {
+  oracle_id d7548770-5c60-4c3f-b1d6-554ab5f931f9
+  cost {B}
+  type Instant
+  spell: each creature you control gets +1/+0
+}

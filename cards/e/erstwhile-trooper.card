@@ -1,0 +1,7 @@
+card "Erstwhile Trooper" {
+  oracle_id a1640d9a-367f-4b90-bd4d-18f2c9244ccf
+  cost {1}{B}{G}
+  type Creature — Zombie Soldier
+  pt 2/2
+  activated discard creature card, once: this gets +2/+2 and gains trample
+}

@@ -1,0 +1,6 @@
+card "Glorious Charge" {
+  oracle_id 754d5009-7887-4293-b554-b3decddb33f7
+  cost {1}{W}
+  type Instant
+  spell: each creature you control gets +1/+1
+}

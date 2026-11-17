@@ -1,0 +1,7 @@
+card "Earth Rift" {
+  oracle_id 888a5071-24b1-48ce-a97b-39f108976c6d
+  cost {3}{R}
+  type Sorcery
+  flashback {5}{R}{R}
+  spell: destroy target land
+}

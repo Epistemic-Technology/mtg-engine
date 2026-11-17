@@ -1,0 +1,7 @@
+card "Zendikar Farguide" {
+  oracle_id 01ab37a4-21d2-49f4-9b85-cb522a4d04ad
+  cost {4}{G}
+  type Creature — Elemental
+  pt 3/3
+  keywords forestwalk
+}

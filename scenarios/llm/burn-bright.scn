@@ -1,0 +1,34 @@
+# Burn Bright: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Burn Bright pumps only your creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Burn Bright"
+  turn 1 A: cast "Burn Bright"
+  run_to turn 1 begin_combat
+  assert power A "Grizzly Bears" 4
+  assert toughness A "Grizzly Bears" 2
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 3
+  assert power B "Grizzly Bears" 2
+  assert graveyard A contains "Burn Bright"
+}
+
+scenario "Burn Bright after attacking adds combat damage" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Burn Bright"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Burn Bright"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Burn Bright wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Burn Bright"
+  turn 1 A: cast "Burn Bright"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

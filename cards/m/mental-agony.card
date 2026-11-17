@@ -1,0 +1,6 @@
+card "Mental Agony" {
+  oracle_id e80a7118-dd6b-4907-ad69-09387e0c2114
+  cost {3}{B}
+  type Sorcery
+  spell: target player discards 2 cards and loses 2 life
+}

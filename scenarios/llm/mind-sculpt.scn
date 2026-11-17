@@ -1,0 +1,39 @@
+# Mind Sculpt: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Mind Sculpt mills the top seven cards of the opponent's library" {
+  start turn 1 A precombat_main
+  battlefield A: 2 "Island"
+  hand A: "Mind Sculpt"
+  library B: "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Forest", "Island", "Island", "Island"
+  turn 1 A: cast "Mind Sculpt" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 7 "Forest"
+  assert graveyard B lacks "Island"
+  assert library B contains 3 "Island"
+  assert library B count 3
+  assert graveyard A contains "Mind Sculpt"
+}
+
+scenario "Mind Sculpt mills the whole library when fewer than seven cards remain" {
+  start turn 1 A precombat_main
+  battlefield A: 2 "Island"
+  hand A: "Mind Sculpt"
+  library B: "Forest", "Mountain", "Swamp"
+  turn 1 A: cast "Mind Sculpt" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert graveyard B contains "Mountain"
+  assert graveyard B contains "Swamp"
+  assert library B count 0
+  assert not game_over
+}
+
+scenario "Mind Sculpt is cast only at sorcery speed" {
+  start turn 2 B upkeep
+  battlefield A: 2 "Island"
+  hand A: "Mind Sculpt"
+  illegal turn 2 upkeep A: cast "Mind Sculpt" targeting player B
+  run_to turn 2 precombat_main
+  assert hand A contains "Mind Sculpt"
+}

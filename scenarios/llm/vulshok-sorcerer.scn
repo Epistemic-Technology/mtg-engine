@@ -1,0 +1,43 @@
+# Vulshok Sorcerer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vulshok Sorcerer pings a player" {
+  battlefield A: "Vulshok Sorcerer"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vulshok Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Vulshok Sorcerer"
+}
+
+scenario "Vulshok Sorcerer pings a creature" {
+  battlefield A: "Vulshok Sorcerer"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vulshok Sorcerer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "haste lets Vulshok Sorcerer tap the turn it is cast" {
+  battlefield A: 3 "Mountain"
+  hand A: "Vulshok Sorcerer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vulshok Sorcerer"
+  turn 1 A: wait
+  turn 1 A: activate "Vulshok Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Vulshok Sorcerer"
+}
+
+scenario "haste lets Vulshok Sorcerer attack the turn it is cast" {
+  battlefield A: 3 "Mountain"
+  hand A: "Vulshok Sorcerer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vulshok Sorcerer"
+  turn 1 A: attack "Vulshok Sorcerer"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

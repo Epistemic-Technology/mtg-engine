@@ -1,0 +1,42 @@
+# Scare Tactics: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Scare Tactics pumps only your creatures' power" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Scare Tactics"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scare Tactics"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 3
+  assert toughness A "Grizzly Bears" 2
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 3
+  assert power B "Grizzly Bears" 2
+  assert graveyard A contains "Scare Tactics"
+}
+
+scenario "Scare Tactics wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  hand A: "Scare Tactics"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scare Tactics"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Scare Tactics after blocks lets Bears kill Hill Giant" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Scare Tactics"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Scare Tactics"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}

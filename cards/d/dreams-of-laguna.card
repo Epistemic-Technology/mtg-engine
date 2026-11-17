@@ -1,0 +1,7 @@
+card "Dreams of Laguna" {
+  oracle_id e060bf7a-f266-40b4-9772-e243dcbf965b
+  cost {1}{U}
+  type Instant
+  flashback {3}{U}
+  spell: surveil 1 then draw 1 cards
+}

@@ -11,7 +11,7 @@ use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
 use crate::state::{
-    Affected, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState, ObjKind,
+    Affected, CastInfo, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState, ObjKind,
     ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
 };
 
@@ -83,9 +83,104 @@ impl GameState {
                 options.push(Choice::Cast(*id));
             }
         }
+        // CR 702.34a: instants and sorceries with flashback may be cast
+        // from the graveyard for their flashback cost.
+        if ps.flashback_in_graveyard > 0 {
+            for id in &ps.graveyard {
+                let def = self.pool.get(self.objects[*id].def);
+                let Some(fb) = &def.flashback else {
+                    continue;
+                };
+                let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+                if !(instant_speed || sorcery_timing) {
+                    continue;
+                }
+                if payment_plan_from(&sources, &pool, &fb.mana.requirements(0)).is_none() {
+                    continue;
+                }
+                if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
+                    continue;
+                }
+                let targets_ok = match def.modes() {
+                    Some(modes) => modes
+                        .iter()
+                        .any(|m| self.targets_available(p, &m.targets, None)),
+                    None => self.targets_available(p, def.cast_targets(), None),
+                };
+                if targets_ok {
+                    options.push(Choice::Cast(*id));
+                }
+            }
+        }
         self.activation_options(p, sorcery_timing, &sources, &mut options);
         options.push(Choice::Pass);
         options
+    }
+
+    /// Cards in `p`'s hand that could be discarded for a cost of `source`
+    /// with this filter ("discard a creature card").
+    pub(super) fn discard_candidates(
+        &self,
+        p: PlayerId,
+        filter: Option<&crate::card::ObjFilter>,
+        source: ObjId,
+    ) -> Vec<ObjId> {
+        self.player(p)
+            .hand
+            .iter()
+            .copied()
+            .filter(|id| {
+                *id != source
+                    && filter.is_none_or(|f| {
+                        self.characteristics(*id)
+                            .is_some_and(|c| f.matches(*id, p, &c, Some(source), Some(p)))
+                    })
+            })
+            .collect()
+    }
+
+    /// Whether `spell` (being cast) has a kicker its caster could pay on
+    /// top of its cost (CR 702.33b).
+    pub(super) fn kicker_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(k) = &def.kicker else {
+            return false;
+        };
+        if o.cast.flashback() {
+            return false;
+        }
+        let mut req = def.mana_cost.requirements(0);
+        req.add(&k.requirements(0));
+        self.payment_plan(o.controller, &req).is_some()
+    }
+
+    /// The mana a spell being cast costs with X fixed: its mana cost (or
+    /// its flashback cost, CR 702.34a) plus its kicker if kicked.
+    pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let mut req = match (&def.flashback, o.cast.flashback()) {
+            (Some(fb), true) => fb.mana.requirements(x),
+            _ => def.mana_cost.requirements(x),
+        };
+        if o.cast.kicked()
+            && let Some(k) = &def.kicker
+        {
+            req.add(&k.requirements(0));
+        }
+        req
+    }
+
+    /// CR 702.34a: a spell cast with flashback is exiled instead of going
+    /// anywhere else as it leaves the stack.
+    pub(super) fn leave_stack(&mut self, spell: ObjId) {
+        let zone = if self.objects[spell].cast.flashback() {
+            Zone::Exile
+        } else {
+            Zone::Graveyard
+        };
+        self.move_object(spell, zone, true);
     }
 
     /// CR 602: activated abilities of permanents `p` controls whose costs
@@ -165,10 +260,16 @@ impl GameState {
                         .collect(),
                 };
                 let discards: Vec<Option<ObjId>> = if ab.cost.discard > 0 {
-                    self.player(p).hand.iter().copied().map(Some).collect()
+                    self.discard_candidates(p, ab.cost.discard_filter.as_ref(), id)
+                        .into_iter()
+                        .map(Some)
+                        .collect()
                 } else {
                     vec![None]
                 };
+                if discards.is_empty() {
+                    continue;
+                }
                 for sacrifice in &sacrifices {
                     for discard in &discards {
                         options.push(Choice::Activate {
@@ -209,7 +310,7 @@ impl GameState {
             def,
             card: def,
             except: None,
-            mode: 0,
+            cast: CastInfo::default(),
             kind: ObjKind::Ability,
             owner: player,
             controller: player,
@@ -261,13 +362,13 @@ impl GameState {
     /// increasing order.
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
-        let o = &self.objects[spell];
-        let caster = o.controller;
-        let cost = &self.pool.get(o.def).mana_cost;
+        let caster = self.objects[spell].controller;
         let sources = self.mana_sources(caster);
         let pool = self.player(caster).mana_pool;
         (0..=MAX_X)
-            .take_while(|x| payment_plan_from(&sources, &pool, &cost.requirements(*x)).is_some())
+            .take_while(|x| {
+                payment_plan_from(&sources, &pool, &self.spell_requirements(spell, *x)).is_some()
+            })
             .map(Choice::X)
             .collect()
     }
@@ -515,9 +616,14 @@ impl GameState {
         let obj = &self.objects[spell];
         let (caster, def_ref) = (obj.controller, obj.def);
         let x = self.x_of(spell);
+        let flashback = obj.cast.flashback();
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
         let def = self.pool.get(def_ref).clone();
-        self.pay(caster, &def.mana_cost.requirements(x));
+        let req = self.spell_requirements(spell, x);
+        self.pay(caster, &req);
+        if let (Some(fb), true) = (&def.flashback, flashback) {
+            self.pay_other_costs(caster, fb, spell, None, None);
+        }
         self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
         self.emit(Event::Cast {
             player: caster,
@@ -541,7 +647,7 @@ impl GameState {
         }
         let def = o.def;
         self.emit(Event::Countered { spell: id, def });
-        self.move_object(id, Zone::Graveyard, true);
+        self.leave_stack(id);
     }
 
     /// Scry (CR 701.18) or surveil (CR 701.42) `n`: the player chooses
@@ -622,7 +728,7 @@ impl GameState {
                     spell,
                     def: obj.def,
                 });
-                self.move_object(spell, Zone::Graveyard, true);
+                self.leave_stack(spell);
                 return;
             }
             self.emit(Event::Resolve {
@@ -659,7 +765,7 @@ impl GameState {
                     spell,
                     def: obj.def,
                 });
-                self.move_object(spell, Zone::Graveyard, true);
+                self.leave_stack(spell);
                 return;
             }
             self.emit(Event::Resolve {
@@ -692,7 +798,7 @@ impl GameState {
                 self.choose_copy_on_entering(spell);
                 self.put_onto_battlefield(spell, obj.controller);
             } else {
-                self.move_object(spell, Zone::Graveyard, true);
+                self.leave_stack(spell);
             }
         }
     }
@@ -1166,6 +1272,32 @@ impl GameState {
                         toughness: PtValue::Fixed(*toughness),
                     });
                     self.effect_until_end_of_turn(ctx, id, parts);
+                }
+            }
+            Effect::IfKicked(inner) => {
+                if self.was_kicked(ctx.source) {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::SetBasePt {
+                to,
+                power,
+                toughness,
+            } => {
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_until_end_of_turn(
+                        ctx,
+                        id,
+                        smallvec::smallvec![Modification::SetPt {
+                            power: PtValue::Fixed(*power),
+                            toughness: PtValue::Fixed(*toughness),
+                        }],
+                    );
                 }
             }
             Effect::YouMay(inner) => {

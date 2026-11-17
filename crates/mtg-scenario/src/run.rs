@@ -129,6 +129,8 @@ struct Runner {
     pending_x: Option<u32>,
     pending_sacrifice: Option<String>,
     pending_discard: Option<String>,
+    /// Whether the spell being cast is scripted `kicked`.
+    pending_kicked: bool,
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
     /// Scripted `at` targets for attackers (CR 508.1a).
@@ -221,6 +223,7 @@ impl Runner {
             pending_x: None,
             pending_sacrifice: None,
             pending_discard: None,
+            pending_kicked: false,
             attack_queue: None,
             attack_targets: Vec::new(),
             block_queue: None,
@@ -387,7 +390,19 @@ impl Runner {
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
             DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
+            DecisionKind::Kicker { .. } => Ok(self.choose_kicker(d)),
         }
+    }
+
+    /// Whether to kick the spell being cast: yes if scripted `kicked`,
+    /// otherwise no.
+    fn choose_kicker(&mut self, d: &Decision) -> ChoiceId {
+        let want = if std::mem::take(&mut self.pending_kicked) {
+            Choice::Accept
+        } else {
+            Choice::Decline
+        };
+        index_of(d, &want).unwrap_or(0)
     }
 
     /// What an attacker attacks: the scripted `at` target, else the player
@@ -754,10 +769,18 @@ impl Runner {
             let (name, option, targets, mode, costs) = match &a.action {
                 Action::Play(name) => {
                     let id = self.in_hand(a.line, d.player, name)?;
-                    (name, Choice::PlayLand(id), None, None, (None, None, None))
+                    (
+                        name,
+                        Choice::PlayLand(id),
+                        None,
+                        None,
+                        (None, None, None, false),
+                    )
                 }
                 Action::Cast {
                     name,
+                    from_graveyard,
+                    kicked,
                     targets,
                     mode,
                     x,
@@ -765,13 +788,17 @@ impl Runner {
                     discard,
                     ..
                 } => {
-                    let id = self.in_hand(a.line, d.player, name)?;
+                    let id = if *from_graveyard {
+                        self.in_graveyard(a.line, d.player, name)?
+                    } else {
+                        self.in_hand(a.line, d.player, name)?
+                    };
                     (
                         name,
                         Choice::Cast(id),
                         Some(targets.clone()),
                         *mode,
-                        (*x, sacrifice.clone(), discard.clone()),
+                        (*x, sacrifice.clone(), discard.clone(), *kicked),
                     )
                 }
                 _ => unreachable!("filtered to play/cast"),
@@ -820,7 +847,12 @@ impl Runner {
                     if let Some(targets) = targets {
                         let (needed, pending_mode) = self.cast_needs(a.line, id, name, mode)?;
                         self.pending_mode = pending_mode;
-                        (self.pending_x, self.pending_sacrifice, self.pending_discard) = costs;
+                        (
+                            self.pending_x,
+                            self.pending_sacrifice,
+                            self.pending_discard,
+                            self.pending_kicked,
+                        ) = costs;
                         let targets = expand_auto(&targets, needed);
                         if targets.len() != needed {
                             return fail(
@@ -1294,6 +1326,23 @@ impl Runner {
                     "\"{name}\" is not in {}'s hand (hand: {})",
                     player_name(p),
                     self.describe_ids(&self.state().player(p).hand)
+                ),
+            })
+    }
+
+    fn in_graveyard(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {
+        self.state()
+            .player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .find(|id| self.state().name_of(*id) == name)
+            .ok_or_else(|| Failure {
+                line,
+                message: format!(
+                    "\"{name}\" is not in {}'s graveyard (graveyard: {})",
+                    player_name(p),
+                    self.describe_ids(&self.state().player(p).graveyard)
                 ),
             })
     }

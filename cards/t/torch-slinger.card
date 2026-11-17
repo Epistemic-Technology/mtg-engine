@@ -1,0 +1,8 @@
+card "Torch Slinger" {
+  oracle_id 64231f03-ea89-4589-8ef8-a87dc9448e7b
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  kicker {1}{R}
+  triggered when this enters if kicked: deal 2 damage to target creature
+}

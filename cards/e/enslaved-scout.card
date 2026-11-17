@@ -1,0 +1,7 @@
+card "Enslaved Scout" {
+  oracle_id f39a3798-1ff0-4d1b-933f-bfcc0f265168
+  cost {2}{R}
+  type Creature — Goblin Scout
+  pt 2/2
+  activated {2}: this gains mountainwalk
+}

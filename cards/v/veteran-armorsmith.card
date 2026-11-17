@@ -1,0 +1,7 @@
+card "Veteran Armorsmith" {
+  oracle_id fcb34e92-f991-401c-a494-c2919083bf9e
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  static other Soldier creature you control: +0/+1
+}

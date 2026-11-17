@@ -1,0 +1,7 @@
+card "Deeptread Merrow" {
+  oracle_id b301b371-e99e-43cc-af7f-dbd7b2abe5f8
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 2/1
+  activated {U}: this gains islandwalk
+}

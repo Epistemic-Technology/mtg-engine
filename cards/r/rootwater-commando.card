@@ -1,0 +1,7 @@
+card "Rootwater Commando" {
+  oracle_id d62e9510-dc41-493f-8289-6e11303884fc
+  cost {2}{U}
+  type Creature — Merfolk
+  pt 2/2
+  keywords islandwalk
+}

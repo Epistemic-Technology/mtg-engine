@@ -1,0 +1,7 @@
+card "Hoof Skulkin" {
+  oracle_id 7f60549f-7a0a-4009-a51a-d3f51214be11
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  activated {3}: target green creature gets +1/+1
+}

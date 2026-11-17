@@ -1,0 +1,7 @@
+card "Volcanic Strength" {
+  oracle_id 7c60b7bd-06cc-487f-ba42-b382ac429b12
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has mountainwalk
+}

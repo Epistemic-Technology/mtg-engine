@@ -1,0 +1,7 @@
+card "Zodiac Tiger" {
+  oracle_id 79aba9a7-b957-4139-8d50-f1c91fa17793
+  cost {2}{G}{G}
+  type Creature — Cat
+  pt 3/4
+  keywords forestwalk
+}

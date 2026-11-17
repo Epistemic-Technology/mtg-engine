@@ -1,0 +1,7 @@
+card "Sylvan Might" {
+  oracle_id c8187c8d-23fa-436f-9efa-ea4cb80cdc08
+  cost {1}{G}
+  type Instant
+  flashback {2}{G}{G}
+  spell: target creature gets +2/+2 and gains trample
+}

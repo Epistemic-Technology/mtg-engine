@@ -1,0 +1,7 @@
+card "Burrowing" {
+  oracle_id d6b9b88b-e31b-4b88-9d53-3df5687804ba
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has mountainwalk
+}

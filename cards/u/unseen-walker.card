@@ -1,0 +1,8 @@
+card "Unseen Walker" {
+  oracle_id f1768dd5-c5c8-4059-9695-55b8a11eeffd
+  cost {1}{G}
+  type Creature — Dryad
+  pt 1/1
+  keywords forestwalk
+  activated {1}{G}{G}: target creature gains forestwalk
+}

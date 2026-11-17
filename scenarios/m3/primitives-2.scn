@@ -1,0 +1,192 @@
+# M3 slice 6: kicker, flashback, landwalk, "target attacking creature",
+# base power and toughness until end of turn, and filtered discard costs.
+
+# ---- kicker (CR 702.33) ---------------------------------------------------------------
+
+scenario "kicker: a kicked Bushwhacker gives haste" {
+  battlefield A: 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  turn 1 A: attack "Goblin Bushwhacker"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "kicker: unkicked, the trigger's condition fails" {
+  battlefield A: 2 "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker"
+  illegal turn 1 A: attack "Goblin Bushwhacker"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "kicker: the kicker is offered only when it can be paid" {
+  battlefield A: "Mountain"
+  hand A: "Goblin Bushwhacker"
+  turn 1 A: cast "Goblin Bushwhacker" kicked
+  illegal turn 1 A: attack "Goblin Bushwhacker"
+  run_to turn 1 end
+  assert battlefield A contains "Goblin Bushwhacker"
+  assert life B 20
+}
+
+scenario "kicker: a kicked spell does its extra effect" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Into the Roil"
+  library A: "Forest"
+  turn 1 A: cast "Into the Roil" kicked targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand B contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}
+
+scenario "kicker: an unkicked spell skips its extra effect" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Into the Roil"
+  library A: "Forest"
+  turn 1 A: cast "Into the Roil" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand B contains "Grizzly Bears"
+  assert hand A lacks "Forest"
+  assert library A count 1
+}
+
+# ---- flashback (CR 702.34) ------------------------------------------------------------
+
+scenario "flashback: cast from the graveyard, then exiled" {
+  battlefield A: 5 "Mountain"
+  graveyard A: "Firebolt"
+  turn 1 A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+  assert exile A contains "Firebolt"
+  assert graveyard A lacks "Firebolt"
+}
+
+scenario "flashback: the flashback cost must be paid in full" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Firebolt"
+  illegal turn 1 A: cast "Firebolt" from graveyard targeting player B
+  run_to turn 1 begin_combat
+  assert life B 20
+  assert graveyard A contains "Firebolt"
+}
+
+scenario "flashback: cast from hand, the spell goes to the graveyard" {
+  battlefield A: "Mountain"
+  hand A: "Firebolt"
+  turn 1 A: cast "Firebolt" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 18
+  assert graveyard A contains "Firebolt"
+}
+
+scenario "flashback: a countered flashback spell is exiled" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 2 "Island"
+  graveyard A: "Firebolt"
+  hand B: "Counterspell"
+  turn 1 A: cast "Firebolt" from graveyard targeting player B
+  turn 1 B: cast "Counterspell" targeting "Firebolt" in response to "Firebolt"
+  run_to turn 1 begin_combat
+  assert life B 20
+  assert exile A contains "Firebolt"
+}
+
+scenario "flashback: a cost with life" {
+  battlefield A: 2 "Island"
+  graveyard A: "Deep Analysis"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Deep Analysis" from graveyard targeting player A
+  run_to turn 1 begin_combat
+  assert life A 17
+  assert hand A count 2
+  assert exile A contains "Deep Analysis"
+}
+
+# ---- landwalk (CR 702.14) -------------------------------------------------------------
+
+scenario "swampwalk: unblockable while the defender controls a Swamp" {
+  battlefield A: "Bog Wraith"
+  battlefield B: "Swamp", "Grizzly Bears"
+  turn 1 A: attack "Bog Wraith"
+  illegal turn 1 B: block "Bog Wraith" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "swampwalk: blockable without a Swamp" {
+  battlefield A: "Bog Wraith"
+  battlefield B: "Forest", "Grizzly Bears"
+  turn 1 A: attack "Bog Wraith"
+  turn 1 B: block "Bog Wraith" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+# ---- target attacking creature --------------------------------------------------------
+
+scenario "second thoughts exiles an attacker" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Second Thoughts"
+  library A: "Forest"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Second Thoughts" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert life A 20
+  assert exile B contains "Grizzly Bears"
+  assert hand A contains "Forest"
+}
+
+scenario "second thoughts has no target outside combat" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Second Thoughts"
+  illegal turn 1 A: cast "Second Thoughts" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Second Thoughts"
+}
+
+# ---- base power and toughness until end of turn --------------------------------------
+
+scenario "water wings sets base power and toughness and grants flying" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Water Wings"
+  turn 1 A: cast "Water Wings" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 16
+  assert has "Grizzly Bears" flying
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}
+
+# ---- filtered discard costs -----------------------------------------------------------
+
+scenario "vampire hounds: discard a creature card" {
+  battlefield A: "Vampire Hounds"
+  hand A: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Vampire Hounds" discarding "Grizzly Bears"
+  turn 1 A: attack "Vampire Hounds"
+  run_to turn 1 end
+  assert life B 16
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "vampire hounds: a land is not a creature card" {
+  battlefield A: "Vampire Hounds"
+  hand A: "Forest"
+  illegal turn 1 A: activate "Vampire Hounds" discarding "Forest"
+  turn 1 A: attack "Vampire Hounds"
+  run_to turn 1 end
+  assert life B 18
+  assert hand A contains "Forest"
+}

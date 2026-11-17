@@ -1,0 +1,17 @@
+# Converted from XMage's cards/continuous/GoblinBushwhackerTest.java (commit d9b802438a24661ed9a5761f37360096a866adc9) by `mtg-cards convert-xmage`.
+# XMage is MIT-licensed, copyright its contributors; see README.
+# Do not edit: rerun the converter instead.
+
+scenario "GoblinBushwhackerTest.testDoesntWorkFromHand" {
+  # from cards/continuous/GoblinBushwhackerTest.java
+  battlefield A: "Plains"
+  hand A: "Elite Vanguard"
+  battlefield A: "Goblin Bushwhacker"
+  graveyard A: "Goblin Bushwhacker"
+  library A: "Goblin Bushwhacker", 30 "Plains"
+  turn 1 precombat_main A: cast "Elite Vanguard" targeting auto
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Elite Vanguard"
+  assert power A "Elite Vanguard" 2
+  assert toughness A "Elite Vanguard" 1
+}

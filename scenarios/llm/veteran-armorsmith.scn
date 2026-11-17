@@ -1,0 +1,29 @@
+# Veteran Armorsmith: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two Armorsmiths boost each other" {
+  battlefield A: 2 "Veteran Armorsmith"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert toughness oldest A "Veteran Armorsmith" 4
+  assert toughness newest A "Veteran Armorsmith" 4
+  assert power oldest A "Veteran Armorsmith" 2
+}
+
+scenario "Armorsmith does not boost itself or non-Soldiers" {
+  battlefield A: "Veteran Armorsmith", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert toughness "Veteran Armorsmith" 3
+  assert toughness "Grizzly Bears" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Armorsmith does not boost opponent's Soldiers" {
+  battlefield A: "Veteran Armorsmith"
+  battlefield B: "Veteran Armorsmith"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert toughness A "Veteran Armorsmith" 3
+  assert toughness B "Veteran Armorsmith" 3
+}

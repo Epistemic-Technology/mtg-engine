@@ -1,0 +1,7 @@
+card "Ray of Revelation" {
+  oracle_id 4620bfa8-7198-44ae-a162-51a19ca0f555
+  cost {1}{W}
+  type Instant
+  flashback {G}
+  spell: destroy target enchantment
+}

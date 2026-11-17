@@ -1,0 +1,7 @@
+card "Benthic Behemoth" {
+  oracle_id aea98950-536e-451d-bd25-ae6e3e459ffb
+  cost {5}{U}{U}{U}
+  type Creature — Serpent
+  pt 7/6
+  keywords islandwalk
+}

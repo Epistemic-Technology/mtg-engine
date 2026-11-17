@@ -1,0 +1,6 @@
+card "Bar the Door" {
+  oracle_id 1ecd7248-ff28-4e12-b72a-0cb279ec7561
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +0/+4
+}

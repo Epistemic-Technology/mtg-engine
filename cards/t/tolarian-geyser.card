@@ -1,0 +1,7 @@
+card "Tolarian Geyser" {
+  oracle_id d2240ce8-0bd6-4c4f-a73e-fb0a2af5bfac
+  cost {2}{U}
+  type Sorcery
+  kicker {W}
+  spell: return target creature to hand; draw 1 cards; if kicked, you gains 3 life
+}

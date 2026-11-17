@@ -1,0 +1,7 @@
+card "Deep Analysis" {
+  oracle_id 579cbd92-797f-4cdf-91ed-fca7a523eae5
+  cost {3}{U}
+  type Sorcery
+  flashback {1}{U}, pay 3 life
+  spell: target player draws 2 cards
+}

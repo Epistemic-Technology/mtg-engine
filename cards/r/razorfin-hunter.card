@@ -1,0 +1,7 @@
+card "Razorfin Hunter" {
+  oracle_id 45baa5d1-79aa-4583-b938-0d5feaa5aa0c
+  cost {U}{R}
+  type Creature — Merfolk Goblin
+  pt 1/1
+  activated {T}: deal 1 damage to any target
+}

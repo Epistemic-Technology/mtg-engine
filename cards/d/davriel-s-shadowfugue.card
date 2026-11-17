@@ -1,0 +1,6 @@
+card "Davriel's Shadowfugue" {
+  oracle_id cb490f3f-74ed-4d38-8eda-9948c095f3bc
+  cost {3}{B}
+  type Sorcery
+  spell: target player discards 2 cards and loses 2 life
+}

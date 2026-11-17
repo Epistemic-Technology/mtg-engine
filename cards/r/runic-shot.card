@@ -1,0 +1,7 @@
+card "Runic Shot" {
+  oracle_id aa597788-4149-48b8-9f43-8c0de063eb68
+  cost {W}
+  type Sorcery
+  kicker {U}
+  spell: destroy target tapped creature; if kicked, scry 2
+}

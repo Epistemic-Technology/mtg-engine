@@ -1,0 +1,47 @@
+# Cloak of Mists: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature can't be blocked" {
+  battlefield A: "Grizzly Bears", "Cloak of Mists" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "cast cloak then attack unblocked" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Cloak of Mists"
+  start turn 1 A
+  turn 1 A: cast "Cloak of Mists" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert attached "Cloak of Mists" to "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "unenchanted creature can still be blocked" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Cloak of Mists" on "Hill Giant"
+  battlefield B: "Serra Angel"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "cloak goes to graveyard when creature dies" {
+  battlefield A: "Grizzly Bears", "Cloak of Mists" on "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Cloak of Mists"
+}

@@ -1,0 +1,7 @@
+card "Valakut Invoker" {
+  oracle_id 17ed18cf-33e5-4861-8a36-8f7bb91971f9
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/3
+  activated {8}: deal 3 damage to any target
+}

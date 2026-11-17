@@ -1,0 +1,6 @@
+card "Hidden Path" {
+  oracle_id f1c9f5df-d36a-4e15-bae4-81190e4be477
+  cost {2}{G}{G}{G}{G}
+  type Enchantment
+  static green creature: has forestwalk
+}

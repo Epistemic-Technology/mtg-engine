@@ -1,0 +1,7 @@
+card "Zodiac Pig" {
+  oracle_id eb0a0515-7fa4-4319-9fc3-7a31c608ce9b
+  cost {3}{B}
+  type Creature — Boar
+  pt 3/3
+  keywords swampwalk
+}

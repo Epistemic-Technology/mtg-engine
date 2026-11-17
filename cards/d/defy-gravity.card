@@ -1,0 +1,7 @@
+card "Defy Gravity" {
+  oracle_id 5a295dc1-7f60-4581-b0f9-61e8b14339bf
+  cost {U}
+  type Instant
+  flashback {U}
+  spell: target creature gains flying
+}

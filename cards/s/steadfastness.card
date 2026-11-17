@@ -1,0 +1,6 @@
+card "Steadfastness" {
+  oracle_id 8f8dfc24-f466-4607-8991-acbcbb415db3
+  cost {1}{W}
+  type Sorcery
+  spell: each creature you control gets +0/+3
+}

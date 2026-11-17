@@ -1,0 +1,8 @@
+card "Thornwind Faeries" {
+  oracle_id 941a0e8d-c407-476b-9d0e-cffc1f8c6003
+  cost {1}{U}{U}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  activated {T}: deal 1 damage to any target
+}

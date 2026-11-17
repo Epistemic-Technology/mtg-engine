@@ -1,0 +1,7 @@
+card "Crippling Fatigue" {
+  oracle_id d87190d0-bda3-4ad9-84b2-019f751999ce
+  cost {1}{B}{B}
+  type Sorcery
+  flashback {1}{B}, pay 3 life
+  spell: target creature gets -2/-2
+}

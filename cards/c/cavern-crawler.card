@@ -1,0 +1,8 @@
+card "Cavern Crawler" {
+  oracle_id c7cfb120-1344-4b4e-9c6f-f969ba9c4a18
+  cost {2}{R}
+  type Creature — Insect
+  pt 0/3
+  keywords mountainwalk
+  activated {R}: this gets +1/-1
+}

@@ -1,0 +1,8 @@
+card "Cave People" {
+  oracle_id 6a4e8d44-e6ee-40f7-8df4-52fa4cb346aa
+  cost {1}{R}{R}
+  type Creature — Human
+  pt 1/4
+  triggered whenever this attacks: this gets +1/-2
+  activated {1}{R}{R}, {T}: target creature gains mountainwalk
+}

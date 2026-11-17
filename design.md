@@ -845,6 +845,49 @@ color-restricted discard cost (Krovikan Sorcerer). One attempt was
 rejected for a parse error and the model answered correctly on the
 second. 7,315 input tokens uncached, 44,425 from cache, 3,907 out.
 
+Slice 6 (2026-11-17) did what that run asked for and then ran the model
+author at scale. Engine and DSL: kicker (CR 702.33: `kicker {R}`, a
+`ChoosingKicker` flow step after modes and before X, offered only when
+the kicker is payable on top of the cost; `if kicked, ...` in a spell
+and `if kicked` as a trigger condition, the permanent keeping its
+spell's kicked flag per 702.33c), flashback (CR 702.34: `flashback
+{4}{R}` or `flashback {1}{U}, pay 3 life`; a graveyard card is offered
+as `Choice::Cast` like a hand card, pays the flashback cost, and is
+exiled wherever it would leave the stack, with a per-player count so
+priority enumeration skips graveyards that hold none), the five landwalk
+keywords (CR 702.14, checked in block legality behind one bitmask test),
+`target attacking creature` and `target blocking creature`, "has base
+power and toughness N/N until end of turn" with the `until end of turn,`
+sentence prefix Oracle uses for it, and filtered discard costs ("Discard
+a creature card"). The scenario runner learned `cast ... kicked` and
+`cast ... from graveyard`. The templates follow (Kicker and Flashback
+lines, "if it was kicked", "If this spell was kicked", landwalk,
+filtered discards), which authored 170 more cards (123 Pauper). Of the
+first run's four unsupported cards, three are now in (Second Thoughts,
+Water Wings, Vampire Hounds for the discard cost); Krovikan Sorcerer
+also needs "discard one of them".
+
+`model-author` gained batch mode: `--list <file>` of names, `--jobs N`
+workers over one pass of the snapshot for records and rulings, a
+`--report` file of one line per card, retries with backoff on 429 and
+5xx, and cards already in the corpus skipped. First batch (2026-11-17,
+`claude-opus-5-5`, six workers): the 240 Pauper cards with the shortest
+Oracle text among those the templates skip for an unrecognized sentence,
+after filtering out text that names things the engine plainly lacks
+(library search, tokens, Treasure, extra turns, ...). 67 accepted (28%),
+each with two to four passing scenarios; 172 unsupported; 1 rejected
+after three attempts (Ajani's Mantra). 93 cards took a second attempt
+and 19 a third. 517,532 input tokens uncached, 3,339,938 from cache,
+262,418 out. The unsupported reasons, clustered: 89 want a group
+recipient the DSL lacks ("tap all artifacts", "destroy all enchantments",
+"white creatures you control get +2/+2"), 12 a conditional static ("as
+long as", "during your turn", "can't block black creatures"), 10 "up to
+N targets", 4 triggers on being dealt damage or blocked, 4 "its
+controller" for a targeted spell, 2 one-shot color changes, and the rest
+assorted (an imperative "Mill N cards", legendary short names, the
+Ring). The group recipient is the next primitive; it alone would have
+raised this batch's acceptance to about 65%.
+
 The plan as first written: `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
 (embedding search over Oracle text); prompt an LLM for the DSL and
@@ -1212,6 +1255,22 @@ greedy agent panicking on a mid-resolution discard whose options named
 a card drawn by the same resolution, absent from the state the decision
 is shown against (§4.9's self-describing-options rule), fixed by giving
 `Choice::Discard` the card's definition.
+
+**M3 slice 6 (2026-11-17, same method, measured against the slice 5
+binary, which has slice 3's engine).** The first build carried the
+kicked and flashback flags as two bools on `GameObject`, which grew it
+from 120 to 128 bytes, and every stress deck lost 4–5% (mono-red
+4,763→4,535, copy 1,440→1,389, slice6 831→792, triggers 1,136→1,116);
+the profiles showed no new hot function, only `characteristics` and the
+allocator up a point each, which is what a fatter object looks like.
+Packing the mode and both flags into one byte (`CastInfo`) put the size
+back to 120 and the numbers inside the band: mono-red 4,763→4,661
+(−2.1%), copy 1,467→1,444, slice6 831→821. The per-step additions
+(kicker check only for cards with one, graveyard scan only while a
+flashback card is there, landwalk behind one bitmask test) cost nothing
+measurable. The random-deck figure is not comparable across pools (the
+decks differ), so it is not reported here. Fuzz: 36,000 stress-deck and
+10,000 random-deck games, 0 panics, 0 unfinished.
 
 ### 8.2 Techniques
 
@@ -1803,6 +1862,21 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, slice 6 (the first run's backlog, then the model
+author at scale) done: kicker, flashback, landwalk, attacking and
+blocking targets, base power and toughness until end of turn, and
+filtered discard costs are in the engine, the DSL, the scenario runner,
+and the templates (§6.4); 17 scenarios in `scenarios/m3/primitives-2.scn`
+cover them with real cards. Template authoring added 170 cards and the
+first 240-card model-author batch 67 more (28% accepted, with the
+unsupported reasons recorded as the next backlog: group recipients
+first). Corpus 3,929 cards (2,848 Pauper, 26.6%; 2,949 Modern, 13.6%;
+gate 3,921 of 3,921 matching, 1 allowed), 140 hand-written and 68
+model-authored, all scenario-tested. Scenarios: 670 pass (410
+hand-written and primitive, 231 model-authored, 29 converted from XMage
+of which 28 pass; 1 skipped for adjudication). Fuzz: 36,000 stress-deck
+and 10,000 random-deck games, 0 panics, 0 unfinished.
 
 Status 2026-11-17, slice 5 (model-driven authoring) built: `mtg-cards
 model-author` with the prompt pack, the gate-and-feedback loop, and

@@ -240,7 +240,8 @@ impl GreedyAgent {
             | DecisionKind::YouMay { .. }
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
-            | DecisionKind::PayOrCounter { .. } => 0,
+            | DecisionKind::PayOrCounter { .. }
+            | DecisionKind::Kicker { .. } => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.
             DecisionKind::LegendRule | DecisionKind::ChooseX { .. } => {

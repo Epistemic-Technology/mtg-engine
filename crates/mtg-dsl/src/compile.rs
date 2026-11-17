@@ -116,6 +116,15 @@ impl Compiler<'_> {
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
+        if let Some(k) = &card.kicker {
+            b = b.kicker(k.clone());
+        }
+        if let Some(fb) = &card.flashback {
+            if fb.tap || fb.discard > 0 || fb.sacrifice.is_some() || fb.discard_self {
+                return self.err("a flashback cost may only be mana and life");
+            }
+            b = b.flashback(self.cost(fb));
+        }
         let spells = card
             .abilities
             .iter()
@@ -192,6 +201,7 @@ impl Compiler<'_> {
             discard_self: c.discard_self,
             life: c.life,
             discard: c.discard,
+            discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: c.loyalty.unwrap_or(0),
             tap: c.tap,
             sacrifice: match &c.sacrifice {
@@ -372,6 +382,19 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
             }
+            Effect::IfKicked(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::IfKicked(effects));
+            }
+            Effect::SetBasePt {
+                to,
+                power,
+                toughness,
+            } => out.push(CoreEffect::SetBasePt {
+                to: r(*to),
+                power: *power,
+                toughness: *toughness,
+            }),
             Effect::Delayed {
                 about,
                 trigger,

@@ -1,0 +1,7 @@
+card "Zodiac Monkey" {
+  oracle_id 47dd7ef4-7645-4878-ab91-261aa8fcf834
+  cost {1}{G}
+  type Creature — Monkey
+  pt 2/1
+  keywords forestwalk
+}

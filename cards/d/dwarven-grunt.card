@@ -1,0 +1,7 @@
+card "Dwarven Grunt" {
+  oracle_id 6da00e2d-4287-48eb-8abe-d153318381fd
+  cost {R}
+  type Creature — Dwarf
+  pt 1/1
+  keywords mountainwalk
+}

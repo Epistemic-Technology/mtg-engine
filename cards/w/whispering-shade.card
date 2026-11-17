@@ -1,0 +1,8 @@
+card "Whispering Shade" {
+  oracle_id 0036d062-10dc-4267-98b4-1d2f6b190a61
+  cost {3}{B}
+  type Creature — Shade
+  pt 1/1
+  keywords swampwalk
+  activated {B}: this gets +1/+1
+}

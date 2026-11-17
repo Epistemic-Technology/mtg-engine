@@ -1,0 +1,34 @@
+# Marsh Gas: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Marsh Gas shrinks power of all creatures" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Marsh Gas"
+  turn 1 A: cast "Marsh Gas"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 0
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+  assert graveyard A contains "Marsh Gas"
+}
+
+scenario "Marsh Gas reduces combat damage from an attacker" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Marsh Gas"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Marsh Gas"
+  run_to turn 2 postcombat_main
+  assert life A 19
+}
+
+scenario "Marsh Gas wears off at end of turn" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Marsh Gas"
+  turn 1 A: cast "Marsh Gas"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}

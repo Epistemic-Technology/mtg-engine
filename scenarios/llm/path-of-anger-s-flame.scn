@@ -1,0 +1,46 @@
+# Path of Anger's Flame: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumps only creatures you control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Path of Anger's Flame"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Path of Anger's Flame"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 5
+  assert toughness "Hill Giant" 3
+  assert power "Serra Angel" 4
+  assert graveyard A contains "Path of Anger's Flame"
+}
+
+scenario "pumped attacker deals extra damage" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Path of Anger's Flame"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Path of Anger's Flame"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "cast as instant during combat" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Path of Anger's Flame"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Path of Anger's Flame"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "bonus wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Path of Anger's Flame"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Path of Anger's Flame"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}

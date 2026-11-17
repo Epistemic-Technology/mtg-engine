@@ -1,0 +1,7 @@
+card "Ray of Distortion" {
+  oracle_id 1c838441-4713-49dd-97e6-4fb7155c36c8
+  cost {3}{W}
+  type Instant
+  flashback {4}{W}{W}
+  spell: destroy target artifact or enchantment
+}

@@ -1,0 +1,7 @@
+card "River Merfolk" {
+  oracle_id 2f503ee5-9180-438e-8af5-2af7f8f08a3a
+  cost {U}{U}
+  type Creature — Merfolk
+  pt 2/1
+  activated {U}: this gains mountainwalk
+}

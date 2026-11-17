@@ -1,0 +1,6 @@
+card "Solidarity" {
+  oracle_id 7b094a2b-2b69-4a9b-9829-c1aabc53f75e
+  cost {3}{W}
+  type Instant
+  spell: each creature you control gets +0/+5
+}

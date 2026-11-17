@@ -1,0 +1,9 @@
+card "Lotleth Troll" {
+  oracle_id 61b1d7e5-6155-4204-b110-35a890551ec8
+  cost {B}{G}
+  type Creature — Zombie Troll
+  pt 2/1
+  keywords trample
+  activated discard creature card: put 1 +1/+1 counters on this
+  activated {B}: regenerate this
+}

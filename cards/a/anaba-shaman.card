@@ -1,0 +1,7 @@
+card "Anaba Shaman" {
+  oracle_id bc416c17-e1f0-4344-8c21-6184cac10205
+  cost {3}{R}
+  type Creature — Minotaur Shaman
+  pt 2/2
+  activated {R}, {T}: deal 1 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Aliban's Tower" {
+  oracle_id 3d169bb1-e91b-46d8-9280-797192926314
+  cost {1}{R}
+  type Instant
+  spell: target blocking creature gets +3/+1
+}

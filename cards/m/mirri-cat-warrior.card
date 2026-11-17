@@ -1,0 +1,7 @@
+card "Mirri, Cat Warrior" {
+  oracle_id f01efb04-ad2b-46fb-852c-dfb7e523e1b7
+  cost {1}{G}{G}
+  type Legendary Creature — Cat Warrior
+  pt 2/3
+  keywords first strike, forestwalk, vigilance
+}

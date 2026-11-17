@@ -1,0 +1,7 @@
+card "Slinking Serpent" {
+  oracle_id 23875679-5c08-44ff-90b3-13a1a758e5f7
+  cost {2}{U}{B}
+  type Creature — Serpent
+  pt 2/3
+  keywords forestwalk
+}

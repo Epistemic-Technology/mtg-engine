@@ -1,0 +1,7 @@
+card "Sokenzan Bruiser" {
+  oracle_id 934d42b2-5dca-4a29-82d3-6778796178d9
+  cost {4}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+  keywords mountainwalk
+}

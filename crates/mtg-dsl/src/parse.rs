@@ -57,6 +57,11 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["double", "strike"], Keyword::DoubleStrike),
     (&["first", "strike"], Keyword::FirstStrike),
     (&["deathtouch"], Keyword::Deathtouch),
+    (&["plainswalk"], Keyword::Plainswalk),
+    (&["islandwalk"], Keyword::Islandwalk),
+    (&["swampwalk"], Keyword::Swampwalk),
+    (&["mountainwalk"], Keyword::Mountainwalk),
+    (&["forestwalk"], Keyword::Forestwalk),
     (&["defender"], Keyword::Defender),
     (&["flash"], Keyword::Flash),
     (&["flying"], Keyword::Flying),
@@ -98,6 +103,8 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         &["attacking", "or", "blocking", "creature"],
         TargetSpec::AttackingOrBlockingCreature,
     ),
+    (&["attacking", "creature"], TargetSpec::AttackingCreature),
+    (&["blocking", "creature"], TargetSpec::BlockingCreature),
     (
         &["artifact", "or", "creature"],
         TargetSpec::ArtifactOrCreature,
@@ -436,6 +443,8 @@ impl P {
             loyalty: None,
             keywords: Vec::new(),
             additional: None,
+            kicker: None,
+            flashback: None,
             abilities: Vec::new(),
             except: None,
             mismatch: None,
@@ -524,6 +533,16 @@ impl P {
                 self.pos += 1;
                 self.expect_word("cost")?;
                 card.additional = Some(self.cost()?);
+                self.end_stmt()
+            }
+            "kicker" => {
+                self.pos += 1;
+                card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "flashback" => {
+                self.pos += 1;
+                card.flashback = Some(self.cost()?);
                 self.end_stmt()
             }
             "oracle_mismatch" => {
@@ -907,6 +926,11 @@ impl P {
     /// Clauses joined by `and`.
     fn sentence(&mut self) -> R<Sentence> {
         self.subject = None;
+        // "until end of turn, <clauses>": the duration printed first.
+        let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
+        if eot_first && self.peek() == Some(&Tok::Comma) {
+            self.pos += 1;
+        }
         let mut clauses = vec![self.clause()?];
         let mut joins = Vec::new();
         loop {
@@ -929,6 +953,7 @@ impl P {
         Ok(Sentence {
             effects: clauses,
             para: false,
+            eot_first,
             joins,
         })
     }
@@ -995,6 +1020,22 @@ impl P {
                 vec![s]
             };
             return Ok(Effect::YouMay(inner));
+        }
+        // "if kicked, ..." (CR 702.33c).
+        if self.at_words(&["if", "kicked"]) {
+            self.pos += 2;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let inner = if self.peek() == Some(&Tok::LBrace) {
+                self.effects_body()?
+            } else {
+                let saved = self.subject.take();
+                let s = self.sentence()?;
+                self.subject = saved;
+                vec![s]
+            };
+            return Ok(Effect::IfKicked(inner));
         }
         if self.at_words(&["this", "turn"]) {
             self.pos += 2;
@@ -1101,6 +1142,23 @@ impl P {
             "fights" => {
                 let b = self.recipient()?;
                 Ok(Effect::Fight { a: subject, b })
+            }
+            "has" | "have" => {
+                self.expect_words(&["base", "power", "and", "toughness"])?;
+                let Some(Tok::Pt {
+                    power,
+                    toughness,
+                    signed: false,
+                }) = self.next()
+                else {
+                    return self.fail("expected N/N after `base power and toughness`");
+                };
+                self.until_end_of_turn();
+                Ok(Effect::SetBasePt {
+                    to: subject,
+                    power,
+                    toughness,
+                })
             }
             "can't" => {
                 let keywords = if self.eat_word("block") {
@@ -1908,6 +1966,9 @@ impl P {
         if self.eat_words(&["no", "creatures", "are", "on", "the", "battlefield"]) {
             return Ok(Condition::NoCreatures);
         }
+        if self.eat_word("kicked") {
+            return Ok(Condition::Kicked);
+        }
         self.unexpected("a condition")
     }
 
@@ -1958,9 +2019,16 @@ impl P {
                         if self.eat_word("this") {
                             self.eat_word("card");
                             cost.discard_self = true;
-                        } else {
+                        } else if matches!(self.peek(), Some(Tok::Num(_))) {
                             cost.discard = self.count()?;
                             self.cards_word()?;
+                        } else {
+                            // "discard a creature card": one card matching
+                            // a filter.
+                            let f = self.filter()?;
+                            self.cards_word()?;
+                            cost.discard = 1;
+                            cost.discard_filter = Some(f);
                         }
                         cost.order.push(CostItem::Discard);
                     }

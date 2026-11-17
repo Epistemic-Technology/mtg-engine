@@ -1,0 +1,6 @@
+card "Night's Whisper" {
+  oracle_id 7ffae8f8-3006-4969-a339-6d30678f87ea
+  cost {1}{B}
+  type Sorcery
+  spell: you draw 2 cards and lose 2 life
+}

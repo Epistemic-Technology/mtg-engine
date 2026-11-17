@@ -1,0 +1,6 @@
+card "Banners Raised" {
+  oracle_id b60d83ea-18bf-4c64-b4ee-981d54629362
+  cost {R}
+  type Instant
+  spell: each creature you control gets +1/+0
+}

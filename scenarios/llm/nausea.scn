@@ -1,0 +1,52 @@
+# Nausea: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Nausea shrinks every creature on both sides" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Nausea"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nausea"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+  assert graveyard A contains "Nausea"
+}
+
+scenario "Nausea wears off at end of turn" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Nausea"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nausea"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Nausea plus Shock kills a Hill Giant" {
+  battlefield A: 2 "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Nausea", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nausea"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Creatures entering after Nausea resolves are unaffected" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Nausea", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nausea"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

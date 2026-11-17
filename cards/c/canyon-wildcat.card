@@ -1,0 +1,7 @@
+card "Canyon Wildcat" {
+  oracle_id dbf7b3ef-1ca4-4b0d-bec2-f5e60b150013
+  cost {1}{R}
+  type Creature — Cat
+  pt 2/1
+  keywords mountainwalk
+}

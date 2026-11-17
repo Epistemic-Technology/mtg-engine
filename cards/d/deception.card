@@ -1,0 +1,6 @@
+card "Deception" {
+  oracle_id ae1b44df-1d8c-453a-9efb-6d1c93e52418
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent discards 2 cards
+}

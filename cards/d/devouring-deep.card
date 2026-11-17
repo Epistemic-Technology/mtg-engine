@@ -1,0 +1,7 @@
+card "Devouring Deep" {
+  oracle_id e0f18302-5ccf-47d2-a8a1-bb7aeaca9a53
+  cost {2}{U}
+  type Creature — Fish
+  pt 1/2
+  keywords islandwalk
+}

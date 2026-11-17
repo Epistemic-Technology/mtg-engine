@@ -1,0 +1,6 @@
+card "Blood Pact" {
+  oracle_id cfc5a284-7238-4c98-9d2f-7e5c3329be7b
+  cost {2}{B}
+  type Instant
+  spell: target player draws 2 cards and loses 2 life
+}

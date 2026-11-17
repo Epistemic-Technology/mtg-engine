@@ -60,6 +60,12 @@ pub fn format(card: &Card) -> String {
     if let Some(c) = &card.additional {
         let _ = writeln!(out, "  additional cost {}", cost_text(c));
     }
+    if let Some(k) = &card.kicker {
+        let _ = writeln!(out, "  kicker {k}");
+    }
+    if let Some(c) = &card.flashback {
+        let _ = writeln!(out, "  flashback {}", cost_text(c));
+    }
     for a in &card.abilities {
         ability(&mut out, a, "  ");
     }
@@ -207,6 +213,9 @@ impl Fmt {
 
     fn sentence(&mut self, s: &Sentence, targets: &[Target]) -> String {
         let mut out = String::new();
+        if s.eot_first {
+            out.push_str("until end of turn, ");
+        }
         for (i, e) in s.effects.iter().enumerate() {
             if i > 0 {
                 out.push_str(match s.joins.get(i - 1) {
@@ -387,6 +396,15 @@ impl Fmt {
                 )
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
+            Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::SetBasePt {
+                to,
+                power,
+                toughness,
+            } => format!(
+                "{} has base power and toughness {power}/{toughness}",
+                self.recipient(*to, t)
+            ),
             Effect::Delayed {
                 about,
                 trigger,
@@ -657,6 +675,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());
+                } else if let Some(f) = &c.discard_filter {
+                    parts.push(format!("discard {} card", filter(f)));
                 } else if c.discard > 0 {
                     parts.push(format!(
                         "discard {} {}",
@@ -852,6 +872,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
                 Some(mtg_core::card::Condition::NoCreatures) => {
                     head.push_str(" if no creatures are on the battlefield");
                 }
+                Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 None => {}
             }
             body(out, indent, &head, effects, targets);

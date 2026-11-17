@@ -1,0 +1,49 @@
+# Horrifying Revelation: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "target player discards a card then mills a card" {
+  battlefield A: "Swamp"
+  hand A: "Horrifying Revelation"
+  hand B: "Grizzly Bears"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: cast "Horrifying Revelation" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 0
+  assert library B contains "Forest"
+  assert graveyard A contains "Horrifying Revelation"
+}
+
+scenario "empty hand still mills" {
+  battlefield A: "Swamp"
+  hand A: "Horrifying Revelation"
+  library B: "Hill Giant", "Forest"
+  turn 1 A: cast "Horrifying Revelation" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert library B lacks "Hill Giant"
+}
+
+scenario "empty library still discards" {
+  battlefield A: "Swamp"
+  hand A: "Horrifying Revelation"
+  hand B: "Serra Angel"
+  library B:
+  turn 1 A: cast "Horrifying Revelation" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert hand B count 0
+}
+
+scenario "can target yourself" {
+  battlefield A: "Swamp"
+  hand A: "Horrifying Revelation", "Wind Drake"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Horrifying Revelation" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Horrifying Revelation"
+}

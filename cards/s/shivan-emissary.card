@@ -1,0 +1,8 @@
+card "Shivan Emissary" {
+  oracle_id 1b885600-def1-4b2c-a6cb-02df34d58a1b
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 1/1
+  kicker {1}{B}
+  triggered when this enters if kicked: destroy target nonblack creature without regeneration
+}

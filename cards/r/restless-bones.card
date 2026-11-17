@@ -1,0 +1,8 @@
+card "Restless Bones" {
+  oracle_id b6c6e872-1363-480f-9a8d-c393361ccbc1
+  cost {2}{B}
+  type Creature — Skeleton
+  pt 1/1
+  activated {3}{B}, {T}: target creature gains swampwalk
+  activated {1}{B}: regenerate this
+}

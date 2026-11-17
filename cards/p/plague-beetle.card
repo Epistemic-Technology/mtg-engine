@@ -1,0 +1,7 @@
+card "Plague Beetle" {
+  oracle_id 96415c51-2d44-4a96-9caa-9c4fbde59fca
+  cost {B}
+  type Creature — Insect
+  pt 1/1
+  keywords swampwalk
+}

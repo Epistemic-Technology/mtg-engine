@@ -1,0 +1,36 @@
+# Pierce Strider: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Pierce Strider entering makes target opponent lose 3 life" {
+  battlefield A: 4 "Plains"
+  hand A: "Pierce Strider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pierce Strider"
+  turn 1 A: trigger "Pierce Strider" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 20
+  assert battlefield A contains "Pierce Strider"
+}
+
+scenario "Pierce Strider trigger can finish off an opponent" {
+  life B 3
+  battlefield A: 4 "Island"
+  hand A: "Pierce Strider"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pierce Strider"
+  turn 1 A: trigger "Pierce Strider" targeting player B
+  run_to turn 1 postcombat_main
+  assert game_over
+  assert winner A
+}
+
+scenario "Pierce Strider already on the battlefield attacks as a 3/3 without triggering" {
+  battlefield A: "Pierce Strider"
+  start turn 2 A
+  turn 2 A: attack "Pierce Strider"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert power "Pierce Strider" 3
+  assert toughness "Pierce Strider" 3
+}

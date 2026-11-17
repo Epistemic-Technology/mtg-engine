@@ -1,0 +1,7 @@
+card "Viashino Fangtail" {
+  oracle_id 5140cd2f-af30-4405-b5e4-996ef6349f59
+  cost {2}{R}{R}
+  type Creature — Lizard Warrior
+  pt 3/3
+  activated {T}: deal 1 damage to any target
+}

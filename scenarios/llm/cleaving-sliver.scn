@@ -1,0 +1,36 @@
+# Cleaving Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Cleaving Sliver pumps itself but not non-Slivers" {
+  battlefield A: "Cleaving Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Cleaving Sliver" 4
+  assert toughness "Cleaving Sliver" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Cleaving Sliver does not pump opponent's Slivers" {
+  battlefield A: "Cleaving Sliver"
+  battlefield B: "Cleaving Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power A "Cleaving Sliver" 4
+  assert power B "Cleaving Sliver" 4
+}
+
+scenario "Cleaving Sliver attacks for 4" {
+  battlefield A: "Cleaving Sliver"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Cleaving Sliver"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Two Cleaving Slivers pump each other" {
+  battlefield A: 2 "Cleaving Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power oldest A "Cleaving Sliver" 6
+  assert power newest A "Cleaving Sliver" 6
+}

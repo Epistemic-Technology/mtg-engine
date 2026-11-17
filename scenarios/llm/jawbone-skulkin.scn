@@ -1,0 +1,36 @@
+# Jawbone Skulkin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Jawbone Skulkin gives a freshly cast red creature haste" {
+  battlefield A: "Jawbone Skulkin", 6 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Jawbone Skulkin" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" haste
+  assert life B 17
+}
+
+scenario "without the activation the red creature cannot attack" {
+  battlefield A: "Jawbone Skulkin", 6 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  illegal turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has not "Hill Giant" haste
+  assert life B 20
+}
+
+scenario "Jawbone Skulkin cannot target a nonred creature" {
+  battlefield A: "Jawbone Skulkin", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Jawbone Skulkin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" haste
+  assert untapped oldest A "Mountain"
+  assert untapped newest A "Mountain"
+}

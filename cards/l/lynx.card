@@ -1,0 +1,7 @@
+card "Lynx" {
+  oracle_id 61652a2d-dfe6-4d4f-8fad-9de1960208cb
+  cost {1}{G}
+  type Creature — Cat
+  pt 2/1
+  keywords forestwalk
+}

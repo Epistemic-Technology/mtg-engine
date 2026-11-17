@@ -1,0 +1,7 @@
+card "Willow Dryad" {
+  oracle_id 19d5eb29-2d35-44e7-afa1-3ba8d812ed41
+  cost {G}
+  type Creature — Dryad
+  pt 1/1
+  keywords forestwalk
+}

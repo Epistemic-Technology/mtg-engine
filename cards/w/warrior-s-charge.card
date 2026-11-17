@@ -1,0 +1,6 @@
+card "Warrior's Charge" {
+  oracle_id 5cf28c04-76af-4eb8-9969-366dc8e04690
+  cost {2}{W}
+  type Sorcery
+  spell: each creature you control gets +1/+1
+}

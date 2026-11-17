@@ -1,0 +1,7 @@
+card "Mine Bearer" {
+  oracle_id 19fba3c8-3363-4f2f-a2fb-01e59a77447c
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {T}, sacrifice this: destroy target attacking creature
+}

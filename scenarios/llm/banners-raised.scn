@@ -1,0 +1,48 @@
+# Banners Raised: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Banners Raised pumps only your creatures' power" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Banners Raised"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banners Raised"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 3
+  assert power "Serra Angel" 4
+  assert graveyard A contains "Banners Raised"
+}
+
+scenario "Banners Raised adds combat damage" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Banners Raised"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banners Raised"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "creatures entering after resolution are unaffected" {
+  battlefield A: "Hill Giant", "Mountain", 2 "Forest"
+  hand A: "Banners Raised", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banners Raised"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Banners Raised bonus ends at end of turn" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Banners Raised"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banners Raised"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}

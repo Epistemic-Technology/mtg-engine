@@ -1,0 +1,7 @@
+card "Vampire Opportunist" {
+  oracle_id 6f525ccd-4776-492c-a1f9-8bce5740fb28
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/1
+  activated {6}{B}: each opponent loses 2 life and you gain 2 life
+}

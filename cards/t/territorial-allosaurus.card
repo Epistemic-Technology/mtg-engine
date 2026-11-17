@@ -1,0 +1,8 @@
+card "Territorial Allosaurus" {
+  oracle_id 7fe39c74-cb7c-4eee-a657-8a99a4ab383a
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 5/5
+  kicker {2}{G}
+  triggered when this enters if kicked: this fights another target creature
+}

@@ -1,0 +1,6 @@
+card "Nausea" {
+  oracle_id 2b8abae2-dd15-41ee-81ae-6a463723b43e
+  cost {1}{B}
+  type Sorcery
+  spell: each creature gets -1/-1
+}

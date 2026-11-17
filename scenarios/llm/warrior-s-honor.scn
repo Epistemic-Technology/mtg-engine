@@ -1,0 +1,46 @@
+# Warrior's Honor: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Warrior's Honor pumps only your creatures until end of turn" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Warrior's Honor"
+  turn 1 A: cast "Warrior's Honor"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Serra Angel" 5
+  assert toughness "Serra Angel" 5
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+  assert graveyard A contains "Warrior's Honor"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Serra Angel" 4
+}
+
+scenario "creature entering after resolution does not get the bonus" {
+  battlefield A: 3 "Plains", 3 "Forest", "Serra Angel"
+  hand A: "Warrior's Honor", "Grizzly Bears"
+  turn 1 A: cast "Warrior's Honor"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Serra Angel" 5
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Warrior's Honor in response saves a creature from Shock" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Warrior's Honor"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: cast "Warrior's Honor" in response to "Shock"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}

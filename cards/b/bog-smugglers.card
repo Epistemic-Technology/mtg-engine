@@ -1,0 +1,7 @@
+card "Bog Smugglers" {
+  oracle_id 5041dbc4-d01d-4f0a-b5c5-6e1df0976340
+  cost {1}{B}{B}
+  type Creature — Human Mercenary
+  pt 2/2
+  keywords swampwalk
+}

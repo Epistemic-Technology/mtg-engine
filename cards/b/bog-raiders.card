@@ -1,0 +1,7 @@
+card "Bog Raiders" {
+  oracle_id 60824fae-20ed-4122-82c9-e99a1b679c54
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  keywords swampwalk
+}

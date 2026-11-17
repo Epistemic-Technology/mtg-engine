@@ -1,0 +1,7 @@
+card "Bog Wraith" {
+  oracle_id 508248d1-09a4-4e41-a4c9-286618e5061e
+  cost {3}{B}
+  type Creature — Wraith
+  pt 3/3
+  keywords swampwalk
+}

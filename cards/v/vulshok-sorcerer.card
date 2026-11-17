@@ -1,0 +1,8 @@
+card "Vulshok Sorcerer" {
+  oracle_id 6f858405-dfe4-4ca2-b2e3-80ce8cda5522
+  cost {1}{R}{R}
+  type Creature — Human Shaman Sorcerer
+  pt 1/1
+  keywords haste
+  activated {T}: deal 1 damage to any target
+}

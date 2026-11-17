@@ -1,0 +1,6 @@
+card "Mind Sculpt" {
+  oracle_id 4d8592d7-2e36-4a7a-be9e-7c8f512d5f62
+  cost {1}{U}
+  type Sorcery
+  spell: target opponent mills 7 cards
+}

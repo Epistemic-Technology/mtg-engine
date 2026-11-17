@@ -1,0 +1,7 @@
+card "Wild Hunger" {
+  oracle_id 9d250088-d5f2-40ed-bdb7-a6decce0fb67
+  cost {2}{G}
+  type Instant
+  flashback {3}{R}
+  spell: target creature gets +3/+1 and gains trample
+}

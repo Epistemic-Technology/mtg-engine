@@ -1,0 +1,36 @@
+# Hoof Skulkin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Hoof Skulkin pumps a green creature until end of turn" {
+  battlefield A: "Hoof Skulkin", 3 "Forest", "Grizzly Bears"
+  turn 1 A: activate "Hoof Skulkin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert tapped oldest "Forest"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Hoof Skulkin has no legal target without a green creature" {
+  battlefield A: "Hoof Skulkin", 3 "Mountain", "Hill Giant"
+  illegal turn 1 A: activate "Hoof Skulkin" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+  assert power "Hoof Skulkin" 2
+}
+
+scenario "Hoof Skulkin pump can save a green creature from Shock" {
+  battlefield A: "Hoof Skulkin", 3 "Forest", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 precombat_main A: activate "Hoof Skulkin" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}

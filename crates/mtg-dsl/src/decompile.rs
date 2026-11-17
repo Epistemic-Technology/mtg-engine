@@ -78,6 +78,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         loyalty: (def.loyalty > 0).then_some(def.loyalty),
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
+        kicker: def.kicker.clone(),
+        flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         abilities: def.abilities.iter().map(|a| d.ability(a)).collect(),
         except: def.copy_except.as_ref().map(|x| Except {
             subtypes: x.subtypes.clone(),
@@ -139,6 +141,7 @@ impl Decompiler<'_> {
             tap: c.tap,
             life: c.life,
             discard: c.discard,
+            discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: (c.loyalty != 0).then_some(c.loyalty),
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
                 CoreSacCost::This => SacCost::This,
@@ -287,6 +290,16 @@ impl Decompiler<'_> {
                 toughness: *toughness,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
+            CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::SetBasePt {
+                to,
+                power,
+                toughness,
+            } => Effect::SetBasePt {
+                to: r(*to),
+                power: *power,
+                toughness: *toughness,
+            },
             CoreEffect::Delayed { ability, about } => {
                 let AbilityDef::Triggered(t) = self.pool.ability(*ability) else {
                     panic!("delayed ability is not triggered");

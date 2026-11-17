@@ -1,0 +1,39 @@
+# Lancer Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Lancer Sliver has first strike and kills a blocker unharmed" {
+  battlefield A: "Lancer Sliver"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Lancer Sliver"
+  turn 1 B: block "Lancer Sliver" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Lancer Sliver"
+  assert damage "Lancer Sliver" 0
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "non-Sliver creatures do not gain first strike" {
+  battlefield A: "Lancer Sliver", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Lancer Sliver"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 B: assign "Hill Giant" to "Grizzly Bears" 3
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Lancer Sliver"
+}
+
+scenario "first strike lets Lancer Sliver win a trade with an equal creature" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Lancer Sliver"
+  start turn 2 B
+  turn 2 B: attack "Lancer Sliver"
+  turn 2 A: block "Lancer Sliver" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Lancer Sliver"
+  assert life A 20
+}

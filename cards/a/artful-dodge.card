@@ -1,0 +1,7 @@
+card "Artful Dodge" {
+  oracle_id c174dcbb-03a0-439c-b3d8-ed61bd46dc67
+  cost {U}
+  type Sorcery
+  flashback {U}
+  spell: target creature can't be blocked
+}

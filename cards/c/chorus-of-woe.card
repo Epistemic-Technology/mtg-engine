@@ -1,0 +1,6 @@
+card "Chorus of Woe" {
+  oracle_id e175a3c1-df6c-4aa7-a4c9-893b466ad9e0
+  cost {B}
+  type Sorcery
+  spell: each creature you control gets +1/+0
+}

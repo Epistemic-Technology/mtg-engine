@@ -1,0 +1,7 @@
+card "Ivy Dancer" {
+  oracle_id f2e081be-87ef-457a-a5cb-2c2ff10cbcf5
+  cost {2}{G}
+  type Creature — Dryad Shaman
+  pt 1/2
+  activated {T}: target creature gains forestwalk
+}

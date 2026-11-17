@@ -1,0 +1,39 @@
+# Battleground Geist: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "geist does not pump itself or non-Spirits" {
+  battlefield A: "Battleground Geist", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Battleground Geist" 3
+  assert toughness "Battleground Geist" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "two geists pump each other" {
+  battlefield A: 2 "Battleground Geist"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power oldest A "Battleground Geist" 4
+  assert power newest A "Battleground Geist" 4
+  assert toughness oldest A "Battleground Geist" 3
+}
+
+scenario "geist does not pump opponent's spirit" {
+  battlefield A: "Battleground Geist"
+  battlefield B: "Battleground Geist"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power A "Battleground Geist" 3
+  assert power B "Battleground Geist" 3
+}
+
+scenario "flying geist cannot be blocked by ground creature" {
+  battlefield A: "Battleground Geist"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Battleground Geist"
+  illegal turn 2 B: block "Battleground Geist" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+}

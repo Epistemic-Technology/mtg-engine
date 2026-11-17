@@ -1,0 +1,7 @@
+card "Farbog Explorer" {
+  oracle_id f474c1f8-43bb-4e56-8131-27c71b3193d2
+  cost {2}{W}
+  type Creature — Human Scout
+  pt 2/3
+  keywords swampwalk
+}

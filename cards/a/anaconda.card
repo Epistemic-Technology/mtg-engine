@@ -1,0 +1,7 @@
+card "Anaconda" {
+  oracle_id 3eff03f1-2c5f-4c59-b465-a8c4cd05e1ba
+  cost {3}{G}
+  type Creature — Snake
+  pt 3/3
+  keywords swampwalk
+}

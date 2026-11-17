@@ -1,0 +1,7 @@
+card "Vampire's Bite" {
+  oracle_id 9e88796b-f37f-4f9f-9a6f-695db2801f0e
+  cost {B}
+  type Instant
+  kicker {2}{B}
+  spell: target creature gets +3/+0; if kicked, that creature gains lifelink
+}

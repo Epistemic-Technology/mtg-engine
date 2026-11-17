@@ -1,0 +1,7 @@
+card "Morbid Hunger" {
+  oracle_id 6e7e9685-ebe9-4db2-b52c-f6ce95e37e56
+  cost {4}{B}{B}
+  type Sorcery
+  flashback {7}{B}{B}
+  spell: deal 3 damage to any target; you gains 3 life
+}

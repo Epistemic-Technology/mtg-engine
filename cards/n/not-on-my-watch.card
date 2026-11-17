@@ -1,0 +1,6 @@
+card "Not on My Watch" {
+  oracle_id 2d400c01-d2d0-442a-bc3d-cf106a754dab
+  cost {1}{W}
+  type Instant
+  spell: exile target attacking creature
+}

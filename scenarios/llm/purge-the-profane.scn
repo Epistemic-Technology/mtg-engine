@@ -1,0 +1,38 @@
+# Purge the Profane: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "opponent discards two cards and caster gains 2 life" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Purge the Profane"
+  hand B: "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Purge the Profane" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life A 22
+  assert life B 20
+  assert graveyard A contains "Purge the Profane"
+}
+
+scenario "fewer than two cards: discards what it has, still gains 2 life" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Purge the Profane"
+  hand B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Purge the Profane" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Serra Angel"
+  assert life A 22
+}
+
+scenario "empty hand: caster still gains 2 life" {
+  battlefield A: 2 "Plains", 2 "Swamp"
+  hand A: "Purge the Profane"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Purge the Profane" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert life A 22
+  assert graveyard A contains "Purge the Profane"
+}

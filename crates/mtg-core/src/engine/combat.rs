@@ -45,8 +45,27 @@ impl GameState {
         if a.has(Keyword::Unblockable) {
             return false;
         }
+        // CR 702.14b: landwalk makes the attacker unblockable while the
+        // defending player controls a land of that basic type.
+        if a.keywords.intersects(crate::card::KeywordSet::LANDWALK) {
+            let defender = self.objects[blocker].controller;
+            for c in crate::mana::Color::ALL {
+                if a.has(Keyword::landwalk_for(c)) && self.controls_basic_type(defender, c) {
+                    return false;
+                }
+            }
+        }
         // CR 702.9b: flying is blocked only by flying or reach.
         !a.has(Keyword::Flying) || b.has(Keyword::Flying) || b.has(Keyword::Reach)
+    }
+
+    /// Whether `p` controls a land with the basic land type of `c`.
+    fn controls_basic_type(&self, p: PlayerId, c: crate::mana::Color) -> bool {
+        self.permanents_of(p).any(|id| {
+            self.characteristics(id).is_some_and(|ch| {
+                ch.is_land() && ch.subtypes.iter().any(|s| s.basic_color() == Some(c))
+            })
+        })
     }
 
     pub(super) fn has_menace(&self, attacker: ObjId) -> bool {

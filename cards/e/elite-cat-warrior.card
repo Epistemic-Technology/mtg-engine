@@ -1,0 +1,7 @@
+card "Elite Cat Warrior" {
+  oracle_id 9297e50f-f8a5-4793-b64d-a119404f94ce
+  cost {2}{G}
+  type Creature — Cat Warrior
+  pt 2/3
+  keywords forestwalk
+}

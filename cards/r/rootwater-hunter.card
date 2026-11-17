@@ -1,0 +1,7 @@
+card "Rootwater Hunter" {
+  oracle_id 8e42ed82-8b56-46ad-a1ca-e29689a9d030
+  cost {2}{U}
+  type Creature — Merfolk
+  pt 1/1
+  activated {T}: deal 1 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Warrior's Honor" {
+  oracle_id c3c9da49-ef4f-48c7-99c8-0f226b485285
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +1/+1
+}

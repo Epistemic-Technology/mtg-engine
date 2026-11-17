@@ -1,0 +1,38 @@
+# Zuran Spellcaster: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Zuran Spellcaster pings a player" {
+  battlefield A: "Zuran Spellcaster"
+  turn 1 A: activate "Zuran Spellcaster" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Zuran Spellcaster"
+}
+
+scenario "Zuran Spellcaster deals 1 damage to a creature" {
+  battlefield A: "Zuran Spellcaster"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Zuran Spellcaster" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Zuran Spellcaster kills an opposing 1/1" {
+  battlefield A: "Zuran Spellcaster"
+  battlefield B: "Zuran Spellcaster"
+  turn 1 A: activate "Zuran Spellcaster" targeting B "Zuran Spellcaster"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Zuran Spellcaster"
+  assert battlefield A contains "Zuran Spellcaster"
+}
+
+scenario "Zuran Spellcaster cannot tap while summoning sick" {
+  battlefield A: 3 "Island"
+  hand A: "Zuran Spellcaster"
+  turn 1 A: cast "Zuran Spellcaster"
+  illegal turn 1 postcombat_main A: activate "Zuran Spellcaster" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Zuran Spellcaster"
+  assert life B 20
+}

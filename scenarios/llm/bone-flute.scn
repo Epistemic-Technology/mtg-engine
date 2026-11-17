@@ -1,0 +1,41 @@
+# Bone Flute: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Bone Flute gives all creatures -1/-0 until end of turn" {
+  battlefield A: "Bone Flute", 2 "Plains", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bone Flute"
+  run_to turn 1 postcombat_main
+  assert tapped "Bone Flute"
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 1
+  assert power "Serra Angel" 3
+  assert toughness "Serra Angel" 4
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Bone Flute shrinks an attacker before damage" {
+  battlefield A: "Bone Flute", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: activate "Bone Flute"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert tapped "Bone Flute"
+}
+
+scenario "Creature entering after resolution is unaffected" {
+  battlefield A: "Bone Flute", 4 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bone Flute"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}

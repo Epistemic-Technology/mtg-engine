@@ -197,6 +197,13 @@ pub enum Keyword {
     MustAttack,
     /// "This creature can't be blocked."
     Unblockable,
+    /// Landwalk (CR 702.14): can't be blocked as long as the defending
+    /// player controls a land with that basic land type.
+    Plainswalk,
+    Islandwalk,
+    Swampwalk,
+    Mountainwalk,
+    Forestwalk,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -228,6 +235,18 @@ impl KeywordSet {
         self.0 & (1 << (k as u32)) != 0
     }
 
+    pub const fn intersects(self, other: KeywordSet) -> bool {
+        self.0 & other.0 != 0
+    }
+
+    /// The five landwalk keywords (CR 702.14).
+    pub const LANDWALK: KeywordSet = KeywordSet::NONE
+        .with(Keyword::Plainswalk)
+        .with(Keyword::Islandwalk)
+        .with(Keyword::Swampwalk)
+        .with(Keyword::Mountainwalk)
+        .with(Keyword::Forestwalk);
+
     pub const fn contains_all(self, other: KeywordSet) -> bool {
         self.0 & other.0 == other.0
     }
@@ -242,7 +261,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 19] = [
+    pub const ALL: [Keyword; 24] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -262,7 +281,35 @@ impl Keyword {
         Keyword::CantBlock,
         Keyword::MustAttack,
         Keyword::Unblockable,
+        Keyword::Plainswalk,
+        Keyword::Islandwalk,
+        Keyword::Swampwalk,
+        Keyword::Mountainwalk,
+        Keyword::Forestwalk,
     ];
+
+    /// The basic land type a landwalk keyword looks for (CR 702.14).
+    pub const fn landwalk(self) -> Option<Color> {
+        match self {
+            Keyword::Plainswalk => Some(Color::White),
+            Keyword::Islandwalk => Some(Color::Blue),
+            Keyword::Swampwalk => Some(Color::Black),
+            Keyword::Mountainwalk => Some(Color::Red),
+            Keyword::Forestwalk => Some(Color::Green),
+            _ => None,
+        }
+    }
+
+    /// The landwalk keyword for a basic land type.
+    pub const fn landwalk_for(c: Color) -> Keyword {
+        match c {
+            Color::White => Keyword::Plainswalk,
+            Color::Blue => Keyword::Islandwalk,
+            Color::Black => Keyword::Swampwalk,
+            Color::Red => Keyword::Mountainwalk,
+            Color::Green => Keyword::Forestwalk,
+        }
+    }
 }
 
 impl fmt::Debug for KeywordSet {
@@ -768,6 +815,10 @@ pub enum TargetSpec {
     ArtifactOrCreature,
     /// "target attacking or blocking creature".
     AttackingOrBlockingCreature,
+    /// "target attacking creature".
+    AttackingCreature,
+    /// "target blocking creature".
+    BlockingCreature,
     /// A battlefield object matching the pool's `n`th interned filter
     /// ("target nonblack creature", "target creature an opponent controls").
     Filtered(u16),
@@ -991,6 +1042,14 @@ pub enum Effect {
     },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),
+    /// "If this spell was kicked, [do these]" (CR 702.33c).
+    IfKicked(Vec<Effect>),
+    /// "has base power and toughness N/N until end of turn" (layer 7b).
+    SetBasePt {
+        to: Recipient,
+        power: i32,
+        toughness: i32,
+    },
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
     /// `CardPool::register_ability`) whose effects see the recipient as
@@ -1030,6 +1089,7 @@ impl Effect {
         matches!(
             self,
             Effect::YouMay(_)
+                | Effect::IfKicked(_)
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
                 | Effect::Discard { .. }
@@ -1231,6 +1291,9 @@ pub enum Condition {
     SourceUntapped,
     /// "if no creatures are on the battlefield" (Pestilence).
     NoCreatures,
+    /// "if it was kicked" (CR 702.33c): the source was cast with its kicker
+    /// paid.
+    Kicked,
 }
 
 /// A triggered ability (CR 603).
@@ -1263,6 +1326,8 @@ pub struct Cost {
     pub life: u32,
     /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
     pub discard: u32,
+    /// "Discard a creature card": what the discarded card must match.
+    pub discard_filter: Option<ObjFilter>,
     /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
     /// loyalty counters; nonzero marks the ability as a loyalty ability
     /// (sorcery speed, one per planeswalker per turn, CR 606.3).
@@ -1281,6 +1346,7 @@ impl Cost {
             discard_self: false,
             life: 0,
             discard: 0,
+            discard_filter: None,
             loyalty: 0,
             tap: false,
             sacrifice: None,
@@ -1425,7 +1491,7 @@ impl AbilityDef {
     pub fn all_effects(&self) -> Vec<&Effect> {
         fn walk<'a>(e: &'a Effect, out: &mut Vec<&'a Effect>) {
             out.push(e);
-            if let Effect::YouMay(inner) = e {
+            if let Effect::YouMay(inner) | Effect::IfKicked(inner) = e {
                 for i in inner {
                     walk(i, out);
                 }
@@ -1490,6 +1556,13 @@ pub struct CardDef {
     /// "As an additional cost to cast this spell, ..." (CR 601.2b, 118.8):
     /// sacrifice, discard, or life paid alongside the mana cost.
     pub additional: Cost,
+    /// Kicker (CR 702.33): an optional additional mana cost chosen as the
+    /// spell is cast.
+    pub kicker: Option<ManaCost>,
+    /// Flashback (CR 702.34): the spell may be cast from the graveyard for
+    /// this cost instead of its mana cost, and is exiled as it leaves the
+    /// stack.
+    pub flashback: Option<Cost>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u8,
@@ -2050,6 +2123,8 @@ impl Builder {
             except_ability_ids: AbilitySet::new(),
             except_flags: DefFlags::default(),
             additional: Cost::default(),
+            kicker: None,
+            flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -2124,6 +2199,20 @@ impl Builder {
     #[must_use]
     pub fn additional_cost(mut self, cost: Cost) -> Self {
         self.0.additional = cost;
+        self
+    }
+
+    /// Kicker (CR 702.33).
+    #[must_use]
+    pub fn kicker(mut self, cost: ManaCost) -> Self {
+        self.0.kicker = Some(cost);
+        self
+    }
+
+    /// Flashback (CR 702.34).
+    #[must_use]
+    pub fn flashback(mut self, cost: Cost) -> Self {
+        self.0.flashback = Some(cost);
         self
     }
 

@@ -115,8 +115,9 @@ pub struct GameObject {
     /// The definition whose `copy_except` is part of this copy's copiable
     /// values (CR 707.9b).
     pub except: Option<CardRef>,
-    /// The chosen mode of a modal spell (CR 700.2), as an index.
-    pub mode: u8,
+    /// The chosen mode of a modal spell (CR 700.2) and how it was cast
+    /// (kicked, with flashback), packed in one byte.
+    pub cast: CastInfo,
     pub kind: ObjKind,
     pub owner: PlayerId,
     pub controller: PlayerId,
@@ -137,6 +138,57 @@ pub struct GameObject {
     pub attached_to: Option<ObjId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
+}
+
+/// A spell's chosen mode (CR 700.2, the low six bits) and cast flags:
+/// kicked (CR 702.33c; kept by the permanent it becomes, for "if it was
+/// kicked") and cast with flashback (CR 702.34a; exiled as it leaves the
+/// stack). One byte, so `GameObject` stays small.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct CastInfo(u8);
+
+impl CastInfo {
+    const KICKED: u8 = 0x40;
+    const FLASHBACK: u8 = 0x80;
+    const MODE: u8 = 0x3f;
+
+    pub const fn mode(self) -> u8 {
+        self.0 & Self::MODE
+    }
+
+    pub fn set_mode(&mut self, mode: u8) {
+        self.0 = (self.0 & !Self::MODE) | (mode & Self::MODE);
+    }
+
+    pub const fn kicked(self) -> bool {
+        self.0 & Self::KICKED != 0
+    }
+
+    pub fn set_kicked(&mut self, kicked: bool) {
+        self.0 = if kicked {
+            self.0 | Self::KICKED
+        } else {
+            self.0 & !Self::KICKED
+        };
+    }
+
+    pub const fn flashback(self) -> bool {
+        self.0 & Self::FLASHBACK != 0
+    }
+
+    pub fn set_flashback(&mut self, flashback: bool) {
+        self.0 = if flashback {
+            self.0 | Self::FLASHBACK
+        } else {
+            self.0 & !Self::FLASHBACK
+        };
+    }
+
+    /// What a permanent keeps of its spell's cast info (CR 702.33c).
+    #[must_use]
+    pub const fn kept_by_permanent(self) -> CastInfo {
+        CastInfo(self.0 & Self::KICKED)
+    }
 }
 
 impl GameObject {
@@ -189,6 +241,9 @@ pub struct PlayerState {
     pub exile: Vec<ObjId>,
     pub mana_pool: ManaPool,
     pub lands_played_this_turn: u32,
+    /// Cards in the graveyard with flashback, so priority options skip the
+    /// graveyard scan when there are none.
+    pub flashback_in_graveyard: u32,
     pub max_hand_size: usize,
     pub drew_from_empty_library: bool,
     pub lost: Option<LossReason>,
@@ -473,6 +528,11 @@ pub enum Flow {
     ChoosingX {
         spell: ObjId,
     },
+    /// Choosing whether to pay a spell's kicker (CR 702.33), after the mode
+    /// and before X.
+    ChoosingKicker {
+        spell: ObjId,
+    },
     /// Attackers declared; each chooses the player or planeswalker it
     /// attacks (CR 508.1a) when the defender controls a planeswalker.
     AttackTargets {
@@ -698,7 +758,9 @@ impl GameState {
         }
         let def = self.pool.get(o.def);
         match def.modes() {
-            Some(modes) => modes.get(usize::from(o.mode)).map_or(&[], |m| &m.targets),
+            Some(modes) => modes
+                .get(usize::from(o.cast.mode()))
+                .map_or(&[], |m| &m.targets),
             None => def.cast_targets(),
         }
     }
@@ -713,7 +775,9 @@ impl GameState {
         }
         let def = self.pool.get(o.def);
         match def.modes() {
-            Some(modes) => modes.get(usize::from(o.mode)).map_or(&[], |m| &m.effects),
+            Some(modes) => modes
+                .get(usize::from(o.cast.mode()))
+                .map_or(&[], |m| &m.effects),
             None => def.spell_ability().map_or(&[], |(_, e)| e),
         }
     }
@@ -911,7 +975,9 @@ impl GameState {
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
             | TargetSpec::NonlegendaryCreatureYouControl
-            | TargetSpec::AttackingOrBlockingCreature => c.is_creature(),
+            | TargetSpec::AttackingOrBlockingCreature
+            | TargetSpec::AttackingCreature
+            | TargetSpec::BlockingCreature => c.is_creature(),
             TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
             TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.subtypes.contains(&s),
             TargetSpec::ArtifactCreatureOrLand => {
@@ -982,6 +1048,7 @@ impl GameState {
 
     /// `is_legal_target` for an ability of `source` ("another target
     /// creature" excludes it).
+    #[allow(clippy::too_many_lines)]
     pub fn is_legal_target_for(
         &self,
         caster: PlayerId,
@@ -1072,6 +1139,20 @@ impl GameState {
                                     .iter()
                                     .any(|a| a.id == id || a.blockers.contains(&id))
                             })
+                    }
+                    TargetSpec::AttackingCreature => {
+                        c.is_creature()
+                            && self
+                                .combat
+                                .as_ref()
+                                .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == id))
+                    }
+                    TargetSpec::BlockingCreature => {
+                        c.is_creature()
+                            && self
+                                .combat
+                                .as_ref()
+                                .is_some_and(|cb| cb.blocked_by(id).is_some())
                     }
                     TargetSpec::Filtered(f) => {
                         self.pool

@@ -1,0 +1,8 @@
+card "Blistergrub" {
+  oracle_id f5580a77-a69b-4ee8-9809-4523097cd7ac
+  cost {2}{B}
+  type Creature — Phyrexian Horror
+  pt 2/2
+  keywords swampwalk
+  triggered when this dies: each opponent loses 2 life
+}

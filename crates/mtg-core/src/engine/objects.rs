@@ -11,7 +11,7 @@ use crate::card::CounterKind;
 use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{Affected, GameObject, GameState, LastKnown, ObjKind, Target, Zone};
+use crate::state::{Affected, CastInfo, GameObject, GameState, LastKnown, ObjKind, Target, Zone};
 
 impl GameState {
     // ----- the event pipeline ------------------------------------------------------
@@ -59,11 +59,14 @@ impl GameState {
 
     pub(super) fn new_object(&mut self, def: CardRef, owner: PlayerId, zone: Zone) -> ObjId {
         let timestamp = self.tick();
+        if zone == Zone::Graveyard && self.pool.get(def).flashback.is_some() {
+            self.player_mut(owner).flashback_in_graveyard += 1;
+        }
         self.objects.insert(GameObject {
             def,
             card: def,
             except: None,
-            mode: 0,
+            cast: CastInfo::default(),
             kind: ObjKind::Card,
             owner,
             controller: owner,
@@ -165,6 +168,7 @@ impl GameState {
     /// before it enters the battlefield (Clone, a token copy) carries over;
     /// leaving the battlefield, the object is its printed card again (CR
     /// 400.7, 707.?).
+    #[allow(clippy::too_many_lines)]
     fn move_object_now(
         &mut self,
         id: ObjId,
@@ -207,7 +211,6 @@ impl GameState {
             def,
             card: old.card,
             except,
-            mode: 0,
             kind: old.kind,
             owner: old.owner,
             controller: if to == Zone::Battlefield {
@@ -220,6 +223,13 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
+            // CR 702.33c: a permanent spell's kicker was paid, so the
+            // permanent was kicked.
+            cast: if old.zone == Zone::Stack && to == Zone::Battlefield {
+                old.cast.kept_by_permanent()
+            } else {
+                CastInfo::default()
+            },
             timestamp,
             targets: SmallVec::new(),
             counters,
@@ -254,6 +264,15 @@ impl GameState {
         }
         if old.kind == ObjKind::Token && to != Zone::Battlefield {
             self.stray_tokens.push(new);
+        }
+        if old.kind == ObjKind::Card && self.pool.get(old.card).flashback.is_some() {
+            if old.zone == Zone::Graveyard {
+                let n = &mut self.player_mut(old.owner).flashback_in_graveyard;
+                *n = n.saturating_sub(1);
+            }
+            if to == Zone::Graveyard {
+                self.player_mut(old.owner).flashback_in_graveyard += 1;
+            }
         }
         if old.zone == Zone::Stack && !self.x_values.is_empty() {
             self.x_values.retain(|(s, _)| *s != id);

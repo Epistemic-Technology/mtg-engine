@@ -1,0 +1,7 @@
+card "Zodiac Snake" {
+  oracle_id b97c4d9a-8ea0-40d0-839a-afcd785e807e
+  cost {2}{B}
+  type Creature — Snake
+  pt 2/2
+  keywords swampwalk
+}

@@ -1,0 +1,6 @@
+card "Desperate Charge" {
+  oracle_id 26074e44-cf2b-459f-9a5d-7eed231ed2b4
+  cost {2}{B}
+  type Sorcery
+  spell: each creature you control gets +2/+0
+}

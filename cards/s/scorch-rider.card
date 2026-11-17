@@ -1,0 +1,8 @@
+card "Scorch Rider" {
+  oracle_id 8165acd4-ac62-47f1-97dd-01860aee29ee
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 4/3
+  kicker {1}{R}
+  triggered when this enters if kicked: this gains haste
+}

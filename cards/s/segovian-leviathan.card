@@ -1,0 +1,7 @@
+card "Segovian Leviathan" {
+  oracle_id 853b02e1-fc0a-413b-8381-88596624440f
+  cost {4}{U}
+  type Creature — Leviathan
+  pt 3/3
+  keywords islandwalk
+}

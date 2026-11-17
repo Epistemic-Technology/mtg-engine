@@ -1,0 +1,7 @@
+card "Shore Snapper" {
+  oracle_id c5e2ed91-edd2-47ec-809e-3e4a4245e2ce
+  cost {2}{B}
+  type Creature — Beast
+  pt 2/2
+  activated {U}: this gains islandwalk
+}

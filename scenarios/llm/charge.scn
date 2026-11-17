@@ -1,0 +1,55 @@
+# Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Charge pumps only creatures you control" {
+  battlefield A: "Grizzly Bears", "Serra Angel", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Charge"
+  turn 1 A: cast "Charge"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Serra Angel" 5
+  assert toughness "Serra Angel" 5
+  assert power B "Hill Giant" 3
+  assert toughness B "Hill Giant" 3
+  assert graveyard A contains "Charge"
+}
+
+scenario "Charge wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Charge"
+  turn 1 A: cast "Charge"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Charge in response to Shock saves the creature" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Mountain"
+  hand A: "Charge"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting A "Grizzly Bears"
+  turn 2 A: cast "Charge" in response to "Shock"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "Charge after blocks lets the attacker trade up" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Charge"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Charge"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}

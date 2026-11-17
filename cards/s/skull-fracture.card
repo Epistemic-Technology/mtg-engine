@@ -1,0 +1,7 @@
+card "Skull Fracture" {
+  oracle_id 3384606b-7724-4584-89fa-fbe006d5de1f
+  cost {B}
+  type Sorcery
+  flashback {3}{B}
+  spell: target player discards 1 cards
+}

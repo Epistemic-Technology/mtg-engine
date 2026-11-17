@@ -1,0 +1,8 @@
+card "Laughing Mad" {
+  oracle_id 4f65e6a9-0d90-44b9-9b76-00814db2dbd8
+  cost {2}{R}
+  type Instant
+  additional cost discard 1 card
+  flashback {3}{R}
+  spell: draw 2 cards
+}

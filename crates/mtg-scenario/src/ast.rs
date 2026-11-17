@@ -107,6 +107,10 @@ pub enum Action {
     Play(String),
     Cast {
         name: String,
+        /// `from graveyard`: cast with flashback (CR 702.34).
+        from_graveyard: bool,
+        /// `kicked`: pay the kicker (CR 702.33).
+        kicked: bool,
         /// `mode N` (1-based) for a modal spell.
         mode: Option<usize>,
         /// `x N` for a spell with {X} in its cost.

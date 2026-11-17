@@ -1,0 +1,8 @@
+card "Verduran Emissary" {
+  oracle_id 915bd598-c3dd-4982-bdcc-5904a6f17436
+  cost {2}{G}
+  type Creature — Human Wizard
+  pt 2/3
+  kicker {1}{R}
+  triggered when this enters if kicked: destroy target artifact without regeneration
+}

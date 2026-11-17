@@ -1,0 +1,7 @@
+card "Cave Sense" {
+  oracle_id 7d2fcdac-c8d5-43ca-81bc-130744ed8d3d
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has mountainwalk
+}

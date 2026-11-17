@@ -1,0 +1,8 @@
+card "Kor Sanctifiers" {
+  oracle_id 55d8ac5b-622c-42a9-83dc-f2c1c6c2506f
+  cost {2}{W}
+  type Creature — Kor Cleric
+  pt 2/3
+  kicker {W}
+  triggered when this enters if kicked: destroy target artifact or enchantment
+}

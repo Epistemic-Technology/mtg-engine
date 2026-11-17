@@ -1,0 +1,8 @@
+card "Electric Revelation" {
+  oracle_id c92af0f4-e5f1-4731-a781-b2ca360867a7
+  cost {2}{R}
+  type Instant
+  additional cost discard 1 card
+  flashback {3}{R}
+  spell: draw 2 cards
+}

@@ -1,0 +1,7 @@
+card "Cliff Threader" {
+  oracle_id 27882623-b5ad-49f2-b5ab-f0bdb93268a1
+  cost {1}{W}
+  type Creature — Kor Scout
+  pt 2/1
+  keywords mountainwalk
+}

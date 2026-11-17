@@ -1,0 +1,30 @@
+# Bloodrite Invoker: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Bloodrite Invoker drains opponent for 3" {
+  battlefield A: "Bloodrite Invoker", 8 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bloodrite Invoker" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert untapped "Bloodrite Invoker"
+}
+
+scenario "Bloodrite Invoker cannot activate with only seven mana" {
+  battlefield A: "Bloodrite Invoker", 7 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Bloodrite Invoker" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Bloodrite Invoker targeting its controller nets zero" {
+  battlefield A: "Bloodrite Invoker", 8 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bloodrite Invoker" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+}

@@ -1,0 +1,51 @@
+# Solidarity: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Solidarity gives creatures you control +0/+5, not opponents' creatures" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Solidarity"
+  turn 1 A: cast "Solidarity"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 7
+  assert power "Grizzly Bears" 2
+  assert toughness "Serra Angel" 9
+  assert toughness "Hill Giant" 3
+  assert graveyard A contains "Solidarity"
+}
+
+scenario "Solidarity wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Solidarity"
+  turn 1 A: cast "Solidarity"
+  run_to turn 2 precombat_main
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Solidarity saves a blocker from a bigger attacker" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Solidarity"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Solidarity"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert damage "Hill Giant" 2
+  assert life A 20
+}
+
+scenario "Solidarity in response to Lightning Bolt" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Solidarity"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: cast "Solidarity" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+}

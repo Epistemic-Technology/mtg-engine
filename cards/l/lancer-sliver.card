@@ -1,0 +1,7 @@
+card "Lancer Sliver" {
+  oracle_id 8ca33b31-4707-40d0-b4ed-cbe625793122
+  cost {2}{W}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has first strike
+}

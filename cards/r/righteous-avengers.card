@@ -1,0 +1,7 @@
+card "Righteous Avengers" {
+  oracle_id e7c07e41-3654-47da-afe3-88aae4c034b6
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/1
+  keywords plainswalk
+}

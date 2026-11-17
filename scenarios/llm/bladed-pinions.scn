@@ -1,0 +1,39 @@
+# Bladed Pinions: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "equipped creature has flying" {
+  battlefield A: "Bladed Pinions", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bladed Pinions" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bladed Pinions" to "Grizzly Bears"
+  assert has "Grizzly Bears" flying
+  assert tapped oldest "Plains"
+  assert tapped newest "Plains"
+}
+
+scenario "first strike kills a flying blocker before it deals damage" {
+  battlefield A: "Bladed Pinions", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bladed Pinions" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert life B 20
+}
+
+scenario "flying creature cannot be blocked by a ground creature" {
+  battlefield A: "Bladed Pinions", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bladed Pinions" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}

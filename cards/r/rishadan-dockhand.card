@@ -1,0 +1,8 @@
+card "Rishadan Dockhand" {
+  oracle_id 3d199876-09f3-4e14-8598-79f0ec2afafa
+  cost {U}
+  type Creature — Merfolk
+  pt 1/2
+  keywords islandwalk
+  activated {1}, {T}: tap target land
+}

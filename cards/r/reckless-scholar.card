@@ -1,0 +1,7 @@
+card "Reckless Scholar" {
+  oracle_id 604aded2-64c2-4474-b5b7-8c83e0e3fe76
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {T}: target player draws 1 card then discards 1 card
+}

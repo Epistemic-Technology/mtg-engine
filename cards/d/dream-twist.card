@@ -1,0 +1,7 @@
+card "Dream Twist" {
+  oracle_id d569d969-ce39-4314-b5f0-76b45f5c4c7f
+  cost {U}
+  type Instant
+  flashback {1}{U}
+  spell: target player mills 3 cards
+}

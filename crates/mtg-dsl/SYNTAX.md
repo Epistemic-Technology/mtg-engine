@@ -33,8 +33,10 @@ not gated.
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
+| `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
+| `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
 
 ## Abilities
@@ -70,9 +72,10 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `discard 1 card`, `discard this`,
-`pay 3 life`, `sorcery` (activate only as a sorcery), `once` (activate
-only once each turn). `none` for a free ability.
+a matching permanent they control), `discard 1 card`, `discard creature
+card` (a filter: discard one matching card, printed "Discard a creature
+card"), `discard this`, `pay 3 life`, `sorcery` (activate only as a
+sorcery), `once` (activate only once each turn). `none` for a free ability.
 
 ### Triggers
 
@@ -88,7 +91,8 @@ only once each turn). `none` for a free ability.
 | `when this becomes targeted` | becomes the target of a spell or ability |
 
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
-`if no creatures are on the battlefield`.
+`if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
+CR 702.33c, for a permanent with `kicker`).
 
 ### Replacement events and outcomes
 
@@ -135,13 +139,17 @@ joins them with ", then" ("draw 1 card then discard 1 card"); a clause
 after `and` may leave its subject implied ("you draw 1 card and lose 1
 life").
 Numbers are digits or `X`; "until end of turn" is implied by `gets`,
-`gains`, `becomes`, and `gain control of` and may be written or not.
+`gains`, `becomes`, `has base power and toughness`, and `gain control of`
+and may be written or not. A sentence that starts `until end of turn,`
+prints the duration first instead ("Until end of turn, target creature you
+control has base power and toughness 4/4 and gains flying").
 
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
 `<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
-turn), `<what> fights <what>`, `<what> becomes 2/2 Assembly-Worker artifact
-creature`, `this becomes a copy of <what> [with exceptions]`.
+turn), `<what> fights <what>`, `<what> has base power and toughness 4/4`,
+`<what> becomes 2/2 Assembly-Worker artifact creature`, `this becomes a
+copy of <what> [with exceptions]`.
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
@@ -153,7 +161,8 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `scry 2`, `surveil 1`,
 `counter target spell`, `counter target spell unless its controller pays {3}`,
-`you may <clause>`, `prevent all [combat] damage
+`you may <clause>`, `if kicked, <clause>` ("If this spell was kicked, ..."
+for a spell with `kicker`), `prevent all [combat] damage
 [to <affects>] this turn`, `prevent next 4 damage to <affects> this turn`,
 `this turn, replace <event>: <outcome>`, `players can't gain life this turn`,
 `damage can't be prevented this turn`, and
@@ -180,8 +189,8 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
 `spell`, `creature spell`, `noncreature spell`, `opponent`,
-`artifact or creature`, `attacking or blocking creature`,
-`<Subtype> creature` ("target Assembly-Worker creature"), and any filter
+`artifact or creature`, `attacking or blocking creature`, `attacking
+creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
 
 ## Example

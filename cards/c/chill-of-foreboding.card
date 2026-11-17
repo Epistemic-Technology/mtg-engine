@@ -1,0 +1,7 @@
+card "Chill of Foreboding" {
+  oracle_id cd1677e4-c356-43cd-9766-5fb8a1e64249
+  cost {2}{U}
+  type Sorcery
+  flashback {7}{U}
+  spell: each player mills 5 cards
+}

@@ -1,0 +1,6 @@
+card "Path of Anger's Flame" {
+  oracle_id 9e89db98-fc9f-4574-b5bc-ee421fa29428
+  cost {2}{R}
+  type Instant — Arcane
+  spell: each creature you control gets +2/+0
+}

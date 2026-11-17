@@ -1,0 +1,38 @@
+# Hell Swarm: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Hell Swarm shrinks the power of every creature but not toughness" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Hell Swarm"
+  turn 1 A: cast "Hell Swarm"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hell Swarm"
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 3
+  assert power "Wind Drake" 1
+  assert toughness "Wind Drake" 2
+}
+
+scenario "Hell Swarm wears off at end of turn" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Hell Swarm"
+  turn 1 A: cast "Hell Swarm"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 1
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Hell Swarm cast during combat reduces combat damage" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Swamp"
+  hand B: "Hell Swarm"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers B: cast "Hell Swarm"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hell Swarm"
+  assert life B 18
+}

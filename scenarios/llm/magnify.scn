@@ -1,0 +1,40 @@
+# Magnify: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Magnify pumps creatures on both sides" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Magnify"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magnify"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert graveyard A contains "Magnify"
+}
+
+scenario "Magnify in response saves a creature from Shock" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Magnify"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: cast "Magnify" in response to "Shock"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "Magnify wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Magnify"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magnify"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

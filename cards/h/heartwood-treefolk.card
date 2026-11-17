@@ -1,0 +1,7 @@
+card "Heartwood Treefolk" {
+  oracle_id 27c21086-8d19-4379-af37-f251b2ec2502
+  cost {2}{G}{G}
+  type Creature — Treefolk
+  pt 3/4
+  keywords forestwalk
+}

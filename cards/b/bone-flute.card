@@ -1,0 +1,6 @@
+card "Bone Flute" {
+  oracle_id 8664a004-d786-4357-8856-2f8f5a9ae24d
+  cost {3}
+  type Artifact
+  activated {2}, {T}: each creature gets -1/-0
+}

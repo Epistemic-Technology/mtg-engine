@@ -1,0 +1,7 @@
+card "Zodiac Rat" {
+  oracle_id 5ea4d1d7-219b-4842-99ea-291842baca0d
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+  keywords swampwalk
+}

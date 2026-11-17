@@ -1,0 +1,7 @@
+card "Dryad's Favor" {
+  oracle_id af740170-af87-487c-abab-a6ccdea82d97
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has forestwalk
+}

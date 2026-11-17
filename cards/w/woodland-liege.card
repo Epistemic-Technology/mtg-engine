@@ -1,0 +1,7 @@
+card "Woodland Liege" {
+  oracle_id df63e124-1542-48d6-b255-cf45855f1e93
+  cost {2}{G}
+  type Creature — Elf Druid Noble
+  pt 2/2
+  triggered whenever Beast you control enters: draw 1 card
+}

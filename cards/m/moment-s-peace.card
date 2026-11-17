@@ -1,0 +1,7 @@
+card "Moment's Peace" {
+  oracle_id b6d22228-a45e-4296-9ae2-1649e04b1c53
+  cost {1}{G}
+  type Instant
+  flashback {2}{G}
+  spell: prevent all combat damage this turn
+}

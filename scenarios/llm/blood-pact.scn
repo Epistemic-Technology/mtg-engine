@@ -1,0 +1,40 @@
+# Blood Pact: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Blood Pact targeting opponent draws two and loses 2 life" {
+  battlefield A: 3 "Swamp"
+  hand A: "Blood Pact"
+  library B: "Grizzly Bears", "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blood Pact" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert library B contains "Forest"
+  assert graveyard A contains "Blood Pact"
+}
+
+scenario "Blood Pact targeting yourself" {
+  battlefield A: 3 "Swamp"
+  hand A: "Blood Pact"
+  library A: "Serra Angel", "Wind Drake", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blood Pact" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand A count 2
+  assert hand A contains "Serra Angel"
+  assert hand A contains "Wind Drake"
+}
+
+scenario "Blood Pact cast at instant speed on opponent's turn can be lethal" {
+  life B 2
+  battlefield A: 3 "Swamp"
+  hand A: "Blood Pact"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Blood Pact" targeting player B
+  run_to end
+  assert winner A
+}

@@ -1,0 +1,7 @@
+card "Hillcomber Giant" {
+  oracle_id a56b3434-7478-4704-b04b-92f32a1bc462
+  cost {2}{W}{W}
+  type Creature — Giant Scout
+  pt 3/3
+  keywords mountainwalk
+}

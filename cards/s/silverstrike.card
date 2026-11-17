@@ -1,0 +1,6 @@
+card "Silverstrike" {
+  oracle_id 8652fa06-33dc-4fe5-90cb-83cbfe5c681b
+  cost {3}{W}
+  type Instant
+  spell: destroy target attacking creature; you gains 3 life
+}

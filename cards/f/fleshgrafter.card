@@ -1,0 +1,7 @@
+card "Fleshgrafter" {
+  oracle_id 04b1fb9e-4aef-46d9-b163-f9beff198bad
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  activated discard artifact card: this gets +2/+2
+}

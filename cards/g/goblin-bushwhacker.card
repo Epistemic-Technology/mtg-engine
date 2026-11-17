@@ -1,0 +1,8 @@
+card "Goblin Bushwhacker" {
+  oracle_id 878b6808-48af-4047-ac35-bfc58bf92e7d
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  kicker {R}
+  triggered whenever this enters if kicked: each creature you control gets +1/+0 and gains haste
+}

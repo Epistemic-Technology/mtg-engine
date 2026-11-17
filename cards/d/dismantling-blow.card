@@ -1,0 +1,7 @@
+card "Dismantling Blow" {
+  oracle_id 300cba5a-adbb-4852-be06-ac00d9d6fd37
+  cost {2}{W}
+  type Instant
+  kicker {2}{U}
+  spell: destroy target artifact or enchantment; if kicked, draw 2 cards
+}

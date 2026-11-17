@@ -1,0 +1,56 @@
+# Aliban's Tower: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumped blocker trades with a bigger attacker" {
+  battlefield A: "Wind Drake", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Aliban's Tower"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Wind Drake"
+  turn 2 declare_blockers A: cast "Aliban's Tower" targeting "Wind Drake"
+  run_to turn 2 end_combat
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Wind Drake"
+  assert graveyard A contains "Aliban's Tower"
+  assert life A 20
+}
+
+scenario "bonus lasts until end of turn" {
+  battlefield A: "Serra Angel", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Aliban's Tower"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Serra Angel"
+  turn 2 declare_blockers A: cast "Aliban's Tower" targeting "Serra Angel"
+  run_to turn 2 end_combat
+  assert power "Serra Angel" 7
+  assert toughness "Serra Angel" 5
+  assert graveyard B contains "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+}
+
+scenario "attacking creature is not a legal target" {
+  battlefield A: "Wind Drake", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Aliban's Tower"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_attackers A: cast "Aliban's Tower" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Aliban's Tower"
+  assert life A 17
+}
+
+scenario "no blockers outside combat" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Aliban's Tower"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Aliban's Tower" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Aliban's Tower"
+  assert power "Grizzly Bears" 2
+}

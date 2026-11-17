@@ -1,0 +1,7 @@
+card "Homestead Courage" {
+  oracle_id 203eb24c-f135-44e2-bdae-80b7b3d0fb15
+  cost {W}
+  type Sorcery
+  flashback {W}
+  spell: put 1 +1/+1 counters on target creature you control; target 1 gains vigilance
+}

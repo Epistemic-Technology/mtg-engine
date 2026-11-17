@@ -1,0 +1,37 @@
+# Rootwater Hunter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Rootwater Hunter pings a player" {
+  battlefield A: "Rootwater Hunter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rootwater Hunter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Rootwater Hunter"
+}
+
+scenario "Rootwater Hunter finishes off a creature with Shock" {
+  battlefield A: "Rootwater Hunter", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Rootwater Hunter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Rootwater Hunter cannot tap the turn it enters" {
+  battlefield A: 3 "Island"
+  hand A: "Rootwater Hunter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rootwater Hunter"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Rootwater Hunter" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rootwater Hunter"
+  assert untapped "Rootwater Hunter"
+  assert life B 20
+}

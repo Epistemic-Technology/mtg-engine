@@ -1,0 +1,6 @@
+card "Hell Swarm" {
+  oracle_id f8df23ed-e239-435a-a4a9-cf10da6df28f
+  cost {B}
+  type Instant
+  spell: each creature gets -1/-0
+}

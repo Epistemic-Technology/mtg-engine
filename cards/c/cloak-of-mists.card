@@ -1,0 +1,7 @@
+card "Cloak of Mists" {
+  oracle_id 13358b1d-0a35-48ed-a7fb-70359fa3998f
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't be blocked
+}

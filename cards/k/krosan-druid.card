@@ -1,0 +1,8 @@
+card "Krosan Druid" {
+  oracle_id 1fbed9e4-86f6-4115-8468-8593e340701f
+  cost {2}{G}
+  type Creature — Centaur Druid
+  pt 2/3
+  kicker {4}{G}
+  triggered when this enters if kicked: you gains 10 life
+}

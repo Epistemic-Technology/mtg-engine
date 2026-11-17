@@ -1,0 +1,45 @@
+# Glorious Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Glorious Charge pumps only creatures you control" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  battlefield B: "Wind Drake"
+  hand A: "Glorious Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glorious Charge"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power "Wind Drake" 2
+  assert toughness "Wind Drake" 2
+  assert graveyard A contains "Glorious Charge"
+}
+
+scenario "Glorious Charge in response to Shock saves a creature" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Glorious Charge"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Glorious Charge" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "Glorious Charge adds combat damage and wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Glorious Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glorious Charge"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

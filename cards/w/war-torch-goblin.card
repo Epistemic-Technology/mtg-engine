@@ -1,0 +1,7 @@
+card "War-Torch Goblin" {
+  oracle_id 58d39991-420b-4eca-967d-49ad3f9a4702
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {R}, sacrifice this: deal 2 damage to target blocking creature
+}

@@ -1,0 +1,44 @@
+# Razorfin Hunter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Razorfin Hunter pings a player" {
+  battlefield A: "Razorfin Hunter"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Razorfin Hunter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Razorfin Hunter"
+}
+
+scenario "Razorfin Hunter pings a creature" {
+  battlefield A: "Razorfin Hunter"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Razorfin Hunter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Razorfin Hunter ping finishes off a shocked creature" {
+  battlefield A: "Razorfin Hunter", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 postcombat_main A: activate "Razorfin Hunter" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Razorfin Hunter can't tap the turn it arrives" {
+  battlefield A: "Island", "Mountain"
+  hand A: "Razorfin Hunter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Razorfin Hunter"
+  illegal turn 1 postcombat_main A: activate "Razorfin Hunter" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Razorfin Hunter"
+  assert life B 20
+}

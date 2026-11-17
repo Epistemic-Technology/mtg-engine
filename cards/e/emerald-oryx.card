@@ -1,0 +1,7 @@
+card "Emerald Oryx" {
+  oracle_id 4c26c796-26ec-41f7-b9ca-58f4eb935c47
+  cost {3}{G}
+  type Creature — Antelope
+  pt 2/3
+  keywords forestwalk
+}

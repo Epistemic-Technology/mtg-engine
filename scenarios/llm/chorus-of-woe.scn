@@ -1,0 +1,33 @@
+# Chorus of Woe: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Chorus of Woe pumps only your creatures" {
+  battlefield A: "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Chorus of Woe"
+  turn 1 A: cast "Chorus of Woe"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 3
+  assert toughness A "Grizzly Bears" 2
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 3
+  assert power B "Grizzly Bears" 2
+  assert graveyard A contains "Chorus of Woe"
+}
+
+scenario "Chorus of Woe adds combat damage" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Chorus of Woe"
+  turn 1 A: cast "Chorus of Woe"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Chorus of Woe wears off at end of turn" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Chorus of Woe"
+  turn 1 A: cast "Chorus of Woe"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,8 @@
+card "River Boa" {
+  oracle_id 86187aed-77ce-4b2d-aab0-0a8f807a9451
+  cost {1}{G}
+  type Creature — Snake
+  pt 2/1
+  keywords islandwalk
+  activated {G}: regenerate this
+}

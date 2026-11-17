@@ -1,0 +1,7 @@
+card "Marsh Threader" {
+  oracle_id 7b2eb6f2-bd13-4eb6-b91a-c0fa8f3d96af
+  cost {1}{W}
+  type Creature — Kor Scout
+  pt 2/1
+  keywords swampwalk
+}

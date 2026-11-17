@@ -1,0 +1,7 @@
+card "Scorching Missile" {
+  oracle_id 02e2dbde-2373-4f29-bd9d-787f1805b061
+  cost {3}{R}
+  type Sorcery
+  flashback {9}{R}
+  spell: deal 4 damage to target player or planeswalker
+}

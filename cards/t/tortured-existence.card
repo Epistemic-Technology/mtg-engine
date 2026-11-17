@@ -1,0 +1,6 @@
+card "Tortured Existence" {
+  oracle_id fa9dfcf7-069c-4441-9ea0-133de47ecada
+  cost {B}
+  type Enchantment
+  activated {B}, discard creature card: return target creature card from your graveyard to hand
+}

@@ -1,0 +1,6 @@
+card "Painful Lesson" {
+  oracle_id 6be78177-aef0-408c-9769-a1be0775f06d
+  cost {2}{B}
+  type Sorcery
+  spell: target player draws 2 cards and loses 2 life
+}

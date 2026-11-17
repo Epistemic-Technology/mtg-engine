@@ -1,0 +1,8 @@
+card "Caligo Skin-Witch" {
+  oracle_id e62c943e-03ac-4a8a-ad3d-faa76b79824c
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 1/3
+  kicker {3}{B}
+  triggered when this enters if kicked: each opponent discards 2 cards
+}

@@ -1,0 +1,37 @@
+# Painful Lesson: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Painful Lesson targeting yourself draws two and loses two" {
+  battlefield A: 3 "Swamp"
+  hand A: "Painful Lesson"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Painful Lesson" targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+  assert graveyard A contains "Painful Lesson"
+  assert life B 20
+}
+
+scenario "Painful Lesson targeting the opponent" {
+  battlefield A: 3 "Swamp"
+  hand A: "Painful Lesson"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Painful Lesson" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 3
+  assert life B 18
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Painful Lesson can finish off an opponent" {
+  life B 2
+  battlefield A: 3 "Swamp"
+  hand A: "Painful Lesson"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Painful Lesson" targeting player B
+  run_to turn 1 postcombat_main
+  assert winner A
+}

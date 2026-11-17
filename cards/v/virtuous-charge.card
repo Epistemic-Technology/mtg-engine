@@ -1,0 +1,6 @@
+card "Virtuous Charge" {
+  oracle_id 5315ed83-cb93-4522-b439-3784e7f31e37
+  cost {2}{W}
+  type Sorcery
+  spell: each creature you control gets +1/+1
+}

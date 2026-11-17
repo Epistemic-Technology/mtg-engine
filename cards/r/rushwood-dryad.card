@@ -1,0 +1,7 @@
+card "Rushwood Dryad" {
+  oracle_id bb1963f9-261c-4d3f-a401-90aaced77e7f
+  cost {1}{G}
+  type Creature — Dryad
+  pt 2/1
+  keywords forestwalk
+}

@@ -1,0 +1,9 @@
+card "Second Thoughts" {
+  oracle_id 41bfef9f-6eb7-49c7-9b90-ff9f385ba670
+  cost {4}{W}
+  type Instant
+  spell {
+    exile target attacking creature
+    draw 1 card
+  }
+}

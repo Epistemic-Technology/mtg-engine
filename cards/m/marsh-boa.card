@@ -1,0 +1,7 @@
+card "Marsh Boa" {
+  oracle_id 246f7446-036d-469c-9583-5699ebdcec6d
+  cost {G}
+  type Creature — Snake
+  pt 1/1
+  keywords swampwalk
+}

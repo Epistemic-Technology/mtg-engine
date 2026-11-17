@@ -1,0 +1,7 @@
+card "Weatherseed Elf" {
+  oracle_id 73d0b29a-5b7a-4835-9bd4-5d00e685b851
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  activated {T}: target creature gains forestwalk
+}

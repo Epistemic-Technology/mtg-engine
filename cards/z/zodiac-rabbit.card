@@ -1,0 +1,7 @@
+card "Zodiac Rabbit" {
+  oracle_id 048cc868-1657-448d-9f2c-97973e73f477
+  cost {G}
+  type Creature — Rabbit
+  pt 1/1
+  keywords forestwalk
+}

@@ -1,0 +1,7 @@
+card "Fires of Undeath" {
+  oracle_id 205bcab6-8b6b-4d09-9890-0b7391d59788
+  cost {2}{R}
+  type Instant
+  flashback {5}{B}
+  spell: deal 2 damage to any target
+}

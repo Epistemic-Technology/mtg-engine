@@ -1,0 +1,7 @@
+card "Cleaving Sliver" {
+  oracle_id 9b33059c-c862-4452-8609-14a0e2551fb3
+  cost {3}{R}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: +2/+0
+}

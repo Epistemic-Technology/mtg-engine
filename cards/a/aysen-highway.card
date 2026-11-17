@@ -1,0 +1,6 @@
+card "Aysen Highway" {
+  oracle_id 415bc26d-60fb-41ac-8006-7dd861671c14
+  cost {3}{W}{W}{W}
+  type Enchantment
+  static white creature: has plainswalk
+}

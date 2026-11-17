@@ -1,0 +1,6 @@
+card "Rebuke" {
+  oracle_id cf35ec1e-11e2-4028-89df-9755fd6772bf
+  cost {2}{W}
+  type Instant
+  spell: destroy target attacking creature
+}

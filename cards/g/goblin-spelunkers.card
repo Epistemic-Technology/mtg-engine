@@ -1,0 +1,7 @@
+card "Goblin Spelunkers" {
+  oracle_id 0534a514-2847-4dbc-8178-6a2886c75bf6
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  keywords mountainwalk
+}

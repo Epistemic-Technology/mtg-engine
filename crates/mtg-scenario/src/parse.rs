@@ -461,6 +461,19 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "play" => (Action::Play(line.string()?), Some(Step::PrecombatMain)),
         "cast" => {
             let name = line.string()?;
+            let from_graveyard = if line.peek_ident("from") {
+                line.pos += 1;
+                line.keyword("graveyard")?;
+                true
+            } else {
+                false
+            };
+            let kicked = if line.peek_ident("kicked") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let mode = if line.peek_ident("mode") {
                 line.pos += 1;
                 let n = line.count()?;
@@ -512,6 +525,8 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (
                 Action::Cast {
                     name,
+                    from_graveyard,
+                    kicked,
                     mode,
                     x,
                     sacrifice,

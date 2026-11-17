@@ -1,0 +1,40 @@
+# Predatory Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Predatory Sliver pumps itself" {
+  battlefield A: "Predatory Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Predatory Sliver" 2
+  assert toughness "Predatory Sliver" 2
+}
+
+scenario "two Predatory Slivers are cumulative and non-Slivers are unaffected" {
+  battlefield A: 2 "Predatory Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power oldest "Predatory Sliver" 3
+  assert toughness newest "Predatory Sliver" 3
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "opponent's Sliver does not pump your Sliver" {
+  battlefield A: "Predatory Sliver"
+  battlefield B: "Predatory Sliver"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power A "Predatory Sliver" 2
+  assert power B "Predatory Sliver" 2
+}
+
+scenario "Predatory Sliver survives Shock thanks to its own bonus" {
+  battlefield A: "Predatory Sliver", "Predatory Sliver"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting oldest A "Predatory Sliver"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains 2 "Predatory Sliver"
+  assert damage oldest "Predatory Sliver" 2
+}

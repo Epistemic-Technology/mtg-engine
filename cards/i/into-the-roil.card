@@ -1,0 +1,7 @@
+card "Into the Roil" {
+  oracle_id c2898bbd-82a4-4d26-b6ee-169b0ebe71b4
+  cost {1}{U}
+  type Instant
+  kicker {1}{U}
+  spell: return target nonland permanent to hand; if kicked, draw 1 card
+}

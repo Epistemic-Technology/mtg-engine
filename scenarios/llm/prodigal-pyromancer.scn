@@ -1,0 +1,38 @@
+# Prodigal Pyromancer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pyromancer pings a player" {
+  battlefield A: "Prodigal Pyromancer"
+  turn 1 A: activate "Prodigal Pyromancer" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Prodigal Pyromancer"
+}
+
+scenario "pyromancer pings a creature" {
+  battlefield A: "Prodigal Pyromancer"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Prodigal Pyromancer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "pyromancer kills an opposing pyromancer" {
+  battlefield A: "Prodigal Pyromancer"
+  battlefield B: "Prodigal Pyromancer"
+  turn 1 A: activate "Prodigal Pyromancer" targeting B "Prodigal Pyromancer"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Prodigal Pyromancer"
+  assert battlefield A contains "Prodigal Pyromancer"
+}
+
+scenario "summoning sick pyromancer cannot tap" {
+  battlefield A: 3 "Mountain"
+  hand A: "Prodigal Pyromancer"
+  turn 1 A: cast "Prodigal Pyromancer"
+  illegal turn 1 postcombat_main A: activate "Prodigal Pyromancer" targeting player B
+  run_to turn 1 end
+  assert life B 20
+  assert battlefield A contains "Prodigal Pyromancer"
+}

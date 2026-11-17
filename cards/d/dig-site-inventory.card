@@ -1,0 +1,7 @@
+card "Dig Site Inventory" {
+  oracle_id 96742ebc-10a6-49e6-812a-631e5a60847d
+  cost {W}
+  type Sorcery
+  flashback {W}
+  spell: put 1 +1/+1 counters on target creature you control; target 1 gains vigilance
+}

@@ -1,0 +1,7 @@
+card "Predatory Sliver" {
+  oracle_id 6b589e70-9c1d-48dd-a597-479959e692bf
+  cost {1}{G}
+  type Creature — Sliver
+  pt 1/1
+  static Sliver creature you control: +1/+1
+}

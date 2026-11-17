@@ -1,0 +1,7 @@
+card "Reckless Charge" {
+  oracle_id 45bee121-0beb-4901-9473-20e4704ba6dc
+  cost {R}
+  type Sorcery
+  flashback {2}{R}
+  spell: target creature gets +3/+0 and gains haste
+}

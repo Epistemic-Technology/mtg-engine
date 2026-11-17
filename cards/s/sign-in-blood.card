@@ -1,0 +1,6 @@
+card "Sign in Blood" {
+  oracle_id c6207f6a-a624-4754-88f5-dbe700c841ff
+  cost {B}{B}
+  type Sorcery
+  spell: target player draws 2 cards and loses 2 life
+}

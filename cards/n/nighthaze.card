@@ -1,0 +1,9 @@
+card "Nighthaze" {
+  oracle_id c0044283-7034-4d1d-876a-a40ea15b7cc6
+  cost {B}
+  type Sorcery
+  spell {
+    target creature gains swampwalk
+    draw 1 cards
+  }
+}

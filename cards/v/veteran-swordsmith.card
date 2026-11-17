@@ -1,0 +1,7 @@
+card "Veteran Swordsmith" {
+  oracle_id cc71b6c4-09d4-423b-a134-2f2f2fd7b533
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  static other Soldier creature you control: +1/+0
+}

@@ -1,0 +1,6 @@
+card "Sovereign's Bite" {
+  oracle_id 13718d93-fe46-4a18-a511-88649ef1c9de
+  cost {1}{B}
+  type Sorcery
+  spell: target player loses 3 life and you gain 3 life
+}

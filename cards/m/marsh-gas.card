@@ -1,0 +1,6 @@
+card "Marsh Gas" {
+  oracle_id 08ae9f91-48c8-4721-a82d-063defc1b727
+  cost {B}
+  type Instant
+  spell: each creature gets -2/-0
+}

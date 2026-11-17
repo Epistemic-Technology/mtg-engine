@@ -1,0 +1,7 @@
+card "Zodiac Ox" {
+  oracle_id 9c9e71d9-a636-4574-8b7e-e6dd0f71c7c8
+  cost {3}{G}
+  type Creature — Ox
+  pt 3/3
+  keywords swampwalk
+}

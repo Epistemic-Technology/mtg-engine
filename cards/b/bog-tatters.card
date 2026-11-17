@@ -1,0 +1,7 @@
+card "Bog Tatters" {
+  oracle_id e1e67a2f-61b6-49c5-8bcf-5d2b3f0df35d
+  cost {4}{B}
+  type Creature — Wraith
+  pt 4/2
+  keywords swampwalk
+}

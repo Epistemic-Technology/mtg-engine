@@ -1,0 +1,8 @@
+card "Colos Yearling" {
+  oracle_id 50cf702b-5647-415e-b9a8-56fa0e50da6d
+  cost {2}{R}
+  type Creature — Goat Beast
+  pt 1/1
+  keywords mountainwalk
+  activated {R}: this gets +1/+0
+}

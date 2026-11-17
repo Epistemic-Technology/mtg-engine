@@ -1,0 +1,8 @@
+card "Juniper Order Rootweaver" {
+  oracle_id 5914d4d5-51b8-49c2-9459-bf5579df4990
+  cost {1}{W}
+  type Creature — Human Druid
+  pt 2/2
+  kicker {G}
+  triggered when this enters if kicked: put 1 +1/+1 counters on target creature you control
+}

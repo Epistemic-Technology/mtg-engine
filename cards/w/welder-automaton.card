@@ -1,0 +1,7 @@
+card "Welder Automaton" {
+  oracle_id 52eae443-fbe5-479f-a5a4-b5e4401d62d3
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/1
+  activated {3}{R}: deal 1 damage to each opponent
+}

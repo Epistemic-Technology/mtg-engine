@@ -255,6 +255,15 @@ impl ManaRequirement {
     pub fn total(&self) -> u32 {
         self.colored.iter().sum::<u32>() + self.colorless + self.generic
     }
+
+    /// Add another requirement (a kicker on top of a mana cost).
+    pub fn add(&mut self, other: &ManaRequirement) {
+        for (a, b) in self.colored.iter_mut().zip(other.colored) {
+            *a += b;
+        }
+        self.colorless += other.colorless;
+        self.generic += other.generic;
+    }
 }
 
 /// Mana a player has available to spend (CR 106.4). Empties between steps

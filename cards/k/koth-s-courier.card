@@ -1,0 +1,7 @@
+card "Koth's Courier" {
+  oracle_id 59f57c25-ebb7-49df-8cdd-c6f069d1358d
+  cost {1}{R}{R}
+  type Creature — Human Rogue
+  pt 2/3
+  keywords forestwalk
+}

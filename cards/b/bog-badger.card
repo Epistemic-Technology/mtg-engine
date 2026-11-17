@@ -1,0 +1,8 @@
+card "Bog Badger" {
+  oracle_id 6d8e464c-9df1-46b1-88e6-dcc7fe7b7caa
+  cost {2}{G}
+  type Creature — Badger
+  pt 3/3
+  kicker {B}
+  triggered when this enters if kicked: each creature you control gains menace
+}

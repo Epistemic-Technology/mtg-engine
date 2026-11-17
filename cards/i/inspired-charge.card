@@ -1,0 +1,6 @@
+card "Inspired Charge" {
+  oracle_id d465a3d6-5830-456c-8e7a-908b464db846
+  cost {2}{W}{W}
+  type Instant
+  spell: each creature you control gets +2/+1
+}

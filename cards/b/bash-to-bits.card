@@ -1,0 +1,7 @@
+card "Bash to Bits" {
+  oracle_id 894b8375-5d55-4138-8448-c38f83a17e4f
+  cost {3}{R}
+  type Instant
+  flashback {4}{R}{R}
+  spell: destroy target artifact
+}

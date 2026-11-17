@@ -1,0 +1,7 @@
+card "Geistflame" {
+  oracle_id 2f01c3d9-e0fc-4cdf-b4db-daeb8bb24bc3
+  cost {R}
+  type Instant
+  flashback {3}{R}
+  spell: deal 1 damage to any target
+}

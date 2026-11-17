@@ -1,0 +1,34 @@
+# Bar the Door: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Bar the Door gives your creatures +0/+4 only" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bar the Door"
+  turn 1 A: cast "Bar the Door"
+  run_to turn 1 postcombat_main
+  assert toughness A "Grizzly Bears" 6
+  assert power A "Grizzly Bears" 2
+  assert toughness "Hill Giant" 7
+  assert toughness B "Grizzly Bears" 2
+  assert graveyard A contains "Bar the Door"
+}
+
+scenario "Bar the Door lets a creature survive Lightning Bolt" {
+  battlefield A: "Grizzly Bears", 3 "Plains", "Mountain"
+  hand A: "Bar the Door", "Lightning Bolt"
+  turn 1 A: cast "Bar the Door"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "Bar the Door wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Bar the Door"
+  turn 1 A: cast "Bar the Door"
+  run_to turn 2 precombat_main
+  assert toughness "Grizzly Bears" 2
+}

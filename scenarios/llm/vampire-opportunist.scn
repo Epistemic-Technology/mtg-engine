@@ -1,0 +1,40 @@
+# Vampire Opportunist: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "activation drains each opponent for 2 and gains 2" {
+  battlefield A: "Vampire Opportunist", 7 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Opportunist"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+  assert untapped "Vampire Opportunist"
+}
+
+scenario "ability can be activated repeatedly without tapping" {
+  battlefield A: "Vampire Opportunist", 14 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Vampire Opportunist"
+  turn 1 end A: activate "Vampire Opportunist"
+  run_to turn 1 cleanup
+  assert life B 16
+  assert life A 24
+}
+
+scenario "cannot activate with only six lands" {
+  battlefield A: "Vampire Opportunist", 6 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Vampire Opportunist"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "instant-speed drain on opponent's turn finishes them" {
+  life B 2
+  battlefield A: "Vampire Opportunist", 7 "Swamp"
+  start turn 2 B
+  turn 2 upkeep A: activate "Vampire Opportunist"
+  run_to end
+  assert winner A
+}

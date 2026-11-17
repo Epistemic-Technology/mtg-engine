@@ -1,0 +1,31 @@
+# Anaba Shaman: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Anaba Shaman pings a player" {
+  battlefield A: "Anaba Shaman", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Anaba Shaman" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Anaba Shaman"
+  assert tapped "Mountain"
+}
+
+scenario "Anaba Shaman kills a 1-toughness creature after damage" {
+  battlefield A: "Anaba Shaman", "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Anaba Shaman" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Anaba Shaman needs red mana" {
+  battlefield A: "Anaba Shaman", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Anaba Shaman" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Anaba Shaman"
+}

@@ -1,0 +1,7 @@
+card "Firebolt" {
+  oracle_id 7aa31280-12c3-479d-a6dd-f1c669043083
+  cost {R}
+  type Sorcery
+  flashback {4}{R}
+  spell: deal 2 damage to any target
+}

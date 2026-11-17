@@ -1,0 +1,7 @@
+card "Lumbering Satyr" {
+  oracle_id fba1329d-d8bf-4c5e-9cf1-5410a42f732e
+  cost {2}{G}{G}
+  type Creature — Satyr Beast
+  pt 5/4
+  static creature: has forestwalk
+}

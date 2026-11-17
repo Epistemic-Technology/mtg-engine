@@ -1,0 +1,7 @@
+card "Moor Fiend" {
+  oracle_id ff1fd718-ee97-425c-b8bf-97fea192c631
+  cost {3}{B}
+  type Creature — Horror
+  pt 3/3
+  keywords swampwalk
+}

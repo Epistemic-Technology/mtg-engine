@@ -1,0 +1,7 @@
+card "Grayscaled Gharial" {
+  oracle_id 59483597-4d8c-4cdc-8bb5-226b1eef10f5
+  cost {U}
+  type Creature — Crocodile
+  pt 1/1
+  keywords islandwalk
+}

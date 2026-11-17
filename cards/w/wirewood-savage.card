@@ -1,0 +1,7 @@
+card "Wirewood Savage" {
+  oracle_id 45579312-499f-41de-b16e-a231d65a2053
+  cost {2}{G}
+  type Creature — Elf
+  pt 2/2
+  triggered whenever Beast enters: you may draw 1 card
+}
