@@ -833,9 +833,17 @@ the model may answer `unsupported: <reason>` instead, which is the
 signal for the next engine primitive. Only an accepted card is written
 (`cards/`, with its scenarios under `scenarios/llm/`), so model-authored
 cards are *verified* in the §6.3 sense from the start. `--prompt-only`
-prints the pack without calling the API. The first live run is the
-user's to make (it spends API credit); the candidates are the cards the
-template author skips for a sentence rather than a keyword.
+prints the pack without calling the API. First live run (2026-11-17,
+five Pauper cards the templates had skipped, `claude-opus-5-5`): one
+accepted on the first attempt (Sorin's Thirst, whose third scenario
+tests its ruling that an illegal target means no life gain, which is
+gate 3 in practice); four declared unsupported with exact reasons that
+are the engine backlog: "that card" after an immediate return from
+exile (Justiciar's Portal), "target attacking creature" (Second
+Thoughts), base power and toughness until end of turn (Water Wings), a
+color-restricted discard cost (Krovikan Sorcerer). One attempt was
+rejected for a parse error and the model answered correctly on the
+second. 7,315 input tokens uncached, 44,425 from cache, 3,907 out.
 
 The plan as first written: `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
