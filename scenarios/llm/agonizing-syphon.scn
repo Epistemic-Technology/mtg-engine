@@ -1,0 +1,39 @@
+# Agonizing Syphon: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Agonizing Syphon drains a player" {
+  battlefield A: 4 "Swamp"
+  hand A: "Agonizing Syphon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Agonizing Syphon" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert graveyard A contains "Agonizing Syphon"
+}
+
+scenario "Agonizing Syphon kills a creature and gains life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Agonizing Syphon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Agonizing Syphon" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+  assert life B 20
+}
+
+scenario "Agonizing Syphon with an illegal target gains no life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", 3 "Swamp"
+  hand A: "Agonizing Syphon"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Agonizing Syphon" targeting "Grizzly Bears"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears" in response to "Agonizing Syphon"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+  assert graveyard A contains "Agonizing Syphon"
+}

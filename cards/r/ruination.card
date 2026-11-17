@@ -1,0 +1,6 @@
+card "Ruination" {
+  oracle_id 59dbc873-72d9-4e7b-9442-2c7b8e8523e1
+  cost {3}{R}
+  type Sorcery
+  spell: destroy each nonbasic land
+}

@@ -1,0 +1,8 @@
+card "Venomous Hierophant" {
+  oracle_id e235d1ca-3099-46c1-8f33-798286292d71
+  cost {3}{B}
+  type Creature — Gorgon Cleric
+  pt 3/3
+  keywords deathtouch
+  triggered when this enters: mill 3 cards
+}

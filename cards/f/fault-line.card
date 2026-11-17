@@ -1,0 +1,6 @@
+card "Fault Line" {
+  oracle_id ed743b88-0866-4f88-9f30-d49d2cf36b99
+  cost {X}{R}{R}
+  type Instant
+  spell: deal X damage to each creature without flying and each player
+}

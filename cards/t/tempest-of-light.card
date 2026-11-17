@@ -1,0 +1,6 @@
+card "Tempest of Light" {
+  oracle_id 9399ed27-31c7-4d6a-99eb-644b74e67344
+  cost {2}{W}
+  type Instant
+  spell: destroy each enchantment
+}

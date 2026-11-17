@@ -1,0 +1,7 @@
+card "Priest of Ancient Lore" {
+  oracle_id a89b0fd5-84b2-487c-8b03-e78d97276fd3
+  cost {2}{W}
+  type Creature — Dwarf Cleric
+  pt 2/1
+  triggered whenever this enters: you gain 1 life and draw 1 card
+}

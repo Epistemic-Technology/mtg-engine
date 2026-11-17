@@ -1,0 +1,10 @@
+card "Theorix Charm" {
+  oracle_id cf527bbd-e898-4aa9-909d-daec2f4b62ad
+  cost {U}{B}
+  type Instant
+  choose one {
+    mode: counter target noncreature spell unless its controller pays {2}
+    mode: target creature gets -2/-2
+    mode: mill 3 cards then draw 1 cards
+  }
+}

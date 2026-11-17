@@ -1,0 +1,7 @@
+card "Spinneret Sliver" {
+  oracle_id fbdec63e-0679-47e9-b82a-daa56df50481
+  cost {1}{G}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has reach
+}

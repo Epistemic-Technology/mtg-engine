@@ -1,0 +1,54 @@
+# Last Kiss: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Last Kiss kills a 2/2 and gains 2 life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Last Kiss"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Kiss" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+  assert graveyard A contains "Last Kiss"
+}
+
+scenario "Last Kiss damages a 3/3 without killing it" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Last Kiss"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Kiss" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert life A 22
+}
+
+scenario "Last Kiss gains no life if its target is gone" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Last Kiss"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Kiss" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Last Kiss"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+  assert graveyard A contains "Last Kiss"
+}
+
+scenario "Last Kiss gains life even if the creature survives via pump" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Last Kiss"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Last Kiss" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Last Kiss"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert life A 22
+}

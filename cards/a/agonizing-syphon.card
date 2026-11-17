@@ -1,0 +1,6 @@
+card "Agonizing Syphon" {
+  oracle_id 11669fe5-9298-4e1a-a4f7-6a4598dbc8dd
+  cost {3}{B}
+  type Sorcery
+  spell: deal 3 damage to any target and you gain 3 life
+}

@@ -1,0 +1,7 @@
+card "Heart Sliver" {
+  oracle_id 6dd1f375-e8f2-4725-8fbd-9750c4860820
+  cost {1}{R}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has haste
+}

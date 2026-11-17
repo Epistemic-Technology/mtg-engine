@@ -1,0 +1,7 @@
+card "Plated Sliver" {
+  oracle_id 89d9641c-84a4-41df-af1f-5b552305e895
+  cost {W}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: +0/+1
+}

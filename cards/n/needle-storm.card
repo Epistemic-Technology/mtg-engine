@@ -1,0 +1,6 @@
+card "Needle Storm" {
+  oracle_id 1f513d1e-03ca-4e0f-af48-6490d71d5c41
+  cost {2}{G}
+  type Sorcery
+  spell: deal 4 damage to each creature with flying
+}

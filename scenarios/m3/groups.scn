@@ -1,0 +1,81 @@
+# M3 slice 7: group recipients ("tap all artifacts", "each creature without
+# flying", "white creatures you control get +2/+2") and the imperative
+# "Mill N cards". Every card is a Pauper card hand-written for this file.
+
+scenario "metal fatigue taps all artifacts, both players'" {
+  battlefield A: 3 "Plains", "Aeolipile"
+  battlefield B: "Aether Spellbomb", "Grizzly Bears"
+  hand A: "Metal Fatigue"
+  turn 1 A: cast "Metal Fatigue"
+  run_to turn 1 begin_combat
+  assert tapped "Aeolipile"
+  assert tapped "Aether Spellbomb"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "riptide taps only blue creatures" {
+  battlefield A: "Island"
+  battlefield B: "Ancient Carp", "Grizzly Bears"
+  hand A: "Riptide"
+  turn 1 A: cast "Riptide"
+  run_to turn 1 begin_combat
+  assert tapped "Ancient Carp"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "tranquility destroys every enchantment" {
+  battlefield A: 3 "Forest", "Angelic Shield"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Tranquility"
+  turn 1 A: cast "Tranquility"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Angelic Shield"
+  assert graveyard B contains "Holy Strength"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "serene heart destroys only Auras" {
+  battlefield A: 2 "Forest", "Angelic Shield"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Serene Heart"
+  turn 1 A: cast "Serene Heart"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Angelic Shield"
+  assert graveyard B contains "Holy Strength"
+}
+
+scenario "mental note mills two cards and draws one" {
+  battlefield A: "Island"
+  hand A: "Mental Note"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Mental Note"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Plains"
+  assert hand A contains "Swamp"
+  assert library A count 1
+}
+
+scenario "guardians' pledge pumps only your white creatures" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Aven Cloudchaser"
+  battlefield B: "Aven Cloudchaser"
+  hand A: "Guardians' Pledge"
+  turn 1 A: cast "Guardians' Pledge"
+  run_to turn 1 begin_combat
+  assert power A "Aven Cloudchaser" 4
+  assert power B "Aven Cloudchaser" 2
+  assert power "Grizzly Bears" 2
+  run_to turn 2 upkeep
+  assert power A "Aven Cloudchaser" 2
+}
+
+scenario "tremor damages each creature without flying" {
+  battlefield A: "Mountain", "Avacyn's Pilgrim"
+  battlefield B: "Grizzly Bears", "Aven Cloudchaser"
+  hand A: "Tremor"
+  turn 1 A: cast "Tremor"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Avacyn's Pilgrim"
+  assert damage "Grizzly Bears" 1
+  assert damage "Aven Cloudchaser" 0
+}

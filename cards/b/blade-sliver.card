@@ -1,0 +1,7 @@
+card "Blade Sliver" {
+  oracle_id 110e5695-a9df-4201-9230-99f6abe9978f
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: +1/+0
+}

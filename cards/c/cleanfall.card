@@ -1,0 +1,6 @@
+card "Cleanfall" {
+  oracle_id 826b1c93-4e5d-4436-8d59-2d7d970f609f
+  cost {2}{W}
+  type Sorcery — Arcane
+  spell: destroy each enchantment
+}

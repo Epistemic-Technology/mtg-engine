@@ -1,0 +1,7 @@
+card "Supply Runners" {
+  oracle_id 4d6da25d-7b62-4a64-bbaa-ae8edab1dd51
+  cost {4}{W}
+  type Creature — Dog
+  pt 2/2
+  triggered when this enters: put 1 +1/+1 counters on each other creature you control
+}

@@ -1,0 +1,8 @@
+card "Agent Phil Coulson" {
+  oracle_id dae20bcd-dc24-4f9d-9400-a6f013b49f14
+  cost {1}{W}
+  type Legendary Creature — Human Spy Hero
+  pt 2/2
+  keywords vigilance
+  activated {T}: put 1 +1/+1 counters on each other Hero you control
+}

@@ -1,0 +1,31 @@
+# Slingshot Goblin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Slingshot Goblin kills a blue creature" {
+  battlefield A: "Slingshot Goblin", "Mountain"
+  battlefield B: "Wind Drake"
+  turn 1 A: activate "Slingshot Goblin" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert tapped "Slingshot Goblin"
+  assert tapped "Mountain"
+}
+
+scenario "Slingshot Goblin cannot target a nonblue creature" {
+  battlefield A: "Slingshot Goblin", "Mountain"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Slingshot Goblin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert untapped "Slingshot Goblin"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Slingshot Goblin needs red mana" {
+  battlefield A: "Slingshot Goblin", "Plains"
+  battlefield B: "Wind Drake"
+  illegal turn 1 A: activate "Slingshot Goblin" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Wind Drake"
+  assert untapped "Slingshot Goblin"
+}

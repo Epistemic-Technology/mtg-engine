@@ -1,0 +1,44 @@
+# Magmatic Chasm: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "creatures without flying can't block after Magmatic Chasm" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Magmatic Chasm"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Magmatic Chasm"
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Magmatic Chasm"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "creatures with flying can still block" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Magmatic Chasm"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Magmatic Chasm"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "the effect ends at end of turn" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Magmatic Chasm"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Magmatic Chasm"
+  turn 3 B: attack "Hill Giant"
+  turn 3 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}

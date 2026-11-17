@@ -1,0 +1,6 @@
+card "Intimidation Bolt" {
+  oracle_id 3018c0ef-876a-4254-9513-42f351e1da3e
+  cost {1}{R}{W}
+  type Instant
+  spell: deal 3 damage to target creature; each other creature can't attack
+}

@@ -1,0 +1,8 @@
+card "Mineshaft Spider" {
+  oracle_id e5aa32b6-2eaf-4b48-81cc-cd3db976513d
+  cost {3}{G}
+  type Creature — Spider
+  pt 3/4
+  keywords reach
+  triggered when this enters: you may mill 2 cards
+}

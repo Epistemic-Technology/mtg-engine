@@ -1,0 +1,8 @@
+card "Shrieking Mogg" {
+  oracle_id 088a63d4-22d2-4061-8aef-2aa3fc348639
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/1
+  keywords haste
+  triggered when this enters: tap each other creature
+}

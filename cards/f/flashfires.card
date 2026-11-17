@@ -1,0 +1,6 @@
+card "Flashfires" {
+  oracle_id c281f436-8c77-48f7-b31c-d40cd7f9ed6a
+  cost {3}{R}
+  type Sorcery
+  spell: destroy each Plains
+}

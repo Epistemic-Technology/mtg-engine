@@ -1,0 +1,43 @@
+# Detained by Legionnaires: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature can't attack" {
+  battlefield A: "Detained by Legionnaires" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert untapped "Grizzly Bears"
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: "Grizzly Bears", "Detained by Legionnaires" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "cast on opposing creature stops its attacks" {
+  battlefield A: 2 "Plains"
+  hand A: "Detained by Legionnaires"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Detained by Legionnaires" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Detained by Legionnaires" to "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "other creatures attack normally" {
+  battlefield A: "Detained by Legionnaires" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

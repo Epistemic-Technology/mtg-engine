@@ -1,0 +1,7 @@
+card "Tolarian Serpent" {
+  oracle_id 684e18bf-1390-4d12-8e7a-e8562db64dbb
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 7/7
+  triggered at beginning of your upkeep: mill 7 cards
+}

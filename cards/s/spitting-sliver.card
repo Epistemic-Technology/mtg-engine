@@ -1,0 +1,7 @@
+card "Spitting Sliver" {
+  oracle_id 8415a482-3957-4c00-9015-99defc049877
+  cost {4}{B}
+  type Creature — Sliver
+  pt 3/3
+  static all Sliver creature: has first strike
+}

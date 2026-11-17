@@ -1,0 +1,7 @@
+card "Novablast Wurm" {
+  oracle_id c3aa2554-1cea-45e7-8fc7-1c09bd82fadb
+  cost {3}{G}{G}{W}{W}
+  type Creature — Wurm
+  pt 7/7
+  triggered whenever this attacks: destroy each other creature
+}

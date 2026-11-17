@@ -1,0 +1,33 @@
+# Maniacal Rage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Maniacal Rage gives +2/+2 to the enchanted creature" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Maniacal Rage"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Maniacal Rage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Maniacal Rage" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "creature enchanted by Maniacal Rage can't block" {
+  battlefield A: "Grizzly Bears", "Maniacal Rage" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "enchanted creature attacks for the boosted amount" {
+  battlefield A: "Grizzly Bears", "Maniacal Rage" on "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

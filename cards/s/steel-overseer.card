@@ -1,0 +1,7 @@
+card "Steel Overseer" {
+  oracle_id 986ae327-f433-4c58-93dc-afc544b9bfcb
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  activated {T}: put 1 +1/+1 counters on each artifact creature you control
+}

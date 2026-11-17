@@ -1,0 +1,9 @@
+card "Shake the Foundations" {
+  oracle_id 99eb5cda-684d-4f6c-bc34-1f03c8797150
+  cost {2}{R}
+  type Instant
+  spell {
+    deal 1 damage to each creature without flying
+    draw 1 cards
+  }
+}

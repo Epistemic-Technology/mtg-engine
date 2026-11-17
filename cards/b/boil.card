@@ -1,0 +1,6 @@
+card "Boil" {
+  oracle_id 3a51485b-31b2-4fa5-824a-a919f9d28ca8
+  cost {3}{R}
+  type Instant
+  spell: destroy each Islands
+}

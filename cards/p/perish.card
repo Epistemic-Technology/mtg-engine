@@ -1,0 +1,6 @@
+card "Perish" {
+  oracle_id dd84d291-cb7a-4f44-81cd-9f1181bb5ae5
+  cost {2}{B}
+  type Sorcery
+  spell: destroy each green creature without regeneration
+}

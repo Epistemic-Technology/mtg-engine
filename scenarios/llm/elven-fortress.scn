@@ -1,0 +1,37 @@
+# Elven Fortress: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumped blocker survives combat" {
+  battlefield A: "Elven Fortress", 2 "Forest", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Wind Drake"
+  turn 2 declare_blockers A: activate "Elven Fortress" targeting "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert damage "Wind Drake" 2
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped oldest A "Forest"
+  assert tapped newest A "Forest"
+}
+
+scenario "without the activation the blocker dies" {
+  battlefield A: "Elven Fortress", 2 "Forest", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "cannot target a creature that is not blocking" {
+  battlefield A: "Elven Fortress", 2 "Forest", "Grizzly Bears"
+  illegal turn 1 A: activate "Elven Fortress" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 2
+  assert untapped oldest A "Forest"
+  assert untapped newest A "Forest"
+}

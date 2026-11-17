@@ -1,0 +1,44 @@
+# Scattershot Archer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "archer deals 1 damage to each flyer and not to ground creatures" {
+  battlefield A: "Scattershot Archer"
+  battlefield B: "Wind Drake", "Serra Angel", "Grizzly Bears"
+  turn 1 A: activate "Scattershot Archer"
+  run_to turn 1 postcombat_main
+  assert tapped "Scattershot Archer"
+  assert damage "Wind Drake" 1
+  assert damage "Serra Angel" 1
+  assert damage "Grizzly Bears" 0
+  assert damage "Scattershot Archer" 0
+}
+
+scenario "archer also damages its controller's flyers" {
+  battlefield A: "Scattershot Archer", "Wind Drake"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Scattershot Archer"
+  run_to turn 1 postcombat_main
+  assert damage A "Wind Drake" 1
+  assert damage B "Serra Angel" 1
+}
+
+scenario "archer ping plus shock finishes a flyer" {
+  battlefield A: "Scattershot Archer", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Shock"
+  turn 1 A: activate "Scattershot Archer"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 3
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "tapped archer cannot activate" {
+  battlefield A: "Scattershot Archer" tapped
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Scattershot Archer"
+  run_to turn 1 postcombat_main
+  assert damage "Wind Drake" 0
+}

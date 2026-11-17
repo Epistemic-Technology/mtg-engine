@@ -1,0 +1,6 @@
+card "Magnetic Flux" {
+  oracle_id d50f756d-9ab6-4597-86ae-80beb70879ac
+  cost {2}{U}
+  type Instant
+  spell: each artifact creature you control gains flying
+}

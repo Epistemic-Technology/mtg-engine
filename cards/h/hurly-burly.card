@@ -1,0 +1,9 @@
+card "Hurly-Burly" {
+  oracle_id 2149f9f2-adcf-47d3-9564-326b5c0ced32
+  cost {1}{R}
+  type Sorcery
+  choose one {
+    mode: deal 1 damage to each creature without flying
+    mode: deal 1 damage to each creature with flying
+  }
+}

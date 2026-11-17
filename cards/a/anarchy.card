@@ -1,0 +1,6 @@
+card "Anarchy" {
+  oracle_id b91ed762-9232-4b77-abf4-97f66637f49c
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy each white permanent
+}

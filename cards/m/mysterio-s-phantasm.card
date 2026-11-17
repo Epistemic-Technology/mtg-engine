@@ -1,0 +1,8 @@
+card "Mysterio's Phantasm" {
+  oracle_id 99419378-8a23-44f3-aebe-e62d6e20e877
+  cost {1}{U}
+  type Creature — Illusion Villain
+  pt 1/3
+  keywords flying, vigilance
+  triggered whenever this attacks: mill 1 cards
+}

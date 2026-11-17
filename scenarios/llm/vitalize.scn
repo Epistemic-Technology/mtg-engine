@@ -1,0 +1,46 @@
+# Vitalize: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vitalize untaps all creatures you control" {
+  battlefield A: "Forest", "Grizzly Bears" tapped, "Hill Giant" tapped
+  hand A: "Vitalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vitalize"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert graveyard A contains "Vitalize"
+}
+
+scenario "Vitalize does not untap opponent's creatures" {
+  battlefield A: "Forest", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped
+  hand A: "Vitalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vitalize"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Vitalize does not untap lands" {
+  battlefield A: "Forest", "Mountain" tapped, "Grizzly Bears" tapped
+  hand A: "Vitalize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vitalize"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert tapped "Mountain"
+  assert tapped "Forest"
+}
+
+scenario "Vitalize untaps an attacker after combat" {
+  battlefield A: "Forest", "Grizzly Bears"
+  hand A: "Vitalize"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 end_combat A: cast "Vitalize"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}

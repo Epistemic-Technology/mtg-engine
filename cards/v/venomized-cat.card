@@ -1,0 +1,8 @@
+card "Venomized Cat" {
+  oracle_id eb54d807-624b-471e-8c44-07322003903e
+  cost {2}{B}
+  type Creature — Symbiote Cat Villain
+  pt 2/3
+  keywords deathtouch
+  triggered when this enters: mill 2 cards
+}

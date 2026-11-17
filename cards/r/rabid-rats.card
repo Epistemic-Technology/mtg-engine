@@ -1,0 +1,7 @@
+card "Rabid Rats" {
+  oracle_id 0f2504b0-bd5a-4b61-b8bb-c8b20aa1e26e
+  cost {1}{B}
+  type Creature — Rat
+  pt 1/1
+  activated {T}: target blocking creature gets -1/-1
+}

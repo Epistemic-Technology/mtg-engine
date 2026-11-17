@@ -1,0 +1,8 @@
+card "Indulgent Aristocrat" {
+  oracle_id c7054a2d-2e7b-4487-8fc3-f6a47a716fd3
+  cost {B}
+  type Creature — Vampire Noble
+  pt 1/1
+  keywords lifelink
+  activated {2}, sacrifice creature: put 1 +1/+1 counters on each Vampire you control
+}

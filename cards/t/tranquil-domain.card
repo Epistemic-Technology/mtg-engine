@@ -1,0 +1,6 @@
+card "Tranquil Domain" {
+  oracle_id 87547bf0-02cf-4d83-9a1f-c82d2f1a22f1
+  cost {1}{G}
+  type Instant
+  spell: destroy each non-Aura enchantment
+}

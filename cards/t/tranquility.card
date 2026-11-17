@@ -1,0 +1,6 @@
+card "Tranquility" {
+  oracle_id f671e3c3-cd59-4d06-a1af-5d04892cf74d
+  cost {2}{G}
+  type Sorcery
+  spell: destroy each enchantment
+}

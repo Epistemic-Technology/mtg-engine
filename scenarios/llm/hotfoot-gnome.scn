@@ -1,0 +1,45 @@
+# Hotfoot Gnome: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Hotfoot Gnome has haste and attacks the turn it is cast" {
+  battlefield A: 3 "Mountain"
+  hand A: "Hotfoot Gnome"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hotfoot Gnome"
+  turn 1 A: attack "Hotfoot Gnome"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "tap ability gives a freshly cast creature haste" {
+  battlefield A: "Hotfoot Gnome", "Forest", "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Hotfoot Gnome" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Hotfoot Gnome"
+  assert life B 18
+}
+
+scenario "Hotfoot Gnome cannot target itself" {
+  battlefield A: "Hotfoot Gnome"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Hotfoot Gnome" targeting "Hotfoot Gnome"
+  run_to turn 1 postcombat_main
+  assert untapped "Hotfoot Gnome"
+}
+
+scenario "Hotfoot Gnome can grant haste the turn it enters" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Hotfoot Gnome"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hotfoot Gnome"
+  turn 1 A: wait
+  turn 1 A: activate "Hotfoot Gnome" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert tapped "Hotfoot Gnome"
+  assert has "Grizzly Bears" haste
+}

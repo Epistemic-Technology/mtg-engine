@@ -1,0 +1,40 @@
+# Vampire Neonate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vampire Neonate drains each opponent for 1" {
+  battlefield A: "Vampire Neonate", 2 "Swamp"
+  turn 1 A: activate "Vampire Neonate"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert tapped "Vampire Neonate"
+}
+
+scenario "Vampire Neonate cannot activate without two mana" {
+  battlefield A: "Vampire Neonate", "Swamp"
+  illegal turn 1 A: activate "Vampire Neonate"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+  assert untapped "Vampire Neonate"
+}
+
+scenario "Vampire Neonate's tap cost allows only one activation" {
+  battlefield A: "Vampire Neonate", 4 "Swamp"
+  turn 1 A: activate "Vampire Neonate"
+  illegal turn 1 postcombat_main A: activate "Vampire Neonate"
+  run_to turn 1 end
+  assert life B 19
+  assert life A 21
+}
+
+scenario "freshly cast Vampire Neonate is summoning sick" {
+  battlefield A: 3 "Swamp"
+  hand A: "Vampire Neonate"
+  turn 1 A: cast "Vampire Neonate"
+  illegal turn 1 postcombat_main A: activate "Vampire Neonate"
+  run_to turn 1 end
+  assert battlefield A contains "Vampire Neonate"
+  assert life B 20
+  assert life A 20
+}

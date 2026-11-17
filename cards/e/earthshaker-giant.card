@@ -1,0 +1,8 @@
+card "Earthshaker Giant" {
+  oracle_id cd6250ae-9079-4a62-8a70-0d94fbac21bc
+  cost {4}{G}{G}
+  type Creature — Giant Druid
+  pt 6/6
+  keywords trample
+  triggered when this enters: each other creature you control gets +3/+3 and gains trample
+}

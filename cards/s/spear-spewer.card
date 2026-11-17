@@ -1,0 +1,8 @@
+card "Spear Spewer" {
+  oracle_id 1a668cef-bdc5-410b-b9e3-044e4203a0aa
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 0/2
+  keywords defender
+  activated {T}: deal 1 damage to each player
+}

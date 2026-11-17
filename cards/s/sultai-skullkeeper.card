@@ -1,0 +1,7 @@
+card "Sultai Skullkeeper" {
+  oracle_id 726ba167-9e7b-4d46-a52c-72d5a500aee2
+  cost {1}{U}
+  type Creature — Snake Shaman
+  pt 2/1
+  triggered when this enters: mill 2 cards
+}

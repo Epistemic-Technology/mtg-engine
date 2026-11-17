@@ -1,0 +1,37 @@
+# Bound in Silence: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature can't attack" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  hand A: "Bound in Silence"
+  turn 1 A: cast "Bound in Silence" targeting B "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Bound in Silence" to "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Bound in Silence"
+  turn 1 A: cast "Bound in Silence" targeting B "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Bound in Silence" to "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "aura goes to graveyard when enchanted creature dies" {
+  battlefield A: 3 "Plains", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bound in Silence", "Lightning Bolt"
+  turn 1 A: cast "Bound in Silence" targeting B "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting B "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Bound in Silence"
+}

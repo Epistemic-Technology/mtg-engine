@@ -1,0 +1,7 @@
+card "Sinew Sliver" {
+  oracle_id ffff90c3-63c4-4dee-a21d-6b2b113f4f80
+  cost {1}{W}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: +1/+1
+}

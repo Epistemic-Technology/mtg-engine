@@ -1,0 +1,8 @@
+card "Pyrewood Gearhulk" {
+  oracle_id c4c6083a-b0b5-4c6b-9f11-9f4fe38417c2
+  cost {2}{R}{R}{G}{G}
+  type Artifact Creature — Construct
+  pt 7/7
+  keywords vigilance, menace
+  triggered when this enters: each other creature you control gets +2/+2 and gains vigilance, menace; damage can't be prevented this turn
+}

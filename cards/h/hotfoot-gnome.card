@@ -1,0 +1,8 @@
+card "Hotfoot Gnome" {
+  oracle_id 3efb64a4-04f6-4b78-be1c-5b6320c02a71
+  cost {2}{R}
+  type Artifact Creature — Gnome
+  pt 3/1
+  keywords haste
+  activated {T}: another target creature gains haste
+}

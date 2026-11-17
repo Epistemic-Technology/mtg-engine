@@ -1,0 +1,32 @@
+# Herald of Dromoka: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Herald of Dromoka attacks without tapping" {
+  battlefield A: "Herald of Dromoka"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Herald of Dromoka"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Herald of Dromoka"
+}
+
+scenario "non-Warrior creatures do not gain vigilance" {
+  battlefield A: "Herald of Dromoka", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" vigilance
+  assert tapped "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "two Heralds both attack untapped" {
+  battlefield A: 2 "Herald of Dromoka"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Herald of Dromoka", "Herald of Dromoka"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert has oldest A "Herald of Dromoka" vigilance
+  assert untapped oldest A "Herald of Dromoka"
+  assert untapped newest A "Herald of Dromoka"
+}

@@ -1,0 +1,6 @@
+card "Eyeblight Massacre" {
+  oracle_id 3b90dd70-798e-4dc4-99e7-b36d6823af2b
+  cost {2}{B}{B}
+  type Sorcery
+  spell: each non-Elf creature gets -2/-2
+}

@@ -1,0 +1,7 @@
+card "Two-Headed Sliver" {
+  oracle_id be857d6e-5bf2-491b-ab46-963b4d45adee
+  cost {1}{R}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has menace
+}

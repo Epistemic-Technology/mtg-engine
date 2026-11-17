@@ -1,0 +1,8 @@
+card "Deadeye Duelist" {
+  oracle_id 29ef90ac-2396-4488-970d-d440297ba5ee
+  cost {1}{R}
+  type Creature — Human Assassin
+  pt 1/3
+  keywords reach
+  activated {1}, {T}: deal 1 damage to target opponent
+}

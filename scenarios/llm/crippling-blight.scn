@@ -1,0 +1,43 @@
+# Crippling Blight: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Crippling Blight gives -1/-1" {
+  battlefield A: "Swamp"
+  hand A: "Crippling Blight"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Crippling Blight" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Crippling Blight" to "Hill Giant"
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Grizzly Bears", "Crippling Blight" on "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 declare_blockers B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "enchanted creature can still attack with reduced power" {
+  battlefield B: "Grizzly Bears", "Crippling Blight" on "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 19
+}
+
+scenario "Crippling Blight plus Shock kills a 3-toughness creature" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Crippling Blight", "Shock"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Crippling Blight" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Crippling Blight"
+}

@@ -1,0 +1,6 @@
+card "Essence Drain" {
+  oracle_id 4bf5402f-7bba-4c0c-aebd-1b231768f2b2
+  cost {4}{B}
+  type Sorcery
+  spell: deal 3 damage to any target and you gain 3 life
+}

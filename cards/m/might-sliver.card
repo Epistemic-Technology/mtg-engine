@@ -1,0 +1,7 @@
+card "Might Sliver" {
+  oracle_id 92f5f80c-de1a-44e8-93f1-e405241c1e82
+  cost {4}{G}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: +2/+2
+}

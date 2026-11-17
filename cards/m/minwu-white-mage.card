@@ -1,0 +1,8 @@
+card "Minwu, White Mage" {
+  oracle_id 31ca9e12-8ad0-472e-8b2a-b7df26370d8c
+  cost {3}{W}{W}
+  type Legendary Creature — Human Cleric
+  pt 3/3
+  keywords vigilance, lifelink
+  triggered whenever you gain life: put 1 +1/+1 counters on each Cleric you control
+}

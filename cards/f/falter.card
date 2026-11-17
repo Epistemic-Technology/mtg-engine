@@ -1,0 +1,6 @@
+card "Falter" {
+  oracle_id d4b50749-a016-4aff-8d70-a1707cabf57b
+  cost {1}{R}
+  type Instant
+  spell: each creature without flying can't block
+}

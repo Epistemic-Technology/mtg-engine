@@ -1,0 +1,33 @@
+# Cagemail: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Cagemail gives +2/+2" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Cagemail"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cagemail" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Cagemail" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "enchanted creature can't attack" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Cagemail" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Grizzly Bears"
+}
+
+scenario "enchanted creature survives Lightning Bolt" {
+  battlefield A: "Grizzly Bears", "Mountain", "Cagemail" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert graveyard A contains "Lightning Bolt"
+}

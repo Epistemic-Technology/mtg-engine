@@ -1,0 +1,9 @@
+card "Aether Shockwave" {
+  oracle_id e9db79fd-a5b6-4d59-9176-e713e2e9c708
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: tap each Spirits
+    mode: tap each non-Spirit creature
+  }
+}

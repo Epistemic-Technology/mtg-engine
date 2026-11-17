@@ -1,0 +1,8 @@
+card "Trailblazing Historian" {
+  oracle_id 399770b9-eab7-4512-aa1d-65c5bd81094f
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 1/3
+  keywords haste
+  activated {T}: another target creature gains haste
+}

@@ -1,0 +1,7 @@
+card "Fury Sliver" {
+  oracle_id 44623693-51d6-49ad-8cd7-140505caf02f
+  cost {5}{R}
+  type Creature — Sliver
+  pt 3/3
+  static all Sliver creature: has double strike
+}

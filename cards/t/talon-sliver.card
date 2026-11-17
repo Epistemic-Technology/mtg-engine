@@ -1,0 +1,7 @@
+card "Talon Sliver" {
+  oracle_id 74910702-e385-48f7-a6b3-064ebed08be7
+  cost {1}{W}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has first strike
+}

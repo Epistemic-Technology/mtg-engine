@@ -338,10 +338,39 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         *targets += 1;
         return Some(s.to_string());
     }
+    // Groups: "all artifacts", "each creature without flying", "white
+    // creatures you control" (a plural subject). The DSL writes them
+    // singular after `each`; the render check decides the rest.
+    if let Some(rest) = s.strip_prefix("all ").or_else(|| s.strip_prefix("each ")) {
+        return Some(format!("each {}", singular(rest)));
+    }
+    if s.split(' ').count() <= 5
+        && s.split(' ').any(|w| {
+            matches!(
+                w,
+                "creatures" | "artifacts" | "enchantments" | "lands" | "permanents"
+            )
+        })
+    {
+        return Some(format!("each {}", singular(&lowercase_first(s))));
+    }
     if (s == "it" || s == "that permanent") && *targets > 0 {
         return Some(format!("target {targets}"));
     }
     None
+}
+
+/// A plural noun phrase made singular for the DSL: "blue creatures you
+/// control" → "blue creature you control", "Auras" → "Aura".
+fn singular(s: &str) -> String {
+    s.split(' ')
+        .map(|w| match w {
+            "creatures" | "artifacts" | "enchantments" | "lands" | "permanents" | "Auras"
+            | "Slivers" | "Goblins" | "Walls" => w.trim_end_matches('s').to_string(),
+            other => other.to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// A sentence pattern and what it compiles to; the closure sees the
@@ -406,6 +435,9 @@ impl Templates {
             }),
             (r(r"^Draw (\S+) cards?$"), |c, _| {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
+            }),
+            (r(r"^Mill (\S+) cards?$"), |c, _| {
+                Some(format!("mill {} cards", number(cap(c, 1))?))
             }),
             (r(r"^Discard (\S+) cards?$"), |c, _| {
                 Some(format!("discard {} cards", number(cap(c, 1))?))
@@ -896,6 +928,34 @@ impl Builder<'_> {
             }
             if !mods.is_empty() {
                 self.statements.push(format!("static {filter}: {}", mods.join(", ")));
+                return Ok(());
+            }
+        }
+        // "All Sliver creatures get +1/+1." / "Minotaur creatures get +1/+0."
+        if let Some(c) = Regex::new(r"^(All )?([A-Z][a-z]+) creatures (.+)\.$")
+            .unwrap()
+            .captures(line)
+        {
+            let all = if cap(&c, 1).is_empty() { "" } else { "all " };
+            let filter = format!("{all}{} creature", cap(&c, 2));
+            let mut mods = Vec::new();
+            let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+            let mut ok = true;
+            for part in cap(&c, 3).split(" and ") {
+                if let Some(c2) = gets.captures(part) {
+                    mods.push(cap(&c2, 1).to_string());
+                } else if let Some(rest) = part.strip_prefix("have ") {
+                    match keyword_list(rest) {
+                        Some(ks) => mods.push(format!("has {ks}")),
+                        None => ok = false,
+                    }
+                } else {
+                    ok = false;
+                }
+            }
+            if ok && !mods.is_empty() {
+                self.statements
+                    .push(format!("static {filter}: {}", mods.join(", ")));
                 return Ok(());
             }
         }

@@ -1,0 +1,7 @@
+card "Kithkin Daggerdare" {
+  oracle_id b4fd5a3f-3aec-4336-9dcd-6971c117515a
+  cost {1}{G}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  activated {G}, {T}: target attacking creature gets +2/+2
+}

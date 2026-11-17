@@ -1,0 +1,9 @@
+card "Tranquil Path" {
+  oracle_id a9595011-8ddb-403a-ba35-5a79d346557e
+  cost {4}{G}
+  type Sorcery
+  spell {
+    destroy each enchantment
+    draw 1 cards
+  }
+}

@@ -1,0 +1,7 @@
+card "Pacifism" {
+  oracle_id 5f5e0b10-c8cf-450c-bfd3-bcb0528ec330
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+}

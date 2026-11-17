@@ -1,0 +1,8 @@
+card "Herald of Dromoka" {
+  oracle_id dae8dc90-8047-434c-9e3a-a2eaa6aba575
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords vigilance
+  static other Warrior creature you control: has vigilance
+}

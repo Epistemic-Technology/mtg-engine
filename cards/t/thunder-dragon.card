@@ -1,0 +1,8 @@
+card "Thunder Dragon" {
+  oracle_id 70d9579f-c8a6-4406-afe1-9291fe5ee736
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered when this enters: deal 3 damage to each creature without flying
+}

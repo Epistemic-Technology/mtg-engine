@@ -1,0 +1,7 @@
+card "Morgue Thrull" {
+  oracle_id fc759e09-34b2-4004-8474-a6500dd1280c
+  cost {2}{B}
+  type Creature — Thrull
+  pt 2/2
+  activated sacrifice this: mill 3 cards
+}

@@ -1,0 +1,7 @@
+card "Crippling Blight" {
+  oracle_id e365699a-bd77-473f-86b0-4e1ba0371cdc
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1, has can't block
+}

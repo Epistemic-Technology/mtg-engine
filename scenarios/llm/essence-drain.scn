@@ -1,0 +1,39 @@
+# Essence Drain: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Essence Drain hits a player and gains 3 life" {
+  battlefield A: 5 "Swamp"
+  hand A: "Essence Drain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Essence Drain" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+  assert graveyard A contains "Essence Drain"
+}
+
+scenario "Essence Drain kills a 3-toughness creature" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Essence Drain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Essence Drain" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+  assert life B 20
+}
+
+scenario "Essence Drain with an illegal target gains no life" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Essence Drain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Essence Drain" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Essence Drain"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Essence Drain"
+  assert life A 20
+}

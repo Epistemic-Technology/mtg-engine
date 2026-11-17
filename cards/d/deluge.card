@@ -1,0 +1,6 @@
+card "Deluge" {
+  oracle_id cd271e61-0135-484f-ae02-5aaca57c1124
+  cost {2}{U}
+  type Instant
+  spell: tap each creature without flying
+}

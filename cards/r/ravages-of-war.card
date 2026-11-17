@@ -1,0 +1,6 @@
+card "Ravages of War" {
+  oracle_id 265236d1-d96c-4424-835e-a0fe91c41170
+  cost {3}{W}
+  type Sorcery
+  spell: destroy each land
+}

@@ -400,6 +400,18 @@ impl<'a> Ctx<'a> {
                 "each permanent you control".to_string()
             }
             Recipient::SameObject | Recipient::CreatedObject => "it".to_string(),
+            Recipient::Group(i) => {
+                self.groups_mentioned.insert(r);
+                format!("each {}", self.group_phrase(i, false))
+            }
+        }
+    }
+
+    /// The filter of the card's `i`th group, as a noun phrase.
+    fn group_phrase(&self, i: u16, plural_form: bool) -> String {
+        match self.card.groups.get(usize::from(i)) {
+            Some(f) => filter_phrase(f, self.card, plural_form),
+            None => "permanent".to_string(),
         }
     }
 
@@ -428,6 +440,13 @@ impl<'a> Ctx<'a> {
                     "those permanents".to_string()
                 }
             }
+            Recipient::Group(i) => {
+                if self.groups_mentioned.insert(r) {
+                    self.group_phrase(i, true)
+                } else {
+                    "they".to_string()
+                }
+            }
             Recipient::Source => self.source(),
             other => self.obj(other),
         }
@@ -439,6 +458,7 @@ impl<'a> Ctx<'a> {
             Recipient::EachCreature => "all creatures".to_string(),
             Recipient::EachCreatureYouControl => "all creatures you control".to_string(),
             Recipient::EachPermanentYouControl => "all permanents you control".to_string(),
+            Recipient::Group(i) => format!("all {}", self.group_phrase(i, true)),
             other => self.obj(other),
         }
     }
@@ -479,12 +499,30 @@ impl<'a> Ctx<'a> {
         list(&items)
     }
 
+    /// Objects of tap and untap: Oracle says "tap all artifacts" for a
+    /// group but "untap each creature you control" for the built-in
+    /// groups.
+    fn obj_list_tap(&mut self, rs: &[Recipient]) -> String {
+        if !rs.iter().any(|r| matches!(r, Recipient::Group(_))) {
+            return self.obj_list(rs, false);
+        }
+        let items: Vec<String> = rs
+            .iter()
+            .map(|r| match r {
+                Recipient::Group(i) => format!("all {}", self.group_phrase(*i, true)),
+                other => self.obj(*other),
+            })
+            .collect();
+        list(&items)
+    }
+
     fn is_plural(r: Recipient) -> bool {
         matches!(
             r,
             Recipient::EachCreature
                 | Recipient::EachCreatureYouControl
                 | Recipient::EachPermanentYouControl
+                | Recipient::Group(_)
         )
     }
 
@@ -640,6 +678,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     let mut s = words.join(" ");
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
+    }
+    if !f.not_keywords.is_empty() {
+        let _ = write!(s, " without {}", keywords_list(&f.not_keywords));
     }
     match f.who {
         Some(Who::You) => s.push_str(" you control"),
@@ -969,17 +1010,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::Mill { count, who } => {
-            let s = ctx.subj(*who);
-            Clause::with_subject(
-                *who,
-                s,
-                format!(
-                    "{} {} {}",
-                    ctx.verb(*who, "mills", "mill"),
-                    count_words(*count, "a"),
-                    plural(*count, "card")
-                ),
-            )
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            match who {
+                None => Clause::imperative(format!("mill {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(*w, s, format!("{} {what}", ctx.verb(*w, "mills", "mill")))
+                }
+            }
         }
         Effect::AddCounters { kind, count, to } => {
             let c = counters(*count, *kind);
@@ -1036,11 +1074,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("sacrifice {o}"))
         }
         Effect::Tap { to } => {
-            let o = ctx.obj_list(to, false);
+            let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("tap {o}"))
         }
         Effect::Untap { to } => {
-            let o = ctx.obj_list(to, false);
+            let o = ctx.obj_list_tap(to);
             Clause::imperative(format!("untap {o}"))
         }
         Effect::Grant { keywords, to } => {
@@ -1775,7 +1813,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             && !filter.no_abilities
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
-        if bare {
+        if bare || filter.all {
             (format!("All {p}"), true)
         } else {
             (capitalize(&p), true)

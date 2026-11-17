@@ -1,0 +1,7 @@
+card "Detained by Legionnaires" {
+  oracle_id d59488b5-1118-4276-b862-11e860c7c32a
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+}

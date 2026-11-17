@@ -1,0 +1,32 @@
+# Cast into Darkness: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "cast into darkness gives -2/-0" {
+  battlefield A: 2 "Swamp"
+  hand A: "Cast into Darkness"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Cast into Darkness" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Cast into Darkness" to "Hill Giant"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: "Grizzly Bears", "Cast into Darkness" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "enchanted creature attacks with reduced power" {
+  battlefield A: "Cast into Darkness" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 19
+}

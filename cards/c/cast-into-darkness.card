@@ -1,0 +1,7 @@
+card "Cast into Darkness" {
+  oracle_id 4160e621-3f13-486b-af17-728ce85f7ea5
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/+0, has can't block
+}

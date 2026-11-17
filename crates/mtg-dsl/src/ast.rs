@@ -42,6 +42,8 @@ pub struct Card {
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
     pub flashback: Option<Cost>,
+    /// Filters behind `Recipient::Group`, in order of first mention.
+    pub groups: Vec<Filter>,
     pub abilities: Vec<Ability>,
     /// What this card's copy effects add to what they copy (CR 707.9b).
     pub except: Option<Except>,
@@ -103,6 +105,7 @@ pub enum SacCost {
 
 /// Which objects something applies to; see `mtg_core::card::ObjFilter`.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
 pub struct Filter {
     pub who: Option<Who>,
     pub types: Vec<CardType>,
@@ -116,11 +119,16 @@ pub struct Filter {
     pub not_subtypes: Vec<String>,
     /// "with flying": has every one of these.
     pub keywords: Vec<Keyword>,
+    /// "without flying": has none of these.
+    pub not_keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
     pub no_abilities: bool,
     /// `who` is `Opponents`, written and printed "you don't control".
     pub dont_control: bool,
+    /// Written `all ...`; a static ability's subject then prints "All
+    /// Sliver creatures" rather than "Sliver creatures".
+    pub all: bool,
 }
 
 impl Filter {
@@ -148,6 +156,7 @@ impl Filter {
 
 /// What a spell or ability targets (one entry per "target").
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
 pub enum Target {
     Spec(TargetSpec),
     /// "target Assembly-Worker creature".
@@ -366,6 +375,8 @@ pub enum Recipient {
     EachPermanentYouControl,
     SameObject,
     CreatedObject,
+    /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
+    Group(u16),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -398,9 +409,10 @@ pub enum Effect {
         count: Num,
         who: Option<Recipient>,
     },
+    /// `who` is `None` for the imperative "Mill two cards" (the controller).
     Mill {
         count: Num,
-        who: Recipient,
+        who: Option<Recipient>,
     },
     AddCounters {
         kind: CounterKind,

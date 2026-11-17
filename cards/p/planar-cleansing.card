@@ -1,0 +1,6 @@
+card "Planar Cleansing" {
+  oracle_id a98c2d81-4add-4292-bbdd-e1b69ff936d4
+  cost {3}{W}{W}{W}
+  type Sorcery
+  spell: destroy each nonland permanent
+}

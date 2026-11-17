@@ -929,6 +929,22 @@ impl GameState {
                     out.push(Target::Object(id));
                 }
             }
+            Recipient::Group(f) => {
+                let filter = self.pool.filter(f);
+                let source = self.current_object(ctx.source);
+                out.extend(
+                    self.battlefield
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            let o = &self.objects[*id];
+                            self.characteristics(*id).is_some_and(|c| {
+                                filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
+                            })
+                        })
+                        .map(Target::Object),
+                );
+            }
         }
         out
     }

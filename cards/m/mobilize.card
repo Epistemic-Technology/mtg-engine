@@ -1,0 +1,6 @@
+card "Mobilize" {
+  oracle_id 7416c8db-ec33-4d92-866c-b7fdc69c8b41
+  cost {G}
+  type Sorcery
+  spell: untap all creature you control
+}

@@ -533,6 +533,8 @@ pub struct ObjFilter {
     pub not_colors: ColorSet,
     /// Must have every one of these keywords ("creature with flying").
     pub keywords: KeywordSet,
+    /// Must have none of these keywords ("creature without flying").
+    pub not_keywords: KeywordSet,
     /// Must have every one of these subtypes ("Goblin").
     pub subtypes: SubtypeSet,
     /// Must have none of these subtypes ("non-Aura").
@@ -641,7 +643,7 @@ impl ObjFilter {
         if c.colors.intersects(self.not_colors) {
             return false;
         }
-        if !c.keywords.contains_all(self.keywords) {
+        if !c.keywords.contains_all(self.keywords) || c.keywords.intersects(self.not_keywords) {
             return false;
         }
         if c.subtypes.iter().any(|s| self.not_subtypes.contains(s))
@@ -858,6 +860,10 @@ pub enum Recipient {
     /// The object the previous effect of the same resolution created or
     /// moved ("that token", "that card").
     CreatedObject,
+    /// Every battlefield object matching the pool's `n`th interned filter
+    /// ("all artifacts", "each creature with flying", "white creatures you
+    /// control").
+    Group(u16),
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell
@@ -1972,6 +1978,11 @@ impl CardPool {
 
     pub fn filter(&self, i: u16) -> &ObjFilter {
         &self.filters[i as usize]
+    }
+
+    /// Every interned filter, by index.
+    pub fn filters(&self) -> &[ObjFilter] {
+        &self.filters
     }
 
     /// The triggered ability a keyword stands for, for keywords that are

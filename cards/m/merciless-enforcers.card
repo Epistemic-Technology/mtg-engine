@@ -1,0 +1,8 @@
+card "Merciless Enforcers" {
+  oracle_id b32a7b97-0883-4c9f-a23d-ad269efd8cc3
+  cost {1}{B}
+  type Creature — Human Mercenary Villain
+  pt 2/1
+  keywords lifelink
+  activated {3}{B}: deal 1 damage to each opponent
+}

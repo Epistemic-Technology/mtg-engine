@@ -1,0 +1,7 @@
+card "Zephyr Net" {
+  oracle_id cd510cf2-df54-4024-919b-e4377cdb2be1
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has defender, flying
+}

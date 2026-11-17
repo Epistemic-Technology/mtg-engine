@@ -1,0 +1,8 @@
+card "End-Raze Forerunners" {
+  oracle_id 69b52907-8aff-4f2a-a391-7d1ab2669b5c
+  cost {5}{G}{G}{G}
+  type Creature — Boar
+  pt 7/7
+  keywords vigilance, trample, haste
+  triggered when this enters: each other creature you control gets +2/+2 and gains vigilance, trample
+}

@@ -1,0 +1,6 @@
+card "Tsunami" {
+  oracle_id ef2b1565-7b02-4cab-9031-beb1701ee929
+  cost {3}{G}
+  type Sorcery
+  spell: destroy each Islands
+}

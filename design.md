@@ -888,6 +888,33 @@ assorted (an imperative "Mill N cards", legendary short names, the
 Ring). The group recipient is the next primitive; it alone would have
 raised this batch's acceptance to about 65%.
 
+Slice 7 (2026-11-17) added it: `Recipient::Group` over the pool's
+interned filters (`each artifact`, `each blue creature`, `each creature
+without flying`, `each white creature you control`), printed as Oracle
+does ("Tap all artifacts", "deals 1 damage to each creature without
+flying", "White creatures you control get +2/+2"), with `without
+<keyword>` in filters, the imperative "Mill N cards", and `all` on a
+static ability's filter for the old Sliver wording ("All Sliver
+creatures get +1/+1"). The templates follow ("all artifacts", plural
+subjects, Mill, the Sliver statics): 138 more cards. Seven hand-written
+cards and scenarios (`scenarios/m3/groups.scn`) cover each form. Second
+model-author batch (249 cards: the 89 batch-1 cards whose reason named a
+group, plus the next 160 shortest candidates): 45 accepted (one of them
+a Scryfall token record, Assembly-Worker, dropped afterwards; the model
+author now checks the header fields and skips token records), 182
+unsupported, 2 rejected; 466,675 input tokens uncached, 3,075,316 from
+cache, 217,814 out. The retries disappointed (6 of 89): the regex that
+picked them had caught "All Sliver creatures" statics (31, now fixed
+after the batch) and "attacking creatures" filters (31), neither of
+which the group recipient covers. The fresh cards accepted at 24%. The
+reasons now cluster as: filters and statics over attacking or blocking
+creatures (31, needs combat state in `ObjFilter::matches`), conditional
+statics and evasion restrictions ("as long as", "can't be blocked by
+Walls", 19), triggers and designations outside the engine (monarch, the
+initiative, 16), "can't attack/block alone" and "must be blocked" (6),
+"multicolored" (6), "up to N" targets (4), and a long tail. Attacking
+and blocking filters are the next primitive.
+
 The plan as first written: `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
 (embedding search over Oracle text); prompt an LLM for the DSL and
@@ -1271,6 +1298,13 @@ flashback card is there, landwalk behind one bitmask test) cost nothing
 measurable. The random-deck figure is not comparable across pools (the
 decks differ), so it is not reported here. Fuzz: 36,000 stress-deck and
 10,000 random-deck games, 0 panics, 0 unfinished.
+
+**M3 slice 7 (2026-11-17, same method, measured against the slice 6
+binary).** Group recipients add nothing to the hot path (a `Group`
+recipient is matched only when such an effect resolves): mono-red
+4,525→4,577, copy 1,388→1,399, slice6 813→812. Fuzz: 36,000 stress-deck
+and 10,000 random-deck games over the 4,124-card pool, 0 panics, 0
+unfinished.
 
 ### 8.2 Techniques
 
@@ -1862,6 +1896,18 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, slice 7 (group recipients, then the second model
+batch) done: `each <filter>` / `all <filter>` recipients, `without
+<keyword>` filters, the imperative "Mill N cards", and the "All Sliver
+creatures" static subject are in the engine, DSL, and templates (§6.4);
+7 scenarios in `scenarios/m3/groups.scn`. Template authoring added 138
+cards and the second model-author batch 45 (of 249). Corpus 4,124 cards
+(2,959 Pauper, 27.6%; 3,083 Modern, 14.2%; gate 4,116 of 4,116 matching,
+1 allowed), 147 hand-written and 112 model-authored, all
+scenario-tested. Scenarios: 821 pass (1 skipped). The reasons the model
+gives for the rest put filters over attacking and blocking creatures
+next.
 
 Status 2026-11-17, slice 6 (the first run's backlog, then the model
 author at scale) done: kicker, flashback, landwalk, attacking and

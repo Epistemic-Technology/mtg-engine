@@ -1,0 +1,7 @@
+card "Luminous Bonds" {
+  oracle_id 2c006a63-0550-4a87-a5fe-f4247857271c
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+}

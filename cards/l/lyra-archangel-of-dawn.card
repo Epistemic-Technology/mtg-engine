@@ -1,0 +1,8 @@
+card "Lyra, Archangel of Dawn" {
+  oracle_id 0fca3328-484f-4050-925e-91840710b5d6
+  cost {2}{W}
+  type Legendary Creature — Angel Knight
+  pt 3/3
+  keywords flying
+  triggered whenever you gain life: put 1 +1/+1 counters on each Angel you control
+}

@@ -1,0 +1,8 @@
+card "Daggerfang Duo" {
+  oracle_id 43ccc568-2509-49b6-99d7-c56900d1565a
+  cost {2}{B}
+  type Creature — Rat Squirrel
+  pt 3/2
+  keywords deathtouch
+  triggered when this enters: you may mill 2 cards
+}

@@ -1,0 +1,6 @@
+card "Whirlwind" {
+  oracle_id d3946df7-cb24-47c0-a8b0-1bdf95d99926
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy each creature with flying
+}

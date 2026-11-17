@@ -1,0 +1,7 @@
+card "Maniacal Rage" {
+  oracle_id b5dbb212-0399-475b-a831-921f7c76cdc4
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has can't block
+}

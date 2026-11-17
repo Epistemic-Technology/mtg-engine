@@ -1,0 +1,7 @@
+card "Denizen of the Deep" {
+  oracle_id fc1bb5b9-5e36-4154-b683-e62f4f66f2b6
+  cost {6}{U}{U}
+  type Creature — Serpent
+  pt 11/11
+  triggered when this enters: return each other creature you control to hand
+}

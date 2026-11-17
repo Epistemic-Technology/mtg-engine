@@ -1,0 +1,37 @@
+# Infantry Veteran: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "veteran pumps an unblocked attacker" {
+  battlefield A: "Infantry Veteran", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Infantry Veteran" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert tapped "Infantry Veteran"
+}
+
+scenario "veteran cannot target a creature that is not attacking" {
+  battlefield A: "Infantry Veteran", "Grizzly Bears"
+  start turn 1 A
+  illegal turn 1 A: activate "Infantry Veteran" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert untapped "Infantry Veteran"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "pumped attacker survives a trade after blocks" {
+  battlefield A: "Infantry Veteran", "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 declare_blockers A: activate "Infantry Veteran" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert damage "Grizzly Bears" 2
+  assert life B 20
+}

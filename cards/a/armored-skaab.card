@@ -1,0 +1,7 @@
+card "Armored Skaab" {
+  oracle_id 74d85903-6404-41d9-bc00-81c6b2f61bb0
+  cost {2}{U}
+  type Creature — Zombie Warrior
+  pt 1/4
+  triggered when this enters: mill 4 cards
+}

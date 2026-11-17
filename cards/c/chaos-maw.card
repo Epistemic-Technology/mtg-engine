@@ -1,0 +1,7 @@
+card "Chaos Maw" {
+  oracle_id 04f0c489-3d1e-4ee4-a0ab-7983ae643ecb
+  cost {5}{R}{R}
+  type Creature — Hellion
+  pt 6/6
+  triggered when this enters: deal 3 damage to each other creature
+}

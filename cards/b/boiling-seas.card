@@ -1,0 +1,6 @@
+card "Boiling Seas" {
+  oracle_id 7421b711-81a4-4042-b024-f55bf9ff203f
+  cost {3}{R}
+  type Sorcery
+  spell: destroy each Islands
+}

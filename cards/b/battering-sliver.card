@@ -1,0 +1,7 @@
+card "Battering Sliver" {
+  oracle_id 4adf959b-2e09-47ff-a1b1-b889348735b8
+  cost {5}{R}
+  type Creature — Sliver
+  pt 4/4
+  static all Sliver creature: has trample
+}

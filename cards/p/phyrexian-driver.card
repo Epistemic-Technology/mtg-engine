@@ -1,0 +1,7 @@
+card "Phyrexian Driver" {
+  oracle_id e8d12d8e-afd2-438b-b121-5911fca479f9
+  cost {2}{B}
+  type Creature — Phyrexian Zombie Mercenary
+  pt 1/1
+  triggered when this enters: each other Mercenary creature gets +1/+1
+}

@@ -1,0 +1,7 @@
+card "Silt Crawler" {
+  oracle_id 5ba1595a-6578-459d-96fe-fdfb84ac34d5
+  cost {2}{G}
+  type Creature — Beast
+  pt 3/3
+  triggered when this enters: tap each land you control
+}

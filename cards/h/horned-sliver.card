@@ -1,0 +1,7 @@
+card "Horned Sliver" {
+  oracle_id 64553181-9852-459f-a6e0-54ce188dd937
+  cost {2}{G}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has trample
+}

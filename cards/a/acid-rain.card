@@ -1,0 +1,6 @@
+card "Acid Rain" {
+  oracle_id 6ae3c3a2-bd17-4fea-ae27-9d2d1eaf8cc0
+  cost {3}{U}
+  type Sorcery
+  spell: destroy each Forests
+}

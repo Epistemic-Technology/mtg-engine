@@ -1,0 +1,6 @@
+card "Exhilarating Elocution" {
+  oracle_id 58acd10d-d81e-49ae-9e08-cff4c6f0c6a1
+  cost {2}{W}{B}
+  type Sorcery
+  spell: put 2 +1/+1 counters on target creature you control; each other creature you control gets +1/+1
+}

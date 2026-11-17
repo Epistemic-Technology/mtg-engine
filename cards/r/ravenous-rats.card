@@ -1,0 +1,7 @@
+card "Ravenous Rats" {
+  oracle_id 2fa1bbfd-92b5-482c-b32d-4cdc286474c4
+  cost {1}{B}
+  type Creature — Rat
+  pt 1/1
+  triggered when this enters: target opponent discards 1 card
+}

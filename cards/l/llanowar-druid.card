@@ -1,0 +1,7 @@
+card "Llanowar Druid" {
+  oracle_id b8cadeee-36b7-4a61-91ff-7d6c7c780464
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/2
+  activated {T}, sacrifice this: untap each Forests
+}

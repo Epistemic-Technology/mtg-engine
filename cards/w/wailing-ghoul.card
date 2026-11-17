@@ -1,0 +1,7 @@
+card "Wailing Ghoul" {
+  oracle_id 6ce24851-70d2-416c-8733-78928b4eee74
+  cost {1}{B}
+  type Creature — Zombie
+  pt 1/3
+  triggered when this enters: mill 2 cards
+}

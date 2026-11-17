@@ -1,0 +1,39 @@
+# Specter of the Fens: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Specter of the Fens drains target opponent for 2" {
+  battlefield A: "Specter of the Fens", 6 "Swamp"
+  turn 1 A: activate "Specter of the Fens" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Specter of the Fens cannot activate without enough mana" {
+  battlefield A: "Specter of the Fens", 5 "Swamp"
+  illegal turn 1 A: activate "Specter of the Fens" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Specter of the Fens flies over ground blockers" {
+  battlefield A: "Specter of the Fens"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Specter of the Fens"
+  illegal turn 1 B: block "Specter of the Fens" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Specter of the Fens"
+}
+
+scenario "Specter of the Fens can be blocked by a flyer" {
+  battlefield A: "Specter of the Fens"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Specter of the Fens"
+  turn 1 B: block "Specter of the Fens" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Specter of the Fens" 2
+  assert graveyard B contains "Wind Drake"
+}

@@ -1,0 +1,6 @@
+card "Delete" {
+  oracle_id 01d0156f-c26a-4668-a3a4-15ee0790d1b6
+  cost {X}{R}{R}
+  type Sorcery
+  spell: deal X damage to each nonartifact creature and each player
+}

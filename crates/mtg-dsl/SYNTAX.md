@@ -115,8 +115,9 @@ Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 A filter names a kind of permanent, in the singular: `creature`,
 `creature you control`, `creature an opponent controls`, `creature you
 don't control`, `white creature`, `nonblack creature`, `nonbasic land`,
-`other non-Aura enchantment`, `creature with flying`, `creature with no
-abilities`, `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
+`other non-Aura enchantment`, `creature with flying`, `creature without
+flying`, `creature with no abilities`, `all Sliver creature` (a static
+ability's subject then prints "All Sliver creatures", as old Slivers do), `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
 control`, `enchanted` (the permanent this is attached to), `this` (the
 source itself, for characteristic-defining abilities).
 
@@ -159,7 +160,8 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
-`draw 2 cards` (you), `discard 1 card` (you), `scry 2`, `surveil 1`,
+`draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
+`scry 2`, `surveil 1`,
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `you may <clause>`, `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage
@@ -175,7 +177,12 @@ Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `this` (the source), `that player` / `that creature` (what triggered the
 ability), `defending player`, `each creature`, `each creature you control`,
 `those creatures` (the same, mentioned again), `each permanent you control`,
-`that token` (what the previous effect created), and targets.
+`that token` (what the previous effect created), `each <filter>` or
+`all <filter>` (every matching permanent: `each artifact`, `each blue
+creature`, `each creature without flying`, `each white creature you
+control`; written singular, printed "all artifacts" after tap, destroy,
+and exile, "each creature without flying" after deal damage, and "White
+creatures you control get +2/+2" as a subject), and targets.
 
 ### Targets
 

@@ -80,6 +80,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
         kicker: def.kicker.clone(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
+        groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         abilities: def.abilities.iter().map(|a| d.ability(a)).collect(),
         except: def.copy_except.as_ref().map(|x| Except {
             subtypes: x.subtypes.clone(),
@@ -106,6 +107,8 @@ impl Decompiler<'_> {
             colors: f.colors.map(colors),
             not_colors: colors(f.not_colors),
             keywords: keywords(f.keywords),
+            not_keywords: keywords(f.not_keywords),
+            all: false,
             subtypes: f
                 .subtypes
                 .iter()
@@ -167,6 +170,7 @@ impl Decompiler<'_> {
             CoreRecipient::EachPermanentYouControl => Recipient::EachPermanentYouControl,
             CoreRecipient::SameObject => Recipient::SameObject,
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
+            CoreRecipient::Group(i) => Recipient::Group(i),
         }
     }
 
@@ -216,7 +220,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::Mill { count, who } => Effect::Mill {
                 count: *count,
-                who: r(*who),
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
             CoreEffect::AddCounters { kind, count, to } => Effect::AddCounters {
                 kind: *kind,

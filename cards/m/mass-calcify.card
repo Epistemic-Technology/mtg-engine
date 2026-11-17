@@ -1,0 +1,6 @@
+card "Mass Calcify" {
+  oracle_id 3ab3996f-aa3f-4041-8634-8e197d51f108
+  cost {5}{W}{W}
+  type Sorcery
+  spell: destroy each nonwhite creature
+}

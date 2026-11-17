@@ -342,6 +342,9 @@ pub fn check(reply: &str, scry: &ScryCard, corpus: &[Card]) -> Verdict {
     if card.mismatch.is_some() {
         problems.push("oracle_mismatch is not allowed".to_string());
     }
+    if let Some(d) = crate::gate::header_diff(card, scry) {
+        problems.push(format!("the header differs from Scryfall: {d}"));
+    }
     let by_name: HashMap<&str, &Card> = corpus.iter().map(|c| (c.name.as_str(), c)).collect();
     let rendered = render::normalize(&render::oracle_text(card, &by_name));
     let expected = render::normalize(scry.oracle_text.as_deref().unwrap_or(""));
@@ -407,6 +410,8 @@ pub fn records(data: &DataDir, names: &[String]) -> Result<HashMap<String, ScryC
     for card in scryfall::read_cards(&path)? {
         let card = card?;
         if card.layout != "art_series"
+            && card.layout != "token"
+            && card.set_type != "token"
             && wanted.contains(card.name.as_str())
             && !out.contains_key(&card.name)
         {

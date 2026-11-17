@@ -1,0 +1,7 @@
+card "Bloodfire Dwarf" {
+  oracle_id ff42551a-a08e-4d0c-a5b1-d1c1bbff4915
+  cost {R}
+  type Creature — Dwarf
+  pt 1/1
+  activated {R}, sacrifice this: deal 1 damage to each creature without flying
+}

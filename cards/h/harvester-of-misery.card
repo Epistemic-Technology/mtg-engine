@@ -1,0 +1,9 @@
+card "Harvester of Misery" {
+  oracle_id a0d3bb63-2977-41b2-bcc3-2488e6696cb8
+  cost {3}{B}{B}
+  type Creature — Spirit
+  pt 5/4
+  keywords menace
+  triggered when this enters: each other creature gets -2/-2
+  activated {1}{B}, discard this: target creature gets -2/-2
+}

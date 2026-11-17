@@ -67,7 +67,7 @@ pub fn format(card: &Card) -> String {
         let _ = writeln!(out, "  flashback {}", cost_text(c));
     }
     for a in &card.abilities {
-        ability(&mut out, a, "  ");
+        ability(&mut out, a, "  ", &card.groups);
     }
     if let Some(x) = &card.except {
         out.push_str("  except {\n");
@@ -78,7 +78,7 @@ pub fn format(card: &Card) -> String {
             let _ = writeln!(out, "    keywords {}", keywords(&x.keywords));
         }
         for a in &x.abilities {
-            ability(&mut out, a, "    ");
+            ability(&mut out, a, "    ", &card.groups);
         }
         out.push_str("  }\n");
     }
@@ -98,6 +98,7 @@ fn keywords(ks: &[Keyword]) -> String {
 
 struct Fmt {
     mentioned: Vec<bool>,
+    groups: Vec<Filter>,
 }
 
 impl Fmt {
@@ -131,6 +132,12 @@ impl Fmt {
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
             Recipient::SameObject => "it".to_string(),
             Recipient::CreatedObject => "that token".to_string(),
+            // `all`, not `each`: "each creature you control" is the
+            // built-in recipient, which prints differently.
+            Recipient::Group(i) => match self.groups.get(usize::from(i)) {
+                Some(f) => format!("all {}", filter(f)),
+                None => "all permanent".to_string(),
+            },
         }
     }
 
@@ -285,14 +292,22 @@ impl Fmt {
                     )
                 }
             },
-            Effect::Mill { count, who } => {
-                format!(
-                    "{} mills {} {}",
-                    self.recipient(*who, t),
-                    num(*count),
-                    cards(*count)
-                )
-            }
+            Effect::Mill { count, who } => match who {
+                None => format!("mill {} {}", num(*count), cards(*count)),
+                Some(w) => {
+                    let v = if *w == Recipient::You {
+                        "mill"
+                    } else {
+                        "mills"
+                    };
+                    format!(
+                        "{} {v} {} {}",
+                        self.recipient(*w, t),
+                        num(*count),
+                        cards(*count)
+                    )
+                }
+            },
             Effect::AddCounters { kind, count, to } => format!(
                 "put {} {} on {}",
                 num(*count),
@@ -329,6 +344,7 @@ impl Fmt {
                         | Recipient::EachCreature
                         | Recipient::EachCreatureYouControl
                         | Recipient::EachPermanentYouControl
+                        | Recipient::Group(_)
                 ) {
                     "gain"
                 } else {
@@ -520,6 +536,9 @@ fn outcome(o: &Outcome) -> String {
 
 pub fn filter(f: &Filter) -> String {
     let mut words: Vec<String> = Vec::new();
+    if f.all {
+        words.push("all".to_string());
+    }
     match f.relation {
         Relation::Other => words.push("other".to_string()),
         Relation::This => words.push("this".to_string()),
@@ -558,6 +577,9 @@ pub fn filter(f: &Filter) -> String {
     }
     if !f.keywords.is_empty() {
         words.push(format!("with {}", keywords(&f.keywords)));
+    }
+    if !f.not_keywords.is_empty() {
+        words.push(format!("without {}", keywords(&f.not_keywords)));
     }
     match f.who {
         Some(Who::You) => words.push("you control".to_string()),
@@ -775,9 +797,17 @@ fn modification(m: &Mod) -> String {
 
 /// Writes `head: body` on one line, or `head {` ... `}` if the effects
 /// span paragraphs.
-fn body(out: &mut String, indent: &str, head: &str, ss: &[Sentence], targets: &[Target]) {
+fn body(
+    out: &mut String,
+    indent: &str,
+    head: &str,
+    ss: &[Sentence],
+    targets: &[Target],
+    groups: &[Filter],
+) {
     let mut f = Fmt {
         mentioned: vec![false; targets.len()],
+        groups: groups.to_vec(),
     };
     if ss.iter().any(|s| s.para) {
         let _ = writeln!(out, "{indent}{head} {{");
@@ -799,7 +829,7 @@ fn body(out: &mut String, indent: &str, head: &str, ss: &[Sentence], targets: &[
 }
 
 #[allow(clippy::too_many_lines)] // one arm per statement kind
-fn ability(out: &mut String, ability: &Ability, indent: &str) {
+fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter]) {
     match ability {
         Ability::Keyword(k) => {
             let _ = writeln!(out, "{indent}keyword {}", keyword_name(*k));
@@ -823,11 +853,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
-        Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets),
+        Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Modal(modes) => {
             let _ = writeln!(out, "{indent}choose one {{");
             for m in modes {
-                body(out, &format!("{indent}  "), "mode", &m.effects, &m.targets);
+                body(
+                    out,
+                    &format!("{indent}  "),
+                    "mode",
+                    &m.effects,
+                    &m.targets,
+                    groups,
+                );
             }
             let _ = writeln!(out, "{indent}}}");
         }
@@ -847,7 +884,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
                 return;
             }
             if let Some(n) = cost.loyalty {
-                body(out, indent, &format!("loyalty {n:+}"), effects, targets);
+                body(
+                    out,
+                    indent,
+                    &format!("loyalty {n:+}"),
+                    effects,
+                    targets,
+                    groups,
+                );
                 return;
             }
             body(
@@ -856,6 +900,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
                 &format!("activated {}", cost_text(cost)),
                 effects,
                 targets,
+                groups,
             );
         }
         Ability::Triggered {
@@ -875,11 +920,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 None => {}
             }
-            body(out, indent, &head, effects, targets);
+            body(out, indent, &head, effects, targets, groups);
         }
         Ability::Replacement(rep) => {
             let mut fmt = Fmt {
                 mentioned: Vec::new(),
+                groups: groups.to_vec(),
             };
             let head = match (&rep.event, &rep.outcome) {
                 (Replaces::Enters, o) => format!("enters {}", outcome(o)),

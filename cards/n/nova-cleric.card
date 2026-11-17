@@ -1,0 +1,7 @@
+card "Nova Cleric" {
+  oracle_id d71bc551-3fd9-43a9-9477-2acc8683a784
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {2}{W}, {T}, sacrifice this: destroy each enchantment
+}

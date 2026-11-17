@@ -1,0 +1,6 @@
+card "Creeping Corrosion" {
+  oracle_id 33eefb22-51a6-4630-9bd2-0895997f6f33
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy each artifact
+}

@@ -64,6 +64,7 @@ pub fn add_card(
         pool,
         card,
         lookup: by_name,
+        groups: Vec::new(),
     };
     let def = c.card()?;
     Ok(pool.add(def))
@@ -73,6 +74,8 @@ struct Compiler<'a> {
     pool: &'a mut CardPool,
     card: &'a Card,
     lookup: &'a dyn Lookup,
+    /// The pool's filter id of each of the card's groups.
+    groups: Vec<u16>,
 }
 
 impl Compiler<'_> {
@@ -125,6 +128,12 @@ impl Compiler<'_> {
             }
             b = b.flashback(self.cost(fb));
         }
+        self.groups = Vec::new();
+        for g in &card.groups {
+            let f = self.filter(g);
+            let id = self.pool.intern_filter(f);
+            self.groups.push(id);
+        }
         let spells = card
             .abilities
             .iter()
@@ -170,6 +179,7 @@ impl Compiler<'_> {
             colors: f.colors.as_ref().map(|c| ColorSet::of(c.iter().copied())),
             not_colors: ColorSet::of(f.not_colors.iter().copied()),
             keywords: KeywordSet::of(f.keywords.iter().copied()),
+            not_keywords: KeywordSet::of(f.not_keywords.iter().copied()),
             subtypes: self.subtypes(&f.subtypes),
             not_subtypes: self.subtypes(&f.not_subtypes),
             relation: f.relation,
@@ -212,8 +222,9 @@ impl Compiler<'_> {
         }
     }
 
-    fn recipient(r: Recipient) -> CoreRecipient {
+    fn recipient(groups: &[u16], r: Recipient) -> CoreRecipient {
         match r {
+            Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent => CoreRecipient::EachOpponent,
@@ -242,7 +253,8 @@ impl Compiler<'_> {
 
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
-        let r = Self::recipient;
+        let groups = self.groups.clone();
+        let r = |x: Recipient| Self::recipient(&groups, x);
         match e {
             Effect::DealDamage { amount, to } => {
                 for t in to {
@@ -284,7 +296,7 @@ impl Compiler<'_> {
             }),
             Effect::Mill { count, who } => out.push(CoreEffect::Mill {
                 count: *count,
-                who: r(*who),
+                who: who.map_or(CoreRecipient::You, r),
             }),
             Effect::AddCounters { kind, count, to } => out.push(CoreEffect::AddCounters {
                 kind: *kind,

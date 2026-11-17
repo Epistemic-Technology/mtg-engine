@@ -1,0 +1,6 @@
+card "Riptide" {
+  oracle_id b4541f38-23c1-4f51-a35b-0b222cdaed2c
+  cost {U}
+  type Instant
+  spell: tap each blue creature
+}

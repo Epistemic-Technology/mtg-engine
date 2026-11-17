@@ -1,0 +1,7 @@
+card "Volcanic Spray" {
+  oracle_id dcf3cd72-3c3d-4847-83be-105966b0cd6a
+  cost {1}{R}
+  type Sorcery
+  flashback {1}{R}
+  spell: deal 1 damage to each creature without flying and each player
+}

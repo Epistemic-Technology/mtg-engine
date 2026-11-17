@@ -1,0 +1,7 @@
+card "Muscle Sliver" {
+  oracle_id 06e0459f-d691-4470-884a-27c09b6612d2
+  cost {1}{G}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: +1/+1
+}

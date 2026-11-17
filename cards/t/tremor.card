@@ -1,0 +1,6 @@
+card "Tremor" {
+  oracle_id 4281a153-665b-44cf-bcff-9cf88c14c2b5
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to each creature without flying
+}

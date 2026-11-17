@@ -1,0 +1,8 @@
+card "Panicked Altisaur" {
+  oracle_id 6de64e59-0a47-46c4-90bf-c56e63266f19
+  cost {4}{R}
+  type Creature — Dinosaur
+  pt 4/5
+  keywords reach
+  activated {T}: deal 2 damage to each opponent
+}

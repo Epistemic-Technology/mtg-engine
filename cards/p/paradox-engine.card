@@ -1,0 +1,6 @@
+card "Paradox Engine" {
+  oracle_id d38937a6-ab1c-4de8-a278-d81a6ce0d921
+  cost {5}
+  type Legendary Artifact
+  triggered whenever you cast a spell: untap each nonland permanent you control
+}

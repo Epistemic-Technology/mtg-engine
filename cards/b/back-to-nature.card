@@ -1,0 +1,6 @@
+card "Back to Nature" {
+  oracle_id b8d8ece6-397e-4bc9-b86c-7caa1d675d0f
+  cost {1}{G}
+  type Instant
+  spell: destroy each enchantment
+}

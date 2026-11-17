@@ -1,0 +1,8 @@
+card "Citizen V, Helmut Zemo" {
+  oracle_id 974fbeb0-77d6-4a29-aa91-226cb5b32233
+  cost {2}{B}
+  type Legendary Creature — Human Noble Villain
+  pt 2/2
+  keywords lifelink
+  triggered whenever you gain life: put 1 +1/+1 counters on each Villain you control
+}

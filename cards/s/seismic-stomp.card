@@ -1,0 +1,6 @@
+card "Seismic Stomp" {
+  oracle_id a1d02a70-2543-45c6-a9a1-c1941f2f68f3
+  cost {1}{R}
+  type Sorcery
+  spell: each creature without flying can't block
+}

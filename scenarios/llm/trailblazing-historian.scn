@@ -1,0 +1,41 @@
+# Trailblazing Historian: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Trailblazing Historian has haste and attacks the turn it is cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Trailblazing Historian"
+  turn 1 A: cast "Trailblazing Historian"
+  turn 1 A: attack "Trailblazing Historian"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Trailblazing Historian grants haste to a freshly cast creature" {
+  battlefield A: "Trailblazing Historian", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Trailblazing Historian" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" haste
+  assert tapped "Trailblazing Historian"
+  assert life B 18
+}
+
+scenario "Trailblazing Historian cannot target itself" {
+  battlefield A: "Trailblazing Historian"
+  illegal turn 1 A: activate "Trailblazing Historian" targeting "Trailblazing Historian"
+  run_to turn 1 postcombat_main
+  assert untapped "Trailblazing Historian"
+}
+
+scenario "without the ability a new creature cannot attack" {
+  battlefield A: "Trailblazing Historian", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert has not "Grizzly Bears" haste
+}

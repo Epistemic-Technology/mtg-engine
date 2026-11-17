@@ -1,0 +1,9 @@
+card "Crux of Fate" {
+  oracle_id 52a0dae4-2a95-487e-acd4-eabdb2d031e2
+  cost {3}{B}{B}
+  type Sorcery
+  choose one {
+    mode: destroy each Dragon creature
+    mode: destroy each non-Dragon creature
+  }
+}

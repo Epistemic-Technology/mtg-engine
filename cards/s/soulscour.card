@@ -1,0 +1,6 @@
+card "Soulscour" {
+  oracle_id d7644325-8a0f-4f40-bab6-518df7ac1d14
+  cost {7}{W}{W}{W}
+  type Sorcery
+  spell: destroy each nonartifact permanent
+}

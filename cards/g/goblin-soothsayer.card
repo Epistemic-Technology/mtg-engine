@@ -1,0 +1,7 @@
+card "Goblin Soothsayer" {
+  oracle_id a9277df9-1417-45bc-bebf-d9a7595f54c9
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  activated {R}, {T}, sacrifice Goblin: each red creature gets +1/+1
+}

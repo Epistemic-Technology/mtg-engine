@@ -1,0 +1,7 @@
+card "Cordial Vampire" {
+  oracle_id d61fb9e8-d05a-481a-a90f-5def300c9abb
+  cost {B}{B}
+  type Creature — Vampire
+  pt 1/1
+  triggered whenever creature dies: put 1 +1/+1 counters on each Vampire you control
+}

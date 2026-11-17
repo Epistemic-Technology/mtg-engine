@@ -1,0 +1,34 @@
+# Merciless Enforcers: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Merciless Enforcers ability pings each opponent and lifelink gains life" {
+  battlefield A: "Merciless Enforcers", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Merciless Enforcers"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert tapped newest A "Swamp"
+}
+
+scenario "Merciless Enforcers unblocked attack gains life via lifelink" {
+  battlefield A: "Merciless Enforcers"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Merciless Enforcers"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Merciless Enforcers blocked still gains life from damage to creature" {
+  battlefield A: "Merciless Enforcers"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Merciless Enforcers"
+  turn 1 B: block "Merciless Enforcers" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 20
+  assert graveyard A contains "Merciless Enforcers"
+  assert graveyard B contains "Grizzly Bears"
+}

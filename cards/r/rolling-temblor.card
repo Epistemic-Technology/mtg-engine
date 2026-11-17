@@ -1,0 +1,7 @@
+card "Rolling Temblor" {
+  oracle_id e450014f-7152-476b-ae6e-0d49fcb91d18
+  cost {2}{R}
+  type Sorcery
+  flashback {4}{R}{R}
+  spell: deal 2 damage to each creature without flying
+}

@@ -70,7 +70,7 @@ fn type_line(card: &Card) -> String {
     parts.join(" ")
 }
 
-fn header_diff(card: &Card, s: &ScryCard) -> Option<String> {
+pub fn header_diff(card: &Card, s: &ScryCard) -> Option<String> {
     let mut diffs = Vec::new();
     let cost = card.cost.to_string();
     if s.mana_cost.as_deref().unwrap_or("") != cost {

@@ -1,0 +1,6 @@
+card "Dramatic Reversal" {
+  oracle_id da46904c-8fb8-44c2-b2ab-775a1cc12ec3
+  cost {1}{U}
+  type Instant
+  spell: untap each nonland permanent you control
+}

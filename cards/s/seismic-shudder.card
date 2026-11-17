@@ -1,0 +1,6 @@
+card "Seismic Shudder" {
+  oracle_id 10c0f705-4c23-4761-afa9-4a29cf90e8ae
+  cost {1}{R}
+  type Instant
+  spell: deal 1 damage to each creature without flying
+}

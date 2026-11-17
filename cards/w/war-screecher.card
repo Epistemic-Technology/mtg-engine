@@ -1,0 +1,8 @@
+card "War Screecher" {
+  oracle_id 4617739e-4e3e-4d06-b074-8f836261a870
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/3
+  keywords flying
+  activated {5}{W}, {T}: each other creature you control gets +1/+1
+}

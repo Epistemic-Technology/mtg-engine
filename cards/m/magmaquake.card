@@ -1,0 +1,6 @@
+card "Magmaquake" {
+  oracle_id a52037df-0be1-4c99-b9eb-b033157af203
+  cost {X}{R}{R}
+  type Instant
+  spell: deal X damage to each creature without flying and each planeswalker
+}

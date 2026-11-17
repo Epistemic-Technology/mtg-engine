@@ -1,0 +1,6 @@
+card "Storm's Wrath" {
+  oracle_id eeb6f5eb-0e16-468e-9dfe-6ec8d8172f86
+  cost {2}{R}{R}
+  type Sorcery
+  spell: deal 4 damage to each creature and each planeswalker
+}

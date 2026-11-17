@@ -1,0 +1,6 @@
+card "Festergloom" {
+  oracle_id a653ac26-e9c9-4319-88f6-c83cc64d3bdb
+  cost {2}{B}
+  type Sorcery
+  spell: each nonblack creature gets -1/-1
+}

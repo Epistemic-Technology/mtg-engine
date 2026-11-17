@@ -1,0 +1,9 @@
+card "Last Caress" {
+  oracle_id 620b13cf-b8ea-48b7-8300-3c48390e32e3
+  cost {2}{B}
+  type Sorcery
+  spell {
+    target player loses 1 life and you gain 1 life
+    draw 1 card
+  }
+}

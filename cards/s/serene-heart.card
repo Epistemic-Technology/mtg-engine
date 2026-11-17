@@ -1,0 +1,6 @@
+card "Serene Heart" {
+  oracle_id f38b03dd-a200-48a6-ab65-fb2ac47456df
+  cost {1}{G}
+  type Instant
+  spell: destroy each Aura
+}

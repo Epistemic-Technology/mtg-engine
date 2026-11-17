@@ -1,0 +1,8 @@
+card "Specter of the Fens" {
+  oracle_id 048925e1-3bd6-4caa-90b9-e75e890032a5
+  cost {3}{B}
+  type Creature — Specter
+  pt 2/3
+  keywords flying
+  activated {5}{B}: target opponent loses 2 life and you gain 2 life
+}

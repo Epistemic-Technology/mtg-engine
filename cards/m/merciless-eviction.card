@@ -1,0 +1,11 @@
+card "Merciless Eviction" {
+  oracle_id 3c8d4999-e18b-48d8-8ed9-f2feaa38300d
+  cost {4}{W}{B}
+  type Sorcery
+  choose one {
+    mode: exile each artifact
+    mode: exile all creatures
+    mode: exile each enchantment
+    mode: exile each planeswalkers
+  }
+}

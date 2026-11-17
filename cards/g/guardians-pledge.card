@@ -1,0 +1,6 @@
+card "Guardians' Pledge" {
+  oracle_id 32d78ffd-5bed-45e8-be6a-420149a263bb
+  cost {1}{W}{W}
+  type Instant
+  spell: each white creature you control gets +2/+2
+}

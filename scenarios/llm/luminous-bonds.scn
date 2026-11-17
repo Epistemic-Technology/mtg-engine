@@ -1,0 +1,37 @@
+# Luminous Bonds: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature can't attack" {
+  battlefield A: 3 "Plains"
+  hand A: "Luminous Bonds"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Luminous Bonds" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Luminous Bonds" to "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: 3 "Plains", "Hill Giant"
+  hand A: "Luminous Bonds"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  turn 1 A: cast "Luminous Bonds" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "aura goes to graveyard when enchanted creature dies" {
+  battlefield A: 3 "Plains", "Mountain"
+  hand A: "Luminous Bonds", "Shock"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Luminous Bonds" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Luminous Bonds"
+}

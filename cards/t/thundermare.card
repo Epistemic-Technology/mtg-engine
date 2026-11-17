@@ -1,0 +1,8 @@
+card "Thundermare" {
+  oracle_id 58fa33fd-02a4-4ec9-9226-82594cfec363
+  cost {5}{R}
+  type Creature — Elemental Horse
+  pt 5/5
+  keywords haste
+  triggered when this enters: tap each other creature
+}

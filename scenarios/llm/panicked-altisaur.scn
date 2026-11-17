@@ -1,0 +1,34 @@
+# Panicked Altisaur: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "tap ability deals 2 damage to each opponent" {
+  battlefield A: "Panicked Altisaur"
+  turn 1 A: activate "Panicked Altisaur"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert tapped "Panicked Altisaur"
+}
+
+scenario "reach lets it block a flier" {
+  battlefield A: "Panicked Altisaur"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  turn 2 A: block "Wind Drake" with "Panicked Altisaur"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Panicked Altisaur"
+  assert damage "Panicked Altisaur" 2
+}
+
+scenario "summoning sick altisaur cannot tap the turn it is cast" {
+  battlefield A: 5 "Mountain"
+  hand A: "Panicked Altisaur"
+  turn 1 A: cast "Panicked Altisaur"
+  illegal turn 1 postcombat_main A: activate "Panicked Altisaur"
+  run_to turn 1 end
+  assert battlefield A contains "Panicked Altisaur"
+  assert life B 20
+}

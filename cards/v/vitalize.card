@@ -1,0 +1,6 @@
+card "Vitalize" {
+  oracle_id cd3226c6-bd47-4246-8ab3-01316c5d1809
+  cost {G}
+  type Instant
+  spell: untap all creature you control
+}

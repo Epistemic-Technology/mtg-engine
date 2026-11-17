@@ -1,0 +1,6 @@
+card "Virtue's Ruin" {
+  oracle_id fc070e97-73ac-4028-9432-ff2012f2e778
+  cost {2}{B}
+  type Sorcery
+  spell: destroy each white creature
+}

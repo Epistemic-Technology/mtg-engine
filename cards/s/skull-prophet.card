@@ -1,0 +1,8 @@
+card "Skull Prophet" {
+  oracle_id 39b51f62-8421-42d1-86d3-74fd6e6f31a2
+  cost {B}{G}
+  type Creature — Human Druid
+  pt 3/1
+  mana {B} or {G}
+  activated {T}: mill 2 cards
+}

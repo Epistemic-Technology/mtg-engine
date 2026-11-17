@@ -1,0 +1,6 @@
+card "Holy Light" {
+  oracle_id 8f7dd328-b367-4546-ba79-1efc1e97f2ab
+  cost {2}{W}
+  type Instant
+  spell: each nonwhite creature gets -1/-1
+}

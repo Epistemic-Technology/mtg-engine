@@ -1,0 +1,7 @@
+card "Corrupt Court Official" {
+  oracle_id ec84201d-757f-4a7a-b3a2-85ccd5ee81ae
+  cost {1}{B}
+  type Creature — Human Advisor
+  pt 1/1
+  triggered when this enters: target opponent discards 1 card
+}

@@ -1,0 +1,8 @@
+card "Thundering Ceratok" {
+  oracle_id b7a3a8a9-96ca-48f7-8354-345d9ccfcb77
+  cost {4}{G}
+  type Creature — Rhino
+  pt 4/5
+  keywords trample
+  triggered when this enters: each other creature you control gains trample
+}

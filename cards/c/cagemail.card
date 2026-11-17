@@ -1,0 +1,7 @@
+card "Cagemail" {
+  oracle_id fe1f40fe-011b-4686-b865-fed00c56d30a
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has can't attack
+}

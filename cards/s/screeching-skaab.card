@@ -1,0 +1,7 @@
+card "Screeching Skaab" {
+  oracle_id c339982a-45d6-4c1a-aefc-c72427b40744
+  cost {1}{U}
+  type Creature — Zombie
+  pt 2/1
+  triggered when this enters: mill 2 cards
+}

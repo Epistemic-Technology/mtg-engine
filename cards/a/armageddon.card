@@ -1,0 +1,6 @@
+card "Armageddon" {
+  oracle_id c9ed8b01-959a-47d6-891e-0abbdccf6e4f
+  cost {3}{W}
+  type Sorcery
+  spell: destroy each land
+}

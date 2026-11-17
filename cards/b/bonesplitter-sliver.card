@@ -1,0 +1,7 @@
+card "Bonesplitter Sliver" {
+  oracle_id a0f6834c-faa9-4d90-adad-847a8b337fe6
+  cost {3}{R}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: +2/+0
+}

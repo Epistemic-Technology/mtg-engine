@@ -1,0 +1,6 @@
+card "Nature's Ruin" {
+  oracle_id d119ca9a-ee82-42c2-81e6-684205ca5183
+  cost {2}{B}
+  type Sorcery
+  spell: destroy each green creature
+}

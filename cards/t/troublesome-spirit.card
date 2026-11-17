@@ -1,0 +1,8 @@
+card "Troublesome Spirit" {
+  oracle_id 601d9bc3-ca75-43de-beea-ab3f0a49f543
+  cost {2}{U}{U}
+  type Creature — Spirit
+  pt 3/4
+  keywords flying
+  triggered at beginning of your end step: tap each land you control
+}

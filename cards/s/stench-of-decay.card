@@ -1,0 +1,6 @@
+card "Stench of Decay" {
+  oracle_id 4d4fbb16-0421-4e9c-af9e-e2c12a11c4ed
+  cost {1}{B}{B}
+  type Instant
+  spell: each nonartifact creature gets -1/-1
+}

@@ -1,0 +1,8 @@
+card "Deathcap Marionette" {
+  oracle_id 6c4247d0-6dc8-4139-bbf5-c83dfdc7be1f
+  cost {1}{B}
+  type Creature — Fungus
+  pt 1/1
+  keywords deathtouch
+  triggered when this enters: you may mill 2 cards
+}

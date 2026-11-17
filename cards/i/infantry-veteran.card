@@ -1,0 +1,7 @@
+card "Infantry Veteran" {
+  oracle_id 42798e2b-9a5c-4f93-8f77-b7bb7a916d07
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {T}: target attacking creature gets +1/+1
+}

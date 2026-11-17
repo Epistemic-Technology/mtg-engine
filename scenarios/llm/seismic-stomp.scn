@@ -1,0 +1,41 @@
+# Seismic Stomp: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Seismic Stomp stops creatures without flying from blocking" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Seismic Stomp"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Seismic Stomp"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Seismic Stomp"
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Seismic Stomp does not stop creatures with flying from blocking" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Seismic Stomp"
+  battlefield B: "Wind Drake"
+  turn 1 A: cast "Seismic Stomp"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Seismic Stomp's effect ends with the turn" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Seismic Stomp"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Seismic Stomp"
+  turn 3 A: attack "Grizzly Bears"
+  turn 3 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}

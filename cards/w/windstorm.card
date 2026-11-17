@@ -1,0 +1,6 @@
+card "Windstorm" {
+  oracle_id 9969b822-2ead-4956-bac2-875ffd90e872
+  cost {X}{G}
+  type Instant
+  spell: deal X damage to each creature with flying
+}

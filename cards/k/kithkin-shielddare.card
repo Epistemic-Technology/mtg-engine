@@ -1,0 +1,7 @@
+card "Kithkin Shielddare" {
+  oracle_id 0734272d-5cce-476d-a663-fbf0bd7cd3a7
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  activated {W}, {T}: target blocking creature gets +2/+2
+}

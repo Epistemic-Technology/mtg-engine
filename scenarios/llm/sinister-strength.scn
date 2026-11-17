@@ -1,0 +1,43 @@
+# Sinister Strength: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Sinister Strength gives +3/+1 and makes the creature black" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Sinister Strength"
+  turn 1 A: cast "Sinister Strength" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Sinister Strength" to "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 3
+  assert is "Grizzly Bears" black
+  assert is not "Grizzly Bears" green
+}
+
+scenario "enchanted creature attacks for 5" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Sinister Strength"
+  turn 1 A: cast "Sinister Strength" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "extra toughness lets the creature survive Shock" {
+  battlefield A: "Mountain"
+  hand A: "Shock"
+  battlefield B: "Grizzly Bears", "Sinister Strength" on "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+}
+
+scenario "Lightning Bolt still kills it and the aura goes to the graveyard" {
+  battlefield A: "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears", "Sinister Strength" on "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Sinister Strength"
+}

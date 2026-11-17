@@ -1,0 +1,37 @@
+# Pacifism: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pacified creature can't attack" {
+  battlefield A: 2 "Plains"
+  hand A: "Pacifism"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pacifism" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Pacifism" to "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "pacified creature can't block" {
+  battlefield A: "Hill Giant", "Pacifism" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "pacifism goes to graveyard when its creature dies" {
+  battlefield A: "Mountain", "Pacifism" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Pacifism"
+  assert battlefield A lacks "Pacifism"
+}

@@ -1,0 +1,6 @@
+card "Shatterstorm" {
+  oracle_id 96ce2403-4607-440a-92ae-80aceb458c5d
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy each artifact without regeneration
+}

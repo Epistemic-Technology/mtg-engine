@@ -1,0 +1,7 @@
+card "Moonglove Extractor" {
+  oracle_id 980affa7-6308-4acd-af64-f804e574a89b
+  cost {2}{B}
+  type Creature — Elf Warlock
+  pt 2/1
+  triggered whenever this attacks: you draw 1 card and lose 1 life
+}

@@ -1,0 +1,6 @@
+card "Breath Weapon" {
+  oracle_id f3dd1f6d-f7d7-4358-8139-7495404f29c7
+  cost {2}{R}
+  type Instant
+  spell: deal 2 damage to each non-Dragon creature
+}

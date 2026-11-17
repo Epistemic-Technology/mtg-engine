@@ -1,0 +1,33 @@
+# Spear Spewer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Spear Spewer deals 1 damage to each player" {
+  battlefield A: "Spear Spewer"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spear Spewer"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert life B 19
+  assert tapped "Spear Spewer"
+}
+
+scenario "Spear Spewer has defender and can't attack" {
+  battlefield A: "Spear Spewer"
+  start turn 1 A precombat_main
+  illegal turn 1 declare_attackers A: attack "Spear Spewer"
+  run_to turn 1 postcombat_main
+  assert has "Spear Spewer" defender
+  assert life B 20
+}
+
+scenario "Spear Spewer's tap ability needs it to have been under control since the turn began" {
+  battlefield A: "Mountain"
+  hand A: "Spear Spewer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spear Spewer"
+  illegal turn 1 postcombat_main A: activate "Spear Spewer"
+  run_to turn 1 end
+  assert battlefield A contains "Spear Spewer"
+  assert life A 20
+  assert life B 20
+}

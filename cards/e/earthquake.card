@@ -1,0 +1,6 @@
+card "Earthquake" {
+  oracle_id 9a40614b-50a3-422c-849e-53c8b7d3d204
+  cost {X}{R}
+  type Sorcery
+  spell: deal X damage to each creature without flying and each player
+}

@@ -1,0 +1,7 @@
+card "Ridgescale Tusker" {
+  oracle_id 4eef2f24-6a5c-4bc7-b316-dd818dc2741a
+  cost {3}{G}{G}
+  type Creature — Pangolin Beast
+  pt 5/5
+  triggered when this enters: put 1 +1/+1 counters on each other creature you control
+}

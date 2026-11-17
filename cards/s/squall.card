@@ -1,0 +1,6 @@
+card "Squall" {
+  oracle_id 16fe0abe-04fa-4023-8ee0-043a076e78bb
+  cost {2}{G}
+  type Sorcery
+  spell: deal 2 damage to each creature with flying
+}

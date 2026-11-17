@@ -1,0 +1,7 @@
+card "Roaring Slagwurm" {
+  oracle_id 856d8eb4-3834-49f8-9696-579948590fd0
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 6/4
+  triggered whenever this attacks: tap each artifact
+}

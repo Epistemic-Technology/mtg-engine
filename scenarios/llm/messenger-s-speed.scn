@@ -1,0 +1,36 @@
+# Messenger's Speed: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature gains trample and haste" {
+  battlefield A: "Grizzly Bears", "Messenger's Speed" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+}
+
+scenario "haste lets a freshly cast creature attack" {
+  battlefield A: 2 "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears", "Messenger's Speed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Messenger's Speed" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Messenger's Speed" to "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "trample assigns excess damage to the player" {
+  battlefield A: "Hill Giant", "Messenger's Speed" on "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  turn 2 A: assign "Hill Giant" to "Grizzly Bears" 2, player B 1
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}

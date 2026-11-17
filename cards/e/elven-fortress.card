@@ -1,0 +1,6 @@
+card "Elven Fortress" {
+  oracle_id 29f34e18-2102-4ded-912f-4ac3e9e6744c
+  cost {G}
+  type Enchantment
+  activated {1}{G}: target blocking creature gets +0/+1
+}

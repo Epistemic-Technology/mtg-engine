@@ -1,0 +1,7 @@
+card "Kaervek, the Spiteful" {
+  oracle_id b338d879-189d-4b74-9d63-42920fdb9855
+  cost {2}{B}{B}
+  type Legendary Creature — Human Warlock
+  pt 3/2
+  static Other creature: -1/-1
+}

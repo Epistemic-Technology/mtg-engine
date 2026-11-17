@@ -1,0 +1,7 @@
+card "Messenger's Speed" {
+  oracle_id aa21315d-4da9-4bbd-9604-c406b83c0db2
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has trample, haste
+}

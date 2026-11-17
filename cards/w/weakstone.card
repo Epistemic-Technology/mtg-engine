@@ -1,0 +1,6 @@
+card "Weakstone" {
+  oracle_id 004584f8-fd89-4a3e-9782-c117dbe1532b
+  cost {4}
+  type Artifact
+  static Attacking creature: -1/-0
+}

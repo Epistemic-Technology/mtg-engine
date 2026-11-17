@@ -1,0 +1,7 @@
+card "Icatian Lieutenant" {
+  oracle_id 51e9af95-745b-45b9-b870-7f768578fa4f
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  activated {1}{W}: target Soldier creature gets +1/+0
+}

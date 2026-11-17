@@ -1,0 +1,6 @@
+card "Scorch the Fields" {
+  oracle_id 6f9bce77-f7f0-453b-86cd-1e6bd71980a3
+  cost {4}{R}
+  type Sorcery
+  spell: destroy target land; deal 1 damage to each Human creature
+}

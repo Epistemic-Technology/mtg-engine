@@ -1,0 +1,7 @@
+card "Victory's Envoy" {
+  oracle_id fbdff913-8f86-4fcb-87c3-de2011fd036d
+  cost {3}{W}{W}
+  type Creature — Human Cleric
+  pt 3/3
+  triggered at beginning of your upkeep: put 1 +1/+1 counters on each other creature you control
+}

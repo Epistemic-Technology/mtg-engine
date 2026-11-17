@@ -1,0 +1,7 @@
+card "Burrowing Razormaw" {
+  oracle_id 8551e1df-47eb-419e-8dd2-e96b9a450912
+  cost {2}{G}
+  type Creature — Beast
+  pt 4/2
+  triggered when this dies: mill 4 cards
+}

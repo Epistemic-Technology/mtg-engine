@@ -1,0 +1,6 @@
+card "Last Kiss" {
+  oracle_id bc59bf58-373d-4562-9a67-0721fcf2f098
+  cost {2}{B}
+  type Instant
+  spell: deal 2 damage to target creature and you gain 2 life
+}

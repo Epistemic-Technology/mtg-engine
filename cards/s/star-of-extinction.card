@@ -1,0 +1,6 @@
+card "Star of Extinction" {
+  oracle_id 48220e6c-5752-46e0-9b7f-f0eef274d929
+  cost {5}{R}{R}
+  type Sorcery
+  spell: destroy target land; deal 20 damage to each creature and each planeswalker
+}

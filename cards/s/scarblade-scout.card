@@ -1,0 +1,8 @@
+card "Scarblade Scout" {
+  oracle_id f6758e8f-5462-48a7-96d3-60d07b1563fc
+  cost {1}{B}
+  type Creature — Elf Scout
+  pt 2/2
+  keywords lifelink
+  triggered when this enters: mill 2 cards
+}

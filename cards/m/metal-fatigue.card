@@ -1,0 +1,6 @@
+card "Metal Fatigue" {
+  oracle_id f817352a-908a-4cb5-8e10-feeb770540fc
+  cost {2}{W}
+  type Instant
+  spell: tap each artifact
+}

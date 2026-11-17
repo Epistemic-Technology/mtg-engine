@@ -1,0 +1,7 @@
+card "Watcher Sliver" {
+  oracle_id 9a538bd7-e665-4896-95df-bbab1e28f75e
+  cost {3}{W}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: +0/+2
+}

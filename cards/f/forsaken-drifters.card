@@ -1,0 +1,7 @@
+card "Forsaken Drifters" {
+  oracle_id 4e94f685-f392-40a8-8ad4-683351877fd9
+  cost {3}{B}
+  type Creature — Zombie
+  pt 4/2
+  triggered when this dies: mill 4 cards
+}

@@ -1,0 +1,6 @@
+card "Blinding Light" {
+  oracle_id 6b315dc3-c330-4b30-b6ad-4da12ccf6ca3
+  cost {2}{W}
+  type Sorcery
+  spell: tap each nonwhite creature
+}

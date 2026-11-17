@@ -1,0 +1,7 @@
+card "Bloodshed Fever" {
+  oracle_id 3a018a54-6094-42bb-af6a-ef436c09f0b4
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has attacks each combat if able
+}

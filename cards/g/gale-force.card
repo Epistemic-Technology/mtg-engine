@@ -1,0 +1,6 @@
+card "Gale Force" {
+  oracle_id 337b0807-94cb-48d0-b752-61fbd05560e4
+  cost {4}{G}
+  type Sorcery
+  spell: deal 5 damage to each creature with flying
+}

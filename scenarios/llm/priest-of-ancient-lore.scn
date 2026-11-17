@@ -1,0 +1,39 @@
+# Priest of Ancient Lore: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "priest enters: gain 1 life and draw a card" {
+  battlefield A: 3 "Plains"
+  hand A: "Priest of Ancient Lore"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Priest of Ancient Lore"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Priest of Ancient Lore"
+  assert life A 21
+  assert hand A count 1
+}
+
+scenario "priest draws the top card of the library" {
+  battlefield A: 3 "Plains"
+  hand A: "Priest of Ancient Lore"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Priest of Ancient Lore"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+  assert life A 21
+}
+
+scenario "priest is a 2/1 that dies to shock, keeping the life and card" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Priest of Ancient Lore"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Priest of Ancient Lore"
+  turn 1 end B: cast "Shock" targeting "Priest of Ancient Lore"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Priest of Ancient Lore"
+  assert life A 21
+  assert hand A count 1
+}

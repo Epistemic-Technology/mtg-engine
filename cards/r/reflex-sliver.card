@@ -1,0 +1,7 @@
+card "Reflex Sliver" {
+  oracle_id 80e4e857-3f7e-4344-bf41-64d3b32f328f
+  cost {3}{G}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has haste
+}

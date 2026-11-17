@@ -1,0 +1,8 @@
+card "Goring Ceratops" {
+  oracle_id 34f5383b-21fe-45f5-9598-7382ee4c5b12
+  cost {5}{W}{W}
+  type Creature — Dinosaur
+  pt 3/3
+  keywords double strike
+  triggered whenever this attacks: each other creature you control gains double strike
+}

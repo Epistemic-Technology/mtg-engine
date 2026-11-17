@@ -1,0 +1,6 @@
+card "Wilderness Reclamation" {
+  oracle_id 6f856f99-4cb4-479d-958d-964220965ed6
+  cost {3}{G}
+  type Enchantment
+  triggered at beginning of your end step: untap each land you control
+}

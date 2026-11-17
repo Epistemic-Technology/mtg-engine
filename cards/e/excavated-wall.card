@@ -1,0 +1,8 @@
+card "Excavated Wall" {
+  oracle_id 16e48b95-f030-400c-a2b7-c3f3111cc165
+  cost {1}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {1}, {T}: mill 1 cards
+}

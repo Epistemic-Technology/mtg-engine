@@ -1,0 +1,6 @@
+card "Fiery Cannonade" {
+  oracle_id 7e108b31-2ea3-4129-b324-a2d31c78bbe6
+  cost {2}{R}
+  type Instant
+  spell: deal 2 damage to each non-Pirate creature
+}

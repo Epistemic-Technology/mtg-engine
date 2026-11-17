@@ -1,0 +1,6 @@
+card "Extinguish All Hope" {
+  oracle_id c7ca25f3-7a22-477b-8546-4c2597d5d1ff
+  cost {4}{B}{B}
+  type Sorcery
+  spell: destroy each nonenchantment creature
+}

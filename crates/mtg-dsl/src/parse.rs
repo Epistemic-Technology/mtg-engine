@@ -31,6 +31,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         toks,
         pos: 0,
         targets: Vec::new(),
+        groups: Vec::new(),
         in_delayed: false,
         subject: None,
     };
@@ -259,6 +260,8 @@ struct P {
     pos: usize,
     /// Targets declared so far in the ability being parsed.
     targets: Vec<Target>,
+    /// Group recipients declared so far in the card being parsed.
+    groups: Vec<Filter>,
     /// Inside a delayed trigger's effects, where "it" is the object the
     /// trigger is about.
     in_delayed: bool,
@@ -445,11 +448,13 @@ impl P {
             additional: None,
             kicker: None,
             flashback: None,
+            groups: Vec::new(),
             abilities: Vec::new(),
             except: None,
             mismatch: None,
             line,
         };
+        self.groups.clear();
         loop {
             self.skip_newlines();
             if self.peek() == Some(&Tok::RBrace) {
@@ -462,6 +467,7 @@ impl P {
             }
             self.card_statement(&mut card)?;
         }
+        card.groups = std::mem::take(&mut self.groups);
         Ok(card)
     }
 
@@ -978,6 +984,9 @@ impl P {
         if w == "that" && matches!(self.word_at(1).as_deref(), Some("card" | "target")) {
             return true;
         }
+        if w == "each" || w == "all" {
+            return true;
+        }
         RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
     }
 
@@ -1059,6 +1068,7 @@ impl P {
         if self.at_subject_verb()
             && let Some(subject) = self.subject
             && !self.at_word("draw")
+            && !self.at_word("mill")
         {
             return self.subject_verb(subject, false);
         }
@@ -1128,7 +1138,7 @@ impl P {
                 self.cards_word()?;
                 Ok(Effect::Mill {
                     count,
-                    who: subject,
+                    who: (explicit || subject != Recipient::You).then_some(subject),
                 })
             }
             "discard" | "discards" => {
@@ -1358,6 +1368,11 @@ impl P {
                 self.cards_word()?;
                 Ok(Effect::DrawCards { count, who: None })
             }
+            "mill" => {
+                let count = self.num()?;
+                self.cards_word()?;
+                Ok(Effect::Mill { count, who: None })
+            }
             "discard" => {
                 let count = self.num()?;
                 self.cards_word()?;
@@ -1571,6 +1586,7 @@ impl P {
             toks: self.toks.clone(),
             pos: self.pos + 1,
             targets: self.targets.clone(),
+            groups: self.groups.clone(),
             in_delayed: self.in_delayed,
             subject: None,
         };
@@ -1674,9 +1690,31 @@ impl P {
             return self.unexpected("`target`");
         }
         for (ws, r) in RECIPIENTS {
-            if self.eat_words(ws) {
-                return Ok(*r);
+            if self.at_words(ws) {
+                // "each creature with flying" is a group, not "each creature".
+                let continues = (ws[0] == "each" || ws[0] == "all")
+                    && matches!(self.word_at(ws.len()).as_deref(), Some("with" | "without"));
+                if !continues {
+                    self.pos += ws.len();
+                    return Ok(*r);
+                }
             }
+        }
+        // "each <filter>" / "all <filter>": every matching permanent.
+        if self.eat_word("each") || self.eat_word("all") {
+            let f = self.filter()?;
+            let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                i
+            } else {
+                self.groups.push(f);
+                self.groups.len() - 1
+            };
+            return Ok(Recipient::Group(u16::try_from(i).map_err(|_| {
+                ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                }
+            })?));
         }
         self.unexpected("a recipient (you, target ..., this, each creature, ...)")
     }
@@ -1715,6 +1753,7 @@ impl P {
 
     // ---- filters ----
 
+    #[allow(clippy::too_many_lines)]
     fn filter(&mut self) -> R<Filter> {
         let mut f = Filter::default();
         let mut consumed = 0;
@@ -1732,7 +1771,11 @@ impl P {
                     f.who = Some(Who::Opponents);
                     self.pos += if w == "an" { 3 } else { 2 };
                 }
-                "a" | "an" | "all" | "each" | "permanent" | "permanents" => self.pos += 1,
+                "all" => {
+                    f.all = true;
+                    self.pos += 1;
+                }
+                "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
                 "other" | "another" => {
                     f.relation = Relation::Other;
                     self.pos += 1;
@@ -1765,6 +1808,13 @@ impl P {
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;
                     self.pos += 3;
+                }
+                "without" if self.word_at(1).as_deref() != Some("regeneration") => {
+                    self.pos += 1;
+                    let Some(k) = self.keyword() else {
+                        return self.unexpected("a keyword after `without`");
+                    };
+                    f.not_keywords.push(k);
                 }
                 "with" => {
                     self.pos += 1;

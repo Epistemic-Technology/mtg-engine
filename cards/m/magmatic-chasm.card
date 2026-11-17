@@ -1,0 +1,6 @@
+card "Magmatic Chasm" {
+  oracle_id 6cfd2cd8-a86e-48fe-a85a-9a3444b5030c
+  cost {1}{R}
+  type Sorcery
+  spell: each creature without flying can't block
+}

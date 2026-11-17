@@ -1,0 +1,8 @@
+card "Excavation Mole" {
+  oracle_id 68e0b691-f332-4b0a-8173-bb8a48b463a1
+  cost {2}{G}
+  type Creature — Mole
+  pt 3/3
+  keywords trample
+  triggered when this enters: mill 3 cards
+}

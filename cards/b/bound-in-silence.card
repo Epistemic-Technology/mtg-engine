@@ -1,0 +1,7 @@
+card "Bound in Silence" {
+  oracle_id b8cee34a-710d-4c09-b475-0e4754eccd66
+  cost {2}{W}
+  type Kindred Enchantment — Rebel Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+}

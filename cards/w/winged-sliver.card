@@ -1,0 +1,7 @@
+card "Winged Sliver" {
+  oracle_id 24e96682-14ca-4a62-a920-2d686c8a5dbf
+  cost {1}{U}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has flying
+}

@@ -1,0 +1,9 @@
+card "Mental Note" {
+  oracle_id e8d5f31c-7abf-4fbb-977e-8353a97daf7a
+  cost {U}
+  type Instant
+  spell {
+    mill 2 cards
+    draw 1 card
+  }
+}

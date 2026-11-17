@@ -1,0 +1,7 @@
+card "Synchronous Sliver" {
+  oracle_id b90e2fb8-9b09-4d95-a8a2-5287b5f18132
+  cost {4}{U}
+  type Creature — Sliver
+  pt 3/3
+  static all Sliver creature: has vigilance
+}
