@@ -57,6 +57,7 @@ pub struct Except {
 /// A cost (CR 118): of an activated ability or the additional cost of a
 /// spell.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one printed cost part
 pub struct Cost {
     pub mana: ManaCost,
     pub tap: bool,
@@ -67,6 +68,11 @@ pub struct Cost {
     pub sacrifice: Option<SacCost>,
     /// "Activate only as a sorcery."
     pub sorcery: bool,
+    /// "Discard this card" (cycling): the source leaves the hand as the
+    /// cost is paid.
+    pub discard_self: bool,
+    /// "Activate only once each turn."
+    pub once: bool,
     /// The order the parts were written in, which is the order printed
     /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
     /// discard, life.
@@ -83,6 +89,7 @@ pub enum CostItem {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
 pub enum SacCost {
     This,
     Filter(Filter),
@@ -97,11 +104,17 @@ pub struct Filter {
     pub supertypes: Vec<Supertype>,
     pub not_supertypes: Vec<Supertype>,
     pub colors: Option<Vec<Color>>,
+    /// "nonblack": shares no color with these.
+    pub not_colors: Vec<Color>,
     pub subtypes: Vec<String>,
     pub not_subtypes: Vec<String>,
+    /// "with flying": has every one of these.
+    pub keywords: Vec<Keyword>,
     pub relation: Relation,
     pub enchanted: bool,
     pub no_abilities: bool,
+    /// `who` is `Opponents`, written and printed "you don't control".
+    pub dont_control: bool,
 }
 
 impl Filter {
@@ -133,6 +146,9 @@ pub enum Target {
     Spec(TargetSpec),
     /// "target Assembly-Worker creature".
     CreatureOfSubtype(String),
+    /// Any filter phrase: "target nonblack creature", "target creature an
+    /// opponent controls".
+    Filter(Filter),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -154,6 +170,9 @@ pub enum Ability {
         effects: Vec<Sentence>,
         /// Written as `equip {N}`; printed as "Equip {N}".
         equip: bool,
+        /// Written as `cycling {N}`; printed as "Cycling {N}"; activated
+        /// from the hand.
+        cycling: bool,
     },
     Triggered {
         trigger: Trigger,
@@ -182,13 +201,25 @@ pub struct Sentence {
     pub effects: Vec<Effect>,
     /// Starts a new paragraph (a new line of Oracle text).
     pub para: bool,
+    /// How each clause after the first joins the sentence
+    /// (`joins.len() == effects.len() - 1`).
+    pub joins: Vec<Join>,
+}
+
+/// How clauses of one sentence connect: "A and B", "A, then B".
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Join {
+    And,
+    Then,
 }
 
 impl Sentence {
     pub fn new(effects: Vec<Effect>) -> Self {
+        let joins = vec![Join::And; effects.len().saturating_sub(1)];
         Sentence {
             effects,
             para: false,
+            joins,
         }
     }
 }
@@ -201,6 +232,7 @@ pub struct Replacement {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Replaces {
     Damage {
         from: Option<Filter>,
@@ -261,12 +293,14 @@ pub enum Trigger {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum TriggerObj {
     This,
     Filter(Filter),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Mod {
     AddTypes(Vec<CardType>),
     AddLandType(Color),
@@ -294,6 +328,7 @@ pub enum Mod {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum CdaCount {
     CardTypesInGraveyards,
     CreatureCardsInGraveyards,
@@ -324,6 +359,7 @@ pub enum Recipient {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Effect {
     /// "deals N damage to A and B" (one effect per recipient once compiled).
     DealDamage {
@@ -416,6 +452,24 @@ pub enum Effect {
     },
     CreateEmblem {
         emblem: String,
+    },
+    Counter {
+        to: Recipient,
+    },
+    CounterUnlessPays {
+        to: Recipient,
+        mana: ManaCost,
+    },
+    Scry(Num),
+    Surveil(Num),
+    /// `who` is `None` for the imperative "discard a card".
+    Discard {
+        count: Num,
+        who: Option<Recipient>,
+    },
+    Fight {
+        a: Recipient,
+        b: Recipient,
     },
     Animate {
         to: Recipient,

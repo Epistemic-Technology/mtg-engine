@@ -1,0 +1,6 @@
+card "Unsubtle Mockery" {
+  oracle_id 9d059345-1a2f-4ecb-b419-3873ebadf318
+  cost {2}{R}
+  type Instant
+  spell: deal 4 damage to target creature; surveil 1
+}

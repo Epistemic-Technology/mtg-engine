@@ -1,0 +1,6 @@
+card "Banishing Betrayal" {
+  oracle_id 6b633e58-ea1b-4ed0-addb-6dfd93645ae4
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand; surveil 1
+}

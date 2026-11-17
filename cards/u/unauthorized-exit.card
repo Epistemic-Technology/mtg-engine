@@ -1,0 +1,6 @@
+card "Unauthorized Exit" {
+  oracle_id 3d145811-adb2-46a4-b173-bf8152e5de48
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand; surveil 1
+}

@@ -1,0 +1,8 @@
+card "Merfolk Coralsmith" {
+  oracle_id 05f3638f-3c66-47bb-8a82-ad173e152573
+  cost {2}{U}
+  type Creature — Merfolk
+  pt 2/3
+  activated {1}: this gets +1/-1
+  triggered when this dies: scry 2
+}

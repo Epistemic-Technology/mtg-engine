@@ -1,0 +1,7 @@
+card "Goblin Digging Team" {
+  oracle_id 8408f2a1-e321-43f5-a7d1-1911eba9d706
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated {T}, sacrifice this: destroy target Wall
+}

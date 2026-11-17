@@ -2,6 +2,8 @@ card "Aggressive Urge" {
   oracle_id 43f5a93b-0f8d-48d2-ab9d-275d44cf88b5
   cost {1}{G}
   type Instant
-  spell: target creature gets +1/+1
-  spell: draw 1 cards
+  spell {
+    target creature gets +1/+1
+    draw 1 cards
+  }
 }

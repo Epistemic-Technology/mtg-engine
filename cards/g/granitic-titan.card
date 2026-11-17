@@ -1,0 +1,8 @@
+card "Granitic Titan" {
+  oracle_id d398868b-7574-40d5-8915-6393ee489067
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 5/4
+  keywords menace
+  cycling {2}
+}

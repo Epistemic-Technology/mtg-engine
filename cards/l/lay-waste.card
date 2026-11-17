@@ -1,0 +1,7 @@
+card "Lay Waste" {
+  oracle_id 04cc9d99-69a9-499b-91bc-f2f30d217bdd
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target land
+  cycling {2}
+}

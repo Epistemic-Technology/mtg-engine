@@ -1,0 +1,7 @@
+card "Vodalian Merchant" {
+  oracle_id 3d62c8f8-7a1c-4771-891d-05fdaa56bf47
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/2
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

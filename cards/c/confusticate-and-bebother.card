@@ -1,0 +1,9 @@
+card "Confusticate and Bebother" {
+  oracle_id 7a7d9887-3cc4-4fb9-9109-1315903ace45
+  cost {2}{U}
+  type Instant
+  choose one {
+    mode: counter target spell unless its controller pays {4}
+    mode: draw 2 cards then discard 1 cards
+  }
+}

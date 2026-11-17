@@ -1,0 +1,8 @@
+card "Serum Raker" {
+  oracle_id 7bb7b937-a7ad-4f5c-b173-df71556c48e9
+  cost {2}{U}{U}
+  type Creature — Phyrexian Drake
+  pt 3/2
+  keywords flying
+  triggered when this dies: each player discards 1 cards
+}

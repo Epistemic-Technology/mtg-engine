@@ -2,6 +2,8 @@ card "Symbol of Unsummoning" {
   oracle_id c44f1a81-269b-4f05-8ff2-e7ce19a93937
   cost {2}{U}
   type Sorcery
-  spell: return target creature to hand
-  spell: draw 1 cards
+  spell {
+    return target creature to hand
+    draw 1 cards
+  }
 }

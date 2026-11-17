@@ -1,0 +1,7 @@
+card "Wipe Clean" {
+  oracle_id f5cbc4f3-4e73-405f-9daf-e5b7c73fa6ee
+  cost {1}{W}
+  type Instant
+  spell: exile target enchantment
+  cycling {3}
+}

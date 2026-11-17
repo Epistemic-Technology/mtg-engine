@@ -1,0 +1,6 @@
+card "Hand of Death" {
+  oracle_id dc45b2e3-272b-479b-8e3b-36eead606a3a
+  cost {2}{B}
+  type Sorcery
+  spell: destroy target nonblack creature
+}

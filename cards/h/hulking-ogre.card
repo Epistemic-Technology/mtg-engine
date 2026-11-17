@@ -1,0 +1,7 @@
+card "Hulking Ogre" {
+  oracle_id a95aa9ba-fa61-4a3d-a493-1ea790bd20ad
+  cost {2}{R}
+  type Creature — Ogre
+  pt 3/3
+  keywords can't block
+}

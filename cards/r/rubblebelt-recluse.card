@@ -1,0 +1,7 @@
+card "Rubblebelt Recluse" {
+  oracle_id 3ef0fff2-6010-42de-a7ce-e4cac295a481
+  cost {4}{R}
+  type Creature — Ogre Berserker
+  pt 6/5
+  keywords attacks each combat if able
+}

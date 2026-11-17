@@ -1,0 +1,175 @@
+# M3 slice 3: engine primitives added for the authoring backlog. Every card
+# here is a Pauper card authored from its Oracle text by templates.
+
+# ---- counterspells (CR 701.5) ---------------------------------------------------------
+
+scenario "counterspell counters a creature spell" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Counterspell"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Counterspell" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Counterspell"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "a countered instant has no effect" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: 2 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Counterspell"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Counterspell" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 begin_combat
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "essence scatter targets only creature spells" {
+  battlefield A: "Mountain"
+  battlefield B: 2 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Essence Scatter"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 1 B: cast "Essence Scatter" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 begin_combat
+  assert life B 17
+}
+
+scenario "mana leak: the controller pays and the spell resolves" {
+  battlefield A: 5 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Mana Leak"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Mana Leak" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  # The runner accepts the payment (the first option).
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "mana leak: without the mana the spell is countered" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Mana Leak"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Mana Leak" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "spell pierce cannot target a creature spell" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Spell Pierce"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 B: cast "Spell Pierce" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# ---- scry and surveil (CR 701.18, 701.42) ---------------------------------------------
+
+scenario "serum visions draws then scries two" {
+  battlefield A: "Island"
+  hand A: "Serum Visions"
+  library A: "Grizzly Bears", "Hill Giant", "Wind Drake", "Forest"
+  turn 1 A: cast "Serum Visions"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+  # Unscripted scry keeps both cards on top in order.
+  assert library A count 3
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "dimir informant surveils two into the graveyard when scripted" {
+  battlefield A: 3 "Island"
+  hand A: "Dimir Informant"
+  library A: "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Dimir Informant"
+  run_to turn 1 begin_combat
+  # Unscripted surveil keeps everything.
+  assert library A count 3
+  assert graveyard A count 0
+}
+
+# ---- cycling (CR 702.29) ----------------------------------------------------------------
+
+scenario "cycling discards the card from hand and draws" {
+  battlefield A: "Island"
+  hand A: "Lonely Sandbar"
+  library A: "Grizzly Bears", "Forest"
+  turn 1 A: activate "Lonely Sandbar"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Lonely Sandbar"
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Lonely Sandbar"
+}
+
+# ---- discard (CR 701.8) -----------------------------------------------------------------
+
+scenario "mind rot makes the target discard two" {
+  battlefield A: 3 "Swamp"
+  hand A: "Mind Rot"
+  hand B: "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Mind Rot" targeting player B
+  run_to turn 1 begin_combat
+  assert hand B count 1
+  assert graveyard B count 2
+}
+
+# ---- combat restrictions ----------------------------------------------------------------
+
+scenario "a creature that can't block is never offered as a blocker" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Spineless Thug"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Spineless Thug"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "an unblockable creature cannot be blocked" {
+  battlefield A: "Slither Blade"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Slither Blade"
+  illegal turn 1 B: block "Slither Blade" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "a creature that attacks each combat if able must attack" {
+  # Every legal declaration includes the Goblin (CR 508.1d): declaring no
+  # attackers is not offered, so the unscripted default sends it.
+  battlefield A: "Crazed Goblin"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Crazed Goblin"
+}
+
+# ---- once each turn, fight, any-color mana ----------------------------------------------
+
+scenario "snarling wolf pumps once each turn" {
+  battlefield A: "Snarling Wolf", 4 "Forest"
+  turn 1 A: activate "Snarling Wolf"
+  illegal turn 1 A: activate "Snarling Wolf"
+  run_to turn 1 begin_combat
+  assert power "Snarling Wolf" 3
+  run_to turn 3 precombat_main
+  assert power "Snarling Wolf" 1
+}
+
+scenario "lifespring druid taps for a color it does not have" {
+  battlefield A: "Lifespring Druid", "Island"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 17
+  assert tapped "Lifespring Druid"
+}

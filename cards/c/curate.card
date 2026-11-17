@@ -1,0 +1,9 @@
+card "Curate" {
+  oracle_id 75e8907d-f726-4a63-ba8b-c0fd4936734e
+  cost {1}{U}
+  type Instant
+  spell {
+    surveil 2
+    draw 1 cards
+  }
+}

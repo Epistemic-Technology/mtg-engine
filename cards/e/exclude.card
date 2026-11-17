@@ -1,0 +1,9 @@
+card "Exclude" {
+  oracle_id a8c9f91a-b1e7-451d-b6db-ae865e2b853c
+  cost {2}{U}
+  type Instant
+  spell {
+    counter target creature spell
+    draw 1 cards
+  }
+}

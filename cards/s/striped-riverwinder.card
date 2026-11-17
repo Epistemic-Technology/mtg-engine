@@ -1,0 +1,8 @@
+card "Striped Riverwinder" {
+  oracle_id 725972de-4816-44cf-a2a5-4326c3bc1b4b
+  cost {6}{U}
+  type Creature — Serpent
+  pt 5/5
+  keywords hexproof
+  cycling {U}
+}

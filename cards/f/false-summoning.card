@@ -1,0 +1,6 @@
+card "False Summoning" {
+  oracle_id 4f891c68-c959-4210-94e5-94a8e487d5ef
+  cost {1}{U}
+  type Instant
+  spell: counter target creature spell
+}

@@ -1,0 +1,6 @@
+card "Winds of Rebuke" {
+  oracle_id 6840a63d-d627-4a18-afa9-018406767642
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand; each player mills 2 cards
+}

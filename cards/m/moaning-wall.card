@@ -1,0 +1,8 @@
+card "Moaning Wall" {
+  oracle_id 7bf22390-a6c0-4da6-9f05-e66628f72079
+  cost {2}{B}
+  type Creature — Zombie Wall
+  pt 0/5
+  keywords defender
+  cycling {2}
+}

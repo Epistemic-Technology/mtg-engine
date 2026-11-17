@@ -1,0 +1,7 @@
+card "Octoprophet" {
+  oracle_id af6cfc23-b64b-4c8a-94b4-69d2b01cb3b9
+  cost {3}{U}
+  type Creature — Octopus
+  pt 3/3
+  triggered when this enters: scry 2
+}

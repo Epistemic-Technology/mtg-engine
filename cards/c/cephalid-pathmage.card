@@ -1,0 +1,8 @@
+card "Cephalid Pathmage" {
+  oracle_id c5c5f3f4-42e3-4d60-b6b1-8411ac51ce4e
+  cost {2}{U}
+  type Creature — Octopus Wizard
+  pt 1/2
+  keywords can't be blocked
+  activated {T}, sacrifice this: target creature can't be blocked
+}

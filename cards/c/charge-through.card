@@ -2,6 +2,8 @@ card "Charge Through" {
   oracle_id 7e24b4da-9728-43a0-8af4-f513a3e1104b
   cost {G}
   type Instant
-  spell: target creature gains trample
-  spell: draw 1 cards
+  spell {
+    target creature gains trample
+    draw 1 cards
+  }
 }

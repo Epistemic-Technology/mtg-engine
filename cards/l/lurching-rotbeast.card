@@ -1,0 +1,7 @@
+card "Lurching Rotbeast" {
+  oracle_id 771be8ad-5ab5-40b1-ad9b-e5e834949d32
+  cost {3}{B}
+  type Creature — Zombie Beast
+  pt 4/2
+  cycling {B}
+}

@@ -1,0 +1,6 @@
+card "Battlewise Valor" {
+  oracle_id b4540f6a-bec8-4942-aebe-d3285b8a8134
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; scry 1
+}

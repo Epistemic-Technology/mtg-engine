@@ -1,0 +1,8 @@
+card "Savage Hunger" {
+  oracle_id 0e608f48-d3a6-422c-839d-f06bb8a32014
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0, has trample
+  cycling {2}
+}

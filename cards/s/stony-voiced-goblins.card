@@ -1,0 +1,7 @@
+card "Stony-Voiced Goblins" {
+  oracle_id d1dceaa7-d33e-4067-9e1b-8a8978a12933
+  cost {1}{B}
+  type Creature — Goblin Bard
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

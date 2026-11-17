@@ -1,0 +1,7 @@
+card "Young Wei Recruits" {
+  oracle_id cdada8f0-d001-485c-a245-5e1c1ab748ab
+  cost {1}{B}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords can't block
+}

@@ -1,0 +1,9 @@
+card "Deadly Visit" {
+  oracle_id 04a3bb42-0464-4638-a6ac-d5f412c222cc
+  cost {3}{B}{B}
+  type Sorcery
+  spell {
+    destroy target creature
+    surveil 2
+  }
+}

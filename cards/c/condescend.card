@@ -1,0 +1,6 @@
+card "Condescend" {
+  oracle_id 96cf3c10-733d-4110-9dab-43d0cd4e6629
+  cost {X}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X}; scry 2
+}

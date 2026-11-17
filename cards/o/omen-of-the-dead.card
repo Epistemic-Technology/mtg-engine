@@ -1,0 +1,8 @@
+card "Omen of the Dead" {
+  oracle_id 0aa9ee99-69a8-452b-a0d5-001384bdff3c
+  cost {B}
+  type Enchantment
+  keywords flash
+  triggered when this enters: return target creature card from your graveyard to hand
+  activated {2}{B}, sacrifice this: scry 2
+}

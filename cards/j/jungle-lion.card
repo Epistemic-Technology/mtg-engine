@@ -1,0 +1,7 @@
+card "Jungle Lion" {
+  oracle_id 45b42694-9ee8-44f3-9de3-aa2c0f1b6a13
+  cost {G}
+  type Creature — Cat
+  pt 2/1
+  keywords can't block
+}

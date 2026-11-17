@@ -1,0 +1,10 @@
+card "Izzet Charm" {
+  oracle_id a07698f6-5ad5-49a3-9da2-f82d407f5cd7
+  cost {U}{R}
+  type Instant
+  choose one {
+    mode: counter target noncreature spell unless its controller pays {2}
+    mode: deal 2 damage to target creature
+    mode: draw 2 cards then discard 2 cards
+  }
+}

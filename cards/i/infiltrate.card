@@ -1,0 +1,6 @@
+card "Infiltrate" {
+  oracle_id 081764b4-ef96-44aa-836c-05353efd215c
+  cost {U}
+  type Instant
+  spell: target creature can't be blocked
+}

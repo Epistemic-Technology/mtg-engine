@@ -1,0 +1,7 @@
+card "Titan's Grave" {
+  oracle_id 595f0eb5-f521-4174-9c48-b89e85ea907c
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {2}{B}{G}, {T}: surveil 1
+}

@@ -1,0 +1,8 @@
+card "Spined Megalodon" {
+  oracle_id 3a124fe5-f525-43e5-9746-501c68a98330
+  cost {5}{U}{U}
+  type Creature — Shark
+  pt 5/7
+  keywords hexproof
+  triggered whenever this attacks: scry 1
+}

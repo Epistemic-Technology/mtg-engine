@@ -1,0 +1,7 @@
+card "Bloodrock Cyclops" {
+  oracle_id 06a3fe24-7e1f-4f98-ba2f-dbb5d38f4b9d
+  cost {2}{R}
+  type Creature — Cyclops
+  pt 3/3
+  keywords attacks each combat if able
+}

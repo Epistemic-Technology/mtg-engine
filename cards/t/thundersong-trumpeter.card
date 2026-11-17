@@ -1,0 +1,7 @@
+card "Thundersong Trumpeter" {
+  oracle_id 6ad87598-5b57-496c-96ec-c04fe0616b6b
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {T}: target creature can't attack or block
+}

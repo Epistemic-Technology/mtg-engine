@@ -1,0 +1,7 @@
+card "Lull" {
+  oracle_id d53f4c24-8deb-485a-b03a-945211fdf10d
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage this turn
+  cycling {2}
+}

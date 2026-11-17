@@ -1,0 +1,7 @@
+card "Haze of Pollen" {
+  oracle_id f0140f00-5414-493b-962d-33312d49f6ea
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage this turn
+  cycling {3}
+}

@@ -1,0 +1,7 @@
+card "Three Tree Rootweaver" {
+  oracle_id d17d4003-e1c9-42be-ac76-3b5500fad485
+  cost {1}{G}
+  type Creature — Mole Druid
+  pt 1/3
+  mana any
+}

@@ -1,0 +1,7 @@
+card "Azorius Knight-Arbiter" {
+  oracle_id 9adc1435-3094-427d-88f8-91d55c5a924d
+  cost {3}{W}{U}
+  type Creature — Human Knight
+  pt 2/5
+  keywords vigilance, can't be blocked
+}

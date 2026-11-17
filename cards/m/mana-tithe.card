@@ -1,0 +1,6 @@
+card "Mana Tithe" {
+  oracle_id 948217ac-289e-455f-8c7c-519aa75fa345
+  cost {W}
+  type Instant
+  spell: counter target spell unless its controller pays {1}
+}

@@ -1,0 +1,6 @@
+card "Get the Point" {
+  oracle_id 57c704bc-8dff-4b90-b4e1-38d12e41b3d1
+  cost {3}{B}{R}
+  type Instant
+  spell: destroy target creature; scry 1
+}

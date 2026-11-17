@@ -1,0 +1,6 @@
+card "Careful Study" {
+  oracle_id 32e9aa23-fc0a-4b82-82f9-1659c304428c
+  cost {U}
+  type Sorcery
+  spell: draw 2 cards then discard 2 cards
+}

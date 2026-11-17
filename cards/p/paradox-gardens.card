@@ -1,0 +1,7 @@
+card "Paradox Gardens" {
+  oracle_id 638ff242-63d5-457d-a7a6-40ad51052e2e
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {2}{G}{U}, {T}: surveil 1
+}

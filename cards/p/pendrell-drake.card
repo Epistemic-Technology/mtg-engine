@@ -1,0 +1,8 @@
+card "Pendrell Drake" {
+  oracle_id 8d8981df-4cdc-4fd4-acd8-095fa3281281
+  cost {3}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flying
+  cycling {2}
+}

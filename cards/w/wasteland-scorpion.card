@@ -1,0 +1,8 @@
+card "Wasteland Scorpion" {
+  oracle_id 0bc418c3-ebde-4e52-9284-65d7e3433f27
+  cost {2}{B}
+  type Creature — Scorpion
+  pt 2/2
+  keywords deathtouch
+  cycling {2}
+}

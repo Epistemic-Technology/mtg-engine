@@ -1,0 +1,8 @@
+card "Cartouche of Ambition" {
+  oracle_id 33fe5484-7cc7-45c7-a349-b15c0454ab08
+  cost {2}{B}
+  type Enchantment — Aura Cartouche
+  enchant creature you control
+  triggered when this enters: you may put 1 -1/-1 counters on target creature
+  static enchanted: +1/+1, has lifelink
+}

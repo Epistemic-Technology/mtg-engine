@@ -1,0 +1,6 @@
+card "Cancel" {
+  oracle_id 7d00fb28-ea6c-49a9-b4af-ffb38860a9a7
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell
+}

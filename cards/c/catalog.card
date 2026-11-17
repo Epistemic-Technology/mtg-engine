@@ -1,0 +1,6 @@
+card "Catalog" {
+  oracle_id 965139fb-2e58-4ef2-b639-3ceaa2995c00
+  cost {2}{U}
+  type Instant
+  spell: draw 2 cards then discard 1 cards
+}

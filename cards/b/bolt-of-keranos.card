@@ -1,0 +1,6 @@
+card "Bolt of Keranos" {
+  oracle_id e07f50fb-98b2-40b7-9610-b8e9438be394
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to any target; scry 1
+}

@@ -1,0 +1,6 @@
+card "Romantic Rendezvous" {
+  oracle_id 8ca585b5-25c4-41cc-a0b9-dc66ae803d04
+  cost {1}{R}
+  type Sorcery
+  spell: discard 1 cards then draw 2 cards
+}

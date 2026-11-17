@@ -1,0 +1,7 @@
+card "Triton Shorestalker" {
+  oracle_id 71a60247-17e5-44bd-9fed-f7d550b09ef3
+  cost {U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  keywords can't be blocked
+}

@@ -1,0 +1,8 @@
+card "Thaumaturge's Familiar" {
+  oracle_id 74a1a484-7c35-466a-b097-9aaf6fc2073b
+  cost {3}
+  type Artifact Creature — Bird
+  pt 1/3
+  keywords flying
+  triggered when this enters: scry 1
+}

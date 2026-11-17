@@ -1,0 +1,6 @@
+card "Remove Soul" {
+  oracle_id b13c0f76-fbda-4911-9442-c3d7e97f1aac
+  cost {1}{U}
+  type Instant
+  spell: counter target creature spell
+}

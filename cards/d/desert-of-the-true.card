@@ -1,0 +1,7 @@
+card "Desert of the True" {
+  oracle_id 2672e0ca-8d5c-449f-8483-35d0e697fbb2
+  type Land — Desert
+  enters tapped
+  mana {W}
+  cycling {1}{W}
+}

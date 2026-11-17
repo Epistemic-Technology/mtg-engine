@@ -1,0 +1,8 @@
+card "Wall of Runes" {
+  oracle_id 35dfe1c7-48ab-436f-9a6e-44835ea01cf9
+  cost {U}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  triggered when this enters: scry 1
+}

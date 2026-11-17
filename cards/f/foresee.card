@@ -1,0 +1,6 @@
+card "Foresee" {
+  oracle_id 441de890-7b9f-42f7-859a-a154b8ed74ac
+  cost {3}{U}
+  type Sorcery
+  spell: scry 4 then draw 2 cards
+}

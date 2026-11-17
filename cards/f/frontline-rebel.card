@@ -1,0 +1,7 @@
+card "Frontline Rebel" {
+  oracle_id 7471e445-4655-4336-9769-3debd197b77c
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/3
+  keywords attacks each combat if able
+}

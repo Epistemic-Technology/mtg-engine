@@ -2,6 +2,8 @@ card "Instill Infection" {
   oracle_id 0040db73-ac11-4c15-a1ac-5a2c4c085f09
   cost {3}{B}
   type Instant
-  spell: put 1 -1/-1 counters on target creature
-  spell: draw 1 cards
+  spell {
+    put 1 -1/-1 counters on target creature
+    draw 1 cards
+  }
 }

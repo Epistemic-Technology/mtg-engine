@@ -1,0 +1,7 @@
+card "Nezumi Informant" {
+  oracle_id a70ffefb-840c-48c3-a59d-e12306086bb6
+  cost {1}{B}
+  type Creature — Rat Rogue
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

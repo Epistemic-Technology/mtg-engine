@@ -1,0 +1,7 @@
+card "Barkhide Mauler" {
+  oracle_id 84a18b1f-5f9f-4e2b-87cd-c437bdf4d278
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/4
+  cycling {2}
+}

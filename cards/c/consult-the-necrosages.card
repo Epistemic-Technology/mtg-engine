@@ -1,0 +1,9 @@
+card "Consult the Necrosages" {
+  oracle_id c9edddb4-0d60-4d21-8887-51d943c6a31f
+  cost {1}{U}{B}
+  type Sorcery
+  choose one {
+    mode: target player draws 2 cards
+    mode: target player discards 2 cards
+  }
+}

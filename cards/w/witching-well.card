@@ -1,0 +1,7 @@
+card "Witching Well" {
+  oracle_id baadfc17-42fd-4771-aabe-027ef7b3bf69
+  cost {U}
+  type Artifact
+  triggered when this enters: scry 2
+  activated {3}{U}, sacrifice this: draw 2 cards
+}

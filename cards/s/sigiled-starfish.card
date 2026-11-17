@@ -1,0 +1,7 @@
+card "Sigiled Starfish" {
+  oracle_id 94a4f70a-8aac-412a-99f0-933e3ff87fe0
+  cost {1}{U}
+  type Creature — Starfish
+  pt 0/3
+  activated {T}: scry 1
+}

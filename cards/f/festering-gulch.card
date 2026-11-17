@@ -1,0 +1,7 @@
+card "Festering Gulch" {
+  oracle_id 9d3b60af-3e38-4d36-95fc-11b31c38f955
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {B} or {G}
+}

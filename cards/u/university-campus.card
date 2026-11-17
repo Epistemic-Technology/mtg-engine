@@ -1,0 +1,7 @@
+card "University Campus" {
+  oracle_id 98e547de-b963-4ee4-9a08-67bae010734b
+  type Land
+  enters tapped
+  mana {W} or {U}
+  activated {4}, {T}: surveil 1
+}

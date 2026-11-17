@@ -1,0 +1,8 @@
+card "Appendage Amalgam" {
+  oracle_id 9fb95813-05e5-4aa0-bab9-53d8a071fe6a
+  cost {2}{B}
+  type Enchantment Creature — Horror
+  pt 3/2
+  keywords flash
+  triggered whenever this attacks: surveil 1
+}

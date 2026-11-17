@@ -1,0 +1,6 @@
+card "Divine Verdict" {
+  oracle_id 3070f997-24f2-471d-af96-a2f3b588198e
+  cost {3}{W}
+  type Instant
+  spell: destroy target attacking or blocking creature
+}

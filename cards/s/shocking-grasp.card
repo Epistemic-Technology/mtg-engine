@@ -2,6 +2,8 @@ card "Shocking Grasp" {
   oracle_id 2ebe4c68-87eb-474d-a4c4-0468835b4900
   cost {1}{U}
   type Instant
-  spell: target creature gets -2/-0
-  spell: draw 1 cards
+  spell {
+    target creature gets -2/-0
+    draw 1 cards
+  }
 }

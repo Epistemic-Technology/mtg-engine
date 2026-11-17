@@ -1,0 +1,6 @@
+card "Storm Strike" {
+  oracle_id f0748ff2-94b1-45a9-8d56-8459bd86704a
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike; scry 1
+}

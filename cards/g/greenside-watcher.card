@@ -1,0 +1,7 @@
+card "Greenside Watcher" {
+  oracle_id a6297680-5d32-41e6-aaaf-b194e6be6b96
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  activated {T}: untap target Gate
+}

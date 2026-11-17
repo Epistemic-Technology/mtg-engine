@@ -1,0 +1,7 @@
+card "Plated Rootwalla" {
+  oracle_id e20b80f2-9913-4886-a61b-04f3fd27c2ad
+  cost {4}{G}
+  type Creature — Lizard
+  pt 3/3
+  activated {2}{G}, once: this gets +3/+3
+}

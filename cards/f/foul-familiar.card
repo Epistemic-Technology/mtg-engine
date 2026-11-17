@@ -1,0 +1,8 @@
+card "Foul Familiar" {
+  oracle_id 90767f52-fa6d-4ef3-ae54-d8e3881971c1
+  cost {2}{B}
+  type Creature — Spirit
+  pt 3/1
+  keywords can't block
+  activated {B}, pay 1 life: return this to hand
+}

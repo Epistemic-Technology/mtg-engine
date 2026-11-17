@@ -1,0 +1,7 @@
+card "Hapless Researcher" {
+  oracle_id 240a349a-79f8-4e11-9a05-a78148e70a62
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated sacrifice this: draw 1 cards then discard 1 cards
+}

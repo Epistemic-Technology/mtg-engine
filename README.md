@@ -18,10 +18,10 @@ look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
 DSL and authoring pipeline) is under way: cards are text files under
 `cards/` that compile to the engine's definitions and render back to
 Oracle text, and a gate checks that rendering against Scryfall. The
-corpus holds 2,222 cards (131 hand-written and scenario-tested, 2,090
-authored from Oracle text by templates; 20% of Pauper), all matching
+corpus holds 2,717 cards (131 hand-written and scenario-tested, the rest
+authored from Oracle text by templates; 25% of Pauper), all matching
 their Oracle text. Random agents play complete games at about 5,000
-games per second per core on effect-free boards. A 378-scenario rules
+games per second per core on effect-free boards. A 393-scenario rules
 corpus passes. See [design.md](design.md) for the
 architecture, roadmap, and open questions.
 

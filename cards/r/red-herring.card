@@ -1,0 +1,8 @@
+card "Red Herring" {
+  oracle_id f0ee45b5-697b-48f8-b1a6-cb3ae75e4a29
+  cost {1}{R}
+  type Artifact Creature — Clue Fish
+  pt 2/2
+  keywords haste, attacks each combat if able
+  activated {2}, sacrifice this: draw 1 cards
+}

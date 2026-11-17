@@ -1,0 +1,6 @@
+card "Inordinate Rage" {
+  oracle_id 50402103-14ea-49b0-8e66-d2b7f7a69a41
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+2; scry 1
+}

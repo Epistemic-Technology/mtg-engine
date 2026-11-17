@@ -1,0 +1,7 @@
+card "Forum of Amity" {
+  oracle_id 349ea6c7-6b3e-417f-b082-b712e2b1635b
+  type Land
+  enters tapped
+  mana {W} or {B}
+  activated {2}{W}{B}, {T}: surveil 1
+}

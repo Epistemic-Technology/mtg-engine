@@ -1,0 +1,7 @@
+card "Sanitation Automaton" {
+  oracle_id be2ab552-df82-49a0-8f0b-ee66de34e1a7
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/1
+  triggered when this enters: surveil 1
+}

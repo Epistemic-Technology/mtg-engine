@@ -1,0 +1,7 @@
+card "Savage Mansion" {
+  oracle_id 1af15c1d-a41c-44cc-9614-d72694dd26e8
+  type Land
+  enters tapped
+  mana {R} or {G}
+  activated {4}, {T}: surveil 1
+}

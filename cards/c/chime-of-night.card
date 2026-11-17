@@ -1,0 +1,7 @@
+card "Chime of Night" {
+  oracle_id 09b41783-0583-4486-99e8-3f8a11ae37fd
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this dies: destroy target nonblack creature
+}

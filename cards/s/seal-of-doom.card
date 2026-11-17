@@ -1,0 +1,6 @@
+card "Seal of Doom" {
+  oracle_id 71d54ba3-91fe-4a14-8b99-c284b4c75013
+  cost {2}{B}
+  type Enchantment
+  activated sacrifice this: destroy target nonblack creature without regeneration
+}

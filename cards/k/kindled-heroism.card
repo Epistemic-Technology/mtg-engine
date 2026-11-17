@@ -1,0 +1,6 @@
+card "Kindled Heroism" {
+  oracle_id c1ed20c0-f75d-4aca-8874-6955bd9fb21b
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike; scry 1
+}

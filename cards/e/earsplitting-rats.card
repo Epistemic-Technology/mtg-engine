@@ -1,0 +1,8 @@
+card "Earsplitting Rats" {
+  oracle_id 6c14ecbf-0097-4fd8-97a3-a32b532c21e0
+  cost {3}{B}
+  type Creature — Rat
+  pt 2/1
+  triggered when this enters: each player discards 1 cards
+  activated discard 1 card: regenerate this
+}

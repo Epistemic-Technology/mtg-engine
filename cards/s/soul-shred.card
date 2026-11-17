@@ -1,0 +1,6 @@
+card "Soul Shred" {
+  oracle_id 2894ef5e-738b-4ece-b143-6662d9453295
+  cost {3}{B}{B}
+  type Sorcery
+  spell: deal 3 damage to target nonblack creature; you gains 3 life
+}

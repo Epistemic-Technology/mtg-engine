@@ -1,0 +1,7 @@
+card "Putrid Leech" {
+  oracle_id 16b723bc-aab9-40f2-8e1b-b9c2bd2af3bc
+  cost {B}{G}
+  type Creature — Zombie Leech
+  pt 2/2
+  activated pay 2 life, once: this gets +2/+2
+}

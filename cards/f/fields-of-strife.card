@@ -1,0 +1,7 @@
+card "Fields of Strife" {
+  oracle_id a32e08fa-bea4-4ba9-a126-9bf0a91f67e2
+  type Land
+  enters tapped
+  mana {R} or {W}
+  activated {2}{R}{W}, {T}: surveil 1
+}

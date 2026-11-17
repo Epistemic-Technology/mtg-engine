@@ -1,0 +1,7 @@
+card "Craven Giant" {
+  oracle_id 3ebd9c8d-c840-4c2e-ace6-352a68d1c20f
+  cost {2}{R}
+  type Creature — Giant
+  pt 4/1
+  keywords can't block
+}

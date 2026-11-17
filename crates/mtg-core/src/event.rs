@@ -71,6 +71,18 @@ pub enum Event {
         spell: ObjId,
         def: CardRef,
     },
+    /// A spell was countered (CR 701.5).
+    Countered {
+        spell: ObjId,
+        def: CardRef,
+    },
+    /// Scry or surveil: how many of the looked-at cards went down (to the
+    /// bottom or the graveyard).
+    Scried {
+        player: PlayerId,
+        looked: u32,
+        down: u32,
+    },
     Attack {
         attacker: ObjId,
         target: Target,

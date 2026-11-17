@@ -2,6 +2,8 @@ card "Defiant Strike" {
   oracle_id f8c2d9c5-6fe6-4698-9972-83cdd625d94b
   cost {W}
   type Instant
-  spell: target creature gets +1/+0
-  spell: draw 1 cards
+  spell {
+    target creature gets +1/+0
+    draw 1 cards
+  }
 }

@@ -1,0 +1,7 @@
+card "Smoldering Spires" {
+  oracle_id cfa3288d-e521-4a13-bcb3-7950a94e1746
+  type Land
+  enters tapped
+  triggered when this enters: target creature can't block
+  mana {R}
+}

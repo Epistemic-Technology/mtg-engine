@@ -1,0 +1,7 @@
+card "Lambholt Harrier" {
+  oracle_id 84c7d60a-7a7a-4344-8db5-d658792e3ac4
+  cost {1}{R}
+  type Creature — Wolf
+  pt 2/2
+  activated {3}{R}: target creature can't block
+}

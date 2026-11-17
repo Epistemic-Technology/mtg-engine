@@ -1,0 +1,7 @@
+card "Omenspeaker" {
+  oracle_id 43d7fcf3-acc2-4e9b-a466-c73b1b6c58af
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  triggered when this enters: scry 2
+}

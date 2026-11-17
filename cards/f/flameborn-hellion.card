@@ -1,0 +1,7 @@
+card "Flameborn Hellion" {
+  oracle_id 47d4da1e-b1a2-4a23-9b96-c85d5d20e3ef
+  cost {5}{R}
+  type Creature — Hellion
+  pt 5/4
+  keywords haste, attacks each combat if able
+}

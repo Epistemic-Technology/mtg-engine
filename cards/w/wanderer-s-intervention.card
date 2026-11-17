@@ -1,0 +1,6 @@
+card "Wanderer's Intervention" {
+  oracle_id 4497d0b9-cf4b-4c9d-bf7e-8ed85aa6b5b8
+  cost {1}{W}
+  type Instant
+  spell: deal 4 damage to target attacking or blocking creature
+}

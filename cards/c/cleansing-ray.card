@@ -1,0 +1,9 @@
+card "Cleansing Ray" {
+  oracle_id 50f1948c-fa27-458d-be14-cb0e09e39f63
+  cost {1}{W}
+  type Sorcery
+  choose one {
+    mode: destroy target Vampire
+    mode: destroy target enchantment
+  }
+}

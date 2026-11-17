@@ -1,0 +1,7 @@
+card "Setessan Starbreaker" {
+  oracle_id bc84a4e7-5f5f-4105-b0f8-c06ebcde6218
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered when this enters: you may destroy target Aura
+}

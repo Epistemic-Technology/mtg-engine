@@ -1,0 +1,8 @@
+card "Willow-Wind" {
+  oracle_id ee3fd92c-48e0-4651-aeda-7eb2c75acbb0
+  cost {4}{U}
+  type Creature — Elemental
+  pt 3/4
+  keywords flying
+  triggered when this enters: scry 2
+}

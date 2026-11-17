@@ -1,0 +1,8 @@
+card "Fire Drake" {
+  oracle_id fd3bcc9b-7d84-478e-aef5-2e44610107c7
+  cost {1}{R}{R}
+  type Creature — Drake
+  pt 1/2
+  keywords flying
+  activated {R}, once: this gets +1/+0
+}

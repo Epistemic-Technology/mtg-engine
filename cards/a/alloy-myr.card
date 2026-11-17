@@ -1,0 +1,7 @@
+card "Alloy Myr" {
+  oracle_id efb0394c-2a45-4dd8-bca3-08704056fa31
+  cost {3}
+  type Artifact Creature — Myr
+  pt 2/2
+  mana any
+}

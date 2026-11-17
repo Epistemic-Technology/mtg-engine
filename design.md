@@ -20,6 +20,11 @@ review tool (§9.4) that lists recorded games and plays them back visually
 is part of the deliverable, because it is how rules bugs and agent
 behaviour get inspected.
 
+The intended public face of the project is a benchmark site in the style
+of chessbench.org (§9.5): leaderboards of LLMs playing Magic on this
+engine, with replays of their games. It is a consumer of the engine, the
+MCP server, and the review tool, not part of the engine itself.
+
 Everything else is secondary: no play GUI, no matchmaking, no deck
 builder, no card images.
 
@@ -762,10 +767,10 @@ implemented). Gate 4 (fuzz participation) is served by random decks
 drawn from the whole pool (`mtg sim --deck1 random:<seed>`,
 `scripts/fuzz-random.sh`), so every card in the corpus gets played.
 Gate 2 is measured, not enforced: `mtg-cards coverage --scenarios`
-reports which corpus cards no scenario names (2026-11-17: 132 of 2,222;
-1,394 cards with abilities have none, nearly all template-authored
-commons whose abilities are the same few primitives the hand-written
-cards' scenarios already exercise). Gate 3 (rulings) is not started. The
+reports which corpus cards no scenario names (2026-11-17, after slice 3:
+145 of 2,717; 1,841 cards with abilities have none, nearly all
+template-authored commons whose abilities are the same few primitives
+the hand-written cards' and `scenarios/m3/primitives.scn` exercise). Gate 3 (rulings) is not started. The
 corpus therefore has two support levels: the 131 hand-written cards are
 *verified* (gates 1, 2, 4); the template-authored cards are *supported*
 (gates 1 and 4). Deck loading does not yet distinguish them.
@@ -794,6 +799,24 @@ every one matching its Oracle text; the corpus went from 138 definitions
 to 2,229 (Pauper coverage 20%, Modern 8%). Fuzzing draws random two-color
 decks from the whole pool (`mtg sim --deck1 random:<seed>`), which is how
 these cards get played.
+
+Slice 3 (2026-11-17) worked the top of that backlog into the engine and
+the templates: counterspells (`TargetSpec::Spell`, `Effect::Counter`,
+"unless its controller pays" as a mid-resolution decision for the
+spell's controller), scry and surveil (a decision over which of the top
+cards go down; the rest keep their order, a simplification of CR
+701.18), cycling (an activated ability from the hand whose cost discards
+its source), discard effects, fight, "activate only once each turn",
+any-color mana in the payment planner, the combat restrictions "can't
+attack", "can't block", "attacks each combat if able", and "can't be
+blocked" (kept with the keywords so effects can grant them), and targets
+given by any filter (`TargetSpec::Filtered` over filters the pool
+interns: "target nonblack creature", "target creature an opponent
+controls"). That authored 563 more Pauper cards. It also exposed a bug in
+slice 2's output: a spell with two paragraphs ("Scry 1.\nDraw a card.")
+had been written as two `spell` statements, of which the engine ran only
+the first; the compiler now rejects that, the author writes one `spell`
+block, and the 68 affected files were regenerated.
 
 The model-driven part is next. `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
@@ -1123,6 +1146,22 @@ baseline: two random decks drawn from the whole pool (`random:208` vs
 per game. Fuzz: 15,000 random-deck games (half with greedy agents) and
 36,000 stress-deck games, 0 panics, 0 unfinished.
 
+
+**M3 slice 3 (2026-11-17, same method, measured against the slice 2
+binary).** New per-step checks (a blocker's "can't block", an attacker's
+"attacks each combat if able", hand cards' cycling abilities, spells as
+targets) cost 1–2% on every stress deck, inside the ±3% build-to-build
+band: mono-red 4,821→4,716 then 4,818→4,764 on a repeat, copy
+1,475→1,445, triggers 1,144→1,129, slice6 837→818. Random decks over the
+2,717-card pool run at 1,195 games/s/core (737 decisions per game; the
+slice 2 figure of 945 was over a 2,229-card pool, so the decks differ).
+Fuzz: 15,000 random-deck games (half greedy) and 36,000 stress-deck
+games, 0 panics, 0 unfinished; the random-deck run first caught the
+greedy agent panicking on a mid-resolution discard whose options named
+a card drawn by the same resolution, absent from the state the decision
+is shown against (§4.9's self-describing-options rule), fixed by giving
+`Choice::Discard` the card's definition.
+
 ### 8.2 Techniques
 
 - Enums over trait objects in hot paths; `SmallVec` for zones and option
@@ -1262,6 +1301,57 @@ is part of M4 alongside the Python and MCP surfaces, because those are
 what produce games worth reviewing. The agent-commentary panel follows
 once the MCP server records reasoning.
 
+### 9.5 Public benchmark site (`mtg-bench`, working name)
+
+Intent recorded 2026-11-17; not yet scheduled (see M6 in §11). A public
+website modelled on chessbench.org and chessbench.ai: a leaderboard of
+language models ranked by how well they play Magic on this engine, with
+every rated game available as a replay. It fills the gap named in §2:
+there is no reproducible, published full-MTG LLM benchmark.
+
+**Tracks.**
+
+- *Rated games.* Models play a fixed gauntlet of decks against a ladder
+  of built-in agents (random, greedy, IS-MCTS once it exists) and against
+  each other. Decks are built only from scenario-tested cards. Games are
+  played in mirrored pairs (same seed, decks and seats swapped) to reduce
+  the variance that shuffling and hidden information add. Ratings are Elo
+  within the benchmark pool only; the built-in agents are the fixed
+  anchors, since Magic has no equivalent of Stockfish to calibrate
+  against.
+- *Puzzles.* Positions written in the scenario DSL (§7.1) with an
+  engine-verified solution, e.g. "win this turn". Cheap, low-variance,
+  and scored exactly; the natural first track to ship.
+
+**Harness.** A model sees its `PlayerView` as text and the numbered
+legal options for the current decision (§4.7), through `mtg-mcp` (§9.2)
+or a thinner loop over the same rendering. A response that does not
+resolve to a legal option is rejected, counted, and retried, as
+chessbench.org does with illegal moves. An auto-pass policy (when
+priority is passed without asking the model) is fixed by the benchmark
+and applied identically to every model, because priority passes dominate
+the decision count and so the cost. Each decision's reasoning text,
+token counts, cost, and latency are stored with the `GameRecord`.
+
+**Leaderboard.** Per model and thinking level: Elo with an interval,
+win/loss rate, invalid-response rate, puzzle score, cost per game,
+output tokens per game, and time per decision. Every result names the
+engine and card-corpus versions it was played on. A rules fix that
+could change outcomes bumps the version; affected games are flagged and
+replayed rather than silently kept.
+
+**Replays.** The review tool (§9.4) deployed read-only, with the
+agent-commentary panel showing the model's reasoning beside the board.
+This resolves open question 10 in favour of a deployed service once the
+site exists.
+
+**Constraints.** The whole site is free and needs no login (§10).
+Running costs may be subsidized by donations or sponsors but nothing is
+gated on them. Text-only cards, no images. Human play against bots is
+out of scope (decided 2026-11-17): model-backed opponents are too
+expensive to offer, and a hosted place to play Magic carries more
+licensing exposure than a benchmark does (§10).
+
 ## 10. Data, licensing, and attribution
 
 - **Our code:** MIT (decided 2026-10-29), with an explicit statement in
@@ -1291,6 +1381,17 @@ once the MCP server records reasoning.
   attribution. **Forge** is GPL-3.0 and is read for understanding only.
 - The IP status of Oracle text itself is unaddressed by any source we
   found; we treat it as WotC copyright used under the Fan Content Policy.
+- **Benchmark site (§9.5).** The Fan Content Policy requires content to
+  be free: no payment, subscription, or registration to access it.
+  Donations (the FAQ names Patreon), ad revenue, and clearly labelled
+  sponsors are allowed so long as they do not restrict access, so no
+  patron-only results or replays. Read 2026-11-17, the policy's FAQ also
+  appears to exclude "game mechanics" from what it licenses and its
+  rules say not to use Wizards' IP "in other games". If so, the engine
+  and anything playable built on it rest on general IP law and on the
+  tolerance Forge and XMage have had, not on the policy, and the notice
+  above overstates our footing. To be verified against the full policy
+  text before the site launches (open question 13).
 
 ## 11. Roadmap
 
@@ -1651,6 +1752,21 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, slice 3 (engine primitives from the authoring
+backlog) done: counterspells including "unless its controller pays",
+scry and surveil, cycling, discard effects, fight, once-per-turn
+activations, any-color mana, the four combat restrictions, and
+filter-based targets (§6.4). The DSL gained `then` joins, `cycling`,
+`mana any`, `once`, `discard this`, restriction keywords, and filter
+targets. The author's templates follow, and the corpus is 2,717 cards
+(24.7% of Pauper, 9.9% of Modern), 2,716 matching Oracle text. 15 new
+scenarios in `scenarios/m3/primitives.scn` cover each primitive with
+real Pauper cards (393 pass); the runner learned to name a spell on the
+stack as a target and to send a creature that must attack. Fixed on the
+way: multi-paragraph spells authored as two `spell` statements ran only
+their first paragraph (68 cards regenerated; the compiler now rejects
+it).
 - `mtg-dsl` with round-trip printer; `mtg-scenario` runner; XMage test
   converter; `mtg-cards author`.
 - Accept: 500 Pauper cards supported through the gate; 1,000 ported
@@ -1669,6 +1785,17 @@ and gate 4; the XMage converter and model-driven authoring remain.
 - Pauper to ≥ 95% supported; Standard snapshot; modal and multi-face
   cards; remaining CR 702 keywords; IS-MCTS baseline agent; published
   benchmark harness.
+
+**M6: Public benchmark site (after M4; not scheduled)**
+- `mtg-bench` (§9.5): LLM harness with cost and token logging, the
+  puzzle track, rated games against the agent ladder, rating pipeline,
+  leaderboard, and public read-only replays.
+- A command-line prototype of the harness against the built-in decks
+  can precede M4; its purpose is to measure cost per game and decisions
+  per game, the main unknowns.
+- Accept: at least five models rated on both tracks with published
+  methodology; every rated game opens as a replay; a second run of the
+  same model lands within the stated rating interval.
 
 ## 12. Open questions
 
@@ -1701,6 +1828,20 @@ and gate 4; the XMage converter and model-driven authoring remain.
 10. **Review tool hosting.** Local-only in v1. If games are to be shared
    with people outside the machine, it becomes a deployed service and
    needs a decision on access control and on where game records live.
+   The benchmark site (§9.5) makes it a public read-only service.
+11. **Benchmark rating method.** How many mirrored pairs give a stable
+   Elo given Magic's variance, and whether model-vs-model games are
+   affordable or the ladder of built-in agents has to carry the rating.
+   Needs the cost-per-game measurement from the M6 prototype.
+12. **Benchmark auto-pass policy.** Which priority passes are taken
+   without asking the model. Too few and games cost too much; too many
+   and the benchmark makes decisions the model should have made (holding
+   up an instant, responding on the stack).
+13. **Licensing footing for the site.** Whether the Fan Content Policy
+   covers a rules engine and a benchmark built on it (§10), whether the
+   README notice should change, and whether a name containing "MTG" is
+   acceptable. Decide whether to ask Wizards for written permission
+   before launch.
 
 ## 13. Sources
 
@@ -1718,7 +1859,9 @@ https://github.com/altf4/rustmage. MTG-Ichor:
 https://github.com/lcmaier/MTG-Ichor. cantrip-rs:
 https://github.com/cantrip-rs/cantrip-rs. Argentum Engine:
 https://github.com/wingedsheep/argentum-engine. mage-bench:
-https://github.com/GregorStocks/mage-bench. MageZero:
+https://github.com/GregorStocks/mage-bench. ChessBench (models for the
+benchmark site, §9.5): https://chessbench.org, https://chessbench.ai.
+MageZero:
 https://github.com/WillWroble/MageZero. WotC on Arena's rules parser:
 https://magic.wizards.com/en/news/mtg-arena/on-whiteboards-naps-and-living-breakthrough.
 

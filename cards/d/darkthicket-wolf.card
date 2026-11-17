@@ -1,0 +1,7 @@
+card "Darkthicket Wolf" {
+  oracle_id a78ab15e-72e7-4d2b-bc42-b2960147ea7b
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/2
+  activated {2}{G}, once: this gets +2/+2
+}

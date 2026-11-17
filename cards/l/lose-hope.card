@@ -1,0 +1,6 @@
+card "Lose Hope" {
+  oracle_id 4f6dbd90-f7fe-4adf-a00f-27573c0bd5c4
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1; scry 2
+}

@@ -1,0 +1,8 @@
+card "Boulderborn Dragon" {
+  oracle_id 1654cab1-0697-4547-b1fe-2d0a61385199
+  cost {5}
+  type Artifact Creature — Dragon
+  pt 3/3
+  keywords flying, vigilance
+  triggered whenever this attacks: surveil 1
+}

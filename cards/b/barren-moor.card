@@ -1,0 +1,7 @@
+card "Barren Moor" {
+  oracle_id 326ba371-124c-4949-a048-3a0c8962e567
+  type Land
+  enters tapped
+  mana {B}
+  cycling {B}
+}

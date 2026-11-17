@@ -1,0 +1,6 @@
+card "Daring Escape" {
+  oracle_id c777002d-dcd4-4d75-8175-5440a8bb118e
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike; scry 1
+}

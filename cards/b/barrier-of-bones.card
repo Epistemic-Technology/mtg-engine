@@ -1,0 +1,8 @@
+card "Barrier of Bones" {
+  oracle_id 4f25b125-1ded-4a34-9ed1-e6ce087ec48d
+  cost {B}
+  type Creature — Skeleton Wall
+  pt 0/3
+  keywords defender
+  triggered when this enters: surveil 1
+}

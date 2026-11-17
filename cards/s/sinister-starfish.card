@@ -1,0 +1,7 @@
+card "Sinister Starfish" {
+  oracle_id 58321467-41d6-4419-bcb2-cd3e60f677b3
+  cost {1}{B}
+  type Creature — Starfish
+  pt 0/3
+  activated {T}: surveil 1
+}

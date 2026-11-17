@@ -1,0 +1,7 @@
+card "Polluted Mire" {
+  oracle_id 9809d975-7ef8-4946-9041-607c4e954b13
+  type Land
+  enters tapped
+  mana {B}
+  cycling {2}
+}

@@ -1,0 +1,8 @@
+card "Sicken" {
+  oracle_id 5208a5f2-eebe-4adc-8f29-543b60116817
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1
+  cycling {2}
+}

@@ -1,0 +1,6 @@
+card "Quench" {
+  oracle_id fa1b722a-109e-4a43-bd7b-818292728cb3
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {2}
+}

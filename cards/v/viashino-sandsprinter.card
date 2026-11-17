@@ -1,0 +1,9 @@
+card "Viashino Sandsprinter" {
+  oracle_id 6560517d-41c0-4c9c-b9d5-3ecfcb2b99fd
+  cost {1}{R}{R}
+  type Creature — Lizard Warrior
+  pt 4/1
+  keywords trample, haste
+  triggered at beginning of each end step: return this to hand
+  cycling {R}
+}

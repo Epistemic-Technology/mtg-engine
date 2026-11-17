@@ -2,6 +2,8 @@ card "Resupply" {
   oracle_id 129ec223-e76d-491d-b299-07ac91168d31
   cost {5}{W}
   type Instant
-  spell: you gains 6 life
-  spell: draw 1 cards
+  spell {
+    you gains 6 life
+    draw 1 cards
+  }
 }

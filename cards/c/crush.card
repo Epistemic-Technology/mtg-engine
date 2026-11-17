@@ -1,0 +1,6 @@
+card "Crush" {
+  oracle_id ad4dda1e-2236-45bf-b2f3-f63e790d837d
+  cost {R}
+  type Instant
+  spell: destroy target noncreature artifact
+}

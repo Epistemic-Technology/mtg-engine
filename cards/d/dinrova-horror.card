@@ -1,0 +1,7 @@
+card "Dinrova Horror" {
+  oracle_id b1eb7a92-3055-426e-9716-cc6d2a69f0af
+  cost {4}{U}{B}
+  type Creature — Horror
+  pt 4/4
+  triggered when this enters: return target permanent to hand then that player discards 1 cards
+}

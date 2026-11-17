@@ -1,0 +1,8 @@
+card "Shore Lurker" {
+  oracle_id 4288ba56-ddd0-4bd9-ba61-daf03e9f2d7f
+  cost {3}{W}
+  type Creature — Merfolk Scout
+  pt 3/3
+  keywords flying
+  triggered when this enters: surveil 1
+}

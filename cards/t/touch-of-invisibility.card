@@ -1,0 +1,9 @@
+card "Touch of Invisibility" {
+  oracle_id 791fbaf1-43eb-4555-9275-c4b344f65942
+  cost {3}{U}
+  type Sorcery
+  spell {
+    target creature can't be blocked
+    draw 1 cards
+  }
+}

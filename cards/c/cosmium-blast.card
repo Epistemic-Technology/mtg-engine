@@ -1,0 +1,6 @@
+card "Cosmium Blast" {
+  oracle_id 52c96b5a-ce47-4bde-b530-0033b9bfd808
+  cost {1}{W}
+  type Instant
+  spell: deal 4 damage to target attacking or blocking creature
+}

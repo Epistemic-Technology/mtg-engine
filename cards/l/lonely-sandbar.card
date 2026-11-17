@@ -1,0 +1,7 @@
+card "Lonely Sandbar" {
+  oracle_id 765863c8-1be0-4bb1-9e9c-db7701cffde3
+  type Land
+  enters tapped
+  mana {U}
+  cycling {U}
+}

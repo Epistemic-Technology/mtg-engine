@@ -1,0 +1,9 @@
+card "Migrating Ketradon" {
+  oracle_id 5d957045-acb2-4546-8c19-71511fd497ef
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  keywords reach
+  triggered when this enters: you gains 4 life
+  cycling {2}
+}

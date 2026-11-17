@@ -1,0 +1,6 @@
+card "Furious Bellow" {
+  oracle_id 4fb0ff70-eba1-4485-b68d-444eb512a2a7
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains first strike; scry 1
+}

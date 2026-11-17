@@ -1,0 +1,7 @@
+card "Dissenter's Deliverance" {
+  oracle_id 1b73639b-2b07-4e82-b990-ca7721074e43
+  cost {1}{G}
+  type Instant
+  spell: destroy target artifact
+  cycling {G}
+}

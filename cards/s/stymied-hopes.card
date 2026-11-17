@@ -1,0 +1,6 @@
+card "Stymied Hopes" {
+  oracle_id b081726f-0ed6-4ab0-833e-f510ac6fbeaa
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {1}; scry 1
+}

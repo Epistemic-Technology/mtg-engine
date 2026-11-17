@@ -1,0 +1,9 @@
+card "Opt" {
+  oracle_id 713332c1-5bd8-400f-bfff-c1ca0697a043
+  cost {U}
+  type Instant
+  spell {
+    scry 1
+    draw 1 cards
+  }
+}

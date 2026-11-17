@@ -1,0 +1,9 @@
+card "Soul Read" {
+  oracle_id 7cf93170-29ca-4f44-a8ce-325d034d4ce8
+  cost {3}{U}
+  type Instant
+  choose one {
+    mode: counter target spell unless its controller pays {4}
+    mode: draw 2 cards
+  }
+}

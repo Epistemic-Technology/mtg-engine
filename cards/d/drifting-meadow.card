@@ -1,0 +1,7 @@
+card "Drifting Meadow" {
+  oracle_id c6eb2814-0021-4308-ad44-6c8cc59b0d1c
+  type Land
+  enters tapped
+  mana {W}
+  cycling {2}
+}

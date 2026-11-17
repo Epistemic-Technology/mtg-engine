@@ -1,0 +1,6 @@
+card "Grapple with Death" {
+  oracle_id dced5cab-1438-4264-b44c-54dc37ec73d3
+  cost {1}{B}{G}
+  type Sorcery
+  spell: destroy target artifact or creature; you gains 1 life
+}

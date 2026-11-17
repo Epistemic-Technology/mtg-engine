@@ -1,0 +1,6 @@
+card "Memory Drain" {
+  oracle_id 1a61929e-14bd-4f21-b173-00818d49743d
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; scry 2
+}

@@ -1,0 +1,8 @@
+card "Coastal Drake" {
+  oracle_id d4220231-e9ac-4390-8c7b-979549b26d33
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  activated {1}{U}, {T}: return target Kavu to hand
+}

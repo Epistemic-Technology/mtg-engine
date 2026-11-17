@@ -1,0 +1,10 @@
+card "Chaos Charm" {
+  oracle_id b81e5dbd-47a5-4994-91b7-e2a50c8e098d
+  cost {R}
+  type Instant
+  choose one {
+    mode: destroy target Wall
+    mode: deal 1 damage to target creature
+    mode: target creature gains haste
+  }
+}

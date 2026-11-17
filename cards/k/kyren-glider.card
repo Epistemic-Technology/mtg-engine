@@ -1,0 +1,7 @@
+card "Kyren Glider" {
+  oracle_id 6ae3a901-9f9a-4a99-94db-22c38fda7aef
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/1
+  keywords flying, can't block
+}

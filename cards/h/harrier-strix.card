@@ -1,0 +1,9 @@
+card "Harrier Strix" {
+  oracle_id eb154ebb-d02f-405a-a557-3d5ec7648c42
+  cost {U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: tap target permanent
+  activated {2}{U}: draw 1 cards then discard 1 cards
+}

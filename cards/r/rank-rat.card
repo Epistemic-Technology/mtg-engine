@@ -1,0 +1,7 @@
+card "Rank Rat" {
+  oracle_id 64e7ef06-ba30-4b19-9d44-ca77944cc930
+  cost {1}{B}
+  type Creature — Zombie Rat
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

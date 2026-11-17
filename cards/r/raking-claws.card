@@ -1,0 +1,7 @@
+card "Raking Claws" {
+  oracle_id c2248d3d-3157-4610-868d-2b3fae2b1ec8
+  cost {1}{R}
+  type Instant
+  spell: target creature gains double strike
+  cycling {2}
+}

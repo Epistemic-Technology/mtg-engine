@@ -1,0 +1,6 @@
+card "Ferocious Charge" {
+  oracle_id a7796af7-d41c-42a6-9033-a4d79dee84d6
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +4/+4; scry 2
+}

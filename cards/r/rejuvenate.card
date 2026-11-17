@@ -1,0 +1,7 @@
+card "Rejuvenate" {
+  oracle_id 35069cdb-e5bd-4224-a1a8-b329054e003b
+  cost {3}{G}
+  type Sorcery
+  spell: you gains 6 life
+  cycling {2}
+}

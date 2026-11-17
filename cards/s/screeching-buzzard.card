@@ -1,0 +1,8 @@
+card "Screeching Buzzard" {
+  oracle_id 89acea5a-5601-4341-83a0-bde281c4bd85
+  cost {3}{B}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this dies: each opponent discards 1 cards
+}

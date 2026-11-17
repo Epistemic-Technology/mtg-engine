@@ -1,0 +1,6 @@
+card "Hamato Guardian Stance" {
+  oracle_id e08b19ca-f9d7-4c33-b37a-a77b37aabf1b
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+3 and gains flying; scry 1
+}

@@ -1,0 +1,7 @@
+card "Research Assistant" {
+  oracle_id 30399525-ab58-4ed0-8d87-3decb0dd4862
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  activated {3}{U}, {T}: draw 1 cards then discard 1 cards
+}

@@ -1,0 +1,6 @@
+card "Hijack" {
+  oracle_id fd5651f7-52f8-4845-8a1b-32e5d2e9b00e
+  cost {1}{R}{R}
+  type Sorcery
+  spell: gain control of target artifact or creature; untap target 1; target 1 gains haste
+}

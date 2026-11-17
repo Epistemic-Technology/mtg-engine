@@ -1,0 +1,6 @@
+card "Void Snare" {
+  oracle_id 06e2ce8e-7341-4448-8625-cb1574eb179d
+  cost {U}
+  type Sorcery
+  spell: return target nonland permanent to hand
+}

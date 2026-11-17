@@ -1,0 +1,9 @@
+card "Crash and Burn" {
+  oracle_id 38405a37-921a-49ab-a95b-28eb8c26474a
+  cost {3}{R}
+  type Instant
+  choose one {
+    mode: destroy target Vehicle
+    mode: deal 6 damage to target creature or planeswalker
+  }
+}

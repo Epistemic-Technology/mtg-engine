@@ -2,6 +2,8 @@ card "Sudden Strength" {
   oracle_id 8df51012-b334-475f-b70d-af4f2b3840a0
   cost {3}{G}
   type Instant
-  spell: target creature gets +3/+3
-  spell: draw 1 cards
+  spell {
+    target creature gets +3/+3
+    draw 1 cards
+  }
 }

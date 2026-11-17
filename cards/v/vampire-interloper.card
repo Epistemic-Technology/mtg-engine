@@ -1,0 +1,7 @@
+card "Vampire Interloper" {
+  oracle_id b753d7dd-4c6b-4472-a009-671572f927eb
+  cost {1}{B}
+  type Creature — Vampire Scout
+  pt 2/1
+  keywords flying, can't block
+}

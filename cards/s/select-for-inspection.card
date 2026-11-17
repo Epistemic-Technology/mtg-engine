@@ -1,0 +1,6 @@
+card "Select for Inspection" {
+  oracle_id cfee4ba9-3cf2-4e8b-a4a7-21974828cd54
+  cost {U}
+  type Instant
+  spell: return target tapped creature to hand; scry 1
+}

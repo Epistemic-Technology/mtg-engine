@@ -1,0 +1,6 @@
+card "Sift" {
+  oracle_id 6e060984-2015-4dc4-b53d-ab6bf2abdacc
+  cost {3}{U}
+  type Sorcery
+  spell: draw 3 cards then discard 1 cards
+}

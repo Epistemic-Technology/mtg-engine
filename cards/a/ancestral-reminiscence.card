@@ -1,0 +1,6 @@
+card "Ancestral Reminiscence" {
+  oracle_id dbfa2743-34ff-40e3-81f7-740fc08cd18a
+  cost {3}{U}
+  type Sorcery
+  spell: draw 3 cards then discard 1 cards
+}

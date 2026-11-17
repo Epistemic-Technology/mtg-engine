@@ -1,0 +1,6 @@
+card "Magma Jet" {
+  oracle_id 2f292253-64d3-4cf2-881f-a3eea4fda388
+  cost {1}{R}
+  type Instant
+  spell: deal 2 damage to any target; scry 2
+}

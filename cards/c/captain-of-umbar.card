@@ -1,0 +1,7 @@
+card "Captain of Umbar" {
+  oracle_id 1941f993-41d7-49e3-8891-41b3cecd5a9d
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 2/3
+  activated {1}, {T}: draw 1 cards then discard 1 cards
+}

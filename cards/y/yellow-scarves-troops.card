@@ -1,0 +1,7 @@
+card "Yellow Scarves Troops" {
+  oracle_id fcfa5671-a7b1-4170-9c72-f18a9eccfa31
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords can't block
+}

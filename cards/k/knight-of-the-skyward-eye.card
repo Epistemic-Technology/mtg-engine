@@ -1,0 +1,7 @@
+card "Knight of the Skyward Eye" {
+  oracle_id 633e91ea-84d4-42ca-a8eb-603db340ebe7
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  activated {3}{G}, once: this gets +3/+3
+}

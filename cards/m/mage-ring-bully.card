@@ -1,0 +1,7 @@
+card "Mage-Ring Bully" {
+  oracle_id a0b4fa95-4c61-40ff-b645-a1dbe8825750
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords prowess, attacks each combat if able
+}

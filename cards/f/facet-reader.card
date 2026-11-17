@@ -1,0 +1,7 @@
+card "Facet Reader" {
+  oracle_id 7aefe7a9-d696-4e2e-b1a5-d041d9e4e213
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  activated {1}, {T}: draw 1 cards then discard 1 cards
+}

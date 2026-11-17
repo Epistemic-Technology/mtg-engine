@@ -1,0 +1,7 @@
+card "Viscera Seer" {
+  oracle_id f82a4e85-526d-4456-b700-7760043a31be
+  cost {B}
+  type Creature — Vampire Wizard
+  pt 1/1
+  activated sacrifice creature: scry 1
+}

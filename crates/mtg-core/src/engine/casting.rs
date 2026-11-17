@@ -27,6 +27,24 @@ impl GameState {
         let pool = ps.mana_pool;
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
+            // Abilities activated from the hand (cycling, CR 702.29) are
+            // instant speed and cost only mana.
+            if self.flags_of(&self.objects[*id]).has_activated() {
+                for a in &def.ability_ids {
+                    if let AbilityDef::Activated(ab) = self.pool.ability(*a)
+                        && ab.from_hand
+                        && payment_plan_from(&sources, &pool, &ab.cost.mana.requirements(0))
+                            .is_some()
+                    {
+                        options.push(Choice::Activate {
+                            source: *id,
+                            ability: *a,
+                            sacrifice: None,
+                            discard: None,
+                        });
+                    }
+                }
+            }
             if def.is_land() {
                 if sorcery_timing && ps.lands_played_this_turn < 1 {
                     options.push(Choice::PlayLand(*id));
@@ -98,6 +116,9 @@ impl GameState {
                     continue;
                 };
                 if ab.sorcery_speed && !sorcery_timing {
+                    continue;
+                }
+                if ab.from_hand || (ab.once_per_turn && self.activated_once.contains(&(id, *a))) {
                     continue;
                 }
                 // CR 302.6: a creature's {T} needs it to have been controlled
@@ -175,8 +196,13 @@ impl GameState {
     ) {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
-        if matches!(self.pool.ability(ability), AbilityDef::Activated(a) if a.cost.loyalty != 0) {
-            self.loyalty_activated.push(source);
+        if let AbilityDef::Activated(a) = self.pool.ability(ability) {
+            if a.cost.loyalty != 0 {
+                self.loyalty_activated.push(source);
+            }
+            if a.once_per_turn {
+                self.activated_once.push((source, ability));
+            }
         }
         let timestamp = self.tick();
         let obj = self.objects.insert(GameObject {
@@ -318,6 +344,9 @@ impl GameState {
             self.tap(sa.source);
         }
         self.pay(controller, &ab.cost.mana.requirements(0));
+        if ab.cost.discard_self && self.objects[sa.source].zone == Zone::Hand {
+            self.discard_card(controller, sa.source);
+        }
         self.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
         self.emit(Event::Activated {
             obj,
@@ -340,6 +369,18 @@ impl GameState {
             for id in &self.player(caster).graveyard {
                 let t = Target::Object(*id);
                 if self.is_legal_target_for(caster, spec, t, source) {
+                    out.push(t);
+                }
+            }
+            return out;
+        }
+        if matches!(
+            spec,
+            TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell
+        ) {
+            for id in &self.stack {
+                let t = Target::Object(*id);
+                if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
                     out.push(t);
                 }
             }
@@ -489,6 +530,75 @@ impl GameState {
     }
 
     // ----- resolution -------------------------------------------------------------
+
+    /// CR 701.5: a countered spell goes to its owner's graveyard.
+    pub(super) fn counter_spell(&mut self, id: ObjId) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        if o.zone != Zone::Stack || o.kind == ObjKind::Ability {
+            return;
+        }
+        let def = o.def;
+        self.emit(Event::Countered { spell: id, def });
+        self.move_object(id, Zone::Graveyard, true);
+    }
+
+    /// Scry (CR 701.18) or surveil (CR 701.42) `n`: the player chooses
+    /// which of the top `n` cards go down (to the bottom, or the graveyard),
+    /// in their order; the rest stay on top in their order.
+    pub(super) fn scry_or_surveil(&mut self, p: PlayerId, n: u32, graveyard: bool) {
+        let lib = &self.player(p).library;
+        let n = (n as usize).min(lib.len()).min(4);
+        if n == 0 {
+            return;
+        }
+        // Top of the library is the end of the vector.
+        let top: Vec<ObjId> = lib[lib.len() - n..].iter().rev().copied().collect();
+        let mut options: Vec<Choice> = Vec::new();
+        for mask in 0..(1u32 << n) {
+            let chosen: Vec<ObjId> = top
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| mask & (1 << i) != 0)
+                .map(|(_, id)| *id)
+                .collect();
+            options.push(if graveyard {
+                Choice::SurveilGraveyard(chosen)
+            } else {
+                Choice::ScryBottom(chosen)
+            });
+        }
+        let kind = if graveyard {
+            DecisionKind::Surveil {
+                count: u32::try_from(n).unwrap_or(0),
+            }
+        } else {
+            DecisionKind::Scry {
+                count: u32::try_from(n).unwrap_or(0),
+            }
+        };
+        let k = self.choose_mid(p, kind, options.clone());
+        let down = match &options[k] {
+            Choice::ScryBottom(ids) | Choice::SurveilGraveyard(ids) => ids.clone(),
+            _ => Vec::new(),
+        };
+        for id in &down {
+            if graveyard {
+                self.move_object(*id, Zone::Graveyard, true);
+            } else {
+                let lib = &mut self.player_mut(p).library;
+                lib.retain(|x| x != id);
+                lib.insert(0, *id);
+            }
+        }
+        self.emit(Event::Scried {
+            player: p,
+            looked: u32::try_from(n).unwrap_or(0),
+            down: u32::try_from(down.len()).unwrap_or(0),
+        });
+        self.bump();
+    }
 
     /// CR 608: resolve the top object of the stack.
     pub(super) fn resolve_top(&mut self) {
@@ -860,6 +970,85 @@ impl GameState {
             Effect::CreateEmblem { emblem } => {
                 self.create_emblem(*emblem, ctx.controller);
             }
+            Effect::Counter { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Target::Object(id) = t {
+                        self.counter_spell(id);
+                    }
+                }
+            }
+            Effect::CounterUnlessPays { to, mana } => {
+                for t in self.recipients(ctx, *to) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
+                    if o.zone != Zone::Stack {
+                        continue;
+                    }
+                    let (ctl, def) = (o.controller, o.def);
+                    let req = mana.requirements(0);
+                    let can_pay = self.payment_plan(ctl, &req).is_some();
+                    let pays = can_pay
+                        && self.choose_mid(
+                            ctl,
+                            DecisionKind::PayOrCounter { def },
+                            vec![Choice::Accept, Choice::Decline],
+                        ) == 0;
+                    if pays {
+                        self.pay(ctl, &req);
+                    } else {
+                        self.counter_spell(id);
+                    }
+                }
+            }
+            Effect::Scry { count } => {
+                self.scry_or_surveil(ctx.controller, count.eval(ctx.x), false);
+            }
+            Effect::Surveil { count } => {
+                self.scry_or_surveil(ctx.controller, count.eval(ctx.x), true);
+            }
+            Effect::Discard { count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    for _ in 0..count.eval(ctx.x) {
+                        let options: Vec<Choice> = self
+                            .player(p)
+                            .hand
+                            .iter()
+                            .map(|id| Choice::Discard {
+                                card: *id,
+                                def: self.objects[*id].def,
+                            })
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
+                        if let Choice::Discard { card, .. } = options[k] {
+                            self.discard_card(p, card);
+                        }
+                    }
+                }
+            }
+            Effect::Fight { a, b } => {
+                let x = self.recipients(ctx, *a).first().copied();
+                let y = self.recipients(ctx, *b).first().copied();
+                if let (Some(x), Some(y)) = (
+                    x.and_then(|t| on_battlefield(self, t)),
+                    y.and_then(|t| on_battlefield(self, t)),
+                ) && x != y
+                {
+                    let px = self.characteristics(x).map_or(0, |c| c.power.max(0));
+                    let py = self.characteristics(y).map_or(0, |c| c.power.max(0));
+                    self.deal_damage(x, Target::Object(y), u32::try_from(px).unwrap_or(0), false);
+                    self.deal_damage(y, Target::Object(x), u32::try_from(py).unwrap_or(0), false);
+                }
+            }
             Effect::ExileAllGraveyards => {
                 let cards: Vec<ObjId> = self
                     .players
@@ -1199,10 +1388,10 @@ fn payment_plan_from(
     let mut pool = *pool;
     let mut sources: Sources = SmallVec::from_slice(sources);
     let mut tapped = Sources::new();
-    let mut take = |sources: &mut Sources, pos: usize| {
+    let take = |sources: &mut Sources, pos: usize| -> (ObjId, Mana) {
         let (id, mana) = sources[pos];
         sources.retain(|(s, _)| *s != id);
-        tapped.push((id, mana));
+        (id, mana)
     };
     for (ci, need) in req.colored.iter().enumerate() {
         let mut need = *need;
@@ -1212,8 +1401,16 @@ fn payment_plan_from(
         while need > 0 {
             let pos = sources
                 .iter()
-                .position(|(_, m)| matches!(m, Mana::Colored(c) if *c as usize == ci))?;
-            take(&mut sources, pos);
+                .position(|(_, m)| matches!(m, Mana::Colored(c) if *c as usize == ci))
+                .or_else(|| sources.iter().position(|(_, m)| *m == Mana::Any))?;
+            let (id, mana) = take(&mut sources, pos);
+            // An any-color source pays as the color needed.
+            let mana = if mana == Mana::Any {
+                Mana::Colored(crate::mana::Color::ALL[ci])
+            } else {
+                mana
+            };
+            tapped.push((id, mana));
             need -= 1;
         }
     }
@@ -1223,7 +1420,7 @@ fn payment_plan_from(
     need -= from_pool;
     while need > 0 {
         let pos = sources.iter().position(|(_, m)| *m == Mana::Colorless)?;
-        take(&mut sources, pos);
+        tapped.push(take(&mut sources, pos));
         need -= 1;
     }
     let mut generic = req.generic;
@@ -1233,7 +1430,15 @@ fn payment_plan_from(
         if sources.is_empty() {
             return None;
         }
-        take(&mut sources, 0);
+        let (id, mana) = take(&mut sources, 0);
+        tapped.push((
+            id,
+            if mana == Mana::Any {
+                Mana::Colorless
+            } else {
+                mana
+            },
+        ));
         generic -= 1;
     }
     Some(tapped)

@@ -1,0 +1,7 @@
+card "Rottenheart Ghoul" {
+  oracle_id f9535aa3-0c07-4fad-8dc9-9838a9ebd304
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/4
+  triggered when this dies: target player discards 1 cards
+}

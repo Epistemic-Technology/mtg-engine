@@ -14,7 +14,7 @@ use mtg_core::mana::{Color, Mana};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Kind, Mod, Recipient,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
     Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
 
@@ -136,6 +136,49 @@ pub fn keyword_name(k: Keyword) -> &'static str {
         Keyword::Reach => "reach",
         Keyword::Trample => "trample",
         Keyword::Vigilance => "vigilance",
+        Keyword::CantAttack => "can't attack",
+        Keyword::CantBlock => "can't block",
+        Keyword::MustAttack => "attacks each combat if able",
+        Keyword::Unblockable => "can't be blocked",
+    }
+}
+
+/// Restrictions the engine keeps with the keywords but Oracle prints as
+/// sentences ("This creature can't block.").
+pub fn is_restriction(k: Keyword) -> bool {
+    matches!(
+        k,
+        Keyword::CantAttack | Keyword::CantBlock | Keyword::MustAttack | Keyword::Unblockable
+    )
+}
+
+/// "can't attack or block", "can't block", ...
+fn restriction_phrase(ks: &[Keyword]) -> String {
+    let mut parts = Vec::new();
+    if ks.contains(&Keyword::CantAttack) && ks.contains(&Keyword::CantBlock) {
+        parts.push("can't attack or block".to_string());
+    } else {
+        for k in ks {
+            if matches!(k, Keyword::CantAttack | Keyword::CantBlock) {
+                parts.push(keyword_name(*k).to_string());
+            }
+        }
+    }
+    for k in ks {
+        if matches!(k, Keyword::MustAttack | Keyword::Unblockable) {
+            parts.push(keyword_name(*k).to_string());
+        }
+    }
+    list(&parts)
+}
+
+/// A keyword as a line of text: the name, or a restriction as a sentence
+/// about the card.
+fn keyword_line(card: &Card, k: Keyword) -> String {
+    if is_restriction(k) {
+        format!("This {} {}.", self_noun(card), keyword_name(k))
+    } else {
+        capitalize(keyword_name(k))
     }
 }
 
@@ -306,6 +349,7 @@ impl<'a> Ctx<'a> {
         match &self.targets[i] {
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
+            Target::Filter(f) => format!("target {}", filter_phrase(f, self.card, false)),
         }
     }
 
@@ -416,6 +460,7 @@ impl<'a> Ctx<'a> {
             let noun = match &self.targets[fresh[0]] {
                 Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
+                Target::Filter(f) => filter_phrase(f, self.card, true),
             };
             return format!(
                 "{} target {noun}",
@@ -459,17 +504,34 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::OtherCreature
             | TargetSpec::NonlegendaryCreatureYouControl
             | TargetSpec::CreatureOrPlaneswalker
-            | TargetSpec::CreatureWithSubtype(_) => "creature".to_string(),
-            TargetSpec::PlayerOrPlaneswalker | TargetSpec::Player => "player".to_string(),
+            | TargetSpec::CreatureWithSubtype(_)
+            | TargetSpec::AttackingOrBlockingCreature => "creature".to_string(),
+            TargetSpec::PlayerOrPlaneswalker | TargetSpec::Player | TargetSpec::Opponent => {
+                "player".to_string()
+            }
             TargetSpec::Land => "land".to_string(),
             TargetSpec::ArtifactCreatureOrLand
             | TargetSpec::ArtifactOrEnchantment
             | TargetSpec::Permanent
-            | TargetSpec::OtherPermanent => "permanent".to_string(),
+            | TargetSpec::OtherPermanent
+            | TargetSpec::ArtifactOrCreature
+            | TargetSpec::Filtered(_) => "permanent".to_string(),
             TargetSpec::Artifact => "artifact".to_string(),
             TargetSpec::Enchantment => "enchantment".to_string(),
             TargetSpec::CreatureCardInYourGraveyard => "card".to_string(),
+            TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell => {
+                "spell".to_string()
+            }
         },
+        Target::Filter(f) => {
+            if f.types.contains(&CardType::Creature) {
+                "creature".to_string()
+            } else if f.types.contains(&CardType::Land) {
+                "land".to_string()
+            } else {
+                "permanent".to_string()
+            }
+        }
     }
 }
 
@@ -487,11 +549,17 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::ArtifactOrEnchantment => "target artifact or enchantment",
         TargetSpec::Artifact => "target artifact",
         TargetSpec::Enchantment => "target enchantment",
-        TargetSpec::Permanent => "target permanent",
+        TargetSpec::Permanent | TargetSpec::Filtered(_) => "target permanent",
         TargetSpec::OtherCreature => "another target creature",
         TargetSpec::OtherPermanent => "another target permanent",
         TargetSpec::NonlegendaryCreatureYouControl => "target nonlegendary creature you control",
         TargetSpec::CreatureCardInYourGraveyard => "target creature card from your graveyard",
+        TargetSpec::Spell => "target spell",
+        TargetSpec::CreatureSpell => "target creature spell",
+        TargetSpec::NoncreatureSpell => "target noncreature spell",
+        TargetSpec::Opponent => "target opponent",
+        TargetSpec::ArtifactOrCreature => "target artifact or creature",
+        TargetSpec::AttackingOrBlockingCreature => "target attacking or blocking creature",
     }
     .to_string()
 }
@@ -536,6 +604,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             Supertype::World => "nonworld".to_string(),
         });
     }
+    for c in &f.not_colors {
+        words.push(format!("non{}", color_name(*c)));
+    }
     for t in &f.not_types {
         words.push(format!("non{}", type_noun(*t)));
     }
@@ -558,8 +629,12 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     words.extend(noun);
     let mut s = words.join(" ");
+    if !f.keywords.is_empty() {
+        let _ = write!(s, " with {}", keywords_list(&f.keywords));
+    }
     match f.who {
         Some(Who::You) => s.push_str(" you control"),
+        Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::Any) | None => {}
     }
@@ -622,7 +697,9 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 None => {}
             },
             CostItem::Discard => {
-                if cost.discard > 0 {
+                if cost.discard_self {
+                    parts.push("Discard this card".to_string());
+                } else if cost.discard > 0 {
                     parts.push(format!(
                         "Discard {} {}",
                         count_words(Num::N(cost.discard), "a"),
@@ -694,6 +771,7 @@ fn counters(n: Num, k: CounterKind) -> String {
 fn keywords_list(ks: &[Keyword]) -> String {
     list(
         &ks.iter()
+            .filter(|k| !is_restriction(**k))
             .map(|k| keyword_name(*k).to_string())
             .collect::<Vec<_>>(),
     )
@@ -943,6 +1021,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Grant { keywords, to } => {
             let s = ctx.subj(*to);
+            if keywords.iter().all(|k| is_restriction(*k)) {
+                let mut c = Clause::with_subject(*to, s, restriction_phrase(keywords));
+                c.suffix = Some("this turn");
+                return c;
+            }
             Clause::with_subject(
                 *to,
                 s,
@@ -981,6 +1064,35 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let _ = write!(text, ", except {}", except_text(ctx.card, ctx.current));
             }
             Clause::with_subject(Recipient::Source, s, text)
+        }
+        Effect::Counter { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("counter {o}"))
+        }
+        Effect::CounterUnlessPays { to, mana } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
+        }
+        Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
+        Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
+        Effect::Discard { count, who } => {
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            match who {
+                None => Clause::imperative(format!("discard {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {what}", ctx.verb(*w, "discards", "discard")),
+                    )
+                }
+            }
+        }
+        Effect::Fight { a, b } => {
+            let s = ctx.subj(*a);
+            let o = ctx.obj(*b);
+            Clause::with_subject(*a, s, format!("fights {o}"))
         }
         Effect::CreateEmblem { emblem } => {
             let text = ctx.lookup.get(emblem).map(|e| oracle_text(e, ctx.lookup));
@@ -1079,7 +1191,10 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
     let mut prev_subject: Option<Recipient> = None;
     for (i, c) in clauses.iter().enumerate() {
         if i > 0 {
-            out.push_str(" and ");
+            out.push_str(match s.joins.get(i - 1) {
+                Some(Join::Then) => ", then ",
+                _ => " and ",
+            });
         }
         match &c.subject {
             Some((r, text)) => {
@@ -1492,7 +1607,19 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                     .collect::<Vec<_>>()
             )
         ),
-        Mod::AddKeywords(ks) => format!("{} {}", v("has", "have"), keywords_list(ks)),
+        Mod::AddKeywords(ks) => {
+            let real: Vec<Keyword> = ks.iter().copied().filter(|k| !is_restriction(*k)).collect();
+            let restricted: Vec<Keyword> =
+                ks.iter().copied().filter(|k| is_restriction(*k)).collect();
+            let mut parts = Vec::new();
+            if !real.is_empty() {
+                parts.push(format!("{} {}", v("has", "have"), keywords_list(&real)));
+            }
+            if !restricted.is_empty() {
+                parts.push(restriction_phrase(&restricted));
+            }
+            list(&parts)
+        }
         Mod::RemoveAllAbilities => format!("{} all abilities", v("loses", "lose")),
         Mod::SetPt {
             power: PtValue::Fixed(p),
@@ -1611,13 +1738,14 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
 pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
-        Ability::Keyword(k) => capitalize(keyword_name(*k)),
+        Ability::Keyword(k) => keyword_line(card, *k),
         Ability::Mana(m) => {
             let syms: Vec<String> = m
                 .iter()
                 .map(|m| match m {
                     Mana::Colorless => "{C}".to_string(),
                     Mana::Colored(c) => format!("{{{}}}", c.letter()),
+                    Mana::Any => "one mana of any color".to_string(),
                 })
                 .collect();
             format!("{{T}}: Add {}.", syms.join(" or "))
@@ -1625,6 +1753,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::Enchant(t) => match t {
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
+            Target::Filter(f) => format!("Enchant {}", filter_phrase(f, card, false)),
         },
         Ability::Spell { targets, effects } => {
             let mut ctx = Ctx::new(card, lookup, targets);
@@ -1646,14 +1775,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             targets,
             effects,
             equip,
+            cycling,
         } => {
             if *equip {
                 return format!("Equip {}", cost.mana);
             }
+            if *cycling {
+                return format!("Cycling {}", cost.mana);
+            }
             let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
-            format!("{c}: {}", effects_after(effects, &mut ctx, false))
+            let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
+            if cost.once {
+                text.push_str(" Activate only once each turn.");
+            }
+            text
         }
         Ability::Triggered {
             trigger,
@@ -1704,7 +1841,7 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
     for k in &card.keywords {
-        lines.push(capitalize(keyword_name(*k)));
+        lines.push(keyword_line(card, *k));
     }
     if let Some(cost) = &card.additional {
         let mut ctx = Ctx::new(card, lookup, &[]);

@@ -1,0 +1,6 @@
+card "Introduction to Prophecy" {
+  oracle_id 9ae1fded-2e77-498a-98e7-4a4908447175
+  cost {3}
+  type Sorcery — Lesson
+  spell: scry 2 then draw 1 cards
+}

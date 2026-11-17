@@ -1,0 +1,6 @@
+card "Executioner's Capsule" {
+  oracle_id c9cd266c-7ecf-4beb-b9da-69b88f33abd3
+  cost {B}
+  type Artifact
+  activated {1}{B}, {T}, sacrifice this: destroy target nonblack creature
+}

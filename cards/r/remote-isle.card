@@ -1,0 +1,7 @@
+card "Remote Isle" {
+  oracle_id 24aebda0-315f-4d2f-8bd9-00bbaf5bd76a
+  type Land
+  enters tapped
+  mana {U}
+  cycling {2}
+}

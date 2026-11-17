@@ -1,0 +1,6 @@
+card "Cruel Finality" {
+  oracle_id 1285a519-b3a8-4014-8f33-89f3beb0c00b
+  cost {2}{B}
+  type Instant
+  spell: target creature gets -2/-2; scry 1
+}

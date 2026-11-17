@@ -1,0 +1,6 @@
+card "Waking Nightmare" {
+  oracle_id f3f34ef2-1255-4da2-9f29-8c79fee7a2c5
+  cost {2}{B}
+  type Sorcery — Arcane
+  spell: target player discards 2 cards
+}

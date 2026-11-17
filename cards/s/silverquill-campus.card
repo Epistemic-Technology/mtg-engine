@@ -1,0 +1,7 @@
+card "Silverquill Campus" {
+  oracle_id 2b65eb80-6fb7-429f-81f2-2fe125eba634
+  type Land
+  enters tapped
+  mana {W} or {B}
+  activated {4}, {T}: scry 1
+}

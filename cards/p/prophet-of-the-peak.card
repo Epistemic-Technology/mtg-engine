@@ -1,0 +1,7 @@
+card "Prophet of the Peak" {
+  oracle_id eaa1634e-6ba1-41c2-91c0-967b36d13e14
+  cost {6}
+  type Artifact Creature — Cat
+  pt 5/5
+  triggered when this enters: scry 2
+}

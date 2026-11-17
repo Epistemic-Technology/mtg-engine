@@ -1,0 +1,8 @@
+card "Cartouche of Knowledge" {
+  oracle_id 488696c2-b0c7-49be-a5a1-e833b6fd8751
+  cost {1}{U}
+  type Enchantment — Aura Cartouche
+  enchant creature you control
+  triggered when this enters: draw 1 cards
+  static enchanted: +1/+1, has flying
+}

@@ -1,0 +1,8 @@
+card "Keeneye Aven" {
+  oracle_id 86b7ff68-0bd9-4fc9-9803-fde2d4a2f59b
+  cost {3}{U}
+  type Creature — Bird Soldier
+  pt 2/3
+  keywords flying
+  cycling {2}
+}

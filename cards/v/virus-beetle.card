@@ -1,0 +1,7 @@
+card "Virus Beetle" {
+  oracle_id e1e489f6-37e5-469e-bca3-0e9d3fc3fa95
+  cost {1}{B}
+  type Artifact Creature — Insect
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

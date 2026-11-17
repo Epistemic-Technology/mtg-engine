@@ -2,6 +2,8 @@ card "Common Bond" {
   oracle_id d52e9255-62e7-479f-8def-e92b96efdb89
   cost {1}{G}{W}
   type Instant
-  spell: put 1 +1/+1 counters on target creature
-  spell: put 1 +1/+1 counters on target creature
+  spell {
+    put 1 +1/+1 counters on target creature
+    put 1 +1/+1 counters on target creature
+  }
 }

@@ -11,8 +11,8 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Kind, Mod, Mode,
-    Recipient, Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join, Kind, Mod,
+    Mode, Recipient, Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -47,6 +47,13 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
 
 /// Keywords by their text, longest first.
 const KEYWORDS: &[(&[&str], Keyword)] = &[
+    (
+        &["attacks", "each", "combat", "if", "able"],
+        Keyword::MustAttack,
+    ),
+    (&["can't", "be", "blocked"], Keyword::Unblockable),
+    (&["can't", "attack"], Keyword::CantAttack),
+    (&["can't", "block"], Keyword::CantBlock),
     (&["double", "strike"], Keyword::DoubleStrike),
     (&["first", "strike"], Keyword::FirstStrike),
     (&["deathtouch"], Keyword::Deathtouch),
@@ -87,6 +94,18 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
         &["creature", "you", "control"],
         TargetSpec::CreatureYouControl,
     ),
+    (
+        &["attacking", "or", "blocking", "creature"],
+        TargetSpec::AttackingOrBlockingCreature,
+    ),
+    (
+        &["artifact", "or", "creature"],
+        TargetSpec::ArtifactOrCreature,
+    ),
+    (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
+    (&["creature", "spell"], TargetSpec::CreatureSpell),
+    (&["spell"], TargetSpec::Spell),
+    (&["opponent"], TargetSpec::Opponent),
     (
         &["player", "or", "planeswalker"],
         TargetSpec::PlayerOrPlaneswalker,
@@ -626,10 +645,36 @@ impl P {
         self.subject = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
+            "cycling" => {
+                self.pos += 1;
+                let mana = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Activated {
+                    cost: Cost {
+                        mana,
+                        discard_self: true,
+                        ..Default::default()
+                    },
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![Effect::DrawCards {
+                        count: Num::N(1),
+                        who: None,
+                    }])],
+                    equip: false,
+                    cycling: true,
+                })
+            }
             "mana" => {
                 self.pos += 1;
                 let mut out = Vec::new();
                 loop {
+                    if self.eat_word("any") {
+                        out.push(Mana::Any);
+                        if !(self.eat_word("or") || self.eat_word("and")) {
+                            break;
+                        }
+                        continue;
+                    }
                     match self.next() {
                         Some(Tok::Sym(s)) => out.push(match s.as_str() {
                             "C" => Mana::Colorless,
@@ -696,6 +741,7 @@ impl P {
                     targets: std::mem::take(&mut self.targets),
                     effects,
                     equip: false,
+                    cycling: false,
                 })
             }
             "loyalty" => {
@@ -713,6 +759,7 @@ impl P {
                     targets: std::mem::take(&mut self.targets),
                     effects,
                     equip: false,
+                    cycling: false,
                 })
             }
             "equip" => {
@@ -730,6 +777,7 @@ impl P {
                         to: Recipient::Target(0),
                     }])],
                     equip: true,
+                    cycling: false,
                 })
             }
             "triggered" => {
@@ -860,11 +908,29 @@ impl P {
     fn sentence(&mut self) -> R<Sentence> {
         self.subject = None;
         let mut clauses = vec![self.clause()?];
-        while self.at_word("and") {
-            self.pos += 1;
+        let mut joins = Vec::new();
+        loop {
+            if self.at_word("and") {
+                self.pos += 1;
+                joins.push(Join::And);
+            } else if self.at_word("then")
+                || (self.peek() == Some(&Tok::Comma) && self.word_at(1).as_deref() == Some("then"))
+            {
+                if self.peek() == Some(&Tok::Comma) {
+                    self.pos += 1;
+                }
+                self.pos += 1;
+                joins.push(Join::Then);
+            } else {
+                break;
+            }
             clauses.push(self.clause()?);
         }
-        Ok(Sentence::new(clauses))
+        Ok(Sentence {
+            effects: clauses,
+            para: false,
+            joins,
+        })
     }
 
     fn at_recipient(&self) -> bool {
@@ -908,6 +974,10 @@ impl P {
                     | "mills"
                     | "become"
                     | "becomes"
+                    | "discard"
+                    | "discards"
+                    | "fights"
+                    | "can't"
             )
         )
     }
@@ -1018,6 +1088,39 @@ impl P {
                 Ok(Effect::Mill {
                     count,
                     who: subject,
+                })
+            }
+            "discard" | "discards" => {
+                let count = self.num()?;
+                self.cards_word()?;
+                Ok(Effect::Discard {
+                    count,
+                    who: (explicit || subject != Recipient::You).then_some(subject),
+                })
+            }
+            "fights" => {
+                let b = self.recipient()?;
+                Ok(Effect::Fight { a: subject, b })
+            }
+            "can't" => {
+                let keywords = if self.eat_word("block") {
+                    vec![Keyword::CantBlock]
+                } else if self.eat_word("attack") {
+                    if self.eat_words(&["or", "block"]) {
+                        vec![Keyword::CantAttack, Keyword::CantBlock]
+                    } else {
+                        vec![Keyword::CantAttack]
+                    }
+                } else if self.eat_words(&["be", "blocked"]) {
+                    vec![Keyword::Unblockable]
+                } else {
+                    return self.unexpected("`block`, `attack`, or `be blocked`");
+                };
+                self.eat_words(&["this", "turn"]);
+                self.until_end_of_turn();
+                Ok(Effect::Grant {
+                    keywords,
+                    to: subject,
                 })
             }
             "get" | "gets" => match self.next() {
@@ -1196,6 +1299,22 @@ impl P {
                 let count = self.num()?;
                 self.cards_word()?;
                 Ok(Effect::DrawCards { count, who: None })
+            }
+            "discard" => {
+                let count = self.num()?;
+                self.cards_word()?;
+                Ok(Effect::Discard { count, who: None })
+            }
+            "scry" => Ok(Effect::Scry(self.num()?)),
+            "surveil" => Ok(Effect::Surveil(self.num()?)),
+            "counter" => {
+                let to = self.recipient()?;
+                if self.eat_word("unless") {
+                    self.expect_words(&["its", "controller", "pays"])?;
+                    let mana = self.mana_cost()?;
+                    return Ok(Effect::CounterUnlessPays { to, mana });
+                }
+                Ok(Effect::Counter { to })
             }
             "create" => {
                 if self.eat_word("token") || self.eat_words(&["a", "token"]) {
@@ -1532,7 +1651,8 @@ impl P {
             self.pos += 2;
             return Ok(Target::CreatureOfSubtype(sub));
         }
-        self.unexpected("a target specification")
+        let f = self.filter()?;
+        Ok(Target::Filter(f))
     }
 
     // ---- filters ----
@@ -1579,9 +1699,27 @@ impl P {
                     f.who = Some(Who::You);
                     self.pos += 2;
                 }
+                "you" if self.at_words(&["you", "don't", "control"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.dont_control = true;
+                    self.pos += 3;
+                }
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;
                     self.pos += 3;
+                }
+                "with" => {
+                    self.pos += 1;
+                    let Some(k) = self.keyword() else {
+                        return self.unexpected("a keyword after `with`");
+                    };
+                    f.keywords.push(k);
+                    while self.eat_word("and") {
+                        let Some(k) = self.keyword() else {
+                            return self.unexpected("a keyword after `and`");
+                        };
+                        f.keywords.push(k);
+                    }
                 }
                 _ => {
                     if let Some(rest) = w.strip_prefix("non") {
@@ -1589,6 +1727,8 @@ impl P {
                         let rest_raw = rest_raw.strip_prefix('-').unwrap_or(rest_raw);
                         if let Some(t) = card_type(rest) {
                             f.not_types.push(t);
+                        } else if let Some(c) = color(rest) {
+                            f.not_colors.push(c);
                         } else if rest_raw.chars().next().is_some_and(char::is_uppercase) {
                             f.not_subtypes.push(rest_raw.to_string());
                         } else {
@@ -1815,9 +1955,20 @@ impl P {
                     }
                     "discard" => {
                         self.pos += 1;
-                        cost.discard = self.count()?;
-                        self.cards_word()?;
+                        if self.eat_word("this") {
+                            self.eat_word("card");
+                            cost.discard_self = true;
+                        } else {
+                            cost.discard = self.count()?;
+                            self.cards_word()?;
+                        }
                         cost.order.push(CostItem::Discard);
+                    }
+                    "once" => {
+                        self.pos += 1;
+                        self.eat_words(&["per", "turn"]);
+                        self.eat_words(&["each", "turn"]);
+                        cost.once = true;
                     }
                     "pay" => {
                         self.pos += 1;

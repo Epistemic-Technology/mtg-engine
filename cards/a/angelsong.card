@@ -1,0 +1,7 @@
+card "Angelsong" {
+  oracle_id fe7bad80-f853-4af9-82e2-5ccf8038d93b
+  cost {1}{W}
+  type Instant
+  spell: prevent all combat damage this turn
+  cycling {2}
+}

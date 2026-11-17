@@ -2,6 +2,8 @@ card "Wildsize" {
   oracle_id e1f439c7-217f-4b20-a77d-b9014c5de8c0
   cost {2}{G}
   type Instant
-  spell: target creature gets +2/+2 and gains trample
-  spell: draw 1 cards
+  spell {
+    target creature gets +2/+2 and gains trample
+    draw 1 cards
+  }
 }

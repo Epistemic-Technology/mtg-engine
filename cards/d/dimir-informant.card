@@ -1,0 +1,7 @@
+card "Dimir Informant" {
+  oracle_id fa66d63b-dfb7-42b8-8249-4d60e89058ac
+  cost {2}{U}
+  type Creature — Human Rogue
+  pt 1/4
+  triggered when this enters: surveil 2
+}

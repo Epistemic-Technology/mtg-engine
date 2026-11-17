@@ -1,0 +1,7 @@
+card "Grotag Thrasher" {
+  oracle_id fcfe4750-5311-45d2-8d8e-7b71e69368a2
+  cost {4}{R}
+  type Creature — Lizard
+  pt 3/3
+  triggered whenever this attacks: target creature can't block
+}

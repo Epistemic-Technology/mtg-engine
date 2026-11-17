@@ -1,0 +1,6 @@
+card "Voyage's End" {
+  oracle_id 1c2829b7-f73f-4023-95f3-9cd40b4125d7
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand; scry 1
+}

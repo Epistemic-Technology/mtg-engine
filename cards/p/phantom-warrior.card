@@ -1,0 +1,7 @@
+card "Phantom Warrior" {
+  oracle_id 23745133-e5e2-4ce3-b94a-73d0d3d8a013
+  cost {1}{U}{U}
+  type Creature — Illusion Warrior
+  pt 2/2
+  keywords can't be blocked
+}

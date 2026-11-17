@@ -1,0 +1,6 @@
+card "Portent of Betrayal" {
+  oracle_id 15d794f4-7789-40e3-9ee0-b09250c0516d
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste; scry 1
+}

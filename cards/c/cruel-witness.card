@@ -1,0 +1,8 @@
+card "Cruel Witness" {
+  oracle_id c1f1ca09-897a-434c-bbb1-e4ad4a1547aa
+  cost {2}{U}{U}
+  type Creature — Bird Horror
+  pt 3/3
+  keywords flying
+  triggered whenever you cast a noncreature spell: surveil 1
+}

@@ -1,0 +1,7 @@
+card "Passwall Adept" {
+  oracle_id 9a2bc266-4076-4923-b201-5898b18cbad9
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  activated {2}{U}: target creature can't be blocked
+}

@@ -188,6 +188,15 @@ pub enum Keyword {
     Reach,
     Trample,
     Vigilance,
+    /// "This creature can't attack." Not a CR keyword; a restriction the
+    /// engine keeps with the keywords so effects can grant it.
+    CantAttack,
+    /// "This creature can't block."
+    CantBlock,
+    /// "This creature attacks each combat if able."
+    MustAttack,
+    /// "This creature can't be blocked."
+    Unblockable,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -219,6 +228,10 @@ impl KeywordSet {
         self.0 & (1 << (k as u32)) != 0
     }
 
+    pub const fn contains_all(self, other: KeywordSet) -> bool {
+        self.0 & other.0 == other.0
+    }
+
     pub const fn is_empty(self) -> bool {
         self.0 == 0
     }
@@ -229,7 +242,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 15] = [
+    pub const ALL: [Keyword; 19] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -245,6 +258,10 @@ impl Keyword {
         Keyword::Reach,
         Keyword::Trample,
         Keyword::Vigilance,
+        Keyword::CantAttack,
+        Keyword::CantBlock,
+        Keyword::MustAttack,
+        Keyword::Unblockable,
     ];
 }
 
@@ -465,6 +482,10 @@ pub struct ObjFilter {
     pub not_supertypes: SupertypeSet,
     /// Must share a color with this set.
     pub colors: Option<ColorSet>,
+    /// Must share no color with this set ("nonblack").
+    pub not_colors: ColorSet,
+    /// Must have every one of these keywords ("creature with flying").
+    pub keywords: KeywordSet,
     /// Must have every one of these subtypes ("Goblin").
     pub subtypes: SubtypeSet,
     /// Must have none of these subtypes ("non-Aura").
@@ -568,6 +589,12 @@ impl ObjFilter {
         if let Some(cs) = self.colors
             && !c.colors.intersects(cs)
         {
+            return false;
+        }
+        if c.colors.intersects(self.not_colors) {
+            return false;
+        }
+        if !c.keywords.contains_all(self.keywords) {
             return false;
         }
         if c.subtypes.iter().any(|s| self.not_subtypes.contains(s))
@@ -729,6 +756,21 @@ pub enum TargetSpec {
     /// "target Assembly-Worker creature" (Mishra's Factory): a creature with
     /// this subtype.
     CreatureWithSubtype(Subtype),
+    /// "target spell": a spell on the stack (CR 115.1).
+    Spell,
+    /// "target creature spell".
+    CreatureSpell,
+    /// "target noncreature spell".
+    NoncreatureSpell,
+    /// "target opponent".
+    Opponent,
+    /// "target artifact or creature".
+    ArtifactOrCreature,
+    /// "target attacking or blocking creature".
+    AttackingOrBlockingCreature,
+    /// A battlefield object matching the pool's `n`th interned filter
+    /// ("target nonblack creature", "target creature an opponent controls").
+    Filtered(u16),
 }
 
 /// Who or what an effect acts on.
@@ -867,6 +909,36 @@ pub enum Effect {
     CreateEmblem {
         emblem: CardRef,
     },
+    /// Counter a spell (CR 701.5): it goes to its owner's graveyard.
+    Counter {
+        to: Recipient,
+    },
+    /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
+    /// the controller may pay; if they do not, it is countered.
+    CounterUnlessPays {
+        to: Recipient,
+        mana: ManaCost,
+    },
+    /// Scry N (CR 701.18): the controller puts any of the top N cards of
+    /// their library on the bottom, the rest back on top.
+    Scry {
+        count: Num,
+    },
+    /// Surveil N (CR 701.42): like scry, into the graveyard instead.
+    Surveil {
+        count: Num,
+    },
+    /// The recipient player discards N cards of their choice (CR 701.8).
+    Discard {
+        count: Num,
+        who: Recipient,
+    },
+    /// `a` fights `b` (CR 701.12): each deals damage equal to its power to
+    /// the other.
+    Fight {
+        a: Recipient,
+        b: Recipient,
+    },
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
     /// Create a replacement or prevention effect that lasts until end of
@@ -949,6 +1021,21 @@ pub enum Effect {
         of: Recipient,
         except: bool,
     },
+}
+
+impl Effect {
+    /// Whether applying this effect may ask its controller (or another
+    /// player) a question in the middle of resolution.
+    pub const fn asks(&self) -> bool {
+        matches!(
+            self,
+            Effect::YouMay(_)
+                | Effect::Scry { .. }
+                | Effect::Surveil { .. }
+                | Effect::Discard { .. }
+                | Effect::CounterUnlessPays { .. }
+        )
+    }
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -1169,6 +1256,9 @@ pub enum SacCost {
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
 pub struct Cost {
     pub mana: ManaCost,
+    /// "Discard this card" (cycling, CR 702.29): the source leaves the hand
+    /// as the cost is paid.
+    pub discard_self: bool,
     /// "Pay N life" (CR 119.4: payable only with at least that much life).
     pub life: u32,
     /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
@@ -1188,6 +1278,7 @@ impl Cost {
     pub fn parse(mana: &str) -> Cost {
         Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
+            discard_self: false,
             life: 0,
             discard: 0,
             loyalty: 0,
@@ -1242,6 +1333,11 @@ pub struct ActivatedAbility {
     pub effects: Vec<Effect>,
     /// "Activate only as a sorcery" (CR 602.5a; equip, CR 702.6a).
     pub sorcery_speed: bool,
+    /// "Activate only once each turn."
+    pub once_per_turn: bool,
+    /// Activated from the hand rather than the battlefield (cycling, CR
+    /// 702.29).
+    pub from_hand: bool,
     /// The ability's text, for naming the choice.
     pub text: String,
 }
@@ -1526,10 +1622,7 @@ impl DefFlags {
         flags.set(
             DefFlags::MID_CHOICE,
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::EntersAsCopy(_))
-                    || a.all_effects()
-                        .iter()
-                        .any(|e| matches!(e, Effect::YouMay(_)))
+                matches!(a, AbilityDef::EntersAsCopy(_)) || a.all_effects().iter().any(|e| e.asks())
             }),
         );
         flags
@@ -1705,6 +1798,8 @@ pub struct CardPool {
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
     abilities: Vec<AbilityDef>,
+    /// Filters behind `TargetSpec::Filtered`.
+    filters: Vec<ObjFilter>,
     /// Per ability: whether resolving it may ask its controller a
     /// question ("you may").
     asks: Vec<bool>,
@@ -1729,6 +1824,7 @@ impl CardPool {
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
             abilities: Vec::new(),
+            filters: Vec::new(),
             asks: Vec::new(),
             enters: Vec::new(),
             prowess: AbilityId(0),
@@ -1757,8 +1853,7 @@ impl CardPool {
     fn register(&mut self, a: AbilityDef) -> AbilityId {
         let id = AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
         let effects = a.all_effects();
-        self.asks
-            .push(effects.iter().any(|e| matches!(e, Effect::YouMay(_))));
+        self.asks.push(effects.iter().any(|e| e.asks()));
         // What a token is known; what returns from exile or is copied is not.
         self.enters.push(effects.iter().any(|e| {
             match e {
@@ -1791,6 +1886,19 @@ impl CardPool {
     /// triggered ability an effect creates (CR 603.7).
     pub fn register_ability(&mut self, a: AbilityDef) -> AbilityId {
         self.register(a)
+    }
+
+    /// Intern a filter for `TargetSpec::Filtered`.
+    pub fn intern_filter(&mut self, f: ObjFilter) -> u16 {
+        if let Some(i) = self.filters.iter().position(|x| *x == f) {
+            return u16::try_from(i).expect("few filters");
+        }
+        self.filters.push(f);
+        u16::try_from(self.filters.len() - 1).expect("too many target filters")
+    }
+
+    pub fn filter(&self, i: u16) -> &ObjFilter {
+        &self.filters[i as usize]
     }
 
     /// The triggered ability a keyword stands for, for keywords that are

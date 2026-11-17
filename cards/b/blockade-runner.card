@@ -1,0 +1,7 @@
+card "Blockade Runner" {
+  oracle_id f97df8f4-a7ef-45f9-9563-b76b4d2b03f5
+  cost {3}{U}
+  type Creature — Merfolk
+  pt 2/2
+  activated {U}: this can't be blocked
+}

@@ -1,0 +1,8 @@
+card "Voldaren Duelist" {
+  oracle_id a96d0496-babc-4774-9b72-bea9d2b22743
+  cost {3}{R}
+  type Creature — Vampire Warrior
+  pt 3/2
+  keywords haste
+  triggered when this enters: target creature can't block
+}

@@ -1,0 +1,7 @@
+card "Lightshield Parry" {
+  oracle_id ecef9e3d-dce8-405f-bba3-14732444258f
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2
+  cycling {2}
+}

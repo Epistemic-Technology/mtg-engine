@@ -1,0 +1,7 @@
+card "Phantom Ninja" {
+  oracle_id e7a13f43-1171-4808-9964-c5ad424027cb
+  cost {1}{U}{U}
+  type Creature — Illusion Ninja
+  pt 2/2
+  keywords can't be blocked
+}

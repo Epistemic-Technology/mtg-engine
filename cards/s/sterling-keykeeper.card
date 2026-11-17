@@ -1,0 +1,7 @@
+card "Sterling Keykeeper" {
+  oracle_id f893d3d6-efef-4394-8e15-e01deed72b4f
+  cost {1}{W}
+  type Creature — Human Mercenary
+  pt 2/2
+  activated {2}, {T}: tap target non-Mount creature
+}

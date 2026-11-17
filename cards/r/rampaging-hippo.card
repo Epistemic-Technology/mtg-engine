@@ -1,0 +1,8 @@
+card "Rampaging Hippo" {
+  oracle_id e48aa13b-7488-4644-9080-6c342a8ac463
+  cost {4}{G}{G}
+  type Creature — Hippo
+  pt 5/6
+  keywords trample
+  cycling {2}
+}

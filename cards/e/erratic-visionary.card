@@ -1,0 +1,7 @@
+card "Erratic Visionary" {
+  oracle_id 334c0913-0ce0-4934-979d-64dbc1ec4aa2
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  activated {1}{U}, {T}: draw 1 cards then discard 1 cards
+}

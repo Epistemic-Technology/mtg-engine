@@ -1,0 +1,7 @@
+card "Frilled Sandwalla" {
+  oracle_id 3315aa42-d3ae-425e-9c12-191d26e67a0a
+  cost {G}
+  type Creature — Lizard
+  pt 1/1
+  activated {1}{G}, once: this gets +2/+2
+}

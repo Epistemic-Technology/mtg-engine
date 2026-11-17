@@ -1,0 +1,6 @@
+card "Samut's Sprint" {
+  oracle_id 7d07821e-d34b-4441-a137-836ffce7127b
+  cost {R}
+  type Instant
+  spell: target creature gets +2/+1 and gains haste; scry 1
+}

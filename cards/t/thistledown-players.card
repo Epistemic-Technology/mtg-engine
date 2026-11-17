@@ -1,0 +1,7 @@
+card "Thistledown Players" {
+  oracle_id 7054c42b-48dd-4887-b878-69c005259d27
+  cost {2}{W}
+  type Creature — Mouse Bard
+  pt 3/3
+  triggered whenever this attacks: untap target nonland permanent
+}

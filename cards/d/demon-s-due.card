@@ -1,0 +1,6 @@
+card "Demon's Due" {
+  oracle_id bf65a5f5-5536-4616-a09e-2416439c7bc6
+  cost {3}{B}
+  type Instant
+  spell: scry 2 then draw 2 cards; you loses 2 life
+}

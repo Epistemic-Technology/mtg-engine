@@ -1,0 +1,7 @@
+card "Serum Visionary" {
+  oracle_id 922d9d79-8038-4185-9dfb-2d2d52fd8460
+  cost {2}{U}
+  type Creature — Vedalken Wizard
+  pt 2/2
+  triggered when this enters: draw 1 cards then scry 2
+}

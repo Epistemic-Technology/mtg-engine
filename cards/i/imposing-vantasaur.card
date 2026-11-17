@@ -1,0 +1,8 @@
+card "Imposing Vantasaur" {
+  oracle_id a0d5fce0-a439-496a-9fcf-9271503f3ce8
+  cost {5}{W}
+  type Creature — Dinosaur
+  pt 3/6
+  keywords vigilance
+  cycling {1}
+}

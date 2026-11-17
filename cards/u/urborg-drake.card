@@ -1,0 +1,7 @@
+card "Urborg Drake" {
+  oracle_id 57d93683-8739-49ef-856a-5a70f92d8763
+  cost {1}{U}{B}
+  type Creature — Drake
+  pt 2/3
+  keywords flying, attacks each combat if able
+}

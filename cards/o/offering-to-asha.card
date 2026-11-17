@@ -1,0 +1,6 @@
+card "Offering to Asha" {
+  oracle_id d061972e-6f4f-41a7-966a-88839f105f19
+  cost {2}{W}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {4}; you gains 4 life
+}

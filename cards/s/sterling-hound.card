@@ -1,0 +1,7 @@
+card "Sterling Hound" {
+  oracle_id 3178c1f9-f644-4926-ac9a-d40e4db79955
+  cost {3}
+  type Artifact Creature — Dog
+  pt 3/2
+  triggered when this enters: surveil 2
+}

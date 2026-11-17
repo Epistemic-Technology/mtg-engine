@@ -1,0 +1,7 @@
+card "Watchful Automaton" {
+  oracle_id 6f5e6799-cb0f-4403-9c2a-69abeac08b79
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  activated {2}{U}: scry 1
+}

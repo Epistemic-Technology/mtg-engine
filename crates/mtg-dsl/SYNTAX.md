@@ -33,7 +33,7 @@ not gated.
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order. A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
 
@@ -41,7 +41,8 @@ not gated.
 
 | Line | Meaning |
 |---|---|
-| `mana {G}` / `mana {W} or {U}` | "{T}: Add {G}." A mana ability (CR 605). Basic land types grant theirs intrinsically. |
+| `mana {G}` / `mana {W} or {U}` / `mana any` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color". Basic land types grant theirs intrinsically. |
+| `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. |
@@ -69,8 +70,9 @@ one line per paragraph for text that spans paragraphs:
 
 Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
-a matching permanent they control), `discard 1 card`, `pay 3 life`,
-`sorcery` (activate only as a sorcery). `none` for a free ability.
+a matching permanent they control), `discard 1 card`, `discard this`,
+`pay 3 life`, `sorcery` (activate only as a sorcery), `once` (activate
+only once each turn). `none` for a free ability.
 
 ### Triggers
 
@@ -107,11 +109,12 @@ Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 ### Filters
 
 A filter names a kind of permanent, in the singular: `creature`,
-`creature you control`, `white creature`, `nonbasic land`,
-`other non-Aura enchantment`, `creature with no abilities`, `Goblin`,
-`Swamp you control`, `nonplaneswalker permanent you control`, `enchanted`
-(the permanent this is attached to), `this` (the source itself, for
-characteristic-defining abilities).
+`creature you control`, `creature an opponent controls`, `creature you
+don't control`, `white creature`, `nonblack creature`, `nonbasic land`,
+`other non-Aura enchantment`, `creature with flying`, `creature with no
+abilities`, `Goblin`, `Swamp you control`, `nonplaneswalker permanent you
+control`, `enchanted` (the permanent this is attached to), `this` (the
+source itself, for characteristic-defining abilities).
 
 ### Modifications (static abilities)
 
@@ -127,15 +130,18 @@ Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
 ### Effects
 
 Effects are clauses. `;` separates sentences; `and` joins clauses into one
-sentence ("target player loses 1 life and you gain 1 life"); a clause after
-`and` may leave its subject implied ("you draw 1 card and lose 1 life").
+sentence ("target player loses 1 life and you gain 1 life") and `then`
+joins them with ", then" ("draw 1 card then discard 1 card"); a clause
+after `and` may leave its subject implied ("you draw 1 card and lose 1
+life").
 Numbers are digits or `X`; "until end of turn" is implied by `gets`,
 `gains`, `becomes`, and `gain control of` and may be written or not.
 
 Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
-`<who> draws 2 cards`, `<who> mills 20 cards`, `<what> gets +3/+3`,
-`<what> gains flying`, `<what> becomes 2/2 Assembly-Worker artifact creature`,
-`this becomes a copy of <what> [with exceptions]`.
+`<who> draws 2 cards`, `<who> discards 2 cards`, `<who> mills 20 cards`,
+`<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
+turn), `<what> fights <what>`, `<what> becomes 2/2 Assembly-Worker artifact
+creature`, `this becomes a copy of <what> [with exceptions]`.
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
@@ -145,7 +151,9 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
-`draw 2 cards` (you), `you may <clause>`, `prevent all [combat] damage
+`draw 2 cards` (you), `discard 1 card` (you), `scry 2`, `surveil 1`,
+`counter target spell`, `counter target spell unless its controller pays {3}`,
+`you may <clause>`, `prevent all [combat] damage
 [to <affects>] this turn`, `prevent next 4 damage to <affects> this turn`,
 `this turn, replace <event>: <outcome>`, `players can't gain life this turn`,
 `damage can't be prevented this turn`, and
@@ -171,7 +179,10 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `nonlegendary creature you control`, `artifact`, `enchantment`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
-and `<Subtype> creature` ("target Assembly-Worker creature").
+`spell`, `creature spell`, `noncreature spell`, `opponent`,
+`artifact or creature`, `attacking or blocking creature`,
+`<Subtype> creature` ("target Assembly-Worker creature"), and any filter
+("target nonblack creature", "target creature an opponent controls").
 
 ## Example
 

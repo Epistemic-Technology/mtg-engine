@@ -1,0 +1,7 @@
+card "Elderfang Disciple" {
+  oracle_id 8db63f1a-0d63-4b11-966d-818d83a082f9
+  cost {1}{B}
+  type Creature — Elf Cleric
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

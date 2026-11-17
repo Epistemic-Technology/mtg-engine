@@ -1,0 +1,7 @@
+card "Desert of the Glorified" {
+  oracle_id 190e664b-9875-4335-af46-353886ed18ff
+  type Land — Desert
+  enters tapped
+  mana {B}
+  cycling {1}{B}
+}

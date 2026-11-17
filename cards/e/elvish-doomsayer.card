@@ -1,0 +1,7 @@
+card "Elvish Doomsayer" {
+  oracle_id 5fba553e-81b9-419b-aa20-b2a7cfcd042b
+  cost {1}{B}
+  type Creature — Elf Shaman
+  pt 1/1
+  triggered when this dies: each opponent discards 1 cards
+}

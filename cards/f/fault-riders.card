@@ -1,0 +1,7 @@
+card "Fault Riders" {
+  oracle_id df516046-7f83-4d64-aa0d-d687631d919a
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 2/2
+  activated sacrifice land, once: this gets +2/+0 and gains first strike
+}

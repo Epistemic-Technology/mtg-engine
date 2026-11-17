@@ -1,0 +1,8 @@
+card "Drownyard Amalgam" {
+  oracle_id 2378d6fc-b6ba-4a44-b951-5698ed507e4c
+  cost {4}{U}
+  type Creature — Zombie Horror
+  pt 3/6
+  triggered when this enters: target player mills 3 cards
+  activated {2}{U}: this can't be blocked
+}

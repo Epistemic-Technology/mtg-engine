@@ -1,0 +1,6 @@
+card "Contingency Plan" {
+  oracle_id 67bc4116-539e-4748-95e1-033df78173ec
+  cost {1}{U}
+  type Sorcery
+  spell: surveil 5
+}

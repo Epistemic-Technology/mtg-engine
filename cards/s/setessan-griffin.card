@@ -1,0 +1,8 @@
+card "Setessan Griffin" {
+  oracle_id fbab033e-3a8f-4c08-a445-46ae34c283eb
+  cost {4}{W}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+  activated {2}{G}{G}, once: this gets +2/+2
+}

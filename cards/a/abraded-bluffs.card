@@ -1,0 +1,7 @@
+card "Abraded Bluffs" {
+  oracle_id ca7d093c-0533-493f-9ad3-8af30118fbfc
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {R} or {W}
+}

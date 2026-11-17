@@ -1,0 +1,9 @@
+card "Consider" {
+  oracle_id 4c9bcba6-87b5-4fb3-97ee-6fe5b739337d
+  cost {U}
+  type Instant
+  spell {
+    surveil 1
+    draw 1 cards
+  }
+}

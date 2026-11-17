@@ -1,0 +1,7 @@
+card "Impetuous Sunchaser" {
+  oracle_id 7f240b1f-fb7b-49a3-bcaf-6348956d2a38
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords flying, haste, attacks each combat if able
+}

@@ -20,13 +20,18 @@ impl GameState {
             !o.tapped
                 && (o.controlled_since_turn_start || c.has(Keyword::Haste))
                 && !c.has(Keyword::Defender)
+                && !c.has(Keyword::CantAttack)
         })
     }
 
     /// CR 509.1a: untapped creatures of the defending player.
     pub(super) fn eligible_blockers(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {
-        self.creatures_of(p)
-            .filter(move |id| !self.objects[*id].tapped)
+        self.creatures_of(p).filter(move |id| {
+            !self.objects[*id].tapped
+                && !self
+                    .characteristics(*id)
+                    .is_some_and(|c| c.has(Keyword::CantBlock))
+        })
     }
 
     /// Evasion: flying (CR 702.9b).
@@ -37,6 +42,9 @@ impl GameState {
         ) else {
             return false;
         };
+        if a.has(Keyword::Unblockable) {
+            return false;
+        }
         // CR 702.9b: flying is blocked only by flying or reach.
         !a.has(Keyword::Flying) || b.has(Keyword::Flying) || b.has(Keyword::Reach)
     }

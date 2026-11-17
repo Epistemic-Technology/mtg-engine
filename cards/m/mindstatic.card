@@ -1,0 +1,6 @@
+card "Mindstatic" {
+  oracle_id 880e0177-f1d2-4bdc-83b4-cae6a0706ef9
+  cost {3}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {6}
+}

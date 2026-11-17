@@ -1,0 +1,8 @@
+card "Lava Serpent" {
+  oracle_id 4d94d807-97d9-4cdf-a63c-d8b82c2acc6e
+  cost {5}{R}
+  type Creature — Elemental Serpent
+  pt 5/5
+  keywords haste
+  cycling {2}
+}

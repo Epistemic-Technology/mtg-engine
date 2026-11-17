@@ -1,0 +1,7 @@
+card "Smoldering Crater" {
+  oracle_id be09e83f-6486-4f42-8d2e-416cb95173f9
+  type Land
+  enters tapped
+  mana {R}
+  cycling {2}
+}

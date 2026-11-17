@@ -1,0 +1,6 @@
+card "Jalum Tome" {
+  oracle_id 32d9fd98-142b-41d2-b8f0-40ae1d4cb991
+  cost {3}
+  type Artifact — Book
+  activated {2}, {T}: draw 1 cards then discard 1 cards
+}

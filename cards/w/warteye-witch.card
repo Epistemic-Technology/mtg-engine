@@ -1,0 +1,7 @@
+card "Warteye Witch" {
+  oracle_id 594a57f6-7827-41c7-aa37-00b498720b16
+  cost {2}{B}
+  type Creature — Goblin Shaman
+  pt 3/2
+  triggered whenever creature you control dies: scry 1
+}

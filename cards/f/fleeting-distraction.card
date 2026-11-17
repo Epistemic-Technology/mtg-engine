@@ -2,6 +2,8 @@ card "Fleeting Distraction" {
   oracle_id b36271cb-cda2-434a-a580-6050dc460409
   cost {U}
   type Instant
-  spell: target creature gets -1/-0
-  spell: draw 1 cards
+  spell {
+    target creature gets -1/-0
+    draw 1 cards
+  }
 }

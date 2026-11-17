@@ -1,0 +1,7 @@
+card "Forgotten Cave" {
+  oracle_id 394c6de5-7957-4a0b-a6b9-ee0c707cd022
+  type Land
+  enters tapped
+  mana {R}
+  cycling {R}
+}

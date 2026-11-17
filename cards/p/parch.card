@@ -1,0 +1,9 @@
+card "Parch" {
+  oracle_id 7366374a-db19-4fb0-9c35-a6e466a9bbc3
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: deal 2 damage to any target
+    mode: deal 4 damage to target blue creature
+  }
+}

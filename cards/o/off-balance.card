@@ -1,0 +1,6 @@
+card "Off Balance" {
+  oracle_id 38d9401e-2840-455d-8478-8c976588d4ab
+  cost {W}
+  type Instant
+  spell: target creature can't attack or block
+}

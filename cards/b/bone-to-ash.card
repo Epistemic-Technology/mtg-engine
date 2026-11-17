@@ -1,0 +1,9 @@
+card "Bone to Ash" {
+  oracle_id 31be5bf4-9950-456c-8365-74b48e132ef5
+  cost {2}{U}{U}
+  type Instant
+  spell {
+    counter target creature spell
+    draw 1 cards
+  }
+}

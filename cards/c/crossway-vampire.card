@@ -1,0 +1,7 @@
+card "Crossway Vampire" {
+  oracle_id 543071da-fc89-4274-a2ae-d5d755d1f2a9
+  cost {1}{R}{R}
+  type Creature — Vampire
+  pt 3/2
+  triggered when this enters: target creature can't block
+}

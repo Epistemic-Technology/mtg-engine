@@ -1,0 +1,7 @@
+card "Slither Blade" {
+  oracle_id 5a55641b-0818-4418-a2e5-44157056353c
+  cost {U}
+  type Creature — Snake Rogue
+  pt 1/2
+  keywords can't be blocked
+}

@@ -1,0 +1,7 @@
+card "Lothlórien Lookout" {
+  oracle_id ed839fae-3429-4ac5-997c-286d8e8cf05f
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 1/3
+  triggered whenever this attacks: scry 1
+}

@@ -1,0 +1,7 @@
+card "Crazed Goblin" {
+  oracle_id fafe2d90-e5fc-401a-a971-829192bec6c0
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords attacks each combat if able
+}

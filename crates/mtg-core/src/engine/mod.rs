@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use thiserror::Error;
 
-use crate::card::{CardPool, CardRef, TargetSpec};
+use crate::card::{CardPool, CardRef, Keyword, TargetSpec};
 use crate::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
@@ -394,6 +394,7 @@ impl GameState {
             stray_tokens: Vec::new(),
             emblems: Vec::new(),
             loyalty_activated: Vec::new(),
+            activated_once: Vec::new(),
             x_values: Vec::new(),
             turn_number: 0,
             active_player: starting_player,
@@ -586,8 +587,10 @@ impl GameState {
                                 .player(caster)
                                 .hand
                                 .iter()
-                                .copied()
-                                .map(Choice::Discard)
+                                .map(|id| Choice::Discard {
+                                    card: *id,
+                                    def: self.objects[*id].def,
+                                })
                                 .collect();
                             if options.is_empty() {
                                 unreachable!("cast offered without a card to discard");
@@ -629,10 +632,24 @@ impl GameState {
                         .eligible_attackers(player)
                         .filter(|id| !chosen.contains(id))
                         .collect();
+                    // CR 508.1d: creatures that attack each combat if able.
+                    let must: Vec<ObjId> = eligible
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            self.characteristics(*id)
+                                .is_some_and(|c| c.has(Keyword::MustAttack))
+                        })
+                        .collect();
                     if incremental {
-                        let mut options: Vec<Choice> =
-                            eligible.into_iter().map(Choice::AddAttacker).collect();
-                        options.push(Choice::Done);
+                        let mut options: Vec<Choice> = if must.is_empty() {
+                            eligible.into_iter().map(Choice::AddAttacker).collect()
+                        } else {
+                            must.iter().copied().map(Choice::AddAttacker).collect()
+                        };
+                        if must.is_empty() {
+                            options.push(Choice::Done);
+                        }
                         return StepResult::Decision(Decision {
                             player,
                             kind: DecisionKind::DeclareAttackers,
@@ -648,6 +665,7 @@ impl GameState {
                     }
                     let options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
+                        .filter(|set| must.iter().all(|m| set.contains(m)))
                         .map(Choice::Attackers)
                         .collect();
                     return StepResult::Decision(Decision {
@@ -782,7 +800,14 @@ impl GameState {
                         self.finish_cleanup();
                         continue;
                     }
-                    let options = ps.hand.iter().map(|id| Choice::Discard(*id)).collect();
+                    let options = ps
+                        .hand
+                        .iter()
+                        .map(|id| Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        })
+                        .collect();
                     return StepResult::Decision(Decision {
                         player: p,
                         kind: DecisionKind::Discard,
@@ -1001,7 +1026,7 @@ impl GameState {
                     sacrifice,
                     ..
                 },
-                Choice::Discard(id),
+                Choice::Discard { card: id, .. },
             ) => {
                 self.flow = Flow::Casting {
                     spell,
@@ -1076,7 +1101,7 @@ impl GameState {
                 }
                 self.flow = Flow::AssignDamage { queue, assigned };
             }
-            (Flow::Discarding, Choice::Discard(id)) => {
+            (Flow::Discarding, Choice::Discard { card: id, .. }) => {
                 self.discard_card(player, id);
             }
             (Flow::OrderTriggers { .. }, Choice::Trigger(i)) => {
@@ -1291,6 +1316,7 @@ impl GameState {
         } else {
             self.lki.clear();
             self.loyalty_activated.clear();
+            self.activated_once.clear();
             self.turn_number += 1;
             self.active_player = self.next_player_in_game(self.active_player);
             self.step = Step::Untap;

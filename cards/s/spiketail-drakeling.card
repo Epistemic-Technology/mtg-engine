@@ -1,0 +1,8 @@
+card "Spiketail Drakeling" {
+  oracle_id 989e390d-f86c-4468-a9ad-5970a571dcc7
+  cost {1}{U}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  activated sacrifice this: counter target spell unless its controller pays {2}
+}

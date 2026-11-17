@@ -1,0 +1,7 @@
+card "Sinister Hideout" {
+  oracle_id 80f08b47-a237-4efd-8d86-dfe35a816b0e
+  type Land
+  enters tapped
+  mana {U} or {B}
+  activated {4}, {T}: surveil 1
+}

@@ -1,0 +1,9 @@
+card "Contradict" {
+  oracle_id a48f259a-99a0-49c7-a11b-6e796f8a12f4
+  cost {3}{U}{U}
+  type Instant
+  spell {
+    counter target spell
+    draw 1 cards
+  }
+}

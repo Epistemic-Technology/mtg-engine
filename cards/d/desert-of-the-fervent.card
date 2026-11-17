@@ -1,0 +1,7 @@
+card "Desert of the Fervent" {
+  oracle_id 311f38a6-f68f-4d30-bc4e-62339f1e0d88
+  type Land — Desert
+  enters tapped
+  mana {R}
+  cycling {1}{R}
+}

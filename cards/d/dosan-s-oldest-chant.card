@@ -2,6 +2,8 @@ card "Dosan's Oldest Chant" {
   oracle_id 59aeeb18-d263-426f-aebc-0f687b09801b
   cost {4}{G}
   type Sorcery
-  spell: you gains 6 life
-  spell: draw 1 cards
+  spell {
+    you gains 6 life
+    draw 1 cards
+  }
 }

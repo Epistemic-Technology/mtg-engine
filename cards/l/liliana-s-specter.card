@@ -1,0 +1,8 @@
+card "Liliana's Specter" {
+  oracle_id 1a7e0e55-41c3-4fd8-b718-55b59b5cab90
+  cost {1}{B}{B}
+  type Creature — Specter
+  pt 2/1
+  keywords flying
+  triggered when this enters: each opponent discards 1 cards
+}

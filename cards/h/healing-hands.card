@@ -2,6 +2,8 @@ card "Healing Hands" {
   oracle_id 3cc48835-3ac0-4774-b380-f9b21d2dc974
   cost {2}{W}
   type Sorcery
-  spell: target player gains 4 life
-  spell: draw 1 cards
+  spell {
+    target player gains 4 life
+    draw 1 cards
+  }
 }

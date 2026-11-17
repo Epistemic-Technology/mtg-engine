@@ -1,0 +1,6 @@
+card "Serum Visions" {
+  oracle_id 56956afd-db53-4542-816b-490c8b0bbcf7
+  cost {U}
+  type Sorcery
+  spell: draw 1 cards; scry 2
+}

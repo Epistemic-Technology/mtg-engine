@@ -1,0 +1,6 @@
+card "Refute" {
+  oracle_id eb1dfa29-7371-4cb6-bfa2-16f7820b69be
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; draw 1 cards then discard 1 cards
+}

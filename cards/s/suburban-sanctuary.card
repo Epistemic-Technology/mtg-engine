@@ -1,0 +1,7 @@
+card "Suburban Sanctuary" {
+  oracle_id 6ef30340-a26d-49aa-bc86-0b8aa5252f87
+  type Land
+  enters tapped
+  mana {G} or {W}
+  activated {4}, {T}: surveil 1
+}

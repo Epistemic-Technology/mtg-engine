@@ -1,0 +1,7 @@
+card "Spineless Thug" {
+  oracle_id 78bbd213-e8f4-40da-aef5-853244e95756
+  cost {1}{B}
+  type Creature — Phyrexian Zombie Mercenary
+  pt 2/2
+  keywords can't block
+}

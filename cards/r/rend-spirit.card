@@ -1,0 +1,6 @@
+card "Rend Spirit" {
+  oracle_id cca698b3-b86f-45a2-aa3f-bab7d5a56e8a
+  cost {2}{B}
+  type Instant
+  spell: destroy target Spirit
+}

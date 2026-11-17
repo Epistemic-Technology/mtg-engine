@@ -1,0 +1,7 @@
+card "Aesthir Glider" {
+  oracle_id 99dcde0b-4f4d-4d7a-89aa-8a89c256e38f
+  cost {3}
+  type Artifact Creature — Bird Construct
+  pt 2/1
+  keywords flying, can't block
+}

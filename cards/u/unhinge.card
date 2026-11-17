@@ -1,0 +1,9 @@
+card "Unhinge" {
+  oracle_id cb1ae4f2-4fec-4cac-8992-616af82e0ade
+  cost {2}{B}
+  type Sorcery
+  spell {
+    target player discards 1 cards
+    draw 1 cards
+  }
+}

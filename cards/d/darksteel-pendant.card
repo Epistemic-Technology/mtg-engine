@@ -1,0 +1,7 @@
+card "Darksteel Pendant" {
+  oracle_id 431838a8-f020-4e4e-a6f4-2d4ca27c56df
+  cost {2}
+  type Artifact
+  keywords indestructible
+  activated {1}, {T}: scry 1
+}

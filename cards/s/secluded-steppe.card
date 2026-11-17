@@ -1,0 +1,7 @@
+card "Secluded Steppe" {
+  oracle_id 8dec6fcf-1254-4b1b-ba23-7a3e492a7241
+  type Land
+  enters tapped
+  mana {W}
+  cycling {W}
+}

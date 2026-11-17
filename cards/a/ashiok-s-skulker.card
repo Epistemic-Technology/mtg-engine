@@ -1,0 +1,7 @@
+card "Ashiok's Skulker" {
+  oracle_id ffaa2776-f61d-4eaa-8949-a0407f85214f
+  cost {4}{U}
+  type Creature — Nightmare
+  pt 3/5
+  activated {3}{U}: this can't be blocked
+}

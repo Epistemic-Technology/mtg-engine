@@ -1,0 +1,7 @@
+card "Spectacle Summit" {
+  oracle_id 33a4e73d-d93a-4b6f-88ff-cd53f20d178c
+  type Land
+  enters tapped
+  mana {U} or {R}
+  activated {2}{U}{R}, {T}: surveil 1
+}

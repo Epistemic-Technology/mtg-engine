@@ -1,0 +1,7 @@
+card "Yoked Plowbeast" {
+  oracle_id 07237694-b5d5-4c92-a429-55e343b8dd1c
+  cost {5}{W}{W}
+  type Creature — Beast
+  pt 5/5
+  cycling {2}
+}

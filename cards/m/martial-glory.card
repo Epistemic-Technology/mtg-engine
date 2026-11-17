@@ -2,6 +2,8 @@ card "Martial Glory" {
   oracle_id e8aa12f8-8922-41ed-8cdb-219c9e4b9e36
   cost {R}{W}
   type Instant
-  spell: target creature gets +3/+0
-  spell: target creature gets +0/+3
+  spell {
+    target creature gets +3/+0
+    target creature gets +0/+3
+  }
 }

@@ -1,0 +1,7 @@
+card "Amphin Pathmage" {
+  oracle_id 53e4273c-3292-47a0-90d1-8a0eb0eaf381
+  cost {3}{U}
+  type Creature — Salamander Wizard
+  pt 3/2
+  activated {2}{U}: target creature can't be blocked
+}

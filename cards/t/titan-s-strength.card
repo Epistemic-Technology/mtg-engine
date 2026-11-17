@@ -1,0 +1,6 @@
+card "Titan's Strength" {
+  oracle_id b0206b34-68b4-4b1f-ae79-6e2d0432ad4b
+  cost {R}
+  type Instant
+  spell: target creature gets +3/+1; scry 1
+}

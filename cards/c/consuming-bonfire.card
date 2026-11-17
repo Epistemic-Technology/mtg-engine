@@ -1,0 +1,9 @@
+card "Consuming Bonfire" {
+  oracle_id e1feea85-2f06-43aa-9b3c-eb63085276f5
+  cost {3}{R}{R}
+  type Kindred Sorcery — Elemental
+  choose one {
+    mode: deal 4 damage to target non-Elemental creature
+    mode: deal 7 damage to target Treefolk creature
+  }
+}

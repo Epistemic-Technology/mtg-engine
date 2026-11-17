@@ -1,0 +1,8 @@
+card "Zephyr Scribe" {
+  oracle_id a1841bcc-738e-4f4b-a88f-571a93c59ad7
+  cost {2}{U}
+  type Creature — Human Monk
+  pt 2/1
+  activated {U}, {T}: draw 1 cards then discard 1 cards
+  triggered whenever you cast a noncreature spell: untap this
+}

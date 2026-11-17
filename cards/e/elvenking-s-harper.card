@@ -1,0 +1,7 @@
+card "Elvenking's Harper" {
+  oracle_id 7d070a95-49ea-4aea-b512-dbb0006a00ee
+  cost {1}{U}
+  type Creature — Elf Bard
+  pt 2/2
+  activated {4}{U}: target creature can't be blocked
+}

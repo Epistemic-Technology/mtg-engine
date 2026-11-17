@@ -1,0 +1,8 @@
+card "Bronze Walrus" {
+  oracle_id 3fdc76b0-450a-4fcb-8a64-113edce67f3d
+  cost {3}
+  type Artifact Creature — Walrus
+  pt 2/2
+  triggered when this enters: scry 2
+  mana any
+}

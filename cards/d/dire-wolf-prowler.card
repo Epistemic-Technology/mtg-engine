@@ -1,0 +1,7 @@
+card "Dire Wolf Prowler" {
+  oracle_id d558b465-75c6-450e-b1f2-5843ad67de71
+  cost {2}{G}
+  type Creature — Wolf
+  pt 2/2
+  activated {1}{G}, once: this gets +2/+2 and gains haste
+}

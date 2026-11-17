@@ -1,0 +1,6 @@
+card "Lightning Javelin" {
+  oracle_id a6f6b062-cd7e-4631-9921-40e054ab835d
+  cost {3}{R}
+  type Sorcery
+  spell: deal 3 damage to any target; scry 1
+}

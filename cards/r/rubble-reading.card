@@ -1,0 +1,6 @@
+card "Rubble Reading" {
+  oracle_id 894d96b1-c82a-4141-a2f3-76da505bd5e5
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target land; scry 2
+}

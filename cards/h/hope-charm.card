@@ -1,0 +1,10 @@
+card "Hope Charm" {
+  oracle_id a1b5c83e-cf8b-4644-8315-35387a4f491f
+  cost {W}
+  type Instant
+  choose one {
+    mode: target creature gains first strike
+    mode: target player gains 2 life
+    mode: destroy target Aura
+  }
+}

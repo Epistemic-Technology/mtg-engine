@@ -1,0 +1,7 @@
+card "Expendable Troops" {
+  oracle_id 70ebd18a-c878-4a93-b7c4-3f7a2aa65f5e
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {T}, sacrifice this: deal 2 damage to target attacking or blocking creature
+}

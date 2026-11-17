@@ -1,0 +1,7 @@
+card "Exiled Boggart" {
+  oracle_id 8c07878f-348c-4fd9-955f-87e975ed61fa
+  cost {1}{B}
+  type Creature — Goblin Rogue
+  pt 2/2
+  triggered when this dies: discard 1 cards
+}

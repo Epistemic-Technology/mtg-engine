@@ -1,0 +1,6 @@
+card "Rain of Revelation" {
+  oracle_id 7d5dfa6b-f685-4925-b93a-ae5815a3c0a7
+  cost {3}{U}
+  type Instant
+  spell: draw 3 cards then discard 1 cards
+}

@@ -102,6 +102,8 @@ impl Decompiler<'_> {
             supertypes: supertypes(f.supertypes),
             not_supertypes: supertypes(f.not_supertypes),
             colors: f.colors.map(colors),
+            not_colors: colors(f.not_colors),
+            keywords: keywords(f.keywords),
             subtypes: f
                 .subtypes
                 .iter()
@@ -115,6 +117,7 @@ impl Decompiler<'_> {
             relation: f.relation,
             enchanted: f.enchanted,
             no_abilities: f.no_abilities,
+            dont_control: false,
         }
     }
 
@@ -123,6 +126,7 @@ impl Decompiler<'_> {
             TargetSpec::CreatureWithSubtype(s) => {
                 Target::CreatureOfSubtype(self.pool.subtype_name(s).to_string())
             }
+            TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
             other => Target::Spec(other),
         }
     }
@@ -130,6 +134,8 @@ impl Decompiler<'_> {
     fn cost(&self, c: &CoreCost) -> Cost {
         Cost {
             mana: c.mana.clone(),
+            discard_self: c.discard_self,
+            once: false,
             tap: c.tap,
             life: c.life,
             discard: c.discard,
@@ -252,6 +258,18 @@ impl Decompiler<'_> {
             CoreEffect::CreateEmblem { emblem } => Effect::CreateEmblem {
                 emblem: self.pool.get(*emblem).name.clone(),
             },
+            CoreEffect::Counter { to } => Effect::Counter { to: r(*to) },
+            CoreEffect::CounterUnlessPays { to, mana } => Effect::CounterUnlessPays {
+                to: r(*to),
+                mana: mana.clone(),
+            },
+            CoreEffect::Scry { count } => Effect::Scry(*count),
+            CoreEffect::Surveil { count } => Effect::Surveil(*count),
+            CoreEffect::Discard { count, who } => Effect::Discard {
+                count: *count,
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+            },
+            CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
             CoreEffect::Animate {
                 to,
                 types: t,
@@ -431,11 +449,13 @@ impl Decompiler<'_> {
                     && act.cost.sacrifice.is_none();
                 let mut cost = self.cost(&act.cost);
                 cost.sorcery = act.sorcery_speed;
+                cost.once = act.once_per_turn;
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),
                     effects: self.sentences(&act.effects),
                     equip,
+                    cycling: act.from_hand,
                 }
             }
             AbilityDef::Triggered(t) => Ability::Triggered {

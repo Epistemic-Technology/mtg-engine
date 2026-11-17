@@ -1,0 +1,7 @@
+card "Forsake the Worldly" {
+  oracle_id f60fb81a-969a-476c-a227-5231bbed4ad4
+  cost {2}{W}
+  type Instant
+  spell: exile target artifact or enchantment
+  cycling {2}
+}

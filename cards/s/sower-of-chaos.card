@@ -1,0 +1,7 @@
+card "Sower of Chaos" {
+  oracle_id 2ec1860b-89cc-4529-8b8c-fb47f79f2b4b
+  cost {3}{R}
+  type Creature — Devil
+  pt 4/3
+  activated {2}{R}: target creature can't block
+}

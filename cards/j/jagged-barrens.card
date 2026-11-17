@@ -1,0 +1,7 @@
+card "Jagged Barrens" {
+  oracle_id 64ee02f1-afdb-474b-a893-31538ad7219a
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {B} or {R}
+}

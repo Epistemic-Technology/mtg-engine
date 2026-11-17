@@ -1,0 +1,7 @@
+card "Spark Spray" {
+  oracle_id c37f1921-7ac3-4185-8579-1dfdfe647ea2
+  cost {R}
+  type Instant
+  spell: deal 1 damage to any target
+  cycling {R}
+}

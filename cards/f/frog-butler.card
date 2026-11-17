@@ -1,0 +1,9 @@
+card "Frog Butler" {
+  oracle_id 5b865275-4114-44d0-9832-ae5d3b4efba4
+  cost {1}{G}
+  type Creature — Frog Spirit
+  pt 1/1
+  keywords deathtouch
+  mana any
+  activated {2}: this gains reach
+}

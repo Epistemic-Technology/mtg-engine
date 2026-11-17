@@ -517,6 +517,8 @@ pub struct GameState {
     /// Planeswalkers whose loyalty ability was activated this turn (CR
     /// 606.3: one per planeswalker per turn).
     pub loyalty_activated: Vec<ObjId>,
+    /// "Activate only once each turn" abilities used this turn.
+    pub activated_once: Vec<(ObjId, crate::card::AbilityId)>,
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
@@ -908,7 +910,8 @@ impl GameState {
             | TargetSpec::Creature
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
-            | TargetSpec::NonlegendaryCreatureYouControl => c.is_creature(),
+            | TargetSpec::NonlegendaryCreatureYouControl
+            | TargetSpec::AttackingOrBlockingCreature => c.is_creature(),
             TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
             TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.subtypes.contains(&s),
             TargetSpec::ArtifactCreatureOrLand => {
@@ -922,7 +925,19 @@ impl GameState {
             TargetSpec::Permanent | TargetSpec::OtherPermanent => true,
             TargetSpec::Land => c.is_land(),
             TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
+            TargetSpec::ArtifactOrCreature => {
+                c.is_creature() || c.types.contains(CardType::Artifact)
+            }
+            TargetSpec::Filtered(f) => {
+                self.pool
+                    .filter(f)
+                    .matches(target, obj.controller, &c, None, None)
+            }
             TargetSpec::Player
+            | TargetSpec::Opponent
+            | TargetSpec::Spell
+            | TargetSpec::CreatureSpell
+            | TargetSpec::NoncreatureSpell
             | TargetSpec::PlayerOrPlaneswalker
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
@@ -979,10 +994,13 @@ impl GameState {
             Target::Player(p) => {
                 p.index() < self.num_players()
                     && self.player(p).lost.is_none()
-                    && matches!(
-                        spec,
-                        TargetSpec::Any | TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker
-                    )
+                    && match spec {
+                        TargetSpec::Any | TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => {
+                            true
+                        }
+                        TargetSpec::Opponent => p != caster,
+                        _ => false,
+                    }
             }
             Target::Object(id) => {
                 let Some(obj) = self.objects.get(id) else {
@@ -992,6 +1010,20 @@ impl GameState {
                     return obj.zone == Zone::Graveyard
                         && obj.owner == caster
                         && self.pool.get(obj.def).is_creature();
+                }
+                if matches!(
+                    spec,
+                    TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell
+                ) {
+                    if obj.zone != Zone::Stack || obj.kind == ObjKind::Ability {
+                        return false;
+                    }
+                    let creature = self.pool.get(obj.def).is_creature();
+                    return match spec {
+                        TargetSpec::CreatureSpell => creature,
+                        TargetSpec::NoncreatureSpell => !creature,
+                        _ => true,
+                    };
                 }
                 if obj.zone != Zone::Battlefield {
                     return false;
@@ -1030,7 +1062,28 @@ impl GameState {
                     TargetSpec::Enchantment => c.types.contains(CardType::Enchantment),
                     TargetSpec::Permanent => true,
                     TargetSpec::OtherPermanent => Some(id) != source,
-                    TargetSpec::Player | TargetSpec::CreatureCardInYourGraveyard => false,
+                    TargetSpec::ArtifactOrCreature => {
+                        c.is_creature() || c.types.contains(CardType::Artifact)
+                    }
+                    TargetSpec::AttackingOrBlockingCreature => {
+                        c.is_creature()
+                            && self.combat.as_ref().is_some_and(|cb| {
+                                cb.attackers
+                                    .iter()
+                                    .any(|a| a.id == id || a.blockers.contains(&id))
+                            })
+                    }
+                    TargetSpec::Filtered(f) => {
+                        self.pool
+                            .filter(f)
+                            .matches(id, obj.controller, &c, source, Some(caster))
+                    }
+                    TargetSpec::Player
+                    | TargetSpec::Opponent
+                    | TargetSpec::Spell
+                    | TargetSpec::CreatureSpell
+                    | TargetSpec::NoncreatureSpell
+                    | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);
                 type_ok && hexproof_ok

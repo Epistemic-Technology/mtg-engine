@@ -1,0 +1,8 @@
+card "Rousing Read" {
+  oracle_id 306549ad-84c7-4983-840b-9663799e9f40
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 2 cards then discard 1 cards
+  static enchanted: +1/+1, has flying
+}

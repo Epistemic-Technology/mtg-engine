@@ -1,0 +1,6 @@
+card "Overrule" {
+  oracle_id fa43d688-99de-4774-ac2d-2d01866eef58
+  cost {X}{W}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X}; you gains X life
+}

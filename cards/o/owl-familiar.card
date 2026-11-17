@@ -1,0 +1,8 @@
+card "Owl Familiar" {
+  oracle_id 099a5835-da6c-4e03-ad3e-aeb448897fed
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

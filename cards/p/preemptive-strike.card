@@ -1,0 +1,6 @@
+card "Preemptive Strike" {
+  oracle_id 250f8642-9754-48fd-8f09-70ed13d7a42c
+  cost {1}{U}
+  type Instant
+  spell: counter target creature spell
+}

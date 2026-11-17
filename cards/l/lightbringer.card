@@ -1,0 +1,7 @@
+card "Lightbringer" {
+  oracle_id 8656d9c1-d890-4473-9da8-7ec339d7d546
+  cost {2}{W}
+  type Creature — Kor Rebel
+  pt 2/2
+  activated {T}, sacrifice this: exile target black creature
+}

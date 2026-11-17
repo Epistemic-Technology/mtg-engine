@@ -1,0 +1,10 @@
+card "Hull Breach" {
+  oracle_id 2da232d8-580f-4116-b977-2c59cd21b5a4
+  cost {R}{G}
+  type Sorcery
+  choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: destroy target artifact and target enchantment
+  }
+}

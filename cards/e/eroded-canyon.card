@@ -1,0 +1,7 @@
+card "Eroded Canyon" {
+  oracle_id 852c6520-d148-4923-a312-05a9af821f24
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {U} or {R}
+}

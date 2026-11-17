@@ -1,0 +1,6 @@
+card "Unnerve" {
+  oracle_id 8386f43f-8106-415c-a9a6-7fd3f5b060f3
+  cost {3}{B}
+  type Sorcery
+  spell: each opponent discards 2 cards
+}

@@ -1,0 +1,7 @@
+card "Agent of Horizons" {
+  oracle_id 668a6a9d-80fc-437b-99b8-6807e92eabca
+  cost {2}{G}
+  type Creature — Human Rogue
+  pt 3/2
+  activated {2}{U}: this can't be blocked
+}

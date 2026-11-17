@@ -1,0 +1,6 @@
+card "Ghostly Visit" {
+  oracle_id 73b6694a-47d4-417a-af9b-470da14b5b0e
+  cost {2}{B}
+  type Sorcery
+  spell: destroy target nonblack creature
+}

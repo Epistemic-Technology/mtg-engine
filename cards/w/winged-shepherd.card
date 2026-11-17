@@ -1,0 +1,8 @@
+card "Winged Shepherd" {
+  oracle_id e18c93bc-2073-4bb6-83b4-c5c70f2d8a82
+  cost {5}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying, vigilance
+  cycling {W}
+}

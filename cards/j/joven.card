@@ -1,0 +1,7 @@
+card "Joven" {
+  oracle_id 9e767d44-feff-449a-bed9-0866c7bce846
+  cost {3}{R}{R}
+  type Legendary Creature — Human Rogue
+  pt 3/3
+  activated {R}{R}{R}, {T}: destroy target noncreature artifact
+}

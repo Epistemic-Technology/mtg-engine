@@ -1,0 +1,7 @@
+card "Mist-Cloaked Herald" {
+  oracle_id 74255add-2894-4c31-81c1-d38873fa325f
+  cost {U}
+  type Creature — Merfolk Warrior
+  pt 1/1
+  keywords can't be blocked
+}

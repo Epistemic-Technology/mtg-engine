@@ -1,0 +1,7 @@
+card "Wilt" {
+  oracle_id 77b6c3bb-bd05-4547-8f3e-9c50879973f1
+  cost {1}{G}
+  type Instant
+  spell: destroy target artifact or enchantment
+  cycling {2}
+}

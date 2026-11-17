@@ -1,0 +1,7 @@
+card "Blaster Mage" {
+  oracle_id e5b35b54-77d9-4cb0-86a1-efc8e49aea09
+  cost {2}{R}
+  type Creature — Human Spellshaper
+  pt 2/2
+  activated {R}, {T}, discard 1 card: destroy target Wall
+}

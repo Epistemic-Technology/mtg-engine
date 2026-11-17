@@ -1,0 +1,7 @@
+card "Metathran Soldier" {
+  oracle_id b723fcec-f208-4397-a178-e1e47b729cf1
+  cost {1}{U}
+  type Creature — Metathran Soldier
+  pt 1/1
+  keywords can't be blocked
+}

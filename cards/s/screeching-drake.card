@@ -1,0 +1,8 @@
+card "Screeching Drake" {
+  oracle_id da2ac9fa-52c2-4896-a596-89f287406641
+  cost {3}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

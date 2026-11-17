@@ -1,0 +1,7 @@
+card "Lorehold Campus" {
+  oracle_id 45773715-3f46-4671-b633-bf087e892e26
+  type Land
+  enters tapped
+  mana {R} or {W}
+  activated {4}, {T}: scry 1
+}

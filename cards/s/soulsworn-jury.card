@@ -1,0 +1,8 @@
+card "Soulsworn Jury" {
+  oracle_id 06424141-2c26-4ee8-83c2-dac62e3d3540
+  cost {2}{W}
+  type Creature — Spirit
+  pt 1/4
+  keywords defender
+  activated {1}{U}, sacrifice this: counter target creature spell
+}

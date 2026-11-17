@@ -2,6 +2,8 @@ card "Sugar Rush" {
   oracle_id 57085b8e-a85e-4d50-a7d2-9bddfdaf411c
   cost {1}{B}
   type Instant
-  spell: target creature gets +3/+0
-  spell: draw 1 cards
+  spell {
+    target creature gets +3/+0
+    draw 1 cards
+  }
 }

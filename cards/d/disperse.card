@@ -1,0 +1,6 @@
+card "Disperse" {
+  oracle_id 9d8fe3f8-5027-4f9e-999e-e277caa96478
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand
+}

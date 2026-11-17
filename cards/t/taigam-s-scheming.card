@@ -1,0 +1,6 @@
+card "Taigam's Scheming" {
+  oracle_id d9c57520-9827-4b8b-8f81-43cca4227c60
+  cost {1}{U}
+  type Sorcery
+  spell: surveil 5
+}

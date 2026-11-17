@@ -1,0 +1,7 @@
+card "Scrap" {
+  oracle_id 0ad3b788-eb3d-4876-9c89-893429595e0e
+  cost {2}{R}
+  type Instant
+  spell: destroy target artifact
+  cycling {2}
+}

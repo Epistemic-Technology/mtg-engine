@@ -1,0 +1,9 @@
+card "Dazzling Lights" {
+  oracle_id 394709f0-2d29-4a2d-be05-7b22fec57763
+  cost {U}
+  type Instant
+  spell {
+    target creature gets -3/-0
+    surveil 2
+  }
+}

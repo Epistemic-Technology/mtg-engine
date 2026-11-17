@@ -1,0 +1,7 @@
+card "Chainwhip Cyclops" {
+  oracle_id a0324f33-3f25-4374-affa-c7b5b54bc8d7
+  cost {4}{R}
+  type Creature — Cyclops Warrior
+  pt 4/4
+  activated {3}{R}: target creature can't block
+}

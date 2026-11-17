@@ -1,0 +1,8 @@
+card "Silver Raven" {
+  oracle_id 4da64806-8a1d-4926-a168-695df43309cf
+  cost {U}
+  type Artifact Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: scry 1
+}

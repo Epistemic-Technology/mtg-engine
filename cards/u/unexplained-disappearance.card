@@ -1,0 +1,9 @@
+card "Unexplained Disappearance" {
+  oracle_id 18d16129-da25-4120-a343-64ce962abba2
+  cost {1}{U}
+  type Instant
+  spell {
+    return target creature to hand
+    surveil 1
+  }
+}

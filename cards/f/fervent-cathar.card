@@ -1,0 +1,8 @@
+card "Fervent Cathar" {
+  oracle_id 94bcae2f-86a6-4d38-b8e1-5ebf69dc7cbc
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/1
+  keywords haste
+  triggered when this enters: target creature can't block
+}

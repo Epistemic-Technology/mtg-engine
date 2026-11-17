@@ -1,0 +1,7 @@
+card "Kraven's Cats" {
+  oracle_id 976db753-9887-448a-8e67-ec7937b6505c
+  cost {1}{G}
+  type Creature — Cat Villain
+  pt 2/2
+  activated {2}{G}, once: this gets +2/+2
+}

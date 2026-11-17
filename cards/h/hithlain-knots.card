@@ -1,0 +1,9 @@
+card "Hithlain Knots" {
+  oracle_id 2c80fc55-86a0-403e-82ce-09ee03095d8a
+  cost {1}{U}
+  type Instant
+  spell {
+    tap target creature; scry 1
+    draw 1 cards
+  }
+}

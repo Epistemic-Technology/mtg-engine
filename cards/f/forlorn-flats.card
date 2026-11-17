@@ -1,0 +1,7 @@
+card "Forlorn Flats" {
+  oracle_id ebb3e2ff-2214-4e11-88fb-e0fa84288cf1
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {W} or {B}
+}

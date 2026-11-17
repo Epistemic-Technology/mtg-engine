@@ -1,0 +1,8 @@
+card "Mindful Biomancer" {
+  oracle_id 03af9d24-2df6-4318-82f2-8abdd22206f1
+  cost {1}{G}
+  type Creature — Dryad Druid
+  pt 2/2
+  triggered when this enters: you gains 1 life
+  activated {2}{G}, once: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Witherbloom Campus" {
+  oracle_id 6cd58a88-6434-4c55-bf93-a739b5ed9bc1
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {4}, {T}: scry 1
+}

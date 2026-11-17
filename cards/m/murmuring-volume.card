@@ -1,0 +1,7 @@
+card "Murmuring Volume" {
+  oracle_id 4baa7847-dfcc-4aa3-aa64-2deeaa3f013b
+  cost {3}
+  type Artifact — Book
+  mana any
+  activated {2}, {T}, discard 1 card: draw 1 cards
+}

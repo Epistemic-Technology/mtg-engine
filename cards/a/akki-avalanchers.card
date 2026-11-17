@@ -1,0 +1,7 @@
+card "Akki Avalanchers" {
+  oracle_id 5a98decb-30ba-4c34-a88a-424b7f4e03bc
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated sacrifice land, once: this gets +2/+0
+}

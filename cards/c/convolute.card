@@ -1,0 +1,6 @@
+card "Convolute" {
+  oracle_id cd201ded-cfaf-4a51-9fcc-6a61b3c910b0
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {4}
+}

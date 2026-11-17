@@ -1,0 +1,6 @@
+card "Cast Down" {
+  oracle_id cdaab6b0-1a2d-4809-8e6b-56013acd8f78
+  cost {1}{B}
+  type Instant
+  spell: destroy target nonlegendary creature
+}

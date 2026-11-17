@@ -1,0 +1,7 @@
+card "Rumbling Sentry" {
+  oracle_id 7126772a-d586-4859-81ec-46bbe9d1a678
+  cost {3}{W}{W}
+  type Creature — Giant
+  pt 3/6
+  triggered when this enters: scry 1
+}

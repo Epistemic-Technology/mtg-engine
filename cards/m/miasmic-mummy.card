@@ -1,0 +1,7 @@
+card "Miasmic Mummy" {
+  oracle_id b5b049d4-242a-48ec-85d1-1ef66c8cfa4c
+  cost {1}{B}
+  type Creature — Zombie Jackal
+  pt 2/2
+  triggered when this enters: each player discards 1 cards
+}

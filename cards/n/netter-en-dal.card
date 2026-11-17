@@ -1,0 +1,7 @@
+card "Netter en-Dal" {
+  oracle_id 8cd65dcd-e36d-47b1-b011-961c79004cb0
+  cost {W}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {W}, {T}, discard 1 card: target creature can't attack
+}

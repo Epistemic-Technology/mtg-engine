@@ -1,0 +1,7 @@
+card "Goblin Glider" {
+  oracle_id 72bce821-46f0-40eb-abdb-575d4305b8fd
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/1
+  keywords flying, can't block
+}

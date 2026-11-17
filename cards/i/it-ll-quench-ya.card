@@ -1,0 +1,6 @@
+card "It'll Quench Ya!" {
+  oracle_id cb184995-700f-4900-994a-4ce7fd12f942
+  cost {1}{U}
+  type Instant — Lesson
+  spell: counter target spell unless its controller pays {2}
+}

@@ -1,0 +1,7 @@
+card "Sigiled Skink" {
+  oracle_id 4c17f6c3-48d3-4bd0-b0dd-76229d9c5b09
+  cost {1}{R}
+  type Creature — Lizard
+  pt 2/1
+  triggered whenever this attacks: scry 1
+}

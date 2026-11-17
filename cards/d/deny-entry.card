@@ -1,0 +1,6 @@
+card "Deny Entry" {
+  oracle_id a7dad8fe-b0b8-4c6d-ad11-76b402952799
+  cost {2}{U}
+  type Instant
+  spell: counter target creature spell; draw 1 cards then discard 1 cards
+}

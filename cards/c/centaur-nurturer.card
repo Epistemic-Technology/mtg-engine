@@ -1,0 +1,8 @@
+card "Centaur Nurturer" {
+  oracle_id f60e831b-1404-437a-a587-ed4f4b596084
+  cost {3}{G}
+  type Creature — Centaur Druid
+  pt 2/4
+  triggered when this enters: you gains 3 life
+  mana any
+}

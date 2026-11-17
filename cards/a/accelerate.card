@@ -2,6 +2,8 @@ card "Accelerate" {
   oracle_id 79189464-9645-4411-8886-68fd40a588ed
   cost {1}{R}
   type Instant
-  spell: target creature gains haste
-  spell: draw 1 cards
+  spell {
+    target creature gains haste
+    draw 1 cards
+  }
 }

@@ -1,0 +1,7 @@
+card "Merfolk Traders" {
+  oracle_id 8af6646a-10ba-448b-bd5e-48feb70de5e5
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/2
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

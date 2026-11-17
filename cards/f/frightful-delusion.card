@@ -1,0 +1,6 @@
+card "Frightful Delusion" {
+  oracle_id 13ca3ede-a4c8-463d-b160-99b4071034b0
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {1}; that player discards 1 cards
+}

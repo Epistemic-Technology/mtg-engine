@@ -1,0 +1,8 @@
+card "Prescient Chimera" {
+  oracle_id af199b80-d5d8-417a-97d5-459a5bd48b22
+  cost {3}{U}{U}
+  type Creature — Chimera
+  pt 3/4
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: scry 1
+}

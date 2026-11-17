@@ -1,0 +1,8 @@
+card "Witness of Tomorrows" {
+  oracle_id b46adfcd-fd7a-40c5-85f4-1cfee43a4c48
+  cost {4}{U}
+  type Enchantment Creature — Sphinx
+  pt 3/4
+  keywords flying
+  activated {3}{U}: scry 1
+}

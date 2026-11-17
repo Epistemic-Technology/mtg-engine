@@ -1,0 +1,6 @@
+card "Notion Rain" {
+  oracle_id f93dbe17-71d1-4542-96ff-81ac6da9513f
+  cost {1}{U}{B}
+  type Sorcery
+  spell: surveil 2 then draw 2 cards; deal 2 damage to you
+}

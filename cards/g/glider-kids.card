@@ -1,0 +1,8 @@
+card "Glider Kids" {
+  oracle_id ff5ce28b-25be-4136-a7b2-8f25c08a6455
+  cost {2}{W}
+  type Creature — Human Pilot Ally
+  pt 2/3
+  keywords flying
+  triggered when this enters: scry 1
+}

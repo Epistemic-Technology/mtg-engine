@@ -1,0 +1,8 @@
+card "Omen of the Forge" {
+  oracle_id e11e2dc8-b28e-415d-9a5d-0eb46da8945c
+  cost {1}{R}
+  type Enchantment
+  keywords flash
+  triggered when this enters: deal 2 damage to any target
+  activated {2}{R}, sacrifice this: scry 2
+}

@@ -1,0 +1,6 @@
+card "Dark Banishing" {
+  oracle_id 0df450be-9bd2-45be-ae59-fa8d19f6a391
+  cost {2}{B}
+  type Instant
+  spell: destroy target nonblack creature without regeneration
+}

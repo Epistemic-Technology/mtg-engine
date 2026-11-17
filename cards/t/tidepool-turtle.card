@@ -1,0 +1,7 @@
+card "Tidepool Turtle" {
+  oracle_id ac2668a3-7a26-47b1-9ad4-56e23643de80
+  cost {3}{U}
+  type Creature — Turtle
+  pt 2/5
+  activated {2}{U}: scry 1
+}

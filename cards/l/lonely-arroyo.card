@@ -1,0 +1,7 @@
+card "Lonely Arroyo" {
+  oracle_id 36508a8a-d1a4-400e-bfda-09436bc4d5d4
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {W} or {U}
+}

@@ -1,0 +1,6 @@
+card "Lost in the Mist" {
+  oracle_id 98014ad2-7a2b-45f5-808c-edd4d0b2c597
+  cost {3}{U}{U}
+  type Instant
+  spell: counter target spell; return target permanent to hand
+}

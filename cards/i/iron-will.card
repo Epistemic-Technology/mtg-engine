@@ -1,0 +1,7 @@
+card "Iron Will" {
+  oracle_id dc0decb9-32da-47aa-a51a-0d9c623c534a
+  cost {W}
+  type Instant
+  spell: target creature gets +0/+4
+  cycling {2}
+}

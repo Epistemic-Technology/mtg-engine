@@ -1,0 +1,6 @@
+card "Stealth Mission" {
+  oracle_id 92419fbf-7a1b-428f-92d6-e9fd510dbfac
+  cost {2}{U}
+  type Sorcery
+  spell: put 2 +1/+1 counters on target creature you control; that creature can't be blocked
+}

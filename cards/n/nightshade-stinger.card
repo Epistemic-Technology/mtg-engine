@@ -1,0 +1,7 @@
+card "Nightshade Stinger" {
+  oracle_id c57edca9-b71e-4ec1-84d5-4b178969ccb7
+  cost {B}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying, can't block
+}

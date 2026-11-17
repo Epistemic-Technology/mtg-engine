@@ -1,0 +1,7 @@
+card "Alchemist's Vial" {
+  oracle_id f574bd9f-4246-42cb-bf4e-d2888daa44c9
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {1}, {T}, sacrifice this: target creature can't attack or block
+}

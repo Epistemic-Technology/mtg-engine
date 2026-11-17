@@ -1,0 +1,7 @@
+card "Goblin Shortcutter" {
+  oracle_id 29863706-fa4e-49ed-9f40-69ae503abba3
+  cost {1}{R}
+  type Creature — Goblin Scout
+  pt 2/1
+  triggered when this enters: target creature can't block
+}

@@ -1,0 +1,9 @@
+card "Renegade Tactics" {
+  oracle_id 7fbcd256-c132-406f-a490-df9709835504
+  cost {R}
+  type Sorcery
+  spell {
+    target creature can't block
+    draw 1 cards
+  }
+}

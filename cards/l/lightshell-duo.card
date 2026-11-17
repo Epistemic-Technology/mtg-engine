@@ -1,0 +1,8 @@
+card "Lightshell Duo" {
+  oracle_id ef8fab12-d7d2-4c21-8b8c-41627048ac8b
+  cost {3}{U}
+  type Creature — Rat Otter
+  pt 3/4
+  keywords prowess
+  triggered when this enters: surveil 2
+}

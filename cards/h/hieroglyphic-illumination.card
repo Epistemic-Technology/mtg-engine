@@ -1,0 +1,7 @@
+card "Hieroglyphic Illumination" {
+  oracle_id 60e358ec-eb11-4a16-a0ae-b7c064a8ea6c
+  cost {3}{U}
+  type Instant
+  spell: draw 2 cards
+  cycling {U}
+}

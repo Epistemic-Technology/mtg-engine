@@ -1,0 +1,6 @@
+card "Enhanced Awareness" {
+  oracle_id 397964db-465a-407d-9dc7-d0a4944473ac
+  cost {4}{U}
+  type Instant
+  spell: draw 3 cards then discard 1 cards
+}

@@ -1,0 +1,8 @@
+card "Omen of the Sea" {
+  oracle_id 41960d32-ddb5-42be-94b2-3a2e77ca148d
+  cost {1}{U}
+  type Enchantment
+  keywords flash
+  triggered when this enters: scry 2 then draw 1 cards
+  activated {2}{U}, sacrifice this: scry 2
+}

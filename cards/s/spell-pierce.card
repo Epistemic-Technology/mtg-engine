@@ -1,0 +1,6 @@
+card "Spell Pierce" {
+  oracle_id d64b0848-0193-4025-ba62-63ecd8fb9f50
+  cost {U}
+  type Instant
+  spell: counter target noncreature spell unless its controller pays {2}
+}

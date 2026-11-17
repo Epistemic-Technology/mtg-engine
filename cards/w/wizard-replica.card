@@ -1,0 +1,8 @@
+card "Wizard Replica" {
+  oracle_id 0ba3b1e0-1790-4247-93ab-72a43e8fb580
+  cost {3}
+  type Artifact Creature — Wizard
+  pt 1/3
+  keywords flying
+  activated {U}, sacrifice this: counter target spell unless its controller pays {2}
+}

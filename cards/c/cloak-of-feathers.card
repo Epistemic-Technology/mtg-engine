@@ -2,6 +2,8 @@ card "Cloak of Feathers" {
   oracle_id cb4baf53-51ed-468b-a468-5d7d45a6dc26
   cost {U}
   type Sorcery
-  spell: target creature gains flying
-  spell: draw 1 cards
+  spell {
+    target creature gains flying
+    draw 1 cards
+  }
 }

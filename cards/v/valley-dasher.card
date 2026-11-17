@@ -1,0 +1,7 @@
+card "Valley Dasher" {
+  oracle_id aad16b50-a866-4871-843f-ec8813ad5dfd
+  cost {1}{R}
+  type Creature — Human Berserker
+  pt 2/2
+  keywords haste, attacks each combat if able
+}

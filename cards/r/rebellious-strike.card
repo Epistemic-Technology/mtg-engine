@@ -2,6 +2,8 @@ card "Rebellious Strike" {
   oracle_id 4f3d7102-f8ce-42d4-94eb-f69b695773d1
   cost {1}{W}
   type Instant
-  spell: target creature gets +3/+0
-  spell: draw 1 cards
+  spell {
+    target creature gets +3/+0
+    draw 1 cards
+  }
 }

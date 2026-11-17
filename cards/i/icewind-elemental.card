@@ -1,0 +1,8 @@
+card "Icewind Elemental" {
+  oracle_id 5001bf21-9dbb-4229-aeef-25805e71b832
+  cost {4}{U}
+  type Creature — Elemental
+  pt 3/4
+  keywords flying
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

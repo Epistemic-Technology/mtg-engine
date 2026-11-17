@@ -2,6 +2,8 @@ card "Galestrike" {
   oracle_id 3006d992-2714-4264-a4c3-953b67dc7347
   cost {2}{U}
   type Instant
-  spell: return target tapped creature to hand
-  spell: draw 1 cards
+  spell {
+    return target tapped creature to hand
+    draw 1 cards
+  }
 }

@@ -1,0 +1,8 @@
+card "Fear of Surveillance" {
+  oracle_id 52478437-bb6c-48bb-855d-54a8a4d42d18
+  cost {1}{W}
+  type Enchantment Creature — Nightmare
+  pt 2/2
+  keywords vigilance
+  triggered whenever this attacks: surveil 1
+}

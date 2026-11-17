@@ -1,0 +1,6 @@
+card "Dragon's Presence" {
+  oracle_id 4fb7aeb6-2fc3-459e-bad8-1c7ea92f7ae7
+  cost {2}{W}
+  type Instant
+  spell: deal 5 damage to target attacking or blocking creature
+}

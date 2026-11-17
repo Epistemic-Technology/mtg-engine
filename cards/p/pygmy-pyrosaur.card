@@ -1,0 +1,8 @@
+card "Pygmy Pyrosaur" {
+  oracle_id 667c39bc-92d6-4fee-bced-95f0e1f21455
+  cost {1}{R}
+  type Creature — Lizard
+  pt 1/1
+  keywords can't block
+  activated {R}: this gets +1/+0
+}

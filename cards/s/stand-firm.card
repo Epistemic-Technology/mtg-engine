@@ -1,0 +1,6 @@
+card "Stand Firm" {
+  oracle_id c0406e70-8131-4e13-b1d5-4e943ad296b8
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+1; scry 2
+}

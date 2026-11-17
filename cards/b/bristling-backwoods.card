@@ -1,0 +1,7 @@
+card "Bristling Backwoods" {
+  oracle_id 9cbc9f83-8979-42a5-a466-a8d89c8e6de8
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {R} or {G}
+}

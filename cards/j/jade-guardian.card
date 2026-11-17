@@ -1,0 +1,8 @@
+card "Jade Guardian" {
+  oracle_id 9128b952-bd36-4a3a-9566-34d999305991
+  cost {3}{G}
+  type Creature — Merfolk Shaman
+  pt 2/2
+  keywords hexproof
+  triggered when this enters: put 1 +1/+1 counters on target Merfolk you control
+}

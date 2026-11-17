@@ -1,0 +1,8 @@
+card "Grey Havens Navigator" {
+  oracle_id 14291205-1ac2-4804-b365-4f65377d5803
+  cost {2}{U}
+  type Creature — Elf Pilot
+  pt 3/2
+  keywords flash
+  triggered when this enters: scry 1
+}

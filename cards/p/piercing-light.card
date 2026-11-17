@@ -1,0 +1,6 @@
+card "Piercing Light" {
+  oracle_id 2a6c7826-dcfe-4029-894e-6c82c4dd84b7
+  cost {W}
+  type Instant
+  spell: deal 2 damage to target attacking or blocking creature; scry 1
+}

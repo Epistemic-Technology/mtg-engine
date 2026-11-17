@@ -1,0 +1,6 @@
+card "Dissolve" {
+  oracle_id 2f0741f9-802b-4761-8094-7b1f3ea1a424
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; scry 1
+}

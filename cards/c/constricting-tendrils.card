@@ -1,0 +1,7 @@
+card "Constricting Tendrils" {
+  oracle_id 9e34ab18-5d39-49d9-9d3d-e1d4a3611b87
+  cost {U}
+  type Instant
+  spell: target creature gets -3/-0
+  cycling {2}
+}

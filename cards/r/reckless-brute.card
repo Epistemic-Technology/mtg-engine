@@ -1,0 +1,7 @@
+card "Reckless Brute" {
+  oracle_id 5ba6a472-b2f3-4d8e-838c-269aaa5eb2e3
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 3/1
+  keywords haste, attacks each combat if able
+}

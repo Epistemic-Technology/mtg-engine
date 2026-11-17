@@ -1,0 +1,7 @@
+card "Kitsune Diviner" {
+  oracle_id 2281ab3f-fad7-4b42-9621-5c35fec4c0f6
+  cost {W}
+  type Creature — Fox Cleric
+  pt 0/1
+  activated {T}: tap target Spirit
+}

@@ -1,0 +1,7 @@
+card "Galadhrim Guide" {
+  oracle_id 9204de14-cbb6-40e5-9dcc-44cce3723e8e
+  cost {3}{G}
+  type Creature — Elf Scout
+  pt 3/4
+  triggered when this enters: scry 2
+}

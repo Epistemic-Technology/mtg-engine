@@ -53,6 +53,12 @@ pub enum DecisionKind {
     ChooseDiscardCost { spell: ObjId },
     /// The player or planeswalker `attacker` attacks (CR 508.1a).
     ChooseAttackTarget { attacker: ObjId },
+    /// Scry: which of the top cards go to the bottom (CR 701.18).
+    Scry { count: u32 },
+    /// Surveil: which of the top cards go to the graveyard (CR 701.42).
+    Surveil { count: u32 },
+    /// "Counter target spell unless its controller pays ...": pay or not.
+    PayOrCounter { def: CardRef },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -79,7 +85,13 @@ pub enum Choice {
     Done,
     /// Combat damage division as (recipient, amount) pairs.
     Division(Vec<(Target, u32)>),
-    Discard(ObjId),
+    /// Discard this card; `def` names it when the state shown predates
+    /// the question (a card drawn by the same resolution, see
+    /// `KeepLegend`).
+    Discard {
+        card: ObjId,
+        def: CardRef,
+    },
     /// Put the pending triggered ability at this index of
     /// `GameState::pending_triggers` on the stack.
     Trigger(usize),
@@ -126,6 +138,11 @@ pub enum Choice {
     Sacrifice(ObjId),
     /// Attack this player or planeswalker.
     AttackTarget(Target),
+    /// Scry: put these cards on the bottom, in this order; the rest stay
+    /// on top.
+    ScryBottom(Vec<ObjId>),
+    /// Surveil: put these cards into the graveyard.
+    SurveilGraveyard(Vec<ObjId>),
 }
 
 impl Choice {
@@ -172,7 +189,9 @@ impl Choice {
                 .map(|(t, n)| format!("{n} to {}", target(t)))
                 .collect::<Vec<_>>()
                 .join(", "),
-            Choice::Discard(id) => format!("discard {}", name(id)),
+            Choice::Discard { def, .. } => format!("discard {}", state.pool.get(*def).name),
+            Choice::ScryBottom(ids) => format!("bottom {}", names(ids)),
+            Choice::SurveilGraveyard(ids) => format!("graveyard {}", names(ids)),
             Choice::Trigger(i) => {
                 let source = state
                     .pending_triggers

@@ -1,0 +1,7 @@
+card "Sibsig Icebreakers" {
+  oracle_id 4880c976-b417-48e4-98a2-9e5a8da0d758
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/3
+  triggered when this enters: each player discards 1 cards
+}

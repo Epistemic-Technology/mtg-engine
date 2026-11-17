@@ -1,0 +1,6 @@
+card "Coming In Hot" {
+  oracle_id 9666729d-3a06-43f9-a957-d5cc4d25b974
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike; scry 1
+}

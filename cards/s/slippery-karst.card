@@ -1,0 +1,7 @@
+card "Slippery Karst" {
+  oracle_id 58bfd9a1-67ce-41d0-be38-f05addd1dd9e
+  type Land
+  enters tapped
+  mana {G}
+  cycling {2}
+}

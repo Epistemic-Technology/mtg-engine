@@ -1,0 +1,6 @@
+card "Expose to Daylight" {
+  oracle_id c8195fcd-1858-4f23-aa73-b654d25035aa
+  cost {2}{W}
+  type Instant
+  spell: destroy target artifact or enchantment; scry 1
+}

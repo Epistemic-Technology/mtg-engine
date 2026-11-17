@@ -1,0 +1,7 @@
+card "Hecteyes" {
+  oracle_id 7a11b4ed-430d-4ef8-b0c1-6a022f12448c
+  cost {1}{B}
+  type Creature — Ooze Horror
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

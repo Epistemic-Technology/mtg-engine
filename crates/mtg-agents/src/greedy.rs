@@ -232,11 +232,15 @@ impl GreedyAgent {
         match d.kind {
             DecisionKind::Mulligan => Self::best_by(d, |c| i64::from(*c == Choice::Keep)),
             // "You may": yes (the first option).
+            // Scry keeps, surveil keeps, and a counter's ransom is paid.
             DecisionKind::Bottom
             | DecisionKind::AssignCombatDamage { .. }
             | DecisionKind::OrderTriggers
             | DecisionKind::ChooseReplacement
-            | DecisionKind::YouMay { .. } => 0,
+            | DecisionKind::YouMay { .. }
+            | DecisionKind::Scry { .. }
+            | DecisionKind::Surveil { .. }
+            | DecisionKind::PayOrCounter { .. } => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.
             DecisionKind::LegendRule | DecisionKind::ChooseX { .. } => {
@@ -420,8 +424,8 @@ impl GreedyAgent {
             }),
             DecisionKind::Discard | DecisionKind::ChooseDiscardCost { .. } => {
                 Self::best_by(d, |c| match c {
-                    Choice::Discard(id) => {
-                        let def = state.def_of(*id).expect("card in hand");
+                    Choice::Discard { def, .. } => {
+                        let def = state.pool.get(*def);
                         if def.is_land() {
                             10
                         } else {

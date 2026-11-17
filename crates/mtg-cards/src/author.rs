@@ -38,7 +38,25 @@ const KEYWORDS: [&str; 15] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 4] = ["Enchant", "Equip", "Regenerate", "Mill"];
+const TEMPLATED_TAGS: [&str; 8] = [
+    "Enchant",
+    "Equip",
+    "Regenerate",
+    "Mill",
+    "Scry",
+    "Surveil",
+    "Cycling",
+    "Fight",
+];
+
+/// Restrictions Oracle prints as sentences; the DSL keeps them with the
+/// keywords.
+const RESTRICTIONS: [&str; 4] = [
+    "can't block",
+    "can't attack",
+    "attacks each combat if able",
+    "can't be blocked",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Skip {
@@ -306,6 +324,12 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         *targets += if s.starts_with("two ") { 2 } else { 1 };
         return Some(s.to_string());
     }
+    // Any other "target <filter>" phrase: the DSL parser and the render
+    // check decide whether it is one the engine knows.
+    if s.starts_with("target ") || s.starts_with("another target ") {
+        *targets += 1;
+        return Some(s.to_string());
+    }
     if (s == "it" || s == "that permanent") && *targets > 0 {
         return Some(format!("target {targets}"));
     }
@@ -375,6 +399,50 @@ impl Templates {
             (r(r"^Draw (\S+) cards?$"), |c, _| {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
             }),
+            (r(r"^Discard (\S+) cards?$"), |c, _| {
+                Some(format!("discard {} cards", number(cap(c, 1))?))
+            }),
+            (r(r"^(.+?) discards? (\S+) cards?$"), |c, t| {
+                let who = recipient(&subject(cap(c, 1)), t)?;
+                Some(format!("{who} discards {} cards", number(cap(c, 2))?))
+            }),
+            (
+                r(
+                    r"^Counter (target .+?)(?: unless its controller pays ((?:\{[0-9XWUBRGC]+\})+))?$",
+                ),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    if cap(c, 2).is_empty() {
+                        Some(format!("counter {to}"))
+                    } else {
+                        Some(format!(
+                            "counter {to} unless its controller pays {}",
+                            cap(c, 2)
+                        ))
+                    }
+                },
+            ),
+            (r(r"^Scry (\d+)$"), |c, _| {
+                Some(format!("scry {}", cap(c, 1)))
+            }),
+            (r(r"^Surveil (\d+)$"), |c, _| {
+                Some(format!("surveil {}", cap(c, 1)))
+            }),
+            (r(r"^(.+?) fights (.+)$"), |c, t| {
+                let a = recipient(&subject(cap(c, 1)), t)?;
+                let b = recipient(cap(c, 2), t)?;
+                Some(format!("{a} fights {b}"))
+            }),
+            (r(r"^Attach (?:it|~|this) to (.+)$"), |c, t| {
+                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            }),
+            (
+                r(r"^(.+?) can't (block|attack|be blocked|attack or block) this turn$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!("{who} can't {}", cap(c, 2)))
+                },
+            ),
             (r(r"^(.+?) (draws?|mills?) (\S+) cards?$"), |c, t| {
                 let who = recipient(&subject(cap(c, 1)), t)?;
                 let verb = if cap(c, 2).starts_with("draw") {
@@ -497,10 +565,15 @@ impl Templates {
                 Some(rest) => (true, rest.to_string()),
                 None => (false, sentence.clone()),
             };
-            let body = capitalize(&body);
-            let Some(e) = self.sentence(&body, targets) else {
-                return Err(Skip::Sentence(sentence));
-            };
+            // "Draw a card, then discard a card": clauses joined by "then".
+            let mut parts = Vec::new();
+            for clause in body.split(", then ") {
+                let Some(e) = self.sentence(&capitalize(clause), targets) else {
+                    return Err(Skip::Sentence(sentence.clone()));
+                };
+                parts.push(e);
+            }
+            let e = parts.join(" then ");
             out.push(if may { format!("you may {e}") } else { e });
         }
         if out.is_empty() {
@@ -581,6 +654,8 @@ fn cost_text(s: &str) -> Option<String> {
             format!("sacrifice {rest}")
         } else if part == "Discard a card" {
             "discard 1 card".to_string()
+        } else if part == "Discard this card" {
+            "discard this".to_string()
         } else {
             let n = part
                 .strip_prefix("Pay ")
@@ -650,6 +725,9 @@ struct Builder<'a> {
     statements: Vec<String>,
     keywords: Vec<String>,
     additional: Option<String>,
+    /// Paragraphs of an instant's or sorcery's text, one `spell` block.
+    spell_paragraphs: Vec<String>,
+    spell_targets: usize,
 }
 
 impl Builder<'_> {
@@ -664,6 +742,31 @@ impl Builder<'_> {
             } else {
                 self.statements.push(format!("keyword {k}"));
             }
+            return Ok(());
+        }
+        // "This creature can't block." and friends are keywords to the DSL.
+        if let Some(rest) = line
+            .strip_prefix("This creature ")
+            .or_else(|| line.strip_prefix("This permanent "))
+            && let Some(rest) = rest.strip_suffix('.')
+            && let Some(k) = RESTRICTIONS.iter().find(|r| **r == rest)
+        {
+            if self.statements.is_empty() {
+                self.keywords.push((*k).to_string());
+            } else {
+                self.statements.push(format!("keyword {k}"));
+            }
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements.push(format!("cycling {}", cap(&c, 1)));
+            return Ok(());
+        }
+        if line == "{T}: Add one mana of any color." {
+            self.statements.push("mana any".to_string());
             return Ok(());
         }
         if let Some(rest) = line.strip_prefix("As an additional cost to cast this spell, ") {
@@ -683,6 +786,8 @@ impl Builder<'_> {
                 "artifact" => "artifact",
                 "enchantment" => "enchantment",
                 "permanent" => "permanent",
+                "creature you control" => "creature you control",
+                "artifact or creature" => "artifact or creature",
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
             self.statements.push(format!("enchant {spec}"));
@@ -758,10 +863,17 @@ impl Builder<'_> {
                 .push("static enchanted: control".to_string());
             return Ok(());
         }
-        // Activated abilities: "<cost>: <effects>".
+        // Activated abilities: "<cost>: <effects>[ Activate only once each turn.]".
         if let Some((cost, rest)) = line.split_once(": ")
-            && let Some(cost) = cost_text(cost)
+            && let Some(mut cost) = cost_text(cost)
         {
+            let rest = match rest.strip_suffix(" Activate only once each turn.") {
+                Some(r) => {
+                    cost.push_str(", once");
+                    r
+                }
+                None => rest,
+            };
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
             self.statements.push(format!("activated {cost}: {effects}"));
@@ -792,9 +904,10 @@ impl Builder<'_> {
             return Ok(());
         }
         if self.is_spell {
-            let mut targets = 0;
+            let mut targets = self.spell_targets;
             let effects = self.templates.effects(line, &mut targets)?;
-            self.statements.push(format!("spell: {effects}"));
+            self.spell_targets = targets;
+            self.spell_paragraphs.push(effects);
             return Ok(());
         }
         Err(Skip::Sentence(line.to_string()))
@@ -866,6 +979,8 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         statements: Vec::new(),
         keywords: Vec::new(),
         additional: None,
+        spell_paragraphs: Vec::new(),
+        spell_targets: 0,
     };
     let lines: Vec<&str> = oracle.lines().collect();
     let mut i = 0;
@@ -925,6 +1040,19 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     }
     for st in &b.statements {
         let _ = writeln!(text, "  {st}");
+    }
+    match b.spell_paragraphs.as_slice() {
+        [] => {}
+        [one] => {
+            let _ = writeln!(text, "  spell: {one}");
+        }
+        many => {
+            text.push_str("  spell {\n");
+            for p in many {
+                let _ = writeln!(text, "    {p}");
+            }
+            text.push_str("  }\n");
+        }
     }
     text.push_str("}\n");
     // Verify: parse, render, compare.

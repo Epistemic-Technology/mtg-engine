@@ -1,0 +1,7 @@
+card "Thought Courier" {
+  oracle_id 06ea02f5-f296-4334-bb6f-9cb018e1e150
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: draw 1 cards then discard 1 cards
+}

@@ -2,6 +2,8 @@ card "Withstand" {
   oracle_id ebf2816b-e042-43e9-8734-d3a896334c69
   cost {2}{W}
   type Instant
-  spell: prevent next 3 damage to any target this turn
-  spell: draw 1 cards
+  spell {
+    prevent next 3 damage to any target this turn
+    draw 1 cards
+  }
 }

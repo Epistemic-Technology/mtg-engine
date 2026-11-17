@@ -1,0 +1,7 @@
+card "Cackling Fiend" {
+  oracle_id 2029954b-6fa7-40d7-bb19-d7534c62be5d
+  cost {2}{B}{B}
+  type Creature — Zombie
+  pt 2/1
+  triggered when this enters: each opponent discards 1 cards
+}

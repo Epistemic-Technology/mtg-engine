@@ -1,0 +1,7 @@
+card "Dragonborn Looter" {
+  oracle_id f74e53e1-e575-4386-a128-5c87124987d4
+  cost {1}{U}
+  type Creature — Dragon Rogue
+  pt 1/2
+  activated {1}, {T}: draw 1 cards then discard 1 cards
+}

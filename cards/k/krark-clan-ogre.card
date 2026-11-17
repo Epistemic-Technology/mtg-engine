@@ -1,0 +1,7 @@
+card "Krark-Clan Ogre" {
+  oracle_id 5de63529-7dea-4018-bf46-afb4bc8b69fd
+  cost {3}{R}{R}
+  type Creature — Ogre
+  pt 3/3
+  activated {R}, sacrifice artifact: target creature can't block
+}

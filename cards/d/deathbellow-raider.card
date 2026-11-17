@@ -1,0 +1,8 @@
+card "Deathbellow Raider" {
+  oracle_id 3b14e7ea-e01c-421d-acd2-0b70436ca6aa
+  cost {1}{R}
+  type Creature — Minotaur Berserker
+  pt 2/3
+  keywords attacks each combat if able
+  activated {2}{B}: regenerate this
+}

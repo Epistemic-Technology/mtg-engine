@@ -1,0 +1,8 @@
+card "Shimmerscale Drake" {
+  oracle_id f3bd5ca1-9854-4bc0-b108-b555808e1d5f
+  cost {4}{U}
+  type Creature — Drake
+  pt 3/4
+  keywords flying
+  cycling {2}
+}

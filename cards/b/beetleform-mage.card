@@ -1,0 +1,7 @@
+card "Beetleform Mage" {
+  oracle_id 227cbba1-700b-4255-b730-b324ab3dec34
+  cost {1}{G}{U}
+  type Creature — Human Insect Wizard
+  pt 2/2
+  activated {G}{U}, once: this gets +2/+2 and gains flying
+}

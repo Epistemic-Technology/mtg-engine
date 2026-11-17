@@ -1,0 +1,7 @@
+card "Cutthroat Contender" {
+  oracle_id 43192553-0db9-48ec-ae88-a2605a6608d8
+  cost {B}
+  type Creature — Vampire Warrior
+  pt 1/1
+  activated pay 1 life, once: this gets +1/+0
+}

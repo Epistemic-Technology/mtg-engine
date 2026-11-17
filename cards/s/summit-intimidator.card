@@ -1,0 +1,8 @@
+card "Summit Intimidator" {
+  oracle_id b772d35a-d365-47ce-b1dd-a2ba574c74ea
+  cost {3}{R}
+  type Creature — Yeti
+  pt 4/3
+  keywords reach
+  triggered when this enters: target creature can't block
+}

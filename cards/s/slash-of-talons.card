@@ -1,0 +1,6 @@
+card "Slash of Talons" {
+  oracle_id ef331f13-bdd0-4123-9e61-b2e4b6b6d8b8
+  cost {W}
+  type Instant
+  spell: deal 2 damage to target attacking or blocking creature
+}

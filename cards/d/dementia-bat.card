@@ -1,0 +1,8 @@
+card "Dementia Bat" {
+  oracle_id 95c76175-e3a6-4bf4-a8da-d1179851efe5
+  cost {4}{B}
+  type Creature — Phyrexian Bat
+  pt 2/2
+  keywords flying
+  activated {4}{B}, sacrifice this: target player discards 2 cards
+}

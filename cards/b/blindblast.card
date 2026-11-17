@@ -1,0 +1,9 @@
+card "Blindblast" {
+  oracle_id 9abeb38c-2243-424c-bfbc-87aa45b6ea4f
+  cost {2}{R}
+  type Instant
+  spell {
+    deal 1 damage to target creature; that creature can't block
+    draw 1 cards
+  }
+}

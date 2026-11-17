@@ -1,0 +1,8 @@
+card "Sky-Eel School" {
+  oracle_id c90ea9d5-82f7-4b92-8cb1-10d0a7378e8c
+  cost {3}{U}{U}
+  type Creature — Fish
+  pt 3/3
+  keywords flying
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

@@ -1,0 +1,10 @@
+card "Fever Charm" {
+  oracle_id d0b08a7b-8c9c-4440-9331-5a24917423ca
+  cost {R}
+  type Instant
+  choose one {
+    mode: target creature gains haste
+    mode: target creature gets +2/+0
+    mode: deal 3 damage to target Wizard creature
+  }
+}

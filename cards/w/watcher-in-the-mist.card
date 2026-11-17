@@ -1,0 +1,8 @@
+card "Watcher in the Mist" {
+  oracle_id e8c0fbea-a678-46b0-b385-e36f14c07672
+  cost {3}{U}{U}
+  type Creature — Spirit
+  pt 3/4
+  keywords flying
+  triggered when this enters: surveil 2
+}

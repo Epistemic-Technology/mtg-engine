@@ -1,0 +1,6 @@
+card "Jaya's Firenado" {
+  oracle_id 250f804f-b5d5-414c-bb25-476d1fe1f85a
+  cost {4}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature or planeswalker; scry 1
+}

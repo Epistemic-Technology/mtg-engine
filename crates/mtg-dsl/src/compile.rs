@@ -116,6 +116,16 @@ impl Compiler<'_> {
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
+        let spells = card
+            .abilities
+            .iter()
+            .filter(|a| matches!(a, Ability::Spell { .. } | Ability::Modal(_)))
+            .count();
+        if spells > 1 {
+            return self.err(
+                "more than one `spell`/`choose one`; put the paragraphs in one `spell { }` block",
+            );
+        }
         for a in &card.abilities {
             if matches!(a, Ability::Keyword(_)) {
                 continue;
@@ -149,6 +159,8 @@ impl Compiler<'_> {
             supertypes: SupertypeSet::of(f.supertypes.iter().copied()),
             not_supertypes: SupertypeSet::of(f.not_supertypes.iter().copied()),
             colors: f.colors.as_ref().map(|c| ColorSet::of(c.iter().copied())),
+            not_colors: ColorSet::of(f.not_colors.iter().copied()),
+            keywords: KeywordSet::of(f.keywords.iter().copied()),
             subtypes: self.subtypes(&f.subtypes),
             not_subtypes: self.subtypes(&f.not_subtypes),
             relation: f.relation,
@@ -160,6 +172,10 @@ impl Compiler<'_> {
     fn target(&mut self, t: &Target) -> TargetSpec {
         match t {
             Target::Spec(s) => *s,
+            Target::Filter(f) => {
+                let f = self.filter(f);
+                TargetSpec::Filtered(self.pool.intern_filter(f))
+            }
             Target::CreatureOfSubtype(name) => {
                 TargetSpec::CreatureWithSubtype(self.pool.subtype(name))
             }
@@ -173,6 +189,7 @@ impl Compiler<'_> {
     fn cost(&mut self, c: &Cost) -> CoreCost {
         CoreCost {
             mana: c.mana.clone(),
+            discard_self: c.discard_self,
             life: c.life,
             discard: c.discard,
             loyalty: c.loyalty.unwrap_or(0),
@@ -317,6 +334,18 @@ impl Compiler<'_> {
                 of: r(*of),
                 except: *except,
             }),
+            Effect::Counter { to } => out.push(CoreEffect::Counter { to: r(*to) }),
+            Effect::CounterUnlessPays { to, mana } => out.push(CoreEffect::CounterUnlessPays {
+                to: r(*to),
+                mana: mana.clone(),
+            }),
+            Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
+            Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
+            Effect::Discard { count, who } => out.push(CoreEffect::Discard {
+                count: *count,
+                who: who.map_or(CoreRecipient::You, r),
+            }),
+            Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
             Effect::CreateEmblem { emblem } => {
                 let Some(emblem_ref) = self.pool.lookup(emblem) else {
                     return self.err(format!("unknown emblem \"{emblem}\""));
@@ -525,12 +554,15 @@ impl Compiler<'_> {
                 cost,
                 targets,
                 effects,
+                cycling,
                 ..
             } => AbilityDef::Activated(ActivatedAbility {
                 cost: self.cost(cost),
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
+                once_per_turn: cost.once,
+                from_hand: *cycling,
                 text: render::ability_text(self.card, a, self.lookup),
             }),
             Ability::Triggered {

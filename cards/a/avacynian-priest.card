@@ -1,0 +1,7 @@
+card "Avacynian Priest" {
+  oracle_id df7e296d-96de-4280-a4d8-49189544b9e3
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {1}, {T}: tap target non-Human creature
+}

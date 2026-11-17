@@ -1,0 +1,7 @@
+card "Letter of Acceptance" {
+  oracle_id e0cb503e-9814-4280-9c29-4eff3379bc24
+  cost {3}
+  type Artifact
+  mana any
+  activated {2}, {T}, sacrifice this: draw 1 cards
+}

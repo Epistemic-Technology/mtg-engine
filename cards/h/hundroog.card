@@ -1,0 +1,7 @@
+card "Hundroog" {
+  oracle_id ade82acb-80c0-4033-aa02-4fa3d69aad69
+  cost {6}{G}
+  type Creature — Beast
+  pt 4/7
+  cycling {3}
+}

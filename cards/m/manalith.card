@@ -1,0 +1,6 @@
+card "Manalith" {
+  oracle_id bd9e416a-89b3-4912-be9b-49fce6a93dc9
+  cost {3}
+  type Artifact
+  mana any
+}

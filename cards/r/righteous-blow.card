@@ -1,0 +1,6 @@
+card "Righteous Blow" {
+  oracle_id bc2bf46f-2c9b-4f85-b8d6-d13a3b64436d
+  cost {W}
+  type Instant
+  spell: deal 2 damage to target attacking or blocking creature
+}

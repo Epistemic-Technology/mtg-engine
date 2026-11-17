@@ -1,0 +1,6 @@
+card "Rend Flesh" {
+  oracle_id 079d4698-dc11-4d29-91b6-725d78dfb75d
+  cost {2}{B}
+  type Instant — Arcane
+  spell: destroy target non-Spirit creature
+}

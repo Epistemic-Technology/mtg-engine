@@ -1,0 +1,7 @@
+card "Bola Warrior" {
+  oracle_id 13f41253-364f-40a5-a7cd-84d8785b2460
+  cost {1}{R}
+  type Creature — Human Spellshaper Warrior
+  pt 1/1
+  activated {R}, {T}, discard 1 card: target creature can't block
+}

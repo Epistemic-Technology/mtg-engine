@@ -1,0 +1,6 @@
+card "Lost in a Labyrinth" {
+  oracle_id e6813885-b629-4bd4-b445-da8ab4363080
+  cost {U}
+  type Instant
+  spell: target creature gets -3/-0; scry 1
+}

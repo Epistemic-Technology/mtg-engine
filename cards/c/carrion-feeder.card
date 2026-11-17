@@ -1,0 +1,8 @@
+card "Carrion Feeder" {
+  oracle_id a1cc5e37-b09a-4b7f-afd5-77c1c35aa425
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  keywords can't block
+  activated sacrifice creature: put 1 +1/+1 counters on this
+}

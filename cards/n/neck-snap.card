@@ -1,0 +1,6 @@
+card "Neck Snap" {
+  oracle_id b8ad4276-759d-4d22-a47e-bd27edb34bff
+  cost {3}{W}
+  type Instant
+  spell: destroy target attacking or blocking creature
+}

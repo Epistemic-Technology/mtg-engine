@@ -1,0 +1,8 @@
+card "Wild Aesthir" {
+  oracle_id dbdf076c-18ce-45e3-8f70-0a32391ea4b6
+  cost {2}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, first strike
+  activated {W}{W}, once: this gets +2/+0
+}

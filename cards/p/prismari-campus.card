@@ -1,0 +1,7 @@
+card "Prismari Campus" {
+  oracle_id 3a3a1b35-ae4d-49d5-ae09-5a1693ad53ce
+  type Land
+  enters tapped
+  mana {U} or {R}
+  activated {4}, {T}: scry 1
+}

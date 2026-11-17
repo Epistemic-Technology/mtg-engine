@@ -1,0 +1,6 @@
+card "Mind Rot" {
+  oracle_id ad44cf74-b717-48fb-9fa2-77512024d76a
+  cost {2}{B}
+  type Sorcery
+  spell: target player discards 2 cards
+}

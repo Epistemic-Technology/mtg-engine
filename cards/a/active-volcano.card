@@ -1,0 +1,9 @@
+card "Active Volcano" {
+  oracle_id 205ffa76-ff8e-4405-b21a-42358a9883c2
+  cost {R}
+  type Instant
+  choose one {
+    mode: destroy target blue permanent
+    mode: return target Island to hand
+  }
+}

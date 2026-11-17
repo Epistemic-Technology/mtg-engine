@@ -1,0 +1,7 @@
+card "Lawbringer" {
+  oracle_id 15cc92c0-76ce-4b97-b1a2-a7d58bbfe857
+  cost {2}{W}
+  type Creature — Kor Rebel
+  pt 2/2
+  activated {T}, sacrifice this: exile target red creature
+}

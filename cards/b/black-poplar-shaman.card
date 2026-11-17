@@ -1,0 +1,7 @@
+card "Black Poplar Shaman" {
+  oracle_id 39d60cd8-bebc-407d-b361-8e49e70e339a
+  cost {2}{B}
+  type Creature — Treefolk Shaman
+  pt 1/3
+  activated {2}{B}: regenerate target Treefolk
+}

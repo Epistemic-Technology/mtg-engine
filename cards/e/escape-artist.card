@@ -1,0 +1,8 @@
+card "Escape Artist" {
+  oracle_id 74f4d505-e114-47be-be27-a7949e8abdc7
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  keywords can't be blocked
+  activated {U}, discard 1 card: return this to hand
+}

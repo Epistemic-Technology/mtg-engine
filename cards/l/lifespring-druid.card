@@ -1,0 +1,7 @@
+card "Lifespring Druid" {
+  oracle_id 165c1b17-2bde-4c96-892d-4a8fdc7a57b7
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  mana any
+}

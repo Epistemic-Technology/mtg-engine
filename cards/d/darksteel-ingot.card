@@ -1,0 +1,7 @@
+card "Darksteel Ingot" {
+  oracle_id a2529491-7389-4cfa-92d2-145eda779603
+  cost {3}
+  type Artifact
+  keywords indestructible
+  mana any
+}

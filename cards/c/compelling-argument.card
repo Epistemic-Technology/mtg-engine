@@ -1,0 +1,7 @@
+card "Compelling Argument" {
+  oracle_id 686e0b86-121c-45be-842d-c83d3b6547f6
+  cost {1}{U}
+  type Sorcery
+  spell: target player mills 5 cards
+  cycling {U}
+}

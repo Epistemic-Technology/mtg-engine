@@ -1,0 +1,7 @@
+card "Haazda Exonerator" {
+  oracle_id 6df2e8c9-d87e-4f0d-a3d3-b8eee5cdafd0
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}, sacrifice this: destroy target Aura
+}

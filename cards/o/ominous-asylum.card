@@ -1,0 +1,7 @@
+card "Ominous Asylum" {
+  oracle_id 676141c3-a433-4aba-86fb-729628f96dfa
+  type Land
+  enters tapped
+  mana {B} or {R}
+  activated {4}, {T}: surveil 1
+}

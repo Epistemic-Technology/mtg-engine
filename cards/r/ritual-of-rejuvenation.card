@@ -2,6 +2,8 @@ card "Ritual of Rejuvenation" {
   oracle_id 7c9d8065-9ab0-4468-a11c-383bd036029f
   cost {2}{W}
   type Instant
-  spell: you gains 4 life
-  spell: draw 1 cards
+  spell {
+    you gains 4 life
+    draw 1 cards
+  }
 }

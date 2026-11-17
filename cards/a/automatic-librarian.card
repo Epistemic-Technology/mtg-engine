@@ -1,0 +1,7 @@
+card "Automatic Librarian" {
+  oracle_id eb570331-35da-44b8-b711-ccf7444d8e39
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/2
+  triggered when this enters: scry 2
+}

@@ -1,0 +1,6 @@
+card "Tocasia's Dig Site" {
+  oracle_id a91f93fd-e428-4a36-b1b3-604b47a34287
+  type Land
+  mana {C}
+  activated {3}, {T}: surveil 1
+}

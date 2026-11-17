@@ -1,0 +1,7 @@
+card "Seer's Lantern" {
+  oracle_id 4b3dd7e5-e0b5-4773-bb16-37b757ae74d8
+  cost {3}
+  type Artifact
+  mana {C}
+  activated {2}, {T}: scry 1
+}

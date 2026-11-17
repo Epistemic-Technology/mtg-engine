@@ -2,6 +2,8 @@ card "Bladebrand" {
   oracle_id b9cf9f1e-0280-43b6-9d58-262052dcb8a8
   cost {1}{B}
   type Instant
-  spell: target creature gains deathtouch
-  spell: draw 1 cards
+  spell {
+    target creature gains deathtouch
+    draw 1 cards
+  }
 }

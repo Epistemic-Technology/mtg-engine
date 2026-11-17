@@ -1,0 +1,7 @@
+card "Desert Cerodon" {
+  oracle_id 6ad18589-ece4-4809-80f6-6764d2822372
+  cost {5}{R}
+  type Creature — Beast
+  pt 6/4
+  cycling {R}
+}

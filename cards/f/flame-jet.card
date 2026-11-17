@@ -1,0 +1,7 @@
+card "Flame Jet" {
+  oracle_id 8a9d6a30-e2c2-4da5-ad3b-d64fb2b5543c
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to target player or planeswalker
+  cycling {2}
+}

@@ -1,0 +1,6 @@
+card "Spark Jolt" {
+  oracle_id f24634f3-49aa-4362-8faa-93598b9324d9
+  cost {R}
+  type Instant
+  spell: deal 1 damage to any target; scry 1
+}

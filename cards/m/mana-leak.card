@@ -1,0 +1,6 @@
+card "Mana Leak" {
+  oracle_id c61fe162-2202-4e56-9ba0-393547f9875f
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {3}
+}

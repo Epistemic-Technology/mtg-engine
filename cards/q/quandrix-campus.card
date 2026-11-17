@@ -1,0 +1,7 @@
+card "Quandrix Campus" {
+  oracle_id 172f86b6-9580-4eb2-b7dc-2a44277d978b
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {4}, {T}: scry 1
+}

@@ -2,6 +2,8 @@ card "Moment of Defiance" {
   oracle_id 257f81fb-b3c9-4ebe-9889-dd0ef960bba3
   cost {2}{B}
   type Instant
-  spell: target creature gets +2/+1 and gains lifelink
-  spell: draw 1 cards
+  spell {
+    target creature gets +2/+1 and gains lifelink
+    draw 1 cards
+  }
 }

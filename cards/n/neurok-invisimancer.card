@@ -1,0 +1,8 @@
+card "Neurok Invisimancer" {
+  oracle_id e7425964-0028-4156-9037-b303b00e7e11
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords can't be blocked
+  triggered when this enters: target creature can't be blocked
+}

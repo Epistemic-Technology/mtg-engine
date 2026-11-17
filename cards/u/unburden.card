@@ -1,0 +1,7 @@
+card "Unburden" {
+  oracle_id 97acd3aa-ae4a-4e9d-a5b9-36eaba158735
+  cost {1}{B}{B}
+  type Sorcery
+  spell: target player discards 2 cards
+  cycling {2}
+}

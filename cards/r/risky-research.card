@@ -1,0 +1,6 @@
+card "Risky Research" {
+  oracle_id 47d52cd7-d72f-455f-aad3-70f08d54691f
+  cost {2}{B}
+  type Sorcery
+  spell: surveil 2 then draw 2 cards; you loses 2 life
+}

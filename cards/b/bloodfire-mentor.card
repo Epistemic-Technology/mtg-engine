@@ -1,0 +1,7 @@
+card "Bloodfire Mentor" {
+  oracle_id 2c47319a-4062-4aec-b68a-e8e8f023cf86
+  cost {2}{R}
+  type Creature — Efreet Shaman
+  pt 0/5
+  activated {2}{U}, {T}: draw 1 cards then discard 1 cards
+}

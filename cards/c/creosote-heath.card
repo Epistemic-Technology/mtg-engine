@@ -1,0 +1,7 @@
+card "Creosote Heath" {
+  oracle_id c116b787-5f7e-47ef-a694-58709770dd32
+  type Land — Desert
+  enters tapped
+  triggered when this enters: deal 1 damage to target opponent
+  mana {G} or {W}
+}

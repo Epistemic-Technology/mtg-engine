@@ -1,0 +1,8 @@
+card "Brine Shaman" {
+  oracle_id 3e3e2f71-2159-4f83-a9c1-a67ecac8a711
+  cost {1}{B}
+  type Creature — Human Cleric Shaman
+  pt 1/1
+  activated {T}, sacrifice creature: target creature gets +2/+2
+  activated {1}{U}{U}, sacrifice creature: counter target creature spell
+}

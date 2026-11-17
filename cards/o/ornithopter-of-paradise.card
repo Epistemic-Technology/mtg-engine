@@ -1,0 +1,8 @@
+card "Ornithopter of Paradise" {
+  oracle_id 3a940dfa-a026-4969-8981-ef90cdfbe9ef
+  cost {2}
+  type Artifact Creature — Thopter
+  pt 0/2
+  keywords flying
+  mana any
+}

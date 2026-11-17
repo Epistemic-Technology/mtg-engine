@@ -1,0 +1,7 @@
+card "Ogre Taskmaster" {
+  oracle_id 5604f04e-fd72-41bf-906f-eb89d4a3475d
+  cost {3}{R}
+  type Creature — Ogre
+  pt 4/3
+  keywords can't block
+}

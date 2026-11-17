@@ -1,0 +1,8 @@
+card "Bloodcrazed Neonate" {
+  oracle_id 7319eec8-48ba-4238-bce1-450abcae73a6
+  cost {1}{R}
+  type Creature — Vampire
+  pt 2/1
+  keywords attacks each combat if able
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

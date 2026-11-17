@@ -1,0 +1,7 @@
+card "Frilled Sea Serpent" {
+  oracle_id 6dc534e8-e22b-4e3c-aa30-c6e4c84f698c
+  cost {4}{U}{U}
+  type Creature — Serpent
+  pt 4/6
+  activated {5}{U}{U}: this can't be blocked
+}

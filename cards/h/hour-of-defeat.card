@@ -1,0 +1,6 @@
+card "Hour of Defeat" {
+  oracle_id 2774fcb7-8988-4a18-b5ec-7534dd8b2e05
+  cost {3}{B}
+  type Instant
+  spell: destroy target creature; surveil 1
+}

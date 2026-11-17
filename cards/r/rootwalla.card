@@ -1,0 +1,7 @@
+card "Rootwalla" {
+  oracle_id 4dda5f21-11d6-40ce-be24-7c9529272c25
+  cost {2}{G}
+  type Creature — Lizard
+  pt 2/2
+  activated {1}{G}, once: this gets +2/+2
+}

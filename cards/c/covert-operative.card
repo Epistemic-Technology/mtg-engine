@@ -1,0 +1,7 @@
+card "Covert Operative" {
+  oracle_id c1f33eac-0f85-4f0f-8562-1737b5f6b23a
+  cost {4}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  keywords can't be blocked
+}

@@ -1,0 +1,8 @@
+card "Hammerhand" {
+  oracle_id 8efa0026-c3f8-44e0-8f55-729f9c30ac93
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: target creature can't block
+  static enchanted: +1/+1, has haste
+}

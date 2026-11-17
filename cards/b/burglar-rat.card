@@ -1,0 +1,7 @@
+card "Burglar Rat" {
+  oracle_id 2f807301-37df-4724-871a-08e3512b07b3
+  cost {1}{B}
+  type Creature — Rat
+  pt 1/1
+  triggered when this enters: each opponent discards 1 cards
+}

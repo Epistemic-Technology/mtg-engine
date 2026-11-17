@@ -1,0 +1,9 @@
+card "Enter the Enigma" {
+  oracle_id 67554654-e751-4679-9e92-f3588525ae4f
+  cost {U}
+  type Sorcery
+  spell {
+    target creature can't be blocked
+    draw 1 cards
+  }
+}

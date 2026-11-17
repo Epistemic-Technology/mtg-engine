@@ -1,0 +1,7 @@
+card "Necrogen Spellbomb" {
+  oracle_id 34993bd9-53bf-46b2-bc20-b6daf82382d9
+  cost {1}
+  type Artifact
+  activated {B}, sacrifice this: target player discards 1 cards
+  activated {1}, sacrifice this: draw 1 cards
+}

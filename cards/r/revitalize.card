@@ -2,6 +2,8 @@ card "Revitalize" {
   oracle_id b1385b03-cb4b-4812-857f-7421f1df39af
   cost {1}{W}
   type Instant
-  spell: you gains 3 life
-  spell: draw 1 cards
+  spell {
+    you gains 3 life
+    draw 1 cards
+  }
 }

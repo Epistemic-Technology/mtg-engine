@@ -1,0 +1,9 @@
+card "Stun" {
+  oracle_id d3491972-44c5-4962-a680-42b79357a189
+  cost {1}{R}
+  type Instant
+  spell {
+    target creature can't block
+    draw 1 cards
+  }
+}

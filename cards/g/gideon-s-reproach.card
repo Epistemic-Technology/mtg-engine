@@ -1,0 +1,6 @@
+card "Gideon's Reproach" {
+  oracle_id ec43d67c-2254-4782-8bd4-3318b25907e6
+  cost {1}{W}
+  type Instant
+  spell: deal 4 damage to target attacking or blocking creature
+}

@@ -1,0 +1,7 @@
+card "Utvara Scalper" {
+  oracle_id 58e754ad-88b4-47c5-b105-8b50e54143c8
+  cost {1}{R}
+  type Creature — Goblin Scout
+  pt 1/2
+  keywords flying, attacks each combat if able
+}

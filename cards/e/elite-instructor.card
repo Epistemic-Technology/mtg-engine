@@ -1,0 +1,7 @@
+card "Elite Instructor" {
+  oracle_id 6536f72e-ff4e-4cda-bc7d-909145adf829
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

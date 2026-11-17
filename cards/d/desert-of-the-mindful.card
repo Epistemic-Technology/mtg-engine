@@ -1,0 +1,7 @@
+card "Desert of the Mindful" {
+  oracle_id 508f9e7e-2ff7-4593-b0a9-0612d7b5d646
+  type Land — Desert
+  enters tapped
+  mana {U}
+  cycling {1}{U}
+}

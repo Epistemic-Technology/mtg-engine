@@ -2,6 +2,8 @@ card "Ember Shot" {
   oracle_id 1f300320-ad98-4812-b34b-54885a86aee9
   cost {6}{R}
   type Instant
-  spell: deal 3 damage to any target
-  spell: draw 1 cards
+  spell {
+    deal 3 damage to any target
+    draw 1 cards
+  }
 }

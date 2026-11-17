@@ -1,0 +1,8 @@
+card "Imperious Inkmage" {
+  oracle_id fcd31653-4964-46a6-820c-f17e8cbaa1fa
+  cost {1}{W}{B}
+  type Creature — Orc Warlock
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: surveil 2
+}

@@ -1,0 +1,7 @@
+card "Snarling Wolf" {
+  oracle_id 2c181479-6df0-44ef-a7ce-d1d592735bc6
+  cost {G}
+  type Creature — Wolf
+  pt 1/1
+  activated {1}{G}, once: this gets +2/+2
+}

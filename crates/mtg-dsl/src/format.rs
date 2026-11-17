@@ -11,7 +11,7 @@ use mtg_core::mana::Mana;
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Kind, Mod, Recipient,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
     Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
@@ -105,6 +105,7 @@ impl Fmt {
                     match &targets[i] {
                         Target::Spec(s) => target_phrase(*s),
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
+                        Target::Filter(f) => format!("target {}", filter(f)),
                     }
                 }
             }
@@ -205,11 +206,17 @@ impl Fmt {
     }
 
     fn sentence(&mut self, s: &Sentence, targets: &[Target]) -> String {
-        s.effects
-            .iter()
-            .map(|e| self.effect(e, targets))
-            .collect::<Vec<_>>()
-            .join(" and ")
+        let mut out = String::new();
+        for (i, e) in s.effects.iter().enumerate() {
+            if i > 0 {
+                out.push_str(match s.joins.get(i - 1) {
+                    Some(Join::Then) => " then ",
+                    _ => " and ",
+                });
+            }
+            out.push_str(&self.effect(e, targets));
+        }
+        out
     }
 
     fn line(&mut self, ss: &[Sentence], targets: &[Target]) -> String {
@@ -338,6 +345,32 @@ impl Fmt {
                 s
             }
             Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
+            Effect::Counter { to } => format!("counter {}", self.recipient(*to, t)),
+            Effect::CounterUnlessPays { to, mana } => format!(
+                "counter {} unless its controller pays {mana}",
+                self.recipient(*to, t)
+            ),
+            Effect::Scry(n) => format!("scry {}", num(*n)),
+            Effect::Surveil(n) => format!("surveil {}", num(*n)),
+            Effect::Discard { count, who } => match who {
+                None => format!("discard {} {}", num(*count), cards(*count)),
+                Some(w) => {
+                    let v = if *w == Recipient::You {
+                        "discard"
+                    } else {
+                        "discards"
+                    };
+                    format!(
+                        "{} {v} {} {}",
+                        self.recipient(*w, t),
+                        num(*count),
+                        cards(*count)
+                    )
+                }
+            },
+            Effect::Fight { a, b } => {
+                format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
+            }
             Effect::Animate {
                 to,
                 types,
@@ -494,6 +527,9 @@ pub fn filter(f: &Filter) -> String {
     for s in &f.not_subtypes {
         words.push(format!("non-{s}"));
     }
+    for c in &f.not_colors {
+        words.push(format!("non{}", color_name(*c)));
+    }
     if let Some(colors) = &f.colors {
         words.extend(colors.iter().map(|c| color_name(*c).to_string()));
     }
@@ -502,8 +538,12 @@ pub fn filter(f: &Filter) -> String {
     if f.subtypes.is_empty() && f.types.is_empty() && !f.enchanted && f.relation != Relation::This {
         words.push("permanent".to_string());
     }
+    if !f.keywords.is_empty() {
+        words.push(format!("with {}", keywords(&f.keywords)));
+    }
     match f.who {
         Some(Who::You) => words.push("you control".to_string()),
+        Some(Who::Opponents) if f.dont_control => words.push("you don't control".to_string()),
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
         Some(Who::Any) | None => {}
     }
@@ -615,7 +655,9 @@ fn cost_text(c: &Cost) -> String {
                 None => {}
             },
             CostItem::Discard => {
-                if c.discard > 0 {
+                if c.discard_self {
+                    parts.push("discard this".to_string());
+                } else if c.discard > 0 {
                     parts.push(format!(
                         "discard {} {}",
                         c.discard,
@@ -632,6 +674,9 @@ fn cost_text(c: &Cost) -> String {
     }
     if c.sorcery && c.loyalty.is_none() {
         parts.push("sorcery".to_string());
+    }
+    if c.once {
+        parts.push("once".to_string());
     }
     if parts.is_empty() {
         "none".to_string()
@@ -733,6 +778,7 @@ fn body(out: &mut String, indent: &str, head: &str, ss: &[Sentence], targets: &[
     }
 }
 
+#[allow(clippy::too_many_lines)] // one arm per statement kind
 fn ability(out: &mut String, ability: &Ability, indent: &str) {
     match ability {
         Ability::Keyword(k) => {
@@ -744,6 +790,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
                 .map(|m| match m {
                     Mana::Colorless => "{C}".to_string(),
                     Mana::Colored(c) => format!("{{{}}}", c.letter()),
+                    Mana::Any => "any".to_string(),
                 })
                 .collect();
             let _ = writeln!(out, "{indent}mana {}", syms.join(" or "));
@@ -752,6 +799,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
             let phrase = match t {
                 Target::Spec(s) => target_phrase(*s).replace("target ", ""),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
+                Target::Filter(f) => filter(f),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
@@ -768,9 +816,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str) {
             targets,
             effects,
             equip,
+            cycling,
         } => {
             if *equip {
                 let _ = writeln!(out, "{indent}equip {}", cost.mana);
+                return;
+            }
+            if *cycling {
+                let _ = writeln!(out, "{indent}cycling {}", cost.mana);
                 return;
             }
             if let Some(n) = cost.loyalty {

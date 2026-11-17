@@ -1,0 +1,7 @@
+card "Riot Piker" {
+  oracle_id 864c81e4-d612-4939-b4df-4b125cb8cdf2
+  cost {1}{R}
+  type Creature — Goblin Berserker
+  pt 2/1
+  keywords first strike, attacks each combat if able
+}

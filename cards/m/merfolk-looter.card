@@ -1,0 +1,7 @@
+card "Merfolk Looter" {
+  oracle_id 67362406-b1ca-49e2-800d-9050bfe8742a
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  activated {T}: draw 1 cards then discard 1 cards
+}

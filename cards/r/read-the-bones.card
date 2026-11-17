@@ -1,0 +1,6 @@
+card "Read the Bones" {
+  oracle_id 5bf4d8d9-a2b2-4dba-ac05-9d4470a89db2
+  cost {2}{B}
+  type Sorcery
+  spell: scry 2 then draw 2 cards; you loses 2 life
+}

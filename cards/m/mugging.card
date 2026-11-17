@@ -1,0 +1,6 @@
+card "Mugging" {
+  oracle_id 2e4f08c2-1bad-4a85-8aad-9bb34a5579b1
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to target creature; that creature can't block
+}

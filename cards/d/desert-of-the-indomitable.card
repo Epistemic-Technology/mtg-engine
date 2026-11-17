@@ -1,0 +1,7 @@
+card "Desert of the Indomitable" {
+  oracle_id 852d4dc3-404d-4565-99e9-1eac8f6eca5e
+  type Land — Desert
+  enters tapped
+  mana {G}
+  cycling {1}{G}
+}

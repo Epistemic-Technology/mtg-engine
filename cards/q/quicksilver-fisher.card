@@ -1,0 +1,8 @@
+card "Quicksilver Fisher" {
+  oracle_id b3e3d037-992b-4718-913d-7ab509d2047e
+  cost {3}{U}{U}
+  type Creature — Phyrexian Drake
+  pt 4/3
+  keywords flying
+  triggered when this enters: draw 1 cards then discard 1 cards
+}

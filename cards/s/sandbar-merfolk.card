@@ -1,0 +1,7 @@
+card "Sandbar Merfolk" {
+  oracle_id 7d6e5a88-a7fd-466c-a9f8-5015e3400176
+  cost {U}
+  type Creature — Merfolk
+  pt 1/1
+  cycling {2}
+}

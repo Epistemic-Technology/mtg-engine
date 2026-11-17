@@ -270,7 +270,9 @@ impl ManaPool {
     pub fn add(&mut self, mana: Mana) {
         match mana {
             Mana::Colored(c) => self.colored[c as usize] += 1,
-            Mana::Colorless => self.colorless += 1,
+            // A payment plan names the color before mana is added; treat a
+            // stray `Any` as colorless.
+            Mana::Colorless | Mana::Any => self.colorless += 1,
         }
     }
 
@@ -325,6 +327,8 @@ impl ManaPool {
 pub enum Mana {
     Colored(Color),
     Colorless,
+    /// "Add one mana of any color": the color is chosen as it is spent.
+    Any,
 }
 
 #[cfg(test)]

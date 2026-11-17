@@ -1,0 +1,7 @@
+card "Mana Geode" {
+  oracle_id 0844f4e6-2b98-4d09-a5c5-92f0a3b6a517
+  cost {3}
+  type Artifact
+  triggered when this enters: scry 1
+  mana any
+}

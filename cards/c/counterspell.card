@@ -1,0 +1,6 @@
+card "Counterspell" {
+  oracle_id cc187110-1148-4090-bbb8-e205694a39f5
+  cost {U}{U}
+  type Instant
+  spell: counter target spell
+}

@@ -1,0 +1,7 @@
+card "Soldier Replica" {
+  oracle_id 702693f0-09f6-4f19-8dc9-6b31641e3347
+  cost {3}
+  type Artifact Creature — Soldier
+  pt 1/3
+  activated {1}{W}, sacrifice this: deal 3 damage to target attacking or blocking creature
+}

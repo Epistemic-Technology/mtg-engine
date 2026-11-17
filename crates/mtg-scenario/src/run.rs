@@ -354,7 +354,12 @@ impl Runner {
     fn decide(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
         match d.kind {
             DecisionKind::Mulligan => Ok(index_of(d, &Choice::Keep).unwrap_or(0)),
-            DecisionKind::Bottom => Ok(0),
+            // Bottom nothing; keep everything on top; put nothing in the
+            // graveyard; pay a counter's ransom.
+            DecisionKind::Bottom
+            | DecisionKind::Scry { .. }
+            | DecisionKind::Surveil { .. }
+            | DecisionKind::PayOrCounter { .. } => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
                 if self.state().objects[spell].kind == ObjKind::Ability {
@@ -429,7 +434,8 @@ impl Runner {
         };
         let line = self.current_cast_line();
         let found = d.options.iter().position(|c| match c {
-            Choice::Sacrifice(id) | Choice::Discard(id) => self.state().name_of(*id) == name,
+            Choice::Sacrifice(id) => self.state().name_of(*id) == name,
+            Choice::Discard { def, .. } => self.state().pool.get(*def).name == name,
             _ => false,
         });
         found.map(idx_u32).ok_or_else(|| Failure {
@@ -1043,6 +1049,11 @@ impl Runner {
                 Choice::Attackers(set) => same_set(set, &queue),
                 _ => false,
             });
+            // Unscripted, declare no attackers; when a creature must attack
+            // (CR 508.1d) that is not offered, so take the first declaration.
+            if idx.is_none() && queue.is_empty() {
+                return Ok(0);
+            }
             return idx.map(idx_u32).ok_or_else(|| Failure {
                 line,
                 message: format!(
@@ -1055,7 +1066,8 @@ impl Runner {
         // Incremental mode.
         let Some(next) = queue.first().copied() else {
             self.attack_queue = None;
-            return index_of(d, &Choice::Done).ok_or_else(|| self.unexpected(d, "no Done option"));
+            // No `Done` means a creature must attack: add the first offered.
+            return Ok(index_of(d, &Choice::Done).unwrap_or(0));
         };
         self.attack_queue = Some(queue[1..].to_vec());
         index_of(d, &Choice::AddAttacker(next)).ok_or_else(|| Failure {
@@ -1223,7 +1235,11 @@ impl Runner {
             unreachable!()
         };
         let id = self.in_hand(a.line, d.player, name)?;
-        let found = index_of(d, &Choice::Discard(id));
+        let found = d
+            .options
+            .iter()
+            .position(|c| matches!(c, Choice::Discard { card, .. } if *card == id))
+            .map(idx_u32);
         match (a.illegal, found) {
             (true, Some(_)) => fail(
                 a.line,
@@ -1289,8 +1305,9 @@ impl Runner {
     /// Resolve an object reference against the battlefield. One match is
     /// required unless the reference names a controller, in which case the
     /// first match under that controller is used.
-    /// A named object on the battlefield (or, failing that, a card in a
-    /// graveyard, for "target creature card in your graveyard").
+    /// A named object on the battlefield (or, failing that, a spell on the
+    /// stack, or a card in a graveyard, for "target creature card in your
+    /// graveyard").
     fn resolve_obj(&self, line: usize, r: &ObjRef) -> Res<ObjId> {
         let st = self.state();
         let mut matches: Vec<ObjId> = st
@@ -1300,6 +1317,17 @@ impl Runner {
             .filter(|id| r.player.is_none_or(|p| st.objects[*id].controller == p))
             .filter(|id| st.name_of(*id) == r.name)
             .collect();
+        if matches.is_empty() {
+            // A spell on the stack, for "target spell".
+            matches = st
+                .stack
+                .iter()
+                .copied()
+                .filter(|id| st.objects[*id].kind != ObjKind::Ability)
+                .filter(|id| r.player.is_none_or(|p| st.objects[*id].controller == p))
+                .filter(|id| st.name_of(*id) == r.name)
+                .collect();
+        }
         if matches.is_empty() {
             matches = st
                 .players
@@ -1660,7 +1688,9 @@ impl Runner {
             }
             Choice::Done => "done".into(),
             Choice::Division(div) => format!("assign {}", self.describe_division(div)),
-            Choice::Discard(id) => format!("discard {}", self.describe_ids(&[*id])),
+            Choice::Discard { def, .. } => {
+                format!("discard {}", self.state().pool.get(*def).name)
+            }
             Choice::Trigger(i) => format!(
                 "trigger of \"{}\"",
                 self.state()
@@ -1687,6 +1717,8 @@ impl Runner {
                 out
             }
             Choice::X(n) => format!("X = {n}"),
+            Choice::ScryBottom(ids) => format!("bottom {}", self.describe_ids(ids)),
+            Choice::SurveilGraveyard(ids) => format!("graveyard {}", self.describe_ids(ids)),
             Choice::Sacrifice(id) => format!("sacrifice {}", self.describe_ids(&[*id])),
             Choice::AttackTarget(t) => format!("attack {}", self.describe_target(*t)),
             Choice::KeepLegend { def, age, .. } => {

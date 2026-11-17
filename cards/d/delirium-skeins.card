@@ -1,0 +1,6 @@
+card "Delirium Skeins" {
+  oracle_id 7397036f-8114-47cc-b52f-c532a6845d16
+  cost {2}{B}
+  type Sorcery
+  spell: each player discards 3 cards
+}

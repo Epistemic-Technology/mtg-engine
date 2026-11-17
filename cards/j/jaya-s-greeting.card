@@ -1,0 +1,6 @@
+card "Jaya's Greeting" {
+  oracle_id 1be474c6-5a9f-4c58-adc6-c1508348adea
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; scry 1
+}

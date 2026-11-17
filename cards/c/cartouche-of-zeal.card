@@ -1,0 +1,8 @@
+card "Cartouche of Zeal" {
+  oracle_id 4fa23be3-a192-45ab-bdf6-646d4be305e1
+  cost {R}
+  type Enchantment — Aura Cartouche
+  enchant creature you control
+  triggered when this enters: target creature can't block
+  static enchanted: +1/+1, has haste
+}

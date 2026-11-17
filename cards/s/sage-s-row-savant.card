@@ -1,0 +1,7 @@
+card "Sage's Row Savant" {
+  oracle_id 6eaf5cdc-2843-4167-bd18-df4c2ac73ac0
+  cost {1}{U}
+  type Creature — Vedalken Wizard
+  pt 2/1
+  triggered when this enters: scry 2
+}

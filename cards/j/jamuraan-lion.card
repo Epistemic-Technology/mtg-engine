@@ -1,0 +1,7 @@
+card "Jamuraan Lion" {
+  oracle_id b558541f-ae57-41f7-a5bd-e23fa35e68b4
+  cost {2}{W}
+  type Creature — Cat
+  pt 3/1
+  activated {W}, {T}: target creature can't block
+}

@@ -1,0 +1,7 @@
+card "Chrome Cat" {
+  oracle_id 0e2f8758-7457-4b54-ae61-a9c68cea4a23
+  cost {3}
+  type Artifact Creature — Cat
+  pt 3/2
+  triggered when this enters: scry 1
+}

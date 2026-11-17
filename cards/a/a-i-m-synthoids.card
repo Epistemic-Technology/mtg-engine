@@ -1,0 +1,7 @@
+card "A.I.M. Synthoids" {
+  oracle_id 10916f33-aaa6-43a1-9835-b60fd061161f
+  cost {2}
+  type Artifact Creature — Robot Villain
+  pt 1/3
+  triggered when this enters: surveil 2
+}

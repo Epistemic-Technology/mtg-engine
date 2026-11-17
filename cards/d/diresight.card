@@ -1,0 +1,6 @@
+card "Diresight" {
+  oracle_id a7b12df9-fddd-4cd4-8c09-d54a47867ab6
+  cost {2}{B}
+  type Sorcery
+  spell: surveil 2 then draw 2 cards; you loses 2 life
+}

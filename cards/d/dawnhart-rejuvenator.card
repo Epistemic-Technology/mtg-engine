@@ -1,0 +1,8 @@
+card "Dawnhart Rejuvenator" {
+  oracle_id c6e92911-a100-43eb-ab4b-3778b0db1918
+  cost {3}{G}
+  type Creature — Human Warlock
+  pt 2/4
+  triggered when this enters: you gains 3 life
+  mana any
+}

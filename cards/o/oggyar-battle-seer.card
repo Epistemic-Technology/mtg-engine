@@ -1,0 +1,8 @@
+card "Oggyar Battle-Seer" {
+  oracle_id 645005dd-3438-4b88-bb19-561f9679a022
+  cost {3}{U}{R}
+  type Creature — Ogre Shaman
+  pt 3/4
+  keywords haste
+  activated {T}: scry 1
+}

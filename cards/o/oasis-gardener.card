@@ -1,0 +1,8 @@
+card "Oasis Gardener" {
+  oracle_id 210a130c-d5d3-43bf-8a80-d796c37242e8
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  triggered when this enters: you gains 2 life
+  mana any
+}

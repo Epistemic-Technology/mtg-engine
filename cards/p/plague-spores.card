@@ -1,0 +1,6 @@
+card "Plague Spores" {
+  oracle_id f79f5cb7-d238-41ab-85f0-eb21cc6bf561
+  cost {4}{B}{R}
+  type Sorcery
+  spell: destroy target nonblack creature and target land without regeneration
+}
