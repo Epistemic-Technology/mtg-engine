@@ -24,6 +24,10 @@ cargo run --release -p mtg-cli -- bench
 cargo run -p mtg-cli -- scenario              # run the rules-test corpus in scenarios/
 ```
 
+Real games can be recorded from MTG Arena for testing the engine against
+(`mtg arena watch`, `mtg arena show`); see
+[crates/mtg-arena/README.md](crates/mtg-arena/README.md).
+
 Rules tests are written as scenarios (set up a board, script actions,
 assert the result); see `scenarios/` and
 [crates/mtg-scenario/SYNTAX.md](crates/mtg-scenario/SYNTAX.md).
@@ -38,6 +42,7 @@ crates/
   mtg-scenario/  scenario test DSL and runner
   mtg-agents/    baseline agents
   mtg-sim/       batch simulation, fuzzing, benchmarks
+  mtg-arena/     records MTG Arena matches from the client log as engine test traces
   mtg-cli/       human/debug CLI
 scenarios/       rules-test corpus (*.scn)
 data/

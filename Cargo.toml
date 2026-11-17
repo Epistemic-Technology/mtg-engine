@@ -7,6 +7,7 @@ members = [
     "crates/mtg-scenario",
     "crates/mtg-agents",
     "crates/mtg-sim",
+    "crates/mtg-arena",
     "crates/mtg-cli",
 ]
 

@@ -8,6 +8,7 @@ use clap::{Parser, Subcommand};
 use mtg_core::card::m1_pool;
 use mtg_core::record::GameRecord;
 
+mod arena;
 mod play;
 
 #[derive(Parser)]
@@ -67,6 +68,8 @@ enum Command {
         #[arg(long, short)]
         verbose: bool,
     },
+    /// Record MTG Arena matches and translate them for engine testing.
+    Arena(arena::ArenaArgs),
     /// Measure state clone cost on a mid-game state.
     Bench {
         #[arg(long, default_value_t = 200)]
@@ -80,6 +83,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Version => println!("mtg-engine {}", mtg_core::ENGINE_VERSION),
+        Command::Arena(args) => arena::run(args)?,
         Command::Decks => {
             for n in mtg_sim::decks::NAMES {
                 println!("{n}");

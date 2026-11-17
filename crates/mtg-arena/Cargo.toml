@@ -1,0 +1,18 @@
+[package]
+name = "mtg-arena"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Records MTG Arena matches from the client log and translates them into traces for engine testing"
+
+[dependencies]
+anyhow.workspace = true
+flate2.workspace = true
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true
