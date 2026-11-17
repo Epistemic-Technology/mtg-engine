@@ -6,7 +6,7 @@ use super::MAX_DIVISION_OPTIONS;
 use crate::card::Keyword;
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{Attacker, DamageAssignment, Flow, GameState, Target};
+use crate::state::{Attacker, DamageAssignment, Flow, GameState, Target, Zone};
 
 impl GameState {
     // ----- combat -----------------------------------------------------------------------
@@ -96,10 +96,50 @@ impl GameState {
         true
     }
 
+    /// Attackers declared. If the defender controls a planeswalker, each
+    /// attacker chooses what it attacks (CR 508.1a); otherwise they all
+    /// attack the defending player.
     pub(super) fn finish_attackers(&mut self, set: Vec<ObjId>) {
         let defender = self.opponent(self.active_player);
+        if !set.is_empty() && self.planeswalkers_of(defender).next().is_some() {
+            self.flow = crate::state::Flow::AttackTargets {
+                chosen: Vec::new(),
+                remaining: set,
+            };
+            return;
+        }
+        let chosen = set
+            .into_iter()
+            .map(|id| (id, Target::Player(defender)))
+            .collect();
+        self.finish_attackers_with(chosen);
+    }
+
+    /// Planeswalkers `p` controls.
+    pub(super) fn planeswalkers_of(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {
+        self.permanents_of(p).filter(move |id| {
+            self.characteristics(*id)
+                .is_some_and(|c| c.is_planeswalker())
+        })
+    }
+
+    /// Where an attacker's combat damage goes: the player, or the
+    /// planeswalker if it is still on the battlefield (CR 506.4c: an
+    /// attacker whose planeswalker left deals no combat damage).
+    fn attack_target_live(&self, a: &Attacker) -> Option<Target> {
+        match a.attacking {
+            Target::Player(_) => Some(a.attacking),
+            Target::Object(id) => self
+                .objects
+                .get(id)
+                .filter(|o| o.zone == Zone::Battlefield)
+                .map(|_| a.attacking),
+        }
+    }
+
+    pub(super) fn finish_attackers_with(&mut self, set: Vec<(ObjId, Target)>) {
         let mut attackers = Vec::new();
-        for id in set {
+        for (id, target) in set {
             // CR 508.1f: attacking taps the creature unless it has vigilance.
             if !self
                 .characteristics(id)
@@ -107,7 +147,6 @@ impl GameState {
             {
                 self.tap(id);
             }
-            let target = Target::Player(defender);
             self.emit(Event::Attack {
                 attacker: id,
                 target,
@@ -194,17 +233,21 @@ impl GameState {
                 .filter(|b| self.is_creature_on_battlefield(*b))
                 .collect();
             if !a.blocked {
-                assigned.push(DamageAssignment {
-                    source: a.id,
-                    target: a.attacking,
-                    amount: power,
-                });
-            } else if live_blockers.is_empty() {
-                // CR 510.1c: no damage; trample assigns it all to the player (CR 702.19e).
-                if c.has(Keyword::Trample) {
+                if let Some(target) = self.attack_target_live(a) {
                     assigned.push(DamageAssignment {
                         source: a.id,
-                        target: a.attacking,
+                        target,
+                        amount: power,
+                    });
+                }
+            } else if live_blockers.is_empty() {
+                // CR 510.1c: no damage; trample assigns it all to the player (CR 702.19e).
+                if c.has(Keyword::Trample)
+                    && let Some(target) = self.attack_target_live(a)
+                {
+                    assigned.push(DamageAssignment {
+                        source: a.id,
+                        target,
                         amount: power,
                     });
                 }
@@ -278,8 +321,9 @@ impl GameState {
             .iter()
             .map(|b| self.lethal_for(attacker, *b))
             .collect();
-        if trample {
-            recipients.push(a.attacking);
+        let through = trample.then(|| self.attack_target_live(&a)).flatten();
+        if let Some(t) = through {
+            recipients.push(t);
         }
         let n = recipients.len();
         // Enumerate compositions of `power` into n parts, filtering trample's

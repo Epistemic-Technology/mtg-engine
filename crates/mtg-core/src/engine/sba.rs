@@ -115,6 +115,11 @@ impl GameState {
                 let Some(c) = self.characteristics(id) else {
                     continue;
                 };
+                // 704.5i: a planeswalker with no loyalty goes to the graveyard.
+                if c.is_planeswalker() && o.counters(CounterKind::Loyalty) == 0 {
+                    to_graveyard.push(id);
+                    continue;
+                }
                 if !c.is_creature() {
                     continue;
                 }

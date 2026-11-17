@@ -639,6 +639,8 @@ pub enum CdaCount {
     /// Permanents matching a filter, judged from the controller (Nightmare:
     /// "Swamps you control").
     Permanents(ObjFilter),
+    /// The controller's life total (Ajani Goldmane's Avatar).
+    ControllerLife,
 }
 
 impl Modification {
@@ -683,6 +685,8 @@ pub struct StaticAbility {
 pub enum CounterKind {
     PlusOnePlusOne,
     MinusOneMinusOne,
+    /// Loyalty counters on a planeswalker (CR 306.5).
+    Loyalty,
 }
 
 /// What a spell's target must be. One entry per "target" word in the text.
@@ -693,6 +697,10 @@ pub enum TargetSpec {
     Creature,
     /// "target player or planeswalker".
     PlayerOrPlaneswalker,
+    /// "target creature or planeswalker".
+    CreatureOrPlaneswalker,
+    /// "target land".
+    Land,
     Player,
     /// "target tapped creature".
     TappedCreature,
@@ -755,11 +763,42 @@ pub enum Recipient {
     CreatedObject,
 }
 
+/// A number in an effect's text: a constant, or X as chosen when the spell
+/// was cast (CR 107.3).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Num {
+    N(u32),
+    X,
+}
+
+impl Num {
+    pub const fn eval(self, x: u32) -> u32 {
+        match self {
+            Num::N(n) => n,
+            Num::X => x,
+        }
+    }
+
+    /// A value for heuristics that have no X in hand.
+    pub const fn hint(self) -> u32 {
+        match self {
+            Num::N(n) => n,
+            Num::X => 3,
+        }
+    }
+}
+
+impl From<u32> for Num {
+    fn from(n: u32) -> Self {
+        Num::N(n)
+    }
+}
+
 /// Effects of spells and abilities.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Effect {
     DealDamage {
-        amount: u32,
+        amount: Num,
         to: Recipient,
     },
     /// +N/+N until end of turn (CR 611.2a; layer 7c).
@@ -772,21 +811,21 @@ pub enum Effect {
         to: Recipient,
     },
     GainLife {
-        amount: u32,
+        amount: Num,
         who: Recipient,
     },
     LoseLife {
-        amount: u32,
+        amount: Num,
         who: Recipient,
     },
     DrawCards {
-        count: u32,
+        count: Num,
         who: Recipient,
     },
     /// Put counters on a permanent (CR 122.6).
     AddCounters {
         kind: CounterKind,
-        count: u32,
+        count: Num,
         to: Recipient,
     },
     /// Return a card to its owner's hand (from the battlefield or a
@@ -797,8 +836,32 @@ pub enum Effect {
     /// Remove counters from a permanent.
     RemoveCounters {
         kind: CounterKind,
-        count: u32,
+        count: Num,
         to: Recipient,
+    },
+    /// Remove all counters from the recipient (Vampire Hexmage).
+    RemoveAllCounters {
+        to: Recipient,
+    },
+    /// Give the recipient a regeneration shield until end of turn (CR
+    /// 701.15).
+    Regenerate {
+        to: Recipient,
+    },
+    /// Destroy; "it can't be regenerated" (CR 701.7c).
+    DestroyNoRegen {
+        to: Recipient,
+    },
+    /// The recipient player puts the top `count` cards of their library into
+    /// their graveyard (CR 701.13).
+    Mill {
+        count: Num,
+        who: Recipient,
+    },
+    /// The controller gets an emblem (CR 114) with this definition's
+    /// abilities, in the command zone.
+    CreateEmblem {
+        emblem: CardRef,
     },
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
@@ -834,7 +897,7 @@ pub enum Effect {
     /// control (CR 111).
     CreateToken {
         token: CardRef,
-        count: u32,
+        count: Num,
         who: Recipient,
     },
     /// Attach the ability's source to the recipient (equip, CR 701.3).
@@ -938,6 +1001,9 @@ pub enum Replaces {
     /// +1/+1 counters would be put on a permanent matching `on`, including
     /// as it enters (CR 122.6).
     PlusCounters { on: ObjFilter },
+    /// A permanent would be destroyed (CR 701.7); regeneration shields
+    /// (CR 701.15) replace this.
+    Destroy { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
 }
@@ -962,7 +1028,13 @@ pub enum Replacement {
     /// Enters tapped.
     EnterTapped,
     /// Enters with counters.
-    EnterWithCounters { kind: CounterKind, n: u32 },
+    EnterWithCounters { kind: CounterKind, n: Num },
+    /// CR 701.15a: instead of being destroyed, the permanent has all damage
+    /// removed, is tapped, and leaves combat. A stored shield; used once.
+    Regenerate,
+    /// Damage that would be dealt to the controller is dealt to the
+    /// permanent this Aura is attached to instead (Pariah).
+    RedirectToAttached,
 }
 
 /// A replacement or prevention effect (CR 614, 615), either a static
@@ -1093,6 +1165,14 @@ pub enum SacCost {
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
 pub struct Cost {
     pub mana: ManaCost,
+    /// "Pay N life" (CR 119.4: payable only with at least that much life).
+    pub life: u32,
+    /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
+    pub discard: u32,
+    /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
+    /// loyalty counters; nonzero marks the ability as a loyalty ability
+    /// (sorcery speed, one per planeswalker per turn, CR 606.3).
+    pub loyalty: i32,
     /// {T}: tap the source. A creature's {T} ability needs the source to
     /// have been under its controller's control since their most recent
     /// turn began (CR 302.6).
@@ -1104,9 +1184,36 @@ impl Cost {
     pub fn parse(mana: &str) -> Cost {
         Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
+            life: 0,
+            discard: 0,
+            loyalty: 0,
             tap: false,
             sacrifice: None,
         }
+    }
+
+    #[must_use]
+    pub fn loyalty(mut self, n: i32) -> Cost {
+        self.loyalty = n;
+        self
+    }
+
+    #[must_use]
+    pub fn life(mut self, n: u32) -> Cost {
+        self.life = n;
+        self
+    }
+
+    #[must_use]
+    pub fn discard(mut self, n: u32) -> Cost {
+        self.discard = n;
+        self
+    }
+
+    /// Whether paying needs a choice from the player (what to sacrifice or
+    /// discard) beyond mana.
+    pub fn needs_choice(&self) -> bool {
+        matches!(self.sacrifice, Some(SacCost::Filter(_))) || self.discard > 0
     }
 
     #[must_use]
@@ -1260,6 +1367,10 @@ pub struct CardDef {
     pub oracle_text: String,
     /// A token definition (CR 111): created by effects, never in a deck.
     pub token: bool,
+    /// An emblem definition (CR 114): not a card, lives in the command zone.
+    pub emblem: bool,
+    /// A planeswalker's printed loyalty (CR 306.5b).
+    pub loyalty: u32,
     /// What this card's copy effects add to the copiable values of what
     /// they copy (CR 707.9b).
     pub copy_except: Option<CopyExcept>,
@@ -1276,6 +1387,9 @@ pub struct CardDef {
     pub except_ability_ids: AbilitySet,
     #[serde(skip)]
     pub except_flags: DefFlags,
+    /// "As an additional cost to cast this spell, ..." (CR 601.2b, 118.8):
+    /// sacrifice, discard, or life paid alongside the mana cost.
+    pub additional: Cost,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u8,
@@ -1306,6 +1420,9 @@ impl DefFlags {
     const CONTROL_STATIC: u8 = 16;
     const EQUIPMENT: u8 = 32;
     const MID_CHOICE: u8 = 64;
+    /// A characteristic-defining ability that reads a life total (Ajani's
+    /// Avatar): life changes must then invalidate the characteristics cache.
+    const LIFE_CDA: u8 = 128;
     const CDA: u8 = 128;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u8 = DefFlags::MODIFIES_ENTERING;
@@ -1349,6 +1466,10 @@ impl DefFlags {
         self.has(DefFlags::CDA)
     }
 
+    pub const fn has_life_cda(self) -> bool {
+        self.has(DefFlags::LIFE_CDA)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
         let mut flags = DefFlags::default();
@@ -1388,6 +1509,15 @@ impl DefFlags {
             abilities.iter().any(
                 |a| matches!(a, AbilityDef::Static(s) if s.parts.iter().any(Modification::is_cda)),
             ),
+        );
+        flags.set(
+            DefFlags::LIFE_CDA,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|p| matches!(
+                    p,
+                    Modification::CdaPt { count: CdaCount::ControllerLife, .. }
+                )))
+            }),
         );
         flags.set(
             DefFlags::MID_CHOICE,
@@ -1799,12 +1929,15 @@ impl Builder {
             abilities: Vec::new(),
             oracle_text: String::new(),
             token: false,
+            emblem: false,
+            loyalty: 0,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),
             ability_ids: AbilitySet::new(),
             except_subtype_ids: SubtypeSet::new(),
             except_ability_ids: AbilitySet::new(),
             except_flags: DefFlags::default(),
+            additional: Cost::default(),
             watch_mask: 0,
             except_watch_mask: 0,
             printed: None,
@@ -1824,6 +1957,18 @@ impl Builder {
     #[must_use]
     pub fn token(mut self) -> Self {
         self.0.token = true;
+        self
+    }
+
+    #[must_use]
+    pub fn emblem(mut self) -> Self {
+        self.0.emblem = true;
+        self
+    }
+
+    #[must_use]
+    pub fn loyalty(mut self, n: u32) -> Self {
+        self.0.loyalty = n;
         self
     }
 
@@ -1861,6 +2006,12 @@ impl Builder {
     #[must_use]
     pub fn keywords(mut self, k: impl IntoIterator<Item = Keyword>) -> Self {
         self.0.keywords = KeywordSet::of(k);
+        self
+    }
+
+    #[must_use]
+    pub fn additional_cost(mut self, cost: Cost) -> Self {
+        self.0.additional = cost;
         self
     }
 
@@ -2026,7 +2177,7 @@ pub fn m1_pool() -> CardPool {
             .ability(AbilityDef::Spell {
                 targets: vec![TargetSpec::Any],
                 effects: vec![Effect::DealDamage {
-                    amount: 3,
+                    amount: Num::N(3),
                     to: Recipient::Target(0),
                 }],
             })
@@ -2039,7 +2190,7 @@ pub fn m1_pool() -> CardPool {
             .ability(AbilityDef::Spell {
                 targets: vec![TargetSpec::Any],
                 effects: vec![Effect::DealDamage {
-                    amount: 2,
+                    amount: Num::N(2),
                     to: Recipient::Target(0),
                 }],
             })
@@ -2052,7 +2203,7 @@ pub fn m1_pool() -> CardPool {
             .ability(AbilityDef::Spell {
                 targets: vec![TargetSpec::PlayerOrPlaneswalker],
                 effects: vec![Effect::DealDamage {
-                    amount: 5,
+                    amount: Num::N(5),
                     to: Recipient::Target(0),
                 }],
             })
@@ -2091,7 +2242,7 @@ pub fn m1_pool() -> CardPool {
             .ability(AbilityDef::Spell {
                 targets: vec![],
                 effects: vec![Effect::DrawCards {
-                    count: 2,
+                    count: Num::N(2),
                     who: Recipient::You,
                 }],
             })
@@ -2104,7 +2255,7 @@ pub fn m1_pool() -> CardPool {
             .ability(AbilityDef::Spell {
                 targets: vec![],
                 effects: vec![Effect::GainLife {
-                    amount: 3,
+                    amount: Num::N(3),
                     who: Recipient::You,
                 }],
             })
@@ -2116,6 +2267,9 @@ pub fn m1_pool() -> CardPool {
     add_replacement_cards(&mut pool);
     add_activated_cards(&mut pool);
     add_copy_cards(&mut pool);
+    add_cost_cards(&mut pool);
+    add_regen_cards(&mut pool);
+    add_planeswalker_cards(&mut pool);
     pool
 }
 
@@ -2295,7 +2449,7 @@ fn add_m2_cards(pool: &mut CardPool) {
                 targets: vec![TargetSpec::Creature],
                 effects: vec![Effect::AddCounters {
                     kind: CounterKind::PlusOnePlusOne,
-                    count: 3,
+                    count: Num::N(3),
                     to: Recipient::Target(0),
                 }],
             })
@@ -2327,10 +2481,22 @@ fn add_trigger_cards(pool: &mut CardPool) {
             .pt(p, t)
     };
     let another_creature = || TriggerObj::Filter(ObjFilter::creatures().other());
-    let draw = |who: Recipient| Effect::DrawCards { count: 1, who };
-    let gain = |amount: u32, who: Recipient| Effect::GainLife { amount, who };
-    let lose = |amount: u32, who: Recipient| Effect::LoseLife { amount, who };
-    let damage = |amount: u32, to: Recipient| Effect::DealDamage { amount, to };
+    let draw = |who: Recipient| Effect::DrawCards {
+        count: Num::N(1),
+        who,
+    };
+    let gain = |amount: u32, who: Recipient| Effect::GainLife {
+        amount: Num::N(amount),
+        who,
+    };
+    let lose = |amount: u32, who: Recipient| Effect::LoseLife {
+        amount: Num::N(amount),
+        who,
+    };
+    let damage = |amount: u32, to: Recipient| Effect::DealDamage {
+        amount: Num::N(amount),
+        to,
+    };
     let pump = |power: i32, toughness: i32, to: Recipient| Effect::Pump {
         power,
         toughness,
@@ -2338,7 +2504,7 @@ fn add_trigger_cards(pool: &mut CardPool) {
     };
     let counter = |to: Recipient| Effect::AddCounters {
         kind: CounterKind::PlusOnePlusOne,
-        count: 1,
+        count: Num::N(1),
         to,
     };
 
@@ -2647,7 +2813,7 @@ fn add_replacement_cards(pool: &mut CardPool) {
                 effects: vec![
                     shield(1),
                     Effect::DrawCards {
-                        count: 1,
+                        count: Num::N(1),
                         who: You,
                     },
                 ],
@@ -2662,7 +2828,7 @@ fn add_replacement_cards(pool: &mut CardPool) {
                 targets: vec![TargetSpec::PlayerOrPlaneswalker],
                 effects: vec![
                     Effect::DealDamage {
-                        amount: 3,
+                        amount: Num::N(3),
                         to: Target(0),
                     },
                     Effect::Rule(RuleKind::NoLifeGain),
@@ -2699,7 +2865,7 @@ fn add_replacement_cards(pool: &mut CardPool) {
                 Replaces::Enters,
                 Replacement::EnterWithCounters {
                     kind: CounterKind::PlusOnePlusOne,
-                    n: 2,
+                    n: Num::N(2),
                 },
             ))
             .ability(AbilityDef::Replacement(ReplacementAbility {
@@ -2707,7 +2873,7 @@ fn add_replacement_cards(pool: &mut CardPool) {
                 replacement: Prevent,
                 then: vec![Effect::RemoveCounters {
                     kind: CounterKind::PlusOnePlusOne,
-                    count: 1,
+                    count: Num::N(1),
                     to: Source,
                 }],
             }))
@@ -2724,7 +2890,7 @@ fn add_replacement_cards(pool: &mut CardPool) {
                     whose: Who::Any,
                 },
                 &[Effect::DealDamage {
-                    amount: 2,
+                    amount: Num::N(2),
                     to: Recipient::TriggeringPlayer,
                 }],
             ))
@@ -2856,7 +3022,10 @@ fn add_activated_cards(pool: &mut CardPool) {
             effects: effects.to_vec(),
         })
     };
-    let damage = |amount: u32, to: Recipient| Effect::DealDamage { amount, to };
+    let damage = |amount: u32, to: Recipient| Effect::DealDamage {
+        amount: Num::N(amount),
+        to,
+    };
     let tap_cost = || Cost::parse("").tap();
     let sac_self = || Cost::parse("").sacrifice(SacCost::This);
 
@@ -2888,7 +3057,7 @@ fn add_activated_cards(pool: &mut CardPool) {
     );
     let tokens = |token: CardRef, count: u32| Effect::CreateToken {
         token,
-        count,
+        count: Num::N(count),
         who: You,
     };
 
@@ -2930,7 +3099,7 @@ fn add_activated_cards(pool: &mut CardPool) {
                 sac_self(),
                 &[],
                 &[Effect::GainLife {
-                    amount: 3,
+                    amount: Num::N(3),
                     who: You,
                 }],
                 "Sacrifice: you gain 3 life",
@@ -3149,7 +3318,7 @@ fn add_activated_cards(pool: &mut CardPool) {
                 },
                 None,
                 &[
-                    Effect::LoseLife { amount: 1, who: You },
+                    Effect::LoseLife { amount: Num::N(1), who: You },
                     tokens(faerie_rogue, 1),
                 ],
             ))
@@ -3456,7 +3625,7 @@ fn add_copy_cards(pool: &mut CardPool) {
                 mode(
                     &[TargetSpec::Creature],
                     &[Effect::DealDamage {
-                        amount: 3,
+                        amount: Num::N(3),
                         to: Target(0),
                     }],
                     "Abrade deals 3 damage to target creature",
@@ -3477,7 +3646,7 @@ fn add_copy_cards(pool: &mut CardPool) {
                 mode(
                     &[TargetSpec::Player],
                     &[Effect::DealDamage {
-                        amount: 4,
+                        amount: Num::N(4),
                         to: Target(0),
                     }],
                     "Boros Charm deals 4 damage to target player",
@@ -3549,6 +3718,433 @@ fn add_copy_cards(pool: &mut CardPool) {
             .text(
                 "When Gravedigger enters, you may return target creature card from your graveyard to your hand.",
             )
+            .build(),
+    );
+}
+
+/// Slice 6: X costs, costs other than mana, additional costs on spells.
+#[allow(clippy::too_many_lines)]
+fn add_cost_cards(pool: &mut CardPool) {
+    use CardType::{Creature, Sorcery};
+    use Recipient::{Source, Target, You};
+
+    let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32| {
+        Builder::new(name, cost)
+            .types([Creature])
+            .subtypes(sub)
+            .pt(p, t)
+    };
+    let spell = |targets: &[TargetSpec], effects: &[Effect]| AbilityDef::Spell {
+        targets: targets.to_vec(),
+        effects: effects.to_vec(),
+    };
+    let activated = |cost: Cost, targets: &[TargetSpec], effects: &[Effect], text: &str| {
+        AbilityDef::Activated(ActivatedAbility {
+            cost,
+            targets: targets.to_vec(),
+            effects: effects.to_vec(),
+            sorcery_speed: false,
+            text: text.to_string(),
+        })
+    };
+
+    pool.add(
+        Builder::new("Blaze", "{X}{R}")
+            .types([Sorcery])
+            .ability(spell(
+                &[TargetSpec::Any],
+                &[Effect::DealDamage {
+                    amount: Num::X,
+                    to: Target(0),
+                }],
+            ))
+            .text("Blaze deals X damage to any target.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Mind Spring", "{X}{U}{U}")
+            .types([Sorcery])
+            .ability(spell(
+                &[],
+                &[Effect::DrawCards {
+                    count: Num::X,
+                    who: You,
+                }],
+            ))
+            .text("Draw X cards.")
+            .build(),
+    );
+    pool.add(
+        creature("Endless One", "{X}", &["Eldrazi"], 0, 0)
+            .ability(AbilityDef::Replacement(ReplacementAbility {
+                replaces: Replaces::Enters,
+                replacement: Replacement::EnterWithCounters {
+                    kind: CounterKind::PlusOnePlusOne,
+                    n: Num::X,
+                },
+                then: Vec::new(),
+            }))
+            .text("Endless One enters with X +1/+1 counters on it.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Bone Splinters", "{B}")
+            .types([Sorcery])
+            .additional_cost(Cost::parse("").sacrifice(SacCost::Filter(ObjFilter::creatures())))
+            .ability(spell(
+                &[TargetSpec::Creature],
+                &[Effect::Destroy { to: Target(0) }],
+            ))
+            .text(
+                "As an additional cost to cast this spell, sacrifice a creature. \
+                 Destroy target creature.",
+            )
+            .build(),
+    );
+    pool.add(
+        Builder::new("Tormenting Voice", "{1}{R}")
+            .types([Sorcery])
+            .additional_cost(Cost::parse("").discard(1))
+            .ability(spell(
+                &[],
+                &[Effect::DrawCards {
+                    count: Num::N(2),
+                    who: You,
+                }],
+            ))
+            .text("As an additional cost to cast this spell, discard a card. Draw two cards.")
+            .build(),
+    );
+    pool.add(
+        creature(
+            "Ravenous Bloodseeker",
+            "{1}{R}",
+            &["Vampire", "Berserker"],
+            1,
+            2,
+        )
+        .ability(activated(
+            Cost::parse("").discard(1),
+            &[],
+            &[Effect::Pump {
+                power: 2,
+                toughness: -2,
+                to: Source,
+            }],
+            "Discard a card: Ravenous Bloodseeker gets +2/-2 until end of turn.",
+        ))
+        .build(),
+    );
+    pool.add(
+        creature("Souldrinker", "{3}{B}{B}", &["Vampire", "Spirit"], 2, 2)
+            .ability(activated(
+                Cost::parse("").life(3),
+                &[],
+                &[Effect::AddCounters {
+                    kind: CounterKind::PlusOnePlusOne,
+                    count: Num::N(1),
+                    to: Source,
+                }],
+                "Pay 3 life: Put a +1/+1 counter on Souldrinker.",
+            ))
+            .build(),
+    );
+    pool.add(
+        creature("Vampire Hexmage", "{B}{B}", &["Vampire", "Shaman"], 2, 1)
+            .keywords([Keyword::FirstStrike])
+            .ability(activated(
+                Cost::parse("").sacrifice(SacCost::This),
+                &[TargetSpec::Permanent],
+                &[Effect::RemoveAllCounters { to: Target(0) }],
+                "Sacrifice Vampire Hexmage: Remove all counters from target permanent.",
+            ))
+            .build(),
+    );
+}
+
+/// Slice 6: regeneration (CR 701.15) and damage redirection.
+fn add_regen_cards(pool: &mut CardPool) {
+    use CardType::{Creature, Enchantment, Instant, Sorcery};
+    use Recipient::{EachCreature, Source, Target};
+
+    pool.add(
+        Builder::new("Drudge Skeletons", "{1}{B}")
+            .types([Creature])
+            .subtypes(&["Skeleton"])
+            .pt(1, 1)
+            .ability(AbilityDef::Activated(ActivatedAbility {
+                cost: Cost::parse("{B}"),
+                targets: Vec::new(),
+                effects: vec![Effect::Regenerate { to: Source }],
+                sorcery_speed: false,
+                text: "{B}: Regenerate Drudge Skeletons.".to_string(),
+            }))
+            .build(),
+    );
+    pool.add(
+        Builder::new("Regenerate", "{G}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Creature],
+                effects: vec![Effect::Regenerate { to: Target(0) }],
+            })
+            .text("Regenerate target creature.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Wrath of God", "{2}{W}{W}")
+            .types([Sorcery])
+            .ability(AbilityDef::Spell {
+                targets: Vec::new(),
+                effects: vec![Effect::DestroyNoRegen { to: EachCreature }],
+            })
+            .text("Destroy all creatures. They can't be regenerated.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Pariah", "{2}{W}")
+            .types([Enchantment])
+            .subtypes(&["Aura"])
+            .ability(AbilityDef::Enchant(TargetSpec::Creature))
+            .ability(AbilityDef::Replacement(ReplacementAbility {
+                replaces: Replaces::Damage {
+                    from: None,
+                    to: Affects::You,
+                    combat: None,
+                },
+                replacement: Replacement::RedirectToAttached,
+                then: Vec::new(),
+            }))
+            .text("All damage that would be dealt to you is dealt to enchanted creature instead.")
+            .build(),
+    );
+}
+
+/// Slice 6: planeswalkers (CR 306, 606) and emblems (CR 114).
+#[allow(clippy::too_many_lines)]
+fn add_planeswalker_cards(pool: &mut CardPool) {
+    use CardType::{Creature, Instant, Planeswalker};
+    use Recipient::{EachCreatureYouControl, EachPlayer, Target, You};
+
+    let loyalty_ability = |n: i32, targets: &[TargetSpec], effects: &[Effect], text: &str| {
+        AbilityDef::Activated(ActivatedAbility {
+            cost: Cost::parse("").loyalty(n),
+            targets: targets.to_vec(),
+            effects: effects.to_vec(),
+            sorcery_speed: true,
+            text: text.to_string(),
+        })
+    };
+    let planeswalker = |name: &str, cost: &str, sub: &str, loyalty: u32| {
+        Builder::new(name, cost)
+            .types([Planeswalker])
+            .supertypes([Supertype::Legendary])
+            .subtypes(&[sub])
+            .loyalty(loyalty)
+    };
+
+    let beast = pool.add(
+        Builder::new("Beast", "")
+            .token()
+            .types([Creature])
+            .subtypes(&["Beast"])
+            .color_indicator([Color::Green])
+            .pt(3, 3)
+            .build(),
+    );
+    let avatar = pool.add(
+        Builder::new("Avatar", "")
+            .token()
+            .types([Creature])
+            .subtypes(&["Avatar"])
+            .color_indicator([Color::White])
+            .pt(0, 0)
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter::this(),
+                parts: vec![Modification::CdaPt {
+                    count: CdaCount::ControllerLife,
+                    plus_toughness: 0,
+                }],
+            }))
+            .text("Avatar's power and toughness are each equal to your life total.")
+            .build(),
+    );
+    let soldier = pool.lookup("Soldier").expect("Soldier token");
+    let elspeth_emblem = pool.add(
+        Builder::new("Elspeth, Knight-Errant emblem", "")
+            .emblem()
+            .ability(AbilityDef::Static(StaticAbility {
+                affected: ObjFilter {
+                    who: Some(Who::You),
+                    not_types: TypeSet::of([Planeswalker]),
+                    ..Default::default()
+                },
+                parts: vec![Modification::AddKeywords(KeywordSet::of([
+                    Keyword::Indestructible,
+                ]))],
+            }))
+            .text("Artifacts, creatures, enchantments, and lands you control have indestructible.")
+            .build(),
+    );
+
+    pool.add(
+        planeswalker("Ajani Goldmane", "{2}{W}{W}", "Ajani", 4)
+            .ability(loyalty_ability(
+                1,
+                &[],
+                &[Effect::GainLife {
+                    amount: Num::N(2),
+                    who: You,
+                }],
+                "+1: You gain 2 life.",
+            ))
+            .ability(loyalty_ability(
+                -1,
+                &[],
+                &[
+                    Effect::AddCounters {
+                        kind: CounterKind::PlusOnePlusOne,
+                        count: Num::N(1),
+                        to: EachCreatureYouControl,
+                    },
+                    Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::Vigilance]),
+                        to: EachCreatureYouControl,
+                    },
+                ],
+                "-1: Put a +1/+1 counter on each creature you control. Those creatures gain \
+                 vigilance until end of turn.",
+            ))
+            .ability(loyalty_ability(
+                -6,
+                &[],
+                &[Effect::CreateToken {
+                    token: avatar,
+                    count: Num::N(1),
+                    who: You,
+                }],
+                "-6: Create a white Avatar creature token with \"This creature's power and \
+                 toughness are each equal to your life total.\"",
+            ))
+            .build(),
+    );
+    pool.add(
+        planeswalker("Jace Beleren", "{1}{U}{U}", "Jace", 3)
+            .ability(loyalty_ability(
+                2,
+                &[],
+                &[Effect::DrawCards {
+                    count: Num::N(1),
+                    who: EachPlayer,
+                }],
+                "+2: Each player draws a card.",
+            ))
+            .ability(loyalty_ability(
+                -1,
+                &[TargetSpec::Player],
+                &[Effect::DrawCards {
+                    count: Num::N(1),
+                    who: Target(0),
+                }],
+                "-1: Target player draws a card.",
+            ))
+            .ability(loyalty_ability(
+                -10,
+                &[TargetSpec::Player],
+                &[Effect::Mill {
+                    count: Num::N(20),
+                    who: Target(0),
+                }],
+                "-10: Target player mills twenty cards.",
+            ))
+            .build(),
+    );
+    pool.add(
+        planeswalker("Elspeth, Knight-Errant", "{2}{W}{W}", "Elspeth", 4)
+            .ability(loyalty_ability(
+                1,
+                &[],
+                &[Effect::CreateToken {
+                    token: soldier,
+                    count: Num::N(1),
+                    who: You,
+                }],
+                "+1: Create a 1/1 white Soldier creature token.",
+            ))
+            .ability(loyalty_ability(
+                1,
+                &[TargetSpec::Creature],
+                &[
+                    Effect::Pump {
+                        power: 3,
+                        toughness: 3,
+                        to: Target(0),
+                    },
+                    Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::Flying]),
+                        to: Target(0),
+                    },
+                ],
+                "+1: Target creature gets +3/+3 and gains flying until end of turn.",
+            ))
+            .ability(loyalty_ability(
+                -8,
+                &[],
+                &[Effect::CreateEmblem {
+                    emblem: elspeth_emblem,
+                }],
+                "-8: You get an emblem with \"Artifacts, creatures, enchantments, and lands you \
+                 control have indestructible.\"",
+            ))
+            .build(),
+    );
+    pool.add(
+        planeswalker("Garruk Wildspeaker", "{2}{G}{G}", "Garruk", 3)
+            .ability(loyalty_ability(
+                1,
+                &[TargetSpec::Land, TargetSpec::Land],
+                &[
+                    Effect::Untap { to: Target(0) },
+                    Effect::Untap { to: Target(1) },
+                ],
+                "+1: Untap two target lands.",
+            ))
+            .ability(loyalty_ability(
+                -1,
+                &[],
+                &[Effect::CreateToken {
+                    token: beast,
+                    count: Num::N(1),
+                    who: You,
+                }],
+                "-1: Create a 3/3 green Beast creature token.",
+            ))
+            .ability(loyalty_ability(
+                -4,
+                &[],
+                &[
+                    Effect::Pump {
+                        power: 3,
+                        toughness: 3,
+                        to: EachCreatureYouControl,
+                    },
+                    Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::Trample]),
+                        to: EachCreatureYouControl,
+                    },
+                ],
+                "-4: Creatures you control get +3/+3 and gain trample until end of turn.",
+            ))
+            .build(),
+    );
+    pool.add(
+        Builder::new("Hero's Downfall", "{1}{B}{B}")
+            .types([Instant])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::CreatureOrPlaneswalker],
+                effects: vec![Effect::Destroy { to: Target(0) }],
+            })
+            .text("Destroy target creature or planeswalker.")
             .build(),
     );
 }

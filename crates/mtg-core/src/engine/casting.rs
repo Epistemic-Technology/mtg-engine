@@ -3,8 +3,8 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, Affects, Effect, Keyword, Modification, PtValue, Recipient, Replacement,
-    Replaces, SacCost, TargetSpec,
+    AbilityDef, AbilityId, Affects, Cost, CounterKind, Effect, Keyword, Modification, PtValue,
+    Recipient, Replacement, Replaces, SacCost, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
@@ -38,6 +38,20 @@ impl GameState {
                 continue;
             }
             if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0)).is_none() {
+                continue;
+            }
+            // Additional costs must be payable (CR 601.2h): enough life
+            // (CR 119.4), another card to discard, something to sacrifice.
+            let add = &def.additional;
+            if add.life > 0 && ps.life < i32::try_from(add.life).unwrap_or(i32::MAX) {
+                continue;
+            }
+            if add.discard > 0 && ps.hand.len() <= add.discard as usize {
+                continue;
+            }
+            if let Some(SacCost::Filter(f)) = &add.sacrifice
+                && self.sacrifice_candidates(p, f, *id).is_empty()
+            {
                 continue;
             }
             // A modal spell needs some mode to have its targets (CR 601.2b).
@@ -104,26 +118,44 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
-                match &ab.cost.sacrifice {
-                    None | Some(SacCost::This) => options.push(Choice::Activate {
-                        source: id,
-                        ability: *a,
-                        sacrifice: None,
-                    }),
-                    Some(SacCost::Filter(f)) => {
-                        for s in self.permanents_of(p) {
-                            let sc = &self.objects[s];
-                            let ok = self.characteristics(s).is_some_and(|c| {
-                                f.matches(s, sc.controller, &c, Some(id), Some(p))
-                            });
-                            if ok {
-                                options.push(Choice::Activate {
-                                    source: id,
-                                    ability: *a,
-                                    sacrifice: Some(s),
-                                });
-                            }
-                        }
+                if ab.cost.life > 0
+                    && self.player(p).life < i32::try_from(ab.cost.life).unwrap_or(i32::MAX)
+                {
+                    continue;
+                }
+                // CR 606.3: one loyalty ability per planeswalker per turn, at
+                // sorcery speed; CR 606.5: a −N cost needs N loyalty.
+                if ab.cost.loyalty != 0 {
+                    if !sorcery_timing || self.loyalty_activated.contains(&id) {
+                        continue;
+                    }
+                    let need = u32::try_from(-ab.cost.loyalty).unwrap_or(0);
+                    if o.counters(CounterKind::Loyalty) < need {
+                        continue;
+                    }
+                }
+                // One option per way to pay the costs that need a choice.
+                let sacrifices: Vec<Option<ObjId>> = match &ab.cost.sacrifice {
+                    None | Some(SacCost::This) => vec![None],
+                    Some(SacCost::Filter(f)) => self
+                        .sacrifice_candidates(p, f, id)
+                        .into_iter()
+                        .map(Some)
+                        .collect(),
+                };
+                let discards: Vec<Option<ObjId>> = if ab.cost.discard > 0 {
+                    self.player(p).hand.iter().copied().map(Some).collect()
+                } else {
+                    vec![None]
+                };
+                for sacrifice in &sacrifices {
+                    for discard in &discards {
+                        options.push(Choice::Activate {
+                            source: id,
+                            ability: *a,
+                            sacrifice: *sacrifice,
+                            discard: *discard,
+                        });
                     }
                 }
             }
@@ -139,9 +171,13 @@ impl GameState {
         source: ObjId,
         ability: AbilityId,
         sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
     ) {
         self.consecutive_passes = 0;
         let def = self.objects[source].def;
+        if matches!(self.pool.ability(ability), AbilityDef::Activated(a) if a.cost.loyalty != 0) {
+            self.loyalty_activated.push(source);
+        }
         let timestamp = self.tick();
         let obj = self.objects.insert(GameObject {
             def,
@@ -174,18 +210,56 @@ impl GameState {
             spell: obj,
             next_target: 0,
             sacrifice,
+            discard,
         };
+    }
+
+    /// Permanents `p` could sacrifice for a "sacrifice a ..." cost of
+    /// `source`.
+    pub(super) fn sacrifice_candidates(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        source: ObjId,
+    ) -> Vec<ObjId> {
+        self.permanents_of(p)
+            .filter(|s| {
+                let sc = &self.objects[*s];
+                self.characteristics(*s)
+                    .is_some_and(|c| f.matches(*s, sc.controller, &c, Some(source), Some(p)))
+            })
+            .collect()
+    }
+
+    /// The values of X the caster can pay for (CR 601.2b, 601.2h), in
+    /// increasing order.
+    pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
+        const MAX_X: u32 = 30;
+        let o = &self.objects[spell];
+        let caster = o.controller;
+        let cost = &self.pool.get(o.def).mana_cost;
+        let sources = self.mana_sources(caster);
+        let pool = self.player(caster).mana_pool;
+        (0..=MAX_X)
+            .take_while(|x| payment_plan_from(&sources, &pool, &cost.requirements(*x)).is_some())
+            .map(Choice::X)
+            .collect()
     }
 
     /// An ability object on the stack has its targets. An activated ability
     /// now pays its costs; a triggered one is done.
-    pub(super) fn finish_ability_targets(&mut self, obj: ObjId, sacrifice: Option<ObjId>) {
+    pub(super) fn finish_ability_targets(
+        &mut self,
+        obj: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) {
         self.emit_targeted(obj);
         let activated = self.objects[obj]
             .ability
             .is_some_and(|sa| matches!(self.pool.ability(sa.ability), AbilityDef::Activated(_)));
         if activated {
-            self.finish_activation(obj, sacrifice);
+            self.finish_activation(obj, sacrifice, discard);
         } else {
             self.flow = crate::state::Flow::Priority;
         }
@@ -233,7 +307,7 @@ impl GameState {
     /// CR 602.2b, 601.2g–h: pay the ability's costs. The source is tapped
     /// first so that it is not also tapped for mana; sacrifices come last,
     /// so a "sacrifice ~" source is still there to be tapped.
-    fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>) {
+    fn finish_activation(&mut self, obj: ObjId, sacrifice: Option<ObjId>, discard: Option<ObjId>) {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
         let sa = o.ability.expect("ability object");
@@ -244,15 +318,7 @@ impl GameState {
             self.tap(sa.source);
         }
         self.pay(controller, &ab.cost.mana.requirements(0));
-        match ab.cost.sacrifice {
-            Some(SacCost::This) => self.sacrifice(sa.source),
-            Some(SacCost::Filter(_)) => {
-                if let Some(s) = sacrifice {
-                    self.sacrifice(s);
-                }
-            }
-            None => {}
-        }
+        self.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
         self.emit(Event::Activated {
             obj,
             source: sa.source,
@@ -345,6 +411,43 @@ impl GameState {
 
     /// CR 601.2g–h: activate mana abilities per the plan, then pay from the
     /// pool.
+    /// The non-mana parts of a cost (CR 118.3): life, a sacrifice ("~" is
+    /// `this`), a discard. The choices were made as the spell or ability was
+    /// announced.
+    fn pay_other_costs(
+        &mut self,
+        p: PlayerId,
+        cost: &Cost,
+        this: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) {
+        if cost.life > 0 {
+            self.change_life(p, -i32::try_from(cost.life).unwrap_or(i32::MAX));
+        }
+        // CR 606.4: loyalty costs are counters put on or removed from the
+        // planeswalker.
+        if cost.loyalty > 0 {
+            self.add_counters(this, CounterKind::Loyalty, cost.loyalty.unsigned_abs());
+        } else if cost.loyalty < 0 {
+            self.remove_counters(this, CounterKind::Loyalty, cost.loyalty.unsigned_abs());
+        }
+        match cost.sacrifice {
+            Some(SacCost::This) => self.sacrifice(this),
+            Some(SacCost::Filter(_)) => {
+                if let Some(s) = sacrifice {
+                    self.sacrifice(s);
+                }
+            }
+            None => {}
+        }
+        if cost.discard > 0
+            && let Some(c) = discard
+        {
+            self.discard_card(p, c);
+        }
+    }
+
     pub(super) fn pay(&mut self, p: PlayerId, req: &ManaRequirement) {
         let plan = self
             .payment_plan(p, req)
@@ -362,12 +465,19 @@ impl GameState {
     }
 
     /// CR 601.2f–i: pay and finish casting; caster gets priority.
-    pub(super) fn finish_cast(&mut self, spell: ObjId) {
+    pub(super) fn finish_cast(
+        &mut self,
+        spell: ObjId,
+        sacrifice: Option<ObjId>,
+        discard: Option<ObjId>,
+    ) {
         let obj = &self.objects[spell];
         let (caster, def_ref) = (obj.controller, obj.def);
+        let x = self.x_of(spell);
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
-        let req = self.pool.get(def_ref).mana_cost.requirements(0);
-        self.pay(caster, &req);
+        let def = self.pool.get(def_ref).clone();
+        self.pay(caster, &def.mana_cost.requirements(x));
+        self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
         self.emit(Event::Cast {
             player: caster,
             spell,
@@ -454,6 +564,7 @@ impl GameState {
                 trigger_obj: None,
                 trigger_player: None,
                 created: None,
+                x: self.x_of(spell),
             };
             for effect in &effects {
                 self.apply_effect(&mut ctx, effect);
@@ -638,7 +749,7 @@ impl GameState {
         match effect {
             Effect::DealDamage { amount, to } => {
                 for t in self.recipients(ctx, *to) {
-                    self.deal_damage(ctx.source, t, *amount, false);
+                    self.deal_damage(ctx.source, t, amount.eval(ctx.x), false);
                 }
             }
             Effect::Pump {
@@ -670,21 +781,21 @@ impl GameState {
             Effect::GainLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.gain_life(p, *amount);
+                        self.gain_life(p, amount.eval(ctx.x));
                     }
                 }
             }
             Effect::LoseLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.change_life(p, -i32::try_from(*amount).unwrap_or(i32::MAX));
+                        self.change_life(p, -i32::try_from(amount.eval(ctx.x)).unwrap_or(i32::MAX));
                     }
                 }
             }
             Effect::DrawCards { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..*count {
+                        for _ in 0..count.eval(ctx.x) {
                             self.draw(p);
                         }
                     }
@@ -693,7 +804,7 @@ impl GameState {
             Effect::AddCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.add_counters(id, *kind, *count);
+                        self.add_counters(id, *kind, count.eval(ctx.x));
                     }
                 }
             }
@@ -714,9 +825,40 @@ impl GameState {
             Effect::RemoveCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.remove_counters(id, *kind, *count);
+                        self.remove_counters(id, *kind, count.eval(ctx.x));
                     }
                 }
+            }
+            Effect::RemoveAllCounters { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.remove_all_counters(id);
+                    }
+                }
+            }
+            Effect::Regenerate { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.regenerate(ctx, id);
+                    }
+                }
+            }
+            Effect::DestroyNoRegen { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.destroy_with(id, false);
+                    }
+                }
+            }
+            Effect::Mill { count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.mill(p, count.eval(ctx.x));
+                    }
+                }
+            }
+            Effect::CreateEmblem { emblem } => {
+                self.create_emblem(*emblem, ctx.controller);
             }
             Effect::ExileAllGraveyards => {
                 let cards: Vec<ObjId> = self
@@ -786,7 +928,7 @@ impl GameState {
             Effect::CreateToken { token, count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..*count {
+                        for _ in 0..count.eval(ctx.x) {
                             self.create_token(*token, p);
                         }
                     }
@@ -956,6 +1098,35 @@ impl GameState {
     /// Store a replacement or prevention effect until end of turn (CR 614.3,
     /// 615.3). One aimed at a spell's target is locked to that target
     /// (CR 611.2c) and is not created if the target became illegal.
+    /// A regeneration shield on `id` until end of turn (CR 701.15): a
+    /// stored replacement of its destruction, used once.
+    fn regenerate(&mut self, ctx: &EffectCtx, id: ObjId) {
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+            .expect("a resolving spell or its last known information exists");
+        let timestamp = self.tick();
+        self.replacements.push(ReplacementEffect {
+            source: Some(ctx.source),
+            def,
+            controller: ctx.controller,
+            timestamp,
+            duration: Duration::UntilEndOfTurn,
+            ability: crate::card::ReplacementAbility {
+                replaces: Replaces::Destroy {
+                    to: Affects::Target(0),
+                },
+                replacement: Replacement::Regenerate,
+                then: Vec::new(),
+            },
+            target: Some(Target::Object(id)),
+            remaining: 1,
+        });
+        self.bump();
+    }
+
     fn create_replacement(&mut self, ctx: &EffectCtx, r: &crate::card::ReplacementAbility) {
         let target = match &r.replaces {
             Replaces::Damage {
@@ -1009,6 +1180,8 @@ pub(super) struct EffectCtx {
     /// moved (a token, an exiled card), for "sacrifice it" clauses that
     /// follow (`Recipient::CreatedObject`).
     pub created: Option<ObjId>,
+    /// X of the resolving spell (CR 107.3); 0 for abilities.
+    pub x: u32,
 }
 
 /// A canonical payment plan: which sources to tap, and for what, so that

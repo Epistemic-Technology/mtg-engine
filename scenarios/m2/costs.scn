@@ -1,0 +1,173 @@
+# M2 slice 6: X costs (CR 107.3, 601.2b) and costs other than mana (CR 118,
+# 601.2h): life, discard, sacrifice, as additional costs of spells and as
+# costs of activated abilities.
+
+# ---- X ------------------------------------------------------------------------------
+
+scenario "Blaze deals X damage, X chosen as it is cast" {
+  battlefield A: 4 "Mountain"
+  hand A: "Blaze"
+  turn 1 A: cast "Blaze" x 3 targeting player B
+  run_to turn 1 begin_combat
+  assert life B 17
+  assert tapped newest A "Mountain"
+}
+
+scenario "X may be zero" {
+  battlefield A: "Mountain"
+  hand A: "Blaze"
+  turn 1 A: cast "Blaze" x 0 targeting player B
+  run_to turn 1 begin_combat
+  assert life B 20
+  assert graveyard A contains "Blaze"
+}
+
+scenario "Mind Spring draws X" {
+  battlefield A: 4 "Island"
+  hand A: "Mind Spring"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Mind Spring" x 2
+  run_to turn 1 begin_combat
+  assert hand A count 2
+  assert library A count 2
+}
+
+# CR 107.3: the X chosen on casting is the one the "enters with X counters"
+# replacement sees; on the battlefield X is otherwise 0.
+scenario "Endless One enters with X +1/+1 counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Endless One"
+  turn 1 A: cast "Endless One" x 3
+  run_to turn 1 begin_combat
+  assert counters "Endless One" +1/+1 3
+  assert power "Endless One" 3
+  assert toughness "Endless One" 3
+}
+
+scenario "Endless One for zero dies to the state-based check" {
+  battlefield A: "Forest"
+  hand A: "Endless One"
+  turn 1 A: cast "Endless One" x 0
+  run_to turn 1 begin_combat
+  assert battlefield A lacks "Endless One"
+  assert graveyard A contains "Endless One"
+}
+
+# ---- additional costs of spells --------------------------------------------------------
+
+scenario "Bone Splinters sacrifices as an additional cost" {
+  battlefield A: "Swamp", "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  turn 1 A: cast "Bone Splinters" sacrificing "Raging Goblin" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Raging Goblin"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+# CR 601.2h: the sacrifice is paid as the spell is cast, so Blood Artist
+# triggers for the Goblin before the spell resolves (scripted: B loses 1) and
+# again for the Hill Giant on resolution (unscripted: the first option, A).
+scenario "the sacrifice for Bone Splinters happens on casting, before resolution" {
+  battlefield A: "Swamp", "Blood Artist", "Raging Goblin"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  turn 1 A: cast "Bone Splinters" sacrificing "Raging Goblin" targeting "Hill Giant"
+  turn 1 A: trigger "Blood Artist" targeting player B
+  run_to turn 1 begin_combat
+  assert life B 19
+  assert life A 21
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Bone Splinters cannot be cast without a creature to sacrifice" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  illegal turn 1 A: cast "Bone Splinters" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+scenario "Tormenting Voice discards as an additional cost, then draws two" {
+  battlefield A: "Mountain", "Mountain"
+  hand A: "Tormenting Voice", "Forest"
+  library A: "Island", "Island", "Island"
+  turn 1 A: cast "Tormenting Voice" discarding "Forest"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Tormenting Voice"
+  assert hand A count 2
+  assert library A count 1
+}
+
+scenario "Tormenting Voice needs another card in hand" {
+  battlefield A: "Mountain", "Mountain"
+  hand A: "Tormenting Voice"
+  illegal turn 1 A: cast "Tormenting Voice"
+  run_to turn 1 begin_combat
+  assert hand A count 1
+}
+
+# ---- costs of activated abilities ---------------------------------------------------------
+
+scenario "a discard cost: Ravenous Bloodseeker's +2/-2 kills it" {
+  battlefield A: "Ravenous Bloodseeker"
+  hand A: "Mountain"
+  turn 1 A: activate "Ravenous Bloodseeker" discarding "Mountain"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Mountain"
+  assert graveyard A contains "Ravenous Bloodseeker"
+}
+
+scenario "a discard cost needs a card in hand" {
+  battlefield A: "Ravenous Bloodseeker"
+  hand A:
+  illegal turn 1 A: activate "Ravenous Bloodseeker"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Ravenous Bloodseeker"
+}
+
+scenario "a life cost: Souldrinker pays 3 life for a counter" {
+  battlefield A: "Souldrinker"
+  turn 1 A: activate "Souldrinker"
+  run_to turn 1 begin_combat
+  assert life A 17
+  assert counters "Souldrinker" +1/+1 1
+  assert power "Souldrinker" 3
+}
+
+# CR 119.4: life can be paid only with at least that much life; paying all
+# of it is allowed and loses the game (CR 704.5a).
+scenario "paying exactly all your life is legal and loses" {
+  life A 3
+  battlefield A: "Souldrinker"
+  turn 1 A: activate "Souldrinker"
+  run_to end
+  assert winner B
+}
+
+scenario "a life cost cannot be paid with too little life" {
+  life A 2
+  battlefield A: "Souldrinker"
+  illegal turn 1 A: activate "Souldrinker"
+  run_to turn 1 begin_combat
+  assert life A 2
+}
+
+scenario "Vampire Hexmage removes every counter" {
+  battlefield A: "Vampire Hexmage", "Grizzly Bears" with 2 +1/+1
+  turn 1 A: activate "Vampire Hexmage" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Vampire Hexmage"
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Vampire Hexmage kills an Endless One by taking its counters" {
+  battlefield A: "Vampire Hexmage", "Endless One" with 4 +1/+1
+  turn 1 A: activate "Vampire Hexmage" targeting "Endless One"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Endless One"
+}

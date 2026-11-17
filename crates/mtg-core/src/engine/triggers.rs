@@ -404,6 +404,7 @@ impl GameState {
                 spell: obj,
                 next_target: 0,
                 sacrifice: None,
+                discard: None,
             }
         };
     }
@@ -458,6 +459,7 @@ impl GameState {
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
             created: None,
+            x: 0,
         };
         for effect in &effects {
             self.apply_effect(&mut ctx, effect);

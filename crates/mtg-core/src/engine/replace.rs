@@ -72,6 +72,12 @@ pub(crate) enum Proposed {
         kind: CounterKind,
         n: u32,
     },
+    /// `obj` would be destroyed (CR 701.7); `regenerate` is false for "it
+    /// can't be regenerated".
+    Destroy {
+        obj: ObjId,
+        regenerate: bool,
+    },
 }
 
 impl Proposed {
@@ -105,7 +111,8 @@ impl Proposed {
                 target: Target::Object(id),
                 ..
             }
-            | Proposed::AddCounters { obj: id, .. } => controller_of(*id),
+            | Proposed::AddCounters { obj: id, .. }
+            | Proposed::Destroy { obj: id, .. } => controller_of(*id),
             Proposed::ZoneChange {
                 obj, controller, ..
             } => {
@@ -256,9 +263,10 @@ impl GameState {
                 }
             }
         }
-        // CR 614.1c: how the permanent itself enters. Read from its printed
-        // abilities; the CR 614.12 look-ahead through continuous effects is
-        // not modelled.
+        // CR 614.1c: how the permanent itself enters, judged as it would
+        // exist on the battlefield (CR 614.12): under Humility a Phantom
+        // Tiger has no "enters with" ability, under Blood Moon a Guildgate
+        // does not enter tapped. The printed flag gates the look-ahead.
         if let Proposed::ZoneChange {
             obj,
             to: Zone::Battlefield,
@@ -269,7 +277,8 @@ impl GameState {
         {
             let def = self.pool.get(o.def);
             if def.modifies_entering() {
-                for ability in def.ability_ids.iter().copied() {
+                let c = crate::layers::compute_entering(self, *obj, *controller);
+                for ability in c.abilities.iter().copied() {
                     let AbilityDef::Replacement(r) = self.pool.ability(ability) else {
                         continue;
                     };
@@ -297,8 +306,13 @@ impl GameState {
             if applied.contains(&key) {
                 continue;
             }
-            // An exhausted shield prevents nothing more (CR 615.7).
-            if matches!(e.ability.replacement, Replacement::PreventNext(_)) && e.remaining == 0 {
+            // An exhausted shield prevents nothing more (CR 615.7); a used
+            // regeneration shield is gone (CR 701.15a).
+            if matches!(
+                e.ability.replacement,
+                Replacement::PreventNext(_) | Replacement::Regenerate
+            ) && e.remaining == 0
+            {
                 continue;
             }
             let source = e.source.unwrap_or_default();
@@ -406,6 +420,13 @@ impl GameState {
                         )
                     })
             }
+            (
+                Replaces::Destroy { to },
+                Proposed::Destroy {
+                    obj,
+                    regenerate: true,
+                },
+            ) => self.affects(to, Target::Object(*obj), source, controller, locked),
             // `Enters` effects apply only from the entering permanent itself
             // (handled in `candidates`), never from the battlefield.
             _ => false,
@@ -549,6 +570,62 @@ impl GameState {
                     combat,
                 })
             }
+            (Replacement::Regenerate, Proposed::Destroy { obj, .. }) => {
+                // CR 701.15a: remove all damage, tap, remove from combat.
+                if let Key::Stored(i) = c.key {
+                    self.replacements[i].remaining = 0;
+                }
+                if let Some(o) = self.objects.get_mut(obj) {
+                    o.damage = 0;
+                    o.deathtouch_damage = false;
+                }
+                self.tap(obj);
+                self.remove_from_combat(obj);
+                self.sba_touch();
+                self.emit(Event::Regenerated { obj, by: c.def });
+                Outcome::Nothing
+            }
+            (
+                Replacement::RedirectToAttached,
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    combat,
+                },
+            ) => {
+                let to = self
+                    .objects
+                    .get(c.source)
+                    .and_then(|aura| aura.attached_to)
+                    .filter(|t| {
+                        self.objects
+                            .get(*t)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                    });
+                match to {
+                    Some(t) => {
+                        self.emit(Event::Redirected {
+                            from: target,
+                            to: Target::Object(t),
+                            amount,
+                            by: c.def,
+                        });
+                        Outcome::Event(Proposed::Damage {
+                            source,
+                            target: Target::Object(t),
+                            amount,
+                            combat,
+                        })
+                    }
+                    None => Outcome::Event(Proposed::Damage {
+                        source,
+                        target,
+                        amount,
+                        combat,
+                    }),
+                }
+            }
             (Replacement::Prevent, Proposed::GainLife { .. }) => {
                 self.emit(Event::Replaced { by: c.def });
                 Outcome::Nothing
@@ -667,6 +744,8 @@ impl GameState {
                     enter,
                 },
             ) => {
+                // X of the entering spell (Endless One, CR 107.3).
+                let n = n.eval(self.x_of(obj));
                 let counters = match enter.counters {
                     Some((k, m)) if k == kind => Some((k, m + n)),
                     Some(other) => Some(other),
@@ -695,6 +774,7 @@ impl GameState {
                 trigger_obj: None,
                 trigger_player: None,
                 created: None,
+                x: 0,
             };
             for effect in &c.ability.then {
                 self.apply_effect(&mut ctx, effect);

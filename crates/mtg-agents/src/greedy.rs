@@ -4,7 +4,7 @@
 //! or necessary. Deterministic. Useful as a stronger baseline than random
 //! and as the default opponent in human play.
 
-use mtg_core::card::{AbilityDef, AbilityId, Effect, Keyword, Modification};
+use mtg_core::card::{AbilityDef, AbilityId, CounterKind, Effect, Keyword, Modification};
 use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind};
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::state::{Characteristics, GameState, Target};
@@ -127,21 +127,27 @@ impl GreedyAgent {
         let helps_target = effects.iter().any(|e| {
             matches!(
                 e,
-                Effect::Pump { .. } | Effect::AddCounters { .. } | Effect::Attach { .. }
+                Effect::Pump { .. }
+                    | Effect::AddCounters { .. }
+                    | Effect::Attach { .. }
+                    | Effect::Regenerate { .. }
             )
         }) || aura_delta.is_some_and(|d| d > 0);
         let destroys_aura = aura_delta.is_some_and(|d| d < 0);
         let damage: u32 = effects
             .iter()
             .map(|e| match e {
-                Effect::DealDamage { amount, .. } => *amount,
+                Effect::DealDamage { amount, .. } => amount.hint(),
                 _ => 0,
             })
             .sum();
         let destroys = effects.iter().any(|e| {
             matches!(
                 e,
-                Effect::Destroy { .. } | Effect::GainControl { .. } | Effect::Tap { .. }
+                Effect::Destroy { .. }
+                    | Effect::DestroyNoRegen { .. }
+                    | Effect::GainControl { .. }
+                    | Effect::Tap { .. }
             )
         });
         match t {
@@ -214,7 +220,35 @@ impl Agent for GreedyAgent {
             | DecisionKind::ChooseReplacement
             | DecisionKind::YouMay { .. } => 0,
             // Keep the newest (the engine lists them oldest first).
-            DecisionKind::LegendRule => u32::try_from(d.options.len() - 1).unwrap_or(0),
+            // The newest legend, and the largest X the mana allows.
+            DecisionKind::LegendRule | DecisionKind::ChooseX { .. } => {
+                u32::try_from(d.options.len() - 1).unwrap_or(0)
+            }
+            // Attack a planeswalker the attacker can finish; otherwise the player.
+            DecisionKind::ChooseAttackTarget { attacker } => Self::best_by(d, |c| match c {
+                Choice::AttackTarget(Target::Player(_)) => 5,
+                Choice::AttackTarget(Target::Object(pw)) => {
+                    let power = Self::chars(state, attacker).power.max(0);
+                    let loyalty = state
+                        .objects
+                        .get(*pw)
+                        .map_or(0, |o| o.counters(CounterKind::Loyalty));
+                    if u32::try_from(power).unwrap_or(0) >= loyalty {
+                        10
+                    } else {
+                        2
+                    }
+                }
+                _ => i64::MIN,
+            }),
+            // Sacrifice the cheapest permanent.
+            DecisionKind::ChooseSacrifice { .. } => Self::best_by(d, |c| match c {
+                Choice::Sacrifice(id) => {
+                    let def = state.def_of(*id).expect("permanent");
+                    -i64::from(def.mana_cost.mana_value())
+                }
+                _ => i64::MIN,
+            }),
             // Copy the biggest creature on offer.
             DecisionKind::ChooseCopy => Self::best_by(d, |c| match c {
                 Choice::CopyOf { def, .. } => {
@@ -277,8 +311,14 @@ impl Agent for GreedyAgent {
                     // using (damage, destruction, equipping); untargeted
                     // ones (firebreathing, sacrifice outlets) are left alone.
                     let specs = state.pool.ability(*ability).targets();
+                    // Loyalty abilities are free value; use the untargeted
+                    // ones every turn.
+                    let loyalty = matches!(
+                        state.pool.ability(*ability),
+                        AbilityDef::Activated(a) if a.cost.loyalty != 0
+                    );
                     if specs.is_empty() {
-                        return -5;
+                        return if loyalty { 10 } else { -5 };
                     }
                     let good = state
                         .battlefield
@@ -357,17 +397,19 @@ impl Agent for GreedyAgent {
                 Choice::Done => 0,
                 _ => i64::MIN,
             }),
-            DecisionKind::Discard => Self::best_by(d, |c| match c {
-                Choice::Discard(id) => {
-                    let def = state.def_of(*id).expect("card in hand");
-                    if def.is_land() {
-                        10
-                    } else {
-                        -i64::from(def.mana_cost.mana_value())
+            DecisionKind::Discard | DecisionKind::ChooseDiscardCost { .. } => {
+                Self::best_by(d, |c| match c {
+                    Choice::Discard(id) => {
+                        let def = state.def_of(*id).expect("card in hand");
+                        if def.is_land() {
+                            10
+                        } else {
+                            -i64::from(def.mana_cost.mana_value())
+                        }
                     }
-                }
-                _ => i64::MIN,
-            }),
+                    _ => i64::MIN,
+                })
+            }
         }
     }
 }

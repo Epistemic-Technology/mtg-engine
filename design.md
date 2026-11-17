@@ -245,6 +245,21 @@ layer 6, so Urborg's Swamps count for Nightmare) or `CdaColors` (layer 5);
 they take timestamp 0 within their layer (CR 613.2), which is also why
 Transguild Courier stays all colors under Humility.
 
+Planeswalkers (CR 306, M2 slice 6) are permanents like any other: their
+loyalty is a counter kind (`CounterKind::Loyalty`) put on them as they
+enter (CR 306.5b, in `move_object_now`), removed by damage (CR 120.3c, in
+`deal_damage_now`, which marks damage only on creatures), and checked by
+the state-based action of CR 704.5i. A loyalty ability is an activated
+ability whose `Cost::loyalty` is nonzero: sorcery speed, one per
+planeswalker per turn (`GameState::loyalty_activated`, cleared at turn
+start), payable only with enough loyalty for a −N cost (CR 606.5).
+Emblems (CR 114) are objects of `ObjKind::Emblem` in the command zone,
+listed in `GameState::emblems`; the layer pass takes them as sources of
+static abilities but never as affected objects. X (CR 107.3) is chosen as
+part of casting and kept on the spell object (`GameObject::x`); effect
+amounts are `Num`, a constant or X, and the entering-with-counters
+replacement reads X from the spell as it enters (Endless One).
+
 ### 4.4 Continuous effects
 
 ```rust
@@ -389,6 +404,19 @@ count of battlefield objects with printed triggers gates detection, and
 event kinds are matched against printed abilities before characteristics
 are computed.
 
+Destruction is an event of the pipeline since slice 6 (`Proposed::Destroy`),
+so regeneration (CR 701.15) is a stored replacement effect that applies to
+it once: remove all damage, tap, remove from combat, and the shield is
+spent. "Can't be regenerated" destruction carries a flag the shield does not
+match. Damage redirection (Pariah) is a replacement that returns a new
+damage event with the attached creature as target, which other effects may
+then replace in turn (CR 616.2). The CR 614.12 look-ahead is real: to decide
+which "enters" replacement effects of a permanent apply, `candidates` asks
+the layer pass for the characteristics the permanent would have on the
+battlefield under the effects now in play, its own static abilities
+included (`layers::compute_entering`), so a Phantom Tiger under Humility
+enters without counters and a Guildgate under Blood Moon enters untapped.
+
 ### 4.6 State-based actions and the priority loop
 
 ```
@@ -474,6 +502,16 @@ Rules for the option list:
   (CR 400.2, 401.2): own hand, revealed cards, public zones, the stack,
   known information about face-down and library-top cards, and the full
   event log filtered for hidden information.
+
+Casting a spell can involve several decisions in order (CR 601.2):
+`Flow::ChoosingMode`, then `Flow::ChoosingX` (the options are the values of
+X the player can pay for), then targets, then the choices an additional
+cost needs, a permanent to sacrifice or a card to discard
+(`DecisionKind::ChooseSacrifice`, `ChooseDiscardCost`), before everything
+is paid at once in `finish_cast`. Activated abilities carry those cost
+choices on the `Choice::Activate` option itself, one option per way to
+pay. When the defending player controls a planeswalker, declaring attackers
+is followed by one `ChooseAttackTarget` decision per attacker (CR 508.1a).
 
 ### 4.8 Hidden information and search support
 
@@ -946,6 +984,31 @@ can cause a replaceable event. That snapshot is the next perf target: a
 finer gate (does this action lead to an event the effects in play
 replace?) or a cheaper snapshot (copy on write for the object arena).
 
+**M2 slice 6 (2026-11-16, same method, measured against the perf-pass
+binary built the same evening).** The slice's rules cost 2–4% on most
+boards and nothing on the replacement board. The first build cost 5%: the
+new `x` field pushed `GameObject` from 120 to 128 bytes, which the size
+test allows but every object copy and battlefield scan paid for; X now
+lives in a small list on the state keyed by the spell on the stack, and the
+object is 120 bytes again. The rest is diffuse: a differential profile
+(same games, absolute sample counts) shows no function grown by more than
+1% of the total, small increases in `run`, `apply_choice`, `emit`, and
+malloc against decreases in `mana_sources` and `characteristics`, which is
+inlining and layout shifting under a crate that grew by 2,500 lines. The
+size test now prints `Flow` and `Event` too (56 and 40 bytes).
+
+| Matchup | games/s/core | perf-pass binary | Note |
+|---|---|---|---|
+| mono-red vs mono-red (no effects) | 4,894 | 5,079 | −3.6% |
+| mono-green vs mono-green (counters) | 4,619 | 4,800 | −3.8% |
+| layers vs layers | 2,684 | 2,742 | −2.1% |
+| triggers vs triggers | 1,169 | 1,179 | −0.8% |
+| replacement vs replacement | 719 | 709 | +1.4% |
+| activated vs activated | 740 | 756 | −2.1% |
+| copy vs copy | 1,494 | 1,561 | −4.3% |
+| slice6 vs mono-red | 2,408 | | |
+| slice6 vs slice6 (every slice 6 card at once) | 590 | | 801 decisions/game, 36 turns |
+
 The first version of `characteristics()` returned a struct holding two
 `SmallVec`s and cost 42% of throughput even on effect-free boards; making
 `Characteristics` `Copy` (fixed-capacity lists) recovered all but 5%. The
@@ -1183,6 +1246,59 @@ effect-free, 2,732 on the layers deck, 1,166 on triggers, 1,560 on the
 copy deck. Next perf target: the full-state clone the mid-decision
 snapshot takes on replacement-heavy boards (63% of that profile).
 
+Status 2026-11-16, slice 6 (X and non-mana costs, regeneration, damage
+redirection, the CR 614.12 look-ahead, planeswalkers, emblems) done. X
+(CR 107.3) is a casting decision (`Flow::ChoosingX`, options the player can
+pay for) kept on the spell object; effect amounts are `Num::{N, X}`, and
+Endless One's "enters with X counters" reads X from the spell as it
+enters. `Cost` gained life, discard, and loyalty parts, and `CardDef` an
+`additional` cost (CR 601.2h) whose sacrifice or discard is chosen after
+targets and paid with the mana in `finish_cast`; activated abilities list
+one `Choice::Activate` per way to pay (sacrifice × discard). Destruction
+goes through the event pipeline (`Proposed::Destroy`), so regeneration
+(CR 701.15) is a stored replacement used once that removes damage, taps,
+and leaves combat, and "can't be regenerated" is a flag the shield does
+not match; Pariah redirects damage by returning a new damage event, open
+to further replacement (CR 616.2). The CR 614.12 look-ahead runs the layer
+pass with the entering permanent included (`layers::compute_entering`), so
+Phantom Tiger under Humility enters without counters and a Guildgate
+under Blood Moon enters untapped. Planeswalkers (CR 306) have loyalty as a
+counter kind put on them as they enter, removed by damage (CR 120.3c), and
+checked by CR 704.5i; loyalty abilities are activated abilities with a
+`loyalty` cost, sorcery speed and once per planeswalker per turn (CR
+606.3), needing enough loyalty for −N (CR 606.5); "any target" and
+"player or planeswalker" include them (CR 115.4); when the defender
+controls one, each attacker chooses what it attacks (CR 508.1a,
+`Flow::AttackTargets`), and an attacker whose planeswalker left deals no
+combat damage. Emblems (CR 114) are command-zone objects the layer pass
+takes as static sources and never as affected objects. Twenty definitions
+join the pool (Blaze, Mind Spring, Endless One, Bone Splinters, Tormenting
+Voice, Ravenous Bloodseeker, Souldrinker, Vampire Hexmage, Drudge
+Skeletons, Regenerate, Wrath of God, Pariah, Ajani Goldmane, Jace Beleren,
+Elspeth Knight-Errant, Garruk Wildspeaker, Hero's Downfall, Beast and
+Avatar tokens, Elspeth's emblem), bringing it to 138. The scenario DSL
+gained `cast ... x N`, `sacrificing`/`discarding` on casts and
+activations, `attack ... at`, `activate ... ability N`, and `loyalty`
+counters. Fifty-nine scenarios in `costs.scn`, `regen.scn`,
+`lookahead.scn`, and `planeswalkers.scn` cover Bone Splinters' sacrifice
+triggering Blood Artist before the spell resolves, paying exactly all your
+life, a regenerated attacker leaving combat, Wrath ignoring a shield,
+redirected damage then prevented, the Blood Moon Guildgate example,
+Elspeth dying to her own ultimate while the emblem lives on, and a
+planeswalker's attacker dealing no damage once it is gone. Authoring found
+no rules bugs; fuzzing with the debug cache check found one: Ajani's
+Avatar, whose power is its controller's life, went stale because life
+changes do not bump `cversion` (fixed with a counted `LIFE_CDA` flag so
+they do while such a CDA is in play). Fuzz: 51,000 release games on the slice 6 deck against itself, mono-red,
+copy, replacement, and activated, with random and greedy agents, and 1,500
+debug-assert games, 0 panics; records with attack-target choices replay
+identically. Perf (§8): 2–4% on most boards, diffuse, after the one real
+cost (an 8-byte growth of `GameObject`) was found by the size test and
+removed. Not yet: battles,
+X in activated-ability costs, "target player discards" (a decision for
+another player mid-resolution), triggered abilities on emblems, and
+distinct-target enforcement for multi-target spells (CR 115.3).
+
 Status 2026-11-16, slice 5 (copy effects, characteristic-defining
 abilities, delayed triggers, modal spells, "you may") done. Copy effects
 (CR 707) are not effects: `GameObject::def` is the definition whose
@@ -1242,10 +1358,10 @@ activated, triggers, and replacement, with random and greedy agents, and
 with copy choices replay identically. Perf (§8): the characteristics cache
 keyed on `cversion` lifts every board with effects by 16–82%, and the
 effect-free board is within noise of slice 4 after a 14% regression from
-a slow path inside the hot accessor was found and removed. Not yet:
-planeswalkers, emblems, costs other than mana/{T}/sacrifice, X costs,
-the CR 614.12 look-ahead, regeneration, and damage redirection (slice
-6).
+a slow path inside the hot accessor was found and removed. Not yet (at
+the time): planeswalkers, emblems, costs other than mana/{T}/sacrifice, X
+costs, the CR 614.12 look-ahead, regeneration, and damage redirection,
+all done in slice 6.
 
 Status 2026-11-15, slice 4 (activated abilities, tokens, Equipment,
 control changes, the legend rule) done. Activated abilities (CR 602) are

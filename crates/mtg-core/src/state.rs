@@ -46,6 +46,8 @@ impl Zone {
 pub enum ObjKind {
     Card,
     Token,
+    /// An emblem in the command zone (CR 114).
+    Emblem,
     /// An ability on the stack (CR 113.2b). Ceases to exist when it leaves
     /// the stack.
     Ability,
@@ -345,6 +347,10 @@ impl Characteristics {
         self.types.contains(CardType::Land)
     }
 
+    pub fn is_planeswalker(&self) -> bool {
+        self.types.contains(CardType::Planeswalker)
+    }
+
     pub fn has(&self, k: Keyword) -> bool {
         self.keywords.contains(k)
     }
@@ -434,6 +440,8 @@ pub enum Flow {
         spell: ObjId,
         next_target: usize,
         sacrifice: Option<ObjId>,
+        /// The card chosen for a "discard a card" cost, once chosen.
+        discard: Option<ObjId>,
     },
     DeclareAttackers {
         chosen: Vec<ObjId>,
@@ -459,6 +467,17 @@ pub enum Flow {
     /// its targets.
     ChoosingMode {
         spell: ObjId,
+    },
+    /// Choosing X for a spell being cast (CR 601.2b), after the mode and
+    /// before targets.
+    ChoosingX {
+        spell: ObjId,
+    },
+    /// Attackers declared; each chooses the player or planeswalker it
+    /// attacks (CR 508.1a) when the defender controls a planeswalker.
+    AttackTargets {
+        chosen: Vec<(ObjId, Target)>,
+        remaining: Vec<ObjId>,
     },
     /// All players passed with an empty stack: the step ends.
     EndStep,
@@ -493,6 +512,14 @@ pub struct GameState {
     pub sba_dirty: bool,
     /// Tokens that left the battlefield and are not yet removed (CR 704.5d).
     pub stray_tokens: Vec<ObjId>,
+    /// Emblems in the command zone (CR 114), sources of static abilities.
+    pub emblems: Vec<ObjId>,
+    /// Planeswalkers whose loyalty ability was activated this turn (CR
+    /// 606.3: one per planeswalker per turn).
+    pub loyalty_activated: Vec<ObjId>,
+    /// X as chosen for spells on the stack (CR 107.3), kept off
+    /// `GameObject` so the hot struct stays at 120 bytes.
+    pub x_values: Vec<(ObjId, u32)>,
     pub turn_number: u32,
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -527,6 +554,9 @@ pub struct GameState {
     /// Battlefield objects whose definition has an activated ability, so
     /// that listing a player's options costs nothing extra without any.
     pub activated_sources: u32,
+    /// Battlefield objects whose definition has a life-dependent CDA, so
+    /// that life changes bump `cversion` only when one is in play.
+    pub life_cda_sources: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
@@ -606,6 +636,14 @@ impl GameState {
     /// characteristics (damage, life, a draw from an empty library).
     pub fn sba_touch(&mut self) {
         self.sba_dirty = true;
+    }
+
+    /// X of a spell on the stack (CR 107.3); 0 if none was chosen.
+    pub fn x_of(&self, spell: ObjId) -> u32 {
+        self.x_values
+            .iter()
+            .find(|(id, _)| *id == spell)
+            .map_or(0, |(_, x)| *x)
     }
 
     /// Record an event: triggered abilities that watch it trigger (CR 603.2),
@@ -869,6 +907,8 @@ impl GameState {
             TargetSpec::Artifact => c.types.contains(CardType::Artifact),
             TargetSpec::Enchantment => c.types.contains(CardType::Enchantment),
             TargetSpec::Permanent | TargetSpec::OtherPermanent => true,
+            TargetSpec::Land => c.is_land(),
+            TargetSpec::CreatureOrPlaneswalker => c.is_creature() || c.is_planeswalker(),
             TargetSpec::Player
             | TargetSpec::PlayerOrPlaneswalker
             | TargetSpec::CreatureCardInYourGraveyard => false,
@@ -947,7 +987,14 @@ impl GameState {
                     return false;
                 };
                 let type_ok = match spec {
-                    TargetSpec::Any | TargetSpec::Creature => c.is_creature(),
+                    // CR 115.4: "any target" is a creature, player, or
+                    // planeswalker (battles are not modelled).
+                    TargetSpec::Any | TargetSpec::CreatureOrPlaneswalker => {
+                        c.is_creature() || c.is_planeswalker()
+                    }
+                    TargetSpec::PlayerOrPlaneswalker => c.is_planeswalker(),
+                    TargetSpec::Land => c.is_land(),
+                    TargetSpec::Creature => c.is_creature(),
                     TargetSpec::OtherCreature => c.is_creature() && Some(id) != source,
                     TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
                     TargetSpec::CreatureYouControl => c.is_creature() && obj.controller == caster,
@@ -967,9 +1014,7 @@ impl GameState {
                     TargetSpec::Enchantment => c.types.contains(CardType::Enchantment),
                     TargetSpec::Permanent => true,
                     TargetSpec::OtherPermanent => Some(id) != source,
-                    TargetSpec::Player
-                    | TargetSpec::PlayerOrPlaneswalker
-                    | TargetSpec::CreatureCardInYourGraveyard => false,
+                    TargetSpec::Player | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);
                 type_ok && hexproof_ok
@@ -997,7 +1042,11 @@ mod tests {
             std::mem::size_of::<GameObject>(),
             std::mem::size_of::<Characteristics>(),
         );
-        eprintln!("GameObject {o} bytes, Characteristics {c} bytes");
+        eprintln!(
+            "GameObject {o} bytes, Characteristics {c} bytes, Flow {} bytes, Event {} bytes",
+            std::mem::size_of::<Flow>(),
+            std::mem::size_of::<Event>()
+        );
         assert!(o <= 136, "GameObject is {o} bytes");
         assert!(c <= 72, "Characteristics is {c} bytes");
     }

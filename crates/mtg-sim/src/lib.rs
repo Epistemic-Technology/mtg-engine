@@ -255,12 +255,19 @@ mod tests {
     fn games_with_mid_event_decisions_replay_identically() {
         use mtg_core::decision::{DecisionKind, StepResult};
         use mtg_core::engine::Engine;
+        use mtg_core::ids::ObjId;
         use mtg_core::record::GameRecord;
         let pool = Arc::new(m1_pool());
         for (deck_name, kind) in [
             ("replacement", DecisionKind::ChooseReplacement),
             ("activated", DecisionKind::LegendRule),
             ("copy", DecisionKind::ChooseCopy),
+            (
+                "slice6",
+                DecisionKind::ChooseAttackTarget {
+                    attacker: ObjId::default(),
+                },
+            ),
         ] {
             let deck = crate::decks::by_name(&pool, deck_name).unwrap();
             let mut mid_decisions = 0;
@@ -274,7 +281,7 @@ mod tests {
                 let mut agents = [RandomAgent::new(seed), RandomAgent::new(seed + 1)];
                 let mut engine = Engine::new(pool.clone(), &config);
                 while let StepResult::Decision(d) = engine.current() {
-                    if d.kind == kind {
+                    if std::mem::discriminant(&d.kind) == std::mem::discriminant(&kind) {
                         mid_decisions += 1;
                     }
                     let choice = agents[d.player.index()].choose(engine.state(), d);

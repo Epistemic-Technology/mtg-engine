@@ -206,6 +206,24 @@ pub enum Event {
         player: PlayerId,
         reason: LossReason,
     },
+    /// An emblem was created in the command zone (CR 114).
+    EmblemCreated {
+        obj: ObjId,
+        def: CardRef,
+        controller: PlayerId,
+    },
+    /// A regeneration shield replaced the destruction of `obj` (CR 701.15a).
+    Regenerated {
+        obj: ObjId,
+        by: CardRef,
+    },
+    /// Damage was redirected from `from` to `to` (Pariah).
+    Redirected {
+        from: Target,
+        to: Target,
+        amount: u32,
+        by: CardRef,
+    },
     GameOver {
         result: GameResult,
     },

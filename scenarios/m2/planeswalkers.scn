@@ -1,0 +1,295 @@
+# M2 slice 6: planeswalkers (CR 306), loyalty abilities (CR 606), emblems
+# (CR 114).
+
+# ---- loyalty -----------------------------------------------------------------------
+
+scenario "a planeswalker enters with its printed loyalty" {
+  battlefield A: 3 "Island"
+  hand A: "Jace Beleren"
+  turn 1 A: cast "Jace Beleren"
+  run_to turn 1 begin_combat
+  assert counters "Jace Beleren" loyalty 3
+  assert is "Jace Beleren" planeswalker
+}
+
+# CR 606.3: one loyalty ability per planeswalker per turn, at sorcery speed.
+scenario "a plus ability adds loyalty; only one loyalty ability per turn" {
+  battlefield A: "Jace Beleren"
+  library A: "Forest", "Forest"
+  library B: "Swamp", "Swamp"
+  turn 1 A: activate "Jace Beleren" ability 1
+  illegal turn 1 postcombat_main A: activate "Jace Beleren" ability 2 targeting player B
+  run_to turn 1 end
+  assert counters "Jace Beleren" loyalty 5
+  assert hand A count 1
+  assert hand B count 1
+}
+
+scenario "loyalty abilities are usable again next turn" {
+  battlefield A: "Jace Beleren"
+  turn 1 A: activate "Jace Beleren" ability 1
+  turn 3 A: activate "Jace Beleren" ability 1
+  run_to turn 3 begin_combat
+  assert counters "Jace Beleren" loyalty 7
+}
+
+# CR 606.5: a -N ability needs N loyalty to pay.
+scenario "a minus ability removes loyalty and needs enough of it" {
+  battlefield A: "Jace Beleren"
+  library B: "Swamp", "Swamp"
+  illegal turn 1 A: activate "Jace Beleren" ability 3 targeting player B
+  turn 1 A: activate "Jace Beleren" ability 2 targeting player B
+  run_to turn 1 begin_combat
+  assert counters "Jace Beleren" loyalty 2
+  assert hand B count 1
+}
+
+scenario "loyalty abilities are sorcery speed" {
+  battlefield A: "Jace Beleren"
+  start turn 2 B
+  illegal turn 2 A: activate "Jace Beleren" ability 1
+  run_to turn 2 begin_combat
+  assert counters "Jace Beleren" loyalty 3
+}
+
+# ---- damage ------------------------------------------------------------------------
+
+# CR 120.3c: damage to a planeswalker removes that many loyalty counters.
+scenario "damage to a planeswalker removes loyalty" {
+  battlefield A: "Jace Beleren"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Jace Beleren"
+  run_to turn 2 begin_combat
+  assert counters "Jace Beleren" loyalty 1
+  assert damage "Jace Beleren" 0
+}
+
+# CR 704.5i: a planeswalker with no loyalty goes to the graveyard.
+scenario "a planeswalker with no loyalty dies" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Jace Beleren"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Jace Beleren"
+}
+
+scenario "Lava Axe can target a planeswalker" {
+  battlefield A: "Ajani Goldmane"
+  battlefield B: 5 "Mountain"
+  hand B: "Lava Axe"
+  start turn 2 B
+  turn 2 B: cast "Lava Axe" targeting "Ajani Goldmane"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Ajani Goldmane"
+}
+
+scenario "Hero's Downfall destroys a planeswalker" {
+  battlefield A: "Jace Beleren"
+  battlefield B: 3 "Swamp"
+  hand B: "Hero's Downfall"
+  start turn 2 B
+  turn 2 B: cast "Hero's Downfall" targeting "Jace Beleren"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Jace Beleren"
+}
+
+scenario "Vampire Hexmage empties a planeswalker's loyalty" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Vampire Hexmage"
+  start turn 2 B
+  turn 2 B: activate "Vampire Hexmage" targeting "Jace Beleren"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Jace Beleren"
+  assert graveyard B contains "Vampire Hexmage"
+}
+
+# ---- combat ------------------------------------------------------------------------
+
+# CR 508.1a: each attacker attacks the player or a planeswalker they control.
+scenario "a creature can attack a planeswalker" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant" at "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Jace Beleren"
+}
+
+scenario "unscripted attackers attack the player" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert counters "Jace Beleren" loyalty 3
+}
+
+scenario "a creature attacking a planeswalker can be blocked" {
+  battlefield A: "Jace Beleren", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant" at "Jace Beleren"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Jace Beleren" loyalty 3
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# CR 506.4c: a creature attacking a planeswalker that left the battlefield
+# stays attacking but deals no combat damage.
+scenario "an attacker whose planeswalker left deals no combat damage" {
+  battlefield A: "Jace Beleren", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant" at "Jace Beleren"
+  turn 2 declare_blockers A: cast "Lightning Bolt" targeting "Jace Beleren"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Jace Beleren"
+  assert life A 20
+}
+
+scenario "two attackers can split between a planeswalker and the player" {
+  battlefield A: "Jace Beleren"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant" at "Jace Beleren", "Grizzly Bears" at player A
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Jace Beleren"
+  assert life A 18
+}
+
+# ---- the planeswalkers' abilities ---------------------------------------------------
+
+scenario "Ajani's -1 puts counters on each creature and grants vigilance for the turn" {
+  battlefield A: "Ajani Goldmane", "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Ajani Goldmane" ability 2
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Raging Goblin" +1/+1 1
+  assert has "Grizzly Bears" vigilance
+  assert has not B "Hill Giant" vigilance
+  assert counters "Ajani Goldmane" loyalty 3
+  run_to turn 2
+  assert has not "Grizzly Bears" vigilance
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Ajani's Avatar has power and toughness equal to its controller's life" {
+  battlefield A: "Ajani Goldmane" with 6 loyalty
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Ajani Goldmane" ability 3
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Avatar"
+  assert power "Avatar" 20
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 begin_combat
+  assert power "Avatar" 18
+  assert toughness "Avatar" 18
+}
+
+scenario "Garruk untaps two lands and makes Beasts" {
+  battlefield A: "Garruk Wildspeaker", "Forest" tapped, "Forest" tapped
+  turn 1 A: activate "Garruk Wildspeaker" ability 1 targeting oldest A "Forest", newest A "Forest"
+  run_to turn 1 begin_combat
+  assert untapped oldest A "Forest"
+  assert untapped newest A "Forest"
+  assert counters "Garruk Wildspeaker" loyalty 4
+  turn 3 A: activate "Garruk Wildspeaker" ability 2
+  run_to turn 3 begin_combat
+  assert battlefield A contains "Beast"
+  assert power "Beast" 3
+  assert counters "Garruk Wildspeaker" loyalty 3
+}
+
+scenario "Garruk's Overrun pumps the team until end of turn" {
+  battlefield A: "Garruk Wildspeaker" with 4 loyalty, "Grizzly Bears"
+  turn 1 A: activate "Garruk Wildspeaker" ability 3
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" trample
+  assert graveyard A contains "Garruk Wildspeaker"
+  run_to turn 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Jace's ultimate mills twenty" {
+  battlefield A: "Jace Beleren" with 10 loyalty
+  turn 1 A: activate "Jace Beleren" ability 3 targeting player B
+  run_to turn 1 begin_combat
+  assert library B count 20
+  assert graveyard B count 20
+  assert graveyard A contains "Jace Beleren"
+}
+
+scenario "Elspeth makes Soldiers and gives flying" {
+  battlefield A: "Elspeth, Knight-Errant", "Grizzly Bears"
+  turn 1 A: activate "Elspeth, Knight-Errant" ability 1
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Soldier"
+  turn 3 A: activate "Elspeth, Knight-Errant" ability 2 targeting "Grizzly Bears"
+  run_to turn 3 begin_combat
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" flying
+  assert counters "Elspeth, Knight-Errant" loyalty 6
+}
+
+# ---- emblems ------------------------------------------------------------------------
+
+# CR 114: an emblem is an object in the command zone; its static ability
+# applies like a permanent's and nothing can remove it. Paying the whole
+# loyalty leaves Elspeth at 0, so she dies at once (CR 704.5i) and the
+# emblem outlives her.
+scenario "Elspeth's emblem makes your permanents indestructible for good" {
+  battlefield A: "Elspeth, Knight-Errant" with 8 loyalty, "Grizzly Bears", "Forest"
+  battlefield B: 3 "Swamp", 4 "Plains"
+  hand B: "Murder", "Wrath of God"
+  turn 1 A: activate "Elspeth, Knight-Errant" ability 3
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Elspeth, Knight-Errant"
+  assert has "Grizzly Bears" indestructible
+  assert has "Forest" indestructible
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Grizzly Bears"
+  turn 4 B: cast "Wrath of God"
+  run_to turn 4 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "a planeswalker that keeps loyalty after its ultimate stays" {
+  battlefield A: "Elspeth, Knight-Errant" with 9 loyalty
+  turn 1 A: activate "Elspeth, Knight-Errant" ability 3
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Elspeth, Knight-Errant"
+  assert counters "Elspeth, Knight-Errant" loyalty 1
+}
+
+scenario "the emblem does not help the opponent" {
+  battlefield A: "Elspeth, Knight-Errant" with 8 loyalty
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Elspeth, Knight-Errant" ability 3
+  run_to turn 1 begin_combat
+  assert has not B "Hill Giant" indestructible
+}
+
+# ---- the legend rule ------------------------------------------------------------------
+
+scenario "two planeswalkers with the same name meet the legend rule" {
+  battlefield A: "Jace Beleren", 3 "Island"
+  hand A: "Jace Beleren"
+  turn 1 A: cast "Jace Beleren"
+  turn 1 A: keep newest "Jace Beleren"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Jace Beleren"
+  assert graveyard A contains "Jace Beleren"
+}

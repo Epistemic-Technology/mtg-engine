@@ -6,7 +6,7 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 
 use mtg_core::card::CardPool;
-use mtg_core::card::{CardType, CounterKind, Keyword, Supertype};
+use mtg_core::card::{AbilityDef, AbilityId, CardType, CounterKind, Keyword, Supertype};
 use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
 use mtg_core::engine::{Engine, PlayerSetup, Setup, SetupPermanent};
 use mtg_core::event::Event;
@@ -125,8 +125,14 @@ struct Runner {
     pending_targets: Option<Vec<TargetRef>>,
     /// The scripted mode of the modal spell being cast (1-based).
     pending_mode: Option<usize>,
+    /// The scripted X, sacrifice, and discard of the spell being cast.
+    pending_x: Option<u32>,
+    pending_sacrifice: Option<String>,
+    pending_discard: Option<String>,
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
+    /// Scripted `at` targets for attackers (CR 508.1a).
+    attack_targets: Vec<(ObjId, TargetRef)>,
     /// Blocks still to be added in an incremental declaration.
     block_queue: Option<Vec<(ObjId, ObjId)>>,
 }
@@ -212,7 +218,11 @@ impl Runner {
             decisions: 0,
             pending_targets: None,
             pending_mode: None,
+            pending_x: None,
+            pending_sacrifice: None,
+            pending_discard: None,
             attack_queue: None,
+            attack_targets: Vec::new(),
             block_queue: None,
         })
     }
@@ -361,9 +371,74 @@ impl Runner {
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
             DecisionKind::ChooseMode { .. } => self.choose_mode(d),
+            DecisionKind::ChooseX { .. } => self.choose_x(d),
+            DecisionKind::ChooseSacrifice { .. } => self.choose_cost(d, "sacrifice"),
+            DecisionKind::ChooseDiscardCost { .. } => self.choose_cost(d, "discard"),
+            DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
             DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
         }
+    }
+
+    /// What an attacker attacks: the scripted `at` target, else the player
+    /// (the engine's first option).
+    fn choose_attack_target(&mut self, d: &Decision, attacker: ObjId) -> Res<ChoiceId> {
+        let Some(i) = self.attack_targets.iter().position(|(a, _)| *a == attacker) else {
+            return Ok(0);
+        };
+        let (_, tr) = self.attack_targets.remove(i);
+        let line = self.line_of_kind(self.position(), d.player, "attack");
+        let t = self.resolve_target(line, &tr)?;
+        index_of(d, &Choice::AttackTarget(t)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "{} cannot attack {}; options: {}",
+                self.state().name_of(attacker),
+                self.describe_target(t),
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// X for the spell being cast: the scripted `x N`, else 0.
+    fn choose_x(&mut self, d: &Decision) -> Res<ChoiceId> {
+        let Some(x) = self.pending_x.take() else {
+            return Ok(0);
+        };
+        let line = self.current_cast_line();
+        index_of(d, &Choice::X(x)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "X = {x} cannot be paid for; available: {}",
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// The permanent to sacrifice or the card to discard as an additional
+    /// cost of the spell being cast: the scripted one, else the engine's
+    /// first option.
+    fn choose_cost(&mut self, d: &Decision, what: &str) -> Res<ChoiceId> {
+        let pending = if what == "sacrifice" {
+            self.pending_sacrifice.take()
+        } else {
+            self.pending_discard.take()
+        };
+        let Some(name) = pending else {
+            return Ok(0);
+        };
+        let line = self.current_cast_line();
+        let found = d.options.iter().position(|c| match c {
+            Choice::Sacrifice(id) | Choice::Discard(id) => self.state().name_of(*id) == name,
+            _ => false,
+        });
+        found.map(idx_u32).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "cannot {what} \"{name}\"; available: {}",
+                self.describe_options(d)
+            ),
+        })
     }
 
     /// The mode of the modal spell being cast: the one scripted with
@@ -584,6 +659,11 @@ impl Runner {
             );
         };
         let t = self.resolve_target(line, tr)?;
+        if index + 1 == targets.len() {
+            // All chosen: a trigger that fires while the costs are paid
+            // (a sacrifice, CR 601.2h) must not inherit them.
+            self.pending_targets = None;
+        }
         index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
             line,
             message: format!(
@@ -627,28 +707,47 @@ impl Runner {
             let a = self.actions[i].clone();
             if let Action::Activate {
                 source,
+                ability,
                 sacrifice,
+                discard,
                 targets,
             } = &a.action
             {
-                match self.activation(d, &a, source, sacrifice.as_deref(), targets)? {
+                match self.activation(
+                    d,
+                    &a,
+                    source,
+                    *ability,
+                    sacrifice.as_deref(),
+                    discard.as_deref(),
+                    targets,
+                )? {
                     Some(idx) => return Ok(idx),
                     None => continue,
                 }
             }
-            let (name, option, targets, mode) = match &a.action {
+            let (name, option, targets, mode, costs) = match &a.action {
                 Action::Play(name) => {
                     let id = self.in_hand(a.line, d.player, name)?;
-                    (name, Choice::PlayLand(id), None, None)
+                    (name, Choice::PlayLand(id), None, None, (None, None, None))
                 }
                 Action::Cast {
                     name,
                     targets,
                     mode,
+                    x,
+                    sacrifice,
+                    discard,
                     ..
                 } => {
                     let id = self.in_hand(a.line, d.player, name)?;
-                    (name, Choice::Cast(id), Some(targets.clone()), *mode)
+                    (
+                        name,
+                        Choice::Cast(id),
+                        Some(targets.clone()),
+                        *mode,
+                        (*x, sacrifice.clone(), discard.clone()),
+                    )
                 }
                 _ => unreachable!("filtered to play/cast"),
             };
@@ -696,6 +795,7 @@ impl Runner {
                     if let Some(targets) = targets {
                         let (needed, pending_mode) = self.cast_needs(a.line, id, name, mode)?;
                         self.pending_mode = pending_mode;
+                        (self.pending_x, self.pending_sacrifice, self.pending_discard) = costs;
                         if targets.len() != needed {
                             return fail(
                                 a.line,
@@ -744,29 +844,48 @@ impl Runner {
     /// permanent (with the named sacrifice, if any). `Ok(None)` means the
     /// action did not fire this time (illegal as required, or waiting for
     /// an empty stack).
+    #[allow(clippy::too_many_arguments)] // the parts of one `activate` line
     fn activation(
         &mut self,
         d: &Decision,
         a: &ScriptedAction,
         source: &str,
+        nth: Option<usize>,
         sacrifice: Option<&str>,
+        discard: Option<&str>,
         targets: &[TargetRef],
     ) -> Res<Option<ChoiceId>> {
         let found = {
             let st = self.state();
+            let names_match = |want: Option<&str>, have: &Option<ObjId>| match (want, have) {
+                (Some(want), Some(have)) => st.name_of(*have) == want,
+                (None, _) => true,
+                (Some(_), None) => false,
+            };
+            // `ability N`: the Nth activated ability the permanent has.
+            let nth_match = |s: ObjId, ability: AbilityId| match nth {
+                None => true,
+                Some(n) => st.characteristics(s).is_some_and(|c| {
+                    c.abilities
+                        .iter()
+                        .copied()
+                        .filter(|a| matches!(st.pool.ability(*a), AbilityDef::Activated(_)))
+                        .nth(n - 1)
+                        == Some(ability)
+                }),
+            };
             d.options.iter().position(|c| match c {
                 Choice::Activate {
                     source: s,
+                    ability,
                     sacrifice: sac,
-                    ..
+                    discard: dis,
                 } => {
                     st.objects[*s].controller == d.player
                         && st.name_of(*s) == source
-                        && match (sacrifice, sac) {
-                            (Some(want), Some(have)) => st.name_of(*have) == want,
-                            (None, _) => true,
-                            (Some(_), None) => false,
-                        }
+                        && nth_match(*s, *ability)
+                        && names_match(sacrifice, sac)
+                        && names_match(discard, dis)
                 }
                 _ => false,
             })
@@ -848,6 +967,11 @@ impl Runner {
             );
         };
         let t = self.resolve_target(line, tr)?;
+        if index + 1 == targets.len() {
+            // All chosen: a trigger that fires while the costs are paid
+            // (a sacrifice, CR 601.2h) must not inherit them.
+            self.pending_targets = None;
+        }
         index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
             line,
             message: format!(
@@ -880,9 +1004,12 @@ impl Runner {
                 let Action::Attack(names) = &a.action else {
                     unreachable!()
                 };
-                for name in names {
+                for (name, at) in names {
                     let used: Vec<ObjId> = legal.iter().chain(&illegal).copied().collect();
                     let id = self.creature_of(a.line, d.player, name, &used)?;
+                    if let Some(tr) = at {
+                        self.attack_targets.push((id, tr.clone()));
+                    }
                     if a.illegal {
                         illegal.push(id);
                     } else {
@@ -1545,15 +1672,23 @@ impl Runner {
                 format!("apply \"{}\"", self.state().pool.get(*def).name)
             }
             Choice::Activate {
-                source, sacrifice, ..
-            } => match sacrifice {
-                Some(s) => format!(
-                    "activate {} sacrificing {}",
-                    self.describe_ids(&[*source]),
-                    self.describe_ids(&[*s])
-                ),
-                None => format!("activate {}", self.describe_ids(&[*source])),
-            },
+                source,
+                sacrifice,
+                discard,
+                ..
+            } => {
+                let mut out = format!("activate {}", self.describe_ids(&[*source]));
+                if let Some(s) = sacrifice {
+                    out = format!("{out} sacrificing {}", self.describe_ids(&[*s]));
+                }
+                if let Some(c) = discard {
+                    out = format!("{out} discarding {}", self.describe_ids(&[*c]));
+                }
+                out
+            }
+            Choice::X(n) => format!("X = {n}"),
+            Choice::Sacrifice(id) => format!("sacrifice {}", self.describe_ids(&[*id])),
+            Choice::AttackTarget(t) => format!("attack {}", self.describe_target(*t)),
             Choice::KeepLegend { def, age, .. } => {
                 format!("keep \"{}\" #{}", self.state().pool.get(*def).name, age + 1)
             }
@@ -1627,6 +1762,7 @@ fn counter_kind_by_name(name: &str) -> Option<CounterKind> {
     match name {
         "+1/+1" => Some(CounterKind::PlusOnePlusOne),
         "-1/-1" => Some(CounterKind::MinusOneMinusOne),
+        "loyalty" => Some(CounterKind::Loyalty),
         _ => None,
     }
 }

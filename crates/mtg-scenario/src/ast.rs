@@ -97,12 +97,19 @@ pub enum Action {
         name: String,
         /// `mode N` (1-based) for a modal spell.
         mode: Option<usize>,
+        /// `x N` for a spell with {X} in its cost.
+        x: Option<u32>,
+        /// `sacrificing "X"` / `discarding "X"`: additional costs.
+        sacrifice: Option<String>,
+        discard: Option<String>,
         targets: Vec<TargetRef>,
         /// `in response to "X"`: fire only while an object named X is on
         /// the stack.
         respond_to: Option<String>,
     },
-    Attack(Vec<String>),
+    /// `attack "X" [at <target>], ...`: attackers, each optionally with
+    /// the player or planeswalker it attacks (CR 508.1a).
+    Attack(Vec<(String, Option<TargetRef>)>),
     Block {
         attacker: String,
         blocker: String,
@@ -127,7 +134,11 @@ pub enum Action {
     /// ability of a permanent the player controls (CR 602).
     Activate {
         source: String,
+        /// `ability N` (1-based among the permanent's activated abilities).
+        ability: Option<usize>,
         sacrifice: Option<String>,
+        /// `discarding "X"` for a "discard a card" cost.
+        discard: Option<String>,
         targets: Vec<TargetRef>,
     },
     /// `keep oldest|newest "Name"`: under the legend rule (CR 704.5j), keep

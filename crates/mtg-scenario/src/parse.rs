@@ -467,6 +467,24 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
+            let x = if line.peek_ident("x") {
+                line.pos += 1;
+                Some(u32::try_from(line.count()?).unwrap_or(u32::MAX))
+            } else {
+                None
+            };
+            let sacrifice = if line.peek_ident("sacrificing") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
+            };
+            let discard = if line.peek_ident("discarding") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
+            };
             let mut targets = Vec::new();
             if line.peek_ident("targeting") {
                 line.pos += 1;
@@ -491,6 +509,9 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 Action::Cast {
                     name,
                     mode,
+                    x,
+                    sacrifice,
+                    discard,
                     targets,
                     respond_to,
                 },
@@ -500,7 +521,14 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "attack" => {
             let mut names = Vec::new();
             loop {
-                names.push(line.string()?);
+                let name = line.string()?;
+                let at = if line.peek_ident("at") {
+                    line.pos += 1;
+                    Some(line.target_ref()?)
+                } else {
+                    None
+                };
+                names.push((name, at));
                 if !line.comma_or_end()? {
                     break;
                 }
@@ -550,7 +578,23 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "apply" => (Action::Apply(line.string()?), None),
         "activate" => {
             let source = line.string()?;
+            let ability = if line.peek_ident("ability") {
+                line.pos += 1;
+                let n = line.count()?;
+                if n == 0 {
+                    return line.fail("abilities are numbered from 1");
+                }
+                Some(n)
+            } else {
+                None
+            };
             let sacrifice = if line.peek_ident("sacrificing") {
+                line.pos += 1;
+                Some(line.string()?)
+            } else {
+                None
+            };
+            let discard = if line.peek_ident("discarding") {
                 line.pos += 1;
                 Some(line.string()?)
             } else {
@@ -571,7 +615,9 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (
                 Action::Activate {
                     source,
+                    ability,
                     sacrifice,
+                    discard,
                     targets,
                 },
                 Some(Step::PrecombatMain),

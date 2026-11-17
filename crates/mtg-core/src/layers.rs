@@ -45,6 +45,9 @@ struct Work<'a> {
     ids: Vec<ObjId>,
     index: IdMap<usize>,
     chars: Vec<Characteristics>,
+    /// A permanent about to enter, judged as if on the battlefield under
+    /// this controller (CR 614.12); it is the last of `ids`.
+    entering: Option<(ObjId, PlayerId)>,
     /// CR 305.7: lost the abilities of its rules text.
     lost_printed: Vec<bool>,
 }
@@ -52,6 +55,14 @@ struct Work<'a> {
 impl Work<'_> {
     fn get(&self, id: ObjId) -> Option<&Characteristics> {
         self.index.get(&id).map(|i| &self.chars[*i])
+    }
+
+    /// The controller an object has, or will have as it enters.
+    fn controller_of(&self, id: ObjId) -> PlayerId {
+        match self.entering {
+            Some((e, p)) if e == id => p,
+            _ => self.state.objects[id].controller,
+        }
     }
 
     fn on_battlefield(&self, id: ObjId) -> bool {
@@ -77,14 +88,14 @@ impl Work<'_> {
                 .into_iter()
                 .collect();
         }
-        self.state
-            .battlefield
+        self.ids
             .iter()
             .copied()
             .filter(|id| {
-                let o = &self.state.objects[*id];
+                let affectable = self.state.objects[*id].zone == Zone::Battlefield
+                    || self.entering.is_some_and(|(e, _)| e == *id);
                 let c = &self.chars[self.index[id]];
-                filter.matches(*id, o.controller, c, source, controller)
+                affectable && filter.matches(*id, self.controller_of(*id), c, source, controller)
             })
             .collect()
     }
@@ -92,16 +103,40 @@ impl Work<'_> {
 
 /// Compute the characteristics of every battlefield object.
 pub fn compute_battlefield(state: &GameState) -> Derived {
+    compute(state, None)
+}
+
+/// CR 614.12: the characteristics `obj` would have on the battlefield under
+/// `controller`, given the continuous effects now in play (its own static
+/// abilities included), to decide which of its "enters" replacement effects
+/// apply.
+pub fn compute_entering(state: &GameState, obj: ObjId, controller: PlayerId) -> Characteristics {
+    match compute(state, Some((obj, controller))) {
+        Derived::Printed => state.base_characteristics(&state.objects[obj]),
+        Derived::Battlefield(map) => map[&obj],
+    }
+}
+
+fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
     // Fast path: nothing can modify anything.
+    let plain = |id: &ObjId| {
+        let o = &state.objects[*id];
+        o.counters.is_empty() && o.except.is_none() && !state.pool.get(o.def).has_static()
+    };
     let simple = state.effects.is_empty()
-        && state.battlefield.iter().all(|id| {
-            let o = &state.objects[*id];
-            o.counters.is_empty() && o.except.is_none() && !state.pool.get(o.def).has_static()
-        });
+        && state.emblems.is_empty()
+        && state.battlefield.iter().all(plain)
+        && entering.is_none_or(|(e, _)| plain(&e));
     if simple {
         return Derived::Printed;
     }
-    let ids: Vec<ObjId> = state.battlefield.clone();
+    // Emblems (CR 114) are sources of static abilities but, being in the
+    // command zone, never affected (`matching` skips them).
+    let mut ids: Vec<ObjId> = state.battlefield.clone();
+    ids.extend(state.emblems.iter().copied());
+    if let Some((e, _)) = entering {
+        ids.push(e);
+    }
     let mut chars: Vec<Characteristics> = ids
         .iter()
         .map(|id| state.base_characteristics(&state.objects[*id]))
@@ -114,6 +149,7 @@ pub fn compute_battlefield(state: &GameState) -> Derived {
         index,
         chars: std::mem::take(&mut chars),
         lost_printed,
+        entering,
     };
 
     let mut live = stored_effects(state);
@@ -221,7 +257,7 @@ fn stored_effects(state: &GameState) -> Vec<Live> {
 /// Static abilities of battlefield permanents whose ability currently exists
 /// become live effects (CR 611.3); already-live ones persist (CR 613.6).
 fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
-    for id in &work.state.battlefield {
+    for id in &work.ids {
         let obj = &work.state.objects[*id];
         let Some(c) = work.get(*id) else {
             continue;
@@ -250,7 +286,7 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             live.push(Live {
                 origin,
                 source: Some(*id),
-                controller: Some(obj.controller),
+                controller: Some(work.controller_of(*id)),
                 timestamp,
                 affected: None,
                 filter: Some(sa.affected.clone()),
@@ -359,6 +395,7 @@ fn depends(work: &Work<'_>, _live: &[Live], a: &Live, b: &Live, layer: Layer) ->
         index: work.index.clone(),
         chars: scratch_chars,
         lost_printed: work.lost_printed.clone(),
+        entering: work.entering,
     };
     let after = scratch.matching(filter, a.source, a.controller);
     before != after
@@ -411,9 +448,12 @@ fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
         )
         .unwrap_or(u32::MAX),
         CdaCount::Permanents(filter) => {
-            let controller = state.objects[source].controller;
+            let controller = work.controller_of(source);
             u32::try_from(work.matching(filter, Some(source), Some(controller)).len())
                 .unwrap_or(u32::MAX)
+        }
+        CdaCount::ControllerLife => {
+            u32::try_from(state.player(work.controller_of(source)).life).unwrap_or(0)
         }
     };
     i32::try_from(n).unwrap_or(i32::MAX)

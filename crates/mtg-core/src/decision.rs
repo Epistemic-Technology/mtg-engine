@@ -43,6 +43,16 @@ pub enum DecisionKind {
     YouMay { def: CardRef },
     /// What a permanent enters as a copy of (CR 707; Clone), or nothing.
     ChooseCopy,
+    /// X for a spell with {X} in its mana cost (CR 601.2b); the options are
+    /// the values the player can pay for.
+    ChooseX { spell: ObjId },
+    /// A permanent to sacrifice as an additional cost of casting the spell
+    /// (CR 601.2h).
+    ChooseSacrifice { spell: ObjId },
+    /// A card to discard as an additional cost of casting the spell.
+    ChooseDiscardCost { spell: ObjId },
+    /// The player or planeswalker `attacker` attacks (CR 508.1a).
+    ChooseAttackTarget { attacker: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -84,6 +94,8 @@ pub enum Choice {
         source: ObjId,
         ability: AbilityId,
         sacrifice: Option<ObjId>,
+        /// The card chosen for a "discard a card" cost.
+        discard: Option<ObjId>,
     },
     /// Keep this legendary permanent; the others with its name go to the
     /// graveyard (CR 704.5j). Asked in the middle of an action and so
@@ -108,6 +120,12 @@ pub enum Choice {
     },
     /// Enter as itself.
     NoCopy,
+    /// The value of X.
+    X(u32),
+    /// Sacrifice this permanent as an additional cost.
+    Sacrifice(ObjId),
+    /// Attack this player or planeswalker.
+    AttackTarget(Target),
 }
 
 impl Choice {
@@ -169,20 +187,24 @@ impl Choice {
                 source,
                 ability,
                 sacrifice,
+                discard,
             } => {
                 let text = match state.pool.ability(*ability) {
                     AbilityDef::Activated(a) => a.text.as_str(),
                     _ => "?",
                 };
-                match sacrifice {
-                    Some(s) => format!(
-                        "activate {}: {text} (sacrificing {})",
-                        name(source),
-                        name(s)
-                    ),
-                    None => format!("activate {}: {text}", name(source)),
+                let mut out = format!("activate {}: {text}", name(source));
+                if let Some(s) = sacrifice {
+                    out = format!("{out} (sacrificing {})", name(s));
                 }
+                if let Some(c) = discard {
+                    out = format!("{out} (discarding {})", name(c));
+                }
+                out
             }
+            Choice::X(n) => format!("X = {n}"),
+            Choice::AttackTarget(t) => format!("attack {}", target(t)),
+            Choice::Sacrifice(id) => format!("sacrifice {}", name(id)),
             Choice::KeepLegend { def, age, .. } => {
                 let name = &state.pool.get(*def).name;
                 if *age == 0 {

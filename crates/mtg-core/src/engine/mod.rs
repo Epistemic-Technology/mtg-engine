@@ -26,7 +26,7 @@ use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::ObjKind;
 use crate::state::{
-    CombatState, DamageAssignment, Duration, Flow, GameResult, GameState, PlayerState, Zone,
+    CombatState, DamageAssignment, Duration, Flow, GameResult, GameState, PlayerState, Target, Zone,
 };
 use crate::turn::Step;
 
@@ -193,11 +193,27 @@ impl Engine {
             }
             for perm in &ps.battlefield {
                 let id = state.new_object(perm.def, p, Zone::Battlefield);
+                let printed_loyalty = {
+                    let d = state.pool.get(perm.def);
+                    d.types
+                        .contains(crate::card::CardType::Planeswalker)
+                        .then_some(d.loyalty)
+                };
                 let o = &mut state.objects[id];
                 o.tapped = perm.tapped;
                 o.controlled_since_turn_start = true;
                 for (kind, n) in &perm.counters {
                     o.add_counters(*kind, *n);
+                }
+                // CR 306.5b: a planeswalker set up on the battlefield has its
+                // printed loyalty unless the scenario gives it loyalty.
+                if let Some(l) = printed_loyalty
+                    && !perm
+                        .counters
+                        .iter()
+                        .any(|(k, _)| *k == crate::card::CounterKind::Loyalty)
+                {
+                    o.add_counters(crate::card::CounterKind::Loyalty, l);
                 }
                 state.battlefield.push(id);
                 let def = state.pool.get(perm.def);
@@ -206,6 +222,7 @@ impl Engine {
                 state.control_sources += u32::from(def.has_control_static());
                 state.legendary_count += u32::from(def.is_legendary());
                 state.activated_sources += u32::from(def.has_activated());
+                state.life_cda_sources += u32::from(def.flags().has_life_cda());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -371,6 +388,9 @@ impl GameState {
             cversion: 0,
             sba_dirty: true,
             stray_tokens: Vec::new(),
+            emblems: Vec::new(),
+            loyalty_activated: Vec::new(),
+            x_values: Vec::new(),
             turn_number: 0,
             active_player: starting_player,
             starting_player,
@@ -406,6 +426,7 @@ impl GameState {
             control_dirty: false,
             legendary_count: 0,
             activated_sources: 0,
+            life_cda_sources: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
@@ -500,26 +521,80 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingX { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = self.x_options(spell);
+                    if options.is_empty() {
+                        unreachable!("cast offered without an affordable X");
+                    }
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::ChooseX { spell },
+                        options,
+                    });
+                }
                 Flow::Casting {
                     spell,
                     next_target,
                     sacrifice,
+                    discard,
                 } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
                         continue;
                     };
-                    let caster = obj.controller;
+                    let (caster, def) = (obj.controller, obj.def);
                     let is_ability = obj.kind == ObjKind::Ability;
                     let specs: Vec<TargetSpec> = self.targets_of(spell).to_vec();
                     if next_target >= specs.len() {
                         if is_ability {
                             // Targets chosen: an activated ability pays its
                             // costs; a triggered one is already on the stack.
-                            self.finish_ability_targets(spell, sacrifice);
-                        } else {
-                            self.finish_cast(spell);
+                            self.finish_ability_targets(spell, sacrifice, discard);
+                            continue;
                         }
+                        // CR 601.2h: additional costs that need a choice are
+                        // settled after targets, then everything is paid.
+                        let add = &self.pool.get(def).additional;
+                        if sacrifice.is_none()
+                            && let Some(crate::card::SacCost::Filter(f)) = &add.sacrifice
+                        {
+                            let options: Vec<Choice> = self
+                                .sacrifice_candidates(caster, f, spell)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect();
+                            if options.is_empty() {
+                                unreachable!("cast offered without a permanent to sacrifice");
+                            }
+                            return StepResult::Decision(Decision {
+                                player: caster,
+                                kind: DecisionKind::ChooseSacrifice { spell },
+                                options,
+                            });
+                        }
+                        if discard.is_none() && add.discard > 0 {
+                            let options: Vec<Choice> = self
+                                .player(caster)
+                                .hand
+                                .iter()
+                                .copied()
+                                .map(Choice::Discard)
+                                .collect();
+                            if options.is_empty() {
+                                unreachable!("cast offered without a card to discard");
+                            }
+                            return StepResult::Decision(Decision {
+                                player: caster,
+                                kind: DecisionKind::ChooseDiscardCost { spell },
+                                options,
+                            });
+                        }
+                        self.finish_cast(spell, sacrifice, discard);
                         continue;
                     }
                     let source =
@@ -574,6 +649,24 @@ impl GameState {
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::DeclareAttackers,
+                        options,
+                    });
+                }
+                Flow::AttackTargets { chosen, remaining } => {
+                    let Some(attacker) = remaining.first().copied() else {
+                        self.finish_attackers_with(chosen);
+                        continue;
+                    };
+                    let player = self.active_player;
+                    let defender = self.opponent(player);
+                    let mut options = vec![Choice::AttackTarget(Target::Player(defender))];
+                    options.extend(
+                        self.planeswalkers_of(defender)
+                            .map(|pw| Choice::AttackTarget(Target::Object(pw))),
+                    );
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::ChooseAttackTarget { attacker },
                         options,
                     });
                 }
@@ -832,24 +925,25 @@ impl GameState {
                 self.consecutive_passes = 0;
                 let spell = self.move_object(id, Zone::Stack, true);
                 self.objects[spell].controller = player;
-                // CR 601.2b: modes are chosen before targets.
-                let modal = self.pool.get(self.objects[spell].def).modes().is_some();
-                self.flow = if modal {
+                // CR 601.2b: modes are chosen before X, X before targets.
+                let def = self.pool.get(self.objects[spell].def);
+                self.flow = if def.modes().is_some() {
                     Flow::ChoosingMode { spell }
                 } else {
-                    Flow::Casting {
-                        spell,
-                        next_target: 0,
-                        sacrifice: None,
-                    }
+                    self.after_mode(spell)
                 };
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
                 self.objects[spell].mode = u8::try_from(i).unwrap_or(0);
+                self.flow = self.after_mode(spell);
+            }
+            (Flow::ChoosingX { spell }, Choice::X(x)) => {
+                self.x_values.push((spell, x));
                 self.flow = Flow::Casting {
                     spell,
                     next_target: 0,
                     sacrifice: None,
+                    discard: None,
                 };
             }
             (
@@ -858,15 +952,17 @@ impl GameState {
                     source,
                     ability,
                     sacrifice,
+                    discard,
                 },
             ) => {
-                self.activate(player, source, ability, sacrifice);
+                self.activate(player, source, ability, sacrifice, discard);
             }
             (
                 Flow::Casting {
                     spell,
                     next_target,
                     sacrifice,
+                    discard,
                 },
                 Choice::Target(t),
             ) => {
@@ -875,6 +971,39 @@ impl GameState {
                     spell,
                     next_target: next_target + 1,
                     sacrifice,
+                    discard,
+                };
+            }
+            (
+                Flow::Casting {
+                    spell,
+                    next_target,
+                    discard,
+                    ..
+                },
+                Choice::Sacrifice(id),
+            ) => {
+                self.flow = Flow::Casting {
+                    spell,
+                    next_target,
+                    sacrifice: Some(id),
+                    discard,
+                };
+            }
+            (
+                Flow::Casting {
+                    spell,
+                    next_target,
+                    sacrifice,
+                    ..
+                },
+                Choice::Discard(id),
+            ) => {
+                self.flow = Flow::Casting {
+                    spell,
+                    next_target,
+                    sacrifice,
+                    discard: Some(id),
                 };
             }
             (Flow::DeclareAttackers { .. }, Choice::Attackers(set)) => {
@@ -895,6 +1024,17 @@ impl GameState {
             }
             (Flow::DeclareAttackers { chosen, .. }, Choice::Done) => {
                 self.finish_attackers(chosen);
+            }
+            (
+                Flow::AttackTargets {
+                    mut chosen,
+                    mut remaining,
+                },
+                Choice::AttackTarget(t),
+            ) => {
+                let attacker = remaining.remove(0);
+                chosen.push((attacker, t));
+                self.flow = Flow::AttackTargets { chosen, remaining };
             }
             (Flow::DeclareBlockers { .. }, Choice::Blocks(set)) => {
                 self.finish_blocks(set);
@@ -933,13 +1073,27 @@ impl GameState {
                 self.flow = Flow::AssignDamage { queue, assigned };
             }
             (Flow::Discarding, Choice::Discard(id)) => {
-                self.emit(Event::Discard { player, card: id });
-                self.move_object(id, Zone::Graveyard, true);
+                self.discard_card(player, id);
             }
             (Flow::OrderTriggers { .. }, Choice::Trigger(i)) => {
                 self.put_trigger(i);
             }
             (flow, choice) => unreachable!("choice {choice:?} does not fit flow {flow:?}"),
+        }
+    }
+
+    /// The casting state after the mode (if any) is chosen: X if the cost
+    /// has one, else targets.
+    fn after_mode(&self, spell: ObjId) -> Flow {
+        if self.pool.get(self.objects[spell].def).mana_cost.has_x() {
+            Flow::ChoosingX { spell }
+        } else {
+            Flow::Casting {
+                spell,
+                next_target: 0,
+                sacrifice: None,
+                discard: None,
+            }
         }
     }
 
@@ -1132,6 +1286,7 @@ impl GameState {
             self.step = next;
         } else {
             self.lki.clear();
+            self.loyalty_activated.clear();
             self.turn_number += 1;
             self.active_player = self.next_player_in_game(self.active_player);
             self.step = Step::Untap;

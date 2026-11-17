@@ -2,7 +2,7 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 10] = [
+pub const NAMES: [&str; 11] = [
     "mono-white",
     "mono-blue",
     "mono-black",
@@ -13,6 +13,7 @@ pub const NAMES: [&str; 10] = [
     "replacement",
     "activated",
     "copy",
+    "slice6",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -184,6 +185,34 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Act of Treason", 2),
             ("Control Magic", 2),
             ("Isamaru, Hound of Konda", 3),
+        ],
+        // Slice 6 stress deck: X costs, life and discard costs, additional
+        // costs, regeneration, redirection, planeswalkers, emblems.
+        "slice6" => &[
+            ("Mountain", 5),
+            ("Swamp", 5),
+            ("Island", 4),
+            ("Forest", 4),
+            ("Plains", 5),
+            ("Blaze", 2),
+            ("Mind Spring", 1),
+            ("Endless One", 2),
+            ("Bone Splinters", 2),
+            ("Tormenting Voice", 2),
+            ("Ravenous Bloodseeker", 2),
+            ("Souldrinker", 2),
+            ("Vampire Hexmage", 2),
+            ("Drudge Skeletons", 2),
+            ("Regenerate", 2),
+            ("Wrath of God", 1),
+            ("Pariah", 2),
+            ("Ajani Goldmane", 2),
+            ("Jace Beleren", 2),
+            ("Elspeth, Knight-Errant", 2),
+            ("Garruk Wildspeaker", 2),
+            ("Hero's Downfall", 2),
+            ("Grizzly Bears", 3),
+            ("Lightning Bolt", 2),
         ],
         // Slice 5 stress deck: copies, characteristic-defining abilities,
         // delayed triggers, modal spells, "you may".

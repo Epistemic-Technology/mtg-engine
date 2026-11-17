@@ -1,0 +1,163 @@
+# M2 slice 6: regeneration (CR 701.15) and damage redirection (Pariah).
+
+# ---- regeneration ----------------------------------------------------------------
+
+# CR 701.15a: the next time it would be destroyed this turn, instead remove
+# all damage, tap it, and remove it from combat.
+scenario "a regeneration shield replaces destruction by Murder" {
+  battlefield A: "Drudge Skeletons", "Swamp"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Drudge Skeletons"
+  turn 2 A: activate "Drudge Skeletons"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Drudge Skeletons"
+  assert tapped "Drudge Skeletons"
+  assert graveyard B contains "Murder"
+}
+
+scenario "a shield is used once" {
+  battlefield A: "Drudge Skeletons", "Swamp"
+  battlefield B: 6 "Swamp"
+  hand B: "Murder", "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Drudge Skeletons"
+  turn 2 A: activate "Drudge Skeletons"
+  turn 2 postcombat_main B: cast "Murder" targeting "Drudge Skeletons"
+  run_to turn 2 end
+  assert graveyard A contains "Drudge Skeletons"
+}
+
+scenario "a shield lasts until end of turn" {
+  battlefield A: "Drudge Skeletons", "Swamp"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 A: activate "Drudge Skeletons"
+  turn 2 B: cast "Murder" targeting "Drudge Skeletons"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Drudge Skeletons"
+}
+
+# Lethal damage destroys through the state-based check (CR 704.5g); the
+# shield applies there too and the damage is removed.
+scenario "regenerating from lethal combat damage removes the damage and taps" {
+  battlefield A: "Drudge Skeletons", "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Drudge Skeletons"
+  turn 2 declare_blockers A: activate "Drudge Skeletons"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Drudge Skeletons"
+  assert damage "Drudge Skeletons" 0
+  assert tapped "Drudge Skeletons"
+  assert damage "Hill Giant" 1
+  assert life A 20
+}
+
+# CR 701.15a: a regenerated attacker is removed from combat and deals no
+# combat damage.
+scenario "a regenerated attacker leaves combat" {
+  battlefield A: "Drudge Skeletons", "Swamp", "Forest"
+  battlefield B: "Hill Giant"
+  hand B: "Shock"
+  battlefield B: 2 "Mountain"
+  turn 1 A: attack "Drudge Skeletons"
+  turn 1 declare_attackers A: activate "Drudge Skeletons"
+  turn 1 declare_blockers B: cast "Shock" targeting "Drudge Skeletons"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Drudge Skeletons"
+  assert life B 20
+}
+
+scenario "Regenerate (the spell) shields any creature" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: 3 "Swamp"
+  hand A: "Regenerate"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  turn 2 A: cast "Regenerate" targeting "Grizzly Bears" in response to "Murder"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+}
+
+# CR 701.7c: "can't be regenerated" destruction ignores the shield, which
+# stays unused.
+scenario "Wrath of God cannot be regenerated from" {
+  battlefield A: "Drudge Skeletons", "Swamp", "Grizzly Bears"
+  battlefield B: 4 "Plains", "Hill Giant"
+  hand B: "Wrath of God"
+  start turn 2 B
+  turn 2 B: cast "Wrath of God"
+  turn 2 A: activate "Drudge Skeletons"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Drudge Skeletons"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "an indestructible creature is not destroyed and keeps its shield" {
+  battlefield A: "Drudge Skeletons", "Swamp", "Mountain", "Plains"
+  battlefield B: 3 "Swamp"
+  hand A: "Boros Charm"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Drudge Skeletons"
+  turn 2 A: cast "Boros Charm" mode 2 in response to "Murder"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Drudge Skeletons"
+  assert untapped "Drudge Skeletons"
+}
+
+# ---- redirection -------------------------------------------------------------------
+
+scenario "Pariah redirects damage from its controller to the enchanted creature" {
+  battlefield A: "Hill Giant", "Pariah" on "Hill Giant"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 begin_combat
+  assert life A 20
+  assert damage "Hill Giant" 2
+}
+
+scenario "redirected combat damage can kill the creature and the Aura goes with it" {
+  battlefield A: "Grizzly Bears", "Pariah" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Pariah"
+}
+
+# The redirected event is a new damage event; prevention on the creature
+# applies to it (CR 616.2).
+scenario "redirected damage can then be prevented" {
+  battlefield A: "Hill Giant", "Pariah" on "Hill Giant", "Plains"
+  battlefield B: 2 "Mountain"
+  hand A: "Mending Hands"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Mending Hands" targeting "Hill Giant" in response to "Shock"
+  run_to turn 2 begin_combat
+  assert life A 20
+  assert damage "Hill Giant" 0
+}
+
+scenario "Pariah on an opponent's creature redirects your damage to it" {
+  battlefield A: "Pariah" on "Hill Giant"
+  battlefield B: "Hill Giant", 2 "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 begin_combat
+  assert life A 20
+  assert damage B "Hill Giant" 2
+}

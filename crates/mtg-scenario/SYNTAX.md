@@ -50,13 +50,15 @@ scenario fails.
 | `play "Forest"` | `precombat_main` | Play a land from hand. |
 | `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs. Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
 | `cast "Abrade" mode 2 targeting "Rod of Ruin"` | `precombat_main` | A modal spell (CR 700.2): `mode N` (1-based) chooses the mode before targets; the targets are the mode's. Unscripted, the first mode with legal targets is chosen. |
-| `attack "X", "Y"` | `declare_attackers` | Several `attack` lines for the same turn combine into one declaration. |
+| `cast "Blaze" x 3 targeting player B` | `precombat_main` | `x N` chooses X for a spell with {X} in its cost (CR 601.2b); the scenario fails if the player cannot pay for it. Unscripted, X is 0. |
+| `cast "Bone Splinters" sacrificing "Goblin" targeting "Hill Giant"`, `cast "Tormenting Voice" discarding "Forest"` | `precombat_main` | Additional costs (CR 601.2h): what to sacrifice or discard. The order is `mode`, `x`, `sacrificing`, `discarding`, `targeting`. Unscripted, the engine's first option. |
+| `attack "X", "Y"` | `declare_attackers` | Several `attack` lines for the same turn combine into one declaration. `attack "X" at "Jace Beleren"` (or `at player B`) says what the creature attacks when the defender controls a planeswalker (CR 508.1a); unscripted, the player. |
 | `block "Attacker" with "Blocker"` | `declare_blockers` | Several lines combine. The same attacker may be named twice to double-block it. |
 | `assign "Attacker" to "Blocker" 2, player B 4` | any combat damage step | Divide combat damage among blockers (and the player, with trample). Unscripted divisions take the engine's first option. |
 | `discard "Card"` | `cleanup` | Choice when discarding to hand size. |
 | `trigger "Blood Artist" targeting player B` | any step | A triggered ability of that source. When the player controls several triggers waiting to go on the stack, the scripted ones go first, in file order (the first put on the stack resolves last). `targeting` gives the ability's targets, chosen as it goes on the stack (CR 603.3d). Unscripted triggers take the engine's first option. |
 | `apply "Furnace of Rath"` | any step | When several replacement or prevention effects apply to one event, the affected player chooses which applies first (CR 616.1): apply the effect from that card. Unscripted choices take the engine's first option. |
-| `activate "Prodigal Sorcerer" targeting player B` | `precombat_main` | Activate an ability of a permanent the player controls (CR 602). `sacrificing "Goblin"` names the permanent paid for a "sacrifice a ..." cost; `targeting` gives the ability's targets. A permanent with several activated abilities offers the first whose costs can be paid. Sorcery-speed abilities (equip) wait for an empty stack like sorceries. Mana abilities are not activated this way; the engine taps for mana as part of paying costs. |
+| `activate "Prodigal Sorcerer" targeting player B` | `precombat_main` | Activate an ability of a permanent the player controls (CR 602). `ability N` picks the Nth of the permanent's activated abilities (a planeswalker's loyalty abilities, CR 606); `sacrificing "Goblin"` names the permanent paid for a "sacrifice a ..." cost and `discarding "Forest"` the card for a "discard a card" cost; `targeting` gives the ability's targets. A permanent with several activated abilities offers the first whose costs can be paid. Sorcery-speed abilities (equip) wait for an empty stack like sorceries. Mana abilities are not activated this way; the engine taps for mana as part of paying costs. |
 | `keep oldest "Isamaru, Hound of Konda"` / `keep newest ...` | any step | Under the legend rule (CR 704.5j), which of the player's legendary permanents of that name to keep. Unscripted, the oldest is kept. |
 | `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
 | `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
@@ -69,8 +71,8 @@ Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 Unscripted decisions: keep the hand, pass priority, declare no attackers or
 blockers, take the first option otherwise (including trigger order, trigger
 targets, the order of replacement effects, the legend rule, where the
-first option keeps the oldest permanent, modes, "you may" clauses, and
-what to copy).
+first option keeps the oldest permanent, modes, "you may" clauses, what
+to copy, and what to sacrifice or discard for a cost; X is 0).
 
 Names resolve against the current state when the action fires. A copy is
 named after what it copies (a Clone copying Serra Angel is `"Serra Angel"`
@@ -110,7 +112,7 @@ assert has "Grizzly Bears" flying       assert has not "Serra Angel" vigilance
 assert is "Humility" creature           assert is not "Urborg, Tomb of Yawgmoth" swamp
 assert is "Dryad Arbor" green           # types, supertypes, land/creature subtypes, colors
 assert is "Mishra's Factory" "Assembly-Worker"   # quote a subtype with punctuation
-assert counters "Grizzly Bears" +1/+1 3
+assert counters "Grizzly Bears" +1/+1 3     assert counters "Jace Beleren" loyalty 5
 assert attached "Holy Strength" to "Grizzly Bears"
 assert no_abilities "Serra Angel"
 assert has newest A "Grizzly Bears" haste   # the most recent of several

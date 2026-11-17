@@ -1,0 +1,53 @@
+# CR 614.12: to decide which "enters" replacement effects of a permanent
+# apply, look at the permanent as it would exist on the battlefield, under
+# the continuous effects already in play.
+
+scenario "under Humility, Phantom Tiger has no enters-with-counters ability" {
+  battlefield A: "Humility", 3 "Forest"
+  hand A: "Phantom Tiger"
+  turn 1 A: cast "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Phantom Tiger"
+  assert counters "Phantom Tiger" +1/+1 0
+  assert power "Phantom Tiger" 1
+  assert toughness "Phantom Tiger" 1
+}
+
+scenario "without Humility, Phantom Tiger enters with its counters" {
+  battlefield A: 3 "Forest"
+  hand A: "Phantom Tiger"
+  turn 1 A: cast "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert counters "Phantom Tiger" +1/+1 2
+}
+
+# The CR 614.12 example: under Blood Moon a Guildgate is a Mountain with no
+# abilities as it enters, so it does not enter tapped.
+scenario "under Blood Moon, Azorius Guildgate enters untapped" {
+  battlefield A: "Blood Moon"
+  hand A: "Azorius Guildgate"
+  turn 1 A: play "Azorius Guildgate"
+  run_to turn 1 begin_combat
+  assert untapped "Azorius Guildgate"
+  assert is "Azorius Guildgate" mountain
+}
+
+scenario "without Blood Moon, Azorius Guildgate enters tapped" {
+  hand A: "Azorius Guildgate"
+  turn 1 A: play "Azorius Guildgate"
+  run_to turn 1 begin_combat
+  assert tapped "Azorius Guildgate"
+}
+
+# A Humility already resolving does not count: the look-ahead sees only
+# effects that exist as the permanent enters, and a Clone copying Phantom
+# Tiger under Humility is likewise a 1/1 with no counters.
+scenario "a Clone entering as a Phantom Tiger under Humility gets no counters" {
+  battlefield A: "Humility", "Phantom Tiger" with 2 +1/+1, 4 "Island"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Phantom Tiger"
+  assert counters newest A "Phantom Tiger" +1/+1 0
+}

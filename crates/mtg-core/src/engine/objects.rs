@@ -48,6 +48,10 @@ impl GameState {
                 self.add_counters_now(obj, kind, n);
                 None
             }
+            Proposed::Destroy { obj, .. } => {
+                self.destroy_now(obj);
+                None
+            }
         }
     }
 
@@ -132,6 +136,31 @@ impl GameState {
         .unwrap_or(id)
     }
 
+    /// Counters a permanent enters the battlefield with: those the event
+    /// says ("with a +1/+1 counter"), and a planeswalker's printed loyalty
+    /// (CR 306.5b). Nothing off the battlefield.
+    fn entering_counters(
+        &self,
+        def: CardRef,
+        to: Zone,
+        enter: Enter,
+    ) -> SmallVec<[(CounterKind, u32); 2]> {
+        let mut counters = SmallVec::new();
+        if to != Zone::Battlefield {
+            return counters;
+        }
+        if let Some((kind, n)) = enter.counters
+            && n > 0
+        {
+            counters.push((kind, n));
+        }
+        let d = self.pool.get(def);
+        if d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0 {
+            counters.push((CounterKind::Loyalty, d.loyalty));
+        }
+        counters
+    }
+
     /// The zone change itself (stage 2). A copy effect set on the object
     /// before it enters the battlefield (Clone, a token copy) carries over;
     /// leaving the battlefield, the object is its printed card again (CR
@@ -168,18 +197,12 @@ impl GameState {
         self.effects
             .retain(|e| !matches!(&e.affected, Affected::Objects(set) if set.is_empty()));
         let timestamp = self.tick();
-        let mut counters = SmallVec::new();
-        if let Some((kind, n)) = enter.counters
-            && to == Zone::Battlefield
-            && n > 0
-        {
-            counters.push((kind, n));
-        }
         let (def, except) = if to == Zone::Battlefield {
             (old.def, old.except)
         } else {
             (old.card, None)
         };
+        let counters = self.entering_counters(def, to, enter);
         let new = self.objects.insert(GameObject {
             def,
             card: old.card,
@@ -232,6 +255,9 @@ impl GameState {
         if old.kind == ObjKind::Token && to != Zone::Battlefield {
             self.stray_tokens.push(new);
         }
+        if old.zone == Zone::Stack && !self.x_values.is_empty() {
+            self.x_values.retain(|(s, _)| *s != id);
+        }
         // Graveyards feed characteristic-defining abilities (Tarmogoyf).
         let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
         if affects_chars(old.zone) || affects_chars(to) {
@@ -260,12 +286,14 @@ impl GameState {
             self.control_sources += d(flags.has_control_static());
             self.legendary_count += d(legendary);
             self.activated_sources += d(flags.has_activated());
+            self.life_cda_sources += d(flags.has_life_cda());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
             self.control_sources -= d(flags.has_control_static());
             self.legendary_count -= d(legendary);
             self.activated_sources -= d(flags.has_activated());
+            self.life_cda_sources -= d(flags.has_life_cda());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();
@@ -415,7 +443,12 @@ impl GameState {
         let ps = self.player_mut(p);
         ps.life += delta;
         let life = ps.life;
-        self.bump();
+        // A life total is a characteristic only through a CDA that reads it.
+        if self.life_cda_sources > 0 {
+            self.cbump();
+        } else {
+            self.bump();
+        }
         self.sba_touch();
         self.emit(Event::LifeChange {
             player: p,
@@ -464,15 +497,26 @@ impl GameState {
                 self.change_life(p, delta);
             }
             Target::Object(id) => {
-                let Some(o) = self.objects.get_mut(id) else {
+                let Some(o) = self.objects.get(id) else {
                     return;
                 };
                 if o.zone != Zone::Battlefield {
                     return;
                 }
-                o.damage += amount;
-                if deathtouch {
-                    o.deathtouch_damage = true;
+                let Some(c) = self.characteristics(id) else {
+                    return;
+                };
+                // CR 120.3c: damage to a planeswalker removes loyalty;
+                // CR 120.3e: damage to a creature is marked on it.
+                if c.is_planeswalker() {
+                    self.remove_counters(id, CounterKind::Loyalty, amount);
+                }
+                if c.is_creature() {
+                    let o = &mut self.objects[id];
+                    o.damage += amount;
+                    if deathtouch {
+                        o.deathtouch_damage = true;
+                    }
                 }
                 self.bump();
                 self.sba_touch();
@@ -515,6 +559,45 @@ impl GameState {
     }
 
     /// CR 122.5: remove counters from a permanent.
+    /// Remove every counter from a permanent (Vampire Hexmage).
+    pub(super) fn remove_all_counters(&mut self, id: ObjId) {
+        let counters = self.objects[id].counters.clone();
+        for (kind, n) in counters {
+            self.remove_counters(id, kind, n);
+        }
+    }
+
+    /// Put the top `n` cards of `p`'s library into their graveyard (CR 701.13).
+    pub(super) fn mill(&mut self, p: PlayerId, n: u32) {
+        for _ in 0..n {
+            let Some(top) = self.player(p).library.last().copied() else {
+                return;
+            };
+            self.move_object(top, Zone::Graveyard, true);
+        }
+    }
+
+    /// Create an emblem for `controller` (CR 114.1): an object in the
+    /// command zone whose static abilities apply like a permanent's.
+    pub(super) fn create_emblem(&mut self, def: CardRef, controller: PlayerId) -> ObjId {
+        let id = self.new_object(def, controller, Zone::Command);
+        self.objects[id].kind = ObjKind::Emblem;
+        self.emblems.push(id);
+        self.cbump();
+        self.emit(Event::EmblemCreated {
+            obj: id,
+            def,
+            controller,
+        });
+        id
+    }
+
+    /// Discard a card from hand (CR 701.8).
+    pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
+        self.emit(Event::Discard { player: p, card });
+        self.move_object(card, Zone::Graveyard, true);
+    }
+
     pub(super) fn remove_counters(&mut self, id: ObjId, kind: CounterKind, n: u32) {
         let Some(o) = self.objects.get_mut(id) else {
             return;
@@ -528,7 +611,23 @@ impl GameState {
         self.emit(Event::CountersRemoved { obj: id, kind, n });
     }
 
+    /// Destroy a permanent (CR 701.7), unless it is indestructible (CR
+    /// 702.12b). Regeneration shields may replace it (CR 701.15).
     pub(super) fn destroy(&mut self, id: ObjId) {
+        self.destroy_with(id, true);
+    }
+
+    pub(super) fn destroy_with(&mut self, id: ObjId, regenerate: bool) {
+        if !self.objects.contains_key(id) {
+            return;
+        }
+        self.propose(Proposed::Destroy {
+            obj: id,
+            regenerate,
+        });
+    }
+
+    fn destroy_now(&mut self, id: ObjId) {
         let Some(c) = self.characteristics(id) else {
             return;
         };
