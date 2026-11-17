@@ -2,7 +2,6 @@
 //! derived characteristics. A flat, clonable value (design §4.2).
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use rand_chacha::ChaCha8Rng;
@@ -18,7 +17,7 @@ use crate::card::{
 };
 use crate::decision::{ChoiceId, Decision};
 use crate::event::Event;
-use crate::ids::{ObjId, PlayerId, Timestamp};
+use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
 use crate::mana::{ColorSet, ManaPool};
 use crate::turn::Step;
 
@@ -365,7 +364,7 @@ pub enum Derived {
     /// Nothing modifies anything: every object has its printed characteristics.
     Printed,
     /// Characteristics of battlefield objects; others are printed.
-    Battlefield(HashMap<ObjId, Characteristics>),
+    Battlefield(IdMap<Characteristics>),
 }
 
 /// Cache of derived characteristics, valid for one `GameState::cversion`.
@@ -474,6 +473,8 @@ pub struct DamageAssignment {
 }
 
 #[derive(Clone)]
+// Independent dirty flags and switches, not a state machine.
+#[allow(clippy::struct_excessive_bools)]
 pub struct GameState {
     pub pool: Arc<CardPool>,
     /// Bumped on every change to the state.
@@ -484,6 +485,14 @@ pub struct GameState {
     /// The characteristics cache is keyed on it, so damage, life, tapping,
     /// and drawing do not invalidate it.
     pub cversion: u64,
+    /// Whether anything a state-based action looks at (CR 704.5) may have
+    /// changed since the last check: set by `cbump`, damage, life changes,
+    /// and drawing from an empty library; cleared by a check that found
+    /// nothing to do. Tapping and mana leave it alone, so most priority
+    /// passes skip the check.
+    pub sba_dirty: bool,
+    /// Tokens that left the battlefield and are not yet removed (CR 704.5d).
+    pub stray_tokens: Vec<ObjId>,
     pub turn_number: u32,
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -519,7 +528,7 @@ pub struct GameState {
     /// that listing a player's options costs nothing extra without any.
     pub activated_sources: u32,
     pub mid: MidDecision,
-    pub lki: HashMap<ObjId, LastKnown>,
+    pub lki: IdMap<LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).
@@ -590,6 +599,13 @@ impl GameState {
     pub fn cbump(&mut self) {
         self.version += 1;
         self.cversion += 1;
+        self.sba_dirty = true;
+    }
+
+    /// A change a state-based action may act on that does not alter
+    /// characteristics (damage, life, a draw from an empty library).
+    pub fn sba_touch(&mut self) {
+        self.sba_dirty = true;
     }
 
     /// Record an event: triggered abilities that watch it trigger (CR 603.2),
@@ -675,7 +691,7 @@ impl GameState {
     /// Whether an object's triggered abilities (printed or added by a copy
     /// exception) could see `event`, by event kind.
     pub fn may_watch(&self, def: CardRef, except: Option<CardRef>, event: &Event) -> bool {
-        self.pool.get(def).may_watch(&self.pool, event)
+        self.pool.get(def).may_watch(event)
             || except.is_some_and(|x| self.pool.get(x).except_may_watch(event))
     }
 

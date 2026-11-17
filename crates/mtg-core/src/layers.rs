@@ -8,14 +8,12 @@
 //! objects even if its ability is removed along the way (CR 613.6), and
 //! effects of static abilities exist only while the ability does (CR 611.3).
 
-use std::collections::HashMap;
-
 use smallvec::SmallVec;
 
 use crate::card::{
     AbilityDef, AbilityId, CdaCount, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype,
 };
-use crate::ids::{ObjId, PlayerId, Timestamp};
+use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone};
 
 /// Where an effect comes from, for identity across layers.
@@ -45,7 +43,7 @@ struct Live {
 struct Work<'a> {
     state: &'a GameState,
     ids: Vec<ObjId>,
-    index: HashMap<ObjId, usize>,
+    index: IdMap<usize>,
     chars: Vec<Characteristics>,
     /// CR 305.7: lost the abilities of its rules text.
     lost_printed: Vec<bool>,
@@ -108,7 +106,7 @@ pub fn compute_battlefield(state: &GameState) -> Derived {
         .iter()
         .map(|id| state.base_characteristics(&state.objects[*id]))
         .collect();
-    let index: HashMap<ObjId, usize> = ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
+    let index: IdMap<usize> = ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
     let lost_printed = vec![false; ids.len()];
     let mut work = Work {
         state,

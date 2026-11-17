@@ -369,6 +369,8 @@ impl GameState {
             pool,
             version: 0,
             cversion: 0,
+            sba_dirty: true,
+            stray_tokens: Vec::new(),
             turn_number: 0,
             active_player: starting_player,
             starting_player,

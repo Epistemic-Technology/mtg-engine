@@ -210,3 +210,26 @@ pub enum Event {
         result: GameResult,
     },
 }
+
+impl Event {
+    /// Which `TriggerSpec::watch_mask` bit this event sets; 0 for events no
+    /// trigger watches.
+    #[inline]
+    pub fn watch_bit(&self) -> u8 {
+        use crate::card::{
+            WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_DAMAGE, WATCH_LIFE_CHANGE,
+            WATCH_STEP_BEGIN, WATCH_TARGETED, WATCH_ZONE_CHANGE,
+        };
+        match self {
+            Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
+            Event::StepBegin { .. } => WATCH_STEP_BEGIN,
+            Event::Attack { .. } => WATCH_ATTACK,
+            Event::Block { .. } => WATCH_BLOCK,
+            Event::Damage { .. } => WATCH_DAMAGE,
+            Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
+            Event::Cast { .. } => WATCH_CAST,
+            Event::Targeted { .. } => WATCH_TARGETED,
+            _ => 0,
+        }
+    }
+}

@@ -14,7 +14,7 @@ prevention effects (CR 614–616), activated abilities (CR 602), tokens,
 control-changing effects, the legend rule, copy effects (CR 707),
 characteristic-defining abilities, modal spells, and "you may" clauses
 are in. Random agents play complete games with a 118-card pool at about
-2,600 games per second per core on effect-free boards. A 319-scenario
+5,100 games per second per core on effect-free boards. A 319-scenario
 rules corpus passes. See [design.md](design.md) for the architecture,
 roadmap, and open questions.
 

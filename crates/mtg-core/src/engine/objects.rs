@@ -229,6 +229,9 @@ impl GameState {
             }
             z => self.player_mut(old.owner).zone_mut(z).push(new),
         }
+        if old.kind == ObjKind::Token && to != Zone::Battlefield {
+            self.stray_tokens.push(new);
+        }
         // Graveyards feed characteristic-defining abilities (Tarmogoyf).
         let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
         if affects_chars(old.zone) || affects_chars(to) {
@@ -369,6 +372,7 @@ impl GameState {
             });
         } else {
             self.player_mut(p).drew_from_empty_library = true;
+            self.sba_touch();
             self.emit(Event::DrawFromEmptyLibrary { player: p });
         }
     }
@@ -412,6 +416,7 @@ impl GameState {
         ps.life += delta;
         let life = ps.life;
         self.bump();
+        self.sba_touch();
         self.emit(Event::LifeChange {
             player: p,
             delta,
@@ -470,6 +475,7 @@ impl GameState {
                     o.deathtouch_damage = true;
                 }
                 self.bump();
+                self.sba_touch();
                 self.emit(Event::Damage {
                     source,
                     target,

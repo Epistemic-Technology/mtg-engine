@@ -993,6 +993,16 @@ pub enum TriggerObj {
     Filter(ObjFilter),
 }
 
+/// Event classes a trigger can watch (`TriggerSpec::watch_mask`, `Event::watch_bit`).
+pub const WATCH_ZONE_CHANGE: u8 = 1;
+pub const WATCH_STEP_BEGIN: u8 = 2;
+pub const WATCH_ATTACK: u8 = 4;
+pub const WATCH_BLOCK: u8 = 8;
+pub const WATCH_DAMAGE: u8 = 16;
+pub const WATCH_LIFE_CHANGE: u8 = 32;
+pub const WATCH_CAST: u8 = 64;
+pub const WATCH_TARGETED: u8 = 128;
+
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -1030,20 +1040,24 @@ impl TriggerSpec {
     /// Whether this kind of trigger can see `event` at all, judged from the
     /// event's kind alone. A cheap filter before the full check.
     pub fn watches(&self, event: &crate::event::Event) -> bool {
-        use crate::event::Event as E;
-        matches!(
-            (self, event),
-            (
-                TriggerSpec::Enters(_) | TriggerSpec::Dies(_),
-                E::ZoneChange { .. }
-            ) | (TriggerSpec::BeginningOfStep { .. }, E::StepBegin { .. })
-                | (TriggerSpec::Attacks(_), E::Attack { .. })
-                | (TriggerSpec::Blocks(_), E::Block { .. })
-                | (TriggerSpec::DealsCombatDamageToPlayer(_), E::Damage { .. })
-                | (TriggerSpec::GainsLife { .. }, E::LifeChange { .. })
-                | (TriggerSpec::CastsSpell { .. }, E::Cast { .. })
-                | (TriggerSpec::BecomesTarget(_), E::Targeted { .. })
-        )
+        self.watch_mask() & event.watch_bit() != 0
+    }
+
+    /// The kinds of event this trigger can fire on, as bits matching
+    /// `Event::watch_bit`. A definition's mask is the union over its
+    /// triggers, so "could anything here care about this event" is one
+    /// `&` instead of a walk over abilities.
+    pub fn watch_mask(&self) -> u8 {
+        match self {
+            TriggerSpec::Enters(_) | TriggerSpec::Dies(_) => WATCH_ZONE_CHANGE,
+            TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
+            TriggerSpec::Attacks(_) => WATCH_ATTACK,
+            TriggerSpec::Blocks(_) => WATCH_BLOCK,
+            TriggerSpec::DealsCombatDamageToPlayer(_) => WATCH_DAMAGE,
+            TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
+            TriggerSpec::CastsSpell { .. } => WATCH_CAST,
+            TriggerSpec::BecomesTarget(_) => WATCH_TARGETED,
+        }
     }
 }
 
@@ -1262,6 +1276,11 @@ pub struct CardDef {
     pub except_ability_ids: AbilitySet,
     #[serde(skip)]
     pub except_flags: DefFlags,
+    /// Event kinds any of this definition's triggers (keyword triggers
+    /// included) can fire on; see `TriggerSpec::watch_mask`.
+    watch_mask: u8,
+    /// The same for the abilities a copy exception adds.
+    except_watch_mask: u8,
     /// Filled in by `CardPool::add`: the printed characteristics, ready to
     /// clone (CR 109.3 before any effect).
     #[serde(skip)]
@@ -1504,30 +1523,13 @@ impl CardDef {
 
     /// Whether any printed triggered ability (or trigger keyword) could see
     /// `event`, by event kind. Current characteristics decide for real.
-    pub fn may_watch(&self, pool: &CardPool, event: &crate::event::Event) -> bool {
-        if !self.has_triggers() {
-            return false;
-        }
-        let keyword = self.keywords.iter().any(|k| {
-            pool.keyword_trigger(k).is_some_and(|id| {
-                matches!(pool.ability(id), AbilityDef::Triggered(t) if t.trigger.watches(event))
-            })
-        });
-        keyword
-            || self
-                .abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.watches(event)))
+    pub fn may_watch(&self, event: &crate::event::Event) -> bool {
+        self.watch_mask & event.watch_bit() != 0
     }
 
     /// The same for the abilities this card's copy effects add (CR 707.9b).
     pub fn except_may_watch(&self, event: &crate::event::Event) -> bool {
-        self.except_flags.has_triggers()
-            && self.copy_except.as_ref().is_some_and(|x| {
-                x.abilities
-                    .iter()
-                    .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.watches(event)))
-            })
+        self.except_watch_mask & event.watch_bit() != 0
     }
 
     pub fn is_creature(&self) -> bool {
@@ -1690,6 +1692,22 @@ impl CardPool {
                 x.keywords,
             );
         }
+        let mask = |abilities: &[AbilityDef]| {
+            abilities.iter().fold(0u8, |m, a| match a {
+                AbilityDef::Triggered(t) => m | t.trigger.watch_mask(),
+                _ => m,
+            })
+        };
+        def.watch_mask = mask(&def.abilities)
+            | def.keywords.iter().fold(0u8, |m, k| {
+                m | self
+                    .keyword_trigger(k)
+                    .map_or(0, |id| match self.ability(id) {
+                        AbilityDef::Triggered(t) => t.trigger.watch_mask(),
+                        _ => 0,
+                    })
+            });
+        def.except_watch_mask = def.copy_except.as_ref().map_or(0, |x| mask(&x.abilities));
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
@@ -1787,6 +1805,8 @@ impl Builder {
             except_subtype_ids: SubtypeSet::new(),
             except_ability_ids: AbilitySet::new(),
             except_flags: DefFlags::default(),
+            watch_mask: 0,
+            except_watch_mask: 0,
             printed: None,
             cast_targets: Vec::new(),
             flags: DefFlags::default(),

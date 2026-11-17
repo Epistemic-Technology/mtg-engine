@@ -901,6 +901,51 @@ lesson from slice 1 holds in a sharper form: a hot accessor must not even
 | copy vs mono-red | 1,437 | | |
 | copy vs copy (every slice 5 card at once) | 891 | | 609 decisions/game |
 
+**Perf pass after slice 5 (2026-11-16, same method, measured against the
+slice 5 binary).** The first profile ever taken of the engine (`perf` was
+enabled on the machine that evening) showed the state-based check at 44%
+of an effect-free game: it ran after every action and walked every object
+in the game, library cards included, collecting their keys into a vector
+first. Two changes: it now walks the battlefield plus a list of tokens
+that have left it (`stray_tokens`, filled by `move_object_now`), and it is
+skipped unless `sba_dirty` is set, which `cbump`, damage, life changes,
+and a draw from an empty library do and tapping and mana do not. In debug
+builds a skipped check still runs and asserts it would have done nothing,
+the same discipline as the characteristics cache. The effect-heavy
+profiles then showed `SipHash` at 12–21% (the derived-characteristics map
+and the layer pass's index are keyed by `ObjId`) and `CardDef::may_watch`
+at 12% on triggers (a walk over abilities per watcher per event). Maps
+keyed by `ObjId` now use a one-multiply hasher (`ids::IdMap`), and each
+definition carries a bitmask of the event kinds its triggers can fire on,
+so "could this care about this event" is one `&`. Throughput roughly
+doubled everywhere:
+
+| Matchup | games/s/core | slice 5 binary | Note |
+|---|---|---|---|
+| mono-red vs mono-red (no effects) | 5,119 | 2,600 | +97% |
+| mono-green vs mono-green (counters) | 4,784 | 2,229 | +115% |
+| mono-white vs mono-black (anthems, auras) | 2,813 | 1,217 | +131% |
+| layers vs layers | 2,732 | 1,327 | +106% |
+| triggers vs triggers | 1,166 | 603 | +93% |
+| replacement vs replacement | 703 | 560 | +26% |
+| activated vs mono-red | 2,522 | 1,274 | +98% |
+| activated vs activated | 745 | 423 | +76% |
+| copy vs mono-red | 2,723 | 1,432 | +90% |
+| copy vs copy | 1,560 | 891 | +75% |
+
+Fuzz after the pass: 72,000 release games across the deck pairs and
+400 debug-assert games, 0 panics. What the profiles show now: the
+effect-free game is spread thin (`run` 12%, `mana_sources` 12%,
+`characteristics` 11%, malloc/free about 14%, mostly the per-decision
+option and target vectors); the trigger and layer boards spend 18–21% in
+`compute_battlefield`, the full layer pass that still runs once per
+`cversion` change; and the replacement board spends 63% cloning the state
+for the mid-decision snapshot, because the gate (§4.5) fires on every
+action once two replacement sources are in play, whether or not the action
+can cause a replaceable event. That snapshot is the next perf target: a
+finer gate (does this action lead to an event the effects in play
+replace?) or a cheaper snapshot (copy on write for the object arena).
+
 The first version of `characteristics()` returned a struct holding two
 `SmallVec`s and cost 42% of throughput even on effect-free boards; making
 `Characteristics` `Copy` (fixed-capacity lists) recovered all but 5%. The
@@ -1125,6 +1170,18 @@ file and wants splitting.
   examples pass; performance targets measured and recorded.
 
 **M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
+
+Status 2026-11-16, perf pass after slice 5, done the evening `perf` became
+usable on the development machine. The first profile put the state-based
+check at 44% of an effect-free game (a walk over every object after every
+action); it now walks the battlefield and a list of stray tokens and is
+skipped unless something it checks has changed, with a debug-build check
+that a skipped pass would have done nothing. Object-keyed maps use a cheap
+hasher and trigger watching is a per-definition bitmask of event kinds.
+Throughput roughly doubled on every board (§8): 5,119 games/s/core
+effect-free, 2,732 on the layers deck, 1,166 on triggers, 1,560 on the
+copy deck. Next perf target: the full-state clone the mid-decision
+snapshot takes on replacement-heavy boards (63% of that profile).
 
 Status 2026-11-16, slice 5 (copy effects, characteristic-defining
 abilities, delayed triggers, modal spells, "you may") done. Copy effects

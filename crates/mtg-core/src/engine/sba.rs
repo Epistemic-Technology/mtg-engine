@@ -6,15 +6,40 @@ use crate::card::{CardRef, CounterKind, TargetSpec};
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, ObjKind, Zone};
+use crate::state::{Flow, GameResult, GameState, Lookback, LossReason, Zone};
 
 impl GameState {
     // ----- state-based actions and game end ------------------------------------------
 
     /// CR 704.3: perform all applicable state-based actions simultaneously,
     /// repeating until none apply. Returns whether any were performed.
-    #[allow(clippy::too_many_lines)] // one block per state-based action
+    ///
+    /// Skipped when nothing a state-based action looks at has changed
+    /// (`sba_dirty`); in debug builds the skipped check runs anyway and
+    /// must find nothing, which catches a change that forgot to mark it.
     pub(super) fn sba_loop(&mut self) -> bool {
+        if !self.sba_dirty {
+            #[cfg(debug_assertions)]
+            {
+                let acted = self.sba_loop_inner();
+                debug_assert!(
+                    !acted,
+                    "a state-based action applied after a change that did not mark sba_dirty"
+                );
+                self.sba_dirty = false;
+                return acted;
+            }
+            #[cfg(not(debug_assertions))]
+            return false;
+        }
+        let acted = self.sba_loop_inner();
+        // The last pass found nothing, and nothing has changed since.
+        self.sba_dirty = false;
+        acted
+    }
+
+    #[allow(clippy::too_many_lines)] // one block per state-based action
+    fn sba_loop_inner(&mut self) -> bool {
         let mut any = false;
         loop {
             // Control-changing effects are continuous (CR 611.1); their
@@ -45,18 +70,24 @@ impl GameState {
             // act simultaneously.
             let mut to_graveyard = Vec::new();
             let mut to_destroy = Vec::new();
-            let mut tokens_gone = Vec::new();
             let mut annihilate = Vec::new();
             let mut unattach = Vec::new();
-            for id in self.objects.keys().collect::<Vec<_>>() {
+            // 704.5d: tokens that left the battlefield cease to exist. They
+            // are listed as they leave (`move_object_now`), so only the
+            // battlefield itself needs a walk.
+            let objects = &self.objects;
+            let tokens_gone: Vec<ObjId> = self
+                .stray_tokens
+                .drain(..)
+                .filter(|id| {
+                    objects
+                        .get(*id)
+                        .is_some_and(|o| o.zone != Zone::Battlefield)
+                })
+                .collect();
+            for id in self.battlefield.iter().copied() {
                 let o = &self.objects[id];
-                if o.kind == ObjKind::Token && o.zone != Zone::Battlefield {
-                    tokens_gone.push(id);
-                    continue;
-                }
-                if o.zone != Zone::Battlefield {
-                    continue;
-                }
+                debug_assert_eq!(o.zone, Zone::Battlefield);
                 // 704.5q: +1/+1 and -1/-1 counters annihilate.
                 let plus = o.counters(CounterKind::PlusOnePlusOne);
                 let minus = o.counters(CounterKind::MinusOneMinusOne);
