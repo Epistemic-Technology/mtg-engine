@@ -1,0 +1,6 @@
+card "Divination" {
+  oracle_id 273b339c-964b-4a18-8eb5-ceb8abcdfd9e
+  cost {2}{U}
+  type Sorcery
+  spell: draw 2 cards
+}

@@ -1,0 +1,6 @@
+card "Howling Mine" {
+  oracle_id d26b27db-a567-4631-b4b6-7294222fbdd1
+  cost {2}
+  type Artifact
+  triggered at beginning of each draw step if this is untapped: that player draws 1 card
+}

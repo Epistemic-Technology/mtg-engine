@@ -1,0 +1,7 @@
+card "Endless One" {
+  oracle_id 7a51780a-fa28-4ee0-94c7-4330800ca9cb
+  cost {X}
+  type Creature — Eldrazi
+  pt 0/0
+  enters with X +1/+1 counters
+}

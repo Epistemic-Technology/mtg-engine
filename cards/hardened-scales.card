@@ -1,0 +1,6 @@
+card "Hardened Scales" {
+  oracle_id a1f3da21-af6d-450e-bf0b-985d158418e6
+  cost {G}
+  type Enchantment
+  replace +1/+1 counters put on creature you control: plus one
+}

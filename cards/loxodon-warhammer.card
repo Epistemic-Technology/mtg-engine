@@ -1,0 +1,7 @@
+card "Loxodon Warhammer" {
+  oracle_id dba35ac5-7ad3-488a-a006-6b9a1d54eea5
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +3/+0, has trample, lifelink
+  equip {3}
+}

@@ -1,0 +1,5 @@
+token "Goblin" {
+  type Creature — Goblin
+  pt 1/1
+  color red
+}

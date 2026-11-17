@@ -1,0 +1,7 @@
+card "Wind Drake" {
+  oracle_id d6ffdaf0-ac08-4de9-bbce-2eab2f86bcca
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+}

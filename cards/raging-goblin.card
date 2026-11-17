@@ -1,0 +1,7 @@
+card "Raging Goblin" {
+  oracle_id 30997b43-fc13-41d3-8064-1ccc2cb6fd2b
+  cost {R}
+  type Creature — Goblin Berserker
+  pt 1/1
+  keywords haste
+}

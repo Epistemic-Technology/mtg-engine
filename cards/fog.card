@@ -1,0 +1,6 @@
+card "Fog" {
+  oracle_id 27e9db49-7af7-4bef-ad4c-bf5dfb92030d
+  cost {G}
+  type Instant
+  spell: prevent all combat damage this turn
+}

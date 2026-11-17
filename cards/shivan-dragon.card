@@ -1,0 +1,8 @@
+card "Shivan Dragon" {
+  oracle_id 711eea87-0fa3-46e0-a42b-fa5a86455f04
+  cost {4}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  activated {R}: this gets +1/+0
+}

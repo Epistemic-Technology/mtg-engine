@@ -1,0 +1,7 @@
+card "Colossal Dreadmaw" {
+  oracle_id 08c7db90-c0cf-4482-b7ee-bb033e5996d2
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  keywords trample
+}

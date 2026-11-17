@@ -1,0 +1,9 @@
+card "Garruk Wildspeaker" {
+  oracle_id 186b4def-4fff-4a2b-bcbf-5318b0ac5fa9
+  cost {2}{G}{G}
+  type Legendary Planeswalker — Garruk
+  loyalty 3
+  loyalty +1: untap 2 target lands
+  loyalty -1: create 1 "Beast"
+  loyalty -4: each creature you control gets +3/+3 and gains trample
+}

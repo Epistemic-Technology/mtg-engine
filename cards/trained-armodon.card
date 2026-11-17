@@ -1,0 +1,6 @@
+card "Trained Armodon" {
+  oracle_id 4c9f5359-249e-488b-9a7e-db1a43c2b1f4
+  cost {1}{G}{G}
+  type Creature — Elephant
+  pt 3/3
+}

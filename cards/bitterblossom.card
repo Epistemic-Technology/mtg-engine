@@ -1,0 +1,6 @@
+card "Bitterblossom" {
+  oracle_id fb868840-09fa-49b1-85cb-b08ad065e972
+  cost {1}{B}
+  type Kindred Enchantment — Faerie
+  triggered at beginning of your upkeep step: you lose 1 life and create 1 "Faerie Rogue"
+}

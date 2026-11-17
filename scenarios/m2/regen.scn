@@ -72,7 +72,7 @@ scenario "a regenerated attacker leaves combat" {
 }
 
 scenario "Regenerate (the spell) shields any creature" {
-  battlefield A: "Grizzly Bears", "Forest"
+  battlefield A: "Grizzly Bears", 2 "Forest"
   battlefield B: 3 "Swamp"
   hand A: "Regenerate"
   hand B: "Murder"

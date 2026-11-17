@@ -71,7 +71,7 @@ scenario "pridemate does not trigger on an opponent's lifegain" {
   battlefield B: "Plains"
   hand B: "Healing Salve"
   start turn 2 B
-  turn 2 B: cast "Healing Salve"
+  turn 2 B: cast "Healing Salve" mode 1 targeting player B
   run_to turn 2 begin_combat
   assert life B 23
   assert counters "Ajani's Pridemate" +1/+1 0
@@ -289,37 +289,38 @@ scenario "the turn-based draw happens before the howling mine trigger resolves" 
 
 # ---- combat ---------------------------------------------------------------------------
 
-scenario "benalish cavalry gets +1/+1 when it attacks" {
-  battlefield A: "Benalish Cavalry"
+scenario "reckless pangolin gets +1/+1 when it attacks" {
+  battlefield A: "Reckless Pangolin"
   battlefield B: "Grizzly Bears"
-  turn 1 A: attack "Benalish Cavalry"
-  turn 1 B: block "Benalish Cavalry" with "Grizzly Bears"
+  turn 1 A: attack "Reckless Pangolin"
+  turn 1 B: block "Reckless Pangolin" with "Grizzly Bears"
   run_to turn 1 postcombat_main
   assert graveyard B contains "Grizzly Bears"
-  assert battlefield A contains "Benalish Cavalry"
-  assert power "Benalish Cavalry" 3
+  assert battlefield A contains "Reckless Pangolin"
+  assert power "Reckless Pangolin" 3
   run_to turn 2 upkeep
-  assert power "Benalish Cavalry" 2
+  assert power "Reckless Pangolin" 2
 }
 
-scenario "benalish cavalry gets +1/+1 when it blocks" {
-  battlefield A: "Benalish Cavalry"
+scenario "giant badger gets +2/+2 when it blocks" {
+  battlefield A: "Giant Badger"
   battlefield B: "Grizzly Bears"
   start turn 2 B
   turn 2 B: attack "Grizzly Bears"
-  turn 2 A: block "Grizzly Bears" with "Benalish Cavalry"
+  turn 2 A: block "Grizzly Bears" with "Giant Badger"
   run_to turn 2 postcombat_main
   assert graveyard B contains "Grizzly Bears"
-  assert battlefield A contains "Benalish Cavalry"
+  assert battlefield A contains "Giant Badger"
+  assert toughness "Giant Badger" 4
 }
 
 scenario "an attack trigger resolves before blockers are declared" {
   # The pump is on the stack in the declare attackers step; by the declare
-  # blockers step the Cavalry is already 3/3.
-  battlefield A: "Benalish Cavalry"
-  turn 1 A: attack "Benalish Cavalry"
+  # blockers step the Pangolin is already 3/3.
+  battlefield A: "Reckless Pangolin"
+  turn 1 A: attack "Reckless Pangolin"
   run_to turn 1 declare_blockers
-  assert power "Benalish Cavalry" 3
+  assert power "Reckless Pangolin" 3
 }
 
 scenario "hellrider pings for each attacking creature you control" {

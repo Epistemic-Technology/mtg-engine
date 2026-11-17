@@ -1,0 +1,7 @@
+card "Rest in Peace" {
+  oracle_id 087f9ad7-e74f-40e2-8102-1ed2925d0418
+  cost {1}{W}
+  type Enchantment
+  triggered whenever this enters: exile all graveyards
+  replace card put into a graveyard: exile
+}

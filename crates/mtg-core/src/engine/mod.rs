@@ -1302,7 +1302,7 @@ impl GameState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::card::m1_pool;
+    use crate::card::test_pool;
     use crate::state::LossReason;
 
     fn deck(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -1337,7 +1337,7 @@ mod tests {
     /// decking.
     #[test]
     fn passing_game_ends_by_decking() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(test_pool());
         let mut engine = Engine::new(pool.clone(), &config(&pool, 1));
         let mut steps = 0;
         while !engine.is_over() {
@@ -1364,7 +1364,7 @@ mod tests {
 
     #[test]
     fn same_seed_and_actions_replay_identically() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(test_pool());
         let cfg = config(&pool, 7);
         let mut a = Engine::new(pool.clone(), &cfg);
         // Alternate between the last and first options to exercise casting
@@ -1390,7 +1390,7 @@ mod tests {
 
     #[test]
     fn objects_are_conserved() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(test_pool());
         let cfg = config(&pool, 3);
         let mut e = Engine::new(pool.clone(), &cfg);
         let total = cfg.decks.iter().map(Vec::len).sum::<usize>();
@@ -1427,7 +1427,7 @@ mod tests {
 
     #[test]
     fn bad_choice_is_rejected() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(test_pool());
         let mut e = Engine::new(pool.clone(), &config(&pool, 1));
         let n = e.current().decision().unwrap().options.len();
         assert!(matches!(

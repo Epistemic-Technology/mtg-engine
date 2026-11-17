@@ -712,6 +712,8 @@ dependencies = [
  "clap",
  "flate2",
  "hex",
+ "mtg-core",
+ "mtg-dsl",
  "reqwest",
  "serde",
  "serde_json",
@@ -726,6 +728,7 @@ dependencies = [
  "clap",
  "mtg-agents",
  "mtg-core",
+ "mtg-dsl",
  "mtg-scenario",
  "mtg-sim",
  "serde_json",
@@ -746,12 +749,17 @@ dependencies = [
 [[package]]
 name = "mtg-dsl"
 version = "0.1.0"
+dependencies = [
+ "mtg-core",
+ "thiserror",
+]
 
 [[package]]
 name = "mtg-scenario"
 version = "0.1.0"
 dependencies = [
  "mtg-core",
+ "mtg-dsl",
  "thiserror",
 ]
 
@@ -761,6 +769,7 @@ version = "0.1.0"
 dependencies = [
  "mtg-agents",
  "mtg-core",
+ "mtg-dsl",
  "rayon",
 ]
 

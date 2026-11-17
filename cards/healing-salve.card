@@ -1,0 +1,9 @@
+card "Healing Salve" {
+  oracle_id 8da8644c-75a1-4fe9-8e94-900d948d631c
+  cost {W}
+  type Instant
+  choose one {
+    mode: target player gains 3 life
+    mode: prevent next 3 damage to any target this turn
+  }
+}

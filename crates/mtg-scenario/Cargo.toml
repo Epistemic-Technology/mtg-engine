@@ -10,5 +10,8 @@ repository.workspace = true
 mtg-core = { path = "../mtg-core" }
 thiserror.workspace = true
 
+[dev-dependencies]
+mtg-dsl = { path = "../mtg-dsl" }
+
 [lints]
 workspace = true

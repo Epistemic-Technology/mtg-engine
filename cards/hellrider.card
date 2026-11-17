@@ -1,0 +1,8 @@
+card "Hellrider" {
+  oracle_id f02557b0-f422-48cb-875e-2c814c39967d
+  cost {2}{R}{R}
+  type Creature — Devil
+  pt 3/3
+  keywords haste
+  triggered whenever creature you control attacks: deal 1 damage to defending player
+}

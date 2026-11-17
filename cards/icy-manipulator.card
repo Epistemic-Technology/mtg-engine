@@ -1,0 +1,6 @@
+card "Icy Manipulator" {
+  oracle_id 3608f1f7-8dc5-4dd1-ae91-c830e1de9529
+  cost {4}
+  type Artifact
+  activated {1}, {T}: tap target artifact, creature, or land
+}

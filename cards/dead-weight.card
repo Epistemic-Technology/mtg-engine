@@ -1,0 +1,7 @@
+card "Dead Weight" {
+  oracle_id b1804304-fac1-4b19-a48d-6ade9407972a
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-2
+}

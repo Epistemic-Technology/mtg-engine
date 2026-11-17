@@ -1,0 +1,6 @@
+card "Craw Wurm" {
+  oracle_id 6a462a69-3e42-41de-a3aa-a488d9f38d69
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/4
+}

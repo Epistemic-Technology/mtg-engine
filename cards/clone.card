@@ -1,0 +1,7 @@
+card "Clone" {
+  oracle_id 42226b87-0746-4ebf-9fd0-108d508462af
+  cost {3}{U}
+  type Creature — Shapeshifter
+  pt 0/0
+  enters as copy of creature
+}

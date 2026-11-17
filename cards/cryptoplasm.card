@@ -1,0 +1,10 @@
+card "Cryptoplasm" {
+  oracle_id e7bef318-2720-45bc-b663-aafd724bc511
+  cost {1}{U}{U}
+  type Creature — Shapeshifter
+  pt 2/2
+  triggered at beginning of your upkeep step: you may this becomes a copy of another target creature with exceptions
+  except {
+    triggered at beginning of your upkeep step: you may this becomes a copy of another target creature with exceptions
+  }
+}

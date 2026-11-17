@@ -1,0 +1,6 @@
+card "Safe Passage" {
+  oracle_id dfa459a1-b065-4488-88d3-4da388261b52
+  cost {2}{W}
+  type Instant
+  spell: prevent all damage to you and creature you control this turn
+}

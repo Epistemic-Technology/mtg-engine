@@ -1,0 +1,7 @@
+card "Prodigal Sorcerer" {
+  oracle_id 5e961d15-5972-4e4b-9385-1cd7cd7c6bbe
+  cost {2}{U}
+  type Creature — Human Wizard Sorcerer
+  pt 1/1
+  activated {T}: deal 1 damage to any target
+}

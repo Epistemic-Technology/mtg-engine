@@ -1,0 +1,7 @@
+card "Juzám Djinn" {
+  oracle_id 4e81596c-9225-43d1-bd35-798212144f2c
+  cost {2}{B}{B}
+  type Creature — Djinn
+  pt 5/5
+  triggered at beginning of your upkeep step: deal 1 damage to you
+}

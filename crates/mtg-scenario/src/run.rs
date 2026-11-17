@@ -1832,10 +1832,10 @@ fn expect<T: PartialEq + std::fmt::Debug>(line: usize, what: String, have: T, wa
 mod tests {
     use super::*;
     use crate::parse;
-    use mtg_core::card::m1_pool;
+    use mtg_dsl::builtin_pool;
 
     fn run_text(text: &str) -> Report {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(builtin_pool());
         let scenarios = parse(text).expect("parses");
         run(&pool, &scenarios[0])
     }

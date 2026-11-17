@@ -1,0 +1,6 @@
+card "Opalescence" {
+  oracle_id 59489b46-9d02-4f3c-bcd0-884e7605e9a5
+  cost {2}{W}{W}
+  type Enchantment
+  static other non-Aura enchantment: add type creature, base mv
+}

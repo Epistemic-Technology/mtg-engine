@@ -1,0 +1,6 @@
+card "Grizzly Bears" {
+  oracle_id 14c8f55d-d177-4c25-a931-ebeb9e6062a0
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+}

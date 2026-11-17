@@ -1,0 +1,7 @@
+card "Llanowar Elves" {
+  oracle_id 68954295-54e3-4303-a6bc-fc4547a4e3a3
+  cost {G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {G}
+}

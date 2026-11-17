@@ -1,0 +1,6 @@
+card "Regenerate" {
+  oracle_id 4ce6c946-7a93-4a8d-a2c9-086cbd036e3c
+  cost {1}{G}
+  type Instant
+  spell: regenerate target creature
+}

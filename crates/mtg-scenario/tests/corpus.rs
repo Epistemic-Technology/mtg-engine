@@ -2,12 +2,12 @@
 
 use std::sync::Arc;
 
-use mtg_core::card::m1_pool;
+use mtg_dsl::builtin_pool;
 use mtg_scenario::{corpus_dir, find_files, run_file};
 
 #[test]
 fn corpus_passes() {
-    let pool = Arc::new(m1_pool());
+    let pool = Arc::new(builtin_pool());
     let files = find_files(&corpus_dir());
     assert!(
         !files.is_empty(),

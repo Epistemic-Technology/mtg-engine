@@ -1,0 +1,7 @@
+card "Sulfuric Vortex" {
+  oracle_id 7652f328-e142-494b-a869-772ced10c26a
+  cost {1}{R}{R}
+  type Enchantment
+  triggered at beginning of each upkeep step: deal 2 damage to that player
+  replace a player gains life: prevent
+}

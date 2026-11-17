@@ -1,0 +1,6 @@
+card "Muraganda Petroglyphs" {
+  oracle_id e6eff050-f1f6-49ce-a92e-1d1e13e51084
+  cost {3}{G}
+  type Enchantment
+  static creature with no abilities: +2/+2
+}

@@ -1,0 +1,5 @@
+token "Soldier" {
+  type Creature — Soldier
+  pt 1/1
+  color white
+}

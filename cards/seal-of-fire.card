@@ -1,0 +1,6 @@
+card "Seal of Fire" {
+  oracle_id 348a345e-4639-41ca-b015-a5d43459eb64
+  cost {R}
+  type Enchantment
+  activated sacrifice this: deal 2 damage to any target
+}

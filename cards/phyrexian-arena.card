@@ -1,0 +1,6 @@
+card "Phyrexian Arena" {
+  oracle_id ee579a32-a048-4335-b966-231ba731cdea
+  cost {1}{B}{B}
+  type Enchantment
+  triggered at beginning of your upkeep step: you draw 1 card and lose 1 life
+}

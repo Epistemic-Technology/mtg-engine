@@ -1,0 +1,6 @@
+card "Skullcrack" {
+  oracle_id a6fc0b0c-9ba2-47f2-ab92-26fd20d0f86d
+  cost {1}{R}
+  type Instant
+  spell: players can't gain life this turn; damage can't be prevented this turn; deal 3 damage to target player or planeswalker
+}

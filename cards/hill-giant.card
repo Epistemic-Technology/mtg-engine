@@ -1,0 +1,6 @@
+card "Hill Giant" {
+  oracle_id 342199e0-15b6-4824-83da-25caef2592b3
+  cost {3}{R}
+  type Creature — Giant
+  pt 3/3
+}

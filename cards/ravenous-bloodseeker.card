@@ -1,0 +1,7 @@
+card "Ravenous Bloodseeker" {
+  oracle_id bc548ecb-57c4-49ef-a7aa-312bf3665fab
+  cost {1}{R}
+  type Creature — Vampire Berserker
+  pt 1/3
+  activated discard 1 card: this gets +2/-2
+}

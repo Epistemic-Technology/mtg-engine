@@ -1,0 +1,7 @@
+card "Wall of Stone" {
+  oracle_id cd4cadb4-3156-49bd-b36e-12ba5c85938b
+  cost {1}{R}{R}
+  type Creature — Wall
+  pt 0/8
+  keywords defender
+}

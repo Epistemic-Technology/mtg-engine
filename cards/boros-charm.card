@@ -1,0 +1,10 @@
+card "Boros Charm" {
+  oracle_id 2679d0dd-ba30-4a1c-b6a0-b3ac6c790496
+  cost {R}{W}
+  type Instant
+  choose one {
+    mode: deal 4 damage to target player or planeswalker
+    mode: each permanent you control gain indestructible
+    mode: target creature gains double strike
+  }
+}

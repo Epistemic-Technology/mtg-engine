@@ -1,0 +1,7 @@
+card "Bonesplitter" {
+  oracle_id 452e3f5f-ce17-4682-966b-5cc100210aee
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  equip {1}
+}

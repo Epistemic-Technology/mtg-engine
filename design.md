@@ -656,44 +656,74 @@ Pauper-first ordering are meant to keep that cost bounded.
 
 ### 6.2 Shape of the DSL
 
-Text, one file per Oracle name, machine-written and human-readable.
-Sketch, not final syntax:
+Text, one file per Oracle name under `cards/`, machine-written and
+human-readable. Decided 2026-11-17 (M3 slice 1) after porting the 138-card
+M2 pool: one statement per line inside a `card "Name" { }` block, header
+lines for the printed characteristics, then one line per ability whose
+effects are a controlled English of verb phrases. Full syntax in
+`crates/mtg-dsl/SYNTAX.md`. Real cards from the corpus:
 
 ```
 card "Lightning Bolt" {
+  oracle_id 4457ed35-7c10-48c8-9776-456485fdf070
   cost {R}
   type Instant
-  spell { deal_damage 3 to target any }
+  spell: deal 3 damage to any target
 }
 
 card "Humility" {
+  oracle_id ed7bdb3e-5c51-4547-9266-76a791e0b2b0
   cost {2}{W}{W}
   type Enchantment
-  static { affects creature all: lose_all_abilities; set_pt 1/1 }
+  static creature: loses all abilities, base 1/1
 }
 
-card "Wrenn and Six" {
-  cost {R}{G}
-  type Legendary Planeswalker — Wrenn
-  loyalty 3
-  loyalty +1 { return target card: land in your graveyard to your hand }
-  loyalty -1 { deal_damage 1 to target any }
-  loyalty -7 { emblem { static { instants_and_sorceries you own have retrace } } }
+card "Siege-Gang Commander" {
+  oracle_id ddc7f59a-bbb1-4ba1-82c8-6813fd191940
+  cost {3}{R}{R}
+  type Creature — Goblin
+  pt 2/2
+  triggered when this enters: create 3 "Goblin"
+  activated {1}{R}, sacrifice Goblin: deal 2 damage to any target
+}
+
+card "Elspeth, Knight-Errant" {
+  oracle_id eab0d8b9-c66f-402f-b259-f46f15cefd78
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Elspeth
+  loyalty 4
+  loyalty +1: create 1 "Soldier"
+  loyalty +1: target creature gets +3/+3 and gains flying
+  loyalty -8: emblem "Elspeth, Knight-Errant emblem"
 }
 ```
 
-Compiled form: `CardDef { faces: Vec<FaceDef> }`, where a `FaceDef` holds
-printed characteristics and a list of `AbilityDef`s (spell, activated,
-triggered, static, keyword) whose bodies are `Effect` ASTs over a closed
-set of primitives with typed `Filter`, `Target`, `Zone`, `Player`,
-`Number` (literal, X, count-of) expressions. Keywords are desugared by the
-compiler into their CR 702 definitions (flying becomes an evasion static,
-deathtouch a damage-resolution rule, etc.), so the core sees no keyword
-names except where the rules themselves refer to them (e.g. "has flying").
+The file carries no English: the printer renders the statements to Oracle
+text ("When this creature enters, create three 1/1 red Goblin creature
+tokens." / "{1}{R}, Sacrifice a Goblin: This creature deals 2 damage to
+any target."), and that rendering is what the engine shows players and
+what the gate compares. Sentence structure is part of the statement
+(`;` separates sentences, `and` joins clauses, a block line starts a
+paragraph, a delayed trigger is written trigger-first or effect-first),
+so the printer can reproduce Oracle's wording exactly instead of
+approximating it.
 
-Parser: `logos` lexer + `chumsky` combinators, for good error messages on
-machine-generated scripts. A pretty-printer renders the AST back to
-English for the round-trip check.
+Pipeline (`mtg-dsl`): a hand-written line-oriented lexer and recursive-
+descent parser (the same style as the scenario runner; `logos`/`chumsky`
+were not needed and would have added two dependencies for a grammar this
+small) produce a syntax tree (`ast.rs`) that mirrors `mtg_core::card`
+but keeps names where the engine interns ids and keeps the author's
+sentence structure. `compile.rs` turns it into `CardDef`s in a
+`CardPool` (tokens and emblems first, so `create "Goblin"` resolves);
+`render.rs` prints Oracle text; `format.rs` prints canonical DSL text
+(`parse(format(x)) == x`, tested over the corpus); `decompile.rs` goes
+from a `CardDef` back to the tree, which is how the M2 pool was ported
+(it round-tripped 138 of 138 definitions on the first run) and is a
+standing check that the language can express everything the engine
+holds. `build.rs` embeds `cards/` so `mtg_dsl::builtin_pool()` needs no
+files at run time; a pool builds in about 1 ms (release). Keywords stay keywords
+(the engine implements CR 702 directly); multi-face cards are not yet
+in the grammar (M5).
 
 ### 6.3 The verification gate
 
@@ -714,6 +744,22 @@ A card is *supported* when all of the following hold:
 
 Deck loading rejects unsupported cards unless `allow_unsupported` is set,
 in which case the engine warns and the game is tagged as non-authoritative.
+
+Status 2026-11-17: gate 1 is implemented (`mtg-cards gate [--diff]
+[names]`, and a test that runs when the Scryfall snapshot is present).
+The comparison normalizes both sides: reminder text in parentheses is
+dropped and a keyword-only line is split one keyword per line (Oracle
+prints "Flying, vigilance" on one card and "Flying\nDeathtouch" on
+another). The first run over the ported M2 pool matched 111 of 131 and
+exposed four cards the engine had been implementing as something other
+than their Oracle text (Healing Salve is modal, Dromoka's Gift is
+"Bolster 4", Benalish Cavalry has flanking, Mishra's Factory has a third
+ability) and a dozen smaller divergences in costs, type lines, and
+wording ("Human Wizard Sorcerer", Regenerate costs {1}{G}, Ravenous
+Bloodseeker is 1/3); after fixes 131 of 131 match and one card carries an
+`oracle_mismatch` tag (Leyline of the Void's opening-hand ability, not
+implemented). Gates 2–4 (scenario coverage, rulings coverage, fuzz
+participation) are the next slice.
 
 ### 6.4 Authoring pipeline
 
@@ -1016,6 +1062,20 @@ lesson generalises: anything the engine returns per rules query must be
 plain data. The slow path recomputes every battlefield object on each
 state version; incremental recomputation and memoised dependency checks
 are the obvious next steps once the effect model stops changing.
+
+
+**M3 slice 1 (2026-11-17, same method, measured against the slice 6
+binary).** The pool now comes from the DSL (`mtg_dsl::builtin_pool`,
+1.1 ms to build, once per process), card definitions are the same
+structures as before, and no engine hot path changed except one new
+`TargetSpec` arm, so throughput is unchanged where the cards are
+unchanged: mono-red 4,892→4,898 games/s/core, copy deck 1,481→1,495.
+The slice 6 deck went from 582 to 854 because its cards changed under
+the gate (Regenerate costs {1}{G}, Ravenous Bloodseeker is 1/3, Mishra's
+Factory has its pump): games are shorter (mean 31 turns and 673
+decisions, from 37 and 823) and the per-decision rate is about 20%
+higher, which the changed card mix explains well enough not to
+profile. Fuzz: 36,000 release games over 15 matchups, 0 panics.
 
 ### 8.2 Techniques
 
@@ -1504,7 +1564,24 @@ optimized with incremental recomputation once slice 2 settles the shape.
 - Accept: layer puzzle suite passes; CR 603, 608, 611–616, 700–707
   examples pass; fuzz clean.
 
-**M3: DSL, authoring pipeline, scenario DSL (6–8 weeks)**
+**M3: DSL, authoring pipeline, scenario DSL (6–8 weeks; started 2026-11-17)**
+
+Status 2026-11-17, slice 1 (the card DSL) done: `mtg-dsl` parses,
+compiles, prints Oracle text for, and formats card files; the 138
+definitions of the M2 pool (131 cards, 6 tokens, 1 emblem) moved from
+2,150 lines of Rust in `mtg-core` to one file each under `cards/`, and
+`mtg_dsl::builtin_pool()` replaced `m1_pool()` everywhere (the engine
+crate keeps a six-card pool for its own unit tests). The round-trip gate
+(§6.3) is in `mtg-cards`; it immediately found four cards whose
+implementation did not match their Oracle text, which were replaced by
+cards the engine does implement faithfully (Reckless Pangolin and Giant
+Badger for Benalish Cavalry, Dragonscale Boon for Dromoka's Gift) or
+corrected (Healing Salve is modal; Mishra's Factory gained its pump
+ability and the engine a subtype-restricted creature target). Syntax
+decided (§6.2, open question 4). Scenario corpus: 378 pass, with the
+counter and life-gain numbers of a dozen scenarios updated for the
+corrected cards. Not yet: gates 2–4, `mtg-cards author`, the XMage
+converter, any Pauper coverage beyond the M2 pool.
 - `mtg-dsl` with round-trip printer; `mtg-scenario` runner; XMage test
   converter; `mtg-cards author`.
 - Accept: 500 Pauper cards supported through the gate; 1,000 ported
@@ -1534,9 +1611,12 @@ optimized with incremental recomputation once slice 2 settles the shape.
    in §4.7; validate with the fuzzer on token decks.
 3. **Mana payment granularity.** Canonical plans by default; is the
    fine-grained mode needed for correct play in Pauper? Probably rarely.
-4. **DSL surface syntax.** Forge-like `Field:Value` is proven but hard
-   to read; the block syntax in §6.2 is a sketch. Decide during M3 after
-   trying to write 50 cards by hand.
+4. **DSL surface syntax.** Resolved 2026-11-17 (M3 slice 1): block
+   per card, one statement per line, effects as a controlled English of
+   verb phrases whose sentence structure the printer reproduces (§6.2).
+   Chosen over Forge-like `Field:Value` for reviewability and over
+   free-form English because every construct must compile to a closed
+   primitive set; the 138-card port and the round-trip gate validated it.
 5. **Round-trip strictness.** Exact Oracle match may be unachievable for
    older or oddly templated cards. Measure the hit rate on Pauper before
    deciding the allowlist policy.

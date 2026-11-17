@@ -1,0 +1,8 @@
+card "Siege-Gang Commander" {
+  oracle_id ddc7f59a-bbb1-4ba1-82c8-6813fd191940
+  cost {3}{R}{R}
+  type Creature — Goblin
+  pt 2/2
+  triggered whenever this enters: create 3 "Goblin"
+  activated {1}{R}, sacrifice Goblin: deal 2 damage to any target
+}

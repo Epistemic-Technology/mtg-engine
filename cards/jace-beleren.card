@@ -1,0 +1,9 @@
+card "Jace Beleren" {
+  oracle_id cc2b6e58-2d6f-495e-95f3-9496105c4cba
+  cost {1}{U}{U}
+  type Legendary Planeswalker — Jace
+  loyalty 3
+  loyalty +2: each player draws 1 card
+  loyalty -1: target player draws 1 card
+  loyalty -10: target player mills 20 cards
+}

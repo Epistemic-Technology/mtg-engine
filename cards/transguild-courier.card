@@ -1,0 +1,7 @@
+card "Transguild Courier" {
+  oracle_id 86f94f8e-f45e-42fc-8ad6-e9bdfaaa997d
+  cost {4}
+  type Artifact Creature — Golem
+  pt 3/3
+  static this: cda color all
+}

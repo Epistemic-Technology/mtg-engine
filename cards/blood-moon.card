@@ -1,0 +1,6 @@
+card "Blood Moon" {
+  oracle_id 94fac5fe-97d5-4c12-a80c-8efff9d853ae
+  cost {2}{R}
+  type Enchantment
+  static nonbasic land: set land Mountain
+}

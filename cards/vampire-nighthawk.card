@@ -1,0 +1,7 @@
+card "Vampire Nighthawk" {
+  oracle_id feb244f8-bcb1-44cf-9940-2719221a7309
+  cost {1}{B}{B}
+  type Creature — Vampire Shaman
+  pt 2/3
+  keywords flying, deathtouch, lifelink
+}

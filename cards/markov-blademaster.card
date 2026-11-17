@@ -1,0 +1,8 @@
+card "Markov Blademaster" {
+  oracle_id 774e474a-f2a1-4b62-8cfe-40ad509f9062
+  cost {1}{R}{R}
+  type Creature — Vampire Warrior
+  pt 1/1
+  keywords double strike
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,5 @@
+token "Beast" {
+  type Creature — Beast
+  pt 3/3
+  color green
+}

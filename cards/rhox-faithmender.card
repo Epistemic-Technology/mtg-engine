@@ -1,0 +1,8 @@
+card "Rhox Faithmender" {
+  oracle_id 2abe9303-d498-4aad-b6b2-8b5064bd2ffd
+  cost {3}{W}
+  type Creature — Rhino Monk
+  pt 1/5
+  keywords lifelink
+  replace you gain life: double
+}

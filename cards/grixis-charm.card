@@ -1,0 +1,10 @@
+card "Grixis Charm" {
+  oracle_id 387ae7be-1cb5-4ae8-bb63-edf4941945a9
+  cost {U}{B}{R}
+  type Instant
+  choose one {
+    mode: return target permanent to hand
+    mode: target creature gets -4/-4
+    mode: each creature you control gets +2/+0
+  }
+}

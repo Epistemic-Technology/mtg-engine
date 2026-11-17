@@ -1,0 +1,5 @@
+card "Urborg, Tomb of Yawgmoth" {
+  oracle_id db6174d7-211d-4817-b8e4-8384594c83f9
+  type Legendary Land
+  static land: add land Swamp
+}

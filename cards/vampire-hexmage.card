@@ -1,0 +1,8 @@
+card "Vampire Hexmage" {
+  oracle_id fcb2a95b-cef0-4b29-8b2b-538f380aff2b
+  cost {B}{B}
+  type Creature — Vampire Shaman
+  pt 2/1
+  keywords first strike
+  activated sacrifice this: remove all counters from target permanent
+}

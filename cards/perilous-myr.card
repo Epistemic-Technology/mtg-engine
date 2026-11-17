@@ -1,0 +1,7 @@
+card "Perilous Myr" {
+  oracle_id f1e8f746-1837-4ea8-9a07-e57946883353
+  cost {2}
+  type Artifact Creature — Phyrexian Myr
+  pt 1/1
+  triggered whenever this dies: deal 2 damage to any target
+}

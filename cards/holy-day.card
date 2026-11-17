@@ -1,0 +1,6 @@
+card "Holy Day" {
+  oracle_id 98423a34-f044-4811-b288-56981d604b6e
+  cost {W}
+  type Instant
+  spell: prevent all combat damage this turn
+}

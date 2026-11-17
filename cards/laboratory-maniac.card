@@ -1,0 +1,7 @@
+card "Laboratory Maniac" {
+  oracle_id aa286dd5-aa19-446d-9003-684d81eb57ca
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  replace you draw with empty library: win
+}

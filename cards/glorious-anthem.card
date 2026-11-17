@@ -1,0 +1,6 @@
+card "Glorious Anthem" {
+  oracle_id e3886fe8-9b76-4613-8891-4ec74657c087
+  cost {1}{W}{W}
+  type Enchantment
+  static creature you control: +1/+1
+}

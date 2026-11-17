@@ -1,0 +1,6 @@
+card "Hero's Downfall" {
+  oracle_id 03df6a57-37c9-46d3-83b3-4a6240100714
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature or planeswalker
+}

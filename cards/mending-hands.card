@@ -1,0 +1,6 @@
+card "Mending Hands" {
+  oracle_id a612f30d-cd55-438b-a7de-8c80509183aa
+  cost {W}
+  type Instant
+  spell: prevent next 4 damage to any target this turn
+}

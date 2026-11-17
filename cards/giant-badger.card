@@ -1,0 +1,7 @@
+card "Giant Badger" {
+  oracle_id a4109138-5d69-4510-a228-7c1f88c0c8c0
+  cost {1}{G}{G}
+  type Creature — Badger
+  pt 2/2
+  triggered whenever this blocks: this gets +2/+2
+}

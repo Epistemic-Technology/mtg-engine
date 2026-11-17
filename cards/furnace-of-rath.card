@@ -1,0 +1,6 @@
+card "Furnace of Rath" {
+  oracle_id 68715465-6cf9-4006-87e9-31f227fe9ed3
+  cost {1}{R}{R}{R}
+  type Enchantment
+  replace damage to any: double
+}

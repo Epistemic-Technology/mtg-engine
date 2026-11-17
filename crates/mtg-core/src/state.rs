@@ -898,6 +898,7 @@ impl GameState {
             | TargetSpec::OtherCreature
             | TargetSpec::NonlegendaryCreatureYouControl => c.is_creature(),
             TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
+            TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.subtypes.contains(&s),
             TargetSpec::ArtifactCreatureOrLand => {
                 c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
             }
@@ -995,6 +996,9 @@ impl GameState {
                     TargetSpec::PlayerOrPlaneswalker => c.is_planeswalker(),
                     TargetSpec::Land => c.is_land(),
                     TargetSpec::Creature => c.is_creature(),
+                    TargetSpec::CreatureWithSubtype(s) => {
+                        c.is_creature() && c.subtypes.contains(&s)
+                    }
                     TargetSpec::OtherCreature => c.is_creature() && Some(id) != source,
                     TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
                     TargetSpec::CreatureYouControl => c.is_creature() && obj.controller == caster,

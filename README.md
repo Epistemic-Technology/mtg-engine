@@ -7,17 +7,21 @@ non-negotiable properties are rules fidelity (behaviour matches the
 Comprehensive Rules) and speed (thousands of complete games per second per
 core with cheap agents).
 
-Status: milestone M2 (continuous effects and the event pipeline) in
-progress; the CR 613 layer system, Auras and Equipment, counters,
+Status: milestone M2 (continuous effects and the event pipeline) is
+complete: the CR 613 layer system, Auras and Equipment, counters,
 triggered abilities (CR 603) including delayed ones, replacement and
 prevention effects (CR 614–616), activated abilities (CR 602), tokens,
 control-changing effects, the legend rule, copy effects (CR 707),
 characteristic-defining abilities, modal spells, "you may" clauses, X and
 non-mana costs, regeneration, damage redirection, the CR 614.12
-look-ahead, planeswalkers (CR 306, 606), and emblems are in. Random agents
-play complete games with a 138-card pool at about 5,100 games per second
-per core on effect-free boards. A 378-scenario rules corpus passes. See [design.md](design.md) for the architecture,
-roadmap, and open questions.
+look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
+DSL and authoring pipeline) is under way: cards are text files under
+`cards/` that compile to the engine's definitions and render back to
+Oracle text, and a gate checks that rendering against Scryfall (131 of
+131 cards match). Random agents play complete games with the 138-card
+pool at about 5,100 games per second per core on effect-free boards. A
+378-scenario rules corpus passes. See [design.md](design.md) for the
+architecture, roadmap, and open questions.
 
 ```
 cargo run --release -p mtg-cli -- sim --deck1 mono-red --deck2 mono-green --games 1000
@@ -31,17 +35,28 @@ Rules tests are written as scenarios (set up a board, script actions,
 assert the result); see `scenarios/` and
 [crates/mtg-scenario/SYNTAX.md](crates/mtg-scenario/SYNTAX.md).
 
+Cards are written in a small DSL, one file per card under `cards/`; see
+[crates/mtg-dsl/SYNTAX.md](crates/mtg-dsl/SYNTAX.md). A card file carries
+no English: the engine renders its statements to Oracle text, and
+`mtg-cards gate` checks that rendering against the Scryfall snapshot.
+
+```
+cargo run -p mtg-cards -- gate                # every card against its Oracle text
+cargo run -p mtg-cards -- gate --diff "Pestilence"
+```
+
 ## Layout
 
 ```
 crates/
   mtg-core/      rules engine (state, events, layers, turn structure, decisions)
-  mtg-dsl/       card DSL: parser, AST, pretty-printer
-  mtg-cards/     card database: Scryfall/MTGJSON ingest, DSL corpus, loader
+  mtg-dsl/       card DSL: parser, compiler, Oracle-text printer, built-in corpus
+  mtg-cards/     card database: Scryfall/MTGJSON ingest, round-trip gate
   mtg-scenario/  scenario test DSL and runner
   mtg-agents/    baseline agents
   mtg-sim/       batch simulation, fuzzing, benchmarks
   mtg-cli/       human/debug CLI
+cards/           the card corpus (*.card), embedded at build time
 scenarios/       rules-test corpus (*.scn)
 data/
   sources.lock   pinned Scryfall and MTGJSON snapshot (committed)

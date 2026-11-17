@@ -1,0 +1,6 @@
+card "Tarmogoyf" {
+  oracle_id 45900b2f-f6a9-4c42-9642-008f3c1cf6dd
+  cost {1}{G}
+  type Creature — Lhurgoyf
+  static this: cda pt card types in graveyards +1
+}

@@ -1,0 +1,6 @@
+card "Raise the Alarm" {
+  oracle_id 5b2364d7-a811-4595-a1b4-224c70555ffa
+  cost {1}{W}
+  type Instant
+  spell: create 2 "Soldier"
+}

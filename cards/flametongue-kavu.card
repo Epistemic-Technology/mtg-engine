@@ -1,0 +1,7 @@
+card "Flametongue Kavu" {
+  oracle_id b215196a-3716-451f-bdbd-d16c05ace5b4
+  cost {3}{R}
+  type Creature — Kavu
+  pt 4/2
+  triggered whenever this enters: deal 4 damage to target creature
+}

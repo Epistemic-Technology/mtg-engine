@@ -5,8 +5,11 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Card DSL: parser, compiler to engine definitions, Oracle-text printer, and the built-in card corpus"
 
 [dependencies]
+mtg-core = { path = "../mtg-core" }
+thiserror.workspace = true
 
 [lints]
 workspace = true

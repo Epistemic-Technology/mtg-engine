@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use mtg_core::card::m1_pool;
 use mtg_core::record::GameRecord;
+use mtg_dsl::builtin_pool;
 
 mod play;
 
@@ -100,7 +100,7 @@ fn main() -> Result<()> {
             agent1,
             agent2,
         } => {
-            let pool = Arc::new(m1_pool());
+            let pool = Arc::new(builtin_pool());
             let Some(d1) = mtg_sim::decks::by_name(&pool, &deck1) else {
                 bail!("unknown deck {deck1}");
             };
@@ -145,7 +145,7 @@ fn main() -> Result<()> {
         }
         Command::Scenario { paths, verbose } => run_scenarios(paths, verbose),
         Command::Bench { warmup, iterations } => {
-            let pool = Arc::new(m1_pool());
+            let pool = Arc::new(builtin_pool());
             let decks = [
                 mtg_sim::decks::by_name(&pool, "mono-red").unwrap(),
                 mtg_sim::decks::by_name(&pool, "mono-green").unwrap(),
@@ -157,7 +157,7 @@ fn main() -> Result<()> {
             let text = std::fs::read_to_string(&record)
                 .with_context(|| format!("reading {}", record.display()))?;
             let rec: GameRecord = serde_json::from_str(&text).context("parsing record")?;
-            let pool = Arc::new(m1_pool());
+            let pool = Arc::new(builtin_pool());
             let engine = rec.replay(pool, true)?;
             for (i, e) in engine.state().log.iter().enumerate() {
                 println!("{i:5} {e:?}");
@@ -169,7 +169,7 @@ fn main() -> Result<()> {
 }
 
 fn run_scenarios(paths: Vec<PathBuf>, verbose: bool) {
-    let pool = Arc::new(m1_pool());
+    let pool = Arc::new(builtin_pool());
     let paths = if paths.is_empty() {
         vec![mtg_scenario::corpus_dir()]
     } else {

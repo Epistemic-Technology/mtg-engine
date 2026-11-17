@@ -1,0 +1,7 @@
+card "Bone Splinters" {
+  oracle_id 0c936582-d4c0-4da8-bc7e-49da5a433939
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: destroy target creature
+}

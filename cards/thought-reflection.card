@@ -1,0 +1,6 @@
+card "Thought Reflection" {
+  oracle_id 692a6833-3014-42f6-b1ad-333bb3292c65
+  cost {4}{U}{U}{U}
+  type Enchantment
+  replace you draw: draw two
+}

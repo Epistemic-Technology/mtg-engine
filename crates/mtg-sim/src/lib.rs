@@ -225,13 +225,13 @@ pub fn clone_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mtg_core::card::m1_pool;
+    use mtg_dsl::builtin_pool;
 
     /// Fuzz: every built-in deck pair, a few dozen seeded random games each,
     /// must finish without panics. Release CI runs far more via `mtg sim`.
     #[test]
     fn random_games_finish_without_panics() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(builtin_pool());
         let games = if cfg!(debug_assertions) { 12 } else { 200 };
         for a in crate::decks::NAMES {
             for b in crate::decks::NAMES {
@@ -257,7 +257,7 @@ mod tests {
         use mtg_core::engine::Engine;
         use mtg_core::ids::ObjId;
         use mtg_core::record::GameRecord;
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(builtin_pool());
         for (deck_name, kind) in [
             ("replacement", DecisionKind::ChooseReplacement),
             ("activated", DecisionKind::LegendRule),
@@ -319,7 +319,7 @@ mod tests {
     /// means a heuristic broke (or the engine started offering bad options).
     #[test]
     fn greedy_beats_random() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(builtin_pool());
         let games = if cfg!(debug_assertions) { 40 } else { 200 };
         let decks = [
             crate::decks::by_name(&pool, "mono-green").unwrap(),

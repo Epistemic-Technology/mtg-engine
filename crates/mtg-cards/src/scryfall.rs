@@ -53,6 +53,22 @@ pub struct Card {
     #[serde(default)]
     pub type_line: Option<String>,
     #[serde(default)]
+    pub mana_cost: Option<String>,
+    #[serde(default)]
+    pub oracle_text: Option<String>,
+    #[serde(default)]
+    pub power: Option<String>,
+    #[serde(default)]
+    pub toughness: Option<String>,
+    #[serde(default)]
+    pub loyalty: Option<String>,
+    #[serde(default)]
+    pub color_indicator: Option<Vec<String>>,
+    #[serde(default)]
+    pub colors: Option<Vec<String>>,
+    #[serde(default)]
+    pub keywords: Vec<String>,
+    #[serde(default)]
     pub legalities: BTreeMap<String, String>,
     #[serde(default)]
     pub games: Vec<String>,

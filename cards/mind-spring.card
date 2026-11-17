@@ -1,0 +1,6 @@
+card "Mind Spring" {
+  oracle_id 3428287b-cfd5-45bc-b5f9-1e3f5a425a68
+  cost {X}{U}{U}
+  type Sorcery
+  spell: draw X cards
+}

@@ -1,0 +1,9 @@
+card "Elspeth, Knight-Errant" {
+  oracle_id eab0d8b9-c66f-402f-b259-f46f15cefd78
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Elspeth
+  loyalty 4
+  loyalty +1: create 1 "Soldier"
+  loyalty +1: target creature gets +3/+3 and gains flying
+  loyalty -8: emblem "Elspeth, Knight-Errant emblem"
+}

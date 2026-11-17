@@ -1,0 +1,6 @@
+card "Gratuitous Violence" {
+  oracle_id 7c340a39-4ee0-4ba1-bb66-6674f8020fda
+  cost {2}{R}{R}{R}
+  type Enchantment
+  replace damage from creature you control to any: double
+}

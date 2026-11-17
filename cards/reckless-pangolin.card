@@ -1,0 +1,7 @@
+card "Reckless Pangolin" {
+  oracle_id 1f384f19-7fb4-4120-8001-5b401b4debbd
+  cost {2}{G}
+  type Creature — Pangolin
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1
+}

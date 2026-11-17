@@ -103,7 +103,7 @@ scenario "divination draws two cards" {
 scenario "healing salve gains three life" {
   battlefield A: "Plains"
   hand A: "Healing Salve"
-  turn 1 A: cast "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
   run_to turn 1 begin_combat
   assert life A 23
 }

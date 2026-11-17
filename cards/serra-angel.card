@@ -1,0 +1,7 @@
+card "Serra Angel" {
+  oracle_id 4b7ac066-e5c7-43e6-9e7e-2739b24a905d
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying, vigilance
+}

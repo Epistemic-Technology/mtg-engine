@@ -1,0 +1,7 @@
+card "Giant Spider" {
+  oracle_id e740ce2f-2134-473c-afa1-1b6d2d1e38ef
+  cost {3}{G}
+  type Creature — Spider
+  pt 2/4
+  keywords reach
+}

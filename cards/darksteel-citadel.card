@@ -1,0 +1,6 @@
+card "Darksteel Citadel" {
+  oracle_id 8dc067bf-f78f-4ac4-b6e7-b305c42cf0bc
+  type Artifact Land
+  keywords indestructible
+  mana {C}
+}

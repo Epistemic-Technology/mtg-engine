@@ -1,0 +1,7 @@
+card "Typhoid Rats" {
+  oracle_id d6ee6cc1-902d-4f56-afa5-6fa4813bfbbc
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+  keywords deathtouch
+}

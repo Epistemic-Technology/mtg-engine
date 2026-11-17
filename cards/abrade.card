@@ -1,0 +1,9 @@
+card "Abrade" {
+  oracle_id f9db72dc-9a5b-48a4-a86e-7464d9a2166a
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: deal 3 damage to target creature
+    mode: destroy target artifact
+  }
+}

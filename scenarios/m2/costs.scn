@@ -112,12 +112,13 @@ scenario "Tormenting Voice needs another card in hand" {
 
 # ---- costs of activated abilities ---------------------------------------------------------
 
-scenario "a discard cost: Ravenous Bloodseeker's +2/-2 kills it" {
+scenario "a discard cost: Ravenous Bloodseeker's +2/-2 twice kills it" {
   battlefield A: "Ravenous Bloodseeker"
-  hand A: "Mountain"
+  hand A: 2 "Mountain"
+  turn 1 A: activate "Ravenous Bloodseeker" discarding "Mountain"
   turn 1 A: activate "Ravenous Bloodseeker" discarding "Mountain"
   run_to turn 1 begin_combat
-  assert graveyard A contains "Mountain"
+  assert graveyard A contains 2 "Mountain"
   assert graveyard A contains "Ravenous Bloodseeker"
 }
 

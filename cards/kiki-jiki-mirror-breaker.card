@@ -1,0 +1,11 @@
+card "Kiki-Jiki, Mirror Breaker" {
+  oracle_id a34b7416-cfe3-4a1e-a8c1-a3056b747519
+  cost {2}{R}{R}{R}
+  type Legendary Creature — Goblin Shaman
+  pt 2/2
+  keywords haste
+  activated {T}: create token copy of target nonlegendary creature you control with exceptions; delayed that token: sacrifice it at beginning of the next end step
+  except {
+    keywords haste
+  }
+}

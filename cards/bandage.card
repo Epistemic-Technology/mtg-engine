@@ -1,0 +1,9 @@
+card "Bandage" {
+  oracle_id c664df64-0103-462b-a0f8-c483b152974a
+  cost {W}
+  type Instant
+  spell {
+    prevent next 1 damage to any target this turn
+    draw 1 card
+  }
+}

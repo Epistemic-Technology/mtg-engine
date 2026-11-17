@@ -1,0 +1,6 @@
+card "Giant Growth" {
+  oracle_id 5748ebf1-24e3-499d-ab7c-c2cebd462a24
+  cost {G}
+  type Instant
+  spell: target creature gets +3/+3
+}

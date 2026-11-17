@@ -12,6 +12,8 @@ anyhow.workspace = true
 clap.workspace = true
 flate2.workspace = true
 hex.workspace = true
+mtg-core = { path = "../mtg-core" }
+mtg-dsl = { path = "../mtg-dsl" }
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

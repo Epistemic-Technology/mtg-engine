@@ -1,0 +1,7 @@
+card "Air Elemental" {
+  oracle_id 7744bae4-a8b7-44a5-9b4c-0048ad4cc448
+  cost {3}{U}{U}
+  type Creature — Elemental
+  pt 4/4
+  keywords flying
+}

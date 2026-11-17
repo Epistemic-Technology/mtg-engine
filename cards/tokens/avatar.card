@@ -1,0 +1,5 @@
+token "Avatar" {
+  type Creature — Avatar
+  color white
+  static this: cda pt your life
+}

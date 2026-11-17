@@ -1,0 +1,7 @@
+card "Boggart Brute" {
+  oracle_id 880793a2-84b0-4ae1-9bb8-6e942e3dc723
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 3/2
+  keywords menace
+}

@@ -1,0 +1,6 @@
+card "Crusade" {
+  oracle_id 4692740f-be90-459f-8d90-c4ae71771595
+  cost {W}{W}
+  type Enchantment
+  static white creature: +1/+1
+}

@@ -1,0 +1,8 @@
+card "Flickerwisp" {
+  oracle_id b23a3d30-6b8e-4aad-890f-db0c3af43ace
+  cost {1}{W}{W}
+  type Creature — Elemental
+  pt 3/1
+  keywords flying
+  triggered whenever this enters: exile another target permanent; delayed target 1: return it to battlefield at beginning of the next end step
+}

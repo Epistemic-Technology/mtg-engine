@@ -1,0 +1,4 @@
+card "Mountain" {
+  oracle_id a3fb7228-e76b-4e96-a40e-20b5fed75685
+  type Basic Land — Mountain
+}

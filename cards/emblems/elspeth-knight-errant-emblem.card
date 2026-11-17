@@ -1,0 +1,3 @@
+emblem "Elspeth, Knight-Errant emblem" {
+  static nonplaneswalker permanent you control: has indestructible
+}

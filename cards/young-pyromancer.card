@@ -1,0 +1,7 @@
+card "Young Pyromancer" {
+  oracle_id 5fac139a-07d3-4e6c-98e3-d98b199f7a6f
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 2/1
+  triggered whenever you cast an instant or sorcery spell: create 1 "Elemental"
+}

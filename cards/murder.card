@@ -1,0 +1,6 @@
+card "Murder" {
+  oracle_id 938b4e2c-88d9-4637-bc00-e228920c9a78
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature
+}

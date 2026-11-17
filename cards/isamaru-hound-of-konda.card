@@ -1,0 +1,6 @@
+card "Isamaru, Hound of Konda" {
+  oracle_id cfb756dd-6fe1-430a-8f04-8b10cac62a86
+  cost {W}
+  type Legendary Creature — Dog
+  pt 2/2
+}

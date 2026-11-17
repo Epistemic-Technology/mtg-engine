@@ -1,0 +1,8 @@
+card "Rancor" {
+  oracle_id 9d2d6479-531c-4ce1-b52b-00e36fa63b64
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has trample
+  triggered whenever this dies: return this to hand
+}

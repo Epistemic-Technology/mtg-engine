@@ -12,5 +12,8 @@ mtg-agents = { path = "../mtg-agents" }
 mtg-core = { path = "../mtg-core" }
 rayon.workspace = true
 
+[dev-dependencies]
+mtg-dsl = { path = "../mtg-dsl" }
+
 [lints]
 workspace = true

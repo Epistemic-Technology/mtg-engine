@@ -1,0 +1,834 @@
+//! Canonical DSL text for a syntax tree: what `parse` accepts, laid out one
+//! statement per line. `parse(format(card))` compiles to the same
+//! definition as `card`.
+
+use std::fmt::Write as _;
+
+use mtg_core::card::{
+    CounterKind, Keyword, Num, PtValue, Relation, Replacement as Outcome, RuleKind, Supertype, Who,
+};
+use mtg_core::mana::Mana;
+use mtg_core::turn::Step;
+
+use crate::ast::{
+    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mod, Recipient, Replaces,
+    SacCost, Sentence, Target, Trigger, TriggerObj,
+};
+use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
+
+pub fn format(card: &Card) -> String {
+    let mut out = String::new();
+    let kind = match card.kind {
+        Kind::Card => "card",
+        Kind::Token => "token",
+        Kind::Emblem => "emblem",
+    };
+    let _ = writeln!(out, "{kind} \"{}\" {{", card.name);
+    if let Some(id) = &card.oracle_id {
+        let _ = writeln!(out, "  oracle_id {id}");
+    }
+    let cost = card.cost.to_string();
+    if !cost.is_empty() {
+        let _ = writeln!(out, "  cost {cost}");
+    }
+    let mut type_line: Vec<String> = card
+        .supertypes
+        .iter()
+        .map(|s| format!("{s:?}"))
+        .chain(card.types.iter().map(|t| format!("{t:?}")))
+        .collect();
+    if !card.subtypes.is_empty() {
+        type_line.push("—".to_string());
+        type_line.extend(card.subtypes.iter().cloned());
+    }
+    if !type_line.is_empty() {
+        let _ = writeln!(out, "  type {}", type_line.join(" "));
+    }
+    if let Some((p, t)) = card.pt {
+        let _ = writeln!(out, "  pt {p}/{t}");
+    }
+    if let Some(n) = card.loyalty {
+        let _ = writeln!(out, "  loyalty {n}");
+    }
+    if let Some(colors) = &card.color_indicator {
+        let names: Vec<&str> = colors.iter().map(|c| color_name(*c)).collect();
+        let _ = writeln!(out, "  color {}", names.join(" "));
+    }
+    if !card.keywords.is_empty() {
+        let _ = writeln!(out, "  keywords {}", keywords(&card.keywords));
+    }
+    if let Some(c) = &card.additional {
+        let _ = writeln!(out, "  additional cost {}", cost_text(c));
+    }
+    for a in &card.abilities {
+        ability(&mut out, a, "  ");
+    }
+    if let Some(x) = &card.except {
+        out.push_str("  except {\n");
+        if !x.subtypes.is_empty() {
+            let _ = writeln!(out, "    subtypes {}", x.subtypes.join(" "));
+        }
+        if !x.keywords.is_empty() {
+            let _ = writeln!(out, "    keywords {}", keywords(&x.keywords));
+        }
+        for a in &x.abilities {
+            ability(&mut out, a, "    ");
+        }
+        out.push_str("  }\n");
+    }
+    if let Some(m) = &card.mismatch {
+        let _ = writeln!(out, "  oracle_mismatch \"{m}\"");
+    }
+    out.push_str("}\n");
+    out
+}
+
+fn keywords(ks: &[Keyword]) -> String {
+    ks.iter()
+        .map(|k| keyword_name(*k))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+struct Fmt {
+    mentioned: Vec<bool>,
+}
+
+impl Fmt {
+    fn recipient(&mut self, r: Recipient, targets: &[Target]) -> String {
+        match r {
+            Recipient::Target(i) => {
+                if self.mentioned[i] {
+                    format!("target {}", i + 1)
+                } else {
+                    self.mentioned[i] = true;
+                    match &targets[i] {
+                        Target::Spec(s) => target_phrase(*s),
+                        Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
+                    }
+                }
+            }
+            Recipient::You => "you".to_string(),
+            Recipient::EachOpponent => "each opponent".to_string(),
+            Recipient::Source => "this".to_string(),
+            Recipient::TriggeringObject => "that creature".to_string(),
+            Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::DefendingPlayer => "defending player".to_string(),
+            Recipient::EachCreature => "each creature".to_string(),
+            Recipient::EachPlayer => "each player".to_string(),
+            Recipient::EachCreatureYouControl => "each creature you control".to_string(),
+            Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
+            Recipient::SameObject => "it".to_string(),
+            Recipient::CreatedObject => "that token".to_string(),
+        }
+    }
+
+    fn recipients(&mut self, rs: &[Recipient], targets: &[Target]) -> String {
+        rs.iter()
+            .map(|r| self.recipient(*r, targets))
+            .collect::<Vec<_>>()
+            .join(" and ")
+    }
+
+    fn affects(&mut self, a: &Affects, targets: &[Target]) -> String {
+        match a {
+            Affects::Any => "any".to_string(),
+            Affects::This => "this".to_string(),
+            Affects::You => "you".to_string(),
+            Affects::Players(Who::Opponents) => "each opponent".to_string(),
+            Affects::Players(_) => "each player".to_string(),
+            Affects::Objects(f) => filter(f),
+            Affects::YouAnd(f) => format!("you and {}", filter(f)),
+            Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
+        }
+    }
+
+    fn replaces(&mut self, r: &Replaces, targets: &[Target]) -> String {
+        match r {
+            Replaces::Damage { from, to, combat } => {
+                let mut s = String::new();
+                match combat {
+                    Some(true) => s.push_str("combat "),
+                    Some(false) => s.push_str("noncombat "),
+                    None => {}
+                }
+                s.push_str("damage");
+                if let Some(f) = from {
+                    let _ = write!(s, " from {}", filter(f));
+                }
+                let _ = write!(s, " to {}", self.affects(to, targets));
+                s
+            }
+            Replaces::GainLife { whose } => match whose {
+                Who::You => "you gain life",
+                Who::Any => "a player gains life",
+                Who::Opponents => "an opponent gains life",
+            }
+            .to_string(),
+            Replaces::Draw {
+                whose,
+                library_empty,
+            } => {
+                let mut s = match whose {
+                    Who::You => "you draw",
+                    _ => "a player draws",
+                }
+                .to_string();
+                if *library_empty {
+                    s.push_str(" with empty library");
+                }
+                s
+            }
+            Replaces::ToGraveyard {
+                whose,
+                from_battlefield,
+            } => {
+                let mut s = match whose {
+                    Who::Any => "card put into a graveyard",
+                    Who::You => "card put into your graveyard",
+                    Who::Opponents => "card put into an opponent's graveyard",
+                }
+                .to_string();
+                if *from_battlefield {
+                    s.push_str(" from the battlefield");
+                }
+                s
+            }
+            Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
+            Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
+            Replaces::Enters => "enters".to_string(),
+        }
+    }
+
+    fn sentence(&mut self, s: &Sentence, targets: &[Target]) -> String {
+        s.effects
+            .iter()
+            .map(|e| self.effect(e, targets))
+            .collect::<Vec<_>>()
+            .join(" and ")
+    }
+
+    fn line(&mut self, ss: &[Sentence], targets: &[Target]) -> String {
+        ss.iter()
+            .map(|s| self.sentence(s, targets))
+            .collect::<Vec<_>>()
+            .join("; ")
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn effect(&mut self, effect: &Effect, t: &[Target]) -> String {
+        match effect {
+            Effect::DealDamage { amount, to } => {
+                format!("deal {} damage to {}", num(*amount), self.recipients(to, t))
+            }
+            Effect::Pump {
+                power,
+                toughness,
+                to,
+            } => format!("{} gets {power:+}/{toughness:+}", self.recipient(*to, t)),
+            Effect::Destroy { to, no_regen } => {
+                let mut s = format!("destroy {}", self.recipients(to, t));
+                if *no_regen {
+                    s.push_str(" without regeneration");
+                }
+                s
+            }
+            Effect::GainLife { amount, who } => {
+                let v = if *who == Recipient::You {
+                    "gain"
+                } else {
+                    "gains"
+                };
+                format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
+            }
+            Effect::LoseLife { amount, who } => {
+                let v = if *who == Recipient::You {
+                    "lose"
+                } else {
+                    "loses"
+                };
+                format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
+            }
+            Effect::DrawCards { count, who } => match who {
+                None => format!("draw {} {}", num(*count), cards(*count)),
+                Some(w) => {
+                    let v = if *w == Recipient::You {
+                        "draw"
+                    } else {
+                        "draws"
+                    };
+                    format!(
+                        "{} {v} {} {}",
+                        self.recipient(*w, t),
+                        num(*count),
+                        cards(*count)
+                    )
+                }
+            },
+            Effect::Mill { count, who } => {
+                format!(
+                    "{} mills {} {}",
+                    self.recipient(*who, t),
+                    num(*count),
+                    cards(*count)
+                )
+            }
+            Effect::AddCounters { kind, count, to } => format!(
+                "put {} {} on {}",
+                num(*count),
+                counter(*kind, *count),
+                self.recipient(*to, t)
+            ),
+            Effect::RemoveCounters { kind, count, to } => format!(
+                "remove {} {} from {}",
+                num(*count),
+                counter(*kind, *count),
+                self.recipient(*to, t)
+            ),
+            Effect::RemoveAllCounters { to } => {
+                format!("remove all counters from {}", self.recipient(*to, t))
+            }
+            Effect::ReturnToHand { what } => format!("return {} to hand", self.recipient(*what, t)),
+            Effect::ReturnToBattlefield { what, counters } => {
+                let mut s = format!("return {} to battlefield", self.recipient(*what, t));
+                if let Some((kind, n)) = counters {
+                    let _ = write!(s, " with {n} {}", counter(*kind, Num::N(*n)));
+                }
+                s
+            }
+            Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
+            Effect::Exile { what } => format!("exile {}", self.recipient(*what, t)),
+            Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
+            Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
+            Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
+            Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
+            Effect::Grant { keywords: ks, to } => {
+                let v = if matches!(
+                    to,
+                    Recipient::You
+                        | Recipient::EachCreature
+                        | Recipient::EachCreatureYouControl
+                        | Recipient::EachPermanentYouControl
+                ) {
+                    "gain"
+                } else {
+                    "gains"
+                };
+                format!("{} {v} {}", self.recipient(*to, t), keywords(ks))
+            }
+            Effect::GainControl { of } => format!("gain control of {}", self.recipient(*of, t)),
+            Effect::Attach { to } => format!("attach to {}", self.recipient(*to, t)),
+            Effect::CreateToken { token, count } => format!("create {} \"{token}\"", num(*count)),
+            Effect::CreateTokenCopy { of, except } => {
+                let mut s = format!("create token copy of {}", self.recipient(*of, t));
+                if *except {
+                    s.push_str(" with exceptions");
+                }
+                s
+            }
+            Effect::BecomeCopy { of, except } => {
+                let mut s = format!("this becomes a copy of {}", self.recipient(*of, t));
+                if *except {
+                    s.push_str(" with exceptions");
+                }
+                s
+            }
+            Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
+            Effect::Animate {
+                to,
+                types,
+                subtypes,
+                power,
+                toughness,
+            } => {
+                let mut words: Vec<String> = subtypes.clone();
+                words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
+                format!(
+                    "{} becomes {power}/{toughness} {}",
+                    self.recipient(*to, t),
+                    words.join(" ")
+                )
+            }
+            Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
+            Effect::Delayed {
+                about,
+                trigger,
+                effects,
+                trigger_first,
+            } => {
+                let about = self.recipient(*about, t);
+                let body = self.line(effects, t);
+                let trig = trigger_text(trigger, true);
+                if *trigger_first {
+                    format!("delayed {about}: {trig}, {body}")
+                } else {
+                    format!("delayed {about}: {body} {trig}")
+                }
+            }
+            Effect::CreateReplacement(rep) => match (&rep.event, &rep.outcome) {
+                (
+                    Replaces::Damage {
+                        from: None,
+                        to,
+                        combat,
+                    },
+                    Outcome::Prevent,
+                ) => {
+                    let mut s = "prevent all ".to_string();
+                    match combat {
+                        Some(true) => s.push_str("combat "),
+                        Some(false) => s.push_str("noncombat "),
+                        None => {}
+                    }
+                    s.push_str("damage");
+                    if *to != Affects::Any {
+                        let _ = write!(s, " to {}", self.affects(to, t));
+                    }
+                    s.push_str(" this turn");
+                    s
+                }
+                (
+                    Replaces::Damage {
+                        from: None,
+                        to,
+                        combat,
+                    },
+                    Outcome::PreventNext(n),
+                ) => {
+                    let mut s = format!("prevent next {n} ");
+                    match combat {
+                        Some(true) => s.push_str("combat "),
+                        Some(false) => s.push_str("noncombat "),
+                        None => {}
+                    }
+                    let _ = write!(s, "damage to {} this turn", self.affects(to, t));
+                    s
+                }
+                _ => format!(
+                    "this turn, replace {}: {}",
+                    self.replaces(&rep.event, t),
+                    outcome(&rep.outcome)
+                ),
+            },
+            Effect::Rule(RuleKind::NoLifeGain) => "players can't gain life this turn".to_string(),
+            Effect::Rule(RuleKind::DamageCantBePrevented) => {
+                "damage can't be prevented this turn".to_string()
+            }
+        }
+    }
+}
+
+fn num(n: Num) -> String {
+    match n {
+        Num::N(n) => n.to_string(),
+        Num::X => "X".to_string(),
+    }
+}
+
+fn cards(n: Num) -> &'static str {
+    if n == Num::N(1) { "card" } else { "cards" }
+}
+
+fn counter(k: CounterKind, n: Num) -> String {
+    let name = match k {
+        CounterKind::PlusOnePlusOne => "+1/+1",
+        CounterKind::MinusOneMinusOne => "-1/-1",
+        CounterKind::Loyalty => "loyalty",
+    };
+    format!(
+        "{name} {}",
+        if n == Num::N(1) {
+            "counter"
+        } else {
+            "counters"
+        }
+    )
+}
+
+fn outcome(o: &Outcome) -> String {
+    match o {
+        Outcome::Prevent => "prevent".to_string(),
+        Outcome::PreventNext(n) => format!("prevent next {n}"),
+        Outcome::Double => "double".to_string(),
+        Outcome::PlusOne => "plus one".to_string(),
+        Outcome::Instead(_) => "exile".to_string(),
+        Outcome::DrawTwo => "draw two".to_string(),
+        Outcome::WinGame => "win".to_string(),
+        Outcome::EnterTapped => "tapped".to_string(),
+        Outcome::EnterWithCounters { kind, n } => {
+            format!("with {} {}", num(*n), counter(*kind, *n))
+        }
+        Outcome::Regenerate => "regenerate".to_string(),
+        Outcome::RedirectToAttached => "redirect to attached".to_string(),
+    }
+}
+
+pub fn filter(f: &Filter) -> String {
+    let mut words: Vec<String> = Vec::new();
+    match f.relation {
+        Relation::Other => words.push("other".to_string()),
+        Relation::This => words.push("this".to_string()),
+        Relation::Any => {}
+    }
+    if f.enchanted {
+        words.push("enchanted".to_string());
+    }
+    for s in &f.not_supertypes {
+        words.push(
+            match s {
+                Supertype::Basic => "nonbasic",
+                Supertype::Legendary => "nonlegendary",
+                Supertype::Snow => "nonsnow",
+                Supertype::World => "nonworld",
+            }
+            .to_string(),
+        );
+    }
+    for t in &f.not_types {
+        words.push(format!("non{}", format!("{t:?}").to_lowercase()));
+    }
+    for s in &f.not_subtypes {
+        words.push(format!("non-{s}"));
+    }
+    if let Some(colors) = &f.colors {
+        words.extend(colors.iter().map(|c| color_name(*c).to_string()));
+    }
+    words.extend(f.subtypes.iter().cloned());
+    words.extend(f.types.iter().map(|t| format!("{t:?}").to_lowercase()));
+    if f.subtypes.is_empty() && f.types.is_empty() && !f.enchanted && f.relation != Relation::This {
+        words.push("permanent".to_string());
+    }
+    match f.who {
+        Some(Who::You) => words.push("you control".to_string()),
+        Some(Who::Opponents) => words.push("an opponent controls".to_string()),
+        Some(Who::Any) | None => {}
+    }
+    if f.no_abilities {
+        words.push("with no abilities".to_string());
+    }
+    words.join(" ")
+}
+
+fn trigger_obj(o: &TriggerObj) -> String {
+    match o {
+        TriggerObj::This => "this".to_string(),
+        TriggerObj::Filter(f) => filter(f),
+    }
+}
+
+fn step_name(s: Step) -> &'static str {
+    match s {
+        Step::Untap => "untap",
+        Step::Upkeep => "upkeep",
+        Step::Draw => "draw",
+        Step::BeginningOfCombat => "combat",
+        _ => "end",
+    }
+}
+
+fn trigger_text(t: &Trigger, next: bool) -> String {
+    match t {
+        Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
+        Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
+        Trigger::BeginningOfStep { step, whose } => {
+            let whose = match whose {
+                Who::You => "your",
+                Who::Opponents => "each opponent's",
+                Who::Any => {
+                    if next {
+                        "the next"
+                    } else {
+                        "each"
+                    }
+                }
+            };
+            format!("at beginning of {whose} {} step", step_name(*step))
+        }
+        Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
+        Trigger::Blocks(o) => format!("whenever {} blocks", trigger_obj(o)),
+        Trigger::DealsCombatDamageToPlayer(o) => {
+            format!(
+                "whenever {} deals combat damage to a player",
+                trigger_obj(o)
+            )
+        }
+        Trigger::GainsLife { whose } => match whose {
+            Who::You => "whenever you gain life".to_string(),
+            _ => "whenever a player gains life".to_string(),
+        },
+        Trigger::CastsSpell {
+            whose,
+            noncreature,
+            instant_or_sorcery,
+        } => {
+            let who = match whose {
+                Who::You => "you cast",
+                _ => "an opponent casts",
+            };
+            let what = if *noncreature {
+                "a noncreature spell"
+            } else if *instant_or_sorcery {
+                "an instant or sorcery spell"
+            } else {
+                "a spell"
+            };
+            format!("whenever {who} {what}")
+        }
+        Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
+    }
+}
+
+fn cost_text(c: &Cost) -> String {
+    let mut parts = Vec::new();
+    let mana = c.mana.to_string();
+    if !mana.is_empty() {
+        parts.push(mana);
+    }
+    if c.tap {
+        parts.push("{T}".to_string());
+    }
+    match &c.sacrifice {
+        Some(SacCost::This) => parts.push("sacrifice this".to_string()),
+        Some(SacCost::Filter(f)) => parts.push(format!("sacrifice {}", filter(f))),
+        None => {}
+    }
+    if c.discard > 0 {
+        parts.push(format!(
+            "discard {} {}",
+            c.discard,
+            if c.discard == 1 { "card" } else { "cards" }
+        ));
+    }
+    if c.life > 0 {
+        parts.push(format!("pay {} life", c.life));
+    }
+    if c.sorcery && c.loyalty.is_none() {
+        parts.push("sorcery".to_string());
+    }
+    if parts.is_empty() {
+        "none".to_string()
+    } else {
+        parts.join(", ")
+    }
+}
+
+fn modification(m: &Mod) -> String {
+    match m {
+        Mod::AddTypes(ts) => format!(
+            "add type {}",
+            ts.iter()
+                .map(|t| format!("{t:?}").to_lowercase())
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        Mod::AddLandType(c) => format!("add land {}", basic_land_name(*c)),
+        Mod::SetLandType(c) => format!("set land {}", basic_land_name(*c)),
+        Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::Control => "control".to_string(),
+        Mod::AddColors(cs) => format!(
+            "add color {}",
+            cs.iter()
+                .map(|c| color_name(*c))
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        Mod::SetColors(cs) => format!(
+            "set color {}",
+            cs.iter()
+                .map(|c| color_name(*c))
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
+        Mod::RemoveAllAbilities => "loses all abilities".to_string(),
+        Mod::SetPt {
+            power: PtValue::Fixed(p),
+            toughness: PtValue::Fixed(t),
+        } => format!("base {p}/{t}"),
+        Mod::SetPt { .. } => "base mv".to_string(),
+        Mod::ModifyPt { power, toughness } => format!("{power:+}/{toughness:+}"),
+        Mod::SwitchPt => "switch pt".to_string(),
+        Mod::CdaColors(cs) => {
+            if cs.len() == 5 {
+                "cda color all".to_string()
+            } else {
+                format!(
+                    "cda color {}",
+                    cs.iter()
+                        .map(|c| color_name(*c))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                )
+            }
+        }
+        Mod::CdaPt {
+            count,
+            plus_toughness,
+        } => {
+            let c = match count {
+                CdaCount::CardTypesInGraveyards => "card types in graveyards".to_string(),
+                CdaCount::CreatureCardsInGraveyards => "creature cards in graveyards".to_string(),
+                CdaCount::Permanents(f) => format!("count {}", filter(f)),
+                CdaCount::ControllerLife => "your life".to_string(),
+            };
+            if *plus_toughness == 0 {
+                format!("cda pt {c}")
+            } else {
+                format!("cda pt {c} {plus_toughness:+}")
+            }
+        }
+    }
+}
+
+/// Writes `head: body` on one line, or `head {` ... `}` if the effects
+/// span paragraphs.
+fn body(out: &mut String, indent: &str, head: &str, ss: &[Sentence], targets: &[Target]) {
+    let mut f = Fmt {
+        mentioned: vec![false; targets.len()],
+    };
+    if ss.iter().any(|s| s.para) {
+        let _ = writeln!(out, "{indent}{head} {{");
+        let mut line: Vec<String> = Vec::new();
+        for s in ss {
+            if s.para && !line.is_empty() {
+                let _ = writeln!(out, "{indent}  {}", line.join("; "));
+                line.clear();
+            }
+            line.push(f.sentence(s, targets));
+        }
+        if !line.is_empty() {
+            let _ = writeln!(out, "{indent}  {}", line.join("; "));
+        }
+        let _ = writeln!(out, "{indent}}}");
+    } else {
+        let _ = writeln!(out, "{indent}{head}: {}", f.line(ss, targets));
+    }
+}
+
+fn ability(out: &mut String, ability: &Ability, indent: &str) {
+    match ability {
+        Ability::Mana(m) => {
+            let syms: Vec<String> = m
+                .iter()
+                .map(|m| match m {
+                    Mana::Colorless => "{C}".to_string(),
+                    Mana::Colored(c) => format!("{{{}}}", c.letter()),
+                })
+                .collect();
+            let _ = writeln!(out, "{indent}mana {}", syms.join(" or "));
+        }
+        Ability::Enchant(t) => {
+            let phrase = match t {
+                Target::Spec(s) => target_phrase(*s).replace("target ", ""),
+                Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
+            };
+            let _ = writeln!(out, "{indent}enchant {phrase}");
+        }
+        Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets),
+        Ability::Modal(modes) => {
+            let _ = writeln!(out, "{indent}choose one {{");
+            for m in modes {
+                body(out, &format!("{indent}  "), "mode", &m.effects, &m.targets);
+            }
+            let _ = writeln!(out, "{indent}}}");
+        }
+        Ability::Activated {
+            cost,
+            targets,
+            effects,
+            equip,
+        } => {
+            if *equip {
+                let _ = writeln!(out, "{indent}equip {}", cost.mana);
+                return;
+            }
+            if let Some(n) = cost.loyalty {
+                body(out, indent, &format!("loyalty {n:+}"), effects, targets);
+                return;
+            }
+            body(
+                out,
+                indent,
+                &format!("activated {}", cost_text(cost)),
+                effects,
+                targets,
+            );
+        }
+        Ability::Triggered {
+            trigger,
+            condition,
+            targets,
+            effects,
+        } => {
+            let mut head = format!("triggered {}", trigger_text(trigger, false));
+            match condition {
+                Some(mtg_core::card::Condition::SourceUntapped) => {
+                    head.push_str(" if this is untapped");
+                }
+                Some(mtg_core::card::Condition::NoCreatures) => {
+                    head.push_str(" if no creatures are on the battlefield");
+                }
+                None => {}
+            }
+            body(out, indent, &head, effects, targets);
+        }
+        Ability::Replacement(rep) => {
+            let mut fmt = Fmt {
+                mentioned: Vec::new(),
+            };
+            let head = match (&rep.event, &rep.outcome) {
+                (Replaces::Enters, o) => format!("enters {}", outcome(o)),
+                (event, o) => format!("replace {}: {}", fmt.replaces(event, &[]), outcome(o)),
+            };
+            if rep.then.is_empty() {
+                let _ = writeln!(out, "{indent}{head}");
+            } else {
+                let _ = writeln!(out, "{indent}{head} {{");
+                let _ = writeln!(out, "{indent}  {}", fmt.line(&rep.then, &[]));
+                let _ = writeln!(out, "{indent}}}");
+            }
+        }
+        Ability::Static { filter: fl, mods } => {
+            let _ = writeln!(
+                out,
+                "{indent}static {}: {}",
+                filter(fl),
+                mods.iter().map(modification).collect::<Vec<_>>().join(", ")
+            );
+        }
+        Ability::EntersAsCopy(f) => {
+            let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parse::parse;
+
+    #[test]
+    fn format_is_a_fixed_point() {
+        let src = "card \"Siege-Gang Commander\" {\n  cost {3}{R}{R}\n  type Creature — Goblin\n  pt 2/2\n  triggered whenever this enters: create 3 \"Goblin\"\n  activated {1}{R}, sacrifice Goblin you control: deal 2 damage to any target\n}\n";
+        let cards = parse(src).unwrap();
+        let text = format(&cards[0]);
+        assert_eq!(text, src);
+        assert_eq!(parse(&text).unwrap(), cards);
+    }
+
+    #[test]
+    fn target_spec_round_trips() {
+        for (ws, spec) in crate::parse::TARGETS {
+            let _ = ws;
+            let cards = parse(&format!(
+                "card \"X\" {{\n  type Instant\n  spell: destroy {}\n}}\n",
+                target_phrase(*spec)
+            ))
+            .unwrap();
+            let Ability::Spell { targets, .. } = &cards[0].abilities[0] else {
+                panic!()
+            };
+            assert_eq!(targets, &[Target::Spec(*spec)], "{}", target_phrase(*spec));
+        }
+    }
+}

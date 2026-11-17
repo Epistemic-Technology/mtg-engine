@@ -1,0 +1,4 @@
+card "Swamp" {
+  oracle_id 56719f6a-1a6c-4c0a-8d21-18f7d7350b68
+  type Basic Land — Swamp
+}

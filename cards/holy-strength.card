@@ -1,0 +1,7 @@
+card "Holy Strength" {
+  oracle_id 9357de36-f8be-4f49-b2c8-9fe9eaf82b07
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2
+}

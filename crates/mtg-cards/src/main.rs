@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use mtg_cards::{DataDir, ingest, stats};
+use mtg_cards::{DataDir, gate, ingest, stats};
 
 #[derive(Parser)]
 #[command(name = "mtg-cards", about = "Card data ingest and statistics")]
@@ -27,6 +27,15 @@ enum Command {
     /// Verify that the files named in sources.lock are present with the right
     /// hashes. No network.
     Verify,
+    /// Run the round-trip gate: the DSL corpus's rendered text against the
+    /// Oracle text in the local snapshot.
+    Gate {
+        /// Show the rendered and Oracle text of every card that differs.
+        #[arg(long)]
+        diff: bool,
+        /// Only these cards (by name).
+        names: Vec<String>,
+    },
     /// Report pool sizes from the local snapshot.
     Stats {
         /// Also query live Scryfall totals and fail if any format differs by
@@ -46,6 +55,7 @@ fn main() -> ExitCode {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn run() -> Result<ExitCode> {
     let cli = Cli::parse();
     let data = DataDir::new(cli.data_dir);
@@ -74,6 +84,58 @@ fn run() -> Result<ExitCode> {
                 lock.fetched_at
             );
             Ok(ExitCode::SUCCESS)
+        }
+        Command::Gate { diff, names } => {
+            let cards = mtg_dsl::builtin_cards()?;
+            let cards: Vec<_> = if names.is_empty() {
+                cards
+            } else {
+                cards
+                    .into_iter()
+                    .filter(|c| names.iter().any(|n| n == &c.name))
+                    .collect()
+            };
+            let rows = gate::run(&data, &cards)?;
+            let mut counts = std::collections::BTreeMap::new();
+            for r in &rows {
+                let key = match &r.status {
+                    gate::Status::Match => "match",
+                    gate::Status::Allowed(_) => "allowed",
+                    gate::Status::Mismatch => "MISMATCH",
+                    gate::Status::Skipped => "skipped",
+                    gate::Status::NotInSnapshot => "NOT IN SNAPSHOT",
+                    gate::Status::HeaderMismatch(_) => "HEADER",
+                };
+                *counts.entry(key).or_insert(0usize) += 1;
+                match &r.status {
+                    gate::Status::Match | gate::Status::Skipped => {}
+                    gate::Status::Allowed(reason) => println!("allowed  {}: {reason}", r.name),
+                    gate::Status::NotInSnapshot => println!("missing  {}", r.name),
+                    gate::Status::HeaderMismatch(d) => println!("header   {}: {d}", r.name),
+                    gate::Status::Mismatch => {
+                        println!("MISMATCH {}", r.name);
+                        if diff {
+                            println!("  rendered:\n    {}", r.rendered.replace('\n', "\n    "));
+                            println!(
+                                "  oracle:\n    {}",
+                                r.oracle.as_deref().unwrap_or("").replace('\n', "\n    ")
+                            );
+                        }
+                    }
+                }
+            }
+            println!();
+            for (k, n) in &counts {
+                println!("{k:<16}{n:>6}");
+            }
+            let bad = counts.get("MISMATCH").copied().unwrap_or(0)
+                + counts.get("HEADER").copied().unwrap_or(0)
+                + counts.get("NOT IN SNAPSHOT").copied().unwrap_or(0);
+            Ok(if bad == 0 {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            })
         }
         Command::Stats { check } => {
             let lock = ingest::verify(&data)?;

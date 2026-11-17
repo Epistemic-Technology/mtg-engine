@@ -1,0 +1,7 @@
+card "Mogg Fanatic" {
+  oracle_id 7efd5d62-6da2-428a-98e3-5b842f668656
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated sacrifice this: deal 1 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Act of Treason" {
+  oracle_id 9d08af23-9f4a-4097-9abc-3b17475ab744
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature; untap target 1; target 1 gains haste
+}

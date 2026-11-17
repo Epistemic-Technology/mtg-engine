@@ -1,0 +1,7 @@
+card "Monastery Swiftspear" {
+  oracle_id dafd2713-d1bc-474b-b390-d2ff20b5375e
+  cost {R}
+  type Creature — Human Monk
+  pt 1/2
+  keywords haste, prowess
+}

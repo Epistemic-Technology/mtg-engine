@@ -79,7 +79,7 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Craw Wurm", 4),
             ("Colossal Dreadmaw", 4),
             ("Giant Growth", 6),
-            ("Dromoka's Gift", 2),
+            ("Dragonscale Boon", 2),
         ],
         // Static-ability stress deck: every layer puzzle card at once.
         "layers" => &[
@@ -120,7 +120,7 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Phyrexian Arena", 2),
             ("Juzám Djinn", 1),
             ("Howling Mine", 2),
-            ("Benalish Cavalry", 2),
+            ("Reckless Pangolin", 2),
             ("Hellrider", 2),
             ("Markov Blademaster", 2),
             ("Monastery Swiftspear", 3),
@@ -153,7 +153,7 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Vampire Nighthawk", 2),
             ("Savannah Lions", 2),
             ("Lightning Bolt", 2),
-            ("Dromoka's Gift", 1),
+            ("Dragonscale Boon", 1),
         ],
         // Activated-ability stress deck: every slice 4 card at once (tokens,
         // Equipment, control changes, the legend rule).
@@ -247,11 +247,11 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mtg_core::card::m1_pool;
+    use mtg_dsl::builtin_pool;
 
     #[test]
     fn all_decks_build() {
-        let pool = m1_pool();
+        let pool = builtin_pool();
         for name in NAMES {
             assert_eq!(by_name(&pool, name).unwrap().len(), 60, "{name}");
         }

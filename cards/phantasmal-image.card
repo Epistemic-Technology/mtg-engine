@@ -1,0 +1,11 @@
+card "Phantasmal Image" {
+  oracle_id bde94af8-faea-41ff-8eed-ba642eac9968
+  cost {1}{U}
+  type Creature — Illusion
+  pt 0/0
+  enters as copy of creature
+  except {
+    subtypes Illusion
+    triggered when this becomes targeted: sacrifice this
+  }
+}

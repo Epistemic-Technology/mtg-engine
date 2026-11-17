@@ -1,0 +1,9 @@
+card "Ajani Goldmane" {
+  oracle_id dfb5f660-fd8b-4b7b-934c-6a71cd182f15
+  cost {2}{W}{W}
+  type Legendary Planeswalker — Ajani
+  loyalty 4
+  loyalty +1: you gain 2 life
+  loyalty -1: put 1 +1/+1 counter on each creature you control; those creatures gain vigilance
+  loyalty -6: create 1 "Avatar"
+}

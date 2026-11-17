@@ -1,0 +1,7 @@
+card "Souldrinker" {
+  oracle_id 624d4bda-448f-43d1-92b6-53a77afe2374
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  activated pay 3 life: put 1 +1/+1 counter on this
+}

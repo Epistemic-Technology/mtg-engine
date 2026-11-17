@@ -1,0 +1,7 @@
+card "Mishra's Factory" {
+  oracle_id 5963e0ef-e0bc-4611-ad4f-813a4c0eacfb
+  type Land
+  mana {C}
+  activated {1}: this becomes 2/2 Assembly-Worker artifact creature
+  activated {T}: target Assembly-Worker creature gets +1/+1
+}

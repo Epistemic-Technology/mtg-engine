@@ -1,0 +1,7 @@
+card "Azorius Guildgate" {
+  oracle_id ad1712d8-809f-410c-8b91-ffe6fb8a69a1
+  type Land — Gate
+  enters tapped
+  mana {W}
+  mana {U}
+}

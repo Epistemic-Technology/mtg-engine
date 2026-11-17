@@ -1,0 +1,6 @@
+card "Lava Axe" {
+  oracle_id 387b6b07-a283-412d-94c3-f7f1dc76e858
+  cost {4}{R}
+  type Sorcery
+  spell: deal 5 damage to target player or planeswalker
+}

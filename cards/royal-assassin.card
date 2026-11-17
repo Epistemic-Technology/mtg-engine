@@ -1,0 +1,7 @@
+card "Royal Assassin" {
+  oracle_id 9ed6f28f-a3db-48c5-9ab0-b90a7fba5f57
+  cost {1}{B}{B}
+  type Creature — Human Assassin
+  pt 1/1
+  activated {T}: destroy target tapped creature
+}

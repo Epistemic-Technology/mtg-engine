@@ -6,16 +6,16 @@ use std::io::{BufRead, Write};
 use std::sync::Arc;
 
 use anyhow::{Result, bail};
-use mtg_core::card::m1_pool;
 use mtg_core::decision::{Decision, StepResult};
 use mtg_core::engine::{Engine, GameConfig};
 use mtg_core::ids::PlayerId;
 use mtg_core::state::{GameState, Zone};
+use mtg_dsl::builtin_pool;
 
 const HUMAN: PlayerId = PlayerId(0);
 
 pub fn run(deck: &str, opponent: &str, agent: &str, seed: u64) -> Result<()> {
-    let pool = Arc::new(m1_pool());
+    let pool = Arc::new(builtin_pool());
     let Some(d1) = mtg_sim::decks::by_name(&pool, deck) else {
         bail!("unknown deck {deck}");
     };

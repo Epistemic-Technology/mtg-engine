@@ -134,12 +134,12 @@ mod tests {
     use std::sync::Arc;
 
     use super::*;
-    use crate::card::m1_pool;
+    use crate::card::test_pool;
     use crate::engine::{Engine, GameConfig};
 
     #[test]
     fn view_hides_opponent_hand_and_libraries() {
-        let pool = Arc::new(m1_pool());
+        let pool = Arc::new(test_pool());
         let forest = pool.lookup("Forest").unwrap();
         let cfg = GameConfig {
             decks: vec![vec![forest; 20], vec![forest; 20]],

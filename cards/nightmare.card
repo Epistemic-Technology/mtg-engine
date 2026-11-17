@@ -1,0 +1,7 @@
+card "Nightmare" {
+  oracle_id 375932e6-1b3e-48dc-8154-9b664c3add34
+  cost {5}{B}
+  type Creature — Nightmare Horse
+  keywords flying
+  static this: cda pt count Swamp you control
+}

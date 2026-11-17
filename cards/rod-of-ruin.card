@@ -1,0 +1,6 @@
+card "Rod of Ruin" {
+  oracle_id c29a04ab-4e14-45d8-a993-3fffd0e2f6eb
+  cost {4}
+  type Artifact
+  activated {3}, {T}: deal 1 damage to any target
+}

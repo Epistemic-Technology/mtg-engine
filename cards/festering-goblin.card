@@ -1,0 +1,7 @@
+card "Festering Goblin" {
+  oracle_id 66fb4764-d309-4c30-a2a4-474f9030dc87
+  cost {B}
+  type Creature — Zombie Goblin
+  pt 1/1
+  triggered whenever this dies: target creature gets -1/-1
+}

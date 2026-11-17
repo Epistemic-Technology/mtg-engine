@@ -1,0 +1,7 @@
+card "Ajani's Pridemate" {
+  oracle_id 95e94dea-5ac0-4d6f-adec-ca147aee861f
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  triggered whenever you gain life: put 1 +1/+1 counter on this
+}

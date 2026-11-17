@@ -1,0 +1,10 @@
+card "Phantom Tiger" {
+  oracle_id 1755b3d4-0e40-40c4-b913-0960d55d411b
+  cost {2}{G}
+  type Creature — Cat Spirit
+  pt 1/0
+  enters with 2 +1/+1 counters
+  replace damage to this: prevent {
+    remove 1 +1/+1 counter from this
+  }
+}

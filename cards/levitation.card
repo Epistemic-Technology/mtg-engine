@@ -1,0 +1,6 @@
+card "Levitation" {
+  oracle_id 94b703c4-5584-4913-8365-7e9f2f535c2d
+  cost {2}{U}{U}
+  type Enchantment
+  static creature you control: has flying
+}

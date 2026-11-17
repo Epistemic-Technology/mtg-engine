@@ -1,0 +1,7 @@
+card "Zulaport Cutthroat" {
+  oracle_id 76b003e0-15af-4f22-bdf2-1ade5430964a
+  cost {1}{B}
+  type Creature — Human Rogue Ally
+  pt 1/1
+  triggered whenever creature you control dies: each opponent loses 1 life and you gain 1 life
+}

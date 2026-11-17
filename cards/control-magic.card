@@ -1,0 +1,7 @@
+card "Control Magic" {
+  oracle_id cd0d7141-46d2-4aa3-bc77-6b3b4513803e
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+}

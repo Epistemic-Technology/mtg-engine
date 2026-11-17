@@ -1,0 +1,7 @@
+card "Gravedigger" {
+  oracle_id 1a2030cc-d7ee-4059-b2d7-fb95ea8e267b
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever this enters: you may return target creature card from your graveyard to hand
+}
