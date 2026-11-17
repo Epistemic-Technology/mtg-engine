@@ -21,7 +21,7 @@ mtg-core = { path = "../mtg-core" }
 mtg-dsl = { path = "../mtg-dsl" }
 mtg-sim = { path = "../mtg-sim" }
 numpy.workspace = true
-pyo3.workspace = true
+pyo3 = { workspace = true, features = ["extension-module"] }
 serde_json.workspace = true
 
 [lints]

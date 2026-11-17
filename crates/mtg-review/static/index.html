@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>mtg-review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: light dark; --line: #8884; --accent: #3a7bd5; --chosen: #3a7bd533; }
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; display: grid; grid-template-columns: minmax(200px, 280px) minmax(360px, 1fr) minmax(240px, 340px); grid-template-rows: auto 1fr; height: 100vh; }
+  @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; height: auto; } #games { max-height: 30vh; } }
+  header { grid-column: 1 / 4; padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; }
+  header input { flex: 1; max-width: 420px; padding: 4px 8px; }
+  #games { overflow: auto; border-right: 1px solid var(--line); }
+  #games div.game { padding: 6px 10px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  #games div.game:hover, #games div.game.sel { background: var(--chosen); }
+  #games small { opacity: .7; }
+  main { overflow: auto; padding: 10px 14px; }
+  aside { overflow: auto; border-left: 1px solid var(--line); padding: 8px 10px; }
+  .player { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+  .player.active { border-color: var(--accent); }
+  .zone { margin: 4px 0; }
+  .zone b { opacity: .8; }
+  .card { display: inline-block; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; margin: 2px; }
+  .card.tapped { opacity: .55; transform: rotate(-8deg); }
+  .card.attacking { border-color: #d53a3a; }
+  .card.blocking { border-color: #3ad57b; }
+  .card.sick { border-style: dashed; }
+  .timeline { position: sticky; top: 0; background: Canvas; padding: 6px 0; border-bottom: 1px solid var(--line); margin-bottom: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .timeline input[type=range] { flex: 1; min-width: 200px; }
+  button { padding: 2px 8px; }
+  .opt { padding: 2px 6px; border-radius: 4px; }
+  .opt.chosen { background: var(--chosen); font-weight: 600; }
+  .events { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; opacity: .85; }
+  pre.text { white-space: pre-wrap; font-size: 12px; }
+  .stack { margin: 6px 0; padding: 6px 10px; border: 1px dashed var(--line); border-radius: 6px; }
+  h3 { margin: 10px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+</style>
+</head>
+<body>
+<header>
+  <strong>mtg-review</strong>
+  <input id="q" placeholder="filter games (deck, agent, result, id)">
+  <span id="count"></span>
+</header>
+<div id="games"></div>
+<main>
+  <div class="timeline">
+    <button id="first">⏮</button>
+    <button id="prev">◀</button>
+    <input type="range" id="scrub" min="0" max="0" value="0">
+    <button id="next">▶</button>
+    <button id="last">⏭</button>
+    <button id="nextP1" title="next decision by P1">P1 ▶</button>
+    <button id="nextP2" title="next decision by P2">P2 ▶</button>
+    <button id="nextTurn" title="next turn">turn ▶</button>
+    <label><input type="checkbox" id="showText"> text view</label>
+    <span id="pos"></span>
+  </div>
+  <div id="board">Pick a game.</div>
+</main>
+<aside>
+  <h3>Decision</h3>
+  <div id="decision"></div>
+  <h3>Events leading here</h3>
+  <div id="events" class="events"></div>
+</aside>
+<script>
+const $ = (id) => document.getElementById(id);
+let steps = [], i = 0, meta = null;
+
+async function loadGames() {
+  const q = $("q").value;
+  const r = await fetch(`/api/games?q=${encodeURIComponent(q)}`);
+  const { games } = await r.json();
+  $("count").textContent = `${games.length} games`;
+  $("games").innerHTML = games.map(g =>
+    `<div class="game" data-id="${g.id}"><div>${g.id}</div>
+     <small>${g.deck_a || "?"} (${g.agent_a || "?"}) vs ${g.deck_b || "?"} (${g.agent_b || "?"}) · ${g.result}, ${g.turns} turns, ${g.actions} actions · ${g.source || ""}</small></div>`
+  ).join("");
+  for (const el of $("games").querySelectorAll(".game")) el.onclick = () => openGame(el.dataset.id, el);
+}
+
+async function openGame(id, el) {
+  for (const e of $("games").querySelectorAll(".sel")) e.classList.remove("sel");
+  if (el) el.classList.add("sel");
+  $("board").textContent = "replaying…";
+  const r = await fetch(`/api/games/${encodeURIComponent(id)}/steps`);
+  if (!r.ok) { $("board").textContent = await r.text(); return; }
+  steps = (await r.json()).steps;
+  $("scrub").max = steps.length - 1;
+  go(0);
+}
+
+function cardHtml(c, me) {
+  const cls = ["card"];
+  if (c.tapped) cls.push("tapped");
+  if (c.attacking) cls.push("attacking");
+  if (c.blocking) cls.push("blocking");
+  if (c.summoning_sick) cls.push("sick");
+  let s = c.name;
+  if (c.power !== 0 || c.toughness !== 0) s += ` ${c.power}/${c.toughness}`;
+  if (c.damage) s += ` (${c.damage} dmg)`;
+  return `<span class="${cls.join(" ")}" title="${c.name}">${s}</span>`;
+}
+
+function playerHtml(p, v, idx) {
+  const bf = v.battlefield.filter(c => c.controller === idx);
+  const lands = bf.filter(c => c.power === 0 && c.toughness === 0 && /Plains|Island|Swamp|Mountain|Forest/.test(c.name));
+  const rest = bf.filter(c => !lands.includes(c));
+  const hand = p.hand ? p.hand.map(c => cardHtml(c)).join("") : `<i>${p.hand_count} hidden</i>`;
+  const pool = p.mana_pool && (p.mana_pool.colorless || p.mana_pool.colored.some(x => x)) ? ` · pool ${JSON.stringify(p.mana_pool)}` : "";
+  return `<div class="player ${v.active_player === idx ? "active" : ""}">
+    <div><b>P${idx + 1}</b> · ${p.life} life · library ${p.library_count} · hand ${p.hand_count}${pool}${p.lost ? " · LOST" : ""}</div>
+    <div class="zone"><b>battlefield</b> ${rest.map(c => cardHtml(c)).join("")} ${lands.length ? `<span class="card">${lands.length} land${lands.length > 1 ? "s" : ""}: ${summarize(lands)}</span>` : ""}</div>
+    <div class="zone"><b>hand</b> ${hand}</div>
+    <div class="zone"><b>graveyard</b> ${p.graveyard.map(c => c.name).join(", ") || "—"}</div>
+    ${p.exile.length ? `<div class="zone"><b>exile</b> ${p.exile.map(c => c.name).join(", ")}</div>` : ""}
+  </div>`;
+}
+
+function summarize(cards) {
+  const n = {};
+  for (const c of cards) n[c.name + (c.tapped ? " (T)" : "")] = (n[c.name + (c.tapped ? " (T)" : "")] || 0) + 1;
+  return Object.entries(n).map(([k, v]) => `${v} ${k}`).join(", ");
+}
+
+function go(n) {
+  i = Math.max(0, Math.min(steps.length - 1, n));
+  const s = steps[i];
+  $("scrub").value = i;
+  $("pos").textContent = `step ${i} / ${steps.length - 1} · turn ${s.turn} · ${s.step} · P${s.active_player + 1}'s turn · priority P${s.priority + 1}${s.over ? " · game over: " + s.over : ""}`;
+  const v = s.view;
+  let html = "";
+  if (v.stack.length) html += `<div class="stack"><b>stack (top first)</b> ${[...v.stack].reverse().map(c => `${c.name}${c.targets.length ? " → " + c.targets.map(t => t.Player !== undefined ? "P" + (t.Player + 1) : nameOf(v, t.Object)).join(", ") : ""}`).join("; ")}</div>`;
+  html += playerHtml(v.players[1], v, 1) + playerHtml(v.players[0], v, 0);
+  if ($("showText").checked) html += `<pre class="text">${escapeHtml(s.text)}</pre>`;
+  $("board").innerHTML = html;
+  const d = s.decision;
+  $("decision").innerHTML = d
+    ? `<div><b>P${d.player + 1}</b> · ${d.kind}</div>` + d.options.map((o, k) => `<div class="opt ${d.chosen === k ? "chosen" : ""}">${k + 1}. ${escapeHtml(o)}</div>`).join("")
+    : `<div>game over: ${s.over}</div>`;
+  $("events").textContent = s.events.join("\n");
+}
+
+function nameOf(v, id) {
+  const all = [...v.battlefield, ...v.stack, ...v.players.flatMap(p => [...(p.hand || []), ...p.graveyard, ...p.exile])];
+  const c = all.find(c => JSON.stringify(c.id) === JSON.stringify(id));
+  return c ? c.name : "?";
+}
+
+function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+function nextWhere(pred) {
+  for (let k = i + 1; k < steps.length; k++) if (pred(steps[k])) return go(k);
+}
+
+$("first").onclick = () => go(0);
+$("last").onclick = () => go(steps.length - 1);
+$("prev").onclick = () => go(i - 1);
+$("next").onclick = () => go(i + 1);
+$("nextP1").onclick = () => nextWhere(s => s.decision && s.decision.player === 0);
+$("nextP2").onclick = () => nextWhere(s => s.decision && s.decision.player === 1);
+$("nextTurn").onclick = () => nextWhere(s => s.turn > steps[i].turn);
+$("scrub").oninput = (e) => go(+e.target.value);
+$("showText").onchange = () => go(i);
+$("q").oninput = () => loadGames();
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight") go(i + 1);
+  if (e.key === "ArrowLeft") go(i - 1);
+});
+loadGames();
+</script>
+</body>
+</html>

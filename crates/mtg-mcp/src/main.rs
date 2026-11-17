@@ -17,6 +17,10 @@ struct Cli {
     /// of stdio; the MCP endpoint is /mcp.
     #[arg(long)]
     http: Option<String>,
+    /// Write finished games' records (JSON) into this directory, for
+    /// `mtg-review`.
+    #[arg(long)]
+    record_dir: Option<std::path::PathBuf>,
 }
 
 #[tokio::main]
@@ -28,7 +32,9 @@ async fn main() -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
-    let games = Arc::new(Games::new(Arc::new(mtg_dsl::builtin_pool())));
+    let games = Arc::new(
+        Games::new(Arc::new(mtg_dsl::builtin_pool())).with_record_dir(cli.record_dir.clone()),
+    );
     match cli.http {
         None => {
             let service = MtgServer::new(games).serve(stdio()).await?;

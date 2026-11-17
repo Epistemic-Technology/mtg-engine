@@ -40,6 +40,10 @@ enum Command {
         /// Agent for player 2.
         #[arg(long, default_value = "random")]
         agent2: String,
+        /// Write each game's record (JSON) into this directory, for
+        /// `mtg-review`.
+        #[arg(long)]
+        record_dir: Option<PathBuf>,
     },
     /// Play a game in the terminal against a baseline agent.
     Play {
@@ -120,6 +124,7 @@ fn main() -> Result<()> {
             logging,
             agent1,
             agent2,
+            record_dir,
         } => {
             let pool = Arc::new(builtin_pool());
             let Some(d1) = mtg_sim::decks::by_name_seeded(&pool, &deck1, seed) else {
@@ -133,7 +138,36 @@ fn main() -> Result<()> {
                     bail!("unknown agent {a} (random, greedy, first)");
                 }
             }
-            let stats = mtg_sim::batch(&pool, &[d1, d2], games, seed, logging, [&agent1, &agent2]);
+            if let Some(dir) = &record_dir {
+                std::fs::create_dir_all(dir)
+                    .with_context(|| format!("creating {}", dir.display()))?;
+            }
+            let (a1, a2, dk1, dk2) = (agent1.clone(), agent2.clone(), deck1.clone(), deck2.clone());
+            let on_game = |s: &mtg_sim::GameSummary| {
+                let Some(dir) = &record_dir else {
+                    return;
+                };
+                let mut rec = s.record.clone();
+                rec.meta.extend([
+                    ("agent_a".to_string(), a1.clone()),
+                    ("agent_b".to_string(), a2.clone()),
+                    ("deck_a".to_string(), dk1.clone()),
+                    ("deck_b".to_string(), dk2.clone()),
+                    ("source".to_string(), "mtg sim".to_string()),
+                ]);
+                if let Ok(text) = serde_json::to_string(&rec) {
+                    let _ = std::fs::write(dir.join(format!("sim-{}.json", s.seed)), text);
+                }
+            };
+            let stats = mtg_sim::batch_with(
+                &pool,
+                &[d1, d2],
+                games,
+                seed,
+                logging,
+                [&agent1, &agent2],
+                &on_game,
+            );
             println!(
                 "{deck1} ({agent1}) vs {deck2} ({agent2}): {} games, seeds {seed}..",
                 stats.games

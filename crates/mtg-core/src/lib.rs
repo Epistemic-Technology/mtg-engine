@@ -7,6 +7,7 @@ pub mod card;
 pub mod decision;
 pub mod engine;
 pub mod event;
+pub mod event_text;
 pub mod ids;
 pub mod layers;
 pub mod mana;

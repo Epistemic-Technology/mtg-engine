@@ -36,6 +36,8 @@ pub struct GameSummary {
     pub turns: u32,
     pub decisions: u32,
     pub elapsed: Duration,
+    /// The game's record (design §4.8), for the review store.
+    pub record: GameRecord,
 }
 
 /// Play one game between two agents.
@@ -82,6 +84,7 @@ pub fn play(
         turns: engine.state().turn_number,
         decisions,
         elapsed: start.elapsed(),
+        record: GameRecord::from_engine(&engine, pool, config),
     }
 }
 
@@ -142,6 +145,23 @@ pub fn batch(
     logging: bool,
     agent_names: [&str; 2],
 ) -> BatchStats {
+    batch_with(pool, decks, games, base_seed, logging, agent_names, &|_| {})
+}
+
+/// `batch`, calling `on_game` with each finished game's summary (from
+/// the thread that played it; the callback must be `Sync`).
+///
+/// # Panics
+/// If an agent name is unknown.
+pub fn batch_with(
+    pool: &Arc<CardPool>,
+    decks: &[Vec<CardRef>; 2],
+    games: usize,
+    base_seed: u64,
+    logging: bool,
+    agent_names: [&str; 2],
+    on_game: &(dyn Fn(&GameSummary) + Sync),
+) -> BatchStats {
     for n in agent_names {
         assert!(mtg_agents::by_name(n, 0).is_some(), "unknown agent {n}");
     }
@@ -162,7 +182,9 @@ pub fn batch(
                 mtg_agents::by_name(agent_names[1], seed.wrapping_mul(31).wrapping_add(2))
                     .expect("checked above"),
             ];
-            play(pool, &config, &mut agents)
+            let summary = play(pool, &config, &mut agents);
+            on_game(&summary);
+            summary
         })
         .collect();
     let mut stats = BatchStats {

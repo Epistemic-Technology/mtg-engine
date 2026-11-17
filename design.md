@@ -1490,6 +1490,32 @@ changes one step's worth of board state at a time. The server runs
 locally during development and can be deployed as a service later for
 sharing games.
 
+Status 2026-11-17 (M4 slice 3): `crates/mtg-review` is in. The store
+is a directory of record files with `index.sqlite` beside them
+(rusqlite, bundled): `mtg-review import <dir>` indexes `*.json`, and
+`serve` indexes its own directory on start, so dropping records in is
+enough. `mtg sim --record-dir` and `mtg-mcp --record-dir` write records
+there as games finish (the repo's `.mcp.json` passes `data/games`, so
+games Claude Code plays appear in the UI). Snapshots come from
+re-simulation (`snapshots(pool, record, redact)`): one per recorded
+action plus the final state, each with the decision taken (kind, every
+legal option, the chosen index), the events since the previous step
+(the shared `mtg_core::event_text` renderer, which the MCP server uses
+too), both players' hands unless `?redact=<seat>`, and the §9.2 text.
+A game's snapshots are built on first request and cached. Endpoints:
+`/api/games?q=`, `/api/games/{id}`, `/api/games/{id}/steps`. The v1
+page (`static/index.html`, served from the binary) has the game list
+with a filter, the board per step (both players, battlefield with
+tapped, attacking, blocking, and summoning-sick marks, lands
+summarized, hands, graveyards, exile, the stack with targets), a
+timeline with step, next-decision-by-seat, and next-turn controls and
+arrow keys, the decision panel with the chosen option highlighted, and
+the events. Deviation from the technology paragraph above: v1 is one
+static HTML file with plain JavaScript, no build step, so the binary
+has no Node dependency at all; SolidJS and Vite are deferred until the
+commentary panel and richer filters need component state. Checked in a
+browser (Playwright) against six `mtg sim` records.
+
 **Milestones.** The `GameRecord` format and deterministic re-simulation
 land in M1, since that is when determinism exists and when the CLI
 replay needs it. `mtg-review` v1 (store, list, playback with event log)
@@ -1948,6 +1974,15 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, M4 slice 3 (review) done: `mtg-review` with the
+record store and SQLite index, re-simulated step snapshots with the
+decision and options at each step, the JSON API, and the single-file
+playback page (§9.4); `mtg sim --record-dir` and `mtg-mcp
+--record-dir` feed it. The event-text renderer moved into `mtg-core`
+(`event_text`) for both tools. Of the M4 acceptance items, the env
+throughput and the review playback are met; the masked-PPO run and a
+Claude Code game over MCP opened in the UI remain (slice 4).
 
 Status 2026-11-17, M4 slice 2 (MCP) done: `mtg-mcp` on rmcp 3.11 with
 the nine tools of §9.2 over stdio and streamable HTTP, a game table,

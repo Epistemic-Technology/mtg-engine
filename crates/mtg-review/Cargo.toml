@@ -1,0 +1,32 @@
+[package]
+name = "mtg-review"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Game record store and web playback server for the MTG engine"
+
+[[bin]]
+name = "mtg-review"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+axum = "0.8"
+clap.workspace = true
+mtg-core = { path = "../mtg-core" }
+mtg-dsl = { path = "../mtg-dsl" }
+rusqlite = { version = "0.43", features = ["bundled"] }
+serde.workspace = true
+serde_json.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+mtg-agents = { path = "../mtg-agents" }
+mtg-sim = { path = "../mtg-sim" }
+
+[lints]
+workspace = true

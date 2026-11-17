@@ -11,11 +11,17 @@ dist/
 .pytest_cache/
 *.so
 
+# Game records written by `mtg sim --record-dir` and `mtg-mcp --record-dir`
+/data/games/
+
 # Fetched card data (pinned by data/sources.lock, see design.md §5)
 /data/scryfall/
 /data/mtgjson/
 /data/xmage/
 *.part
+
+# Playwright MCP output
+.playwright-mcp/
 
 # Editor / OS
 .idea/

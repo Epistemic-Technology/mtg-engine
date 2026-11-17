@@ -5,8 +5,6 @@
 
 #![allow(clippy::doc_markdown)] // rmcp, PettingZoo
 
-pub mod events;
-
 use std::collections::HashMap;
 use std::fmt::Write as _;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -34,6 +32,7 @@ pub struct Game {
     /// Plays the other seat; `None` when the caller plays both.
     pub opponent: Option<Box<dyn mtg_agents::Agent + Send>>,
     pub opponent_name: String,
+    pub deck_names: (String, String),
     /// Event log cursor for `act` replies.
     pub log_cursor: usize,
 }
@@ -161,7 +160,7 @@ impl Game {
         let state = self.engine.state();
         let out: Vec<String> = state.log[self.log_cursor.min(state.log.len())..]
             .iter()
-            .filter_map(|e| events::describe(state, e, viewer))
+            .filter_map(|e| mtg_core::event_text::describe(state, e, viewer))
             .collect();
         self.log_cursor = state.log.len();
         out
@@ -190,6 +189,8 @@ pub struct Games {
     pub pool: Arc<CardPool>,
     table: Mutex<HashMap<String, Game>>,
     next: AtomicU64,
+    /// Finished games are written here as records, for `mtg-review`.
+    pub record_dir: Option<std::path::PathBuf>,
 }
 
 impl Games {
@@ -198,6 +199,40 @@ impl Games {
             pool,
             table: Mutex::new(HashMap::new()),
             next: AtomicU64::new(1),
+            record_dir: None,
+        }
+    }
+
+    #[must_use]
+    pub fn with_record_dir(mut self, dir: Option<std::path::PathBuf>) -> Self {
+        self.record_dir = dir;
+        self
+    }
+
+    /// The record of a game, with the seat and opponent in its metadata.
+    pub fn record(&self, game: &Game) -> GameRecord {
+        let mut rec = GameRecord::from_engine(&game.engine, &self.pool, &game.config);
+        rec.meta.extend([
+            ("seat".to_string(), game.seat.0.to_string()),
+            ("opponent".to_string(), game.opponent_name.clone()),
+            ("deck_a".to_string(), game.deck_names.0.clone()),
+            ("deck_b".to_string(), game.deck_names.1.clone()),
+            ("source".to_string(), "mtg-mcp".to_string()),
+        ]);
+        rec
+    }
+
+    /// Write a finished game's record to `record_dir`, if set.
+    fn save(&self, id: &str, game: &Game) {
+        let Some(dir) = &self.record_dir else {
+            return;
+        };
+        if let Ok(text) = serde_json::to_string(&self.record(game)) {
+            let _ = std::fs::create_dir_all(dir);
+            let stamp = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_secs());
+            let _ = std::fs::write(dir.join(format!("mcp-{stamp}-{id}.json")), text);
         }
     }
 
@@ -239,6 +274,7 @@ impl Games {
             seat: PlayerId(seat),
             opponent: agent,
             opponent_name: opponent.to_string(),
+            deck_names: (deck_a.to_string(), deck_b.to_string()),
             log_cursor: 0,
         };
         game.autoplay();
@@ -511,6 +547,9 @@ impl MtgServer {
                     return Self::fail(e.to_string());
                 }
                 g.autoplay();
+                if g.engine.is_over() {
+                    self.games.save(&id, g);
+                }
                 let viewer = g.viewer(None);
                 let events = g.drain_events(viewer);
                 let prefix = format!(
@@ -538,7 +577,7 @@ impl MtgServer {
                 let since = p.0.since.unwrap_or(0).min(state.log.len());
                 let lines: Vec<String> = state.log[since..]
                     .iter()
-                    .filter_map(|e| events::describe(state, e, viewer))
+                    .filter_map(|e| mtg_core::event_text::describe(state, e, viewer))
                     .collect();
                 let mut r = Self::text(format!(
                     "{}\n(cursor {})",
@@ -662,10 +701,7 @@ impl MtgServer {
     async fn get_record(&self, p: Parameters<GameParams>) -> CallToolResult {
         self.games
             .with(&p.0.game_id, |g| {
-                let mut rec = GameRecord::from_engine(&g.engine, &self.games.pool, &g.config);
-                rec.meta.push(("seat".to_string(), g.seat.0.to_string()));
-                rec.meta
-                    .push(("opponent".to_string(), g.opponent_name.clone()));
+                let rec = self.games.record(g);
                 match serde_json::to_string(&rec) {
                     Ok(s) => Self::text(s),
                     Err(e) => Self::fail(e.to_string()),

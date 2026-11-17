@@ -1,11 +1,12 @@
 //! Events as one-line text for a viewer, hiding what the viewer may not
-//! see (a card drawn by the opponent is "a card").
+//! see (a card drawn by the opponent is "a card"). Used by the MCP server
+//! and the review tool.
 
 use std::fmt::Write as _;
 
-use mtg_core::event::Event;
-use mtg_core::ids::{ObjId, PlayerId};
-use mtg_core::state::{GameState, Target};
+use crate::event::Event;
+use crate::ids::{ObjId, PlayerId};
+use crate::state::{GameState, Target};
 
 fn who(p: PlayerId, viewer: PlayerId) -> String {
     if p == viewer {
@@ -69,7 +70,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         // show the zone changes those do not cover (bounces, exiles,
         // returns from the graveyard).
         Event::ZoneChange { old, from, to, .. } => {
-            use mtg_core::state::Zone;
+            use crate::state::Zone;
             let shown = matches!(
                 (from, to),
                 (Zone::Battlefield, Zone::Hand | Zone::Exile | Zone::Library)

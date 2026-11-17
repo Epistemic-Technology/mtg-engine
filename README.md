@@ -75,6 +75,15 @@ cargo run --release -p mtg-mcp                      # stdio
 cargo run --release -p mtg-mcp -- --http 127.0.0.1:8765   # http://127.0.0.1:8765/mcp
 ```
 
+Review: `mtg-review` indexes game records and serves a playback page
+(board, decision and options, events, timeline) at
+http://127.0.0.1:8780/ by re-simulating each record:
+
+```
+cargo run --release -p mtg-cli -- sim --games 10 --agent1 greedy --record-dir data/games
+cargo run --release -p mtg-review -- --store data/games serve
+```
+
 Fuzzing draws random two-color decks from the whole corpus:
 
 ```
