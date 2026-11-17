@@ -66,6 +66,15 @@ uv venv && uv pip install maturin pytest pettingzoo gymnasium numpy
 .venv/bin/python scripts/py_throughput.py     # env steps/s, one process and all cores
 ```
 
+MCP: `mtg-mcp` serves the engine to language models over stdio (the
+default) or streamable HTTP; `.mcp.json` registers it for Claude Code in
+this repo, so a fresh session can `new_game` and play with `act`:
+
+```
+cargo run --release -p mtg-mcp                      # stdio
+cargo run --release -p mtg-mcp -- --http 127.0.0.1:8765   # http://127.0.0.1:8765/mcp
+```
+
 Fuzzing draws random two-color decks from the whole corpus:
 
 ```

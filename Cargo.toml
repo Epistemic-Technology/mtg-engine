@@ -9,6 +9,7 @@ members = [
     "crates/mtg-sim",
     "crates/mtg-cli",
     "crates/mtg-py",
+    "crates/mtg-mcp",
 ]
 
 [workspace.package]

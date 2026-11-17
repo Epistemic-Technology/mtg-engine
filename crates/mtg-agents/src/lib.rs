@@ -143,7 +143,7 @@ impl Agent for FirstOptionAgent {
 }
 
 /// Construct a baseline agent by name: `random` or `greedy`.
-pub fn by_name(name: &str, seed: u64) -> Option<Box<dyn Agent>> {
+pub fn by_name(name: &str, seed: u64) -> Option<Box<dyn Agent + Send>> {
     Some(match name {
         "random" => Box::new(RandomAgent::new(seed)),
         "greedy" => Box::new(GreedyAgent::default()),

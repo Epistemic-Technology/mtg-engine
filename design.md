@@ -1408,6 +1408,31 @@ Text rendering matters for LLM play quality and cost. The default
 natural-language form that it resolves against the legal option list
 and rejects if ambiguous.
 
+Status 2026-11-17 (M4 slice 2): `crates/mtg-mcp` is in, on rmcp 3.11
+(spec 2026-07-28), serving stdio by default and streamable HTTP with
+`--http <addr>` (axum, endpoint `/mcp`). Games live in a table keyed by
+a server-minted `game_id`; the caller takes one seat and a built-in
+agent (`greedy` by default, or `random`) plays the other between the
+caller's decisions, or `opponent: "none"` gives the caller both seats.
+Tools: `new_game`, `get_state` (the §9.2 dense text with `#n` labels,
+plus the view as JSON in `structuredContent`), `get_decision`
+(numbered options, every one legal; also structured), `act` (a number,
+the exact option text, or a phrase that picks exactly one option, such
+as a `#n` label, a card name, or "pass"; replies with the events the
+seat saw and the next decision), `get_log` (events since a cursor,
+with hidden information withheld: an opponent's draw is "a card"),
+`card_info`, `legal_summary` (options grouped by kind), `get_record`
+(the §4.8 record, for the review tool), `end_game`, `list_games`. The
+server sends instructions at initialize telling the model the protocol:
+new_game, then act with the numbers from the decision it is handed. An
+in-process rmcp client plays a whole game through the tools in the
+crate's test; a raw JSON-RPC exchange over the stdio binary is the
+smoke test. `.mcp.json` at the repo root registers the server for
+Claude Code as `cargo run -q --release -p mtg-mcp`, so the M4
+acceptance game can be played from a fresh Claude Code session in the
+repo. Rulings are not served (the snapshot lives in `mtg-cards`'s data
+directory, outside the engine); `card_info` gives Oracle text.
+
 ### 9.3 CLI (`mtg-cli`)
 
 Play as a human against a baseline agent, replay a game from its action
@@ -1923,6 +1948,13 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, M4 slice 2 (MCP) done: `mtg-mcp` on rmcp 3.11 with
+the nine tools of §9.2 over stdio and streamable HTTP, a game table,
+seat-filtered text and events, and option resolution by number, text,
+or label; an in-process client plays a full game in the test, and
+`.mcp.json` registers the server for Claude Code. `mtg-agents::by_name`
+now returns `Box<dyn Agent + Send>` so an agent can sit behind a mutex.
 
 Status 2026-11-17, M4 slice 1 (Python) done: `mtg-py` with the thin
 `Engine` binding, `simulate_batch` on rayon with the GIL released, the
