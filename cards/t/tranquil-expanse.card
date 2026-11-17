@@ -1,0 +1,6 @@
+card "Tranquil Expanse" {
+  oracle_id a5478263-47c9-447f-9c7a-c77ce0752947
+  type Land
+  enters tapped
+  mana {G} or {W}
+}

@@ -1,0 +1,6 @@
+card "Precise Strike" {
+  oracle_id bfd2138b-1883-4900-a5f1-373884965c34
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike
+}

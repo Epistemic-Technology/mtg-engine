@@ -1,0 +1,7 @@
+card "Lightning Talons" {
+  oracle_id 4a2a7eca-3477-4858-9dab-ba80d4d704cd
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+0, has first strike
+}

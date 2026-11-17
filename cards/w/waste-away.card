@@ -1,0 +1,7 @@
+card "Waste Away" {
+  oracle_id d7f25f7f-3fa2-47ba-be33-ba0b08f26c94
+  cost {4}{B}
+  type Instant
+  additional cost discard 1 card
+  spell: target creature gets -5/-5
+}

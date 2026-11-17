@@ -1,0 +1,7 @@
+card "Herd Gnarr" {
+  oracle_id 89cf4d99-64e9-4e5c-9edc-ea077a193332
+  cost {3}{G}
+  type Creature — Beast
+  pt 2/2
+  triggered whenever other creature you control enters: this gets +2/+2
+}

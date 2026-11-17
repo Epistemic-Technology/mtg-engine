@@ -1,0 +1,7 @@
+card "Faerie Invaders" {
+  oracle_id df7580fb-4c37-4c09-8785-e320cb124621
+  cost {4}{U}
+  type Creature — Faerie Rogue
+  pt 3/3
+  keywords flash, flying
+}

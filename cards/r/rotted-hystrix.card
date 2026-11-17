@@ -1,0 +1,6 @@
+card "Rotted Hystrix" {
+  oracle_id e600afe3-8d5b-46ab-b98c-f0bacb58ab2a
+  cost {4}{G}
+  type Creature — Phyrexian Beast
+  pt 3/6
+}

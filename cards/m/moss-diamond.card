@@ -1,0 +1,7 @@
+card "Moss Diamond" {
+  oracle_id 02500f21-6e15-423e-93ff-891e09fe9904
+  cost {2}
+  type Artifact
+  enters tapped
+  mana {G}
+}

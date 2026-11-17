@@ -1,0 +1,6 @@
+card "Font of Fortunes" {
+  oracle_id 4aeaf1cd-7346-4492-847d-1c4dad14fafd
+  cost {1}{U}
+  type Enchantment
+  activated {1}{U}, sacrifice this: draw 2 cards
+}

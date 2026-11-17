@@ -1,0 +1,6 @@
+card "Veteran's Reflexes" {
+  oracle_id efee0ca0-0897-4972-99c4-432561b6e9f8
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+1; untap that creature
+}

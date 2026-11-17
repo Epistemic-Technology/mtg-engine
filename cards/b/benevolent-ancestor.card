@@ -1,0 +1,8 @@
+card "Benevolent Ancestor" {
+  oracle_id ee414d20-b18e-4bed-97fc-3c7535089ec1
+  cost {2}{W}
+  type Creature — Spirit
+  pt 0/4
+  keywords defender
+  activated {T}: prevent next 1 damage to any target this turn
+}

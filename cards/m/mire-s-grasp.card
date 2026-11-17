@@ -1,0 +1,7 @@
+card "Mire's Grasp" {
+  oracle_id 1009d2a2-a145-46e1-ba14-7a42735062fc
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -3/-3
+}

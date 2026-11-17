@@ -1,0 +1,7 @@
+card "Leaf Gilder" {
+  oracle_id 61324e37-4b79-4325-bf46-621b4270afe2
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  mana {G}
+}

@@ -1,0 +1,6 @@
+card "Guadosalam, Farplane Gateway" {
+  oracle_id 849c97e4-df15-4ecb-bdf8-283bb497d90c
+  type Land — Town
+  enters tapped
+  mana {G} or {U}
+}

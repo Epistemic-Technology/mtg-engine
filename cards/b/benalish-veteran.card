@@ -1,0 +1,7 @@
+card "Benalish Veteran" {
+  oracle_id 5da2e5c7-ec04-4f1f-bb2f-7572f877393c
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1
+}

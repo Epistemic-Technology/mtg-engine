@@ -1,0 +1,8 @@
+card "Pteron Ghost" {
+  oracle_id 783c48b8-a760-4334-ac70-557af7802f33
+  cost {1}{W}
+  type Creature — Dinosaur Spirit
+  pt 1/1
+  keywords flying
+  activated sacrifice this: regenerate target artifact
+}

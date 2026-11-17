@@ -1,0 +1,7 @@
+card "Daybreak Charger" {
+  oracle_id d3de6b36-c631-4b52-b16b-0749a347d73d
+  cost {1}{W}
+  type Creature — Unicorn
+  pt 3/1
+  triggered when this enters: target creature gets +2/+0
+}

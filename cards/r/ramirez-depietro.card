@@ -1,0 +1,7 @@
+card "Ramirez DePietro" {
+  oracle_id 48b9c510-03ed-41cb-8c17-16110d447490
+  cost {3}{U}{B}{B}
+  type Legendary Creature — Human Pirate
+  pt 4/3
+  keywords first strike
+}

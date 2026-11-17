@@ -1,0 +1,7 @@
+card "Sun Sentinel" {
+  oracle_id 4db00a5e-7dbe-4387-90e9-c21ec1daa448
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+}

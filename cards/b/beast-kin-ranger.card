@@ -1,0 +1,8 @@
+card "Beast-Kin Ranger" {
+  oracle_id db794af5-ba2e-4b10-b213-e481e8a50432
+  cost {2}{G}
+  type Creature — Elf Ranger
+  pt 3/3
+  keywords trample
+  triggered whenever other creature you control enters: this gets +1/+0
+}

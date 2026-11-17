@@ -1,0 +1,7 @@
+card "Wolf Cove Villager" {
+  oracle_id 549a3f53-f90e-4af0-bbc5-2c4b9df30008
+  cost {W}
+  type Creature — Human Peasant
+  pt 2/2
+  enters tapped
+}

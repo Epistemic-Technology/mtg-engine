@@ -1,0 +1,7 @@
+card "Bloodthrone Vampire" {
+  oracle_id aa76cc50-5be0-4844-b3a4-fb33fca3cdd3
+  cost {1}{B}
+  type Creature — Vampire
+  pt 1/1
+  activated sacrifice creature: this gets +2/+2
+}

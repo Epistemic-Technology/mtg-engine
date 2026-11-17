@@ -1,0 +1,6 @@
+card "Wings of the Cosmos" {
+  oracle_id afa9cf24-cd02-41f5-9141-f6ff6f27d528
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+3 and gains flying; untap target 1
+}

@@ -1,0 +1,8 @@
+card "Aven Trooper" {
+  oracle_id 258073aa-6500-46a2-a5e5-22378b14260b
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 1/1
+  keywords flying
+  activated {2}{W}, discard 1 card: this gets +1/+2
+}

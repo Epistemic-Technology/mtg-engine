@@ -1,0 +1,5 @@
+card "Tree of Tales" {
+  oracle_id 8b4aa971-b919-4750-8388-33d4f42c9280
+  type Artifact Land
+  mana {G}
+}

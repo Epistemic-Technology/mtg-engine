@@ -1,0 +1,6 @@
+card "Gilded Sentinel" {
+  oracle_id a382165d-d715-4836-b1ce-9e5d8dc56fb4
+  cost {4}
+  type Artifact Creature — Golem
+  pt 3/3
+}

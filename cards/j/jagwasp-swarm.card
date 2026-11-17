@@ -1,0 +1,7 @@
+card "Jagwasp Swarm" {
+  oracle_id 376d90f6-2ceb-4d9e-a04d-3dd5bafd1e8b
+  cost {3}{B}
+  type Creature — Insect
+  pt 3/2
+  keywords flying
+}

@@ -1,0 +1,6 @@
+card "Ogre Warrior" {
+  oracle_id 31426e08-bfd1-44f1-8473-5e982cb8e841
+  cost {3}{R}
+  type Creature — Ogre Warrior
+  pt 3/3
+}

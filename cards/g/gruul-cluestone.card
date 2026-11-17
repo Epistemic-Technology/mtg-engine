@@ -1,0 +1,7 @@
+card "Gruul Cluestone" {
+  oracle_id 80911151-1e72-4d10-b00a-9fcff2dd131a
+  cost {3}
+  type Artifact
+  mana {R} or {G}
+  activated {R}{G}, {T}, sacrifice this: draw 1 cards
+}

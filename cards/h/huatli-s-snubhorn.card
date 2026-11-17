@@ -1,0 +1,7 @@
+card "Huatli's Snubhorn" {
+  oracle_id 8516d8ba-b3f9-4c45-8d70-5dab476e478f
+  cost {1}{W}
+  type Creature — Dinosaur
+  pt 2/2
+  keywords vigilance
+}

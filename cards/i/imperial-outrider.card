@@ -1,0 +1,6 @@
+card "Imperial Outrider" {
+  oracle_id 76cd10a0-36af-4f56-87c1-f72dee07b27c
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 1/5
+}

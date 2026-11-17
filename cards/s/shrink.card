@@ -1,0 +1,6 @@
+card "Shrink" {
+  oracle_id 252330b1-67cf-4d9e-a413-917ba61e731f
+  cost {G}
+  type Instant
+  spell: target creature gets -5/-0
+}

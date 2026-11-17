@@ -1,0 +1,6 @@
+card "Pull Under" {
+  oracle_id b99ddb27-a59a-4cd3-88b1-97c759ddbd93
+  cost {5}{B}
+  type Instant — Arcane
+  spell: target creature gets -5/-5
+}

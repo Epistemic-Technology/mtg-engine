@@ -1,0 +1,6 @@
+card "Barbtooth Wurm" {
+  oracle_id 03ad624e-71f6-4f72-8ce0-7700e83458d9
+  cost {5}{G}
+  type Creature — Wurm
+  pt 6/4
+}

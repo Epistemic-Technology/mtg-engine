@@ -1,0 +1,7 @@
+card "Gruul Nodorog" {
+  oracle_id 68fc3611-8d82-4f87-ab50-603790a27455
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  activated {R}: this gains menace
+}

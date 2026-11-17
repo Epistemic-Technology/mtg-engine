@@ -1,0 +1,8 @@
+card "Frantic Strength" {
+  oracle_id 5dbe4648-f4c9-4d26-98f5-58a7e53b149d
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+2, has trample
+}

@@ -1,0 +1,7 @@
+card "Burrenton Shield-Bearers" {
+  oracle_id 8d038c81-b43f-4721-abda-5dacfc194ed3
+  cost {4}{W}
+  type Creature — Kithkin Soldier
+  pt 3/3
+  triggered whenever this attacks: target creature gets +0/+3
+}

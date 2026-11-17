@@ -1,0 +1,7 @@
+card "Tyrranax" {
+  oracle_id 28ecc209-d78b-4b37-8411-fb8079f6e088
+  cost {4}{G}{G}
+  type Creature — Dinosaur Beast
+  pt 5/4
+  activated {1}{G}: this gets -1/+1
+}

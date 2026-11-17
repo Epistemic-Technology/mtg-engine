@@ -1,0 +1,7 @@
+card "Ghosts of the Damned" {
+  oracle_id 1b3bbd3c-f5ef-4940-82a2-d36f4d148b9a
+  cost {1}{B}{B}
+  type Creature — Spirit
+  pt 0/2
+  activated {T}: target creature gets -1/-0
+}

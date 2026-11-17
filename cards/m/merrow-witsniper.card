@@ -1,0 +1,7 @@
+card "Merrow Witsniper" {
+  oracle_id 79f8378a-fb50-4178-be53-b6926bc1cba5
+  cost {U}
+  type Creature — Merfolk Rogue
+  pt 1/1
+  triggered when this enters: target player mills 1 cards
+}

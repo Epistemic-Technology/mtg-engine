@@ -1,0 +1,7 @@
+card "Skirsdag Supplicant" {
+  oracle_id c7d97311-6e34-4679-a678-e107022c785c
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 2/3
+  activated {B}, {T}, discard 1 card: each player loses 2 life
+}

@@ -1,0 +1,7 @@
+card "Deepwood Drummer" {
+  oracle_id b2bbb4e5-05b1-49e5-ad02-7384e115e06b
+  cost {1}{G}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {G}, {T}, discard 1 card: target creature gets +2/+2
+}

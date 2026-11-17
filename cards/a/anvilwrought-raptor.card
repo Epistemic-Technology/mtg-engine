@@ -1,0 +1,7 @@
+card "Anvilwrought Raptor" {
+  oracle_id d87ebd8c-ad2c-45c9-8c97-f046aeda861c
+  cost {4}
+  type Artifact Creature — Bird
+  pt 2/1
+  keywords flying, first strike
+}

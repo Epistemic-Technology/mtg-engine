@@ -1,0 +1,7 @@
+card "Underdark Basilisk" {
+  oracle_id 3b61b6da-44ed-4766-8134-fca37afd3f2a
+  cost {1}{G}
+  type Creature — Basilisk
+  pt 1/2
+  keywords deathtouch
+}

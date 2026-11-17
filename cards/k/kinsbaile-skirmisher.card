@@ -1,0 +1,7 @@
+card "Kinsbaile Skirmisher" {
+  oracle_id 6b142a4a-769b-4e1b-aae6-ba6e11f35836
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  triggered when this enters: target creature gets +1/+1
+}

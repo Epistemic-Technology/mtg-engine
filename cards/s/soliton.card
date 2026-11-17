@@ -1,0 +1,7 @@
+card "Soliton" {
+  oracle_id c04b4323-db6a-4ab1-99b7-eef3acad3c4f
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/4
+  activated {U}: untap this
+}

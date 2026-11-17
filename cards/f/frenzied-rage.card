@@ -1,0 +1,7 @@
+card "Frenzied Rage" {
+  oracle_id 1a04c31c-f5e4-43ff-a5b5-207426b8dca6
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1, has menace
+}

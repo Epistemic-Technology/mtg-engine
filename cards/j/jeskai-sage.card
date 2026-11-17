@@ -1,0 +1,8 @@
+card "Jeskai Sage" {
+  oracle_id b79d4b17-482e-415b-a63b-1f97a55e7583
+  cost {1}{U}
+  type Creature — Human Monk
+  pt 1/1
+  keywords prowess
+  triggered when this dies: draw 1 cards
+}

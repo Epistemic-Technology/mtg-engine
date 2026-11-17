@@ -1,0 +1,6 @@
+card "Mortal's Ardor" {
+  oracle_id c3401995-4fb4-4b43-b852-5ccad6dc3154
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+1 and gains lifelink
+}

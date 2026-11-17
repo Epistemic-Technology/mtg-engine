@@ -1,0 +1,7 @@
+card "Aether Spellbomb" {
+  oracle_id 4b033a0a-c1ae-44d7-9662-72cbbfda024b
+  cost {1}
+  type Artifact
+  activated {U}, sacrifice this: return target creature to hand
+  activated {1}, sacrifice this: draw 1 cards
+}

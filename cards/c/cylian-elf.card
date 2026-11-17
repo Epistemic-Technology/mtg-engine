@@ -1,0 +1,6 @@
+card "Cylian Elf" {
+  oracle_id 2d425f5d-326f-46f8-ab84-852b01db4adb
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 2/2
+}

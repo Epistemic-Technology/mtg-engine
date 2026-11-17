@@ -1,0 +1,7 @@
+card "Bird Maiden" {
+  oracle_id bddd6b93-7c69-427a-97ee-0c1f9f950f09
+  cost {2}{R}
+  type Creature — Human Bird
+  pt 1/2
+  keywords flying
+}

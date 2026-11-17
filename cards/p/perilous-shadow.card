@@ -1,0 +1,7 @@
+card "Perilous Shadow" {
+  oracle_id 3ba3405d-8c9a-4a80-811d-529cd3cb657f
+  cost {2}{B}{B}
+  type Creature — Insect Shade
+  pt 0/4
+  activated {1}{B}: this gets +2/+2
+}

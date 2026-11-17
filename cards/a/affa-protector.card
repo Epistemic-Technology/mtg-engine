@@ -1,0 +1,7 @@
+card "Affa Protector" {
+  oracle_id 5b38a1e4-a6af-4094-9392-70a87759e20d
+  cost {2}{W}
+  type Creature — Human Soldier Ally
+  pt 1/4
+  keywords vigilance
+}

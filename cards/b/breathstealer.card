@@ -1,0 +1,7 @@
+card "Breathstealer" {
+  oracle_id 17d18e2f-2d8d-449e-9356-a7351bf0f8c2
+  cost {2}{B}
+  type Creature — Nightstalker
+  pt 2/2
+  activated {B}: this gets +1/-1
+}

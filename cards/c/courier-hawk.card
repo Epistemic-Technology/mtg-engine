@@ -1,0 +1,7 @@
+card "Courier Hawk" {
+  oracle_id 7fc904aa-377b-4671-8308-275205f56d81
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/2
+  keywords flying, vigilance
+}

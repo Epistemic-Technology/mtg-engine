@@ -1,0 +1,6 @@
+card "Bilbo's Deadly Slice" {
+  oracle_id 4c054431-3667-4e28-9d68-03b43447c35b
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature
+}

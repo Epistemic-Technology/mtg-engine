@@ -1,0 +1,6 @@
+card "Redwood Treefolk" {
+  oracle_id 2cdebbc2-2e0b-4d26-bb7f-4736f0318ca7
+  cost {4}{G}
+  type Creature — Treefolk
+  pt 3/6
+}

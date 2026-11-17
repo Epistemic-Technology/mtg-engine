@@ -1,0 +1,6 @@
+card "Cowl Prowler" {
+  oracle_id 67419470-3418-466f-b3c1-4ded1d0ee34b
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/6
+}

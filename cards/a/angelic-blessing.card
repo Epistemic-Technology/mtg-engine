@@ -1,0 +1,6 @@
+card "Angelic Blessing" {
+  oracle_id d3758fca-0522-4b5a-a1cc-3b2b3ab299ba
+  cost {2}{W}
+  type Sorcery
+  spell: target creature gets +3/+3 and gains flying
+}

@@ -1,0 +1,7 @@
+card "Riot Gear" {
+  oracle_id 3e150025-51c2-4b92-970c-a89e83210e68
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+2
+  equip {2}
+}

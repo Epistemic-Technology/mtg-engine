@@ -1,0 +1,7 @@
+card "True Love's Kiss" {
+  oracle_id 9506aba2-5e1d-48c5-ace8-4beb824ad8af
+  cost {2}{W}{W}
+  type Instant
+  spell: exile target artifact or enchantment
+  spell: draw 1 cards
+}

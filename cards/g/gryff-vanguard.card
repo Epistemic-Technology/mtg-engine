@@ -1,0 +1,8 @@
+card "Gryff Vanguard" {
+  oracle_id 3bcdf832-4ce2-4043-b46a-0c5fd7019fcd
+  cost {4}{U}
+  type Creature — Human Knight
+  pt 3/2
+  keywords flying
+  triggered when this enters: draw 1 cards
+}

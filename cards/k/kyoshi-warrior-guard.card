@@ -1,0 +1,6 @@
+card "Kyoshi Warrior Guard" {
+  oracle_id 18fe834f-4417-4df8-a49c-98e9bf2f87d2
+  cost {1}{W}
+  type Creature — Human Warrior Ally
+  pt 2/3
+}

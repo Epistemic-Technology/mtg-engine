@@ -1,0 +1,7 @@
+card "Gerrard's Irregulars" {
+  oracle_id 595cbe23-4969-4fc2-8386-e5f3e6adfd5f
+  cost {4}{R}
+  type Creature — Human Soldier
+  pt 4/2
+  keywords trample, haste
+}

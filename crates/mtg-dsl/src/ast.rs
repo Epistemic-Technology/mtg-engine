@@ -67,6 +67,19 @@ pub struct Cost {
     pub sacrifice: Option<SacCost>,
     /// "Activate only as a sorcery."
     pub sorcery: bool,
+    /// The order the parts were written in, which is the order printed
+    /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
+    /// discard, life.
+    pub order: Vec<CostItem>,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum CostItem {
+    Mana,
+    Tap,
+    Sacrifice,
+    Discard,
+    Life,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -124,6 +137,9 @@ pub enum Target {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Ability {
+    /// A keyword printed among the abilities rather than first (a bridge
+    /// land's "Indestructible" after "enters tapped").
+    Keyword(Keyword),
     /// "{T}: Add {W} or {U}." One entry per choice.
     Mana(Vec<Mana>),
     Enchant(Target),
@@ -287,8 +303,12 @@ pub enum CdaCount {
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Recipient {
-    /// The `n`th target (0-based), declared by its first mention.
+    /// The `n`th target (0-based), declared by its first mention; printed
+    /// as "it" after that.
     Target(usize),
+    /// The `n`th target again, printed as "that creature" (Act of
+    /// Treason's "Untap that creature").
+    ThatTarget(usize),
     You,
     EachOpponent,
     Source,

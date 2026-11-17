@@ -1,0 +1,7 @@
+card "Loxodon Anchorite" {
+  oracle_id c70dded8-658b-4250-8057-54894350455c
+  cost {2}{W}{W}
+  type Creature — Elephant Cleric
+  pt 2/3
+  activated {T}: prevent next 2 damage to any target this turn
+}

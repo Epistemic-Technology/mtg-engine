@@ -1,0 +1,7 @@
+card "Rustvale Bridge" {
+  oracle_id a3faf70d-c034-4692-9e92-1922029e3852
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {R} or {W}
+}

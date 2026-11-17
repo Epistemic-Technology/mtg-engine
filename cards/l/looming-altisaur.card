@@ -1,0 +1,6 @@
+card "Looming Altisaur" {
+  oracle_id af5302d3-782b-4d92-bc97-dccbfc76ac95
+  cost {3}{W}
+  type Creature — Dinosaur
+  pt 1/7
+}

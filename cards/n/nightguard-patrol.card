@@ -1,0 +1,7 @@
+card "Nightguard Patrol" {
+  oracle_id bb482f90-5624-4e2c-9916-85fb09a3639a
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  keywords first strike, vigilance
+}

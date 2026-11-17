@@ -1,0 +1,7 @@
+card "Land Leeches" {
+  oracle_id 228f0afa-146b-4564-a380-71595cdf1ef4
+  cost {1}{G}{G}
+  type Creature — Leech
+  pt 2/2
+  keywords first strike
+}

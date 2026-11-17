@@ -1,0 +1,6 @@
+card "Goblin Roughrider" {
+  oracle_id a920d37e-e172-41f7-bfbf-c18821dcbed7
+  cost {2}{R}
+  type Creature — Goblin Knight
+  pt 3/2
+}

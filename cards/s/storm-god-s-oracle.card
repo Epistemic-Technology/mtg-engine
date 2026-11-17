@@ -1,0 +1,8 @@
+card "Storm God's Oracle" {
+  oracle_id 21613fac-d959-44ba-9bcb-0a30b5e6545e
+  cost {1}{U}{R}
+  type Enchantment Creature — Human Shaman
+  pt 1/3
+  activated {1}: this gets +1/-1
+  triggered when this dies: deal 3 damage to any target
+}

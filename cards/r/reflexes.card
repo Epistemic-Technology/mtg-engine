@@ -1,0 +1,7 @@
+card "Reflexes" {
+  oracle_id dc87b0a5-3d9d-44eb-b415-b022acd63cf1
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has first strike
+}

@@ -1,0 +1,7 @@
+card "Rib Cage Spider" {
+  oracle_id 906cba93-3dac-4720-a482-987cf1b4e786
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/4
+  keywords reach
+}

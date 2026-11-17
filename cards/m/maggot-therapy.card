@@ -1,0 +1,8 @@
+card "Maggot Therapy" {
+  oracle_id ab4887e6-f71b-462d-9243-9ebe54da98f4
+  cost {2}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/-2
+}

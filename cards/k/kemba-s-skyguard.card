@@ -1,0 +1,8 @@
+card "Kemba's Skyguard" {
+  oracle_id 4c8167af-2eb0-4f0a-a1b9-b61b65bac261
+  cost {1}{W}{W}
+  type Creature — Cat Knight
+  pt 2/2
+  keywords flying
+  triggered when this enters: you gains 2 life
+}

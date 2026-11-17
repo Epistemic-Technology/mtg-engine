@@ -1,0 +1,7 @@
+card "Dragon Moose" {
+  oracle_id 4a678c6f-5a93-4a3b-80fd-4c0d0f9040c9
+  cost {3}{R}
+  type Creature — Dragon Elk
+  pt 3/3
+  keywords haste
+}

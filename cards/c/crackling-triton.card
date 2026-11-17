@@ -1,0 +1,7 @@
+card "Crackling Triton" {
+  oracle_id 8a327626-ce42-4ef8-8869-3468960c671e
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/3
+  activated {2}{R}, sacrifice this: deal 2 damage to any target
+}

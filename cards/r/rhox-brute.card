@@ -1,0 +1,6 @@
+card "Rhox Brute" {
+  oracle_id c497c4f2-62c5-44fc-b485-f8d40868d8dc
+  cost {2}{R}{G}
+  type Creature — Rhino Warrior
+  pt 4/4
+}

@@ -1,0 +1,7 @@
+card "Tattered Mummy" {
+  oracle_id 066e7379-d439-41cb-a8c9-60964040b110
+  cost {1}{B}
+  type Creature — Zombie Jackal
+  pt 1/2
+  triggered when this dies: each opponent loses 2 life
+}

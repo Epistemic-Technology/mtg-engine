@@ -1,0 +1,7 @@
+card "Serpentine Kavu" {
+  oracle_id cf252d71-77e7-438f-b774-28e5ab2f09f6
+  cost {4}{G}
+  type Creature — Kavu
+  pt 4/4
+  activated {R}: this gains haste
+}

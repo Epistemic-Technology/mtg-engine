@@ -1,0 +1,6 @@
+card "Golden Bear" {
+  oracle_id 6ba7ab42-918e-472a-b364-06073cc354d2
+  cost {3}{G}
+  type Creature — Bear
+  pt 4/3
+}

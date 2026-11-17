@@ -1,0 +1,6 @@
+card "Loxodon Wayfarer" {
+  oracle_id cd990c63-ba29-46f8-afa5-4cd5fe0b0166
+  cost {2}{W}
+  type Creature — Elephant Monk
+  pt 1/5
+}

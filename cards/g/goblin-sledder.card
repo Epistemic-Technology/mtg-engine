@@ -1,0 +1,7 @@
+card "Goblin Sledder" {
+  oracle_id ae93292a-458a-441b-a7de-4b10f0d20cc0
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated sacrifice Goblin: target creature gets +1/+1
+}

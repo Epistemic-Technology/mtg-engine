@@ -1,0 +1,7 @@
+card "Ley Druid" {
+  oracle_id a4ae41c7-9631-407d-8fd3-04f403d940a8
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {T}: untap target land
+}

@@ -1,0 +1,7 @@
+card "Giant Spectacle" {
+  oracle_id 97e34c3a-070e-406a-8505-657f4d57def8
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1, has menace
+}

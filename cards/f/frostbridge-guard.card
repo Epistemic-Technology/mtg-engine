@@ -1,0 +1,7 @@
+card "Frostbridge Guard" {
+  oracle_id 515c1604-59f0-45b4-91be-d2f20fdd3e1e
+  cost {1}{W}
+  type Creature — Elemental Soldier
+  pt 2/2
+  activated {2}{W}, {T}: tap target creature
+}

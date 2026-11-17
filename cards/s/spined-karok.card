@@ -1,0 +1,6 @@
+card "Spined Karok" {
+  oracle_id 7341a04a-b6d6-4106-b1c3-3483f9d37663
+  cost {2}{G}
+  type Creature — Crocodile
+  pt 2/4
+}

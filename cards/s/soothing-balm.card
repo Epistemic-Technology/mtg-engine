@@ -1,0 +1,6 @@
+card "Soothing Balm" {
+  oracle_id 1f493e26-a556-4ca0-bb44-5408800ccf82
+  cost {1}{W}
+  type Instant
+  spell: target player gains 5 life
+}

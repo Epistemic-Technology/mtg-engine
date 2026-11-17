@@ -1,0 +1,7 @@
+card "Rustwing Falcon" {
+  oracle_id 438ee544-78a2-4e32-9343-70838b60ac16
+  cost {W}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+}

@@ -1,0 +1,7 @@
+card "Elementalist Adept" {
+  oracle_id cf402270-ebc6-481b-b478-0e3acab7002a
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords flash, prowess
+}

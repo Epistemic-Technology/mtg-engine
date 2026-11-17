@@ -1,0 +1,7 @@
+card "Pyromantic Pilgrim" {
+  oracle_id 24d52cf1-d4f1-4b4c-a50b-87d3ba0aeebb
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 3/1
+  keywords haste
+}

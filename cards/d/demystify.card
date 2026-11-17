@@ -1,0 +1,6 @@
+card "Demystify" {
+  oracle_id fd591199-9f7a-4147-a150-13279dbb4498
+  cost {W}
+  type Instant
+  spell: destroy target enchantment
+}

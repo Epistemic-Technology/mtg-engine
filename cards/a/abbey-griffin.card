@@ -1,0 +1,7 @@
+card "Abbey Griffin" {
+  oracle_id 6eb74f6e-1c9d-4caf-a0d8-fa472d435346
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying, vigilance
+}

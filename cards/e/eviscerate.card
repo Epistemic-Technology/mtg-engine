@@ -1,0 +1,6 @@
+card "Eviscerate" {
+  oracle_id c3a89c67-1931-4d42-98c8-94a40cfd046e
+  cost {3}{B}
+  type Sorcery
+  spell: destroy target creature
+}

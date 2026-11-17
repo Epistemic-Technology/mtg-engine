@@ -1,0 +1,7 @@
+card "Thornglint Bridge" {
+  oracle_id 99720c65-be96-4220-8ed4-720660bf6928
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {G} or {W}
+}

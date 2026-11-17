@@ -11,8 +11,8 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Except, Filter, Kind, Mod, Mode, Recipient,
-    Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Kind, Mod, Mode,
+    Recipient, Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -493,7 +493,12 @@ impl P {
             }
             "keyword" | "keywords" => {
                 self.pos += 1;
-                card.keywords.extend(self.keyword_list()?);
+                let ks = self.keyword_list()?;
+                if card.abilities.is_empty() {
+                    card.keywords.extend(ks);
+                } else {
+                    card.abilities.extend(ks.into_iter().map(Ability::Keyword));
+                }
                 self.end_stmt()
             }
             "additional" => {
@@ -879,7 +884,7 @@ impl P {
         if w == "any" && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
-        if w == "that" && self.word_at(1).as_deref() == Some("card") {
+        if w == "that" && matches!(self.word_at(1).as_deref(), Some("card" | "target")) {
             return true;
         }
         RECIPIENTS.iter().any(|(ws, _)| self.at_words(ws))
@@ -1456,6 +1461,17 @@ impl P {
             self.targets.push(Target::Spec(TargetSpec::Any));
             return Ok(Recipient::Target(self.targets.len() - 1));
         }
+        if self.at_words(&["that", "target"]) {
+            self.pos += 2;
+            let Some(Tok::Num(n)) = self.next() else {
+                return self.fail("expected a target number after `that target`");
+            };
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::ThatTarget(n - 1));
+        }
         let another = self.eat_word("another");
         if self.eat_word("target") {
             if let Some(Tok::Num(n)) = self.peek() {
@@ -1761,15 +1777,25 @@ impl P {
         loop {
             match self.peek() {
                 Some(Tok::Sym(_)) => {
+                    let mut saw_mana = false;
                     while let Some(Tok::Sym(s)) = self.peek() {
                         if s == "T" {
                             cost.tap = true;
+                            if saw_mana {
+                                cost.order.push(CostItem::Mana);
+                                saw_mana = false;
+                            }
+                            cost.order.push(CostItem::Tap);
                         } else {
                             mana.push('{');
                             mana.push_str(s);
                             mana.push('}');
+                            saw_mana = true;
                         }
                         self.pos += 1;
+                    }
+                    if saw_mana {
+                        cost.order.push(CostItem::Mana);
                     }
                 }
                 Some(Tok::Signed(n)) => {
@@ -1785,16 +1811,19 @@ impl P {
                         } else {
                             cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         }
+                        cost.order.push(CostItem::Sacrifice);
                     }
                     "discard" => {
                         self.pos += 1;
                         cost.discard = self.count()?;
                         self.cards_word()?;
+                        cost.order.push(CostItem::Discard);
                     }
                     "pay" => {
                         self.pos += 1;
                         cost.life = self.count()?;
                         self.expect_word("life")?;
+                        cost.order.push(CostItem::Life);
                     }
                     "sorcery" => {
                         self.pos += 1;

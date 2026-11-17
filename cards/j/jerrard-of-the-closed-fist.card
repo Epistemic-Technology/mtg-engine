@@ -1,0 +1,6 @@
+card "Jerrard of the Closed Fist" {
+  oracle_id fd20576d-4abe-4af8-ac53-ab9356593fe7
+  cost {3}{R}{G}{G}
+  type Legendary Creature — Human Knight
+  pt 6/5
+}

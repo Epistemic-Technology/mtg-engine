@@ -1,0 +1,7 @@
+card "Greater Forgeling" {
+  oracle_id c0d51f49-383b-40f1-9192-5925db1cdd1b
+  cost {3}{R}{R}
+  type Creature — Elemental
+  pt 3/4
+  activated {1}{R}: this gets +3/-3
+}

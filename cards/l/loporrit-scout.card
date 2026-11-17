@@ -1,0 +1,7 @@
+card "Loporrit Scout" {
+  oracle_id 24630190-a630-4dd3-a8f7-82f129c881e3
+  cost {2}{G}
+  type Creature — Rabbit Scout
+  pt 3/2
+  triggered whenever other creature you control enters: this gets +1/+1
+}

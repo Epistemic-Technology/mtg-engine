@@ -1,0 +1,7 @@
+card "Phantom Monster" {
+  oracle_id bbd30183-524c-4b93-b953-90853ec3f39f
+  cost {3}{U}
+  type Creature — Illusion
+  pt 3/3
+  keywords flying
+}

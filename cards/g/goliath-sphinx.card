@@ -1,0 +1,7 @@
+card "Goliath Sphinx" {
+  oracle_id 73115500-4468-43b3-9151-13e3da9050c5
+  cost {5}{U}{U}
+  type Creature — Sphinx
+  pt 8/7
+  keywords flying
+}

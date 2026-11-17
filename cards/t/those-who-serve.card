@@ -1,0 +1,6 @@
+card "Those Who Serve" {
+  oracle_id 0ee088dc-c7c7-4f7f-9d1f-be3d79550d95
+  cost {2}{W}
+  type Creature — Zombie
+  pt 2/4
+}

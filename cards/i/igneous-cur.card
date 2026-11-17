@@ -1,0 +1,7 @@
+card "Igneous Cur" {
+  oracle_id 0d899095-cef7-43d2-aaf7-eb73b62f5ec8
+  cost {1}{R}
+  type Creature — Elemental Dog
+  pt 1/2
+  activated {1}{R}: this gets +2/+0
+}

@@ -1,0 +1,7 @@
+card "Oakenform" {
+  oracle_id b254fefb-11d2-4369-ae5c-0c3bd48ae580
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+}

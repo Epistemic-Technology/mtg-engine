@@ -1,0 +1,7 @@
+card "Steeple Roc" {
+  oracle_id f1ba6053-14e0-46b0-b760-b72e4fa0c5f5
+  cost {4}{W}
+  type Creature — Bird
+  pt 3/1
+  keywords flying, first strike
+}

@@ -1,0 +1,6 @@
+card "Vial of Dragonfire" {
+  oracle_id 17be934e-1e33-4b95-a984-242fa018e280
+  cost {2}
+  type Artifact
+  activated {2}, {T}, sacrifice this: deal 2 damage to target creature
+}

@@ -1,0 +1,7 @@
+card "Spinal Centipede" {
+  oracle_id 43d44a7f-829a-4f4d-9f71-2f4384ddd803
+  cost {2}{B}
+  type Creature — Insect
+  pt 3/2
+  triggered when this dies: put 1 +1/+1 counters on target creature you control
+}

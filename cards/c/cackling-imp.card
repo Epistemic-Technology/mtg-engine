@@ -1,0 +1,8 @@
+card "Cackling Imp" {
+  oracle_id adc8c55c-8fbe-4e07-b1be-8cb796db3d8a
+  cost {2}{B}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying
+  activated {T}: target player loses 1 life
+}

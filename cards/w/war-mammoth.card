@@ -1,0 +1,7 @@
+card "War Mammoth" {
+  oracle_id b2a8fcf9-2ec2-40a9-9955-90f8605b11a3
+  cost {3}{G}
+  type Creature — Elephant
+  pt 3/3
+  keywords trample
+}

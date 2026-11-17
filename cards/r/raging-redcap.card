@@ -1,0 +1,7 @@
+card "Raging Redcap" {
+  oracle_id 679841ad-f3ac-48e2-ba11-2cf6d78642b4
+  cost {2}{R}
+  type Creature — Goblin Knight
+  pt 1/2
+  keywords double strike
+}

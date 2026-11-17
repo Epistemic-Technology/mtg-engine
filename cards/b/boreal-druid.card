@@ -1,0 +1,7 @@
+card "Boreal Druid" {
+  oracle_id 2fcc69ff-8ab5-4e14-afe3-db892049a872
+  cost {G}
+  type Snow Creature — Elf Druid
+  pt 1/1
+  mana {C}
+}

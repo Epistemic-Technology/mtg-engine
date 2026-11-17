@@ -1,0 +1,5 @@
+card "Arctic Treeline" {
+  oracle_id 32fb0096-546c-4633-b6e3-ba3f2d9fa49c
+  type Snow Land — Forest Plains
+  enters tapped
+}

@@ -1,0 +1,8 @@
+card "Fire Urchin" {
+  oracle_id 4000e119-3372-431c-bc3a-0db0639311ce
+  cost {1}{R}
+  type Creature — Elemental
+  pt 1/3
+  keywords trample
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+0
+}

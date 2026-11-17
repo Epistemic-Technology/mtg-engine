@@ -1,0 +1,8 @@
+card "Drifting Shade" {
+  oracle_id fa3883c7-4fb4-48b9-847b-9a94d1988dd7
+  cost {3}{B}
+  type Creature — Shade
+  pt 1/1
+  keywords flying
+  activated {B}: this gets +1/+1
+}

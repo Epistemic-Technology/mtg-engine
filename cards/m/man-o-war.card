@@ -1,0 +1,7 @@
+card "Man-o'-War" {
+  oracle_id 67a3541c-8408-40c8-b44f-90035b860f57
+  cost {2}{U}
+  type Creature — Jellyfish
+  pt 2/2
+  triggered when this enters: return target creature to hand
+}

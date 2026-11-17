@@ -1,0 +1,7 @@
+card "Tangle Hulk" {
+  oracle_id f6d0360c-ebc6-48b5-80ad-d52dadcdd5f5
+  cost {5}
+  type Artifact Creature — Phyrexian Beast
+  pt 5/3
+  activated {2}{G}: regenerate this
+}

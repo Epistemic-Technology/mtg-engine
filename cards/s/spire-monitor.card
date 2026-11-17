@@ -1,0 +1,7 @@
+card "Spire Monitor" {
+  oracle_id 447b9412-2649-4548-8e9b-eed5e92ad92a
+  cost {4}{U}
+  type Creature — Phyrexian Drake
+  pt 3/3
+  keywords flash, flying
+}

@@ -1,0 +1,8 @@
+card "Stormwatch Eagle" {
+  oracle_id 640b67d8-75a4-44d4-a2f5-7323bad4e1a8
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  activated sacrifice land: return this to hand
+}

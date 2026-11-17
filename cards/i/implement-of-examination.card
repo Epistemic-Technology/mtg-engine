@@ -1,0 +1,7 @@
+card "Implement of Examination" {
+  oracle_id 0baf75b3-cc02-47cc-873a-8d5f17da0ec9
+  cost {3}
+  type Artifact
+  activated {U}, sacrifice this: draw 1 cards
+  triggered when this dies: draw 1 cards
+}

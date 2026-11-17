@@ -1,0 +1,7 @@
+card "Goblin Sky Raider" {
+  oracle_id 9e0ebf3b-9295-43a9-9b5c-4ffac6a6b630
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  keywords flying
+}

@@ -1,0 +1,7 @@
+card "Devout Monk" {
+  oracle_id 8a0f4e8e-b541-4327-80fe-4fecc23e0df3
+  cost {W}
+  type Creature — Human Monk Cleric
+  pt 1/1
+  triggered when this enters: you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Jadecraft Artisan" {
+  oracle_id 9290f549-3e5d-4e39-a20e-8be6b674abc7
+  cost {3}{G}
+  type Creature — Merfolk Shaman
+  pt 3/3
+  triggered when this enters: target creature gets +2/+2
+}

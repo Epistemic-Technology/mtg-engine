@@ -1,0 +1,8 @@
+card "Shriekdiver" {
+  oracle_id f51e1660-e1c8-4122-8c43-321c820a1fc1
+  cost {2}{B}
+  type Creature — Zombie Bird Warrior
+  pt 2/1
+  keywords flying
+  activated {1}: this gains haste
+}

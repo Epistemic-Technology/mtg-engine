@@ -1,0 +1,7 @@
+card "Aven Reedstalker" {
+  oracle_id d9f43942-4296-417d-a180-5b4f64e4b12d
+  cost {3}{U}
+  type Creature — Bird Warrior
+  pt 2/3
+  keywords flash, flying
+}

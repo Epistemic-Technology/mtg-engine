@@ -1,0 +1,6 @@
+card "Axegrinder Giant" {
+  oracle_id c5355c5e-d07d-48ca-90c5-98edcab1a3c7
+  cost {4}{R}{R}
+  type Creature — Giant Warrior
+  pt 6/4
+}

@@ -1,0 +1,7 @@
+card "Conifer Strider" {
+  oracle_id 6175197f-cf3c-41df-9d24-b4fffa09631a
+  cost {3}{G}
+  type Creature — Elemental
+  pt 5/1
+  keywords hexproof
+}

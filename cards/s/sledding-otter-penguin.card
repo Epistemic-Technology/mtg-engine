@@ -1,0 +1,7 @@
+card "Sledding Otter-Penguin" {
+  oracle_id 1b115051-a3c8-4c5f-9ad2-82b5a6897c51
+  cost {2}{W}
+  type Creature — Otter Bird
+  pt 2/3
+  activated {3}: put 1 +1/+1 counters on this
+}

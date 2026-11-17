@@ -1,0 +1,7 @@
+card "Wind Strider" {
+  oracle_id 9d57cda6-9042-44bd-9785-38de9487ff85
+  cost {4}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  keywords flash, flying
+}

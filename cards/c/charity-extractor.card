@@ -1,0 +1,7 @@
+card "Charity Extractor" {
+  oracle_id f18a1a99-8363-4edf-9807-2e23fa007ce8
+  cost {3}{B}
+  type Creature — Human Knight
+  pt 1/5
+  keywords lifelink
+}

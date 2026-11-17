@@ -1,0 +1,6 @@
+card "Tread Upon" {
+  oracle_id 0b3bdbc6-cde7-4187-b13c-82fd02ae4037
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2 and gains trample
+}

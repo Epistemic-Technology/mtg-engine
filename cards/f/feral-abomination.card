@@ -1,0 +1,7 @@
+card "Feral Abomination" {
+  oracle_id 1bf06342-0d76-433b-9912-8af03b7e3bc3
+  cost {5}{B}
+  type Creature — Thrull
+  pt 5/5
+  keywords deathtouch
+}

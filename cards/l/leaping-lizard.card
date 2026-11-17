@@ -1,0 +1,7 @@
+card "Leaping Lizard" {
+  oracle_id 23d42beb-5293-4f12-a732-3531a0fa0ca0
+  cost {1}{G}{G}
+  type Creature — Lizard
+  pt 2/3
+  activated {1}{G}: this gets -0/-1 and gains flying
+}

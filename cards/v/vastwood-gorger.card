@@ -1,0 +1,6 @@
+card "Vastwood Gorger" {
+  oracle_id a17a86a3-9f9c-4e09-93e6-e543a70733bc
+  cost {5}{G}
+  type Creature — Wurm
+  pt 5/6
+}

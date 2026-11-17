@@ -1,0 +1,7 @@
+card "Watercourser" {
+  oracle_id 65dd4ae3-432c-4d57-ac14-4d827262ea0b
+  cost {2}{U}
+  type Creature — Elemental
+  pt 2/3
+  activated {U}: this gets +1/-1
+}

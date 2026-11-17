@@ -1,0 +1,6 @@
+card "Brilliant Plan" {
+  oracle_id d83e1a42-11d1-412a-b66c-850c7a528777
+  cost {4}{U}
+  type Sorcery
+  spell: draw 3 cards
+}

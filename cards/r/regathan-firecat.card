@@ -1,0 +1,6 @@
+card "Regathan Firecat" {
+  oracle_id b3f609b5-fb4e-4e66-a70a-53bbe0fa2b9a
+  cost {2}{R}
+  type Creature — Elemental Cat
+  pt 4/1
+}

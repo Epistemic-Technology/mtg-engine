@@ -1,0 +1,7 @@
+card "Swiftwater Cliffs" {
+  oracle_id 2f4ad084-2062-44c0-9975-15f100204531
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {R}
+}

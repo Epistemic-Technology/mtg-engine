@@ -1,0 +1,7 @@
+card "Striped Bears" {
+  oracle_id ac856e91-1b88-464b-9420-dc311ce814ea
+  cost {3}{G}
+  type Creature — Bear
+  pt 2/2
+  triggered when this enters: draw 1 cards
+}

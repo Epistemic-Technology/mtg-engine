@@ -1,0 +1,6 @@
+card "Assault Strobe" {
+  oracle_id 9bf4ee0f-6e28-4793-b251-f81ee444a119
+  cost {R}
+  type Sorcery
+  spell: target creature gains double strike
+}

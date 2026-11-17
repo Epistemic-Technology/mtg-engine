@@ -1,0 +1,7 @@
+card "Kiln Fiend" {
+  oracle_id eac8c196-8477-4b79-9875-21afa1e61708
+  cost {1}{R}
+  type Creature — Elemental Beast
+  pt 1/2
+  triggered whenever you cast an instant or sorcery spell: this gets +3/+0
+}

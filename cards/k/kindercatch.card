@@ -1,0 +1,6 @@
+card "Kindercatch" {
+  oracle_id c690f92f-f34f-4df0-9e01-d2ecf3b8f857
+  cost {3}{G}{G}{G}
+  type Creature — Spirit
+  pt 6/6
+}

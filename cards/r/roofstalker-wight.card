@@ -1,0 +1,7 @@
+card "Roofstalker Wight" {
+  oracle_id c2f2fd39-4a21-489b-893e-4258f8d2aa63
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  activated {1}{U}: this gains flying
+}

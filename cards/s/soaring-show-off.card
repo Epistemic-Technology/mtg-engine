@@ -1,0 +1,8 @@
+card "Soaring Show-Off" {
+  oracle_id 5ca0f4f3-6133-4f53-9124-f63942796a07
+  cost {2}{U}
+  type Creature — Bird Warrior
+  pt 2/2
+  keywords flying
+  triggered when this enters: each player draws 1 cards
+}

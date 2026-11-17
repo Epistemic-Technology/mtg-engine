@@ -1,0 +1,6 @@
+card "Borderland Minotaur" {
+  oracle_id 03a9ac3f-f6e4-4ade-9770-cf723434b7e8
+  cost {2}{R}{R}
+  type Creature — Minotaur Warrior
+  pt 4/3
+}

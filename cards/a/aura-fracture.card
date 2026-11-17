@@ -1,0 +1,6 @@
+card "Aura Fracture" {
+  oracle_id 3495d83a-b103-42be-8708-9ce971b352bd
+  cost {2}{W}
+  type Enchantment
+  activated sacrifice land: destroy target enchantment
+}

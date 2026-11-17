@@ -1,0 +1,7 @@
+card "Anodet Lurker" {
+  oracle_id 5c2dbe90-5784-4bc4-a715-76a61c1ecfbc
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/3
+  triggered when this dies: you gains 3 life
+}

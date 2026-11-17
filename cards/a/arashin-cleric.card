@@ -1,0 +1,7 @@
+card "Arashin Cleric" {
+  oracle_id 69bcdb42-c170-4848-b95b-f4621867d084
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered when this enters: you gains 3 life
+}

@@ -1,0 +1,6 @@
+card "Ironclad Krovod" {
+  oracle_id bd1c9b5f-3b70-457c-8dd8-2420ce1c0d7c
+  cost {3}{W}
+  type Creature — Beast
+  pt 2/5
+}

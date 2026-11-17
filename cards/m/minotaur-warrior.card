@@ -1,0 +1,6 @@
+card "Minotaur Warrior" {
+  oracle_id 53fb9a9b-1f5d-48c9-88c0-0864c187f15e
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+}

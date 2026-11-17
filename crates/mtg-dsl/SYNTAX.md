@@ -1,7 +1,7 @@
 # Card file syntax
 
-Card files (`*.card`, one per Oracle name, under `cards/` in the
-repository) define the cards the engine knows. A file is parsed into a
+Card files (`*.card`, one per Oracle name, under `cards/<first letter>/`
+in the repository) define the cards the engine knows. A file is parsed into a
 syntax tree, compiled into the engine's definitions, and *rendered back to
 Oracle text* for the round-trip gate (`mtg-cards gate`): the rendered text
 must equal the card's Oracle text in the Scryfall snapshot, modulo reminder
@@ -33,7 +33,7 @@ not gated.
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order. |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order. A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
 
@@ -67,10 +67,10 @@ one line per paragraph for text that spans paragraphs:
 
 ### Costs
 
-Comma-separated: mana symbols (`{1}{R}`), `{T}`, `sacrifice this`,
-`sacrifice Goblin` (a filter: the player chooses a matching permanent they
-control), `discard 1 card`, `pay 3 life`, `sorcery` (activate only as a
-sorcery). `none` for a free ability.
+Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
+`{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
+a matching permanent they control), `discard 1 card`, `pay 3 life`,
+`sorcery` (activate only as a sorcery). `none` for a free ability.
 
 ### Triggers
 
@@ -163,7 +163,8 @@ ability), `defending player`, `each creature`, `each creature you control`,
 ### Targets
 
 `target creature` declares a target; the first mention names it, and later
-mentions refer to it by number: `target 1`. `2 target lands` declares two
+mentions refer to it by number: `target 1`, printed as "it", or
+`that target 1`, printed as "that creature". `2 target lands` declares two
 targets of one kind. `another target creature` excludes the source.
 Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `creature or planeswalker`, `land`, `tapped creature`, `creature you control`,
@@ -194,3 +195,17 @@ When this creature enters, create three 1/1 red Goblin creature tokens.
 
 Check a file with `cargo run -p mtg-cards -- gate --diff "Siege-Gang Commander"`
 (needs the Scryfall snapshot: `cargo run -p mtg-cards -- ingest --locked`).
+
+## Authoring from templates
+
+`cargo run -p mtg-cards -- author --format pauper [--write]` builds card
+files for every card in a format whose Oracle text consists of keywords
+the engine implements and sentences a fixed set of templates recognizes
+(vanilla and keyword creatures, Auras, mana lands, burn, pump, cantrips,
+removal, simple triggers and activated abilities). Each candidate is
+parsed, rendered, and compared to its Oracle text before it is written,
+so it passes the gate by construction; the report lists what was skipped
+and why (unsupported keyword, unrecognized sentence), which is the backlog
+for new templates and engine primitives. `--write` never overwrites a
+file that exists, so hand-written cards win. `mtg-cards coverage --format
+pauper` counts how much of a format the corpus holds.

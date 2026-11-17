@@ -1,0 +1,6 @@
+card "Command the Storm" {
+  oracle_id 1dc816b5-8918-4a0c-bb10-74abe579a98c
+  cost {4}{R}
+  type Instant
+  spell: deal 5 damage to target creature
+}

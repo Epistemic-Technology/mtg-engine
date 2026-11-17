@@ -1,0 +1,8 @@
+card "Dungeon Shade" {
+  oracle_id 953a1a07-1bf2-480e-81a3-f2d5f19f6df5
+  cost {3}{B}
+  type Creature — Shade Spirit
+  pt 1/1
+  keywords flying
+  activated {B}: this gets +1/+1
+}

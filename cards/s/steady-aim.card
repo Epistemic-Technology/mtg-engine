@@ -1,0 +1,6 @@
+card "Steady Aim" {
+  oracle_id e5fe1fc3-d9fe-4b1b-85d3-7d8ecb84a829
+  cost {1}{G}
+  type Instant
+  spell: untap target creature; target 1 gets +1/+4 and gains reach
+}

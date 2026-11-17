@@ -1,0 +1,8 @@
+card "Skulking Ghost" {
+  oracle_id cd97f8b4-e751-4b52-987b-a442aef57809
+  cost {1}{B}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  triggered when this becomes targeted: sacrifice this
+}

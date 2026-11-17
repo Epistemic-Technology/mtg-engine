@@ -1,0 +1,6 @@
+card "Straw Soldiers" {
+  oracle_id 8138a9d7-63cb-4d40-ac9e-1a9b10766113
+  cost {1}{U}
+  type Creature — Scarecrow Soldier
+  pt 1/3
+}

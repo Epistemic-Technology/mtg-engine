@@ -1,0 +1,7 @@
+card "Wild Griffin" {
+  oracle_id c643cfe1-5844-4eb1-b1f5-028382411773
+  cost {2}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+}

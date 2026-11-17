@@ -1,0 +1,6 @@
+card "Appetite for the Unnatural" {
+  oracle_id f041b37e-25af-4aff-b7e3-f07a4d5c6f9a
+  cost {2}{G}
+  type Instant
+  spell: destroy target artifact or enchantment; you gains 2 life
+}

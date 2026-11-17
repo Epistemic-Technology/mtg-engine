@@ -1,0 +1,7 @@
+card "Rakdos Cluestone" {
+  oracle_id b4f0bda0-1051-4ab8-b254-891f427b33ad
+  cost {3}
+  type Artifact
+  mana {B} or {R}
+  activated {B}{R}, {T}, sacrifice this: draw 1 cards
+}

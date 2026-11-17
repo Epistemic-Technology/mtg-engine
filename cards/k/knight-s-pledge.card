@@ -1,0 +1,7 @@
+card "Knight's Pledge" {
+  oracle_id 63604320-68de-415e-b1f9-dd0f85c5d8a3
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+}

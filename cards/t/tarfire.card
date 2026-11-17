@@ -1,0 +1,6 @@
+card "Tarfire" {
+  oracle_id f07b821c-bbc1-4def-b009-6c03689478d0
+  cost {R}
+  type Kindred Instant — Goblin
+  spell: deal 2 damage to any target
+}

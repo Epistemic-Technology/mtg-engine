@@ -1,0 +1,9 @@
+card "Family Reunion" {
+  oracle_id 8972de18-2c49-4162-a285-264a44c0e675
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: each creature you control gets +1/+1
+    mode: each creature you control gains hexproof
+  }
+}

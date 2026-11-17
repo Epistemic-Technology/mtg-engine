@@ -1,0 +1,6 @@
+card "Ragefire" {
+  oracle_id 91b8c0bc-2599-4423-a23f-5dc95b23cf25
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to target creature
+}

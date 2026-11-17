@@ -1,0 +1,7 @@
+card "Avacyn's Pilgrim" {
+  oracle_id 069f6530-e65c-4d52-85f3-e0a2acd148c5
+  cost {G}
+  type Creature — Human Monk
+  pt 1/1
+  mana {W}
+}

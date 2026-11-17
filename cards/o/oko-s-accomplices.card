@@ -1,0 +1,7 @@
+card "Oko's Accomplices" {
+  oracle_id 93cd12da-a7d5-4d01-a3bc-77e441cb0947
+  cost {2}{U}
+  type Creature — Faerie
+  pt 2/3
+  keywords flying
+}

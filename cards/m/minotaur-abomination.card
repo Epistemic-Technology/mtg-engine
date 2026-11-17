@@ -1,0 +1,6 @@
+card "Minotaur Abomination" {
+  oracle_id 017568ea-613f-4057-9a8d-61b087d6dc92
+  cost {4}{B}{B}
+  type Creature — Zombie Minotaur
+  pt 4/6
+}

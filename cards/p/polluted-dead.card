@@ -1,0 +1,7 @@
+card "Polluted Dead" {
+  oracle_id 5ffca600-5286-4086-9efe-c398babeb6ae
+  cost {4}{B}
+  type Creature — Zombie
+  pt 3/3
+  triggered when this dies: destroy target land
+}

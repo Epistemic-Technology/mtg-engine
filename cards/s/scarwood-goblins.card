@@ -1,0 +1,6 @@
+card "Scarwood Goblins" {
+  oracle_id 5314e57b-107c-4478-9cdb-51d1732f9468
+  cost {R}{G}
+  type Creature — Goblin
+  pt 2/2
+}

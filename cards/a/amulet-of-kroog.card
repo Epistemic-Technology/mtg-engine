@@ -1,0 +1,6 @@
+card "Amulet of Kroog" {
+  oracle_id 8eca999e-f7f8-4354-b419-2df4249c4361
+  cost {2}
+  type Artifact
+  activated {2}, {T}: prevent next 1 damage to any target this turn
+}

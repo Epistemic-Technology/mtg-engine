@@ -1,0 +1,6 @@
+card "Burst of Energy" {
+  oracle_id b795ecfd-31ac-4a2a-9679-97b088932d93
+  cost {W}
+  type Instant
+  spell: untap target permanent
+}

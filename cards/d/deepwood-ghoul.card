@@ -1,0 +1,7 @@
+card "Deepwood Ghoul" {
+  oracle_id d99cd2d0-32b8-4edc-8089-557c48dd4be0
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/1
+  activated pay 2 life: regenerate this
+}

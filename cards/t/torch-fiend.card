@@ -1,0 +1,7 @@
+card "Torch Fiend" {
+  oracle_id 15f8049c-f21d-4cd0-aa81-1a533936cf77
+  cost {1}{R}
+  type Creature — Devil
+  pt 2/1
+  activated {R}, sacrifice this: destroy target artifact
+}

@@ -1,0 +1,8 @@
+card "Minotaur Sureshot" {
+  oracle_id cbb6c481-bcf1-459d-a6fb-bb46cc521368
+  cost {2}{R}
+  type Creature — Minotaur Archer
+  pt 2/3
+  keywords reach
+  activated {1}{R}: this gets +1/+0
+}

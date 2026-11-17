@@ -1,0 +1,6 @@
+card "Tethermage's Advantage" {
+  oracle_id b4f89885-eeb9-46c7-9820-9758b624ca24
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2 and gains reach; untap target 1
+}

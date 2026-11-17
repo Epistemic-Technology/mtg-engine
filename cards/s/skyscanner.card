@@ -1,0 +1,8 @@
+card "Skyscanner" {
+  oracle_id 974f788a-039f-4310-a2fe-16b14a1e2d35
+  cost {3}
+  type Artifact Creature — Thopter
+  pt 1/1
+  keywords flying
+  triggered when this enters: draw 1 cards
+}

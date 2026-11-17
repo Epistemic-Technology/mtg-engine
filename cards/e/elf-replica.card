@@ -1,0 +1,7 @@
+card "Elf Replica" {
+  oracle_id 2dda5011-aaa1-48d0-afa8-76998278ab75
+  cost {3}
+  type Artifact Creature — Elf
+  pt 2/2
+  activated {1}{G}, sacrifice this: destroy target enchantment
+}

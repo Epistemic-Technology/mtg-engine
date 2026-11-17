@@ -1,0 +1,6 @@
+card "Wei Infantry" {
+  oracle_id 41283a82-ce3f-41a6-995e-bc30d8ab5cf9
+  cost {1}{B}
+  type Creature — Human Soldier
+  pt 2/1
+}

@@ -1,0 +1,7 @@
+card "Crackling Cyclops" {
+  oracle_id 16ab9451-f3da-4f61-8e2b-d9c84e0e5428
+  cost {2}{R}
+  type Creature — Cyclops Wizard
+  pt 0/4
+  triggered whenever you cast a noncreature spell: this gets +3/+0
+}

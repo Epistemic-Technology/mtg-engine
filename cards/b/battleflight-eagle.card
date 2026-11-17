@@ -1,0 +1,8 @@
+card "Battleflight Eagle" {
+  oracle_id f36e316d-c0ad-414d-8cf0-b1c9ea779e03
+  cost {4}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: target creature gets +2/+2 and gains flying
+}

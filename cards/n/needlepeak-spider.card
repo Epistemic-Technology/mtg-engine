@@ -1,0 +1,7 @@
+card "Needlepeak Spider" {
+  oracle_id 169429d8-aa98-46a8-8681-521c65dafbb4
+  cost {3}{R}
+  type Creature — Spider
+  pt 4/2
+  keywords reach
+}

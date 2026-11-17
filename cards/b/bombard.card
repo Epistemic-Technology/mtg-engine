@@ -1,0 +1,6 @@
+card "Bombard" {
+  oracle_id c0899c12-5462-4ff1-a9e5-d99cffa7c6cc
+  cost {2}{R}
+  type Instant
+  spell: deal 4 damage to target creature
+}

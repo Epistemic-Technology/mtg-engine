@@ -1,0 +1,6 @@
+card "Blanchwood Treefolk" {
+  oracle_id a3090daf-26d9-4ba5-9fa3-42bd128e229d
+  cost {4}{G}
+  type Creature — Treefolk
+  pt 4/5
+}

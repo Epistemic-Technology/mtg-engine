@@ -1,0 +1,6 @@
+card "Timber Gorge" {
+  oracle_id 00b34fab-5a80-4a4d-b6cf-72479197677a
+  type Land
+  enters tapped
+  mana {R} or {G}
+}

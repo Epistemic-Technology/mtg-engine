@@ -1,0 +1,8 @@
+card "Brilliant Halo" {
+  oracle_id 8f68f6d5-1953-4ccd-8af0-7d0a69139556
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2
+  triggered when this dies: return this to hand
+}

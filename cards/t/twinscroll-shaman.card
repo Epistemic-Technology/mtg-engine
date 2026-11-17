@@ -1,0 +1,7 @@
+card "Twinscroll Shaman" {
+  oracle_id a2f867cd-410d-4524-8660-38ad142f6b1f
+  cost {2}{R}
+  type Creature — Dwarf Shaman
+  pt 1/2
+  keywords double strike
+}

@@ -1,0 +1,7 @@
+card "Aardvark Sloth" {
+  oracle_id 1c385880-3eea-45c8-8e89-330ad8ad92b1
+  cost {3}{W}
+  type Creature — Sloth Beast
+  pt 3/3
+  keywords lifelink
+}

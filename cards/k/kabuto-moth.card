@@ -1,0 +1,8 @@
+card "Kabuto Moth" {
+  oracle_id 537a255c-a77b-4691-9461-68efb1aba7d4
+  cost {2}{W}
+  type Creature — Spirit
+  pt 1/2
+  keywords flying
+  activated {T}: target creature gets +1/+2
+}

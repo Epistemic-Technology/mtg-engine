@@ -1,0 +1,7 @@
+card "Teeterpeak Ambusher" {
+  oracle_id fe769071-3f99-411b-878a-57a2200649a0
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/3
+  activated {2}{R}: this gets +2/+0
+}

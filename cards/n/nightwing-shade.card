@@ -1,0 +1,8 @@
+card "Nightwing Shade" {
+  oracle_id e679ef01-8d12-4246-850a-efed7f4316b2
+  cost {4}{B}
+  type Creature — Shade
+  pt 2/2
+  keywords flying
+  activated {1}{B}: this gets +1/+1
+}

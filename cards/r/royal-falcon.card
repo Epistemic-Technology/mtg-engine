@@ -1,0 +1,7 @@
+card "Royal Falcon" {
+  oracle_id a247a7e7-83bb-46f8-9a31-85b0d8ede919
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+}

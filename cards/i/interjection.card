@@ -1,0 +1,6 @@
+card "Interjection" {
+  oracle_id 47bbadcf-11c6-4a4d-9575-1eb8284a174c
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2 and gains first strike
+}

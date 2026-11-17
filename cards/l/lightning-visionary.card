@@ -1,0 +1,7 @@
+card "Lightning Visionary" {
+  oracle_id 3ad5af12-1741-427d-92c4-6a730cd4faa2
+  cost {1}{R}
+  type Creature — Minotaur Shaman
+  pt 2/1
+  keywords prowess
+}

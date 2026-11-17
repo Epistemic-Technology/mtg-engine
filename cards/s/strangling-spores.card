@@ -1,0 +1,6 @@
+card "Strangling Spores" {
+  oracle_id 444493a6-0f90-4847-9619-4ea8fbf7cf6f
+  cost {3}{B}
+  type Instant
+  spell: target creature gets -3/-3
+}

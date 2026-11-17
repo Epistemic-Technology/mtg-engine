@@ -1,0 +1,7 @@
+card "Anchovy & Banana Pizza" {
+  oracle_id 5f4834c7-cd63-420b-8492-ef127ffd4f45
+  cost {2}{B}{B}
+  type Artifact — Food
+  triggered when this enters: destroy target creature
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

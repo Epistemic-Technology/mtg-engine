@@ -1,0 +1,7 @@
+card "Toxic Abomination" {
+  oracle_id 6358ee1c-3577-4196-bae4-29a3c160a66a
+  cost {1}{B}
+  type Creature — Phyrexian Zombie
+  pt 3/2
+  triggered when this enters: you loses 2 life
+}

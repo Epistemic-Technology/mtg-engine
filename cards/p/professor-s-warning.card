@@ -1,0 +1,9 @@
+card "Professor's Warning" {
+  oracle_id e3c8e552-d315-486d-a176-813b3a300174
+  cost {B}
+  type Instant
+  choose one {
+    mode: put 1 +1/+1 counters on target creature
+    mode: target creature gains indestructible
+  }
+}

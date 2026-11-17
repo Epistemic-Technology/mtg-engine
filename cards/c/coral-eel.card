@@ -1,0 +1,6 @@
+card "Coral Eel" {
+  oracle_id 10706fd1-7847-4316-be8d-59b56143ce45
+  cost {1}{U}
+  type Creature — Fish
+  pt 2/1
+}

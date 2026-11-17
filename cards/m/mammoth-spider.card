@@ -1,0 +1,7 @@
+card "Mammoth Spider" {
+  oracle_id df77cb98-e3c6-4927-99d5-c3380641f356
+  cost {4}{G}
+  type Creature — Spider
+  pt 3/5
+  keywords reach
+}

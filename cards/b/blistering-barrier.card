@@ -1,0 +1,7 @@
+card "Blistering Barrier" {
+  oracle_id 8783533d-dd98-4b80-b348-29051e1b5c28
+  cost {2}{R}
+  type Creature — Wall
+  pt 5/2
+  keywords defender
+}

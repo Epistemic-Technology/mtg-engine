@@ -1,0 +1,8 @@
+card "Krosan Archer" {
+  oracle_id be886ff5-e004-420f-b7d5-01f1ab5021cb
+  cost {3}{G}
+  type Creature — Centaur Archer
+  pt 2/3
+  keywords reach
+  activated {G}, discard 1 card: this gets +0/+2
+}

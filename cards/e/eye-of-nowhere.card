@@ -1,0 +1,6 @@
+card "Eye of Nowhere" {
+  oracle_id 27ffdf11-bb7f-40bf-94c4-6bfbc41668e5
+  cost {U}{U}
+  type Sorcery — Arcane
+  spell: return target permanent to hand
+}

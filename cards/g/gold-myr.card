@@ -1,0 +1,7 @@
+card "Gold Myr" {
+  oracle_id bd6af7b3-b30f-4a65-a18f-8655f778e76a
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  mana {W}
+}

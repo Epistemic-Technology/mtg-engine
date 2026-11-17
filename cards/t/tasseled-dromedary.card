@@ -1,0 +1,6 @@
+card "Tasseled Dromedary" {
+  oracle_id 3121eecd-5f8a-408f-8b2d-75e13aa8a1ea
+  cost {W}
+  type Creature — Camel
+  pt 0/4
+}

@@ -1,0 +1,6 @@
+card "Incurable Ogre" {
+  oracle_id 94190aaf-db91-4a3c-a2a7-e90868e856ff
+  cost {3}{R}
+  type Creature — Ogre Mutant
+  pt 5/1
+}

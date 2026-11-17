@@ -1,0 +1,7 @@
+card "Weakness" {
+  oracle_id f07a24c0-bf3c-4733-9473-c6be3b16950e
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-1
+}

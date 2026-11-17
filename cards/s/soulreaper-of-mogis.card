@@ -1,0 +1,7 @@
+card "Soulreaper of Mogis" {
+  oracle_id 508ce3a9-9050-4494-9adf-7f9cd6cc2f9f
+  cost {2}{B}
+  type Enchantment Creature — Minotaur Shaman
+  pt 2/3
+  activated {2}{B}, sacrifice creature: draw 1 cards
+}

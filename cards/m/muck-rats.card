@@ -1,0 +1,6 @@
+card "Muck Rats" {
+  oracle_id bca13a12-6723-4a5e-8f1b-21646a8b3e7e
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+}

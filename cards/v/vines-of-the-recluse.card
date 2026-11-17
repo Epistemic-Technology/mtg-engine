@@ -1,0 +1,6 @@
+card "Vines of the Recluse" {
+  oracle_id 5372445b-5f67-435e-a736-61c6cb4f9c6e
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+2 and gains reach; untap target 1
+}

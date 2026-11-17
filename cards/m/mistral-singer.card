@@ -1,0 +1,7 @@
+card "Mistral Singer" {
+  oracle_id 863a5ddb-2d66-4a07-bafc-38290776d5c0
+  cost {2}{U}
+  type Creature — Siren
+  pt 2/2
+  keywords flying, prowess
+}

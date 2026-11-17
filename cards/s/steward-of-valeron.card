@@ -1,0 +1,8 @@
+card "Steward of Valeron" {
+  oracle_id ca5d0a56-69c1-4bdb-95f0-af0dec3604a5
+  cost {G}{W}
+  type Creature — Human Druid Knight
+  pt 2/2
+  keywords vigilance
+  mana {G}
+}

@@ -1,0 +1,7 @@
+card "Primal Frenzy" {
+  oracle_id 705b4da3-d463-4808-b79c-dc0c1830945a
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has trample
+}

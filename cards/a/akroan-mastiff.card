@@ -1,0 +1,7 @@
+card "Akroan Mastiff" {
+  oracle_id 6039b9b7-e49a-4ea3-887c-a17dd502d63f
+  cost {3}{W}
+  type Creature — Dog
+  pt 2/2
+  activated {W}, {T}: tap target creature
+}

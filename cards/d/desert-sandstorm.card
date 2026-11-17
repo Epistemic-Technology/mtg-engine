@@ -1,0 +1,6 @@
+card "Desert Sandstorm" {
+  oracle_id 230bf3a4-68a8-4553-b8d7-ad340cbd7371
+  cost {2}{R}
+  type Sorcery
+  spell: deal 1 damage to each creature
+}

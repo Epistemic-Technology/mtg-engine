@@ -1,0 +1,7 @@
+card "Ghirapur Osprey" {
+  oracle_id b4de9edd-4a5b-4858-8454-38381df8b9a2
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+}

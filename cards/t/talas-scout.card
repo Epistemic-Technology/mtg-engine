@@ -1,0 +1,7 @@
+card "Talas Scout" {
+  oracle_id 71b7d5c4-c16c-4c6b-8e2e-e9b5cc128e1f
+  cost {1}{U}
+  type Creature — Human Pirate Scout
+  pt 1/2
+  keywords flying
+}

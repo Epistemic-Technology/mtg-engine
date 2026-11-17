@@ -1,0 +1,7 @@
+card "Reliquary Monk" {
+  oracle_id a149ac31-b792-4fbe-903a-788bbdfd5e97
+  cost {2}{W}
+  type Creature — Human Monk Cleric
+  pt 2/2
+  triggered when this dies: destroy target artifact or enchantment
+}

@@ -1,0 +1,7 @@
+card "Fathom Fleet Firebrand" {
+  oracle_id a297f9a2-3461-4138-8a3e-75027cbdbe12
+  cost {1}{R}
+  type Creature — Human Pirate
+  pt 2/2
+  activated {1}{R}: this gets +1/+0
+}

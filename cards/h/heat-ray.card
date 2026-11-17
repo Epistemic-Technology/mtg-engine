@@ -1,0 +1,6 @@
+card "Heat Ray" {
+  oracle_id 76ec76b9-da0f-4b9d-ad0a-d734052a5f2b
+  cost {X}{R}
+  type Instant
+  spell: deal X damage to target creature
+}

@@ -1,0 +1,7 @@
+card "Llanowar Vanguard" {
+  oracle_id 9123086e-ae67-46c5-aed5-6366e2fe5a8c
+  cost {2}{G}
+  type Creature — Dryad
+  pt 1/1
+  activated {T}: this gets +0/+4
+}

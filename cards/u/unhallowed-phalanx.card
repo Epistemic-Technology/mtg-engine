@@ -1,0 +1,7 @@
+card "Unhallowed Phalanx" {
+  oracle_id 94c98a3b-9c3e-497f-b954-8f2248ca01ac
+  cost {4}{B}
+  type Creature — Zombie Soldier
+  pt 1/13
+  enters tapped
+}

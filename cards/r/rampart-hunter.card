@@ -1,0 +1,8 @@
+card "Rampart Hunter" {
+  oracle_id 0867755a-9fb9-42ad-897e-6206fbfbc1f8
+  cost {3}{B}
+  type Creature — Horror
+  pt 3/3
+  keywords deathtouch
+  triggered when this enters: target creature gets +2/+2 and gains deathtouch
+}

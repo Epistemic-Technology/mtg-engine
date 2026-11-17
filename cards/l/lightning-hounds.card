@@ -1,0 +1,7 @@
+card "Lightning Hounds" {
+  oracle_id b50c2f63-750c-4cfc-8a74-5a7a3d9b46c4
+  cost {2}{R}{R}
+  type Creature — Dog
+  pt 3/2
+  keywords first strike
+}

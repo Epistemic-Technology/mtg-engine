@@ -1,0 +1,7 @@
+card "Dawnstrike Paladin" {
+  oracle_id c2bfb230-6949-4d5e-8cac-9d7dafdc5e9a
+  cost {3}{W}{W}
+  type Creature — Human Knight
+  pt 2/4
+  keywords vigilance, lifelink
+}

@@ -1,0 +1,7 @@
+card "Enfeeblement" {
+  oracle_id 42b2db4c-4a1d-436f-9eeb-53a04db46c58
+  cost {B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-2
+}

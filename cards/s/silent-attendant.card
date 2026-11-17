@@ -1,0 +1,7 @@
+card "Silent Attendant" {
+  oracle_id 4fa30e29-94c1-4537-bebd-dc7124e4ef71
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 0/2
+  activated {T}: you gains 1 life
+}

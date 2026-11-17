@@ -1,0 +1,8 @@
+card "Alabaster Wall" {
+  oracle_id f9f52651-cc64-48c5-bc18-cd5f646dfb1f
+  cost {2}{W}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}: prevent next 1 damage to any target this turn
+}

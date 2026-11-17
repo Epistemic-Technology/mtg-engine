@@ -1,0 +1,7 @@
+card "Refresh" {
+  oracle_id 1a4c6643-c48b-4e83-b0c4-96873c13408c
+  cost {2}{G}
+  type Instant
+  spell: regenerate target creature
+  spell: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Corrupted Conviction" {
+  oracle_id b45e35df-9032-4482-89a6-c7c50c6d0a79
+  cost {B}
+  type Instant
+  additional cost sacrifice creature
+  spell: draw 2 cards
+}

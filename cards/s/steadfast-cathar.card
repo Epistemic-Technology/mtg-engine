@@ -1,0 +1,7 @@
+card "Steadfast Cathar" {
+  oracle_id 00895741-f94f-4d80-8ca4-c436bf3c8d56
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  triggered whenever this attacks: this gets +0/+2
+}

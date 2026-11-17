@@ -1,0 +1,6 @@
+card "Primordial Wurm" {
+  oracle_id ab9778da-f5e3-4c17-a3da-ffef6ed7a7a1
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 7/6
+}

@@ -1,0 +1,7 @@
+card "Alabaster Kirin" {
+  oracle_id 640fa591-ba79-4148-86a6-9de994a9e67c
+  cost {3}{W}
+  type Creature — Kirin
+  pt 2/3
+  keywords flying, vigilance
+}

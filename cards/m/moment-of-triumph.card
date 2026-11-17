@@ -1,0 +1,6 @@
+card "Moment of Triumph" {
+  oracle_id 57579799-2582-417f-9864-4560cac39ac3
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; you gains 2 life
+}

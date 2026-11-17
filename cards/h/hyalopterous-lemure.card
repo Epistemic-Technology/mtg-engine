@@ -1,0 +1,7 @@
+card "Hyalopterous Lemure" {
+  oracle_id bc3576fb-3c08-456e-b3b6-9eb01b2366d6
+  cost {4}{B}
+  type Creature — Spirit
+  pt 4/3
+  activated {0}: this gets -1/-0 and gains flying
+}

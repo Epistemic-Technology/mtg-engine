@@ -1,0 +1,7 @@
+card "Blisterstick Shaman" {
+  oracle_id 6f76fec2-6fd0-4d33-b39a-f1684922d478
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/1
+  triggered when this enters: deal 1 damage to any target
+}

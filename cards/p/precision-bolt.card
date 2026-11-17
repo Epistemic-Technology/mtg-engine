@@ -1,0 +1,6 @@
+card "Precision Bolt" {
+  oracle_id 5f9ea6e4-f5be-4ea2-95b4-fbdc69685ac5
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+}

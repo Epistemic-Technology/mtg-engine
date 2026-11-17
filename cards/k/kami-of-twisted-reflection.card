@@ -1,0 +1,7 @@
+card "Kami of Twisted Reflection" {
+  oracle_id f23bc7a3-325b-4b37-a4d8-19f3b260ca3d
+  cost {1}{U}{U}
+  type Creature — Spirit
+  pt 2/2
+  activated sacrifice this: return target creature you control to hand
+}

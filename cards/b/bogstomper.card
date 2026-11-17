@@ -1,0 +1,6 @@
+card "Bogstomper" {
+  oracle_id 7c2f1915-8d91-47c6-bab4-be325348673a
+  cost {4}{B}{B}
+  type Creature — Beast
+  pt 6/5
+}

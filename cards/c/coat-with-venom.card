@@ -1,0 +1,6 @@
+card "Coat with Venom" {
+  oracle_id cbc808dd-8d50-4f42-b0f1-d4e45d0462a2
+  cost {B}
+  type Instant
+  spell: target creature gets +1/+2 and gains deathtouch
+}

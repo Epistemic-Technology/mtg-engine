@@ -1,0 +1,7 @@
+card "Samite Censer-Bearer" {
+  oracle_id e980e565-2612-467e-aff1-e0a9ec1b80e9
+  cost {W}
+  type Creature — Human Rebel Cleric
+  pt 1/1
+  activated {W}, sacrifice this: prevent next 1 damage to each creature you control this turn
+}

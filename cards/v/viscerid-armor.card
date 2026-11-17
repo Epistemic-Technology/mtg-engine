@@ -1,0 +1,8 @@
+card "Viscerid Armor" {
+  oracle_id 87b4cbec-3521-4bdb-bf01-64ddb526b655
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated {1}{U}: return this to hand
+}

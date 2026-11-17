@@ -1,0 +1,7 @@
+card "Wildheart Invoker" {
+  oracle_id ff8fb796-af5d-4d64-ab3c-7f2469dfa6bf
+  cost {2}{G}{G}
+  type Creature — Elf Shaman
+  pt 4/3
+  activated {8}: target creature gets +5/+5 and gains trample
+}

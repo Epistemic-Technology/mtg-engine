@@ -1,0 +1,8 @@
+card "Mourning" {
+  oracle_id 20602d11-c0ae-47ce-a7fd-998b12480e18
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-0
+  activated {B}: return this to hand
+}

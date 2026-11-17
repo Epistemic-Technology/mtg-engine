@@ -1,0 +1,7 @@
+card "Goblin Chirurgeon" {
+  oracle_id ea55db87-a5c3-49f7-b968-77510cdeb469
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 0/2
+  activated sacrifice Goblin: regenerate target creature
+}

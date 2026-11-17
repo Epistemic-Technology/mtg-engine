@@ -1,0 +1,7 @@
+card "Caravan Hurda" {
+  oracle_id 2c0b8cc3-b1c1-498d-b34c-f317c2c9468f
+  cost {4}{W}
+  type Creature — Giant
+  pt 1/5
+  keywords lifelink
+}

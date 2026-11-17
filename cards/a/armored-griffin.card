@@ -1,0 +1,7 @@
+card "Armored Griffin" {
+  oracle_id ad3d6003-66d3-486d-aa54-ddce1adb5ff1
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/3
+  keywords flying, vigilance
+}

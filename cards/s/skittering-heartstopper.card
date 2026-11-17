@@ -1,0 +1,7 @@
+card "Skittering Heartstopper" {
+  oracle_id d07f497e-4cf8-4e12-b17e-e3d58ff9df47
+  cost {B}
+  type Creature — Insect
+  pt 1/2
+  activated {B}: this gains deathtouch
+}

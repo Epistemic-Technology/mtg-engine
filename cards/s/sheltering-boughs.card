@@ -1,0 +1,8 @@
+card "Sheltering Boughs" {
+  oracle_id b6bde4eb-15f0-4e6e-9d25-459a2f75ccf2
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +1/+3
+}

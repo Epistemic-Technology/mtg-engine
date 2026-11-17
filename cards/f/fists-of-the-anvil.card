@@ -1,0 +1,6 @@
+card "Fists of the Anvil" {
+  oracle_id fc05e582-e760-4fe2-ba43-e9d8e63f3f85
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +4/+0
+}

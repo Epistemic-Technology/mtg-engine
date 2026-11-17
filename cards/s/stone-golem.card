@@ -1,0 +1,6 @@
+card "Stone Golem" {
+  oracle_id 7cfb32af-ac59-4459-ac9e-2762488e9180
+  cost {5}
+  type Artifact Creature — Golem
+  pt 4/4
+}

@@ -1,0 +1,7 @@
+card "Wall of Mist" {
+  oracle_id b2ca8824-6bd8-4aa3-b156-618118eb98a4
+  cost {1}{U}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+}

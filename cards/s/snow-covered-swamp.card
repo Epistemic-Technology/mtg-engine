@@ -1,0 +1,4 @@
+card "Snow-Covered Swamp" {
+  oracle_id d8239a86-7184-4005-ba1e-2dddcd756c47
+  type Basic Snow Land — Swamp
+}

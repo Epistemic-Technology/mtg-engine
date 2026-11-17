@@ -1,0 +1,7 @@
+card "Gilacorn" {
+  oracle_id 1551cd95-1e68-404f-be1d-cc9c7f447210
+  cost {B}
+  type Creature — Lizard
+  pt 1/1
+  keywords deathtouch
+}

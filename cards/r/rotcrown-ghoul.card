@@ -1,0 +1,7 @@
+card "Rotcrown Ghoul" {
+  oracle_id e9a420d4-a834-4a14-b874-1db96624d8ef
+  cost {4}{U}
+  type Creature — Zombie
+  pt 3/3
+  triggered when this dies: target player mills 5 cards
+}

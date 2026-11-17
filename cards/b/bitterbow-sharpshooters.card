@@ -1,0 +1,7 @@
+card "Bitterbow Sharpshooters" {
+  oracle_id 76f22670-6806-4124-8bbb-822ed33d2bda
+  cost {4}{G}
+  type Creature — Jackal Archer
+  pt 4/4
+  keywords reach, vigilance
+}

@@ -1,0 +1,8 @@
+card "Goblin Assault Team" {
+  oracle_id d464b54c-3b02-4c4e-99ef-1ad75f336c65
+  cost {3}{R}
+  type Creature — Goblin Warrior
+  pt 4/1
+  keywords haste
+  triggered when this dies: put 1 +1/+1 counters on target creature you control
+}

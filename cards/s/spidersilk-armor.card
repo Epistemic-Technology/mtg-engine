@@ -1,0 +1,6 @@
+card "Spidersilk Armor" {
+  oracle_id ad73e5eb-197c-45a3-9d20-a406ba126c79
+  cost {2}{G}
+  type Enchantment
+  static creature you control: +0/+1, has reach
+}

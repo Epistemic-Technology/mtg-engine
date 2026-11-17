@@ -1,0 +1,7 @@
+card "Blinding Mage" {
+  oracle_id 53a1faa1-ca67-4027-bee8-0f7c4584d62b
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 1/2
+  activated {W}, {T}: tap target creature
+}

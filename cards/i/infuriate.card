@@ -1,0 +1,6 @@
+card "Infuriate" {
+  oracle_id d23119ca-73d1-4a48-a8d0-dab8919d891f
+  cost {R}
+  type Instant
+  spell: target creature gets +3/+2
+}

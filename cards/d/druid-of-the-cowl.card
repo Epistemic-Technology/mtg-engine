@@ -1,0 +1,7 @@
+card "Druid of the Cowl" {
+  oracle_id b1793c3b-25d6-4fae-a99d-cfdd2210ca67
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/3
+  mana {G}
+}

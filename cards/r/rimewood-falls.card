@@ -1,0 +1,5 @@
+card "Rimewood Falls" {
+  oracle_id 983739cd-0b36-40d9-9a03-7b6aa7ffd0df
+  type Snow Land — Forest Island
+  enters tapped
+}

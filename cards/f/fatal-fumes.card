@@ -1,0 +1,6 @@
+card "Fatal Fumes" {
+  oracle_id 359ceca4-7063-4089-8088-ba54bc6fb7cf
+  cost {3}{B}
+  type Instant
+  spell: target creature gets -4/-2
+}

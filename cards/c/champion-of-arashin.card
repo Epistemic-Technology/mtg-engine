@@ -1,0 +1,7 @@
+card "Champion of Arashin" {
+  oracle_id f688863f-b8eb-4143-8ea5-0b234cc91bd0
+  cost {3}{W}
+  type Creature — Dog Warrior
+  pt 3/2
+  keywords lifelink
+}

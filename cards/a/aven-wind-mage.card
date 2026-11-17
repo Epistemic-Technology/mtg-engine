@@ -1,0 +1,8 @@
+card "Aven Wind Mage" {
+  oracle_id ad5f9a18-89a5-4bcb-9cd7-5399ffd252d3
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 2/2
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+1
+}

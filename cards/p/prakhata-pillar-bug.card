@@ -1,0 +1,7 @@
+card "Prakhata Pillar-Bug" {
+  oracle_id 1ec95969-4a6f-49f3-af23-1680276e7da2
+  cost {3}
+  type Artifact Creature — Insect
+  pt 2/3
+  activated {B}: this gains lifelink
+}

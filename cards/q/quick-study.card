@@ -1,0 +1,6 @@
+card "Quick Study" {
+  oracle_id 7bff8d4a-1c7d-48b8-b3e3-737dd6f01823
+  cost {2}{U}
+  type Instant
+  spell: draw 2 cards
+}

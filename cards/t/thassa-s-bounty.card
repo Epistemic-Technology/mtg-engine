@@ -1,0 +1,6 @@
+card "Thassa's Bounty" {
+  oracle_id c43425c1-ad01-4088-a061-f691fa2f6c20
+  cost {5}{U}
+  type Sorcery
+  spell: draw 3 cards; target player mills 3 cards
+}

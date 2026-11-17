@@ -1,0 +1,6 @@
+card "Feed the Serpent" {
+  oracle_id ad404b46-dee7-41bb-969d-35b4cbaadece
+  cost {2}{B}{B}
+  type Instant
+  spell: exile target creature or planeswalker
+}

@@ -1,0 +1,7 @@
+card "Goblin Turncoat" {
+  oracle_id 297c2ddf-6d2d-4ed4-ab37-716514d5e3b6
+  cost {1}{B}
+  type Creature — Goblin Mercenary
+  pt 2/1
+  activated sacrifice Goblin: regenerate this
+}

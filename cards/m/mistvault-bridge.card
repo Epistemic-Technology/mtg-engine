@@ -1,0 +1,7 @@
+card "Mistvault Bridge" {
+  oracle_id 33ee23bc-6327-4a54-a704-dfd83be36bb5
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {U} or {B}
+}

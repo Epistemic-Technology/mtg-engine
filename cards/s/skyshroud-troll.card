@@ -1,0 +1,7 @@
+card "Skyshroud Troll" {
+  oracle_id 2e6d3120-d41d-4e48-b33f-0f73c876fe69
+  cost {2}{G}{G}
+  type Creature — Troll Giant
+  pt 3/3
+  activated {1}{G}: regenerate this
+}

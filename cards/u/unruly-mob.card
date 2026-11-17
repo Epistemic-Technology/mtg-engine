@@ -1,0 +1,7 @@
+card "Unruly Mob" {
+  oracle_id 05d0b904-a680-4f2f-aaa1-e227a7fe7e79
+  cost {1}{W}
+  type Creature — Human
+  pt 1/1
+  triggered whenever other creature you control dies: put 1 +1/+1 counters on this
+}

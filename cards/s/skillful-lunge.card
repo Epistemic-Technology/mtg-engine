@@ -1,0 +1,6 @@
+card "Skillful Lunge" {
+  oracle_id bc730e60-b9c2-4c49-b97b-2878be105b04
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+0 and gains first strike
+}

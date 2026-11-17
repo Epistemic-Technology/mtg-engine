@@ -1,0 +1,7 @@
+card "Honey Mammoth" {
+  oracle_id 41da0e8c-ba86-446d-9719-667695c7f1cc
+  cost {4}{G}{G}
+  type Creature — Elephant
+  pt 6/6
+  triggered when this enters: you gains 4 life
+}

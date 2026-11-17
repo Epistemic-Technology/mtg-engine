@@ -1,0 +1,7 @@
+card "Cabal Trainee" {
+  oracle_id fce68545-c31d-4dc2-9f1b-aadf924a07d1
+  cost {B}
+  type Creature — Human Minion
+  pt 1/1
+  activated sacrifice this: target creature gets -2/-0
+}

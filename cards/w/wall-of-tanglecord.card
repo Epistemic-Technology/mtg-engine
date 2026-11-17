@@ -1,0 +1,8 @@
+card "Wall of Tanglecord" {
+  oracle_id 423bebcc-8fa0-49c4-aa22-728bf51a535b
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {G}: this gains reach
+}

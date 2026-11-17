@@ -1,0 +1,6 @@
+card "Witch's Familiar" {
+  oracle_id abe06b4d-e7f0-4125-8cfc-e36296e8bacd
+  cost {2}{B}
+  type Creature — Frog
+  pt 2/3
+}

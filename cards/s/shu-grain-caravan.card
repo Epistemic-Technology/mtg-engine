@@ -1,0 +1,7 @@
+card "Shu Grain Caravan" {
+  oracle_id 587e9f15-1d79-458f-a073-229b828b2393
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered when this enters: you gains 2 life
+}

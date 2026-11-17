@@ -1,0 +1,6 @@
+card "Armored Cancrix" {
+  oracle_id 445bb343-9758-459b-970f-47f1705f1e55
+  cost {4}{U}
+  type Creature — Crab
+  pt 2/5
+}

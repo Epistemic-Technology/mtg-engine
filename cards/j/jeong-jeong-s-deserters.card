@@ -1,0 +1,7 @@
+card "Jeong Jeong's Deserters" {
+  oracle_id 6a06d281-3ca2-498f-91d0-e13e7b0869f9
+  cost {1}{W}
+  type Creature — Human Rebel Ally
+  pt 1/2
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

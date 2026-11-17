@@ -1,0 +1,7 @@
+card "Miner's Bane" {
+  oracle_id 3ca75f61-60bf-487f-8cb3-b955cdd81e2a
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 6/3
+  activated {2}{R}: this gets +1/+0 and gains trample
+}

@@ -1,0 +1,7 @@
+card "Tireless Tribe" {
+  oracle_id 5dfbcdb4-d2ad-477d-b37d-db4725410b27
+  cost {W}
+  type Creature — Human Nomad
+  pt 1/1
+  activated discard 1 card: this gets +0/+4
+}

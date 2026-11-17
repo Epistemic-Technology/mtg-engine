@@ -1,0 +1,7 @@
+card "Thought Scour" {
+  oracle_id 83101ba8-a569-4827-8c53-9ca0dfcd59a7
+  cost {U}
+  type Instant
+  spell: target player mills 2 cards
+  spell: draw 1 cards
+}

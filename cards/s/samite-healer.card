@@ -1,0 +1,7 @@
+card "Samite Healer" {
+  oracle_id 95a0ca48-d924-47f4-86ed-42c673ee778c
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: prevent next 1 damage to any target this turn
+}

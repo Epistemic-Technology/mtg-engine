@@ -1,0 +1,7 @@
+card "Gnathosaur" {
+  oracle_id 7f52993c-a20a-48fe-b463-2a33873b489a
+  cost {4}{R}{R}
+  type Creature — Dinosaur
+  pt 5/4
+  activated sacrifice artifact: this gains trample
+}

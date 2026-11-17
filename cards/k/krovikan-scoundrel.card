@@ -1,0 +1,6 @@
+card "Krovikan Scoundrel" {
+  oracle_id 44c437ca-5d36-4bb3-9450-baf0c93ff4ce
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/1
+}

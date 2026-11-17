@@ -1,0 +1,7 @@
+card "Chardalyn Dragon" {
+  oracle_id 0bf1f2c1-2148-4302-a6e7-d509a005a85f
+  cost {6}
+  type Artifact Creature — Dragon
+  pt 4/4
+  keywords flying
+}

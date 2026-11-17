@@ -1,0 +1,7 @@
+card "Friendly Teddy" {
+  oracle_id 02a8b849-e708-427c-92fe-9a41bb0ec7fe
+  cost {2}
+  type Artifact Creature — Bear Toy
+  pt 2/2
+  triggered when this dies: each player draws 1 cards
+}

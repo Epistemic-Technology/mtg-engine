@@ -1,0 +1,7 @@
+card "Sacred Wolf" {
+  oracle_id ccb64a70-cbdd-4991-a28d-b137032a4f4d
+  cost {2}{G}
+  type Creature — Wolf
+  pt 3/1
+  keywords hexproof
+}

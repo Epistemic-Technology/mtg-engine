@@ -1,0 +1,8 @@
+card "Emerald Dragonfly" {
+  oracle_id b067aa04-5977-4371-85d1-78d2884df03f
+  cost {1}{G}
+  type Creature — Insect
+  pt 1/1
+  keywords flying
+  activated {G}{G}: this gains first strike
+}

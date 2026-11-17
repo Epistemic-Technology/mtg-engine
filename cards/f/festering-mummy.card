@@ -1,0 +1,7 @@
+card "Festering Mummy" {
+  oracle_id bdf78365-5887-497e-af25-ca0cb731f35a
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  triggered when this dies: you may put 1 -1/-1 counters on target creature
+}

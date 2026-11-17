@@ -1,0 +1,6 @@
+card "Order of the Sacred Bell" {
+  oracle_id 0e3099ca-ac2b-4163-bef7-e62a84567744
+  cost {3}{G}
+  type Creature — Human Monk
+  pt 4/3
+}

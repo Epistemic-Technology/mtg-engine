@@ -1,0 +1,6 @@
+card "Volcanic Hammer" {
+  oracle_id 98fa5a06-0553-40fd-999c-bc31c9b3f4db
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+}

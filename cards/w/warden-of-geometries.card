@@ -1,0 +1,8 @@
+card "Warden of Geometries" {
+  oracle_id 448da389-81db-4931-9cf7-3fde0ce9392f
+  cost {4}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords vigilance
+  mana {C}
+}

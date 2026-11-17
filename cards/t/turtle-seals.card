@@ -1,0 +1,7 @@
+card "Turtle-Seals" {
+  oracle_id e0172cad-8b93-4d1a-b442-5eced3212b17
+  cost {3}{U}
+  type Creature — Turtle Seal
+  pt 2/4
+  keywords vigilance
+}

@@ -1,0 +1,8 @@
+card "Grimclaw Bats" {
+  oracle_id 161ebbc8-b8f9-4ac4-80f3-e290070a1e30
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/1
+  keywords flying
+  activated {B}, pay 1 life: this gets +1/+1
+}

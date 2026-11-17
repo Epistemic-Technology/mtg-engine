@@ -1,0 +1,8 @@
+card "Shattered Acolyte" {
+  oracle_id 57f58d52-0014-4cac-94fc-668063cc147a
+  cost {1}{W}
+  type Creature — Dwarf Warlock
+  pt 2/2
+  keywords lifelink
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

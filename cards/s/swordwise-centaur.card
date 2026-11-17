@@ -1,0 +1,6 @@
+card "Swordwise Centaur" {
+  oracle_id 5c2e0762-4994-4c34-b33f-909c2b3f0f43
+  cost {G}{G}
+  type Creature — Centaur Warrior
+  pt 3/2
+}

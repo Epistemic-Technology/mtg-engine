@@ -1,0 +1,7 @@
+card "Dross Ripper" {
+  oracle_id bf3b7489-e9d6-4b3c-9fb8-3bb727584db9
+  cost {4}
+  type Artifact Creature — Phyrexian Dog
+  pt 3/3
+  activated {2}{B}: this gets +1/+1
+}

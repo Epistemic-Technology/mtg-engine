@@ -1,0 +1,8 @@
+card "Tuktuk Rubblefort" {
+  oracle_id 48dab180-4ffd-4b39-9f5a-6bdc017a1eae
+  cost {2}{R}
+  type Creature — Wall
+  pt 0/3
+  keywords defender, reach
+  static creature you control: has haste
+}

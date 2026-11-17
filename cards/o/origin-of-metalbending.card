@@ -1,0 +1,9 @@
+card "Origin of Metalbending" {
+  oracle_id 177113f8-1188-4e5e-8ad7-34a7bb8ca7f1
+  cost {1}{G}
+  type Instant — Lesson
+  choose one {
+    mode: destroy target artifact or enchantment
+    mode: put 1 +1/+1 counters on target creature you control; target 1 gains indestructible
+  }
+}

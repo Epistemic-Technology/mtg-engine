@@ -1,0 +1,7 @@
+card "Mardu Hateblade" {
+  oracle_id acff2573-cf8a-4aee-96a3-28721a4128f6
+  cost {W}
+  type Creature — Human Warrior
+  pt 1/1
+  activated {B}: this gains deathtouch
+}

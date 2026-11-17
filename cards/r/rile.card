@@ -1,0 +1,7 @@
+card "Rile" {
+  oracle_id 0c4e0e46-77f1-4ff6-afbc-1a67feceedfb
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to target creature you control; that creature gains trample
+  spell: draw 1 cards
+}

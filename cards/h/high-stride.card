@@ -1,0 +1,6 @@
+card "High Stride" {
+  oracle_id ab0aea13-1dbc-424a-ab7e-cdb303036a56
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+3 and gains reach; untap target 1
+}

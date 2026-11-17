@@ -1,0 +1,7 @@
+card "Niblis of Dusk" {
+  oracle_id d14d41a5-6f38-43c7-b95c-b4a723002c20
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying, prowess
+}

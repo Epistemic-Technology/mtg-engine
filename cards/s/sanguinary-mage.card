@@ -1,0 +1,7 @@
+card "Sanguinary Mage" {
+  oracle_id d3fb0388-bfa8-4d22-831c-40a81a11d8c6
+  cost {1}{R}
+  type Creature — Vampire Wizard
+  pt 1/3
+  keywords prowess
+}

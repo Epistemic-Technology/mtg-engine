@@ -1,0 +1,9 @@
+card "Healing Leaves" {
+  oracle_id 9c675e7a-1d68-44b2-9c1a-543b73782437
+  cost {G}
+  type Instant
+  choose one {
+    mode: target player gains 3 life
+    mode: prevent next 3 damage to any target this turn
+  }
+}

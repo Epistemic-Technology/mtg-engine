@@ -1,0 +1,7 @@
+card "Sylvok Replica" {
+  oracle_id 97818ed4-3590-4a3b-92ce-716f9cfdc78e
+  cost {3}
+  type Artifact Creature — Shaman
+  pt 1/3
+  activated {G}, sacrifice this: destroy target artifact or enchantment
+}

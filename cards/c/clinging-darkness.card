@@ -1,0 +1,7 @@
+card "Clinging Darkness" {
+  oracle_id 5ad3abf3-1ae5-4c4c-9950-ba7bff0d75ad
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -4/-1
+}

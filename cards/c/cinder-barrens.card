@@ -1,0 +1,6 @@
+card "Cinder Barrens" {
+  oracle_id f155a05f-9f5e-4875-a407-103b85ce30ee
+  type Land
+  enters tapped
+  mana {B} or {R}
+}

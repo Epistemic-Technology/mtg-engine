@@ -1,0 +1,7 @@
+card "Dakmor Bat" {
+  oracle_id 724d8247-33b1-42bf-a827-7b66e45504c1
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/1
+  keywords flying
+}

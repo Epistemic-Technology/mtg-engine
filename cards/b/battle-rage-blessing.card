@@ -1,0 +1,6 @@
+card "Battle-Rage Blessing" {
+  oracle_id 533d6b9f-a145-44c4-9d16-74fcd9c0ae2f
+  cost {1}{B}
+  type Instant
+  spell: target creature gains deathtouch, indestructible
+}

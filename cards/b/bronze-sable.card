@@ -1,0 +1,6 @@
+card "Bronze Sable" {
+  oracle_id f27e5e11-0ad0-448b-8760-75ed1b97e7d8
+  cost {2}
+  type Artifact Creature — Sable
+  pt 2/1
+}

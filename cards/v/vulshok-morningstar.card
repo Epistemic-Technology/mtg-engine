@@ -1,0 +1,7 @@
+card "Vulshok Morningstar" {
+  oracle_id 12a8adc4-927f-4314-b2ef-9c647ace68d5
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +2/+2
+  equip {2}
+}

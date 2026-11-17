@@ -1,0 +1,7 @@
+card "Vampire Revenant" {
+  oracle_id 2f7305c1-51d2-4698-89d5-c64a57ecff80
+  cost {3}{B}
+  type Creature — Vampire Spirit
+  pt 3/1
+  keywords flying
+}

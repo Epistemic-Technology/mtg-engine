@@ -1,0 +1,7 @@
+card "Savannah Sage" {
+  oracle_id 7e6cfec7-3b54-43db-853a-27c164776a5f
+  cost {1}{W}
+  type Creature — Cat Cleric
+  pt 2/2
+  triggered when this enters: you gains 2 life
+}

@@ -1,0 +1,6 @@
+card "Norwood Ranger" {
+  oracle_id e62ec170-c588-41ff-8be8-b05a125693a1
+  cost {G}
+  type Creature — Elf Scout Ranger
+  pt 1/2
+}

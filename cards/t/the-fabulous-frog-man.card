@@ -1,0 +1,7 @@
+card "The Fabulous Frog-Man" {
+  oracle_id b0c2938d-8370-4786-8ddd-126c61538bdd
+  cost {2}{G}
+  type Legendary Creature — Human Hero
+  pt 3/3
+  keywords reach
+}

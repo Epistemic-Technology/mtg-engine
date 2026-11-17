@@ -1,0 +1,8 @@
+card "Grasping Longneck" {
+  oracle_id bc509d30-ceca-47ef-a574-62c021812014
+  cost {2}{G}
+  type Enchantment Creature — Horror
+  pt 4/2
+  keywords reach
+  triggered when this dies: you gains 2 life
+}

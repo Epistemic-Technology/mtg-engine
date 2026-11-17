@@ -1,0 +1,6 @@
+card "Simic Guildgate" {
+  oracle_id e8705df9-6439-4930-91b6-229f818559af
+  type Land — Gate
+  enters tapped
+  mana {G} or {U}
+}

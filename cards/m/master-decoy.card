@@ -1,0 +1,7 @@
+card "Master Decoy" {
+  oracle_id 94a16609-8529-4301-8a3d-47ced194f7cd
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  activated {W}, {T}: tap target creature
+}

@@ -1,0 +1,6 @@
+card "Daring Leap" {
+  oracle_id 10bc00f7-d501-46e3-9f23-af1ddc3f6c4c
+  cost {1}{W}{U}
+  type Instant
+  spell: target creature gets +1/+1 and gains flying, first strike
+}

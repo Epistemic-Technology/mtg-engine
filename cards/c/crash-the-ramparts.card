@@ -1,0 +1,6 @@
+card "Crash the Ramparts" {
+  oracle_id 8832b76b-58b7-41b2-b2f6-842563b55b36
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains trample
+}

@@ -1,0 +1,7 @@
+card "Repulse" {
+  oracle_id 6f7ef1d1-c441-41ba-b7d6-6b7727ffcf04
+  cost {2}{U}
+  type Instant
+  spell: return target creature to hand
+  spell: draw 1 cards
+}

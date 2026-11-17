@@ -1,0 +1,8 @@
+card "Dazzling Angel" {
+  oracle_id 7de464e3-fae3-44cc-8233-776fc727c00a
+  cost {2}{W}
+  type Creature — Angel
+  pt 2/3
+  keywords flying
+  triggered whenever other creature you control enters: you gains 1 life
+}

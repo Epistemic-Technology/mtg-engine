@@ -1,0 +1,7 @@
+card "Strider Harness" {
+  oracle_id bd4ad383-8c40-4dda-bc9c-ba8a001d6882
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has haste
+  equip {1}
+}

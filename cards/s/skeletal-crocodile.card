@@ -1,0 +1,6 @@
+card "Skeletal Crocodile" {
+  oracle_id 90f9440a-0bf8-46eb-9cfa-16fb88a217d8
+  cost {3}{B}
+  type Creature — Crocodile Skeleton
+  pt 5/1
+}

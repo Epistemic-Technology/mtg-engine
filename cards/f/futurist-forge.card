@@ -1,0 +1,7 @@
+card "Futurist Forge" {
+  oracle_id 0e5f97b5-bb8c-4688-a141-5db4d4eeccf0
+  cost {1}{U}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {3}{U}, sacrifice this: draw 2 cards
+}

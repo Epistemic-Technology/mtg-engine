@@ -1,0 +1,7 @@
+card "Bile Urchin" {
+  oracle_id 7d406aa7-636a-45c1-903f-11c2ce2ef3e3
+  cost {B}
+  type Creature — Spirit
+  pt 1/1
+  activated sacrifice this: target player loses 1 life
+}

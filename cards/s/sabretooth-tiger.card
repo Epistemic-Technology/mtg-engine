@@ -1,0 +1,7 @@
+card "Sabretooth Tiger" {
+  oracle_id 8ea35158-1c1a-46da-b466-0eafb376e464
+  cost {2}{R}
+  type Creature — Cat
+  pt 2/1
+  keywords first strike
+}

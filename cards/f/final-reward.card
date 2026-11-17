@@ -1,0 +1,6 @@
+card "Final Reward" {
+  oracle_id e654242f-c7c5-4713-bbd0-26d41de8e2e7
+  cost {4}{B}
+  type Instant
+  spell: exile target creature
+}

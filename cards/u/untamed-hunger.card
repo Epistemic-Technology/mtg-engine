@@ -1,0 +1,7 @@
+card "Untamed Hunger" {
+  oracle_id 550abd9b-9aae-4812-9bc0-7f131d6dcde8
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1, has menace
+}

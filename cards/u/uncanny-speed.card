@@ -1,0 +1,6 @@
+card "Uncanny Speed" {
+  oracle_id 85b0a2ea-dbdc-456e-9ce1-faa8c13f84d0
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains haste
+}

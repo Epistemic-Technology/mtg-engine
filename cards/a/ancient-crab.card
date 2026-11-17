@@ -1,0 +1,6 @@
+card "Ancient Crab" {
+  oracle_id 6bab6d0a-cd06-45e3-b780-d5354ee2a032
+  cost {1}{U}{U}
+  type Creature — Crab
+  pt 1/5
+}

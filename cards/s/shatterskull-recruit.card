@@ -1,0 +1,7 @@
+card "Shatterskull Recruit" {
+  oracle_id e2bc1600-eeec-443b-99e4-dd61497edd5b
+  cost {3}{R}{R}
+  type Creature — Giant Warrior Ally
+  pt 4/4
+  keywords menace
+}

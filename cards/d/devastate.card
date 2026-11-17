@@ -1,0 +1,6 @@
+card "Devastate" {
+  oracle_id 90b3e2df-182d-4dad-9934-597a048fefc6
+  cost {3}{R}{R}
+  type Sorcery
+  spell: destroy target land; deal 1 damage to each creature and each player
+}

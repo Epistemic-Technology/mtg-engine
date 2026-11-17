@@ -1,0 +1,7 @@
+card "Manic Vandal" {
+  oracle_id 9c12bdbf-80cd-4edb-bebb-b4efcf532272
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered when this enters: destroy target artifact
+}

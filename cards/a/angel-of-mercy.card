@@ -1,0 +1,8 @@
+card "Angel of Mercy" {
+  oracle_id a2daaf32-dbfe-4618-892e-0da24f63a44a
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters: you gains 3 life
+}

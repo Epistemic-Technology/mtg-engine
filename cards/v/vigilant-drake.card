@@ -1,0 +1,8 @@
+card "Vigilant Drake" {
+  oracle_id 4f5eaf5a-dd52-4d48-91b5-d48763d13159
+  cost {4}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  activated {2}{U}: untap this
+}

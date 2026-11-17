@@ -1,0 +1,7 @@
+card "Komodo Rhino" {
+  oracle_id 7fe5cad0-8db8-4cb3-9d61-bda84477654d
+  cost {3}{R}
+  type Creature — Lizard Rhino
+  pt 5/2
+  keywords trample
+}

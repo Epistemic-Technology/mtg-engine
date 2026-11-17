@@ -1,0 +1,7 @@
+card "Enlightened Ascetic" {
+  oracle_id 8fe257e5-b54a-4e56-8040-d2eaa0bb0a6a
+  cost {1}{W}
+  type Creature — Cat Monk
+  pt 1/1
+  triggered when this enters: you may destroy target enchantment
+}

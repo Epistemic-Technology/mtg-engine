@@ -1,0 +1,6 @@
+card "Bathe in Dragonfire" {
+  oracle_id 72d793e8-1d19-4ca1-894c-8851a2ebecde
+  cost {2}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature
+}

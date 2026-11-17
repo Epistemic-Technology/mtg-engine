@@ -1,0 +1,8 @@
+card "Voracious Varmint" {
+  oracle_id bd785a7e-df65-48e6-843b-7831f3c1e5d3
+  cost {1}{G}
+  type Creature — Varmint
+  pt 2/2
+  keywords vigilance
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

@@ -1,0 +1,8 @@
+card "Ancestral Vengeance" {
+  oracle_id 321c4586-d27e-45ae-ba1f-3efea334a697
+  cost {B}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+  static enchanted: -1/-1
+}

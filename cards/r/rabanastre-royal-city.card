@@ -1,0 +1,6 @@
+card "Rabanastre, Royal City" {
+  oracle_id bd39e333-b0b8-4a85-8645-d77f4a3941db
+  type Land — Town
+  enters tapped
+  mana {R} or {W}
+}

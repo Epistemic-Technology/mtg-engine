@@ -1,0 +1,8 @@
+card "Furnace Spirit" {
+  oracle_id 86b33d25-6123-439c-9026-a4e835b48562
+  cost {2}{R}
+  type Creature — Spirit
+  pt 1/1
+  keywords haste
+  activated {R}: this gets +1/+0
+}

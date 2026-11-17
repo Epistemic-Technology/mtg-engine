@@ -1,0 +1,7 @@
+card "Flowstone Crusher" {
+  oracle_id cc18fcfc-bfe8-41d8-9037-5ff05b2a9c44
+  cost {3}{R}{R}
+  type Creature — Beast
+  pt 4/4
+  activated {R}: this gets +1/-1
+}

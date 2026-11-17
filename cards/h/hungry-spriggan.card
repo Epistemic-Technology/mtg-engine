@@ -1,0 +1,8 @@
+card "Hungry Spriggan" {
+  oracle_id f80c8533-b29c-49ae-a241-ef4b73a9e327
+  cost {2}{G}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords trample
+  triggered whenever this attacks: this gets +3/+3
+}

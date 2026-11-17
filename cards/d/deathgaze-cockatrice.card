@@ -1,0 +1,7 @@
+card "Deathgaze Cockatrice" {
+  oracle_id 0fabb6e4-35cf-4e56-a27c-ff627d8e9b7a
+  cost {2}{B}{B}
+  type Creature — Cockatrice
+  pt 2/2
+  keywords flying, deathtouch
+}

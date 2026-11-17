@@ -1,0 +1,7 @@
+card "Capashen Templar" {
+  oracle_id ab9ad5e2-2bf3-450d-9d5c-c7280d368e10
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  activated {W}: this gets +0/+1
+}

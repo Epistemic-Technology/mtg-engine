@@ -1,0 +1,7 @@
+card "Hussar Patrol" {
+  oracle_id bd73581c-c4bd-46cb-8004-75aeafa24288
+  cost {2}{W}{U}
+  type Creature — Human Knight
+  pt 2/4
+  keywords flash, vigilance
+}

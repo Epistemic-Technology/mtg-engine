@@ -1,0 +1,7 @@
+card "Imposing Visage" {
+  oracle_id 6f67058b-ed14-4e3c-9af3-d61570870e36
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has menace
+}

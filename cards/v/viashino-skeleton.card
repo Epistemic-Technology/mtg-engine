@@ -1,0 +1,7 @@
+card "Viashino Skeleton" {
+  oracle_id a85e893c-6027-42eb-8d05-14c745cc8c95
+  cost {3}{R}
+  type Creature — Lizard Skeleton
+  pt 2/1
+  activated {1}{B}, discard 1 card: regenerate this
+}

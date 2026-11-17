@@ -1,0 +1,6 @@
+card "Inspiration" {
+  oracle_id 8f32ceb2-92c2-4dde-bf73-40bb79c3fcef
+  cost {3}{U}
+  type Instant
+  spell: target player draws 2 cards
+}

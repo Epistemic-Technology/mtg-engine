@@ -1,0 +1,7 @@
+card "Goldmire Bridge" {
+  oracle_id c9b7ea9c-3bcb-4538-aa25-cdb82a52037e
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {W} or {B}
+}

@@ -1,0 +1,7 @@
+card "Yotian Medic" {
+  oracle_id d218b9ad-3a6f-4bda-90c6-3f869c6c4e6d
+  cost {2}{W}
+  type Creature — Human Cleric Soldier
+  pt 1/4
+  keywords lifelink
+}

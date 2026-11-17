@@ -1,0 +1,6 @@
+card "Ageless Guardian" {
+  oracle_id 468658bc-19d8-464a-ab8e-d36281680273
+  cost {1}{W}
+  type Creature — Spirit Soldier
+  pt 1/4
+}

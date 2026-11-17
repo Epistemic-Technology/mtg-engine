@@ -1,0 +1,7 @@
+card "Festival Crasher" {
+  oracle_id e6ddea98-b23f-44de-a63d-5d5dfad60e71
+  cost {1}{R}
+  type Creature — Devil
+  pt 1/3
+  triggered whenever you cast an instant or sorcery spell: this gets +2/+0
+}

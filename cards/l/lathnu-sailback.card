@@ -1,0 +1,6 @@
+card "Lathnu Sailback" {
+  oracle_id 9c30147a-1131-402e-bdaf-9006b1022b83
+  cost {4}{R}
+  type Creature — Lizard
+  pt 5/4
+}

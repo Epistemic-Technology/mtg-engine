@@ -1,0 +1,6 @@
+card "Phytoburst" {
+  oracle_id d68d175f-f59c-4995-84d4-fc593280194b
+  cost {1}{G}
+  type Sorcery
+  spell: target creature gets +5/+5
+}

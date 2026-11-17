@@ -1,0 +1,7 @@
+card "Raging Minotaur" {
+  oracle_id 4cfd04b3-57bd-4860-8b47-57a0fd0a23fa
+  cost {2}{R}{R}
+  type Creature — Minotaur Berserker
+  pt 3/3
+  keywords haste
+}

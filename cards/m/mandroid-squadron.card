@@ -1,0 +1,7 @@
+card "Mandroid Squadron" {
+  oracle_id 95ab1529-0de0-416a-82b4-c5ed9276a9b4
+  cost {1}{W}
+  type Artifact Creature — Human Soldier
+  pt 0/4
+  triggered when this enters: you gains 2 life
+}

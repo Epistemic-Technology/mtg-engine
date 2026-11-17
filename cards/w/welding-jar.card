@@ -1,0 +1,6 @@
+card "Welding Jar" {
+  oracle_id e4a6c421-bef1-4360-a2dc-ae9c61d86b2f
+  cost {0}
+  type Artifact
+  activated sacrifice this: regenerate target artifact
+}

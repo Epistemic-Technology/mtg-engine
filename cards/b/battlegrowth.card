@@ -1,0 +1,6 @@
+card "Battlegrowth" {
+  oracle_id 650bf82e-7f83-470c-bf4a-34281bfe9341
+  cost {G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature
+}

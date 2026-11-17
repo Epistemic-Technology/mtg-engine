@@ -1,0 +1,7 @@
+card "Mosscoat Goriak" {
+  oracle_id 28cc015f-1f3e-417a-9762-de25109fee5c
+  cost {2}{G}
+  type Creature — Beast
+  pt 2/4
+  keywords vigilance
+}

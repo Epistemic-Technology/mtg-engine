@@ -1,0 +1,7 @@
+card "Ixalli's Keeper" {
+  oracle_id 183e2796-2fc1-4f0e-b1be-95285d2ea046
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {7}{G}, {T}, sacrifice this: target creature gets +5/+5 and gains trample
+}

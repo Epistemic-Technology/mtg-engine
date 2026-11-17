@@ -1,0 +1,6 @@
+card "Warship Scout" {
+  oracle_id f07e6ba7-42e8-4b4d-9831-00a856059060
+  cost {R}
+  type Creature — Human Scout
+  pt 2/1
+}

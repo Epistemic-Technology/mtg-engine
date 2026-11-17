@@ -1,0 +1,8 @@
+card "Ember-Eye Wolf" {
+  oracle_id 0b21ab85-2405-4410-9624-fb3c7d11ba56
+  cost {1}{R}
+  type Creature — Wolf
+  pt 1/2
+  keywords haste
+  activated {1}{R}: this gets +2/+0
+}

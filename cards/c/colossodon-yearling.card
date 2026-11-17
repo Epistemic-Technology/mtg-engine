@@ -1,0 +1,6 @@
+card "Colossodon Yearling" {
+  oracle_id a322ad80-e64b-4e9a-b542-3a036dc14d28
+  cost {2}{G}
+  type Creature — Beast
+  pt 2/4
+}

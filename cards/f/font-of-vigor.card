@@ -1,0 +1,6 @@
+card "Font of Vigor" {
+  oracle_id 422876dd-2801-4d0e-93ad-d9d48178f0d0
+  cost {1}{W}
+  type Enchantment
+  activated {2}{W}, sacrifice this: you gains 7 life
+}

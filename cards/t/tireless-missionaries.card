@@ -1,0 +1,7 @@
+card "Tireless Missionaries" {
+  oracle_id a730e699-834a-4aac-9b3b-29d6917fc9b3
+  cost {4}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  triggered when this enters: you gains 3 life
+}

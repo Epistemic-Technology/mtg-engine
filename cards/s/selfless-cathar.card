@@ -1,0 +1,7 @@
+card "Selfless Cathar" {
+  oracle_id a6e4c8de-4c35-4ea4-b865-596ae8cef075
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}{W}, sacrifice this: each creature you control gets +1/+1
+}

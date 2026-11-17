@@ -1,0 +1,7 @@
+card "Coiled Tinviper" {
+  oracle_id b0bdc033-29f0-4dcb-87ff-ccd56126f7e5
+  cost {3}
+  type Artifact Creature — Snake
+  pt 2/1
+  keywords first strike
+}

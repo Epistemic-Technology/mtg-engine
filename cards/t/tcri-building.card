@@ -1,0 +1,7 @@
+card "TCRI Building" {
+  oracle_id 4139f40a-873b-4842-96a2-b7875de1c20a
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {R}
+}

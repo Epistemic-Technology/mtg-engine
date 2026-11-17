@@ -1,0 +1,7 @@
+card "Staunch Defenders" {
+  oracle_id ec8bf245-4b2c-432b-9b2a-8d7b9224258c
+  cost {3}{W}{W}
+  type Creature — Human Soldier
+  pt 3/4
+  triggered when this enters: you gains 4 life
+}

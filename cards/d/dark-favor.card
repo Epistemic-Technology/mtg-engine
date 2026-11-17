@@ -1,0 +1,8 @@
+card "Dark Favor" {
+  oracle_id c1f4a440-638a-4e3e-8a3e-af4a4a73ec91
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: you loses 1 life
+  static enchanted: +3/+1
+}

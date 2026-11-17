@@ -1,0 +1,6 @@
+card "Explosive Impact" {
+  oracle_id 5eae77d0-7653-4b07-a701-aabea13991bf
+  cost {5}{R}
+  type Instant
+  spell: deal 5 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Gore Swine" {
+  oracle_id af4b5853-ae60-48c9-9be1-bf121fa2e03d
+  cost {2}{R}
+  type Creature — Boar
+  pt 4/1
+}

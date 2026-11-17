@@ -1,0 +1,7 @@
+card "Centaur Healer" {
+  oracle_id ff435f84-73ab-4a16-8af6-6576af4e4edb
+  cost {1}{G}{W}
+  type Creature — Centaur Cleric
+  pt 3/3
+  triggered when this enters: you gains 3 life
+}

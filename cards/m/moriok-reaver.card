@@ -1,0 +1,6 @@
+card "Moriok Reaver" {
+  oracle_id 9bd62fa0-b99c-4b64-a6f6-608cf01f8ef3
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 3/2
+}

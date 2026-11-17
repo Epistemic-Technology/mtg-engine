@@ -1,0 +1,6 @@
+card "Nema Siltlurker" {
+  oracle_id f4542dff-1ba1-4b15-beaf-51a7a42782cf
+  cost {4}{G}
+  type Creature — Lizard
+  pt 3/5
+}

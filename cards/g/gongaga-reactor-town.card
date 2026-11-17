@@ -1,0 +1,6 @@
+card "Gongaga, Reactor Town" {
+  oracle_id ac4e1818-4873-4143-9b99-46f205d006d9
+  type Land — Town
+  enters tapped
+  mana {R} or {G}
+}

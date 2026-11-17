@@ -1,0 +1,7 @@
+card "Moat Piranhas" {
+  oracle_id 40057917-4a88-4316-bc5b-efc0ada1ddff
+  cost {1}{U}
+  type Creature — Fish
+  pt 3/3
+  keywords defender
+}

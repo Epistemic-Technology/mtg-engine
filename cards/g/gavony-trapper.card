@@ -1,0 +1,7 @@
+card "Gavony Trapper" {
+  oracle_id d4da20c7-ae4a-44c6-8f03-9e719ccee8c9
+  cost {W}
+  type Creature — Human Soldier
+  pt 0/2
+  activated {2}, {T}: tap target creature
+}

@@ -1,0 +1,7 @@
+card "Satyr Grovedancer" {
+  oracle_id 49f3bd5a-9c2a-45b8-aa10-9c6471028a0f
+  cost {1}{G}
+  type Creature — Satyr Shaman
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

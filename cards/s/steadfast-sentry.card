@@ -1,0 +1,8 @@
+card "Steadfast Sentry" {
+  oracle_id e0f676ab-f859-4d4f-abe0-d033ffd3c396
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  keywords vigilance
+  triggered when this dies: put 1 +1/+1 counters on target creature you control
+}

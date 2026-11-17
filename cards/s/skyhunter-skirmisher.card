@@ -1,0 +1,7 @@
+card "Skyhunter Skirmisher" {
+  oracle_id 0c07d09e-e127-4573-b827-6c50246f7a31
+  cost {1}{W}{W}
+  type Creature — Cat Knight
+  pt 1/1
+  keywords flying, double strike
+}

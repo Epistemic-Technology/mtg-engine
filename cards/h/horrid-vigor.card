@@ -1,0 +1,6 @@
+card "Horrid Vigor" {
+  oracle_id bef3f0a9-4d5c-4469-81df-adbeedeed768
+  cost {1}{G}
+  type Instant
+  spell: target creature gains deathtouch, indestructible
+}

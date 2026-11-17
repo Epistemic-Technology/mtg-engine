@@ -1,0 +1,6 @@
+card "Blight Rot" {
+  oracle_id cf5b1cf9-dcd3-44d1-b8b2-338651ebb2a1
+  cost {2}{B}
+  type Instant
+  spell: put 4 -1/-1 counters on target creature
+}

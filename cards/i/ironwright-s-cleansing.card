@@ -1,0 +1,6 @@
+card "Ironwright's Cleansing" {
+  oracle_id 599faf5b-88fd-4373-b6ce-6047a67b30ea
+  cost {2}{W}
+  type Sorcery
+  spell: exile target artifact or enchantment
+}

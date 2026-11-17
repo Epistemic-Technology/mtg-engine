@@ -1,0 +1,7 @@
+card "Vexing Gull" {
+  oracle_id 1a36d2a8-6117-4828-bbe2-bc63212d29d8
+  cost {2}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flash, flying
+}

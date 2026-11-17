@@ -1,0 +1,7 @@
+card "Marauding Blight-Priest" {
+  oracle_id 814b87fe-2a75-4ff2-8637-7e69e3fb285b
+  cost {2}{B}
+  type Creature — Vampire Cleric
+  pt 3/2
+  triggered whenever you gain life: each opponent loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Battlefield Raptor" {
+  oracle_id 68a99e50-0e98-480b-ad25-aa2c226d24ca
+  cost {W}
+  type Creature — Bird
+  pt 1/2
+  keywords flying, first strike
+}

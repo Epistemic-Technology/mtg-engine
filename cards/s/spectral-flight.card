@@ -1,0 +1,7 @@
+card "Spectral Flight" {
+  oracle_id d127d1e6-f3a6-4f68-bea5-d7b4123476e5
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying
+}

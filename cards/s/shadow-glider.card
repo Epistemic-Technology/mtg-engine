@@ -1,0 +1,7 @@
+card "Shadow Glider" {
+  oracle_id b92e0156-ea0f-4b13-b3bc-7e84a31445fc
+  cost {2}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  keywords flying
+}

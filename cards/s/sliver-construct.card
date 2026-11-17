@@ -1,0 +1,6 @@
+card "Sliver Construct" {
+  oracle_id 7d592d5b-95cf-4416-9ade-1c23a8ba01d1
+  cost {3}
+  type Artifact Creature — Sliver Construct
+  pt 2/2
+}

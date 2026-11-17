@@ -1,0 +1,6 @@
+card "Sure Strike" {
+  oracle_id fb694e7e-f66e-4958-b6ed-aa74bc9ac43e
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains first strike
+}

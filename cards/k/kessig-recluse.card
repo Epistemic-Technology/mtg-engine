@@ -1,0 +1,7 @@
+card "Kessig Recluse" {
+  oracle_id 61c3b999-4f5d-4018-a9ee-ef894fd1ef6c
+  cost {2}{G}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach, deathtouch
+}

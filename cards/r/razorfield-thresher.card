@@ -1,0 +1,6 @@
+card "Razorfield Thresher" {
+  oracle_id a8b9e29d-e757-4758-8c5e-7013853e2e92
+  cost {7}
+  type Artifact Creature — Construct
+  pt 6/4
+}

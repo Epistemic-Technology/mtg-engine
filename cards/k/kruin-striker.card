@@ -1,0 +1,7 @@
+card "Kruin Striker" {
+  oracle_id 3e261fa8-1256-4525-8115-5880758338fe
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered whenever other creature you control enters: this gets +1/+0 and gains trample
+}

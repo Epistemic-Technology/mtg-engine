@@ -1,0 +1,8 @@
+card "Muse Drake" {
+  oracle_id 04c9b3d7-83ba-400e-9837-2ba0119e9445
+  cost {3}{U}
+  type Creature — Drake
+  pt 1/3
+  keywords flying
+  triggered when this enters: draw 1 cards
+}

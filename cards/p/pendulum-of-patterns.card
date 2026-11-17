@@ -1,0 +1,7 @@
+card "Pendulum of Patterns" {
+  oracle_id 992075d5-f413-4896-b75e-7bb2d589c50e
+  cost {2}
+  type Artifact
+  triggered when this enters: you gains 3 life
+  activated {5}, {T}, sacrifice this: draw 1 cards
+}

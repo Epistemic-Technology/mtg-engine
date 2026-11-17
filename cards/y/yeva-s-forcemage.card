@@ -1,0 +1,7 @@
+card "Yeva's Forcemage" {
+  oracle_id 785e451d-87b6-4772-97e5-d2744818e0fd
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered when this enters: target creature gets +2/+2
+}

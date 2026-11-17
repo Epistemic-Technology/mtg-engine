@@ -1,0 +1,7 @@
+card "Jungle Delver" {
+  oracle_id 2f299e69-d82b-48c9-b7f5-cf07cd9dced2
+  cost {G}
+  type Creature — Merfolk Warrior
+  pt 1/1
+  activated {3}{G}: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Cloud Crusader" {
+  oracle_id 2ef481fa-ff20-426a-af16-fbf761ea5eaf
+  cost {2}{W}{W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords flying, first strike
+}

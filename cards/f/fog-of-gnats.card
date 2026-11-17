@@ -1,0 +1,8 @@
+card "Fog of Gnats" {
+  oracle_id 41f58e06-5ce0-4b2d-a280-5bb3b6c56dfe
+  cost {B}{B}
+  type Creature — Insect
+  pt 1/1
+  keywords flying
+  activated {B}: regenerate this
+}

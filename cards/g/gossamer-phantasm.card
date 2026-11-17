@@ -1,0 +1,8 @@
+card "Gossamer Phantasm" {
+  oracle_id 5ed23ed2-be2f-4958-affe-429f58e9dca5
+  cost {1}{U}
+  type Creature — Illusion
+  pt 2/1
+  keywords flying
+  triggered when this becomes targeted: sacrifice this
+}

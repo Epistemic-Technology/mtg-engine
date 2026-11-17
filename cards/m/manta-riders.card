@@ -1,0 +1,7 @@
+card "Manta Riders" {
+  oracle_id d04f1f62-5363-4bf2-bef2-fb3387fc5f48
+  cost {U}
+  type Creature — Merfolk
+  pt 1/1
+  activated {U}: this gains flying
+}

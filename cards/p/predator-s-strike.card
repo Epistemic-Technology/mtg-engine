@@ -1,0 +1,6 @@
+card "Predator's Strike" {
+  oracle_id f62e9a9f-9989-4a62-b063-cca32e21fe8b
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains trample
+}

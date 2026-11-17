@@ -1,0 +1,6 @@
+card "Radiant Fountain" {
+  oracle_id 6db442e5-fbcc-4456-a4c5-bea1aee3fc8e
+  type Land
+  triggered when this enters: you gains 2 life
+  mana {C}
+}

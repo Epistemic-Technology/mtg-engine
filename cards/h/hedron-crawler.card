@@ -1,0 +1,7 @@
+card "Hedron Crawler" {
+  oracle_id 0b9a4e06-b21d-4cbe-906f-9dbd08dbe5d3
+  cost {2}
+  type Artifact Creature — Construct
+  pt 0/1
+  mana {C}
+}

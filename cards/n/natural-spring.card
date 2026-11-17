@@ -1,0 +1,6 @@
+card "Natural Spring" {
+  oracle_id f7571a2e-aaf3-4148-ab76-2a2e35273c70
+  cost {3}{G}{G}
+  type Sorcery
+  spell: target player gains 8 life
+}

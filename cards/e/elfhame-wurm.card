@@ -1,0 +1,7 @@
+card "Elfhame Wurm" {
+  oracle_id 9a74a1dd-c36f-4900-b835-fc39dd725bde
+  cost {4}{G}
+  type Creature — Wurm
+  pt 5/4
+  keywords vigilance, trample
+}

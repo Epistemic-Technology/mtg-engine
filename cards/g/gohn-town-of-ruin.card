@@ -1,0 +1,6 @@
+card "Gohn, Town of Ruin" {
+  oracle_id 13fbd525-c9ee-4bd6-b269-94fb264024b6
+  type Land — Town
+  enters tapped
+  mana {B} or {G}
+}

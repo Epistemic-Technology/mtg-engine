@@ -1,0 +1,8 @@
+card "Griffin Protector" {
+  oracle_id 2d91cf05-fc39-4d76-8c95-62738b57e0a0
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/3
+  keywords flying
+  triggered whenever other creature you control enters: this gets +1/+1
+}

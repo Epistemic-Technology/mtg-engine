@@ -1,0 +1,6 @@
+card "Dark Remedy" {
+  oracle_id d7cc744b-2fbd-40e6-8a59-392535c17454
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +1/+3
+}

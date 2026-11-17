@@ -1,0 +1,8 @@
+card "Raka Disciple" {
+  oracle_id 88c5a681-4095-4e37-9149-002bcbaf4c0b
+  cost {R}
+  type Creature — Minotaur Wizard
+  pt 1/1
+  activated {W}, {T}: prevent next 1 damage to any target this turn
+  activated {U}, {T}: target creature gains flying
+}

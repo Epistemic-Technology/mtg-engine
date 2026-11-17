@@ -1,0 +1,7 @@
+card "Bond Beetle" {
+  oracle_id 9353f6dd-9a08-4e55-9b07-3e68d7d97ef4
+  cost {G}
+  type Creature — Insect
+  pt 0/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

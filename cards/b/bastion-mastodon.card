@@ -1,0 +1,7 @@
+card "Bastion Mastodon" {
+  oracle_id 48a01671-da1f-4875-bcd5-ca99566ff399
+  cost {5}
+  type Artifact Creature — Elephant
+  pt 4/5
+  activated {W}: this gains vigilance
+}

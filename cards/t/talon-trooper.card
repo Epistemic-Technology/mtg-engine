@@ -1,0 +1,7 @@
+card "Talon Trooper" {
+  oracle_id 518d0773-40fa-4b02-a89e-5711c19617cd
+  cost {1}{W}{U}
+  type Creature — Bird Scout
+  pt 2/3
+  keywords flying
+}

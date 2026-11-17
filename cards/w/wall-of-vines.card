@@ -1,0 +1,7 @@
+card "Wall of Vines" {
+  oracle_id 51ce0158-c9a5-4fa5-9704-46ab02f01b86
+  cost {G}
+  type Creature — Plant Wall
+  pt 0/3
+  keywords defender, reach
+}

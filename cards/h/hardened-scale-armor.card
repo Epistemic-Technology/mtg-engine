@@ -1,0 +1,7 @@
+card "Hardened-Scale Armor" {
+  oracle_id 9eb58db8-7934-485c-8606-fb1a6cc60d42
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+}

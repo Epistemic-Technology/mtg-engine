@@ -1,0 +1,7 @@
+card "Agent of Shauku" {
+  oracle_id d2e0d739-b441-4173-a8f1-b831a19ea98e
+  cost {1}{B}
+  type Creature — Human Mercenary
+  pt 1/1
+  activated {1}{B}, sacrifice land: target creature gets +2/+0
+}

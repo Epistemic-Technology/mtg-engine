@@ -1,0 +1,7 @@
+card "Ravenous Lindwurm" {
+  oracle_id 3583ec24-4f26-45ea-8fb4-a45bdd7bfc79
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/6
+  triggered when this enters: you gains 4 life
+}

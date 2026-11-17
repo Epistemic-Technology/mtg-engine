@@ -1,0 +1,6 @@
+card "Traitorous Blood" {
+  oracle_id 7f1a9248-8e7b-46a8-942b-ca18c7da8c4a
+  cost {1}{R}{R}
+  type Sorcery
+  spell: gain control of target creature; untap target 1; target 1 gains trample, haste
+}

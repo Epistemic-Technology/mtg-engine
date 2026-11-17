@@ -1,0 +1,6 @@
+card "Rakdos Guildgate" {
+  oracle_id 361f534b-39d1-4421-b5a8-d3813c62f86d
+  type Land — Gate
+  enters tapped
+  mana {B} or {R}
+}

@@ -1,0 +1,7 @@
+card "Femeref Healer" {
+  oracle_id e2117373-6f0a-41c8-ab6a-9014b9628e64
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: prevent next 1 damage to any target this turn
+}

@@ -30,6 +30,7 @@ slotmap = { version = "1", features = ["serde"] }
 smallvec = { version = "1", features = ["union", "const_generics", "serde"] }
 rand = "0.9"
 rand_chacha = "0.9"
+regex = "1"
 rayon = "1"
 thiserror = "2"
 

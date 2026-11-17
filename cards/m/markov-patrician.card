@@ -1,0 +1,7 @@
+card "Markov Patrician" {
+  oracle_id d56602f3-64df-4c68-a4a3-95c37c021e72
+  cost {2}{B}
+  type Creature — Vampire
+  pt 3/1
+  keywords lifelink
+}

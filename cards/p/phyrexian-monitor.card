@@ -1,0 +1,7 @@
+card "Phyrexian Monitor" {
+  oracle_id 1eb6c28d-ebac-4016-ad07-c90081ee4983
+  cost {3}{B}
+  type Creature — Phyrexian Skeleton
+  pt 2/2
+  activated {B}: regenerate this
+}

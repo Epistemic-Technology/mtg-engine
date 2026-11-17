@@ -1,0 +1,7 @@
+card "Clergy en-Vec" {
+  oracle_id a5a1b4c9-474a-42b7-b412-c2d43a3353db
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: prevent next 1 damage to any target this turn
+}

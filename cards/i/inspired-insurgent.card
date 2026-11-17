@@ -1,0 +1,7 @@
+card "Inspired Insurgent" {
+  oracle_id 5863c67b-a47c-4466-8bd1-210ab26e0d3f
+  cost {1}{W}
+  type Creature — Human Peasant Ally
+  pt 2/2
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

@@ -1,0 +1,7 @@
+card "Silent Observer" {
+  oracle_id c377c3e0-2b91-43c6-9f49-5dd6fbf94308
+  cost {3}{U}
+  type Creature — Spirit
+  pt 1/5
+  keywords flying
+}

@@ -1,0 +1,5 @@
+card "Tangled Islet" {
+  oracle_id 4b1f68a2-b606-4c64-bd44-a9714808316d
+  type Land — Forest Island
+  enters tapped
+}

@@ -1,0 +1,7 @@
+card "Facevaulter" {
+  oracle_id 602b30a0-ecf3-4639-a512-ee020675e432
+  cost {B}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {B}, sacrifice Goblin: this gets +2/+2
+}

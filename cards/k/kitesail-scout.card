@@ -1,0 +1,7 @@
+card "Kitesail Scout" {
+  oracle_id b365a7dd-fed1-40f8-9544-2b5bc1af761c
+  cost {W}
+  type Creature — Kor Scout
+  pt 1/1
+  keywords flying
+}

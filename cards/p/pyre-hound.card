@@ -1,0 +1,8 @@
+card "Pyre Hound" {
+  oracle_id 0a6f45e9-5c7a-4e2c-bf8a-fc5fe0ae0793
+  cost {3}{R}
+  type Creature — Elemental Dog
+  pt 2/3
+  keywords trample
+  triggered whenever you cast an instant or sorcery spell: put 1 +1/+1 counters on this
+}

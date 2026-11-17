@@ -1,0 +1,8 @@
+card "Crypt Ripper" {
+  oracle_id 18bcf4c5-7abc-4ca5-b805-4bbebf4e433c
+  cost {2}{B}{B}
+  type Creature — Shade
+  pt 2/2
+  keywords haste
+  activated {B}: this gets +1/+1
+}

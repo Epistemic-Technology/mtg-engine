@@ -1,0 +1,7 @@
+card "Flamekin Brawler" {
+  oracle_id 9e3dd85c-ba19-4d22-9f90-252676f3cffa
+  cost {R}
+  type Creature — Elemental Warrior
+  pt 0/2
+  activated {R}: this gets +1/+0
+}

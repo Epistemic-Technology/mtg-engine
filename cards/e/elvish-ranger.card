@@ -1,0 +1,6 @@
+card "Elvish Ranger" {
+  oracle_id 092f2c34-1f75-4998-b219-2cf1ca73656d
+  cost {2}{G}
+  type Creature — Elf Ranger
+  pt 4/1
+}

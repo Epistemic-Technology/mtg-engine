@@ -1,0 +1,7 @@
+card "Weaselback Redcap" {
+  oracle_id b14bd895-1d4e-4bd5-9ac1-fed56afb6c90
+  cost {R}
+  type Creature — Goblin Knight
+  pt 1/1
+  activated {1}{R}: this gets +2/+0
+}

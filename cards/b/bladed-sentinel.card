@@ -1,0 +1,7 @@
+card "Bladed Sentinel" {
+  oracle_id 00f579f4-2d18-4c7c-91b2-34726b384535
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/4
+  activated {W}: this gains vigilance
+}

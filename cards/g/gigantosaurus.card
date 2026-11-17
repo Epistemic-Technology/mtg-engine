@@ -1,0 +1,6 @@
+card "Gigantosaurus" {
+  oracle_id e666bae7-dd51-4921-8b89-7e8d423caba0
+  cost {G}{G}{G}{G}{G}
+  type Creature — Dinosaur
+  pt 10/10
+}

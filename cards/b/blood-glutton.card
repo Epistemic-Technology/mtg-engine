@@ -1,0 +1,7 @@
+card "Blood Glutton" {
+  oracle_id 065b8e5e-874e-4de3-9f12-41e4b1604561
+  cost {4}{B}
+  type Creature — Vampire
+  pt 4/3
+  keywords lifelink
+}

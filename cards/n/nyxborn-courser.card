@@ -1,0 +1,6 @@
+card "Nyxborn Courser" {
+  oracle_id a9b345ea-3e34-48cf-8ab8-887c2b67df9c
+  cost {1}{W}{W}
+  type Enchantment Creature — Centaur Scout
+  pt 2/4
+}

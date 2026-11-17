@@ -1,0 +1,7 @@
+card "Razorfoot Griffin" {
+  oracle_id c7ecb785-2bfc-4953-b356-db7c27406dbb
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying, first strike
+}

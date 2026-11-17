@@ -1,0 +1,6 @@
+card "Shatterskull Giant" {
+  oracle_id aa241f75-ce34-49a8-8ffd-785172249bcf
+  cost {2}{R}{R}
+  type Creature — Giant Warrior
+  pt 4/3
+}

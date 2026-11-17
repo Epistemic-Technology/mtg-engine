@@ -1,0 +1,6 @@
+card "Goblin Cavaliers" {
+  oracle_id be77e3f8-76a3-4d03-a8be-ad4b0b72f929
+  cost {2}{R}
+  type Creature — Goblin
+  pt 3/2
+}

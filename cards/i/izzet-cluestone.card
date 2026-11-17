@@ -1,0 +1,7 @@
+card "Izzet Cluestone" {
+  oracle_id 3c76bb90-92fb-428b-8e94-def4cf4b6f2d
+  cost {3}
+  type Artifact
+  mana {U} or {R}
+  activated {U}{R}, {T}, sacrifice this: draw 1 cards
+}

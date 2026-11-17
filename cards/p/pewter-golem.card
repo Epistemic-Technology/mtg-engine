@@ -1,0 +1,7 @@
+card "Pewter Golem" {
+  oracle_id c9d2c69e-6a4a-45b0-aff1-c19bcbe3b490
+  cost {5}
+  type Artifact Creature — Golem
+  pt 4/2
+  activated {1}{B}: regenerate this
+}

@@ -1,0 +1,7 @@
+card "Veteran Cavalier" {
+  oracle_id 2d02cfce-a142-4b3b-a01f-4e156e75164e
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords vigilance
+}

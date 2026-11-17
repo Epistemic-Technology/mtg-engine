@@ -1,0 +1,6 @@
+card "Cleansing Screech" {
+  oracle_id 4523c22b-363b-4bc6-ba23-b428054abc5d
+  cost {4}{R}
+  type Sorcery
+  spell: deal 4 damage to any target
+}

@@ -1,0 +1,7 @@
+card "Child of Night" {
+  oracle_id c650a7bc-e350-44a0-a698-d4a233d66156
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/1
+  keywords lifelink
+}

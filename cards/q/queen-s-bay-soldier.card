@@ -1,0 +1,6 @@
+card "Queen's Bay Soldier" {
+  oracle_id b288c863-5377-473d-a628-bb199993a29c
+  cost {1}{B}
+  type Creature — Vampire Soldier
+  pt 2/2
+}

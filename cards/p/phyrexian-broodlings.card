@@ -1,0 +1,7 @@
+card "Phyrexian Broodlings" {
+  oracle_id 7d5e4033-bd58-4854-b9d3-a440240995ee
+  cost {1}{B}{B}
+  type Creature — Phyrexian Minion
+  pt 2/2
+  activated {1}, sacrifice creature: put 1 +1/+1 counters on this
+}

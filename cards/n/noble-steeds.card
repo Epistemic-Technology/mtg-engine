@@ -1,0 +1,6 @@
+card "Noble Steeds" {
+  oracle_id d6005e47-d545-4c16-b54a-bfe1dde61a98
+  cost {2}{W}
+  type Enchantment
+  activated {1}{W}: target creature gains first strike
+}

@@ -1,0 +1,6 @@
+card "Russet Wolves" {
+  oracle_id e788e9dd-449d-495b-adad-6d49e408b003
+  cost {3}{R}
+  type Creature — Wolf
+  pt 3/3
+}

@@ -1,0 +1,7 @@
+card "Carrion Screecher" {
+  oracle_id 7b813e46-34f6-4918-97a7-a4b2a2464e86
+  cost {3}{B}
+  type Creature — Zombie Bird
+  pt 3/1
+  keywords flying
+}

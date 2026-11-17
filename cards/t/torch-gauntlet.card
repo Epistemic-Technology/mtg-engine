@@ -1,0 +1,7 @@
+card "Torch Gauntlet" {
+  oracle_id 07fdc0b0-7131-411d-b0a8-f667165a64b8
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  equip {2}
+}

@@ -1,0 +1,6 @@
+card "Wild Ceratok" {
+  oracle_id 4dc82a49-a063-448d-bd2c-a5b69381e27e
+  cost {3}{G}
+  type Creature — Rhino
+  pt 4/3
+}

@@ -1,0 +1,6 @@
+card "Gorilla Warrior" {
+  oracle_id c0e6ae0f-6cf7-48ca-acb8-73d4c38b9005
+  cost {2}{G}
+  type Creature — Ape Warrior
+  pt 3/2
+}

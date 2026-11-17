@@ -1,0 +1,8 @@
+card "Feral Ridgewolf" {
+  oracle_id 3a799843-1304-4abf-b8d7-db616628ee3f
+  cost {2}{R}
+  type Creature — Wolf
+  pt 1/2
+  keywords trample
+  activated {1}{R}: this gets +2/+0
+}

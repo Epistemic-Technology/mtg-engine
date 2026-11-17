@@ -1,0 +1,8 @@
+card "Sarpadian Simulacrum" {
+  oracle_id b563a578-86ce-41a5-a83e-c70c6a4960e2
+  cost {R}
+  type Artifact Creature — Goblin
+  pt 1/1
+  keywords haste
+  activated {3}{R}, sacrifice this: deal 4 damage to target creature
+}

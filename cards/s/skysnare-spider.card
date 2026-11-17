@@ -1,0 +1,7 @@
+card "Skysnare Spider" {
+  oracle_id b820c29e-2428-4074-a024-9502848484d6
+  cost {4}{G}{G}
+  type Creature — Spider
+  pt 6/6
+  keywords vigilance, reach
+}

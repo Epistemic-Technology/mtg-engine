@@ -1,0 +1,7 @@
+card "Debilitating Injury" {
+  oracle_id 52eab77d-9a07-4e14-8872-72681d3b3d0e
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-2
+}

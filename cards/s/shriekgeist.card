@@ -1,0 +1,8 @@
+card "Shriekgeist" {
+  oracle_id e8dd4341-e7e5-49f7-b173-e4c3195e3334
+  cost {1}{U}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: that player mills 2 cards
+}

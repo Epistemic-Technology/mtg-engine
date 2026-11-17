@@ -1,0 +1,7 @@
+card "Orochi Sustainer" {
+  oracle_id d3039b42-25d5-4fe2-955a-0d910d7395bd
+  cost {1}{G}
+  type Creature — Snake Shaman
+  pt 1/2
+  mana {G}
+}

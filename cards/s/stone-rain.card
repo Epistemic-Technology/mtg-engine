@@ -1,0 +1,6 @@
+card "Stone Rain" {
+  oracle_id 6e880df6-fc00-43d2-a9c8-f575f40b78c6
+  cost {2}{R}
+  type Sorcery
+  spell: destroy target land
+}

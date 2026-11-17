@@ -1,0 +1,7 @@
+card "Grazing Whiptail" {
+  oracle_id 94399b1f-e66a-422e-ae41-6013fe741e8c
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 3/4
+  keywords reach
+}

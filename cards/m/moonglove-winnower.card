@@ -1,0 +1,7 @@
+card "Moonglove Winnower" {
+  oracle_id d4870995-f434-4985-a921-1dc9556cee41
+  cost {3}{B}
+  type Creature — Elf Rogue
+  pt 2/3
+  keywords deathtouch
+}

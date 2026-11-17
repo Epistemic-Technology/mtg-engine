@@ -1,0 +1,6 @@
+card "Plated Seastrider" {
+  oracle_id 249b722e-2f4c-4884-bebb-e967f4fd3238
+  cost {U}{U}
+  type Creature — Beast
+  pt 1/4
+}

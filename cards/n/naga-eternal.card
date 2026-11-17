@@ -1,0 +1,6 @@
+card "Naga Eternal" {
+  oracle_id 9d6a10c6-5d39-49c6-b50d-8fc5b8ddcd77
+  cost {2}{U}
+  type Creature — Zombie Snake
+  pt 3/2
+}

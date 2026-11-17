@@ -1,0 +1,7 @@
+card "Befuddle" {
+  oracle_id 664c1219-acfa-41da-b811-503a63fc8d84
+  cost {2}{U}
+  type Instant
+  spell: target creature gets -4/-0
+  spell: draw 1 cards
+}

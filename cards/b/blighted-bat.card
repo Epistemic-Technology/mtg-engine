@@ -1,0 +1,8 @@
+card "Blighted Bat" {
+  oracle_id 542887e9-1032-4396-9cbb-aa3c11ee43a0
+  cost {2}{B}
+  type Creature — Zombie Bat
+  pt 2/1
+  keywords flying
+  activated {1}: this gains haste
+}

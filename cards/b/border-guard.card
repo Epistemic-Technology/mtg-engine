@@ -1,0 +1,6 @@
+card "Border Guard" {
+  oracle_id 1ef5003c-f540-4cdc-913f-7d5280ad9f62
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+}

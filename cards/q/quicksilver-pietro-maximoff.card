@@ -1,0 +1,7 @@
+card "Quicksilver, Pietro Maximoff" {
+  oracle_id c5c1fb0f-b9cf-48a0-a4ea-e995e222e4b4
+  cost {2}{R}
+  type Legendary Creature — Mutant Hero
+  pt 3/2
+  keywords haste
+}

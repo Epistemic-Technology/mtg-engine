@@ -1,0 +1,6 @@
+card "Traveling Philosopher" {
+  oracle_id 1adc4691-20cf-4f55-af85-3132fe1ff2a8
+  cost {1}{W}
+  type Creature — Human Advisor
+  pt 2/2
+}

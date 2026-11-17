@@ -1,0 +1,6 @@
+card "Rumbling Baloth" {
+  oracle_id 3191c6ca-4d25-4ba3-bfe1-4aeab1295573
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 4/4
+}

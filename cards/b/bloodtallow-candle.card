@@ -1,0 +1,6 @@
+card "Bloodtallow Candle" {
+  oracle_id da9b3edc-bc2d-4ff5-b614-3626f504c4e9
+  cost {1}
+  type Artifact
+  activated {6}, {T}, sacrifice this: target creature gets -5/-5
+}

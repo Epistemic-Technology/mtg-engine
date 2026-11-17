@@ -1,0 +1,8 @@
+card "Phantasmal Dreadmaw" {
+  oracle_id cbde4b9d-1549-4892-b8ca-38256a6ac1ba
+  cost {2}{U}{U}
+  type Creature — Dinosaur Illusion
+  pt 6/6
+  keywords trample
+  triggered when this becomes targeted: sacrifice this
+}

@@ -1,0 +1,7 @@
+card "Hornet Harasser" {
+  oracle_id 5c0c3f08-4f65-4b04-8bfc-1532160f3e28
+  cost {2}{B}{B}
+  type Creature — Goblin Shaman
+  pt 2/2
+  triggered when this dies: target creature gets -2/-2
+}

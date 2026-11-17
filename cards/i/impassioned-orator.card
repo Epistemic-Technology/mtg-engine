@@ -1,0 +1,7 @@
+card "Impassioned Orator" {
+  oracle_id c7107a2d-2dcf-42e9-9ea9-d0fc0d6d2ec6
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered whenever other creature you control enters: you gains 1 life
+}

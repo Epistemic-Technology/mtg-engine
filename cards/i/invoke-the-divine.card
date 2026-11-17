@@ -1,0 +1,6 @@
+card "Invoke the Divine" {
+  oracle_id 87bd0fdb-c5b9-46ea-9858-1a870960351f
+  cost {2}{W}
+  type Instant
+  spell: destroy target artifact or enchantment; you gains 4 life
+}

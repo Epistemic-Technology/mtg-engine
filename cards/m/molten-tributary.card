@@ -1,0 +1,5 @@
+card "Molten Tributary" {
+  oracle_id 58c592ed-20fc-481b-909b-2315567e5f20
+  type Land — Island Mountain
+  enters tapped
+}

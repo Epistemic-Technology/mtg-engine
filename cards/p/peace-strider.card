@@ -1,0 +1,7 @@
+card "Peace Strider" {
+  oracle_id b0e96742-77c0-4de5-84b0-0d59a8bee3e0
+  cost {4}
+  type Artifact Creature — Construct
+  pt 3/3
+  triggered when this enters: you gains 3 life
+}

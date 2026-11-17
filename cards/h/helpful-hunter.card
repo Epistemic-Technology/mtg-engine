@@ -1,0 +1,7 @@
+card "Helpful Hunter" {
+  oracle_id c0864adb-e9aa-40b6-91ff-a0646193e887
+  cost {1}{W}
+  type Creature — Cat
+  pt 1/1
+  triggered when this enters: draw 1 cards
+}

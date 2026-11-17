@@ -1,0 +1,7 @@
+card "Tajuru Pathwarden" {
+  oracle_id d8c7cd66-d8bf-4a99-add5-1d5651d4e025
+  cost {4}{G}
+  type Creature — Elf Warrior Ally
+  pt 5/4
+  keywords vigilance, trample
+}

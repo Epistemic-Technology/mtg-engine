@@ -1,0 +1,6 @@
+card "Feral Maaka" {
+  oracle_id d4556b82-f96e-4f88-a885-3e84afdb98a1
+  cost {1}{R}
+  type Creature — Cat
+  pt 2/2
+}

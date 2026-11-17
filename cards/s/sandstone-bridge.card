@@ -1,0 +1,7 @@
+card "Sandstone Bridge" {
+  oracle_id 08911e8e-cd67-4960-a927-958c33632469
+  type Land
+  enters tapped
+  triggered when this enters: target creature gets +1/+1 and gains vigilance
+  mana {W}
+}

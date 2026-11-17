@@ -1,0 +1,8 @@
+card "Centaur Veteran" {
+  oracle_id bd4c9726-c7bb-4da4-99e5-e98d174d6a52
+  cost {5}{G}
+  type Creature — Centaur
+  pt 3/3
+  keywords trample
+  activated {G}, discard 1 card: regenerate this
+}

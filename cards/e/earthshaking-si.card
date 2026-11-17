@@ -1,0 +1,7 @@
+card "Earthshaking Si" {
+  oracle_id 62c4d349-a18e-40a2-8cc3-244c219dec7f
+  cost {5}{G}
+  type Creature — Beast
+  pt 5/5
+  keywords trample
+}

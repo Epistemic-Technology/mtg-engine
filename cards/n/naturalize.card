@@ -1,0 +1,6 @@
+card "Naturalize" {
+  oracle_id bdb3ca68-ec1f-4e16-81cc-d23f8f52c728
+  cost {1}{G}
+  type Instant
+  spell: destroy target artifact or enchantment
+}

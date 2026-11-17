@@ -1,0 +1,7 @@
+card "Hero's Resolve" {
+  oracle_id 1854a99d-f8c7-45b3-83a2-98ae1c5b5b09
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+5
+}

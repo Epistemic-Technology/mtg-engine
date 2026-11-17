@@ -1,0 +1,6 @@
+card "Wring Flesh" {
+  oracle_id 45bb536c-c173-4b6e-a5a8-354c74fd93a1
+  cost {B}
+  type Instant
+  spell: target creature gets -3/-1
+}

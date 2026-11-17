@@ -1,0 +1,7 @@
+card "Flame-Chain Mauler" {
+  oracle_id d6eef6a7-0cf4-4ee8-90e0-727a283c3be9
+  cost {1}{R}
+  type Creature — Elemental Warrior
+  pt 2/2
+  activated {1}{R}: this gets +1/+0 and gains menace
+}

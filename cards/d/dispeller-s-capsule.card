@@ -1,0 +1,6 @@
+card "Dispeller's Capsule" {
+  oracle_id 91fc862d-fdde-45ea-a05d-30d38e7a735c
+  cost {W}
+  type Artifact
+  activated {2}{W}, {T}, sacrifice this: destroy target artifact or enchantment
+}

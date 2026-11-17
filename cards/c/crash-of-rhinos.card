@@ -1,0 +1,7 @@
+card "Crash of Rhinos" {
+  oracle_id b2d7251e-2848-4b85-8d99-7c43be163dfb
+  cost {6}{G}{G}
+  type Creature — Rhino
+  pt 8/4
+  keywords trample
+}

@@ -1,0 +1,7 @@
+card "Myr Scrapling" {
+  oracle_id 1a4ffc1e-2f5e-446a-b1e8-32385b3c083b
+  cost {1}
+  type Artifact Creature — Myr
+  pt 1/1
+  activated sacrifice this: put 1 +1/+1 counters on target creature
+}

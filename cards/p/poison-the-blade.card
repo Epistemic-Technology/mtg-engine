@@ -1,0 +1,7 @@
+card "Poison the Blade" {
+  oracle_id 8af22295-0d6b-4cdc-b815-eb81ade241ec
+  cost {1}{G}
+  type Instant
+  spell: target creature gains deathtouch
+  spell: draw 1 cards
+}

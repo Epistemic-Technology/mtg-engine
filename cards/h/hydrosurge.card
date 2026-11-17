@@ -1,0 +1,6 @@
+card "Hydrosurge" {
+  oracle_id 4c2059d5-9a2e-4b89-a617-9125eb0cd570
+  cost {U}
+  type Instant
+  spell: target creature gets -5/-0
+}

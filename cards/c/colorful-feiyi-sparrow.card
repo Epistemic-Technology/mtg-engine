@@ -1,0 +1,7 @@
+card "Colorful Feiyi Sparrow" {
+  oracle_id 82657b8b-de2d-46ab-ab56-e2790e326d95
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/3
+  keywords flying
+}

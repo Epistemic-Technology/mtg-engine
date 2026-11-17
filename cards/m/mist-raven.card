@@ -1,0 +1,8 @@
+card "Mist Raven" {
+  oracle_id 12654457-3aae-4046-a976-8e41c3f78927
+  cost {2}{U}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: return target creature to hand
+}

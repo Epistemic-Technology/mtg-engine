@@ -1,0 +1,8 @@
+card "Sunmane Pegasus" {
+  oracle_id 4f7e7c59-e0a9-4b32-96b9-b1abf52f5ef7
+  cost {3}{W}
+  type Creature — Pegasus
+  pt 2/3
+  keywords flying
+  activated {1}{W}: this gains vigilance, lifelink
+}

@@ -1,0 +1,7 @@
+card "Kraul Stinger" {
+  oracle_id 8481d91e-0242-4edc-8f4a-ffa47cf2e097
+  cost {2}{G}
+  type Creature — Insect Assassin
+  pt 2/2
+  keywords deathtouch
+}

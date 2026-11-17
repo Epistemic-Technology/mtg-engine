@@ -1,0 +1,7 @@
+card "Seer of the Last Tomorrow" {
+  oracle_id dc5cb189-9eff-4b4e-a46d-7a8e62529c89
+  cost {2}{U}
+  type Creature — Snake Cleric
+  pt 1/4
+  activated {U}, {T}, discard 1 card: target player mills 3 cards
+}

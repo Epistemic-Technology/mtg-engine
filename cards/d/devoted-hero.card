@@ -1,0 +1,6 @@
+card "Devoted Hero" {
+  oracle_id fff6f2d0-22b5-41d0-99dc-bc817c3bd166
+  cost {W}
+  type Creature — Elf Soldier
+  pt 1/2
+}

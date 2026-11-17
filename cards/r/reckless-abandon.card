@@ -1,0 +1,7 @@
+card "Reckless Abandon" {
+  oracle_id f24d5187-0f80-4528-bf44-03ae146f3551
+  cost {R}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: deal 4 damage to any target
+}

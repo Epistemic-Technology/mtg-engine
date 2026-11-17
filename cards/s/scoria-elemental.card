@@ -1,0 +1,6 @@
+card "Scoria Elemental" {
+  oracle_id 1a6e8369-241f-4ddc-b4cd-a974d6b689a7
+  cost {4}{R}
+  type Creature — Elemental
+  pt 6/1
+}

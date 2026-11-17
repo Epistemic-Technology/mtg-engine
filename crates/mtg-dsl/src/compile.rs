@@ -85,11 +85,19 @@ impl Compiler<'_> {
 
     fn card(&mut self) -> Result<mtg_core::card::CardDef, CompileError> {
         let card = self.card;
+        let keywords = card
+            .keywords
+            .iter()
+            .copied()
+            .chain(card.abilities.iter().filter_map(|a| match a {
+                Ability::Keyword(k) => Some(*k),
+                _ => None,
+            }));
         let mut b = Builder::new(&card.name, &card.cost.to_string())
             .supertypes(card.supertypes.iter().copied())
             .types(card.types.iter().copied())
             .subtypes(&card.subtypes.iter().map(String::as_str).collect::<Vec<_>>())
-            .keywords(card.keywords.iter().copied())
+            .keywords(keywords)
             .text(&render::oracle_text(card, self.lookup));
         if let Some((p, t)) = card.pt {
             b = b.pt(p, t);
@@ -109,6 +117,9 @@ impl Compiler<'_> {
             b = b.additional_cost(self.cost(cost));
         }
         for a in &card.abilities {
+            if matches!(a, Ability::Keyword(_)) {
+                continue;
+            }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
         }
@@ -176,7 +187,7 @@ impl Compiler<'_> {
 
     fn recipient(r: Recipient) -> CoreRecipient {
         match r {
-            Recipient::Target(i) => CoreRecipient::Target(i),
+            Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent => CoreRecipient::EachOpponent,
             Recipient::Source => CoreRecipient::Source,
@@ -483,6 +494,7 @@ impl Compiler<'_> {
 
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         Ok(match a {
+            Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
                 // choices is split by the caller through `abilities()`.

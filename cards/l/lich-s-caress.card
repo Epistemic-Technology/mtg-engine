@@ -1,0 +1,6 @@
+card "Lich's Caress" {
+  oracle_id 01b3af6d-ab7d-4137-a94a-1cf2cbfd9d44
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; you gains 3 life
+}

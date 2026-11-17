@@ -1,0 +1,8 @@
+card "Inkrise Infiltrator" {
+  oracle_id 6a45d09a-6af3-45fb-8f7c-cf630cb37f24
+  cost {1}{B}
+  type Creature — Human Ninja
+  pt 1/2
+  keywords flying
+  activated {3}{B}: this gets +2/+2
+}

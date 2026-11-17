@@ -1,0 +1,8 @@
+card "Flight of Fancy" {
+  oracle_id cd20a2a4-5e5e-420d-9420-651bce511f76
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 2 cards
+  static enchanted: has flying
+}

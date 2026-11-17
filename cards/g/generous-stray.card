@@ -1,0 +1,7 @@
+card "Generous Stray" {
+  oracle_id 5722a13f-7d70-438c-94ba-97a3f53fbc5c
+  cost {2}{G}
+  type Creature — Cat
+  pt 1/2
+  triggered when this enters: draw 1 cards
+}

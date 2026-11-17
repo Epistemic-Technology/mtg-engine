@@ -1,0 +1,7 @@
+card "Dwarven Provisioner" {
+  oracle_id 8fcab221-8737-4357-b8ee-bad9421739a3
+  cost {1}{W}
+  type Creature — Dwarf Citizen
+  pt 2/2
+  activated {3}{W}: each creature you control gets +1/+1
+}

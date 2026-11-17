@@ -1,0 +1,7 @@
+card "Rootwater Alligator" {
+  oracle_id 2bf84938-6049-4d03-b09e-85bd0763a187
+  cost {3}{G}
+  type Creature — Crocodile
+  pt 3/2
+  activated sacrifice Forest: regenerate this
+}

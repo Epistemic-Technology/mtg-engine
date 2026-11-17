@@ -1,0 +1,7 @@
+card "Soaring Drake" {
+  oracle_id 6bc14f1e-1df8-4e72-b05a-a848faa3b080
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flying
+}

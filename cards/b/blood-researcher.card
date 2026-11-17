@@ -1,0 +1,8 @@
+card "Blood Researcher" {
+  oracle_id a465ba74-615a-4261-b4a0-fcb0819f10b3
+  cost {1}{B}{G}
+  type Creature — Vampire Druid
+  pt 2/2
+  keywords menace
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

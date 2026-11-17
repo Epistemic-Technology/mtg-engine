@@ -1,0 +1,6 @@
+card "Murasa Brute" {
+  oracle_id 5f84a140-577f-4a1e-a900-793664332fd6
+  cost {2}{G}
+  type Creature — Troll Warrior
+  pt 3/3
+}

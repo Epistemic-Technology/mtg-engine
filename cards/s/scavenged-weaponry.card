@@ -1,0 +1,8 @@
+card "Scavenged Weaponry" {
+  oracle_id 2d3010d5-5c21-4342-ad79-a737b6731230
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +1/+1
+}

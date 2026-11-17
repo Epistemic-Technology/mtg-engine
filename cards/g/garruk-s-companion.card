@@ -1,0 +1,7 @@
+card "Garruk's Companion" {
+  oracle_id 32fc8fa7-7e0a-4d4e-85cf-2f98b3fc6ecf
+  cost {G}{G}
+  type Creature — Beast
+  pt 3/2
+  keywords trample
+}

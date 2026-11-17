@@ -1,0 +1,8 @@
+card "Carrion Crow" {
+  oracle_id 2f9de785-a80a-4356-a4b4-0e0243e8ea2d
+  cost {2}{B}
+  type Creature — Zombie Bird
+  pt 2/2
+  keywords flying
+  enters tapped
+}

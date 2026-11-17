@@ -1,0 +1,7 @@
+card "Fleshmad Steed" {
+  oracle_id 5acf1424-6886-4777-be9c-a845502e08bd
+  cost {1}{B}
+  type Creature — Horse
+  pt 2/2
+  triggered whenever other creature dies: tap this
+}

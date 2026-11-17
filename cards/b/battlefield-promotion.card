@@ -1,0 +1,6 @@
+card "Battlefield Promotion" {
+  oracle_id 303d74d0-84db-4694-bb1a-470cf470bc4f
+  cost {1}{W}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; that creature gains first strike; you gains 2 life
+}

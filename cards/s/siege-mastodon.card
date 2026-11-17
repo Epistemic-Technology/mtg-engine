@@ -1,0 +1,6 @@
+card "Siege Mastodon" {
+  oracle_id b4c404d8-9f2d-4429-ac36-449ae319abb7
+  cost {4}{W}
+  type Creature — Elephant
+  pt 3/5
+}

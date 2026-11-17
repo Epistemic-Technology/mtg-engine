@@ -1,0 +1,7 @@
+card "Asgardian Citadel" {
+  oracle_id e3614df6-ce84-4180-ade1-a1751e8e3c9a
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {R} or {W}
+}

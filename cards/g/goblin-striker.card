@@ -1,0 +1,7 @@
+card "Goblin Striker" {
+  oracle_id c991d1b8-3adb-4854-9fd3-83f06aeb3941
+  cost {1}{R}
+  type Creature — Goblin Berserker
+  pt 1/1
+  keywords first strike, haste
+}

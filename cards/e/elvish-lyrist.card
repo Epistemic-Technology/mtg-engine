@@ -1,0 +1,7 @@
+card "Elvish Lyrist" {
+  oracle_id e0de1c9b-f71f-4498-a968-d3c635cb4c5c
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  activated {G}, {T}, sacrifice this: destroy target enchantment
+}

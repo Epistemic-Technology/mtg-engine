@@ -1,0 +1,7 @@
+card "Sparkmage Apprentice" {
+  oracle_id 69003cbc-8e5a-41dc-ac53-18f6e776217b
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 1/1
+  triggered when this enters: deal 1 damage to any target
+}

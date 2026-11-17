@@ -1,0 +1,6 @@
+card "Wild Jhovall" {
+  oracle_id 8db78c62-e0b9-4ed7-b29f-238f23f79bc4
+  cost {3}{R}
+  type Creature — Cat
+  pt 3/3
+}

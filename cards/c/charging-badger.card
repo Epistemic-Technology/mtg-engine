@@ -1,0 +1,7 @@
+card "Charging Badger" {
+  oracle_id 04be1e69-2d5c-4931-8906-a6807b5b08ca
+  cost {G}
+  type Creature — Badger
+  pt 1/1
+  keywords trample
+}

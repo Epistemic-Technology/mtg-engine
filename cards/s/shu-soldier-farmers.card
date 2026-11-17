@@ -1,0 +1,7 @@
+card "Shu Soldier-Farmers" {
+  oracle_id 174cf7cd-3e8c-4f90-abc1-a78a0ce832d2
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered when this enters: you gains 4 life
+}

@@ -1,0 +1,8 @@
+card "Sarcomite Myr" {
+  oracle_id e78fd8f6-eca9-4107-aee7-a65689cee2f4
+  cost {2}{U}
+  type Artifact Creature — Phyrexian Myr
+  pt 2/1
+  activated {2}: this gains flying
+  activated {2}, sacrifice this: draw 1 cards
+}

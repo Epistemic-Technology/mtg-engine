@@ -1,0 +1,6 @@
+card "Witch's Web" {
+  oracle_id 6ec9a14a-0a62-4f8a-9147-3cab01411a65
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains reach; untap target 1
+}

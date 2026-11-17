@@ -1,0 +1,7 @@
+card "Seething Pathblazer" {
+  oracle_id 574abab1-a722-45f5-a210-c1d4442a278a
+  cost {2}{R}
+  type Creature — Elemental Warrior
+  pt 2/2
+  activated sacrifice Elemental: this gets +2/+0 and gains first strike
+}

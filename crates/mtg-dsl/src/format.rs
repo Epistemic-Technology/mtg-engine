@@ -11,8 +11,8 @@ use mtg_core::mana::Mana;
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mod, Recipient, Replaces,
-    SacCost, Sentence, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Kind, Mod, Recipient,
+    Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
@@ -107,6 +107,10 @@ impl Fmt {
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
                     }
                 }
+            }
+            Recipient::ThatTarget(i) => {
+                self.mentioned[i] = true;
+                format!("that target {}", i + 1)
             }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
@@ -579,28 +583,52 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
 }
 
 fn cost_text(c: &Cost) -> String {
+    let default_order = [
+        CostItem::Mana,
+        CostItem::Tap,
+        CostItem::Sacrifice,
+        CostItem::Discard,
+        CostItem::Life,
+    ];
+    let order: &[CostItem] = if c.order.is_empty() {
+        &default_order
+    } else {
+        &c.order
+    };
     let mut parts = Vec::new();
-    let mana = c.mana.to_string();
-    if !mana.is_empty() {
-        parts.push(mana);
-    }
-    if c.tap {
-        parts.push("{T}".to_string());
-    }
-    match &c.sacrifice {
-        Some(SacCost::This) => parts.push("sacrifice this".to_string()),
-        Some(SacCost::Filter(f)) => parts.push(format!("sacrifice {}", filter(f))),
-        None => {}
-    }
-    if c.discard > 0 {
-        parts.push(format!(
-            "discard {} {}",
-            c.discard,
-            if c.discard == 1 { "card" } else { "cards" }
-        ));
-    }
-    if c.life > 0 {
-        parts.push(format!("pay {} life", c.life));
+    for item in order {
+        match item {
+            CostItem::Mana => {
+                let mana = c.mana.to_string();
+                if !mana.is_empty() {
+                    parts.push(mana);
+                }
+            }
+            CostItem::Tap => {
+                if c.tap {
+                    parts.push("{T}".to_string());
+                }
+            }
+            CostItem::Sacrifice => match &c.sacrifice {
+                Some(SacCost::This) => parts.push("sacrifice this".to_string()),
+                Some(SacCost::Filter(f)) => parts.push(format!("sacrifice {}", filter(f))),
+                None => {}
+            },
+            CostItem::Discard => {
+                if c.discard > 0 {
+                    parts.push(format!(
+                        "discard {} {}",
+                        c.discard,
+                        if c.discard == 1 { "card" } else { "cards" }
+                    ));
+                }
+            }
+            CostItem::Life => {
+                if c.life > 0 {
+                    parts.push(format!("pay {} life", c.life));
+                }
+            }
+        }
     }
     if c.sorcery && c.loyalty.is_none() {
         parts.push("sorcery".to_string());
@@ -707,6 +735,9 @@ fn body(out: &mut String, indent: &str, head: &str, ss: &[Sentence], targets: &[
 
 fn ability(out: &mut String, ability: &Ability, indent: &str) {
     match ability {
+        Ability::Keyword(k) => {
+            let _ = writeln!(out, "{indent}keyword {}", keyword_name(*k));
+        }
         Ability::Mana(m) => {
             let syms: Vec<String> = m
                 .iter()

@@ -1,0 +1,8 @@
+card "Palace Familiar" {
+  oracle_id dab9e40f-b73a-4c55-8bb3-63b32c23f07b
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this dies: draw 1 cards
+}

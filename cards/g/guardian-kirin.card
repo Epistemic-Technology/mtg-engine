@@ -1,0 +1,8 @@
+card "Guardian Kirin" {
+  oracle_id e9dbfda3-e162-49f0-b9bf-f8213e27c17d
+  cost {3}{W}
+  type Creature — Kirin
+  pt 2/3
+  keywords flying
+  triggered whenever other creature you control dies: put 1 +1/+1 counters on this
+}

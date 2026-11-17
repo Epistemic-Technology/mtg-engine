@@ -1,0 +1,6 @@
+card "Spidery Grasp" {
+  oracle_id 021ce403-cbfa-4d69-a6e9-473d58bd477a
+  cost {2}{G}
+  type Instant
+  spell: untap target creature; target 1 gets +2/+4 and gains reach
+}

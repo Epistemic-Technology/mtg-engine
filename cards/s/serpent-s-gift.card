@@ -1,0 +1,6 @@
+card "Serpent's Gift" {
+  oracle_id b75fb789-6a78-4d23-b872-7627b478fb6f
+  cost {2}{G}
+  type Instant
+  spell: target creature gains deathtouch
+}

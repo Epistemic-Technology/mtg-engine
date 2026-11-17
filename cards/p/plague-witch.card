@@ -1,0 +1,7 @@
+card "Plague Witch" {
+  oracle_id 532ab335-4873-405b-84b3-c447207172b5
+  cost {1}{B}
+  type Creature — Elf Spellshaper
+  pt 1/1
+  activated {B}, {T}, discard 1 card: target creature gets -1/-1
+}

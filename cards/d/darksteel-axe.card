@@ -1,0 +1,8 @@
+card "Darksteel Axe" {
+  oracle_id 3b7ea3ac-ac0a-40aa-b743-d153e1c47d8c
+  cost {1}
+  type Artifact — Equipment
+  keywords indestructible
+  static enchanted: +2/+0
+  equip {2}
+}

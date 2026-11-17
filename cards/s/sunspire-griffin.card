@@ -1,0 +1,7 @@
+card "Sunspire Griffin" {
+  oracle_id 0f51ab3d-aae9-4d8d-a881-e8835dcd7866
+  cost {1}{W}{W}
+  type Creature — Griffin
+  pt 2/3
+  keywords flying
+}

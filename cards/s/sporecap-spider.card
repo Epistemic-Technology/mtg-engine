@@ -1,0 +1,7 @@
+card "Sporecap Spider" {
+  oracle_id e9b5d4f3-b98a-463a-b628-289c2df81204
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/5
+  keywords reach
+}

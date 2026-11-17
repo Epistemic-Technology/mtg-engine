@@ -1,0 +1,8 @@
+card "Pestilent Kathari" {
+  oracle_id 755ab107-0f65-4536-aa4b-8e9d35a9e524
+  cost {2}{B}
+  type Creature — Bird Warrior
+  pt 1/1
+  keywords flying, deathtouch
+  activated {2}{R}: this gains first strike
+}

@@ -1,0 +1,7 @@
+card "Smoldering Efreet" {
+  oracle_id 789b6a61-656e-40c0-be78-9c89c4ecfb0b
+  cost {1}{R}
+  type Creature — Efreet Monk
+  pt 2/2
+  triggered when this dies: deal 2 damage to you
+}

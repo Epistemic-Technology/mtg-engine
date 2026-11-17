@@ -1,0 +1,7 @@
+card "Moss Kami" {
+  oracle_id 3ddd58a3-85f6-40ba-812f-057c0c4417a7
+  cost {5}{G}
+  type Creature — Spirit
+  pt 5/5
+  keywords trample
+}

@@ -139,6 +139,7 @@ impl Decompiler<'_> {
                 CoreSacCost::Filter(f) => SacCost::Filter(self.filter(f)),
             }),
             sorcery: false,
+            order: Vec::new(),
         }
     }
 

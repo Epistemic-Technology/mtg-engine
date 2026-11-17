@@ -1,0 +1,7 @@
+card "A.I.M. Labs" {
+  oracle_id 8417f2d5-93c9-474a-a143-5c4e17097a88
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {B}
+}

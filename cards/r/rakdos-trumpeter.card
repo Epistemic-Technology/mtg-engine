@@ -1,0 +1,8 @@
+card "Rakdos Trumpeter" {
+  oracle_id 2047a613-809d-4a47-9c78-f58a380ba18d
+  cost {1}{B}
+  type Creature — Human Shaman
+  pt 1/3
+  keywords menace
+  activated {3}{R}: this gets +2/+0
+}

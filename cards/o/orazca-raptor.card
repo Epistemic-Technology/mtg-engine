@@ -1,0 +1,6 @@
+card "Orazca Raptor" {
+  oracle_id 507ffc26-6c45-4167-9e0d-3c88b065720a
+  cost {2}{R}{R}
+  type Creature — Dinosaur
+  pt 3/4
+}

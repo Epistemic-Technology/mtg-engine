@@ -1,0 +1,7 @@
+card "Shambling Ghoul" {
+  oracle_id 2acc1657-d716-41d7-aedf-9b080a58ec83
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/3
+  enters tapped
+}

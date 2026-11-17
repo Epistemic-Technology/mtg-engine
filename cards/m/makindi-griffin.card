@@ -1,0 +1,7 @@
+card "Makindi Griffin" {
+  oracle_id af2a951f-7630-48fe-bb37-273b66901eb6
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/4
+  keywords flying
+}

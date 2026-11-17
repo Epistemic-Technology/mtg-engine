@@ -1,0 +1,6 @@
+card "Antagonize" {
+  oracle_id f4e860f1-e637-4640-b257-57c2e42793ce
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +4/+3
+}

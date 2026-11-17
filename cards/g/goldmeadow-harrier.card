@@ -1,0 +1,7 @@
+card "Goldmeadow Harrier" {
+  oracle_id 546f037b-aea8-4c7a-9b66-373f1be0bac6
+  cost {W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  activated {W}, {T}: tap target creature
+}

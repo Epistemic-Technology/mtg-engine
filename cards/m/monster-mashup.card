@@ -1,0 +1,7 @@
+card "Monster Mashup" {
+  oracle_id 485e1d84-2867-4c66-a399-cdc2a22f6fc9
+  cost {3}{R}
+  type Creature — Werewolf Fish Zombie Vampire
+  pt 4/3
+  keywords reach, menace
+}

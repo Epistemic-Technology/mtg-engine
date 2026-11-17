@@ -1,0 +1,7 @@
+card "Moldering Karok" {
+  oracle_id 5d95db27-53bb-4a20-9fb8-24998b03e767
+  cost {2}{B}{G}
+  type Creature — Zombie Crocodile
+  pt 3/3
+  keywords trample, lifelink
+}

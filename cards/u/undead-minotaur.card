@@ -1,0 +1,6 @@
+card "Undead Minotaur" {
+  oracle_id 19b25d09-563f-4159-9ce0-c0343564bd3b
+  cost {2}{B}
+  type Creature — Zombie Minotaur
+  pt 2/3
+}

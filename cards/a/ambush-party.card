@@ -1,0 +1,7 @@
+card "Ambush Party" {
+  oracle_id 454ed336-362d-46d9-96d5-8fcaa8a1c543
+  cost {4}{R}
+  type Creature — Human Rogue
+  pt 3/1
+  keywords first strike, haste
+}

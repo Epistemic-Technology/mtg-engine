@@ -1,0 +1,7 @@
+card "Swift Spinner" {
+  oracle_id 91585b64-f10d-47c6-a563-384ceb944710
+  cost {3}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords flash, reach
+}

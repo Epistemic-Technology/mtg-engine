@@ -1,0 +1,7 @@
+card "Wild Guess" {
+  oracle_id a05ab59e-680a-4050-aecb-56ee69dcd13f
+  cost {R}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards
+}

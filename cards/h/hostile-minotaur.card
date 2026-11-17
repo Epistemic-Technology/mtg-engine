@@ -1,0 +1,7 @@
+card "Hostile Minotaur" {
+  oracle_id e050a0a3-f48e-4cba-9cd4-692a92261c9f
+  cost {3}{R}
+  type Creature — Minotaur
+  pt 3/3
+  keywords haste
+}

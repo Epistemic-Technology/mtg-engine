@@ -1,0 +1,6 @@
+card "Dutiful Servants" {
+  oracle_id 5837b3d9-b3cb-4333-b0db-ed38e49c997f
+  cost {3}{W}
+  type Creature — Zombie
+  pt 2/5
+}

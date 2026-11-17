@@ -1,0 +1,7 @@
+card "Magefire Wings" {
+  oracle_id ea8c4a7d-f7fb-4620-b3a4-ae8280dd60d9
+  cost {U}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has flying
+}

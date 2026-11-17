@@ -1,0 +1,6 @@
+card "Omega Myr" {
+  oracle_id fd1b237a-7132-4875-b738-8ec65b85ea28
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/2
+}

@@ -1,0 +1,7 @@
+card "Eternal Warrior" {
+  oracle_id dab28bc6-3b2a-444f-b596-0a8d95d6d28c
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has vigilance
+}

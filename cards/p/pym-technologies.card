@@ -1,0 +1,7 @@
+card "Pym Technologies" {
+  oracle_id 5a8977fc-0732-4807-b876-01819aedd70b
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {G} or {U}
+}

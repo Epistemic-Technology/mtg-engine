@@ -1,0 +1,7 @@
+card "Candlelight Vigil" {
+  oracle_id 7153bf15-53f8-445e-acbb-35b4f4b3d551
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+2, has vigilance
+}

@@ -1,0 +1,6 @@
+card "Seagraf Skaab" {
+  oracle_id 1c7dd66f-a062-49ac-aa7c-1bf5ec069d73
+  cost {1}{U}
+  type Creature — Zombie
+  pt 1/3
+}

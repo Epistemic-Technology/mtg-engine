@@ -1,0 +1,7 @@
+card "Rot Shambler" {
+  oracle_id 88c187fd-b3d3-4218-8e63-380a9ca9f1b4
+  cost {1}{G}
+  type Creature — Fungus
+  pt 1/1
+  triggered whenever other creature you control dies: put 1 +1/+1 counters on this
+}

@@ -17,10 +17,12 @@ non-mana costs, regeneration, damage redirection, the CR 614.12
 look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
 DSL and authoring pipeline) is under way: cards are text files under
 `cards/` that compile to the engine's definitions and render back to
-Oracle text, and a gate checks that rendering against Scryfall (131 of
-131 cards match). Random agents play complete games with the 138-card
-pool at about 5,100 games per second per core on effect-free boards. A
-378-scenario rules corpus passes. See [design.md](design.md) for the
+Oracle text, and a gate checks that rendering against Scryfall. The
+corpus holds 2,222 cards (131 hand-written and scenario-tested, 2,090
+authored from Oracle text by templates; 20% of Pauper), all matching
+their Oracle text. Random agents play complete games at about 5,000
+games per second per core on effect-free boards. A 378-scenario rules
+corpus passes. See [design.md](design.md) for the
 architecture, roadmap, and open questions.
 
 ```
@@ -43,6 +45,16 @@ no English: the engine renders its statements to Oracle text, and
 ```
 cargo run -p mtg-cards -- gate                # every card against its Oracle text
 cargo run -p mtg-cards -- gate --diff "Pestilence"
+cargo run -p mtg-cards -- author --format pauper --write   # author what the templates cover
+cargo run -p mtg-cards -- coverage --format pauper --scenarios
+```
+
+Fuzzing draws random two-color decks from the whole corpus:
+
+```
+cargo run --release -p mtg-cli -- sim --deck1 random:7 --deck2 random:8 --games 1000
+cargo run --release -p mtg-cli -- deck random:7
+scripts/fuzz-random.sh                       # and scripts/fuzz.sh, scripts/bench.sh
 ```
 
 ## Layout
@@ -56,8 +68,9 @@ crates/
   mtg-agents/    baseline agents
   mtg-sim/       batch simulation, fuzzing, benchmarks
   mtg-cli/       human/debug CLI
-cards/           the card corpus (*.card), embedded at build time
+cards/           the card corpus (*.card, one per card under cards/<letter>/), embedded at build time
 scenarios/       rules-test corpus (*.scn)
+scripts/         fuzz and A/B benchmark scripts
 data/
   sources.lock   pinned Scryfall and MTGJSON snapshot (committed)
   scryfall/      fetched bulk data (gitignored)

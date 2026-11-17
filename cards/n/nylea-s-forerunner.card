@@ -1,0 +1,8 @@
+card "Nylea's Forerunner" {
+  oracle_id bf0948b7-f7af-4d99-a8aa-ea7e6a69232d
+  cost {4}{G}
+  type Enchantment Creature — Beast
+  pt 5/3
+  keywords trample
+  static other creature you control: has trample
+}

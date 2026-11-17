@@ -1,0 +1,7 @@
+card "Sea Eagle" {
+  oracle_id acb57162-7093-4a3c-9818-d3b61ce757c6
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+}

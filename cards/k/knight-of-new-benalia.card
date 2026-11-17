@@ -1,0 +1,6 @@
+card "Knight of New Benalia" {
+  oracle_id 75f28e54-17ce-49f9-85b2-9f9a04e1d86f
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+}

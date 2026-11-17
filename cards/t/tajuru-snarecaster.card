@@ -1,0 +1,7 @@
+card "Tajuru Snarecaster" {
+  oracle_id 2061fe08-0c7c-4d79-a144-996c3012952c
+  cost {2}{G}
+  type Creature — Elf Rogue
+  pt 1/4
+  keywords reach
+}

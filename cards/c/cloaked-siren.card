@@ -1,0 +1,7 @@
+card "Cloaked Siren" {
+  oracle_id d38a33ae-59d1-4d08-8e14-5fa5a8c3762d
+  cost {3}{U}
+  type Creature — Siren
+  pt 3/2
+  keywords flash, flying
+}

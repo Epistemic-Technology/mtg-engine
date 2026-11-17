@@ -1,0 +1,6 @@
+card "Lady Orca" {
+  oracle_id fcae9e87-50af-46b4-ab48-42ed92985e10
+  cost {5}{B}{R}
+  type Legendary Creature — Demon
+  pt 7/4
+}

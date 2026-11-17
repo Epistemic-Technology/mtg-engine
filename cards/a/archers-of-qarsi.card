@@ -1,0 +1,7 @@
+card "Archers of Qarsi" {
+  oracle_id ad6bdd24-5a32-4046-83ee-2fe51bf8bb7a
+  cost {3}{G}
+  type Creature — Snake Archer
+  pt 5/2
+  keywords defender, reach
+}

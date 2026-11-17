@@ -1,0 +1,6 @@
+card "Blitzball Shot" {
+  oracle_id c99779b7-a271-416e-bdc2-0f9ba6ceb144
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains trample
+}

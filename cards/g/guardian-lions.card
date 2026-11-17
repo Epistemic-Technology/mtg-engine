@@ -1,0 +1,7 @@
+card "Guardian Lions" {
+  oracle_id 9291f31d-6953-4fe1-9a88-b8dd09fde89c
+  cost {4}{W}
+  type Creature — Cat
+  pt 1/6
+  keywords vigilance
+}

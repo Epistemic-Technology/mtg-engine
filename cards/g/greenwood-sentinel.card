@@ -1,0 +1,7 @@
+card "Greenwood Sentinel" {
+  oracle_id 8178c546-84f8-4563-a804-6489ec016660
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 2/2
+  keywords vigilance
+}

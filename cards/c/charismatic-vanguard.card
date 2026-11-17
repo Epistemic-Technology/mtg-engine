@@ -1,0 +1,7 @@
+card "Charismatic Vanguard" {
+  oracle_id f1861fac-e0e5-4b96-b6e4-6b6573bd02d1
+  cost {2}{W}
+  type Creature — Dwarf Soldier
+  pt 3/2
+  activated {4}{W}: each creature you control gets +1/+1
+}

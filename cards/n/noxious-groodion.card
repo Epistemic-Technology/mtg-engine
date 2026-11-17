@@ -1,0 +1,7 @@
+card "Noxious Groodion" {
+  oracle_id aed587bf-c6e5-4850-baeb-2715cb27bf4c
+  cost {2}{B}
+  type Creature — Beast
+  pt 2/2
+  keywords deathtouch
+}

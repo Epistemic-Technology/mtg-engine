@@ -1,0 +1,7 @@
+card "Oread of Mountain's Blaze" {
+  oracle_id ebbcbaa4-9dc2-4098-b6a2-393375d86f16
+  cost {1}{R}
+  type Enchantment Creature — Nymph
+  pt 1/3
+  activated {2}{R}, discard 1 card: draw 1 cards
+}

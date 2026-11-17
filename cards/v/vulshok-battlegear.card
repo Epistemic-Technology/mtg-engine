@@ -1,0 +1,7 @@
+card "Vulshok Battlegear" {
+  oracle_id 708df587-3b13-42cb-8341-f476ab4cbe45
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +3/+3
+  equip {3}
+}

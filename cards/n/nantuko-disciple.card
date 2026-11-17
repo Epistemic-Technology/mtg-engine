@@ -1,0 +1,7 @@
+card "Nantuko Disciple" {
+  oracle_id 230be0f8-03a4-4452-84c1-ea14cfe49737
+  cost {3}{G}
+  type Creature — Insect Druid
+  pt 2/2
+  activated {G}, {T}: target creature gets +2/+2
+}

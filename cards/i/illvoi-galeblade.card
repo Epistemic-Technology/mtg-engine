@@ -1,0 +1,8 @@
+card "Illvoi Galeblade" {
+  oracle_id d6273621-c36c-491b-85ca-37445ed30097
+  cost {U}
+  type Creature — Jellyfish Warrior
+  pt 1/1
+  keywords flash, flying
+  activated {2}, sacrifice this: draw 1 cards
+}

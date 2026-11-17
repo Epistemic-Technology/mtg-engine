@@ -1,0 +1,7 @@
+card "Flying Men" {
+  oracle_id b5666c68-059d-4e32-9b04-548b3058430d
+  cost {U}
+  type Creature — Human
+  pt 1/1
+  keywords flying
+}

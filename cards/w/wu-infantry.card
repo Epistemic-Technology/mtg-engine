@@ -1,0 +1,6 @@
+card "Wu Infantry" {
+  oracle_id a5a39eaf-104d-4dfa-b370-5d3de0d158fe
+  cost {1}{U}
+  type Creature — Human Soldier
+  pt 2/1
+}

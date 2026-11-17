@@ -1,0 +1,6 @@
+card "Hurloon Minotaur" {
+  oracle_id 8f1dae40-b307-446e-bbd2-86aa35813871
+  cost {1}{R}{R}
+  type Creature — Minotaur
+  pt 2/3
+}

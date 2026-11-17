@@ -1,0 +1,7 @@
+card "Drakewing Krasis" {
+  oracle_id 782e8499-0714-4cee-869e-8ebd7dad0242
+  cost {1}{G}{U}
+  type Creature — Lizard Drake
+  pt 3/1
+  keywords flying, trample
+}

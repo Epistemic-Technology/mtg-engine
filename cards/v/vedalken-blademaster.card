@@ -1,0 +1,7 @@
+card "Vedalken Blademaster" {
+  oracle_id 7a8405f5-ef37-460e-8e0b-55378f3b407b
+  cost {2}{U}
+  type Creature — Vedalken Soldier
+  pt 2/3
+  keywords prowess
+}

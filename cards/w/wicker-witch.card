@@ -1,0 +1,6 @@
+card "Wicker Witch" {
+  oracle_id cc2f945f-9048-4978-b61f-49eefb3d94d7
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 3/1
+}

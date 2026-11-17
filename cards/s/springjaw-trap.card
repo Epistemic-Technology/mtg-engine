@@ -1,0 +1,7 @@
+card "Springjaw Trap" {
+  oracle_id 3a635b73-692f-4345-9628-cb4f9f0cddad
+  cost {1}
+  type Artifact
+  keywords flash
+  activated {4}, {T}, sacrifice this: deal 3 damage to any target
+}

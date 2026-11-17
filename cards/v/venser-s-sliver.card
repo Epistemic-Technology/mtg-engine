@@ -1,0 +1,6 @@
+card "Venser's Sliver" {
+  oracle_id 54d65915-3833-4e4d-a066-37ae9507846f
+  cost {5}
+  type Artifact Creature — Sliver
+  pt 3/3
+}

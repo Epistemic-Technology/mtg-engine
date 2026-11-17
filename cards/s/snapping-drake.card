@@ -1,0 +1,7 @@
+card "Snapping Drake" {
+  oracle_id e15060c3-3773-4548-8747-ff59dcf2b519
+  cost {3}{U}
+  type Creature — Drake
+  pt 3/2
+  keywords flying
+}

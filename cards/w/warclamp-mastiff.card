@@ -1,0 +1,7 @@
+card "Warclamp Mastiff" {
+  oracle_id 8bd301ea-32f0-4c3a-a215-c04b31fbdc7c
+  cost {W}
+  type Creature — Dog
+  pt 1/1
+  keywords first strike
+}

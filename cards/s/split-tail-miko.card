@@ -1,0 +1,7 @@
+card "Split-Tail Miko" {
+  oracle_id 82732de2-b98d-4534-967f-2cf4c9e6bfbe
+  cost {1}{W}
+  type Creature — Fox Cleric
+  pt 1/1
+  activated {W}, {T}: prevent next 2 damage to any target this turn
+}

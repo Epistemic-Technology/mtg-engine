@@ -1,0 +1,6 @@
+card "Elite Vanguard" {
+  oracle_id b3b9a87d-cb95-435c-90b6-037406cab32e
+  cost {W}
+  type Creature — Human Soldier
+  pt 2/1
+}

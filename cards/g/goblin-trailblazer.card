@@ -1,0 +1,7 @@
+card "Goblin Trailblazer" {
+  oracle_id 38f66ef9-6afc-478b-a1d4-a9d42c31dfc9
+  cost {1}{R}
+  type Creature — Goblin Pirate
+  pt 2/1
+  keywords menace
+}

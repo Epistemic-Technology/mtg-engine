@@ -1,0 +1,8 @@
+card "Instant Ramen" {
+  oracle_id 2283e409-c6c7-4de9-899b-2b3caea5f35e
+  cost {2}
+  type Artifact — Food
+  keywords flash
+  triggered when this enters: draw 1 cards
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

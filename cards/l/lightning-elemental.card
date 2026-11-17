@@ -1,0 +1,7 @@
+card "Lightning Elemental" {
+  oracle_id 58aee5cb-7b88-446e-ab10-9f83c10d7227
+  cost {3}{R}
+  type Creature — Elemental
+  pt 4/1
+  keywords haste
+}

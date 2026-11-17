@@ -1,0 +1,7 @@
+card "Tanglepool Bridge" {
+  oracle_id 29cd8a7c-108a-43d1-af63-f603a27c24f2
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {G} or {U}
+}

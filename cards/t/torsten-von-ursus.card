@@ -1,0 +1,6 @@
+card "Torsten Von Ursus" {
+  oracle_id 633b8f22-0384-4f60-ba78-b52c2d82dfde
+  cost {3}{G}{G}{W}
+  type Legendary Creature — Human Soldier
+  pt 5/5
+}

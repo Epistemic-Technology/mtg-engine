@@ -1,0 +1,7 @@
+card "Diving Griffin" {
+  oracle_id 8785f9b4-eea2-4b45-9ae4-194b9a715702
+  cost {1}{W}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying, vigilance
+}

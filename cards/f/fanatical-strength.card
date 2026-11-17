@@ -1,0 +1,6 @@
+card "Fanatical Strength" {
+  oracle_id b92e97f5-a307-471f-be06-afa4fcdab757
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains trample
+}

@@ -1,0 +1,6 @@
+card "Herbal Poultice" {
+  oracle_id 4a8e1f8e-3740-4ff3-b7fa-390ea278fb95
+  cost {0}
+  type Artifact
+  activated {3}, sacrifice this: regenerate target creature
+}

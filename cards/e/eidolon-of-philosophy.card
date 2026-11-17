@@ -1,0 +1,7 @@
+card "Eidolon of Philosophy" {
+  oracle_id 65acea17-c900-4574-b22f-910285552aa2
+  cost {U}
+  type Enchantment Creature — Spirit
+  pt 1/2
+  activated {6}{U}, sacrifice this: draw 3 cards
+}

@@ -1,0 +1,5 @@
+card "Highland Forest" {
+  oracle_id 35137378-6754-4bb1-a38e-5940890ccab1
+  type Snow Land — Mountain Forest
+  enters tapped
+}

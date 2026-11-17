@@ -1,0 +1,6 @@
+card "Hexplate Golem" {
+  oracle_id bacb9d63-5950-4bcd-a056-40c02ecf4ce8
+  cost {7}
+  type Artifact Creature — Golem
+  pt 5/7
+}

@@ -1,0 +1,6 @@
+card "Defiant Khenra" {
+  oracle_id 0e6fe04f-b20d-4df9-a7ac-edebc3bcc9be
+  cost {1}{R}
+  type Creature — Jackal Warrior
+  pt 2/2
+}

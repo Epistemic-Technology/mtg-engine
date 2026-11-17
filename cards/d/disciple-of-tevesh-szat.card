@@ -1,0 +1,8 @@
+card "Disciple of Tevesh Szat" {
+  oracle_id 3a09c951-9861-4e95-acf1-5ce1a3778493
+  cost {2}{B}{B}
+  type Creature — Human Cleric
+  pt 3/1
+  activated {T}: target creature gets -1/-1
+  activated {4}{B}{B}, {T}, sacrifice this: target creature gets -6/-6
+}

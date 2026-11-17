@@ -1,0 +1,6 @@
+card "Strangle" {
+  oracle_id 1f570526-7fb0-4fe5-8014-b5793eb65f87
+  cost {R}
+  type Sorcery
+  spell: deal 3 damage to target creature or planeswalker
+}

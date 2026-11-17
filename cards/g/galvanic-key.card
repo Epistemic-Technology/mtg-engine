@@ -1,0 +1,7 @@
+card "Galvanic Key" {
+  oracle_id d8a552ca-2c7b-410e-bd7e-1bb81465277a
+  cost {2}
+  type Artifact
+  keywords flash
+  activated {3}, {T}: untap target artifact
+}

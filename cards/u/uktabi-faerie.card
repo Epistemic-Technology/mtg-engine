@@ -1,0 +1,8 @@
+card "Uktabi Faerie" {
+  oracle_id 447f1cce-bbc5-473b-a838-34070f8fd2dc
+  cost {1}{G}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  activated {3}{G}, sacrifice this: destroy target artifact
+}

@@ -1,0 +1,7 @@
+card "Bramble Creeper" {
+  oracle_id 33416979-2a3b-4184-818c-6a4e9ccb4580
+  cost {4}{G}
+  type Creature — Elemental
+  pt 0/3
+  triggered whenever this attacks: this gets +5/+0
+}

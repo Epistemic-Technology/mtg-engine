@@ -1,0 +1,7 @@
+card "Flowstone Giant" {
+  oracle_id f9558fa5-2513-47e0-9af9-85db5cae4146
+  cost {2}{R}{R}
+  type Creature — Giant
+  pt 3/3
+  activated {R}: this gets +2/-2
+}

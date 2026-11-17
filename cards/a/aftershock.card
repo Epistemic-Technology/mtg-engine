@@ -1,0 +1,6 @@
+card "Aftershock" {
+  oracle_id e6bef0c4-3dfc-49a8-8fec-22b2570b704b
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy target artifact, creature, or land; deal 3 damage to you
+}

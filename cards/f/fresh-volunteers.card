@@ -1,0 +1,6 @@
+card "Fresh Volunteers" {
+  oracle_id bd0031c3-ff88-4bc5-82a0-2187c60a7d33
+  cost {1}{W}
+  type Creature — Human Rebel
+  pt 2/2
+}

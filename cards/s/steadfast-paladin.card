@@ -1,0 +1,7 @@
+card "Steadfast Paladin" {
+  oracle_id 5e95618c-4f58-4ae9-9e5e-deffd5e210a4
+  cost {1}{W}
+  type Creature — Dwarf Knight
+  pt 2/2
+  keywords lifelink
+}

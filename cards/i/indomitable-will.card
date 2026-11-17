@@ -1,0 +1,8 @@
+card "Indomitable Will" {
+  oracle_id cca60afe-b044-4401-8322-170aa015873c
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+2
+}

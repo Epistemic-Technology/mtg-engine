@@ -1,0 +1,8 @@
+card "Ravenous Skirge" {
+  oracle_id b8ae71b3-8ee7-49a0-87ea-7e938166ccb3
+  cost {2}{B}
+  type Creature — Phyrexian Imp
+  pt 1/1
+  keywords flying
+  triggered whenever this attacks: this gets +2/+0
+}

@@ -1,0 +1,7 @@
+card "Caustic Hound" {
+  oracle_id 032cc574-f7e7-4753-9a30-76cbd45d9563
+  cost {5}{B}
+  type Creature — Phyrexian Dog
+  pt 4/4
+  triggered when this dies: each player loses 4 life
+}

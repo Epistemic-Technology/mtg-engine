@@ -1,0 +1,7 @@
+card "Spore Crawler" {
+  oracle_id fa7c13c0-350b-4ed6-8c16-590d2b988184
+  cost {2}{G}
+  type Creature — Fungus
+  pt 3/2
+  triggered when this dies: draw 1 cards
+}

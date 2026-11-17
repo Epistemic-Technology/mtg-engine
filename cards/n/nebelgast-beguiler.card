@@ -1,0 +1,7 @@
+card "Nebelgast Beguiler" {
+  oracle_id b1e76ce9-6f39-419c-99e3-ede2dfa4858c
+  cost {4}{W}
+  type Creature — Spirit
+  pt 2/5
+  activated {W}, {T}: tap target creature
+}

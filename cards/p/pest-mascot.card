@@ -1,0 +1,8 @@
+card "Pest Mascot" {
+  oracle_id b8ecddf7-ba89-40dd-9f63-5bad27dd850d
+  cost {1}{B}{G}
+  type Creature — Pest Ape
+  pt 2/3
+  keywords trample
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

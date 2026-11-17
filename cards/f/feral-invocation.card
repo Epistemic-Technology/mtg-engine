@@ -1,0 +1,8 @@
+card "Feral Invocation" {
+  oracle_id 5b3c069b-5bed-4b70-b04c-b7143a4a6e96
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+2
+}

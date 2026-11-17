@@ -1,0 +1,7 @@
+card "Llanowar Cavalry" {
+  oracle_id 3e6e70eb-6638-4aa6-997b-90f5810e12a0
+  cost {2}{G}
+  type Creature — Human Soldier
+  pt 1/4
+  activated {W}: this gains vigilance
+}

@@ -1,0 +1,7 @@
+card "Alaborn Grenadier" {
+  oracle_id 69c4429e-a8a4-49c3-bb43-9dce4cc6b90a
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+}

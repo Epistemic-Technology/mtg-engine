@@ -1,0 +1,8 @@
+card "Lionheart Maverick" {
+  oracle_id 5058b9f1-9941-495d-9eed-554ae2f6d500
+  cost {W}
+  type Creature — Human Knight
+  pt 1/1
+  keywords vigilance
+  activated {4}{W}: this gets +1/+2
+}

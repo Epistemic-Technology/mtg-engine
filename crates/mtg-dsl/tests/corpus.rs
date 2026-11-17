@@ -60,21 +60,7 @@ fn every_card_has_an_oracle_id_and_a_slug_file_name() {
                     card.name
                 );
             }
-            let slug: String = card
-                .name
-                .chars()
-                .map(|c| {
-                    if c.is_alphanumeric() {
-                        c.to_ascii_lowercase()
-                    } else {
-                        '-'
-                    }
-                })
-                .collect::<String>()
-                .split('-')
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-                .join("-");
+            let slug = mtg_dsl::slug(&card.name);
             assert!(
                 path.ends_with(&format!("{slug}.card")),
                 "{} should be in {slug}.card",

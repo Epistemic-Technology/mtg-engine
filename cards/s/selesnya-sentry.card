@@ -1,0 +1,7 @@
+card "Selesnya Sentry" {
+  oracle_id 29e8d973-0233-446e-b587-1c7508352642
+  cost {2}{W}
+  type Creature — Elephant Soldier
+  pt 3/2
+  activated {5}{G}: regenerate this
+}

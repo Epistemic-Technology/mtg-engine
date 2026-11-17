@@ -1,0 +1,7 @@
+card "Bellows Lizard" {
+  oracle_id 667dae0b-5006-4e38-be80-eae79c2a2a95
+  cost {R}
+  type Creature — Lizard
+  pt 1/1
+  activated {1}{R}: this gets +1/+0
+}

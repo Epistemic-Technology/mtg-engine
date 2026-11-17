@@ -1,0 +1,6 @@
+card "Balduvian Barbarians" {
+  oracle_id 23720758-f572-45e3-9bec-f6d3b974d7f5
+  cost {1}{R}{R}
+  type Creature — Human Barbarian
+  pt 3/2
+}

@@ -1,0 +1,8 @@
+card "Drudge Reavers" {
+  oracle_id 3edc147f-a385-413a-99b6-27d2cf8cf930
+  cost {3}{B}
+  type Creature — Skeleton
+  pt 2/1
+  keywords flash
+  activated {B}: regenerate this
+}

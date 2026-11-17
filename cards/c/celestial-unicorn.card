@@ -1,0 +1,7 @@
+card "Celestial Unicorn" {
+  oracle_id be030639-cbc9-416b-b0ca-1a76439791d8
+  cost {2}{W}
+  type Creature — Unicorn
+  pt 3/2
+  triggered whenever you gain life: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Bounding Wolf" {
+  oracle_id 257f7c29-8857-429e-a421-9262982804e0
+  cost {2}{G}
+  type Creature — Wolf
+  pt 3/2
+  keywords flash, reach
+}

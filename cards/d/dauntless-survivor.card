@@ -1,0 +1,7 @@
+card "Dauntless Survivor" {
+  oracle_id 8371dee1-5f4a-410a-8b7c-e4110cdbe9bd
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

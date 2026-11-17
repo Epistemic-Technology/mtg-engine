@@ -1,0 +1,6 @@
+card "Vessel of Paramnesia" {
+  oracle_id f6894486-0bac-4b72-92b7-5ce99fa426e6
+  cost {1}{U}
+  type Enchantment
+  activated {U}, sacrifice this: target player mills 3 cards; draw 1 cards
+}

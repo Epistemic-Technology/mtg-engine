@@ -1,0 +1,8 @@
+card "Wall of Faith" {
+  oracle_id 918d6cd4-76d5-4e21-b92b-1ecf35eb6cff
+  cost {3}{W}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  activated {W}: this gets +0/+1
+}

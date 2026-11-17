@@ -1,0 +1,6 @@
+card "Felhide Minotaur" {
+  oracle_id 10871545-1c44-4e31-a49a-5b16c3b5cac5
+  cost {2}{B}
+  type Creature — Minotaur
+  pt 2/3
+}

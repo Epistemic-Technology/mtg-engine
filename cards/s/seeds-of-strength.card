@@ -1,0 +1,8 @@
+card "Seeds of Strength" {
+  oracle_id dd3d4d96-1e88-49e1-8276-7f62c22ad91a
+  cost {G}{W}
+  type Instant
+  spell: target creature gets +1/+1
+  spell: target creature gets +1/+1
+  spell: target creature gets +1/+1
+}

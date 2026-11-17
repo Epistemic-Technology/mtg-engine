@@ -1,0 +1,7 @@
+card "Starlight Invoker" {
+  oracle_id 4d27a90b-dae4-48a0-9eb2-e199ff548867
+  cost {1}{W}
+  type Creature — Human Cleric Mutant
+  pt 1/3
+  activated {7}{W}: you gains 5 life
+}

@@ -1,0 +1,7 @@
+card "Sparring Construct" {
+  oracle_id bc948e19-816b-4c13-a36b-73b3e0472dca
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/1
+  triggered when this dies: put 1 +1/+1 counters on target creature you control
+}

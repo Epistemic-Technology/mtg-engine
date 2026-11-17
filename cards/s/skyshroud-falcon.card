@@ -1,0 +1,7 @@
+card "Skyshroud Falcon" {
+  oracle_id 877ab494-da90-4c26-a184-c6ba64ec30b5
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, vigilance
+}

@@ -25,6 +25,32 @@ mod embedded {
     include!(concat!(env!("OUT_DIR"), "/cards.rs"));
 }
 
+/// The file name a card goes by: lowercase, non-alphanumerics collapsed to
+/// hyphens ("Siege-Gang Commander" → "siege-gang-commander").
+pub fn slug(name: &str) -> String {
+    name.chars()
+        .map(|c| {
+            if c.is_alphanumeric() {
+                c.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .split('-')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+/// The directory under `cards/` a card file lives in: its slug's first
+/// character, so no directory grows past a few hundred entries.
+pub fn shard(slug: &str) -> String {
+    slug.chars()
+        .next()
+        .map_or_else(|| "_".to_string(), |c| c.to_string())
+}
+
 /// The embedded card files: (path relative to `cards/`, contents).
 pub fn card_files() -> &'static [(&'static str, &'static str)] {
     embedded::CARD_FILES

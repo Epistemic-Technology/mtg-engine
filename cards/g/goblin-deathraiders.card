@@ -1,0 +1,7 @@
+card "Goblin Deathraiders" {
+  oracle_id d5142292-446a-413b-85a0-be8a59cec1f8
+  cost {B}{R}
+  type Creature — Goblin Warrior
+  pt 3/1
+  keywords trample
+}

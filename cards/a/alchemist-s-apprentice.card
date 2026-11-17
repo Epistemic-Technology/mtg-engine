@@ -1,0 +1,7 @@
+card "Alchemist's Apprentice" {
+  oracle_id de085c51-2555-450e-a479-ddbb3bea9e8c
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated sacrifice this: draw 1 cards
+}

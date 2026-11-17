@@ -1,0 +1,7 @@
+card "Returned Centaur" {
+  oracle_id 223c97fb-dc96-41ba-be9d-bad9b5e4876f
+  cost {3}{B}
+  type Creature — Zombie Centaur
+  pt 2/4
+  triggered when this enters: target player mills 4 cards
+}

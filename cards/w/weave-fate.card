@@ -1,0 +1,6 @@
+card "Weave Fate" {
+  oracle_id ff568a29-e31a-4bc3-b8a3-8fa56f91d52d
+  cost {3}{U}
+  type Instant
+  spell: draw 2 cards
+}

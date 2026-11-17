@@ -1,0 +1,7 @@
+card "Glamorous Grapplers" {
+  oracle_id 9f2e03fb-45c0-442d-a716-a472373c72d0
+  cost {3}{B}
+  type Creature — Human Performer Villain
+  pt 3/3
+  keywords menace
+}

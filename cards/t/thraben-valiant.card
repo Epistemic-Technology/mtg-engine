@@ -1,0 +1,7 @@
+card "Thraben Valiant" {
+  oracle_id dee0b358-b9da-49b9-a47f-7907cde6d8ee
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  keywords vigilance
+}

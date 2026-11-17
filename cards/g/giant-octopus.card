@@ -1,0 +1,6 @@
+card "Giant Octopus" {
+  oracle_id c181d2a4-5959-4409-9bd3-ecedf8ec9516
+  cost {3}{U}
+  type Creature — Octopus
+  pt 3/3
+}

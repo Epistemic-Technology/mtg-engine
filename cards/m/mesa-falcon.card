@@ -1,0 +1,8 @@
+card "Mesa Falcon" {
+  oracle_id bc4c5f33-0f3d-4815-9974-fb12ac725d08
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  activated {1}{W}: this gets +0/+1
+}

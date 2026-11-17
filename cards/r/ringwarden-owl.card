@@ -1,0 +1,7 @@
+card "Ringwarden Owl" {
+  oracle_id 4a8b3316-a01a-4206-bbed-d7aac6c834bd
+  cost {3}{U}{U}
+  type Creature — Bird
+  pt 3/3
+  keywords flying, prowess
+}

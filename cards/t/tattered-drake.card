@@ -1,0 +1,8 @@
+card "Tattered Drake" {
+  oracle_id 1199a252-3c7c-4ae4-b063-dc132bfbea2f
+  cost {4}{U}
+  type Creature — Zombie Drake
+  pt 2/2
+  keywords flying
+  activated {B}: regenerate this
+}

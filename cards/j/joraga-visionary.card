@@ -1,0 +1,7 @@
+card "Joraga Visionary" {
+  oracle_id 7854f475-5470-4f2b-99df-af9026895595
+  cost {3}{G}
+  type Creature — Elf Wizard
+  pt 3/2
+  triggered when this enters: draw 1 cards
+}

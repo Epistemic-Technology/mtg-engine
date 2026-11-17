@@ -1,0 +1,7 @@
+card "Bay Falcon" {
+  oracle_id 709e99f1-288b-49e0-80a1-f817b457a2cf
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, vigilance
+}

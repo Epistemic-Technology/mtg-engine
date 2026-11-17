@@ -1,0 +1,7 @@
+card "Cyclopean Mummy" {
+  oracle_id f5f2c98c-dd89-4b60-83e5-07f5fdc699ef
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  triggered when this dies: exile this
+}

@@ -1,0 +1,7 @@
+card "Titanium Golem" {
+  oracle_id 84fa0c22-4e11-4d57-9a45-633f0e1686de
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {1}{W}: this gains first strike
+}

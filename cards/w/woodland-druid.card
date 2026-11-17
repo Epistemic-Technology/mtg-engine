@@ -1,0 +1,6 @@
+card "Woodland Druid" {
+  oracle_id 96b3c4ff-b5f7-4315-9b39-2e2146ef10d1
+  cost {G}
+  type Creature — Human Druid
+  pt 1/2
+}

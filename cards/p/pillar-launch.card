@@ -1,0 +1,6 @@
+card "Pillar Launch" {
+  oracle_id a39c758d-82be-4d8c-bb3e-8ee8a6c6788b
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2 and gains reach; untap target 1
+}

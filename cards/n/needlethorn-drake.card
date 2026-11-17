@@ -1,0 +1,7 @@
+card "Needlethorn Drake" {
+  oracle_id 6edacc06-9523-4ccf-a4c2-2ac4af386b8a
+  cost {G}{U}
+  type Creature — Drake
+  pt 1/1
+  keywords flying, deathtouch
+}

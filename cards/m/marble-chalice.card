@@ -1,0 +1,6 @@
+card "Marble Chalice" {
+  oracle_id 236f318e-9bd1-4eb0-8b19-af015b3a74ea
+  cost {2}{W}
+  type Artifact
+  activated {T}: you gains 1 life
+}

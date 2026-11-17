@@ -1,0 +1,7 @@
+card "Rubblebelt Boar" {
+  oracle_id b815cbbd-d79f-4180-8204-504a15df7152
+  cost {3}{R}
+  type Creature — Boar
+  pt 3/3
+  triggered when this enters: target creature gets +2/+0
+}

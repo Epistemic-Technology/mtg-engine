@@ -1,0 +1,7 @@
+card "Thornwood Falls" {
+  oracle_id ec96cde2-f1e6-495c-94e2-3e8ae79e556c
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {G} or {U}
+}

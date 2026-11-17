@@ -1,0 +1,6 @@
+card "Hulking Devil" {
+  oracle_id b6578a36-c43c-4474-81bd-5711cc4f626e
+  cost {3}{R}
+  type Creature — Devil
+  pt 5/2
+}

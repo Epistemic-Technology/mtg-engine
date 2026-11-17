@@ -1,0 +1,7 @@
+card "Axgard Cavalry" {
+  oracle_id 6a92b011-fd01-4b6a-a17c-73ac1967ff98
+  cost {1}{R}
+  type Creature — Dwarf Berserker
+  pt 2/2
+  activated {T}: target creature gains haste
+}

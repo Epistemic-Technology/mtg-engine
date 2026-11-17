@@ -1,0 +1,7 @@
+card "Guided Strike" {
+  oracle_id a215e813-df7e-4f21-9718-eb264eb62813
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike
+  spell: draw 1 cards
+}

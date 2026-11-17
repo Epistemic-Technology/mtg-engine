@@ -1,0 +1,6 @@
+card "Repulsor Rays" {
+  oracle_id 053a90b8-61b1-4390-afc0-c5eaef0138a9
+  cost {R}
+  type Sorcery
+  spell: deal 3 damage to target creature
+}

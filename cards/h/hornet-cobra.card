@@ -1,0 +1,7 @@
+card "Hornet Cobra" {
+  oracle_id 4958baf3-2f5a-4087-bc14-ffee9887db1d
+  cost {1}{G}{G}
+  type Creature — Snake
+  pt 2/1
+  keywords first strike
+}

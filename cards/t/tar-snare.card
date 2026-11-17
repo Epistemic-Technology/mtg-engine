@@ -1,0 +1,6 @@
+card "Tar Snare" {
+  oracle_id 3621bd8c-c883-462f-ad56-c01deecb2720
+  cost {2}{B}
+  type Instant
+  spell: target creature gets -3/-2
+}

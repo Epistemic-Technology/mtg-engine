@@ -1,0 +1,6 @@
+card "Gloom Pangolin" {
+  oracle_id bcbdeccc-2baa-4158-bf87-8b88e7a19248
+  cost {2}{B}
+  type Creature — Nightmare Pangolin
+  pt 1/5
+}

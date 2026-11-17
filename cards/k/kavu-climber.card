@@ -1,0 +1,7 @@
+card "Kavu Climber" {
+  oracle_id 91320afd-1d42-4cb5-ae40-4eed2fa91dfe
+  cost {3}{G}{G}
+  type Creature — Kavu
+  pt 3/3
+  triggered when this enters: draw 1 cards
+}

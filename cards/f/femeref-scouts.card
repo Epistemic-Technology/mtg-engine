@@ -1,0 +1,6 @@
+card "Femeref Scouts" {
+  oracle_id 18710b5e-5403-48cd-9541-8154ba0a0b30
+  cost {2}{W}
+  type Creature — Human Scout
+  pt 1/4
+}

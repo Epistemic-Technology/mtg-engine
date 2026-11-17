@@ -1,0 +1,7 @@
+card "Augmenting Automaton" {
+  oracle_id 5ec0e58c-99b5-4ebf-8053-f59c30b86ef7
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/1
+  activated {1}{B}: this gets +1/+1
+}

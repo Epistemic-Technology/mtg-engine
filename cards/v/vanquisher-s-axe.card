@@ -1,0 +1,7 @@
+card "Vanquisher's Axe" {
+  oracle_id fbdd3ba9-d799-476b-87bc-a689d8e3cff9
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  equip {2}
+}

@@ -1,0 +1,7 @@
+card "Weldfast Monitor" {
+  oracle_id 5d604aff-ba60-4064-b025-b1f3d1c0254e
+  cost {3}
+  type Artifact Creature — Lizard
+  pt 3/2
+  activated {R}: this gains menace
+}

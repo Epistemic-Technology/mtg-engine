@@ -1,0 +1,6 @@
+card "Lash of Thorns" {
+  oracle_id 642d3494-7a6a-4aec-ba64-7c0c467ada99
+  cost {B}
+  type Instant
+  spell: target creature gets +2/+1 and gains deathtouch
+}

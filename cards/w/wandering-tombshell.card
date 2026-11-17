@@ -1,0 +1,6 @@
+card "Wandering Tombshell" {
+  oracle_id 768c78f3-f09c-4b77-974d-514925e8df5e
+  cost {3}{B}
+  type Creature — Zombie Turtle
+  pt 1/6
+}

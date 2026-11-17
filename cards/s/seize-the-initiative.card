@@ -1,0 +1,6 @@
+card "Seize the Initiative" {
+  oracle_id f6653d90-cd30-4b2b-9592-97d5769dc3d8
+  cost {W}
+  type Instant
+  spell: target creature gets +1/+1 and gains first strike
+}

@@ -1,0 +1,6 @@
+card "Take Up the Shield" {
+  oracle_id e8d0eafe-540a-4b2e-a989-e98ff3c31105
+  cost {1}{W}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; target 1 gains lifelink, indestructible
+}

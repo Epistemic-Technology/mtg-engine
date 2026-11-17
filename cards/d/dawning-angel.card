@@ -1,0 +1,8 @@
+card "Dawning Angel" {
+  oracle_id a7d88510-d2ce-4dd6-938c-964cc74ff7d7
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/2
+  keywords flying
+  triggered when this enters: you gains 4 life
+}

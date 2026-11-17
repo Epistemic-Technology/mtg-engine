@@ -1,0 +1,8 @@
+card "Greenhouse Propagator" {
+  oracle_id b6b77cb9-49a5-4d1a-ae2d-02ae176dc1fa
+  cost {2}{G}
+  type Creature — Cat Druid
+  pt 2/3
+  triggered whenever other creature you control enters: you gains 1 life
+  mana {G}
+}

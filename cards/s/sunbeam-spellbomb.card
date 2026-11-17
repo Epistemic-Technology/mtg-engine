@@ -1,0 +1,7 @@
+card "Sunbeam Spellbomb" {
+  oracle_id 014c94d8-2c39-4d33-902b-fa2398406fd5
+  cost {1}
+  type Artifact
+  activated {W}, sacrifice this: you gains 5 life
+  activated {1}, sacrifice this: draw 1 cards
+}

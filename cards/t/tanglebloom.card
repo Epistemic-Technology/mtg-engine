@@ -1,0 +1,6 @@
+card "Tanglebloom" {
+  oracle_id 87890f04-b831-4869-a7de-72789a466c71
+  cost {1}
+  type Artifact
+  activated {1}, {T}: you gains 1 life
+}

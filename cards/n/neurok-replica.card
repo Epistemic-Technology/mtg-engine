@@ -1,0 +1,7 @@
+card "Neurok Replica" {
+  oracle_id de8cdbd4-d8f7-4ce8-a69b-6d2020beff63
+  cost {3}
+  type Artifact Creature — Wizard
+  pt 1/4
+  activated {1}{U}, sacrifice this: return target creature to hand
+}

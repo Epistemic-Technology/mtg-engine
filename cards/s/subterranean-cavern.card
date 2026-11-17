@@ -1,0 +1,7 @@
+card "Subterranean Cavern" {
+  oracle_id d49a7525-eca5-48e1-b94b-d618a706fd02
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {B} or {G}
+}

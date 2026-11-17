@@ -1,0 +1,7 @@
+card "Kraul Raider" {
+  oracle_id 3c741801-bfa5-4ff6-bf06-8d5edc06388d
+  cost {2}{B}
+  type Creature — Insect Warrior
+  pt 2/3
+  keywords menace
+}

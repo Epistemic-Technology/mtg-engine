@@ -1,0 +1,7 @@
+card "Zarichi Tiger" {
+  oracle_id 0749e79f-e61d-4037-bb39-75f1ebf46c5d
+  cost {3}{W}
+  type Creature — Cat
+  pt 2/3
+  activated {1}{W}, {T}: you gains 2 life
+}

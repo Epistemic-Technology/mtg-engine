@@ -1,0 +1,7 @@
+card "Slagwoods Bridge" {
+  oracle_id e040a8e6-b90c-42d1-a1b1-771d954c61ab
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {R} or {G}
+}

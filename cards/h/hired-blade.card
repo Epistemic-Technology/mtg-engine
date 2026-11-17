@@ -1,0 +1,7 @@
+card "Hired Blade" {
+  oracle_id fed32c9c-7458-4143-b0b2-45ca23ba25ee
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 3/2
+  keywords flash
+}

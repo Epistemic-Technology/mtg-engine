@@ -1,0 +1,6 @@
+card "Jedit Ojanen" {
+  oracle_id 523cca7d-7d21-45de-b82d-58e777bf7f72
+  cost {4}{W}{W}{U}
+  type Legendary Creature — Cat Warrior
+  pt 5/5
+}

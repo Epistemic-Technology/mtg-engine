@@ -1,0 +1,6 @@
+card "Tyrant's Machine" {
+  oracle_id d9cb3d86-cb3a-4e2e-a24e-ed3cfe5233d0
+  cost {2}
+  type Artifact
+  activated {4}, {T}: tap target creature
+}

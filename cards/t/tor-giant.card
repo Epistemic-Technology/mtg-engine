@@ -1,0 +1,6 @@
+card "Tor Giant" {
+  oracle_id 2457a9f7-8a46-4c7a-b35e-bcbf4a79c365
+  cost {3}{R}
+  type Creature — Giant
+  pt 3/3
+}

@@ -1,0 +1,7 @@
+card "Rearing Embermare" {
+  oracle_id 95f20067-4471-4bfa-952d-dbbfbb2c2178
+  cost {4}{R}
+  type Creature — Horse Beast
+  pt 4/5
+  keywords reach, haste
+}

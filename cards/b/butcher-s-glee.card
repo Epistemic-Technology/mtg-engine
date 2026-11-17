@@ -1,0 +1,6 @@
+card "Butcher's Glee" {
+  oracle_id bd637245-52bc-4cc9-810d-253e69dc3394
+  cost {2}{B}
+  type Instant
+  spell: target creature gets +3/+0 and gains lifelink; regenerate target 1
+}

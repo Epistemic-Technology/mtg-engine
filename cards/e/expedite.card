@@ -1,0 +1,7 @@
+card "Expedite" {
+  oracle_id 3501a839-eef5-44e4-8637-b5754780454e
+  cost {R}
+  type Instant
+  spell: target creature gains haste
+  spell: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Plated Spider" {
+  oracle_id 15163c99-9388-4225-b707-4e057b2adfbc
+  cost {4}{G}
+  type Creature — Spider
+  pt 4/4
+  keywords reach
+}

@@ -1,0 +1,7 @@
+card "Hovermyr" {
+  oracle_id b58722c5-84f2-43c2-be7e-3577c2f2a60a
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/2
+  keywords flying, vigilance
+}

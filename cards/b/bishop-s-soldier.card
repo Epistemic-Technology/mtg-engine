@@ -1,0 +1,7 @@
+card "Bishop's Soldier" {
+  oracle_id 84487586-4f71-457a-b983-4f1f7a71deef
+  cost {1}{W}
+  type Creature — Vampire Soldier
+  pt 2/2
+  keywords lifelink
+}

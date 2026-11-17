@@ -1,0 +1,6 @@
+card "Devilthorn Fox" {
+  oracle_id 8f80a7be-3da3-4e84-82a8-dd5d4b2c3f32
+  cost {1}{W}
+  type Creature — Fox
+  pt 3/1
+}

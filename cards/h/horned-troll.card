@@ -1,0 +1,7 @@
+card "Horned Troll" {
+  oracle_id 6ecc61ff-719a-405d-b02a-01607729d05c
+  cost {2}{G}
+  type Creature — Troll
+  pt 2/2
+  activated {G}: regenerate this
+}

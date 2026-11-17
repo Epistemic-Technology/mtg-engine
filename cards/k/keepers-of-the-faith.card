@@ -1,0 +1,6 @@
+card "Keepers of the Faith" {
+  oracle_id 6ddc1256-a166-464f-8136-bd111cba6327
+  cost {1}{W}{W}
+  type Creature — Human Cleric
+  pt 2/3
+}

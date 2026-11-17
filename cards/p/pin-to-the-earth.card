@@ -1,0 +1,7 @@
+card "Pin to the Earth" {
+  oracle_id 605624ee-b7ca-4728-993f-e13b18cc57f3
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -6/-0
+}

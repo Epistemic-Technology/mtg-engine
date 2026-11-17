@@ -1,0 +1,7 @@
+card "Guardian of Pilgrims" {
+  oracle_id a090bc9c-d253-4a29-87d6-aa849f856d36
+  cost {1}{W}
+  type Creature — Spirit Cleric
+  pt 2/2
+  triggered when this enters: target creature gets +1/+1
+}

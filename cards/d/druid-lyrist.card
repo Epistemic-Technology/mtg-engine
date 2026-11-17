@@ -1,0 +1,7 @@
+card "Druid Lyrist" {
+  oracle_id b32a10ba-528c-4dc1-9828-b33f5d5a3091
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {G}, {T}, sacrifice this: destroy target enchantment
+}

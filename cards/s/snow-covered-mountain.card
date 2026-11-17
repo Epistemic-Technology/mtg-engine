@@ -1,0 +1,4 @@
+card "Snow-Covered Mountain" {
+  oracle_id ca9f660b-e07d-4f42-a46e-abd0ca72510c
+  type Basic Snow Land — Mountain
+}

@@ -1,0 +1,7 @@
+card "Veiled Shade" {
+  oracle_id 9e9189d9-3b25-476b-b096-bb540398c1d1
+  cost {2}{B}
+  type Creature — Shade
+  pt 2/2
+  activated {1}{B}: this gets +1/+1
+}

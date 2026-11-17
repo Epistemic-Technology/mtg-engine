@@ -1,0 +1,7 @@
+card "Golden Hind" {
+  oracle_id 82679258-345c-4062-ac62-e94a1e5ace78
+  cost {1}{G}
+  type Creature — Elk
+  pt 2/1
+  mana {G}
+}

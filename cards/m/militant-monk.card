@@ -1,0 +1,8 @@
+card "Militant Monk" {
+  oracle_id 29c0a904-43e3-44c3-8e00-deea523de8eb
+  cost {1}{W}{W}
+  type Creature — Human Monk Cleric
+  pt 2/1
+  keywords vigilance
+  activated {T}: prevent next 1 damage to any target this turn
+}

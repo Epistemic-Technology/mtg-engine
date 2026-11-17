@@ -1,0 +1,7 @@
+card "Ardent Militia" {
+  oracle_id 23625877-b6db-480c-8885-a62b7d0457df
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/5
+  keywords vigilance
+}

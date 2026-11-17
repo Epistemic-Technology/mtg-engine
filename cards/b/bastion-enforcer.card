@@ -1,0 +1,6 @@
+card "Bastion Enforcer" {
+  oracle_id 87449f64-9500-4967-a073-cde19824e087
+  cost {2}{W}
+  type Creature — Dwarf Soldier
+  pt 3/2
+}

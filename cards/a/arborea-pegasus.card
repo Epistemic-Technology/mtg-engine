@@ -1,0 +1,8 @@
+card "Arborea Pegasus" {
+  oracle_id 9a17452d-3adb-42ec-99f8-0083740cefa0
+  cost {3}{W}
+  type Creature — Pegasus
+  pt 2/3
+  keywords flying
+  triggered when this enters: target creature gets +1/+1 and gains flying
+}

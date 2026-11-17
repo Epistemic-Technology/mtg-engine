@@ -1,0 +1,6 @@
+card "Highland Giant" {
+  oracle_id 2f3878b8-61af-4276-b7ab-11b70e44eb62
+  cost {2}{R}{R}
+  type Creature — Giant
+  pt 3/4
+}

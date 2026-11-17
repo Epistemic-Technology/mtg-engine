@@ -1,0 +1,6 @@
+card "Frenzied Raptor" {
+  oracle_id 655c59d5-8666-476c-b494-411fa2e243a7
+  cost {2}{R}
+  type Creature — Dinosaur
+  pt 4/2
+}

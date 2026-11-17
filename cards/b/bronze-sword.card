@@ -1,0 +1,7 @@
+card "Bronze Sword" {
+  oracle_id 14691783-1246-45ed-a439-c86d7b5eef62
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  equip {3}
+}

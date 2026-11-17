@@ -1,0 +1,9 @@
+card "Ready to Rumble" {
+  oracle_id 04dd9395-847b-46f7-a669-9b0df89d01ff
+  cost {4}{R}
+  type Sorcery
+  choose one {
+    mode: deal 5 damage to target creature or planeswalker
+    mode: destroy target artifact
+  }
+}

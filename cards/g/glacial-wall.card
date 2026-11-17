@@ -1,0 +1,7 @@
+card "Glacial Wall" {
+  oracle_id 7fcf8faa-2c93-4dc8-aa56-6fc40340e212
+  cost {2}{U}
+  type Creature — Wall
+  pt 0/7
+  keywords defender
+}

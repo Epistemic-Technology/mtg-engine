@@ -1,0 +1,6 @@
+card "Prizefighter Construct" {
+  oracle_id 6f4cfd69-c739-4398-93a5-e6238b7cd83b
+  cost {5}
+  type Artifact Creature — Construct
+  pt 6/2
+}

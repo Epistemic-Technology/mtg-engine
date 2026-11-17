@@ -1,0 +1,7 @@
+card "Sungrace Pegasus" {
+  oracle_id 67f59250-d46a-4637-9493-165d23278817
+  cost {1}{W}
+  type Creature — Pegasus
+  pt 1/2
+  keywords flying, lifelink
+}

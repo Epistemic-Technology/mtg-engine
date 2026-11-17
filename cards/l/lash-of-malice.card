@@ -1,0 +1,6 @@
+card "Lash of Malice" {
+  oracle_id fc3d2a9c-08a5-4aea-9fb8-42466b9152a2
+  cost {B}
+  type Instant
+  spell: target creature gets +2/-2
+}

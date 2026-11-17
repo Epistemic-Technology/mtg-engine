@@ -1,0 +1,7 @@
+card "Crooked Custodian" {
+  oracle_id 9c39bc53-52d3-4610-920e-5607a625b01f
+  cost {1}{B}
+  type Creature — Ogre Rogue
+  pt 3/2
+  enters tapped
+}

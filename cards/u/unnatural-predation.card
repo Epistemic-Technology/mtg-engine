@@ -1,0 +1,6 @@
+card "Unnatural Predation" {
+  oracle_id 120446cc-f55b-40db-915d-2669c1083e56
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 and gains trample
+}

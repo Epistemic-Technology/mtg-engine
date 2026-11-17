@@ -1,0 +1,7 @@
+card "Riptide Turtle" {
+  oracle_id cb7e076c-a695-4c79-9f20-498370c81380
+  cost {1}{U}
+  type Creature — Turtle
+  pt 0/5
+  keywords flash, defender
+}

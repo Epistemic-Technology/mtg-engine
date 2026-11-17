@@ -1,0 +1,7 @@
+card "Furious Strength" {
+  oracle_id efefb339-bb7c-4b26-abed-8434f955122b
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has menace
+}

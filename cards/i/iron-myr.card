@@ -1,0 +1,7 @@
+card "Iron Myr" {
+  oracle_id 6c5cbab6-ee27-46f5-97a7-df85698d1e9f
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  mana {R}
+}

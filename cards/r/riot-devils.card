@@ -1,0 +1,6 @@
+card "Riot Devils" {
+  oracle_id 228ee6b0-2012-4ef8-8aab-552feece801d
+  cost {2}{R}
+  type Creature — Devil
+  pt 2/3
+}

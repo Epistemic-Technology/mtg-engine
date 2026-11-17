@@ -1,0 +1,6 @@
+card "Counsel of the Soratami" {
+  oracle_id 62ddc5ae-ced9-4319-854c-1a114c6afc3f
+  cost {2}{U}
+  type Sorcery
+  spell: draw 2 cards
+}

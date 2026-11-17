@@ -1,0 +1,6 @@
+card "Barbary Apes" {
+  oracle_id 39bfe194-1662-4c0e-a7c6-ea7764d29b65
+  cost {1}{G}
+  type Creature — Ape
+  pt 2/2
+}

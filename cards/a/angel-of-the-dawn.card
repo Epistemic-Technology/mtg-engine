@@ -1,0 +1,8 @@
+card "Angel of the Dawn" {
+  oracle_id f63ea0e5-7769-4a22-bbb3-658281141d8c
+  cost {4}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters: each creature you control gets +1/+1 and gains vigilance
+}

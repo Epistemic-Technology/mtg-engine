@@ -1,0 +1,8 @@
+card "Shimmering Wings" {
+  oracle_id 7d892d61-5a69-4500-9fb2-7cf50728aedd
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  activated {U}: return this to hand
+}

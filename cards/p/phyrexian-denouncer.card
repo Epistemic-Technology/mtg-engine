@@ -1,0 +1,7 @@
+card "Phyrexian Denouncer" {
+  oracle_id b331c5fa-cd97-4fd8-b1df-d2c9e6a5a854
+  cost {1}{B}
+  type Creature — Phyrexian Carrier
+  pt 1/1
+  activated {T}, sacrifice this: target creature gets -1/-1
+}

@@ -1,0 +1,6 @@
+card "Scalding Cauldron" {
+  oracle_id dceb96a4-d3c5-43a2-93f6-50316e1e7a1b
+  cost {1}
+  type Artifact
+  activated {3}, {T}, sacrifice this: deal 3 damage to target creature
+}

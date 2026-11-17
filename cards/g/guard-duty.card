@@ -1,0 +1,7 @@
+card "Guard Duty" {
+  oracle_id 3b20e187-c200-40a0-8db2-481f0bf90168
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has defender
+}

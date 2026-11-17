@@ -1,0 +1,8 @@
+card "Darklit Gargoyle" {
+  oracle_id e48d9efa-c169-4587-86fc-0021f265d69b
+  cost {1}{W}
+  type Artifact Creature — Gargoyle
+  pt 1/2
+  keywords flying
+  activated {B}: this gets +2/-1
+}

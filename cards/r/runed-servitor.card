@@ -1,0 +1,7 @@
+card "Runed Servitor" {
+  oracle_id 4e5e81e1-ab47-4f08-9c42-dba0adc5cf9a
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/2
+  triggered when this dies: each player draws 1 cards
+}

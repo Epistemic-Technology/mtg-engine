@@ -1,0 +1,7 @@
+card "Selesnya Cluestone" {
+  oracle_id 792d4afd-b3de-4be2-b68a-03a5be7b9627
+  cost {3}
+  type Artifact
+  mana {G} or {W}
+  activated {G}{W}, {T}, sacrifice this: draw 1 cards
+}

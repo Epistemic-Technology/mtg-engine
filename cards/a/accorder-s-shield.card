@@ -1,0 +1,7 @@
+card "Accorder's Shield" {
+  oracle_id dd70d439-bd60-43d1-ac26-13b744cc4a37
+  cost {0}
+  type Artifact — Equipment
+  static enchanted: +0/+3, has vigilance
+  equip {3}
+}

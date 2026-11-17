@@ -1,0 +1,5 @@
+card "Idyllic Beachfront" {
+  oracle_id 0aea7e5d-40d7-46c7-a8a6-479cb8061e49
+  type Land — Plains Island
+  enters tapped
+}

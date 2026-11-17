@@ -1,0 +1,8 @@
+card "Sky Theater Strix" {
+  oracle_id 99e96711-90ea-4f6b-a92d-d8ddd06e8750
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  triggered whenever you cast a noncreature spell: this gets +1/+0
+}

@@ -1,0 +1,7 @@
+card "Moaning Spirit" {
+  oracle_id 78962897-e2e3-4cb2-ae97-eca5dbe74e49
+  cost {2}{B}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+}

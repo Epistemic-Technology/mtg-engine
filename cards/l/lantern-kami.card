@@ -1,0 +1,7 @@
+card "Lantern Kami" {
+  oracle_id bddb6b9b-5120-48d2-a57f-eb5d46d38cec
+  cost {W}
+  type Creature — Spirit
+  pt 1/1
+  keywords flying
+}

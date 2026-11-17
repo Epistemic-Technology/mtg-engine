@@ -1,0 +1,7 @@
+card "Norwood Archers" {
+  oracle_id 4e4e96aa-2f05-4f1d-96f8-6c42cd3be589
+  cost {3}{G}
+  type Creature — Elf Archer
+  pt 3/3
+  keywords reach
+}

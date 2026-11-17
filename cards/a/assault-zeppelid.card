@@ -1,0 +1,7 @@
+card "Assault Zeppelid" {
+  oracle_id 8049dbff-6b57-454a-a2e6-7e2ae39bb606
+  cost {2}{G}{U}
+  type Creature — Beast
+  pt 3/3
+  keywords flying, trample
+}

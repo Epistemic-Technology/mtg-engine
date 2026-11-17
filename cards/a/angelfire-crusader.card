@@ -1,0 +1,7 @@
+card "Angelfire Crusader" {
+  oracle_id 1a587b8d-fcb4-47ca-9689-610897117166
+  cost {3}{W}
+  type Creature — Human Soldier Knight
+  pt 2/3
+  activated {R}: this gets +1/+0
+}

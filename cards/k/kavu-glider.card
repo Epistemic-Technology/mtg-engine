@@ -1,0 +1,8 @@
+card "Kavu Glider" {
+  oracle_id 425050a7-41d2-4850-bb45-3a83275d3c50
+  cost {2}{R}
+  type Creature — Kavu
+  pt 2/1
+  activated {W}: this gets +0/+1
+  activated {U}: this gains flying
+}

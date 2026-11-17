@@ -1,0 +1,6 @@
+card "Ancient Brontodon" {
+  oracle_id 745be03c-69dc-4239-a5e7-38587b56eac0
+  cost {6}{G}{G}
+  type Creature — Dinosaur
+  pt 9/9
+}

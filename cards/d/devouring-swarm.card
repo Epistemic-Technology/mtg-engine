@@ -1,0 +1,8 @@
+card "Devouring Swarm" {
+  oracle_id 11656b2a-b459-4b1c-b505-8547c3507856
+  cost {1}{B}{B}
+  type Creature — Insect
+  pt 2/1
+  keywords flying
+  activated sacrifice creature: this gets +1/+1
+}

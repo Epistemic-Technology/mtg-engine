@@ -1,0 +1,8 @@
+card "Daring Thunder-Thief" {
+  oracle_id 0f5401c2-0189-4a07-8e7b-a765ccd7c954
+  cost {3}{U}
+  type Creature — Turtle Rogue
+  pt 4/4
+  keywords flash
+  enters tapped
+}

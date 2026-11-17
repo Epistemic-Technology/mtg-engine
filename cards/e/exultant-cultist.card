@@ -1,0 +1,7 @@
+card "Exultant Cultist" {
+  oracle_id e802442e-6a78-4c15-9034-fc8872470208
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this dies: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Avengers Hangar" {
+  oracle_id 10fc2009-4212-47c6-8a97-ab0f45c1f91b
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {U}
+}

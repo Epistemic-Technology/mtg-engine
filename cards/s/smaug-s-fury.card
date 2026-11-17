@@ -1,0 +1,6 @@
+card "Smaug's Fury" {
+  oracle_id 5c034266-8e63-4b43-8f9e-564e6fff6ec1
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains reach, first strike
+}

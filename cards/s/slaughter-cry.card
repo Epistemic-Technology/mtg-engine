@@ -1,0 +1,6 @@
+card "Slaughter Cry" {
+  oracle_id 924e20d5-b8a0-4883-9273-97ca01bf702a
+  cost {2}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains first strike
+}

@@ -1,0 +1,7 @@
+card "Whiptail Moloch" {
+  oracle_id d57079ae-7760-4a81-895f-dc8990896ed7
+  cost {4}{R}
+  type Creature — Lizard
+  pt 6/3
+  triggered when this enters: deal 3 damage to target creature you control
+}

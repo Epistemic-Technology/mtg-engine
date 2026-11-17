@@ -1,0 +1,6 @@
+card "Nether Horror" {
+  oracle_id d4647f16-b287-46a2-9c38-93881c290f76
+  cost {3}{B}
+  type Creature — Horror
+  pt 4/2
+}

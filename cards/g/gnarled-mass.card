@@ -1,0 +1,6 @@
+card "Gnarled Mass" {
+  oracle_id 18202185-f9d4-446a-b34e-fae9800240f9
+  cost {1}{G}{G}
+  type Creature — Spirit
+  pt 3/3
+}

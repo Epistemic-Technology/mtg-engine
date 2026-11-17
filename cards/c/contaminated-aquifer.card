@@ -1,0 +1,5 @@
+card "Contaminated Aquifer" {
+  oracle_id c27b771d-b5ec-459a-a101-f078cb8d0184
+  type Land — Island Swamp
+  enters tapped
+}

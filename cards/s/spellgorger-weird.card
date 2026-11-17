@@ -1,0 +1,7 @@
+card "Spellgorger Weird" {
+  oracle_id 550811ca-0995-4886-aa8c-5cee118aa54f
+  cost {2}{R}
+  type Creature — Weird
+  pt 2/2
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

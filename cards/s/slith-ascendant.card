@@ -1,0 +1,8 @@
+card "Slith Ascendant" {
+  oracle_id 72f5095f-b4ba-45ba-82e5-9a22bddd544b
+  cost {1}{W}{W}
+  type Creature — Slith
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

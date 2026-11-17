@@ -1,0 +1,6 @@
+card "Springsage Ritual" {
+  oracle_id 14945b80-10ec-4205-98df-cc3e119ca57c
+  cost {3}{G}
+  type Instant
+  spell: destroy target artifact or enchantment; you gains 4 life
+}

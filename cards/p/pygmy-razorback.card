@@ -1,0 +1,7 @@
+card "Pygmy Razorback" {
+  oracle_id 2bdd82e7-cbbf-4f12-bcb7-b276df021351
+  cost {1}{G}
+  type Creature — Boar
+  pt 2/1
+  keywords trample
+}

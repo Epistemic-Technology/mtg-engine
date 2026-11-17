@@ -1,0 +1,6 @@
+card "Goblin Hero" {
+  oracle_id ee969637-a20e-4163-97c0-9fd5cb17b741
+  cost {2}{R}
+  type Creature — Goblin
+  pt 2/2
+}

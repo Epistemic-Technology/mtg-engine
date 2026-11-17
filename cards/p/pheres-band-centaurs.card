@@ -1,0 +1,6 @@
+card "Pheres-Band Centaurs" {
+  oracle_id 4aebea34-a05b-4626-97bc-f15fa177ef05
+  cost {4}{G}
+  type Creature — Centaur Warrior
+  pt 3/7
+}

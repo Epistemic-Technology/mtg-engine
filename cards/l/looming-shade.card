@@ -1,0 +1,7 @@
+card "Looming Shade" {
+  oracle_id 3ce8560d-dc68-4551-81c9-3a7b8d8da9a1
+  cost {2}{B}
+  type Creature — Shade
+  pt 1/1
+  activated {B}: this gets +1/+1
+}

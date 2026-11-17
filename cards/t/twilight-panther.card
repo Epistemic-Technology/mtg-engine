@@ -1,0 +1,7 @@
+card "Twilight Panther" {
+  oracle_id 5e19aa52-5b76-40d7-ba9c-0e5d64f2b773
+  cost {W}
+  type Creature — Cat Spirit
+  pt 1/2
+  activated {B}: this gains deathtouch
+}

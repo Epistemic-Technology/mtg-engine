@@ -1,0 +1,6 @@
+card "Mending Touch" {
+  oracle_id e3172ac0-213c-4da4-8b7a-8f84bc237cde
+  cost {G}
+  type Instant
+  spell: regenerate target creature
+}

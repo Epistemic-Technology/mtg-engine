@@ -1,0 +1,6 @@
+card "Nettle Swine" {
+  oracle_id fe412468-b506-4ed8-8fff-3987ef3dc2ee
+  cost {3}{G}
+  type Creature — Boar
+  pt 4/3
+}

@@ -1,0 +1,6 @@
+card "Lightning Blast" {
+  oracle_id 91fd731c-e076-4f2d-9f22-872880c3cc3d
+  cost {3}{R}
+  type Instant
+  spell: deal 4 damage to any target
+}

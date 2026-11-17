@@ -1,0 +1,7 @@
+card "Alabaster Host Sanctifier" {
+  oracle_id ad172d4e-febf-4844-9544-861d03e27ab5
+  cost {1}{W}
+  type Creature — Phyrexian Cleric
+  pt 2/2
+  keywords lifelink
+}

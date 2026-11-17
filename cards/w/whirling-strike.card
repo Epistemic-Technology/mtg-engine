@@ -1,0 +1,6 @@
+card "Whirling Strike" {
+  oracle_id 6b37b0ef-7e89-447f-a189-b3ea7b42143f
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +2/+0 and gains first strike, trample
+}

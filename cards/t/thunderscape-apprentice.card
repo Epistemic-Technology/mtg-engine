@@ -1,0 +1,8 @@
+card "Thunderscape Apprentice" {
+  oracle_id 34e325f0-b66f-44b9-a25c-da88357dbac4
+  cost {R}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {B}, {T}: target player loses 1 life
+  activated {G}, {T}: target creature gets +1/+1
+}

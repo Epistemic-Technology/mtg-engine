@@ -1,0 +1,7 @@
+card "Pestilent Wolf" {
+  oracle_id 39940633-ef64-408e-ae8f-ade201fe7f06
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/2
+  activated {2}{G}: this gains deathtouch
+}

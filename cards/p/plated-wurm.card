@@ -1,0 +1,6 @@
+card "Plated Wurm" {
+  oracle_id d7316cc6-a2c2-479c-80b5-53c86165e3d1
+  cost {4}{G}
+  type Creature — Wurm
+  pt 4/5
+}

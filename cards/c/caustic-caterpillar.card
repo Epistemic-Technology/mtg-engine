@@ -1,0 +1,7 @@
+card "Caustic Caterpillar" {
+  oracle_id 45d35128-76e6-43f9-8d23-41f7506c3a71
+  cost {G}
+  type Creature — Insect
+  pt 1/1
+  activated {1}{G}, sacrifice this: destroy target artifact or enchantment
+}

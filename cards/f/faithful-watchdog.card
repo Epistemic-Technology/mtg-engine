@@ -1,0 +1,8 @@
+card "Faithful Watchdog" {
+  oracle_id 139fb542-89fd-4b9e-87e6-ec925bcca93a
+  cost {G}{W}
+  type Creature — Dog
+  pt 0/0
+  keywords vigilance
+  enters with 3 +1/+1 counters
+}

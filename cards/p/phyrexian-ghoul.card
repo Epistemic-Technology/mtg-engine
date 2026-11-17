@@ -1,0 +1,7 @@
+card "Phyrexian Ghoul" {
+  oracle_id 748c2723-dc59-4aa7-9667-d4679448c8b6
+  cost {2}{B}
+  type Creature — Phyrexian Zombie
+  pt 2/2
+  activated sacrifice creature: this gets +2/+2
+}

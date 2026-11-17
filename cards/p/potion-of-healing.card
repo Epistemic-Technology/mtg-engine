@@ -1,0 +1,7 @@
+card "Potion of Healing" {
+  oracle_id 11fb3fee-ae84-4bf3-b834-63d3b8987df3
+  cost {1}{W}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {W}, {T}, sacrifice this: you gains 3 life
+}

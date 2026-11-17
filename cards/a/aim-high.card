@@ -1,0 +1,6 @@
+card "Aim High" {
+  oracle_id c169929a-850b-4d46-9f14-a922f4465d85
+  cost {1}{G}
+  type Instant
+  spell: untap target creature; target 1 gets +2/+2 and gains reach
+}

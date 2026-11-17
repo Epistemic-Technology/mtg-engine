@@ -1,0 +1,8 @@
+card "Viashino Bladescout" {
+  oracle_id e23d88c4-8c9c-41cb-b4ff-ebb3f880ab63
+  cost {1}{R}{R}
+  type Creature — Lizard Scout
+  pt 2/1
+  keywords flash
+  triggered when this enters: target creature gains first strike
+}

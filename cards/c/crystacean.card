@@ -1,0 +1,7 @@
+card "Crystacean" {
+  oracle_id baddf7ee-f6b9-41e3-b930-57129952cc1d
+  cost {3}{U}
+  type Creature — Crab
+  pt 1/6
+  keywords flash
+}

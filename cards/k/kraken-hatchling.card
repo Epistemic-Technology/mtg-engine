@@ -1,0 +1,6 @@
+card "Kraken Hatchling" {
+  oracle_id 08e6c786-d553-4c23-9137-cfad84146739
+  cost {U}
+  type Creature — Kraken
+  pt 0/4
+}

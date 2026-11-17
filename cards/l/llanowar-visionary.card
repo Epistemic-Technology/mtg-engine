@@ -1,0 +1,8 @@
+card "Llanowar Visionary" {
+  oracle_id f75ed312-3a23-4624-80c5-03980aa22d0b
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 2/2
+  triggered when this enters: draw 1 cards
+  mana {G}
+}

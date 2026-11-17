@@ -1,0 +1,6 @@
+card "Arachnoid Adaptation" {
+  oracle_id 042cc9d9-ad13-401f-b2f5-c2f1558d7e44
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2 and gains reach; untap target 1
+}

@@ -1,0 +1,7 @@
+card "Grappler Spider" {
+  oracle_id 0ae0c880-a508-471f-a90b-029c417f6b3b
+  cost {1}{G}
+  type Creature — Spider
+  pt 2/1
+  keywords reach
+}

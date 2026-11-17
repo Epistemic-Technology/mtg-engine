@@ -1,0 +1,6 @@
+card "Big Play" {
+  oracle_id 607425ac-9e90-4c9e-88bf-72f8a76cce97
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2 and gains reach; put 1 +1/+1 counters on target 1
+}

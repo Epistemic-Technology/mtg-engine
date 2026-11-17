@@ -1,0 +1,6 @@
+card "Lightfoot Technique" {
+  oracle_id 601b7481-19fc-4779-950e-883a9a22aec3
+  cost {1}{W}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; target 1 gains flying, indestructible
+}

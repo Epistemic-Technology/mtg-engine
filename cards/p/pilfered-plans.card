@@ -1,0 +1,6 @@
+card "Pilfered Plans" {
+  oracle_id b734cfd9-afef-41f1-8377-68c885fb3a69
+  cost {1}{U}{B}
+  type Sorcery
+  spell: target player mills 2 cards; draw 2 cards
+}

@@ -1,0 +1,8 @@
+card "Surveilling Sprite" {
+  oracle_id 449142ff-7190-471b-99a5-f77095a827dd
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying
+  triggered when this dies: you may draw 1 cards
+}

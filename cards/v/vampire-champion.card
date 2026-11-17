@@ -1,0 +1,7 @@
+card "Vampire Champion" {
+  oracle_id a48d2be2-395a-4377-a2ad-51dbbc5b4e17
+  cost {3}{B}
+  type Creature — Vampire Soldier
+  pt 3/3
+  keywords deathtouch
+}

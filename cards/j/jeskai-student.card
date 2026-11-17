@@ -1,0 +1,7 @@
+card "Jeskai Student" {
+  oracle_id c8ebfc8b-3cee-491b-a568-8a8dcb22541d
+  cost {1}{W}
+  type Creature — Human Monk
+  pt 1/3
+  keywords prowess
+}

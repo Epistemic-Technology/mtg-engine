@@ -1,0 +1,6 @@
+card "Gerrard's Command" {
+  oracle_id de8ebe4b-d86d-478b-946e-f83e1409b63f
+  cost {G}{W}
+  type Instant
+  spell: untap target creature; target 1 gets +3/+3
+}

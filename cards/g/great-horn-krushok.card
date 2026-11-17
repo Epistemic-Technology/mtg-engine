@@ -1,0 +1,6 @@
+card "Great-Horn Krushok" {
+  oracle_id b193a6df-da22-4e3c-a086-5b02c604089e
+  cost {4}{W}
+  type Creature — Beast
+  pt 3/5
+}

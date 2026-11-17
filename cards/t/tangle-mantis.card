@@ -1,0 +1,7 @@
+card "Tangle Mantis" {
+  oracle_id d52397bf-e3fb-4894-996d-7c1cc8d92603
+  cost {2}{G}{G}
+  type Creature — Insect
+  pt 3/4
+  keywords trample
+}

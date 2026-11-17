@@ -1,0 +1,7 @@
+card "Daybreak Chaplain" {
+  oracle_id ebd33f4c-2cc8-46e3-b367-ce5b37c2719b
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  keywords lifelink
+}

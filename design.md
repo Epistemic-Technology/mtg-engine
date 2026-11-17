@@ -758,12 +758,44 @@ ability) and a dozen smaller divergences in costs, type lines, and
 wording ("Human Wizard Sorcerer", Regenerate costs {1}{G}, Ravenous
 Bloodseeker is 1/3); after fixes 131 of 131 match and one card carries an
 `oracle_mismatch` tag (Leyline of the Void's opening-hand ability, not
-implemented). Gates 2–4 (scenario coverage, rulings coverage, fuzz
-participation) are the next slice.
+implemented). Gate 4 (fuzz participation) is served by random decks
+drawn from the whole pool (`mtg sim --deck1 random:<seed>`,
+`scripts/fuzz-random.sh`), so every card in the corpus gets played.
+Gate 2 is measured, not enforced: `mtg-cards coverage --scenarios`
+reports which corpus cards no scenario names (2026-11-17: 132 of 2,222;
+1,394 cards with abilities have none, nearly all template-authored
+commons whose abilities are the same few primitives the hand-written
+cards' scenarios already exercise). Gate 3 (rulings) is not started. The
+corpus therefore has two support levels: the 131 hand-written cards are
+*verified* (gates 1, 2, 4); the template-authored cards are *supported*
+(gates 1 and 4). Deck loading does not yet distinguish them.
 
 ### 6.4 Authoring pipeline
 
-`mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
+Status 2026-11-17 (M3 slice 2): the part of the pipeline that needs no
+model is in. `mtg-cards author --format <f> [--write]` reads the Scryfall
+snapshot and, for every card of a normal layout legal in the format,
+builds a card file from a fixed set of sentence templates (the inverse of
+the printer's: "~ deals N damage to <target>", "Target creature gets
++N/+N until end of turn", "Enchanted creature gets ...", "{T}: Add ...",
+"This land enters tapped.", "When this creature enters, ...", "<cost>:
+<effects>", and so on), skipping any card with a keyword the engine does
+not implement, a sentence no template matches, a quoted ability, or a
+hybrid/Phyrexian mana symbol. Every candidate is parsed, rendered, and
+compared to its Oracle text before it is accepted, so the written files
+pass gate 1 by construction (the first run over Pauper found 54 that did
+not, all printer wording: "-3/-0", "Untap it", cost order, a keyword
+printed after "enters tapped"; fixed by making those part of the DSL).
+The report's skip reasons, by count, are the backlog: Scry, Cycling,
+Surveil, Kicker, Flashback, "Counter target spell", "Add one mana of any
+color", "can't block", "Activate only once each turn". Hand-written files
+are never overwritten. Result: 2,090 Pauper cards authored in one run,
+every one matching its Oracle text; the corpus went from 138 definitions
+to 2,229 (Pauper coverage 20%, Modern 8%). Fuzzing draws random two-color
+decks from the whole pool (`mtg sim --deck1 random:<seed>`), which is how
+these cards get played.
+
+The model-driven part is next. `mtg-cards author <oracle_id>` runs: fetch Oracle text and rulings;
 retrieve the DSL for the k most similar already-supported cards
 (embedding search over Oracle text); prompt an LLM for the DSL and
 scenario tests; compile; run the gate; iterate up to M times on compiler
@@ -1076,6 +1108,20 @@ Factory has its pump): games are shorter (mean 31 turns and 673
 decisions, from 37 and 823) and the per-decision rate is about 20%
 higher, which the changed card mix explains well enough not to
 profile. Fuzz: 36,000 release games over 15 matchups, 0 panics.
+
+
+**M3 slice 2 (2026-11-17, same method, measured against the slice 1
+binary).** The pool grew from 138 to 2,229 definitions and the agents
+gained the free-activation guard; the stress decks are unchanged, so
+throughput should be too, and is: mono-red 4,907→4,891 games/s/core,
+copy deck 1,493→1,483, slice6 857→836. The guard's first version
+allocated a `Vec` of allowed options per decision and cost 5% on the
+effect-free deck (the random agent is part of the measured loop); it
+now takes an allocation-free path when no activation is on offer. A new
+baseline: two random decks drawn from the whole pool (`random:208` vs
+`random:258`, 2,000 games) run at 945 games/s/core with 840 decisions
+per game. Fuzz: 15,000 random-deck games (half with greedy agents) and
+36,000 stress-deck games, 0 panics, 0 unfinished.
 
 ### 8.2 Techniques
 
@@ -1582,6 +1628,29 @@ decided (§6.2, open question 4). Scenario corpus: 378 pass, with the
 counter and life-gain numbers of a dozen scenarios updated for the
 corrected cards. Not yet: gates 2–4, `mtg-cards author`, the XMage
 converter, any Pauper coverage beyond the M2 pool.
+Status 2026-11-17, slice 2 (template authoring and fuzz participation)
+done: `mtg-cards author --format pauper --write` authored 2,090 Pauper
+cards from the Scryfall snapshot through sentence templates, each
+verified against its Oracle text before being written (§6.4); the corpus
+is 2,229 definitions in `cards/<letter>/` (20.1% of Pauper, 8.1% of
+Modern), and the gate matches 2,221 of 2,221 cards with one declared
+exception. Random two-color decks drawn from the whole pool
+(`mtg sim --deck1 random:<seed>`, `mtg deck random:<seed>`) are the fuzz
+input; the first run found two things. A legendary land (Urborg) played
+onto a battlefield holding its namesake hit the legend rule with no
+snapshot: the mid-decision gate only looked at the stack, and a land play
+has none; it now looks at the action too (a legendary land or one with
+an "enters" replacement when a namesake or replacement source is out).
+And Hyalopterous Lemure's "{0}: ..." let the random agent's stack of
+activations random-walk for thousands of steps, each adding an
+until-end-of-turn effect, so one game could run for minutes: not a rules
+bug, a baseline-agent policy, fixed with an `ActivationGuard` in
+`mtg-agents` that stops repeating a free ability after four uses a turn.
+`mtg-cards coverage --scenarios` measures gate 2 (§6.3). The fuzz and
+A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
+greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
+acceptance target of 500 Pauper cards through the gate is met for gate 1
+and gate 4; the XMage converter and model-driven authoring remain.
 - `mtg-dsl` with round-trip printer; `mtg-scenario` runner; XMage test
   converter; `mtg-cards author`.
 - Accept: 500 Pauper cards supported through the gate; 1,000 ported

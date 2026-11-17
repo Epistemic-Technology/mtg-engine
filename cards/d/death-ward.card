@@ -1,0 +1,6 @@
+card "Death Ward" {
+  oracle_id 0544b707-ec67-43e3-a25d-fd7005ab673d
+  cost {W}
+  type Instant
+  spell: regenerate target creature
+}

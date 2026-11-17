@@ -1,0 +1,7 @@
+card "Weight of the Underworld" {
+  oracle_id b960d17b-3679-4dc5-9a5d-c8e7fd81fa9a
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -3/-2
+}

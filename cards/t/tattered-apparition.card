@@ -1,0 +1,8 @@
+card "Tattered Apparition" {
+  oracle_id b38c0575-37f7-413c-9dad-c8d7e6a41b90
+  cost {3}{B}
+  type Creature — Shade
+  pt 2/2
+  keywords flying
+  activated {1}{B}: this gets +1/+1
+}

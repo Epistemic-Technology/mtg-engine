@@ -1,0 +1,7 @@
+card "Mutant Town" {
+  oracle_id f6059731-2e10-4f72-a214-b257f1677e9e
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {G} or {U}
+}

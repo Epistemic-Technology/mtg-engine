@@ -1,0 +1,7 @@
+card "Nantuko Husk" {
+  oracle_id 0dcefc00-9425-43e3-bd47-1e34fff8b0e2
+  cost {2}{B}
+  type Creature — Zombie Insect
+  pt 2/2
+  activated sacrifice creature: this gets +2/+2
+}

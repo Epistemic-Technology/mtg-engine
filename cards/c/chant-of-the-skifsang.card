@@ -1,0 +1,7 @@
+card "Chant of the Skifsang" {
+  oracle_id 5c902588-b16e-4679-b89e-7b11c928061f
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -13/-0
+}

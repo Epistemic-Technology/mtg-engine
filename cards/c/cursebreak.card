@@ -1,0 +1,6 @@
+card "Cursebreak" {
+  oracle_id ac5a13b1-0725-4978-8c93-cebd76be58ba
+  cost {1}{W}
+  type Instant
+  spell: destroy target enchantment; you gains 2 life
+}

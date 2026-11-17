@@ -1,0 +1,6 @@
+card "Final Death" {
+  oracle_id 1be3eea4-eaff-469c-9689-abadac1e848c
+  cost {4}{B}
+  type Instant
+  spell: exile target creature
+}

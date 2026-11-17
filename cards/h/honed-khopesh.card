@@ -1,0 +1,7 @@
+card "Honed Khopesh" {
+  oracle_id f2142c41-ff66-4276-b426-fd945ed9b0f6
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +1/+1
+  equip {1}
+}

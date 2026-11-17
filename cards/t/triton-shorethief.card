@@ -1,0 +1,6 @@
+card "Triton Shorethief" {
+  oracle_id d8f6f61a-39c2-4bac-9f16-a5e6340f6301
+  cost {U}
+  type Creature — Merfolk Rogue
+  pt 1/2
+}

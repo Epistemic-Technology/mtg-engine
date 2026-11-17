@@ -1,0 +1,6 @@
+card "Open Fire" {
+  oracle_id 8b218023-50b8-4d9d-b17b-9647479d3675
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target
+}

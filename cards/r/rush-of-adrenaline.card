@@ -1,0 +1,6 @@
+card "Rush of Adrenaline" {
+  oracle_id ec9975f4-dfff-4b72-9da8-8f2025f0524a
+  cost {R}
+  type Instant
+  spell: target creature gets +2/+1 and gains trample
+}

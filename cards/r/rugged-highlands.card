@@ -1,0 +1,7 @@
+card "Rugged Highlands" {
+  oracle_id 6c922206-6e68-4dcd-9559-88da1074f2c4
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {R} or {G}
+}

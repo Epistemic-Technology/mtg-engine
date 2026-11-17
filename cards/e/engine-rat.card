@@ -1,0 +1,8 @@
+card "Engine Rat" {
+  oracle_id 7e29aae9-815a-4999-ace6-7bc860acde32
+  cost {B}
+  type Creature — Zombie Rat
+  pt 1/1
+  keywords deathtouch
+  activated {5}{B}: each opponent loses 2 life
+}

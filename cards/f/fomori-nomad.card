@@ -1,0 +1,6 @@
+card "Fomori Nomad" {
+  oracle_id bfcaa0a4-2fc5-4e27-8b79-802e365c71f2
+  cost {4}{R}
+  type Creature — Nomad Giant
+  pt 4/4
+}

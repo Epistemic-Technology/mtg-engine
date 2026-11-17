@@ -1,0 +1,7 @@
+card "Molten Ravager" {
+  oracle_id 697c851d-8475-479e-8783-cebdbe9a892d
+  cost {2}{R}
+  type Creature — Elemental
+  pt 0/4
+  activated {R}: this gets +1/+0
+}

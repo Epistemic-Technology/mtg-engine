@@ -1,0 +1,6 @@
+card "Terror of the Fairgrounds" {
+  oracle_id 75a20db5-5ce8-4e5d-a815-e69bc3dd8d4c
+  cost {3}{R}
+  type Creature — Gremlin
+  pt 5/2
+}

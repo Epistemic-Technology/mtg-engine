@@ -1,0 +1,7 @@
+card "Gideon's Lawkeeper" {
+  oracle_id bae86bb0-5a97-4f6a-8a3f-4e6848bfacc0
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {W}, {T}: tap target creature
+}

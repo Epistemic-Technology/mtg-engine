@@ -1,0 +1,7 @@
+card "Feral Shadow" {
+  oracle_id cf26dcb4-e181-4ba5-bc03-b56f57032b85
+  cost {2}{B}
+  type Creature — Nightstalker
+  pt 2/1
+  keywords flying
+}

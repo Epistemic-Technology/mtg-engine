@@ -1,0 +1,7 @@
+card "Checkpoint Officer" {
+  oracle_id 03e25120-b4e4-409e-8dbc-7574ea4c78d6
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  activated {1}{W}, {T}: tap target creature
+}

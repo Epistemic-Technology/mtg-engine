@@ -1,0 +1,7 @@
+card "Copper Myr" {
+  oracle_id 8b52f30c-5e38-4333-88ab-901b37105b36
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  mana {G}
+}

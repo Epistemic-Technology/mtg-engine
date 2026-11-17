@@ -1,0 +1,6 @@
+card "Zuko's Offense" {
+  oracle_id 90a2ec9c-2f1c-4ed4-820d-dfdb6b58c0db
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to any target
+}

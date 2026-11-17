@@ -1,0 +1,7 @@
+card "Tarpan" {
+  oracle_id b1e1ebc8-cd09-4280-a169-58ab7ece43ff
+  cost {G}
+  type Creature — Horse
+  pt 1/1
+  triggered when this dies: you gains 1 life
+}

@@ -1,0 +1,6 @@
+card "Colossapede" {
+  oracle_id b2cede1a-3a76-4658-bd12-e9df464d61e5
+  cost {4}{G}
+  type Creature — Insect
+  pt 5/5
+}

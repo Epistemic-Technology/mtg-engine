@@ -1,0 +1,7 @@
+card "Feast of the Unicorn" {
+  oracle_id 274d89b8-1e59-4992-9299-dc793b7f6752
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +4/+0
+}

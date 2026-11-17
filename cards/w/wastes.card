@@ -1,0 +1,5 @@
+card "Wastes" {
+  oracle_id 05d24b0c-904a-46b6-b42a-96a4d91a0dd4
+  type Basic Land
+  mana {C}
+}

@@ -1,0 +1,10 @@
+card "Light of Hope" {
+  oracle_id 5b6f655b-1518-4ab1-8765-3f549819ef3b
+  cost {W}
+  type Instant
+  choose one {
+    mode: you gains 4 life
+    mode: destroy target enchantment
+    mode: put 1 +1/+1 counters on target creature
+  }
+}

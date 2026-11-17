@@ -1,0 +1,7 @@
+card "Warriors of Wakanda" {
+  oracle_id 7abbbe18-a2e5-47ce-9c65-8008e5153a4d
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 4/4
+  keywords trample
+}

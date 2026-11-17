@@ -1,0 +1,6 @@
+card "Rig for War" {
+  oracle_id 05bbd557-e2c0-4855-8fe6-00527fa39878
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains reach, first strike
+}

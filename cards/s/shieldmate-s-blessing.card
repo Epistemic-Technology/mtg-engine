@@ -1,0 +1,6 @@
+card "Shieldmate's Blessing" {
+  oracle_id 4ed55e9c-84ea-42a3-a32f-469da56b3eb5
+  cost {W}
+  type Instant
+  spell: prevent next 3 damage to any target this turn
+}

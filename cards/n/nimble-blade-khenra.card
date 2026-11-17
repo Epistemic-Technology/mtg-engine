@@ -1,0 +1,7 @@
+card "Nimble-Blade Khenra" {
+  oracle_id 09c68fb5-2000-4bb8-b03b-94b093e50bca
+  cost {1}{R}
+  type Creature — Jackal Warrior
+  pt 1/3
+  keywords prowess
+}

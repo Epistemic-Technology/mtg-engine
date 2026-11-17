@@ -1,0 +1,7 @@
+card "Woodland Patrol" {
+  oracle_id ce31cfc4-a109-4cf5-b8f9-210267a98114
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/2
+  keywords vigilance
+}

@@ -1,0 +1,7 @@
+card "Centaur Peacemaker" {
+  oracle_id 495d95cf-dcce-4a15-a544-79aced7ef98d
+  cost {1}{G}{W}
+  type Creature — Centaur Cleric
+  pt 3/3
+  triggered when this enters: each player gains 4 life
+}

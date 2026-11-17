@@ -1,0 +1,7 @@
+card "Surrakar Banisher" {
+  oracle_id d48fd4b7-b60c-4932-abed-a8df1184db25
+  cost {4}{U}
+  type Creature — Surrakar
+  pt 3/3
+  triggered when this enters: you may return target tapped creature to hand
+}

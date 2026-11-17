@@ -1,0 +1,7 @@
+card "Iguana Parrot" {
+  oracle_id edd3a3ea-6bde-408c-8b16-85ed3cc312b2
+  cost {2}{U}
+  type Creature — Lizard Bird Pirate
+  pt 2/2
+  keywords flying, vigilance, prowess
+}

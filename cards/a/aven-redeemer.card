@@ -1,0 +1,8 @@
+card "Aven Redeemer" {
+  oracle_id faac29f5-10ad-4800-a9d3-2259c4800352
+  cost {3}{W}
+  type Creature — Bird Cleric
+  pt 2/2
+  keywords flying
+  activated {T}: prevent next 2 damage to any target this turn
+}

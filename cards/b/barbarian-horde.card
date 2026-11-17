@@ -1,0 +1,6 @@
+card "Barbarian Horde" {
+  oracle_id eca9cb24-4dc8-48eb-b055-5fdf7c67bd43
+  cost {3}{R}
+  type Creature — Human Barbarian Soldier
+  pt 3/3
+}

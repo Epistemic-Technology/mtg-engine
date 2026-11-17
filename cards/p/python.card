@@ -1,0 +1,6 @@
+card "Python" {
+  oracle_id d8a0c3ff-7042-4b52-a216-15e170c8094f
+  cost {1}{B}{B}
+  type Creature — Snake
+  pt 3/2
+}

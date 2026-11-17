@@ -1,0 +1,6 @@
+card "Squire" {
+  oracle_id aa6cdcc7-f5ea-47bf-9448-1c63e36b18d1
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+}

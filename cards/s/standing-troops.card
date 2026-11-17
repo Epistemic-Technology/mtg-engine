@@ -1,0 +1,7 @@
+card "Standing Troops" {
+  oracle_id 9e9d5242-424d-4f61-b625-806295dbb0c7
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  keywords vigilance
+}

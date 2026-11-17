@@ -1,0 +1,6 @@
+card "Thunder Strike" {
+  oracle_id a5f25e80-7a6a-4629-8201-901e0fcd4a02
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +2/+0 and gains first strike
+}

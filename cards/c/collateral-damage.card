@@ -1,0 +1,7 @@
+card "Collateral Damage" {
+  oracle_id b89dd47e-0f65-41f0-ad23-cefc61e68978
+  cost {R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal 3 damage to any target
+}

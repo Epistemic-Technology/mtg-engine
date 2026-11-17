@@ -1,0 +1,7 @@
+card "Greataxe" {
+  oracle_id 843f3373-b8ef-416c-9163-aa1aa6b4a51d
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +4/+0
+  equip {5}
+}

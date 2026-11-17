@@ -1,0 +1,7 @@
+card "Willow Faerie" {
+  oracle_id 5390bb44-985e-473b-883e-c9562c06f210
+  cost {1}{G}
+  type Creature — Faerie
+  pt 1/2
+  keywords flying
+}

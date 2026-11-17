@@ -1,0 +1,6 @@
+card "Flesh to Dust" {
+  oracle_id 2f05f3ed-e3b7-4225-b3f2-c12eda335237
+  cost {3}{B}{B}
+  type Instant
+  spell: destroy target creature without regeneration
+}

@@ -1,0 +1,7 @@
+card "Ekundu Griffin" {
+  oracle_id 852b6e19-4594-41ea-9267-0911df643af5
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying, first strike
+}

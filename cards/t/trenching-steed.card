@@ -1,0 +1,7 @@
+card "Trenching Steed" {
+  oracle_id 31136103-535a-4d11-819a-1cbd57ad48a4
+  cost {3}{W}
+  type Creature — Horse Rebel
+  pt 2/3
+  activated sacrifice land: this gets +0/+3
+}

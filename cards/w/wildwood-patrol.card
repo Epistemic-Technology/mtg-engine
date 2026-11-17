@@ -1,0 +1,7 @@
+card "Wildwood Patrol" {
+  oracle_id 4fb9c040-c684-4ba8-970e-58313af5584a
+  cost {2}{G}
+  type Creature — Centaur Scout
+  pt 4/2
+  keywords trample
+}

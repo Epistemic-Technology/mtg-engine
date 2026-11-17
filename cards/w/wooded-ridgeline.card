@@ -1,0 +1,5 @@
+card "Wooded Ridgeline" {
+  oracle_id c2ca3e20-23ca-4d2a-88a1-5e98ff884abb
+  type Land — Mountain Forest
+  enters tapped
+}

@@ -1,0 +1,6 @@
+card "Terminate" {
+  oracle_id 6257c2fd-005f-41e3-8a72-af76df1eb134
+  cost {B}{R}
+  type Instant
+  spell: destroy target creature without regeneration
+}

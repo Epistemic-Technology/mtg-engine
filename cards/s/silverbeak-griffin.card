@@ -1,0 +1,7 @@
+card "Silverbeak Griffin" {
+  oracle_id e9f410c1-d93d-4291-95fc-513832fb36e0
+  cost {W}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+}

@@ -1,0 +1,8 @@
+card "Capashen Knight" {
+  oracle_id e295d207-128f-419a-866a-c9ac6248c199
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 1/1
+  keywords first strike
+  activated {1}{W}: this gets +1/+0
+}

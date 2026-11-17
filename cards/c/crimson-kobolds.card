@@ -1,0 +1,7 @@
+card "Crimson Kobolds" {
+  oracle_id 93fdcc49-e3c8-4f8c-a3bc-064c6392b4ca
+  cost {0}
+  type Creature — Kobold
+  pt 0/1
+  color red
+}

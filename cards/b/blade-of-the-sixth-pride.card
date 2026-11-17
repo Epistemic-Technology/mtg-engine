@@ -1,0 +1,6 @@
+card "Blade of the Sixth Pride" {
+  oracle_id b7894010-fdba-498e-97de-22bd70332439
+  cost {1}{W}
+  type Creature — Cat Rebel
+  pt 3/1
+}

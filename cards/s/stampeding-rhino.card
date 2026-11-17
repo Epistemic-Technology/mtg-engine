@@ -1,0 +1,7 @@
+card "Stampeding Rhino" {
+  oracle_id 8e4dc1fc-e412-4aa3-8793-5c4abc598521
+  cost {4}{G}
+  type Creature — Rhino
+  pt 4/4
+  keywords trample
+}

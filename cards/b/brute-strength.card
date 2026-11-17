@@ -1,0 +1,6 @@
+card "Brute Strength" {
+  oracle_id b7a16caa-96e0-40c5-8fcb-81e06d26f92a
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+1 and gains trample
+}

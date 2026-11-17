@@ -1,0 +1,7 @@
+card "Battle Hurda" {
+  oracle_id 46762944-8364-45c4-8008-e693e97ddc46
+  cost {4}{W}
+  type Creature — Giant
+  pt 3/3
+  keywords first strike
+}

@@ -1,0 +1,7 @@
+card "Wretched Anurid" {
+  oracle_id f8beeb0a-750f-4afa-a244-10011342bbeb
+  cost {1}{B}
+  type Creature — Zombie Frog Beast
+  pt 3/3
+  triggered whenever other creature enters: you loses 1 life
+}

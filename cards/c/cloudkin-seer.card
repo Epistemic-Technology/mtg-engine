@@ -1,0 +1,8 @@
+card "Cloudkin Seer" {
+  oracle_id 09bd4e1c-9861-481f-80dc-4de955c8d3af
+  cost {2}{U}
+  type Creature — Elemental Wizard
+  pt 2/1
+  keywords flying
+  triggered when this enters: draw 1 cards
+}

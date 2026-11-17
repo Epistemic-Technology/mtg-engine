@@ -1,0 +1,6 @@
+card "Balduvian Bears" {
+  oracle_id 32c10a3e-85b0-49af-9b23-81d0b7e407df
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+}

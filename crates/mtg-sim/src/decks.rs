@@ -1,6 +1,10 @@
-//! Built-in 60-card mono-colored decks over the M1 pool.
+//! Built-in 60-card decks over the card corpus, and seeded random decks
+//! drawn from the whole pool for fuzzing.
 
 use mtg_core::card::{CardPool, CardRef};
+use mtg_core::mana::Color;
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 
 pub const NAMES: [&str; 11] = [
     "mono-white",
@@ -28,6 +32,63 @@ fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
         })
         .collect();
     assert_eq!(deck.len(), 60, "deck must be 60 cards");
+    deck
+}
+
+/// A deck by name: a built-in list, or `random` / `random:<seed>` for a
+/// seeded two-color deck drawn from the whole pool (`seed` is used when
+/// the name gives none).
+pub fn by_name_seeded(pool: &CardPool, name: &str, seed: u64) -> Option<Vec<CardRef>> {
+    if name == "random" {
+        return Some(random_deck(pool, seed));
+    }
+    if let Some(s) = name.strip_prefix("random:") {
+        return s.parse().ok().map(|s| random_deck(pool, s));
+    }
+    by_name(pool, name)
+}
+
+/// A 60-card deck in two colors chosen by `seed`: 24 basic lands split
+/// between them and 36 other cards drawn (with repetition, at most four of
+/// each) from every card in the pool castable with those colors. Every
+/// card in the corpus can turn up, which is what the fuzzer wants.
+pub fn random_deck(pool: &CardPool, seed: u64) -> Vec<CardRef> {
+    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    let a = rng.random_range(0..5);
+    let mut b = rng.random_range(0..4);
+    if b >= a {
+        b += 1;
+    }
+    let colors = [Color::ALL[a], Color::ALL[b]];
+    let castable: Vec<CardRef> = pool
+        .iter()
+        .filter(|(_, d)| {
+            let basic = d.is_land() && d.supertypes.contains(mtg_core::card::Supertype::Basic);
+            !(d.token || d.emblem || basic)
+                && d.mana_cost.colors().iter().all(|c| colors.contains(&c))
+        })
+        .map(|(r, _)| r)
+        .collect();
+    let mut deck = Vec::with_capacity(60);
+    let mut counts = std::collections::HashMap::new();
+    let mut tries = 0;
+    while deck.len() < 36 && tries < 10_000 {
+        tries += 1;
+        let r = castable[rng.random_range(0..castable.len())];
+        let n = counts.entry(r).or_insert(0usize);
+        if *n < 4 {
+            *n += 1;
+            deck.push(r);
+        }
+    }
+    let basics: Vec<CardRef> = colors
+        .iter()
+        .map(|c| pool.lookup(c.basic_land_type()).expect("basic land"))
+        .collect();
+    while deck.len() < 60 {
+        let i = deck.len() % 2;
+        deck.push(basics[i]);
+    }
     deck
 }
 

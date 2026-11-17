@@ -1,0 +1,6 @@
+card "Orazca Frillback" {
+  oracle_id 2da32ec3-f42f-4edc-b5b3-e5f39fcf370c
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 4/2
+}

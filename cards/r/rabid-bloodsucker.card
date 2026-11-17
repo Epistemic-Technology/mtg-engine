@@ -1,0 +1,8 @@
+card "Rabid Bloodsucker" {
+  oracle_id e6b0c47b-9758-4ee3-b831-0af0650660fe
+  cost {4}{B}
+  type Creature — Vampire
+  pt 3/2
+  keywords flying
+  triggered when this enters: each player loses 2 life
+}

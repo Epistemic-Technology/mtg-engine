@@ -1,0 +1,7 @@
+card "Ridgetop Raptor" {
+  oracle_id 600a8c9e-e158-4fff-8c4d-c3a1bfd006e8
+  cost {3}{R}
+  type Creature — Dinosaur Beast
+  pt 2/1
+  keywords double strike
+}

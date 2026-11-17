@@ -1,0 +1,6 @@
+card "Wander Off" {
+  oracle_id b14d3226-adc2-4bdd-9e69-fefdc946ac04
+  cost {3}{B}
+  type Instant
+  spell: exile target creature
+}

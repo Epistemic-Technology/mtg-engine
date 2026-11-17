@@ -10,6 +10,8 @@ description = "Batch simulation, fuzzing, and benchmarks for the MTG engine"
 [dependencies]
 mtg-agents = { path = "../mtg-agents" }
 mtg-core = { path = "../mtg-core" }
+rand.workspace = true
+rand_chacha.workspace = true
 rayon.workspace = true
 
 [dev-dependencies]

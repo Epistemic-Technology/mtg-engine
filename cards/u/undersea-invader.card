@@ -1,0 +1,8 @@
+card "Undersea Invader" {
+  oracle_id ff12dfee-7140-44bd-a62e-5f8ab98e93c6
+  cost {4}{U}{U}
+  type Creature — Giant Rogue
+  pt 5/6
+  keywords flash
+  enters tapped
+}

@@ -1,0 +1,6 @@
+card "Sanctify" {
+  oracle_id c804ac8e-7427-43c6-b496-3ee6de192f03
+  cost {1}{W}
+  type Sorcery
+  spell: destroy target artifact or enchantment; you gains 3 life
+}

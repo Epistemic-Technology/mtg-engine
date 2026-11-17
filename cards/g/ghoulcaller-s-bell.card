@@ -1,0 +1,6 @@
+card "Ghoulcaller's Bell" {
+  oracle_id 36e1485d-3b8c-4c23-9d12-6937fd216b25
+  cost {1}
+  type Artifact
+  activated {T}: each player mills 1 cards
+}

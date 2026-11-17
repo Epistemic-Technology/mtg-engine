@@ -1,0 +1,7 @@
+card "Sparring Mummy" {
+  oracle_id 414c97a3-cf31-4145-a431-3b1ad4343947
+  cost {3}{W}
+  type Creature — Zombie
+  pt 3/3
+  triggered when this enters: untap target creature
+}

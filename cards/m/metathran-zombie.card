@@ -1,0 +1,7 @@
+card "Metathran Zombie" {
+  oracle_id c631887c-e157-4a95-8a59-08a44854d07f
+  cost {1}{U}
+  type Creature — Metathran Zombie
+  pt 1/1
+  activated {B}: regenerate this
+}

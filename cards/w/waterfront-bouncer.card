@@ -1,0 +1,7 @@
+card "Waterfront Bouncer" {
+  oracle_id b53a8cde-494c-43d0-8d08-7bdfe2e84064
+  cost {1}{U}
+  type Creature — Merfolk Spellshaper
+  pt 1/1
+  activated {U}, {T}, discard 1 card: return target creature to hand
+}

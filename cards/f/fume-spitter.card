@@ -1,0 +1,7 @@
+card "Fume Spitter" {
+  oracle_id 6556a15b-be4b-45ea-867d-3a8e26202b42
+  cost {B}
+  type Creature — Phyrexian Horror
+  pt 1/1
+  activated sacrifice this: put 1 -1/-1 counters on target creature
+}

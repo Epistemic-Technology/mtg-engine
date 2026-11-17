@@ -1,0 +1,6 @@
+card "Valiant Guard" {
+  oracle_id 9b00b4c2-d5c4-4cf7-bdcf-cd96297c4350
+  cost {W}
+  type Creature — Human Soldier
+  pt 0/3
+}

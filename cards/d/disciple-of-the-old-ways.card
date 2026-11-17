@@ -1,0 +1,7 @@
+card "Disciple of the Old Ways" {
+  oracle_id d19d69c5-9f11-4ac1-9fc7-1636689f23a0
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  activated {R}: this gains first strike
+}

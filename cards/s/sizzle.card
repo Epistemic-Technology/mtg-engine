@@ -1,0 +1,6 @@
+card "Sizzle" {
+  oracle_id 938cc97f-3908-401e-94cd-32004aff1ef1
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage to each opponent
+}

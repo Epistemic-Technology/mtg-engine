@@ -1,0 +1,8 @@
+card "Squall Drifter" {
+  oracle_id 63ec5617-0da6-4534-b502-34304b1ea02b
+  cost {1}{W}
+  type Snow Creature — Elemental
+  pt 1/1
+  keywords flying
+  activated {W}, {T}: tap target creature
+}

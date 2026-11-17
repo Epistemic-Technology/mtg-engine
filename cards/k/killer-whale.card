@@ -1,0 +1,7 @@
+card "Killer Whale" {
+  oracle_id 5ace3817-5a98-4eee-b6b9-8c105cea302f
+  cost {3}{U}{U}
+  type Creature — Whale
+  pt 3/5
+  activated {U}: this gains flying
+}

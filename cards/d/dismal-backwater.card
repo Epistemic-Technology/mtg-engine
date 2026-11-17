@@ -1,0 +1,7 @@
+card "Dismal Backwater" {
+  oracle_id 865a2194-fca0-446e-aae3-ca475cd66e00
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {B}
+}

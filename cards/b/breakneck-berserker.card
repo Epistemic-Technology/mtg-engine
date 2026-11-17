@@ -1,0 +1,7 @@
+card "Breakneck Berserker" {
+  oracle_id 9f18a580-1c30-4f97-be06-098a763dfda8
+  cost {2}{R}
+  type Creature — Dwarf Berserker
+  pt 3/2
+  keywords haste
+}

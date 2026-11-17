@@ -1,0 +1,7 @@
+card "Implement of Combustion" {
+  oracle_id f4bd26d5-4448-451f-9909-b6dea1551af7
+  cost {1}
+  type Artifact
+  activated {R}, sacrifice this: deal 1 damage to target player or planeswalker
+  triggered when this dies: draw 1 cards
+}

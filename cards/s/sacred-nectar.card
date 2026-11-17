@@ -1,0 +1,6 @@
+card "Sacred Nectar" {
+  oracle_id 30870ee5-6ad7-48a9-983e-d3b018f2344f
+  cost {1}{W}
+  type Sorcery
+  spell: you gains 4 life
+}

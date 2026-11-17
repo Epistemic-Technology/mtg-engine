@@ -1,0 +1,7 @@
+card "Frostling" {
+  oracle_id 6f6ac768-4c97-44db-933a-f2d442e7f665
+  cost {R}
+  type Creature — Spirit
+  pt 1/1
+  activated sacrifice this: deal 1 damage to target creature
+}

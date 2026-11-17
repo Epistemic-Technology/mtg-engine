@@ -1,0 +1,6 @@
+card "Rotted Hulk" {
+  oracle_id 44fd00d5-84e4-48ec-bd6a-d53afbc2dd62
+  cost {3}{B}
+  type Creature — Elemental
+  pt 2/5
+}

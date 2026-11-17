@@ -1,0 +1,7 @@
+card "Ebony Rhino" {
+  oracle_id 3d2b5201-c2bf-4753-89ad-543795740216
+  cost {7}
+  type Artifact Creature — Rhino
+  pt 4/5
+  keywords trample
+}

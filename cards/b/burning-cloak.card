@@ -1,0 +1,6 @@
+card "Burning Cloak" {
+  oracle_id 4527c622-cebe-41eb-9178-4895cccffe99
+  cost {R}
+  type Sorcery
+  spell: target creature gets +2/+0; deal 2 damage to that creature
+}

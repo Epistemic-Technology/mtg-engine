@@ -1,0 +1,6 @@
+card "Stream of Life" {
+  oracle_id 9eb2912d-2130-49f2-9529-b58fa5a97a15
+  cost {X}{G}
+  type Sorcery
+  spell: target player gains X life
+}

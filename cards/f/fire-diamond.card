@@ -1,0 +1,7 @@
+card "Fire Diamond" {
+  oracle_id 97b477d8-2e05-475e-8ed6-7d680cb21cd9
+  cost {2}
+  type Artifact
+  enters tapped
+  mana {R}
+}

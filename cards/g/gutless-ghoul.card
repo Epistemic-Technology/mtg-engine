@@ -1,0 +1,7 @@
+card "Gutless Ghoul" {
+  oracle_id 5ebc166d-98c5-4ab7-9610-bc5bcd231d80
+  cost {2}{B}
+  type Snow Creature — Zombie
+  pt 2/2
+  activated {1}, sacrifice creature: you gains 2 life
+}

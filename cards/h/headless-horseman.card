@@ -1,0 +1,6 @@
+card "Headless Horseman" {
+  oracle_id 5bb4961f-0a24-40f8-bfba-8618a9375c93
+  cost {2}{B}
+  type Creature — Zombie Knight
+  pt 2/2
+}

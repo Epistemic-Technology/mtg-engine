@@ -1,0 +1,7 @@
+card "Afflict" {
+  oracle_id 471f6ad3-cf01-42dd-a519-ea8e13039fea
+  cost {2}{B}
+  type Instant
+  spell: target creature gets -1/-1
+  spell: draw 1 cards
+}

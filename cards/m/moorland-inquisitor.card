@@ -1,0 +1,7 @@
+card "Moorland Inquisitor" {
+  oracle_id 76bbd280-dcbc-43b3-a8a1-603443b2ccaa
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  activated {2}{W}: this gains first strike
+}

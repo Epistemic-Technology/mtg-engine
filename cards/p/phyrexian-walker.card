@@ -1,0 +1,6 @@
+card "Phyrexian Walker" {
+  oracle_id 7af75024-6c9b-4844-aeb6-81de25464822
+  cost {0}
+  type Artifact Creature — Phyrexian Construct
+  pt 0/3
+}

@@ -1,0 +1,6 @@
+card "Brute Force" {
+  oracle_id 9880ba09-d5b8-4675-bfb4-2161d86d2d41
+  cost {R}
+  type Instant
+  spell: target creature gets +3/+3
+}

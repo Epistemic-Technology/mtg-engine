@@ -1,0 +1,7 @@
+card "Jeskai Windscout" {
+  oracle_id c35f4b80-90b6-467a-a666-1cc3437d49ab
+  cost {2}{U}
+  type Creature — Bird Scout
+  pt 2/1
+  keywords flying, prowess
+}

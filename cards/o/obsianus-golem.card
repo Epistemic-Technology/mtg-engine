@@ -1,0 +1,6 @@
+card "Obsianus Golem" {
+  oracle_id ac41171e-c454-49e9-9004-c082ae099630
+  cost {6}
+  type Artifact Creature — Golem
+  pt 4/6
+}

@@ -1,0 +1,7 @@
+card "Torment" {
+  oracle_id b53ec6e6-fcc9-4471-88c5-7ad0fbd7bbea
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -3/-0
+}

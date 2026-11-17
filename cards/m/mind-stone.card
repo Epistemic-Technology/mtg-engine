@@ -1,0 +1,7 @@
+card "Mind Stone" {
+  oracle_id c97361b5-af16-4a7b-af85-a429dbaf4ad2
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {1}, {T}, sacrifice this: draw 1 cards
+}

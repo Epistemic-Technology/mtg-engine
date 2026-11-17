@@ -1,0 +1,8 @@
+card "Lifecreed Duo" {
+  oracle_id 63686c6b-9051-4002-aa8e-da8a3021330f
+  cost {1}{W}
+  type Creature — Bat Bird
+  pt 1/2
+  keywords flying
+  triggered whenever other creature you control enters: you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Voyaging Satyr" {
+  oracle_id bce18f34-848e-4dd2-9a38-6084c0695f78
+  cost {1}{G}
+  type Creature — Satyr Druid
+  pt 1/2
+  activated {T}: untap target land
+}

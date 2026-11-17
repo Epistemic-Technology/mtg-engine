@@ -1,0 +1,8 @@
+card "Advance Scout" {
+  oracle_id 831e2185-0bb2-45bb-99cd-d2091bad86f0
+  cost {1}{W}
+  type Creature — Human Soldier Scout
+  pt 1/1
+  keywords first strike
+  activated {W}: target creature gains first strike
+}

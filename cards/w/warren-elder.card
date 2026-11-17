@@ -1,0 +1,7 @@
+card "Warren Elder" {
+  oracle_id 33fcb05b-246d-4b82-8b0f-44d5f891b612
+  cost {1}{W}
+  type Creature — Rabbit Cleric
+  pt 2/2
+  activated {3}{W}: each creature you control gets +1/+1
+}

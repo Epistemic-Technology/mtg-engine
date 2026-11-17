@@ -1,0 +1,7 @@
+card "Implement of Improvement" {
+  oracle_id a71b2ffb-6a62-4239-987f-ec82a358927f
+  cost {1}
+  type Artifact
+  activated {W}, sacrifice this: you gains 2 life
+  triggered when this dies: draw 1 cards
+}

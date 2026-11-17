@@ -1,0 +1,7 @@
+card "Dedicated Martyr" {
+  oracle_id ca39af65-985d-4ab1-874b-9e8d3455c349
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {W}, sacrifice this: you gains 3 life
+}

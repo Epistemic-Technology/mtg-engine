@@ -1,0 +1,6 @@
+card "Font of Ire" {
+  oracle_id 88d4c611-3211-41b2-8453-6210f8394a0c
+  cost {1}{R}
+  type Enchantment
+  activated {3}{R}, sacrifice this: deal 5 damage to target player or planeswalker
+}

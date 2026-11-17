@@ -1,0 +1,8 @@
+card "Arc Runner" {
+  oracle_id 9bbee1a5-2eb0-4fad-9524-4ad9cc5ca998
+  cost {2}{R}
+  type Creature — Elemental Ox
+  pt 5/1
+  keywords haste
+  triggered at beginning of each end step: sacrifice this
+}

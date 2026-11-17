@@ -1,0 +1,8 @@
+card "Wingspan Stride" {
+  oracle_id e75cee5d-ab02-4227-b36e-61c5d2f564a8
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flying
+  activated {2}{U}: return this to hand
+}

@@ -1,0 +1,7 @@
+card "Razortide Bridge" {
+  oracle_id 6cb37ac1-dd11-4a8c-bca5-ef44d828059f
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {W} or {U}
+}

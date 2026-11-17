@@ -1,0 +1,7 @@
+card "Misshapen Fiend" {
+  oracle_id 10736ea3-6253-44c3-8a1e-3b9a7f38f3cf
+  cost {1}{B}
+  type Creature — Horror Mercenary
+  pt 1/1
+  keywords flying
+}

@@ -1,0 +1,6 @@
+card "Sephiroth's Intervention" {
+  oracle_id 94ac2990-58a5-43d4-bdac-ec2f6daf0b51
+  cost {3}{B}
+  type Instant
+  spell: destroy target creature; you gains 2 life
+}

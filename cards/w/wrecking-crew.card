@@ -1,0 +1,7 @@
+card "Wrecking Crew" {
+  oracle_id 533c4956-87f8-4bae-8924-166fc2e9ec1f
+  cost {4}{R}
+  type Creature — Human Warrior
+  pt 4/5
+  keywords reach, trample
+}

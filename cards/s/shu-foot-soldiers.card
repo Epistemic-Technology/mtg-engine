@@ -1,0 +1,6 @@
+card "Shu Foot Soldiers" {
+  oracle_id 4d7ff9d5-dc06-4a70-a9c8-d6f88f02fd67
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+}

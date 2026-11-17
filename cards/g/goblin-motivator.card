@@ -1,0 +1,7 @@
+card "Goblin Motivator" {
+  oracle_id df67597f-42a8-4fa7-b426-d7db8b384445
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {T}: target creature gains haste
+}

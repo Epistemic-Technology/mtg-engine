@@ -1,0 +1,6 @@
+card "Monstrous Growth" {
+  oracle_id 35a05836-38d7-45c7-ac9a-996a682c2129
+  cost {1}{G}
+  type Sorcery
+  spell: target creature gets +4/+4
+}

@@ -1,0 +1,6 @@
+card "Assassinate" {
+  oracle_id ce979f36-84f2-4419-b400-971263494cc6
+  cost {2}{B}
+  type Sorcery
+  spell: destroy target tapped creature
+}

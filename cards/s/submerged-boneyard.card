@@ -1,0 +1,6 @@
+card "Submerged Boneyard" {
+  oracle_id f27d52e6-aab9-4f95-ae46-33d1173bf4fe
+  type Land
+  enters tapped
+  mana {U} or {B}
+}

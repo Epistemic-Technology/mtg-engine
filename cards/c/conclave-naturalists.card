@@ -1,0 +1,7 @@
+card "Conclave Naturalists" {
+  oracle_id cb5de977-d420-41cc-85f0-6ffee8bbeff1
+  cost {4}{G}
+  type Creature — Dryad
+  pt 4/4
+  triggered when this enters: you may destroy target artifact or enchantment
+}

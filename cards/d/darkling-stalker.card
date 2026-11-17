@@ -1,0 +1,8 @@
+card "Darkling Stalker" {
+  oracle_id 0103b2f2-05dd-40af-954d-303c144edb04
+  cost {3}{B}
+  type Creature — Shade Spirit
+  pt 1/1
+  activated {B}: regenerate this
+  activated {B}: this gets +1/+1
+}

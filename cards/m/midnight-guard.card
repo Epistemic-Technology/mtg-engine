@@ -1,0 +1,7 @@
+card "Midnight Guard" {
+  oracle_id f5430b0e-e77f-47b8-ae6d-30bcff4d7e35
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered whenever other creature enters: untap this
+}

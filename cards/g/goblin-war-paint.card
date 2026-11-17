@@ -1,0 +1,7 @@
+card "Goblin War Paint" {
+  oracle_id 67ca79d7-9064-4605-8625-b1cfe5cb1b45
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has haste
+}

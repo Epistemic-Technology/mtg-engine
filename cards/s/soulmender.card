@@ -1,0 +1,7 @@
+card "Soulmender" {
+  oracle_id 41b1d850-2fda-490b-a4f6-0d9bfb37103c
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: you gains 1 life
+}

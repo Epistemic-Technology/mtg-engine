@@ -1,0 +1,7 @@
+card "Wei Ambush Force" {
+  oracle_id 2d1446f4-cf71-4798-b921-8f6824350319
+  cost {1}{B}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered whenever this attacks: this gets +2/+0
+}

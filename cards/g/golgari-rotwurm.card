@@ -1,0 +1,7 @@
+card "Golgari Rotwurm" {
+  oracle_id 75df9e6a-a17c-4311-a4e7-ff0d75728337
+  cost {3}{B}{G}
+  type Creature — Zombie Wurm
+  pt 5/4
+  activated {B}, sacrifice creature: target player loses 1 life
+}

@@ -1,0 +1,8 @@
+card "Dega Disciple" {
+  oracle_id c6c53277-daad-4aa3-b29a-11378d550651
+  cost {W}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {B}, {T}: target creature gets -2/-0
+  activated {R}, {T}: target creature gets +2/+0
+}

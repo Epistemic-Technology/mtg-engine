@@ -1,0 +1,7 @@
+card "Elvish Herder" {
+  oracle_id 7832b90a-23b9-448c-9019-8ee2e8dfab31
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  activated {G}: target creature gains trample
+}

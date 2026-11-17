@@ -1,0 +1,7 @@
+card "Wary Okapi" {
+  oracle_id 46f01d1c-7ab6-4a58-97ce-57a4eb99843c
+  cost {2}{G}
+  type Creature — Antelope
+  pt 3/2
+  keywords vigilance
+}

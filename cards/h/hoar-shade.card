@@ -1,0 +1,7 @@
+card "Hoar Shade" {
+  oracle_id 23c74c42-11bd-4fba-b1cb-93b96f5a11fb
+  cost {3}{B}
+  type Creature — Shade
+  pt 1/2
+  activated {B}: this gets +1/+1
+}

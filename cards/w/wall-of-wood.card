@@ -1,0 +1,7 @@
+card "Wall of Wood" {
+  oracle_id aa5e6894-8c97-46f8-a0fd-07c6db51e9a7
+  cost {G}
+  type Creature — Wall
+  pt 0/3
+  keywords defender
+}

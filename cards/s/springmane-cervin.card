@@ -1,0 +1,7 @@
+card "Springmane Cervin" {
+  oracle_id 4e964f31-c764-4af5-8c27-a46fd721fab4
+  cost {2}{G}
+  type Creature — Elk
+  pt 3/2
+  triggered when this enters: you gains 2 life
+}

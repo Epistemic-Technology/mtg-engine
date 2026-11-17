@@ -1,0 +1,6 @@
+card "Jhessian Lookout" {
+  oracle_id acc07d0d-141b-4169-9643-6f20739e91be
+  cost {1}{U}
+  type Creature — Human Scout
+  pt 2/1
+}

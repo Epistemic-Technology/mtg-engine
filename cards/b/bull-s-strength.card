@@ -1,0 +1,6 @@
+card "Bull's Strength" {
+  oracle_id a5f10b54-10db-4c92-a596-8afea4e470f5
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2 and gains trample; untap target 1
+}

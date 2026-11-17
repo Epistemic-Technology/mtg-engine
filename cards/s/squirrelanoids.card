@@ -1,0 +1,7 @@
+card "Squirrelanoids" {
+  oracle_id 315ddc7a-c39c-43d9-b134-23acbd865e3e
+  cost {B}
+  type Creature — Squirrel Mutant
+  pt 1/1
+  keywords deathtouch
+}

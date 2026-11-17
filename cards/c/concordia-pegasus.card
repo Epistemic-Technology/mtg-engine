@@ -1,0 +1,7 @@
+card "Concordia Pegasus" {
+  oracle_id 93c35f9e-3346-4269-b1af-df9f216bfd7a
+  cost {1}{W}
+  type Creature — Pegasus
+  pt 1/3
+  keywords flying
+}

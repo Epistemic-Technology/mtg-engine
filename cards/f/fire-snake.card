@@ -1,0 +1,7 @@
+card "Fire Snake" {
+  oracle_id e96542ed-1931-4da1-9d9e-d10878c4ae6b
+  cost {4}{R}
+  type Creature — Snake
+  pt 3/1
+  triggered when this dies: destroy target land
+}

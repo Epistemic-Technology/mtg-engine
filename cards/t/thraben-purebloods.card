@@ -1,0 +1,6 @@
+card "Thraben Purebloods" {
+  oracle_id cf8aef54-3f43-413c-9f3f-d4a1b2090904
+  cost {4}{W}
+  type Creature — Dog
+  pt 3/5
+}

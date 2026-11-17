@@ -1,0 +1,7 @@
+card "Oculus" {
+  oracle_id e793ede9-044a-44e9-bc9c-99b0034503eb
+  cost {1}{U}
+  type Creature — Phyrexian Homunculus
+  pt 1/1
+  triggered when this dies: you may draw 1 cards
+}

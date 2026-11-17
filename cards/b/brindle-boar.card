@@ -1,0 +1,7 @@
+card "Brindle Boar" {
+  oracle_id 1c4f6893-4e83-4756-b324-1de0d06ea2c4
+  cost {2}{G}
+  type Creature — Boar
+  pt 2/2
+  activated sacrifice this: you gains 4 life
+}

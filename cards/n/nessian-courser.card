@@ -1,0 +1,6 @@
+card "Nessian Courser" {
+  oracle_id e876d1fc-3acd-41a3-a34b-2bfa83204393
+  cost {2}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+}

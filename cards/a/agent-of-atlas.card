@@ -1,0 +1,7 @@
+card "Agent of Atlas" {
+  oracle_id cd403866-bef1-413a-85e2-c86e295b3589
+  cost {1}{W}
+  type Creature — Human Spy Hero
+  pt 2/2
+  keywords prowess
+}

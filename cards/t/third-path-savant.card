@@ -1,0 +1,7 @@
+card "Third Path Savant" {
+  oracle_id 6024cb2d-a6e7-4adc-8b34-7f4e0cac16ce
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  activated {7}: draw 2 cards
+}

@@ -1,0 +1,7 @@
+card "Wild Elephant" {
+  oracle_id 3b2ce431-7101-4256-827d-a14de9f867fd
+  cost {3}{G}
+  type Creature — Elephant
+  pt 3/3
+  keywords trample
+}

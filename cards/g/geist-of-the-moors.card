@@ -1,0 +1,7 @@
+card "Geist of the Moors" {
+  oracle_id 5c9d814b-4257-47bc-a1df-c3480bc038ba
+  cost {1}{W}{W}
+  type Creature — Spirit
+  pt 3/1
+  keywords flying
+}

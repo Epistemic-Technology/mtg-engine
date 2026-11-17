@@ -1,0 +1,7 @@
+card "Benalish Trapper" {
+  oracle_id d45c6c3f-6079-40c1-9083-06f2f2431bcc
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  activated {W}, {T}: tap target creature
+}

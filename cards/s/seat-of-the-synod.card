@@ -1,0 +1,5 @@
+card "Seat of the Synod" {
+  oracle_id 39451b4d-cd7a-40da-b457-cb51b609173f
+  type Artifact Land
+  mana {U}
+}

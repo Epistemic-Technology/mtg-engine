@@ -1,0 +1,8 @@
+card "Noxious Newt" {
+  oracle_id 1232c461-643c-40a3-901e-09b665f817da
+  cost {1}{G}
+  type Creature — Salamander
+  pt 1/2
+  keywords deathtouch
+  mana {G}
+}

@@ -1,0 +1,7 @@
+card "Healer of the Glade" {
+  oracle_id 2701b912-b672-4764-97f7-51c444f754f2
+  cost {G}
+  type Creature — Elemental
+  pt 1/2
+  triggered when this enters: you gains 3 life
+}

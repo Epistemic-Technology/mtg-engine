@@ -1,0 +1,7 @@
+card "Highland Game" {
+  oracle_id 0e0d40a6-e0a4-4fb2-be72-314f7d66b7eb
+  cost {1}{G}
+  type Creature — Elk
+  pt 2/1
+  triggered when this dies: you gains 2 life
+}

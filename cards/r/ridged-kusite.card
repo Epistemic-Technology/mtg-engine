@@ -1,0 +1,7 @@
+card "Ridged Kusite" {
+  oracle_id a0c3c26e-e9e8-424d-922e-a692bb479ebd
+  cost {B}
+  type Creature — Horror Spellshaper
+  pt 1/1
+  activated {1}{B}, {T}, discard 1 card: target creature gets +1/+0 and gains first strike
+}

@@ -1,0 +1,6 @@
+card "Feral Ferocity" {
+  oracle_id 5e968bf3-8d83-480b-81a4-98883cafd04f
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +4/+4
+}

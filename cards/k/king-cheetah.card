@@ -1,0 +1,7 @@
+card "King Cheetah" {
+  oracle_id f9ca35e1-24c5-46f4-a666-0dfe2c920e8b
+  cost {3}{G}
+  type Creature — Cat
+  pt 3/2
+  keywords flash
+}

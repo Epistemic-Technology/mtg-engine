@@ -1,0 +1,6 @@
+card "Boros Guildgate" {
+  oracle_id 73c423b7-cab8-4e69-8070-9edbf96a6c2c
+  type Land — Gate
+  enters tapped
+  mana {R} or {W}
+}

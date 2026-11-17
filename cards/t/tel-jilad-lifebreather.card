@@ -1,0 +1,7 @@
+card "Tel-Jilad Lifebreather" {
+  oracle_id 1ef49064-eb2a-49ae-917e-3d441ba14bf9
+  cost {4}{G}
+  type Creature — Troll Shaman
+  pt 3/2
+  activated {G}, {T}, sacrifice Forest: regenerate target creature
+}

@@ -1,0 +1,7 @@
+card "Benalish Knight" {
+  oracle_id 32b401e9-163f-4917-a728-fc63b25ef602
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flash, first strike
+}

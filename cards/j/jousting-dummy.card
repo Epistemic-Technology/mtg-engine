@@ -1,0 +1,7 @@
+card "Jousting Dummy" {
+  oracle_id 96eea161-8af0-452f-b992-576efdf58d88
+  cost {2}
+  type Artifact Creature — Scarecrow Knight
+  pt 2/1
+  activated {3}: this gets +1/+0
+}

@@ -1,0 +1,7 @@
+card "Sylvan Brushstrider" {
+  oracle_id 67a494dc-deac-43ee-9e47-20fae9788a9f
+  cost {2}{G}
+  type Creature — Beast
+  pt 3/2
+  triggered when this enters: you gains 2 life
+}

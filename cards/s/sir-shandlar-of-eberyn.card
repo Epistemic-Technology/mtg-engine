@@ -1,0 +1,6 @@
+card "Sir Shandlar of Eberyn" {
+  oracle_id 7a9942cd-32ac-4cc9-8840-3fe6b092d0b8
+  cost {4}{G}{W}
+  type Legendary Creature — Human Knight
+  pt 4/7
+}

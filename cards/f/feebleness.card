@@ -1,0 +1,8 @@
+card "Feebleness" {
+  oracle_id a1a7757f-7e9b-4b5b-b9df-e98d8918caac
+  cost {1}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -2/-1
+}

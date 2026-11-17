@@ -1,0 +1,6 @@
+card "Mass of Ghouls" {
+  oracle_id 29646827-7b69-48c5-8273-4e66076e2384
+  cost {3}{B}{B}
+  type Creature — Zombie Warrior
+  pt 5/3
+}

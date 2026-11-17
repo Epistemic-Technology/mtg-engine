@@ -1,0 +1,7 @@
+card "Retrieval Agent" {
+  oracle_id 2a6a1e58-85a9-436e-b1a0-373baa44d6f2
+  cost {3}{U}
+  type Creature — Human Soldier
+  pt 2/5
+  activated {2}: this gets +1/-1
+}

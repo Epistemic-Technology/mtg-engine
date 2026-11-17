@@ -1,0 +1,7 @@
+card "Skyknight Legionnaire" {
+  oracle_id 61178a6c-70b7-447d-87ee-a8d9369c3d15
+  cost {1}{R}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flying, haste
+}

@@ -1,0 +1,8 @@
+card "Messenger Drake" {
+  oracle_id 4c62dce6-dc1f-4d2d-95dd-295810ada6a6
+  cost {3}{U}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  triggered when this dies: draw 1 cards
+}

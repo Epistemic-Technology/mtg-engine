@@ -1,0 +1,7 @@
+card "Jackhammer" {
+  oracle_id f73d89ec-05c9-4998-a24b-bc675b04ec16
+  cost {1}{R}
+  type Artifact — Equipment
+  static enchanted: +2/+0
+  equip {2}
+}

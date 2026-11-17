@@ -1,0 +1,7 @@
+card "Thundering Giant" {
+  oracle_id d23329e2-4134-4e49-b9b6-5febef2bce31
+  cost {3}{R}{R}
+  type Creature — Giant
+  pt 4/3
+  keywords haste
+}

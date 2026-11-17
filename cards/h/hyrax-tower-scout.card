@@ -1,0 +1,7 @@
+card "Hyrax Tower Scout" {
+  oracle_id c1261a72-ccbd-4be9-bc3b-c1bcb807eb85
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/3
+  triggered when this enters: untap target creature
+}

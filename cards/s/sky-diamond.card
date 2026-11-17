@@ -1,0 +1,7 @@
+card "Sky Diamond" {
+  oracle_id 2224b6e0-c5ff-45d0-84e3-83758c5fc99f
+  cost {2}
+  type Artifact
+  enters tapped
+  mana {U}
+}

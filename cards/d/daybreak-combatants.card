@@ -1,0 +1,8 @@
+card "Daybreak Combatants" {
+  oracle_id fbb3f959-ded7-4570-bacf-0e1394dbef80
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords haste
+  triggered when this enters: target creature gets +2/+0
+}

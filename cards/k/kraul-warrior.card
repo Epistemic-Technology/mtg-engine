@@ -1,0 +1,7 @@
+card "Kraul Warrior" {
+  oracle_id b05d000d-39b4-4db5-bd32-9c77a7434127
+  cost {1}{G}
+  type Creature — Insect Warrior
+  pt 2/2
+  activated {5}{G}: this gets +3/+3
+}

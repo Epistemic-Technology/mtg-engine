@@ -1,0 +1,7 @@
+card "Drossforge Bridge" {
+  oracle_id 44b83535-fdbf-4307-bf53-ca20470a768d
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {B} or {R}
+}

@@ -1,0 +1,7 @@
+card "Venerable Monk" {
+  oracle_id 5c5cfa6d-857f-44a9-80f7-46f016ef71e4
+  cost {2}{W}
+  type Creature — Human Monk Cleric
+  pt 2/2
+  triggered when this enters: you gains 2 life
+}

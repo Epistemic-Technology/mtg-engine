@@ -1,0 +1,8 @@
+card "Unholy Officiant" {
+  oracle_id 41c06726-0360-4488-8dc3-ec257386a372
+  cost {W}
+  type Creature — Vampire Cleric
+  pt 1/2
+  keywords vigilance
+  activated {4}{W}: put 1 +1/+1 counters on this
+}

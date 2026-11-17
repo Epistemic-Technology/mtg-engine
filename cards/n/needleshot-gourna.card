@@ -1,0 +1,7 @@
+card "Needleshot Gourna" {
+  oracle_id 8a04fd45-6526-4c73-8b38-5e40a2380451
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 3/6
+  keywords reach
+}

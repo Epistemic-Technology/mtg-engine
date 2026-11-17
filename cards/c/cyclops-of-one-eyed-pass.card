@@ -1,0 +1,6 @@
+card "Cyclops of One-Eyed Pass" {
+  oracle_id 78922912-d7b9-47cc-8908-f44d7cc3fc4b
+  cost {2}{R}{R}
+  type Creature — Cyclops
+  pt 5/2
+}

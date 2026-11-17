@@ -1,0 +1,7 @@
+card "Cobalt Golem" {
+  oracle_id 1e50af57-e49d-4b94-a370-44846d9f6b33
+  cost {4}
+  type Artifact Creature — Golem
+  pt 2/3
+  activated {1}{U}: this gains flying
+}

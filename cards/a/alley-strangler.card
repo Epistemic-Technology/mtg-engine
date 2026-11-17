@@ -1,0 +1,7 @@
+card "Alley Strangler" {
+  oracle_id fb9af562-7384-4575-93bb-34f1ada23735
+  cost {2}{B}
+  type Creature — Aetherborn Rogue
+  pt 2/3
+  keywords menace
+}

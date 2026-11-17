@@ -1,0 +1,7 @@
+card "Steel Wall" {
+  oracle_id 5ccb57e1-ca94-4b5a-8e5f-b8b5e692cfb9
+  cost {1}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+}

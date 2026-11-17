@@ -1,0 +1,7 @@
+card "Spidersilk Net" {
+  oracle_id 04979f18-1ba8-47a3-a078-ab6b84bfac72
+  cost {0}
+  type Artifact — Equipment
+  static enchanted: +0/+2, has reach
+  equip {2}
+}

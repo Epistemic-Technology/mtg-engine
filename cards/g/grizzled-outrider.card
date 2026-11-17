@@ -1,0 +1,6 @@
+card "Grizzled Outrider" {
+  oracle_id 0d3d0da2-73fe-4f8a-b13c-23981eb7e2ee
+  cost {4}{G}
+  type Creature — Elf Warrior
+  pt 5/5
+}

@@ -1,0 +1,9 @@
+card "Fortify" {
+  oracle_id 52ea24d4-d33d-40fc-8ffc-09ae625b908f
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode: each creature you control gets +2/+0
+    mode: each creature you control gets +0/+2
+  }
+}

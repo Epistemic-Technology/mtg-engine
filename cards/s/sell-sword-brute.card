@@ -1,0 +1,7 @@
+card "Sell-Sword Brute" {
+  oracle_id 7549656b-359f-467e-90ab-6b21d93c26b9
+  cost {1}{R}
+  type Creature — Human Mercenary
+  pt 2/2
+  triggered when this dies: deal 2 damage to you
+}

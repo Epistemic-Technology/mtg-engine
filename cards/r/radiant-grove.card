@@ -1,0 +1,5 @@
+card "Radiant Grove" {
+  oracle_id 32c91719-f3dd-4cc7-9e32-7d5ccf18f07c
+  type Land — Forest Plains
+  enters tapped
+}

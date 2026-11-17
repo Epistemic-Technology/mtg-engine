@@ -1,0 +1,8 @@
+card "Sustainer of the Realm" {
+  oracle_id 2c99d52d-f909-4494-aeee-937ae779fd4a
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 2/3
+  keywords flying
+  triggered whenever this blocks: this gets +0/+2
+}

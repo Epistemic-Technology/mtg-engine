@@ -1,0 +1,7 @@
+card "Ruinous Gremlin" {
+  oracle_id b88d67c0-ef12-453c-8e58-6642650dffcc
+  cost {R}
+  type Creature — Gremlin
+  pt 1/1
+  activated {2}{R}, sacrifice this: destroy target artifact
+}

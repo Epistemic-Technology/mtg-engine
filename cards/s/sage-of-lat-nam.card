@@ -1,0 +1,7 @@
+card "Sage of Lat-Nam" {
+  oracle_id f34be3cc-ff47-4415-a6a8-ed142891dc0c
+  cost {1}{U}
+  type Creature — Human Artificer
+  pt 1/2
+  activated {T}, sacrifice artifact: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Homarid Explorer" {
+  oracle_id ac30745c-addf-433a-be73-d3d9f4cc4328
+  cost {3}{U}
+  type Creature — Homarid Scout
+  pt 3/3
+  triggered when this enters: target player mills 4 cards
+}

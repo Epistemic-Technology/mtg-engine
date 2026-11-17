@@ -1,0 +1,7 @@
+card "Wings of Hope" {
+  oracle_id c1df6359-edf4-48cf-b8d1-6240ac291cf7
+  cost {W}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+3, has flying
+}

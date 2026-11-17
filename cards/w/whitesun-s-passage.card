@@ -1,0 +1,6 @@
+card "Whitesun's Passage" {
+  oracle_id df702285-3577-47cc-aa1e-868921cdf6f2
+  cost {1}{W}
+  type Instant
+  spell: you gains 5 life
+}

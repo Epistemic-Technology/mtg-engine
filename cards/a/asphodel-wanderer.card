@@ -1,0 +1,7 @@
+card "Asphodel Wanderer" {
+  oracle_id a6ffcbc9-0990-4d95-a995-1b2f321256d7
+  cost {B}
+  type Creature — Skeleton Soldier
+  pt 1/1
+  activated {2}{B}: regenerate this
+}

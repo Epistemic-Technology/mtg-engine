@@ -1,0 +1,6 @@
+card "Solemn Offering" {
+  oracle_id aff51c27-fb61-41b3-a7ea-7092cd280c63
+  cost {2}{W}
+  type Sorcery
+  spell: destroy target artifact or enchantment; you gains 4 life
+}

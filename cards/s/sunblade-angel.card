@@ -1,0 +1,7 @@
+card "Sunblade Angel" {
+  oracle_id be37ef9d-955a-417e-bde8-bb9e0bdf3612
+  cost {5}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying, first strike, vigilance, lifelink
+}

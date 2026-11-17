@@ -1,0 +1,7 @@
+card "Orzhov Cluestone" {
+  oracle_id 09650a76-05c4-40a0-b861-d146b3ba87d6
+  cost {3}
+  type Artifact
+  mana {W} or {B}
+  activated {W}{B}, {T}, sacrifice this: draw 1 cards
+}

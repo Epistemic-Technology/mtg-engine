@@ -1,0 +1,6 @@
+card "Fugitive Wizard" {
+  oracle_id 381fa2a9-69fc-4558-a0ac-fb99c6f8d77f
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+}

@@ -1,0 +1,7 @@
+card "Nimble Birdsticker" {
+  oracle_id 2f047fcb-c198-44ac-aa1e-31447f6c6aba
+  cost {2}{R}
+  type Creature — Goblin
+  pt 2/3
+  keywords reach
+}

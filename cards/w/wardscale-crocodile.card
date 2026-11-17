@@ -1,0 +1,7 @@
+card "Wardscale Crocodile" {
+  oracle_id 86f725f6-b48b-4dcc-9a02-e258a226e31c
+  cost {4}{G}
+  type Creature — Crocodile
+  pt 5/3
+  keywords hexproof
+}

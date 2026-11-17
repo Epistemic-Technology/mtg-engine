@@ -1,0 +1,7 @@
+card "Sibsig Host" {
+  oracle_id 11776f73-f504-4f19-b5b6-2f58279f8b15
+  cost {4}{B}
+  type Creature — Zombie
+  pt 2/6
+  triggered when this enters: each player mills 3 cards
+}

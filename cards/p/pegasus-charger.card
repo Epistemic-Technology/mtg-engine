@@ -1,0 +1,7 @@
+card "Pegasus Charger" {
+  oracle_id 81a5ac8d-b904-4755-a5bc-650e95f4138f
+  cost {2}{W}
+  type Creature — Pegasus
+  pt 2/1
+  keywords flying, first strike
+}

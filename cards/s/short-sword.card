@@ -1,0 +1,7 @@
+card "Short Sword" {
+  oracle_id e842a4e5-ea0b-43ae-9ed8-93e30f4e7b8a
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +1/+1
+  equip {1}
+}

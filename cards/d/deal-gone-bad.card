@@ -1,0 +1,6 @@
+card "Deal Gone Bad" {
+  oracle_id e9ede348-f1dc-45ba-9e31-3129ccc182d1
+  cost {3}{B}
+  type Instant
+  spell: target creature gets -3/-3; target player mills 3 cards
+}

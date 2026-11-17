@@ -1,0 +1,8 @@
+card "Chandra's Emberling" {
+  oracle_id d3576617-7867-4c3d-aa31-d6742483465b
+  cost {2}{R}
+  type Creature — Gremlin Elemental
+  pt 2/2
+  keywords haste
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

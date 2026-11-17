@@ -1,0 +1,7 @@
+card "Icatian Scout" {
+  oracle_id b1a9f49a-b0e2-481f-806d-0bc321517a4f
+  cost {W}
+  type Creature — Human Soldier Scout
+  pt 1/1
+  activated {1}, {T}: target creature gains first strike
+}

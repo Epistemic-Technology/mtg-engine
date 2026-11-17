@@ -1,0 +1,6 @@
+card "Treno, Dark City" {
+  oracle_id 6d5bb714-1bf4-4f75-9ea8-bdbd18b0425b
+  type Land — Town
+  enters tapped
+  mana {U} or {B}
+}

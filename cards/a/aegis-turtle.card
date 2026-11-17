@@ -1,0 +1,6 @@
+card "Aegis Turtle" {
+  oracle_id f84c30e7-2ea8-43ff-9356-1f907558cfd9
+  cost {U}
+  type Creature — Turtle
+  pt 0/5
+}

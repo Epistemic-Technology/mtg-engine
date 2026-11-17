@@ -1,0 +1,6 @@
+card "Fountain of Youth" {
+  oracle_id b906923c-9997-4da5-a05e-53eb4d2dff32
+  cost {0}
+  type Artifact
+  activated {2}, {T}: you gains 1 life
+}

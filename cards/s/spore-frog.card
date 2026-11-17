@@ -1,0 +1,7 @@
+card "Spore Frog" {
+  oracle_id 97db6c39-e690-49b6-93a6-e51b8dfad10b
+  cost {G}
+  type Creature — Frog
+  pt 1/1
+  activated sacrifice this: prevent all combat damage this turn
+}

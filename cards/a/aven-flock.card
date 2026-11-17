@@ -1,0 +1,8 @@
+card "Aven Flock" {
+  oracle_id fcf0bb85-bca9-4f4c-b954-ca3bc5f91dd8
+  cost {4}{W}
+  type Creature — Bird Soldier
+  pt 2/3
+  keywords flying
+  activated {W}: this gets +0/+1
+}

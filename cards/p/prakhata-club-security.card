@@ -1,0 +1,6 @@
+card "Prakhata Club Security" {
+  oracle_id 9c5f130d-5972-449e-83db-41fb8cf76004
+  cost {3}{B}
+  type Creature — Aetherborn Warrior
+  pt 3/4
+}

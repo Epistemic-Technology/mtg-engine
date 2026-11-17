@@ -1,0 +1,8 @@
+card "Virtuous Variant" {
+  oracle_id fa4ed027-6e18-4a87-9845-e13f274d9994
+  cost {2}{W}
+  type Creature — Spider Human Hero
+  pt 1/2
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+}

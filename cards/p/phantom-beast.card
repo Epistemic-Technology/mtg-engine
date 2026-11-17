@@ -1,0 +1,7 @@
+card "Phantom Beast" {
+  oracle_id 13ca7c14-5db2-4d17-912a-fdeabcdcd9f8
+  cost {3}{U}
+  type Creature — Illusion Beast
+  pt 4/5
+  triggered when this becomes targeted: sacrifice this
+}

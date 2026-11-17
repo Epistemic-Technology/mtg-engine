@@ -1,0 +1,6 @@
+card "Dross Crocodile" {
+  oracle_id 028fa430-722d-45aa-b415-3f84076091a9
+  cost {3}{B}
+  type Creature — Zombie Crocodile
+  pt 5/1
+}

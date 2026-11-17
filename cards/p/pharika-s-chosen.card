@@ -1,0 +1,7 @@
+card "Pharika's Chosen" {
+  oracle_id b5a26a1b-d2be-406e-a6a9-1993045313b5
+  cost {B}
+  type Creature — Snake
+  pt 1/1
+  keywords deathtouch
+}

@@ -1,0 +1,7 @@
+card "Dukhara Peafowl" {
+  oracle_id abc5ac3e-f196-49df-8a9d-16df3114ffad
+  cost {4}
+  type Artifact Creature — Bird
+  pt 2/4
+  activated {U}: this gains flying
+}

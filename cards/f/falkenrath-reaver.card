@@ -1,0 +1,6 @@
+card "Falkenrath Reaver" {
+  oracle_id 6cfd9d88-f450-4408-bbe2-94a2d295b24a
+  cost {1}{R}
+  type Creature — Vampire
+  pt 2/2
+}

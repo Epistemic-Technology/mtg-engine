@@ -1,0 +1,7 @@
+card "Smash" {
+  oracle_id 1602f8c7-fe00-4bc9-b4fc-b26b7223ac75
+  cost {2}{R}
+  type Instant
+  spell: destroy target artifact
+  spell: draw 1 cards
+}

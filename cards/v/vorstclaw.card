@@ -1,0 +1,6 @@
+card "Vorstclaw" {
+  oracle_id aa944cbe-fdba-4001-97d5-c722fe744dcc
+  cost {4}{G}{G}
+  type Creature — Elemental Horror
+  pt 7/7
+}

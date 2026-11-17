@@ -1,0 +1,7 @@
+card "Lavastep Raider" {
+  oracle_id 3a96782b-e9c8-4bc5-845d-45f6bf7b8dc4
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  activated {2}{R}: this gets +2/+0
+}

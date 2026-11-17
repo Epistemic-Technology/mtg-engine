@@ -1,0 +1,7 @@
+card "Cliffside Lookout" {
+  oracle_id 97671aac-7322-44ae-8908-d573734db3af
+  cost {W}
+  type Creature — Kor Scout Ally
+  pt 1/1
+  activated {4}{W}: each creature you control gets +1/+1
+}

@@ -1,0 +1,4 @@
+card "Snow-Covered Forest" {
+  oracle_id 5f0d3be8-e63e-4ade-ae58-6b0c14f2ce6d
+  type Basic Snow Land — Forest
+}

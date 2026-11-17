@@ -1,0 +1,8 @@
+card "Aven Battle Priest" {
+  oracle_id 696fb1fa-5535-4f73-8235-ad4416dcfdd0
+  cost {5}{W}
+  type Creature — Bird Cleric
+  pt 3/3
+  keywords flying
+  triggered when this enters: you gains 3 life
+}

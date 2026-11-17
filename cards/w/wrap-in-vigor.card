@@ -1,0 +1,6 @@
+card "Wrap in Vigor" {
+  oracle_id 39da2aa8-f4d9-44f6-a446-488beaec821f
+  cost {1}{G}
+  type Instant
+  spell: regenerate each creature you control
+}

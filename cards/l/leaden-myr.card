@@ -1,0 +1,7 @@
+card "Leaden Myr" {
+  oracle_id f62cabf0-df0d-4c4f-a93a-9340967d1775
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  mana {B}
+}

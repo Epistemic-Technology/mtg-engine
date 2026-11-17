@@ -1,0 +1,6 @@
+card "Nyxborn Brute" {
+  oracle_id 986ba716-3921-4f64-9acf-703200d666f6
+  cost {3}{R}{R}
+  type Enchantment Creature — Cyclops
+  pt 7/3
+}

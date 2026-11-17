@@ -1,0 +1,8 @@
+card "Riptide Crab" {
+  oracle_id 8ae8a583-9843-474a-bd46-8090df883621
+  cost {1}{W}{U}
+  type Creature — Crab
+  pt 1/3
+  keywords vigilance
+  triggered when this dies: draw 1 cards
+}

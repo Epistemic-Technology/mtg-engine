@@ -1,0 +1,6 @@
+card "Elvish Warrior" {
+  oracle_id da587161-da7e-48ae-8af6-7f02ee71afd8
+  cost {G}{G}
+  type Creature — Elf Warrior
+  pt 2/3
+}

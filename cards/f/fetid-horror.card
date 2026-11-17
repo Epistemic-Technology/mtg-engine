@@ -1,0 +1,7 @@
+card "Fetid Horror" {
+  oracle_id 4863e1cf-3ef2-4c2d-a0ea-b73ca60c660d
+  cost {3}{B}
+  type Creature — Shade Horror
+  pt 1/2
+  activated {B}: this gets +1/+1
+}

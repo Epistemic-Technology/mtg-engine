@@ -1,0 +1,8 @@
+card "Skeletal Kathari" {
+  oracle_id 5bcb63b4-6236-45c5-884d-188f8f5e8f02
+  cost {4}{B}
+  type Creature — Bird Skeleton
+  pt 3/2
+  keywords flying
+  activated {B}, sacrifice creature: regenerate this
+}

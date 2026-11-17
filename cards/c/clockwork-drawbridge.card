@@ -1,0 +1,8 @@
+card "Clockwork Drawbridge" {
+  oracle_id e49eb21c-2a0d-4fd0-9f69-1bff6e94f9e7
+  cost {W}
+  type Artifact Creature — Wall
+  pt 0/3
+  keywords defender
+  activated {2}{W}, {T}: tap target creature
+}

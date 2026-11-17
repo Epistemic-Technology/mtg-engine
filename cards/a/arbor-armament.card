@@ -1,0 +1,6 @@
+card "Arbor Armament" {
+  oracle_id 504f21e8-82ac-4433-b5e9-640989480f58
+  cost {G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; that creature gains reach
+}

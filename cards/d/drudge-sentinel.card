@@ -1,0 +1,7 @@
+card "Drudge Sentinel" {
+  oracle_id 71ecb454-3598-4860-bba1-b3932f906171
+  cost {2}{B}
+  type Creature — Skeleton Warrior
+  pt 2/1
+  activated {3}: tap this; this gains indestructible
+}

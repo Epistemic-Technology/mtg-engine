@@ -1,0 +1,7 @@
+card "Village Rites" {
+  oracle_id 365548fb-5acc-4a8a-b20b-26d28b7d029f
+  cost {B}
+  type Instant
+  additional cost sacrifice creature
+  spell: draw 2 cards
+}

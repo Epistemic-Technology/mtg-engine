@@ -1,0 +1,6 @@
+card "Sanctuary Cat" {
+  oracle_id c623bc4b-7fc1-4bc1-84e9-71c301dd402f
+  cost {W}
+  type Creature — Cat
+  pt 1/2
+}

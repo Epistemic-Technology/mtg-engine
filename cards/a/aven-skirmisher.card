@@ -1,0 +1,7 @@
+card "Aven Skirmisher" {
+  oracle_id 57d8d656-ccbd-4deb-abf1-a7fde4e7d691
+  cost {W}
+  type Creature — Bird Warrior
+  pt 1/1
+  keywords flying
+}

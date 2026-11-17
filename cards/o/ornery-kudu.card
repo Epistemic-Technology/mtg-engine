@@ -1,0 +1,7 @@
+card "Ornery Kudu" {
+  oracle_id 8abef87a-4a5c-412e-8137-827cee50bb8b
+  cost {2}{G}
+  type Creature — Antelope
+  pt 3/4
+  triggered when this enters: put 1 -1/-1 counters on target creature you control
+}

@@ -1,0 +1,6 @@
+card "Dreg Reaver" {
+  oracle_id ecc5467d-d327-4a9c-b935-09afbea111dc
+  cost {4}{B}
+  type Creature — Zombie Beast
+  pt 4/3
+}

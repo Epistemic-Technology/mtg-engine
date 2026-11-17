@@ -1,0 +1,7 @@
+card "Plagued Rusalka" {
+  oracle_id d6912f52-e478-4cc6-a34c-67e372abc4fa
+  cost {B}
+  type Creature — Spirit
+  pt 1/1
+  activated {B}, sacrifice creature: target creature gets -1/-1
+}

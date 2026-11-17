@@ -1,0 +1,7 @@
+card "Skeleton Archer" {
+  oracle_id 3792763c-7aa0-4055-b8a1-3257e0443ef1
+  cost {3}{B}
+  type Creature — Skeleton Archer
+  pt 3/3
+  triggered when this enters: deal 1 damage to any target
+}

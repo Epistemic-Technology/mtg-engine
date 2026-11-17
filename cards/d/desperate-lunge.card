@@ -1,0 +1,6 @@
+card "Desperate Lunge" {
+  oracle_id 87644a09-241a-44e5-99f2-16fc9a7d8b93
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2 and gains flying; you gains 2 life
+}

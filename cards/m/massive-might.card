@@ -1,0 +1,6 @@
+card "Massive Might" {
+  oracle_id 4f0ec90b-e5a0-49bd-8fa0-9be6ba259a62
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2 and gains trample
+}

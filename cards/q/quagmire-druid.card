@@ -1,0 +1,7 @@
+card "Quagmire Druid" {
+  oracle_id 560e1e81-6675-4d08-8e82-cdf1abd4b3d0
+  cost {2}{B}
+  type Creature — Zombie Druid
+  pt 2/2
+  activated {G}, {T}, sacrifice creature: destroy target enchantment
+}

@@ -1,0 +1,6 @@
+card "Merfolk of the Pearl Trident" {
+  oracle_id 218d9277-c179-4de3-9c7f-79b5a6d4fa38
+  cost {U}
+  type Creature — Merfolk
+  pt 1/1
+}

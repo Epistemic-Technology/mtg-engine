@@ -1,0 +1,6 @@
+card "Oreskos Swiftclaw" {
+  oracle_id 014d00fc-434a-4b06-84b2-afd930677d61
+  cost {1}{W}
+  type Creature — Cat Warrior
+  pt 3/1
+}

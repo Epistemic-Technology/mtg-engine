@@ -1,0 +1,7 @@
+card "Stark Industries" {
+  oracle_id 52401cb4-1bce-4191-9220-0d93ea4108b8
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {U} or {R}
+}

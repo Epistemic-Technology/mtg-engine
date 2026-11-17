@@ -1,0 +1,6 @@
+card "Highborn Vampire" {
+  oracle_id 1adcf587-9035-4299-a2bd-62f805fdd897
+  cost {3}{B}
+  type Creature — Vampire Warrior
+  pt 4/3
+}

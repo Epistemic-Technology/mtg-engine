@@ -1,0 +1,8 @@
+card "Baleful Strix" {
+  oracle_id 37688720-03de-4eca-a82d-a0afe8d58adc
+  cost {U}{B}
+  type Artifact Creature — Bird
+  pt 1/1
+  keywords flying, deathtouch
+  triggered when this enters: draw 1 cards
+}

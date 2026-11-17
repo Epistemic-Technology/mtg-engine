@@ -1,0 +1,8 @@
+card "Dawnfeather Eagle" {
+  oracle_id e17db9d8-14b0-4f72-aacc-f51fae4597e2
+  cost {4}{W}
+  type Creature — Bird
+  pt 3/3
+  keywords flying
+  triggered when this enters: each creature you control gets +1/+1 and gains vigilance
+}

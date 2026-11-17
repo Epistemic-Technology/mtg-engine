@@ -1,0 +1,8 @@
+card "Anointed Chorister" {
+  oracle_id 61859443-e298-41c7-a179-6e6554de91c9
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords lifelink
+  activated {4}{W}: this gets +3/+3
+}

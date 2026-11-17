@@ -1,0 +1,6 @@
+card "Ruination Wurm" {
+  oracle_id 7d084fe0-4896-4a1d-839c-81f55591c18a
+  cost {4}{R}{G}
+  type Creature — Wurm
+  pt 7/6
+}

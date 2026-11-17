@@ -1,0 +1,7 @@
+card "Kami of False Hope" {
+  oracle_id 49984248-4800-4f46-933a-fedd970ae910
+  cost {W}
+  type Creature — Spirit
+  pt 1/1
+  activated sacrifice this: prevent all combat damage this turn
+}

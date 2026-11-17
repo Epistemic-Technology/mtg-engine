@@ -1,0 +1,7 @@
+card "Bloodfell Caves" {
+  oracle_id 64e29bfc-9313-4e8c-808c-bc27f6b018a6
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {B} or {R}
+}

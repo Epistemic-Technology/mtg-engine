@@ -1,0 +1,7 @@
+card "Vulshok Berserker" {
+  oracle_id 694f7e51-7b8b-4f00-bd77-a52eded4aaa1
+  cost {3}{R}
+  type Creature — Human Berserker
+  pt 3/2
+  keywords haste
+}

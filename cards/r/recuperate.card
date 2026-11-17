@@ -1,0 +1,9 @@
+card "Recuperate" {
+  oracle_id 07d7f9d2-5414-4aaf-b6f2-1fedf16c3af7
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: you gains 6 life
+    mode: prevent next 6 damage to target creature this turn
+  }
+}

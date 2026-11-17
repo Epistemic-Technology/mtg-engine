@@ -1,0 +1,6 @@
+card "Ancient Carp" {
+  oracle_id 84122d1e-7657-42fa-8724-c4a3a19729a6
+  cost {4}{U}
+  type Creature — Fish
+  pt 2/5
+}

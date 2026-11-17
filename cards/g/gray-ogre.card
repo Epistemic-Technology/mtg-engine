@@ -1,0 +1,6 @@
+card "Gray Ogre" {
+  oracle_id 83c8a3a6-2e1a-4e26-8847-6d066f42d906
+  cost {2}{R}
+  type Creature — Ogre
+  pt 2/2
+}

@@ -1,0 +1,7 @@
+card "Aspect of Gorgon" {
+  oracle_id 4b65276e-7d03-4700-834c-48178fe98353
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+3, has deathtouch
+}

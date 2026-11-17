@@ -1,0 +1,7 @@
+card "Tangle Spider" {
+  oracle_id 597bd341-c5a0-47a3-9864-1fccab8a2a00
+  cost {4}{G}{G}
+  type Creature — Spider
+  pt 3/4
+  keywords flash, reach
+}

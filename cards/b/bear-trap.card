@@ -1,0 +1,7 @@
+card "Bear Trap" {
+  oracle_id f7afb2c3-50ee-40f5-8b14-32f80c2bacd0
+  cost {1}
+  type Artifact
+  keywords flash
+  activated {3}, {T}, sacrifice this: deal 3 damage to target creature
+}

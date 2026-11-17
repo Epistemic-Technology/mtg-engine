@@ -1,0 +1,6 @@
+card "Cobblebrute" {
+  oracle_id 6d4ed1f2-0918-444c-95ef-d58beb5aa216
+  cost {3}{R}
+  type Creature — Elemental
+  pt 5/2
+}

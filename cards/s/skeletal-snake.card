@@ -1,0 +1,6 @@
+card "Skeletal Snake" {
+  oracle_id 7af786a0-0851-4f87-ad0d-36b40527700c
+  cost {1}{B}
+  type Creature — Snake Skeleton
+  pt 2/1
+}

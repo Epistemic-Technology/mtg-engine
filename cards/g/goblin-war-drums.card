@@ -1,0 +1,6 @@
+card "Goblin War Drums" {
+  oracle_id 29c21edd-781b-448e-824a-17bc8b8f4077
+  cost {2}{R}
+  type Enchantment
+  static creature you control: has menace
+}

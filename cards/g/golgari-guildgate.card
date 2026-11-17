@@ -1,0 +1,6 @@
+card "Golgari Guildgate" {
+  oracle_id fa2da325-6859-45bb-b185-35526b01bcc1
+  type Land — Gate
+  enters tapped
+  mana {B} or {G}
+}

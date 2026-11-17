@@ -1,0 +1,6 @@
+card "Sunscorched Desert" {
+  oracle_id 256b8c23-589e-429d-9e6e-433d55079eb4
+  type Land — Desert
+  triggered when this enters: deal 1 damage to target player or planeswalker
+  mana {C}
+}

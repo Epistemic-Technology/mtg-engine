@@ -1,0 +1,8 @@
+card "Searchlight Geist" {
+  oracle_id f9366a4a-54d0-4c65-920b-d8ddd475db3c
+  cost {2}{B}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  activated {3}{B}: this gains deathtouch
+}

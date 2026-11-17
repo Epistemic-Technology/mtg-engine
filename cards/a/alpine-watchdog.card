@@ -1,0 +1,7 @@
+card "Alpine Watchdog" {
+  oracle_id 6a0419c3-4bfa-46c1-932b-fe10f2fa2ad7
+  cost {1}{W}
+  type Creature — Dog
+  pt 2/2
+  keywords vigilance
+}

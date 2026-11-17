@@ -1,0 +1,6 @@
+card "Nyxborn Marauder" {
+  oracle_id 1552c6d1-f20a-4303-acf2-2fdd432a98e4
+  cost {2}{B}{B}
+  type Enchantment Creature — Minotaur
+  pt 4/3
+}

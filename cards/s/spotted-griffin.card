@@ -1,0 +1,7 @@
+card "Spotted Griffin" {
+  oracle_id 4916773d-5ccb-48ff-8aa3-09771ae88e81
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/3
+  keywords flying
+}

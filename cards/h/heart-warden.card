@@ -1,0 +1,8 @@
+card "Heart Warden" {
+  oracle_id babcc551-39bb-4b1c-92a0-e60b236a59b2
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {G}
+  activated {2}, sacrifice this: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "A.I.M. Bot" {
+  oracle_id bd269d87-5f72-4559-bf2b-270e2ebe6154
+  cost {2}{U}
+  type Artifact Creature — Robot Villain
+  pt 2/3
+  keywords flying
+}

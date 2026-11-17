@@ -1,0 +1,7 @@
+card "Mantle of Webs" {
+  oracle_id 7549206e-22a9-4d56-b3bc-f6f2f5e87e8a
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+3, has reach
+}

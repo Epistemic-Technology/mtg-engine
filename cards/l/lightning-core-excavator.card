@@ -1,0 +1,7 @@
+card "Lightning-Core Excavator" {
+  oracle_id cdaf3711-5bec-41bf-b333-c5f34ccb12ef
+  cost {1}
+  type Artifact Creature — Golem
+  pt 0/3
+  activated {5}, {T}, sacrifice this: deal 3 damage to any target
+}

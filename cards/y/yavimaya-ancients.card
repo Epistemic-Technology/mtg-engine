@@ -1,0 +1,7 @@
+card "Yavimaya Ancients" {
+  oracle_id 0e91a873-a680-4ca2-b073-26aa39376d77
+  cost {3}{G}{G}
+  type Creature — Treefolk
+  pt 2/7
+  activated {G}: this gets +1/-2
+}

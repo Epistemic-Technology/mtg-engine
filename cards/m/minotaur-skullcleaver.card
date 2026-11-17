@@ -1,0 +1,8 @@
+card "Minotaur Skullcleaver" {
+  oracle_id dd36aea8-9f1c-4daf-86f6-ab9307279ce7
+  cost {2}{R}
+  type Creature — Minotaur Berserker
+  pt 2/2
+  keywords haste
+  triggered when this enters: this gets +2/+0
+}

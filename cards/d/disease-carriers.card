@@ -1,0 +1,7 @@
+card "Disease Carriers" {
+  oracle_id ccdd6376-9b74-4d13-9f80-87d0bd3d4a2a
+  cost {2}{B}{B}
+  type Creature — Rat
+  pt 2/2
+  triggered when this dies: target creature gets -2/-2
+}

@@ -1,0 +1,7 @@
+card "Lace with Moonglove" {
+  oracle_id 07beecfd-1720-42a1-93f8-f06604c3c228
+  cost {2}{G}
+  type Instant
+  spell: target creature gains deathtouch
+  spell: draw 1 cards
+}

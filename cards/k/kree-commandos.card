@@ -1,0 +1,7 @@
+card "Kree Commandos" {
+  oracle_id 09eb988a-e2eb-42e1-a786-01be63d2263f
+  cost {2}{W}
+  type Creature — Kree Soldier Villain
+  pt 2/1
+  keywords flying, vigilance, prowess
+}

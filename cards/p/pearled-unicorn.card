@@ -1,0 +1,6 @@
+card "Pearled Unicorn" {
+  oracle_id c071be90-0531-40cc-af46-0cbe80c4ddd4
+  cost {2}{W}
+  type Creature — Unicorn
+  pt 2/2
+}

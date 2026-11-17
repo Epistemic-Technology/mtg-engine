@@ -1,0 +1,6 @@
+card "Savai Sabertooth" {
+  oracle_id 24f2cf61-22db-4e34-898f-6baa2957d3ae
+  cost {1}{W}
+  type Creature — Cat
+  pt 3/1
+}

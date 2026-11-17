@@ -1,0 +1,7 @@
+card "Esper Cormorants" {
+  oracle_id aeb6cb00-e8bd-4610-aa39-29663d9c9160
+  cost {2}{W}{U}
+  type Artifact Creature — Bird
+  pt 3/3
+  keywords flying
+}

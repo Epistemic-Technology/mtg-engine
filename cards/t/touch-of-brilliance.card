@@ -1,0 +1,6 @@
+card "Touch of Brilliance" {
+  oracle_id 6365aba1-78d3-416c-89cd-9449578eedbf
+  cost {3}{U}
+  type Sorcery
+  spell: draw 2 cards
+}

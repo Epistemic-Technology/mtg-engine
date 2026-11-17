@@ -1,0 +1,8 @@
+card "Furnace Whelp" {
+  oracle_id 8422f1e0-00ca-4ffb-a6b2-e2c9f96d7f23
+  cost {2}{R}{R}
+  type Creature — Dragon
+  pt 2/2
+  keywords flying
+  activated {R}: this gets +1/+0
+}

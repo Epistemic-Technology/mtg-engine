@@ -1,0 +1,8 @@
+card "Masked Meower" {
+  oracle_id a0037ff8-64db-45dd-bba1-db5c49095083
+  cost {R}
+  type Creature — Spider Cat Hero
+  pt 1/1
+  keywords haste
+  activated discard 1 card, sacrifice this: draw 1 cards
+}

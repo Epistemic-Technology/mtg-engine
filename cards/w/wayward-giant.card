@@ -1,0 +1,7 @@
+card "Wayward Giant" {
+  oracle_id 124cf15a-587a-4f1f-a943-f462072f2098
+  cost {4}{R}
+  type Creature — Giant
+  pt 4/5
+  keywords menace
+}

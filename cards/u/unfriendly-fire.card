@@ -1,0 +1,6 @@
+card "Unfriendly Fire" {
+  oracle_id ebb5b792-3906-4cb5-b8f9-063f94c9d135
+  cost {4}{R}
+  type Instant
+  spell: deal 4 damage to any target
+}

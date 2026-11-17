@@ -1,0 +1,8 @@
+card "Frostwind Invoker" {
+  oracle_id 847587eb-8713-496e-b0c7-41ad6d43b852
+  cost {4}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  keywords flying
+  activated {8}: each creature you control gains flying
+}

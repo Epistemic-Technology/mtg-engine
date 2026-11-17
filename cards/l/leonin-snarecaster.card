@@ -1,0 +1,7 @@
+card "Leonin Snarecaster" {
+  oracle_id 75f269df-ee49-44db-b256-4d005e3022fb
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/1
+  triggered when this enters: you may tap target creature
+}

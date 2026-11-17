@@ -1,0 +1,8 @@
+card "Stone Kavu" {
+  oracle_id 01565f61-a3c8-42ca-99f3-07cfc64034a2
+  cost {4}{G}
+  type Creature — Kavu
+  pt 3/3
+  activated {R}: this gets +1/+0
+  activated {W}: this gets +0/+1
+}

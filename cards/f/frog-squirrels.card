@@ -1,0 +1,7 @@
+card "Frog-Squirrels" {
+  oracle_id b8563788-debc-4f97-adf4-b186bf3960e2
+  cost {1}{G}
+  type Creature — Frog Squirrel
+  pt 2/2
+  keywords reach
+}

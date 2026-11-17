@@ -1,0 +1,7 @@
+card "Siegecraft" {
+  oracle_id a49a9418-72d1-4ab1-89d9-a1f65ae23d35
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+4
+}

@@ -1,0 +1,7 @@
+card "Vectis Silencers" {
+  oracle_id e132bba0-40c5-4095-99a3-02cad520ca99
+  cost {2}{U}
+  type Artifact Creature — Human Rogue
+  pt 1/2
+  activated {2}{B}: this gains deathtouch
+}

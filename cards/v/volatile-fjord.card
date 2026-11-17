@@ -1,0 +1,5 @@
+card "Volatile Fjord" {
+  oracle_id 96262c15-9130-409c-8242-71f84be719b7
+  type Snow Land — Island Mountain
+  enters tapped
+}

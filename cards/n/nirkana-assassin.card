@@ -1,0 +1,7 @@
+card "Nirkana Assassin" {
+  oracle_id efb64da9-1ca7-4686-a427-e0d67101030c
+  cost {2}{B}
+  type Creature — Vampire Assassin Ally
+  pt 2/3
+  triggered whenever you gain life: this gains deathtouch
+}

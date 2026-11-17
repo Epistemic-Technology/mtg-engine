@@ -1,0 +1,7 @@
+card "Consulate Skygate" {
+  oracle_id 671db0d7-b103-4c13-9914-a444f2ecf9d6
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender, reach
+}

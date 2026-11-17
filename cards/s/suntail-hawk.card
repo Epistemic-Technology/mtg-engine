@@ -1,0 +1,7 @@
+card "Suntail Hawk" {
+  oracle_id a8d31e2f-7b2e-4135-8074-9e6ef778bd80
+  cost {W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+}

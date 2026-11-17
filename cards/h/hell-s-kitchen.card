@@ -1,0 +1,7 @@
+card "Hell's Kitchen" {
+  oracle_id 1337d89e-a883-4568-a14f-9ca3305cc3df
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {B} or {R}
+}

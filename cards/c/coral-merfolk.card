@@ -1,0 +1,6 @@
+card "Coral Merfolk" {
+  oracle_id 4ed27607-21a8-4bc3-997e-6d2242313f6d
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 2/1
+}

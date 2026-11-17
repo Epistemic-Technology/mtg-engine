@@ -1,0 +1,8 @@
+card "Nutrient Block" {
+  oracle_id 04a0382f-7e4e-4450-ae70-18999379d875
+  cost {1}
+  type Artifact — Food
+  keywords indestructible
+  activated {2}, {T}, sacrifice this: you gains 3 life
+  triggered when this dies: draw 1 cards
+}

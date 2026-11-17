@@ -1,0 +1,7 @@
+card "Nimbus of the Isles" {
+  oracle_id 3d529824-8e82-4c44-8e28-ed3419740c11
+  cost {4}{U}
+  type Creature — Elemental
+  pt 3/3
+  keywords flying
+}

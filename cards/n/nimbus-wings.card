@@ -1,0 +1,7 @@
+card "Nimbus Wings" {
+  oracle_id 0f35e73b-6a38-4185-a7d3-d237d67ba1cd
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2, has flying
+}

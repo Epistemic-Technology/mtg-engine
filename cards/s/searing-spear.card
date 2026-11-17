@@ -1,0 +1,6 @@
+card "Searing Spear" {
+  oracle_id aafd44c1-74a9-4aa7-a4a2-67eb39a07478
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to any target
+}

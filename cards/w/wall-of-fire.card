@@ -1,0 +1,8 @@
+card "Wall of Fire" {
+  oracle_id f38c8b47-e8e0-4d2f-b1da-d8d986805a48
+  cost {1}{R}{R}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  activated {R}: this gets +1/+0
+}

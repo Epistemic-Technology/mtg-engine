@@ -1,0 +1,7 @@
+card "Malachite Golem" {
+  oracle_id 54e71732-6575-48f4-838b-35d44eba51cf
+  cost {6}
+  type Artifact Creature — Golem
+  pt 5/3
+  activated {1}{G}: this gains trample
+}

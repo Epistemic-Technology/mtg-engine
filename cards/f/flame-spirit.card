@@ -1,0 +1,7 @@
+card "Flame Spirit" {
+  oracle_id 123bfa86-4265-448f-97cd-2c0614212862
+  cost {4}{R}
+  type Creature — Elemental Spirit
+  pt 2/3
+  activated {R}: this gets +1/+0
+}

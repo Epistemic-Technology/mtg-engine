@@ -1,0 +1,7 @@
+card "Birnin Zana Plaza" {
+  oracle_id c3172c5d-c745-4422-b651-cd414c8da11b
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {G} or {W}
+}

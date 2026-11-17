@@ -1,0 +1,8 @@
+card "Glitterfang" {
+  oracle_id 226dca3d-9da3-4c3f-89d0-67264fd19c51
+  cost {R}
+  type Creature — Spirit
+  pt 1/1
+  keywords haste
+  triggered at beginning of each end step: return this to hand
+}

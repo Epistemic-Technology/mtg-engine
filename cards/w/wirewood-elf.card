@@ -1,0 +1,7 @@
+card "Wirewood Elf" {
+  oracle_id 4aab6794-506f-413c-91e0-d886e0019dce
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/2
+  mana {G}
+}

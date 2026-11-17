@@ -1,0 +1,8 @@
+card "Silverback Shaman" {
+  oracle_id fc011947-b496-400e-99b8-b368068ba79b
+  cost {3}{G}{G}
+  type Creature — Ape Shaman
+  pt 5/4
+  keywords trample
+  triggered when this dies: draw 1 cards
+}

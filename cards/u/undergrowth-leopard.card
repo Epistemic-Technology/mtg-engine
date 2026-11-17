@@ -1,0 +1,8 @@
+card "Undergrowth Leopard" {
+  oracle_id 511fa8a3-0a65-47fc-9f3b-57eaef2698cd
+  cost {1}{G}
+  type Creature — Cat
+  pt 2/2
+  keywords vigilance
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

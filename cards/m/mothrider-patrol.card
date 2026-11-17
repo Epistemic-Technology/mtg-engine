@@ -1,0 +1,8 @@
+card "Mothrider Patrol" {
+  oracle_id c4073754-7d92-4976-8e7d-d6eb85b91608
+  cost {W}
+  type Creature — Fox Warrior
+  pt 1/1
+  keywords flying
+  activated {3}{W}, {T}: tap target creature
+}

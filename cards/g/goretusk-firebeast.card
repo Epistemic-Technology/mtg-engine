@@ -1,0 +1,7 @@
+card "Goretusk Firebeast" {
+  oracle_id 853ce64f-50b4-49a6-9aa3-f07b11cd8b69
+  cost {5}{R}
+  type Creature — Elemental Boar Beast
+  pt 2/2
+  triggered when this enters: deal 4 damage to target player or planeswalker
+}

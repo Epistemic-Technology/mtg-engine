@@ -1,0 +1,7 @@
+card "Ampryn Tactician" {
+  oracle_id 4ae19803-23a7-4724-a4cd-dc6f3c16fb24
+  cost {2}{W}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered when this enters: each creature you control gets +1/+1
+}

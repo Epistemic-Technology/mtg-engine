@@ -1,0 +1,6 @@
+card "Lazotep Behemoth" {
+  oracle_id db145875-2a40-4fe3-b8ee-bf10ae8f7cd7
+  cost {4}{B}
+  type Creature — Zombie Hippo
+  pt 5/4
+}

@@ -1,0 +1,7 @@
+card "Watcher of the Wayside" {
+  oracle_id b30eafed-2755-4423-9592-c8b83c68804b
+  cost {3}
+  type Artifact Creature — Golem
+  pt 3/2
+  triggered when this enters: target player mills 2 cards; you gains 2 life
+}

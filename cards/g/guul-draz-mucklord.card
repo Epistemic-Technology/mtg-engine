@@ -1,0 +1,7 @@
+card "Guul Draz Mucklord" {
+  oracle_id ad62cd58-fe6f-4844-b3dc-5ba21327fc43
+  cost {2}{B}
+  type Creature — Crocodile
+  pt 2/3
+  triggered when this dies: put 1 +1/+1 counters on target creature you control
+}

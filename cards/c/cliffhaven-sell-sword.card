@@ -1,0 +1,6 @@
+card "Cliffhaven Sell-Sword" {
+  oracle_id 5f0c8c60-96f1-4b26-a9f6-386e1cec517d
+  cost {1}{W}
+  type Creature — Kor Warrior
+  pt 3/1
+}

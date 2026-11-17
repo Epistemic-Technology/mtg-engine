@@ -1,0 +1,4 @@
+card "Snow-Covered Island" {
+  oracle_id 5b2460a5-6ae5-4cad-ba94-1a9e98e6e4c0
+  type Basic Snow Land — Island
+}

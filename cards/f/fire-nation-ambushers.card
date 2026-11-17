@@ -1,0 +1,7 @@
+card "Fire Nation Ambushers" {
+  oracle_id 8ed27504-f86b-4ce5-9395-7029825176ab
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 3/2
+  keywords flash
+}

@@ -1,0 +1,8 @@
+card "Piranha Fly" {
+  oracle_id 58d87cfe-7402-43c3-81ce-13de8cd04005
+  cost {1}{U}
+  type Creature — Fish Insect
+  pt 2/1
+  keywords flying
+  enters tapped
+}

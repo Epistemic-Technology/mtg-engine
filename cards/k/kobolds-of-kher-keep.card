@@ -1,0 +1,7 @@
+card "Kobolds of Kher Keep" {
+  oracle_id badf0669-9f65-44e3-bf91-6c57ac2fecff
+  cost {0}
+  type Creature — Kobold
+  pt 0/1
+  color red
+}

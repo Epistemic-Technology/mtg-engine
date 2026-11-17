@@ -1,0 +1,6 @@
+card "Hold at Bay" {
+  oracle_id a57b84e4-951c-4475-bb34-b68815858f87
+  cost {1}{W}
+  type Instant
+  spell: prevent next 7 damage to any target this turn
+}

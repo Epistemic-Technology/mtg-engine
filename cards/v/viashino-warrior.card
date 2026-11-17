@@ -1,0 +1,6 @@
+card "Viashino Warrior" {
+  oracle_id f46e06e2-1658-4bec-b94e-91935cc667fb
+  cost {3}{R}
+  type Creature — Lizard Warrior
+  pt 4/2
+}

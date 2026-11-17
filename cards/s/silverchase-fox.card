@@ -1,0 +1,7 @@
+card "Silverchase Fox" {
+  oracle_id f277b082-dfc8-45c6-bab5-b63cd218224c
+  cost {1}{W}
+  type Creature — Fox
+  pt 2/2
+  activated {1}{W}, sacrifice this: exile target enchantment
+}

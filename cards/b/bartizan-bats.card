@@ -1,0 +1,7 @@
+card "Bartizan Bats" {
+  oracle_id 6987d5d4-0ef6-4326-a590-678ac160fe56
+  cost {3}{B}
+  type Creature — Bat
+  pt 3/1
+  keywords flying
+}

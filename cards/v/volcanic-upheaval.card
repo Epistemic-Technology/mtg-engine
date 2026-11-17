@@ -1,0 +1,6 @@
+card "Volcanic Upheaval" {
+  oracle_id 4d628f52-183a-4a89-b05f-50463a82513d
+  cost {3}{R}
+  type Instant
+  spell: destroy target land
+}

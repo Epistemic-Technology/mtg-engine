@@ -1,0 +1,7 @@
+card "Bloodflow Connoisseur" {
+  oracle_id ddb2fb87-235a-4365-aa25-40c197425e43
+  cost {2}{B}
+  type Creature — Vampire
+  pt 1/1
+  activated sacrifice creature: put 1 +1/+1 counters on this
+}

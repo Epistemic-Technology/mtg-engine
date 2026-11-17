@@ -1,0 +1,7 @@
+card "Hinterland Sanctifier" {
+  oracle_id d812fc6d-b96d-4986-b171-9f3feee603dc
+  cost {W}
+  type Creature — Rabbit Cleric
+  pt 1/2
+  triggered whenever other creature you control enters: you gains 1 life
+}

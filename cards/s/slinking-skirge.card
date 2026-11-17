@@ -1,0 +1,8 @@
+card "Slinking Skirge" {
+  oracle_id 82875793-b264-4ceb-8525-ef3b6d086072
+  cost {3}{B}
+  type Creature — Phyrexian Imp
+  pt 2/1
+  keywords flying
+  activated {2}, sacrifice this: draw 1 cards
+}

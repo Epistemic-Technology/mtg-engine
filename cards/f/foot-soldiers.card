@@ -1,0 +1,6 @@
+card "Foot Soldiers" {
+  oracle_id a768ba13-4d1c-4dce-a4a6-86a39c069c3f
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/4
+}

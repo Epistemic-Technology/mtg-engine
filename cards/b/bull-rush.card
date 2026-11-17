@@ -1,0 +1,6 @@
+card "Bull Rush" {
+  oracle_id 0140cf53-71ef-4d37-9197-48aab35ca4a2
+  cost {R}
+  type Instant
+  spell: target creature gets +2/+0
+}

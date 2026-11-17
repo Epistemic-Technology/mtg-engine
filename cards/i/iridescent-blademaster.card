@@ -1,0 +1,7 @@
+card "Iridescent Blademaster" {
+  oracle_id 5e1fd76b-46c8-41b5-87b3-e078f7a47535
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  activated {3}{G}: this gets +2/+2
+}

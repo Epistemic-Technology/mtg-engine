@@ -1,0 +1,6 @@
+card "Tome Scour" {
+  oracle_id 446a9d7e-9c1a-4e83-8342-2ed5acae2eed
+  cost {U}
+  type Sorcery
+  spell: target player mills 5 cards
+}

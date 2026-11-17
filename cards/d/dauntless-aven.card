@@ -1,0 +1,8 @@
+card "Dauntless Aven" {
+  oracle_id 7104e471-06aa-426d-af1e-d5f0b1fb18c3
+  cost {2}{W}
+  type Creature — Bird Warrior
+  pt 2/1
+  keywords flying
+  triggered whenever this attacks: untap target creature you control
+}

@@ -1,0 +1,5 @@
+card "Oasis" {
+  oracle_id 4533ce78-0594-4195-96fb-46cbadd0db69
+  type Land
+  activated {T}: prevent next 1 damage to target creature this turn
+}

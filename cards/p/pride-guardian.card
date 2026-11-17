@@ -1,0 +1,8 @@
+card "Pride Guardian" {
+  oracle_id 6b2d396f-802d-4b49-8418-5a96b8a12226
+  cost {W}
+  type Creature — Cat Monk
+  pt 0/3
+  keywords defender
+  triggered whenever this blocks: you gains 3 life
+}

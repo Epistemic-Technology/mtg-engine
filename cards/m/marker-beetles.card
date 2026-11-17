@@ -1,0 +1,8 @@
+card "Marker Beetles" {
+  oracle_id 4b1614fd-2810-4d4d-a0d6-934f27adbe65
+  cost {1}{G}{G}
+  type Creature — Insect
+  pt 2/3
+  triggered when this dies: target creature gets +1/+1
+  activated {2}, sacrifice this: draw 1 cards
+}

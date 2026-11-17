@@ -1,0 +1,6 @@
+card "Screaming Fury" {
+  oracle_id eaded717-e0e2-4def-be7e-6bfb137628c2
+  cost {2}{R}
+  type Sorcery
+  spell: target creature gets +5/+0 and gains haste
+}

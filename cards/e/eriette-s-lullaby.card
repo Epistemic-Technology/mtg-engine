@@ -1,0 +1,6 @@
+card "Eriette's Lullaby" {
+  oracle_id b134a9e6-b004-4833-b298-10529f5a85b8
+  cost {1}{W}
+  type Sorcery
+  spell: destroy target tapped creature; you gains 2 life
+}

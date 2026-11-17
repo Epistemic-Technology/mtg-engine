@@ -1,0 +1,7 @@
+card "Voiceless Spirit" {
+  oracle_id 56cb7592-ad58-42dc-b568-4b7754bba53d
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying, first strike
+}

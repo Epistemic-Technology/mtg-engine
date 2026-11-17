@@ -1,0 +1,6 @@
+card "Excoriate" {
+  oracle_id a9aedd96-1aee-480d-87fe-3ed94bd64599
+  cost {3}{W}
+  type Sorcery
+  spell: exile target tapped creature
+}

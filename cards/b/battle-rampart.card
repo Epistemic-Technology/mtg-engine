@@ -1,0 +1,8 @@
+card "Battle Rampart" {
+  oracle_id ec187304-4c05-44da-8ad5-7c56f6b05212
+  cost {2}{R}
+  type Creature — Wall
+  pt 1/3
+  keywords defender
+  activated {T}: target creature gains haste
+}

@@ -1,0 +1,7 @@
+card "Defensive Stance" {
+  oracle_id 19959b6d-eb8f-4273-94c8-65210e1998ab
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/+1
+}

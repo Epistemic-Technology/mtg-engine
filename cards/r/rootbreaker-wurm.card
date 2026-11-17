@@ -1,0 +1,7 @@
+card "Rootbreaker Wurm" {
+  oracle_id d3edbb47-6892-4853-badc-cc01499d4e55
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 6/6
+  keywords trample
+}

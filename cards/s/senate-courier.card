@@ -1,0 +1,8 @@
+card "Senate Courier" {
+  oracle_id 4429e14f-a5f7-42e9-a8c3-b59428f92047
+  cost {2}{U}
+  type Creature — Bird
+  pt 1/4
+  keywords flying
+  activated {1}{W}: this gains vigilance
+}

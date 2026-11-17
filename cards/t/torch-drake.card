@@ -1,0 +1,8 @@
+card "Torch Drake" {
+  oracle_id 8408f99a-aa3c-40d0-9e26-dd527343e62b
+  cost {3}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  activated {1}{R}: this gets +1/+0
+}

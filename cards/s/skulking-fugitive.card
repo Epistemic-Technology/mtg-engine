@@ -1,0 +1,7 @@
+card "Skulking Fugitive" {
+  oracle_id 4178ae56-2449-4617-aff8-f59d8fb96c66
+  cost {2}{B}
+  type Creature — Horror Mercenary
+  pt 3/4
+  triggered when this becomes targeted: sacrifice this
+}

@@ -1,0 +1,6 @@
+card "Natural End" {
+  oracle_id 05b5c0fb-84b2-4a32-bf66-179c4dccb3df
+  cost {2}{G}
+  type Instant
+  spell: destroy target artifact or enchantment; you gains 3 life
+}

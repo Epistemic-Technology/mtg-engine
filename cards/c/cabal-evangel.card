@@ -1,0 +1,6 @@
+card "Cabal Evangel" {
+  oracle_id a4fed66f-ef3c-4547-8612-46e65d63ef1f
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 2/2
+}

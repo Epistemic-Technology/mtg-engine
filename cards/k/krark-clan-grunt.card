@@ -1,0 +1,7 @@
+card "Krark-Clan Grunt" {
+  oracle_id e7be5ab3-a11f-4786-9b0b-1daa94f59440
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  activated sacrifice artifact: this gets +1/+0 and gains first strike
+}

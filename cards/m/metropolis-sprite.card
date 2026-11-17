@@ -1,0 +1,8 @@
+card "Metropolis Sprite" {
+  oracle_id 924c7c4e-9c4b-496a-ba49-7fb3918a8d07
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/2
+  keywords flying
+  activated {U}: this gets +1/-1
+}

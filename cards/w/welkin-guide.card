@@ -1,0 +1,8 @@
+card "Welkin Guide" {
+  oracle_id 0ce31ff1-6cfe-4b34-bd02-7d727934e754
+  cost {4}{W}
+  type Creature — Bird Cleric
+  pt 2/2
+  keywords flying
+  triggered when this enters: target creature gets +2/+2 and gains flying
+}

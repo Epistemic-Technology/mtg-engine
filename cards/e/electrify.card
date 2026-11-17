@@ -1,0 +1,6 @@
+card "Electrify" {
+  oracle_id da952213-9a3c-4e13-bc5a-55d1e5dbaa5b
+  cost {3}{R}
+  type Instant
+  spell: deal 4 damage to target creature
+}

@@ -1,0 +1,7 @@
+card "Mountain Bandit" {
+  oracle_id e3638c54-e494-47d2-b614-94c9d9add85a
+  cost {R}
+  type Creature — Human Soldier Rogue
+  pt 1/1
+  keywords haste
+}

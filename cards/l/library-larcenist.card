@@ -1,0 +1,7 @@
+card "Library Larcenist" {
+  oracle_id eb0e6f63-2861-4392-ac0e-64380fbbd8ae
+  cost {2}{U}
+  type Creature — Merfolk Rogue
+  pt 1/2
+  triggered whenever this attacks: draw 1 cards
+}

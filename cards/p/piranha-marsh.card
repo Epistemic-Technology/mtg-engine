@@ -1,0 +1,7 @@
+card "Piranha Marsh" {
+  oracle_id 6bc8fd7e-7616-484a-ac23-04d37c93733b
+  type Land
+  enters tapped
+  triggered when this enters: target player loses 1 life
+  mana {B}
+}

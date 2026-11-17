@@ -1,0 +1,7 @@
+card "Flowstone Channeler" {
+  oracle_id 91818ad0-b22a-423c-bed6-a285f2f8c9d4
+  cost {2}{R}
+  type Creature — Human Spellshaper
+  pt 2/2
+  activated {1}{R}, {T}, discard 1 card: target creature gets +1/-1 and gains haste
+}

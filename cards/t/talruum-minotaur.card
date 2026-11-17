@@ -1,0 +1,7 @@
+card "Talruum Minotaur" {
+  oracle_id c5661500-c48f-4f6d-bbe7-c8bd7118d862
+  cost {2}{R}{R}
+  type Creature — Minotaur Berserker
+  pt 3/3
+  keywords haste
+}

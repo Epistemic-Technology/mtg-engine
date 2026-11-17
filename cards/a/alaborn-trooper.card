@@ -1,0 +1,6 @@
+card "Alaborn Trooper" {
+  oracle_id 17969b71-9612-45ff-b789-1c033f832154
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+}

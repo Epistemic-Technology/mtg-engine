@@ -1,0 +1,7 @@
+card "Mark of the Vampire" {
+  oracle_id af942d30-a191-4306-846d-6c26755ca3e6
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has lifelink
+}

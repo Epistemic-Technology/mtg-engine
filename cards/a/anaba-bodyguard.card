@@ -1,0 +1,7 @@
+card "Anaba Bodyguard" {
+  oracle_id 8c64db66-879e-46ad-9d11-8a95b6cf5d19
+  cost {3}{R}
+  type Creature — Minotaur
+  pt 2/3
+  keywords first strike
+}

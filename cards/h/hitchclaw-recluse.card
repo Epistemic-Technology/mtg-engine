@@ -1,0 +1,7 @@
+card "Hitchclaw Recluse" {
+  oracle_id 241ec1fc-cc50-468e-8ee3-f95a82a3e07b
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/4
+  keywords reach
+}

@@ -1,0 +1,7 @@
+card "Blossom Dryad" {
+  oracle_id 53929852-6359-4e7a-8f2c-a5954c76ffcc
+  cost {2}{G}
+  type Creature — Dryad
+  pt 2/2
+  activated {T}: untap target land
+}

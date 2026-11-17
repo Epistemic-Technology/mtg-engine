@@ -1,0 +1,8 @@
+card "Scourgemark" {
+  oracle_id 66efb37f-9eab-4ff4-a1d4-65fe9ca7332b
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +1/+0
+}

@@ -1,0 +1,7 @@
+card "Gladecover Scout" {
+  oracle_id 385c1208-bfea-44e2-b236-4f38bc90db9f
+  cost {G}
+  type Creature — Elf Scout
+  pt 1/1
+  keywords hexproof
+}

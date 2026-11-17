@@ -1,0 +1,8 @@
+card "Despondency" {
+  oracle_id a68ac1ba-f51e-446c-abf0-7a2bd4d65a8c
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -2/-0
+  triggered when this dies: return this to hand
+}

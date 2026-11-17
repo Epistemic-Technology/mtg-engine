@@ -1,0 +1,6 @@
+card "Onyx Goblet" {
+  oracle_id 3e070d7a-6a1e-4cce-b196-73f4052c049c
+  cost {2}{B}
+  type Artifact
+  activated {T}: target player loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Gavony Unhallowed" {
+  oracle_id 95ccb4a6-6e45-4c00-b7c6-25384022c02f
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/4
+  triggered whenever other creature you control dies: put 1 +1/+1 counters on this
+}

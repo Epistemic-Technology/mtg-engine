@@ -1,0 +1,6 @@
+card "Ogre Resister" {
+  oracle_id d626bd7f-c993-49ff-b05b-262330d8540c
+  cost {2}{R}{R}
+  type Creature — Ogre
+  pt 4/3
+}

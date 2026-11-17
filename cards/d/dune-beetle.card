@@ -1,0 +1,6 @@
+card "Dune Beetle" {
+  oracle_id 3f79603a-3173-404e-8c69-b2254c1270dc
+  cost {1}{B}
+  type Creature — Insect
+  pt 1/4
+}

@@ -1,0 +1,7 @@
+card "Steadfast Guard" {
+  oracle_id 0c3b3c04-017d-4741-90c8-4b6c0bd46e49
+  cost {W}{W}
+  type Creature — Human Rebel
+  pt 2/2
+  keywords vigilance
+}

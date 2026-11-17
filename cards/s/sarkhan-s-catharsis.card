@@ -1,0 +1,6 @@
+card "Sarkhan's Catharsis" {
+  oracle_id 787935ab-26a6-4b4a-9c14-e106160e951d
+  cost {4}{R}
+  type Instant
+  spell: deal 5 damage to target player or planeswalker
+}

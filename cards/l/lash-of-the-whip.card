@@ -1,0 +1,6 @@
+card "Lash of the Whip" {
+  oracle_id e2ac369a-f6d4-4b58-8695-a7c5b906e999
+  cost {4}{B}
+  type Instant
+  spell: target creature gets -4/-4
+}

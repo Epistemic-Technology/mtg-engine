@@ -1,0 +1,8 @@
+card "Launch" {
+  oracle_id 9e3b373f-05f5-44df-9568-bd1f8039aa54
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  triggered when this dies: return this to hand
+}

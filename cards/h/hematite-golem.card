@@ -1,0 +1,7 @@
+card "Hematite Golem" {
+  oracle_id f2e1bb32-de4c-4abc-ac15-6e6deaa8fe5f
+  cost {4}
+  type Artifact Creature — Golem
+  pt 1/4
+  activated {1}{R}: this gets +2/+0
+}

@@ -1,0 +1,7 @@
+card "Leap" {
+  oracle_id e89a3ce0-6b38-4326-a7af-8575af371baa
+  cost {U}
+  type Instant
+  spell: target creature gains flying
+  spell: draw 1 cards
+}

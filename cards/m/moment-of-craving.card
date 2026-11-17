@@ -1,0 +1,6 @@
+card "Moment of Craving" {
+  oracle_id 1489551f-5714-471b-a0e6-f40bc3085afc
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -2/-2; you gains 2 life
+}

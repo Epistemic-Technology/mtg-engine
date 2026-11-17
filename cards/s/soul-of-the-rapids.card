@@ -1,0 +1,7 @@
+card "Soul of the Rapids" {
+  oracle_id 011b2243-b8be-471f-9d8f-824a40e599df
+  cost {3}{U}{U}
+  type Creature — Elemental
+  pt 3/2
+  keywords flying, hexproof
+}

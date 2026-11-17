@@ -1,0 +1,7 @@
+card "Makindi Aeronaut" {
+  oracle_id 9f980829-90c1-43e2-a103-915f38317ed0
+  cost {1}{W}
+  type Creature — Kor Scout Ally
+  pt 1/3
+  keywords flying
+}

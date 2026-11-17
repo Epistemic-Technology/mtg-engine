@@ -1,0 +1,6 @@
+card "Expel" {
+  oracle_id 58776b25-794e-4a87-bc71-a77c025b9b03
+  cost {2}{W}
+  type Instant
+  spell: exile target tapped creature
+}

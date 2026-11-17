@@ -1,0 +1,6 @@
+card "Willow Elf" {
+  oracle_id f88db161-3d00-4f45-b2a4-cbdc4f8e5312
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+}

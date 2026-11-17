@@ -1,0 +1,7 @@
+card "Silverbluff Bridge" {
+  oracle_id 081bfd50-a436-463b-9d2c-5bc8a32b387c
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {U} or {R}
+}

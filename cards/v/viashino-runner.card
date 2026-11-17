@@ -1,0 +1,7 @@
+card "Viashino Runner" {
+  oracle_id ac7e317b-387c-403f-bcf1-403f96302f21
+  cost {3}{R}
+  type Creature — Lizard
+  pt 3/2
+  keywords menace
+}

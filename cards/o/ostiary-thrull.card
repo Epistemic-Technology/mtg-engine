@@ -1,0 +1,7 @@
+card "Ostiary Thrull" {
+  oracle_id 1c99c9d9-3ea8-43bc-96d7-4dea12770b5c
+  cost {3}{B}
+  type Creature — Thrull
+  pt 2/2
+  activated {W}, {T}: tap target creature
+}

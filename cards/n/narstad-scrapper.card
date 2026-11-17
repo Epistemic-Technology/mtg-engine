@@ -1,0 +1,7 @@
+card "Narstad Scrapper" {
+  oracle_id 16acd858-dba6-401e-bbfb-cabdd6d0120e
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/3
+  activated {2}: this gets +1/+0
+}

@@ -1,0 +1,5 @@
+card "Sunlit Marsh" {
+  oracle_id a5e5a259-5fa7-4b01-93cb-a2b4aaf80927
+  type Land — Plains Swamp
+  enters tapped
+}

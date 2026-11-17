@@ -1,0 +1,7 @@
+card "Lumengrid Gargoyle" {
+  oracle_id 1070ede7-c81d-4c77-a1a9-6f243432a640
+  cost {6}
+  type Artifact Creature — Gargoyle
+  pt 4/4
+  keywords flying
+}

@@ -1,0 +1,7 @@
+card "Shock Troops" {
+  oracle_id fdf2a8da-2933-44c5-b483-f035144da752
+  cost {3}{R}
+  type Creature — Human Soldier
+  pt 2/2
+  activated sacrifice this: deal 2 damage to any target
+}

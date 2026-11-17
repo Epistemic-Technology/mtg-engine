@@ -1,0 +1,7 @@
+card "Cold-Water Snapper" {
+  oracle_id 457e4a49-c8fe-4e1d-a4b4-7a880a47f58d
+  cost {5}{U}
+  type Creature — Turtle
+  pt 4/5
+  keywords hexproof
+}

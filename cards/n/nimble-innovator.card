@@ -1,0 +1,7 @@
+card "Nimble Innovator" {
+  oracle_id 30929713-47dc-40f0-883c-4bd41aa399d5
+  cost {3}{U}
+  type Creature — Vedalken Artificer
+  pt 2/2
+  triggered when this enters: draw 1 cards
+}

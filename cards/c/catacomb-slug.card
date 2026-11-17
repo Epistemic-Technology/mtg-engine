@@ -1,0 +1,6 @@
+card "Catacomb Slug" {
+  oracle_id 1b0b5264-2810-4ac5-8b2e-8abbf4016287
+  cost {4}{B}
+  type Creature — Slug
+  pt 2/6
+}

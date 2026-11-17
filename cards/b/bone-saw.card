@@ -1,0 +1,7 @@
+card "Bone Saw" {
+  oracle_id 16e555f2-5aa8-4100-a036-eed48db0e84a
+  cost {0}
+  type Artifact — Equipment
+  static enchanted: +1/+0
+  equip {1}
+}

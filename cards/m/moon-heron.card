@@ -1,0 +1,7 @@
+card "Moon Heron" {
+  oracle_id 57dfe4aa-1e9a-4891-851b-201edd1fc79c
+  cost {3}{U}
+  type Creature — Spirit Bird
+  pt 3/2
+  keywords flying
+}

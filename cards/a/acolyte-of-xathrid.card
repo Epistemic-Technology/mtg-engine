@@ -1,0 +1,7 @@
+card "Acolyte of Xathrid" {
+  oracle_id 62dca41b-58b0-45eb-ada7-568e80a2abec
+  cost {B}
+  type Creature — Human Cleric
+  pt 0/1
+  activated {1}{B}, {T}: target player loses 1 life
+}

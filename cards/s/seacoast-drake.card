@@ -1,0 +1,7 @@
+card "Seacoast Drake" {
+  oracle_id 2f4b5831-57a2-4778-90c1-0b8ec49afd46
+  cost {1}{U}
+  type Creature — Drake
+  pt 1/3
+  keywords flying
+}

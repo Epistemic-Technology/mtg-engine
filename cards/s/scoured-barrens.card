@@ -1,0 +1,7 @@
+card "Scoured Barrens" {
+  oracle_id d37f858e-03c8-4594-9b92-cd03699a1591
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {B}
+}

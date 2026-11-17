@@ -1,0 +1,6 @@
+card "Last Gasp" {
+  oracle_id a82c3860-4dd6-4ffd-aa8f-ab8df687db6c
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -3/-3
+}

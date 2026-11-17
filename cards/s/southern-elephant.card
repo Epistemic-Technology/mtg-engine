@@ -1,0 +1,6 @@
+card "Southern Elephant" {
+  oracle_id 79de2319-078d-46db-9044-0088c623b73f
+  cost {3}{G}
+  type Creature — Elephant
+  pt 3/4
+}

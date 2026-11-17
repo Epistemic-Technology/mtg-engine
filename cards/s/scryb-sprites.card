@@ -1,0 +1,7 @@
+card "Scryb Sprites" {
+  oracle_id a1f20695-6f08-4d5c-9fba-b0018bee298e
+  cost {G}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+}

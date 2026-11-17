@@ -1,0 +1,8 @@
+card "Crashing Drawbridge" {
+  oracle_id 328d5ef0-b25e-4f2a-80fe-35c6ae419e8a
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}: each creature you control gains haste
+}

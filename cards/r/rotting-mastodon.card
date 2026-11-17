@@ -1,0 +1,6 @@
+card "Rotting Mastodon" {
+  oracle_id d6e90e75-ef12-49d0-8dd8-0c6cb718ce28
+  cost {4}{B}
+  type Creature — Zombie Elephant
+  pt 2/8
+}

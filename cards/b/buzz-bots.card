@@ -1,0 +1,8 @@
+card "Buzz Bots" {
+  oracle_id 434e720f-2bfa-49b6-a5ac-fe0c0b24764d
+  cost {1}{U}
+  type Artifact Creature — Robot Insect
+  pt 1/1
+  keywords flying, vigilance
+  triggered when this dies: draw 1 cards
+}

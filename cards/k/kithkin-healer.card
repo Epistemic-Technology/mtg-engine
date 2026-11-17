@@ -1,0 +1,7 @@
+card "Kithkin Healer" {
+  oracle_id e3bd74f3-1f38-4162-a0be-c76ad63e2d9b
+  cost {2}{W}
+  type Creature — Kithkin Cleric
+  pt 2/2
+  activated {T}: prevent next 1 damage to any target this turn
+}

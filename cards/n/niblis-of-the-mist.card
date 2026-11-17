@@ -1,0 +1,8 @@
+card "Niblis of the Mist" {
+  oracle_id e059122d-b8d6-4878-bebb-e20ce6311d68
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  triggered when this enters: you may tap target creature
+}

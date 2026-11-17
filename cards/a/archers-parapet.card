@@ -1,0 +1,8 @@
+card "Archers' Parapet" {
+  oracle_id 9df1c48b-52a8-47d7-8315-272fecf1a8a0
+  cost {1}{G}
+  type Creature — Wall
+  pt 0/5
+  keywords defender
+  activated {1}{B}, {T}: each opponent loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Felidar Cub" {
+  oracle_id cae60cf8-cd64-4595-a4dd-946694cf2bb1
+  cost {1}{W}
+  type Creature — Cat Beast
+  pt 2/2
+  activated sacrifice this: destroy target enchantment
+}

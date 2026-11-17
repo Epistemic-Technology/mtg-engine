@@ -1,0 +1,7 @@
+card "Rubbleback Rhino" {
+  oracle_id 33e87ab4-f680-4463-a48d-289fed7e196e
+  cost {4}{G}
+  type Creature — Rhino
+  pt 3/4
+  keywords hexproof
+}

@@ -1,0 +1,7 @@
+card "Stonewood Invoker" {
+  oracle_id 9d277206-9156-4dc9-bdd2-9d9219787735
+  cost {1}{G}
+  type Creature — Elf Mutant
+  pt 2/2
+  activated {7}{G}: this gets +5/+5
+}

@@ -1,0 +1,6 @@
+card "Dakmor Scorpion" {
+  oracle_id 008290c2-499d-425b-9a6c-c4aeb47c33ff
+  cost {1}{B}
+  type Creature — Scorpion
+  pt 2/1
+}

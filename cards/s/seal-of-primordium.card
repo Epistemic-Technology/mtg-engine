@@ -1,0 +1,6 @@
+card "Seal of Primordium" {
+  oracle_id f14dbb39-c9f9-4f64-b22a-38dba28f5b1e
+  cost {1}{G}
+  type Enchantment
+  activated sacrifice this: destroy target artifact or enchantment
+}

@@ -1,0 +1,8 @@
+card "Death-Hood Cobra" {
+  oracle_id 747dfffd-880c-48fe-9380-eb56071f5910
+  cost {1}{G}
+  type Creature — Phyrexian Snake
+  pt 2/2
+  activated {1}{G}: this gains reach
+  activated {1}{G}: this gains deathtouch
+}

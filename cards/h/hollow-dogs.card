@@ -1,0 +1,7 @@
+card "Hollow Dogs" {
+  oracle_id 16aa2e9e-bfe8-4b40-a1db-bb1da2ede849
+  cost {4}{B}
+  type Creature — Phyrexian Zombie Dog
+  pt 3/3
+  triggered whenever this attacks: this gets +2/+0
+}

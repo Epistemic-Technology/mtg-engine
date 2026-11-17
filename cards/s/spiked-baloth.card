@@ -1,0 +1,7 @@
+card "Spiked Baloth" {
+  oracle_id e873b9c2-1346-4f36-aa48-da58112792db
+  cost {3}{G}
+  type Creature — Beast
+  pt 4/2
+  keywords trample
+}

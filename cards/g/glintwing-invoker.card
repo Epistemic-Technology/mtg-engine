@@ -1,0 +1,7 @@
+card "Glintwing Invoker" {
+  oracle_id c8a9bdaa-55ef-4baa-9dfa-9068583360f6
+  cost {4}{U}
+  type Creature — Human Wizard Mutant
+  pt 3/3
+  activated {7}{U}: this gets +3/+3 and gains flying
+}

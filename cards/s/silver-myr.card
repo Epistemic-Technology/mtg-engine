@@ -1,0 +1,7 @@
+card "Silver Myr" {
+  oracle_id 66e8f7f8-3a6d-46ba-837c-b9713ddf7f40
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  mana {U}
+}

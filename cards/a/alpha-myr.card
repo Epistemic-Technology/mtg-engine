@@ -1,0 +1,6 @@
+card "Alpha Myr" {
+  oracle_id 4caa8e68-e599-416f-b839-3d009569ff29
+  cost {2}
+  type Artifact Creature — Myr
+  pt 2/1
+}

@@ -1,0 +1,6 @@
+card "Baron, Airship Kingdom" {
+  oracle_id cc710da0-5a2e-4bc4-8fdd-d90e7bc1f224
+  type Land — Town
+  enters tapped
+  mana {U} or {R}
+}

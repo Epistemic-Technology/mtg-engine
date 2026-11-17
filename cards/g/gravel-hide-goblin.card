@@ -1,0 +1,7 @@
+card "Gravel-Hide Goblin" {
+  oracle_id 71d284ee-5b29-4db3-b355-a6bdc142a05b
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 2/1
+  activated {3}{G}: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Lifelink" {
+  oracle_id 4fe8316a-9cff-43e9-a1d5-993a0c9daf3a
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has lifelink
+}

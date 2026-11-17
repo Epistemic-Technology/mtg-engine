@@ -1,0 +1,7 @@
+card "Skyspear Cavalry" {
+  oracle_id b5868383-a0fb-40fc-b718-f1b5441c5ce3
+  cost {3}{W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords flying, double strike
+}

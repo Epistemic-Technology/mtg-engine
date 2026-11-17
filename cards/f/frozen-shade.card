@@ -1,0 +1,7 @@
+card "Frozen Shade" {
+  oracle_id f75f9006-217d-4ec8-9c35-ceefe1c5ae4e
+  cost {2}{B}
+  type Creature — Shade
+  pt 0/1
+  activated {B}: this gets +1/+1
+}

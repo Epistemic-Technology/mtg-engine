@@ -1,0 +1,7 @@
+card "Blister Beetle" {
+  oracle_id 8ec6b0f1-8928-457c-adf0-c74a28edc86f
+  cost {1}{B}
+  type Creature — Insect
+  pt 1/1
+  triggered when this enters: target creature gets -1/-1
+}

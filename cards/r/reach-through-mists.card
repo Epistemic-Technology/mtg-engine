@@ -1,0 +1,6 @@
+card "Reach Through Mists" {
+  oracle_id c81ca8ff-92f3-481e-82f7-0673b6c74ea0
+  cost {U}
+  type Instant — Arcane
+  spell: draw 1 cards
+}

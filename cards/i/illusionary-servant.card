@@ -1,0 +1,8 @@
+card "Illusionary Servant" {
+  oracle_id 28e99c5f-a78a-4323-b5e9-1b43303acaf6
+  cost {1}{U}{U}
+  type Creature — Illusion
+  pt 3/4
+  keywords flying
+  triggered when this becomes targeted: sacrifice this
+}

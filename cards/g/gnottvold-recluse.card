@@ -1,0 +1,7 @@
+card "Gnottvold Recluse" {
+  oracle_id e7e65cc5-9ceb-43b6-acde-ae492b71daf6
+  cost {2}{G}
+  type Creature — Spider
+  pt 4/2
+  keywords reach
+}

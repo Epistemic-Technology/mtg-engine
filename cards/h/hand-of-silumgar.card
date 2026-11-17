@@ -1,0 +1,7 @@
+card "Hand of Silumgar" {
+  oracle_id e2714e1f-c883-41e0-bc2f-60e15462ef98
+  cost {1}{B}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords deathtouch
+}

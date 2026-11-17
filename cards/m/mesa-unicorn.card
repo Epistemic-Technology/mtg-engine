@@ -1,0 +1,7 @@
+card "Mesa Unicorn" {
+  oracle_id 5101ff9e-4680-4d38-80a5-b4c21bc67356
+  cost {1}{W}
+  type Creature — Unicorn
+  pt 2/2
+  keywords lifelink
+}

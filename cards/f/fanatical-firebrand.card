@@ -1,0 +1,8 @@
+card "Fanatical Firebrand" {
+  oracle_id d36e11f1-6ab3-4273-8114-a8fbbe21c1c3
+  cost {R}
+  type Creature — Goblin Pirate
+  pt 1/1
+  keywords haste
+  activated {T}, sacrifice this: deal 1 damage to any target
+}

@@ -1,0 +1,7 @@
+card "Aven Sentry" {
+  oracle_id 36a600fe-91b4-46a0-97ee-0cea2b63ec8e
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 3/2
+  keywords flying
+}

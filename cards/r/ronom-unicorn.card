@@ -1,0 +1,7 @@
+card "Ronom Unicorn" {
+  oracle_id 3c6913cc-c543-45f8-ad3b-ccd282efa6f7
+  cost {1}{W}
+  type Creature — Unicorn
+  pt 2/2
+  activated sacrifice this: destroy target enchantment
+}

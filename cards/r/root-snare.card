@@ -1,0 +1,6 @@
+card "Root Snare" {
+  oracle_id cbf743a5-123f-4747-826d-7f8bb929a52c
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage this turn
+}

@@ -1,0 +1,7 @@
+card "Arcane Flight" {
+  oracle_id 40eee955-bec6-455a-addf-68cdb84c76b9
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flying
+}

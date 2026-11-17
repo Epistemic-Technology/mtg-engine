@@ -1,0 +1,7 @@
+card "Whiptongue Frog" {
+  oracle_id edc961bd-5ec9-47ed-9d34-e26a48c13702
+  cost {2}{U}
+  type Creature — Frog
+  pt 1/3
+  activated {U}: this gains flying
+}

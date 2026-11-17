@@ -1,0 +1,7 @@
+card "Simic Cluestone" {
+  oracle_id 0b65050d-a9cd-4b6c-9114-af89bfa6682f
+  cost {3}
+  type Artifact
+  mana {G} or {U}
+  activated {G}{U}, {T}, sacrifice this: draw 1 cards
+}

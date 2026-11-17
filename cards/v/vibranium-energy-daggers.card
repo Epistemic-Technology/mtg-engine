@@ -1,0 +1,8 @@
+card "Vibranium Energy Daggers" {
+  oracle_id be0b86fc-8450-41d4-9836-6de11cecb857
+  cost {1}
+  type Artifact — Equipment
+  keywords indestructible
+  static enchanted: +2/+2
+  equip {3}
+}

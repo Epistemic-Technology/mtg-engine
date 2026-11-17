@@ -1,0 +1,6 @@
+card "Darkness" {
+  oracle_id 932708ae-9d5c-4561-aa8b-0d2222d37fdc
+  cost {B}
+  type Instant
+  spell: prevent all combat damage this turn
+}

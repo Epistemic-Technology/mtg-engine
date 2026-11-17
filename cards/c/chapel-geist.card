@@ -1,0 +1,7 @@
+card "Chapel Geist" {
+  oracle_id f8219a99-1620-40aa-a257-fc3dfb239d51
+  cost {1}{W}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+}

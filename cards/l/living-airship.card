@@ -1,0 +1,8 @@
+card "Living Airship" {
+  oracle_id 3bcead90-f7be-4fba-84e7-3d7c788a8b64
+  cost {3}{U}
+  type Creature — Metathran
+  pt 2/3
+  keywords flying
+  activated {2}{G}: regenerate this
+}

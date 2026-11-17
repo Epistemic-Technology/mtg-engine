@@ -1,0 +1,7 @@
+card "Talas Air Ship" {
+  oracle_id 8cb3f047-bd8b-4a34-8a2b-ced2cc0487eb
+  cost {3}{U}
+  type Creature — Human Pirate
+  pt 3/2
+  keywords flying
+}

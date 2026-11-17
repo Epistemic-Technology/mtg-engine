@@ -1,0 +1,6 @@
+card "Rotting Fensnake" {
+  oracle_id be22faba-07e0-4036-b700-82769989250b
+  cost {3}{B}
+  type Creature — Zombie Snake
+  pt 5/1
+}

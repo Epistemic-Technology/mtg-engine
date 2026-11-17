@@ -1,0 +1,6 @@
+card "Silent Dart" {
+  oracle_id 912bc348-9ba3-4001-90a8-104d2bb17527
+  cost {1}
+  type Artifact
+  activated {4}, {T}, sacrifice this: deal 3 damage to target creature
+}

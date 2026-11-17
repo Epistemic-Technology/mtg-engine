@@ -1,0 +1,7 @@
+card "Gorilla Chieftain" {
+  oracle_id 4137ee86-bbf0-49dc-87c5-b48a384baac4
+  cost {2}{G}{G}
+  type Creature — Ape
+  pt 3/3
+  activated {1}{G}: regenerate this
+}

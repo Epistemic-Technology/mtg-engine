@@ -1,0 +1,8 @@
+card "Mesa Cavalier" {
+  oracle_id 898763f8-a333-43f5-9f66-52e2adbe5758
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords flying
+  triggered when this enters: you gains 2 life
+}

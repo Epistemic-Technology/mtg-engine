@@ -1,0 +1,8 @@
+card "Buoyancy" {
+  oracle_id f4e4060d-bfff-4991-9ae5-8f848304cd1e
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has flying
+}

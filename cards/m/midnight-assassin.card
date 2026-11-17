@@ -1,0 +1,7 @@
+card "Midnight Assassin" {
+  oracle_id f394d2bf-89aa-44c1-b473-8c7a8874a9a3
+  cost {2}{B}
+  type Creature — Vampire Assassin
+  pt 1/2
+  keywords flying, deathtouch
+}

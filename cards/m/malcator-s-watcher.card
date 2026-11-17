@@ -1,0 +1,8 @@
+card "Malcator's Watcher" {
+  oracle_id b0493924-dc6d-4655-865f-7e9b40f547ea
+  cost {1}{U}
+  type Artifact Creature — Phyrexian Drone
+  pt 1/1
+  keywords flying, vigilance
+  triggered when this dies: draw 1 cards
+}

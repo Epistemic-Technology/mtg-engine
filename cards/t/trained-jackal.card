@@ -1,0 +1,6 @@
+card "Trained Jackal" {
+  oracle_id 99545320-b6ad-4caf-b29a-47f637395ef7
+  cost {G}
+  type Creature — Jackal
+  pt 1/2
+}

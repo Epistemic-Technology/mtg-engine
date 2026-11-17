@@ -1,0 +1,7 @@
+card "Yotian Soldier" {
+  oracle_id 645571f1-a775-4834-8b79-8852d38c9587
+  cost {3}
+  type Artifact Creature — Soldier
+  pt 1/4
+  keywords vigilance
+}

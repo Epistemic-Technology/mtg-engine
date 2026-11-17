@@ -1,0 +1,7 @@
+card "Leaping Master" {
+  oracle_id 1b5c2ba0-3df7-4394-a3f1-8e8330d7ac81
+  cost {1}{R}
+  type Creature — Human Monk
+  pt 2/1
+  activated {2}{W}: this gains flying
+}

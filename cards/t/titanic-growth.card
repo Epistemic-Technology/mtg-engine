@@ -1,0 +1,6 @@
+card "Titanic Growth" {
+  oracle_id 61e09dd9-7870-48c2-9177-d6abc3162692
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +4/+4
+}

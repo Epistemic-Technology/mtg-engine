@@ -1,0 +1,6 @@
+card "Ordinary Bear" {
+  oracle_id 89a2fab8-b074-42aa-a871-d9c5de2d0895
+  cost {3}{G}
+  type Creature — Bear
+  pt 4/5
+}

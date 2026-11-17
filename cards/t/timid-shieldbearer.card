@@ -1,0 +1,7 @@
+card "Timid Shieldbearer" {
+  oracle_id 8bef3511-ceeb-4d57-972a-ab363ecacd5b
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  activated {4}{W}: each creature you control gets +1/+1
+}

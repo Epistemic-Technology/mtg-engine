@@ -1,0 +1,7 @@
+card "Rotting Legion" {
+  oracle_id 6e5fd8b4-d81a-4ed6-b389-21445351bb43
+  cost {4}{B}
+  type Creature — Zombie
+  pt 4/5
+  enters tapped
+}

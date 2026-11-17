@@ -1,0 +1,6 @@
+card "Rush of Vitality" {
+  oracle_id 6e460d39-0f18-4a2d-9c8d-3eaba301d285
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +1/+0 and gains lifelink, indestructible
+}

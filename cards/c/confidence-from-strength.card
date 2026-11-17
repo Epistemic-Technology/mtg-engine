@@ -1,0 +1,6 @@
+card "Confidence from Strength" {
+  oracle_id 341f75a5-df02-48e9-8997-1938148ad89a
+  cost {2}{G}
+  type Sorcery
+  spell: target creature gets +4/+4 and gains trample
+}

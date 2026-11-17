@@ -1,0 +1,6 @@
+card "Zealous Strike" {
+  oracle_id d820ddf4-315d-470a-8d66-663a76a240c6
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2 and gains first strike
+}

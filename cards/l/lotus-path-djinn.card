@@ -1,0 +1,7 @@
+card "Lotus Path Djinn" {
+  oracle_id 84dc0aae-029b-48dc-b8d0-e93c227e32e5
+  cost {3}{U}
+  type Creature — Djinn Monk
+  pt 2/3
+  keywords flying, prowess
+}

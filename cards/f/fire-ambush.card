@@ -1,0 +1,6 @@
+card "Fire Ambush" {
+  oracle_id 50463946-1ce3-4ff0-ad68-2fb87adbe2fd
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+}

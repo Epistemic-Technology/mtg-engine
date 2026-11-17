@@ -1,0 +1,7 @@
+card "Dimension X" {
+  oracle_id 8683341a-e836-41e5-9034-4da09eb0ab42
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {R} or {W}
+}

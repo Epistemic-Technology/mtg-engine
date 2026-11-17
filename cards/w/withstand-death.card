@@ -1,0 +1,6 @@
+card "Withstand Death" {
+  oracle_id c462adf3-4ade-4b90-bdec-7247b080471f
+  cost {G}
+  type Instant
+  spell: target creature gains indestructible
+}

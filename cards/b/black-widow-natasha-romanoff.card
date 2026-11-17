@@ -1,0 +1,6 @@
+card "Black Widow, Natasha Romanoff" {
+  oracle_id f3882587-7aff-451f-a990-e25039e5ef85
+  cost {1}{R}
+  type Legendary Creature — Human Assassin Hero
+  pt 2/2
+}

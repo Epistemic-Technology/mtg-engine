@@ -1,0 +1,6 @@
+card "Goblin Assailant" {
+  oracle_id bc654150-b051-40bd-81f8-621abbb17e91
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+}

@@ -1,0 +1,8 @@
+card "Cloudchaser Eagle" {
+  oracle_id add18787-2329-4355-a524-66fefda8d06e
+  cost {3}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: destroy target enchantment
+}

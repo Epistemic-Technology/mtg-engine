@@ -1,0 +1,7 @@
+card "Guardians of Meletis" {
+  oracle_id 7604aac7-82ae-4f5b-888d-a008754f716a
+  cost {3}
+  type Artifact Creature — Golem
+  pt 0/6
+  keywords defender
+}

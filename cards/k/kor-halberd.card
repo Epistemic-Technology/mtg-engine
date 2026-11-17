@@ -1,0 +1,7 @@
+card "Kor Halberd" {
+  oracle_id 450e84c7-afbe-4b30-a3e9-1dff968a5200
+  cost {W}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has vigilance
+  equip {1}
+}

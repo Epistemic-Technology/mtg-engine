@@ -1,0 +1,7 @@
+card "Vivisection" {
+  oracle_id 46f78c42-85d1-4cd4-9fc3-d5fdec04a4c8
+  cost {3}{U}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: draw 3 cards
+}

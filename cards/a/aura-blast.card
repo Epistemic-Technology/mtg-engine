@@ -1,0 +1,7 @@
+card "Aura Blast" {
+  oracle_id 4e3c3bdc-667d-42ec-b960-159a39c53cb3
+  cost {1}{W}
+  type Instant
+  spell: destroy target enchantment
+  spell: draw 1 cards
+}

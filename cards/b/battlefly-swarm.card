@@ -1,0 +1,8 @@
+card "Battlefly Swarm" {
+  oracle_id 1396e7f1-ac91-4778-9f71-493c7a44bd51
+  cost {B}
+  type Creature — Phyrexian Insect
+  pt 1/1
+  keywords flying
+  activated {B}: this gains deathtouch
+}

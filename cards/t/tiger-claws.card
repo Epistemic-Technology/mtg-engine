@@ -1,0 +1,8 @@
+card "Tiger Claws" {
+  oracle_id 2ef8ebc9-4f95-42f8-86e6-85eff0b8f021
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1, has trample
+}

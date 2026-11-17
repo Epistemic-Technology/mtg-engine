@@ -1,0 +1,7 @@
+card "Oscorp Research Team" {
+  oracle_id 4d2e233c-0173-417f-82a0-1e692a400ae1
+  cost {3}{U}
+  type Creature — Human Scientist
+  pt 1/5
+  activated {6}{U}: draw 2 cards
+}

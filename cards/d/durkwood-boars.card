@@ -1,0 +1,6 @@
+card "Durkwood Boars" {
+  oracle_id 8bb2ac6c-20aa-46dd-883f-b629855cabb0
+  cost {4}{G}
+  type Creature — Boar
+  pt 4/4
+}

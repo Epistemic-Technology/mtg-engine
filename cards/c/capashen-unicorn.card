@@ -1,0 +1,7 @@
+card "Capashen Unicorn" {
+  oracle_id 52793400-bc83-402a-9609-928a4d3ac812
+  cost {1}{W}
+  type Creature — Unicorn
+  pt 1/2
+  activated {1}{W}, {T}, sacrifice this: destroy target artifact or enchantment
+}

@@ -1,0 +1,7 @@
+card "Tar Pit Warrior" {
+  oracle_id 05a7ca83-e820-433f-b9e9-151e817d3708
+  cost {2}{B}
+  type Creature — Cyclops Warrior
+  pt 3/4
+  triggered when this becomes targeted: sacrifice this
+}

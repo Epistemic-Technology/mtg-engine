@@ -1,0 +1,7 @@
+card "Humongulus" {
+  oracle_id 395922cc-d524-4241-a7d8-9c7959f0b9db
+  cost {4}{U}
+  type Creature — Homunculus
+  pt 2/5
+  keywords hexproof
+}

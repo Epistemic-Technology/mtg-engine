@@ -1,0 +1,5 @@
+card "Ice Tunnel" {
+  oracle_id 40c5d6fe-854a-436d-9f80-13eb5f1f8f68
+  type Snow Land — Island Swamp
+  enters tapped
+}

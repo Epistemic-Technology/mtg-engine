@@ -1,0 +1,7 @@
+card "Satyr Rambler" {
+  oracle_id 6ea0d274-564b-4785-801d-b3272a7b6bfa
+  cost {1}{R}
+  type Creature — Satyr
+  pt 2/1
+  keywords trample
+}

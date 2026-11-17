@@ -1,0 +1,6 @@
+card "Stonework Puma" {
+  oracle_id 841b1010-a7d3-415e-b76d-7b50fea909cb
+  cost {3}
+  type Artifact Creature — Cat Ally
+  pt 2/2
+}

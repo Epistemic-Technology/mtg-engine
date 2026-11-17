@@ -1,0 +1,7 @@
+card "Ghost Warden" {
+  oracle_id 66bd5999-742a-43e0-827c-ecb8ec7db242
+  cost {1}{W}
+  type Creature — Spirit
+  pt 1/1
+  activated {T}: target creature gets +1/+1
+}

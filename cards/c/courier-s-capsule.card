@@ -1,0 +1,6 @@
+card "Courier's Capsule" {
+  oracle_id 4e694613-e2e1-4ae3-baa8-f372259e91cf
+  cost {1}{U}
+  type Artifact
+  activated {1}{U}, {T}, sacrifice this: draw 2 cards
+}

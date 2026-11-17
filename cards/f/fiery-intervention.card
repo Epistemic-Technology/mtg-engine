@@ -1,0 +1,9 @@
+card "Fiery Intervention" {
+  oracle_id a8cd3a52-1056-4664-ae55-eb0ba3a43a15
+  cost {4}{R}
+  type Sorcery
+  choose one {
+    mode: deal 5 damage to target creature
+    mode: destroy target artifact
+  }
+}

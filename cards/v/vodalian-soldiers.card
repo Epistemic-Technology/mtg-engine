@@ -1,0 +1,6 @@
+card "Vodalian Soldiers" {
+  oracle_id 0e3ac78c-8a98-4786-b86c-ecfe61e13c83
+  cost {1}{U}
+  type Creature — Merfolk Soldier
+  pt 1/2
+}

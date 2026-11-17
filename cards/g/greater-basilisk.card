@@ -1,0 +1,7 @@
+card "Greater Basilisk" {
+  oracle_id 6e42e7dc-acd9-4125-a90d-75fd8da204b3
+  cost {3}{G}{G}
+  type Creature — Basilisk
+  pt 3/5
+  keywords deathtouch
+}

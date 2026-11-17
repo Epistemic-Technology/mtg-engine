@@ -1,0 +1,7 @@
+card "Elephant-Rat" {
+  oracle_id 84557d9d-ee22-46c9-8f4a-62a440fb302f
+  cost {1}{B}
+  type Creature — Elephant Rat
+  pt 1/3
+  keywords menace
+}

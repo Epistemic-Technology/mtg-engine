@@ -1,0 +1,7 @@
+card "Golgari Cluestone" {
+  oracle_id e917ad3d-df8e-442b-918c-3aa7a10f3cc4
+  cost {3}
+  type Artifact
+  mana {B} or {G}
+  activated {B}{G}, {T}, sacrifice this: draw 1 cards
+}

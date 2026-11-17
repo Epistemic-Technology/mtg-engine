@@ -1,0 +1,7 @@
+card "Merfolk Mesmerist" {
+  oracle_id 590d524f-278d-4cf4-ae3f-efcced4517b1
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/2
+  activated {U}, {T}: target player mills 2 cards
+}

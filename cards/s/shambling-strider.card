@@ -1,0 +1,7 @@
+card "Shambling Strider" {
+  oracle_id fd65468c-d75a-4be2-8a0c-9c4e808e3dd0
+  cost {4}{G}{G}
+  type Creature — Yeti
+  pt 5/5
+  activated {R}{G}: this gets +1/-1
+}

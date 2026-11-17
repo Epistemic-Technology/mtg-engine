@@ -1,0 +1,7 @@
+card "Healer's Hawk" {
+  oracle_id 28a52ba1-95da-44e1-8ac5-0dc23c902394
+  cost {W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, lifelink
+}

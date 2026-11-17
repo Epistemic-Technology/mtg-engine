@@ -1,0 +1,6 @@
+card "Angel's Mercy" {
+  oracle_id 6b232bb7-d372-4174-a049-5f8d620810e6
+  cost {2}{W}{W}
+  type Instant
+  spell: you gains 7 life
+}

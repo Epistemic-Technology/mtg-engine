@@ -1,0 +1,8 @@
+card "Ithilien Kingfisher" {
+  oracle_id a2dd89a1-9b3e-4bd1-9b48-36516d63726a
+  cost {2}{U}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  triggered when this dies: draw 1 cards
+}

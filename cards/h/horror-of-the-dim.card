@@ -1,0 +1,7 @@
+card "Horror of the Dim" {
+  oracle_id 83e91e0a-2680-4bd3-98eb-7567791e77d5
+  cost {4}{B}
+  type Creature — Horror
+  pt 3/4
+  activated {U}: this gains hexproof
+}

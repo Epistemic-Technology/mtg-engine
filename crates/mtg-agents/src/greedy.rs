@@ -9,9 +9,12 @@ use mtg_core::decision::{Choice, ChoiceId, Decision, DecisionKind};
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::state::{Characteristics, GameState, Target};
 
-use crate::Agent;
+use crate::{ActivationGuard, Agent};
 
-pub struct GreedyAgent;
+#[derive(Default)]
+pub struct GreedyAgent {
+    guard: ActivationGuard,
+}
 
 /// Rough worth of a creature for trade decisions.
 fn value(c: &Characteristics) -> i32 {
@@ -208,9 +211,24 @@ impl GreedyAgent {
 }
 
 impl Agent for GreedyAgent {
-    #[allow(clippy::too_many_lines)] // one arm per decision kind
     fn choose(&mut self, state: &GameState, d: &Decision) -> ChoiceId {
+        let choice = self.choose_inner(state, d);
+        if let Some(c) = d.options.get(choice as usize) {
+            self.guard.note(c);
+        }
+        choice
+    }
+}
+
+impl GreedyAgent {
+    #[allow(clippy::too_many_lines)] // one arm per decision kind
+    fn choose_inner(&mut self, state: &GameState, d: &Decision) -> ChoiceId {
         let me = d.player;
+        let blocked: Vec<bool> = d
+            .options
+            .iter()
+            .map(|c| !self.guard.allows(state, c))
+            .collect();
         match d.kind {
             DecisionKind::Mulligan => Self::best_by(d, |c| i64::from(*c == Choice::Keep)),
             // "You may": yes (the first option).
@@ -307,6 +325,9 @@ impl Agent for GreedyAgent {
                 Choice::Activate {
                     source, ability, ..
                 } => {
+                    if d.options.iter().zip(&blocked).any(|(o, b)| *b && o == c) {
+                        return -100;
+                    }
                     // Targeted abilities with a worthwhile target are worth
                     // using (damage, destruction, equipping); untargeted
                     // ones (firebreathing, sacrifice outlets) are left alone.

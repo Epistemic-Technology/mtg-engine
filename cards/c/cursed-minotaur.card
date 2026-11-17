@@ -1,0 +1,7 @@
+card "Cursed Minotaur" {
+  oracle_id 88b50194-bc39-47a6-968b-983553d89cf9
+  cost {2}{B}
+  type Creature — Zombie Minotaur
+  pt 3/2
+  keywords menace
+}

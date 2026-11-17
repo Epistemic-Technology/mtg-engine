@@ -1,0 +1,6 @@
+card "Knight Errant" {
+  oracle_id 920cc1a7-ac6b-44c0-ade7-347f05bba0f2
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+}

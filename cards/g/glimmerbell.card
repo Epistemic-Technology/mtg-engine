@@ -1,0 +1,8 @@
+card "Glimmerbell" {
+  oracle_id 1a8b7792-e105-40c8-b1b4-ab1a8f3731d8
+  cost {1}{U}
+  type Creature — Elemental Jellyfish
+  pt 1/3
+  keywords flying
+  activated {1}{U}: untap this
+}

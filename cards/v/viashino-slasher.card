@@ -1,0 +1,7 @@
+card "Viashino Slasher" {
+  oracle_id 63908256-a8a4-494f-b5b1-4b92c064af1d
+  cost {1}{R}
+  type Creature — Lizard Warrior
+  pt 1/2
+  activated {R}: this gets +1/-1
+}

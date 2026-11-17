@@ -1,0 +1,7 @@
+card "Locthwain Gargoyle" {
+  oracle_id d8a04142-1d28-4c2e-b2d5-da88b2199678
+  cost {1}
+  type Artifact Creature — Gargoyle
+  pt 0/3
+  activated {4}: this gets +2/+0 and gains flying
+}

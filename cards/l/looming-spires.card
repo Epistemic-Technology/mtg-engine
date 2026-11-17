@@ -1,0 +1,7 @@
+card "Looming Spires" {
+  oracle_id 7d09b136-525f-49dd-a3a2-dfaca4e8e9a8
+  type Land
+  enters tapped
+  triggered when this enters: target creature gets +1/+1 and gains first strike
+  mana {R}
+}

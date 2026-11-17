@@ -1,0 +1,5 @@
+card "Alpine Meadow" {
+  oracle_id 8c281ebe-d9a1-48af-b58b-19c55aa4625b
+  type Snow Land — Mountain Plains
+  enters tapped
+}

@@ -1,0 +1,7 @@
+card "Armored Pegasus" {
+  oracle_id f097a059-5505-4c3c-b879-7853ab6972ed
+  cost {1}{W}
+  type Creature — Pegasus
+  pt 1/2
+  keywords flying
+}

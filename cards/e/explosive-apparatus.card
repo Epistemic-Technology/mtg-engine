@@ -1,0 +1,6 @@
+card "Explosive Apparatus" {
+  oracle_id ab8301da-f9f7-4d90-afae-bd7e60834c22
+  cost {1}
+  type Artifact
+  activated {3}, {T}, sacrifice this: deal 2 damage to any target
+}

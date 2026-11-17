@@ -1,0 +1,7 @@
+card "Fledgling Imp" {
+  oracle_id e7eaffd5-bdaf-4f72-9c88-8196b3411894
+  cost {2}{B}
+  type Creature — Imp
+  pt 2/2
+  activated {B}, discard 1 card: this gains flying
+}

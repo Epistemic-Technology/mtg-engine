@@ -1,0 +1,7 @@
+card "Dragon Bell Monk" {
+  oracle_id 83f7e8e5-d485-4571-9fa6-47b5e962d221
+  cost {2}{W}
+  type Creature — Human Monk
+  pt 2/2
+  keywords vigilance, prowess
+}

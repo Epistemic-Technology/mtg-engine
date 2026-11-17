@@ -1,0 +1,8 @@
+card "Dragon Hatchling" {
+  oracle_id 3f48f6a7-906d-4287-8440-06bfabc93b89
+  cost {1}{R}
+  type Creature — Dragon
+  pt 0/1
+  keywords flying
+  activated {R}: this gets +1/+0
+}

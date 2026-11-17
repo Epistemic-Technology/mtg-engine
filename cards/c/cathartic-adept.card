@@ -1,0 +1,7 @@
+card "Cathartic Adept" {
+  oracle_id 44d30168-8203-4a8e-a11f-b4a068231e55
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: target player mills 1 cards
+}

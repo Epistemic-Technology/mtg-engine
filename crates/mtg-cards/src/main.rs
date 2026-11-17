@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use mtg_cards::{DataDir, gate, ingest, stats};
+use mtg_cards::{DataDir, author, gate, ingest, stats};
 
 #[derive(Parser)]
 #[command(name = "mtg-cards", about = "Card data ingest and statistics")]
@@ -36,6 +36,32 @@ enum Command {
         /// Only these cards (by name).
         names: Vec<String>,
     },
+    /// Author card files from the snapshot for every card in a format whose
+    /// Oracle text the templates cover; each is verified against its Oracle
+    /// text before it is written.
+    Author {
+        /// Format whose legal cards to author (Scryfall name: pauper, ...).
+        #[arg(long, default_value = "pauper")]
+        format: String,
+        /// Write the files into cards/ (otherwise report only).
+        #[arg(long)]
+        write: bool,
+        /// Show every skipped card with its reason.
+        #[arg(long)]
+        verbose: bool,
+        /// Only these cards (by name), from any format.
+        names: Vec<String>,
+    },
+    /// How much of a format the corpus covers, and (with --scenarios) which
+    /// corpus cards no scenario exercises (gate 2 of design.md §6.3).
+    Coverage {
+        #[arg(long, default_value = "pauper")]
+        format: String,
+        /// Count cards named in scenarios/ and list the hand-written ones
+        /// that are not.
+        #[arg(long)]
+        scenarios: bool,
+    },
     /// Report pool sizes from the local snapshot.
     Stats {
         /// Also query live Scryfall totals and fail if any format differs by
@@ -55,7 +81,7 @@ fn main() -> ExitCode {
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cast_precision_loss)]
 fn run() -> Result<ExitCode> {
     let cli = Cli::parse();
     let data = DataDir::new(cli.data_dir);
@@ -83,6 +109,94 @@ fn run() -> Result<ExitCode> {
                 lock.mtgjson.files.len(),
                 lock.fetched_at
             );
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::Author {
+            format,
+            write,
+            verbose,
+            names,
+        } => {
+            let corpus = mtg_dsl::builtin_cards()?;
+            let report = author::author_format(&data, &format, &corpus, &names)?;
+            if verbose {
+                for (name, skip) in &report.skipped {
+                    println!("skip     {name}: {skip}");
+                }
+            }
+            for a in &report.authored {
+                println!("authored {}", a.name);
+            }
+            println!();
+            println!(
+                "{}: {} cards; {} already in the corpus; {} authored; {} skipped",
+                format,
+                report.total,
+                report.existing,
+                report.authored.len(),
+                report.skipped.len()
+            );
+            println!();
+            println!("top skip reasons:");
+            for (reason, n) in report.reasons().iter().take(40) {
+                println!("{n:>6}  {reason}");
+            }
+            if write {
+                let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../cards");
+                let mut written = 0;
+                for a in &report.authored {
+                    let shard = dir.join(mtg_dsl::shard(&a.slug));
+                    std::fs::create_dir_all(&shard)?;
+                    let path = shard.join(format!("{}.card", a.slug));
+                    if path.exists() {
+                        eprintln!("not overwriting {}", path.display());
+                        continue;
+                    }
+                    std::fs::write(&path, &a.text)?;
+                    written += 1;
+                }
+                println!("wrote {written} files to {}", dir.display());
+            }
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::Coverage { format, scenarios } => {
+            let corpus = mtg_dsl::builtin_cards()?;
+            let (have, total) = author::coverage(&data, &format, &corpus)?;
+            println!(
+                "{format}: {have} of {total} cards in the corpus ({:.1}%)",
+                100.0 * have as f64 / total as f64
+            );
+            if scenarios {
+                let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scenarios");
+                let mut named = std::collections::HashSet::new();
+                let mut stack = vec![dir];
+                while let Some(d) = stack.pop() {
+                    for e in std::fs::read_dir(&d)?.flatten() {
+                        let p = e.path();
+                        if p.is_dir() {
+                            stack.push(p);
+                        } else if p.extension().is_some_and(|x| x == "scn") {
+                            let text = std::fs::read_to_string(&p)?;
+                            for piece in text.split('"').skip(1).step_by(2) {
+                                named.insert(piece.to_string());
+                            }
+                        }
+                    }
+                }
+                let cards: Vec<&mtg_dsl::ast::Card> = corpus
+                    .iter()
+                    .filter(|c| c.kind == mtg_dsl::ast::Kind::Card)
+                    .collect();
+                let covered = cards.iter().filter(|c| named.contains(&c.name)).count();
+                println!(
+                    "scenarios name {covered} of {} corpus cards; {} have abilities but no scenario",
+                    cards.len(),
+                    cards
+                        .iter()
+                        .filter(|c| !named.contains(&c.name) && !c.abilities.is_empty())
+                        .count()
+                );
+            }
             Ok(ExitCode::SUCCESS)
         }
         Command::Gate { diff, names } => {

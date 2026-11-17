@@ -1,0 +1,7 @@
+card "Restless Dead" {
+  oracle_id 5315ba59-ca80-498e-b21a-ed87e6a4c955
+  cost {1}{B}
+  type Creature — Skeleton
+  pt 1/1
+  activated {B}: regenerate this
+}

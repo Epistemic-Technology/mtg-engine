@@ -1,0 +1,8 @@
+card "Valkyrior Skyrider" {
+  oracle_id ea0b0c71-4a1b-49aa-b4cd-db6c5d26b95e
+  cost {4}{W}
+  type Creature — God Warrior Hero
+  pt 3/4
+  keywords flying
+  triggered when this enters: you gains 4 life
+}

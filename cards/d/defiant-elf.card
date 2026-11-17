@@ -1,0 +1,7 @@
+card "Defiant Elf" {
+  oracle_id 6faa29c4-582a-42d5-b80c-4dc0bd738493
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  keywords trample
+}

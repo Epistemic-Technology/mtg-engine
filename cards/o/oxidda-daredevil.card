@@ -1,0 +1,7 @@
+card "Oxidda Daredevil" {
+  oracle_id 4be254e7-d082-4c10-8495-1ef8b80721e1
+  cost {1}{R}
+  type Creature — Goblin Artificer
+  pt 2/1
+  activated sacrifice artifact: this gains haste
+}

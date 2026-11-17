@@ -1,0 +1,6 @@
+card "Loxodon Convert" {
+  oracle_id d0a80814-c69c-457c-ba19-4e1ba3fbd485
+  cost {3}{W}
+  type Creature — Phyrexian Elephant Soldier
+  pt 4/2
+}

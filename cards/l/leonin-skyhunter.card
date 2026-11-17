@@ -1,0 +1,7 @@
+card "Leonin Skyhunter" {
+  oracle_id 517c7295-8ba2-47a6-a1c6-aee722f8ca88
+  cost {W}{W}
+  type Creature — Cat Knight
+  pt 2/2
+  keywords flying
+}

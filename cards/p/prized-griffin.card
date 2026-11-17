@@ -1,0 +1,7 @@
+card "Prized Griffin" {
+  oracle_id d383902c-63ba-4714-bfeb-377829950b0d
+  cost {4}{W}
+  type Creature — Griffin
+  pt 3/4
+  keywords flying
+}

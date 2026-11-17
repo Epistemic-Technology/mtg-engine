@@ -1,0 +1,6 @@
+card "Bear Cub" {
+  oracle_id ed206651-3d9b-4546-8d45-0682817192fd
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+}

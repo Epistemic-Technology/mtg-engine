@@ -1,0 +1,7 @@
+card "Ashcoat Bear" {
+  oracle_id e6d13c0d-23ed-41f5-a726-f18d4bb44c9a
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+  keywords flash
+}

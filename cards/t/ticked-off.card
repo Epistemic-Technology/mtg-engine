@@ -1,0 +1,6 @@
+card "Ticked Off" {
+  oracle_id 91b89c21-5f35-4aa5-925b-c756ec6969b4
+  cost {1}{R}
+  type Sorcery
+  spell: target creature gains double strike
+}

@@ -1,0 +1,8 @@
+card "Ingenious Skaab" {
+  oracle_id 9107ece7-a263-4203-ab09-069193cc4902
+  cost {2}{U}
+  type Creature — Zombie Horror
+  pt 2/3
+  keywords prowess
+  activated {U}: this gets +1/-1
+}

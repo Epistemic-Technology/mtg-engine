@@ -1,0 +1,7 @@
+card "Viashino Spearhunter" {
+  oracle_id bf302113-7f2e-4ceb-a26f-1fd6e010be8a
+  cost {2}{R}
+  type Creature — Lizard Warrior
+  pt 2/1
+  keywords first strike
+}

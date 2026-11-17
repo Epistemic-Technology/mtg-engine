@@ -1,0 +1,8 @@
+card "Shopkeeper's Bane" {
+  oracle_id e7572317-6bec-4fb0-81ac-76aec04f14ad
+  cost {2}{G}
+  type Creature — Badger Pest
+  pt 4/2
+  keywords trample
+  triggered whenever this attacks: you gains 2 life
+}

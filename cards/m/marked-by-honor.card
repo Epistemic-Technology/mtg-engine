@@ -1,0 +1,7 @@
+card "Marked by Honor" {
+  oracle_id aa5a7940-976d-4d96-9ddf-1c3891885c7e
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has vigilance
+}

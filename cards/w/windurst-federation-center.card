@@ -1,0 +1,6 @@
+card "Windurst, Federation Center" {
+  oracle_id e198126a-f280-47f7-8bd0-3dc9f5ff05a0
+  type Land — Town
+  enters tapped
+  mana {G} or {W}
+}

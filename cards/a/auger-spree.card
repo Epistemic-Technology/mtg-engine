@@ -1,0 +1,6 @@
+card "Auger Spree" {
+  oracle_id c0c96c7a-02d8-40cb-a08b-4a2a3b631eef
+  cost {1}{B}{R}
+  type Instant
+  spell: target creature gets +4/-4
+}

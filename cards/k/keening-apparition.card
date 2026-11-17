@@ -1,0 +1,7 @@
+card "Keening Apparition" {
+  oracle_id b9212596-3f65-41c9-9ee8-1f4cec7f0ecf
+  cost {1}{W}
+  type Creature — Spirit
+  pt 2/2
+  activated sacrifice this: destroy target enchantment
+}

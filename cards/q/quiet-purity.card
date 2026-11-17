@@ -1,0 +1,6 @@
+card "Quiet Purity" {
+  oracle_id 3f16dc14-3d3f-4ffa-90bc-9abc67db75cf
+  cost {W}
+  type Instant — Arcane
+  spell: destroy target enchantment
+}

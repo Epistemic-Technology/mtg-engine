@@ -1,0 +1,7 @@
+card "Shaman of Spring" {
+  oracle_id b1ee0250-83ea-45a9-b5e5-3fa74bc7f26b
+  cost {3}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered when this enters: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Argothian Swine" {
+  oracle_id 80e08ee2-4272-4783-9a0d-90079600b594
+  cost {3}{G}
+  type Creature — Boar
+  pt 3/3
+  keywords trample
+}

@@ -1,0 +1,8 @@
+card "Jedit's Dragoons" {
+  oracle_id 3f6df152-a0b9-441a-a8aa-8bb77f70d491
+  cost {5}{W}
+  type Creature — Cat Soldier
+  pt 2/5
+  keywords vigilance
+  triggered when this enters: you gains 4 life
+}

@@ -1,0 +1,6 @@
+card "Puncture Bolt" {
+  oracle_id c8e53740-c633-42f8-9e02-3434d6dc0b30
+  cost {1}{R}
+  type Instant
+  spell: deal 1 damage to target creature; put 1 -1/-1 counters on that creature
+}

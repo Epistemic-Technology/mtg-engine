@@ -1,0 +1,7 @@
+card "Carnivorous Plant" {
+  oracle_id 3a7478d7-b33e-4227-8cc3-b30643624d56
+  cost {3}{G}
+  type Creature — Plant Wall
+  pt 4/5
+  keywords defender
+}

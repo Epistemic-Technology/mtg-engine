@@ -1,0 +1,7 @@
+card "Trained Caracal" {
+  oracle_id a939f01b-afce-4d92-a897-1a6dc3d788c6
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  keywords lifelink
+}

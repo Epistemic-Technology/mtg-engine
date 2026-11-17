@@ -1,0 +1,9 @@
+card "Keep Out" {
+  oracle_id 61cb927a-4cf8-49d6-ab4b-9e882bc08774
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: deal 4 damage to target tapped creature
+    mode: destroy target enchantment
+  }
+}

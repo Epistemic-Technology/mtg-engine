@@ -1,0 +1,8 @@
+card "Spare Supplies" {
+  oracle_id 088fb5dc-65eb-42bf-8a32-76fa6b79b79f
+  cost {2}
+  type Artifact
+  enters tapped
+  triggered when this enters: draw 1 cards
+  activated {2}, {T}, sacrifice this: draw 1 cards
+}

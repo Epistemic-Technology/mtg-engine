@@ -1,0 +1,6 @@
+card "Lava Spike" {
+  oracle_id 2837888c-bfa8-4955-9334-0605ad409f7e
+  cost {R}
+  type Sorcery — Arcane
+  spell: deal 3 damage to target player or planeswalker
+}

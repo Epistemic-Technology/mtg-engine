@@ -1,0 +1,6 @@
+card "Tobias Andrion" {
+  oracle_id 55dfe722-7487-4d25-b90c-e6ad2c82a671
+  cost {3}{W}{U}
+  type Legendary Creature — Human Advisor
+  pt 4/4
+}

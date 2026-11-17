@@ -1,0 +1,6 @@
+card "Douser of Lights" {
+  oracle_id 1e53032e-fe14-4424-86ee-f69336f049fe
+  cost {4}{B}
+  type Creature — Horror
+  pt 4/5
+}

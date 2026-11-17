@@ -1,0 +1,6 @@
+card "Dromoka Warrior" {
+  oracle_id f62998a7-898f-494f-89a1-624f6236033b
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 3/1
+}

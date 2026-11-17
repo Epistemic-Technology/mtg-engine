@@ -1,0 +1,7 @@
+card "Reckless Reveler" {
+  oracle_id 17d3ceeb-c972-49bc-a530-cf67c49a7e19
+  cost {1}{R}
+  type Creature — Satyr
+  pt 2/1
+  activated {R}, sacrifice this: destroy target artifact
+}

@@ -1,0 +1,6 @@
+card "Lagac Lizard" {
+  oracle_id e241c8c3-359d-4e20-97a6-a873c50f1ef9
+  cost {3}{R}
+  type Creature — Lizard
+  pt 3/3
+}

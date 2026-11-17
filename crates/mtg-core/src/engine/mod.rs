@@ -311,7 +311,11 @@ impl Engine {
     fn advance(&mut self, action: Option<(PlayerId, Choice)>, answers: Vec<ChoiceId>) {
         // The common case: no replacement effects in play, nothing to
         // snapshot or record.
-        if !self.state.may_need_mid_decision() && answers.is_empty() {
+        if !self
+            .state
+            .may_need_mid_decision(action.as_ref().map(|(_, c)| c))
+            && answers.is_empty()
+        {
             if let Some((p, c)) = action {
                 self.state.apply_choice(p, c);
             }

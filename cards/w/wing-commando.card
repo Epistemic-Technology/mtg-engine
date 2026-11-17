@@ -1,0 +1,7 @@
+card "Wing Commando" {
+  oracle_id 423c8465-82cd-4f54-b5ac-022b7ebcf3e4
+  cost {2}{U}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords flying, prowess
+}

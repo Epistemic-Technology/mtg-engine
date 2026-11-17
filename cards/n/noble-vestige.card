@@ -1,0 +1,8 @@
+card "Noble Vestige" {
+  oracle_id 63ec8167-2dc3-49a6-a7ed-6b1474bbda2c
+  cost {2}{W}
+  type Creature — Spirit
+  pt 1/2
+  keywords flying
+  activated {T}: prevent next 1 damage to target player or planeswalker this turn
+}

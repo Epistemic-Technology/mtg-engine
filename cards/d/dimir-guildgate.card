@@ -1,0 +1,6 @@
+card "Dimir Guildgate" {
+  oracle_id 52d14717-0cbc-4d7e-b546-54ea91580338
+  type Land — Gate
+  enters tapped
+  mana {U} or {B}
+}

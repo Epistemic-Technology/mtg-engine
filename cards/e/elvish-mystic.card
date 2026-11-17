@@ -1,0 +1,7 @@
+card "Elvish Mystic" {
+  oracle_id 3f3b2c10-21f8-4e13-be83-4ef3fa36e123
+  cost {G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {G}
+}

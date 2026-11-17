@@ -1,0 +1,6 @@
+card "Flatten" {
+  oracle_id bc5d5084-77de-4dc5-8769-300eafcbfee7
+  cost {3}{B}
+  type Instant
+  spell: target creature gets -4/-4
+}

@@ -1,0 +1,7 @@
+card "Ogre Berserker" {
+  oracle_id 9e6f76dc-b7db-49b6-a61e-3495b81e61d7
+  cost {4}{R}
+  type Creature — Ogre Berserker
+  pt 4/2
+  keywords haste
+}

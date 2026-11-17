@@ -1,0 +1,6 @@
+card "Fearless Halberdier" {
+  oracle_id 2ef2f417-2061-4796-974a-92f800ef05e4
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/2
+}

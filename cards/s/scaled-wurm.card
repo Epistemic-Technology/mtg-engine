@@ -1,0 +1,6 @@
+card "Scaled Wurm" {
+  oracle_id 009a8e38-74d0-4b4a-b8ca-62c9f3183531
+  cost {7}{G}
+  type Creature — Wurm
+  pt 7/6
+}

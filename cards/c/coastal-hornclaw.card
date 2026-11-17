@@ -1,0 +1,7 @@
+card "Coastal Hornclaw" {
+  oracle_id 27d672a7-f73b-483d-80a3-a4cd2a9855f2
+  cost {4}{U}
+  type Creature — Bird
+  pt 3/3
+  activated sacrifice land: this gains flying
+}

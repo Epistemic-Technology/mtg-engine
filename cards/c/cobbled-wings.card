@@ -1,0 +1,7 @@
+card "Cobbled Wings" {
+  oracle_id 8d8682f3-9ef3-4aa7-9ea6-8a2ce09bff6f
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has flying
+  equip {1}
+}

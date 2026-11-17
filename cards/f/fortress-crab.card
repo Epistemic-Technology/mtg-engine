@@ -1,0 +1,6 @@
+card "Fortress Crab" {
+  oracle_id 075fd933-689c-4199-85bd-e7994d936145
+  cost {3}{U}
+  type Creature — Crab
+  pt 1/6
+}

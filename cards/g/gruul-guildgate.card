@@ -1,0 +1,6 @@
+card "Gruul Guildgate" {
+  oracle_id d38476e9-2e47-4c0c-8129-483c0bd09ec0
+  type Land — Gate
+  enters tapped
+  mana {R} or {G}
+}

@@ -1,0 +1,7 @@
+card "Skyshroud Troopers" {
+  oracle_id b5a40cd8-e1f9-4294-99ef-26fb455d4f95
+  cost {3}{G}
+  type Creature — Elf Druid Warrior
+  pt 3/3
+  mana {G}
+}

@@ -1,0 +1,8 @@
+card "Galvanic Arc" {
+  oracle_id 72a8620e-1ba2-40a8-9b22-11cc57864adf
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: deal 3 damage to any target
+  static enchanted: has first strike
+}

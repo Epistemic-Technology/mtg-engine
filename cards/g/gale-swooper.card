@@ -1,0 +1,8 @@
+card "Gale Swooper" {
+  oracle_id 1758e102-22da-4cb3-98d5-76f7501d026d
+  cost {3}{W}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+  triggered when this enters: target creature gains flying
+}

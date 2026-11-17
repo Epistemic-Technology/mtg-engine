@@ -1,0 +1,6 @@
+card "Selesnya Guildgate" {
+  oracle_id 75b235d3-595a-4859-be45-9559d8445db5
+  type Land — Gate
+  enters tapped
+  mana {G} or {W}
+}

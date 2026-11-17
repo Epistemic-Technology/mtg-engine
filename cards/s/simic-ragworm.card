@@ -1,0 +1,7 @@
+card "Simic Ragworm" {
+  oracle_id 5d8c4172-eb14-47a4-993a-6d68906a26c5
+  cost {3}{G}
+  type Creature — Worm
+  pt 3/3
+  activated {U}: untap this
+}

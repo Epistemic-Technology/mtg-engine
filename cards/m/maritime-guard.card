@@ -1,0 +1,6 @@
+card "Maritime Guard" {
+  oracle_id 0bb1c704-47f1-4d0c-8158-cfcd0b5e4d06
+  cost {1}{U}
+  type Creature — Merfolk Soldier
+  pt 1/3
+}

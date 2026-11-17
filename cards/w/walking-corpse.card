@@ -1,0 +1,6 @@
+card "Walking Corpse" {
+  oracle_id fea95888-e16a-4209-9cd4-623f7f4d2f67
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/2
+}

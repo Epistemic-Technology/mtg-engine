@@ -1,0 +1,7 @@
+card "Voidwielder" {
+  oracle_id 6686b897-64a9-4482-9563-57c88bc83d71
+  cost {4}{U}
+  type Creature — Human Wizard
+  pt 1/4
+  triggered when this enters: you may return target creature to hand
+}

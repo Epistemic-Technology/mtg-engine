@@ -1,0 +1,7 @@
+card "Brambleweft Behemoth" {
+  oracle_id f5070528-cc4c-4910-8047-1ed17efd6496
+  cost {4}{G}{G}
+  type Creature — Elemental
+  pt 6/6
+  keywords trample
+}

@@ -1,0 +1,6 @@
+card "Snare the Skies" {
+  oracle_id 7d011e22-335b-465f-9111-e95a72ebffe9
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 and gains reach
+}

@@ -1,0 +1,7 @@
+card "Ordruun Commando" {
+  oracle_id f44a8a72-2c51-429e-8447-7bd8155b6f72
+  cost {3}{R}
+  type Creature — Minotaur Soldier
+  pt 4/1
+  activated {W}: prevent next 1 damage to this this turn
+}

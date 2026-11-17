@@ -1,0 +1,7 @@
+card "Ironpaw Aspirant" {
+  oracle_id fab5f694-4a9c-4e72-b164-f236e8212ff7
+  cost {1}{W}
+  type Creature — Cat Warrior
+  pt 1/2
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

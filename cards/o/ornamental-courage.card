@@ -1,0 +1,6 @@
+card "Ornamental Courage" {
+  oracle_id 1aaa85e1-4770-457f-a9af-3eeb56c71447
+  cost {G}
+  type Instant
+  spell: untap target creature; target 1 gets +1/+3
+}

@@ -1,0 +1,7 @@
+card "Bog Imp" {
+  oracle_id 45b94e3c-a905-435b-aee5-bec9239fd24c
+  cost {1}{B}
+  type Creature — Imp
+  pt 1/1
+  keywords flying
+}

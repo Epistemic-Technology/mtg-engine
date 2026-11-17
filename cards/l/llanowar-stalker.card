@@ -1,0 +1,7 @@
+card "Llanowar Stalker" {
+  oracle_id 90d375fa-0487-4990-9a98-260f9ee28d2a
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  triggered whenever other creature you control enters: this gets +1/+0
+}

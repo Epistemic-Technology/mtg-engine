@@ -1,0 +1,6 @@
+card "Fanatical Devotion" {
+  oracle_id 34e56412-4649-481d-be51-357b331d0b75
+  cost {2}{W}
+  type Enchantment
+  activated sacrifice creature: regenerate target creature
+}

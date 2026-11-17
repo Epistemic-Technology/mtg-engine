@@ -1,0 +1,6 @@
+card "Streetbreaker Wurm" {
+  oracle_id 38bdb4f8-012e-460c-ad20-e51bec1e6745
+  cost {3}{R}{G}
+  type Creature — Wurm
+  pt 6/4
+}

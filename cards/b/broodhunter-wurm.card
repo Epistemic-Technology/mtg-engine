@@ -1,0 +1,6 @@
+card "Broodhunter Wurm" {
+  oracle_id 02d50c11-51e3-4b3f-bf3d-3b1775d514f6
+  cost {3}{G}
+  type Creature — Wurm
+  pt 4/3
+}

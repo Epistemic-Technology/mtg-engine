@@ -1,0 +1,7 @@
+card "Fyndhorn Brownie" {
+  oracle_id 6d1f8073-4da2-4abc-abb4-2053c4a40bbf
+  cost {2}{G}
+  type Creature — Ouphe
+  pt 1/1
+  activated {2}{G}, {T}: untap target creature
+}

@@ -1,0 +1,6 @@
+card "Swab Goblin" {
+  oracle_id 343ecf2f-0bbc-4840-8fb3-f5f61b26e76f
+  cost {1}{R}
+  type Creature — Goblin Pirate
+  pt 2/2
+}

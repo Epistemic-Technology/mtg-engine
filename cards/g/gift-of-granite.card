@@ -1,0 +1,8 @@
+card "Gift of Granite" {
+  oracle_id e1abac67-ae07-4bb2-a048-7e41e0fc0371
+  cost {W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +0/+2
+}

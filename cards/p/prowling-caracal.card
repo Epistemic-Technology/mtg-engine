@@ -1,0 +1,6 @@
+card "Prowling Caracal" {
+  oracle_id 0eabe5e9-cb03-4481-9360-5e79eccd0631
+  cost {1}{W}
+  type Creature — Cat
+  pt 3/1
+}

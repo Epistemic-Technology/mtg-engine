@@ -1,0 +1,7 @@
+card "Cloud Manta" {
+  oracle_id 59b6bf51-d15d-4032-85ac-29b234b59fc9
+  cost {3}{U}
+  type Creature — Fish
+  pt 3/2
+  keywords flying
+}

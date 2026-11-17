@@ -1,0 +1,6 @@
+card "Throttle" {
+  oracle_id 01823ab7-b9f6-48bc-b45c-9b0fabc6f657
+  cost {4}{B}
+  type Instant
+  spell: target creature gets -4/-4
+}

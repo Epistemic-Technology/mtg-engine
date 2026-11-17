@@ -1,0 +1,7 @@
+card "Spectral Hunt-Caller" {
+  oracle_id d03ef35b-0609-46b5-ab8a-64d8007eab26
+  cost {4}{G}
+  type Creature — Wolf Spirit
+  pt 4/4
+  activated {5}{G}: each creature you control gets +1/+1 and gains trample
+}

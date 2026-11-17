@@ -1,0 +1,7 @@
+card "Mogg Raider" {
+  oracle_id 240746f5-caab-46b9-914f-c2c7ecce6ca9
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated sacrifice Goblin: target creature gets +1/+1
+}

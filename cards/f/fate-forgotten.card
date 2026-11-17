@@ -1,0 +1,6 @@
+card "Fate Forgotten" {
+  oracle_id 7f591bfb-a241-4980-9cb3-fb5af3355f6b
+  cost {2}{W}
+  type Instant
+  spell: exile target artifact or enchantment
+}

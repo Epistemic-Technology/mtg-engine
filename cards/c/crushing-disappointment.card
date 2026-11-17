@@ -1,0 +1,6 @@
+card "Crushing Disappointment" {
+  oracle_id 77a1958e-ee24-4305-9dad-da8372803be8
+  cost {3}{B}
+  type Instant
+  spell: each player loses 2 life; you draws 2 cards
+}

@@ -1,0 +1,7 @@
+card "Darting Merfolk" {
+  oracle_id 2f33e684-a4e4-4528-9a20-3df902bc2cde
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/1
+  activated {U}: return this to hand
+}

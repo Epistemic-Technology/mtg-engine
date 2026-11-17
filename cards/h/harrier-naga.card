@@ -1,0 +1,6 @@
+card "Harrier Naga" {
+  oracle_id 4a1cbac1-ee22-44cf-a37f-a58055f5c9bc
+  cost {2}{G}
+  type Creature — Snake Warrior
+  pt 3/3
+}

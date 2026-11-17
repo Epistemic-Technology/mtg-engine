@@ -1,0 +1,7 @@
+card "Nest Robber" {
+  oracle_id b909ff27-423f-4e84-887b-7840149a85be
+  cost {1}{R}
+  type Creature — Dinosaur
+  pt 2/1
+  keywords haste
+}

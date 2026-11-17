@@ -1,0 +1,6 @@
+card "Take Vengeance" {
+  oracle_id c60b8edd-aa3f-48ea-b202-d10599f91d9d
+  cost {1}{W}
+  type Sorcery
+  spell: destroy target tapped creature
+}

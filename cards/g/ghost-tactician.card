@@ -1,0 +1,7 @@
+card "Ghost Tactician" {
+  oracle_id 8d89aba8-20ce-44cd-9d82-3d16fdf6aac8
+  cost {4}{W}
+  type Creature — Spirit Spellshaper
+  pt 2/5
+  activated {W}, {T}, discard 1 card: each creature you control gets +1/+0
+}

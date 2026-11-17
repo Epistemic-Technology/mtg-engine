@@ -1,0 +1,8 @@
+card "Greel's Caress" {
+  oracle_id e9e0b78e-07d5-4603-8e3b-27274148d1a1
+  cost {1}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -3/-0
+}

@@ -1,0 +1,7 @@
+card "Gaea's Skyfolk" {
+  oracle_id dd0da475-55d0-462e-bfac-6eeb5d39a099
+  cost {G}{U}
+  type Creature — Elf Merfolk
+  pt 2/2
+  keywords flying
+}

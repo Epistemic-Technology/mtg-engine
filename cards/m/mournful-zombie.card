@@ -1,0 +1,7 @@
+card "Mournful Zombie" {
+  oracle_id f0ed2cf1-7bd4-4586-a682-fd588632cb3d
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/1
+  activated {W}, {T}: target player gains 1 life
+}

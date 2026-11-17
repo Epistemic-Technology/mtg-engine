@@ -1,0 +1,8 @@
+card "Guardian of the Halls" {
+  oracle_id c3fb2829-64f2-4795-b815-edcc5bbbc360
+  cost {1}{G}
+  type Creature — Elf Soldier
+  pt 2/2
+  keywords trample
+  activated {5}{G}{G}: put 3 +1/+1 counters on this
+}

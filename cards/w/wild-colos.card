@@ -1,0 +1,7 @@
+card "Wild Colos" {
+  oracle_id cb6b8ce3-9f9d-418c-94b0-c4469a254938
+  cost {2}{R}
+  type Creature — Goat Beast
+  pt 2/2
+  keywords haste
+}

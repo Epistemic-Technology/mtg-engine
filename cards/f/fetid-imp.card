@@ -1,0 +1,8 @@
+card "Fetid Imp" {
+  oracle_id cdb68656-633d-436e-ad56-0fdb4814bd19
+  cost {1}{B}
+  type Creature — Imp
+  pt 1/2
+  keywords flying
+  activated {B}: this gains deathtouch
+}

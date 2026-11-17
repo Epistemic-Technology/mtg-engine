@@ -1,0 +1,7 @@
+card "Angelic Wall" {
+  oracle_id 4502b24f-604b-4e36-9168-31c1a1ab4dab
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/4
+  keywords defender, flying
+}

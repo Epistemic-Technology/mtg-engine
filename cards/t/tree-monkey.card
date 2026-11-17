@@ -1,0 +1,7 @@
+card "Tree Monkey" {
+  oracle_id d7318464-e400-424f-ae6d-a9070c64df04
+  cost {G}
+  type Creature — Monkey
+  pt 1/1
+  keywords reach
+}

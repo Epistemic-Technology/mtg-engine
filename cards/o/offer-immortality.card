@@ -1,0 +1,6 @@
+card "Offer Immortality" {
+  oracle_id be4499e6-616a-4c11-b37e-9201d2492682
+  cost {1}{B}
+  type Instant
+  spell: target creature gains deathtouch, indestructible
+}

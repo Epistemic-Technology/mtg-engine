@@ -1,0 +1,7 @@
+card "Two-Headed Cerberus" {
+  oracle_id 7b2bbd87-f288-44bd-a15c-1432a3e90cb3
+  cost {1}{R}{R}
+  type Creature — Dog
+  pt 1/2
+  keywords double strike
+}

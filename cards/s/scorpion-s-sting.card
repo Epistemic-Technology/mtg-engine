@@ -1,0 +1,6 @@
+card "Scorpion's Sting" {
+  oracle_id 7f5e5aa8-3f15-45c9-bfc8-1f4b98d2be38
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -3/-3
+}

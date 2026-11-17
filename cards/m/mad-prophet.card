@@ -1,0 +1,8 @@
+card "Mad Prophet" {
+  oracle_id 91081181-aec6-47de-b8ef-241a2f4fe880
+  cost {3}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  keywords haste
+  activated {T}, discard 1 card: draw 1 cards
+}

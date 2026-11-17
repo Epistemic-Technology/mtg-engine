@@ -1,0 +1,7 @@
+card "Roc Hunter" {
+  oracle_id 0ed811b7-6ead-4906-9e40-9096b735e271
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 3/1
+  keywords reach
+}

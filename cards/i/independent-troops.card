@@ -1,0 +1,6 @@
+card "Independent Troops" {
+  oracle_id b9a8adf0-60f1-491c-8bbf-0b341fd23fab
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 2/1
+}

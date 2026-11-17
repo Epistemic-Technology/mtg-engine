@@ -1,0 +1,7 @@
+card "Folk of the Pines" {
+  oracle_id 6cd8cf2a-972f-41b7-ab0c-b4953accc2fe
+  cost {4}{G}
+  type Creature — Dryad
+  pt 2/5
+  activated {1}{G}: this gets +1/+0
+}

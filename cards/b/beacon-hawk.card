@@ -1,0 +1,9 @@
+card "Beacon Hawk" {
+  oracle_id edf7c98a-c2ed-4ba2-ac08-e83db0d968cb
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may untap target creature
+  activated {W}: this gets +0/+1
+}

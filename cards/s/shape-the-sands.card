@@ -1,0 +1,6 @@
+card "Shape the Sands" {
+  oracle_id d96506b1-845d-4a9b-8414-456bb457d80f
+  cost {G}
+  type Instant
+  spell: target creature gets +0/+5 and gains reach
+}

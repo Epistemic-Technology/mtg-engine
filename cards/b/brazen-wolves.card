@@ -1,0 +1,7 @@
+card "Brazen Wolves" {
+  oracle_id 0b5a3d7b-6b2c-4e91-8218-2b957277855c
+  cost {2}{R}
+  type Creature — Wolf
+  pt 2/3
+  triggered whenever this attacks: this gets +2/+0
+}

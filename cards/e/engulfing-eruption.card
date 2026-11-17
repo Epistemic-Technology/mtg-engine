@@ -1,0 +1,6 @@
+card "Engulfing Eruption" {
+  oracle_id 27b4fee0-ae46-4d15-96cd-aff8f3009de8
+  cost {2}{R}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature
+}

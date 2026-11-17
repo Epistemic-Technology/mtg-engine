@@ -1,0 +1,7 @@
+card "Two-Headed Zombie" {
+  oracle_id 7e280770-9a8f-4445-84d2-3b9cac659136
+  cost {3}{B}
+  type Creature — Zombie
+  pt 4/2
+  keywords menace
+}

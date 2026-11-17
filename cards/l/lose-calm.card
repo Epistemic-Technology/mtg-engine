@@ -1,0 +1,6 @@
+card "Lose Calm" {
+  oracle_id 73d71731-f694-471c-b2ad-a36854bb06a1
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste, menace
+}

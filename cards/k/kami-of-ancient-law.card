@@ -1,0 +1,7 @@
+card "Kami of Ancient Law" {
+  oracle_id e937e0f5-ca35-4dce-9f05-8f2075731628
+  cost {1}{W}
+  type Creature — Spirit
+  pt 2/2
+  activated sacrifice this: destroy target enchantment
+}

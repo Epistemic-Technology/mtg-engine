@@ -1,0 +1,8 @@
+card "Scaldkin" {
+  oracle_id 3fb2dbb3-e064-44bf-a8b6-10d58b1174d5
+  cost {3}{U}
+  type Creature — Elemental
+  pt 2/2
+  keywords flying
+  activated {2}{R}, sacrifice this: deal 2 damage to any target
+}

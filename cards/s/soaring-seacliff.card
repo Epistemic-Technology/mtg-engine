@@ -1,0 +1,7 @@
+card "Soaring Seacliff" {
+  oracle_id a37544b6-0048-4213-8e40-76ba8a0b6d1b
+  type Land
+  enters tapped
+  triggered when this enters: target creature gains flying
+  mana {U}
+}

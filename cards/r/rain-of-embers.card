@@ -1,0 +1,6 @@
+card "Rain of Embers" {
+  oracle_id 041e2a01-3652-46c1-a9d1-d38ae7ee0551
+  cost {1}{R}
+  type Sorcery
+  spell: deal 1 damage to each creature and each player
+}

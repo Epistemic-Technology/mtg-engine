@@ -1,0 +1,7 @@
+card "Tenth District Guard" {
+  oracle_id 83ce0859-cb88-45dd-8485-3317792235de
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered when this enters: target creature gets +0/+1
+}

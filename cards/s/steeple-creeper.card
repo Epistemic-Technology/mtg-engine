@@ -1,0 +1,7 @@
+card "Steeple Creeper" {
+  oracle_id f53f33ed-5c8c-4835-bc5f-65a8acfa3f5b
+  cost {2}{G}
+  type Creature — Frog Snake
+  pt 4/2
+  activated {3}{U}: this gains flying
+}

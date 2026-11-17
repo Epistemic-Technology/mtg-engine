@@ -1,0 +1,7 @@
+card "Ranger's Longbow" {
+  oracle_id 4b9abe7f-050f-4d0a-bc01-f442164f95de
+  cost {1}{G}
+  type Artifact — Equipment
+  static enchanted: +2/+1, has reach
+  equip {3}
+}

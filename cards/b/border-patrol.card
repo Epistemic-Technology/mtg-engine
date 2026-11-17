@@ -1,0 +1,7 @@
+card "Border Patrol" {
+  oracle_id fa5e2575-51bb-448e-9aaf-0e0f5956ac98
+  cost {4}{W}
+  type Creature — Human Nomad
+  pt 1/6
+  keywords vigilance
+}

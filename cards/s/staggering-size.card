@@ -1,0 +1,6 @@
+card "Staggering Size" {
+  oracle_id 57bda813-ad4b-40ab-aa35-3f8343ff8668
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains trample
+}

@@ -1,0 +1,6 @@
+card "Alpha Tyrranax" {
+  oracle_id 8bed1349-4d0a-4544-ba66-c38e72cd2863
+  cost {4}{G}{G}
+  type Creature — Dinosaur Beast
+  pt 6/5
+}

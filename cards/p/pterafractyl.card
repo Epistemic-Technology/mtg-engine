@@ -1,0 +1,9 @@
+card "Pterafractyl" {
+  oracle_id cca03b76-dd3c-4228-b97a-f7fa20819b2e
+  cost {X}{G}{U}
+  type Creature — Dinosaur Fractal
+  pt 1/0
+  keywords flying
+  enters with X +1/+1 counters
+  triggered when this enters: you gains 2 life
+}

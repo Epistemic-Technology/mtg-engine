@@ -1,0 +1,6 @@
+card "Hornet Sting" {
+  oracle_id 25edeff3-7727-4b80-9459-2bb6b8587fb9
+  cost {G}
+  type Instant
+  spell: deal 1 damage to any target
+}

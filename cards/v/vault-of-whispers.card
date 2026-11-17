@@ -1,0 +1,5 @@
+card "Vault of Whispers" {
+  oracle_id 09496421-74e4-466a-9546-56f2a0c8eef4
+  type Artifact Land
+  mana {B}
+}

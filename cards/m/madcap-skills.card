@@ -1,0 +1,7 @@
+card "Madcap Skills" {
+  oracle_id 4a9dc9ef-a603-467a-aeed-32cc111394b0
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+0, has menace
+}

@@ -1,0 +1,6 @@
+card "Wetland Sambar" {
+  oracle_id 8a50b8f7-1af8-4e00-9734-66a87e05cc6f
+  cost {1}{U}
+  type Creature — Elk
+  pt 2/1
+}

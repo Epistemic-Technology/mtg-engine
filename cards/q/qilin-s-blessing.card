@@ -1,0 +1,6 @@
+card "Qilin's Blessing" {
+  oracle_id 31585036-cdc3-47f5-9fc7-913212826f2a
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2
+}

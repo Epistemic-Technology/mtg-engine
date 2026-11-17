@@ -1,0 +1,7 @@
+card "Loxodon Mender" {
+  oracle_id b260b5b4-048b-4a70-ab3a-b0dd1ceb7aa8
+  cost {5}{W}
+  type Creature — Elephant Cleric
+  pt 3/3
+  activated {W}, {T}: regenerate target artifact
+}

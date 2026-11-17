@@ -1,0 +1,6 @@
+card "Moment of Heroism" {
+  oracle_id a167d593-cded-43e1-b9bb-2287dbd0cbec
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2 and gains lifelink
+}

@@ -1,0 +1,5 @@
+card "Glacial Floodplain" {
+  oracle_id 5d3563dd-a2c1-463c-a0ed-5ac22388bdbe
+  type Snow Land — Plains Island
+  enters tapped
+}

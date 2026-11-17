@@ -1,0 +1,7 @@
+card "Pyre Spawn" {
+  oracle_id 13b0a3f3-04a5-465f-898b-13a28f795a16
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 6/4
+  triggered when this dies: deal 3 damage to any target
+}

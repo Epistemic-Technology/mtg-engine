@@ -1,0 +1,7 @@
+card "Gloomhunter" {
+  oracle_id 637b1a19-2925-422e-b867-f87537803071
+  cost {2}{B}
+  type Creature — Bat
+  pt 2/1
+  keywords flying
+}

@@ -1,0 +1,7 @@
+card "Akroan Jailer" {
+  oracle_id e3ad2c77-2a41-4a4a-a6bf-e542d0162b88
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {2}{W}, {T}: tap target creature
+}

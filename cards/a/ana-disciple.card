@@ -1,0 +1,8 @@
+card "Ana Disciple" {
+  oracle_id f543dfcd-015e-48bc-851d-08002d0241fa
+  cost {G}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {U}, {T}: target creature gains flying
+  activated {B}, {T}: target creature gets -2/-0
+}

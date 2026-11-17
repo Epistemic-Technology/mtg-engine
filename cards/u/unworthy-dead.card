@@ -1,0 +1,7 @@
+card "Unworthy Dead" {
+  oracle_id 7454e2cf-5ef2-4623-bac7-c375fd230595
+  cost {1}{B}
+  type Creature — Phyrexian Skeleton
+  pt 1/1
+  activated {B}: regenerate this
+}

@@ -1,0 +1,7 @@
+card "Boros Cluestone" {
+  oracle_id f6c3b420-9aca-4fab-b7bb-1814bd2d93f6
+  cost {3}
+  type Artifact
+  mana {R} or {W}
+  activated {R}{W}, {T}, sacrifice this: draw 1 cards
+}

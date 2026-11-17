@@ -1,0 +1,6 @@
+card "Flowstone Infusion" {
+  oracle_id 6c75b92a-4fc1-4f26-95be-1b92f462c111
+  cost {R}
+  type Instant
+  spell: target creature gets +2/-2
+}

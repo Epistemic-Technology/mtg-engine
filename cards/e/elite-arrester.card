@@ -1,0 +1,7 @@
+card "Elite Arrester" {
+  oracle_id f25af8de-3edb-400b-9b6c-ec446a8314fa
+  cost {W}
+  type Creature — Human Soldier
+  pt 0/3
+  activated {1}{U}, {T}: tap target creature
+}

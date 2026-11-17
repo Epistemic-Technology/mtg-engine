@@ -1,0 +1,7 @@
+card "Goblin Gardener" {
+  oracle_id 29781b19-0917-4d8f-abe3-df0b7e96d8a6
+  cost {3}{R}
+  type Creature — Goblin
+  pt 2/1
+  triggered when this dies: destroy target land
+}

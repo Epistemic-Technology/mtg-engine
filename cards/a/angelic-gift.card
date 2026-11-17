@@ -1,0 +1,8 @@
+card "Angelic Gift" {
+  oracle_id e5e04968-d9b7-4bd5-b826-be9502360cd3
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has flying
+}

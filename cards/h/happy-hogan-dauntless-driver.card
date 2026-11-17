@@ -1,0 +1,6 @@
+card "Happy Hogan, Dauntless Driver" {
+  oracle_id 557ce9d4-8fe3-4ffc-8e56-b9b73d58d41b
+  cost {R}
+  type Legendary Creature — Human Pilot
+  pt 2/1
+}

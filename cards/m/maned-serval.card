@@ -1,0 +1,7 @@
+card "Maned Serval" {
+  oracle_id ac230f29-6d3b-4fe1-bcb0-6ffab95a1bd7
+  cost {1}{W}
+  type Creature — Cat
+  pt 1/4
+  keywords vigilance
+}

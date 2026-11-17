@@ -1,0 +1,6 @@
+card "Centaur Courser" {
+  oracle_id 2f5bf099-2e01-4e1c-9ebf-0ce0ac66939e
+  cost {2}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+}

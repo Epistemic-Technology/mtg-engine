@@ -1,0 +1,5 @@
+card "Haunted Mire" {
+  oracle_id b0b58a03-462c-4964-97c7-42bc777ec23e
+  type Land — Swamp Forest
+  enters tapped
+}

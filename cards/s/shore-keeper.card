@@ -1,0 +1,7 @@
+card "Shore Keeper" {
+  oracle_id 9625773b-1976-49b3-88d2-93a4befb595c
+  cost {U}
+  type Creature — Trilobite
+  pt 0/3
+  activated {7}{U}, {T}, sacrifice this: draw 3 cards
+}

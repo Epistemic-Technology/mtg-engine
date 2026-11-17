@@ -1,0 +1,6 @@
+card "Lowland Giant" {
+  oracle_id 041cc2d0-eb67-484e-8da1-e91ddb2b3f70
+  cost {2}{R}{R}
+  type Creature — Giant
+  pt 4/3
+}

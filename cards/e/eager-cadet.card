@@ -1,0 +1,6 @@
+card "Eager Cadet" {
+  oracle_id 39780477-01ba-40c6-8fe6-2178efb10b92
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+}

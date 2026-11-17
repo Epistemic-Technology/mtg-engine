@@ -1,0 +1,6 @@
+card "Unlikely Aid" {
+  oracle_id 795e0ffb-fcd9-4cb9-ad18-8a0217229bfe
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +2/+0 and gains indestructible
+}

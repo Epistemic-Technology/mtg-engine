@@ -1,0 +1,6 @@
+card "Hollowhenge Beast" {
+  oracle_id a13b02c2-7ec1-4032-99cc-c76fe512914e
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 5/5
+}

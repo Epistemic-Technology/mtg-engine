@@ -1,0 +1,6 @@
+card "Staff of Zegon" {
+  oracle_id 52c53132-146a-4912-8e0f-1d4d9937fff3
+  cost {4}
+  type Artifact
+  activated {3}, {T}: target creature gets -2/-0
+}

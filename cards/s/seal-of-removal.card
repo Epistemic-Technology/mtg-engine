@@ -1,0 +1,6 @@
+card "Seal of Removal" {
+  oracle_id f0801029-bcf7-4bdb-84bf-e88dcaa9dc03
+  cost {U}
+  type Enchantment
+  activated sacrifice this: return target creature to hand
+}

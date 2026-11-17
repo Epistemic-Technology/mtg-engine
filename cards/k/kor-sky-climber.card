@@ -1,0 +1,7 @@
+card "Kor Sky Climber" {
+  oracle_id 298a71d4-6dc1-444e-9057-0d25aef7fb64
+  cost {2}{W}
+  type Creature — Kor Soldier Ally
+  pt 3/2
+  activated {1}{W}: this gains flying
+}

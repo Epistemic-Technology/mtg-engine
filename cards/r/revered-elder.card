@@ -1,0 +1,7 @@
+card "Revered Elder" {
+  oracle_id e8d18dc7-f44b-47f6-8400-3f563c2f19b7
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {1}: prevent next 1 damage to this this turn
+}

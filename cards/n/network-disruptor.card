@@ -1,0 +1,8 @@
+card "Network Disruptor" {
+  oracle_id 0d64d150-1716-4da4-9cfe-ee7749b89918
+  cost {U}
+  type Artifact Creature — Moonfolk Rogue
+  pt 1/1
+  keywords flying
+  triggered when this enters: tap target permanent
+}

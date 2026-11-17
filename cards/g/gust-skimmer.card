@@ -1,0 +1,7 @@
+card "Gust-Skimmer" {
+  oracle_id 3f49dfa6-d0d4-4b58-8417-ed11c062e220
+  cost {2}
+  type Artifact Creature — Insect
+  pt 2/1
+  activated {U}: this gains flying
+}

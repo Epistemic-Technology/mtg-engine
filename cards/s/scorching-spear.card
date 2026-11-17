@@ -1,0 +1,6 @@
+card "Scorching Spear" {
+  oracle_id 9342fbb8-ab35-4895-946d-951ba6a2b067
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to any target
+}

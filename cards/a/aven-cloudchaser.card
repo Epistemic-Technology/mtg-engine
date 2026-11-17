@@ -1,0 +1,8 @@
+card "Aven Cloudchaser" {
+  oracle_id 48bda7dd-d023-41e8-8c28-e0cfda0d07ca
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  triggered when this enters: destroy target enchantment
+}

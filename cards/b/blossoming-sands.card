@@ -1,0 +1,7 @@
+card "Blossoming Sands" {
+  oracle_id 45429b2c-be3b-4b2e-9bab-a059ccbda8cd
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {G} or {W}
+}

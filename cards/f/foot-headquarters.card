@@ -1,0 +1,7 @@
+card "Foot Headquarters" {
+  oracle_id 063dd25b-d4b4-4e09-acae-8c52dcb40803
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {B}
+}

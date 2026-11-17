@@ -1,0 +1,7 @@
+card "Tidehollow Strix" {
+  oracle_id 19a39cc5-2134-4dee-932c-81389806c57b
+  cost {U}{B}
+  type Artifact Creature — Bird
+  pt 2/1
+  keywords flying, deathtouch
+}

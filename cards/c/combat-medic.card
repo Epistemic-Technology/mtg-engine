@@ -1,0 +1,7 @@
+card "Combat Medic" {
+  oracle_id 541b7b2f-7bb0-4858-8dc5-6e50de443c33
+  cost {2}{W}
+  type Creature — Human Cleric Soldier
+  pt 0/2
+  activated {1}{W}: prevent next 1 damage to any target this turn
+}

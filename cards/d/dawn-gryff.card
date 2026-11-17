@@ -1,0 +1,7 @@
+card "Dawn Gryff" {
+  oracle_id 1c34b2e4-e600-4688-86cb-8a1c11fdc770
+  cost {2}{W}
+  type Creature — Hippogriff
+  pt 2/2
+  keywords flying
+}

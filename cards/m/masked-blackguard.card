@@ -1,0 +1,8 @@
+card "Masked Blackguard" {
+  oracle_id 8ccd20c7-b7fc-4ab1-a98b-3bbcc2079339
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/1
+  keywords flash
+  activated {2}{B}: this gets +1/+1
+}

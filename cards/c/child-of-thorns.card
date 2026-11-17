@@ -1,0 +1,7 @@
+card "Child of Thorns" {
+  oracle_id f94002a1-582f-4b9d-a4f7-dae816f21c1d
+  cost {G}
+  type Creature — Spirit
+  pt 1/1
+  activated sacrifice this: target creature gets +1/+1
+}

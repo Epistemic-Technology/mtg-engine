@@ -1,0 +1,8 @@
+card "Insolent Neonate" {
+  oracle_id a9a1d92d-150b-48e1-b41b-dd746b7c1626
+  cost {R}
+  type Creature — Vampire
+  pt 1/1
+  keywords menace
+  activated discard 1 card, sacrifice this: draw 1 cards
+}

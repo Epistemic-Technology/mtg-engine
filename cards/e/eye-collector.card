@@ -1,0 +1,8 @@
+card "Eye Collector" {
+  oracle_id 553c2006-e123-406e-ab4a-1d1f67c7468c
+  cost {B}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: each player mills 1 cards
+}

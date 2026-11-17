@@ -1,0 +1,7 @@
+card "Lucent Liminid" {
+  oracle_id cf02b774-2b3a-4459-bf59-e5d291691e77
+  cost {3}{W}{W}
+  type Enchantment Creature — Elemental
+  pt 3/3
+  keywords flying
+}

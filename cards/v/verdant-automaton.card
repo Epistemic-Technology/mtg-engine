@@ -1,0 +1,7 @@
+card "Verdant Automaton" {
+  oracle_id d3af1c69-42ae-4d29-a9f1-72f862d26303
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/2
+  activated {3}{G}: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,10 @@
+card "Umezawa's Charm" {
+  oracle_id 7cfd7606-1dab-4627-ba42-37d6e375f9f1
+  cost {1}{B}
+  type Instant
+  choose one {
+    mode: target creature gets +2/+2
+    mode: target creature gets -1/-1
+    mode: you gains 2 life
+  }
+}

@@ -1,0 +1,7 @@
+card "Fisk Tower" {
+  oracle_id 5554db95-9676-4c24-b82a-8173513d7927
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {B}
+}

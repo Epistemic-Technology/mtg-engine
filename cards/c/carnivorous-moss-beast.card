@@ -1,0 +1,7 @@
+card "Carnivorous Moss-Beast" {
+  oracle_id 32f5f67b-bba3-427c-ab24-13a50acdc611
+  cost {4}{G}{G}
+  type Creature — Plant Elemental Beast
+  pt 4/5
+  activated {5}{G}{G}: put 1 +1/+1 counters on this
+}

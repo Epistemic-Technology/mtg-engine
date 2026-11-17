@@ -1,0 +1,6 @@
+card "Give In to Violence" {
+  oracle_id 2bf4811f-3462-4542-acb0-101e772bfec9
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +2/+2 and gains lifelink
+}

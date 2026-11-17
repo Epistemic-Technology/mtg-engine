@@ -1,0 +1,6 @@
+card "Silk Net" {
+  oracle_id 58511cb8-348d-409e-8fd6-772be20e57cd
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 and gains reach
+}

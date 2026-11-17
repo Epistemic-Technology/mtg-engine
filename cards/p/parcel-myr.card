@@ -1,0 +1,7 @@
+card "Parcel Myr" {
+  oracle_id 9e660f66-0a94-4694-95e0-25296799b193
+  cost {1}{U}
+  type Artifact Creature — Clue Myr
+  pt 2/1
+  activated {2}, sacrifice this: draw 1 cards
+}

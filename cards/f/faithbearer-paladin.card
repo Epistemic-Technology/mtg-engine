@@ -1,0 +1,7 @@
+card "Faithbearer Paladin" {
+  oracle_id 725dc451-cae4-4345-9741-6c58e5a1a1dc
+  cost {4}{W}
+  type Creature — Human Knight
+  pt 3/4
+  keywords lifelink
+}

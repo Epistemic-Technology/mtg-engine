@@ -1,0 +1,8 @@
+card "Aven of Enduring Hope" {
+  oracle_id e8291185-9d87-4aa2-b7ba-d4946e5a082f
+  cost {4}{W}
+  type Creature — Bird Cleric
+  pt 3/3
+  keywords flying
+  triggered when this enters: you gains 3 life
+}

@@ -1,0 +1,6 @@
+card "Dark Heart of the Wood" {
+  oracle_id c44f40da-867e-4237-b4b1-ed6feb1f37b7
+  cost {B}{G}
+  type Enchantment
+  activated sacrifice Forest: you gains 3 life
+}

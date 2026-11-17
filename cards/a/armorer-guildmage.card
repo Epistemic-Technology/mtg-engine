@@ -1,0 +1,8 @@
+card "Armorer Guildmage" {
+  oracle_id 7b75b74c-6003-4b34-bae3-2c9e2f880042
+  cost {R}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {B}, {T}: target creature gets +1/+0
+  activated {G}, {T}: target creature gets +0/+1
+}

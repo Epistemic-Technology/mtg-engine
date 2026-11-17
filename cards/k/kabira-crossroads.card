@@ -1,0 +1,7 @@
+card "Kabira Crossroads" {
+  oracle_id b3dbb16f-fa8f-4406-bcf3-e647e4337619
+  type Land
+  enters tapped
+  triggered when this enters: you gains 2 life
+  mana {W}
+}

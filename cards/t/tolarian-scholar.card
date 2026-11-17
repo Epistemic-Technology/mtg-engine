@@ -1,0 +1,6 @@
+card "Tolarian Scholar" {
+  oracle_id 8a268636-75d5-4631-8272-8b001f569db5
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+}

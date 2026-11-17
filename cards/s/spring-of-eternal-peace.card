@@ -1,0 +1,6 @@
+card "Spring of Eternal Peace" {
+  oracle_id 6fcdb870-a1b6-49fe-8b5c-cdde074a7f7d
+  cost {3}{G}{G}
+  type Sorcery
+  spell: you gains 8 life
+}

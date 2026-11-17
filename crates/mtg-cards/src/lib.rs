@@ -5,6 +5,7 @@
 //! files into a gitignored directory and records what it fetched in
 //! `data/sources.lock`, which is committed. Nothing here runs at build time.
 
+pub mod author;
 pub mod gate;
 pub mod http;
 pub mod ingest;

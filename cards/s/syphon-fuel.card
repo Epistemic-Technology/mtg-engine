@@ -1,0 +1,6 @@
+card "Syphon Fuel" {
+  oracle_id 8696eae4-3dc9-4572-aab9-aa4f7e8f53af
+  cost {4}{B}
+  type Instant
+  spell: target creature gets -6/-6; you gains 2 life
+}

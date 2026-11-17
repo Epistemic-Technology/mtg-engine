@@ -1,0 +1,7 @@
+card "Pyrite Spellbomb" {
+  oracle_id 2c10cae2-951a-4f4f-94e4-8713b58d07dd
+  cost {1}
+  type Artifact
+  activated {R}, sacrifice this: deal 2 damage to any target
+  activated {1}, sacrifice this: draw 1 cards
+}

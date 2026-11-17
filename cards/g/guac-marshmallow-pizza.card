@@ -1,0 +1,8 @@
+card "Guac & Marshmallow Pizza" {
+  oracle_id d6d83a51-9d57-44a7-aae3-a96d43ec5ac8
+  cost {G}
+  type Artifact — Food
+  keywords flash
+  triggered when this enters: target creature gets +2/+2; untap target 1
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

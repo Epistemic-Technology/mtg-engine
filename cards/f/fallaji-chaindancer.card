@@ -1,0 +1,7 @@
+card "Fallaji Chaindancer" {
+  oracle_id cb690399-0fb8-4bd8-a73d-5e0e594ff2ae
+  cost {3}{R}
+  type Creature — Human Soldier
+  pt 2/4
+  activated {2}: this gains double strike
+}

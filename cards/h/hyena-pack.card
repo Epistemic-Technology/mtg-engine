@@ -1,0 +1,6 @@
+card "Hyena Pack" {
+  oracle_id d38b027d-eb24-46ba-9d46-3be08eedbe2a
+  cost {2}{R}{R}
+  type Creature — Hyena
+  pt 3/4
+}

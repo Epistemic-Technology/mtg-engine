@@ -1,0 +1,8 @@
+card "Flowstone Wall" {
+  oracle_id 5fa86b45-1d5b-42df-8811-6a10903f3039
+  cost {2}{R}
+  type Creature — Wall
+  pt 0/6
+  keywords defender
+  activated {R}: this gets +1/-1
+}

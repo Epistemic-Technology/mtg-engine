@@ -1,0 +1,8 @@
+card "Shaper Guildmage" {
+  oracle_id dfbce321-d3c1-4b76-a3fa-27f875015085
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {W}, {T}: target creature gains first strike
+  activated {B}, {T}: target creature gets +1/+0
+}

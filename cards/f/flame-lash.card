@@ -1,0 +1,6 @@
+card "Flame Lash" {
+  oracle_id c65e804b-9222-4fa8-88d1-df06a3279f22
+  cost {3}{R}
+  type Instant
+  spell: deal 4 damage to any target
+}

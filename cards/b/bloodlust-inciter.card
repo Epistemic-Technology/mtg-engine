@@ -1,0 +1,7 @@
+card "Bloodlust Inciter" {
+  oracle_id 826b83ba-0fe5-4f1d-91c8-799a1100d1e6
+  cost {R}
+  type Creature — Human Warrior
+  pt 1/1
+  activated {T}: target creature gains haste
+}

@@ -1,0 +1,7 @@
+card "Tajuru Blightblade" {
+  oracle_id debbbdd8-c8e2-4384-bcac-dbdfb18b54fa
+  cost {G}
+  type Creature — Elf Rogue
+  pt 1/1
+  keywords deathtouch
+}

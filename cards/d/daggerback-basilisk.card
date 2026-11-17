@@ -1,0 +1,7 @@
+card "Daggerback Basilisk" {
+  oracle_id ea4d30c7-7c39-46d5-9b71-a7ebc3e219a1
+  cost {2}{G}
+  type Creature — Basilisk
+  pt 2/2
+  keywords deathtouch
+}

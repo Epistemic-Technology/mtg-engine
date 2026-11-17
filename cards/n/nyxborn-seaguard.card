@@ -1,0 +1,6 @@
+card "Nyxborn Seaguard" {
+  oracle_id 48cc79b8-f7a5-474b-bd88-7cd6ae673086
+  cost {2}{U}{U}
+  type Enchantment Creature — Merfolk Soldier
+  pt 2/5
+}

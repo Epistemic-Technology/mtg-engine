@@ -1,0 +1,6 @@
+card "Maximum Overdrive" {
+  oracle_id f0e85b74-12fb-4d63-853e-7a3f41f731b4
+  cost {1}{B}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature; target 1 gains deathtouch, indestructible
+}

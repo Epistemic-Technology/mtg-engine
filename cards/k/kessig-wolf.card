@@ -1,0 +1,7 @@
+card "Kessig Wolf" {
+  oracle_id 7b82045f-5a2b-4e6e-976c-986c80ecd8b2
+  cost {2}{R}
+  type Creature — Wolf
+  pt 3/1
+  activated {1}{R}: this gains first strike
+}

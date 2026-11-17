@@ -1,0 +1,7 @@
+card "Vulpine Goliath" {
+  oracle_id e4c96980-31ed-494e-89db-c0a0f1fd23fd
+  cost {4}{G}{G}
+  type Creature — Fox
+  pt 6/5
+  keywords trample
+}

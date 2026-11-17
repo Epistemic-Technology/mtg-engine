@@ -1,0 +1,7 @@
+card "Vulshok Heartstoker" {
+  oracle_id 0d996788-7193-45cd-bc6d-0f470521d1ca
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  triggered when this enters: target creature gets +2/+0
+}

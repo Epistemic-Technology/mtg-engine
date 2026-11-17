@@ -1,0 +1,7 @@
+card "Plover Knights" {
+  oracle_id c4a99095-38cc-4fd3-b3da-c72a6ccceb25
+  cost {3}{W}{W}
+  type Creature — Kithkin Knight
+  pt 3/3
+  keywords flying, first strike
+}

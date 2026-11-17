@@ -1,0 +1,7 @@
+card "Wall of Spears" {
+  oracle_id ed836d84-ff1e-4af8-b4b8-314569b3faec
+  cost {3}
+  type Artifact Creature — Wall
+  pt 2/3
+  keywords defender, first strike
+}

@@ -1,0 +1,6 @@
+card "Flame Slash" {
+  oracle_id 8d98d674-6811-4d45-b22a-63792e272a2b
+  cost {R}
+  type Sorcery
+  spell: deal 4 damage to target creature
+}

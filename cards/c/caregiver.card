@@ -1,0 +1,7 @@
+card "Caregiver" {
+  oracle_id 7661484b-1faa-4ed7-b77b-fc1e625d23e3
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {W}, sacrifice creature: prevent next 1 damage to any target this turn
+}

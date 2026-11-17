@@ -1,0 +1,7 @@
+card "Backup Agent" {
+  oracle_id df9a3fe0-aca8-4adb-9ef6-45616025925b
+  cost {1}{W}
+  type Creature — Human Citizen
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

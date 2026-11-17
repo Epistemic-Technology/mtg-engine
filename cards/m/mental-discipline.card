@@ -1,0 +1,6 @@
+card "Mental Discipline" {
+  oracle_id b22080d6-a9ed-4bdd-a604-058e0e3e9463
+  cost {1}{U}{U}
+  type Enchantment
+  activated {1}{U}, discard 1 card: draw 1 cards
+}

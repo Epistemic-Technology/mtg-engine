@@ -1,0 +1,6 @@
+card "Raging Bull" {
+  oracle_id 341680e2-12a8-484f-be09-24dae9dbfaea
+  cost {2}{R}
+  type Creature — Ox
+  pt 2/2
+}

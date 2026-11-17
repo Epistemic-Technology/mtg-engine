@@ -1,0 +1,6 @@
+card "Vampire Noble" {
+  oracle_id e85d957b-35a8-48a9-8d63-90e3c680e0dd
+  cost {2}{B}
+  type Creature — Vampire Noble
+  pt 3/2
+}

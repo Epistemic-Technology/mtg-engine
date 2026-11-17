@@ -1,0 +1,7 @@
+card "Soulcage Fiend" {
+  oracle_id ecbb660a-4013-410a-b683-82c3ef1690cd
+  cost {1}{B}{B}
+  type Creature — Demon
+  pt 3/2
+  triggered when this dies: each player loses 3 life
+}

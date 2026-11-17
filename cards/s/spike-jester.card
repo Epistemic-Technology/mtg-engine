@@ -1,0 +1,7 @@
+card "Spike Jester" {
+  oracle_id 29f22168-21aa-4ca9-ab72-b09396a12c76
+  cost {B}{R}
+  type Creature — Goblin Warrior
+  pt 3/1
+  keywords haste
+}

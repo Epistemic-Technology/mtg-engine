@@ -1,0 +1,7 @@
+card "Rathi Trapper" {
+  oracle_id 0920d6aa-eab7-4116-b2f8-b13080d5d7e3
+  cost {1}{B}
+  type Creature — Human Rebel Rogue
+  pt 1/2
+  activated {B}, {T}: tap target creature
+}

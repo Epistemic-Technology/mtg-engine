@@ -1,0 +1,7 @@
+card "Kederekt Creeper" {
+  oracle_id 0f8e0b2c-f1a5-40ad-b8d8-7c06a012e909
+  cost {U}{B}{R}
+  type Creature — Horror
+  pt 2/3
+  keywords menace, deathtouch
+}

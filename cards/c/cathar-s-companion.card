@@ -1,0 +1,7 @@
+card "Cathar's Companion" {
+  oracle_id 668f646b-94f0-4f1a-badd-2d69b559d8a2
+  cost {2}{W}
+  type Creature — Dog
+  pt 3/1
+  triggered whenever you cast a noncreature spell: this gains indestructible
+}

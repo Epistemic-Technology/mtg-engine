@@ -1,0 +1,7 @@
+card "Tel-Jilad Exile" {
+  oracle_id 58987ca8-ee9b-412e-b08f-440588234e00
+  cost {3}{G}
+  type Creature — Troll Warrior
+  pt 2/3
+  activated {1}{G}: regenerate this
+}

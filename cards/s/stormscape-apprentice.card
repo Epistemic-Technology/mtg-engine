@@ -1,0 +1,8 @@
+card "Stormscape Apprentice" {
+  oracle_id cf2bacd3-b1ac-4863-b9c7-1e0a8d4854f3
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {W}, {T}: tap target creature
+  activated {B}, {T}: target player loses 1 life
+}

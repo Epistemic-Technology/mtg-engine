@@ -1,0 +1,7 @@
+card "Bulwark Giant" {
+  oracle_id f606bd15-b380-447f-b147-72f811266593
+  cost {5}{W}
+  type Creature — Giant Soldier
+  pt 3/6
+  triggered when this enters: you gains 5 life
+}

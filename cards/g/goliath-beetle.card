@@ -1,0 +1,7 @@
+card "Goliath Beetle" {
+  oracle_id 86ab4400-fbdd-4c18-a893-441286a9d7d0
+  cost {2}{G}
+  type Creature — Insect
+  pt 3/1
+  keywords trample
+}

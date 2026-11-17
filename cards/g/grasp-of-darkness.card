@@ -1,0 +1,6 @@
+card "Grasp of Darkness" {
+  oracle_id 494c819d-7d73-432b-8c96-4cb9dcd31094
+  cost {B}{B}
+  type Instant
+  spell: target creature gets -4/-4
+}

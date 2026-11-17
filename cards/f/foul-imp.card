@@ -1,0 +1,8 @@
+card "Foul Imp" {
+  oracle_id 25c04be3-f2e0-4f45-a1ca-9e75ffffa9b5
+  cost {B}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying
+  triggered when this enters: you loses 2 life
+}

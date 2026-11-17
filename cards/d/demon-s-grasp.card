@@ -1,0 +1,6 @@
+card "Demon's Grasp" {
+  oracle_id 13228a22-d63a-4952-a482-4f84da696e88
+  cost {4}{B}
+  type Sorcery
+  spell: target creature gets -5/-5
+}

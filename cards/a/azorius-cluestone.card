@@ -1,0 +1,7 @@
+card "Azorius Cluestone" {
+  oracle_id 27e04c41-f42c-4d60-8a71-ec2d7c326f64
+  cost {3}
+  type Artifact
+  mana {W} or {U}
+  activated {W}{U}, {T}, sacrifice this: draw 1 cards
+}

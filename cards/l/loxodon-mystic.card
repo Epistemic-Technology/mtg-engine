@@ -1,0 +1,7 @@
+card "Loxodon Mystic" {
+  oracle_id f3e22884-a9ca-4479-b400-df1c1d2fd153
+  cost {3}{W}{W}
+  type Creature — Elephant Cleric
+  pt 3/3
+  activated {W}, {T}: tap target creature
+}

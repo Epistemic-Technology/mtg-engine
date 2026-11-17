@@ -1,0 +1,6 @@
+card "Gutter Skulk" {
+  oracle_id 1e775053-ab50-4cf7-8eef-e19a6eb79e1b
+  cost {1}{B}
+  type Creature — Zombie Rat
+  pt 2/2
+}

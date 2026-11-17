@@ -1,0 +1,6 @@
+card "Izzet Guildgate" {
+  oracle_id bf75a3d1-f184-4b48-a913-21caee1db084
+  type Land — Gate
+  enters tapped
+  mana {U} or {R}
+}

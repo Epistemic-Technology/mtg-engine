@@ -1,0 +1,7 @@
+card "Viashino Lashclaw" {
+  oracle_id 02358f98-99d5-45a3-b7e3-f2cbf08fa52c
+  cost {1}{R}
+  type Creature — Lizard Warrior
+  pt 2/2
+  activated {T}, discard 1 card: each creature you control gains haste
+}

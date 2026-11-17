@@ -1,0 +1,6 @@
+card "Bane Alley Blackguard" {
+  oracle_id 1134eea5-e931-4cb2-9e30-64c227386d43
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 1/3
+}

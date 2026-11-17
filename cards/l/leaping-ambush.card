@@ -1,0 +1,6 @@
+card "Leaping Ambush" {
+  oracle_id e920c955-66f5-4c6e-a2a8-8b282f9e456e
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+3 and gains reach; untap target 1
+}

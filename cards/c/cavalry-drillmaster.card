@@ -1,0 +1,7 @@
+card "Cavalry Drillmaster" {
+  oracle_id d89bbfe7-e7ef-4f1c-a6b5-6d8ef4079daa
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/1
+  triggered when this enters: target creature gets +2/+0 and gains first strike
+}

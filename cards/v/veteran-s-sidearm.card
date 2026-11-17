@@ -1,0 +1,7 @@
+card "Veteran's Sidearm" {
+  oracle_id f038c11e-b070-40fd-9d0f-e031f7bc2bd2
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1
+  equip {1}
+}

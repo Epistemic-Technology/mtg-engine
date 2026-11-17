@@ -1,0 +1,7 @@
+card "Swashbuckling" {
+  oracle_id 4992144f-7a36-4f30-9e8a-4355288b50c5
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has haste
+}

@@ -1,0 +1,7 @@
+card "One With the Wind" {
+  oracle_id 9203bee0-718a-4ede-9556-5521417c4080
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has flying
+}

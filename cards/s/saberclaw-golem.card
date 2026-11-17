@@ -1,0 +1,7 @@
+card "Saberclaw Golem" {
+  oracle_id 4989d38e-332f-48f5-863b-1566921156c8
+  cost {5}
+  type Artifact Creature — Golem
+  pt 4/2
+  activated {R}: this gains first strike
+}

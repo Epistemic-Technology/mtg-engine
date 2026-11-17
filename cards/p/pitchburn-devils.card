@@ -1,0 +1,7 @@
+card "Pitchburn Devils" {
+  oracle_id 86e2bbdd-a788-4f76-9ebb-ef48d9bc9dcf
+  cost {4}{R}
+  type Creature — Devil
+  pt 3/3
+  triggered when this dies: deal 3 damage to any target
+}

@@ -1,0 +1,6 @@
+card "Phyrexian Hulk" {
+  oracle_id a16509da-ad46-4ee3-86f3-06c521c23481
+  cost {6}
+  type Artifact Creature — Phyrexian Golem
+  pt 5/4
+}

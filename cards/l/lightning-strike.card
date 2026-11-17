@@ -1,0 +1,6 @@
+card "Lightning Strike" {
+  oracle_id f34b9bc4-7bfe-47fd-ba23-4eeeb46026eb
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to any target
+}

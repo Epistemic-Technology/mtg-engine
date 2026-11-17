@@ -1,0 +1,6 @@
+card "Revoke Existence" {
+  oracle_id 289e1a7c-b301-4395-baf8-e9a1c6d38aab
+  cost {1}{W}
+  type Sorcery
+  spell: exile target artifact or enchantment
+}

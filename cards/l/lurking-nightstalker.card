@@ -1,0 +1,7 @@
+card "Lurking Nightstalker" {
+  oracle_id 8c17f48b-467e-4953-85d0-221cef5b3bff
+  cost {B}{B}
+  type Creature — Nightstalker
+  pt 1/1
+  triggered whenever this attacks: this gets +2/+0
+}

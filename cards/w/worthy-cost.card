@@ -1,0 +1,7 @@
+card "Worthy Cost" {
+  oracle_id 0f8ebf11-b5ec-4f21-8c49-90d569b5a4c5
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: exile target creature or planeswalker
+}

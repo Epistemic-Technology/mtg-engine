@@ -1,0 +1,6 @@
+card "Zephyr Charge" {
+  oracle_id 576128ba-28aa-4ef9-9e72-8ca13f42c9b4
+  cost {1}{U}
+  type Enchantment
+  activated {1}{U}: target creature gains flying
+}

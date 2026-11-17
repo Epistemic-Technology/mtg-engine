@@ -1,0 +1,7 @@
+card "Oran-Rief Invoker" {
+  oracle_id c5dcab94-f4c0-4e5e-ad99-7b3871be6e89
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {8}: this gets +5/+5 and gains trample
+}

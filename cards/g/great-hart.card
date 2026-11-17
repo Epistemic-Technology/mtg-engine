@@ -1,0 +1,6 @@
+card "Great Hart" {
+  oracle_id 694afc0a-bb32-4f24-9347-66665117ac9f
+  cost {3}{W}
+  type Creature — Elk
+  pt 2/4
+}

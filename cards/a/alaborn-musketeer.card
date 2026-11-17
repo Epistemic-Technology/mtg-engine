@@ -1,0 +1,7 @@
+card "Alaborn Musketeer" {
+  oracle_id 61daa88d-fca4-4019-97f3-568346157ba6
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  keywords reach
+}

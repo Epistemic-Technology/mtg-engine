@@ -1,0 +1,6 @@
+card "Catacomb Crocodile" {
+  oracle_id edc52483-19c7-4d3a-8915-6b1f41b2d6e5
+  cost {4}{B}
+  type Creature — Crocodile
+  pt 3/7
+}

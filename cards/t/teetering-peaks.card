@@ -1,0 +1,7 @@
+card "Teetering Peaks" {
+  oracle_id 4a9437a6-4e61-48b6-8194-1c6ba6432250
+  type Land
+  enters tapped
+  triggered when this enters: target creature gets +2/+0
+  mana {R}
+}

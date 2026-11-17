@@ -1,0 +1,6 @@
+card "Grizzled Leotau" {
+  oracle_id 59edd0e7-37c2-45f9-9f9d-8002be459662
+  cost {G}{W}
+  type Creature — Cat
+  pt 1/5
+}

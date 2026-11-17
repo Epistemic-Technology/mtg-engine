@@ -1,0 +1,6 @@
+card "Flameborn Viron" {
+  oracle_id 3fd2651d-89fb-4bd1-af4a-f7eae7ef9fd2
+  cost {4}{R}{R}
+  type Creature — Phyrexian Insect
+  pt 6/4
+}

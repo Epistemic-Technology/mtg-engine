@@ -1,0 +1,8 @@
+card "Viashino Firstblade" {
+  oracle_id 766e277c-983e-488c-a885-c03c3c0d3357
+  cost {1}{R}{W}
+  type Creature — Lizard Soldier
+  pt 2/2
+  keywords haste
+  triggered when this enters: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Unstable Obelisk" {
+  oracle_id 060ae1bb-956a-4264-b405-a33151f31493
+  cost {3}
+  type Artifact
+  mana {C}
+  activated {7}, {T}, sacrifice this: destroy target permanent
+}

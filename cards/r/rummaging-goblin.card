@@ -1,0 +1,7 @@
+card "Rummaging Goblin" {
+  oracle_id 2055eb91-ee36-4752-a6dc-581eaef335c8
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  activated {T}, discard 1 card: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Tranquil Cove" {
+  oracle_id 5d641bf6-0f93-4189-8dc1-ec7ea446dade
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {W} or {U}
+}

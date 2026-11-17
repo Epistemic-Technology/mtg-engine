@@ -1,0 +1,8 @@
+card "Primordial Pachyderm" {
+  oracle_id 5ebdc1a5-e678-444b-abb8-8753558a39de
+  cost {3}{G}
+  type Creature — Elephant Avatar
+  pt 4/4
+  keywords reach, trample
+  triggered when this enters: you gains 2 life
+}

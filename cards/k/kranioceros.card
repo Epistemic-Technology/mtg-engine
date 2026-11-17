@@ -1,0 +1,7 @@
+card "Kranioceros" {
+  oracle_id c66342bb-bbc1-4aaf-8d99-0af68292081e
+  cost {4}{R}
+  type Creature — Beast
+  pt 5/2
+  activated {1}{W}: this gets +0/+3
+}

@@ -1,0 +1,7 @@
+card "Bogardan Firefiend" {
+  oracle_id 1d61f3a7-5861-479b-8312-f2d308c35b68
+  cost {2}{R}
+  type Creature — Elemental Spirit
+  pt 2/1
+  triggered when this dies: deal 2 damage to target creature
+}

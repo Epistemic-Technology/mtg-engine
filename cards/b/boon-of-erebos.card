@@ -1,0 +1,6 @@
+card "Boon of Erebos" {
+  oracle_id 55821968-baf2-4fa6-8376-9ec305e27b3b
+  cost {B}
+  type Instant
+  spell: target creature gets +2/+0; regenerate target 1; you loses 2 life
+}

@@ -1,0 +1,6 @@
+card "Flowstone Strike" {
+  oracle_id d67048eb-eaf1-4b5b-a8e3-a004bab438f3
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +1/-1 and gains haste
+}

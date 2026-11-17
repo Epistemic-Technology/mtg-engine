@@ -1,0 +1,8 @@
+card "Soldier of the Grey Host" {
+  oracle_id a04c6059-d9e2-4b2b-9db5-f936d69da4d4
+  cost {3}{W}
+  type Creature — Spirit Soldier
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: target creature gets +2/+0
+}

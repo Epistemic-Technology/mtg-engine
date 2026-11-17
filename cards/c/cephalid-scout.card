@@ -1,0 +1,8 @@
+card "Cephalid Scout" {
+  oracle_id 0ee042ce-7cb2-47a8-9a48-6ffc07ba07b3
+  cost {1}{U}
+  type Creature — Octopus Wizard Scout
+  pt 1/1
+  keywords flying
+  activated {2}{U}, sacrifice land: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "+2 Mace" {
+  oracle_id 629fe1be-272d-465f-b9b1-2ce177410f13
+  cost {1}{W}
+  type Artifact — Equipment
+  static enchanted: +2/+2
+  equip {3}
+}

@@ -1,0 +1,8 @@
+card "Bogardan Rager" {
+  oracle_id abbbfc22-18cc-4799-b02c-190173936872
+  cost {5}{R}
+  type Creature — Elemental
+  pt 3/4
+  keywords flash
+  triggered when this enters: target creature gets +4/+0
+}

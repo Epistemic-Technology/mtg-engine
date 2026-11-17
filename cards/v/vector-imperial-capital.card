@@ -1,0 +1,6 @@
+card "Vector, Imperial Capital" {
+  oracle_id 8dcba63c-4701-4dc9-81f5-ca8e8933a3ba
+  type Land — Town
+  enters tapped
+  mana {B} or {R}
+}

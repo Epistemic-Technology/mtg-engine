@@ -1,0 +1,8 @@
+card "Wake of Vultures" {
+  oracle_id 2948b1d5-c12c-45c4-a3e8-aa470fcee1af
+  cost {3}{B}
+  type Creature — Bird
+  pt 3/1
+  keywords flying
+  activated {1}{B}, sacrifice creature: regenerate this
+}

@@ -1,0 +1,6 @@
+card "Explosive Shot" {
+  oracle_id a6081d17-599b-4fd2-bd68-55eca939213a
+  cost {1}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature
+}

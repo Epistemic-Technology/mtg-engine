@@ -1,0 +1,6 @@
+card "Nyxborn Colossus" {
+  oracle_id 4a74cccb-5d75-4362-9c9e-2622096544fe
+  cost {3}{G}{G}{G}
+  type Enchantment Creature — Giant
+  pt 6/7
+}

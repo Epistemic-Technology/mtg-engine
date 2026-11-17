@@ -1,0 +1,7 @@
+card "Tundra Wolves" {
+  oracle_id 2155864e-5788-4e72-a800-e2cf25cf59a7
+  cost {W}
+  type Creature — Wolf
+  pt 1/1
+  keywords first strike
+}

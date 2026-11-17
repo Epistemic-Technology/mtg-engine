@@ -1,0 +1,7 @@
+card "Fang of Shigeki" {
+  oracle_id 9e187d43-ae75-4589-81fc-476ae95ba5b9
+  cost {G}
+  type Enchantment Creature — Snake Ninja
+  pt 1/1
+  keywords deathtouch
+}

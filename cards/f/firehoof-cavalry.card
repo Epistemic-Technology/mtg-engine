@@ -1,0 +1,7 @@
+card "Firehoof Cavalry" {
+  oracle_id 487de0df-0496-4b5d-8050-27b8e617582b
+  cost {W}
+  type Creature — Human Berserker
+  pt 1/1
+  activated {3}{R}: this gets +2/+0 and gains trample
+}

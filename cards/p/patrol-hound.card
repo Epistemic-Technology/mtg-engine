@@ -1,0 +1,7 @@
+card "Patrol Hound" {
+  oracle_id 115dabbd-1a09-4641-a428-92fcbfd82ae9
+  cost {1}{W}
+  type Creature — Dog
+  pt 2/2
+  activated discard 1 card: this gains first strike
+}

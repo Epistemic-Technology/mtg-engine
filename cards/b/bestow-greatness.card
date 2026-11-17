@@ -1,0 +1,6 @@
+card "Bestow Greatness" {
+  oracle_id 58a17110-b2a7-4dbc-bba5-5ed3728ad261
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +4/+4 and gains trample
+}

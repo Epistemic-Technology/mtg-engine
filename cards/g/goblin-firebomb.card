@@ -1,0 +1,7 @@
+card "Goblin Firebomb" {
+  oracle_id 2625fa9c-638c-46d3-966b-1166f440186f
+  cost {1}
+  type Artifact
+  keywords flash
+  activated {7}, {T}, sacrifice this: destroy target permanent
+}

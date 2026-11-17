@@ -1,0 +1,6 @@
+card "Elven Lyre" {
+  oracle_id 7601378d-42cb-4351-8316-8f78a3b49a85
+  cost {2}
+  type Artifact
+  activated {1}, {T}, sacrifice this: target creature gets +2/+2
+}

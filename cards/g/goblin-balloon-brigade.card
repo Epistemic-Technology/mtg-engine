@@ -1,0 +1,7 @@
+card "Goblin Balloon Brigade" {
+  oracle_id 10bc98b0-3fdc-46d1-8d3b-6d160e9dd62f
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {R}: this gains flying
+}

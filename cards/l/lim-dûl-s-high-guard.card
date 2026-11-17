@@ -1,0 +1,8 @@
+card "Lim-Dûl's High Guard" {
+  oracle_id b0873be6-0b77-4ca4-8c45-a1207b184771
+  cost {1}{B}{B}
+  type Creature — Skeleton
+  pt 2/1
+  keywords first strike
+  activated {1}{B}: regenerate this
+}

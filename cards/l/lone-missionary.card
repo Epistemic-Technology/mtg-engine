@@ -1,0 +1,7 @@
+card "Lone Missionary" {
+  oracle_id 626f1dc3-3b14-4873-902f-ffec5487a97d
+  cost {1}{W}
+  type Creature — Kor Monk
+  pt 2/1
+  triggered when this enters: you gains 4 life
+}

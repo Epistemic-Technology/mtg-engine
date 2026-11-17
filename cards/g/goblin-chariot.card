@@ -1,0 +1,7 @@
+card "Goblin Chariot" {
+  oracle_id 6ef0dd51-31df-4fd3-8153-49a427a7fdcf
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  keywords haste
+}

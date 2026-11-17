@@ -1,0 +1,7 @@
+card "Segovian Angel" {
+  oracle_id 50372c54-359c-4ee6-9e21-1e40ba53652d
+  cost {W}
+  type Creature — Angel
+  pt 1/1
+  keywords flying, vigilance
+}

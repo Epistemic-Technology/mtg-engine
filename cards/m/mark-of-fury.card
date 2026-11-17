@@ -1,0 +1,8 @@
+card "Mark of Fury" {
+  oracle_id 1c350891-8810-4c14-b8ea-84486864637b
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has haste
+  triggered at beginning of each end step: return this to hand
+}

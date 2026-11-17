@@ -1,0 +1,7 @@
+card "Sentinel Spider" {
+  oracle_id a37c9b13-dc45-4b55-a63d-5314abde7aab
+  cost {3}{G}{G}
+  type Creature — Spider
+  pt 4/4
+  keywords reach, vigilance
+}

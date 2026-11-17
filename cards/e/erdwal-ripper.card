@@ -1,0 +1,8 @@
+card "Erdwal Ripper" {
+  oracle_id 6a207599-188f-49fc-8932-1974fc716f0b
+  cost {1}{R}{R}
+  type Creature — Vampire
+  pt 2/1
+  keywords haste
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

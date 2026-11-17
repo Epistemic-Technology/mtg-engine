@@ -1,0 +1,7 @@
+card "Territorial Roc" {
+  oracle_id adb5883d-44cc-455e-94dc-20e1c1f97d68
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/3
+  keywords flying
+}

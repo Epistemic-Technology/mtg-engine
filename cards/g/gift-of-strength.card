@@ -1,0 +1,6 @@
+card "Gift of Strength" {
+  oracle_id fe971240-268a-47d4-a14e-3d6352656091
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3 and gains reach
+}

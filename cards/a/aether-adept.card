@@ -1,0 +1,7 @@
+card "Aether Adept" {
+  oracle_id e076067c-77b7-4a37-a62d-51434392dd53
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: return target creature to hand
+}

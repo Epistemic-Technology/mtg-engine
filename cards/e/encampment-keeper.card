@@ -1,0 +1,8 @@
+card "Encampment Keeper" {
+  oracle_id 86f2890d-3e5a-48db-bb22-a6cb8cbd39ce
+  cost {W}
+  type Creature — Dog
+  pt 1/1
+  keywords first strike
+  activated {7}{W}, {T}, sacrifice this: each creature you control gets +2/+2
+}

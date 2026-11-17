@@ -1,0 +1,8 @@
+card "Vine Trellis" {
+  oracle_id 57de8fe7-3d1b-41cd-8354-38aff3d2d052
+  cost {1}{G}
+  type Creature — Plant Wall
+  pt 0/4
+  keywords defender
+  mana {G}
+}

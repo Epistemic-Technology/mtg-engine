@@ -1,0 +1,7 @@
+card "Keen Glidemaster" {
+  oracle_id 98deac9e-28ea-4d11-8d75-833bf6d66e6e
+  cost {1}{U}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {2}{U}: target creature gains flying
+}

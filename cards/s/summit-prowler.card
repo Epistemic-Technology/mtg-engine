@@ -1,0 +1,6 @@
+card "Summit Prowler" {
+  oracle_id c63a9a3d-13df-4a94-a8e1-18071c351a8d
+  cost {2}{R}{R}
+  type Creature — Yeti
+  pt 4/3
+}

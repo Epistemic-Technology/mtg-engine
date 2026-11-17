@@ -1,0 +1,6 @@
+card "Breath of Malfegor" {
+  oracle_id 81e6ade9-a38f-4655-b09c-9ca41a11face
+  cost {3}{B}{R}
+  type Instant
+  spell: deal 5 damage to each opponent
+}

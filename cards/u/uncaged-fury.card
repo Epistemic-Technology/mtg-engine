@@ -1,0 +1,6 @@
+card "Uncaged Fury" {
+  oracle_id 7aac51ef-ae03-4a9e-9a48-46223787f291
+  cost {2}{R}
+  type Instant
+  spell: target creature gets +1/+1 and gains double strike
+}

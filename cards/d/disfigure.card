@@ -1,0 +1,6 @@
+card "Disfigure" {
+  oracle_id 77eafe49-b9c5-461d-89c5-cec217dd2974
+  cost {B}
+  type Instant
+  spell: target creature gets -2/-2
+}

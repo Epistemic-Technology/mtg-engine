@@ -1,0 +1,7 @@
+card "Essence Warden" {
+  oracle_id 6ca2a89e-7032-4864-b4e9-66f3178f90ab
+  cost {G}
+  type Creature — Elf Shaman
+  pt 1/1
+  triggered whenever other creature enters: you gains 1 life
+}

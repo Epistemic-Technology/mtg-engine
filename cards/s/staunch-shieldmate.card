@@ -1,0 +1,6 @@
+card "Staunch Shieldmate" {
+  oracle_id 0a1a0911-dcd5-4a2f-8deb-abb5b273b0fb
+  cost {W}
+  type Creature — Dwarf Soldier
+  pt 1/3
+}

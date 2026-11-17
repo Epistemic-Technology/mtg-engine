@@ -1,0 +1,7 @@
+card "Deadly Recluse" {
+  oracle_id 6b941291-1802-4ced-9869-39fa43825550
+  cost {1}{G}
+  type Creature — Spider
+  pt 1/2
+  keywords reach, deathtouch
+}

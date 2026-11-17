@@ -1,0 +1,7 @@
+card "Jungle Hollow" {
+  oracle_id 6de714e1-446d-4fb9-9e3d-bcd3ec6af9ca
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {B} or {G}
+}

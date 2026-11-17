@@ -1,0 +1,6 @@
+card "Barony Vampire" {
+  oracle_id e886756a-298d-4f79-8699-8bfc9345352e
+  cost {2}{B}
+  type Creature — Vampire
+  pt 3/2
+}

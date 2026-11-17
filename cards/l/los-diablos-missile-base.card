@@ -1,0 +1,7 @@
+card "Los Diablos Missile Base" {
+  oracle_id 4b17048f-8c7f-4e29-8f56-16db4c2106e6
+  type Land
+  enters tapped
+  triggered when this enters: you gains 1 life
+  mana {R} or {G}
+}

@@ -1,0 +1,6 @@
+card "Death Stroke" {
+  oracle_id 3ebaa91f-5cbf-4a82-9759-9bd4d93a3e87
+  cost {B}{B}
+  type Sorcery
+  spell: destroy target tapped creature
+}

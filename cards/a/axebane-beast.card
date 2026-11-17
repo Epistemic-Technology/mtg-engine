@@ -1,0 +1,6 @@
+card "Axebane Beast" {
+  oracle_id 8f1d5c8d-98e1-47b7-8347-38887253e34a
+  cost {3}{G}
+  type Creature — Beast
+  pt 3/4
+}

@@ -1,0 +1,6 @@
+card "Unnatural Speed" {
+  oracle_id fa46ced5-b701-4aa3-b4a1-36fb15b80696
+  cost {R}
+  type Instant — Arcane
+  spell: target creature gains haste
+}

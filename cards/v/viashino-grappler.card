@@ -1,0 +1,7 @@
+card "Viashino Grappler" {
+  oracle_id 74c5bfb0-1375-46e9-9a6c-1b9fada2913b
+  cost {2}{R}
+  type Creature — Lizard
+  pt 3/1
+  activated {G}: this gains trample
+}

@@ -1,0 +1,8 @@
+card "Moonwing Moth" {
+  oracle_id 6501b3c7-fd21-4668-b647-db12f0cc23f7
+  cost {1}{W}{W}
+  type Creature — Insect
+  pt 2/1
+  keywords flying
+  activated {W}: this gets +0/+1
+}

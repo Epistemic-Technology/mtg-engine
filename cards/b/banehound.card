@@ -1,0 +1,7 @@
+card "Banehound" {
+  oracle_id 63d846e2-4bef-4911-9508-273c75a4a040
+  cost {B}
+  type Creature — Nightmare Dog
+  pt 1/1
+  keywords lifelink, haste
+}

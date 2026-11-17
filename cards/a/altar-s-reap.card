@@ -1,0 +1,7 @@
+card "Altar's Reap" {
+  oracle_id 6a125750-2b8c-4f9d-8173-ac8d14c91ddb
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice creature
+  spell: draw 2 cards
+}

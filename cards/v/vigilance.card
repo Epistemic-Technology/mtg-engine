@@ -1,0 +1,7 @@
+card "Vigilance" {
+  oracle_id 70570170-be76-4c56-9151-c4b6e253f462
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has vigilance
+}

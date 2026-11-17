@@ -1,0 +1,7 @@
+card "Ivy Elemental" {
+  oracle_id 38517711-e570-4337-b269-addcf8bfdd74
+  cost {X}{G}
+  type Creature — Elemental
+  pt 0/0
+  enters with X +1/+1 counters
+}

@@ -1,0 +1,6 @@
+card "Stabbing Pain" {
+  oracle_id 604ad5b3-7f11-455e-9442-65b7484238e5
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1; tap that creature
+}

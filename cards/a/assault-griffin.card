@@ -1,0 +1,7 @@
+card "Assault Griffin" {
+  oracle_id 802b9333-c256-410a-a635-a22bfeda679f
+  cost {3}{W}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+}

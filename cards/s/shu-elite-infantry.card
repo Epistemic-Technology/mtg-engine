@@ -1,0 +1,6 @@
+card "Shu Elite Infantry" {
+  oracle_id 806b4f0c-f577-4d7f-b826-09e4479c314e
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/3
+}

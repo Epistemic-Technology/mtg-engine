@@ -1,0 +1,6 @@
+card "Aerial Maneuver" {
+  oracle_id d4ccc319-db23-4ef4-8129-317426f3a794
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +1/+1 and gains flying, first strike
+}

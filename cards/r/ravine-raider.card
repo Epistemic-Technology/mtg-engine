@@ -1,0 +1,8 @@
+card "Ravine Raider" {
+  oracle_id 4c2e84dc-b4f5-4eca-af07-1c53a1caae7c
+  cost {B}
+  type Creature — Lizard Rogue
+  pt 1/1
+  keywords menace
+  activated {1}{B}: this gets +1/+1
+}

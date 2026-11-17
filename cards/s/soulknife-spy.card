@@ -1,0 +1,7 @@
+card "Soulknife Spy" {
+  oracle_id 813c0654-7e3b-435b-b7a5-148f0c36a4be
+  cost {2}{U}
+  type Creature — Elf Rogue
+  pt 3/2
+  triggered whenever this deals combat damage to a player: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Desperate Bloodseeker" {
+  oracle_id de8d7cad-02c7-43f1-896e-eaa73f016ada
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/2
+  keywords lifelink
+  triggered when this enters: target player mills 2 cards
+}

@@ -1,0 +1,8 @@
+card "Tower Drake" {
+  oracle_id 4fee183e-973e-4be7-bb68-3e1c0c6bfb5b
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  activated {W}: this gets +0/+1
+}

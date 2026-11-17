@@ -1,0 +1,8 @@
+card "Aven Fogbringer" {
+  oracle_id 3fb3d4b3-1034-449c-864b-633e7f39d73f
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 2/1
+  keywords flying
+  triggered when this enters: return target land to hand
+}

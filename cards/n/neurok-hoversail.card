@@ -1,0 +1,7 @@
+card "Neurok Hoversail" {
+  oracle_id 3cc02a23-93b7-445a-9c3e-0e4942ef927b
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has flying
+  equip {2}
+}

@@ -1,0 +1,6 @@
+card "Dwarven Trader" {
+  oracle_id b40c5f3e-7080-4828-9215-79727c7a911f
+  cost {R}
+  type Creature — Dwarf
+  pt 1/1
+}

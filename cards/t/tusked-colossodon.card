@@ -1,0 +1,6 @@
+card "Tusked Colossodon" {
+  oracle_id bba11c0e-01a3-45ad-8de4-2148cf660ba8
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 6/5
+}

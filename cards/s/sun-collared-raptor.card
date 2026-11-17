@@ -1,0 +1,8 @@
+card "Sun-Collared Raptor" {
+  oracle_id 9debaed0-b605-4778-9977-216d194ecdeb
+  cost {1}{R}
+  type Creature — Dinosaur
+  pt 1/2
+  keywords trample
+  activated {2}{R}: this gets +3/+0
+}

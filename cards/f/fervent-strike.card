@@ -1,0 +1,6 @@
+card "Fervent Strike" {
+  oracle_id 35efb1e6-6be2-4a38-969a-199524d48e02
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and gains first strike, haste
+}

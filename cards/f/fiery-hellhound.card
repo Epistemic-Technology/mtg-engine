@@ -1,0 +1,7 @@
+card "Fiery Hellhound" {
+  oracle_id ab71c8ba-c7ac-4ad2-a6db-29d903bbca78
+  cost {1}{R}{R}
+  type Creature — Elemental Dog
+  pt 2/2
+  activated {R}: this gets +1/+0
+}

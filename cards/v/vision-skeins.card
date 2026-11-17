@@ -1,0 +1,6 @@
+card "Vision Skeins" {
+  oracle_id 6d42dff5-97ec-4768-b112-84a3584d0b87
+  cost {1}{U}
+  type Instant
+  spell: each player draws 2 cards
+}

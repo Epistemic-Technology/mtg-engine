@@ -1,0 +1,7 @@
+card "Bloodfire Expert" {
+  oracle_id 341cf654-faf7-4db9-bd9a-70783f1ccff0
+  cost {2}{R}
+  type Creature — Efreet Monk
+  pt 3/1
+  keywords prowess
+}

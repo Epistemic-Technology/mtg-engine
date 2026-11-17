@@ -1,0 +1,7 @@
+card "Eagle of the Watch" {
+  oracle_id 954836f8-c225-450a-bb51-f2adb6923ef5
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/1
+  keywords flying, vigilance
+}

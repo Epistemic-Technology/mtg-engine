@@ -1,0 +1,8 @@
+card "Chosen by Heliod" {
+  oracle_id f6475b40-e694-4aac-a25c-bbd48d45127d
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: +0/+2
+}

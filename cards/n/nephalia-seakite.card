@@ -1,0 +1,7 @@
+card "Nephalia Seakite" {
+  oracle_id 379ef166-a29f-4715-8ce4-9d7d567e4e91
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/3
+  keywords flash, flying
+}

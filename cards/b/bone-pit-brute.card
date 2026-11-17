@@ -1,0 +1,8 @@
+card "Bone Pit Brute" {
+  oracle_id 6de38910-8d0d-4fac-b9db-c80ffd1850ea
+  cost {4}{R}{R}
+  type Creature — Cyclops
+  pt 4/5
+  keywords menace
+  triggered when this enters: target creature gets +4/+0
+}

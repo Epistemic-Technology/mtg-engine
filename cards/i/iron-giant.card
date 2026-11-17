@@ -1,0 +1,7 @@
+card "Iron Giant" {
+  oracle_id 325b4288-fe1b-4e29-ae13-72924b4db3dd
+  cost {7}
+  type Artifact Creature — Demon
+  pt 6/6
+  keywords reach, vigilance, trample
+}

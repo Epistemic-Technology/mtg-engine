@@ -1,0 +1,6 @@
+card "Squee's Toy" {
+  oracle_id d0e33a3f-659a-4889-98f6-d0f385e259f1
+  cost {1}
+  type Artifact
+  activated {T}: prevent next 1 damage to target creature this turn
+}

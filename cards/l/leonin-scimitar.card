@@ -1,0 +1,7 @@
+card "Leonin Scimitar" {
+  oracle_id cde26d69-f3e7-4dd0-a53b-cd0ec812d717
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +1/+1
+  equip {1}
+}

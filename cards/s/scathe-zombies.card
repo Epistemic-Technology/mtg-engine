@@ -1,0 +1,6 @@
+card "Scathe Zombies" {
+  oracle_id e0fefaf0-da20-4d58-8db7-019dba16c780
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+}

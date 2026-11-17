@@ -1,0 +1,7 @@
+card "Ornithopter" {
+  oracle_id a3a98bc9-caa0-49b7-951c-fe4e4f54e4ba
+  cost {0}
+  type Artifact Creature — Thopter
+  pt 0/2
+  keywords flying
+}

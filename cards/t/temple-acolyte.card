@@ -1,0 +1,7 @@
+card "Temple Acolyte" {
+  oracle_id 17e4085e-af44-4ba8-af05-ccfe4b35f96a
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered when this enters: you gains 3 life
+}

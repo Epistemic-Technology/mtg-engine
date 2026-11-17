@@ -1,0 +1,7 @@
+card "Stomper Cub" {
+  oracle_id 9d448c85-9c93-4e9e-8aa0-0035fc94112e
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 5/3
+  keywords trample
+}

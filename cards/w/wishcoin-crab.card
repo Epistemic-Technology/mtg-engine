@@ -1,0 +1,6 @@
+card "Wishcoin Crab" {
+  oracle_id abc519b8-82de-4559-be03-ddb1ddaab993
+  cost {3}{U}
+  type Creature — Crab
+  pt 2/5
+}

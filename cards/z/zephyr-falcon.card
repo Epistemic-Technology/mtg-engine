@@ -1,0 +1,7 @@
+card "Zephyr Falcon" {
+  oracle_id b5e44bd6-0b67-4770-868d-c46af5b6a42f
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, vigilance
+}

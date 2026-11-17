@@ -1,0 +1,6 @@
+card "Vault Skyward" {
+  oracle_id e2a32a0f-bf06-4cb3-a704-ff0f783f19e4
+  cost {U}
+  type Instant
+  spell: target creature gains flying; untap target 1
+}

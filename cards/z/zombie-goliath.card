@@ -1,0 +1,6 @@
+card "Zombie Goliath" {
+  oracle_id eadd88b6-e75a-4482-8382-561718121772
+  cost {4}{B}
+  type Creature — Zombie Giant
+  pt 4/3
+}

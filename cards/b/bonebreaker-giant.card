@@ -1,0 +1,6 @@
+card "Bonebreaker Giant" {
+  oracle_id 69166587-3db4-4eb0-b153-b75021be9a36
+  cost {4}{R}
+  type Creature — Giant
+  pt 4/4
+}

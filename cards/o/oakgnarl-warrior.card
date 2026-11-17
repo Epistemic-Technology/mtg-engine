@@ -1,0 +1,7 @@
+card "Oakgnarl Warrior" {
+  oracle_id 5cafdf77-5500-4471-a848-89863eea2a35
+  cost {5}{G}{G}
+  type Creature — Treefolk Warrior
+  pt 5/7
+  keywords vigilance, trample
+}

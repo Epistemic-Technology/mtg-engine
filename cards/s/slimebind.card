@@ -1,0 +1,8 @@
+card "Slimebind" {
+  oracle_id 87aa2cbe-841c-40ff-9b1c-b259b4cc631e
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -4/-0
+}

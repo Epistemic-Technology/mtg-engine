@@ -1,0 +1,8 @@
+card "Aven Fisher" {
+  oracle_id 69a72414-d02f-4a5c-b5c9-8941bb181f61
+  cost {3}{U}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  triggered when this dies: you may draw 1 cards
+}

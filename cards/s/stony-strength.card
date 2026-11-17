@@ -1,0 +1,6 @@
+card "Stony Strength" {
+  oracle_id da5a7cb8-1fa7-4b91-abd4-9e766291be63
+  cost {G}
+  type Instant
+  spell: put 1 +1/+1 counters on target creature you control; untap that creature
+}

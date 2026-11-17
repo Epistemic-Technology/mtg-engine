@@ -1,0 +1,6 @@
+card "Jibbirik Omnivore" {
+  oracle_id 9cda6cb8-c254-413a-babd-0e24e7b89cc4
+  cost {1}{G}
+  type Creature — Beast
+  pt 3/2
+}

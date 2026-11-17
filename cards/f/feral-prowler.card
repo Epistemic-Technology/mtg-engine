@@ -1,0 +1,7 @@
+card "Feral Prowler" {
+  oracle_id 5bebba2d-867f-4ed1-a308-904fac32c8b6
+  cost {1}{G}
+  type Creature — Cat
+  pt 1/3
+  triggered when this dies: draw 1 cards
+}

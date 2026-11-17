@@ -1,0 +1,8 @@
+card "Almighty Brushwagg" {
+  oracle_id d8a3a89d-9d27-40ae-a1aa-d55cc6a79b0b
+  cost {G}
+  type Creature — Brushwagg
+  pt 1/1
+  keywords trample
+  activated {3}{G}: this gets +3/+3
+}

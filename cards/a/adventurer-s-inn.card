@@ -1,0 +1,6 @@
+card "Adventurer's Inn" {
+  oracle_id 232bd88c-ecdb-43dd-b34a-d381cb3bedf2
+  type Land — Town
+  triggered when this enters: you gains 2 life
+  mana {C}
+}

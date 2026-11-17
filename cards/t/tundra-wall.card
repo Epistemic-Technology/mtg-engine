@@ -1,0 +1,7 @@
+card "Tundra Wall" {
+  oracle_id 68df4c46-513a-4d75-9d4b-ac95d45be255
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+}

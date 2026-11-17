@@ -1,0 +1,6 @@
+card "Moss Monster" {
+  oracle_id 60efa8a2-6903-4756-92fd-29f6ba6ef67a
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 3/6
+}

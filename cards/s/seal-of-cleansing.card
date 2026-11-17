@@ -1,0 +1,6 @@
+card "Seal of Cleansing" {
+  oracle_id a75dbe70-7e3e-446f-9a76-9fbb414f2e7c
+  cost {1}{W}
+  type Enchantment
+  activated sacrifice this: destroy target artifact or enchantment
+}

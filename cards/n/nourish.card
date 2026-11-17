@@ -1,0 +1,6 @@
+card "Nourish" {
+  oracle_id 9d5e82d3-79ac-4dbe-80e8-1db6dd6c8767
+  cost {G}{G}
+  type Instant
+  spell: you gains 6 life
+}

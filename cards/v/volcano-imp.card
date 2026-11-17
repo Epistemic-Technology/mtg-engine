@@ -1,0 +1,8 @@
+card "Volcano Imp" {
+  oracle_id d2b1b4dd-e860-40d8-8e07-1dee5be65bc4
+  cost {3}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying
+  activated {1}{R}: this gains first strike
+}

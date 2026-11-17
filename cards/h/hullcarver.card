@@ -1,0 +1,7 @@
+card "Hullcarver" {
+  oracle_id 931c2153-e5e5-4642-bff0-f9dadcc24c9a
+  cost {B}
+  type Artifact Creature — Robot Assassin
+  pt 1/1
+  keywords deathtouch
+}

@@ -1,0 +1,7 @@
+card "Umara Entangler" {
+  oracle_id d32cf19d-a974-4161-851d-dcbf37069e26
+  cost {1}{U}
+  type Creature — Merfolk Rogue Ally
+  pt 2/1
+  keywords prowess
+}

@@ -1,0 +1,7 @@
+card "Duskdale Wurm" {
+  oracle_id aba4e290-b597-4c93-b3dd-745ca45ad72d
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  keywords trample
+}

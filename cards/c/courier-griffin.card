@@ -1,0 +1,8 @@
+card "Courier Griffin" {
+  oracle_id 2bb0a5e3-ccb0-4f87-b021-e60ebfa35b2b
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/3
+  keywords flying
+  triggered when this enters: you gains 2 life
+}

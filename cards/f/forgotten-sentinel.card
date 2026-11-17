@@ -1,0 +1,7 @@
+card "Forgotten Sentinel" {
+  oracle_id 9bd4a0bd-d10c-434a-8254-89f38740aafd
+  cost {4}
+  type Artifact Creature — Golem
+  pt 4/3
+  enters tapped
+}

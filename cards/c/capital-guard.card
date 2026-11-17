@@ -1,0 +1,6 @@
+card "Capital Guard" {
+  oracle_id aff20717-265d-4214-a8f5-f520bb243cb5
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 2/2
+}

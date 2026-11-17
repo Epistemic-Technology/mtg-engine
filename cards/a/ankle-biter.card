@@ -1,0 +1,7 @@
+card "Ankle Biter" {
+  oracle_id ee8f16ba-cbf0-4286-b26c-d78dd35bee17
+  cost {G}
+  type Creature — Snake
+  pt 1/1
+  keywords deathtouch
+}

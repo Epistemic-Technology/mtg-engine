@@ -1,0 +1,8 @@
+card "Lightning Diadem" {
+  oracle_id 1e4de77b-27cb-4afd-8d4b-1cc89f2a6986
+  cost {5}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: deal 2 damage to any target
+  static enchanted: +2/+2
+}

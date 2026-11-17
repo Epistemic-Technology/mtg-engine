@@ -1,0 +1,6 @@
+card "Orzhov Guildgate" {
+  oracle_id 57b37df5-fee4-4720-931f-f0cb0a8b338c
+  type Land — Gate
+  enters tapped
+  mana {W} or {B}
+}

@@ -1,0 +1,7 @@
+card "Marble Diamond" {
+  oracle_id 910488bf-66ab-415e-973b-1262b2ab7454
+  cost {2}
+  type Artifact
+  enters tapped
+  mana {W}
+}

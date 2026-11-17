@@ -1,0 +1,8 @@
+card "Seeker of the Way" {
+  oracle_id e206842f-139b-490d-bc10-d365705ac720
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/2
+  keywords prowess
+  triggered whenever you cast a noncreature spell: this gains lifelink
+}

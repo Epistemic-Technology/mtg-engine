@@ -1,0 +1,8 @@
+card "Goblin Legionnaire" {
+  oracle_id 582fdfbe-c5fe-45d0-b3ff-e66db5183725
+  cost {R}{W}
+  type Creature — Goblin Soldier
+  pt 2/2
+  activated {R}, sacrifice this: deal 2 damage to any target
+  activated {W}, sacrifice this: prevent next 2 damage to any target this turn
+}

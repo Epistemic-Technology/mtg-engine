@@ -1,0 +1,7 @@
+card "Wily Bandar" {
+  oracle_id 2b0ba5a5-649a-4d7a-8136-6bcf692337f5
+  cost {G}
+  type Creature — Cat Monkey
+  pt 1/1
+  activated {2}{G}: this gains indestructible
+}

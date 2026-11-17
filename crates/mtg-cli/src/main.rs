@@ -57,6 +57,12 @@ enum Command {
     },
     /// Re-simulate a game record (JSON) and print its event log.
     Replay { record: PathBuf },
+    /// Print a deck list: a built-in deck, or `random` / `random:<seed>`.
+    Deck {
+        name: String,
+        #[arg(long, default_value_t = 1)]
+        seed: u64,
+    },
     /// List built-in decks.
     Decks,
     /// Run scenario files (or directories of them). Defaults to the
@@ -76,6 +82,7 @@ enum Command {
     },
 }
 
+#[allow(clippy::too_many_lines)]
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
@@ -91,6 +98,20 @@ fn main() -> Result<()> {
             agent,
             seed,
         } => play::run(&deck, &opponent, &agent, seed)?,
+        Command::Deck { name, seed } => {
+            let pool = builtin_pool();
+            let Some(deck) = mtg_sim::decks::by_name_seeded(&pool, &name, seed) else {
+                bail!("unknown deck {name}");
+            };
+            let mut counts: std::collections::BTreeMap<&str, usize> =
+                std::collections::BTreeMap::new();
+            for r in &deck {
+                *counts.entry(&pool.get(*r).name).or_insert(0) += 1;
+            }
+            for (n, c) in &counts {
+                println!("{c:>2} {n}");
+            }
+        }
         Command::Sim {
             deck1,
             deck2,
@@ -101,10 +122,10 @@ fn main() -> Result<()> {
             agent2,
         } => {
             let pool = Arc::new(builtin_pool());
-            let Some(d1) = mtg_sim::decks::by_name(&pool, &deck1) else {
+            let Some(d1) = mtg_sim::decks::by_name_seeded(&pool, &deck1, seed) else {
                 bail!("unknown deck {deck1}");
             };
-            let Some(d2) = mtg_sim::decks::by_name(&pool, &deck2) else {
+            let Some(d2) = mtg_sim::decks::by_name_seeded(&pool, &deck2, seed + 1) else {
                 bail!("unknown deck {deck2}");
             };
             for a in [&agent1, &agent2] {

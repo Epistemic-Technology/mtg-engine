@@ -1,0 +1,7 @@
+card "Veteran Armorer" {
+  oracle_id 1b1214e9-1581-4008-b3d4-8b7af6b092fd
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  static other creature you control: +0/+1
+}

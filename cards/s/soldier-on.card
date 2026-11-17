@@ -1,0 +1,6 @@
+card "Soldier On" {
+  oracle_id f522e161-f249-4add-8326-b6ab0de8ba57
+  cost {2}{W}
+  type Instant
+  spell: put 2 +1/+1 counters on target creature; untap target 1
+}

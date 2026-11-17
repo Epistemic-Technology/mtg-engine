@@ -1,0 +1,6 @@
+card "Volunteer Militia" {
+  oracle_id 4f598459-b776-4ac1-bc69-8fde21674451
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+}

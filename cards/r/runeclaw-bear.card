@@ -1,0 +1,6 @@
+card "Runeclaw Bear" {
+  oracle_id ec49dfcf-d16d-4621-af4b-4a6f09043221
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+}

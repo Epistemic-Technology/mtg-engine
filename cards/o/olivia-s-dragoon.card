@@ -1,0 +1,7 @@
+card "Olivia's Dragoon" {
+  oracle_id a5019399-91a8-4233-b16f-399718c4be9c
+  cost {1}{B}
+  type Creature — Vampire Berserker
+  pt 2/2
+  activated discard 1 card: this gains flying
+}

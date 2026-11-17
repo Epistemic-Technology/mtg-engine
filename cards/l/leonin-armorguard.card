@@ -1,0 +1,7 @@
+card "Leonin Armorguard" {
+  oracle_id 9738f9b7-f281-44f6-a746-9c83380b35b7
+  cost {2}{G}{W}
+  type Creature — Cat Soldier
+  pt 3/3
+  triggered when this enters: each creature you control gets +1/+1
+}

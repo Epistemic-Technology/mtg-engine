@@ -1,0 +1,8 @@
+card "Iron Bully" {
+  oracle_id 7d78155c-c63f-48a3-86e5-12b80400d8de
+  cost {3}
+  type Artifact Creature — Golem
+  pt 1/1
+  keywords menace
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

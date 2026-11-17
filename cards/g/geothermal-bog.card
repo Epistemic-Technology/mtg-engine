@@ -1,0 +1,5 @@
+card "Geothermal Bog" {
+  oracle_id e3b67368-1dd6-419b-a95d-7131b1dba23f
+  type Land — Swamp Mountain
+  enters tapped
+}

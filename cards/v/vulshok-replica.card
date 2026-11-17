@@ -1,0 +1,7 @@
+card "Vulshok Replica" {
+  oracle_id da8e2236-88ae-4f30-884b-b961231fba8f
+  cost {3}
+  type Artifact Creature — Berserker
+  pt 3/1
+  activated {1}{R}, sacrifice this: deal 3 damage to target player or planeswalker
+}

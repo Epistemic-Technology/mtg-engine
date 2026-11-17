@@ -1,0 +1,6 @@
+card "Foul Orchard" {
+  oracle_id ad6a2776-801f-4743-8268-6d654122171e
+  type Land
+  enters tapped
+  mana {B} or {G}
+}

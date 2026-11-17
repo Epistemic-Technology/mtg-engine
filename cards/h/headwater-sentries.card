@@ -1,0 +1,6 @@
+card "Headwater Sentries" {
+  oracle_id 17aa790d-d16a-4a90-b8ba-cd50e62f02f0
+  cost {3}{U}
+  type Creature — Merfolk Warrior
+  pt 2/5
+}

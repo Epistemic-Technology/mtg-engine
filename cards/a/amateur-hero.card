@@ -1,0 +1,7 @@
+card "Amateur Hero" {
+  oracle_id fc8ee6e1-a2e1-4033-a164-7968fc79dd27
+  cost {2}{W}
+  type Creature — Human Hero
+  pt 3/3
+  triggered when this enters: you gains 2 life
+}

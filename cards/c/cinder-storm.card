@@ -1,0 +1,6 @@
+card "Cinder Storm" {
+  oracle_id c7971968-c4ee-4437-92ec-1238bce1935f
+  cost {6}{R}
+  type Sorcery
+  spell: deal 7 damage to any target
+}

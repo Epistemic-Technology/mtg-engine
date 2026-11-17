@@ -1,0 +1,7 @@
+card "Kjeldoran Outrider" {
+  oracle_id 7b8559a7-e11f-430d-8a7a-785a7005c4c4
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  activated {W}: this gets +0/+1
+}

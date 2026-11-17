@@ -1,0 +1,6 @@
+card "Renegade Demon" {
+  oracle_id 5f444efc-3bc2-4ca8-986c-f804f9e1a95e
+  cost {3}{B}{B}
+  type Creature — Demon
+  pt 5/3
+}

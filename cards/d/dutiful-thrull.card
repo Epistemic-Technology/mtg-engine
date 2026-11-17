@@ -1,0 +1,7 @@
+card "Dutiful Thrull" {
+  oracle_id 744fcf77-b597-48a0-92ec-f3a617c03df1
+  cost {W}
+  type Creature — Thrull
+  pt 1/1
+  activated {B}: regenerate this
+}

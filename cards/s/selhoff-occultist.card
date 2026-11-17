@@ -1,0 +1,7 @@
+card "Selhoff Occultist" {
+  oracle_id d72031e1-c8cf-4e57-b15b-6a5eaacff1e2
+  cost {2}{U}
+  type Creature — Human Rogue
+  pt 2/3
+  triggered whenever creature dies: target player mills 1 cards
+}

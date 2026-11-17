@@ -1,0 +1,7 @@
+card "Eldrazi Devastator" {
+  oracle_id bc08ac66-969c-4905-a2d6-16ff565be475
+  cost {8}
+  type Creature — Eldrazi
+  pt 8/9
+  keywords trample
+}

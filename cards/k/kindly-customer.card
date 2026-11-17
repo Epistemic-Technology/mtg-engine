@@ -1,0 +1,7 @@
+card "Kindly Customer" {
+  oracle_id 3faab84f-7055-4554-b948-181928d8d4e2
+  cost {1}{W}
+  type Creature — Human Citizen
+  pt 1/1
+  triggered when this enters: draw 1 cards
+}

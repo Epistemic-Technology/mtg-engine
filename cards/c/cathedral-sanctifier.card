@@ -1,0 +1,7 @@
+card "Cathedral Sanctifier" {
+  oracle_id 1050f029-60d4-4769-b39f-9100c949a822
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered when this enters: you gains 3 life
+}

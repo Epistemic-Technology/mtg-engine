@@ -1,0 +1,6 @@
+card "Savage Surge" {
+  oracle_id 0acbc9a6-0de0-4096-b35c-1a586a1312ea
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2; untap that creature
+}

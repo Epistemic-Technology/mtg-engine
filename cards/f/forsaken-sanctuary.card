@@ -1,0 +1,6 @@
+card "Forsaken Sanctuary" {
+  oracle_id 941b0dd1-0df2-48ee-8829-615e9c3177a7
+  type Land
+  enters tapped
+  mana {W} or {B}
+}

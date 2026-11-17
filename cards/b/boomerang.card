@@ -1,0 +1,6 @@
+card "Boomerang" {
+  oracle_id dc4a4996-108a-4aac-850f-2d9f76403446
+  cost {U}{U}
+  type Instant
+  spell: return target permanent to hand
+}

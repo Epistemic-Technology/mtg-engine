@@ -1,0 +1,7 @@
+card "Stonefare Crocodile" {
+  oracle_id fef48e69-ab4d-4364-be41-7560440afc18
+  cost {2}{G}
+  type Creature — Crocodile
+  pt 3/2
+  activated {2}{B}: this gains lifelink
+}

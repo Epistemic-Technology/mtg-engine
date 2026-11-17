@@ -1,0 +1,7 @@
+card "Giant Warthog" {
+  oracle_id 0eb41c36-5910-41fd-97fc-1cae2332e5c5
+  cost {5}{G}
+  type Creature — Boar Beast
+  pt 5/5
+  keywords trample
+}

@@ -1,0 +1,7 @@
+card "Boar-q-pine" {
+  oracle_id 551e4356-5b1f-475c-a64b-9c50ea9b0368
+  cost {2}{R}
+  type Creature — Boar Porcupine
+  pt 2/2
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

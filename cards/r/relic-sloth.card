@@ -1,0 +1,7 @@
+card "Relic Sloth" {
+  oracle_id eb9b0655-3ca3-4d12-8665-54ef0c2c4de2
+  cost {3}{R}{W}
+  type Creature — Sloth Beast
+  pt 4/4
+  keywords vigilance, menace
+}

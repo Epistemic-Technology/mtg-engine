@@ -1,0 +1,6 @@
+card "Impale" {
+  oracle_id dcdf40a9-5a7e-45b1-aee4-36dda598baaf
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy target creature
+}

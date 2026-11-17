@@ -1,0 +1,6 @@
+card "Earth Elemental" {
+  oracle_id 3c97c311-7ad5-47ec-b421-f6c3bfbda9fb
+  cost {3}{R}{R}
+  type Creature — Elemental
+  pt 4/5
+}

@@ -1,0 +1,7 @@
+card "Caller of Gales" {
+  oracle_id 86fd8f95-0f1c-42c0-a63e-567c59ce89c4
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  activated {1}{U}, {T}: target creature gains flying
+}

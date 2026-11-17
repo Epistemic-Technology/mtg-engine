@@ -1,0 +1,7 @@
+card "Llanowar Dead" {
+  oracle_id 3a48541a-240b-4406-945c-1d0d032eca25
+  cost {B}{G}
+  type Creature — Zombie Elf
+  pt 2/2
+  mana {B}
+}

@@ -1,0 +1,6 @@
+card "Highland Lake" {
+  oracle_id c643365a-4255-4d23-adb9-0f8b456f0838
+  type Land
+  enters tapped
+  mana {U} or {R}
+}

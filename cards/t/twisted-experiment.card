@@ -1,0 +1,7 @@
+card "Twisted Experiment" {
+  oracle_id 4066d4df-d98f-44cd-bf25-ebb5e9d9ddeb
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/-1
+}

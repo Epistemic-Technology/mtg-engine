@@ -1,0 +1,6 @@
+card "Stone Quarry" {
+  oracle_id 90bccf66-58ec-445d-ac96-c6013054a1b4
+  type Land
+  enters tapped
+  mana {R} or {W}
+}

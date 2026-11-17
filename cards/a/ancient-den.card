@@ -1,0 +1,5 @@
+card "Ancient Den" {
+  oracle_id 02f16726-f2f6-4943-b71a-93f8e26251d3
+  type Artifact Land
+  mana {W}
+}

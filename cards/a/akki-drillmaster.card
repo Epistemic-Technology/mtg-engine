@@ -1,0 +1,7 @@
+card "Akki Drillmaster" {
+  oracle_id aa228a01-7de3-4539-9ebb-b3c546f72b41
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  activated {T}: target creature gains haste
+}

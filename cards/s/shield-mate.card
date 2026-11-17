@@ -1,0 +1,7 @@
+card "Shield Mate" {
+  oracle_id 98e7bfd4-fcb6-47b1-ad0b-c54b85dc2a79
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated sacrifice this: target creature gets +0/+4
+}

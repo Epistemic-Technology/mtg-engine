@@ -1,0 +1,7 @@
+card "Primal Visitation" {
+  oracle_id 3d95e8b1-0ddb-4bd3-b4cc-de55b6f8c403
+  cost {3}{R}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has haste
+}

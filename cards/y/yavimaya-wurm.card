@@ -1,0 +1,7 @@
+card "Yavimaya Wurm" {
+  oracle_id 93514874-41e8-49e7-8935-d06e852dd1e3
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/4
+  keywords trample
+}

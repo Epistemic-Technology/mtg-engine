@@ -1,0 +1,7 @@
+card "Turntimber Ascetic" {
+  oracle_id 90b16d52-4cf4-4788-a0d7-264d1bcd17f0
+  cost {4}{G}
+  type Creature — Giant Cleric
+  pt 5/4
+  triggered when this enters: you gains 3 life
+}

@@ -1,0 +1,7 @@
+card "Serpent Warrior" {
+  oracle_id fe249f27-db6c-4826-836e-a04efb1a3eaa
+  cost {2}{B}
+  type Creature — Snake Warrior
+  pt 3/3
+  triggered when this enters: you loses 3 life
+}

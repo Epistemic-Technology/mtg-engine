@@ -1,0 +1,7 @@
+card "Havoc Devils" {
+  oracle_id be1c2607-091a-41e7-ae4c-73c7e5689739
+  cost {2}{R}{R}
+  type Creature — Devil
+  pt 4/3
+  keywords trample
+}

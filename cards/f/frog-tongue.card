@@ -1,0 +1,8 @@
+card "Frog Tongue" {
+  oracle_id 861c5374-a8e7-4684-9a1b-e6ce3b98e4a2
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has reach
+}

@@ -1,0 +1,7 @@
+card "Boon of Emrakul" {
+  oracle_id 20d30d4d-cf38-41fe-a2ce-8327f7c87c01
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/-3
+}

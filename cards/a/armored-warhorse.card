@@ -1,0 +1,6 @@
+card "Armored Warhorse" {
+  oracle_id 29233aa4-3fa0-4074-ad0f-c8e7101052f3
+  cost {W}{W}
+  type Creature — Horse
+  pt 2/3
+}

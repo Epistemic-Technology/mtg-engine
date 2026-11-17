@@ -1,0 +1,7 @@
+card "Moss Viper" {
+  oracle_id 7d6f6ee4-77c2-4986-91c7-7dee962fc1a7
+  cost {G}
+  type Creature — Snake
+  pt 1/1
+  keywords deathtouch
+}

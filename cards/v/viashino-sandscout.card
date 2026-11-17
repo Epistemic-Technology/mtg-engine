@@ -1,0 +1,8 @@
+card "Viashino Sandscout" {
+  oracle_id f8d5a65c-382b-4277-9c08-5dec9e395b02
+  cost {1}{R}
+  type Creature — Lizard Scout
+  pt 2/1
+  keywords haste
+  triggered at beginning of each end step: return this to hand
+}

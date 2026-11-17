@@ -1,0 +1,7 @@
+card "Hill Giant Herdgorger" {
+  oracle_id 05c5752a-6ccb-45ff-bb85-5f89efd5944b
+  cost {4}{G}{G}
+  type Creature — Giant
+  pt 7/6
+  triggered when this enters: you gains 3 life
+}

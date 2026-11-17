@@ -1,0 +1,7 @@
+card "Epicure of Blood" {
+  oracle_id bdb319a6-a1cd-44f5-999d-af1bb55b2fc4
+  cost {4}{B}
+  type Creature — Vampire
+  pt 4/4
+  triggered whenever you gain life: each opponent loses 1 life
+}

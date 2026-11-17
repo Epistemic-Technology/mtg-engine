@@ -1,0 +1,7 @@
+card "Balloon Peddler" {
+  oracle_id 10f182a7-ffa3-4128-8b2e-e05b97f92e00
+  cost {2}{U}
+  type Creature — Human Spellshaper
+  pt 2/2
+  activated {U}, {T}, discard 1 card: target creature gains flying
+}

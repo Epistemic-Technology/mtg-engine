@@ -1,0 +1,7 @@
+card "Votary of the Conclave" {
+  oracle_id 83837ceb-7aae-4257-8545-a6cf34656e3b
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {2}{G}: regenerate this
+}

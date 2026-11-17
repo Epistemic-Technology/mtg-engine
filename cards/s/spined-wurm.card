@@ -1,0 +1,6 @@
+card "Spined Wurm" {
+  oracle_id 05425f2f-7228-4bf5-8fe1-6fe99107e8e0
+  cost {4}{G}
+  type Creature — Wurm
+  pt 5/4
+}

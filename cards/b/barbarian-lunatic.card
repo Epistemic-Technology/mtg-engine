@@ -1,0 +1,7 @@
+card "Barbarian Lunatic" {
+  oracle_id 12b5fbe5-a426-4b7e-bef0-abea71170e49
+  cost {2}{R}
+  type Creature — Human Barbarian
+  pt 2/1
+  activated {2}{R}, sacrifice this: deal 2 damage to target creature
+}

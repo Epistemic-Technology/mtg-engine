@@ -1,0 +1,8 @@
+card "Phyrexian Debaser" {
+  oracle_id 554de904-086c-428c-9f32-b0b2498a6fd5
+  cost {3}{B}
+  type Creature — Phyrexian Carrier
+  pt 2/2
+  keywords flying
+  activated {T}, sacrifice this: target creature gets -2/-2
+}

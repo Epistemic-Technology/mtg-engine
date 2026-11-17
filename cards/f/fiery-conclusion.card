@@ -1,0 +1,7 @@
+card "Fiery Conclusion" {
+  oracle_id 91af3c81-615a-4b89-acf2-34c72001ebbd
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal 5 damage to target creature
+}

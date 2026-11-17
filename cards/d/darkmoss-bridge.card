@@ -1,0 +1,7 @@
+card "Darkmoss Bridge" {
+  oracle_id 2065cada-4078-41c4-9e06-2460d2a2e8ee
+  type Artifact Land
+  enters tapped
+  keyword indestructible
+  mana {B} or {G}
+}

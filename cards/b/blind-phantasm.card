@@ -1,0 +1,6 @@
+card "Blind Phantasm" {
+  oracle_id 3b91be0e-0683-48df-91b0-25e90b492796
+  cost {2}{U}
+  type Creature — Illusion
+  pt 2/3
+}

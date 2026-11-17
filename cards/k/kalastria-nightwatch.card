@@ -1,0 +1,7 @@
+card "Kalastria Nightwatch" {
+  oracle_id f610748a-8b2c-4c7d-b495-b4677ff4c423
+  cost {4}{B}
+  type Creature — Vampire Warrior Ally
+  pt 4/5
+  triggered whenever you gain life: this gains flying
+}

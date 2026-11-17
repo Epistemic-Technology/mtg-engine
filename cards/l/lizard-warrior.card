@@ -1,0 +1,6 @@
+card "Lizard Warrior" {
+  oracle_id 123337af-f976-4956-949f-c650da812113
+  cost {3}{R}
+  type Creature — Lizard Warrior
+  pt 4/2
+}

@@ -1,0 +1,7 @@
+card "Auriok Transfixer" {
+  oracle_id 0ad5f4c5-f6d2-4e96-af65-5488d9711113
+  cost {W}
+  type Creature — Human Scout
+  pt 1/1
+  activated {W}, {T}: tap target artifact
+}

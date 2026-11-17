@@ -1,0 +1,6 @@
+card "Dry Spell" {
+  oracle_id 980a9957-6b52-45c6-b847-f84974d5a653
+  cost {1}{B}
+  type Sorcery
+  spell: deal 1 damage to each creature and each player
+}

@@ -1,0 +1,7 @@
+card "Deathcurse Ogre" {
+  oracle_id 0d40bc98-28e7-4fa5-b848-1cbac5345c12
+  cost {5}{B}
+  type Creature — Ogre Warrior
+  pt 3/3
+  triggered when this dies: each player loses 3 life
+}

@@ -1,0 +1,7 @@
+card "Scavenger Folk" {
+  oracle_id 74f361f8-a0d8-4824-9380-61469d6a19cf
+  cost {G}
+  type Creature — Human
+  pt 1/1
+  activated {G}, {T}, sacrifice this: destroy target artifact
+}

@@ -1,0 +1,8 @@
+card "Ambush Paratrooper" {
+  oracle_id cd583365-27cc-4170-b138-4b3dd0d842b6
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  keywords flash, flying
+  activated {5}: each creature you control gets +1/+1
+}

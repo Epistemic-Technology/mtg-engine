@@ -1,0 +1,6 @@
+card "Raptor Companion" {
+  oracle_id 20e65887-c68c-4dc0-b74b-9ce093f40b06
+  cost {1}{W}
+  type Creature — Dinosaur
+  pt 3/1
+}

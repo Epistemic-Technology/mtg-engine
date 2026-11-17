@@ -1,0 +1,6 @@
+card "Rise to the Challenge" {
+  oracle_id 7f3095fb-ffc0-48ed-8792-4157897a9ce7
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +2/+0 and gains first strike
+}

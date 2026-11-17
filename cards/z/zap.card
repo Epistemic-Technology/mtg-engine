@@ -1,0 +1,7 @@
+card "Zap" {
+  oracle_id 56115482-3fd4-45fb-b800-be68c5509cf2
+  cost {2}{R}
+  type Instant
+  spell: deal 1 damage to any target
+  spell: draw 1 cards
+}

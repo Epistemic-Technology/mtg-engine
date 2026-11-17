@@ -1,0 +1,7 @@
+card "Teyo's Lightshield" {
+  oracle_id f1305d49-e543-49e9-9b36-e56f93f63bc3
+  cost {2}{W}
+  type Creature — Illusion
+  pt 0/3
+  triggered when this enters: put 1 +1/+1 counters on target creature you control
+}

@@ -1,0 +1,7 @@
+card "Mudbutton Torchrunner" {
+  oracle_id 045b2b84-96bd-46fb-8aae-a33968e741c7
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  triggered when this dies: deal 3 damage to any target
+}

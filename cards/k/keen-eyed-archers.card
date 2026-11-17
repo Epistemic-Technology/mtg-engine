@@ -1,0 +1,7 @@
+card "Keen-Eyed Archers" {
+  oracle_id 0ace32d6-7261-447c-9ee2-e03febaab91b
+  cost {2}{W}
+  type Creature — Elf Archer
+  pt 2/2
+  keywords reach
+}

@@ -1,0 +1,7 @@
+card "Batterhorn" {
+  oracle_id b9dd5841-7e4b-40bf-9969-e8fb5df46763
+  cost {4}{R}
+  type Creature — Beast
+  pt 4/3
+  triggered when this enters: you may destroy target artifact
+}

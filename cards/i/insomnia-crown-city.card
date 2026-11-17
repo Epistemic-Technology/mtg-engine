@@ -1,0 +1,6 @@
+card "Insomnia, Crown City" {
+  oracle_id b7140f72-91b6-4be4-8d71-c019e64c2351
+  type Land — Town
+  enters tapped
+  mana {W} or {B}
+}

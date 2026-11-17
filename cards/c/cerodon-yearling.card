@@ -1,0 +1,7 @@
+card "Cerodon Yearling" {
+  oracle_id 6db09a0a-6c8e-4829-9b55-00745f0587b5
+  cost {R}{W}
+  type Creature — Beast
+  pt 2/2
+  keywords vigilance, haste
+}

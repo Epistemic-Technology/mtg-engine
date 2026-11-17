@@ -1,0 +1,6 @@
+card "Dramatic Rescue" {
+  oracle_id a5386844-ea24-48ee-9337-ae10bcfddfb9
+  cost {W}{U}
+  type Instant
+  spell: return target creature to hand; you gains 2 life
+}

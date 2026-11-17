@@ -1,0 +1,6 @@
+card "Pensive Minotaur" {
+  oracle_id cafad9c8-9974-4596-92d4-b7fb615a0353
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+}

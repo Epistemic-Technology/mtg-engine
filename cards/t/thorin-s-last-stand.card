@@ -1,0 +1,9 @@
+card "Thorin's Last Stand" {
+  oracle_id 3c4da169-1e50-4790-abdc-214e7b8a2ad5
+  cost {2}{W}{W}
+  type Instant
+  choose one {
+    mode: each creature you control gets +2/+1
+    mode: destroy target artifact or enchantment; you gains 2 life
+  }
+}

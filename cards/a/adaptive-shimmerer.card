@@ -1,0 +1,8 @@
+card "Adaptive Shimmerer" {
+  oracle_id 8003ca2d-0c1d-47c1-bcd1-4609615c7a82
+  cost {5}
+  type Creature — Insect
+  pt 0/0
+  keywords flash
+  enters with 3 +1/+1 counters
+}

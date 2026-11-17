@@ -1,0 +1,7 @@
+card "Lavafume Invoker" {
+  oracle_id 41b49a8e-09c5-4fd1-95f9-e5a51ce24f69
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  activated {8}: each creature you control gets +3/+0
+}

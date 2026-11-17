@@ -1,0 +1,6 @@
+card "Drown in Shapelessness" {
+  oracle_id a3874282-9887-4b53-b80e-564ac99cca23
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand
+}

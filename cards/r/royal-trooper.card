@@ -1,0 +1,7 @@
+card "Royal Trooper" {
+  oracle_id e31510d5-b74e-4a8d-94e8-8bd098cac3c7
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this blocks: this gets +2/+2
+}

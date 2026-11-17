@@ -1,0 +1,6 @@
+card "Grotesque Mutation" {
+  oracle_id 058a8475-649f-433a-b258-42bc03bf40ba
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +3/+1 and gains lifelink
+}

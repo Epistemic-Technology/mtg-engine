@@ -1,0 +1,7 @@
+card "Fireforger's Puzzleknot" {
+  oracle_id 0de18ba2-84a7-4e07-84b2-771761d77aaf
+  cost {2}
+  type Artifact
+  triggered when this enters: deal 1 damage to any target
+  activated {2}{R}, sacrifice this: deal 1 damage to any target
+}

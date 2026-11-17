@@ -1,0 +1,7 @@
+card "Devkarin Dissident" {
+  oracle_id a671fedf-3766-4fda-abeb-6f63e2fdd20b
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  activated {4}{G}: this gets +2/+2
+}

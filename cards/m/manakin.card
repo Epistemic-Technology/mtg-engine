@@ -1,0 +1,7 @@
+card "Manakin" {
+  oracle_id d2343af0-468b-42bc-8a0c-347c10f7e2f3
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  mana {C}
+}

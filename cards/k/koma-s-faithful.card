@@ -1,0 +1,8 @@
+card "Koma's Faithful" {
+  oracle_id 1d705d77-4b1a-4a17-b3b7-e502f2f6f6e6
+  cost {2}{B}
+  type Creature — Elf Cleric
+  pt 3/1
+  keywords lifelink
+  triggered when this dies: each player mills 3 cards
+}

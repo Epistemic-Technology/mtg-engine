@@ -1,0 +1,6 @@
+card "Coral Commando" {
+  oracle_id 03ce2235-50d9-4f67-b588-166b9b37c664
+  cost {2}{U}
+  type Creature — Merfolk Warrior
+  pt 3/2
+}

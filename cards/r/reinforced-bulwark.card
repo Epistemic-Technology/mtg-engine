@@ -1,0 +1,8 @@
+card "Reinforced Bulwark" {
+  oracle_id 8916b3d4-6a9a-420a-8ee7-be67b2f47201
+  cost {3}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {T}: prevent next 1 damage to you this turn
+}

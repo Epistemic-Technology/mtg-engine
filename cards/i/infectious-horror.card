@@ -1,0 +1,7 @@
+card "Infectious Horror" {
+  oracle_id 0931206b-eed2-40d0-9496-5ecefc7f8f90
+  cost {3}{B}
+  type Creature — Zombie Horror
+  pt 2/2
+  triggered whenever this attacks: each opponent loses 2 life
+}

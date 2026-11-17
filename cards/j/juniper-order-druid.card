@@ -1,0 +1,7 @@
+card "Juniper Order Druid" {
+  oracle_id 943ab696-470b-488f-9567-c8cd89ec06e3
+  cost {2}{G}
+  type Creature — Human Cleric Druid
+  pt 1/1
+  activated {T}: untap target land
+}

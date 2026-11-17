@@ -1,0 +1,7 @@
+card "Rushwood Herbalist" {
+  oracle_id 2e35bcef-505a-4559-a1fe-f42f4543197f
+  cost {2}{G}
+  type Creature — Human Spellshaper
+  pt 2/2
+  activated {G}, {T}, discard 1 card: regenerate target creature
+}

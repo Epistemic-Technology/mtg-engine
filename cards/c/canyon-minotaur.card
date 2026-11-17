@@ -1,0 +1,6 @@
+card "Canyon Minotaur" {
+  oracle_id 0c7163e6-f5a1-45a5-88c2-19dd9ef0a587
+  cost {3}{R}
+  type Creature — Minotaur Warrior
+  pt 3/3
+}

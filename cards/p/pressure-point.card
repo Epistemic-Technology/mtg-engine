@@ -1,0 +1,7 @@
+card "Pressure Point" {
+  oracle_id d4bbdd0c-e578-49ed-b2f7-b1decb04ee87
+  cost {1}{W}
+  type Instant
+  spell: tap target creature
+  spell: draw 1 cards
+}

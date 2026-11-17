@@ -1,0 +1,7 @@
+card "Thermal Navigator" {
+  oracle_id 355c2840-2cb8-431a-bcdc-f4b8824a1f5d
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  activated sacrifice artifact: this gains flying
+}

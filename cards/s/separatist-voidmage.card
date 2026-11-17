@@ -1,0 +1,7 @@
+card "Separatist Voidmage" {
+  oracle_id d9fabfa8-b930-428d-af4e-640fb310a5b2
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may return target creature to hand
+}

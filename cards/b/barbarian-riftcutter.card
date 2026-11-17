@@ -1,0 +1,7 @@
+card "Barbarian Riftcutter" {
+  oracle_id e9612e4c-1527-4255-9f2f-b8d8cee65cc6
+  cost {4}{R}
+  type Creature — Human Barbarian
+  pt 3/3
+  activated {R}, sacrifice this: destroy target land
+}

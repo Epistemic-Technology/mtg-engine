@@ -1,0 +1,7 @@
+card "Sky Ruin Drake" {
+  oracle_id d9b7881b-915a-42f1-bd2f-0aaa900a8981
+  cost {4}{U}
+  type Creature — Drake
+  pt 2/5
+  keywords flying
+}

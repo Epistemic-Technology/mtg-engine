@@ -744,9 +744,21 @@ impl GameState {
     /// permanent to keep under the legend rule (CR 704.5j; two legendary
     /// permanents, or one and a legendary spell about to resolve). The
     /// `Engine` snapshots the state before an action when this holds.
-    pub fn may_need_mid_decision(&self) -> bool {
+    pub fn may_need_mid_decision(&self, action: Option<&crate::decision::Choice>) -> bool {
         let replacers = self.replacement_sources as usize + self.replacements.len();
-        replacers >= 2
+        // A land play puts a permanent onto the battlefield with no spell
+        // on the stack: a legendary land can meet its namesake (CR 704.5j)
+        // and any land can meet a replacement effect as it enters.
+        let land_play = match action {
+            Some(crate::decision::Choice::PlayLand(id)) => self.objects.get(*id).is_some_and(|o| {
+                let d = self.pool.get(o.def);
+                (self.legendary_count >= 1 && d.is_legendary())
+                    || (replacers >= 1 && d.modifies_entering())
+            }),
+            _ => false,
+        };
+        land_play
+            || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {
                 let o = &self.objects[*id];

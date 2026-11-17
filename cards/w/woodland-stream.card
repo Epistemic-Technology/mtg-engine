@@ -1,0 +1,6 @@
+card "Woodland Stream" {
+  oracle_id e887fb3f-d4c9-4022-8f75-1de6ec94af96
+  type Land
+  enters tapped
+  mana {G} or {U}
+}

@@ -1,0 +1,6 @@
+card "Adamant Will" {
+  oracle_id 467e22c3-6107-40ff-afc7-5960710c970b
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2 and gains indestructible
+}

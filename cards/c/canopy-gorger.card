@@ -1,0 +1,6 @@
+card "Canopy Gorger" {
+  oracle_id 1d614b37-d578-4f35-8fd8-3c7800d5f742
+  cost {4}{G}{G}
+  type Creature — Wurm
+  pt 6/5
+}

@@ -1,0 +1,7 @@
+card "Voltaic Servant" {
+  oracle_id d0c2703b-bd74-41ac-b516-c46c654de1bb
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/3
+  triggered at beginning of your end step: untap target artifact
+}

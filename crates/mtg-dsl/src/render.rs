@@ -14,9 +14,28 @@ use mtg_core::mana::{Color, Mana};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mod, Recipient, Replacement,
-    Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Kind, Mod, Recipient,
+    Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
 };
+
+/// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
+/// prints it.
+pub fn pt_mod(power: i32, toughness: i32) -> String {
+    let sign = |n: i32, other: i32| {
+        if n > 0 || (n == 0 && other >= 0) {
+            '+'
+        } else {
+            '-'
+        }
+    };
+    format!(
+        "{}{}/{}{}",
+        sign(power, toughness),
+        power.abs(),
+        sign(toughness, power),
+        toughness.abs()
+    )
+}
 
 /// Finds other definitions (tokens, emblems) by name.
 pub trait Lookup {
@@ -241,8 +260,6 @@ struct Ctx<'a> {
     targets: &'a [Target],
     source_mentioned: bool,
     target_mentioned: Vec<bool>,
-    /// Targets mentioned earlier in the sentence being rendered ("it").
-    in_sentence: Vec<bool>,
     /// What each target is now called after its first mention.
     target_noun: Vec<String>,
     groups_mentioned: HashSet<Recipient>,
@@ -262,7 +279,6 @@ impl<'a> Ctx<'a> {
             targets,
             source_mentioned: false,
             target_mentioned: vec![false; targets.len()],
-            in_sentence: vec![false; targets.len()],
             target_noun: targets.iter().map(target_noun).collect(),
             groups_mentioned: HashSet::new(),
             in_delayed: false,
@@ -287,7 +303,6 @@ impl<'a> Ctx<'a> {
 
     fn target_first(&mut self, i: usize) -> String {
         self.target_mentioned[i] = true;
-        self.in_sentence[i] = true;
         match &self.targets[i] {
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
@@ -298,14 +313,15 @@ impl<'a> Ctx<'a> {
     fn obj(&mut self, r: Recipient) -> String {
         match r {
             Recipient::Target(i) => {
-                if self.in_sentence[i] {
+                if self.target_mentioned[i] {
                     "it".to_string()
-                } else if self.target_mentioned[i] {
-                    self.in_sentence[i] = true;
-                    format!("that {}", self.target_noun[i])
                 } else {
                     self.target_first(i)
                 }
+            }
+            Recipient::ThatTarget(i) => {
+                self.target_mentioned[i] = true;
+                format!("that {}", self.target_noun[i])
             }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
@@ -341,7 +357,7 @@ impl<'a> Ctx<'a> {
     /// A recipient as the subject of a sentence.
     fn subj(&mut self, r: Recipient) -> String {
         match r {
-            Recipient::Target(i) => {
+            Recipient::Target(i) | Recipient::ThatTarget(i) => {
                 if self.target_mentioned[i] {
                     "it".to_string()
                 } else {
@@ -572,30 +588,54 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             format!("−{}", -n)
         };
     }
+    let default_order = [
+        CostItem::Mana,
+        CostItem::Tap,
+        CostItem::Sacrifice,
+        CostItem::Discard,
+        CostItem::Life,
+    ];
+    let order: &[CostItem] = if cost.order.is_empty() {
+        &default_order
+    } else {
+        &cost.order
+    };
     let mut parts = Vec::new();
-    let mana = cost.mana.to_string();
-    if !mana.is_empty() {
-        parts.push(mana);
-    }
-    if cost.tap {
-        parts.push("{T}".to_string());
-    }
-    match &cost.sacrifice {
-        Some(SacCost::This) => {
-            parts.push(format!("Sacrifice {}", ctx.source()));
+    for item in order {
+        match item {
+            CostItem::Mana => {
+                let mana = cost.mana.to_string();
+                if !mana.is_empty() {
+                    parts.push(mana);
+                }
+            }
+            CostItem::Tap => {
+                if cost.tap {
+                    parts.push("{T}".to_string());
+                }
+            }
+            CostItem::Sacrifice => match &cost.sacrifice {
+                Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
+                Some(SacCost::Filter(f)) => {
+                    parts.push(format!("Sacrifice {}", filter_a(f, ctx.card)));
+                }
+                None => {}
+            },
+            CostItem::Discard => {
+                if cost.discard > 0 {
+                    parts.push(format!(
+                        "Discard {} {}",
+                        count_words(Num::N(cost.discard), "a"),
+                        plural(Num::N(cost.discard), "card")
+                    ));
+                }
+            }
+            CostItem::Life => {
+                if cost.life > 0 {
+                    parts.push(format!("Pay {} life", cost.life));
+                }
+            }
         }
-        Some(SacCost::Filter(f)) => parts.push(format!("Sacrifice {}", filter_a(f, ctx.card))),
-        None => {}
-    }
-    if cost.discard > 0 {
-        parts.push(format!(
-            "Discard {} {}",
-            count_words(Num::N(cost.discard), "a"),
-            plural(Num::N(cost.discard), "card")
-        ));
-    }
-    if cost.life > 0 {
-        parts.push(format!("Pay {} life", cost.life));
     }
     parts.join(", ")
 }
@@ -759,7 +799,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(
                 *to,
                 s,
-                format!("{} {power:+}/{toughness:+}", ctx.verb(*to, "gets", "get")),
+                format!(
+                    "{} {}",
+                    ctx.verb(*to, "gets", "get"),
+                    pt_mod(*power, *toughness)
+                ),
             )
             .until_eot()
         }
@@ -1027,7 +1071,6 @@ fn lowercase_first(s: &str) -> String {
 
 /// One sentence (no final period, lowercase start).
 fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
-    ctx.in_sentence.fill(false);
     let clauses: Vec<Clause> = s.effects.iter().map(|e| clause(e, ctx)).collect();
     let shared_suffix = clauses.len() > 1
         && clauses[0].suffix.is_some()
@@ -1258,7 +1301,10 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Some(false) => "noncombat damage",
                 None => "damage",
             };
-            let to = affects_to(to, ctx);
+            let to = match to {
+                Affects::Objects(f) => format!("each {}", filter_phrase(f, ctx.card, false)),
+                other => affects_to(other, ctx),
+            };
             format!("Prevent the next {n} {kind} that would be dealt to {to} this turn.")
         }
         (Replaces::Damage { from, to, combat }, Outcome::Double) => {
@@ -1457,7 +1503,7 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             v("has", "have")
         ),
         Mod::ModifyPt { power, toughness } => {
-            format!("{} {power:+}/{toughness:+}", v("gets", "get"))
+            format!("{} {}", v("gets", "get"), pt_mod(*power, *toughness))
         }
         Mod::SwitchPt => format!("{} its power and toughness switched", v("has", "have")),
         Mod::CdaColors(cs) => {
@@ -1565,6 +1611,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
 pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
+        Ability::Keyword(k) => capitalize(keyword_name(*k)),
         Ability::Mana(m) => {
             let syms: Vec<String> = m
                 .iter()

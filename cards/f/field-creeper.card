@@ -1,0 +1,6 @@
+card "Field Creeper" {
+  oracle_id e6584e39-099c-437f-9239-fa718cac85af
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 2/1
+}

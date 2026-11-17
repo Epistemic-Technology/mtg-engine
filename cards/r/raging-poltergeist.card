@@ -1,0 +1,6 @@
+card "Raging Poltergeist" {
+  oracle_id 15d460da-9110-4f33-a24f-8582a2bcd96f
+  cost {4}{R}
+  type Creature — Spirit
+  pt 6/1
+}
