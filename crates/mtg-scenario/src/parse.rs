@@ -5,8 +5,8 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Action, Assertion, CardSpec, ObjRef, Position, RunTarget, Scenario, ScriptedAction, SetupSpec,
-    Statement, TargetRef, ZoneSpec, step_by_name, zone_by_name,
+    Action, Assertion, CardSpec, ObjRef, Pick, Position, RunTarget, Scenario, ScriptedAction,
+    SetupSpec, Statement, TargetRef, ZoneSpec, step_by_name, zone_by_name,
 };
 
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
@@ -240,14 +240,24 @@ impl Line {
     }
 
     /// `"name"` or `A "name"`.
+    /// `[oldest|newest] [A|B] "name"`.
     fn obj_ref(&mut self) -> Result<ObjRef, ParseError> {
+        let pick = if self.peek_ident("oldest") {
+            self.pos += 1;
+            Some(Pick::Oldest)
+        } else if self.peek_ident("newest") {
+            self.pos += 1;
+            Some(Pick::Newest)
+        } else {
+            None
+        };
         let player = if self.peek_player() {
             Some(self.player()?)
         } else {
             None
         };
         let name = self.string()?;
-        Ok(ObjRef { player, name })
+        Ok(ObjRef { player, name, pick })
     }
 
     /// `player A` | `"name"` | `A "name"`.
@@ -447,6 +457,16 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         "play" => (Action::Play(line.string()?), Some(Step::PrecombatMain)),
         "cast" => {
             let name = line.string()?;
+            let mode = if line.peek_ident("mode") {
+                line.pos += 1;
+                let n = line.count()?;
+                if n == 0 {
+                    return line.fail("modes are numbered from 1");
+                }
+                Some(n)
+            } else {
+                None
+            };
             let mut targets = Vec::new();
             if line.peek_ident("targeting") {
                 line.pos += 1;
@@ -470,6 +490,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (
                 Action::Cast {
                     name,
+                    mode,
                     targets,
                     respond_to,
                 },
@@ -555,6 +576,21 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 },
                 Some(Step::PrecombatMain),
             )
+        }
+        "accept" | "decline" => (
+            Action::YouMay {
+                name: line.string()?,
+                accept: verb == "accept",
+            },
+            None,
+        ),
+        "copy" => {
+            if line.peek_ident("nothing") {
+                line.pos += 1;
+                (Action::Copy(None), None)
+            } else {
+                (Action::Copy(Some(line.obj_ref()?)), None)
+            }
         }
         "keep" => {
             let which = line.ident()?;

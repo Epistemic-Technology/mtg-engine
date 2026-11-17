@@ -207,12 +207,47 @@ impl Agent for GreedyAgent {
         let me = d.player;
         match d.kind {
             DecisionKind::Mulligan => Self::best_by(d, |c| i64::from(*c == Choice::Keep)),
+            // "You may": yes (the first option).
             DecisionKind::Bottom
             | DecisionKind::AssignCombatDamage { .. }
             | DecisionKind::OrderTriggers
-            | DecisionKind::ChooseReplacement => 0,
+            | DecisionKind::ChooseReplacement
+            | DecisionKind::YouMay { .. } => 0,
             // Keep the newest (the engine lists them oldest first).
             DecisionKind::LegendRule => u32::try_from(d.options.len() - 1).unwrap_or(0),
+            // Copy the biggest creature on offer.
+            DecisionKind::ChooseCopy => Self::best_by(d, |c| match c {
+                Choice::CopyOf { def, .. } => {
+                    let p = state.printed(*def);
+                    i64::from(value(&p))
+                }
+                Choice::NoCopy => -1,
+                _ => i64::MIN,
+            }),
+            // A mode with a worthwhile target beats one without; untargeted
+            // modes are fine.
+            DecisionKind::ChooseMode { spell } => Self::best_by(d, |c| match c {
+                Choice::Mode(i) => {
+                    let def = state.def_of(spell).expect("spell on the stack");
+                    let Some((specs, effects)) = def.spell_variants().get(*i).copied() else {
+                        return i64::MIN;
+                    };
+                    if specs.is_empty() {
+                        return 5;
+                    }
+                    let best = state
+                        .battlefield
+                        .iter()
+                        .map(|o| Target::Object(*o))
+                        .chain(state.players_in_game().map(Target::Player))
+                        .filter(|t| specs.iter().any(|s| state.is_legal_target(me, *s, *t)))
+                        .map(|t| Self::score_target(state, me, effects, None, t))
+                        .max()
+                        .unwrap_or(i32::MIN);
+                    if best > 0 { 10 + i64::from(best) } else { -1 }
+                }
+                _ => i64::MIN,
+            }),
             DecisionKind::PriorityAction => Self::best_by(d, |c| match c {
                 Choice::PlayLand(_) => 1_000,
                 Choice::Cast(id) => {

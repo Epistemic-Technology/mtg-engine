@@ -185,6 +185,23 @@ pub enum Event {
         obj: ObjId,
         def: CardRef,
     },
+    /// A permanent became the target of spell or ability `by` (CR 115).
+    Targeted {
+        target: ObjId,
+        by: ObjId,
+    },
+    /// A delayed triggered ability was created (CR 603.7) about `about`.
+    DelayedTriggerCreated {
+        source: ObjId,
+        def: CardRef,
+        about: ObjId,
+    },
+    /// An object became a copy of a permanent with definition `of`
+    /// (CR 707).
+    BecameCopy {
+        obj: ObjId,
+        of: CardRef,
+    },
     PlayerLost {
         player: PlayerId,
         reason: LossReason,

@@ -32,7 +32,7 @@ impl GameState {
             self.control_sources as usize,
             self.battlefield
                 .iter()
-                .filter(|id| self.pool.get(self.objects[**id].def).has_control_static())
+                .filter(|id| self.flags_of(&self.objects[**id]).has_control_static())
                 .count(),
             "control source count out of sync with the battlefield"
         );
@@ -51,7 +51,7 @@ impl GameState {
         }
         for id in &self.battlefield {
             let o = &self.objects[*id];
-            if !self.pool.get(o.def).has_control_static() {
+            if !self.flags_of(o).has_control_static() {
                 continue;
             }
             // Read through current characteristics: an ability Humility
@@ -121,7 +121,8 @@ impl GameState {
             o.controlled_since_turn_start = false;
             // CR 506.4: a permanent that changes control leaves combat.
             self.remove_from_combat(id);
-            self.bump();
+            // "You control" filters read the controller.
+            self.cbump();
             self.emit(Event::ControlChanged { obj: id, from, to });
         }
     }

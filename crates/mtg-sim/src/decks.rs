@@ -2,7 +2,7 @@
 
 use mtg_core::card::{CardPool, CardRef};
 
-pub const NAMES: [&str; 9] = [
+pub const NAMES: [&str; 10] = [
     "mono-white",
     "mono-blue",
     "mono-black",
@@ -12,6 +12,7 @@ pub const NAMES: [&str; 9] = [
     "triggers",
     "replacement",
     "activated",
+    "copy",
 ];
 
 fn build(pool: &CardPool, spec: &[(&str, usize)]) -> Vec<CardRef> {
@@ -183,6 +184,31 @@ pub fn by_name(pool: &CardPool, name: &str) -> Option<Vec<CardRef>> {
             ("Act of Treason", 2),
             ("Control Magic", 2),
             ("Isamaru, Hound of Konda", 3),
+        ],
+        // Slice 5 stress deck: copies, characteristic-defining abilities,
+        // delayed triggers, modal spells, "you may".
+        "copy" => &[
+            ("Island", 6),
+            ("Swamp", 4),
+            ("Mountain", 5),
+            ("Plains", 4),
+            ("Forest", 4),
+            ("Clone", 3),
+            ("Phantasmal Image", 3),
+            ("Cryptoplasm", 2),
+            ("Kiki-Jiki, Mirror Breaker", 2),
+            ("Tarmogoyf", 3),
+            ("Lhurgoyf", 2),
+            ("Nightmare", 2),
+            ("Transguild Courier", 2),
+            ("Flickerwisp", 3),
+            ("Otherworldly Journey", 2),
+            ("Abrade", 2),
+            ("Boros Charm", 2),
+            ("Grixis Charm", 2),
+            ("Gravedigger", 3),
+            ("Grizzly Bears", 2),
+            ("Lightning Bolt", 2),
         ],
         _ => return None,
     };

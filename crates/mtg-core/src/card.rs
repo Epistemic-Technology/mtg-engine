@@ -63,6 +63,15 @@ impl TypeSet {
         TypeSet(self.0 | other.0)
     }
 
+    /// Number of types in the set.
+    pub const fn len(self) -> u32 {
+        self.0.count_ones()
+    }
+
+    pub const fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+
     pub const fn is_permanent_type(self) -> bool {
         self.contains(CardType::Artifact)
             || self.contains(CardType::Battle)
@@ -607,6 +616,29 @@ pub enum Modification {
     ModifyPt { power: i32, toughness: i32 },
     /// "switch power and toughness" (layer 7d).
     SwitchPt,
+    /// A characteristic-defining ability setting colors (CR 604.3;
+    /// Transguild Courier): layer 5, applied before other layer 5 effects
+    /// (CR 613.2).
+    CdaColors(ColorSet),
+    /// A characteristic-defining ability setting power and toughness
+    /// (CR 604.3, layer 7a): power is the count, toughness the count plus
+    /// `plus_toughness`.
+    CdaPt {
+        count: CdaCount,
+        plus_toughness: i32,
+    },
+}
+
+/// What a power/toughness-defining ability counts.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CdaCount {
+    /// Card types among cards in all graveyards (Tarmogoyf).
+    CardTypesInGraveyards,
+    /// Creature cards in all graveyards (Lhurgoyf).
+    CreatureCardsInGraveyards,
+    /// Permanents matching a filter, judged from the controller (Nightmare:
+    /// "Swamps you control").
+    Permanents(ObjFilter),
 }
 
 impl Modification {
@@ -617,12 +649,24 @@ impl Modification {
             | Modification::AddLandType(_)
             | Modification::SetLandType(_)
             | Modification::AddSubtype(_) => Layer::L4Type,
-            Modification::AddColors(_) | Modification::SetColors(_) => Layer::L5Color,
+            Modification::AddColors(_)
+            | Modification::SetColors(_)
+            | Modification::CdaColors(_) => Layer::L5Color,
             Modification::AddKeywords(_) | Modification::RemoveAllAbilities => Layer::L6Ability,
+            Modification::CdaPt { .. } => Layer::L7aCda,
             Modification::SetPt { .. } => Layer::L7bSetPt,
             Modification::ModifyPt { .. } => Layer::L7cModifyPt,
             Modification::SwitchPt => Layer::L7dSwitchPt,
         }
+    }
+
+    /// Whether this is a characteristic-defining ability's effect (CR
+    /// 604.3): it applies before other effects in its layer (CR 613.2).
+    pub const fn is_cda(&self) -> bool {
+        matches!(
+            self,
+            Modification::CdaColors(_) | Modification::CdaPt { .. }
+        )
     }
 }
 
@@ -658,6 +702,21 @@ pub enum TargetSpec {
     ArtifactCreatureOrLand,
     /// "target artifact or enchantment".
     ArtifactOrEnchantment,
+    /// "target artifact".
+    Artifact,
+    /// "target enchantment".
+    Enchantment,
+    /// "target permanent".
+    Permanent,
+    /// "another target creature": a creature other than the ability's
+    /// source.
+    OtherCreature,
+    /// "another target permanent".
+    OtherPermanent,
+    /// "target nonlegendary creature you control" (Kiki-Jiki).
+    NonlegendaryCreatureYouControl,
+    /// "target creature card in your graveyard" (Gravedigger).
+    CreatureCardInYourGraveyard,
 }
 
 /// Who or what an effect acts on.
@@ -683,6 +742,17 @@ pub enum Recipient {
     EachCreature,
     /// Every player in the game.
     EachPlayer,
+    /// Every creature the controller controls.
+    EachCreatureYouControl,
+    /// Every permanent the controller controls.
+    EachPermanentYouControl,
+    /// The object a delayed trigger is about, only if it is still the same
+    /// object (CR 400.7): "sacrifice it at the beginning of the next end
+    /// step" does nothing once it has changed zones.
+    SameObject,
+    /// The object the previous effect of the same resolution created or
+    /// moved ("that token", "that card").
+    CreatedObject,
 }
 
 /// Effects of spells and abilities.
@@ -779,6 +849,38 @@ pub enum Effect {
         subtypes: SubtypeSet,
         power: i32,
         toughness: i32,
+    },
+    /// "You may [do these]": the controller decides on resolution.
+    YouMay(Vec<Effect>),
+    /// Create a delayed triggered ability (CR 603.7) about the recipient:
+    /// `ability` is a registered triggered ability (see
+    /// `CardPool::register_ability`) whose effects see the recipient as
+    /// `Recipient::SameObject`.
+    Delayed {
+        ability: AbilityId,
+        about: Recipient,
+    },
+    /// Exile a permanent.
+    Exile {
+        what: Recipient,
+    },
+    /// Return a card from exile or a graveyard to the battlefield under its
+    /// owner's control, optionally with counters on it.
+    ReturnToBattlefield {
+        what: Recipient,
+        counters: Option<(CounterKind, u32)>,
+    },
+    /// The ability's source becomes a copy of the recipient (CR 707),
+    /// keeping its own definition's `copy_except` if `except`.
+    BecomeCopy {
+        of: Recipient,
+        except: bool,
+    },
+    /// Create a token that is a copy of the recipient (CR 707.2, 111.4),
+    /// with the source definition's `copy_except` if `except`.
+    CreateTokenCopy {
+        of: Recipient,
+        except: bool,
     },
 }
 
@@ -919,6 +1021,9 @@ pub enum TriggerSpec {
         noncreature: bool,
         instant_or_sorcery: bool,
     },
+    /// "When ~ becomes the target of a spell or ability" (CR 115.4?; Phantasmal
+    /// Image).
+    BecomesTarget(TriggerObj),
 }
 
 impl TriggerSpec {
@@ -937,6 +1042,7 @@ impl TriggerSpec {
                 | (TriggerSpec::DealsCombatDamageToPlayer(_), E::Damage { .. })
                 | (TriggerSpec::GainsLife { .. }, E::LifeChange { .. })
                 | (TriggerSpec::CastsSpell { .. }, E::Cast { .. })
+                | (TriggerSpec::BecomesTarget(_), E::Targeted { .. })
         )
     }
 }
@@ -1015,6 +1121,24 @@ pub struct ActivatedAbility {
     pub text: String,
 }
 
+/// One mode of a "choose one" spell (CR 700.2).
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Mode {
+    pub targets: Vec<TargetSpec>,
+    pub effects: Vec<Effect>,
+    pub text: String,
+}
+
+/// Modifications a copy effect makes as part of copying (CR 707.9b):
+/// "except it's an Illusion and has ..." (Phantasmal Image), "except it has
+/// haste" (Kiki-Jiki). They become part of the copiable values.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub struct CopyExcept {
+    pub subtypes: Vec<String>,
+    pub keywords: KeywordSet,
+    pub abilities: Vec<AbilityDef>,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum AbilityDef {
     /// The effect of an instant or sorcery spell when it resolves.
@@ -1022,6 +1146,13 @@ pub enum AbilityDef {
         targets: Vec<TargetSpec>,
         effects: Vec<Effect>,
     },
+    /// A "choose one" instant or sorcery (CR 700.2): the mode is chosen as
+    /// the spell is cast (CR 601.2b), before targets.
+    Modal(Vec<Mode>),
+    /// "You may have ~ enter as a copy of any creature on the battlefield"
+    /// (CR 707.? Clone): the choice is made as the permanent spell
+    /// resolves, among battlefield objects matching the filter.
+    EntersAsCopy(ObjFilter),
     /// "Enchant <spec>" (CR 702.5): an Aura's targeting requirement and
     /// attachment legality.
     Enchant(TargetSpec),
@@ -1047,7 +1178,9 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::Static(_)
-            | AbilityDef::Replacement(_) => &[],
+            | AbilityDef::Replacement(_)
+            | AbilityDef::Modal(_)
+            | AbilityDef::EntersAsCopy(_) => &[],
         }
     }
 
@@ -1060,8 +1193,39 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::Static(_)
-            | AbilityDef::Replacement(_) => &[],
+            | AbilityDef::Replacement(_)
+            | AbilityDef::Modal(_)
+            | AbilityDef::EntersAsCopy(_) => &[],
         }
+    }
+
+    /// Every effect this ability can apply, across modes and "you may"
+    /// clauses, for static inspection.
+    pub fn all_effects(&self) -> Vec<&Effect> {
+        fn walk<'a>(e: &'a Effect, out: &mut Vec<&'a Effect>) {
+            out.push(e);
+            if let Effect::YouMay(inner) = e {
+                for i in inner {
+                    walk(i, out);
+                }
+            }
+        }
+        let mut out = Vec::new();
+        match self {
+            AbilityDef::Modal(modes) => {
+                for m in modes {
+                    for e in &m.effects {
+                        walk(e, &mut out);
+                    }
+                }
+            }
+            other => {
+                for e in other.effects() {
+                    walk(e, &mut out);
+                }
+            }
+        }
+        out
     }
 }
 
@@ -1082,12 +1246,22 @@ pub struct CardDef {
     pub oracle_text: String,
     /// A token definition (CR 111): created by effects, never in a deck.
     pub token: bool,
+    /// What this card's copy effects add to the copiable values of what
+    /// they copy (CR 707.9b).
+    pub copy_except: Option<CopyExcept>,
     /// Filled in by `CardPool::add`: `subtypes` interned.
     #[serde(skip)]
     pub subtype_ids: SubtypeSet,
     /// Filled in by `CardPool::add`: `abilities` registered in the pool.
     #[serde(skip)]
     pub ability_ids: AbilitySet,
+    /// Filled in by `CardPool::add`: `copy_except` interned and registered.
+    #[serde(skip)]
+    pub except_subtype_ids: SubtypeSet,
+    #[serde(skip)]
+    pub except_ability_ids: AbilitySet,
+    #[serde(skip)]
+    pub except_flags: DefFlags,
     /// Filled in by `CardPool::add`: the printed characteristics, ready to
     /// clone (CR 109.3 before any effect).
     #[serde(skip)]
@@ -1112,8 +1286,12 @@ impl DefFlags {
     const ACTIVATED: u8 = 8;
     const CONTROL_STATIC: u8 = 16;
     const EQUIPMENT: u8 = 32;
+    const MID_CHOICE: u8 = 64;
+    const CDA: u8 = 128;
+    /// `MODIFIES_ENTERING`, for callers outside this module.
+    pub const MODIFIES_ENTERING_FLAG: u8 = DefFlags::MODIFIES_ENTERING;
 
-    const fn has(self, f: u8) -> bool {
+    pub const fn has(self, f: u8) -> bool {
         self.0 & f != 0
     }
 
@@ -1121,6 +1299,87 @@ impl DefFlags {
         if on {
             self.0 |= f;
         }
+    }
+
+    #[must_use]
+    pub const fn union(self, other: DefFlags) -> DefFlags {
+        DefFlags(self.0 | other.0)
+    }
+
+    pub const fn has_triggers(self) -> bool {
+        self.has(DefFlags::TRIGGERS)
+    }
+
+    pub const fn has_replacements(self) -> bool {
+        self.has(DefFlags::REPLACEMENTS)
+    }
+
+    pub const fn has_activated(self) -> bool {
+        self.has(DefFlags::ACTIVATED)
+    }
+
+    pub const fn has_control_static(self) -> bool {
+        self.has(DefFlags::CONTROL_STATIC)
+    }
+
+    pub const fn has_mid_choice(self) -> bool {
+        self.has(DefFlags::MID_CHOICE)
+    }
+
+    pub const fn has_cda(self) -> bool {
+        self.has(DefFlags::CDA)
+    }
+
+    /// Flags describing a list of abilities (and trigger keywords).
+    fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
+        let mut flags = DefFlags::default();
+        flags.set(
+            DefFlags::TRIGGERS,
+            keywords.contains(Keyword::Prowess)
+                || abilities
+                    .iter()
+                    .any(|a| matches!(a, AbilityDef::Triggered(_))),
+        );
+        flags.set(
+            DefFlags::REPLACEMENTS,
+            abilities.iter().any(
+                |a| matches!(a, AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)),
+            ),
+        );
+        flags.set(
+            DefFlags::MODIFIES_ENTERING,
+            abilities.iter().any(
+                |a| matches!(a, AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters)),
+            ),
+        );
+        flags.set(
+            DefFlags::ACTIVATED,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Activated(_))),
+        );
+        flags.set(
+            DefFlags::CONTROL_STATIC,
+            abilities.iter().any(
+                |a| matches!(a, AbilityDef::Static(s) if s.parts.contains(&Modification::Control)),
+            ),
+        );
+        flags.set(
+            DefFlags::CDA,
+            abilities.iter().any(
+                |a| matches!(a, AbilityDef::Static(s) if s.parts.iter().any(Modification::is_cda)),
+            ),
+        );
+        flags.set(
+            DefFlags::MID_CHOICE,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::EntersAsCopy(_))
+                    || a.all_effects()
+                        .iter()
+                        .any(|e| matches!(e, Effect::YouMay(_)))
+            }),
+        );
+        flags
     }
 }
 
@@ -1189,6 +1448,51 @@ impl CardDef {
         self.flags.has(DefFlags::EQUIPMENT)
     }
 
+    /// Resolving this (or an ability of it) may ask its controller a
+    /// question in the middle of resolution: "you may", or which object
+    /// to enter as a copy of.
+    pub fn has_mid_choice(&self) -> bool {
+        self.flags.has(DefFlags::MID_CHOICE)
+    }
+
+    /// Has a characteristic-defining ability (CR 604.3).
+    pub fn has_cda(&self) -> bool {
+        self.flags.has(DefFlags::CDA)
+    }
+
+    /// The precomputed flags of the printed abilities.
+    pub fn flags(&self) -> DefFlags {
+        self.flags
+    }
+
+    /// The modes of a "choose one" spell, if it is one.
+    pub fn modes(&self) -> Option<&[Mode]> {
+        self.abilities.iter().find_map(|a| match a {
+            AbilityDef::Modal(m) => Some(m.as_slice()),
+            _ => None,
+        })
+    }
+
+    /// The filter of an "enters as a copy" ability, if it has one.
+    pub fn enters_as_copy(&self) -> Option<&ObjFilter> {
+        self.abilities.iter().find_map(|a| match a {
+            AbilityDef::EntersAsCopy(f) => Some(f),
+            _ => None,
+        })
+    }
+
+    /// Each way of casting this as an instant or sorcery: the single spell
+    /// ability, or one entry per mode.
+    pub fn spell_variants(&self) -> Vec<(&[TargetSpec], &[Effect])> {
+        if let Some(modes) = self.modes() {
+            return modes
+                .iter()
+                .map(|m| (m.targets.as_slice(), m.effects.as_slice()))
+                .collect();
+        }
+        self.spell_ability().into_iter().collect()
+    }
+
     /// An Aura or Equipment: attaches to another permanent.
     pub fn attaches(&self) -> bool {
         self.is_aura() || self.is_equipment()
@@ -1214,6 +1518,16 @@ impl CardDef {
                 .abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.watches(event)))
+    }
+
+    /// The same for the abilities this card's copy effects add (CR 707.9b).
+    pub fn except_may_watch(&self, event: &crate::event::Event) -> bool {
+        self.except_flags.has_triggers()
+            && self.copy_except.as_ref().is_some_and(|x| {
+                x.abilities
+                    .iter()
+                    .any(|a| matches!(a, AbilityDef::Triggered(t) if t.trigger.watches(event)))
+            })
     }
 
     pub fn is_creature(&self) -> bool {
@@ -1255,6 +1569,12 @@ pub struct CardPool {
     subtypes: Vec<String>,
     subtype_ids: HashMap<String, Subtype>,
     abilities: Vec<AbilityDef>,
+    /// Per ability: whether resolving it may ask its controller a
+    /// question ("you may").
+    asks: Vec<bool>,
+    /// Per ability: whether resolving it may put a permanent onto the
+    /// battlefield whose own entering replacement could meet another.
+    enters: Vec<bool>,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
 }
@@ -1273,6 +1593,8 @@ impl CardPool {
             subtypes: Vec::new(),
             subtype_ids: HashMap::new(),
             abilities: Vec::new(),
+            asks: Vec::new(),
+            enters: Vec::new(),
             prowess: AbilityId(0),
         };
         for c in Color::ALL {
@@ -1298,8 +1620,41 @@ impl CardPool {
 
     fn register(&mut self, a: AbilityDef) -> AbilityId {
         let id = AbilityId(u32::try_from(self.abilities.len()).expect("too many abilities"));
+        let effects = a.all_effects();
+        self.asks
+            .push(effects.iter().any(|e| matches!(e, Effect::YouMay(_))));
+        // What a token is known; what returns from exile or is copied is not.
+        self.enters.push(effects.iter().any(|e| {
+            match e {
+                Effect::ReturnToBattlefield { .. } | Effect::CreateTokenCopy { .. } => true,
+                Effect::CreateToken { token, .. } => self
+                    .defs
+                    .get(token.0 as usize)
+                    .is_none_or(CardDef::modifies_entering),
+                _ => false,
+            }
+        }));
         self.abilities.push(a);
         id
+    }
+
+    /// Whether resolving this ability may put onto the battlefield a
+    /// permanent with its own entering replacement (CR 614.1c), which could
+    /// meet another replacement effect and need an order chosen (CR 616.1).
+    pub fn ability_enters(&self, id: AbilityId) -> bool {
+        self.enters[id.0 as usize]
+    }
+
+    /// Whether resolving this ability may ask its controller a question
+    /// in the middle of resolution ("you may").
+    pub fn ability_asks(&self, id: AbilityId) -> bool {
+        self.asks[id.0 as usize]
+    }
+
+    /// Register an ability that is not printed on a card: a delayed
+    /// triggered ability an effect creates (CR 603.7).
+    pub fn register_ability(&mut self, a: AbilityDef) -> AbilityId {
+        self.register(a)
     }
 
     /// The triggered ability a keyword stands for, for keywords that are
@@ -1325,43 +1680,21 @@ impl CardPool {
             .into_iter()
             .map(|a| self.register(a))
             .collect();
+        if let Some(x) = def.copy_except.clone() {
+            def.except_subtype_ids = x.subtypes.iter().map(|s| self.subtype(s)).collect();
+            def.except_ability_ids = x.abilities.into_iter().map(|a| self.register(a)).collect();
+            def.except_flags = DefFlags::of(
+                def.copy_except
+                    .as_ref()
+                    .map_or(&[], |x| x.abilities.as_slice()),
+                x.keywords,
+            );
+        }
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
         };
-        let mut flags = DefFlags::default();
-        flags.set(
-            DefFlags::TRIGGERS,
-            def.keywords.contains(Keyword::Prowess)
-                || def
-                    .abilities
-                    .iter()
-                    .any(|a| matches!(a, AbilityDef::Triggered(_))),
-        );
-        flags.set(
-            DefFlags::REPLACEMENTS,
-            def.abilities.iter().any(
-                |a| matches!(a, AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)),
-            ),
-        );
-        flags.set(
-            DefFlags::MODIFIES_ENTERING,
-            def.abilities.iter().any(
-                |a| matches!(a, AbilityDef::Replacement(r) if matches!(r.replaces, Replaces::Enters)),
-            ),
-        );
-        flags.set(
-            DefFlags::ACTIVATED,
-            def.abilities
-                .iter()
-                .any(|a| matches!(a, AbilityDef::Activated(_))),
-        );
-        flags.set(
-            DefFlags::CONTROL_STATIC,
-            def.abilities.iter().any(
-                |a| matches!(a, AbilityDef::Static(s) if s.parts.contains(&Modification::Control)),
-            ),
-        );
+        let mut flags = DefFlags::of(&def.abilities, def.keywords);
         flags.set(
             DefFlags::EQUIPMENT,
             def.subtypes.iter().any(|s| s == "Equipment"),
@@ -1448,12 +1781,23 @@ impl Builder {
             abilities: Vec::new(),
             oracle_text: String::new(),
             token: false,
+            copy_except: None,
             subtype_ids: SubtypeSet::new(),
             ability_ids: AbilitySet::new(),
+            except_subtype_ids: SubtypeSet::new(),
+            except_ability_ids: AbilitySet::new(),
+            except_flags: DefFlags::default(),
             printed: None,
             cast_targets: Vec::new(),
             flags: DefFlags::default(),
         })
+    }
+
+    /// What this card's copy effects add to what they copy (CR 707.9b).
+    #[must_use]
+    pub fn copy_except(mut self, x: CopyExcept) -> Self {
+        self.0.copy_except = Some(x);
+        self
     }
 
     /// Mark this as a token definition (CR 111).
@@ -1751,6 +2095,7 @@ pub fn m1_pool() -> CardPool {
     add_trigger_cards(&mut pool);
     add_replacement_cards(&mut pool);
     add_activated_cards(&mut pool);
+    add_copy_cards(&mut pool);
     pool
 }
 
@@ -2854,6 +3199,336 @@ fn add_activated_cards(pool: &mut CardPool) {
     pool.add(
         creature("Isamaru, Hound of Konda", "{W}", &["Dog"], 2, 2)
             .supertypes([Supertype::Legendary])
+            .build(),
+    );
+}
+
+/// M2 slice 5: copy effects (CR 707), characteristic-defining abilities
+/// (CR 604.3), delayed triggered abilities (CR 603.7), modal spells (CR
+/// 700.2), and "you may" clauses.
+#[allow(clippy::too_many_lines)]
+fn add_copy_cards(pool: &mut CardPool) {
+    use CardType::{Artifact, Creature, Instant};
+    use Recipient::{CreatedObject, SameObject, Source, Target};
+
+    let creature = |name: &str, cost: &str, sub: &[&str], p: i32, t: i32| {
+        Builder::new(name, cost)
+            .types([Creature])
+            .subtypes(sub)
+            .pt(p, t)
+    };
+    let triggered = |trigger: TriggerSpec, targets: &[TargetSpec], effects: &[Effect]| {
+        AbilityDef::Triggered(TriggeredAbility {
+            trigger,
+            condition: None,
+            targets: targets.to_vec(),
+            effects: effects.to_vec(),
+        })
+    };
+    let at_next_end_step = |effects: &[Effect]| {
+        triggered(
+            TriggerSpec::BeginningOfStep {
+                step: crate::turn::Step::End,
+                whose: Who::Any,
+            },
+            &[],
+            effects,
+        )
+    };
+    let cda = |parts: Vec<Modification>| {
+        AbilityDef::Static(StaticAbility {
+            affected: ObjFilter::this(),
+            parts,
+        })
+    };
+    let mode = |targets: &[TargetSpec], effects: &[Effect], text: &str| Mode {
+        targets: targets.to_vec(),
+        effects: effects.to_vec(),
+        text: text.to_string(),
+    };
+
+    // ---- copy effects (CR 707) ----
+    pool.add(
+        creature("Clone", "{3}{U}", &["Shapeshifter"], 0, 0)
+            .ability(AbilityDef::EntersAsCopy(ObjFilter::creatures()))
+            .text("You may have Clone enter as a copy of any creature on the battlefield.")
+            .build(),
+    );
+    let image_trigger = triggered(
+        TriggerSpec::BecomesTarget(TriggerObj::This),
+        &[],
+        &[Effect::Sacrifice { what: Source }],
+    );
+    pool.add(
+        creature("Phantasmal Image", "{1}{U}", &["Illusion"], 0, 0)
+            .ability(AbilityDef::EntersAsCopy(ObjFilter::creatures()))
+            .ability(image_trigger.clone())
+            .copy_except(CopyExcept {
+                subtypes: vec!["Illusion".to_string()],
+                keywords: KeywordSet::NONE,
+                abilities: vec![image_trigger],
+            })
+            .text(
+                "You may have Phantasmal Image enter as a copy of any creature on the battlefield, except it's an Illusion in addition to its other types and it has \"When this creature becomes the target of a spell or ability, sacrifice it.\"",
+            )
+            .build(),
+    );
+    let cryptoplasm_trigger = triggered(
+        TriggerSpec::BeginningOfStep {
+            step: crate::turn::Step::Upkeep,
+            whose: Who::You,
+        },
+        &[TargetSpec::OtherCreature],
+        &[Effect::YouMay(vec![Effect::BecomeCopy {
+            of: Target(0),
+            except: true,
+        }])],
+    );
+    pool.add(
+        creature("Cryptoplasm", "{1}{U}{U}", &["Shapeshifter"], 2, 2)
+            .ability(cryptoplasm_trigger.clone())
+            .copy_except(CopyExcept {
+                subtypes: Vec::new(),
+                keywords: KeywordSet::NONE,
+                abilities: vec![cryptoplasm_trigger],
+            })
+            .text(
+                "At the beginning of your upkeep, you may have Cryptoplasm become a copy of another target creature, except it has this ability.",
+            )
+            .build(),
+    );
+    let sacrifice_at_end =
+        pool.register_ability(at_next_end_step(&[Effect::Sacrifice { what: SameObject }]));
+    pool.add(
+        creature("Kiki-Jiki, Mirror Breaker", "{2}{R}{R}{R}", &["Goblin", "Shaman"], 2, 2)
+            .supertypes([Supertype::Legendary])
+            .keywords([Keyword::Haste])
+            .ability(AbilityDef::Activated(ActivatedAbility {
+                cost: Cost::parse("").tap(),
+                targets: vec![TargetSpec::NonlegendaryCreatureYouControl],
+                effects: vec![
+                    Effect::CreateTokenCopy {
+                        of: Target(0),
+                        except: true,
+                    },
+                    Effect::Delayed {
+                        ability: sacrifice_at_end,
+                        about: CreatedObject,
+                    },
+                ],
+                sorcery_speed: false,
+                text: "{T}: create a token copy of target nonlegendary creature you control with haste; sacrifice it at the beginning of the next end step".to_string(),
+            }))
+            .copy_except(CopyExcept {
+                subtypes: Vec::new(),
+                keywords: KeywordSet::of([Keyword::Haste]),
+                abilities: Vec::new(),
+            })
+            .text(
+                "Haste\n{T}: Create a token that's a copy of target nonlegendary creature you control, except it has haste. Sacrifice it at the beginning of the next end step.",
+            )
+            .build(),
+    );
+
+    // ---- characteristic-defining abilities (CR 604.3) ----
+    pool.add(
+        creature("Tarmogoyf", "{1}{G}", &["Lhurgoyf"], 0, 1)
+            .ability(cda(vec![Modification::CdaPt {
+                count: CdaCount::CardTypesInGraveyards,
+                plus_toughness: 1,
+            }]))
+            .text(
+                "Tarmogoyf's power is equal to the number of card types among cards in all graveyards and its toughness is equal to that number plus 1.",
+            )
+            .build(),
+    );
+    pool.add(
+        creature("Lhurgoyf", "{2}{G}{G}", &["Lhurgoyf"], 0, 1)
+            .ability(cda(vec![Modification::CdaPt {
+                count: CdaCount::CreatureCardsInGraveyards,
+                plus_toughness: 1,
+            }]))
+            .text(
+                "Lhurgoyf's power is equal to the number of creature cards in all graveyards and its toughness is equal to that number plus 1.",
+            )
+            .build(),
+    );
+    pool.add(
+        creature("Nightmare", "{5}{B}", &["Nightmare", "Horse"], 0, 0)
+            .keywords([Keyword::Flying])
+            .ability(cda(vec![Modification::CdaPt {
+                count: CdaCount::Permanents(ObjFilter {
+                    who: Some(Who::You),
+                    subtypes: SubtypeSet::from_slice(&[Subtype::basic(Color::Black)]),
+                    ..Default::default()
+                }),
+                plus_toughness: 0,
+            }]))
+            .text(
+                "Flying\nNightmare's power and toughness are each equal to the number of Swamps you control.",
+            )
+            .build(),
+    );
+    pool.add(
+        Builder::new("Transguild Courier", "{4}")
+            .types([Artifact, Creature])
+            .subtypes(&["Golem"])
+            .pt(3, 3)
+            .ability(cda(vec![Modification::CdaColors(ColorSet::of(Color::ALL))]))
+            .text("Transguild Courier is all colors.")
+            .build(),
+    );
+
+    // ---- delayed triggered abilities (CR 603.7) ----
+    let return_at_end = pool.register_ability(at_next_end_step(&[Effect::ReturnToBattlefield {
+        what: SameObject,
+        counters: None,
+    }]));
+    pool.add(
+        creature("Flickerwisp", "{1}{W}{W}", &["Elemental"], 3, 1)
+            .keywords([Keyword::Flying])
+            .ability(triggered(
+                TriggerSpec::Enters(TriggerObj::This),
+                &[TargetSpec::OtherPermanent],
+                &[
+                    Effect::Exile { what: Target(0) },
+                    Effect::Delayed {
+                        ability: return_at_end,
+                        about: Target(0),
+                    },
+                ],
+            ))
+            .text(
+                "Flying\nWhen Flickerwisp enters, exile another target permanent. Return that card to the battlefield under its owner's control at the beginning of the next end step.",
+            )
+            .build(),
+    );
+    let return_with_counter =
+        pool.register_ability(at_next_end_step(&[Effect::ReturnToBattlefield {
+            what: SameObject,
+            counters: Some((CounterKind::PlusOnePlusOne, 1)),
+        }]));
+    pool.add(
+        Builder::new("Otherworldly Journey", "{1}{W}")
+            .types([Instant])
+            .subtypes(&["Arcane"])
+            .ability(AbilityDef::Spell {
+                targets: vec![TargetSpec::Creature],
+                effects: vec![
+                    Effect::Exile { what: Target(0) },
+                    Effect::Delayed {
+                        ability: return_with_counter,
+                        about: Target(0),
+                    },
+                ],
+            })
+            .text(
+                "Exile target creature. At the beginning of the next end step, return that card to the battlefield under its owner's control with a +1/+1 counter on it.",
+            )
+            .build(),
+    );
+
+    // ---- modal spells (CR 700.2) ----
+    pool.add(
+        Builder::new("Abrade", "{1}{R}")
+            .types([Instant])
+            .ability(AbilityDef::Modal(vec![
+                mode(
+                    &[TargetSpec::Creature],
+                    &[Effect::DealDamage {
+                        amount: 3,
+                        to: Target(0),
+                    }],
+                    "Abrade deals 3 damage to target creature",
+                ),
+                mode(
+                    &[TargetSpec::Artifact],
+                    &[Effect::Destroy { to: Target(0) }],
+                    "Destroy target artifact",
+                ),
+            ]))
+            .text("Choose one —\n• Abrade deals 3 damage to target creature.\n• Destroy target artifact.")
+            .build(),
+    );
+    pool.add(
+        Builder::new("Boros Charm", "{R}{W}")
+            .types([Instant])
+            .ability(AbilityDef::Modal(vec![
+                mode(
+                    &[TargetSpec::Player],
+                    &[Effect::DealDamage {
+                        amount: 4,
+                        to: Target(0),
+                    }],
+                    "Boros Charm deals 4 damage to target player",
+                ),
+                mode(
+                    &[],
+                    &[Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::Indestructible]),
+                        to: Recipient::EachPermanentYouControl,
+                    }],
+                    "Permanents you control gain indestructible until end of turn",
+                ),
+                mode(
+                    &[TargetSpec::Creature],
+                    &[Effect::Grant {
+                        keywords: KeywordSet::of([Keyword::DoubleStrike]),
+                        to: Target(0),
+                    }],
+                    "Target creature gains double strike until end of turn",
+                ),
+            ]))
+            .text(
+                "Choose one —\n• Boros Charm deals 4 damage to target player or planeswalker.\n• Permanents you control gain indestructible until end of turn.\n• Target creature gains double strike until end of turn.",
+            )
+            .build(),
+    );
+    pool.add(
+        Builder::new("Grixis Charm", "{U}{B}{R}")
+            .types([Instant])
+            .ability(AbilityDef::Modal(vec![
+                mode(
+                    &[TargetSpec::Permanent],
+                    &[Effect::ReturnToHand { what: Target(0) }],
+                    "Return target permanent to its owner's hand",
+                ),
+                mode(
+                    &[TargetSpec::Creature],
+                    &[Effect::Pump {
+                        power: -4,
+                        toughness: -4,
+                        to: Target(0),
+                    }],
+                    "Target creature gets -4/-4 until end of turn",
+                ),
+                mode(
+                    &[],
+                    &[Effect::Pump {
+                        power: 2,
+                        toughness: 0,
+                        to: Recipient::EachCreatureYouControl,
+                    }],
+                    "Creatures you control get +2/+0 until end of turn",
+                ),
+            ]))
+            .text(
+                "Choose one —\n• Return target permanent to its owner's hand.\n• Target creature gets -4/-4 until end of turn.\n• Creatures you control get +2/+0 until end of turn.",
+            )
+            .build(),
+    );
+
+    // ---- "you may" ----
+    pool.add(
+        creature("Gravedigger", "{3}{B}", &["Zombie"], 2, 2)
+            .ability(triggered(
+                TriggerSpec::Enters(TriggerObj::This),
+                &[TargetSpec::CreatureCardInYourGraveyard],
+                &[Effect::YouMay(vec![Effect::ReturnToHand { what: Target(0) }])],
+            ))
+            .text(
+                "When Gravedigger enters, you may return target creature card from your graveyard to your hand.",
+            )
             .build(),
     );
 }

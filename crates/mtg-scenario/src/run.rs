@@ -15,8 +15,8 @@ use mtg_core::state::{GameResult, GameState, ObjKind, Target, Zone};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Action, Assertion, ObjRef, Position, RunTarget, Scenario, ScriptedAction, Statement, TargetRef,
-    player_name, step_name,
+    Action, Assertion, ObjRef, Pick, Position, RunTarget, Scenario, ScriptedAction, Statement,
+    TargetRef, player_name, step_name,
 };
 
 /// Safety valve against scenarios that never end.
@@ -123,6 +123,8 @@ struct Runner {
     decisions: u32,
     /// Targets still to be chosen for the spell being cast.
     pending_targets: Option<Vec<TargetRef>>,
+    /// The scripted mode of the modal spell being cast (1-based).
+    pending_mode: Option<usize>,
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
     /// Blocks still to be added in an incremental declaration.
@@ -209,6 +211,7 @@ impl Runner {
             actions,
             decisions: 0,
             pending_targets: None,
+            pending_mode: None,
             attack_queue: None,
             block_queue: None,
         })
@@ -357,7 +360,86 @@ impl Runner {
             DecisionKind::OrderTriggers => Ok(self.order_triggers(d, pos)),
             DecisionKind::ChooseReplacement => Ok(self.choose_replacement(d, pos)),
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
+            DecisionKind::ChooseMode { .. } => self.choose_mode(d),
+            DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
+            DecisionKind::ChooseCopy => self.choose_copy(d, pos),
         }
+    }
+
+    /// The mode of the modal spell being cast: the one scripted with
+    /// `mode N`, else the engine's first option.
+    fn choose_mode(&mut self, d: &Decision) -> Res<ChoiceId> {
+        let Some(m) = self.pending_mode.take() else {
+            return Ok(0);
+        };
+        let line = self.current_cast_line();
+        index_of(d, &Choice::Mode(m - 1)).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "mode {m} is not available (it may lack a target); available: {}",
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// A "you may" of `def`: the first unfired scripted `accept`/`decline`
+    /// naming the card decides; otherwise yes.
+    fn you_may(&mut self, d: &Decision, pos: Position, def: mtg_core::card::CardRef) -> ChoiceId {
+        let card = self.state().pool.get(def).name.clone();
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::YouMay { name, .. } if *name == card),
+        );
+        if let Some(&i) = idxs.first() {
+            self.fired[i] = true;
+            let Action::YouMay { accept, .. } = &self.actions[i].action else {
+                unreachable!()
+            };
+            let want = if *accept {
+                Choice::Accept
+            } else {
+                Choice::Decline
+            };
+            return index_of(d, &want).unwrap_or(0);
+        }
+        0
+    }
+
+    /// What to enter as a copy of: the first unfired scripted `copy`
+    /// decides; otherwise the engine's first option.
+    fn choose_copy(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Copy(_)));
+        let Some(&i) = idxs.first() else {
+            return Ok(0);
+        };
+        self.fired[i] = true;
+        let a = self.actions[i].clone();
+        let Action::Copy(what) = &a.action else {
+            unreachable!()
+        };
+        let Some(r) = what else {
+            return index_of(d, &Choice::NoCopy)
+                .ok_or_else(|| self.unexpected(d, "no NoCopy option"));
+        };
+        let st = self.state();
+        let found = d.options.iter().position(|c| match c {
+            Choice::CopyOf { obj, def } => {
+                st.pool.get(*def).name == r.name
+                    && r.player
+                        .is_none_or(|p| st.obj(*obj).is_some_and(|o| o.controller == p))
+            }
+            _ => false,
+        });
+        found.map(idx_u32).ok_or_else(|| Failure {
+            line: a.line,
+            message: format!(
+                "\"{}\" cannot be copied here; options: {}",
+                r.name,
+                self.describe_options(d)
+            ),
+        })
     }
 
     /// The legend rule asks which permanent to keep: the first unfired
@@ -525,6 +607,7 @@ impl Runner {
             .unwrap_or(0)
     }
 
+    #[allow(clippy::too_many_lines)] // one block per outcome of a scripted action
     fn priority_action(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
         self.pending_targets = None;
         let stack_names: Vec<String> = self
@@ -553,14 +636,19 @@ impl Runner {
                     None => continue,
                 }
             }
-            let (name, option, targets) = match &a.action {
+            let (name, option, targets, mode) = match &a.action {
                 Action::Play(name) => {
                     let id = self.in_hand(a.line, d.player, name)?;
-                    (name, Choice::PlayLand(id), None)
+                    (name, Choice::PlayLand(id), None, None)
                 }
-                Action::Cast { name, targets, .. } => {
+                Action::Cast {
+                    name,
+                    targets,
+                    mode,
+                    ..
+                } => {
                     let id = self.in_hand(a.line, d.player, name)?;
-                    (name, Choice::Cast(id), Some(targets.clone()))
+                    (name, Choice::Cast(id), Some(targets.clone()), *mode)
                 }
                 _ => unreachable!("filtered to play/cast"),
             };
@@ -606,10 +694,8 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
-                        let needed = self
-                            .state()
-                            .def_of(id)
-                            .map_or(0, |def| def.cast_targets().len());
+                        let (needed, pending_mode) = self.cast_needs(a.line, id, name, mode)?;
+                        self.pending_mode = pending_mode;
                         if targets.len() != needed {
                             return fail(
                                 a.line,
@@ -626,6 +712,32 @@ impl Runner {
             }
         }
         index_of(d, &Choice::Pass).ok_or_else(|| self.unexpected(d, "no Pass option"))
+    }
+
+    /// How many targets a scripted cast of `id` takes, and the mode to
+    /// choose for a modal spell (`mode N`, default the first).
+    fn cast_needs(
+        &self,
+        line: usize,
+        id: ObjId,
+        name: &str,
+        mode: Option<usize>,
+    ) -> Res<(usize, Option<usize>)> {
+        let def = self.state().def_of(id).expect("card in hand");
+        let Some(modes) = def.modes() else {
+            if mode.is_some() {
+                return fail(line, format!("\"{name}\" is not modal"));
+            }
+            return Ok((def.cast_targets().len(), None));
+        };
+        let m = mode.unwrap_or(1);
+        let Some(chosen) = modes.get(m - 1) else {
+            return fail(
+                line,
+                format!("\"{name}\" has {} modes, not {m}", modes.len()),
+            );
+        };
+        Ok((chosen.targets.len(), Some(m)))
     }
 
     /// A scripted `activate`: the option activating an ability of the named
@@ -1050,26 +1162,39 @@ impl Runner {
     /// Resolve an object reference against the battlefield. One match is
     /// required unless the reference names a controller, in which case the
     /// first match under that controller is used.
+    /// A named object on the battlefield (or, failing that, a card in a
+    /// graveyard, for "target creature card in your graveyard").
     fn resolve_obj(&self, line: usize, r: &ObjRef) -> Res<ObjId> {
         let st = self.state();
-        let matches: Vec<ObjId> = st
+        let mut matches: Vec<ObjId> = st
             .battlefield
             .iter()
             .copied()
             .filter(|id| r.player.is_none_or(|p| st.objects[*id].controller == p))
             .filter(|id| st.name_of(*id) == r.name)
             .collect();
-        match (matches.len(), r.player) {
-            (0, None) => fail(line, format!("no \"{}\" on the battlefield", r.name)),
-            (0, Some(p)) => fail(
+        if matches.is_empty() {
+            matches = st
+                .players
+                .iter()
+                .flat_map(|p| p.graveyard.iter().copied())
+                .filter(|id| r.player.is_none_or(|p| st.objects[*id].owner == p))
+                .filter(|id| st.name_of(*id) == r.name)
+                .collect();
+        }
+        matches.sort_by_key(|id| st.objects[*id].timestamp);
+        match (matches.len(), r.player, r.pick) {
+            (0, None, _) => fail(line, format!("no \"{}\" on the battlefield", r.name)),
+            (0, Some(p), _) => fail(
                 line,
                 format!("{} controls no \"{}\"", player_name(p), r.name),
             ),
-            (1, _) | (_, Some(_)) => Ok(matches[0]),
-            (n, None) => fail(
+            (_, _, Some(Pick::Newest)) => Ok(matches[matches.len() - 1]),
+            (_, _, Some(Pick::Oldest)) | (1, _, None) | (_, Some(_), None) => Ok(matches[0]),
+            (n, None, None) => fail(
                 line,
                 format!(
-                    "{n} objects named \"{}\" on the battlefield; qualify with A or B",
+                    "{n} objects named \"{}\" on the battlefield; qualify with A or B, or oldest/newest",
                     r.name
                 ),
             ),
@@ -1432,6 +1557,17 @@ impl Runner {
             Choice::KeepLegend { def, age, .. } => {
                 format!("keep \"{}\" #{}", self.state().pool.get(*def).name, age + 1)
             }
+            Choice::Mode(i) => format!("mode {}", i + 1),
+            Choice::Accept => "accept".into(),
+            Choice::Decline => "decline".into(),
+            Choice::CopyOf { obj, def } => {
+                let st = self.state();
+                let who = st
+                    .obj(*obj)
+                    .map_or(String::new(), |o| format!("{} ", player_name(o.controller)));
+                format!("copy {who}\"{}\"", st.pool.get(*def).name)
+            }
+            Choice::NoCopy => "copy nothing".into(),
         }
     }
 

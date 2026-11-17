@@ -213,6 +213,38 @@ Caching: a per-state `HashMap<ObjId, (version, Characteristics)>`. A
 batch recompute of all battlefield objects is done once per
 `version` change in practice, since SBA checks touch everything.
 
+Since M2 slice 5 the cache is keyed on a second counter, `cversion`,
+bumped only by changes that can alter derived characteristics (the
+battlefield's membership, counters, stored continuous effects,
+attachments, control, copy effects, and graveyards, which feed
+Tarmogoyf's defining ability); damage, life, tapping, mana, and draws
+leave it alone, so a trigger-heavy board no longer recomputes every
+object on every event. The discipline this needs (every such change
+goes through `cbump`) is checked in debug builds: a sample of cache
+hits is recomputed from scratch and compared, and the corpus and the
+debug fuzz runs exercise it. It caught one miss on the first run (Aura
+attachment on resolution).
+
+Copy effects (layer 1, CR 707) are not stored as effects at all. A
+`GameObject` carries `def`, the definition whose copiable values it has,
+alongside `card`, the physical card; they differ only while a copy
+effect applies, and the layers start from `def`. Everything that reads
+the object's name, abilities, or precomputed flags reads `def`, so a
+Clone copying Siege-Gang Commander triggers, counts as a trigger source,
+and meets the legend rule as the card it copies, with no special cases;
+leaving the battlefield it is its card again (CR 400.7, 707.?). "Except"
+clauses (CR 707.9b) are a third field naming the definition whose
+`copy_except` (subtypes, keywords, abilities) joins the copiable values,
+so a Clone copying a Phantasmal Image inherits the Illusion type and the
+sacrifice trigger. "Enters as a copy of" is chosen as the spell resolves,
+set on the stack object, and carried through the zone change, so the
+copied card's own "enters with" effects apply (CR 614.12). Characteristic-
+defining abilities (CR 604.3) are static abilities whose parts are
+`CdaPt` (layer 7a, evaluated against the working characteristics after
+layer 6, so Urborg's Swamps count for Nightmare) or `CdaColors` (layer 5);
+they take timestamp 0 within their layer (CR 613.2), which is also why
+Transguild Courier stays all colors under Humility.
+
 ### 4.4 Continuous effects
 
 ```rust
@@ -241,6 +273,17 @@ each state-based-action check, and is gated to nothing by counts of
 control sources and effects on boards without any. A permanent whose
 controller changes leaves combat (CR 506.4) and loses "controlled since
 the turn began" (CR 302.6).
+
+Delayed triggered abilities (CR 603.7, M2 slice 5) are a list on the
+state of (controller, `StackAbility`): the ability is a triggered ability
+registered in the pool (not printed on any card) and the object it is
+about travels as the ability's triggering object. The ability carries
+the definition of its source, so it still has a name once Flickerwisp
+has died or Otherworldly Journey is in the graveyard. Each fires once at
+its step and is removed; its effects refer to the object through
+`Recipient::SameObject`, which finds it only if it has not changed zones
+since (CR 400.7), so a token copy that died before the end step is not
+sacrificed twice.
 
 ### 4.5 Event pipeline
 
@@ -307,8 +350,14 @@ the engine records the question, lets the first option stand, and
 action and replays the action with the answer. The snapshot (a
 `GameState` clone, about 3 µs) is taken only when two or more replacement
 sources exist, so ordinary boards pay nothing; the replay is deterministic
-because the RNG is part of the state. The same mechanism will serve other
-mid-resolution choices (modes, "you may", sacrifices) in M3.
+because the RNG is part of the state. Since M2 slice 5 the same mechanism
+serves "you may" clauses and "enters as a copy of" (CR 707), gated by a
+precomputed per-ability "asks a question" flag on whatever is on the
+stack; several questions in one action (a Clone copying a legend, then
+the legend rule) are answered in sequence by the recorded answers. Modes,
+by contrast, are chosen as the spell is cast (CR 601.2b) through an
+ordinary `Flow::ChoosingMode` state before targets, since there the
+engine can pause.
 
 Stage 3: `GameState::emit` is the single chokepoint: every event runs
 `detect_triggers` before it is logged, so detection works with logging
@@ -820,6 +869,38 @@ measurable difference, so it stays inline. Variation between builds from
 code layout alone was about ±3% on this benchmark, which bounds what
 single-run comparisons can show.
 
+**M2 slice 5 (2026-11-16, same method, measured against the slice 4
+binary built the same evening).** The characteristics cache is now keyed
+on `cversion`, bumped only by changes that can alter derived
+characteristics, instead of on `version`, which every tap and mana
+payment bumped; that is the "incremental recomputation" the slice 4 note
+asked for, in its cheapest form, and it roughly doubles throughput on
+every board with statics, counters, or triggers. The effect-free board
+first lost 14%: `characteristics()` had started returning
+`base_characteristics(obj)`, which merges a copy's `except` abilities into
+the printed values, and although the merge never ran on these boards its
+presence (growable vectors, a drop path) kept the common case from being
+the plain 72-byte copy it was before. Stub builds found it (bypassing the
+call recovered 13 of the 14 points; fat LTO changed nothing, so it was not
+layout), and the fix was structural: the cached `Printed` result is only
+derived when no battlefield object has an `except`, so that arm copies the
+printed values directly, and the merge lives in a `#[cold]` function. The
+lesson from slice 1 holds in a sharper form: a hot accessor must not even
+*contain* a slow path.
+
+| Matchup | games/s/core | slice 4 binary | Note |
+|---|---|---|---|
+| mono-red vs mono-red (no effects) | 2,605 | 2,625 | −0.8%, within run-to-run noise |
+| mono-green vs mono-green (counters) | 2,232 | 1,838 | +21% |
+| mono-white vs mono-black (anthems, auras) | 1,216 | 812 | +50% |
+| layers vs layers | 1,328 | 729 | +82% |
+| triggers vs triggers | 604 | 340 | +78% |
+| replacement vs replacement | 560 | 482 | +16% |
+| activated vs mono-red | 1,281 | 933 | +37% |
+| activated vs activated | 424 | 262 | +62% |
+| copy vs mono-red | 1,437 | | |
+| copy vs copy (every slice 5 card at once) | 891 | | 609 decisions/game |
+
 The first version of `characteristics()` returned a struct holding two
 `SmallVec`s and cost 42% of throughput even on effect-free boards; making
 `Characteristics` `Copy` (fixed-capacity lists) recovered all but 5%. The
@@ -1045,6 +1126,70 @@ file and wants splitting.
 
 **M2: Continuous effects and the event pipeline (6–8 weeks; started 2026-11-14)**
 
+Status 2026-11-16, slice 5 (copy effects, characteristic-defining
+abilities, delayed triggers, modal spells, "you may") done. Copy effects
+(CR 707) are not effects: `GameObject::def` is the definition whose
+copiable values the object has, next to `card`, the physical card, and an
+optional `except` definition whose `copy_except` (subtypes, keywords,
+abilities) joins the copiable values (CR 707.9b) so a Clone copying a
+Phantasmal Image is an Illusion that sacrifices itself when targeted.
+Everything that reads a name, abilities, or hot-path flags reads `def`,
+so a copy triggers, counts toward the per-kind source counts, and meets
+the legend rule as what it copies; `move_object_now` keeps `(def,
+except)` only when the object enters the battlefield and resets them
+otherwise. "Enters as a copy" is chosen through the mid-event mechanism
+before the permanent is put onto the battlefield; token copies and
+"becomes a copy" (Cryptoplasm) adjust the source counts in place. CDAs
+(CR 604.3) are static abilities with timestamp 0 in their layer (CR
+613.2): `CdaPt` in layer 7a counts against the working characteristics
+after layer 6 (Urborg's Swamps count for Nightmare), `CdaColors` in layer
+5 (Transguild Courier stays all colors under Humility); tokens in
+graveyards are not cards for Tarmogoyf and Lhurgoyf. Delayed triggered
+abilities (CR 603.7) are a list on the state carrying their source's
+definition, fired once from `detect_triggers` at the step they name, with
+`Recipient::SameObject` meaning the object only while it is the same one
+(CR 400.7) and `CreatedObject` the new object an exile or return made.
+Modal spells (CR 700.2) choose a mode in a casting state before targets
+(CR 601.2b); `GameObject::mode` selects the mode's targets and effects.
+"You may" is `Effect::YouMay`, asked mid-resolution; the snapshot gate
+judges abilities by themselves (`CardPool::ability_asks`), since a copy's
+exception can ask when its definition cannot, and also snapshots when a
+spell or ability about to resolve could put a permanent with its own
+"enters with" replacement onto the battlefield while another replacement
+effect is in play (Otherworldly Journey returning Phantom Tiger under
+Hardened Scales). Derived characteristics are cached on `cversion`, a
+counter bumped only by changes that can alter them (§4.3), with a
+sampled from-scratch comparison in debug builds. Fourteen cards join the
+pool (Clone, Phantasmal Image, Cryptoplasm, Kiki-Jiki, Mirror Breaker,
+Tarmogoyf, Lhurgoyf, Nightmare, Transguild Courier, Flickerwisp,
+Otherworldly Journey, Abrade, Boros Charm, Grixis Charm, Gravedigger),
+bringing it to 118. The scenario DSL gained `cast ... mode N`,
+`accept`/`decline`, `copy`, and `oldest`/`newest` object references with
+a graveyard fallback. The 66-scenario suite in `scenarios/m2/copy.scn`
+covers a Clone copying a Phantasmal Image and inheriting its exceptions,
+Lightning Bolt saving a Tarmogoyf by landing in the graveyard, Kiki-Jiki
+tokens that died before the end step, Flickerwisp returning a token that
+is gone, Nightmare dying when its last Swamp leaves, modes with no legal
+targets, and Boros Charm's indestructible mode in response to Murder.
+Authoring found one rules bug (the mid-choice gate judged a copy's
+trigger by the copied card) and the debug cache check found a missed
+bump (Aura attachment) and a count that changed without one (a token
+leaving a graveyard). Fuzzing the new deck found two more: the
+state-based loop never ended once an indestructible creature had lethal
+damage (CR 702.12b; Boros Charm made it reachable), and the gate above
+did not anticipate a delayed trigger returning a permanent: Phantom
+Tiger's own entering replacement meeting Hardened Scales, and a flickered
+Kiki-Jiki meeting the one cast in the meantime. Fuzz: 32,000 release games on the new deck against itself, mono-red,
+activated, triggers, and replacement, with random and greedy agents, and
+400 debug-assert games with the sampled cache check, 0 panics; records
+with copy choices replay identically. Perf (§8): the characteristics cache
+keyed on `cversion` lifts every board with effects by 16–82%, and the
+effect-free board is within noise of slice 4 after a 14% regression from
+a slow path inside the hot accessor was found and removed. Not yet:
+planeswalkers, emblems, costs other than mana/{T}/sacrifice, X costs,
+the CR 614.12 look-ahead, regeneration, and damage redirection (slice
+6).
+
 Status 2026-11-15, slice 4 (activated abilities, tokens, Equipment,
 control changes, the legend rule) done. Activated abilities (CR 602) are
 `AbilityDef::Activated` with a `Cost` of mana, {T}, and an optional
@@ -1089,11 +1234,11 @@ state (fixed by making the choice self-describing), and a latent greedy-
 agent crash on attackers that had left the battlefield (CR 506.4 removal
 from combat is now done by the engine too). Fuzz: 11,000 release games
 on the new deck with random and greedy agents and 500 debug-assert games,
-0 panics; records with legend-rule decisions replay identically. Not yet:
-copy effects, CDAs, delayed triggers, planeswalkers, emblems, "you may"
-and modal choices, costs other than mana/{T}/sacrifice, X costs, the CR
-614.12 look-ahead, and incremental characteristics recomputation (slice
-5).
+0 panics; records with legend-rule decisions replay identically. Not yet
+(at the time): copy effects, CDAs, delayed triggers, "you may" and modal
+choices, and the characteristics cache keyed on its own counter, all done
+in slice 5; planeswalkers, emblems, costs other than mana/{T}/sacrifice,
+X costs, and the CR 614.12 look-ahead remain.
 
 Status 2026-11-15, slice 3 (replacement and prevention effects) done:
 `mtg-core/src/engine/replace.rs` implements CR 614–616 as stage 1 of the

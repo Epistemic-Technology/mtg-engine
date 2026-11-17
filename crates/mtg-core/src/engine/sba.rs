@@ -99,11 +99,12 @@ impl GameState {
             for id in tokens_gone {
                 self.remove_from_zone_list(id);
                 self.objects.remove(id);
+                self.bump();
                 acted = true;
             }
             for id in unattach {
                 self.objects[id].attached_to = None;
-                self.bump();
+                self.cbump();
                 self.emit(Event::Unattached { obj: id });
                 acted = true;
             }
@@ -121,7 +122,7 @@ impl GameState {
                 let o = &mut self.objects[id];
                 o.remove_counters(CounterKind::PlusOnePlusOne, n);
                 o.remove_counters(CounterKind::MinusOneMinusOne, n);
-                self.bump();
+                self.cbump();
                 acted = true;
             }
             for id in to_graveyard {
@@ -129,14 +130,16 @@ impl GameState {
                 acted = true;
             }
             for id in to_destroy {
-                let before = self.objects.contains_key(id);
                 self.destroy(id);
-                // Indestructible creatures stay; clear the deathtouch flag so
-                // this does not loop forever.
-                if before && self.objects.contains_key(id) {
+                if self.objects.contains_key(id) {
+                    // Indestructible: the creature stays, with its damage
+                    // (CR 702.12b). Nothing changed, so this is not an
+                    // action, or the loop would never end; the deathtouch
+                    // flag is cleared so it is not re-examined either.
                     self.objects[id].deathtouch_damage = false;
+                } else {
+                    acted = true;
                 }
-                acted = true;
             }
             self.lookback = None;
             if !acted {
@@ -200,6 +203,7 @@ impl GameState {
                     controller: o.controller,
                     tapped: o.tapped,
                     characteristics: self.characteristics(*id)?,
+                    except: o.except,
                 })
             })
             .collect()

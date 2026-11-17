@@ -180,7 +180,7 @@ impl GameState {
             return true;
         }
         matches!(ev, Proposed::ZoneChange { obj, to: Zone::Battlefield, .. }
-            if self.objects.get(*obj).is_some_and(|o| self.pool.get(o.def).modifies_entering()))
+            if self.objects.get(*obj).is_some_and(|o| self.flags_of(o).has(crate::card::DefFlags::MODIFIES_ENTERING_FLAG)))
     }
 
     fn propose_with(&mut self, mut ev: Proposed, applied: &mut Applied) -> Option<ObjId> {
@@ -227,7 +227,7 @@ impl GameState {
         if self.replacement_sources > 0 {
             for id in &self.battlefield {
                 let o = &self.objects[*id];
-                if !self.pool.get(o.def).has_replacements() {
+                if !self.flags_of(o).has_replacements() {
                     continue;
                 }
                 let Some(c) = self.characteristics(*id) else {
@@ -687,16 +687,17 @@ impl GameState {
             (_, ev) => Outcome::Event(ev),
         };
         if !c.ability.then.is_empty() {
-            let ctx = EffectCtx {
+            let mut ctx = EffectCtx {
                 source: c.source,
                 controller: c.controller,
                 targets: Vec::new(),
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,
+                created: None,
             };
             for effect in &c.ability.then {
-                self.apply_effect(&ctx, effect);
+                self.apply_effect(&mut ctx, effect);
             }
         }
         outcome

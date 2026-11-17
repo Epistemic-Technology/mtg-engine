@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 
 use super::replace::{Enter, Proposed};
 use crate::card::CounterKind;
-use crate::card::{CardRef, Keyword, RuleKind};
+use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{Affected, GameObject, GameState, LastKnown, ObjKind, Target, Zone};
@@ -57,6 +57,9 @@ impl GameState {
         let timestamp = self.tick();
         self.objects.insert(GameObject {
             def,
+            card: def,
+            except: None,
+            mode: 0,
             kind: ObjKind::Card,
             owner,
             controller: owner,
@@ -108,17 +111,31 @@ impl GameState {
     /// (a resolving permanent spell, CR 608.3), subject to replacement
     /// effects.
     pub(super) fn put_onto_battlefield(&mut self, id: ObjId, controller: PlayerId) -> ObjId {
+        self.put_onto_battlefield_with(id, controller, Enter::default())
+    }
+
+    /// `put_onto_battlefield` with how the effect says it enters ("with a
+    /// +1/+1 counter on it"), before replacement effects.
+    pub(super) fn put_onto_battlefield_with(
+        &mut self,
+        id: ObjId,
+        controller: PlayerId,
+        enter: Enter,
+    ) -> ObjId {
         self.propose(Proposed::ZoneChange {
             obj: id,
             to: Zone::Battlefield,
             to_top: true,
             controller,
-            enter: Enter::default(),
+            enter,
         })
         .unwrap_or(id)
     }
 
-    /// The zone change itself (stage 2).
+    /// The zone change itself (stage 2). A copy effect set on the object
+    /// before it enters the battlefield (Clone, a token copy) carries over;
+    /// leaving the battlefield, the object is its printed card again (CR
+    /// 400.7, 707.?).
     fn move_object_now(
         &mut self,
         id: ObjId,
@@ -132,6 +149,7 @@ impl GameState {
             .expect("moving an object that exists");
         self.remove_from_zone_list(id);
         let old = self.objects.remove(id).expect("object exists");
+        let old_flags = self.flags_of(&old);
         self.lki.insert(
             id,
             LastKnown {
@@ -157,8 +175,16 @@ impl GameState {
         {
             counters.push((kind, n));
         }
+        let (def, except) = if to == Zone::Battlefield {
+            (old.def, old.except)
+        } else {
+            (old.card, None)
+        };
         let new = self.objects.insert(GameObject {
-            def: old.def,
+            def,
+            card: old.card,
+            except,
+            mode: 0,
             kind: old.kind,
             owner: old.owner,
             controller: if to == Zone::Battlefield {
@@ -180,32 +206,14 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
-        let def = self.pool.get(old.def);
-        let (triggers, replacements, control, legendary, activated) = (
-            def.has_triggers(),
-            def.has_replacements(),
-            def.has_control_static(),
-            def.is_legendary(),
-            def.has_activated(),
-        );
         if old.zone == Zone::Battlefield {
             // CR 506.4: a permanent that leaves the battlefield leaves combat.
             self.remove_from_combat(id);
-            self.trigger_sources -= u32::from(triggers);
-            self.replacement_sources -= u32::from(replacements);
-            self.control_sources -= u32::from(control);
-            self.legendary_count -= u32::from(legendary);
-            self.activated_sources -= u32::from(activated);
-            // Whatever it controlled goes back (CR 611.2c does not apply to
-            // static abilities).
-            self.control_dirty |= control;
+            self.count_sources(old_flags, self.pool.get(old.def).is_legendary(), false);
         }
         if to == Zone::Battlefield {
-            self.trigger_sources += u32::from(triggers);
-            self.replacement_sources += u32::from(replacements);
-            self.control_sources += u32::from(control);
-            self.legendary_count += u32::from(legendary);
-            self.activated_sources += u32::from(activated);
+            let flags = self.flags_of(&self.objects[new]);
+            self.count_sources(flags, self.pool.get(def).is_legendary(), true);
         }
         match to {
             Zone::Battlefield => self.battlefield.push(new),
@@ -221,7 +229,13 @@ impl GameState {
             }
             z => self.player_mut(old.owner).zone_mut(z).push(new),
         }
-        self.bump();
+        // Graveyards feed characteristic-defining abilities (Tarmogoyf).
+        let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
+        if affects_chars(old.zone) || affects_chars(to) {
+            self.cbump();
+        } else {
+            self.bump();
+        }
         self.emit(Event::ZoneChange {
             old: id,
             new,
@@ -230,6 +244,29 @@ impl GameState {
             to,
         });
         new
+    }
+
+    /// Maintain the per-board counts that gate the engine's slow paths as
+    /// a permanent with these flags arrives on (`add`) or leaves the
+    /// battlefield.
+    pub(super) fn count_sources(&mut self, flags: DefFlags, legendary: bool, add: bool) {
+        let d = |on: bool| u32::from(on);
+        if add {
+            self.trigger_sources += d(flags.has_triggers());
+            self.replacement_sources += d(flags.has_replacements());
+            self.control_sources += d(flags.has_control_static());
+            self.legendary_count += d(legendary);
+            self.activated_sources += d(flags.has_activated());
+        } else {
+            self.trigger_sources -= d(flags.has_triggers());
+            self.replacement_sources -= d(flags.has_replacements());
+            self.control_sources -= d(flags.has_control_static());
+            self.legendary_count -= d(legendary);
+            self.activated_sources -= d(flags.has_activated());
+            // Whatever it controlled goes back (CR 611.2c does not apply to
+            // static abilities).
+            self.control_dirty |= flags.has_control_static();
+        }
     }
 
     /// CR 111.2: create a token under `controller`'s control. The token is
@@ -245,6 +282,57 @@ impl GameState {
             controller,
         });
         new
+    }
+
+    /// CR 707.2, 111.4: create a token that is a copy of `of` (its copiable
+    /// values, exceptions included), with `except`'s own exceptions if
+    /// given.
+    pub(super) fn create_token_copy(
+        &mut self,
+        of: ObjId,
+        controller: PlayerId,
+        except: Option<CardRef>,
+    ) -> ObjId {
+        let (def, x) = {
+            let o = &self.objects[of];
+            (o.def, except.or(o.except))
+        };
+        let id = self.new_object(def, controller, Zone::Command);
+        let t = &mut self.objects[id];
+        t.kind = ObjKind::Token;
+        t.except = x;
+        let new = self.put_onto_battlefield(id, controller);
+        self.emit(Event::TokenCreated {
+            obj: new,
+            def,
+            controller,
+        });
+        new
+    }
+
+    /// CR 707: `id` becomes a copy of `of`, keeping `except`'s exceptions
+    /// (CR 707.9b). Counters, damage, and attachments stay; the board
+    /// counts follow the new definition.
+    pub(super) fn become_copy(&mut self, id: ObjId, of: ObjId, except: Option<CardRef>) {
+        let (def, x) = {
+            let o = &self.objects[of];
+            (o.def, except.or(o.except))
+        };
+        let (old_flags, old_legend) = {
+            let o = &self.objects[id];
+            (self.flags_of(o), self.pool.get(o.def).is_legendary())
+        };
+        self.count_sources(old_flags, old_legend, false);
+        let o = &mut self.objects[id];
+        o.def = def;
+        o.except = x;
+        let (flags, legend) = {
+            let o = &self.objects[id];
+            (self.flags_of(o), self.pool.get(o.def).is_legendary())
+        };
+        self.count_sources(flags, legend, true);
+        self.cbump();
+        self.emit(Event::BecameCopy { obj: id, of: def });
     }
 
     /// CR 701.21: sacrifice a permanent. Indestructible does not matter.
@@ -416,7 +504,7 @@ impl GameState {
             return;
         }
         o.add_counters(kind, n);
-        self.bump();
+        self.cbump();
         self.emit(Event::CountersAdded { obj: id, kind, n });
     }
 
@@ -430,7 +518,7 @@ impl GameState {
             return;
         }
         o.remove_counters(kind, n);
-        self.bump();
+        self.cbump();
         self.emit(Event::CountersRemoved { obj: id, kind, n });
     }
 

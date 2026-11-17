@@ -1,0 +1,755 @@
+# Copy effects (CR 707), characteristic-defining abilities (CR 604.3),
+# delayed triggered abilities (CR 603.7), modal spells (CR 700.2), and
+# "you may" clauses.
+
+# ---- copy effects (CR 707) ---------------------------------------------------------
+
+scenario "Clone enters as a copy of a creature" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Serra Angel"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Clone"
+  assert power A "Serra Angel" 4
+  assert has A "Serra Angel" flying
+  assert has A "Serra Angel" vigilance
+  assert is A "Serra Angel" white
+}
+
+scenario "Clone may decline to copy and dies as a 0/0" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy nothing
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Clone"
+  assert battlefield A count 4
+}
+
+scenario "Clone with nothing to copy is not asked and dies" {
+  battlefield A: 4 "Island"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Clone"
+}
+
+scenario "a copy takes copiable values, not an until-end-of-turn effect (CR 707.2)" {
+  battlefield A: 4 "Island", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Giant Growth", "Clone"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy B "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power B "Grizzly Bears" 5
+  assert power A "Grizzly Bears" 2
+}
+
+scenario "a copy does not copy counters (CR 707.2)" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears" with 2 +1/+1
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy B "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power B "Grizzly Bears" 4
+  assert power A "Grizzly Bears" 2
+  assert counters A "Grizzly Bears" +1/+1 0
+}
+
+scenario "a copy of a creature under Humility copies the printed card, then Humility applies" {
+  battlefield A: 4 "Island", "Humility"
+  battlefield B: "Serra Angel"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Serra Angel"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 1
+  assert has not A "Serra Angel" flying
+}
+
+scenario "a copy of a Clone copies what the Clone copied (CR 707.3)" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: 2 "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy B "Grizzly Bears"
+  turn 3 A: cast "Clone"
+  turn 3 A: copy A "Grizzly Bears"
+  run_to turn 3 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert battlefield A lacks "Clone"
+}
+
+scenario "a copy's enters trigger fires as it enters" {
+  battlefield A: 4 "Island"
+  battlefield B: "Siege-Gang Commander"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Siege-Gang Commander"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Siege-Gang Commander"
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "a copy of a legend meets the legend rule; the copy's controller chooses" {
+  battlefield A: 4 "Island", "Isamaru, Hound of Konda"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Isamaru, Hound of Konda"
+  turn 1 A: keep newest "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+  assert graveyard A contains "Isamaru, Hound of Konda"
+  assert graveyard A lacks "Clone"
+}
+
+scenario "a copy that dies is its own card again in the graveyard (CR 400.7)" {
+  battlefield A: 4 "Island"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Clone"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy B "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting A "Grizzly Bears"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Clone"
+  assert graveyard A lacks "Grizzly Bears"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "a copy has the copied creature's activated ability" {
+  battlefield A: 4 "Island"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Prodigal Sorcerer"
+  turn 3 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 3 begin_combat
+  assert life B 19
+}
+
+scenario "a copy has the copied creature's characteristic-defining ability" {
+  battlefield A: 4 "Island"
+  battlefield B: "Tarmogoyf"
+  graveyard A: "Lightning Bolt", "Grizzly Bears"
+  hand A: "Clone"
+  turn 1 A: cast "Clone"
+  turn 1 A: copy "Tarmogoyf"
+  run_to turn 1 begin_combat
+  assert power A "Tarmogoyf" 2
+  assert toughness A "Tarmogoyf" 3
+}
+
+scenario "Phantasmal Image copies with its exceptions (CR 707.9b)" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Phantasmal Image"
+  turn 1 A: cast "Phantasmal Image"
+  turn 1 A: copy "Serra Angel"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Serra Angel"
+  assert power A "Serra Angel" 4
+  assert has A "Serra Angel" flying
+  assert is A "Serra Angel" illusion
+  assert is A "Serra Angel" angel
+}
+
+scenario "Phantasmal Image is sacrificed when it becomes a target" {
+  battlefield A: 2 "Island", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Phantasmal Image", "Giant Growth"
+  turn 1 A: cast "Phantasmal Image"
+  turn 1 A: copy B "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Giant Growth" targeting A "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Phantasmal Image"
+  assert graveyard A contains "Giant Growth"
+  assert battlefield B contains "Grizzly Bears"
+  assert power B "Grizzly Bears" 2
+}
+
+scenario "Phantasmal Image that copies nothing is a 0/0 Illusion and dies" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Phantasmal Image"
+  turn 1 A: cast "Phantasmal Image"
+  turn 1 A: copy nothing
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Phantasmal Image"
+}
+
+scenario "a Clone copying a Phantasmal Image inherits the exceptions (CR 707.9b)" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel", "Mountain"
+  hand A: "Phantasmal Image", "Clone"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Phantasmal Image"
+  turn 1 A: copy B "Serra Angel"
+  turn 3 A: cast "Clone"
+  turn 3 A: copy A "Serra Angel"
+  run_to turn 3 begin_combat
+  assert battlefield A contains 2 "Serra Angel"
+  assert is newest A "Serra Angel" illusion
+  turn 4 B: cast "Lightning Bolt" targeting newest A "Serra Angel"
+  run_to turn 4 begin_combat
+  assert graveyard A contains "Clone"
+  assert battlefield A contains 1 "Serra Angel"
+}
+
+scenario "Cryptoplasm may become a copy at upkeep and keeps its ability" {
+  battlefield A: "Cryptoplasm"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  turn 1 A: trigger "Cryptoplasm" targeting "Serra Angel"
+  turn 1 A: accept "Cryptoplasm"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Serra Angel"
+  assert battlefield A lacks "Cryptoplasm"
+  assert power A "Serra Angel" 4
+  assert has A "Serra Angel" flying
+  turn 3 A: trigger "Serra Angel" targeting "Grizzly Bears"
+  turn 3 A: accept "Serra Angel"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A lacks "Serra Angel"
+  assert power A "Grizzly Bears" 2
+}
+
+scenario "Cryptoplasm may decline" {
+  battlefield A: "Cryptoplasm"
+  battlefield B: "Serra Angel"
+  turn 1 A: trigger "Cryptoplasm" targeting "Serra Angel"
+  turn 1 A: decline "Cryptoplasm"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Cryptoplasm"
+  assert power "Cryptoplasm" 2
+}
+
+scenario "Cryptoplasm's trigger is removed without another creature (CR 603.3d)" {
+  battlefield A: "Cryptoplasm"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Cryptoplasm"
+  assert stack count 0
+}
+
+scenario "Cryptoplasm becoming a copy keeps its counters and damage" {
+  battlefield A: "Cryptoplasm" with 1 +1/+1
+  battlefield B: "Grizzly Bears"
+  turn 1 A: trigger "Cryptoplasm" targeting "Grizzly Bears"
+  turn 1 A: accept "Cryptoplasm"
+  run_to turn 1 precombat_main
+  assert power A "Grizzly Bears" 3
+  assert counters A "Grizzly Bears" +1/+1 1
+}
+
+scenario "Kiki-Jiki makes a hasty token copy that is sacrificed at the end step" {
+  battlefield A: "Kiki-Jiki, Mirror Breaker", "Grizzly Bears"
+  turn 1 A: activate "Kiki-Jiki, Mirror Breaker" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Grizzly Bears"
+  assert has newest A "Grizzly Bears" haste
+  assert has not oldest A "Grizzly Bears" haste
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert life B 16
+  run_to turn 2
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert graveyard A count 0
+}
+
+scenario "Kiki-Jiki's token copy has the copied enters trigger" {
+  battlefield A: "Kiki-Jiki, Mirror Breaker", "Siege-Gang Commander"
+  turn 1 A: activate "Kiki-Jiki, Mirror Breaker" targeting "Siege-Gang Commander"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Siege-Gang Commander"
+  assert battlefield A contains 3 "Goblin"
+  run_to turn 2
+  assert battlefield A contains 1 "Siege-Gang Commander"
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "Kiki-Jiki cannot target a legendary creature" {
+  battlefield A: "Kiki-Jiki, Mirror Breaker", "Isamaru, Hound of Konda"
+  illegal turn 1 A: activate "Kiki-Jiki, Mirror Breaker" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 1 "Isamaru, Hound of Konda"
+}
+
+scenario "a delayed sacrifice does nothing if the token already left (CR 400.7)" {
+  battlefield A: "Kiki-Jiki, Mirror Breaker", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Kiki-Jiki, Mirror Breaker" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting newest A "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains 1 "Grizzly Bears"
+  assert graveyard A count 0
+}
+
+# ---- characteristic-defining abilities (CR 604.3) ----------------------------------
+
+scenario "Tarmogoyf counts card types in all graveyards" {
+  battlefield A: "Tarmogoyf"
+  graveyard A: "Lightning Bolt"
+  graveyard B: "Grizzly Bears", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Tarmogoyf" 3
+  assert toughness "Tarmogoyf" 4
+}
+
+scenario "Tarmogoyf with empty graveyards is 0/1" {
+  battlefield A: "Tarmogoyf"
+  run_to turn 1 precombat_main
+  assert power "Tarmogoyf" 0
+  assert toughness "Tarmogoyf" 1
+}
+
+scenario "a type counts once however many cards have it" {
+  battlefield A: "Tarmogoyf"
+  graveyard A: 3 "Grizzly Bears", 2 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Tarmogoyf" 2
+}
+
+scenario "Lightning Bolt in the graveyard saves a Tarmogoyf it would have killed" {
+  battlefield A: "Tarmogoyf"
+  battlefield B: "Mountain"
+  graveyard A: "Grizzly Bears", "Forest"
+  hand B: "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting "Tarmogoyf"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Tarmogoyf"
+  assert power "Tarmogoyf" 3
+  assert toughness "Tarmogoyf" 4
+  assert damage "Tarmogoyf" 3
+}
+
+scenario "Lightning Bolt kills a Tarmogoyf when the yards lack types" {
+  battlefield A: "Tarmogoyf"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 2 B: cast "Lightning Bolt" targeting "Tarmogoyf"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Tarmogoyf"
+}
+
+scenario "+1/+1 counters apply after the defining ability (layer 7c after 7a)" {
+  battlefield A: "Tarmogoyf" with 1 +1/+1
+  graveyard A: "Grizzly Bears", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Tarmogoyf" 3
+  assert toughness "Tarmogoyf" 4
+}
+
+scenario "Humility removes the defining ability and sets 1/1" {
+  battlefield A: "Tarmogoyf", "Humility"
+  graveyard A: "Grizzly Bears", "Forest", "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert power "Tarmogoyf" 1
+  assert toughness "Tarmogoyf" 1
+}
+
+scenario "Lhurgoyf counts creature cards in all graveyards" {
+  battlefield A: "Lhurgoyf"
+  graveyard A: "Grizzly Bears", "Forest"
+  graveyard B: "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Lhurgoyf" 2
+  assert toughness "Lhurgoyf" 3
+}
+
+scenario "Nightmare counts Swamps its controller controls" {
+  battlefield A: "Nightmare", 3 "Swamp"
+  battlefield B: 2 "Swamp"
+  run_to turn 1 precombat_main
+  assert power "Nightmare" 3
+  assert toughness "Nightmare" 3
+}
+
+scenario "Urborg makes every land a Swamp before Nightmare counts (layer 4 before 7a)" {
+  battlefield A: "Nightmare", 2 "Forest", "Urborg, Tomb of Yawgmoth"
+  run_to turn 1 precombat_main
+  assert power "Nightmare" 3
+}
+
+scenario "Blood Moon takes Urborg's Swamp type away from Nightmare's count" {
+  battlefield A: "Nightmare", "Urborg, Tomb of Yawgmoth", "Swamp", "Forest"
+  battlefield B: "Blood Moon"
+  run_to turn 1 precombat_main
+  assert is "Urborg, Tomb of Yawgmoth" mountain
+  assert is not "Urborg, Tomb of Yawgmoth" swamp
+  assert power "Nightmare" 1
+}
+
+scenario "Nightmare dies when its last Swamp leaves" {
+  battlefield A: "Nightmare", "Swamp"
+  battlefield B: 3 "Plains"
+  hand B: "Flickerwisp"
+  start turn 2 B
+  turn 2 B: cast "Flickerwisp"
+  turn 2 B: trigger "Flickerwisp" targeting "Swamp"
+  run_to turn 2 begin_combat
+  assert graveyard A contains "Nightmare"
+  run_to turn 3
+  assert battlefield A contains "Swamp"
+}
+
+scenario "Transguild Courier is every color" {
+  battlefield A: "Transguild Courier", "Crusade"
+  run_to turn 1 precombat_main
+  assert is "Transguild Courier" white
+  assert is "Transguild Courier" green
+  assert is not "Transguild Courier" colorless
+  assert power "Transguild Courier" 4
+}
+
+scenario "Transguild Courier stays all colors under Humility (layer 5 before 6)" {
+  battlefield A: "Transguild Courier", "Humility"
+  run_to turn 1 precombat_main
+  assert is "Transguild Courier" white
+  assert power "Transguild Courier" 1
+  assert no_abilities "Transguild Courier"
+}
+
+# ---- delayed triggered abilities (CR 603.7) ----------------------------------------
+
+scenario "Flickerwisp exiles a permanent and returns it at the next end step" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flickerwisp"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  run_to turn 2
+  assert battlefield B contains "Grizzly Bears"
+  assert exile B count 0
+}
+
+scenario "a flickered creature returns as a new object without its effects" {
+  battlefield A: 3 "Plains", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flickerwisp", "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Grizzly Bears"
+  run_to turn 2
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "a flickered creature's Aura goes to the graveyard and does not come back" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Flickerwisp"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Grizzly Bears"
+  run_to turn 2
+  assert graveyard B contains "Holy Strength"
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "a flickered token ceases to exist and nothing returns" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Bitterblossom"
+  hand A: "Flickerwisp"
+  start turn 2 B
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Faerie Rogue"
+  turn 3 A: cast "Flickerwisp"
+  turn 3 A: trigger "Flickerwisp" targeting "Faerie Rogue"
+  run_to turn 3 end
+  assert battlefield B lacks "Faerie Rogue"
+  assert exile B count 0
+  # Only Bitterblossom's new token is there in turn 4; nothing came back.
+  run_to turn 4 precombat_main
+  assert battlefield B contains 1 "Faerie Rogue"
+}
+
+scenario "Flickerwisp can exile a land, which returns at the end step" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Swamp"
+  hand A: "Flickerwisp"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Swamp"
+  run_to turn 1 begin_combat
+  assert battlefield B lacks "Swamp"
+  run_to turn 2
+  assert battlefield B contains "Swamp"
+}
+
+scenario "Otherworldly Journey returns the creature with a +1/+1 counter" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Otherworldly Journey"
+  turn 1 A: cast "Otherworldly Journey" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "a delayed trigger created during an end step waits for the next one" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Otherworldly Journey"
+  turn 1 end A: cast "Otherworldly Journey" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  run_to turn 3
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "a delayed trigger whose source left the battlefield still resolves" {
+  battlefield A: 3 "Plains", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Flickerwisp", "Lightning Bolt"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Flickerwisp"
+  run_to turn 2
+  assert graveyard A contains "Flickerwisp"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# ---- modal spells (CR 700.2) --------------------------------------------------------
+
+scenario "Abrade's first mode deals 3 damage to a creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Rod of Ruin"
+  hand A: "Abrade"
+  turn 1 A: cast "Abrade" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Rod of Ruin"
+}
+
+scenario "Abrade's second mode destroys an artifact" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Rod of Ruin"
+  hand A: "Abrade"
+  turn 1 A: cast "Abrade" mode 2 targeting "Rod of Ruin"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Rod of Ruin"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "a modal spell is castable while any mode has a target" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Rod of Ruin"
+  hand A: "Abrade"
+  turn 1 A: cast "Abrade" mode 2 targeting "Rod of Ruin"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Rod of Ruin"
+}
+
+scenario "a modal spell with no mode available cannot be cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Abrade"
+  illegal turn 1 A: cast "Abrade"
+  run_to turn 1 begin_combat
+  assert hand A contains "Abrade"
+}
+
+scenario "Boros Charm can burn a player" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Boros Charm"
+  turn 1 A: cast "Boros Charm" mode 1 targeting player B
+  run_to turn 1 begin_combat
+  assert life B 16
+}
+
+scenario "Boros Charm's indestructible mode saves the team from Murder" {
+  battlefield A: "Mountain", "Plains", "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand A: "Boros Charm"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  turn 2 A: cast "Boros Charm" mode 2 in response to "Murder"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+  run_to turn 3
+  assert has not "Grizzly Bears" indestructible
+}
+
+# CR 702.12b: lethal damage does not destroy an indestructible creature; the
+# damage stays marked and the state-based check must settle without it.
+scenario "an indestructible creature survives lethal combat damage" {
+  battlefield A: "Mountain", "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Boros Charm"
+  start turn 2 A
+  turn 2 A: cast "Boros Charm" mode 2
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert damage "Hill Giant" 2
+  run_to turn 3
+  assert damage "Grizzly Bears" 0
+  assert has not "Grizzly Bears" indestructible
+}
+
+# A permanent returning from exile can bring its own entering replacement
+# (CR 614.12) to meet one already in play, so the affected player chooses
+# the order (CR 616.1) in the middle of a delayed trigger's resolution.
+# Hardened Scales applies once to the whole batch (CR 614.5): 1 + 2 + 1.
+scenario "Otherworldly Journey returns Phantom Tiger under Hardened Scales" {
+  battlefield A: "Hardened Scales", "Phantom Tiger" with 2 +1/+1
+  battlefield B: 2 "Plains"
+  hand B: "Otherworldly Journey"
+  start turn 2 B
+  turn 2 B: cast "Otherworldly Journey" targeting "Phantom Tiger"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Phantom Tiger"
+  run_to turn 3
+  assert battlefield A contains "Phantom Tiger"
+  assert counters "Phantom Tiger" +1/+1 4
+}
+
+# A legend returning from exile at the end step meets the one cast in the
+# meantime: the legend rule asks in the middle of the delayed trigger.
+scenario "a flickered Kiki-Jiki returns to meet its replacement" {
+  battlefield A: "Kiki-Jiki, Mirror Breaker", 5 "Mountain", 3 "Plains"
+  hand A: "Flickerwisp", "Kiki-Jiki, Mirror Breaker"
+  turn 1 A: cast "Flickerwisp"
+  turn 1 A: trigger "Flickerwisp" targeting "Kiki-Jiki, Mirror Breaker"
+  turn 1 A: cast "Kiki-Jiki, Mirror Breaker"
+  run_to turn 1 begin_combat
+  assert exile A contains "Kiki-Jiki, Mirror Breaker"
+  assert battlefield A contains 1 "Kiki-Jiki, Mirror Breaker"
+  turn 1 A: keep newest "Kiki-Jiki, Mirror Breaker"
+  run_to turn 2
+  assert battlefield A contains 1 "Kiki-Jiki, Mirror Breaker"
+  assert graveyard A contains "Kiki-Jiki, Mirror Breaker"
+  assert exile A lacks "Kiki-Jiki, Mirror Breaker"
+}
+
+scenario "Phantom Tiger cast under Hardened Scales enters with three counters" {
+  battlefield A: "Hardened Scales", 3 "Forest"
+  hand A: "Phantom Tiger"
+  turn 1 A: cast "Phantom Tiger"
+  run_to turn 1 begin_combat
+  assert counters "Phantom Tiger" +1/+1 3
+}
+
+scenario "Boros Charm's double strike mode doubles combat damage" {
+  battlefield A: "Mountain", "Plains", "Grizzly Bears"
+  hand A: "Boros Charm"
+  turn 1 A: cast "Boros Charm" mode 3 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert life B 16
+}
+
+scenario "Grixis Charm can bounce any permanent" {
+  battlefield A: "Island", "Swamp", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Grixis Charm"
+  turn 1 A: cast "Grixis Charm" mode 1 targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert hand B contains "Serra Angel"
+  assert battlefield B count 0
+}
+
+scenario "Grixis Charm's -4/-4 kills a 4/4" {
+  battlefield A: "Island", "Swamp", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Grixis Charm"
+  turn 1 A: cast "Grixis Charm" mode 2 targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Grixis Charm's team pump affects only its controller's creatures" {
+  battlefield A: "Island", "Swamp", "Mountain", 2 "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Grixis Charm"
+  turn 1 A: cast "Grixis Charm" mode 3
+  run_to turn 1 begin_combat
+  assert power B "Grizzly Bears" 2
+  turn 1 A: attack "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert life B 12
+}
+
+scenario "a modal spell whose target became illegal does not resolve" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Abrade", "Lightning Bolt"
+  turn 1 A: cast "Abrade" mode 1 targeting "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Abrade"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Abrade"
+  assert life B 20
+}
+
+# ---- "you may" ----------------------------------------------------------------------
+
+scenario "Gravedigger may return a creature card" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Forest"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  turn 1 A: trigger "Gravedigger" targeting "Grizzly Bears"
+  turn 1 A: accept "Gravedigger"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Gravedigger may decline" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  turn 1 A: trigger "Gravedigger" targeting "Grizzly Bears"
+  turn 1 A: decline "Gravedigger"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "an unscripted you-may is taken" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  turn 1 A: trigger "Gravedigger" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Gravedigger's trigger needs a creature card to target (CR 603.3d)" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Forest"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Gravedigger"
+  assert graveyard A contains "Forest"
+  assert stack count 0
+}
+
+scenario "Gravedigger cannot target the opponent's graveyard" {
+  battlefield A: 4 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Gravedigger"
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 begin_combat
+  assert graveyard B contains "Grizzly Bears"
+  assert stack count 0
+}

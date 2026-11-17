@@ -69,11 +69,19 @@ pub enum Statement {
     Assert { line: usize, assertion: Assertion },
 }
 
-/// A reference to an object by name, optionally qualified by controller.
+/// A reference to an object by name, optionally qualified by controller
+/// and, where several match, by age (`oldest "X"` / `newest "X"`).
 #[derive(Clone, Debug)]
 pub struct ObjRef {
     pub player: Option<PlayerId>,
     pub name: String,
+    pub pick: Option<Pick>,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Pick {
+    Oldest,
+    Newest,
 }
 
 #[derive(Clone, Debug)]
@@ -87,6 +95,8 @@ pub enum Action {
     Play(String),
     Cast {
         name: String,
+        /// `mode N` (1-based) for a modal spell.
+        mode: Option<usize>,
         targets: Vec<TargetRef>,
         /// `in response to "X"`: fire only while an object named X is on
         /// the stack.
@@ -127,6 +137,14 @@ pub enum Action {
         name: String,
         newest: bool,
     },
+    /// `accept "Source"` / `decline "Source"`: the answer to that card's
+    /// "you may" as it resolves.
+    YouMay {
+        name: String,
+        accept: bool,
+    },
+    /// `copy "Name"` / `copy nothing`: what a Clone enters as a copy of.
+    Copy(Option<ObjRef>),
 }
 
 impl Action {
@@ -142,6 +160,9 @@ impl Action {
             Action::Apply(_) => "apply",
             Action::Activate { .. } => "activate",
             Action::Keep { .. } => "keep",
+            Action::YouMay { accept: true, .. } => "accept",
+            Action::YouMay { accept: false, .. } => "decline",
+            Action::Copy(_) => "copy",
         }
     }
 }

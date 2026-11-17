@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype,
+    AbilityDef, AbilityId, CdaCount, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype,
 };
 use crate::ids::{ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone};
@@ -98,7 +98,7 @@ pub fn compute_battlefield(state: &GameState) -> Derived {
     let simple = state.effects.is_empty()
         && state.battlefield.iter().all(|id| {
             let o = &state.objects[*id];
-            o.counters.is_empty() && !state.pool.get(o.def).has_static()
+            o.counters.is_empty() && o.except.is_none() && !state.pool.get(o.def).has_static()
         });
     if simple {
         return Derived::Printed;
@@ -106,7 +106,7 @@ pub fn compute_battlefield(state: &GameState) -> Derived {
     let ids: Vec<ObjId> = state.battlefield.clone();
     let mut chars: Vec<Characteristics> = ids
         .iter()
-        .map(|id| state.printed(state.objects[*id].def))
+        .map(|id| state.base_characteristics(&state.objects[*id]))
         .collect();
     let index: HashMap<ObjId, usize> = ids.iter().enumerate().map(|(i, id)| (*id, i)).collect();
     let lost_printed = vec![false; ids.len()];
@@ -126,8 +126,9 @@ pub fn compute_battlefield(state: &GameState) -> Derived {
         if layer == Layer::L6Ability {
             for (i, lost) in work.lost_printed.iter().enumerate() {
                 if *lost {
-                    let def = work.state.objects[work.ids[i]].def;
-                    let printed = work.state.printed(def);
+                    let printed = work
+                        .state
+                        .base_characteristics(&work.state.objects[work.ids[i]]);
                     let c = &mut work.chars[i];
                     c.keywords = c.keywords.difference(printed.keywords);
                     c.abilities.retain(|a| !printed.abilities.contains(a));
@@ -241,11 +242,18 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
             if live.iter().any(|l| l.origin == origin) {
                 continue;
             }
+            // CR 613.2: characteristic-defining abilities apply before
+            // other effects in their layer.
+            let timestamp = if sa.parts.iter().all(Modification::is_cda) {
+                0
+            } else {
+                obj.timestamp
+            };
             live.push(Live {
                 origin,
                 source: Some(*id),
                 controller: Some(obj.controller),
-                timestamp: obj.timestamp,
+                timestamp,
                 affected: None,
                 filter: Some(sa.affected.clone()),
                 parts: sa.parts.iter().cloned().collect(),
@@ -363,7 +371,54 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
         work.lost_printed[wi] = true;
     }
     let id = work.ids[wi];
+    if let Modification::CdaPt {
+        count,
+        plus_toughness,
+    } = part
+    {
+        // CR 604.3: evaluated against the characteristics as they are
+        // after layer 6 (this is layer 7a).
+        let n = cda_count(work, id, count);
+        let c = &mut work.chars[wi];
+        c.power = n;
+        c.toughness = n + plus_toughness;
+        return;
+    }
     apply_to(&mut work.chars[wi], part, work.state, id);
+}
+
+/// What a power/toughness-defining ability of `source` counts right now.
+fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
+    let state = work.state;
+    // Tokens in a graveyard (gone at the next state-based check, CR
+    // 704.5d) are not cards.
+    let cards = || {
+        state
+            .players
+            .iter()
+            .flat_map(|p| p.graveyard.iter())
+            .map(|id| &state.objects[*id])
+            .filter(|o| o.kind != crate::state::ObjKind::Token)
+    };
+    let n = match count {
+        CdaCount::CardTypesInGraveyards => cards()
+            .fold(crate::card::TypeSet::default(), |acc, o| {
+                acc.union(state.pool.get(o.def).types)
+            })
+            .len(),
+        CdaCount::CreatureCardsInGraveyards => u32::try_from(
+            cards()
+                .filter(|o| state.pool.get(o.def).is_creature())
+                .count(),
+        )
+        .unwrap_or(u32::MAX),
+        CdaCount::Permanents(filter) => {
+            let controller = state.objects[source].controller;
+            u32::try_from(work.matching(filter, Some(source), Some(controller)).len())
+                .unwrap_or(u32::MAX)
+        }
+    };
+    i32::try_from(n).unwrap_or(i32::MAX)
 }
 
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {
@@ -385,10 +440,13 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             }
         }
         // Control is not a characteristic; `GameState::sync_control`
-        // applies layer 2 to `GameObject::controller`.
-        Modification::Control => {}
+        // applies layer 2 to `GameObject::controller`. A P/T-defining
+        // ability needs the working characteristics of other objects;
+        // `apply` handles it, and a dependency probe never reaches layer
+        // 7a (it has no filter-relevant parts).
+        Modification::Control | Modification::CdaPt { .. } => {}
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
-        Modification::SetColors(cs) => c.colors = *cs,
+        Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),
         Modification::RemoveAllAbilities => {
             c.keywords = crate::card::KeywordSet::NONE;

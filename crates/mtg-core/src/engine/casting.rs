@@ -6,13 +6,13 @@ use crate::card::{
     AbilityDef, AbilityId, Affects, Effect, Keyword, Modification, PtValue, Recipient, Replacement,
     Replaces, SacCost, TargetSpec,
 };
-use crate::decision::Choice;
+use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Mana, ManaRequirement};
 use crate::state::{
-    Affected, ContinuousEffect, Duration, GameObject, GameState, ObjKind, ReplacementEffect,
-    RuleEffect, StackAbility, Target, Zone,
+    Affected, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState, ObjKind,
+    ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
 };
 
 impl GameState {
@@ -40,10 +40,13 @@ impl GameState {
             if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0)).is_none() {
                 continue;
             }
-            let targets_ok = def
-                .cast_targets()
-                .iter()
-                .all(|s| !self.legal_targets(p, *s).is_empty());
+            // A modal spell needs some mode to have its targets (CR 601.2b).
+            let targets_ok = match def.modes() {
+                Some(modes) => modes
+                    .iter()
+                    .any(|m| self.targets_available(p, &m.targets, None)),
+                None => self.targets_available(p, def.cast_targets(), None),
+            };
             if targets_ok {
                 options.push(Choice::Cast(*id));
             }
@@ -69,7 +72,7 @@ impl GameState {
         let pool = self.player(p).mana_pool;
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
-            if !self.pool.get(o.def).has_activated() {
+            if !self.flags_of(o).has_activated() {
                 continue;
             }
             let Some(c) = self.characteristics(id) else {
@@ -98,11 +101,7 @@ impl GameState {
                 if !payable {
                     continue;
                 }
-                if !ab
-                    .targets
-                    .iter()
-                    .all(|s| !self.legal_targets(p, *s).is_empty())
-                {
+                if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
                 match &ab.cost.sacrifice {
@@ -146,6 +145,9 @@ impl GameState {
         let timestamp = self.tick();
         let obj = self.objects.insert(GameObject {
             def,
+            card: def,
+            except: None,
+            mode: 0,
             kind: ObjKind::Ability,
             owner: player,
             controller: player,
@@ -161,6 +163,7 @@ impl GameState {
             ability: Some(StackAbility {
                 ability,
                 source,
+                def,
                 trigger_obj: None,
                 trigger_player: None,
             }),
@@ -177,6 +180,7 @@ impl GameState {
     /// An ability object on the stack has its targets. An activated ability
     /// now pays its costs; a triggered one is done.
     pub(super) fn finish_ability_targets(&mut self, obj: ObjId, sacrifice: Option<ObjId>) {
+        self.emit_targeted(obj);
         let activated = self.objects[obj]
             .ability
             .is_some_and(|sa| matches!(self.pool.ability(sa.ability), AbilityDef::Activated(_)));
@@ -185,6 +189,45 @@ impl GameState {
         } else {
             self.flow = crate::state::Flow::Priority;
         }
+    }
+
+    /// Whether every one of `specs` has a legal target for `p` (for an
+    /// ability of `source`).
+    fn targets_available(&self, p: PlayerId, specs: &[TargetSpec], source: Option<ObjId>) -> bool {
+        specs
+            .iter()
+            .all(|s| !self.legal_targets(p, *s, source).is_empty())
+    }
+
+    /// The permanents a stack object targets become its targets (CR 115.?):
+    /// "becomes the target of a spell or ability" triggers see it.
+    fn emit_targeted(&mut self, obj: ObjId) {
+        let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
+            .targets
+            .iter()
+            .filter_map(|t| match t {
+                Target::Object(id) => Some(*id),
+                Target::Player(_) => None,
+            })
+            .collect();
+        for target in targets {
+            self.emit(Event::Targeted { target, by: obj });
+        }
+    }
+
+    /// The modes of a modal spell being cast that have their targets
+    /// (CR 601.2b).
+    pub(super) fn mode_options(&self, spell: ObjId) -> Vec<Choice> {
+        let o = &self.objects[spell];
+        let Some(modes) = self.pool.get(o.def).modes() else {
+            return Vec::new();
+        };
+        modes
+            .iter()
+            .enumerate()
+            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, None))
+            .map(|(i, _)| Choice::Mode(i))
+            .collect()
     }
 
     /// CR 602.2b, 601.2g–h: pay the ability's costs. The source is tapped
@@ -218,17 +261,33 @@ impl GameState {
         self.give_priority(controller);
     }
 
-    pub(super) fn legal_targets(&self, caster: PlayerId, spec: TargetSpec) -> Vec<Target> {
+    /// Legal targets for `spec` chosen by `caster`, for a spell or an
+    /// ability of `source`.
+    pub(super) fn legal_targets(
+        &self,
+        caster: PlayerId,
+        spec: TargetSpec,
+        source: Option<ObjId>,
+    ) -> Vec<Target> {
         let mut out = Vec::new();
+        if spec == TargetSpec::CreatureCardInYourGraveyard {
+            for id in &self.player(caster).graveyard {
+                let t = Target::Object(*id);
+                if self.is_legal_target_for(caster, spec, t, source) {
+                    out.push(t);
+                }
+            }
+            return out;
+        }
         for id in &self.battlefield {
             let t = Target::Object(*id);
-            if self.is_legal_target(caster, spec, t) {
+            if self.is_legal_target_for(caster, spec, t, source) {
                 out.push(t);
             }
         }
         for p in self.players_in_game() {
             let t = Target::Player(p);
-            if self.is_legal_target(caster, spec, t) {
+            if self.is_legal_target_for(caster, spec, t, source) {
                 out.push(t);
             }
         }
@@ -259,8 +318,8 @@ impl GameState {
             if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
                 continue;
             }
-            let other_use = c.is_creature()
-                || (self.activated_sources > 0 && self.pool.get(o.def).has_activated());
+            let other_use =
+                c.is_creature() || (self.activated_sources > 0 && self.flags_of(o).has_activated());
             let list = if other_use { &mut later } else { &mut out };
             if c.is_land() {
                 for s in &c.subtypes {
@@ -315,6 +374,7 @@ impl GameState {
             def: def_ref,
             targets,
         });
+        self.emit_targeted(spell);
         self.give_priority(caster);
     }
 
@@ -335,7 +395,8 @@ impl GameState {
             // CR 303.4f, 608.2b: an Aura spell whose target is illegal is
             // countered; otherwise it enters attached to the target.
             let target = obj.targets.first().copied();
-            let legal = target.is_some_and(|t| self.is_legal_target(obj.controller, spec, t));
+            let legal = target
+                .is_some_and(|t| self.is_legal_target_for(obj.controller, spec, t, Some(spell)));
             if !legal {
                 self.emit(Event::Fizzle {
                     spell,
@@ -355,16 +416,23 @@ impl GameState {
                 self.objects[new].attached_to = Some(t);
                 self.emit(Event::Attached { obj: new, to: t });
             }
-            self.bump();
+            self.cbump();
             return;
         }
-        if let Some((specs, effects)) = def.spell_ability() {
+        let parts: Option<(Vec<TargetSpec>, Vec<Effect>)> =
+            (def.spell_ability().is_some() || def.modes().is_some()).then(|| {
+                (
+                    self.targets_of(spell).to_vec(),
+                    self.effects_of(spell).to_vec(),
+                )
+            });
+        if let Some((specs, effects)) = parts {
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
             let legal: Vec<bool> = specs
                 .iter()
                 .zip(obj.targets.iter())
-                .map(|(spec, t)| self.is_legal_target(obj.controller, *spec, *t))
+                .map(|(spec, t)| self.is_legal_target_for(obj.controller, *spec, *t, Some(spell)))
                 .collect();
             if !specs.is_empty() && legal.iter().all(|l| !l) {
                 self.emit(Event::Fizzle {
@@ -378,16 +446,17 @@ impl GameState {
                 spell,
                 def: obj.def,
             });
-            let ctx = EffectCtx {
+            let mut ctx = EffectCtx {
                 source: spell,
                 controller: obj.controller,
                 targets: obj.targets.to_vec(),
                 legal,
                 trigger_obj: None,
                 trigger_player: None,
+                created: None,
             };
-            for effect in effects {
-                self.apply_effect(&ctx, effect);
+            for effect in &effects {
+                self.apply_effect(&mut ctx, effect);
             }
         } else {
             self.emit(Event::Resolve {
@@ -399,11 +468,70 @@ impl GameState {
             && o.zone == Zone::Stack
         {
             if def.is_permanent_card() {
+                self.choose_copy_on_entering(spell);
                 self.put_onto_battlefield(spell, obj.controller);
             } else {
                 self.move_object(spell, Zone::Graveyard, true);
             }
         }
+    }
+
+    /// CR 707.?: "you may have ~ enter as a copy of ...". The controller
+    /// chooses among the matching permanents (or nothing) as the spell
+    /// resolves; the copy effect is set on the spell so that it enters with
+    /// the copied values (and the copied card's "enters" effects, CR
+    /// 614.12).
+    fn choose_copy_on_entering(&mut self, spell: ObjId) {
+        let o = &self.objects[spell];
+        let (controller, card) = (o.controller, o.card);
+        let Some(filter) = self.pool.get(card).enters_as_copy().cloned() else {
+            return;
+        };
+        let candidates: Vec<ObjId> = self
+            .battlefield
+            .iter()
+            .copied()
+            .filter(|id| {
+                let t = &self.objects[*id];
+                self.characteristics(*id).is_some_and(|c| {
+                    filter.matches(*id, t.controller, &c, Some(spell), Some(controller))
+                })
+            })
+            .collect();
+        if candidates.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = candidates
+            .iter()
+            .map(|id| Choice::CopyOf {
+                obj: *id,
+                def: self.objects[*id].def,
+            })
+            .collect();
+        options.push(Choice::NoCopy);
+        let k = self.choose_mid(controller, DecisionKind::ChooseCopy, options);
+        let Some(of) = candidates.get(k).copied() else {
+            return;
+        };
+        let (def, except) = {
+            let t = &self.objects[of];
+            (t.def, t.except)
+        };
+        // The copying card's own exceptions (Phantasmal Image) replace
+        // those of what it copies.
+        let except = if self.pool.get(card).copy_except.is_some() {
+            Some(card)
+        } else {
+            except
+        };
+        let s = &mut self.objects[spell];
+        s.def = def;
+        s.except = except;
+        self.bump();
+        self.emit(Event::BecameCopy {
+            obj: spell,
+            of: def,
+        });
     }
 
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
@@ -458,6 +586,22 @@ impl GameState {
                 );
             }
             Recipient::EachPlayer => out.extend(self.players_in_game().map(Target::Player)),
+            Recipient::EachCreatureYouControl => {
+                out.extend(self.creatures_of(ctx.controller).map(Target::Object));
+            }
+            Recipient::EachPermanentYouControl => {
+                out.extend(self.permanents_of(ctx.controller).map(Target::Object));
+            }
+            Recipient::SameObject => {
+                if let Some(id) = ctx.trigger_obj.filter(|id| self.objects.contains_key(*id)) {
+                    out.push(Target::Object(id));
+                }
+            }
+            Recipient::CreatedObject => {
+                if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
+                    out.push(Target::Object(id));
+                }
+            }
         }
         out
     }
@@ -478,11 +622,11 @@ impl GameState {
             affected: Affected::Objects(smallvec::smallvec![id]),
             parts,
         });
-        self.bump();
+        self.cbump();
     }
 
     #[allow(clippy::too_many_lines)] // one arm per effect kind
-    pub(super) fn apply_effect(&mut self, ctx: &EffectCtx, effect: &Effect) {
+    pub(super) fn apply_effect(&mut self, ctx: &mut EffectCtx, effect: &Effect) {
         let on_battlefield = |st: &GameState, t: Target| match t {
             Target::Object(id) => st
                 .objects
@@ -665,7 +809,7 @@ impl GameState {
                         continue;
                     }
                     self.objects[source].attached_to = Some(id);
-                    self.bump();
+                    self.cbump();
                     self.emit(Event::Attached {
                         obj: source,
                         to: id,
@@ -691,6 +835,119 @@ impl GameState {
                         toughness: PtValue::Fixed(*toughness),
                     });
                     self.effect_until_end_of_turn(ctx, id, parts);
+                }
+            }
+            Effect::YouMay(inner) => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                let k = self.choose_mid(
+                    ctx.controller,
+                    DecisionKind::YouMay { def },
+                    vec![Choice::Accept, Choice::Decline],
+                );
+                if k == 0 {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::Delayed { ability, about } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                for t in self.recipients(ctx, *about) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    // "That card": the object it became after the effect
+                    // that moved it (CR 400.7 exceptions).
+                    let Some(id) = self.current_object(id) else {
+                        continue;
+                    };
+                    self.delayed_triggers.push(DelayedTrigger {
+                        controller: ctx.controller,
+                        ability: StackAbility {
+                            ability: *ability,
+                            source: ctx.source,
+                            def,
+                            trigger_obj: Some(id),
+                            trigger_player: None,
+                        },
+                    });
+                    self.emit(Event::DelayedTriggerCreated {
+                        source: ctx.source,
+                        def,
+                        about: id,
+                    });
+                }
+            }
+            Effect::Exile { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        let new = self.move_object(id, Zone::Exile, true);
+                        ctx.created = Some(new);
+                    }
+                }
+            }
+            Effect::ReturnToBattlefield { what, counters } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
+                    if !matches!(o.zone, Zone::Exile | Zone::Graveyard) {
+                        continue;
+                    }
+                    let owner = o.owner;
+                    let new = self.put_onto_battlefield_with(
+                        id,
+                        owner,
+                        super::replace::Enter {
+                            tapped: false,
+                            counters: *counters,
+                        },
+                    );
+                    ctx.created = Some(new);
+                }
+            }
+            Effect::BecomeCopy { of, except } => {
+                let Some(source) = self
+                    .current_object(ctx.source)
+                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                else {
+                    return;
+                };
+                let x = except.then_some(self.objects[source].card);
+                for t in self.recipients(ctx, *of) {
+                    if let Some(id) = on_battlefield(self, t)
+                        && id != source
+                    {
+                        self.become_copy(source, id, x);
+                    }
+                }
+            }
+            Effect::CreateTokenCopy { of, except } => {
+                let x = except.then(|| {
+                    self.objects
+                        .get(ctx.source)
+                        .map(|o| o.card)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.card))
+                        .expect("a resolving spell or its last known information exists")
+                });
+                for t in self.recipients(ctx, *of) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        let new = self.create_token_copy(id, ctx.controller, x);
+                        ctx.created = Some(new);
+                    }
                 }
             }
         }
@@ -748,6 +1005,10 @@ pub(super) struct EffectCtx {
     pub legal: Vec<bool>,
     pub trigger_obj: Option<ObjId>,
     pub trigger_player: Option<PlayerId>,
+    /// The object the most recent effect of this resolution created or
+    /// moved (a token, an exiled card), for "sacrifice it" clauses that
+    /// follow (`Recipient::CreatedObject`).
+    pub created: Option<ObjId>,
 }
 
 /// A canonical payment plan: which sources to tap, and for what, so that

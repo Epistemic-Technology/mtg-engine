@@ -260,6 +260,7 @@ mod tests {
         for (deck_name, kind) in [
             ("replacement", DecisionKind::ChooseReplacement),
             ("activated", DecisionKind::LegendRule),
+            ("copy", DecisionKind::ChooseCopy),
         ] {
             let deck = crate::decks::by_name(&pool, deck_name).unwrap();
             let mut mid_decisions = 0;

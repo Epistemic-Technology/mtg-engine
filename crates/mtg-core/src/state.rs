@@ -59,6 +59,9 @@ pub struct StackAbility {
     /// The object the ability came from, by the id it had when it triggered
     /// (possibly no longer on the battlefield; see `GameState::lki`).
     pub source: ObjId,
+    /// The source's definition at that time (a copy's copied card), for
+    /// naming the ability once the source is gone.
+    pub def: CardRef,
     /// The object whose action triggered it, if any.
     pub trigger_obj: Option<ObjId>,
     /// The player whose action triggered it, if any.
@@ -82,6 +85,15 @@ pub struct Lookback {
     pub controller: PlayerId,
     pub tapped: bool,
     pub characteristics: Characteristics,
+    pub except: Option<CardRef>,
+}
+
+/// A delayed triggered ability (CR 603.7): created by an effect, triggers
+/// once at the next matching step, then ceases to exist.
+#[derive(Copy, Clone, Debug)]
+pub struct DelayedTrigger {
+    pub controller: PlayerId,
+    pub ability: StackAbility,
 }
 
 /// Something a spell or ability can target or an effect can act on.
@@ -93,7 +105,17 @@ pub enum Target {
 
 #[derive(Clone, Debug)]
 pub struct GameObject {
+    /// The definition whose copiable values this object has (CR 707.2):
+    /// the card itself, or what a copy effect made it a copy of.
     pub def: CardRef,
+    /// The physical card (what it is again when it leaves the battlefield,
+    /// CR 400.7). Equal to `def` unless a copy effect applies.
+    pub card: CardRef,
+    /// The definition whose `copy_except` is part of this copy's copiable
+    /// values (CR 707.9b).
+    pub except: Option<CardRef>,
+    /// The chosen mode of a modal spell (CR 700.2), as an index.
+    pub mode: u8,
     pub kind: ObjKind,
     pub owner: PlayerId,
     pub controller: PlayerId,
@@ -117,6 +139,11 @@ pub struct GameObject {
 }
 
 impl GameObject {
+    /// Whether a copy effect applies (CR 707).
+    pub fn is_copy(&self) -> bool {
+        self.def != self.card || self.except.is_some()
+    }
+
     pub fn counters(&self, kind: CounterKind) -> u32 {
         self.counters
             .iter()
@@ -341,10 +368,15 @@ pub enum Derived {
     Battlefield(HashMap<ObjId, Characteristics>),
 }
 
-/// Cache of derived characteristics, valid for one `GameState::version`.
+/// Cache of derived characteristics, valid for one `GameState::cversion`.
 /// Cloning a state yields an empty cache; it refills on first use.
 #[derive(Default)]
-pub struct DerivedCache(pub(crate) RefCell<Option<(u64, Derived)>>);
+pub struct DerivedCache(
+    pub(crate) RefCell<Option<(u64, Derived)>>,
+    /// Cache hits, for sampling the debug consistency check.
+    #[cfg_attr(not(debug_assertions), allow(dead_code))]
+    pub(crate) std::cell::Cell<u32>,
+);
 
 impl Clone for DerivedCache {
     fn clone(&self) -> Self {
@@ -424,6 +456,11 @@ pub enum Flow {
     OrderTriggers {
         player: PlayerId,
     },
+    /// Choosing the mode of a modal spell being cast (CR 601.2b), before
+    /// its targets.
+    ChoosingMode {
+        spell: ObjId,
+    },
     /// All players passed with an empty stack: the step ends.
     EndStep,
     GameOver,
@@ -439,7 +476,14 @@ pub struct DamageAssignment {
 #[derive(Clone)]
 pub struct GameState {
     pub pool: Arc<CardPool>,
+    /// Bumped on every change to the state.
     pub version: u64,
+    /// Bumped only on changes that can alter derived characteristics (the
+    /// battlefield, counters, continuous effects, attachments, control,
+    /// copy effects, graveyards for characteristic-defining abilities).
+    /// The characteristics cache is keyed on it, so damage, life, tapping,
+    /// and drawing do not invalidate it.
+    pub cversion: u64,
     pub turn_number: u32,
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -478,6 +522,8 @@ pub struct GameState {
     pub lki: HashMap<ObjId, LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
+    /// Delayed triggered abilities waiting for their event (CR 603.7).
+    pub delayed_triggers: Vec<DelayedTrigger>,
     /// Battlefield objects whose definition has a triggered ability, so
     /// that events on trigger-free boards cost nothing to detect over.
     pub trigger_sources: u32,
@@ -540,6 +586,12 @@ impl GameState {
         self.version += 1;
     }
 
+    /// A change that can alter derived characteristics (see `cversion`).
+    pub fn cbump(&mut self) {
+        self.version += 1;
+        self.cversion += 1;
+    }
+
     /// Record an event: triggered abilities that watch it trigger (CR 603.2),
     /// then it is logged.
     pub fn emit(&mut self, event: Event) {
@@ -547,6 +599,7 @@ impl GameState {
         // can have a triggered ability on most boards.
         let may_trigger = self.trigger_sources > 0
             || self.lookback.is_some()
+            || !self.delayed_triggers.is_empty()
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
             self.detect_triggers(&event);
@@ -578,14 +631,19 @@ impl GameState {
         def.map_or("?", |d| self.pool.get(d).name.as_str())
     }
 
-    /// Targets a stack object needs: a spell's cast targets or an ability's.
+    /// Targets a stack object needs: a spell's cast targets (of its chosen
+    /// mode) or an ability's.
     pub fn targets_of(&self, id: ObjId) -> &[TargetSpec] {
         let Some(o) = self.objects.get(id) else {
             return &[];
         };
-        match o.ability {
-            Some(a) => self.pool.ability(a.ability).targets(),
-            None => self.pool.get(o.def).cast_targets(),
+        if let Some(a) = o.ability {
+            return self.pool.ability(a.ability).targets();
+        }
+        let def = self.pool.get(o.def);
+        match def.modes() {
+            Some(modes) => modes.get(usize::from(o.mode)).map_or(&[], |m| &m.targets),
+            None => def.cast_targets(),
         }
     }
 
@@ -594,10 +652,31 @@ impl GameState {
         let Some(o) = self.objects.get(id) else {
             return &[];
         };
-        match o.ability {
-            Some(a) => self.pool.ability(a.ability).effects(),
-            None => self.pool.get(o.def).spell_ability().map_or(&[], |(_, e)| e),
+        if let Some(a) = o.ability {
+            return self.pool.ability(a.ability).effects();
         }
+        let def = self.pool.get(o.def);
+        match def.modes() {
+            Some(modes) => modes.get(usize::from(o.mode)).map_or(&[], |m| &m.effects),
+            None => def.spell_ability().map_or(&[], |(_, e)| e),
+        }
+    }
+
+    /// The precomputed flags of an object's definition, including what a
+    /// copy effect's exceptions add (CR 707.9b).
+    pub fn flags_of(&self, o: &GameObject) -> crate::card::DefFlags {
+        let f = self.pool.get(o.def).flags();
+        match o.except {
+            Some(x) => f.union(self.pool.get(x).except_flags),
+            None => f,
+        }
+    }
+
+    /// Whether an object's triggered abilities (printed or added by a copy
+    /// exception) could see `event`, by event kind.
+    pub fn may_watch(&self, def: CardRef, except: Option<CardRef>, event: &Event) -> bool {
+        self.pool.get(def).may_watch(&self.pool, event)
+            || except.is_some_and(|x| self.pool.get(x).except_may_watch(event))
     }
 
     /// Whether a "can't" effect of this kind is in force (CR 614.17).
@@ -612,41 +691,93 @@ impl GameState {
     /// permanents, or one and a legendary spell about to resolve). The
     /// `Engine` snapshots the state before an action when this holds.
     pub fn may_need_mid_decision(&self) -> bool {
-        self.replacement_sources as usize + self.replacements.len() >= 2
+        let replacers = self.replacement_sources as usize + self.replacements.len();
+        replacers >= 2
             || self.legendary_count >= 2
-            || (self.legendary_count == 1
-                && self
-                    .stack
-                    .iter()
-                    .any(|id| self.pool.get(self.objects[*id].def).is_legendary()))
+            || self.stack.iter().any(|id| {
+                let o = &self.objects[*id];
+                let d = self.pool.get(o.def);
+                // A spell or ability that asks something as it resolves
+                // ("you may", enter as a copy), a legendary spell that
+                // could meet its namesake (CR 704.5j), or one that puts a
+                // permanent onto the battlefield whose own "enters with"
+                // replacement (CR 614.1c) could meet one already in play.
+                // What an ability returns from exile or copies is not known
+                // until it resolves, so it could also be a legend meeting
+                // its namesake. A copy could become legendary, which
+                // `has_mid_choice` covers. An ability is judged by itself:
+                // a copy's exceptions can add one its definition does not
+                // have.
+                match o.ability {
+                    Some(a) => {
+                        self.pool.ability_asks(a.ability)
+                            || ((replacers >= 1 || self.legendary_count >= 1)
+                                && self.pool.ability_enters(a.ability))
+                    }
+                    None => {
+                        d.has_mid_choice()
+                            || (self.legendary_count == 1 && d.is_legendary())
+                            || (replacers >= 1 && d.modifies_entering())
+                    }
+                }
+            })
     }
 
     /// Current characteristics of an object, computed through the layers
-    /// (CR 613). Cached per `version`. Objects off the battlefield have their
-    /// printed characteristics (no effect in the engine yet applies
+    /// (CR 613). Cached per `cversion`. Objects off the battlefield have
+    /// their copiable values (no effect in the engine yet applies
     /// elsewhere).
     pub fn characteristics(&self, id: ObjId) -> Option<Characteristics> {
         let obj = self.objects.get(id)?;
         if obj.zone != Zone::Battlefield {
-            return Some(self.printed(obj.def));
+            return Some(self.base_characteristics(obj));
         }
         {
             let cache = self.cache.0.borrow();
             if let Some((v, derived)) = cache.as_ref()
-                && *v == self.version
+                && *v == self.cversion
             {
-                return match derived {
+                // `Printed` is only derived when no battlefield object has
+                // an `except` (layers::compute_battlefield), so the printed
+                // values are the copiable values here; skipping the check
+                // keeps this hot path a plain copy.
+                debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
+                let out = match derived {
                     Derived::Printed => Some(self.printed(obj.def)),
                     Derived::Battlefield(map) => map.get(&id).copied(),
                 };
+                #[cfg(debug_assertions)]
+                if self
+                    .cache
+                    .1
+                    .replace(self.cache.1.get().wrapping_add(1))
+                    .is_multiple_of(16)
+                {
+                    // The cache is only as good as the `cbump` discipline:
+                    // in debug builds, check a sample of hits against a
+                    // fresh pass (a stale cache stays stale until the next
+                    // bump, so sampling still catches it).
+                    let fresh = match crate::layers::compute_battlefield(self) {
+                        Derived::Printed => Some(self.base_characteristics(obj)),
+                        Derived::Battlefield(map) => map.get(&id).copied(),
+                    };
+                    assert_eq!(
+                        out,
+                        fresh,
+                        "stale characteristics cache for {}: a change that affects characteristics did not cbump",
+                        self.pool.get(obj.def).name
+                    );
+                }
+                return out;
             }
         }
         let derived = crate::layers::compute_battlefield(self);
+        debug_assert!(!matches!(derived, Derived::Printed) || obj.except.is_none());
         let out = match &derived {
             Derived::Printed => Some(self.printed(obj.def)),
             Derived::Battlefield(map) => map.get(&id).copied(),
         };
-        *self.cache.0.borrow_mut() = Some((self.version, derived));
+        *self.cache.0.borrow_mut() = Some((self.cversion, derived));
         out
     }
 
@@ -656,6 +787,40 @@ impl GameState {
             .get(def)
             .printed
             .expect("definitions in a pool have printed characteristics")
+    }
+
+    /// An object's copiable values (CR 707.2): the printed characteristics
+    /// of what it is (or is a copy of), plus what the copy effect's
+    /// exceptions add (CR 707.9b). The starting point of the layers.
+    #[inline]
+    pub fn base_characteristics(&self, o: &GameObject) -> Characteristics {
+        // The common case must stay a plain copy of the printed values: the
+        // merge below, with its growable vectors, is kept out of line so it
+        // does not weigh on every rules query (measured at 13% of an
+        // effect-free game when it was inline).
+        match o.except {
+            None => self.printed(o.def),
+            Some(x) => self.printed_with_except(o.def, x),
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn printed_with_except(&self, def: CardRef, except: CardRef) -> Characteristics {
+        let mut c = self.printed(def);
+        let xd = self.pool.get(except);
+        for s in &xd.except_subtype_ids {
+            if !c.subtypes.contains(s) {
+                c.subtypes.push(*s);
+            }
+        }
+        if let Some(ce) = &xd.copy_except {
+            c.keywords = c.keywords.union(ce.keywords);
+        }
+        for a in &xd.except_ability_ids {
+            c.abilities.push(*a);
+        }
+        c
     }
 
     /// Whether an Aura with enchant `spec`, or an Equipment (CR 301.5c,
@@ -673,9 +838,11 @@ impl GameState {
             return false;
         };
         match spec {
-            TargetSpec::Any | TargetSpec::Creature | TargetSpec::CreatureYouControl => {
-                c.is_creature()
-            }
+            TargetSpec::Any
+            | TargetSpec::Creature
+            | TargetSpec::CreatureYouControl
+            | TargetSpec::OtherCreature
+            | TargetSpec::NonlegendaryCreatureYouControl => c.is_creature(),
             TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
             TargetSpec::ArtifactCreatureOrLand => {
                 c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
@@ -683,7 +850,12 @@ impl GameState {
             TargetSpec::ArtifactOrEnchantment => {
                 c.types.contains(CardType::Artifact) || c.types.contains(CardType::Enchantment)
             }
-            TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => false,
+            TargetSpec::Artifact => c.types.contains(CardType::Artifact),
+            TargetSpec::Enchantment => c.types.contains(CardType::Enchantment),
+            TargetSpec::Permanent | TargetSpec::OtherPermanent => true,
+            TargetSpec::Player
+            | TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::CreatureCardInYourGraveyard => false,
         }
     }
 
@@ -714,12 +886,24 @@ impl GameState {
     }
 
     /// Whether `target` is a legal target for `spec` chosen by `caster` (CR
-    /// 115.5, 702.11 hexproof).
+    /// 115.5, 702.11 hexproof), for a spell or an ability of `source`.
     pub fn is_legal_target(
         &self,
         caster: PlayerId,
         spec: crate::card::TargetSpec,
         target: Target,
+    ) -> bool {
+        self.is_legal_target_for(caster, spec, target, None)
+    }
+
+    /// `is_legal_target` for an ability of `source` ("another target
+    /// creature" excludes it).
+    pub fn is_legal_target_for(
+        &self,
+        caster: PlayerId,
+        spec: crate::card::TargetSpec,
+        target: Target,
+        source: Option<ObjId>,
     ) -> bool {
         use crate::card::TargetSpec;
         match target {
@@ -735,6 +919,11 @@ impl GameState {
                 let Some(obj) = self.objects.get(id) else {
                     return false;
                 };
+                if spec == TargetSpec::CreatureCardInYourGraveyard {
+                    return obj.zone == Zone::Graveyard
+                        && obj.owner == caster
+                        && self.pool.get(obj.def).is_creature();
+                }
                 if obj.zone != Zone::Battlefield {
                     return false;
                 }
@@ -743,8 +932,14 @@ impl GameState {
                 };
                 let type_ok = match spec {
                     TargetSpec::Any | TargetSpec::Creature => c.is_creature(),
+                    TargetSpec::OtherCreature => c.is_creature() && Some(id) != source,
                     TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
                     TargetSpec::CreatureYouControl => c.is_creature() && obj.controller == caster,
+                    TargetSpec::NonlegendaryCreatureYouControl => {
+                        c.is_creature()
+                            && obj.controller == caster
+                            && !c.supertypes.contains(crate::card::Supertype::Legendary)
+                    }
                     TargetSpec::ArtifactCreatureOrLand => {
                         c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
                     }
@@ -752,7 +947,13 @@ impl GameState {
                         c.types.contains(CardType::Artifact)
                             || c.types.contains(CardType::Enchantment)
                     }
-                    TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => false,
+                    TargetSpec::Artifact => c.types.contains(CardType::Artifact),
+                    TargetSpec::Enchantment => c.types.contains(CardType::Enchantment),
+                    TargetSpec::Permanent => true,
+                    TargetSpec::OtherPermanent => Some(id) != source,
+                    TargetSpec::Player
+                    | TargetSpec::PlayerOrPlaneswalker
+                    | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);
                 type_ok && hexproof_ok

@@ -49,6 +49,7 @@ scenario fails.
 |---|---|---|
 | `play "Forest"` | `precombat_main` | Play a land from hand. |
 | `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs. Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
+| `cast "Abrade" mode 2 targeting "Rod of Ruin"` | `precombat_main` | A modal spell (CR 700.2): `mode N` (1-based) chooses the mode before targets; the targets are the mode's. Unscripted, the first mode with legal targets is chosen. |
 | `attack "X", "Y"` | `declare_attackers` | Several `attack` lines for the same turn combine into one declaration. |
 | `block "Attacker" with "Blocker"` | `declare_blockers` | Several lines combine. The same attacker may be named twice to double-block it. |
 | `assign "Attacker" to "Blocker" 2, player B 4` | any combat damage step | Divide combat damage among blockers (and the player, with trample). Unscripted divisions take the engine's first option. |
@@ -57,6 +58,8 @@ scenario fails.
 | `apply "Furnace of Rath"` | any step | When several replacement or prevention effects apply to one event, the affected player chooses which applies first (CR 616.1): apply the effect from that card. Unscripted choices take the engine's first option. |
 | `activate "Prodigal Sorcerer" targeting player B` | `precombat_main` | Activate an ability of a permanent the player controls (CR 602). `sacrificing "Goblin"` names the permanent paid for a "sacrifice a ..." cost; `targeting` gives the ability's targets. A permanent with several activated abilities offers the first whose costs can be paid. Sorcery-speed abilities (equip) wait for an empty stack like sorceries. Mana abilities are not activated this way; the engine taps for mana as part of paying costs. |
 | `keep oldest "Isamaru, Hound of Konda"` / `keep newest ...` | any step | Under the legend rule (CR 704.5j), which of the player's legendary permanents of that name to keep. Unscripted, the oldest is kept. |
+| `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
+| `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 `begin_combat`, `declare_attackers`, `declare_blockers`,
@@ -65,13 +68,18 @@ Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 
 Unscripted decisions: keep the hand, pass priority, declare no attackers or
 blockers, take the first option otherwise (including trigger order, trigger
-targets, the order of replacement effects, and the legend rule, where the
-first option keeps the oldest permanent).
+targets, the order of replacement effects, the legend rule, where the
+first option keeps the oldest permanent, modes, "you may" clauses, and
+what to copy).
 
-Names resolve against the current state when the action fires. Where a
-player controls several objects of the same name, `attack` and `block`
-lines pick distinct ones in order; targets and assertions must be
-unambiguous (qualify with `A`/`B` if both players control one).
+Names resolve against the current state when the action fires. A copy is
+named after what it copies (a Clone copying Serra Angel is `"Serra Angel"`
+until it leaves the battlefield). Where a player controls several objects
+of the same name, `attack` and `block` lines pick distinct ones in order;
+targets and assertions must be unambiguous: qualify with `A`/`B` if both
+players control one, and with `oldest`/`newest` if one player controls
+several (`newest A "Serra Angel"`). A name that is not on the battlefield
+is looked up in graveyards, for "target creature card in your graveyard".
 
 ## Running
 
@@ -105,6 +113,7 @@ assert is "Mishra's Factory" "Assembly-Worker"   # quote a subtype with punctuat
 assert counters "Grizzly Bears" +1/+1 3
 assert attached "Holy Strength" to "Grizzly Bears"
 assert no_abilities "Serra Angel"
+assert has newest A "Grizzly Bears" haste   # the most recent of several
 ```
 
 Zones: `battlefield` (by controller), `hand`, `graveyard`, `library`,

@@ -64,11 +64,46 @@ impl GameState {
                     ability: StackAbility {
                         ability,
                         source: w.source,
+                        def: w.chars.def,
                         trigger_obj,
                         trigger_player,
                     },
                     timestamp: 0,
                 });
+            }
+        }
+        // CR 603.7: delayed triggered abilities, each once.
+        if let Event::StepBegin { step } = event
+            && !self.delayed_triggers.is_empty()
+        {
+            let active = self.active_player;
+            let mut i = 0;
+            while i < self.delayed_triggers.len() {
+                let dt = self.delayed_triggers[i];
+                let at = match self.pool.ability(dt.ability.ability) {
+                    AbilityDef::Triggered(t) => match &t.trigger {
+                        TriggerSpec::BeginningOfStep { step: s, whose } => {
+                            s == step
+                                && match whose {
+                                    Who::Any => true,
+                                    Who::You => active == dt.controller,
+                                    Who::Opponents => active != dt.controller,
+                                }
+                        }
+                        _ => false,
+                    },
+                    _ => false,
+                };
+                if at {
+                    self.delayed_triggers.remove(i);
+                    fired.push(PendingTrigger {
+                        controller: dt.controller,
+                        ability: dt.ability,
+                        timestamp: 0,
+                    });
+                } else {
+                    i += 1;
+                }
             }
         }
         for mut t in fired {
@@ -91,17 +126,19 @@ impl GameState {
             self.trigger_sources as usize,
             self.battlefield
                 .iter()
-                .filter(|id| self.pool.get(self.objects[**id].def).has_triggers())
+                .filter(|id| self.flags_of(&self.objects[**id]).has_triggers())
                 .count(),
             "trigger source count out of sync with the battlefield"
         );
-        if self.trigger_sources > 0 {
+        if self.trigger_sources > 0 || !self.delayed_triggers.is_empty() {
             return true;
         }
         if let Some(lb) = &self.lookback
-            && lb
-                .iter()
-                .any(|l| self.pool.get(l.characteristics.def).has_triggers())
+            && lb.iter().any(|l| {
+                self.pool.get(l.characteristics.def).has_triggers()
+                    || l.except
+                        .is_some_and(|x| self.pool.get(x).except_flags.has_triggers())
+            })
         {
             return true;
         }
@@ -123,11 +160,7 @@ impl GameState {
         if leaves && let Some(lb) = &self.lookback {
             return lb
                 .iter()
-                .filter(|l| {
-                    self.pool
-                        .get(l.characteristics.def)
-                        .may_watch(&self.pool, event)
-                })
+                .filter(|l| self.may_watch(l.characteristics.def, l.except, event))
                 .map(|l| Watcher {
                     source: l.id,
                     controller: l.controller,
@@ -143,7 +176,7 @@ impl GameState {
                 let o = &self.objects[*id];
                 // Only objects whose printed abilities could see this kind
                 // of event pay for a characteristics lookup.
-                if !self.pool.get(o.def).may_watch(&self.pool, event) {
+                if !self.may_watch(o.def, o.except, event) {
                     return None;
                 }
                 Some(Watcher {
@@ -157,7 +190,7 @@ impl GameState {
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
-            && self.pool.get(l.object.def).may_watch(&self.pool, event)
+            && self.may_watch(l.object.def, l.object.except, event)
         {
             out.push(Watcher {
                 source: *old,
@@ -256,6 +289,10 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            (TriggerSpec::BecomesTarget(what), Event::Targeted { target, .. }) => {
+                let p = on_battlefield(what, *target)?;
+                Some((Some(*target), Some(p)))
+            }
             (
                 TriggerSpec::CastsSpell {
                     whose,
@@ -319,17 +356,12 @@ impl GameState {
     /// legal choice is removed instead.
     pub(super) fn put_trigger(&mut self, i: usize) {
         let t = self.pending_triggers.remove(i);
-        let def = self
-            .objects
-            .get(t.ability.source)
-            .map(|o| o.def)
-            .or_else(|| self.lki.get(&t.ability.source).map(|l| l.object.def))
-            .expect("a trigger's source existed");
+        let def = t.ability.def;
         let specs = self.pool.ability(t.ability.ability).targets().to_vec();
-        if specs
-            .iter()
-            .any(|s| self.legal_targets(t.controller, *s).is_empty())
-        {
+        if specs.iter().any(|s| {
+            self.legal_targets(t.controller, *s, Some(t.ability.source))
+                .is_empty()
+        }) {
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
                 def,
@@ -340,6 +372,9 @@ impl GameState {
         let timestamp = self.tick();
         let obj = self.objects.insert(GameObject {
             def,
+            card: def,
+            except: None,
+            mode: 0,
             kind: ObjKind::Ability,
             owner: t.controller,
             controller: t.controller,
@@ -399,7 +434,9 @@ impl GameState {
         let legal: Vec<bool> = targets
             .iter()
             .zip(obj.targets.iter())
-            .map(|(spec, target)| self.is_legal_target(obj.controller, *spec, *target))
+            .map(|(spec, target)| {
+                self.is_legal_target_for(obj.controller, *spec, *target, Some(sa.source))
+            })
             .collect();
         if !targets.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
@@ -413,16 +450,17 @@ impl GameState {
             spell: id,
             def: obj.def,
         });
-        let ctx = EffectCtx {
+        let mut ctx = EffectCtx {
             source: sa.source,
             controller: obj.controller,
             targets: obj.targets.to_vec(),
             legal,
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
+            created: None,
         };
         for effect in &effects {
-            self.apply_effect(&ctx, effect);
+            self.apply_effect(&mut ctx, effect);
         }
         if self.objects.contains_key(id) {
             self.remove_from_game(id);

@@ -37,6 +37,12 @@ pub enum DecisionKind {
     /// A player controls two or more legendary permanents with the same
     /// name and chooses which to keep (CR 704.5j).
     LegendRule,
+    /// Choose the mode of a modal spell being cast (CR 601.2b, 700.2).
+    ChooseMode { spell: ObjId },
+    /// A "you may" clause of `def` as a spell or ability resolves.
+    YouMay { def: CardRef },
+    /// What a permanent enters as a copy of (CR 707; Clone), or nothing.
+    ChooseCopy,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -88,6 +94,20 @@ pub enum Choice {
         def: CardRef,
         age: usize,
     },
+    /// Cast a modal spell with this mode (an index into its modes).
+    Mode(usize),
+    /// Do the optional thing.
+    Accept,
+    /// Do not.
+    Decline,
+    /// Enter as a copy of this permanent; `def` names it when the state
+    /// shown predates the question (see `KeepLegend`).
+    CopyOf {
+        obj: ObjId,
+        def: CardRef,
+    },
+    /// Enter as itself.
+    NoCopy,
 }
 
 impl Choice {
@@ -171,6 +191,11 @@ impl Choice {
                     format!("keep {name} (#{} by age)", age + 1)
                 }
             }
+            Choice::Mode(i) => format!("mode {}", i + 1),
+            Choice::Accept => "yes".into(),
+            Choice::Decline => "no".into(),
+            Choice::CopyOf { def, .. } => format!("copy {}", state.pool.get(*def).name),
+            Choice::NoCopy => "copy nothing".into(),
         }
     }
 }

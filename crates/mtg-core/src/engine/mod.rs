@@ -299,7 +299,11 @@ impl Engine {
                 self.state.apply_choice(p, c);
             }
             self.current = self.state.run();
-            debug_assert!(self.state.mid.pending.is_none());
+            debug_assert!(
+                self.state.mid.pending.is_none(),
+                "mid-event decision without a snapshot: {:?}",
+                self.state.mid.pending
+            );
             return;
         }
         let (snapshot, log_len) = self.snapshot();
@@ -364,6 +368,7 @@ impl GameState {
         GameState {
             pool,
             version: 0,
+            cversion: 0,
             turn_number: 0,
             active_player: starting_player,
             starting_player,
@@ -402,6 +407,7 @@ impl GameState {
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
+            delayed_triggers: Vec::new(),
             trigger_sources: 0,
             lookback: None,
             rng,
@@ -514,8 +520,10 @@ impl GameState {
                         }
                         continue;
                     }
+                    let source =
+                        is_ability.then(|| self.objects[spell].ability.map_or(spell, |a| a.source));
                     let options: Vec<Choice> = self
-                        .legal_targets(caster, specs[next_target])
+                        .legal_targets(caster, specs[next_target], source)
                         .into_iter()
                         .map(Choice::Target)
                         .collect();
@@ -696,6 +704,18 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingMode { spell } => {
+                    let player = self.objects[spell].controller;
+                    let options = self.mode_options(spell);
+                    if options.is_empty() {
+                        unreachable!("modal cast offered without a mode with targets");
+                    }
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::ChooseMode { spell },
+                        options,
+                    });
+                }
                 Flow::EndStep => self.end_step(),
             }
         }
@@ -810,6 +830,20 @@ impl GameState {
                 self.consecutive_passes = 0;
                 let spell = self.move_object(id, Zone::Stack, true);
                 self.objects[spell].controller = player;
+                // CR 601.2b: modes are chosen before targets.
+                let modal = self.pool.get(self.objects[spell].def).modes().is_some();
+                self.flow = if modal {
+                    Flow::ChoosingMode { spell }
+                } else {
+                    Flow::Casting {
+                        spell,
+                        next_target: 0,
+                        sacrifice: None,
+                    }
+                };
+            }
+            (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
+                self.objects[spell].mode = u8::try_from(i).unwrap_or(0);
                 self.flow = Flow::Casting {
                     spell,
                     next_target: 0,
@@ -1053,7 +1087,7 @@ impl GameState {
         for affected in ended {
             self.emit(Event::EffectEnded { affected });
         }
-        self.bump();
+        self.cbump();
         // Control effects that ended: permanents go back to their owners
         // (or to whatever effect still applies).
         let control_left = u32::try_from(
