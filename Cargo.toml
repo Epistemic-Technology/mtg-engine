@@ -8,6 +8,7 @@ members = [
     "crates/mtg-agents",
     "crates/mtg-sim",
     "crates/mtg-cli",
+    "crates/mtg-py",
 ]
 
 [workspace.package]
@@ -33,6 +34,8 @@ rand_chacha = "0.9"
 regex = "1"
 rayon = "1"
 thiserror = "2"
+pyo3 = { version = "0.30", features = ["abi3-py310"] }
+numpy = "0.30"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }

@@ -56,6 +56,16 @@ cargo run -p mtg-cards -- model-author --write --list names.txt --jobs 6 --repor
 them only if the card renders to its Oracle text exactly and the scenarios
 pass; `--prompt-only` prints the prompt instead of calling the API.
 
+Python: the engine, batch simulation, and a PettingZoo environment live
+in `crates/mtg-py` (see its README):
+
+```
+uv venv && uv pip install maturin pytest pettingzoo gymnasium numpy
+.venv/bin/maturin develop --release -m crates/mtg-py/Cargo.toml
+.venv/bin/python -c "import mtg_engine as me; print(me.simulate_batch('mono-red', 'mono-green', games=200))"
+.venv/bin/python scripts/py_throughput.py     # env steps/s, one process and all cores
+```
+
 Fuzzing draws random two-color decks from the whole corpus:
 
 ```

@@ -288,6 +288,36 @@ impl Keyword {
         Keyword::Forestwalk,
     ];
 
+    /// The keyword as Oracle prints it.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Keyword::Deathtouch => "deathtouch",
+            Keyword::Defender => "defender",
+            Keyword::DoubleStrike => "double strike",
+            Keyword::FirstStrike => "first strike",
+            Keyword::Flash => "flash",
+            Keyword::Flying => "flying",
+            Keyword::Haste => "haste",
+            Keyword::Hexproof => "hexproof",
+            Keyword::Indestructible => "indestructible",
+            Keyword::Lifelink => "lifelink",
+            Keyword::Menace => "menace",
+            Keyword::Prowess => "prowess",
+            Keyword::Reach => "reach",
+            Keyword::Trample => "trample",
+            Keyword::Vigilance => "vigilance",
+            Keyword::CantAttack => "can't attack",
+            Keyword::CantBlock => "can't block",
+            Keyword::MustAttack => "attacks each combat if able",
+            Keyword::Unblockable => "can't be blocked",
+            Keyword::Plainswalk => "plainswalk",
+            Keyword::Islandwalk => "islandwalk",
+            Keyword::Swampwalk => "swampwalk",
+            Keyword::Mountainwalk => "mountainwalk",
+            Keyword::Forestwalk => "forestwalk",
+        }
+    }
+
     /// The basic land type a landwalk keyword looks for (CR 702.14).
     pub const fn landwalk(self) -> Option<Color> {
         match self {

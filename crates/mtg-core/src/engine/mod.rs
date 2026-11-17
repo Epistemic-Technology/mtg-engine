@@ -104,6 +104,7 @@ impl SetupPermanent {
 
 /// The state before an action that met a decision in the middle of an
 /// event (CR 616.1), kept so the action can be replayed with the answer.
+#[derive(Clone)]
 struct Snapshot {
     state: GameState,
     log_len: usize,
@@ -111,6 +112,7 @@ struct Snapshot {
     answers: Vec<ChoiceId>,
 }
 
+#[derive(Clone)]
 pub struct Engine {
     state: GameState,
     current: StepResult,
@@ -271,6 +273,17 @@ impl Engine {
 
     pub fn is_over(&self) -> bool {
         self.current.is_over()
+    }
+
+    /// Resample the information hidden from `viewer` (design §4.8) and
+    /// re-enumerate the current decision. Meant for search at a point
+    /// where `viewer` is to act; a pending mid-event snapshot is dropped.
+    pub fn determinize(&mut self, viewer: PlayerId, seed: u64) {
+        self.snapshot = None;
+        self.state.determinize(viewer, seed);
+        if self.state.mid.pending.is_none() {
+            self.current = self.state.run();
+        }
     }
 
     /// Apply the chosen option of the current decision and run to the next.

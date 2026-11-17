@@ -1355,6 +1355,33 @@ embedding is the model's job. A `raw_view()` escape hatch returns the
 by default. A flag exposes them as decisions for the chance agent, which
 OpenSpiel-style algorithms want.
 
+Status 2026-11-17 (M4 slice 1): `crates/mtg-py` is in, built with
+maturin into the repo's `.venv` (`uv venv`; see the crate README). The
+thin layer: `Engine(deck_a, deck_b, seed)` over deck names or card
+lists, `step`, `options` (described), `observation(player)`,
+`option_features(max)`, `action_mask(max)`, `describe(player)` (the
+dense text with `#n` labels the MCP server will use too),
+`view_json`, `clone`, `determinize(player, seed)` (new in `mtg-core`:
+the opponent's hand is redrawn from hand and library together and
+libraries are shuffled, identities kept), `record_json` and
+`from_record_json`, `Agent(name)` for the built-in agents, and
+`simulate_batch` on rayon with the GIL released (19,300 games/s and
+9.4M decisions/s over 16 cores on the effect-free decks). The encoders
+live in Rust (`encode.rs`): an observation of 1,890 floats (global
+scalars, decision kind, 10 hand slots, 24 battlefield slots, 6 stack
+slots, 46 features per card: pool id, mana value, types, P/T, tapped,
+sick, damage, combat, controller, colors, keywords) and 37 features per
+option (kind, source and target card ids, target player, a count, a
+cost). `MtgEnv` is the AEC environment, `Discrete(max_options)` with
+the mask; it passes PettingZoo's `api_test`. `opponent="greedy"` plays
+seat 1 internally for single-agent training. Throughput with a masked
+random policy: 40,000 steps/s in one process and 132,000 steps/s on
+16 processes, against the M4 target of 10,000. Option lists longer than
+`max_options` (128) are rare (none in 20,000 random-deck decisions;
+the engine falls back to incremental declaration for large attack and
+block sets) and are counted in `env.overflow`. The chance flag is not
+implemented: the engine's only chance node is the opening shuffle.
+
 ### 9.2 MCP server (`mtg-mcp`)
 
 Built on `rmcp` 3.7 (spec 2026-07-28, which is stateless: no session
@@ -1896,6 +1923,15 @@ A/B scripts moved into `scripts/`. Fuzz: 15,000 random-deck games (half
 greedy) and 36,000 stress-deck games, 0 panics, 0 unfinished. The
 acceptance target of 500 Pauper cards through the gate is met for gate 1
 and gate 4; the XMage converter and model-driven authoring remain.
+
+Status 2026-11-17, M4 slice 1 (Python) done: `mtg-py` with the thin
+`Engine` binding, `simulate_batch` on rayon with the GIL released, the
+tensor encoders, and the PettingZoo AEC environment (§9.1); 12 Python
+tests including PettingZoo's `api_test`. The env runs a masked random
+policy at 40,000 steps/s per process and 132,000 steps/s across 16
+processes, so the ≥10k steps/s acceptance figure is met before any RL
+code exists; the masked-PPO run itself is slice 4. `mtg-core` gained
+`determinize` and the labelled text view.
 
 Status 2026-11-17, slice 7 (group recipients, then the second model
 batch) done: `each <filter>` / `all <filter>` recipients, `without

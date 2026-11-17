@@ -129,6 +129,202 @@ impl GameState {
     }
 }
 
+impl GameState {
+    /// A stable label for an object: `#<n>` from its arena index. The label
+    /// changes only when the object changes zones (it is a new object then,
+    /// CR 400.7).
+    pub fn label(id: ObjId) -> String {
+        use slotmap::Key as _;
+        format!("#{}", id.data().as_ffi() & 0xffff_ffff)
+    }
+
+    /// Every object whose label is `label`, in any zone the viewer may see.
+    pub fn by_label(&self, viewer: PlayerId, label: &str) -> Option<ObjId> {
+        let n: u64 = label.trim_start_matches('#').parse().ok()?;
+        self.objects.keys().find(|id| {
+            use slotmap::Key as _;
+            id.data().as_ffi() & 0xffff_ffff == n && self.visible_to(viewer, *id)
+        })
+    }
+
+    fn describe_object(&self, id: ObjId, viewer: PlayerId) -> String {
+        use std::fmt::Write as _;
+        let o = &self.objects[id];
+        let mut s = format!("{} {}", Self::label(id), self.name_of(id));
+        let Some(c) = self.characteristics(id) else {
+            return s;
+        };
+        if o.zone == Zone::Battlefield {
+            if c.is_creature() {
+                let _ = write!(s, " {}/{}", c.power, c.toughness);
+                if o.damage > 0 {
+                    let _ = write!(s, " ({} damage)", o.damage);
+                }
+                if !o.controlled_since_turn_start {
+                    s.push_str(" (summoning sick)");
+                }
+            }
+            let kws: Vec<&str> = c.keywords.iter().map(crate::card::Keyword::name).collect();
+            if !kws.is_empty() {
+                let _ = write!(s, " [{}]", kws.join(", "));
+            }
+            for (kind, n) in &o.counters {
+                let _ = write!(s, " [{n} {kind:?} counters]");
+            }
+            if o.tapped {
+                s.push_str(" [tapped]");
+            }
+            if let Some(cb) = &self.combat {
+                if let Some(a) = cb.attacker(id) {
+                    match a.attacking {
+                        Target::Player(p) => {
+                            let _ = write!(s, " [attacking P{}]", p.0 + 1);
+                        }
+                        Target::Object(t) => {
+                            let _ = write!(s, " [attacking {}]", Self::label(t));
+                        }
+                    }
+                } else if let Some(a) = cb.blocked_by(id) {
+                    let _ = write!(s, " [blocking {}]", Self::label(a));
+                }
+            }
+            if let Some(t) = o.attached_to {
+                let _ = write!(s, " [attached to {}]", Self::label(t));
+            }
+        }
+        if o.zone == Zone::Stack && !o.targets.is_empty() {
+            let targets: Vec<String> = o
+                .targets
+                .iter()
+                .map(|t| match t {
+                    Target::Player(p) => format!("P{}", p.0 + 1),
+                    Target::Object(id) => Self::label(*id),
+                })
+                .collect();
+            let _ = write!(s, " -> {}", targets.join(", "));
+        }
+        let _ = viewer;
+        s
+    }
+
+    /// The game as dense text for `viewer`, with `#n` labels that `act`
+    /// calls can name (design §9.2).
+    pub fn describe(&self, viewer: PlayerId) -> String {
+        use std::fmt::Write as _;
+        let mut out = String::new();
+        let _ = writeln!(
+            out,
+            "Turn {}, {:?}, P{}'s turn, priority P{}. You are P{}.",
+            self.turn_number,
+            self.step,
+            self.active_player.0 + 1,
+            self.priority.0 + 1,
+            viewer.0 + 1
+        );
+        for i in 0..self.num_players() {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            let ps = self.player(p);
+            let who = if p == viewer { "You" } else { "Opponent" };
+            let _ = write!(
+                out,
+                "{who} (P{}): {} life, {} in hand, {} in library, {} in graveyard, {} in exile",
+                p.0 + 1,
+                ps.life,
+                ps.hand.len(),
+                ps.library.len(),
+                ps.graveyard.len(),
+                ps.exile.len()
+            );
+            if ps.mana_pool.total() > 0 {
+                let _ = write!(out, ", mana pool {:?}", ps.mana_pool);
+            }
+            if ps.lost.is_some() {
+                out.push_str(", has lost");
+            }
+            out.push('\n');
+            let perms: Vec<String> = self
+                .permanents_of(p)
+                .map(|id| self.describe_object(id, viewer))
+                .collect();
+            let _ = writeln!(
+                out,
+                "  battlefield: {}",
+                if perms.is_empty() {
+                    "(empty)".to_string()
+                } else {
+                    perms.join("; ")
+                }
+            );
+            if p == viewer {
+                let hand: Vec<String> = ps
+                    .hand
+                    .iter()
+                    .map(|id| self.describe_object(*id, viewer))
+                    .collect();
+                let _ = writeln!(
+                    out,
+                    "  hand: {}",
+                    if hand.is_empty() {
+                        "(empty)".to_string()
+                    } else {
+                        hand.join(", ")
+                    }
+                );
+            }
+            if !ps.graveyard.is_empty() {
+                let gy: Vec<String> = ps
+                    .graveyard
+                    .iter()
+                    .map(|id| self.describe_object(*id, viewer))
+                    .collect();
+                let _ = writeln!(out, "  graveyard: {}", gy.join(", "));
+            }
+        }
+        if !self.stack.is_empty() {
+            let items: Vec<String> = self
+                .stack
+                .iter()
+                .rev()
+                .map(|id| self.describe_object(*id, viewer))
+                .collect();
+            let _ = writeln!(out, "Stack (top first): {}", items.join("; "));
+        }
+        out
+    }
+
+    /// Resample everything hidden from `viewer` consistently with what the
+    /// viewer knows (design §4.8): the opponent's hand is redrawn from
+    /// their hand and library together, and every library is shuffled.
+    /// Object identities are kept; only zones and orders change. Valid at a
+    /// point where the viewer is to act.
+    pub fn determinize(&mut self, viewer: PlayerId, seed: u64) {
+        use rand::SeedableRng as _;
+        use rand::seq::SliceRandom as _;
+        let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
+        for i in 0..self.num_players() {
+            let p = PlayerId(u8::try_from(i).unwrap_or(0));
+            if p == viewer {
+                self.players[i].library.shuffle(&mut rng);
+                continue;
+            }
+            let hand_size = self.players[i].hand.len();
+            let mut unknown: Vec<ObjId> = self.players[i].hand.clone();
+            unknown.extend(self.players[i].library.iter().copied());
+            unknown.shuffle(&mut rng);
+            let library = unknown.split_off(hand_size);
+            for id in &unknown {
+                self.objects[*id].zone = Zone::Hand;
+            }
+            for id in &library {
+                self.objects[*id].zone = Zone::Library;
+            }
+            self.players[i].hand = unknown;
+            self.players[i].library = library;
+        }
+        self.bump();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
