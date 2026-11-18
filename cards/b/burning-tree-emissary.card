@@ -1,0 +1,7 @@
+card "Burning-Tree Emissary" {
+  oracle_id 327d9679-0049-4401-8dab-e0fb362306bd
+  cost {R/G}{R/G}
+  type Creature — Human Shaman
+  pt 2/2
+  triggered when this enters: add {R}{G}
+}

@@ -1,0 +1,7 @@
+card "Cystbearer" {
+  oracle_id 81704164-bad9-4e52-9b69-3d49e92fe284
+  cost {2}{G}
+  type Creature — Phyrexian Beast
+  pt 2/3
+  keywords infect
+}

@@ -1,0 +1,7 @@
+card "Phyrexian Juggernaut" {
+  oracle_id 009fcd1e-5c5f-435b-afc1-099f1622e45c
+  cost {6}
+  type Artifact Creature — Phyrexian Juggernaut
+  pt 5/5
+  keywords infect, attacks each combat if able
+}

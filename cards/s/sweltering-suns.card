@@ -1,0 +1,7 @@
+card "Sweltering Suns" {
+  oracle_id 526cd570-046e-402a-986c-f6ece68eec47
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal 3 damage to each creature
+  cycling {3}
+}

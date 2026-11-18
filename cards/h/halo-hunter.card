@@ -1,0 +1,8 @@
+card "Halo Hunter" {
+  oracle_id 293560ec-accf-49c6-9bf4-6d37f56a4eb7
+  cost {2}{B}{B}{B}
+  type Creature — Demon
+  pt 6/3
+  keywords intimidate
+  triggered when this enters: destroy target Angel
+}

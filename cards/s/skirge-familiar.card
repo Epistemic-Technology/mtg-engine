@@ -1,0 +1,8 @@
+card "Skirge Familiar" {
+  oracle_id ba95f24d-42da-48ce-bcf1-1b7c4b3c45b5
+  cost {4}{B}
+  type Creature — Phyrexian Imp
+  pt 3/2
+  keywords flying
+  activated discard 1 card: add {B}
+}

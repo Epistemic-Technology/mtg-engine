@@ -1,0 +1,7 @@
+card "Rhox Charger" {
+  oracle_id e1b7db10-58a1-46fc-ac6c-287393ed96c2
+  cost {3}{G}
+  type Creature — Rhino Soldier
+  pt 3/3
+  keywords trample, exalted
+}

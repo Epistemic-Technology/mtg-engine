@@ -1,0 +1,7 @@
+card "Lórien Revealed" {
+  oracle_id 66f28905-c7fc-4ada-8fa0-199626d9bedb
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 3 cards
+  islandcycling {1}
+}

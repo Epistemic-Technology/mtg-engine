@@ -376,6 +376,14 @@ impl Compiler<'_> {
                 mana: mana.clone(),
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
+            Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
+            Effect::Search {
+                filter, count, to, ..
+            } => out.push(CoreEffect::Search {
+                filter: self.filter(filter),
+                count: *count,
+                to: *to,
+            }),
             Effect::Investigate => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
@@ -477,6 +485,7 @@ impl Compiler<'_> {
                 whose: *whose,
             },
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
+            Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
             Trigger::DealsCombatDamageToPlayer(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))

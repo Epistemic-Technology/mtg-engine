@@ -1,0 +1,8 @@
+card "Sublime Archangel" {
+  oracle_id b5479c97-df19-49c7-b305-7a0336fd1cb3
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 4/3
+  keywords flying, exalted
+  static other creature you control: has exalted
+}

@@ -1,0 +1,7 @@
+card "Outrider of Jhess" {
+  oracle_id ccfe72b2-8a9a-4ad6-ab1d-676bb376b0ac
+  cost {3}{U}
+  type Creature — Human Knight
+  pt 2/2
+  keywords exalted
+}

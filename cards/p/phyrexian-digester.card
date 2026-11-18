@@ -1,0 +1,7 @@
+card "Phyrexian Digester" {
+  oracle_id 9e7b03ae-dcf5-4892-9000-aee7e2cd2fed
+  cost {3}
+  type Artifact Creature — Phyrexian Construct
+  pt 2/1
+  keywords infect
+}

@@ -1,0 +1,7 @@
+card "Llanowar Tribe" {
+  oracle_id cfd0f0e6-1bbf-4450-97d2-c54907abb7e4
+  cost {G}{G}{G}
+  type Creature — Elf Druid
+  pt 3/3
+  activated {T}: add {G}{G}{G}
+}

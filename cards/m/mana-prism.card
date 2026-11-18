@@ -1,0 +1,7 @@
+card "Mana Prism" {
+  oracle_id f4669822-716b-45c7-a7f2-040062509fe9
+  cost {3}
+  type Artifact
+  mana {C}
+  activated {1}, {T}: add any
+}

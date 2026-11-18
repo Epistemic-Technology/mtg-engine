@@ -1,0 +1,8 @@
+card "Undercity Shade" {
+  oracle_id 28f3d535-9503-4d35-aeed-d3e59259f760
+  cost {4}{B}
+  type Creature — Shade
+  pt 1/1
+  keywords fear
+  activated {B}: this gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Hill Gigas" {
+  oracle_id 137594f7-2422-461b-a3ae-7ce3c135e0c7
+  cost {4}{R}{R}
+  type Creature — Giant
+  pt 5/4
+  keywords trample, haste
+  mountaincycling {2}
+}

@@ -1,0 +1,6 @@
+card "Intimidation" {
+  oracle_id a345d7d1-5d30-49a0-b139-a46f9419c50f
+  cost {2}{B}{B}{B}
+  type Enchantment
+  static creature you control: has fear
+}

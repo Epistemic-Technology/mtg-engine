@@ -147,6 +147,7 @@ impl Runner {
         let mut library_given = [false; 2];
         for (i, p) in players.iter_mut().enumerate() {
             p.life = sc.setup.life[i].unwrap_or(20);
+            p.poison = sc.setup.poison[i];
         }
         for z in &sc.setup.zones {
             let ps = &mut players[z.player.index()];
@@ -367,6 +368,8 @@ impl Runner {
             DecisionKind::Bottom
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
+            | DecisionKind::ChooseColor
+            | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. } => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
@@ -1471,6 +1474,10 @@ impl Runner {
                 let have = st.player(*p).life;
                 expect(line, format!("life of {}", player_name(*p)), have, *want)
             }
+            Assertion::Poison(p, want) => {
+                let have = st.player(*p).poison;
+                expect(line, format!("poison of {}", player_name(*p)), have, *want)
+            }
             Assertion::ZoneContains {
                 zone,
                 player,
@@ -1529,7 +1536,7 @@ impl Runner {
             Assertion::Power(r, want) => {
                 let id = self.resolve_obj(line, r)?;
                 let c = st.characteristics(id).expect("object exists");
-                expect(line, format!("power of \"{}\"", r.name), c.power, *want)
+                expect(line, format!("power of \"{}\"", r.name), c.power(), *want)
             }
             Assertion::Toughness(r, want) => {
                 let id = self.resolve_obj(line, r)?;
@@ -1537,7 +1544,7 @@ impl Runner {
                 expect(
                     line,
                     format!("toughness of \"{}\"", r.name),
-                    c.toughness,
+                    c.toughness(),
                     *want,
                 )
             }
@@ -1765,6 +1772,7 @@ impl Runner {
                 )
             }
             Choice::Done => "done".into(),
+            Choice::Color(c) => format!("{c:?}").to_lowercase(),
             Choice::Division(div) => format!("assign {}", self.describe_division(div)),
             Choice::Discard { def, .. } => {
                 format!("discard {}", self.state().pool.get(*def).name)

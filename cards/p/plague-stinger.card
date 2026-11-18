@@ -1,0 +1,7 @@
+card "Plague Stinger" {
+  oracle_id 047e761e-7bbe-403b-86d7-cb9fb0b20b21
+  cost {1}{B}
+  type Creature — Phyrexian Insect Horror
+  pt 1/1
+  keywords flying, infect
+}

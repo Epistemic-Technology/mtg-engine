@@ -1,0 +1,7 @@
+card "Duskmantle Prowler" {
+  oracle_id 9784ccf1-2238-417a-b6d1-cfc2e3dcae5f
+  cost {3}{B}
+  type Creature — Vampire Rogue
+  pt 2/2
+  keywords haste, exalted
+}

@@ -1,0 +1,7 @@
+card "Surveillance Room" {
+  oracle_id a3648376-dc8b-409b-b2d1-c29e326a059c
+  type Land
+  triggered when this enters: surveil 1
+  mana {C}
+  activated {1}, {T}: add any
+}

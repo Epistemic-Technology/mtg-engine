@@ -1,0 +1,6 @@
+card "Painted Bluffs" {
+  oracle_id b66deeb5-7371-4f06-b10e-d65165bc07b2
+  type Land — Desert
+  mana {C}
+  activated {1}, {T}: add any
+}

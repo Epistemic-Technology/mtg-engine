@@ -1,0 +1,6 @@
+card "Skyshroud Claim" {
+  oracle_id 376c9d3f-21d3-4251-bb6a-026fa9e1b0e1
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 Forest card to battlefield
+}

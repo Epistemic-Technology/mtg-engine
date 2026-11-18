@@ -1,0 +1,7 @@
+card "Kalonian Behemoth" {
+  oracle_id 68d0b5c0-df6a-4eea-8dea-20358270f916
+  cost {5}{G}{G}
+  type Creature — Beast
+  pt 9/9
+  keywords shroud
+}

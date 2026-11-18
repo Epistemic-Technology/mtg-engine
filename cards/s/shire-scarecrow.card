@@ -1,0 +1,8 @@
+card "Shire Scarecrow" {
+  oracle_id 4b9f6a6e-c168-4732-b454-2272d56636da
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 0/3
+  keywords defender
+  activated {1}, once: add any
+}

@@ -1,0 +1,6 @@
+card "Dark Ritual" {
+  oracle_id 53f7c868-b03e-4fc2-8dcf-a75bbfa3272b
+  cost {B}
+  type Instant
+  spell: add {B}{B}{B}
+}

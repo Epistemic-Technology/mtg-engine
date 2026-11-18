@@ -1,0 +1,8 @@
+card "Orchard Strider" {
+  oracle_id c6906032-e08b-478f-bc71-cb1184f60bad
+  cost {4}{G}{G}
+  type Creature — Treefolk
+  pt 6/4
+  triggered when this enters: create 2 "Food"
+  basic landcycling {1}{G}
+}

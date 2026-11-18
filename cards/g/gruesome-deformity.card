@@ -1,0 +1,7 @@
+card "Gruesome Deformity" {
+  oracle_id 9b44cc9e-6ef0-4fee-b79a-3e34cb0a3407
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has intimidate
+}

@@ -26,6 +26,14 @@ pub struct ParseError {
 
 type R<T> = Result<T, ParseError>;
 
+fn capitalize_word(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        None => String::new(),
+    }
+}
+
 pub fn parse(text: &str) -> R<Vec<Card>> {
     let toks = lex(text)?;
     let mut p = P {
@@ -92,6 +100,17 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     ),
     (&["devoid"], Keyword::Devoid),
     (&["changeling"], Keyword::Changeling),
+    (&["shroud"], Keyword::Shroud),
+    (&["fear"], Keyword::Fear),
+    (&["intimidate"], Keyword::Intimidate),
+    (&["shadow"], Keyword::Shadow),
+    (&["horsemanship"], Keyword::Horsemanship),
+    (&["skulk"], Keyword::Skulk),
+    (&["wither"], Keyword::Wither),
+    (&["infect"], Keyword::Infect),
+    (&["exalted"], Keyword::Exalted),
+    (&["persist"], Keyword::Persist),
+    (&["undying"], Keyword::Undying),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a
@@ -693,6 +712,46 @@ impl P {
         self.subject = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
+            w if w.ends_with("cycling") && w != "cycling"
+                || w == "basic" && self.word_at(1).as_deref() == Some("landcycling") =>
+            {
+                // Typecycling (CR 702.29e): "Plainscycling {2}" searches
+                // for a Plains card; "basic landcycling" for a basic land.
+                let mut filter = Filter::default();
+                if w == "basic" {
+                    self.pos += 2;
+                    filter.types.push(CardType::Land);
+                    filter.supertypes.push(Supertype::Basic);
+                } else {
+                    self.pos += 1;
+                    let stem = &w[..w.len() - "cycling".len()];
+                    if stem == "land" {
+                        filter.types.push(CardType::Land);
+                    } else {
+                        filter.subtypes.push(capitalize_word(stem));
+                    }
+                }
+                let mana = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Activated {
+                    cost: Cost {
+                        mana,
+                        discard_self: true,
+                        ..Default::default()
+                    },
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![Effect::Search {
+                        filter,
+                        count: Num::N(1),
+                        up_to: false,
+                        to: mtg_core::card::SearchTo::Hand,
+                        reveal: true,
+                        that_card: false,
+                    }])],
+                    equip: false,
+                    cycling: true,
+                })
+            }
             "cycling" => {
                 self.pos += 1;
                 let mana = self.mana_cost()?;
@@ -1483,6 +1542,63 @@ impl P {
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
             "investigate" => Ok(Effect::Investigate),
+            "search" => {
+                let up_to = self.eat_words(&["up", "to"]);
+                let count = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.num()?
+                } else {
+                    Num::N(1)
+                };
+                let filter = if self.eat_word("card") || self.eat_word("cards") {
+                    Filter::default()
+                } else {
+                    let f = self.filter()?;
+                    if !(self.eat_word("card") || self.eat_word("cards")) {
+                        return self.unexpected("`card`");
+                    }
+                    f
+                };
+                let reveal = self.eat_word("reveal");
+                self.expect_word("to")?;
+                let to = if self.eat_word("hand") {
+                    mtg_core::card::SearchTo::Hand
+                } else if self.eat_word("battlefield") {
+                    mtg_core::card::SearchTo::Battlefield {
+                        tapped: self.eat_word("tapped"),
+                    }
+                } else if self.eat_word("top") {
+                    mtg_core::card::SearchTo::TopOfLibrary
+                } else {
+                    return self.unexpected("`hand`, `battlefield`, or `top`");
+                };
+                let that_card = self.eat_words(&["that", "card"]);
+                Ok(Effect::Search {
+                    filter,
+                    count,
+                    up_to,
+                    to,
+                    reveal,
+                    that_card,
+                })
+            }
+            "add" => {
+                if self.eat_word("any") {
+                    return Ok(Effect::AddMana(vec![Mana::Any]));
+                }
+                let cost = self.mana_cost()?;
+                let mut out = Vec::new();
+                for s in cost.symbols() {
+                    out.push(match s {
+                        mtg_core::mana::ManaSymbol::Colored(c) => Mana::Colored(*c),
+                        mtg_core::mana::ManaSymbol::Colorless => Mana::Colorless,
+                        _ => return self.unexpected("{W}, {U}, {B}, {R}, {G}, {C}, or `any`"),
+                    });
+                }
+                if out.is_empty() {
+                    return self.unexpected("mana to add");
+                }
+                Ok(Effect::AddMana(out))
+            }
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "counter" => {
                 let to = self.recipient()?;
@@ -1784,6 +1900,10 @@ impl P {
                 spec = match spec {
                     Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
                     Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
+                    Target::Filter(mut f) if f.relation == Relation::Any => {
+                        f.relation = Relation::Other;
+                        Target::Filter(f)
+                    }
                     other => other,
                 };
             }
@@ -1954,7 +2074,15 @@ impl P {
                         f.types.push(t);
                         self.pos += 1;
                     } else if raw.chars().next().is_some_and(char::is_uppercase) {
-                        f.subtypes.push(raw.trim_end_matches('s').to_string());
+                        // Plural subtypes are singular in a filter; a few
+                        // end in "s" in the singular (Plains, Elves are
+                        // "Elf" though).
+                        let keep = matches!(raw.as_str(), "Plains" | "Locus" | "Homunculus");
+                        f.subtypes.push(if keep {
+                            raw.clone()
+                        } else {
+                            raw.trim_end_matches('s').to_string()
+                        });
                         self.pos += 1;
                     } else {
                         break;
@@ -2095,7 +2223,12 @@ impl P {
                 ])?;
                 Ok(Trigger::Dies(obj))
             }
-            "attacks" => Ok(Trigger::Attacks(obj)),
+            "attacks" => {
+                if self.eat_word("alone") {
+                    return Ok(Trigger::AttacksAlone(obj));
+                }
+                Ok(Trigger::Attacks(obj))
+            }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
                 self.expect_words(&["combat", "damage", "to", "a", "player"])?;
@@ -2122,6 +2255,11 @@ impl P {
         }
         if self.eat_word("kicked") {
             return Ok(Condition::Kicked);
+        }
+        if self.eat_words(&["it", "had", "no"]) {
+            let k = self.counter_kind()?;
+            self.eat_word("counters");
+            return Ok(Condition::HadNoCounters(k));
         }
         self.unexpected("a condition")
     }

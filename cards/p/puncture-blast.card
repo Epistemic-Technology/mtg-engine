@@ -1,0 +1,7 @@
+card "Puncture Blast" {
+  oracle_id e296581d-01ac-43bf-898c-2edb4c81bcbe
+  cost {2}{R}
+  type Instant
+  keywords wither
+  spell: deal 3 damage to any target
+}

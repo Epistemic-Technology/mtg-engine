@@ -1,0 +1,7 @@
+card "Ethercaste Knight" {
+  oracle_id b34a7a9e-d740-4ddc-9b3c-8c49555ee2aa
+  cost {W}{U}
+  type Artifact Creature — Human Knight
+  pt 1/3
+  keywords exalted
+}

@@ -1,0 +1,7 @@
+card "Rith's Attendant" {
+  oracle_id 781542b7-155b-4a66-aa52-eec0ebb29bb2
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {1}, sacrifice this: add {R}{G}{W}
+}

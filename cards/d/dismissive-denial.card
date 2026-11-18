@@ -1,0 +1,7 @@
+card "Dismissive Denial" {
+  oracle_id 99eff6e9-5911-4f89-bad1-0888067a7783
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell
+  basic landcycling {2}
+}

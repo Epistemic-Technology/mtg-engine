@@ -1,0 +1,7 @@
+card "Bog Witch" {
+  oracle_id 85573cba-07ae-4421-a167-a8569f85c0f7
+  cost {2}{B}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {B}, {T}, discard 1 card: add {B}{B}{B}
+}

@@ -1,0 +1,7 @@
+card "Elvish Lookout" {
+  oracle_id 9e9aea99-1eee-4bb6-9043-a1ac2884d071
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  keywords shroud
+}

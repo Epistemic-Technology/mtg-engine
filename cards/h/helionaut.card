@@ -1,0 +1,8 @@
+card "Helionaut" {
+  oracle_id 8d4de785-20e9-430e-8df1-f39dac0ef07d
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  keywords flying
+  activated {1}, {T}: add any
+}

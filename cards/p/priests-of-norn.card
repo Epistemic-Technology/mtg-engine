@@ -1,0 +1,7 @@
+card "Priests of Norn" {
+  oracle_id 793fe31a-2b11-49f8-9851-719469ad1726
+  cost {2}{W}
+  type Creature — Phyrexian Cleric
+  pt 1/4
+  keywords vigilance, infect
+}

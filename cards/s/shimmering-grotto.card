@@ -1,0 +1,6 @@
+card "Shimmering Grotto" {
+  oracle_id bae49475-fe01-400b-8959-f0dde959577c
+  type Land
+  mana {C}
+  activated {1}, {T}: add any
+}

@@ -1,0 +1,7 @@
+card "Diabolic Intent" {
+  oracle_id 038519b9-bca8-4b27-b5ac-2409595469d0
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: search card to hand that card
+}

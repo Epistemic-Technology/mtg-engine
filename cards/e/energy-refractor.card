@@ -1,0 +1,7 @@
+card "Energy Refractor" {
+  oracle_id fd9dde4c-bacd-48d8-b4c9-a6a04f0b3338
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {2}: add any
+}

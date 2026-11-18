@@ -1,0 +1,7 @@
+card "Cathodion" {
+  oracle_id fcd4f816-2de1-4b30-82fb-cb87f45747ea
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/3
+  triggered when this dies: add {C}{C}{C}
+}

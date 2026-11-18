@@ -1,0 +1,5 @@
+card "Viridescent Bog" {
+  oracle_id 6bd6d259-1af7-4dff-a79c-48a616d2a36e
+  type Land
+  activated {1}, {T}: add {B}{G}
+}

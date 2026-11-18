@@ -1,0 +1,8 @@
+card "Ceta Disciple" {
+  oracle_id 1f085c2d-bd1b-4889-882f-367e0e970f44
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  activated {R}, {T}: target creature gets +2/+0
+  activated {G}, {T}: add any
+}

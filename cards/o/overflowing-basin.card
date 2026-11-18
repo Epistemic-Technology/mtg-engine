@@ -1,0 +1,5 @@
+card "Overflowing Basin" {
+  oracle_id 5ac8e01c-b0a7-4855-a122-1cd26b07c4a5
+  type Land
+  activated {1}, {T}: add {G}{U}
+}

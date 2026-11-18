@@ -1,0 +1,6 @@
+card "Sungrass Egg" {
+  oracle_id 80a49a1b-a202-4c14-b093-dc76eb0f42c7
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: add {G}{W}; draw 1 cards
+}

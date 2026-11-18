@@ -1,0 +1,6 @@
+card "Henge of Ramos" {
+  oracle_id 829474df-6413-4323-aef6-f878cb0e797c
+  type Land
+  mana {C}
+  activated {2}, {T}: add any
+}

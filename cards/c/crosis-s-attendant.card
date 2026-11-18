@@ -1,0 +1,7 @@
+card "Crosis's Attendant" {
+  oracle_id 6223b1c0-bfe0-490c-b2d4-28537b05f571
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {1}, sacrifice this: add {U}{B}{R}
+}

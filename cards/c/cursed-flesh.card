@@ -1,0 +1,7 @@
+card "Cursed Flesh" {
+  oracle_id 96e244ef-21b9-4795-a881-c3db23b60cc9
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1, has fear
+}

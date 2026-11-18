@@ -19,7 +19,18 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 20] = [
+const KEYWORDS: [&str; 31] = [
+    "Shroud",
+    "Fear",
+    "Intimidate",
+    "Shadow",
+    "Horsemanship",
+    "Skulk",
+    "Wither",
+    "Infect",
+    "Exalted",
+    "Persist",
+    "Undying",
     "Deathtouch",
     "Plainswalk",
     "Islandwalk",
@@ -43,7 +54,16 @@ const KEYWORDS: [&str; 20] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 18] = [
+const TEMPLATED_TAGS: [&str; 27] = [
+    "Landcycling",
+    "Basic landcycling",
+    "Typecycling",
+    "Plainscycling",
+    "Islandcycling",
+    "Swampcycling",
+    "Mountaincycling",
+    "Forestcycling",
+    "Mana ability",
     "Protection",
     "Devoid",
     "Changeling",
@@ -577,6 +597,45 @@ impl Templates {
                 },
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
+            (
+                r(
+                    r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
+                ),
+                |c, _| {
+                    let n = cap(c, 1);
+                    let (up_to, count) = match n.strip_prefix("up to ") {
+                        Some(k) => ("up to ", number(k)?),
+                        None => ("", "1".to_string()),
+                    };
+                    let mut t = format!("search {up_to}");
+                    if count != "1" || !up_to.is_empty() {
+                        let _ = write!(t, "{count} ");
+                    }
+                    if !cap(c, 2).is_empty() {
+                        let _ = write!(t, "{} ", cap(c, 2));
+                    }
+                    t.push_str("card");
+                    if !cap(c, 3).is_empty() {
+                        t.push_str(" reveal");
+                    }
+                    t.push_str(match cap(c, 5) {
+                        "into your hand" => " to hand",
+                        "onto the battlefield tapped" => " to battlefield tapped",
+                        "onto the battlefield" => " to battlefield",
+                        _ => " to top",
+                    });
+                    if cap(c, 4) == "that card" {
+                        t.push_str(" that card");
+                    }
+                    Some(t)
+                },
+            ),
+            (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
+                Some(format!("add {}", cap(c, 1)))
+            }),
+            (r(r"^Add one mana of any color$"), |_, _| {
+                Some("add any".to_string())
+            }),
             (r(r"^Scry (\d+)$"), |c, _| {
                 Some(format!("scry {}", cap(c, 1)))
             }),
@@ -725,7 +784,12 @@ impl Templates {
             };
             // "Draw a card, then discard a card": clauses joined by "then".
             let mut parts = Vec::new();
-            for clause in body.split(", then ") {
+            let clauses: Vec<&str> = if body.contains("earch your library") {
+                vec![body.as_str()]
+            } else {
+                body.split(", then ").collect()
+            };
+            for clause in clauses {
                 let Some(e) = self.sentence(&capitalize(clause), targets) else {
                     return Err(Skip::Sentence(sentence.clone()));
                 };
@@ -1019,6 +1083,9 @@ struct Builder<'a> {
     additional: Option<String>,
     /// Paragraphs of an instant's or sorcery's text, one `spell` block.
     spell_paragraphs: Vec<String>,
+    /// How many statements come before the `spell` block (cycling after a
+    /// spell's text prints after it).
+    spell_at: Option<usize>,
     spell_targets: usize,
 }
 
@@ -1067,6 +1134,19 @@ impl Builder<'_> {
             } else {
                 self.statements.push(format!("keyword {k}"));
             }
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^(Basic land|Land|Plains|Island|Swamp|Mountain|Forest)cycling ((?:\{[0-9XWUBRGC]+\})+)$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            self.statements.push(format!(
+                "{}cycling {}",
+                cap(&c, 1).to_lowercase(),
+                cap(&c, 2)
+            ));
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Cycling ((?:\{[0-9XWUBRGC]+\})+)$")
@@ -1276,6 +1356,7 @@ impl Builder<'_> {
             let mut targets = self.spell_targets;
             let effects = self.templates.effects(line, &mut targets)?;
             self.spell_targets = targets;
+            self.spell_at.get_or_insert(self.statements.len());
             self.spell_paragraphs.push(effects);
             return Ok(());
         }
@@ -1361,6 +1442,7 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         keywords: Vec::new(),
         additional: None,
         spell_paragraphs: Vec::new(),
+        spell_at: None,
         spell_targets: 0,
     };
     let lines: Vec<&str> = oracle.lines().collect();
@@ -1419,7 +1501,8 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     if let Some(a) = &b.additional {
         let _ = writeln!(text, "  additional cost {a}");
     }
-    for st in &b.statements {
+    let split = b.spell_at.unwrap_or(b.statements.len());
+    for st in &b.statements[..split] {
         let _ = writeln!(text, "  {st}");
     }
     match b.spell_paragraphs.as_slice() {
@@ -1434,6 +1517,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             }
             text.push_str("  }\n");
         }
+    }
+    for st in &b.statements[split..] {
+        let _ = writeln!(text, "  {st}");
     }
     text.push_str("}\n");
     // Tokens it creates that the corpus lacks are generated from their key.

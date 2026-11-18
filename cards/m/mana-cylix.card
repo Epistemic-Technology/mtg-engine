@@ -1,0 +1,6 @@
+card "Mana Cylix" {
+  oracle_id 47f20da0-cd31-4877-8eca-0c8389a66e89
+  cost {1}
+  type Artifact
+  activated {1}, {T}: add any
+}

@@ -1,0 +1,9 @@
+card "Soaring Sandwing" {
+  oracle_id 5d840e49-3ca5-4e4f-9152-a365ad2b1773
+  cost {4}{W}{W}
+  type Creature — Dinosaur
+  pt 3/5
+  keywords flying
+  triggered when this enters: you gains 3 life
+  plainscycling {2}
+}

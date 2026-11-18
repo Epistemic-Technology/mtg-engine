@@ -1,0 +1,9 @@
+card "Undulating Witness" {
+  oracle_id 77b684b8-227b-40de-80b4-15d0e70914f4
+  cost {4}{U}
+  type Creature — Serpent
+  pt 3/5
+  keywords flying
+  activated {2}: this gets +1/-1
+  basic landcycling {2}
+}

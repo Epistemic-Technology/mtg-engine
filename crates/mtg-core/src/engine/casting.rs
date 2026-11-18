@@ -4,12 +4,12 @@ use smallvec::SmallVec;
 
 use crate::card::{
     AbilityDef, AbilityId, Affects, Cost, CounterKind, Effect, Keyword, Modification, PtValue,
-    Recipient, Replacement, Replaces, SacCost, TargetSpec,
+    Recipient, Replacement, Replaces, SacCost, SearchTo, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::mana::{Mana, ManaRequirement};
+use crate::mana::{Color, Mana, ManaRequirement};
 use crate::state::{
     Affected, CastInfo, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState, ObjKind,
     ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
@@ -483,6 +483,10 @@ impl GameState {
             source: sa.source,
             def,
         });
+        // CR 605.3b: a mana ability doesn't use the stack.
+        if ab.is_mana_ability() {
+            self.resolve_top();
+        }
         self.give_priority(controller);
     }
 
@@ -1204,6 +1208,78 @@ impl GameState {
             }
             Effect::Scry { count } => {
                 self.scry_or_surveil(ctx.controller, count.eval(ctx.x), false);
+            }
+            Effect::Search { filter, count, to } => {
+                let p = ctx.controller;
+                let mut found = Vec::new();
+                for _ in 0..count.eval(ctx.x) {
+                    // One option per distinct card (copies are alike).
+                    let mut seen = Vec::new();
+                    let mut options = Vec::new();
+                    for id in self.player(p).library.iter().rev() {
+                        if found.contains(id) {
+                            continue;
+                        }
+                        let o = &self.objects[*id];
+                        let c = self.base_characteristics(o);
+                        if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                            && !seen.contains(&o.def)
+                        {
+                            seen.push(o.def);
+                            options.push(Choice::Target(Target::Object(*id)));
+                        }
+                    }
+                    if options.is_empty() {
+                        break;
+                    }
+                    options.push(Choice::Decline);
+                    let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                    match options[k] {
+                        Choice::Target(Target::Object(id)) => found.push(id),
+                        _ => break,
+                    }
+                }
+                let mut top = Vec::new();
+                for id in found {
+                    match to {
+                        SearchTo::Hand => {
+                            self.move_object(id, Zone::Hand, true);
+                        }
+                        SearchTo::Battlefield { tapped } => {
+                            let new = self.put_onto_battlefield_with(
+                                id,
+                                p,
+                                super::replace::Enter {
+                                    tapped: *tapped,
+                                    counters: None,
+                                },
+                            );
+                            ctx.created = Some(new);
+                        }
+                        SearchTo::TopOfLibrary => top.push(id),
+                    }
+                }
+                self.shuffle_library(p);
+                for id in top {
+                    let lib = &mut self.player_mut(p).library;
+                    lib.retain(|x| *x != id);
+                    lib.push(id);
+                }
+            }
+            Effect::AddMana(mana) => {
+                let p = ctx.controller;
+                for m in mana {
+                    let m = if *m == Mana::Any {
+                        let options: Vec<Choice> =
+                            Color::ALL.into_iter().map(Choice::Color).collect();
+                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                        Mana::Colored(Color::ALL[k.min(4)])
+                    } else {
+                        *m
+                    };
+                    self.player_mut(p).mana_pool.add(m);
+                }
+                self.bump();
             }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, count.eval(ctx.x), true);

@@ -1,0 +1,7 @@
+card "Wood Elves" {
+  oracle_id 8973bd99-20f8-4867-90ef-50392147ee1b
+  cost {2}{G}
+  type Creature — Elf Scout
+  pt 1/1
+  triggered when this enters: search Forest card to battlefield that card
+}

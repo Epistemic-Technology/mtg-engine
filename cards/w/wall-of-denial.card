@@ -1,0 +1,7 @@
+card "Wall of Denial" {
+  oracle_id 9cc092f9-e8f0-40ea-847d-813b70f889db
+  cost {1}{W}{U}
+  type Creature — Wall
+  pt 0/8
+  keywords defender, flying, shroud
+}

@@ -1,0 +1,8 @@
+card "Geralf's Mindcrusher" {
+  oracle_id e8fa9455-92ac-46e0-bb34-4175c3c66fee
+  cost {4}{U}{U}
+  type Creature — Zombie Horror
+  pt 5/5
+  triggered when this enters: target player mills 5 cards
+  keyword undying
+}

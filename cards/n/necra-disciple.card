@@ -1,0 +1,8 @@
+card "Necra Disciple" {
+  oracle_id ef85a5eb-9cde-47b7-97e4-daa9aa9d4676
+  cost {B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {G}, {T}: add any
+  activated {W}, {T}: prevent next 1 damage to any target this turn
+}

@@ -1,0 +1,7 @@
+card "Wu Elite Cavalry" {
+  oracle_id 7dc5d729-0553-46fb-aff7-2f0d9573837b
+  cost {3}{U}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords horsemanship
+}

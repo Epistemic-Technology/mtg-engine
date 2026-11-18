@@ -1,0 +1,7 @@
+card "Inkwell Leviathan" {
+  oracle_id dbdd0963-b395-4cb8-ad9a-ed85a3e9f2e5
+  cost {7}{U}{U}
+  type Artifact Creature — Leviathan
+  pt 7/11
+  keywords trample, islandwalk, shroud
+}

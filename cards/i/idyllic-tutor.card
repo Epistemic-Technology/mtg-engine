@@ -1,0 +1,6 @@
+card "Idyllic Tutor" {
+  oracle_id 57c9ff89-dd30-467b-bb3e-499eeea8cb94
+  cost {2}{W}
+  type Sorcery
+  spell: search enchantment card reveal to hand
+}

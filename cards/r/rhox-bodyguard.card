@@ -1,0 +1,8 @@
+card "Rhox Bodyguard" {
+  oracle_id 34bd39ed-4058-4c65-ba5f-9ac5cf7c166a
+  cost {3}{G}{W}
+  type Creature — Rhino Monk Soldier
+  pt 2/3
+  keywords exalted
+  triggered when this enters: you gains 3 life
+}

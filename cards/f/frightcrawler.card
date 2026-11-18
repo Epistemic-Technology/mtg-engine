@@ -1,0 +1,8 @@
+card "Frightcrawler" {
+  oracle_id 96b611e9-38cc-4326-bb38-73084e99e6f5
+  cost {1}{B}
+  type Creature — Horror
+  pt 1/1
+  keywords fear
+  label "Threshold" static as long as 7 cards in your graveyard, this: +2/+2, has can't block
+}

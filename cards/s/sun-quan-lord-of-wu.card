@@ -1,0 +1,7 @@
+card "Sun Quan, Lord of Wu" {
+  oracle_id 70503280-6bdf-431d-8213-367a9783463a
+  cost {4}{U}{U}
+  type Legendary Creature — Human Soldier
+  pt 4/4
+  static creature you control: has horsemanship
+}

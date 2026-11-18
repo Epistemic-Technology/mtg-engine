@@ -1,0 +1,7 @@
+card "Sigiled Paladin" {
+  oracle_id b68e99df-7899-493e-9453-59da14ff7de4
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike, exalted
+}

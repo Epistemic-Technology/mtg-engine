@@ -1,0 +1,8 @@
+card "Savage Land Dinosaur" {
+  oracle_id 6e21ebdf-b97c-494e-a1d5-19db1b7d3016
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 7/6
+  keywords trample
+  basic landcycling {2}
+}

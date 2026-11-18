@@ -1,0 +1,7 @@
+card "Krenko's Enforcer" {
+  oracle_id 0d9787e3-f482-4a98-95af-0438ed09c96c
+  cost {1}{R}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  keywords intimidate
+}

@@ -1,0 +1,6 @@
+card "Carrion Call" {
+  oracle_id 8f1e8f25-ee23-40a6-a3f2-369bb960267f
+  cost {3}{G}
+  type Instant
+  spell: create 2 "1/1 green Phyrexian Insect creature with infect"
+}

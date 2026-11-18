@@ -1,0 +1,8 @@
+card "Fire Sprites" {
+  oracle_id fc5e42b5-4da2-4777-828b-138c0a5d234f
+  cost {1}{G}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  activated {G}, {T}: add {R}
+}

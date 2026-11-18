@@ -1,0 +1,7 @@
+card "Dauthi Trapper" {
+  oracle_id 3aa64915-8b1b-4414-b11e-d2078c1732a5
+  cost {2}{B}
+  type Creature — Dauthi Minion
+  pt 1/1
+  activated {T}: target creature gains shadow
+}

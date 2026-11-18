@@ -1,0 +1,7 @@
+card "Deft Duelist" {
+  oracle_id 2b6aaa8b-b90d-459f-95d4-9e00ee134f8e
+  cost {W}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  keywords first strike, shroud
+}

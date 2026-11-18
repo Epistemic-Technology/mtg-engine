@@ -1,0 +1,9 @@
+card "Cloudbound Moogle" {
+  oracle_id f718b520-d79d-4b91-9d85-de1f1c90c176
+  cost {3}{W}{W}
+  type Creature — Moogle
+  pt 2/3
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on target creature
+  plainscycling {2}
+}

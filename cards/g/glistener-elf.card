@@ -1,0 +1,7 @@
+card "Glistener Elf" {
+  oracle_id 9d95d173-5c7f-4e0c-bcdc-9b90fcd7339b
+  cost {G}
+  type Creature — Phyrexian Elf Warrior
+  pt 1/1
+  keywords infect
+}

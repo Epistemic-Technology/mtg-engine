@@ -1,0 +1,7 @@
+card "Squirming Mass" {
+  oracle_id 2c526c61-6cdb-440c-b4c8-b6d1503cef73
+  cost {1}{B}
+  type Creature — Horror
+  pt 1/1
+  keywords fear
+}

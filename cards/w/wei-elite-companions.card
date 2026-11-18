@@ -1,0 +1,7 @@
+card "Wei Elite Companions" {
+  oracle_id 2db5e0cd-c991-4fda-9001-9e4f10e8a805
+  cost {4}{B}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords horsemanship
+}

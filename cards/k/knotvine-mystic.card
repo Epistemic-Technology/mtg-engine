@@ -1,0 +1,7 @@
+card "Knotvine Mystic" {
+  oracle_id 5d045695-e4b3-4daa-bfab-d77640fedfd6
+  cost {R}{G}{W}
+  type Creature — Elf Druid
+  pt 2/2
+  activated {1}, {T}: add {R}{G}{W}
+}

@@ -1,0 +1,7 @@
+card "Bog Initiate" {
+  oracle_id 23f93411-f83c-4ed2-abed-99cf905f7d7f
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {1}: add {B}
+}

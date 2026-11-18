@@ -1,0 +1,7 @@
+card "Boggart Ram-Gang" {
+  oracle_id 30d2437a-87c9-4f88-8fb8-b686d6522677
+  cost {R/G}{R/G}{R/G}
+  type Creature — Goblin Warrior
+  pt 3/3
+  keywords haste, wither
+}

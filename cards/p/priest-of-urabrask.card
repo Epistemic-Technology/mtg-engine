@@ -1,0 +1,7 @@
+card "Priest of Urabrask" {
+  oracle_id e4bd8910-770b-4220-8a26-2673491f4a3e
+  cost {2}{R}
+  type Creature — Phyrexian Human Cleric
+  pt 2/1
+  triggered when this enters: add {R}{R}{R}
+}

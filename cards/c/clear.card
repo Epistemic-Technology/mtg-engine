@@ -1,0 +1,7 @@
+card "Clear" {
+  oracle_id d0783be9-e518-431a-8e71-121610da50e1
+  cost {1}{W}
+  type Instant
+  spell: destroy target enchantment
+  cycling {2}
+}

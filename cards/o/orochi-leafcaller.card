@@ -1,0 +1,7 @@
+card "Orochi Leafcaller" {
+  oracle_id 081db161-1ad0-4ee7-9d34-c415984080f0
+  cost {G}
+  type Creature — Snake Shaman
+  pt 1/1
+  activated {G}: add any
+}

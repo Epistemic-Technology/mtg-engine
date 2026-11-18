@@ -80,8 +80,8 @@ impl GameState {
             controller: o.controller,
             tapped: o.tapped,
             damage: o.damage,
-            power: c.power,
-            toughness: c.toughness,
+            power: c.power(),
+            toughness: c.toughness(),
             summoning_sick: o.zone == Zone::Battlefield
                 && c.is_creature()
                 && !o.controlled_since_turn_start,

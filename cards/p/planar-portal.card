@@ -1,0 +1,6 @@
+card "Planar Portal" {
+  oracle_id d4b10505-2b7a-4099-aacb-ff2359b24310
+  cost {6}
+  type Artifact
+  activated {6}, {T}: search card to hand that card
+}

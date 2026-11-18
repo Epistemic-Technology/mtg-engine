@@ -1,0 +1,7 @@
+card "Blightwidow" {
+  oracle_id 282003f4-862a-4f80-8f45-e470fc0fe2fe
+  cost {3}{G}
+  type Creature — Phyrexian Spider
+  pt 2/4
+  keywords reach, infect
+}

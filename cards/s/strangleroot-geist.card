@@ -1,0 +1,7 @@
+card "Strangleroot Geist" {
+  oracle_id af12758f-4a7b-4156-8942-de4716aa0623
+  cost {G}{G}
+  type Creature — Spirit
+  pt 2/1
+  keywords haste, undying
+}

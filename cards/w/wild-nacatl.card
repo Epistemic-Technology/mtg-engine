@@ -1,0 +1,8 @@
+card "Wild Nacatl" {
+  oracle_id 35d3d96a-d303-4bf5-b972-f311331ec07a
+  cost {G}
+  type Creature — Cat Warrior
+  pt 1/1
+  static this: +1/+1 as long as you control Mountain
+  static this: +1/+1 as long as you control Plains
+}

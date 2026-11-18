@@ -1,0 +1,8 @@
+card "Qasali Pridemage" {
+  oracle_id 10821e37-8a83-4d8e-a12f-249a10933a22
+  cost {G}{W}
+  type Creature — Cat Wizard
+  pt 2/2
+  keywords exalted
+  activated {1}, sacrifice this: destroy target artifact or enchantment
+}

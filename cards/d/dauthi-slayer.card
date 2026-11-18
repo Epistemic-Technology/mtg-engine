@@ -1,0 +1,7 @@
+card "Dauthi Slayer" {
+  oracle_id c1d0537b-954f-4d3b-b9fe-1dd7ffaa1197
+  cost {B}{B}
+  type Creature — Dauthi Soldier
+  pt 2/2
+  keywords shadow, attacks each combat if able
+}

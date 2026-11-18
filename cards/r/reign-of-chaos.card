@@ -1,0 +1,9 @@
+card "Reign of Chaos" {
+  oracle_id 436b5989-9b8c-4e03-a82e-046837c891ca
+  cost {2}{R}{R}
+  type Sorcery
+  choose one {
+    mode: destroy target Plains and target white creature
+    mode: destroy target Island and target blue creature
+  }
+}

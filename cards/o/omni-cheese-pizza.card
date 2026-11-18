@@ -1,0 +1,8 @@
+card "Omni-Cheese Pizza" {
+  oracle_id 73144877-1d37-4c7a-8493-3cef191b9211
+  cost {2}
+  type Artifact — Food
+  triggered when this enters: draw 1 cards
+  activated {1}, {T}, sacrifice this: add any
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

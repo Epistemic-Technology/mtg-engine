@@ -1,0 +1,7 @@
+card "Severed Legion" {
+  oracle_id 34a8a658-a5f6-406f-99d8-c32ea2e26202
+  cost {1}{B}{B}
+  type Creature — Zombie
+  pt 2/2
+  keywords fear
+}

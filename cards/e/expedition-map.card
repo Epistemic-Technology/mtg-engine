@@ -1,0 +1,6 @@
+card "Expedition Map" {
+  oracle_id 8fcf50cd-e6d0-4516-850f-d42ee75dcc3a
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: search land card reveal to hand
+}

@@ -226,6 +226,8 @@ impl GameObject {
 pub enum LossReason {
     LifeZeroOrLess,
     DrewFromEmptyLibrary,
+    /// Ten or more poison counters (CR 704.5c).
+    Poison,
     Conceded,
     /// An effect made an opponent win the game (CR 104.2b).
     OpponentWon,
@@ -246,6 +248,8 @@ pub struct PlayerState {
     pub flashback_in_graveyard: u32,
     pub max_hand_size: usize,
     pub drew_from_empty_library: bool,
+    /// Poison counters (CR 122.1f); ten or more lose the game (704.5c).
+    pub poison: u32,
     pub lost: Option<LossReason>,
     pub mulligans_taken: u8,
 }
@@ -387,13 +391,33 @@ pub struct Characteristics {
     pub supertypes: SupertypeSet,
     pub types: TypeSet,
     pub subtypes: SubtypeSet,
-    pub power: i32,
-    pub toughness: i32,
+    /// Stored narrow to keep `Characteristics` small (it is copied on every
+    /// rules query); arithmetic saturates at the `i16` range.
+    pub power: i16,
+    pub toughness: i16,
     pub keywords: KeywordSet,
     pub abilities: AbilitySet,
 }
 
+/// Power or toughness into the stored range (saturating).
+#[inline]
+pub fn pt16(x: i32) -> i16 {
+    i16::try_from(x.clamp(i32::from(i16::MIN), i32::from(i16::MAX))).unwrap_or(0)
+}
+
 impl Characteristics {
+    /// Power as a plain integer.
+    #[inline]
+    pub fn power(&self) -> i32 {
+        i32::from(self.power)
+    }
+
+    /// Toughness as a plain integer.
+    #[inline]
+    pub fn toughness(&self) -> i32 {
+        i32::from(self.toughness)
+    }
+
     pub fn is_creature(&self) -> bool {
         self.types.contains(CardType::Creature)
     }
@@ -833,6 +857,11 @@ impl GameState {
                 (self.legendary_count >= 1 && d.is_legendary())
                     || (replacers >= 1 && d.modifies_entering())
             }),
+            // A mana ability resolves as it is activated and may ask for a
+            // color (CR 605.3).
+            Some(crate::decision::Choice::Activate { ability, .. }) => {
+                self.pool.ability_asks(*ability)
+            }
             _ => false,
         };
         land_play
@@ -1188,7 +1217,8 @@ impl GameState {
                     | TargetSpec::NoncreatureSpell
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
-                let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);
+                let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)
+                    && !c.has(Keyword::Shroud);
                 // CR 702.16b: protection from a quality forbids targeting by
                 // spells and abilities from sources with it.
                 let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)

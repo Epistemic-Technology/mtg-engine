@@ -1,0 +1,7 @@
+card "Robe of Mirrors" {
+  oracle_id 093a20e5-ff14-41c7-b16c-1f745ddf6942
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has shroud
+}

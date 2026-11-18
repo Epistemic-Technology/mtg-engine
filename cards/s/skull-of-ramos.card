@@ -1,0 +1,7 @@
+card "Skull of Ramos" {
+  oracle_id b5ae2532-e642-47d1-bb5f-53f408e2fdc2
+  cost {3}
+  type Artifact
+  mana {B}
+  activated sacrifice this: add {B}
+}

@@ -1,0 +1,7 @@
+card "Phyresis" {
+  oracle_id 958628af-243c-4eb0-8620-5d483b6da768
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has infect
+}

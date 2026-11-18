@@ -1,0 +1,7 @@
+card "Guardians of Akrasa" {
+  oracle_id 7ef8df9f-3fab-44fd-b5a9-f57e54dbc38e
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 0/4
+  keywords defender, exalted
+}

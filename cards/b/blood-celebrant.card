@@ -1,0 +1,7 @@
+card "Blood Celebrant" {
+  oracle_id 695ce90b-a5a2-4d8c-ac05-07f04010603e
+  cost {B}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {B}, pay 1 life: add any
+}

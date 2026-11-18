@@ -1,0 +1,7 @@
+card "Prophetic Prism" {
+  oracle_id 134a9877-5cfb-4a2a-a0f0-930dce45f58b
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {1}, {T}: add any
+}

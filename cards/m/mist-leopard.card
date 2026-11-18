@@ -1,0 +1,7 @@
+card "Mist Leopard" {
+  oracle_id 49cade2f-92ab-48c8-aed3-d52ab3263506
+  cost {3}{G}
+  type Creature — Cat
+  pt 3/2
+  keywords shroud
+}

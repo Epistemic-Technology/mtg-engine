@@ -1,0 +1,7 @@
+card "Llanowar Envoy" {
+  oracle_id 6f096e98-d351-4050-90ed-4c6f12e129d6
+  cost {2}{G}
+  type Creature — Elf Scout
+  pt 3/2
+  activated {1}{G}: add any
+}

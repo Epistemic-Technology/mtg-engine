@@ -1,0 +1,7 @@
+card "Basal Thrull" {
+  oracle_id 9da50130-3f83-4968-983c-7dcba257cf1b
+  cost {B}{B}
+  type Creature — Thrull
+  pt 1/2
+  activated {T}, sacrifice this: add {B}{B}
+}

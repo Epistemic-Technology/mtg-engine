@@ -1,0 +1,9 @@
+card "Canyon Crawler" {
+  oracle_id bac94fc9-808b-4dc9-b405-408dd2aa6194
+  cost {4}{B}{B}
+  type Creature — Spider Beast
+  pt 6/6
+  keywords deathtouch
+  triggered when this enters: create 1 "Food"
+  swampcycling {2}
+}

@@ -1,0 +1,7 @@
+card "Shu Elite Companions" {
+  oracle_id edf304b8-523e-4233-8d77-1d45d33cbb86
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords horsemanship
+}

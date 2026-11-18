@@ -1,0 +1,7 @@
+card "Gyre Engineer" {
+  oracle_id 27eef5c1-259a-4d37-93af-7451f50905af
+  cost {1}{G}{U}
+  type Creature — Vedalken Wizard
+  pt 1/1
+  activated {T}: add {G}{U}
+}

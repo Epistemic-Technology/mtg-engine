@@ -1,0 +1,8 @@
+card "Crashing Centaur" {
+  oracle_id d13a9cb1-1c76-4ac1-80d8-3c471753a588
+  cost {4}{G}{G}
+  type Creature — Centaur
+  pt 3/4
+  activated {G}, discard 1 card: this gains trample
+  label "Threshold" static as long as 7 cards in your graveyard, this: +2/+2, has shroud
+}

@@ -1,0 +1,9 @@
+card "Balamb T-Rexaur" {
+  oracle_id 3f678f76-3863-4ab5-a4fd-9b76a282b1a8
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  keywords trample
+  triggered when this enters: you gains 3 life
+  forestcycling {2}
+}

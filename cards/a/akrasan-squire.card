@@ -1,0 +1,7 @@
+card "Akrasan Squire" {
+  oracle_id 2b8ef83b-1a1d-4299-ab69-e9e296bb224d
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords exalted
+}

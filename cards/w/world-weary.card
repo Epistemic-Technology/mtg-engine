@@ -1,0 +1,8 @@
+card "World-Weary" {
+  oracle_id de6e0f80-3a9e-4499-aec1-2513a0264538
+  cost {3}{B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -4/-4
+  basic landcycling {1}{B}
+}

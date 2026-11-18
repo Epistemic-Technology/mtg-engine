@@ -1,0 +1,7 @@
+card "Coal Golem" {
+  oracle_id 64b63847-27dd-469b-aad3-58e061f92817
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {3}, sacrifice this: add {R}{R}{R}
+}

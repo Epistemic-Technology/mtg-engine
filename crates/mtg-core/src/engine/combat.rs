@@ -49,6 +49,29 @@ impl GameState {
         if a.protected_from(&b) {
             return false;
         }
+        if a.keywords.intersects(crate::card::KeywordSet::EVASION) || b.has(Keyword::Shadow) {
+            let artifact = b.types.contains(crate::card::CardType::Artifact);
+            // CR 702.28b: shadow blocks and is blocked only by shadow.
+            if a.has(Keyword::Shadow) != b.has(Keyword::Shadow) {
+                return false;
+            }
+            // CR 702.36b
+            if a.has(Keyword::Fear) && !(artifact || b.colors.contains(crate::mana::Color::Black)) {
+                return false;
+            }
+            // CR 702.13b
+            if a.has(Keyword::Intimidate) && !(artifact || b.colors.intersects(a.colors)) {
+                return false;
+            }
+            // CR 702.31b
+            if a.has(Keyword::Horsemanship) && !b.has(Keyword::Horsemanship) {
+                return false;
+            }
+            // CR 702.118b
+            if a.has(Keyword::Skulk) && b.power > a.power {
+                return false;
+            }
+        }
         // CR 702.14b: landwalk makes the attacker unblockable while the
         // defending player controls a land of that basic type.
         if a.keywords.intersects(crate::card::KeywordSet::LANDWALK) {
@@ -178,10 +201,6 @@ impl GameState {
             {
                 self.tap(id);
             }
-            self.emit(Event::Attack {
-                attacker: id,
-                target,
-            });
             attackers.push(Attacker {
                 id,
                 attacking: target,
@@ -189,8 +208,15 @@ impl GameState {
                 blocked: false,
             });
         }
+        // The attackers are declared together: triggers see all of them
+        // ("attacks alone", CR 506.5).
+        let events: SmallVec<[(ObjId, Target); 4]> =
+            attackers.iter().map(|a| (a.id, a.attacking)).collect();
         if let Some(c) = self.combat.as_mut() {
             c.attackers = attackers;
+        }
+        for (attacker, target) in events {
+            self.emit(Event::Attack { attacker, target });
         }
         self.bump();
         self.give_priority(self.active_player);

@@ -1,0 +1,7 @@
+card "Horn of Ramos" {
+  oracle_id 3b9bcf88-7304-48c5-bd46-3e37a93967a5
+  cost {3}
+  type Artifact
+  mana {G}
+  activated sacrifice this: add {G}
+}

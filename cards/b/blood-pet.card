@@ -1,0 +1,7 @@
+card "Blood Pet" {
+  oracle_id e05c6c80-a91a-45e0-b991-0014fd5a6472
+  cost {B}
+  type Creature — Thrull
+  pt 1/1
+  activated sacrifice this: add {B}
+}

@@ -1,0 +1,7 @@
+card "Conduit Pylons" {
+  oracle_id 37f924e1-7c25-4f06-88bb-054693a21e5a
+  type Land — Desert
+  triggered when this enters: surveil 1
+  mana {C}
+  activated {1}, {T}: add any
+}

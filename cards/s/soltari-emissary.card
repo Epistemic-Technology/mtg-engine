@@ -1,0 +1,7 @@
+card "Soltari Emissary" {
+  oracle_id a8211eb1-332d-41c0-8086-4a18cd7a5832
+  cost {1}{W}
+  type Creature — Soltari Soldier
+  pt 2/1
+  activated {W}: this gains shadow
+}

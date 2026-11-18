@@ -1,0 +1,7 @@
+card "Kozilek's Channeler" {
+  oracle_id 33826f91-7680-4a4c-be39-db6c2c0bd465
+  cost {5}
+  type Creature — Eldrazi
+  pt 4/4
+  activated {T}: add {C}{C}
+}

@@ -1,0 +1,6 @@
+card "Mwonvuli Acid-Moss" {
+  oracle_id 53fb8118-f332-407b-add8-1b329e420226
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy target land; search Forest card to battlefield tapped that card
+}

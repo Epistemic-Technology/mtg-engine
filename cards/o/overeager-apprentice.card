@@ -1,0 +1,7 @@
+card "Overeager Apprentice" {
+  oracle_id 3ea71eed-e1ae-4e28-a4f5-44ff115949f4
+  cost {2}{B}
+  type Creature — Human Minion
+  pt 1/2
+  activated discard 1 card, sacrifice this: add {B}{B}{B}
+}

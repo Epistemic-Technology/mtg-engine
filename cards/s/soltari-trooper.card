@@ -1,0 +1,8 @@
+card "Soltari Trooper" {
+  oracle_id 501109bb-3406-41d8-9433-a100e494f938
+  cost {1}{W}
+  type Creature — Soltari Soldier
+  pt 1/1
+  keywords shadow
+  triggered whenever this attacks: this gets +1/+1
+}

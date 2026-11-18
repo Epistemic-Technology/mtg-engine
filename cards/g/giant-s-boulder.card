@@ -1,0 +1,8 @@
+card "Giant's Boulder" {
+  oracle_id 80433c2c-5196-42e0-b9fa-d7b12783f5fd
+  cost {1}
+  type Artifact
+  triggered when this enters: scry 2
+  activated {1}, {T}: add any
+  activated {7}, {T}, sacrifice this: destroy target permanent
+}

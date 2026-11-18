@@ -1,0 +1,7 @@
+card "Fauna Shaman" {
+  oracle_id 35b8fa77-4e85-418b-b335-cd1af127075c
+  cost {1}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  activated {G}, {T}, discard creature card: search creature card reveal to hand
+}

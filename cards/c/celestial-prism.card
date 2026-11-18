@@ -1,0 +1,6 @@
+card "Celestial Prism" {
+  oracle_id eb228a6c-bceb-45c3-a258-3f209682e1c6
+  cost {3}
+  type Artifact
+  activated {2}, {T}: add any
+}

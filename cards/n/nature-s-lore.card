@@ -1,0 +1,6 @@
+card "Nature's Lore" {
+  oracle_id 78826359-fe63-44ad-adc4-a17ffcd710e4
+  cost {1}{G}
+  type Sorcery
+  spell: search Forest card to battlefield that card
+}

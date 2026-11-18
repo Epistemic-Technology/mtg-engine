@@ -1,0 +1,7 @@
+card "Nezumi Cutthroat" {
+  oracle_id a323a3af-8a74-433c-8994-707a09ef3a0c
+  cost {1}{B}
+  type Creature — Rat Warrior
+  pt 2/1
+  keywords fear, can't block
+}

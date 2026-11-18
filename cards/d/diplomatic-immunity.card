@@ -1,0 +1,8 @@
+card "Diplomatic Immunity" {
+  oracle_id f1a3153c-0200-4ff2-b7d5-48d23920bb3c
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  keyword shroud
+  static enchanted: has shroud
+}

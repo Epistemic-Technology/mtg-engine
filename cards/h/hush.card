@@ -1,0 +1,7 @@
+card "Hush" {
+  oracle_id eaa0c6c2-eee5-443a-867f-ab77b995b6ef
+  cost {3}{G}
+  type Sorcery
+  spell: destroy each enchantment
+  cycling {2}
+}

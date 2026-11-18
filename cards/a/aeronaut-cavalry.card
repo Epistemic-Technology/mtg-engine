@@ -1,0 +1,8 @@
+card "Aeronaut Cavalry" {
+  oracle_id 153292f9-e0d1-43a7-a083-275c49d0554a
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/4
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on another target Soldier you control
+}

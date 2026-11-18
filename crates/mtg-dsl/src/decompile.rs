@@ -272,6 +272,15 @@ impl Decompiler<'_> {
                 mana: mana.clone(),
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
+            CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
+            CoreEffect::Search { filter, count, to } => Effect::Search {
+                filter: self.filter(filter),
+                count: *count,
+                up_to: *count != mtg_core::card::Num::N(1),
+                to: *to,
+                reveal: matches!(to, mtg_core::card::SearchTo::Hand),
+                that_card: false,
+            },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
                 count: *count,
@@ -337,6 +346,7 @@ impl Decompiler<'_> {
                 whose: *whose,
             },
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
+            TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))

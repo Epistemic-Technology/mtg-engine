@@ -1,0 +1,7 @@
+card "Razor Swine" {
+  oracle_id 4d5649a1-5716-4560-a956-84300bf6a2f4
+  cost {2}{R}
+  type Creature — Phyrexian Boar
+  pt 2/1
+  keywords first strike, infect
+}

@@ -1,0 +1,6 @@
+card "Seismic Spike" {
+  oracle_id 25ec6309-0ccb-4f27-80f1-ec6dcc6461fa
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy target land; add {R}{R}
+}

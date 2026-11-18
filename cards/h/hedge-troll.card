@@ -1,0 +1,8 @@
+card "Hedge Troll" {
+  oracle_id 500663c1-390c-4598-b614-4168c4f7debe
+  cost {2}{G}
+  type Creature — Troll Cleric
+  pt 2/2
+  static this: +1/+1 as long as you control Plains
+  activated {W}: regenerate this
+}

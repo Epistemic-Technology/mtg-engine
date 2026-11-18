@@ -1,0 +1,7 @@
+card "Goblin Champion" {
+  oracle_id 414446e7-44fa-455c-8cf4-8afa170b6586
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 0/1
+  keywords haste, exalted
+}

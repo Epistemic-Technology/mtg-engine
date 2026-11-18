@@ -1,0 +1,7 @@
+card "Yellow Scarves General" {
+  oracle_id 6fbade4d-502d-45d7-a79e-3fd9e3e7ccdf
+  cost {3}{R}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords horsemanship, can't block
+}

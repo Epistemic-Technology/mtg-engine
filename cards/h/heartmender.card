@@ -1,0 +1,8 @@
+card "Heartmender" {
+  oracle_id ab4cf0ba-617f-4ef6-a831-eb3b41b4ab34
+  cost {2}{G/W}{G/W}
+  type Creature — Elemental
+  pt 2/2
+  triggered at beginning of your upkeep: remove 1 -1/-1 counters from each creature you control
+  keyword persist
+}

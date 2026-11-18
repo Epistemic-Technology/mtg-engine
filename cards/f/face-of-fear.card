@@ -1,0 +1,7 @@
+card "Face of Fear" {
+  oracle_id 605787fe-64e9-4de8-974a-473277b0ba2e
+  cost {5}{B}
+  type Creature — Horror
+  pt 3/4
+  activated {2}{B}, discard 1 card: this gains fear
+}

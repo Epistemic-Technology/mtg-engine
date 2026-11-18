@@ -1,0 +1,206 @@
+# M5 slice 3: mana abilities with costs (CR 605), library search,
+# evasion and damage keywords, and keyword triggers.
+
+scenario "mana ability: Golgari Signet turns one mana into {B}{G}" {
+  battlefield A: "Golgari Signet", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Golgari Signet"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Golgari Signet"
+}
+
+scenario "mana ability: the mana empties at the end of the step" {
+  battlefield A: "Golgari Signet", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Golgari Signet"
+  illegal turn 1 main2 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "search: Nature's Lore puts a Forest onto the battlefield and shuffles" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Nature's Lore"
+  library A: "Island", "Forest", "Island"
+  turn 1 A: cast "Nature's Lore"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Forest"
+  assert library A count 2
+}
+
+scenario "search: Ranger's Path finds up to two Forests, tapped" {
+  battlefield A: 4 "Forest"
+  hand A: "Ranger's Path"
+  library A: "Forest", "Forest", "Island"
+  turn 1 A: cast "Ranger's Path"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Forest"
+  assert library A count 1
+}
+
+scenario "search: no match finds nothing" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Nature's Lore"
+  library A: "Island", "Island"
+  turn 1 A: cast "Nature's Lore"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Forest"
+  assert library A count 2
+}
+
+scenario "swampcycling: Canyon Crawler is discarded for a Swamp" {
+  battlefield A: "Swamp", "Swamp"
+  hand A: "Canyon Crawler"
+  library A: "Swamp", "Island"
+  turn 1 A: activate "Canyon Crawler"
+  run_to turn 1 end
+  assert graveyard A contains "Canyon Crawler"
+  assert hand A contains "Swamp"
+}
+
+scenario "shroud: can't be targeted even by its controller" {
+  battlefield A: "Deadly Insect", "Forest"
+  hand A: "Giant Growth"
+  illegal turn 1 A: cast "Giant Growth" targeting "Deadly Insect"
+  run_to turn 1 end
+}
+
+scenario "fear: only artifact or black creatures block it" {
+  battlefield A: "Dross Prowler"
+  battlefield B: "Grizzly Bears", "Drudge Skeletons"
+  turn 1 A: attack "Dross Prowler"
+  illegal turn 1 B: block "Dross Prowler" with "Grizzly Bears"
+  turn 1 B: block "Dross Prowler" with "Drudge Skeletons"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "intimidate: a creature sharing a color can block it" {
+  battlefield A: "Accursed Spirit"
+  battlefield B: "Grizzly Bears", "Drudge Skeletons"
+  turn 1 A: attack "Accursed Spirit"
+  illegal turn 1 B: block "Accursed Spirit" with "Grizzly Bears"
+  turn 1 B: block "Accursed Spirit" with "Drudge Skeletons"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "shadow: only shadow blocks shadow, and shadow can't block others" {
+  battlefield A: "Dauthi Jackal", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Dauthi Jackal"
+  turn 1 A: attack "Dauthi Jackal"
+  illegal turn 1 B: block "Dauthi Jackal" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "horsemanship: a creature without it can't block" {
+  battlefield A: "Shu Cavalry"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Shu Cavalry"
+  illegal turn 1 B: block "Shu Cavalry" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "skulk: a creature with greater power can't block" {
+  battlefield A: "Rancid Rats"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: attack "Rancid Rats"
+  illegal turn 1 B: block "Rancid Rats" with "Grizzly Bears"
+  turn 1 B: block "Rancid Rats" with "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "wither: combat damage to a creature is -1/-1 counters" {
+  battlefield A: "Cinderbones"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Cinderbones"
+  turn 1 B: block "Cinderbones" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -1/-1 1
+  assert damage "Hill Giant" 0
+  assert power "Hill Giant" 2
+}
+
+scenario "infect: damage to a player is poison counters, not life loss" {
+  battlefield A: "Blighted Agent"
+  turn 1 A: attack "Blighted Agent"
+  run_to turn 1 end
+  assert life B 20
+  assert poison B 1
+}
+
+scenario "infect: ten poison counters lose the game" {
+  battlefield A: "Blighted Agent"
+  poison B: 9
+  turn 1 A: attack "Blighted Agent"
+  run_to turn 1 end
+  assert winner A
+}
+
+scenario "infect: damage to a creature is -1/-1 counters" {
+  battlefield A: "Blight Mamba"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Blight Mamba"
+  turn 1 B: block "Blight Mamba" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" -1/-1 1
+  assert power "Grizzly Bears" 1
+}
+
+scenario "exalted: a creature attacking alone gets +1/+1 per instance" {
+  battlefield A: "Akrasan Squire", "Aven Squire", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "exalted: no bonus when two creatures attack" {
+  battlefield A: "Akrasan Squire", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Akrasan Squire"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "persist: returns once with a -1/-1 counter, then stays dead" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Putrid Goblin"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Putrid Goblin"
+  turn 1 main2 A: cast "Shock" targeting "Putrid Goblin"
+  run_to turn 1 end
+  assert graveyard B contains "Putrid Goblin"
+}
+
+scenario "persist: the first death brings it back as a 1/1" {
+  battlefield A: "Mountain"
+  battlefield B: "Putrid Goblin"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Putrid Goblin"
+  run_to turn 1 end
+  assert battlefield B contains "Putrid Goblin"
+  assert power "Putrid Goblin" 1
+}
+
+scenario "undying: returns with a +1/+1 counter" {
+  battlefield A: "Mountain"
+  battlefield B: "Young Wolf"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Young Wolf"
+  run_to turn 1 end
+  assert battlefield B contains "Young Wolf"
+  assert power "Young Wolf" 2
+}
+
+scenario "mana ability: Prophetic Prism filters a Mountain's mana into white" {
+  battlefield A: "Prophetic Prism", "Mountain"
+  hand A: "Savannah Lions"
+  turn 1 A: activate "Prophetic Prism"
+  turn 1 A: cast "Savannah Lions"
+  run_to turn 1 end
+  assert battlefield A contains "Savannah Lions"
+}

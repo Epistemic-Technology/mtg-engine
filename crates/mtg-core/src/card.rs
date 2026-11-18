@@ -216,10 +216,34 @@ pub enum Keyword {
     Devoid,
     /// CR 702.73: this object is every creature type, in every zone.
     Changeling,
+    /// CR 702.18: can't be the target of spells or abilities.
+    Shroud,
+    /// CR 702.36: can't be blocked except by artifact and/or black creatures.
+    Fear,
+    /// CR 702.13: can't be blocked except by artifact creatures and/or
+    /// creatures that share a color with it.
+    Intimidate,
+    /// CR 702.28: can block or be blocked by only creatures with shadow.
+    Shadow,
+    /// CR 702.31: can't be blocked except by creatures with horsemanship.
+    Horsemanship,
+    /// CR 702.118: can't be blocked by creatures with greater power.
+    Skulk,
+    /// CR 702.80: damage to creatures is dealt as -1/-1 counters.
+    Wither,
+    /// CR 702.90: damage to creatures as -1/-1 counters, to players as
+    /// poison counters.
+    Infect,
+    /// CR 702.83: a triggered ability; see `CardPool::keyword_trigger`.
+    Exalted,
+    /// CR 702.79: a triggered ability (return with a -1/-1 counter).
+    Persist,
+    /// CR 702.93: a triggered ability (return with a +1/+1 counter).
+    Undying,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
-pub struct KeywordSet(u32);
+pub struct KeywordSet(u64);
 
 impl KeywordSet {
     pub const NONE: KeywordSet = KeywordSet(0);
@@ -230,7 +254,7 @@ impl KeywordSet {
 
     #[must_use]
     pub const fn with(self, k: Keyword) -> Self {
-        KeywordSet(self.0 | (1 << (k as u32)))
+        KeywordSet(self.0 | (1 << (k as u64)))
     }
 
     #[must_use]
@@ -244,7 +268,7 @@ impl KeywordSet {
     }
 
     pub const fn contains(self, k: Keyword) -> bool {
-        self.0 & (1 << (k as u32)) != 0
+        self.0 & (1 << (k as u64)) != 0
     }
 
     pub const fn intersects(self, other: KeywordSet) -> bool {
@@ -258,6 +282,21 @@ impl KeywordSet {
         .with(Keyword::Swampwalk)
         .with(Keyword::Mountainwalk)
         .with(Keyword::Forestwalk);
+
+    /// Evasion keywords `can_block` checks beyond flying and landwalk.
+    pub const EVASION: KeywordSet = KeywordSet::NONE
+        .with(Keyword::Fear)
+        .with(Keyword::Intimidate)
+        .with(Keyword::Shadow)
+        .with(Keyword::Horsemanship)
+        .with(Keyword::Skulk);
+
+    /// Keywords that stand for triggered abilities.
+    pub const TRIGGERED: KeywordSet = KeywordSet::NONE
+        .with(Keyword::Prowess)
+        .with(Keyword::Exalted)
+        .with(Keyword::Persist)
+        .with(Keyword::Undying);
 
     /// The five protection-from-a-color keywords (CR 702.16).
     pub const PROTECTION: KeywordSet = KeywordSet::NONE
@@ -281,7 +320,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 31] = [
+    pub const ALL: [Keyword; 42] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -313,6 +352,17 @@ impl Keyword {
         Keyword::ProtectionFromGreen,
         Keyword::Devoid,
         Keyword::Changeling,
+        Keyword::Shroud,
+        Keyword::Fear,
+        Keyword::Intimidate,
+        Keyword::Shadow,
+        Keyword::Horsemanship,
+        Keyword::Skulk,
+        Keyword::Wither,
+        Keyword::Infect,
+        Keyword::Exalted,
+        Keyword::Persist,
+        Keyword::Undying,
     ];
 
     /// The keyword as Oracle prints it.
@@ -349,6 +399,17 @@ impl Keyword {
             Keyword::ProtectionFromGreen => "protection from green",
             Keyword::Devoid => "devoid",
             Keyword::Changeling => "changeling",
+            Keyword::Shroud => "shroud",
+            Keyword::Fear => "fear",
+            Keyword::Intimidate => "intimidate",
+            Keyword::Shadow => "shadow",
+            Keyword::Horsemanship => "horsemanship",
+            Keyword::Skulk => "skulk",
+            Keyword::Wither => "wither",
+            Keyword::Infect => "infect",
+            Keyword::Exalted => "exalted",
+            Keyword::Persist => "persist",
+            Keyword::Undying => "undying",
         }
     }
 
@@ -903,6 +964,17 @@ impl Modification {
     }
 }
 
+/// Where searched-for cards go.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SearchTo {
+    Hand,
+    Battlefield {
+        tapped: bool,
+    },
+    /// "put that card on top" (after shuffling).
+    TopOfLibrary,
+}
+
 /// A static ability (CR 604) that generates a continuous effect while its
 /// source is on the battlefield (CR 611.3).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -1159,6 +1231,20 @@ pub enum Effect {
     Surveil {
         count: Num,
     },
+    /// "Search your library for a basic land card, reveal it, put it into
+    /// your hand, then shuffle" (CR 701.19): up to `count` cards matching
+    /// `filter` (judged on their printed characteristics); the searcher
+    /// may fail to find (CR 701.19b).
+    Search {
+        filter: ObjFilter,
+        count: Num,
+        to: SearchTo,
+    },
+    /// "Add {B}{B}" (CR 106.4): mana into the controller's pool; `Any` is
+    /// one mana of a color the controller chooses. An activated ability
+    /// whose only effects add mana and that has no targets is a mana
+    /// ability (CR 605.1a) and resolves on activation.
+    AddMana(Vec<crate::mana::Mana>),
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -1274,6 +1360,8 @@ impl Effect {
                 | Effect::Surveil { .. }
                 | Effect::Discard { .. }
                 | Effect::CounterUnlessPays { .. }
+                | Effect::Search { .. }
+                | Effect::AddMana(_)
         )
     }
 }
@@ -1423,6 +1511,9 @@ pub enum TriggerSpec {
     Attacks(TriggerObj),
     /// "Whenever ~ blocks".
     Blocks(TriggerObj),
+    /// "Whenever a creature you control attacks alone" (exalted, CR
+    /// 506.5).
+    AttacksAlone(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
@@ -1454,7 +1545,7 @@ impl TriggerSpec {
         match self {
             TriggerSpec::Enters(_) | TriggerSpec::Dies(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
-            TriggerSpec::Attacks(_) => WATCH_ATTACK,
+            TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
             TriggerSpec::Blocks(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_) => WATCH_DAMAGE,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
@@ -1474,6 +1565,9 @@ pub enum Condition {
     /// "if it was kicked" (CR 702.33c): the source was cast with its kicker
     /// paid.
     Kicked,
+    /// "if it had no -1/-1 counters on it" (persist), judged from the
+    /// source as it last existed on the battlefield.
+    HadNoCounters(CounterKind),
 }
 
 /// A triggered ability (CR 603).
@@ -1586,6 +1680,16 @@ pub struct ActivatedAbility {
     pub from_hand: bool,
     /// The ability's text, for naming the choice.
     pub text: String,
+}
+
+impl ActivatedAbility {
+    /// CR 605.1a: no targets, not a loyalty ability, and it adds mana.
+    pub fn is_mana_ability(&self) -> bool {
+        self.targets.is_empty()
+            && self.cost.loyalty == 0
+            && !self.effects.is_empty()
+            && self.effects.iter().all(|e| matches!(e, Effect::AddMana(_)))
+    }
 }
 
 /// One mode of a "choose one" spell (CR 700.2).
@@ -1833,7 +1937,7 @@ impl DefFlags {
         let mut flags = DefFlags::default();
         flags.set(
             DefFlags::TRIGGERS,
-            keywords.contains(Keyword::Prowess)
+            keywords.intersects(KeywordSet::TRIGGERED)
                 || abilities
                     .iter()
                     .any(|a| matches!(a, AbilityDef::Triggered(_))),
@@ -2069,6 +2173,10 @@ pub struct CardPool {
     enters: Vec<bool>,
     /// The triggered ability prowess stands for (CR 702.108a).
     prowess: AbilityId,
+    /// Exalted, persist, and undying (CR 702.83a, 702.79a, 702.93a).
+    exalted: AbilityId,
+    persist: AbilityId,
+    undying: AbilityId,
 }
 
 impl Default for CardPool {
@@ -2089,6 +2197,9 @@ impl CardPool {
             asks: Vec::new(),
             enters: Vec::new(),
             prowess: AbilityId(0),
+            exalted: AbilityId(0),
+            persist: AbilityId(0),
+            undying: AbilityId(0),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -2111,6 +2222,37 @@ impl CardPool {
                 to: Recipient::Source,
             }],
         }));
+        pool.exalted = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::AttacksAlone(TriggerObj::Filter(
+                ObjFilter::creatures().who(Who::You),
+            )),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Pump {
+                power: 1,
+                toughness: 1,
+                to: Recipient::TriggeringObject,
+            }],
+        }));
+        for (kind, slot) in [
+            (CounterKind::MinusOneMinusOne, 0),
+            (CounterKind::PlusOnePlusOne, 1),
+        ] {
+            let id = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                trigger: TriggerSpec::Dies(TriggerObj::This),
+                condition: Some(Condition::HadNoCounters(kind)),
+                targets: Vec::new(),
+                effects: vec![Effect::ReturnToBattlefield {
+                    what: Recipient::Source,
+                    counters: Some((kind, 1)),
+                }],
+            }));
+            if slot == 0 {
+                pool.persist = id;
+            } else {
+                pool.undying = id;
+            }
+        }
         pool
     }
 
@@ -2175,6 +2317,9 @@ impl CardPool {
     pub fn keyword_trigger(&self, k: Keyword) -> Option<AbilityId> {
         match k {
             Keyword::Prowess => Some(self.prowess),
+            Keyword::Exalted => Some(self.exalted),
+            Keyword::Persist => Some(self.persist),
+            Keyword::Undying => Some(self.undying),
             _ => None,
         }
     }
@@ -2235,8 +2380,8 @@ impl CardPool {
             supertypes: def.supertypes,
             types: def.types,
             subtypes: def.subtype_ids,
-            power: def.power.unwrap_or(0),
-            toughness: def.toughness.unwrap_or(0),
+            power: crate::state::pt16(def.power.unwrap_or(0)),
+            toughness: crate::state::pt16(def.toughness.unwrap_or(0)),
             keywords: def.keywords,
             abilities: def.ability_ids,
         });

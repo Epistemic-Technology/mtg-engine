@@ -1,0 +1,7 @@
+card "Ring of the Lucii" {
+  oracle_id d37e595f-afe7-4ad9-87db-b9ceb3f435e8
+  cost {4}
+  type Legendary Artifact
+  activated {T}: add {C}{C}
+  activated {2}, {T}, pay 1 life: tap target nonland permanent
+}

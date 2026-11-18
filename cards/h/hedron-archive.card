@@ -1,0 +1,7 @@
+card "Hedron Archive" {
+  oracle_id 32263baa-d3f0-463f-92b3-4e9938476add
+  cost {4}
+  type Artifact
+  activated {T}: add {C}{C}
+  activated {2}, {T}, sacrifice this: draw 2 cards
+}

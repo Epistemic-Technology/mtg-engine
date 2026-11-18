@@ -1,0 +1,7 @@
+card "Hawkeater Moth" {
+  oracle_id e3f4bc4c-e747-4bc1-bfba-4ecfa0a5d17f
+  cost {3}{G}
+  type Creature — Insect
+  pt 1/2
+  keywords flying, shroud
+}

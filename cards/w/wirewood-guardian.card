@@ -1,0 +1,7 @@
+card "Wirewood Guardian" {
+  oracle_id 61ade140-5b11-4882-82e5-a075fc80b260
+  cost {5}{G}{G}
+  type Creature — Elf Mutant
+  pt 6/6
+  forestcycling {2}
+}

@@ -1,0 +1,8 @@
+card "Rune-Scarred Demon" {
+  oracle_id 14aefe99-fb60-4f1c-a71f-7ffbe94c8b13
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 6/6
+  keywords flying
+  triggered when this enters: search card to hand
+}

@@ -1,0 +1,11 @@
+card "Morphling" {
+  oracle_id 19f233b2-8be6-4172-abf9-b132fc3393d9
+  cost {3}{U}{U}
+  type Creature — Shapeshifter
+  pt 3/3
+  activated {U}: untap this
+  activated {U}: this gains flying
+  activated {U}: this gains shroud
+  activated {1}: this gets +1/-1
+  activated {1}: this gets -1/+1
+}

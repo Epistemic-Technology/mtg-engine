@@ -1,0 +1,7 @@
+card "Wei Scout" {
+  oracle_id f7fa054f-39cb-47d3-a55d-3f70ae164063
+  cost {1}{B}
+  type Creature — Human Soldier Scout
+  pt 1/1
+  keywords horsemanship
+}

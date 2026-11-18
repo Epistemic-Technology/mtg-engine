@@ -1,0 +1,7 @@
+card "Jade Bearer" {
+  oracle_id 72ddbc9b-f584-433f-9d2d-6e4c374129c4
+  cost {G}
+  type Creature — Merfolk Shaman
+  pt 1/1
+  triggered when this enters: put 1 +1/+1 counters on another target Merfolk you control
+}

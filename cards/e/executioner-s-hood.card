@@ -1,0 +1,7 @@
+card "Executioner's Hood" {
+  oracle_id 041738f9-7465-4a6c-8046-a897d88cbcdd
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has intimidate
+  equip {2}
+}

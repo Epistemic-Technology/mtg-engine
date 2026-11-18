@@ -1,0 +1,8 @@
+card "Signpost Scarecrow" {
+  oracle_id 5b6c6dab-0687-4297-b215-89e699d65681
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 2/4
+  keywords vigilance
+  activated {2}: add any
+}

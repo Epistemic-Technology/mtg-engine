@@ -1,0 +1,7 @@
+card "Gravelgill Axeshark" {
+  oracle_id 2141b48d-5a04-40dd-a76b-457ac06b56c2
+  cost {4}{U/B}
+  type Creature — Merfolk Soldier
+  pt 3/3
+  keywords persist
+}

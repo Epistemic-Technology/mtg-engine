@@ -1,0 +1,6 @@
+card "Phyrexian Lens" {
+  oracle_id d2ce3832-a12d-4c7a-9bc2-51dc92764994
+  cost {3}
+  type Artifact
+  activated {T}, pay 1 life: add any
+}

@@ -1,0 +1,6 @@
+card "Golgari Signet" {
+  oracle_id 1cf51f50-24e4-48d0-95b3-1dad3ffa4bf5
+  cost {2}
+  type Artifact
+  activated {1}, {T}: add {B}{G}
+}

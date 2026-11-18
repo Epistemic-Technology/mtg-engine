@@ -1,0 +1,7 @@
+card "Mage's Guile" {
+  oracle_id f371cdaf-7ab8-4555-8c96-61dfbf8c0179
+  cost {1}{U}
+  type Instant
+  spell: target creature gains shroud
+  cycling {U}
+}

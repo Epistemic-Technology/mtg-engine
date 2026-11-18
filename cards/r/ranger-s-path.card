@@ -1,0 +1,6 @@
+card "Ranger's Path" {
+  oracle_id 259a023a-de55-4bab-9e24-01aebcf716eb
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 Forest card to battlefield tapped
+}

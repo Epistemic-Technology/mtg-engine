@@ -1,0 +1,7 @@
+card "Thalakos Drifters" {
+  oracle_id 1afa006b-1190-4047-a9fe-4215f20df8f2
+  cost {2}{U}{U}
+  type Creature — Thalakos
+  pt 3/3
+  activated discard 1 card: this gains shadow
+}

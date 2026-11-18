@@ -1,0 +1,6 @@
+card "Breach" {
+  oracle_id 3c412ae1-3499-41fa-b3c4-70131c9bf0bd
+  cost {2}{B}
+  type Instant
+  spell: target creature gets +2/+0 and gains fear
+}

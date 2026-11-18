@@ -204,6 +204,7 @@ impl GameState {
 
     /// Whether `spec` on `w` triggers on `event`; if so, the triggering
     /// object and player.
+    #[allow(clippy::too_many_lines)] // one arm per trigger kind
     fn fires(
         &self,
         spec: &TriggerSpec,
@@ -267,6 +268,15 @@ impl GameState {
                     .then_some((None, Some(self.active_player)))
             }
             (TriggerSpec::Attacks(what), Event::Attack { attacker, .. }) => {
+                let p = on_battlefield(what, *attacker)?;
+                Some((Some(*attacker), Some(p)))
+            }
+            (TriggerSpec::AttacksAlone(what), Event::Attack { attacker, .. }) => {
+                // CR 506.5: the only creature declared as an attacker.
+                let alone = self.combat.as_ref().is_some_and(|c| c.attackers.len() == 1);
+                if !alone {
+                    return None;
+                }
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
@@ -478,6 +488,7 @@ impl GameState {
                 .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped),
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
+            Condition::HadNoCounters(k) => self.had_no_counters(source, k),
         }
     }
 
@@ -488,6 +499,7 @@ impl GameState {
             Condition::SourceUntapped => !w.tapped,
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
+            Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
         }
     }
 
@@ -498,6 +510,16 @@ impl GameState {
             .get(id)
             .map(|o| o.cast.kicked())
             .or_else(|| self.lki.get(&id).map(|l| l.object.cast.kicked()))
+            .unwrap_or(false)
+    }
+
+    /// Persist and undying: the source, as it last existed on the
+    /// battlefield, had no counters of this kind.
+    fn had_no_counters(&self, id: ObjId, k: crate::card::CounterKind) -> bool {
+        self.lki
+            .get(&id)
+            .map(|l| l.object.counters(k) == 0)
+            .or_else(|| self.objects.get(id).map(|o| o.counters(k) == 0))
             .unwrap_or(false)
     }
 

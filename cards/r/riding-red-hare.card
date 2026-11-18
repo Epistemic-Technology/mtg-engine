@@ -1,0 +1,6 @@
+card "Riding Red Hare" {
+  oracle_id ddd45d52-20c3-4731-8860-142af1ccaaa0
+  cost {2}{W}
+  type Sorcery
+  spell: target creature gets +3/+3 and gains horsemanship
+}

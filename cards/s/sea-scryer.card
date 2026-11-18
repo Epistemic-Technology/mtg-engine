@@ -1,0 +1,8 @@
+card "Sea Scryer" {
+  oracle_id f17954dd-c8e0-4983-b81e-5440cca41afc
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  mana {C}
+  activated {1}, {T}: add {U}
+}

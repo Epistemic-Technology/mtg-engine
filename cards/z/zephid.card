@@ -1,0 +1,7 @@
+card "Zephid" {
+  oracle_id 88aa710c-26ed-490d-9a4b-4a2b48df1733
+  cost {4}{U}{U}
+  type Creature — Illusion
+  pt 3/4
+  keywords flying, shroud
+}

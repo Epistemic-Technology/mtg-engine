@@ -1,0 +1,7 @@
+card "Blight Sickle" {
+  oracle_id 5b95a5ed-a6b2-4044-9273-2021d27794e9
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+0, has wither
+  equip {2}
+}

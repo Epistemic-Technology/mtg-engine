@@ -1,0 +1,7 @@
+card "Sylvan Bounty" {
+  oracle_id c20635d2-20e9-48f7-88f0-6de0f953bb08
+  cost {5}{G}
+  type Instant
+  spell: target player gains 8 life
+  basic landcycling {1}{G}
+}

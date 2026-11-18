@@ -56,6 +56,8 @@ pub struct ZoneSpec {
 #[derive(Clone, Debug, Default)]
 pub struct SetupSpec {
     pub life: [Option<i32>; 2],
+    /// `poison B: 9`: starting poison counters.
+    pub poison: [u32; 2],
     pub zones: Vec<ZoneSpec>,
     /// `start turn N P [step]`.
     pub start: Option<(u32, PlayerId, Step)>,
@@ -215,6 +217,8 @@ pub struct ScriptedAction {
 #[derive(Clone, Debug)]
 pub enum Assertion {
     Life(PlayerId, i32),
+    /// `assert poison B 1`.
+    Poison(PlayerId, u32),
     /// `zone P contains [N] "name"`: at least one, or exactly N.
     ZoneContains {
         zone: Zone,

@@ -1,0 +1,7 @@
+card "Blighted Agent" {
+  oracle_id e48ea9ea-64bc-4f1c-a424-592d48569244
+  cost {1}{U}
+  type Creature — Phyrexian Human Rogue
+  pt 1/1
+  keywords infect, can't be blocked
+}

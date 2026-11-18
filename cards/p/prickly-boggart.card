@@ -1,0 +1,7 @@
+card "Prickly Boggart" {
+  oracle_id fa110e05-6759-4eeb-96eb-9b7a8e4a94c3
+  cost {B}
+  type Creature — Goblin Rogue
+  pt 1/1
+  keywords fear
+}

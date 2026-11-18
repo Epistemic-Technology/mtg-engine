@@ -1,0 +1,7 @@
+card "Boon of the Wish-Giver" {
+  oracle_id 1720d38a-c3c1-4294-85c1-a91fc7179d6f
+  cost {4}{U}{U}
+  type Sorcery
+  spell: draw 4 cards
+  cycling {1}
+}

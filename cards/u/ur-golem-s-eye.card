@@ -1,0 +1,6 @@
+card "Ur-Golem's Eye" {
+  oracle_id fb34fc00-e60d-41fc-9393-ca4248ec0a1c
+  cost {4}
+  type Artifact
+  activated {T}: add {C}{C}
+}

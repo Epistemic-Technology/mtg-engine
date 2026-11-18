@@ -1,0 +1,8 @@
+card "Bedhead Beastie" {
+  oracle_id 7143d82a-931a-4918-bb14-37bc5b9a4d99
+  cost {4}{R}{R}
+  type Creature — Beast
+  pt 5/6
+  keywords menace
+  mountaincycling {2}
+}

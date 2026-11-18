@@ -1,0 +1,9 @@
+card "Mongoose Lizard" {
+  oracle_id a9bae56c-9666-42e8-94ec-03b0a964b142
+  cost {4}{R}{R}
+  type Creature — Mongoose Lizard
+  pt 5/6
+  keywords menace
+  triggered when this enters: deal 1 damage to any target
+  mountaincycling {2}
+}

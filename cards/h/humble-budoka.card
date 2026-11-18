@@ -1,0 +1,7 @@
+card "Humble Budoka" {
+  oracle_id 9508efe6-0528-4a13-9961-c2a1b05085a6
+  cost {1}{G}
+  type Creature — Human Monk
+  pt 2/2
+  keywords shroud
+}

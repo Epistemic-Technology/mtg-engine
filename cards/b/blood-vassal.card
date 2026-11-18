@@ -1,0 +1,7 @@
+card "Blood Vassal" {
+  oracle_id f792f40d-1d37-4854-98da-e4020c6a44d4
+  cost {2}{B}
+  type Creature — Thrull
+  pt 2/2
+  activated sacrifice this: add {B}{B}
+}

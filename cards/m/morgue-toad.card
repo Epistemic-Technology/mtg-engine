@@ -1,0 +1,7 @@
+card "Morgue Toad" {
+  oracle_id c615540b-bf85-4e16-8ac2-9d541cba732f
+  cost {2}{B}
+  type Creature — Frog
+  pt 2/2
+  activated sacrifice this: add {U}{R}
+}

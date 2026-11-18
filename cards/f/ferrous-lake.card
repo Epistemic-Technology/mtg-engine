@@ -1,0 +1,5 @@
+card "Ferrous Lake" {
+  oracle_id 62c15af0-40e1-407d-b056-7a3d909e3fdb
+  type Land
+  activated {1}, {T}: add {U}{R}
+}

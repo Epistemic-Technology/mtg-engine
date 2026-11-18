@@ -1,0 +1,10 @@
+card "Gilded Goose" {
+  oracle_id f2f09757-1931-47c0-a5f0-39280445489d
+  cost {G}
+  type Creature — Bird
+  pt 0/2
+  keywords flying
+  triggered when this enters: create 1 "Food"
+  activated {1}{G}, {T}: create 1 "Food"
+  activated {T}, sacrifice Food: add any
+}

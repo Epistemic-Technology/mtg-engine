@@ -1,0 +1,7 @@
+card "Wildslayer Elves" {
+  oracle_id c2f0b795-9f73-43db-aa8c-3b06963ba2b6
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  keywords wither
+}

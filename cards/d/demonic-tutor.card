@@ -1,0 +1,6 @@
+card "Demonic Tutor" {
+  oracle_id 82004860-e589-4e38-8d61-8c0210e4ea39
+  cost {1}{B}
+  type Sorcery
+  spell: search card to hand that card
+}

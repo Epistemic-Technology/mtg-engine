@@ -1,0 +1,7 @@
+card "Capital City" {
+  oracle_id 2c96ab90-155b-4bf4-acc9-65a2f0cd3189
+  type Land — Town
+  mana {C}
+  activated {1}, {T}: add any
+  cycling {2}
+}

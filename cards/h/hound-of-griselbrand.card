@@ -1,0 +1,7 @@
+card "Hound of Griselbrand" {
+  oracle_id 17425a60-7554-4740-9455-976edd63c106
+  cost {2}{R}{R}
+  type Creature — Elemental Dog
+  pt 2/2
+  keywords double strike, undying
+}

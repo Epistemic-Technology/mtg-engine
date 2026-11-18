@@ -336,6 +336,8 @@ pub enum Trigger {
         whose: Who,
     },
     Attacks(TriggerObj),
+    /// "Whenever a creature you control attacks alone".
+    AttacksAlone(TriggerObj),
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
     GainsLife {
@@ -523,6 +525,22 @@ pub enum Effect {
     Scry(Num),
     /// "Investigate" (CR 701.16): create a Clue token.
     Investigate,
+    /// `search basic land card to hand`, `search up to 2 basic land card
+    /// to battlefield tapped`, `... to top`: "Search your library for a
+    /// basic land card, reveal it, put it into your hand, then shuffle"
+    /// (CR 701.19). `reveal` prints "reveal it"; `that card` names the
+    /// card that way instead of "it".
+    Search {
+        filter: Filter,
+        count: Num,
+        up_to: bool,
+        to: mtg_core::card::SearchTo,
+        reveal: bool,
+        that_card: bool,
+    },
+    /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
+    /// color." (CR 106.4).
+    AddMana(Vec<Mana>),
     Surveil(Num),
     /// `who` is `None` for the imperative "discard a card".
     Discard {

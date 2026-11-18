@@ -1,0 +1,7 @@
+card "Crumbling Vestige" {
+  oracle_id 3c1fe86a-3696-4634-bc26-cd45846529ec
+  type Land
+  enters tapped
+  triggered when this enters: add any
+  mana {C}
+}

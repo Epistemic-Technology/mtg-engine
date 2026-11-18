@@ -1,0 +1,7 @@
+card "Lost Leonin" {
+  oracle_id c21b5c5b-9191-4748-b111-a51631e0bc5a
+  cost {1}{W}
+  type Creature — Phyrexian Cat Soldier
+  pt 2/1
+  keywords infect
+}

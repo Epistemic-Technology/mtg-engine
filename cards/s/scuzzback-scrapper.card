@@ -1,0 +1,7 @@
+card "Scuzzback Scrapper" {
+  oracle_id 508c673c-2b11-4b7d-8f4b-ff3a364eb4fe
+  cost {R/G}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords wither
+}

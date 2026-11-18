@@ -1,0 +1,7 @@
+card "Nantuko Elder" {
+  oracle_id 001c233f-2959-479b-a82a-64a25ac60830
+  cost {2}{G}
+  type Creature — Insect Druid
+  pt 1/2
+  activated {T}: add {C}{G}
+}

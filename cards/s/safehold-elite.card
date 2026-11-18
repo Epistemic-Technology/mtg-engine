@@ -1,0 +1,7 @@
+card "Safehold Elite" {
+  oracle_id 68ca91ba-31fb-47e0-9b32-e4f3504cbbca
+  cost {1}{G/W}
+  type Creature — Elf Scout
+  pt 2/2
+  keywords persist
+}

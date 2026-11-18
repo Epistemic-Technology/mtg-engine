@@ -57,6 +57,11 @@ pub enum DecisionKind {
     Scry { count: u32 },
     /// Surveil: which of the top cards go to the graveyard (CR 701.42).
     Surveil { count: u32 },
+    /// The color of one mana of any color an ability adds.
+    ChooseColor,
+    /// A card to find in a library search (CR 701.19): `Target` of a
+    /// library card, or `Decline` to find nothing.
+    SearchLibrary,
     /// "Counter target spell unless its controller pays ...": pay or not.
     PayOrCounter { def: CardRef },
     /// Whether to pay `spell`'s kicker (CR 702.33): `Accept` kicks.
@@ -145,6 +150,8 @@ pub enum Choice {
     ScryBottom(Vec<ObjId>),
     /// Surveil: put these cards into the graveyard.
     SurveilGraveyard(Vec<ObjId>),
+    /// A color of mana to add (CR 106.4).
+    Color(crate::mana::Color),
 }
 
 impl Choice {
@@ -224,6 +231,7 @@ impl Choice {
                 out
             }
             Choice::X(n) => format!("X = {n}"),
+            Choice::Color(c) => format!("{c:?}").to_lowercase(),
             Choice::AttackTarget(t) => format!("attack {}", target(t)),
             Choice::Sacrifice(id) => format!("sacrifice {}", name(id)),
             Choice::KeepLegend { def, age, .. } => {

@@ -1,0 +1,9 @@
+card "Kithkin Spellduster" {
+  oracle_id de8beb92-234b-4684-9185-c7077c8a5133
+  cost {4}{W}
+  type Creature — Kithkin Wizard
+  pt 2/3
+  keywords flying
+  activated {1}{W}, sacrifice this: destroy target enchantment
+  keyword persist
+}

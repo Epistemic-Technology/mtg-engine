@@ -1,0 +1,7 @@
+card "Razortooth Rats" {
+  oracle_id 72e9a207-dad9-4c51-8040-e90a36bd35e6
+  cost {2}{B}
+  type Creature — Rat
+  pt 2/1
+  keywords fear
+}

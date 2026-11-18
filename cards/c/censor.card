@@ -1,0 +1,7 @@
+card "Censor" {
+  oracle_id 3a42558c-7432-4c05-9599-95343eb09be1
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {1}
+  cycling {U}
+}

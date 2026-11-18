@@ -1,0 +1,6 @@
+card "Pristine Talisman" {
+  oracle_id 1b3d7fce-e9fe-4176-9d9a-472415826cdd
+  cost {3}
+  type Artifact
+  activated {T}: add {C}; you gains 1 life
+}

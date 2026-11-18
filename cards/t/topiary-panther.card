@@ -1,0 +1,8 @@
+card "Topiary Panther" {
+  oracle_id efddf972-94c4-49d1-a844-b4aba70c93aa
+  cost {4}{G}{G}
+  type Creature — Plant Cat
+  pt 6/5
+  keywords trample
+  basic landcycling {1}{G}
+}

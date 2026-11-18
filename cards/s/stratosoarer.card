@@ -1,0 +1,9 @@
+card "Stratosoarer" {
+  oracle_id 36ab41b7-bcfb-4618-bbfb-70d608dba15a
+  cost {4}{U}
+  type Creature — Elemental
+  pt 3/5
+  keywords flying
+  triggered when this enters: target creature gains flying
+  basic landcycling {1}{U}
+}

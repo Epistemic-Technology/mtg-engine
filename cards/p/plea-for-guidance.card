@@ -1,0 +1,6 @@
+card "Plea for Guidance" {
+  oracle_id 358cfcf3-8ad0-4877-a59a-76ee269169fb
+  cost {5}{W}
+  type Sorcery
+  spell: search up to 2 enchantment card reveal to hand
+}

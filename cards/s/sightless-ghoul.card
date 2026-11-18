@@ -1,0 +1,7 @@
+card "Sightless Ghoul" {
+  oracle_id 8791adf7-16b5-4692-9eaa-0d0c58867d9d
+  cost {3}{B}
+  type Creature — Zombie Soldier
+  pt 2/2
+  keywords can't block, undying
+}

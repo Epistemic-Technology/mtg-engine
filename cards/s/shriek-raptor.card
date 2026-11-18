@@ -1,0 +1,7 @@
+card "Shriek Raptor" {
+  oracle_id 426bfd00-e727-49f4-be2d-df5289d2cc61
+  cost {3}{W}{W}
+  type Creature — Phyrexian Bird
+  pt 2/3
+  keywords flying, infect
+}

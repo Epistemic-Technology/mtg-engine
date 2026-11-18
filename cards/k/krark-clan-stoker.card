@@ -1,0 +1,7 @@
+card "Krark-Clan Stoker" {
+  oracle_id 756b4bc9-6f3f-4eae-b6b0-63c94ed8482f
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  activated {T}, sacrifice artifact: add {R}{R}
+}

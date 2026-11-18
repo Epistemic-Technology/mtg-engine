@@ -1,0 +1,7 @@
+card "Treva's Attendant" {
+  oracle_id ff7d927f-0a01-4243-ad00-c65686ee86bb
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {1}, sacrifice this: add {G}{W}{U}
+}

@@ -1,0 +1,6 @@
+card "Turn to Dust" {
+  oracle_id 56828166-eaa3-4711-91b6-401a3e3b733f
+  cost {G}
+  type Instant
+  spell: destroy target Equipment; add {G}
+}

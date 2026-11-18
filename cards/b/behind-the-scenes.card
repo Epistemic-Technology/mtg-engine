@@ -1,0 +1,7 @@
+card "Behind the Scenes" {
+  oracle_id e84837bd-4f94-43e1-876e-d82cae6ee247
+  cost {2}{B}
+  type Enchantment
+  static creature you control: has skulk
+  activated {4}{W}: each creature you control gets +1/+1
+}

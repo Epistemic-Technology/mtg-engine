@@ -1,0 +1,8 @@
+card "Kozilek's Translator" {
+  oracle_id 6766c5e4-baa7-4db4-a900-c08fbcd98f5d
+  cost {4}{B}
+  type Creature — Eldrazi Drone
+  pt 3/5
+  keywords devoid
+  activated pay 1 life, once: add {C}
+}

@@ -1,0 +1,6 @@
+card "Shriek of Dread" {
+  oracle_id ee5a4902-f993-4fe6-92da-38636962c558
+  cost {1}{B}
+  type Instant
+  spell: target creature gains fear
+}

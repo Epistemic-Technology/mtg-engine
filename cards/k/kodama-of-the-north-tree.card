@@ -1,0 +1,7 @@
+card "Kodama of the North Tree" {
+  oracle_id 15d8f129-2518-45f4-9f34-a4fcd4d859af
+  cost {2}{G}{G}{G}
+  type Legendary Creature — Spirit
+  pt 6/4
+  keywords trample, shroud
+}

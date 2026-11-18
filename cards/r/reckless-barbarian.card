@@ -1,0 +1,7 @@
+card "Reckless Barbarian" {
+  oracle_id a621ae15-122a-4e11-bfcf-11dfc09784c0
+  cost {1}{R}
+  type Creature — Dragon Barbarian
+  pt 2/2
+  activated sacrifice this: add {R}{R}
+}

@@ -1,0 +1,8 @@
+card "Thalakos Scout" {
+  oracle_id c8877da5-7008-4b47-955e-d205220c91e6
+  cost {2}{U}
+  type Creature — Thalakos Soldier Scout
+  pt 2/1
+  keywords shadow
+  activated discard 1 card: return this to hand
+}

@@ -1,0 +1,7 @@
+card "Vampire Cutthroat" {
+  oracle_id 2e163679-7303-4e05-9d20-86b76dfa1407
+  cost {B}
+  type Creature — Vampire Rogue
+  pt 1/1
+  keywords skulk, lifelink
+}

@@ -499,6 +499,8 @@ impl GameState {
         let src = self.characteristics_or_lki(source);
         let lifelink = src.as_ref().is_some_and(|c| c.has(Keyword::Lifelink));
         let deathtouch = src.as_ref().is_some_and(|c| c.has(Keyword::Deathtouch));
+        let infect = src.as_ref().is_some_and(|c| c.has(Keyword::Infect));
+        let wither = infect || src.as_ref().is_some_and(|c| c.has(Keyword::Wither));
         let controller = self
             .objects
             .get(source)
@@ -512,8 +514,15 @@ impl GameState {
                     amount,
                     combat,
                 });
-                let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
-                self.change_life(p, delta);
+                if infect {
+                    // CR 702.90b: damage to a player as poison counters.
+                    self.player_mut(p).poison += amount;
+                    self.bump();
+                    self.sba_touch();
+                } else {
+                    let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
+                    self.change_life(p, delta);
+                }
             }
             Target::Object(id) => {
                 let Some(o) = self.objects.get(id) else {
@@ -539,7 +548,9 @@ impl GameState {
                 }
                 if c.is_creature() {
                     let o = &mut self.objects[id];
-                    o.damage += amount;
+                    if !wither {
+                        o.damage += amount;
+                    }
                     if deathtouch {
                         o.deathtouch_damage = true;
                     }
@@ -552,6 +563,11 @@ impl GameState {
                     amount,
                     combat,
                 });
+                // CR 702.80c, 702.90c: damage to a creature from a source
+                // with wither or infect is -1/-1 counters.
+                if wither && c.is_creature() {
+                    self.add_counters(id, CounterKind::MinusOneMinusOne, amount);
+                }
             }
         }
         if lifelink && let Some(c) = controller {

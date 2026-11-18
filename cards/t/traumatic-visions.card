@@ -1,0 +1,7 @@
+card "Traumatic Visions" {
+  oracle_id a30724f0-d174-408e-8baf-4bba3cbc45b5
+  cost {3}{U}{U}
+  type Instant
+  spell: counter target spell
+  basic landcycling {1}{U}
+}

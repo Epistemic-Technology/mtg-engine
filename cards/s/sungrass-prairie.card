@@ -1,0 +1,5 @@
+card "Sungrass Prairie" {
+  oracle_id 0a28dff0-2bd6-4105-b73a-b6c4735833fd
+  type Land
+  activated {1}, {T}: add {G}{W}
+}

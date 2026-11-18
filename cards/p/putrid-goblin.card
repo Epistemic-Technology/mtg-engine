@@ -1,0 +1,7 @@
+card "Putrid Goblin" {
+  oracle_id 27faa94b-c7a7-45e7-8630-80126fab74ba
+  cost {1}{B}
+  type Creature — Zombie Goblin
+  pt 2/2
+  keywords persist
+}

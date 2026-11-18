@@ -1,0 +1,5 @@
+card "Mana Confluence" {
+  oracle_id d0ee5bdc-2b69-4b73-9a20-ffcc18783b29
+  type Land
+  activated {T}, pay 1 life: add any
+}

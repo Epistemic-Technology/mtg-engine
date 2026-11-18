@@ -1,0 +1,6 @@
+card "Grim Tutor" {
+  oracle_id e62f8d69-a559-4f13-a5c9-5fb750b4af2c
+  cost {1}{B}{B}
+  type Sorcery
+  spell: search card to hand that card; you loses 3 life
+}

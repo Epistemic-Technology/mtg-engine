@@ -1,0 +1,8 @@
+card "Aboshan's Desire" {
+  oracle_id 95db05eb-2c25-43f2-8e18-dfc64f490634
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  label "Threshold" static enchanted: has shroud as long as 7 cards in your graveyard
+}

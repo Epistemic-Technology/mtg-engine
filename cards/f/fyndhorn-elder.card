@@ -1,0 +1,7 @@
+card "Fyndhorn Elder" {
+  oracle_id 507bdb1a-90b4-4fd3-a1a3-e8be316e97f3
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  activated {T}: add {G}{G}
+}

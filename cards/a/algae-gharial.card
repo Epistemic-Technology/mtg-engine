@@ -1,0 +1,8 @@
+card "Algae Gharial" {
+  oracle_id 7020dc51-8271-40a3-9c4c-ebd40c0b08b2
+  cost {3}{G}
+  type Creature — Crocodile
+  pt 1/1
+  keywords shroud
+  triggered whenever other creature dies: you may put 1 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Furnace Host Charger" {
+  oracle_id fea60c45-cc36-4dd1-8475-23a9361e370d
+  cost {5}{R}
+  type Creature — Phyrexian Giant
+  pt 5/5
+  keywords haste
+  mountaincycling {2}
+}

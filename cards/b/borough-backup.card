@@ -1,0 +1,7 @@
+card "Borough Backup" {
+  oracle_id 6effbf59-3933-4a77-9a6a-fd3bedf45c26
+  cost {4}{W}
+  type Sorcery
+  spell: create 2 "3/2 white Hero creature with vigilance"
+  basic landcycling {2}
+}

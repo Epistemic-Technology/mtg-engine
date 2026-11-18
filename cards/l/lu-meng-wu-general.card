@@ -1,0 +1,7 @@
+card "Lu Meng, Wu General" {
+  oracle_id a1e2a966-6aad-4325-b644-3ced319bdd7d
+  cost {3}{U}{U}
+  type Legendary Creature — Human Soldier
+  pt 4/4
+  keywords horsemanship
+}

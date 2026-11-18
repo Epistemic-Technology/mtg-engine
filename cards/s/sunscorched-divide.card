@@ -1,0 +1,5 @@
+card "Sunscorched Divide" {
+  oracle_id 8d2b2675-19df-4f40-9e8e-196ec097b91c
+  type Land
+  activated {1}, {T}: add {R}{W}
+}

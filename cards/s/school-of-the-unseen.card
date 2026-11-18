@@ -1,0 +1,6 @@
+card "School of the Unseen" {
+  oracle_id 5028dfe8-c505-4643-b493-760b1f19d47f
+  type Land
+  mana {C}
+  activated {2}, {T}: add any
+}

@@ -1,0 +1,8 @@
+card "Kree Sentinel" {
+  oracle_id 3c2b9bb2-8201-47e8-84d5-f3518cac03cb
+  cost {4}{R}
+  type Artifact Creature — Kree Robot Villain
+  pt 5/5
+  keywords reach
+  basic landcycling {2}
+}

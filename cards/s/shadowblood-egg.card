@@ -1,0 +1,6 @@
+card "Shadowblood Egg" {
+  oracle_id 9b58e7fa-4259-4d6b-8b5d-33fb37fe489f
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: add {B}{R}; draw 1 cards
+}

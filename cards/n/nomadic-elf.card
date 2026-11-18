@@ -1,0 +1,7 @@
+card "Nomadic Elf" {
+  oracle_id 025bbfc8-bccd-4062-b758-7f9e1f8ad420
+  cost {1}{G}
+  type Creature — Elf Nomad
+  pt 2/2
+  activated {1}{G}: add any
+}

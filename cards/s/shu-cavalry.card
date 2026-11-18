@@ -1,0 +1,7 @@
+card "Shu Cavalry" {
+  oracle_id d9180f63-c745-41a1-9f01-273e7ee13176
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords horsemanship
+}

@@ -1,0 +1,7 @@
+card "Knight of Glory" {
+  oracle_id 10b8fd4d-1696-4b0d-b791-7bd3de504457
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords protection from black, exalted
+}

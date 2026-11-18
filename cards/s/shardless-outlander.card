@@ -1,0 +1,8 @@
+card "Shardless Outlander" {
+  oracle_id 823afa57-faac-4a43-a403-c1bb0446d594
+  cost {7}
+  type Artifact Creature — Construct Scout
+  pt 6/5
+  keywords trample
+  basic landcycling {2}
+}

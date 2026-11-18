@@ -1,0 +1,7 @@
+card "Gluttonous Zombie" {
+  oracle_id 6d329bd2-8825-4de9-b3de-749625085015
+  cost {4}{B}
+  type Creature — Zombie
+  pt 3/3
+  keywords fear
+}

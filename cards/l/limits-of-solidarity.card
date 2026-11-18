@@ -1,0 +1,7 @@
+card "Limits of Solidarity" {
+  oracle_id a2184c37-ee92-40f2-b7d1-97c39ce5f277
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste
+  cycling {2}
+}

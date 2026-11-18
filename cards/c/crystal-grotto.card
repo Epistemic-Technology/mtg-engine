@@ -1,0 +1,7 @@
+card "Crystal Grotto" {
+  oracle_id f15fb0cc-8e96-4f03-94d0-b51410415afd
+  type Land
+  triggered when this enters: scry 1
+  mana {C}
+  activated {1}, {T}: add any
+}

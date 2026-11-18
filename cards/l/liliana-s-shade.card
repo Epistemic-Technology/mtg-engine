@@ -1,0 +1,8 @@
+card "Liliana's Shade" {
+  oracle_id 44f87b6e-0cc8-4088-8a94-8272b6b26869
+  cost {2}{B}{B}
+  type Creature — Shade
+  pt 1/1
+  triggered when this enters: you may search Swamp card reveal to hand
+  activated {B}: this gets +1/+1
+}

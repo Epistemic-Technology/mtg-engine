@@ -1,0 +1,7 @@
+card "Furtive Homunculus" {
+  oracle_id 6b59ffa2-5c8b-4549-aa09-2f2a5cabc5af
+  cost {1}{U}
+  type Creature — Homunculus
+  pt 2/1
+  keywords skulk
+}

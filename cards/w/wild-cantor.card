@@ -1,0 +1,7 @@
+card "Wild Cantor" {
+  oracle_id 24472823-d33c-4d96-add1-233116f6f4f7
+  cost {R/G}
+  type Creature — Human Druid
+  pt 1/1
+  activated sacrifice this: add any
+}

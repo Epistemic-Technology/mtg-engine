@@ -1,0 +1,7 @@
+card "Satyr Hedonist" {
+  oracle_id a75bf714-ed3e-4403-a009-3a81f430bc64
+  cost {1}{G}
+  type Creature — Satyr
+  pt 2/1
+  activated {R}, sacrifice this: add {R}{R}{R}
+}

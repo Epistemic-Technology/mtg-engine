@@ -1,0 +1,7 @@
+card "Contagious Nim" {
+  oracle_id 02d4fe7d-ade4-40b1-b323-73a52c440525
+  cost {2}{B}
+  type Creature — Phyrexian Zombie
+  pt 2/2
+  keywords infect
+}

@@ -1,0 +1,7 @@
+card "Knight of Infamy" {
+  oracle_id e4b036ef-5319-4ccc-8777-7b1298119f90
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/1
+  keywords protection from white, exalted
+}

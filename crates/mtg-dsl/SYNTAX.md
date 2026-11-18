@@ -37,7 +37,7 @@ Clue: CR 111.10) prints by name: "create a Treasure token".
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), and `changeling` (CR 702.73). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -50,6 +50,7 @@ Clue: CR 111.10) prints by name: "create a Treasure token".
 | `mana {G}` / `mana {W} or {U}` / `mana any` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color". Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
+| `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
 | `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. |
@@ -94,12 +95,14 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
 | `whenever this deals combat damage to a player` | |
 | `whenever you gain life` | |
+| `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell` | |
 | `when this becomes targeted` | becomes the target of a spell or ability |
 
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
-CR 702.33c, for a permanent with `kicker`).
+CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
+("if it had no -1/-1 counters on it", judged as the source last existed).
 
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
@@ -175,6 +178,12 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token),
+`add {B}{B}` / `add any` ("Add {B}{B}.", "Add one mana of any color."; an
+activated ability that only adds mana is a mana ability and resolves at
+once, CR 605), `search basic land card reveal to hand`, `search up to 2
+Forest card to battlefield tapped`, `search basic land card reveal to
+top` ("Search your library for ..., then shuffle"; add `that card` to
+print "that card" for "it"),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `you may <clause>`, `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage

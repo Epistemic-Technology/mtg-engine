@@ -1,0 +1,7 @@
+card "Migratory Route" {
+  oracle_id f6a74582-62b6-48d1-89d6-e26059229840
+  cost {3}{W}{U}
+  type Sorcery
+  spell: create 4 "1/1 white Bird creature with flying"
+  basic landcycling {2}
+}

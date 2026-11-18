@@ -1,0 +1,5 @@
+card "Shadowblood Ridge" {
+  oracle_id 15687ee3-3cdb-4a8f-a726-46b73bceb792
+  type Land
+  activated {1}, {T}: add {B}{R}
+}

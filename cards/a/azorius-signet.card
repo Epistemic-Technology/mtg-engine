@@ -1,0 +1,6 @@
+card "Azorius Signet" {
+  oracle_id e018773f-95b3-49a3-9674-6f04ddef2092
+  cost {2}
+  type Artifact
+  activated {1}, {T}: add {W}{U}
+}

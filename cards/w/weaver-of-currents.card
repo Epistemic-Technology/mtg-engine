@@ -1,0 +1,7 @@
+card "Weaver of Currents" {
+  oracle_id 9aabb520-7e97-47b2-975c-11f457d0b870
+  cost {1}{G}{U}
+  type Creature — Snake Druid
+  pt 2/2
+  activated {T}: add {C}{C}
+}

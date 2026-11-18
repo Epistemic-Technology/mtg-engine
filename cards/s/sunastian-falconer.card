@@ -1,0 +1,7 @@
+card "Sunastian Falconer" {
+  oracle_id 3d6314b5-3ace-4793-9549-7b17db2a735d
+  cost {3}{R}{G}
+  type Legendary Creature — Human Shaman
+  pt 4/4
+  activated {T}: add {C}{C}
+}

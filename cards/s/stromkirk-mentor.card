@@ -1,0 +1,7 @@
+card "Stromkirk Mentor" {
+  oracle_id 17cbeec4-b180-48e9-9156-42271f918a9d
+  cost {3}{B}
+  type Creature — Vampire Soldier
+  pt 4/2
+  triggered when this enters: put 1 +1/+1 counters on another target Vampire you control
+}

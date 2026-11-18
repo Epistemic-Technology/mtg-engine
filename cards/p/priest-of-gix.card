@@ -1,0 +1,7 @@
+card "Priest of Gix" {
+  oracle_id d93f82ce-0eed-45cc-a7b1-50fd4cbb6152
+  cost {2}{B}
+  type Creature — Phyrexian Human Cleric Minion
+  pt 2/1
+  triggered when this enters: add {B}{B}{B}
+}

@@ -1,0 +1,6 @@
+card "Rapturous Moment" {
+  oracle_id c997afb7-82cb-4579-885e-3628cb1b51e4
+  cost {4}{U}{R}
+  type Sorcery
+  spell: draw 3 cards then discard 2 cards; add {U}{U}{R}{R}{R}
+}

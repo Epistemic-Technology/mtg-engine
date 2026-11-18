@@ -1,0 +1,7 @@
+card "Vengeful Vampire" {
+  oracle_id 1fcf95d7-fd70-474b-be0a-e43502633556
+  cost {4}{B}{B}
+  type Creature — Vampire
+  pt 3/2
+  keywords flying, undying
+}

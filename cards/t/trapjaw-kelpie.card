@@ -1,0 +1,7 @@
+card "Trapjaw Kelpie" {
+  oracle_id 0d6fccd5-ec14-4da6-972e-b2f5502818a4
+  cost {4}{G/U}{G/U}
+  type Creature — Beast
+  pt 3/3
+  keywords flash, persist
+}

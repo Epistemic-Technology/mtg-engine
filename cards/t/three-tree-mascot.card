@@ -1,0 +1,8 @@
+card "Three Tree Mascot" {
+  oracle_id 6cb9d153-4eaa-4f32-8930-bd68cd99c128
+  cost {2}
+  type Artifact Creature — Shapeshifter
+  pt 2/1
+  keywords changeling
+  activated {1}, once: add any
+}

@@ -1,0 +1,7 @@
+card "Shadow Sliver" {
+  oracle_id 46ddc2e1-386f-4aaf-b37b-37b1708e0d9c
+  cost {2}{U}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has shadow
+}

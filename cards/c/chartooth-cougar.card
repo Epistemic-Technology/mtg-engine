@@ -1,0 +1,8 @@
+card "Chartooth Cougar" {
+  oracle_id 717152c3-2082-49aa-9274-a1a6abe54b65
+  cost {5}{R}
+  type Creature — Cat Beast
+  pt 4/4
+  activated {R}: this gets +1/+0
+  mountaincycling {2}
+}

@@ -1,0 +1,7 @@
+card "Tine Shrike" {
+  oracle_id e20ad2f7-cb41-4e6e-8f3b-bd260f4a2ecf
+  cost {3}{W}
+  type Creature — Phyrexian Bird
+  pt 2/1
+  keywords flying, infect
+}

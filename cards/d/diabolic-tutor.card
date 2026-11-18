@@ -1,0 +1,6 @@
+card "Diabolic Tutor" {
+  oracle_id 14589b6b-1814-46f9-a364-83cc15dacac2
+  cost {2}{B}{B}
+  type Sorcery
+  spell: search card to hand that card
+}

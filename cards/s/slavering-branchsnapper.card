@@ -1,0 +1,8 @@
+card "Slavering Branchsnapper" {
+  oracle_id 29326487-6d95-40a8-9bcc-f94ada4e27c3
+  cost {4}{G}{G}
+  type Creature — Lizard
+  pt 7/6
+  keywords trample
+  forestcycling {2}
+}

@@ -1,0 +1,9 @@
+card "Generous Ent" {
+  oracle_id b6859c7a-4c4d-4652-938f-ecedce29d506
+  cost {5}{G}
+  type Creature — Treefolk
+  pt 5/7
+  keywords reach
+  triggered when this enters: create 1 "Food"
+  forestcycling {1}
+}

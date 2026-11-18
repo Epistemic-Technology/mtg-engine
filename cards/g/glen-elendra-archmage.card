@@ -1,0 +1,9 @@
+card "Glen Elendra Archmage" {
+  oracle_id 5f3f68b5-8c6a-4181-bb8a-9c73967d198a
+  cost {3}{U}
+  type Creature — Faerie Wizard
+  pt 2/2
+  keywords flying
+  activated {U}, sacrifice this: counter target noncreature spell
+  keyword persist
+}

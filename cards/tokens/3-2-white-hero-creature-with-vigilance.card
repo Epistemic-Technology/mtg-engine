@@ -1,0 +1,7 @@
+token "3/2 white Hero creature with vigilance" {
+  name "Hero"
+  type Creature — Hero
+  pt 3/2
+  color white
+  keywords vigilance
+}

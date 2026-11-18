@@ -1,0 +1,9 @@
+card "Woodfall Primus" {
+  oracle_id 2f70f1bb-29fa-4abb-afc2-653acd0a08b9
+  cost {5}{G}{G}{G}
+  type Creature — Treefolk Shaman
+  pt 6/6
+  keywords trample
+  triggered when this enters: destroy target noncreature permanent
+  keyword persist
+}

@@ -1,0 +1,7 @@
+card "Barbarian General" {
+  oracle_id d4f2e305-bec0-48c8-8040-f85618c71cc9
+  cost {4}{R}
+  type Creature — Human Barbarian Soldier
+  pt 3/2
+  keywords horsemanship
+}

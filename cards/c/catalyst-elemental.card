@@ -1,0 +1,7 @@
+card "Catalyst Elemental" {
+  oracle_id 7779525d-080d-4669-bb65-af532bf0983e
+  cost {2}{R}
+  type Creature — Elemental
+  pt 2/2
+  activated sacrifice this: add {R}{R}
+}

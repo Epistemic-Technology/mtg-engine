@@ -1,0 +1,8 @@
+card "Viridian Corrupter" {
+  oracle_id 8ba5e97b-3eac-4291-8674-4b402a5554bc
+  cost {1}{G}{G}
+  type Creature — Phyrexian Elf Shaman
+  pt 2/2
+  keywords infect
+  triggered when this enters: destroy target artifact
+}

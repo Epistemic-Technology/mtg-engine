@@ -1,0 +1,8 @@
+card "Pale Rider of Trostad" {
+  oracle_id 6cc47c8e-9154-4517-940d-d1a7f35e5677
+  cost {1}{B}
+  type Creature — Spirit
+  pt 3/3
+  keywords skulk
+  triggered when this enters: discard 1 cards
+}

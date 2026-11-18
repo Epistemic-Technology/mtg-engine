@@ -18,7 +18,7 @@ pub struct GreedyAgent {
 
 /// Rough worth of a creature for trade decisions.
 fn value(c: &Characteristics) -> i32 {
-    c.power + c.toughness + i32::try_from(c.keywords.iter().count()).unwrap_or(0)
+    c.power() + c.toughness() + i32::try_from(c.keywords.iter().count()).unwrap_or(0)
 }
 
 /// Whether `a` deals lethal damage to `b` in combat, ignoring first strike.
@@ -26,10 +26,10 @@ fn kills(a: &Characteristics, b: &Characteristics, b_damage: u32) -> bool {
     if b.has(Keyword::Indestructible) {
         return false;
     }
-    if a.power <= 0 {
+    if a.power() <= 0 {
         return false;
     }
-    a.has(Keyword::Deathtouch) || a.power >= b.toughness - i32::try_from(b_damage).unwrap_or(0)
+    a.has(Keyword::Deathtouch) || a.power() >= b.toughness() - i32::try_from(b_damage).unwrap_or(0)
 }
 
 /// Whether `blocker` could legally block `attacker` (evasion only).
@@ -73,7 +73,7 @@ impl GreedyAgent {
             c.attackers
                 .iter()
                 .filter_map(|at| state.characteristics(at.id))
-                .map(|a| a.power.max(0))
+                .map(|a| a.power().max(0))
                 .sum()
         });
         let mut score = 0;
@@ -85,7 +85,7 @@ impl GreedyAgent {
         }
         if incoming >= life {
             // Chump when it keeps us alive.
-            score += a.power.max(0) * 3;
+            score += a.power().max(0) * 3;
         }
         score
     }
@@ -187,7 +187,7 @@ impl GreedyAgent {
                     || (damage > 0
                         && !c.has(Keyword::Indestructible)
                         && i32::try_from(damage + state.objects[id].damage).unwrap_or(0)
-                            >= c.toughness)
+                            >= c.toughness())
                 {
                     value(&c) + 2
                 } else {
@@ -240,6 +240,8 @@ impl GreedyAgent {
             | DecisionKind::YouMay { .. }
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
+            | DecisionKind::ChooseColor
+            | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
             | DecisionKind::Kicker { .. } => 0,
             // Keep the newest (the engine lists them oldest first).
@@ -384,7 +386,7 @@ impl GreedyAgent {
                     .collect();
                 let total_power: i32 = eligible
                     .iter()
-                    .map(|id| Self::chars(state, *id).power.max(0))
+                    .map(|id| Self::chars(state, *id).power().max(0))
                     .sum();
                 let alpha = total_power >= state.player(opp).life
                     && Self::untapped_creatures(state, opp).is_empty();

@@ -1,0 +1,7 @@
+card "Yellow Scarves Cavalry" {
+  oracle_id 8ff7e8e9-11b4-4a77-a423-70777f00482b
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords horsemanship, can't block
+}

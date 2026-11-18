@@ -1,0 +1,8 @@
+card "Rumble Arena" {
+  oracle_id 83f2470e-2114-4cd9-ab1a-21b76e9cdf63
+  type Land
+  keywords vigilance
+  triggered when this enters: scry 1
+  mana {C}
+  activated {1}, {T}: add any
+}

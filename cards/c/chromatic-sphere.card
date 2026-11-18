@@ -1,0 +1,6 @@
+card "Chromatic Sphere" {
+  oracle_id 2e03e44a-9fff-4490-859f-b42e89e8563a
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: add any; draw 1 cards
+}

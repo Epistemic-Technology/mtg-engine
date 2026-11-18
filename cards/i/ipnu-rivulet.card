@@ -1,0 +1,7 @@
+card "Ipnu Rivulet" {
+  oracle_id c17d799f-adc9-4c41-87cf-b243b5ea3be1
+  type Land — Desert
+  mana {C}
+  activated {T}, pay 1 life: add {U}
+  activated {1}{U}, {T}, sacrifice Desert: target player mills 4 cards
+}

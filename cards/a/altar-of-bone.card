@@ -1,0 +1,7 @@
+card "Altar of Bone" {
+  oracle_id 607a3f5f-4a36-4077-b5cf-40ffd52fa580
+  cost {G}{W}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: search creature card reveal to hand
+}

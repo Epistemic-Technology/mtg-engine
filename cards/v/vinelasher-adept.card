@@ -1,0 +1,9 @@
+card "Vinelasher Adept" {
+  oracle_id b5918fb0-c33f-4e33-ac6d-8f94723d4296
+  cost {4}{G}{G}
+  type Creature — Rhino Soldier
+  pt 2/4
+  keywords reach
+  triggered when this enters: put 3 +1/+1 counters on target creature
+  basic landcycling {2}
+}

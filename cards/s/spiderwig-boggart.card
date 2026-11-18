@@ -1,0 +1,7 @@
+card "Spiderwig Boggart" {
+  oracle_id dd0bbf91-1826-42c7-82af-6820646fa003
+  cost {2}{B}
+  type Creature — Goblin Shaman
+  pt 2/2
+  triggered when this enters: target creature gains fear
+}

@@ -1,0 +1,6 @@
+card "Sisay's Ring" {
+  oracle_id 8f5822ae-651f-410e-9316-5522eeb52d72
+  cost {4}
+  type Artifact
+  activated {T}: add {C}{C}
+}

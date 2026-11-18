@@ -1,0 +1,5 @@
+card "Desolate Mire" {
+  oracle_id 3edf9201-265f-4cd9-b27b-8073bf1a4cf2
+  type Land
+  activated {1}, {T}: add {W}{B}
+}

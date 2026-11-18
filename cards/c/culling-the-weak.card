@@ -1,0 +1,7 @@
+card "Culling the Weak" {
+  oracle_id 6385fd0d-256d-4400-9319-afa8170024db
+  cost {B}
+  type Instant
+  additional cost sacrifice creature
+  spell: add {B}{B}{B}{B}
+}

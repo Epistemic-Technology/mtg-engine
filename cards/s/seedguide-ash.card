@@ -1,0 +1,7 @@
+card "Seedguide Ash" {
+  oracle_id 7ff007cb-c994-4643-a6d4-c58e030514e1
+  cost {4}{G}
+  type Creature — Treefolk Druid
+  pt 4/4
+  triggered when this dies: you may search up to 3 Forest card to battlefield tapped
+}

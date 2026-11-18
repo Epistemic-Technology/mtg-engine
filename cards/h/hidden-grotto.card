@@ -1,0 +1,7 @@
+card "Hidden Grotto" {
+  oracle_id 382d18a2-438e-4ae7-a83f-1658ef1f9b07
+  type Land
+  triggered when this enters: surveil 1
+  mana {C}
+  activated {1}, {T}: add any
+}

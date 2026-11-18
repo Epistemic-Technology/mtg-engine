@@ -1,0 +1,8 @@
+card "Sighted-Caste Sorcerer" {
+  oracle_id f9921c9e-3248-488d-ad7b-8b064c5387e7
+  cost {1}{W}
+  type Creature — Human Wizard Sorcerer
+  pt 1/1
+  keywords exalted
+  activated {U}: this gains shroud
+}

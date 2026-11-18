@@ -1,0 +1,6 @@
+card "Dimir Signet" {
+  oracle_id 7d881c57-0bd9-4c57-aa4a-b10808b86143
+  cost {2}
+  type Artifact
+  activated {1}, {T}: add {U}{B}
+}

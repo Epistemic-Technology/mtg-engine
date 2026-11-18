@@ -1,0 +1,7 @@
+card "Skycrash" {
+  oracle_id 2343ebff-edf4-4132-ad9e-7800f8014072
+  cost {1}{R}
+  type Instant
+  spell: destroy target artifact
+  cycling {R}
+}

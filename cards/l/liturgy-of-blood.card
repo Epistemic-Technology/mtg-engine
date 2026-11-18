@@ -1,0 +1,6 @@
+card "Liturgy of Blood" {
+  oracle_id aabea4a2-5107-4abd-a0c7-ac0024d98ae0
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; add {B}{B}{B}
+}

@@ -1,0 +1,6 @@
+card "Reshape the Earth" {
+  oracle_id edc15ea8-d321-4884-bdcf-ae6198aab78b
+  cost {6}{G}{G}{G}
+  type Sorcery
+  spell: search up to 10 land card to battlefield tapped
+}

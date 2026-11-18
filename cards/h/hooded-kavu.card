@@ -1,0 +1,7 @@
+card "Hooded Kavu" {
+  oracle_id 52934f16-eb9b-4d0a-b372-155461660f6e
+  cost {2}{R}
+  type Creature — Kavu
+  pt 2/2
+  activated {B}: this gains fear
+}

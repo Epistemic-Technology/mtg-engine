@@ -1,0 +1,7 @@
+card "Cathedral of War" {
+  oracle_id 5ff647e4-730a-498f-8f2c-5bd64d5a9780
+  type Land
+  enters tapped
+  keyword exalted
+  mana {C}
+}

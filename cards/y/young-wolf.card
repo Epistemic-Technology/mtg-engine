@@ -1,0 +1,7 @@
+card "Young Wolf" {
+  oracle_id 8b492764-10b6-4506-be11-22daa9220a91
+  cost {G}
+  type Creature — Wolf
+  pt 1/1
+  keywords undying
+}

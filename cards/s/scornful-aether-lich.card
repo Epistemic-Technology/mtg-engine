@@ -1,0 +1,7 @@
+card "Scornful Aether-Lich" {
+  oracle_id f8834831-5571-466d-9227-bb91ca2dce3f
+  cost {3}{U}
+  type Artifact Creature — Zombie Wizard
+  pt 2/4
+  activated {W}{B}: this gains fear, vigilance
+}

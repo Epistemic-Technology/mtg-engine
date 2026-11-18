@@ -1,0 +1,8 @@
+card "Toxic Nim" {
+  oracle_id afc2a3a7-eb69-4fcb-b3a3-444dccb735d7
+  cost {4}{B}{B}
+  type Creature — Phyrexian Zombie
+  pt 4/1
+  keywords infect
+  activated {B}: regenerate this
+}

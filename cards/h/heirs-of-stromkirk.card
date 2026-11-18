@@ -1,0 +1,8 @@
+card "Heirs of Stromkirk" {
+  oracle_id 7149de06-d676-47bc-a50f-e1058d89c890
+  cost {2}{R}{R}
+  type Creature — Vampire
+  pt 2/2
+  keywords intimidate
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

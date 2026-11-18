@@ -1,0 +1,7 @@
+card "Kaleidostone" {
+  oracle_id 498ec48f-cb28-48d4-96f4-9d60bb4bb45c
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {5}, {T}, sacrifice this: add {W}{U}{B}{R}{G}
+}

@@ -1,0 +1,8 @@
+card "Putrefax" {
+  oracle_id 3a336b30-335a-49d0-b192-c20f3670452b
+  cost {3}{G}{G}
+  type Creature — Phyrexian Horror
+  pt 5/3
+  keywords trample, haste, infect
+  triggered at beginning of each end step: sacrifice this
+}

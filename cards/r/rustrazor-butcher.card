@@ -1,0 +1,7 @@
+card "Rustrazor Butcher" {
+  oracle_id 58fd5a3c-83ca-4f6a-99db-21d5e03f2345
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  keywords first strike, wither
+}

@@ -1,0 +1,7 @@
+card "Trespasser il-Vec" {
+  oracle_id 90980841-4994-453c-a076-6cdf8d85c809
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 3/1
+  activated discard 1 card: this gains shadow
+}

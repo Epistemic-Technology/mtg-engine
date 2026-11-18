@@ -1,0 +1,7 @@
+card "Rancid Rats" {
+  oracle_id e3552730-fe09-443f-b432-9640b69c7bbb
+  cost {1}{B}
+  type Creature — Zombie Rat
+  pt 1/1
+  keywords skulk, deathtouch
+}

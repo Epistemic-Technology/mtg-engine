@@ -1,0 +1,7 @@
+card "Thalakos Sentry" {
+  oracle_id ca65b908-e6fe-4ca3-8ecd-247df957aa0f
+  cost {1}{U}
+  type Creature — Thalakos Soldier
+  pt 1/2
+  keywords shadow
+}

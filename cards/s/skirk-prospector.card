@@ -1,0 +1,7 @@
+card "Skirk Prospector" {
+  oracle_id c18013e4-0b99-44e3-a2b2-027ace68723a
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated sacrifice Goblin: add {R}
+}

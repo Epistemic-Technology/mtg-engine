@@ -1,0 +1,6 @@
+card "Pyretic Ritual" {
+  oracle_id 86ef6474-613f-41fb-931c-d4279b03ed99
+  cost {1}{R}
+  type Instant
+  spell: add {R}{R}{R}
+}

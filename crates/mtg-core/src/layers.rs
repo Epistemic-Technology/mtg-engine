@@ -15,7 +15,7 @@ use crate::card::{
     StaticCondition, Subtype,
 };
 use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
-use crate::state::{Affected, Characteristics, Derived, GameState, Zone};
+use crate::state::{Affected, Characteristics, Derived, GameState, Zone, pt16};
 
 /// Where an effect comes from, for identity across layers.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -457,8 +457,8 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
         // after layer 6 (this is layer 7a).
         let n = cda_count(work, id, count);
         let c = &mut work.chars[wi];
-        c.power = n;
-        c.toughness = n + plus_toughness;
+        c.power = pt16(n);
+        c.toughness = pt16(n + plus_toughness);
         return;
     }
     apply_to(&mut work.chars[wi], part, work.state, id);
@@ -538,12 +538,12 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 PtValue::Fixed(n) => *n,
                 PtValue::ManaValue => mv,
             };
-            c.power = v(power);
-            c.toughness = v(toughness);
+            c.power = pt16(v(power));
+            c.toughness = pt16(v(toughness));
         }
         Modification::ModifyPt { power, toughness } => {
-            c.power += power;
-            c.toughness += toughness;
+            c.power = pt16(c.power() + power);
+            c.toughness = pt16(c.toughness() + toughness);
         }
         Modification::SwitchPt => std::mem::swap(&mut c.power, &mut c.toughness),
     }
@@ -562,7 +562,8 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
         }
         let plus = i32::try_from(o.counters(CounterKind::PlusOnePlusOne)).unwrap_or(0);
         let minus = i32::try_from(o.counters(CounterKind::MinusOneMinusOne)).unwrap_or(0);
-        work.chars[i].power += plus - minus;
-        work.chars[i].toughness += plus - minus;
+        let c = &mut work.chars[i];
+        c.power = pt16(c.power() + plus - minus);
+        c.toughness = pt16(c.toughness() + plus - minus);
     }
 }

@@ -1,0 +1,6 @@
+card "Tainted Strike" {
+  oracle_id 95a53dd7-76dc-46f1-8833-fafd02ba49c4
+  cost {B}
+  type Instant
+  spell: target creature gets +1/+0 and gains infect
+}

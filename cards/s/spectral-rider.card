@@ -1,0 +1,7 @@
+card "Spectral Rider" {
+  oracle_id 713641c4-544e-4c25-ab11-10894be2cb53
+  cost {W}{W}
+  type Creature — Spirit Knight
+  pt 2/2
+  keywords intimidate
+}

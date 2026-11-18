@@ -1,0 +1,7 @@
+card "Myr Moonvessel" {
+  oracle_id 3e922661-80df-4e84-a12a-524bc74e6c9d
+  cost {1}
+  type Artifact Creature — Myr
+  pt 1/1
+  triggered when this dies: add {C}
+}

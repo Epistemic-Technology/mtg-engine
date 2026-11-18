@@ -1,0 +1,7 @@
+card "Quirion Sentinel" {
+  oracle_id 70bb2690-653b-4787-bdd1-d1739a8ae545
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  triggered when this enters: add any
+}

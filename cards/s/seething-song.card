@@ -1,0 +1,6 @@
+card "Seething Song" {
+  oracle_id 64bf8929-f5f2-4d50-8667-13b1d007bcfc
+  cost {2}{R}
+  type Instant
+  spell: add {R}{R}{R}{R}{R}
+}

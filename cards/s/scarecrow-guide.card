@@ -1,0 +1,8 @@
+card "Scarecrow Guide" {
+  oracle_id cf7bb5d4-c33f-4879-a793-6d6f2a4d94be
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 2/1
+  keywords reach
+  activated {1}, once: add any
+}

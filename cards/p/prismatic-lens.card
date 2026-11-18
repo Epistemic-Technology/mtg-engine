@@ -1,0 +1,7 @@
+card "Prismatic Lens" {
+  oracle_id e3056f28-868b-401a-a528-7528d639bdeb
+  cost {2}
+  type Artifact
+  mana {C}
+  activated {1}, {T}: add any
+}

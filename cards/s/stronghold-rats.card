@@ -1,0 +1,8 @@
+card "Stronghold Rats" {
+  oracle_id e91053ae-682a-4bbe-8394-fd65e626bacc
+  cost {2}{B}
+  type Creature — Rat
+  pt 2/1
+  keywords shadow
+  triggered whenever this deals combat damage to a player: each player discards 1 cards
+}

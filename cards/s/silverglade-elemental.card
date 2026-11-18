@@ -1,0 +1,7 @@
+card "Silverglade Elemental" {
+  oracle_id a6d5d164-a06a-4383-b9d2-a7a33400631d
+  cost {4}{G}
+  type Creature — Elemental
+  pt 4/4
+  triggered when this enters: you may search Forest card to battlefield that card
+}

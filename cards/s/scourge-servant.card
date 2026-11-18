@@ -1,0 +1,7 @@
+card "Scourge Servant" {
+  oracle_id 561d514d-060e-491f-a703-8a7f9da5204d
+  cost {4}{B}
+  type Creature — Phyrexian Zombie
+  pt 3/3
+  keywords infect
+}

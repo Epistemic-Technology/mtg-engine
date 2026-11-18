@@ -1,0 +1,7 @@
+token "1/1 green Phyrexian Insect creature with infect" {
+  name "Phyrexian Insect"
+  type Creature — Phyrexian Insect
+  pt 1/1
+  color green
+  keywords infect
+}

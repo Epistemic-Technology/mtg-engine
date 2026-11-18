@@ -1,0 +1,8 @@
+card "Advanced Hoverguard" {
+  oracle_id 65dc61a4-9052-49d4-bce8-9c16f0339382
+  cost {3}{U}
+  type Creature — Drone
+  pt 2/2
+  keywords flying
+  activated {U}: this gains shroud
+}

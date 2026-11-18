@@ -1,0 +1,8 @@
+card "Corrupted Conscience" {
+  oracle_id c645fab4-51ac-440c-b112-57777c8f4676
+  cost {3}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: control
+  static enchanted: has infect
+}

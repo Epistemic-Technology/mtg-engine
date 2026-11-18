@@ -1,0 +1,9 @@
+card "Eagles of the North" {
+  oracle_id e519cebf-0f09-4da9-abef-82928738514d
+  cost {5}{W}
+  type Creature — Bird Soldier
+  pt 3/3
+  keywords flying
+  triggered when this enters: each creature you control gets +1/+0 and gains first strike
+  plainscycling {1}
+}

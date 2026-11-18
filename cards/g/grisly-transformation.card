@@ -1,0 +1,8 @@
+card "Grisly Transformation" {
+  oracle_id 0bb359bb-a1db-4535-8245-097ee989f4f5
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has intimidate
+}

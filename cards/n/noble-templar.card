@@ -1,0 +1,8 @@
+card "Noble Templar" {
+  oracle_id e7079969-8d88-4f18-a872-2661bed6ff74
+  cost {5}{W}
+  type Creature — Human Cleric Soldier
+  pt 3/6
+  keywords vigilance
+  plainscycling {2}
+}

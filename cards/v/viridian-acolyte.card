@@ -1,0 +1,7 @@
+card "Viridian Acolyte" {
+  oracle_id 9db7d8f0-0712-4e32-825c-1339e7a8d768
+  cost {G}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated {1}, {T}: add any
+}

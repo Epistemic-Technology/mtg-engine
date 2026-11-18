@@ -1,0 +1,7 @@
+card "Wei Strike Force" {
+  oracle_id 002ad5fa-a20c-4d30-beef-401d89868d67
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 2/1
+  keywords horsemanship
+}

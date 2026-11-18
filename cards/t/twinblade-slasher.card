@@ -1,0 +1,8 @@
+card "Twinblade Slasher" {
+  oracle_id 2375a9c6-28ef-4c8f-909c-0aa7e5fc085c
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  keywords wither
+  activated {1}{G}, once: this gets +2/+2
+}

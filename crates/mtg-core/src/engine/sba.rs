@@ -46,7 +46,7 @@ impl GameState {
             // consequences are settled before anything else is checked.
             self.sync_control();
             let mut acted = false;
-            // 704.5a, 704.5b
+            // 704.5a, 704.5b, 704.5c
             for i in 0..self.num_players() {
                 let p = PlayerId(u8::try_from(i).unwrap_or(0));
                 let ps = self.player(p);
@@ -57,6 +57,8 @@ impl GameState {
                     Some(LossReason::LifeZeroOrLess)
                 } else if ps.drew_from_empty_library {
                     Some(LossReason::DrewFromEmptyLibrary)
+                } else if ps.poison >= 10 {
+                    Some(LossReason::Poison)
                 } else {
                     None
                 };

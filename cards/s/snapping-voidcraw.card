@@ -1,0 +1,9 @@
+card "Snapping Voidcraw" {
+  oracle_id e495033b-f727-41e3-b7fc-7f5fa8abdd87
+  cost {1}{G}{U}
+  type Creature — Eldrazi Turtle
+  pt 1/3
+  keywords devoid
+  activated {T}: add {C}{C}
+  activated {3}{C}, {T}: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Rendclaw Trow" {
+  oracle_id 86177c7e-a6eb-448b-baf8-aedd06f0a2f3
+  cost {2}{B/G}
+  type Creature — Troll
+  pt 2/2
+  keywords wither, persist
+}

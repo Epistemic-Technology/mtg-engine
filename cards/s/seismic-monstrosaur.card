@@ -1,0 +1,9 @@
+card "Seismic Monstrosaur" {
+  oracle_id 3b66d2c2-be7a-4296-9888-f0cfb2975e89
+  cost {4}{R}{R}
+  type Creature — Dinosaur
+  pt 6/5
+  keywords trample
+  activated {2}{R}, sacrifice land: draw 1 cards
+  mountaincycling {2}
+}

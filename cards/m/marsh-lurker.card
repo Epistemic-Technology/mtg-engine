@@ -1,0 +1,7 @@
+card "Marsh Lurker" {
+  oracle_id 4b35b928-1088-457d-bd0d-3b14dc4ab230
+  cost {3}{B}
+  type Creature — Beast
+  pt 3/2
+  activated sacrifice Swamp: this gains fear
+}

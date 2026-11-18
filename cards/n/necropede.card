@@ -1,0 +1,8 @@
+card "Necropede" {
+  oracle_id e5021798-1f3d-42ed-be88-e76349ef46c6
+  cost {2}
+  type Artifact Creature — Phyrexian Insect
+  pt 1/1
+  keywords infect
+  triggered when this dies: you may put 1 -1/-1 counters on target creature
+}

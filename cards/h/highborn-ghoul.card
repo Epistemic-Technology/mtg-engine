@@ -1,0 +1,7 @@
+card "Highborn Ghoul" {
+  oracle_id 1c145f2d-8345-4902-b869-afb70145dec7
+  cost {B}{B}
+  type Creature — Zombie
+  pt 2/1
+  keywords intimidate
+}

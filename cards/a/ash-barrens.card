@@ -1,0 +1,6 @@
+card "Ash Barrens" {
+  oracle_id 58257464-278e-45fa-8e0b-bcd9a7500bc1
+  type Land
+  mana {C}
+  basic landcycling {1}
+}

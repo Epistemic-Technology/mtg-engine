@@ -1,0 +1,7 @@
+card "Servant of Nefarox" {
+  oracle_id 8740b9be-3ab4-4bd1-8a89-a59397c59e82
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 3/1
+  keywords exalted
+}

@@ -1,0 +1,7 @@
+card "Barrels of Blasting Jelly" {
+  oracle_id c6cd520c-106b-4ee5-bc02-6c5fbdbc78dd
+  cost {1}
+  type Artifact
+  activated {1}, once: add any
+  activated {5}, {T}, sacrifice this: deal 5 damage to target creature
+}

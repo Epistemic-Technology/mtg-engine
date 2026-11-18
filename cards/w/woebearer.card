@@ -1,0 +1,8 @@
+card "Woebearer" {
+  oracle_id 5ed93d71-3f62-49d4-a9ca-5728c44b0633
+  cost {4}{B}
+  type Creature — Zombie
+  pt 2/3
+  keywords fear
+  triggered whenever this deals combat damage to a player: you may return target creature card from your graveyard to hand
+}

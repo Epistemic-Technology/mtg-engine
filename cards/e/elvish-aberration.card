@@ -1,0 +1,8 @@
+card "Elvish Aberration" {
+  oracle_id 1d25b831-c1de-4f79-bbb3-1582eda96452
+  cost {5}{G}
+  type Creature — Elf Mutant
+  pt 4/5
+  activated {T}: add {G}{G}{G}
+  forestcycling {2}
+}

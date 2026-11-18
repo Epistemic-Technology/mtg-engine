@@ -380,6 +380,42 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate => "investigate".to_string(),
+            Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
+            Effect::Search {
+                filter: f,
+                count,
+                up_to,
+                to,
+                reveal,
+                that_card,
+            } => {
+                let mut t = "search ".to_string();
+                if *up_to {
+                    t.push_str("up to ");
+                }
+                if *count != Num::N(1) {
+                    let _ = write!(t, "{} ", num(*count));
+                }
+                if *f != Filter::default() {
+                    let _ = write!(t, "{} ", filter(f));
+                }
+                t.push_str("card");
+                if *reveal {
+                    t.push_str(" reveal");
+                }
+                t.push_str(match to {
+                    mtg_core::card::SearchTo::Hand => " to hand",
+                    mtg_core::card::SearchTo::Battlefield { tapped: true } => {
+                        " to battlefield tapped"
+                    }
+                    mtg_core::card::SearchTo::Battlefield { tapped: false } => " to battlefield",
+                    mtg_core::card::SearchTo::TopOfLibrary => " to top",
+                });
+                if *that_card {
+                    t.push_str(" that card");
+                }
+                t
+            }
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
@@ -633,6 +669,7 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
             format!("at beginning of {whose} {} step", step_name(*step))
         }
         Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
+        Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
         Trigger::Blocks(o) => format!("whenever {} blocks", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
@@ -908,7 +945,19 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 return;
             }
             if *cycling {
-                let _ = writeln!(out, "{indent}cycling {}", cost.mana);
+                let word = match effects.first().and_then(|s| s.effects.first()) {
+                    Some(Effect::Search { filter: f, .. }) => {
+                        if let [sub] = f.subtypes.as_slice() {
+                            format!("{}cycling", sub.to_lowercase())
+                        } else if f.supertypes.contains(&Supertype::Basic) {
+                            "basic landcycling".to_string()
+                        } else {
+                            "landcycling".to_string()
+                        }
+                    }
+                    _ => "cycling".to_string(),
+                };
+                let _ = writeln!(out, "{indent}{word} {}", cost.mana);
                 return;
             }
             if let Some(n) = cost.loyalty {
@@ -946,6 +995,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if no creatures are on the battlefield");
                 }
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
+                Some(mtg_core::card::Condition::HadNoCounters(k)) => {
+                    let _ = write!(head, " if it had no {}", counter(*k, Num::N(2)));
+                }
                 None => {}
             }
             body(out, indent, &head, effects, targets, groups);

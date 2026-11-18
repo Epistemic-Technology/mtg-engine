@@ -1,0 +1,8 @@
+card "Saber-Tooth Moose-Lion" {
+  oracle_id 7af493e3-15a1-42d6-a66c-82aacabe816f
+  cost {4}{G}{G}
+  type Creature — Elk Cat
+  pt 7/7
+  keywords reach
+  forestcycling {2}
+}

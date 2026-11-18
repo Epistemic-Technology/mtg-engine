@@ -1,0 +1,7 @@
+card "Vector Asp" {
+  oracle_id 1950067a-cc57-42a8-b1ee-f03e1b50591b
+  cost {1}
+  type Artifact Creature — Phyrexian Snake
+  pt 1/1
+  activated {B}: this gains infect
+}

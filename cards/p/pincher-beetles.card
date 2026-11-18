@@ -1,0 +1,7 @@
+card "Pincher Beetles" {
+  oracle_id 0fae1c73-fd34-433e-8989-fbd80e3b1c70
+  cost {2}{G}
+  type Creature — Insect
+  pt 3/1
+  keywords shroud
+}

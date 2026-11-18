@@ -1,0 +1,6 @@
+card "Sylvan Scrying" {
+  oracle_id ee24bf27-484d-4e1c-998e-6a74e3d3f6c4
+  cost {1}{G}
+  type Sorcery
+  spell: search land card reveal to hand
+}

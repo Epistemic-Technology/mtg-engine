@@ -1,0 +1,7 @@
+card "Dromar's Attendant" {
+  oracle_id 91d36a9d-3a3f-4cb7-837d-b1e8f6730512
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/3
+  activated {1}, sacrifice this: add {W}{U}{B}
+}

@@ -1,0 +1,7 @@
+card "Juvenile Gloomwidow" {
+  oracle_id d2546d25-07cd-4830-ba66-34bdbf8a245c
+  cost {G}{G}
+  type Creature — Spider
+  pt 1/3
+  keywords reach, wither
+}

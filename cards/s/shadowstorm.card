@@ -1,0 +1,6 @@
+card "Shadowstorm" {
+  oracle_id 6e66e983-6349-428b-b511-8738c03ef8fc
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to each creature with shadow
+}

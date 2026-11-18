@@ -1,0 +1,7 @@
+card "Fall to Earth" {
+  oracle_id 223db021-979f-4312-8cb5-169ae4bf17bc
+  cost {4}{W}
+  type Instant
+  spell: exile target creature; each player gains 3 life
+  basic landcycling {2}
+}

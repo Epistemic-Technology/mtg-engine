@@ -1,0 +1,8 @@
+card "Sunblade Elf" {
+  oracle_id 1b67e36a-6d74-41f7-b534-f7e3b6bf7017
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  static this: +1/+1 as long as you control Plains
+  activated {4}{W}: each creature you control gets +1/+1
+}

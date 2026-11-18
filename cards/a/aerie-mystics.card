@@ -1,0 +1,8 @@
+card "Aerie Mystics" {
+  oracle_id 12134f7d-433a-416a-b668-c1a21984c94b
+  cost {4}{W}
+  type Creature — Bird Wizard
+  pt 3/3
+  keywords flying
+  activated {1}{G}{U}: each creature you control gains shroud
+}

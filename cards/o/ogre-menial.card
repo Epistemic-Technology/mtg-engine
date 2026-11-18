@@ -1,0 +1,8 @@
+card "Ogre Menial" {
+  oracle_id e7c879fa-a34b-42d9-8edf-29254380c1f7
+  cost {3}{R}
+  type Creature — Phyrexian Ogre
+  pt 0/4
+  keywords infect
+  activated {R}: this gets +1/+0
+}

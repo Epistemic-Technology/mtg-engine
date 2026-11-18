@@ -1,0 +1,8 @@
+card "Timberland Ancient" {
+  oracle_id e71eca6f-388c-4750-b70e-3ee1832931f0
+  cost {4}{G}{G}
+  type Creature — Treefolk
+  pt 6/5
+  keywords reach, trample
+  forestcycling {2}
+}

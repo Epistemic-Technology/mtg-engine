@@ -1,0 +1,7 @@
+card "Starstorm" {
+  oracle_id 34d112c3-cc2d-4428-bd7f-568bda61bd30
+  cost {X}{R}{R}
+  type Instant
+  spell: deal X damage to each creature
+  cycling {3}
+}

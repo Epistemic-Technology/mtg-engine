@@ -1,0 +1,7 @@
+card "Akki Rockspeaker" {
+  oracle_id 01cd52f9-7fac-4396-bec7-d06bf683e011
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  triggered when this enters: add {R}
+}

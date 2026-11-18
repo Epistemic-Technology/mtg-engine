@@ -1,0 +1,8 @@
+card "Neurok Commando" {
+  oracle_id 48936751-429b-4c40-88f5-72acde6278cc
+  cost {1}{U}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  keywords shroud
+  triggered whenever this deals combat damage to a player: you may draw 1 cards
+}

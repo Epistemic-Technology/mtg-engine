@@ -1,0 +1,7 @@
+card "Giant Crab" {
+  oracle_id 780f029f-e2e1-431b-9a8b-a1af51d7da77
+  cost {4}{U}
+  type Creature — Crab
+  pt 3/3
+  activated {U}: this gains shroud
+}

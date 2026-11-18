@@ -1,0 +1,7 @@
+card "Dauthi Marauder" {
+  oracle_id cb754749-a769-4c9c-b62b-4972dfc5069f
+  cost {2}{B}
+  type Creature — Dauthi Minion
+  pt 3/1
+  keywords shadow
+}

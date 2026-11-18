@@ -1,0 +1,8 @@
+card "Golden Egg" {
+  oracle_id 25977c02-e2d4-4afd-b12d-37ce4d58f453
+  cost {2}
+  type Artifact — Food
+  triggered when this enters: draw 1 cards
+  activated {1}, {T}, sacrifice this: add any
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

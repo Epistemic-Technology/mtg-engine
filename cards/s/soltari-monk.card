@@ -1,0 +1,7 @@
+card "Soltari Monk" {
+  oracle_id 5fed5377-07cf-4ad9-86fd-1efe1f182088
+  cost {W}{W}
+  type Creature — Soltari Monk Cleric
+  pt 2/1
+  keywords protection from black, shadow
+}

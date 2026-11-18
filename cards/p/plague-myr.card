@@ -1,0 +1,8 @@
+card "Plague Myr" {
+  oracle_id 2f328e05-5edf-4b21-9c2a-50dcf1e7b3ec
+  cost {2}
+  type Artifact Creature — Phyrexian Myr
+  pt 1/1
+  keywords infect
+  mana {C}
+}

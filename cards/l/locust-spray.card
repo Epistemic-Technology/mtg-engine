@@ -1,0 +1,7 @@
+card "Locust Spray" {
+  oracle_id f9dce026-2653-4793-b949-357b08a936ea
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1
+  cycling {B}
+}

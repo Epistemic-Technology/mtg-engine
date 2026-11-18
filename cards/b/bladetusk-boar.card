@@ -1,0 +1,7 @@
+card "Bladetusk Boar" {
+  oracle_id f640a102-7ee8-4605-9e15-09938fb229b2
+  cost {3}{R}
+  type Creature — Boar
+  pt 3/2
+  keywords intimidate
+}

@@ -1,0 +1,6 @@
+card "Undying Evil" {
+  oracle_id 3ceaeb1b-8b25-453d-ac09-e466cfdd9c77
+  cost {B}
+  type Instant
+  spell: target creature gains undying
+}

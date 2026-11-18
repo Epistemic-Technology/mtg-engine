@@ -1,0 +1,7 @@
+card "Prismite" {
+  oracle_id feb4fcec-6f3a-4643-9ffb-69d3f5953322
+  cost {2}
+  type Artifact Creature — Golem
+  pt 2/1
+  activated {2}: add any
+}

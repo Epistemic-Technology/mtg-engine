@@ -1,0 +1,6 @@
+card "Darkwater Egg" {
+  oracle_id c4893a24-3cbc-4011-bef4-50e0c4dce16e
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: add {U}{B}; draw 1 cards
+}

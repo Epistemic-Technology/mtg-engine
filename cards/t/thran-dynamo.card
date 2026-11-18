@@ -1,0 +1,6 @@
+card "Thran Dynamo" {
+  oracle_id a699c663-8131-4045-9265-a83e86609374
+  cost {4}
+  type Artifact
+  activated {T}: add {C}{C}{C}
+}

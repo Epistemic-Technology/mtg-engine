@@ -1,0 +1,6 @@
+card "Deconstruct" {
+  oracle_id 36a8ceb1-148b-41e0-a7bf-ceb879bf08e7
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target artifact; add {G}{G}{G}
+}

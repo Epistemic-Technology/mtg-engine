@@ -1,0 +1,8 @@
+card "Aspect of Mongoose" {
+  oracle_id dcc55415-216e-4e18-83d6-43f301359f84
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has shroud
+  triggered when this dies: return this to hand
+}

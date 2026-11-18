@@ -1,0 +1,9 @@
+card "Shadow Rift" {
+  oracle_id 66810ef7-ea3a-4afa-92f0-b21ec52cc8d0
+  cost {U}
+  type Instant
+  spell {
+    target creature gains shadow
+    draw 1 cards
+  }
+}

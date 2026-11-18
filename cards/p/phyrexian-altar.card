@@ -1,0 +1,6 @@
+card "Phyrexian Altar" {
+  oracle_id 8d02b297-97c4-4379-9862-0a462400f66f
+  cost {3}
+  type Artifact
+  activated sacrifice creature: add any
+}

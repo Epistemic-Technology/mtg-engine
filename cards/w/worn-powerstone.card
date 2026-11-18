@@ -1,0 +1,7 @@
+card "Worn Powerstone" {
+  oracle_id b166b670-febc-4821-855e-f8d465644c03
+  cost {3}
+  type Artifact
+  enters tapped
+  activated {T}: add {C}{C}
+}

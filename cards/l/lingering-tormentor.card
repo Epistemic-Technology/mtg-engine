@@ -1,0 +1,7 @@
+card "Lingering Tormentor" {
+  oracle_id 276b1bd8-8918-4226-bab3-100cf5aa3c24
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  keywords fear, persist
+}

@@ -1,0 +1,7 @@
+card "Neutralize" {
+  oracle_id c2c60973-b4d5-43fa-a0c4-b5688b28df05
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell
+  cycling {2}
+}

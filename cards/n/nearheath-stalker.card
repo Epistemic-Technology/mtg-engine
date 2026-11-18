@@ -1,0 +1,7 @@
+card "Nearheath Stalker" {
+  oracle_id c804157e-2911-4973-83bf-f5befc09065d
+  cost {4}{R}
+  type Creature — Vampire Rogue
+  pt 4/1
+  keywords undying
+}

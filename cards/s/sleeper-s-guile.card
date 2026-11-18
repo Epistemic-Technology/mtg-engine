@@ -1,0 +1,8 @@
+card "Sleeper's Guile" {
+  oracle_id eaaa3e41-dbf6-43ae-b65e-e1502ba4fa0b
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has fear
+  triggered when this dies: return this to hand
+}

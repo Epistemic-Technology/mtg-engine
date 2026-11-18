@@ -1,0 +1,6 @@
+card "Standing Stones" {
+  oracle_id 2cc8c24f-cca8-462c-a5ad-1f8662e69a8a
+  cost {3}
+  type Artifact
+  activated {1}, {T}, pay 1 life: add any
+}

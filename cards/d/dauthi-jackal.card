@@ -1,0 +1,8 @@
+card "Dauthi Jackal" {
+  oracle_id 8847b057-8896-4c72-a11f-3c183b1cc60e
+  cost {2}{B}
+  type Creature — Dauthi Jackal
+  pt 2/1
+  keywords shadow
+  activated {B}{B}, sacrifice this: destroy target blocking creature
+}

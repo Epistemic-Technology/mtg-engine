@@ -72,6 +72,8 @@ pub struct Setup {
 #[derive(Clone, Debug, Default)]
 pub struct PlayerSetup {
     pub life: i32,
+    /// Starting poison counters (scenarios).
+    pub poison: u32,
     /// Bottom first; the last card is on top. Not shuffled.
     pub library: Vec<CardRef>,
     pub hand: Vec<CardRef>,
@@ -174,6 +176,9 @@ impl Engine {
         let lives: Vec<i32> = setup.players.iter().map(|p| p.life).collect();
         let rng = ChaCha8Rng::seed_from_u64(setup.seed);
         let mut state = GameState::blank(pool, setup.active_player, &lives, rng, setup.logging);
+        for (i, p) in setup.players.iter().enumerate() {
+            state.players[i].poison = p.poison;
+        }
         let mut attachments: Vec<(ObjId, String)> = Vec::new();
         for (i, ps) in setup.players.iter().enumerate() {
             let p = PlayerId(u8::try_from(i).unwrap_or(0));
@@ -424,6 +429,7 @@ impl GameState {
                     graveyard: Vec::new(),
                     exile: Vec::new(),
                     mana_pool: crate::mana::ManaPool::default(),
+                    poison: 0,
                     lands_played_this_turn: 0,
                     flashback_in_graveyard: 0,
                     max_hand_size: 7,
@@ -1371,8 +1377,10 @@ impl GameState {
             self.activated_once.clear();
             self.turn_number += 1;
             self.active_player = self.next_player_in_game(self.active_player);
-            // "During your turn" static abilities (CR 611.3a) change with it.
-            self.cbump();
+            // "During your turn" static abilities (CR 611.3a) change with
+            // it; nothing a state-based action looks at does.
+            self.version += 1;
+            self.cversion += 1;
             self.step = Step::Untap;
             self.emit(Event::TurnBegin {
                 turn: self.turn_number,

@@ -1,0 +1,9 @@
+card "Kykar, Wind's Fury" {
+  oracle_id 71a80491-eea2-4661-9446-26a87efbf4a8
+  cost {1}{U}{R}{W}
+  type Legendary Creature — Bird Wizard
+  pt 3/3
+  keywords flying
+  triggered whenever you cast a noncreature spell: create 1 "1/1 white Spirit creature with flying"
+  activated sacrifice Spirit: add {R}
+}

@@ -1,0 +1,7 @@
+card "Soltari Priest" {
+  oracle_id f8c9cb9f-3a37-4004-9cde-f51ca5579e1a
+  cost {W}{W}
+  type Creature — Soltari Cleric
+  pt 2/1
+  keywords protection from red, shadow
+}

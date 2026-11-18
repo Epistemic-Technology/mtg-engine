@@ -1,0 +1,8 @@
+card "Alexi's Cloak" {
+  oracle_id e52eb1a6-fff1-4a47-b434-31a74d76231c
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has shroud
+}

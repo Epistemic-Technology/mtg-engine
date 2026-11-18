@@ -1,0 +1,6 @@
+card "Vessel of Volatility" {
+  oracle_id c5a4d485-ab9c-48bb-866f-448b1f7707cc
+  cost {1}{R}
+  type Enchantment
+  activated {1}{R}, sacrifice this: add {R}{R}{R}{R}
+}

@@ -1,0 +1,7 @@
+card "Flensermite" {
+  oracle_id 4b63bf36-cd0e-41d8-b0ca-aac459d91f3f
+  cost {1}{B}
+  type Creature — Phyrexian Gremlin
+  pt 1/1
+  keywords infect, lifelink
+}

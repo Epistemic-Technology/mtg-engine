@@ -1,0 +1,7 @@
+card "Oona's Gatewarden" {
+  oracle_id 439f7ac8-19f0-4227-82a7-48294adc2114
+  cost {U/B}
+  type Creature — Faerie Soldier
+  pt 2/1
+  keywords defender, flying, wither
+}

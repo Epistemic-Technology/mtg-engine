@@ -1,0 +1,7 @@
+card "Wu Light Cavalry" {
+  oracle_id c24da532-311b-4b83-82d2-7dc80409ba12
+  cost {1}{U}
+  type Creature — Human Soldier
+  pt 1/2
+  keywords horsemanship
+}

@@ -1,0 +1,5 @@
+card "Mossfire Valley" {
+  oracle_id 23bbd091-f6ff-4514-97aa-42c08164b4eb
+  type Land
+  activated {1}, {T}: add {R}{G}
+}

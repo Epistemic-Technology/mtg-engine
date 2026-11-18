@@ -1,0 +1,7 @@
+card "Razaketh's Rite" {
+  oracle_id 0ab0be8e-d6be-411b-827f-584bb5d03766
+  cost {3}{B}{B}
+  type Sorcery
+  spell: search card to hand that card
+  cycling {B}
+}

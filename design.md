@@ -2139,6 +2139,21 @@ type); and investigate. Corpus 4,740 cards: 3,346 Pauper (31.2%), 3,588
 Modern (16.5%); 855 scenarios pass (16 new), 1 skipped; fuzz 0 panics,
 0 unfinished; throughput within 2% of slice 1.
 
+Status 2026-11-18, slice 3 (mana abilities, search, keywords) done:
+activated abilities that only add mana are mana abilities (CR 605) that
+resolve as they are activated, into the mana pool, with a color choice
+for "one mana of any color" (Signets, Talismans, Prophetic Prism);
+library search (CR 701.19) to hand, battlefield, or top, and
+typecycling; shroud, fear, intimidate, shadow, horsemanship, skulk,
+wither, infect with poison counters (CR 704.5c), exalted ("attacks
+alone": attack events are now emitted after all attackers are
+declared), persist, and undying. The keyword set is 64 bits; power and
+toughness are stored as `i16` so `Characteristics` stays 72 bytes. Also
+"another target <filter>" and spells' cycling lines printed after their
+text. Corpus 5,169 cards: 3,614 Pauper (33.7%), 3,878 Modern (17.9%);
+877 scenarios pass (22 new), 1 skipped; fuzz 0 panics, 0 unfinished;
+throughput within 1% of slice 2.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

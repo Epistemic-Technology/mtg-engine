@@ -1,0 +1,7 @@
+card "Deadly Insect" {
+  oracle_id 98273b0d-2b41-486b-9498-30a692c03982
+  cost {4}{G}
+  type Creature — Insect
+  pt 6/1
+  keywords shroud
+}

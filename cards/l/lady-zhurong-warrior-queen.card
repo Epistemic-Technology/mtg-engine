@@ -1,0 +1,7 @@
+card "Lady Zhurong, Warrior Queen" {
+  oracle_id 531e6ffb-28e0-4e8e-ad88-2f3a243789cf
+  cost {4}{G}
+  type Legendary Creature — Human Soldier Warrior
+  pt 4/3
+  keywords horsemanship
+}

@@ -1,0 +1,7 @@
+card "Infernal Plunge" {
+  oracle_id 0b67dff0-5bb7-44fe-a72b-d3b1a6c0ee72
+  cost {R}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: add {R}{R}{R}
+}

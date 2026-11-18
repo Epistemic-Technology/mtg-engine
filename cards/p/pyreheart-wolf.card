@@ -1,0 +1,8 @@
+card "Pyreheart Wolf" {
+  oracle_id b97ccb69-e76c-4962-91ca-c7fd857140e8
+  cost {2}{R}
+  type Creature — Wolf
+  pt 1/1
+  triggered whenever this attacks: each creature you control gains menace
+  keyword undying
+}

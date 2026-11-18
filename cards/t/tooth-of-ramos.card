@@ -1,0 +1,7 @@
+card "Tooth of Ramos" {
+  oracle_id fa4c57b3-6eaa-4938-b41a-0dad3e774d49
+  cost {3}
+  type Artifact
+  mana {W}
+  activated sacrifice this: add {W}
+}

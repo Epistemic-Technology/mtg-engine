@@ -1,0 +1,8 @@
+card "Daggermaw Megalodon" {
+  oracle_id dc638413-c4f8-4f6a-a003-5ce8a10a8f94
+  cost {4}{U}{U}
+  type Creature — Shark
+  pt 5/7
+  keywords vigilance
+  islandcycling {2}
+}

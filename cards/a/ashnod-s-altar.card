@@ -1,0 +1,6 @@
+card "Ashnod's Altar" {
+  oracle_id 4d18bcba-a346-445e-a182-6cc30b7e066d
+  cost {3}
+  type Artifact
+  activated sacrifice creature: add {C}{C}
+}

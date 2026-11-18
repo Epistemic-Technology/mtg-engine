@@ -1,0 +1,6 @@
+card "Fabricate" {
+  oracle_id 422e1869-134f-463d-9fa1-86b66a998b3e
+  cost {2}{U}
+  type Sorcery
+  spell: search artifact card reveal to hand
+}

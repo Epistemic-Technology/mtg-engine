@@ -1,0 +1,8 @@
+card "Kitchen Finks" {
+  oracle_id 5470dcfa-4eff-43da-abf7-19922841f719
+  cost {1}{G/W}{G/W}
+  type Creature — Ouphe
+  pt 3/2
+  triggered when this enters: you gains 2 life
+  keyword persist
+}

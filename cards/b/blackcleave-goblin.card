@@ -1,0 +1,7 @@
+card "Blackcleave Goblin" {
+  oracle_id 156d1a58-c970-4b81-b6c7-5a0caa1699cd
+  cost {3}{B}
+  type Creature — Phyrexian Goblin Zombie
+  pt 2/1
+  keywords haste, infect
+}

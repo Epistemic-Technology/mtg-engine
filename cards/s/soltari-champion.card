@@ -1,0 +1,8 @@
+card "Soltari Champion" {
+  oracle_id 765017e5-b43d-4c77-a9a9-0fcf0c0cd098
+  cost {2}{W}
+  type Creature — Soltari Soldier
+  pt 2/2
+  keywords shadow
+  triggered whenever this attacks: each other creature you control gets +1/+1
+}

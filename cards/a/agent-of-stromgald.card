@@ -1,0 +1,7 @@
+card "Agent of Stromgald" {
+  oracle_id 099fd4b3-92fd-4b5f-bb4f-eefa6f09700c
+  cost {R}
+  type Creature — Human Knight
+  pt 1/1
+  activated {R}: add {B}
+}

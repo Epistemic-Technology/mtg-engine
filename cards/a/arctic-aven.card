@@ -1,0 +1,9 @@
+card "Arctic Aven" {
+  oracle_id 616cb1be-074a-46c2-b8f1-6b9f15b7bc23
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 2/1
+  keywords flying
+  static this: +1/+1 as long as you control Plains
+  activated {W}: this gains lifelink
+}

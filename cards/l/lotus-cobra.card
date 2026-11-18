@@ -1,0 +1,7 @@
+card "Lotus Cobra" {
+  oracle_id 8ad91f64-ccab-4edc-bd54-b2ee9267d614
+  cost {1}{G}
+  type Creature — Snake
+  pt 2/1
+  label "Landfall" triggered whenever land you control enters: add any
+}

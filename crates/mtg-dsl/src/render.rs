@@ -112,11 +112,47 @@ fn plural(n: Num, word: &str) -> String {
 }
 
 fn pluralize(word: &str) -> String {
+    if word == "Plains" {
+        return word.to_string();
+    }
     if word.ends_with('y') && !word.ends_with("ey") {
         format!("{}ies", &word[..word.len() - 1])
     } else {
         format!("{word}s")
     }
+}
+
+/// The type a typecycling ability searches for, as its keyword prints
+/// it ("Plains", "Basic land", "Land"), if `effects` are one search.
+fn typecycling_word(effects: &[Sentence]) -> Option<String> {
+    let [s] = effects else { return None };
+    let [Effect::Search { filter, .. }] = s.effects.as_slice() else {
+        return None;
+    };
+    if let [sub] = filter.subtypes.as_slice() {
+        return Some(sub.clone());
+    }
+    if filter
+        .supertypes
+        .contains(&mtg_core::card::Supertype::Basic)
+    {
+        return Some("Basic land".to_string());
+    }
+    Some("Land".to_string())
+}
+
+/// "{B}{B}", or `any` for one mana of any color.
+pub fn mana_symbols(m: &[Mana], any: &str) -> String {
+    if m == [Mana::Any] {
+        return any.to_string();
+    }
+    m.iter()
+        .map(|m| match m {
+            Mana::Colorless => "{C}".to_string(),
+            Mana::Colored(c) => format!("{{{}}}", c.letter()),
+            Mana::Any => "{?}".to_string(),
+        })
+        .collect()
 }
 
 pub fn keyword_name(k: Keyword) -> &'static str {
@@ -355,6 +391,11 @@ impl<'a> Ctx<'a> {
         match &self.targets[i] {
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
+            Target::Filter(f) if f.relation == Relation::Other => {
+                let mut g = f.clone();
+                g.relation = Relation::Any;
+                format!("another target {}", filter_phrase(&g, self.card, false))
+            }
             Target::Filter(f) => format!("target {}", filter_phrase(f, self.card, false)),
         }
     }
@@ -1153,6 +1194,61 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::Investigate => Clause::imperative("investigate".to_string()),
+        Effect::Search {
+            filter,
+            count,
+            up_to,
+            to,
+            reveal,
+            that_card,
+        } => {
+            let one = *count == Num::N(1) && !*up_to;
+            let what = if filter == &Filter::default() {
+                if one {
+                    "a card".to_string()
+                } else {
+                    format!("{} cards", count_words(*count, "a"))
+                }
+            } else if one {
+                with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
+            } else {
+                format!(
+                    "{}{} {} cards",
+                    if *up_to { "up to " } else { "" },
+                    count_words(*count, "a"),
+                    filter_phrase(filter, ctx.card, false)
+                )
+            };
+            let (it, them) = if *that_card {
+                ("that card", "those cards")
+            } else {
+                ("it", "them")
+            };
+            let pron = if one { it } else { them };
+            let mut text = format!("search your library for {what}, ");
+            if *reveal {
+                let _ = write!(text, "reveal {}, ", if one { "it" } else { "them" });
+            }
+            match to {
+                mtg_core::card::SearchTo::Hand => {
+                    let _ = write!(text, "put {pron} into your hand, then shuffle");
+                }
+                mtg_core::card::SearchTo::Battlefield { tapped } => {
+                    let _ = write!(
+                        text,
+                        "put {pron} onto the battlefield{}, then shuffle",
+                        if *tapped { " tapped" } else { "" }
+                    );
+                }
+                mtg_core::card::SearchTo::TopOfLibrary => {
+                    let _ = write!(text, "then shuffle and put {it} on top");
+                }
+            }
+            Clause::imperative(text)
+        }
+        Effect::AddMana(m) => {
+            Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
+        }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -1423,6 +1519,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Attacks(TriggerObj::Filter(f)) => {
             format!("whenever {} attacks", filter_a(f, ctx.card))
         }
+        Trigger::AttacksAlone(TriggerObj::This) => {
+            format!("whenever {} attacks alone", this(ctx))
+        }
+        Trigger::AttacksAlone(TriggerObj::Filter(f)) => {
+            format!("whenever {} attacks alone", filter_a(f, ctx.card))
+        }
         Trigger::Blocks(TriggerObj::This) => format!("whenever {} blocks", this(ctx)),
         Trigger::Blocks(TriggerObj::Filter(f)) => {
             format!("whenever {} blocks", filter_a(f, ctx.card))
@@ -1476,6 +1578,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         }
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
         Condition::Kicked => "if it was kicked".to_string(),
+        Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
     }
 }
 
@@ -1946,6 +2049,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 return format!("Equip {}", cost.mana);
             }
             if *cycling {
+                if let Some(word) = typecycling_word(effects) {
+                    return format!("{word}cycling {}", cost.mana);
+                }
                 return format!("Cycling {}", cost.mana);
             }
             let mut ctx = Ctx::new(card, lookup, targets);

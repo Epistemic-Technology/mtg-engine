@@ -1,0 +1,6 @@
+card "Crystal Quarry" {
+  oracle_id ca68648f-fe3a-4770-9842-a3dc2310f099
+  type Land
+  mana {C}
+  activated {5}, {T}: add {W}{U}{B}{R}{G}
+}

@@ -1,0 +1,8 @@
+card "Shepherding Spirits" {
+  oracle_id e8ff3e99-eca9-44a5-baac-99ee34df3c36
+  cost {4}{W}{W}
+  type Creature — Spirit
+  pt 4/5
+  keywords flying
+  plainscycling {2}
+}

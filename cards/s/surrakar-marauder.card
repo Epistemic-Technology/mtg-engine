@@ -1,0 +1,7 @@
+card "Surrakar Marauder" {
+  oracle_id 23c52252-1e65-4e04-98d3-0ac06a565016
+  cost {1}{B}
+  type Creature — Surrakar
+  pt 2/1
+  label "Landfall" triggered whenever land you control enters: this gains intimidate
+}

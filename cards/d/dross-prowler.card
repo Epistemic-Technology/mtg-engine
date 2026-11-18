@@ -1,0 +1,7 @@
+card "Dross Prowler" {
+  oracle_id a3122c6a-20be-4bb3-ab2f-928143378ea6
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/1
+  keywords fear
+}

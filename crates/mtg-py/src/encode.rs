@@ -71,10 +71,12 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Surveil { .. } => 19,
         DecisionKind::PayOrCounter { .. } => 20,
         DecisionKind::Kicker { .. } => 21,
+        DecisionKind::ChooseColor => 22,
+        DecisionKind::SearchLibrary => 23,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 22] = [
+pub const DECISION_KIND_NAMES: [&str; 24] = [
     "mulligan",
     "bottom",
     "priority",
@@ -97,6 +99,8 @@ pub const DECISION_KIND_NAMES: [&str; 22] = [
     "surveil",
     "pay_or_counter",
     "kicker",
+    "choose_color",
+    "search_library",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -133,10 +137,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::AttackTarget(_) => 25,
         Choice::ScryBottom(_) => 26,
         Choice::SurveilGraveyard(_) => 27,
+        Choice::Color(_) => 28,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 28] = [
+pub const CHOICE_KIND_NAMES: [&str; 29] = [
     "keep",
     "mulligan",
     "bottom",
@@ -165,6 +170,7 @@ pub const CHOICE_KIND_NAMES: [&str; 28] = [
     "attack_target",
     "scry_bottom",
     "surveil_graveyard",
+    "color",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -200,8 +206,8 @@ fn card_features(state: &GameState, id: ObjId, me: PlayerId, out: &mut [f32]) {
     ] {
         push(f32::from(u8::from(c.types.contains(t))));
     }
-    push(c.power as f32);
-    push(c.toughness as f32);
+    push(f32::from(c.power));
+    push(f32::from(c.toughness));
     push(f32::from(u8::from(o.tapped)));
     push(f32::from(u8::from(
         o.zone == Zone::Battlefield && c.is_creature() && !o.controlled_since_turn_start,
@@ -357,6 +363,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
                 (card_id(state, *source), -1.0, 0.0, 0.0, cost)
             }
             Choice::X(x) => (-1.0, -1.0, 0.0, *x as f32, *x as f32),
+            Choice::Color(c) => (-1.0, -1.0, 0.0, f32::from(*c as u8), 0.0),
             Choice::ScryBottom(ids) | Choice::SurveilGraveyard(ids) => {
                 (-1.0, -1.0, 0.0, ids.len() as f32, 0.0)
             }

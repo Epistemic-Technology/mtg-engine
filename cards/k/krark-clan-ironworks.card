@@ -1,0 +1,6 @@
+card "Krark-Clan Ironworks" {
+  oracle_id 68e1f7e0-a9b3-437f-8086-0c0cb85f2880
+  cost {4}
+  type Artifact
+  activated sacrifice artifact: add {C}{C}
+}

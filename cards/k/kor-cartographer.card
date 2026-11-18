@@ -1,0 +1,7 @@
+card "Kor Cartographer" {
+  oracle_id a5f537f6-3254-45a3-a4e7-d4d4fd7a972d
+  cost {3}{W}
+  type Creature — Kor Scout
+  pt 2/2
+  triggered when this enters: you may search Plains card to battlefield tapped
+}

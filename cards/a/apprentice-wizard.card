@@ -1,0 +1,7 @@
+card "Apprentice Wizard" {
+  oracle_id d16d2451-1c21-4a6b-8a4a-40ac8cd9fe08
+  cost {1}{U}{U}
+  type Creature — Human Wizard
+  pt 0/1
+  activated {U}, {T}: add {C}{C}{C}
+}

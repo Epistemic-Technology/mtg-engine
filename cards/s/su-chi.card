@@ -1,0 +1,7 @@
+card "Su-Chi" {
+  oracle_id 9a28d53e-c789-47de-8f3e-a251843ac596
+  cost {4}
+  type Artifact Creature — Construct
+  pt 4/4
+  triggered when this dies: add {C}{C}{C}{C}
+}

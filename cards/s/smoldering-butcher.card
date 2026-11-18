@@ -1,0 +1,7 @@
+card "Smoldering Butcher" {
+  oracle_id b0f56eef-1abc-437e-8e2e-c079731fe783
+  cost {3}{B}
+  type Creature — Elemental Warrior
+  pt 4/2
+  keywords wither
+}

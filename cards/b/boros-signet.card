@@ -1,0 +1,6 @@
+card "Boros Signet" {
+  oracle_id 41c84665-1f99-40ab-aaca-1188649eb263
+  cost {2}
+  type Artifact
+  activated {1}, {T}: add {R}{W}
+}

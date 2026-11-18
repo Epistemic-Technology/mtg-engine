@@ -1,0 +1,7 @@
+card "Sanguine Glorifier" {
+  oracle_id 391f1331-7577-4bf4-a9ed-2f55ded4cbd8
+  cost {3}{W}
+  type Creature — Vampire Cleric
+  pt 3/3
+  triggered when this enters: put 1 +1/+1 counters on another target Vampire you control
+}

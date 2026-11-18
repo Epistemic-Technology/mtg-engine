@@ -1,0 +1,6 @@
+card "Dauthi Embrace" {
+  oracle_id b19a7ae7-3af5-4aa6-80e1-8888054427de
+  cost {2}{B}
+  type Enchantment
+  activated {B}{B}: target creature gains shadow
+}

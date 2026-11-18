@@ -1,0 +1,7 @@
+card "Dreamstone Hedron" {
+  oracle_id 0e2575be-c596-4c8c-bf07-7941ca065721
+  cost {6}
+  type Artifact
+  activated {T}: add {C}{C}{C}
+  activated {3}, {T}, sacrifice this: draw 3 cards
+}
