@@ -1,0 +1,7 @@
+card "Steppe Lynx" {
+  oracle_id b16cef02-dcf8-4866-ac42-6ee929ddbea2
+  cost {W}
+  type Creature — Cat
+  pt 0/1
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

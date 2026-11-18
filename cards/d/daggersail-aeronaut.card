@@ -1,0 +1,7 @@
+card "Daggersail Aeronaut" {
+  oracle_id 7c0ef3b7-b368-4a5b-8cbe-bf1f47610f74
+  cost {3}{R}
+  type Creature — Goblin
+  pt 3/2
+  static during your turn, this: has flying
+}

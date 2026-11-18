@@ -1,0 +1,6 @@
+card "Toxin Analysis" {
+  oracle_id 1f3b0b15-2c38-4aaa-b527-afbb540a6715
+  cost {B}
+  type Instant
+  spell: target creature gains deathtouch, lifelink; investigate
+}

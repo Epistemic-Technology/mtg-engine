@@ -1,0 +1,7 @@
+card "Hedron Crab" {
+  oracle_id 7216f974-3c84-40ef-b904-82019900c204
+  cost {U}
+  type Creature — Crab
+  pt 0/2
+  label "Landfall" triggered whenever land you control enters: target player mills 3 cards
+}

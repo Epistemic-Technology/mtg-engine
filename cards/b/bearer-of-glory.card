@@ -1,0 +1,8 @@
+card "Bearer of Glory" {
+  oracle_id 963947d5-5fe4-49cd-be0c-0bdb5f7bcbb6
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  static during your turn, this: has first strike
+  activated {4}{W}: each creature you control gets +1/+1
+}

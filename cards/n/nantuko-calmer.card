@@ -1,0 +1,8 @@
+card "Nantuko Calmer" {
+  oracle_id d4409b15-b9f8-4bdb-9857-5cd70a0d3193
+  cost {2}{G}{G}
+  type Creature — Insect Druid
+  pt 2/3
+  activated {G}, {T}, sacrifice this: destroy target enchantment
+  label "Threshold" static this: +1/+1 as long as 7 cards in your graveyard
+}

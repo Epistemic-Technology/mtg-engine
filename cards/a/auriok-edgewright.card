@@ -1,0 +1,7 @@
+card "Auriok Edgewright" {
+  oracle_id b718639d-cfba-4430-b5e3-1e644edd36d7
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  label "Metalcraft" static this: has double strike as long as you control 3 artifact
+}

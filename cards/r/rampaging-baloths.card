@@ -1,0 +1,8 @@
+card "Rampaging Baloths" {
+  oracle_id 2d3e6549-6cc6-434f-a189-ba3b55e64c34
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 6/6
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: create 1 "4/4 green Beast creature"
+}

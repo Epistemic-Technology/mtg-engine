@@ -1,0 +1,9 @@
+card "Billowing Shriekmass" {
+  oracle_id ce45d6bd-74e3-401b-983d-028d3fb942da
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  triggered when this enters: mill 3 cards
+  label "Threshold" static this: +2/+1 as long as 7 cards in your graveyard
+}

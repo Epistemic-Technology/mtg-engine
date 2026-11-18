@@ -1,0 +1,8 @@
+card "Darkwatch Elves" {
+  oracle_id 55ad9924-f217-4844-8a82-48746186bc53
+  cost {2}{G}
+  type Creature — Elf
+  pt 2/2
+  keywords protection from black
+  cycling {2}
+}

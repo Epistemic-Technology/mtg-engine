@@ -1,0 +1,8 @@
+card "Kozilek's Shrieker" {
+  oracle_id b2b5683b-f8ea-4af6-b847-953ab4a267c4
+  cost {2}{B}
+  type Creature — Eldrazi Drone
+  pt 3/2
+  keywords devoid
+  activated {C}: this gets +1/+0 and gains menace
+}

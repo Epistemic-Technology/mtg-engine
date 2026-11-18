@@ -1,0 +1,8 @@
+card "Disciple of Grace" {
+  oracle_id 7f4ceca9-0f55-4fa6-8e64-befbc4303d4e
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/2
+  keywords protection from black
+  cycling {2}
+}

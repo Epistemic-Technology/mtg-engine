@@ -1,0 +1,8 @@
+card "Wildfire Wickerfolk" {
+  oracle_id 50c7b13d-f217-45de-837c-49f934840368
+  cost {R}{G}
+  type Artifact Creature — Scarecrow
+  pt 3/2
+  keywords haste
+  label "Delirium" static this: +1/+1, has trample as long as 4 card types in your graveyard
+}

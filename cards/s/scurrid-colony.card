@@ -1,0 +1,8 @@
+card "Scurrid Colony" {
+  oracle_id 7dd68fd9-f5a7-49ee-aa36-93d646254335
+  cost {1}{G}
+  type Creature — Squirrel
+  pt 2/2
+  keywords reach
+  static this: +2/+2 as long as you control 8 land
+}

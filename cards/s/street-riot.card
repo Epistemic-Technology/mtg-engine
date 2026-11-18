@@ -1,0 +1,6 @@
+card "Street Riot" {
+  oracle_id 526db754-abb6-450c-bead-81dd1e1c347c
+  cost {4}{R}
+  type Enchantment
+  static during your turn, creature you control: +1/+0, has trample
+}

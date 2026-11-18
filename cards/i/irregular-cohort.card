@@ -1,0 +1,8 @@
+card "Irregular Cohort" {
+  oracle_id c0636d16-671c-4e80-af8c-67d80d2cd979
+  cost {2}{W}{W}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  triggered when this enters: create 1 "2/2 colorless Shapeshifter creature with changeling"
+}

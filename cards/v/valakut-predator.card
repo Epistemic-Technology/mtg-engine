@@ -1,0 +1,7 @@
+card "Valakut Predator" {
+  oracle_id b86a5d90-0820-46cb-b43c-c03a423a3a9f
+  cost {2}{R}
+  type Creature — Elemental
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Ballroom" {
+  oracle_id cb91e842-9f06-4863-a328-2cabe1bcfe27
+  type Land
+  enters tapped
+  mana {W} or {B}
+  activated {4}, {T}: investigate
+}

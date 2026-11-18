@@ -1,0 +1,7 @@
+card "Scorpion Sentinel" {
+  oracle_id 5e53fe9f-9995-47ff-85e9-f09b70d7af15
+  cost {1}{U}
+  type Artifact Creature — Robot Scorpion
+  pt 1/4
+  static as long as you control 7 land, this: +3/+0
+}

@@ -1,0 +1,7 @@
+card "Vestige of Emrakul" {
+  oracle_id 55187899-c445-48e9-80b9-235eaf42f803
+  cost {3}{R}
+  type Creature — Eldrazi Drone
+  pt 3/4
+  keywords devoid, trample
+}

@@ -1,0 +1,8 @@
+card "Sedge Troll" {
+  oracle_id a6a43190-cca2-4f07-afe9-8af681d777da
+  cost {2}{R}
+  type Creature — Troll
+  pt 2/2
+  static this: +1/+1 as long as you control Swamp
+  activated {B}: regenerate this
+}

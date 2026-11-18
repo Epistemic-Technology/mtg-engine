@@ -1,0 +1,7 @@
+card "Chitinous Graspling" {
+  oracle_id 930035c6-cde7-40ac-98ef-0840812037db
+  cost {3}{G/U}
+  type Creature — Shapeshifter
+  pt 3/4
+  keywords changeling, reach
+}

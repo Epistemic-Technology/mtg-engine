@@ -1,0 +1,7 @@
+card "Fresh-Faced Recruit" {
+  oracle_id 14319020-faf2-49c4-a808-c39650203383
+  cost {1}{R/W}
+  type Creature — Human Soldier
+  pt 2/1
+  static during your turn, this: has first strike
+}

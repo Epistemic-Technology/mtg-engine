@@ -1,0 +1,7 @@
+card "EPF Point Squad" {
+  oracle_id 2dea1935-c227-46d5-9d98-e7d2cd612f98
+  cost {1}{R/W}{R/W}
+  type Creature — Human Soldier
+  pt 2/1
+  label "Alliance" triggered whenever other creature you control enters: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Ruin Crab" {
+  oracle_id 8afc00d4-a1c6-4329-af2c-a7f58a0c33e7
+  cost {U}
+  type Creature — Crab
+  pt 0/3
+  label "Landfall" triggered whenever land you control enters: each opponent mills 3 cards
+}

@@ -1,0 +1,7 @@
+card "Hookblade Veteran" {
+  oracle_id bad2385b-6981-46fa-a012-d3992c3bc118
+  cost {U}
+  type Creature — Human Assassin
+  pt 1/2
+  static during your turn, this: has flying
+}

@@ -1,0 +1,7 @@
+card "Lounge" {
+  oracle_id 98a22879-d0b2-441f-bcf6-a67b4552b73c
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {4}, {T}: investigate
+}

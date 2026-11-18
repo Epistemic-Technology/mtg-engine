@@ -1,0 +1,8 @@
+card "Attercop" {
+  oracle_id 45d652c4-188e-4f00-acdd-1be014922cbc
+  cost {1}{G}
+  type Creature — Spider
+  pt 2/1
+  keywords reach, deathtouch
+  label "Landfall" triggered whenever land you control enters: this gets +1/+1
+}

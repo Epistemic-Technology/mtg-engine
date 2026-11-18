@@ -1,0 +1,7 @@
+card "Hardy Veteran" {
+  oracle_id fc112282-bc40-4b91-ac5f-ae49db1dabb8
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  static during your turn, this: +0/+2
+}

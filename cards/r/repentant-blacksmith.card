@@ -1,0 +1,7 @@
+card "Repentant Blacksmith" {
+  oracle_id a83073a2-e63d-4105-8bad-9612e411fc85
+  cost {1}{W}
+  type Creature — Human
+  pt 1/2
+  keywords protection from red
+}

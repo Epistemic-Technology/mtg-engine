@@ -1,0 +1,8 @@
+card "Crimson Acolyte" {
+  oracle_id 969626f0-19d9-47ae-8766-4d59269e389c
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords protection from red
+  activated {W}: target creature gains protection from red
+}

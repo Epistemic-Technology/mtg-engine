@@ -1,0 +1,7 @@
+card "Zombie Outlander" {
+  oracle_id 857524d5-9b5c-42ac-a6cf-2d9bfebd7015
+  cost {U}{B}
+  type Creature — Zombie Scout
+  pt 2/2
+  keywords protection from green
+}

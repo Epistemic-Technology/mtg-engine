@@ -1,0 +1,7 @@
+card "Thraben Inspector" {
+  oracle_id caa02547-66e3-4e27-a2d3-5e94f3e7a069
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+  triggered when this enters: investigate
+}

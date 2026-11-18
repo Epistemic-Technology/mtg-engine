@@ -1,0 +1,9 @@
+card "Hard Evidence" {
+  oracle_id 0728b195-2dfe-4d73-91ae-e658a97b0b9a
+  cost {U}
+  type Sorcery
+  spell {
+    create 1 "0/3 blue Crab creature"
+    investigate
+  }
+}

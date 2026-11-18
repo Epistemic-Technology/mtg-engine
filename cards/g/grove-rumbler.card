@@ -1,0 +1,8 @@
+card "Grove Rumbler" {
+  oracle_id 5dcbed75-bafc-492a-85a1-44f3ff06fa78
+  cost {2}{R}{G}
+  type Creature — Elemental
+  pt 3/3
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

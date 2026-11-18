@@ -1,0 +1,7 @@
+card "Cemetery Gate" {
+  oracle_id 443f8dd1-333d-42c4-a286-302a9496209a
+  cost {2}{B}
+  type Creature — Wall
+  pt 0/5
+  keywords defender, protection from black
+}

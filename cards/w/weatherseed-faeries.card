@@ -1,0 +1,7 @@
+card "Weatherseed Faeries" {
+  oracle_id 904b2caf-e083-4917-8841-95f48d90dc0c
+  cost {2}{U}
+  type Creature — Faerie
+  pt 2/1
+  keywords flying, protection from red
+}

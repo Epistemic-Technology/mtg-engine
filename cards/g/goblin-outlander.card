@@ -1,0 +1,7 @@
+card "Goblin Outlander" {
+  oracle_id 3cc99034-6eaf-4e45-9bff-57b74847343e
+  cost {B}{R}
+  type Creature — Goblin Scout
+  pt 2/2
+  keywords protection from white
+}

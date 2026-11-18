@@ -206,8 +206,39 @@ pub enum Ability {
     Static {
         filter: Filter,
         mods: Vec<Mod>,
+        /// "As long as ..." (CR 611.3a).
+        condition: Option<StaticCond>,
+        /// The condition prints first ("As long as seven or more cards are
+        /// in your graveyard, this creature gets +1/+1.") rather than last.
+        cond_first: bool,
     },
     EntersAsCopy(Filter),
+    /// An ability word (CR 207.2c) printed before the ability: "Landfall —
+    /// Whenever a land you control enters, ...". No rules meaning.
+    Labeled {
+        label: String,
+        ability: Box<Ability>,
+    },
+}
+
+/// What a conditional static ability checks.
+#[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
+pub enum StaticCond {
+    /// `7 cards in your graveyard`: "seven or more cards are in your
+    /// graveyard" (threshold).
+    CardsInGraveyard(u32),
+    /// `4 card types in your graveyard`: "there are four or more card
+    /// types among cards in your graveyard" (delirium).
+    CardTypesInGraveyard(u32),
+    /// `you control 3 artifact`: "you control three or more artifacts";
+    /// `you control Island`: "you control an Island".
+    YouControl { filter: Filter, at_least: u32 },
+    /// `your turn`: "it's your turn"; `static during your turn, ...`
+    /// prints "During your turn, ..." instead.
+    YourTurn,
+    /// Written `static during your turn, <filter>: ...`.
+    DuringYourTurn,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -490,6 +521,8 @@ pub enum Effect {
         mana: ManaCost,
     },
     Scry(Num),
+    /// "Investigate" (CR 701.16): create a Clue token.
+    Investigate,
     Surveil(Num),
     /// `who` is `None` for the imperative "discard a card".
     Discard {

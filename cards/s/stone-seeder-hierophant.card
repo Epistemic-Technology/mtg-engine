@@ -1,0 +1,8 @@
+card "Stone-Seeder Hierophant" {
+  oracle_id ccaea194-4b21-4485-ba08-d8d030c9418d
+  cost {2}{G}{G}
+  type Creature — Human Druid
+  pt 1/1
+  label "Landfall" triggered whenever land you control enters: untap this
+  activated {T}: untap target land
+}

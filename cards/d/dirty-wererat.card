@@ -1,0 +1,8 @@
+card "Dirty Wererat" {
+  oracle_id 7fbd5f69-f6b4-4ad7-8e9e-47a798324f6c
+  cost {3}{B}
+  type Creature — Human Rat Minion
+  pt 2/3
+  activated {B}, discard 1 card: regenerate this
+  label "Threshold" static as long as 7 cards in your graveyard, this: +2/+2, has can't block
+}

@@ -7,16 +7,17 @@ use std::collections::HashMap;
 use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
     CdaCount as CoreCdaCount, CopyExcept, Cost as CoreCost, Effect as CoreEffect, KeywordSet,
-    Mode as CoreMode, Modification, ObjFilter, Recipient as CoreRecipient, ReplacementAbility,
-    Replaces as CoreReplaces, SacCost as CoreSacCost, StaticAbility, SubtypeSet, SupertypeSet,
-    TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
+    Mode as CoreMode, Modification, Num, ObjFilter, Recipient as CoreRecipient, ReplacementAbility,
+    Replaces as CoreReplaces, SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet,
+    SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
+    Who,
 };
 use mtg_core::mana::{ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mod, Recipient, Replacement,
-    Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -375,6 +376,16 @@ impl Compiler<'_> {
                 mana: mana.clone(),
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
+            Effect::Investigate => {
+                let Some(token) = self.pool.lookup("Clue") else {
+                    return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
+                };
+                out.push(CoreEffect::CreateToken {
+                    token,
+                    count: Num::N(1),
+                    who: CoreRecipient::You,
+                });
+            }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
             Effect::Discard { count, who } => out.push(CoreEffect::Discard {
                 count: *count,
@@ -626,10 +637,27 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
             }),
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
-            Ability::Static { filter, mods } => AbilityDef::Static(StaticAbility {
+            Ability::Static {
+                filter,
+                mods,
+                condition,
+                ..
+            } => AbilityDef::Static(StaticAbility {
                 affected: self.filter(filter),
                 parts: mods.iter().map(|m| self.modification(m)).collect(),
+                condition: condition.as_ref().map(|c| match c {
+                    StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
+                    StaticCond::CardTypesInGraveyard(n) => {
+                        StaticCondition::CardTypesInGraveyard(*n)
+                    }
+                    StaticCond::YouControl { filter, at_least } => StaticCondition::YouControl {
+                        filter: self.filter(filter).who(Who::You),
+                        at_least: *at_least,
+                    },
+                    StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+                }),
             }),
+            Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
         })
     }

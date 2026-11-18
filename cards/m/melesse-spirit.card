@@ -1,0 +1,7 @@
+card "Melesse Spirit" {
+  oracle_id 1c4bd85b-03c2-4235-aea1-76c48520adf3
+  cost {3}{W}{W}
+  type Creature — Angel Spirit
+  pt 3/3
+  keywords flying, protection from black
+}

@@ -1,0 +1,7 @@
+card "Hedron Scrabbler" {
+  oracle_id 180d9c48-6d6c-4d20-965a-0ee2ad57f99b
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  label "Landfall" triggered whenever land you control enters: this gets +1/+1
+}

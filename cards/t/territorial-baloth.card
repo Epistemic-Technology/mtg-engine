@@ -1,0 +1,7 @@
+card "Territorial Baloth" {
+  oracle_id f772e767-a931-4891-94eb-d92a8ca7f8c1
+  cost {4}{G}
+  type Creature — Beast
+  pt 4/4
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

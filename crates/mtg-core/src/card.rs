@@ -204,6 +204,18 @@ pub enum Keyword {
     Swampwalk,
     Mountainwalk,
     Forestwalk,
+    /// Protection from a color (CR 702.16): can't be damaged, enchanted or
+    /// equipped, blocked, or targeted by anything of that color (DEBT).
+    ProtectionFromWhite,
+    ProtectionFromBlue,
+    ProtectionFromBlack,
+    ProtectionFromRed,
+    ProtectionFromGreen,
+    /// CR 702.114: this object is colorless (a characteristic-defining
+    /// ability applied to the printed values in every zone).
+    Devoid,
+    /// CR 702.73: this object is every creature type, in every zone.
+    Changeling,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -247,6 +259,14 @@ impl KeywordSet {
         .with(Keyword::Mountainwalk)
         .with(Keyword::Forestwalk);
 
+    /// The five protection-from-a-color keywords (CR 702.16).
+    pub const PROTECTION: KeywordSet = KeywordSet::NONE
+        .with(Keyword::ProtectionFromWhite)
+        .with(Keyword::ProtectionFromBlue)
+        .with(Keyword::ProtectionFromBlack)
+        .with(Keyword::ProtectionFromRed)
+        .with(Keyword::ProtectionFromGreen);
+
     pub const fn contains_all(self, other: KeywordSet) -> bool {
         self.0 & other.0 == other.0
     }
@@ -261,7 +281,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 24] = [
+    pub const ALL: [Keyword; 31] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -286,6 +306,13 @@ impl Keyword {
         Keyword::Swampwalk,
         Keyword::Mountainwalk,
         Keyword::Forestwalk,
+        Keyword::ProtectionFromWhite,
+        Keyword::ProtectionFromBlue,
+        Keyword::ProtectionFromBlack,
+        Keyword::ProtectionFromRed,
+        Keyword::ProtectionFromGreen,
+        Keyword::Devoid,
+        Keyword::Changeling,
     ];
 
     /// The keyword as Oracle prints it.
@@ -315,6 +342,36 @@ impl Keyword {
             Keyword::Swampwalk => "swampwalk",
             Keyword::Mountainwalk => "mountainwalk",
             Keyword::Forestwalk => "forestwalk",
+            Keyword::ProtectionFromWhite => "protection from white",
+            Keyword::ProtectionFromBlue => "protection from blue",
+            Keyword::ProtectionFromBlack => "protection from black",
+            Keyword::ProtectionFromRed => "protection from red",
+            Keyword::ProtectionFromGreen => "protection from green",
+            Keyword::Devoid => "devoid",
+            Keyword::Changeling => "changeling",
+        }
+    }
+
+    /// The color a protection keyword protects from (CR 702.16).
+    pub const fn protection(self) -> Option<Color> {
+        match self {
+            Keyword::ProtectionFromWhite => Some(Color::White),
+            Keyword::ProtectionFromBlue => Some(Color::Blue),
+            Keyword::ProtectionFromBlack => Some(Color::Black),
+            Keyword::ProtectionFromRed => Some(Color::Red),
+            Keyword::ProtectionFromGreen => Some(Color::Green),
+            _ => None,
+        }
+    }
+
+    /// The protection keyword for a color.
+    pub const fn protection_from(c: Color) -> Keyword {
+        match c {
+            Color::White => Keyword::ProtectionFromWhite,
+            Color::Blue => Keyword::ProtectionFromBlue,
+            Color::Black => Keyword::ProtectionFromBlack,
+            Color::Red => Keyword::ProtectionFromRed,
+            Color::Green => Keyword::ProtectionFromGreen,
         }
     }
 
@@ -363,7 +420,72 @@ impl Subtype {
     pub fn basic_color(self) -> Option<Color> {
         Color::ALL.get(self.0 as usize).copied()
     }
+
+    /// Whether this is a creature type (CR 205.3m), for changeling. The
+    /// pool interns the basic land types and then `NONCREATURE_SUBTYPES`
+    /// first, so every later index is a creature type (planeswalker types
+    /// are counted as creature types; no filter tells them apart).
+    pub const fn is_creature_type(self) -> bool {
+        self.0 as usize >= 5 + NONCREATURE_SUBTYPES.len()
+    }
 }
+
+/// Land, artifact, enchantment, spell, and battle subtypes (CR 205.3g–k),
+/// other than the basic land types: interned right after them.
+pub const NONCREATURE_SUBTYPES: [&str; 52] = [
+    "Cave",
+    "Cloud",
+    "Desert",
+    "Gate",
+    "Lair",
+    "Locus",
+    "Mine",
+    "Power-Plant",
+    "Sphere",
+    "Tower",
+    "Town",
+    "Urza's",
+    "Planet",
+    "Attraction",
+    "Blood",
+    "Bobblehead",
+    "Clue",
+    "Contraption",
+    "Equipment",
+    "Food",
+    "Fortification",
+    "Gold",
+    "Incubator",
+    "Junk",
+    "Lander",
+    "Map",
+    "Powerstone",
+    "Treasure",
+    "Vehicle",
+    "Spacecraft",
+    "Aura",
+    "Background",
+    "Cartouche",
+    "Case",
+    "Class",
+    "Curse",
+    "Role",
+    "Room",
+    "Rune",
+    "Saga",
+    "Shard",
+    "Shrine",
+    "Adventure",
+    "Arcane",
+    "Lesson",
+    "Trap",
+    "Omen",
+    "Siege",
+    "Infinity",
+    "Stone",
+    "Mutagen",
+    "Chorus",
+];
 
 /// A small fixed-capacity list of `Copy` items. `Characteristics` is copied
 /// on every rules query, so its lists must be plain data, not heap vectors.
@@ -677,7 +799,9 @@ impl ObjFilter {
             return false;
         }
         if c.subtypes.iter().any(|s| self.not_subtypes.contains(s))
-            || self.subtypes.iter().any(|s| !c.subtypes.contains(s))
+            || self.subtypes.iter().any(|s| !c.has_subtype(*s))
+            || (c.has(Keyword::Changeling)
+                && self.not_subtypes.iter().any(|s| s.is_creature_type()))
         {
             return false;
         }
@@ -785,6 +909,26 @@ impl Modification {
 pub struct StaticAbility {
     pub affected: ObjFilter,
     pub parts: Vec<Modification>,
+    /// "As long as ..." (CR 611.3a): the effect exists only while this
+    /// holds, judged from the source's controller.
+    pub condition: Option<StaticCondition>,
+}
+
+/// What a conditional static ability checks (threshold, metalcraft,
+/// delirium, "during your turn", "as long as you control an Island").
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum StaticCondition {
+    /// "seven or more cards are in your graveyard" (threshold).
+    CardsInGraveyard(u32),
+    /// "there are four or more card types among cards in your graveyard"
+    /// (delirium).
+    CardTypesInGraveyard(u32),
+    /// "you control three or more artifacts" (metalcraft); `at_least` 1 is
+    /// "you control an Island".
+    YouControl { filter: ObjFilter, at_least: u32 },
+    /// "it's your turn" ("during your turn"). The turn change bumps the
+    /// characteristics cache.
+    YourTurn,
 }
 
 /// Kinds of counters (CR 122).
@@ -1745,8 +1889,11 @@ impl DefFlags {
 
 impl CardDef {
     /// Printed color (CR 202.2): the color indicator if any, else the mana
-    /// cost's colors.
+    /// cost's colors; none for devoid (CR 702.114a).
     pub fn colors(&self) -> ColorSet {
+        if self.keywords.contains(Keyword::Devoid) {
+            return ColorSet::default();
+        }
         self.color_indicator
             .unwrap_or_else(|| self.mana_cost.colors())
     }
@@ -1946,6 +2093,9 @@ impl CardPool {
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
             debug_assert_eq!(id, Subtype::basic(c));
+        }
+        for name in NONCREATURE_SUBTYPES {
+            pool.subtype(name);
         }
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
             trigger: TriggerSpec::CastsSpell {

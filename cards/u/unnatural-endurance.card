@@ -1,0 +1,7 @@
+card "Unnatural Endurance" {
+  oracle_id 63701aa6-d3b8-4af2-96a4-2dec27d6a661
+  cost {B}
+  type Instant
+  keywords devoid
+  spell: target creature gets +2/+0; regenerate target 1
+}

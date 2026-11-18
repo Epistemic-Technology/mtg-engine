@@ -1,0 +1,8 @@
+card "Havoc Sower" {
+  oracle_id 098e6926-4a6a-4bbb-96bc-1f35cc7982ae
+  cost {3}{B}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  keywords devoid
+  activated {1}{C}: this gets +2/+1
+}

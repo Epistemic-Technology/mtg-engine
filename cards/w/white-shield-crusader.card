@@ -1,0 +1,9 @@
+card "White Shield Crusader" {
+  oracle_id 96ef0bd9-4abb-49af-8744-0b2ad595a393
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords protection from black
+  activated {W}: this gains flying
+  activated {W}{W}: this gets +1/+0
+}

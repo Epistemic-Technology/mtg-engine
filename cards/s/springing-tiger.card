@@ -1,0 +1,7 @@
+card "Springing Tiger" {
+  oracle_id 2f8c4805-694d-4408-8eb5-9fb7ce278ded
+  cost {3}{G}
+  type Creature — Cat
+  pt 3/3
+  label "Threshold" static this: +2/+2 as long as 7 cards in your graveyard
+}

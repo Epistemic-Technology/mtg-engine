@@ -1,0 +1,7 @@
+card "Shivan Zombie" {
+  oracle_id fb3d438e-5e04-45a0-8d16-db63f0faff75
+  cost {B}{R}
+  type Creature — Phyrexian Barbarian Zombie
+  pt 2/2
+  keywords protection from white
+}

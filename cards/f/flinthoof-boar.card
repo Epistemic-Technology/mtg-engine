@@ -1,0 +1,8 @@
+card "Flinthoof Boar" {
+  oracle_id acb58839-2b26-4724-9e9b-b49b8217b13f
+  cost {1}{G}
+  type Creature — Boar
+  pt 2/2
+  static this: +1/+1 as long as you control Mountain
+  activated {R}: this gains haste
+}

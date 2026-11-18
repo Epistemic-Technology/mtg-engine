@@ -12,7 +12,7 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
-    Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
@@ -379,6 +379,7 @@ impl Fmt {
                 self.recipient(*to, t)
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
+            Effect::Investigate => "investigate".to_string(),
             Effect::Surveil(n) => format!("surveil {}", num(*n)),
             Effect::Discard { count, who } => match who {
                 None => format!("discard {} {}", num(*count), cards(*count)),
@@ -831,6 +832,22 @@ fn body(
     }
 }
 
+fn static_cond(c: &StaticCond) -> String {
+    match c {
+        StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
+        StaticCond::CardTypesInGraveyard(n) => format!("{n} card types in your graveyard"),
+        StaticCond::YouControl {
+            filter: fl,
+            at_least: 1,
+        } => format!("you control {}", filter(fl)),
+        StaticCond::YouControl {
+            filter: fl,
+            at_least,
+        } => format!("you control {at_least} {}", filter(fl)),
+        StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
+    }
+}
+
 #[allow(clippy::too_many_lines)] // one arm per statement kind
 fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter]) {
     match ability {
@@ -950,13 +967,49 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 let _ = writeln!(out, "{indent}}}");
             }
         }
-        Ability::Static { filter: fl, mods } => {
-            let _ = writeln!(
-                out,
-                "{indent}static {}: {}",
-                filter(fl),
-                mods.iter().map(modification).collect::<Vec<_>>().join(", ")
-            );
+        Ability::Static {
+            filter: fl,
+            mods,
+            condition,
+            cond_first,
+        } => {
+            let mods = mods.iter().map(modification).collect::<Vec<_>>().join(", ");
+            match condition {
+                Some(StaticCond::DuringYourTurn) => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static during your turn, {}: {mods}",
+                        filter(fl)
+                    );
+                }
+                Some(c) if *cond_first => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static as long as {}, {}: {mods}",
+                        static_cond(c),
+                        filter(fl)
+                    );
+                }
+                Some(c) => {
+                    let _ = writeln!(
+                        out,
+                        "{indent}static {}: {mods} as long as {}",
+                        filter(fl),
+                        static_cond(c)
+                    );
+                }
+                None => {
+                    let _ = writeln!(out, "{indent}static {}: {mods}", filter(fl));
+                }
+            }
+        }
+        Ability::Labeled {
+            label,
+            ability: inner,
+        } => {
+            let mut tmp = String::new();
+            self::ability(&mut tmp, inner, indent, groups);
+            let _ = write!(out, "{indent}label \"{label}\" {}", &tmp[indent.len()..]);
         }
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));

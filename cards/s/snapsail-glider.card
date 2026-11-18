@@ -1,0 +1,7 @@
+card "Snapsail Glider" {
+  oracle_id 43e2e1ed-5c6a-49b4-8ab8-57861c02fc3e
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  label "Metalcraft" static this: has flying as long as you control 3 artifact
+}

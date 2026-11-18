@@ -1,0 +1,7 @@
+card "Impostor of the Sixth Pride" {
+  oracle_id a2b8185a-9ff2-4d65-9bdd-b060b7ce69bb
+  cost {1}{W}
+  type Creature — Shapeshifter
+  pt 3/1
+  keywords changeling
+}

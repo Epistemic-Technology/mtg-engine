@@ -1,0 +1,7 @@
+card "Dreadwurm" {
+  oracle_id 9feb7600-f844-4573-bcb7-d6b34473517b
+  cost {4}{B}
+  type Creature — Wurm Horror
+  pt 5/4
+  label "Landfall" triggered whenever land you control enters: this gains indestructible
+}

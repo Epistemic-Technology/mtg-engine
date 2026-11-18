@@ -1,0 +1,7 @@
+card "Ihsan's Shade" {
+  oracle_id 5eb29367-4ec3-4bd2-887e-13eeeecae8fa
+  cost {3}{B}{B}{B}
+  type Legendary Creature — Shade Knight
+  pt 5/5
+  keywords protection from white
+}

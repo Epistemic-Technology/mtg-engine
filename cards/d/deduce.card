@@ -1,0 +1,6 @@
+card "Deduce" {
+  oracle_id eeae4161-9f35-45df-8b3c-c55e37f49cd1
+  cost {1}{U}
+  type Instant
+  spell: draw 1 cards; investigate
+}

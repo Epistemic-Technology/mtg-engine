@@ -1,0 +1,8 @@
+card "Obsidian Acolyte" {
+  oracle_id dd1e7e89-72d7-44d7-922c-f08f0b7d5166
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords protection from black
+  activated {W}: target creature gains protection from black
+}

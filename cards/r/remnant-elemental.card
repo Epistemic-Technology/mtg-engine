@@ -1,0 +1,8 @@
+card "Remnant Elemental" {
+  oracle_id 69e8333a-bddf-49e2-9c39-3dc46fec81e0
+  cost {1}{R}
+  type Creature — Elemental
+  pt 0/4
+  keywords reach
+  label "Landfall" triggered whenever land you control enters: this gets +2/+0
+}

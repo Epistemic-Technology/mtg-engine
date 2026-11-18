@@ -1,0 +1,8 @@
+card "Ghostly Changeling" {
+  oracle_id 4e779540-e667-457e-9071-4cbbd777d9a9
+  cost {2}{B}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  activated {1}{B}: this gets +1/+1
+}

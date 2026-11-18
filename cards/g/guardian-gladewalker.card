@@ -1,0 +1,8 @@
+card "Guardian Gladewalker" {
+  oracle_id 03a3f54e-9289-4d99-beab-bfa0988a050e
+  cost {1}{G}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  triggered when this enters: put 1 +1/+1 counters on target creature
+}

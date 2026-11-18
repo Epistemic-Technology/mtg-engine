@@ -1,0 +1,8 @@
+card "Mistwalker" {
+  oracle_id ceb302df-d67e-4e5d-aca0-f53bcdea658d
+  cost {2}{U}
+  type Creature — Shapeshifter
+  pt 1/4
+  keywords changeling, flying
+  activated {1}{U}: this gets +1/-1
+}

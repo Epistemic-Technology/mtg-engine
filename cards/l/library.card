@@ -1,0 +1,7 @@
+card "Library" {
+  oracle_id 33a7d29a-ebc0-4606-91b6-7381e2a16016
+  type Land
+  enters tapped
+  mana {U} or {R}
+  activated {4}, {T}: investigate
+}

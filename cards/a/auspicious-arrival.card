@@ -1,0 +1,6 @@
+card "Auspicious Arrival" {
+  oracle_id b25d5b06-44cf-42bc-90dd-3b238f702361
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; investigate
+}

@@ -629,8 +629,13 @@ impl GameState {
                         self.finish_cast(spell, sacrifice, discard);
                         continue;
                     }
-                    let source =
-                        is_ability.then(|| self.objects[spell].ability.map_or(spell, |a| a.source));
+                    // A spell is its own source (protection judges its
+                    // colors, CR 702.16b).
+                    let source = Some(if is_ability {
+                        self.objects[spell].ability.map_or(spell, |a| a.source)
+                    } else {
+                        spell
+                    });
                     let options: Vec<Choice> = self
                         .legal_targets(caster, specs[next_target], source)
                         .into_iter()
@@ -1366,6 +1371,8 @@ impl GameState {
             self.activated_once.clear();
             self.turn_number += 1;
             self.active_player = self.next_player_in_game(self.active_player);
+            // "During your turn" static abilities (CR 611.3a) change with it.
+            self.cbump();
             self.step = Step::Untap;
             self.emit(Event::TurnBegin {
                 turn: self.turn_number,

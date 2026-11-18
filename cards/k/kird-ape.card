@@ -1,0 +1,7 @@
+card "Kird Ape" {
+  oracle_id fbbc3acb-c917-44ff-ac6f-9dd6ebe3f4ad
+  cost {R}
+  type Creature — Ape
+  pt 1/1
+  static this: +1/+2 as long as you control Forest
+}

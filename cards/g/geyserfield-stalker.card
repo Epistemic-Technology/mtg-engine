@@ -1,0 +1,8 @@
+card "Geyserfield Stalker" {
+  oracle_id d93d98ef-a5b6-4d6f-9828-fd5943471d0f
+  cost {4}{B}
+  type Creature — Elemental
+  pt 3/2
+  keywords menace
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

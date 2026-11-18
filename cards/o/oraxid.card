@@ -1,0 +1,7 @@
+card "Oraxid" {
+  oracle_id 7d086ae5-738c-4685-80ae-66bd9379d8f7
+  cost {3}{U}
+  type Creature — Crab Beast
+  pt 2/3
+  keywords protection from red
+}

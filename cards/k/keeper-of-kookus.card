@@ -1,0 +1,7 @@
+card "Keeper of Kookus" {
+  oracle_id 97417270-e525-4261-b7d9-0dde3360e666
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated {R}: this gains protection from red
+}

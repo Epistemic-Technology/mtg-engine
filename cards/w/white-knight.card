@@ -1,0 +1,7 @@
+card "White Knight" {
+  oracle_id ddb021df-ae4a-4ac1-8353-d0b375761714
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike, protection from black
+}

@@ -43,7 +43,12 @@ const KEYWORDS: [&str; 20] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 13] = [
+const TEMPLATED_TAGS: [&str; 18] = [
+    "Protection",
+    "Devoid",
+    "Changeling",
+    "Investigate",
+    "Clue",
     "Treasure",
     "Food",
     "Kicker",
@@ -57,6 +62,62 @@ const TEMPLATED_TAGS: [&str; 13] = [
     "Surveil",
     "Cycling",
     "Fight",
+];
+
+/// Ability words (CR 207.2c): labels with no rules meaning, printed
+/// "Landfall — <ability>". Scryfall tags them like keywords.
+const ABILITY_WORDS: [&str; 40] = [
+    "Landfall",
+    "Threshold",
+    "Metalcraft",
+    "Delirium",
+    "Raid",
+    "Morbid",
+    "Ferocious",
+    "Hellbent",
+    "Spell mastery",
+    "Formidable",
+    "Revolt",
+    "Domain",
+    "Battalion",
+    "Constellation",
+    "Heroic",
+    "Alliance",
+    "Coven",
+    "Magecraft",
+    "Fateful hour",
+    "Kinship",
+    "Imprint",
+    "Chroma",
+    "Radiance",
+    "Inspired",
+    "Enrage",
+    "Addendum",
+    "Adamant",
+    "Corrupted",
+    "Eerie",
+    "Survival",
+    "Valiant",
+    "Celebration",
+    "Descend 4",
+    "Descend 8",
+    "Bloodrush",
+    "Lieutenant",
+    "Strive",
+    "Undergrowth",
+    "Pack tactics",
+    "Void",
+];
+
+/// Keywords whose Oracle wording is a phrase the DSL takes as written.
+const PHRASE_KEYWORDS: [&str; 7] = [
+    "protection from white",
+    "protection from blue",
+    "protection from black",
+    "protection from red",
+    "protection from green",
+    "devoid",
+    "changeling",
 ];
 
 /// Restrictions Oracle prints as sentences; the DSL keeps them with the
@@ -297,9 +358,13 @@ fn number(w: &str) -> Option<String> {
 
 fn keyword_list(s: &str) -> Option<String> {
     let mut out = Vec::new();
+    // "protection from white and from blue"
+    let s = s.replace(" and from ", ", protection from ");
     for part in s.split(", ").flat_map(|p| p.split(" and ")) {
         let p = part.trim();
-        if KEYWORDS.iter().any(|k| k.eq_ignore_ascii_case(p)) {
+        if KEYWORDS.iter().any(|k| k.eq_ignore_ascii_case(p))
+            || PHRASE_KEYWORDS.iter().any(|k| k.eq_ignore_ascii_case(p))
+        {
             out.push(p.to_ascii_lowercase());
         } else {
             return None;
@@ -511,6 +576,7 @@ impl Templates {
                     }
                 },
             ),
+            (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
             (r(r"^Scry (\d+)$"), |c, _| {
                 Some(format!("scry {}", cap(c, 1)))
             }),
@@ -804,6 +870,7 @@ fn trigger_text(head: &str) -> Option<String> {
             "whenever this deals combat damage to a player"
         }
         "Whenever you gain life" => "whenever you gain life",
+        "Whenever a land you control enters" => "whenever land you control enters",
         "Whenever you cast a noncreature spell" => "whenever you cast a noncreature spell",
         "Whenever you cast an instant or sorcery spell" => {
             "whenever you cast an instant or sorcery spell"
@@ -815,6 +882,131 @@ fn trigger_text(head: &str) -> Option<String> {
         _ => return None,
     };
     Some(t.to_string())
+}
+
+/// "seven or more cards are in your graveyard" → `7 cards in your
+/// graveyard`, and the other conditions `static_cond` parses.
+fn static_condition(s: &str) -> Option<String> {
+    if s == "it's your turn" {
+        return Some("your turn".to_string());
+    }
+    let more = Regex::new(r"^there are (\S+) or more cards in your graveyard$").unwrap();
+    if let Some(c) = more.captures(s) {
+        return Some(format!("{} cards in your graveyard", number(cap(&c, 1))?));
+    }
+    let types =
+        Regex::new(r"^there are (\S+) or more card types among cards in your graveyard$").unwrap();
+    if let Some(c) = types.captures(s) {
+        return Some(format!(
+            "{} card types in your graveyard",
+            number(cap(&c, 1))?
+        ));
+    }
+    let control = Regex::new(r"^you control (\S+) or more ([a-zA-Z ]+)$").unwrap();
+    if let Some(c) = control.captures(s) {
+        let f = control_filter(&singular(cap(&c, 2)))?;
+        return Some(format!("you control {} {f}", number(cap(&c, 1))?));
+    }
+    let one = Regex::new(r"^you control an? ([a-zA-Z ]+)$").unwrap();
+    if let Some(c) = one.captures(s) {
+        return Some(format!("you control {}", control_filter(cap(&c, 1))?));
+    }
+    None
+}
+
+/// Filters a "you control" condition may name.
+fn control_filter(s: &str) -> Option<String> {
+    const OK: [&str; 13] = [
+        "artifact",
+        "creature",
+        "enchantment",
+        "land",
+        "Plains",
+        "Island",
+        "Swamp",
+        "Mountain",
+        "Forest",
+        "planeswalker",
+        "artifact creature",
+        "legendary creature",
+        "Equipment",
+    ];
+    OK.contains(&s).then(|| s.to_string())
+}
+
+/// The modifications of a static ability's predicate ("gets +1/+1 and
+/// has flying").
+fn static_mods(s: &str) -> Option<String> {
+    let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+    let mut mods = Vec::new();
+    for part in s.split(" and ") {
+        if let Some(c) = gets.captures(part) {
+            mods.push(cap(&c, 1).to_string());
+        } else if let Some(rest) = part
+            .strip_prefix("has ")
+            .or_else(|| part.strip_prefix("have "))
+        {
+            mods.push(format!("has {}", keyword_list(rest)?));
+        } else if RESTRICTIONS.contains(&part) {
+            mods.push(format!("has {part}"));
+        } else {
+            return None;
+        }
+    }
+    (!mods.is_empty()).then(|| mods.join(", "))
+}
+
+/// "As long as <cond>, this creature gets +1/+1.", "This creature gets
+/// +2/+2 as long as <cond>.", "During your turn, this creature has first
+/// strike."
+fn conditional_static(line: &str) -> Option<String> {
+    let line = line.strip_suffix('.')?;
+    let subject = |s: &str| -> Option<&'static str> {
+        Some(match s {
+            "this creature" | "This creature" | "this permanent" | "This permanent" => "this",
+            "creatures you control" | "Creatures you control" => "creature you control",
+            "other creatures you control" | "Other creatures you control" => {
+                "other creature you control"
+            }
+            "enchanted creature" | "Enchanted creature" | "equipped creature"
+            | "Equipped creature" => "enchanted",
+            _ => return None,
+        })
+    };
+    let split_subject = |s: &str| -> Option<(&'static str, String)> {
+        for n in [4, 3, 2] {
+            let words: Vec<&str> = s.splitn(n + 1, ' ').collect();
+            if words.len() == n + 1
+                && let Some(f) = subject(&words[..n].join(" "))
+            {
+                return Some((f, words[n].to_string()));
+            }
+        }
+        None
+    };
+    if let Some(rest) = line.strip_prefix("During your turn, ") {
+        let (f, pred) = split_subject(rest)?;
+        return Some(format!(
+            "static during your turn, {f}: {}",
+            static_mods(&pred)?
+        ));
+    }
+    if let Some(rest) = line.strip_prefix("As long as ") {
+        let (cond, body) = rest.split_once(", ")?;
+        let cond = static_condition(cond)?;
+        let (f, pred) = split_subject(body)?;
+        return Some(format!(
+            "static as long as {cond}, {f}: {}",
+            static_mods(&pred)?
+        ));
+    }
+    let (body, cond) = line.split_once(" as long as ")?;
+    let cond = static_condition(cond)?;
+    let (f, pred) = split_subject(body)?;
+    Some(format!(
+        "static {f}: {} as long as {cond}",
+        static_mods(&pred)?
+    ))
 }
 
 /// Lines a card's statements come from.
@@ -833,6 +1025,25 @@ struct Builder<'a> {
 impl Builder<'_> {
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
+        // "Landfall — <ability>": the label prefixes the one statement the
+        // rest makes.
+        if let Some((label, rest)) = line.split_once(" — ")
+            && ABILITY_WORDS.contains(&label)
+        {
+            let before = self.statements.len();
+            let paragraphs = self.spell_paragraphs.len();
+            self.line(rest)?;
+            if self.statements.len() != before + 1 || self.spell_paragraphs.len() != paragraphs {
+                return Err(Skip::Sentence(line.to_string()));
+            }
+            let st = self.statements.pop().unwrap_or_default();
+            self.statements.push(format!("label \"{label}\" {st}"));
+            return Ok(());
+        }
+        if let Some(st) = conditional_static(line) {
+            self.statements.push(st);
+            return Ok(());
+        }
         // Keyword lines: first, or in place among the abilities.
         if let Some(k) = keyword_list(line)
             && line.chars().next().is_some_and(char::is_uppercase)
@@ -1112,7 +1323,10 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         return Err(Skip::Subtypes);
     }
     for k in &s.keywords {
-        if !KEYWORDS.contains(&k.as_str()) && !TEMPLATED_TAGS.contains(&k.as_str()) {
+        if !KEYWORDS.contains(&k.as_str())
+            && !TEMPLATED_TAGS.contains(&k.as_str())
+            && !ABILITY_WORDS.contains(&k.as_str())
+        {
             return Err(Skip::Keyword(k.clone()));
         }
     }

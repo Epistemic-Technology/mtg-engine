@@ -1,0 +1,7 @@
+card "Sporeback Wolf" {
+  oracle_id 6fd5f773-e53e-4a7d-9093-dddd9b2e741f
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/2
+  static during your turn, this: +0/+2
+}

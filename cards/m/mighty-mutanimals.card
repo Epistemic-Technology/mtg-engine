@@ -1,0 +1,8 @@
+card "Mighty Mutanimals" {
+  oracle_id fcdc7dfc-04b5-411a-ab49-282b9c2608e2
+  cost {2}{W}{W}
+  type Creature — Mutant Rebel
+  pt 2/1
+  triggered when this enters: create 1 "2/2 red Mutant creature"
+  label "Alliance" triggered whenever other creature you control enters: put 1 +1/+1 counters on target creature you control
+}

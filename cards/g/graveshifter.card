@@ -1,0 +1,8 @@
+card "Graveshifter" {
+  oracle_id 1eebc02a-9a64-49b0-8322-c5ce671457ce
+  cost {3}{B}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  triggered when this enters: you may return target creature card from your graveyard to hand
+}

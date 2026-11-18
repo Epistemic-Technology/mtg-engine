@@ -1,0 +1,8 @@
+card "Territorial Scythecat" {
+  oracle_id 75d38954-6148-4d95-bf4b-cb82efcbe8df
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/1
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on this
+}

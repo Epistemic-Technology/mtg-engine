@@ -1,0 +1,7 @@
+card "Eumidian Terrabotanist" {
+  oracle_id 92226fd2-ad93-4722-89a0-ca88ea03e1b4
+  cost {1}{G}
+  type Creature — Insect Druid
+  pt 2/3
+  label "Landfall" triggered whenever land you control enters: you gains 1 life
+}

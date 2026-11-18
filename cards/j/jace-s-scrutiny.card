@@ -1,0 +1,9 @@
+card "Jace's Scrutiny" {
+  oracle_id 8578c462-7b2d-4b69-ad10-a2eab44ac98d
+  cost {1}{U}
+  type Instant
+  spell {
+    target creature gets -4/-0
+    investigate
+  }
+}

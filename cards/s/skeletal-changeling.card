@@ -1,0 +1,8 @@
+card "Skeletal Changeling" {
+  oracle_id b9d388ca-1a63-4a11-bf33-9f7b87305a52
+  cost {1}{B}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  activated {1}{B}: regenerate this
+}

@@ -1,0 +1,8 @@
+card "Jaddi Offshoot" {
+  oracle_id 20faefbd-059c-4aae-81e3-31683bf9f7bf
+  cost {G}
+  type Creature — Plant
+  pt 0/3
+  keywords defender
+  label "Landfall" triggered whenever land you control enters: you gains 1 life
+}

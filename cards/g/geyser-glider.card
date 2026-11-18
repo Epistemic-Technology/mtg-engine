@@ -1,0 +1,7 @@
+card "Geyser Glider" {
+  oracle_id 840d1002-abf4-4d05-945a-05c3fe9a2ebd
+  cost {3}{R}{R}
+  type Creature — Elemental Beast
+  pt 4/4
+  label "Landfall" triggered whenever land you control enters: this gains flying
+}

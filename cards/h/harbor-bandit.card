@@ -1,0 +1,8 @@
+card "Harbor Bandit" {
+  oracle_id 18c65823-01ae-4314-a254-d89a1a362633
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  static this: +1/+1 as long as you control Island
+  activated {1}{U}: this can't be blocked
+}

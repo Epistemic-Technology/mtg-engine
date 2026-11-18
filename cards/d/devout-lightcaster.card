@@ -1,0 +1,8 @@
+card "Devout Lightcaster" {
+  oracle_id a6f14387-4dfd-4d6b-a6b1-2ae658a70de6
+  cost {W}{W}{W}
+  type Creature — Kor Cleric
+  pt 2/2
+  keywords protection from black
+  triggered when this enters: exile target black permanent
+}

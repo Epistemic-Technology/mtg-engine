@@ -1,0 +1,6 @@
+card "Trail of Evidence" {
+  oracle_id e10065ba-fe24-4974-a500-d4151397a4d9
+  cost {2}{U}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: investigate
+}

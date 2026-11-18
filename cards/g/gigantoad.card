@@ -1,0 +1,7 @@
+card "Gigantoad" {
+  oracle_id fa5e4aa5-e2cb-4c8c-91cb-554bec0f21d4
+  cost {3}{G}
+  type Creature — Frog
+  pt 4/4
+  static as long as you control 7 land, this: +2/+2
+}

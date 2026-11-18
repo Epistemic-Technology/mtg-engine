@@ -1,0 +1,9 @@
+card "Root Out" {
+  oracle_id bec03edc-261a-4b02-be37-2006f657e905
+  cost {2}{G}
+  type Sorcery
+  spell {
+    destroy target artifact or enchantment
+    investigate
+  }
+}

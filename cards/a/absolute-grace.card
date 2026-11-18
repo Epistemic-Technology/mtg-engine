@@ -1,0 +1,6 @@
+card "Absolute Grace" {
+  oracle_id 41785f7b-3d02-4b7f-86ff-b381f626142e
+  cost {1}{W}
+  type Enchantment
+  static creature: has protection from black
+}

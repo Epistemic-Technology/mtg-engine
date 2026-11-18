@@ -1,0 +1,9 @@
+card "Order of Leitbur" {
+  oracle_id d8f5279f-c58e-4560-9c68-77d226a3c86c
+  cost {W}{W}
+  type Creature — Human Cleric Knight
+  pt 2/1
+  keywords protection from black
+  activated {W}: this gains first strike
+  activated {W}{W}: this gets +1/+0
+}

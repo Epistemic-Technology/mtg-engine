@@ -6,14 +6,14 @@ use mtg_core::card::{
     AbilityDef, Affects as CoreAffects, CardDef, CardPool, CardType, CdaCount as CoreCdaCount,
     Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification, ObjFilter,
     Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
-    SacCost as CoreSacCost, Supertype, SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj,
-    TriggerSpec, TypeSet,
+    SacCost as CoreSacCost, StaticCondition, Supertype, SupertypeSet, TargetSpec,
+    TriggerObj as CoreTriggerObj, TriggerSpec, TypeSet,
 };
 use mtg_core::mana::{Color, ColorSet};
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, Cost, Effect, Except, Filter, Kind, Mod, Mode, Recipient,
-    Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 const ALL_TYPES: [CardType; 9] = [
@@ -487,6 +487,22 @@ impl Decompiler<'_> {
             AbilityDef::Static(s) => Ability::Static {
                 filter: self.filter(&s.affected),
                 mods: s.parts.iter().map(|m| self.modification(m)).collect(),
+                condition: s.condition.as_ref().map(|c| match c {
+                    StaticCondition::CardsInGraveyard(n) => StaticCond::CardsInGraveyard(*n),
+                    StaticCondition::CardTypesInGraveyard(n) => {
+                        StaticCond::CardTypesInGraveyard(*n)
+                    }
+                    StaticCondition::YouControl { filter, at_least } => {
+                        let mut f = self.filter(filter);
+                        f.who = None;
+                        StaticCond::YouControl {
+                            filter: f,
+                            at_least: *at_least,
+                        }
+                    }
+                    StaticCondition::YourTurn => StaticCond::YourTurn,
+                }),
+                cond_first: false,
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
         }

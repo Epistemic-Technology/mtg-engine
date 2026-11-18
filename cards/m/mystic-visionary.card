@@ -1,0 +1,7 @@
+card "Mystic Visionary" {
+  oracle_id bde74bcc-41b8-4014-b28e-2f6326e20799
+  cost {1}{W}
+  type Creature — Human Nomad Mystic
+  pt 2/1
+  label "Threshold" static this: has flying as long as 7 cards in your graveyard
+}

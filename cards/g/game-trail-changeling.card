@@ -1,0 +1,7 @@
+card "Game-Trail Changeling" {
+  oracle_id 384611fb-aca2-4e2d-9125-44ea034de08b
+  cost {3}{G}{G}
+  type Creature — Shapeshifter
+  pt 4/4
+  keywords changeling, trample
+}

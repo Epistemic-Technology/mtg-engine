@@ -1,0 +1,7 @@
+card "Venomous Changeling" {
+  oracle_id f1929f1f-6aa3-4308-bbff-cab03883ac68
+  cost {2}{B}
+  type Creature — Shapeshifter
+  pt 1/3
+  keywords changeling, deathtouch
+}

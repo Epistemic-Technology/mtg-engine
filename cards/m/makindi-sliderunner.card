@@ -1,0 +1,8 @@
+card "Makindi Sliderunner" {
+  oracle_id 4754e9c6-1790-4c01-87c2-3a16ce7e65f5
+  cost {1}{R}
+  type Creature — Beast
+  pt 2/1
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: this gets +1/+1
+}

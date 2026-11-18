@@ -1,0 +1,8 @@
+card "Blinding Drone" {
+  oracle_id c924e240-02a0-46b5-b004-d5c42db277ec
+  cost {1}{U}
+  type Creature — Eldrazi Drone
+  pt 1/3
+  keywords devoid
+  activated {C}, {T}: tap target creature
+}

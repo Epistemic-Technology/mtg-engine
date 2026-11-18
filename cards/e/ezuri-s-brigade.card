@@ -1,0 +1,7 @@
+card "Ezuri's Brigade" {
+  oracle_id ae32c0a5-0874-4cab-9a24-29fa572f3193
+  cost {2}{G}{G}
+  type Creature — Elf Warrior
+  pt 4/4
+  label "Metalcraft" static as long as you control 3 artifact, this: +4/+4, has trample
+}

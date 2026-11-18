@@ -410,8 +410,20 @@ impl Characteristics {
         self.keywords.contains(k)
     }
 
+    /// Has this subtype; a changeling has every creature type (CR 702.73a).
     pub fn has_subtype(&self, s: crate::card::Subtype) -> bool {
-        self.subtypes.contains(&s)
+        self.subtypes.contains(&s) || (s.is_creature_type() && self.has(Keyword::Changeling))
+    }
+
+    /// Whether this object has protection from something with `source`'s
+    /// colors (CR 702.16b–e).
+    #[inline]
+    pub fn protected_from(&self, source: &Characteristics) -> bool {
+        self.keywords
+            .intersects(crate::card::KeywordSet::PROTECTION)
+            && crate::mana::Color::ALL
+                .into_iter()
+                .any(|col| self.has(Keyword::protection_from(col)) && source.colors.contains(col))
     }
 
     /// No keyword or other abilities (Muraganda Petroglyphs).
@@ -959,6 +971,18 @@ impl GameState {
     /// `TargetSpec::Creature`), may be attached to `target` (CR 303.4c,
     /// 704.5n). Unlike targeting, hexproof and the "you control" of equip
     /// do not matter here.
+    /// CR 702.16c: a permanent with protection can't be enchanted or
+    /// equipped by something with the quality.
+    pub fn protected_attachment(&self, attachment: ObjId, target: ObjId) -> bool {
+        match (
+            self.characteristics(target),
+            self.characteristics(attachment),
+        ) {
+            (Some(t), Some(a)) => t.protected_from(&a),
+            _ => false,
+        }
+    }
+
     pub fn is_legal_attachment(&self, spec: TargetSpec, target: ObjId) -> bool {
         let Some(obj) = self.objects.get(target) else {
             return false;
@@ -979,7 +1003,7 @@ impl GameState {
             | TargetSpec::AttackingCreature
             | TargetSpec::BlockingCreature => c.is_creature(),
             TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
-            TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.subtypes.contains(&s),
+            TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.has_subtype(s),
             TargetSpec::ArtifactCreatureOrLand => {
                 c.is_creature() || c.is_land() || c.types.contains(CardType::Artifact)
             }
@@ -1107,9 +1131,7 @@ impl GameState {
                     TargetSpec::PlayerOrPlaneswalker => c.is_planeswalker(),
                     TargetSpec::Land => c.is_land(),
                     TargetSpec::Creature => c.is_creature(),
-                    TargetSpec::CreatureWithSubtype(s) => {
-                        c.is_creature() && c.subtypes.contains(&s)
-                    }
+                    TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.has_subtype(s),
                     TargetSpec::OtherCreature => c.is_creature() && Some(id) != source,
                     TargetSpec::TappedCreature => c.is_creature() && obj.tapped,
                     TargetSpec::CreatureYouControl => c.is_creature() && obj.controller == caster,
@@ -1167,7 +1189,13 @@ impl GameState {
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = !(c.has(Keyword::Hexproof) && obj.controller != caster);
-                type_ok && hexproof_ok
+                // CR 702.16b: protection from a quality forbids targeting by
+                // spells and abilities from sources with it.
+                let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)
+                    || !source
+                        .and_then(|s| self.characteristics_or_lki(s))
+                        .is_some_and(|sc| c.protected_from(&sc));
+                type_ok && hexproof_ok && protection_ok
             }
         }
     }

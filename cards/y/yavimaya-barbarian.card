@@ -1,0 +1,7 @@
+card "Yavimaya Barbarian" {
+  oracle_id 04576b4d-2977-4cdf-b4a5-b0b47995e962
+  cost {R}{G}
+  type Creature — Elf Barbarian
+  pt 2/2
+  keywords protection from blue
+}

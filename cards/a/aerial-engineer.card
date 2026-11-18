@@ -1,0 +1,7 @@
+card "Aerial Engineer" {
+  oracle_id 27f5969e-d613-4cbc-87af-98899bb5c58a
+  cost {2}{W}{U}
+  type Creature — Human Artificer
+  pt 2/4
+  static as long as you control artifact, this: +2/+0, has flying
+}

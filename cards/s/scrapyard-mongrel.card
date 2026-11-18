@@ -1,0 +1,7 @@
+card "Scrapyard Mongrel" {
+  oracle_id b6c8f2fe-b097-49af-ab59-16590dedaf32
+  cost {3}{R}
+  type Creature — Dog
+  pt 3/3
+  static as long as you control artifact, this: +2/+0, has trample
+}

@@ -1,0 +1,8 @@
+card "Kamahl's Desire" {
+  oracle_id 6cbe54e0-5d62-4aad-ad9c-98b70defbf96
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has first strike
+  label "Threshold" static enchanted: +3/+0 as long as 7 cards in your graveyard
+}

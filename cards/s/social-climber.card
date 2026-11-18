@@ -1,0 +1,7 @@
+card "Social Climber" {
+  oracle_id 70af9a03-20d6-44e3-a181-b60e80bff643
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 3/2
+  label "Alliance" triggered whenever other creature you control enters: you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Llanowar Knight" {
+  oracle_id 6b26951f-57be-4524-ae0e-a102e84e81ef
+  cost {G}{W}
+  type Creature — Elf Knight
+  pt 2/2
+  keywords protection from black
+}

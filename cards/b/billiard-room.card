@@ -1,0 +1,7 @@
+card "Billiard Room" {
+  oracle_id a4fc174e-7fa6-41a8-ae03-255f226840f9
+  type Land
+  enters tapped
+  mana {B} or {R}
+  activated {4}, {T}: investigate
+}

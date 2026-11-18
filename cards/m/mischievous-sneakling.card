@@ -1,0 +1,7 @@
+card "Mischievous Sneakling" {
+  oracle_id fe7a4361-561a-4bab-921e-d01bab19dad3
+  cost {1}{U/B}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling, flash
+}

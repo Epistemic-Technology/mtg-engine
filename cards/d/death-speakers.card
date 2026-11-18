@@ -1,0 +1,7 @@
+card "Death Speakers" {
+  oracle_id 4a1db129-cc7c-410a-a41e-d633e30cfdad
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords protection from black
+}

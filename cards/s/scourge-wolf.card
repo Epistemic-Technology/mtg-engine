@@ -1,0 +1,8 @@
+card "Scourge Wolf" {
+  oracle_id fd74d0f6-bbe5-47f6-af15-a127489ca7f3
+  cost {R}{R}
+  type Creature — Wolf Horror
+  pt 2/2
+  keywords first strike
+  label "Delirium" static this: has double strike as long as 4 card types in your graveyard
+}

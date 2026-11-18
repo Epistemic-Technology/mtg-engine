@@ -1,0 +1,8 @@
+card "Moonglove Changeling" {
+  oracle_id 61b74f82-39f3-4618-b8e7-292058421d1b
+  cost {2}{B}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+  activated {B}: this gains deathtouch
+}

@@ -1,0 +1,7 @@
+card "Voice of Reason" {
+  oracle_id 372e2d6e-427c-4152-b936-27dcf536ca84
+  cost {3}{W}
+  type Creature — Angel
+  pt 2/2
+  keywords flying, protection from blue
+}

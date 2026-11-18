@@ -1,0 +1,6 @@
+card "Absolute Law" {
+  oracle_id f4aa8391-34d5-4ad2-a981-9aa08f8229db
+  cost {1}{W}
+  type Enchantment
+  static creature: has protection from red
+}

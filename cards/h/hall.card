@@ -1,0 +1,7 @@
+card "Hall" {
+  oracle_id 949e455d-6a9e-491a-892f-826cc8be0fd9
+  type Land
+  enters tapped
+  mana {R} or {W}
+  activated {4}, {T}: investigate
+}

@@ -1,0 +1,7 @@
+card "Woodborn Behemoth" {
+  oracle_id 9bc458ac-5566-4978-aeaa-73b600d4ec29
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  static as long as you control 8 land, this: +4/+4, has trample
+}

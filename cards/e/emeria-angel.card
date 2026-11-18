@@ -1,0 +1,8 @@
+card "Emeria Angel" {
+  oracle_id ea6616e4-db8d-4905-80f8-cb0162906850
+  cost {2}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  label "Landfall" triggered whenever land you control enters: you may create 1 "1/1 white Bird creature with flying"
+}

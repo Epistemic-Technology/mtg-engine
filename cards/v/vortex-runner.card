@@ -1,0 +1,7 @@
+card "Vortex Runner" {
+  oracle_id 37cf4ee6-e146-4354-afc8-6b59b0700e87
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  static as long as you control 8 land, this: +1/+0, has can't be blocked
+}

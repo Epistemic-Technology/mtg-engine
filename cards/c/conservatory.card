@@ -1,0 +1,7 @@
+card "Conservatory" {
+  oracle_id 8f88b0bf-81bd-4223-9dad-d8c49ff4b87a
+  type Land
+  enters tapped
+  mana {G} or {W}
+  activated {4}, {T}: investigate
+}

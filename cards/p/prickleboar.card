@@ -1,0 +1,7 @@
+card "Prickleboar" {
+  oracle_id a023deaa-c393-44f9-9c9c-6bb9aae05c1a
+  cost {4}{R}
+  type Creature — Boar
+  pt 3/3
+  static during your turn, this: +2/+0, has first strike
+}

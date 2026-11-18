@@ -1,0 +1,7 @@
+card "Valeron Outlander" {
+  oracle_id 01d70534-7c26-4a54-9eca-d0ebbefc2159
+  cost {G}{W}
+  type Creature — Human Scout
+  pt 2/2
+  keywords protection from black
+}

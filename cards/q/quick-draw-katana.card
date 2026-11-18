@@ -1,0 +1,7 @@
+card "Quick-Draw Katana" {
+  oracle_id 604ef241-df8f-48f8-8680-f9ed77ff30ae
+  cost {2}
+  type Artifact — Equipment
+  static during your turn, enchanted: +2/+0, has first strike
+  equip {2}
+}

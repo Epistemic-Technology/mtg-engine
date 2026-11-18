@@ -1,0 +1,7 @@
+card "Nightwind Glider" {
+  oracle_id 9a642db9-c337-481c-b260-11e01f64e68e
+  cost {2}{W}
+  type Creature — Human Rebel
+  pt 2/1
+  keywords flying, protection from black
+}

@@ -1,0 +1,8 @@
+card "Disciple of Law" {
+  oracle_id a4689767-46c3-42ab-af27-5877e226bc05
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/2
+  keywords protection from red
+  cycling {2}
+}

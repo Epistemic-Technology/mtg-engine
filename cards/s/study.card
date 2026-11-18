@@ -1,0 +1,7 @@
+card "Study" {
+  oracle_id 7ffadb3f-0b88-416f-b1a1-876383c22720
+  type Land
+  enters tapped
+  mana {W} or {U}
+  activated {4}, {T}: investigate
+}

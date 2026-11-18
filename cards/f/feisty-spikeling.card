@@ -1,0 +1,8 @@
+card "Feisty Spikeling" {
+  oracle_id fcf796fa-43ae-43d1-a124-776338bc3542
+  cost {1}{R/W}
+  type Creature — Shapeshifter
+  pt 2/1
+  keywords changeling
+  static during your turn, this: has first strike
+}

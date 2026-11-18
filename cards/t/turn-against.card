@@ -1,0 +1,7 @@
+card "Turn Against" {
+  oracle_id 634d6357-af76-4e25-8c63-81522bc726f5
+  cost {4}{R}
+  type Instant
+  keywords devoid
+  spell: gain control of target creature; untap that creature; target 1 gains haste
+}

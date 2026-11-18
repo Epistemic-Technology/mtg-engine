@@ -1,0 +1,8 @@
+card "Disciple of Malice" {
+  oracle_id 63d92baf-0007-4519-a5bc-d189448ea126
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/2
+  keywords protection from white
+  cycling {2}
+}

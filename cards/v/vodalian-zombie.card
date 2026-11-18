@@ -1,0 +1,7 @@
+card "Vodalian Zombie" {
+  oracle_id 58e4f299-bb32-4727-8498-a364166adc38
+  cost {U}{B}
+  type Creature — Merfolk Zombie
+  pt 2/2
+  keywords protection from green
+}

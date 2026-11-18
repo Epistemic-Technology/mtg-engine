@@ -1,0 +1,7 @@
+card "Leech Fanatic" {
+  oracle_id 17bcd92b-1826-4a36-9048-49e5e65a12fd
+  cost {1}{B}
+  type Creature — Human Warlock
+  pt 2/2
+  static during your turn, this: has lifelink
+}

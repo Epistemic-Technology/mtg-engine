@@ -1,0 +1,7 @@
+card "Treetop Sentinel" {
+  oracle_id 786afd52-0eae-4453-b1bd-cffc21699849
+  cost {2}{U}{U}
+  type Creature — Bird Soldier
+  pt 2/3
+  keywords flying, protection from green
+}

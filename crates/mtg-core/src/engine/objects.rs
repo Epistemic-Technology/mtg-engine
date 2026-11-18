@@ -525,6 +525,13 @@ impl GameState {
                 let Some(c) = self.characteristics(id) else {
                     return;
                 };
+                // CR 702.16d: damage from a source with the quality is
+                // prevented.
+                if let Some(sc) = src.as_ref()
+                    && c.protected_from(sc)
+                {
+                    return;
+                }
                 // CR 120.3c: damage to a planeswalker removes loyalty;
                 // CR 120.3e: damage to a creature is marked on it.
                 if c.is_planeswalker() {

@@ -1,0 +1,8 @@
+card "Wave-Wing Elemental" {
+  oracle_id 35044f8a-c8e0-41ae-ba61-43109e51f7e8
+  cost {5}{U}
+  type Creature — Elemental
+  pt 3/4
+  keywords flying
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

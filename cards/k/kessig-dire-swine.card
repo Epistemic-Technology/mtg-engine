@@ -1,0 +1,7 @@
+card "Kessig Dire Swine" {
+  oracle_id 61c10a4c-b1d5-4777-a813-d231980be2a7
+  cost {4}{G}{G}
+  type Creature — Boar Horror
+  pt 6/6
+  label "Delirium" static this: has trample as long as 4 card types in your graveyard
+}

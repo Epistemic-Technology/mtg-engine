@@ -1,0 +1,7 @@
+card "Hound of the Farbogs" {
+  oracle_id 7be2bc4e-3986-4f4f-bd5b-0a9f59b2f865
+  cost {4}{B}
+  type Creature — Zombie Dog
+  pt 5/3
+  label "Delirium" static this: has menace as long as 4 card types in your graveyard
+}

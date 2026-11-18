@@ -1,0 +1,8 @@
+card "Maw of Kozilek" {
+  oracle_id 11b529f0-e365-4500-b54a-44e2ac6e709f
+  cost {3}{R}
+  type Creature — Eldrazi Drone
+  pt 2/5
+  keywords devoid
+  activated {C}: this gets +2/-2
+}

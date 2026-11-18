@@ -1,0 +1,8 @@
+card "Prized Elephant" {
+  oracle_id 4b1674b1-2176-493f-a463-936e715d51a2
+  cost {3}{W}
+  type Creature — Elephant
+  pt 3/3
+  static this: +1/+1 as long as you control Forest
+  activated {G}: this gains trample
+}

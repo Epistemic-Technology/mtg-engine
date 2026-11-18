@@ -1,0 +1,9 @@
+card "Knight of Stromgald" {
+  oracle_id 8cf57287-21b0-4194-8da3-62d00160234f
+  cost {B}{B}
+  type Creature — Human Knight
+  pt 2/1
+  keywords protection from white
+  activated {B}: this gains first strike
+  activated {B}{B}: this gets +1/+0
+}

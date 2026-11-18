@@ -1,0 +1,7 @@
+card "Vinelasher Kudzu" {
+  oracle_id 62204fac-a367-475c-bfb9-80a87af2d2f1
+  cost {1}{G}
+  type Creature — Plant
+  pt 1/1
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on this
+}

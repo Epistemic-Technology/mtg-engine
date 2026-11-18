@@ -1,0 +1,8 @@
+card "Gnarlwood Dryad" {
+  oracle_id e823639f-1308-47f6-9b51-8fd9a682489a
+  cost {G}
+  type Creature — Dryad Horror
+  pt 1/1
+  keywords deathtouch
+  label "Delirium" static this: +2/+2 as long as 4 card types in your graveyard
+}

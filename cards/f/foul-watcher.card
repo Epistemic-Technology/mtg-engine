@@ -1,0 +1,9 @@
+card "Foul Watcher" {
+  oracle_id b50dd71f-3664-41d2-be06-57729064a591
+  cost {1}{U}
+  type Creature — Nightmare Bird
+  pt 1/2
+  keywords flying
+  triggered when this enters: surveil 1
+  label "Delirium" static this: +1/+0 as long as 4 card types in your graveyard
+}

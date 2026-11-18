@@ -1,0 +1,8 @@
+card "Deathcap Cultivator" {
+  oracle_id 26e555f1-e0ed-4b84-8783-1c0c968f462d
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 2/1
+  mana {B} or {G}
+  label "Delirium" static this: has deathtouch as long as 4 card types in your graveyard
+}

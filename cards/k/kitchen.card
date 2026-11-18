@@ -1,0 +1,7 @@
+card "Kitchen" {
+  oracle_id 47f71408-5509-4651-9121-fd0867adae00
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {4}, {T}: investigate
+}

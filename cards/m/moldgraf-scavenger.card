@@ -1,0 +1,7 @@
+card "Moldgraf Scavenger" {
+  oracle_id 558fe476-edbd-4f18-86ee-6d7f61331789
+  cost {1}{G}
+  type Creature — Fungus
+  pt 0/4
+  label "Delirium" static this: +3/+0 as long as 4 card types in your graveyard
+}

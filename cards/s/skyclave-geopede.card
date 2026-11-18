@@ -1,0 +1,8 @@
+card "Skyclave Geopede" {
+  oracle_id e00d601f-ac73-47a6-8920-779d71b482c9
+  cost {2}{R}
+  type Creature — Insect
+  pt 3/1
+  keywords trample
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

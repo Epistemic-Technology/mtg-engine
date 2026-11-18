@@ -1,0 +1,7 @@
+card "Abbey Gargoyles" {
+  oracle_id c208b959-d0e4-4a9a-8255-2c7cc7596767
+  cost {2}{W}{W}{W}
+  type Creature — Gargoyle
+  pt 3/4
+  keywords flying, protection from red
+}

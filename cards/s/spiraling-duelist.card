@@ -1,0 +1,7 @@
+card "Spiraling Duelist" {
+  oracle_id cc803d43-cbbe-4964-8077-ba405a741047
+  cost {2}{R}{R}
+  type Creature — Human Berserker
+  pt 3/1
+  label "Metalcraft" static this: has double strike as long as you control 3 artifact
+}

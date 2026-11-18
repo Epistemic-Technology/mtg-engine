@@ -1,0 +1,133 @@
+# M5 slice 2: protection (CR 702.16), changeling (702.73), devoid (702.114),
+# conditional static abilities (CR 611.3a: threshold, metalcraft, "during
+# your turn"), ability words, and investigate (701.16).
+
+scenario "protection from black: can't be targeted by a black spell" {
+  battlefield A: "Swamp"
+  battlefield B: "Death Speakers"
+  hand A: "Disfigure"
+  illegal turn 1 A: cast "Disfigure" targeting "Death Speakers"
+  run_to turn 1 end
+  assert battlefield B contains "Death Speakers"
+}
+
+scenario "protection from green: damage from a green source is prevented" {
+  battlefield A: "Coast Watcher"
+  battlefield B: "Craw Wurm"
+  turn 2 B: attack "Craw Wurm"
+  turn 2 A: block "Craw Wurm" with "Coast Watcher"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Coast Watcher"
+  assert damage "Coast Watcher" 0
+  assert damage "Craw Wurm" 1
+}
+
+scenario "protection from black: can't be blocked by black creatures" {
+  battlefield A: "Valeron Outlander"
+  battlefield B: "Drudge Skeletons"
+  turn 1 A: attack "Valeron Outlander"
+  illegal turn 1 B: block "Valeron Outlander" with "Drudge Skeletons"
+  run_to turn 1 end
+}
+
+scenario "protection from black: a black Aura can't enchant it" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Death Speakers"
+  hand A: "Dark Favor"
+  illegal turn 1 A: cast "Dark Favor" targeting "Death Speakers"
+  run_to turn 1 end
+}
+
+scenario "protection from black: Pestilence's damage to it is prevented" {
+  battlefield A: "Pestilence", "Swamp"
+  battlefield B: "Death Speakers", "Grizzly Bears"
+  turn 1 A: activate "Pestilence"
+  run_to turn 1 postcombat_main
+  assert damage "Death Speakers" 0
+  assert damage "Grizzly Bears" 1
+  assert life A 19
+}
+
+scenario "changeling: a changeling is a Goblin for a Goblin lord" {
+  battlefield A: "Muscle Sliver", "Woodland Changeling"
+  assert power "Woodland Changeling" 3
+  assert toughness "Woodland Changeling" 3
+}
+
+scenario "landfall: Akoum Hellhound gets +2/+2 when a land enters" {
+  battlefield A: "Akoum Hellhound"
+  hand A: "Mountain"
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert power "Akoum Hellhound" 2
+}
+
+scenario "threshold: the bonus applies with seven cards in the graveyard" {
+  battlefield A: "Mystic Zealot"
+  graveyard A: 7 "Grizzly Bears"
+  assert power "Mystic Zealot" 3
+  assert toughness "Mystic Zealot" 5
+  assert has "Mystic Zealot" flying
+}
+
+scenario "threshold: no bonus with six" {
+  battlefield A: "Mystic Zealot"
+  graveyard A: 6 "Grizzly Bears"
+  assert power "Mystic Zealot" 2
+  assert toughness "Mystic Zealot" 4
+}
+
+scenario "threshold: the seventh card turns it on mid-game" {
+  battlefield A: "Mystic Zealot", "Mountain"
+  graveyard A: 6 "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert power "Mystic Zealot" 3
+}
+
+scenario "metalcraft: the bonus needs three artifacts" {
+  battlefield A: "Auriok Sunchaser", "Ornithopter", "Ornithopter"
+  assert power "Auriok Sunchaser" 1
+  assert toughness "Auriok Sunchaser" 1
+}
+
+scenario "metalcraft: three artifacts turn it on" {
+  battlefield A: "Auriok Sunchaser", "Ornithopter", "Ornithopter", "Ornithopter"
+  assert power "Auriok Sunchaser" 3
+  assert has "Auriok Sunchaser" flying
+}
+
+scenario "during your turn: first strike only on its controller's turn" {
+  battlefield A: "Fresh-Faced Recruit"
+  assert has "Fresh-Faced Recruit" first_strike
+  run_to turn 2 main1
+  assert has not "Fresh-Faced Recruit" first_strike
+}
+
+scenario "investigate: Toxin Analysis makes a Clue that draws" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Toxin Analysis"
+  library A: "Island"
+  turn 1 A: cast "Toxin Analysis" targeting "Grizzly Bears"
+  turn 1 main2 A: activate "Clue"
+  run_to turn 1 end
+  assert hand A contains "Island"
+  assert battlefield A lacks "Clue"
+}
+
+scenario "devoid: a black-costed devoid creature is colorless, so 'nonblack' removal hits it" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Slaughter Drone"
+  hand A: "Annihilate"
+  turn 1 A: cast "Annihilate" targeting "Slaughter Drone"
+  run_to turn 1 end
+  assert graveyard B contains "Slaughter Drone"
+}
+
+scenario "changeling: Woodland Changeling is a Sliver but not a land type" {
+  battlefield A: "Woodland Changeling"
+  assert is "Woodland Changeling" "Sliver"
+  assert is not "Woodland Changeling" "Forest"
+}

@@ -1,0 +1,8 @@
+card "Childhood Horror" {
+  oracle_id 29bebbaf-d47c-4369-8ff9-81816758da86
+  cost {3}{B}
+  type Creature — Horror
+  pt 2/2
+  keywords flying
+  label "Threshold" static as long as 7 cards in your graveyard, this: +2/+2, has can't block
+}

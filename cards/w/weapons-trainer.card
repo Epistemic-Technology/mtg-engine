@@ -1,0 +1,7 @@
+card "Weapons Trainer" {
+  oracle_id d193f3b7-d205-4c49-ae52-6a095282e0b3
+  cost {R}{W}
+  type Creature — Human Soldier Ally
+  pt 3/2
+  static other creature you control: +1/+0 as long as you control Equipment
+}

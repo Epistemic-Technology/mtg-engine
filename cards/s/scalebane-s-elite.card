@@ -1,0 +1,7 @@
+card "Scalebane's Elite" {
+  oracle_id c04dc6fe-06fc-4e5b-87da-6b8b262a214f
+  cost {3}{G}{W}
+  type Creature — Human Soldier
+  pt 4/4
+  keywords protection from black
+}

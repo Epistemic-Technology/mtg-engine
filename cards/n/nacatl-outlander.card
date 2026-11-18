@@ -1,0 +1,7 @@
+card "Nacatl Outlander" {
+  oracle_id 333555d6-3fcc-4021-ab60-afc36d723877
+  cost {R}{G}
+  type Creature — Cat Scout
+  pt 2/2
+  keywords protection from blue
+}

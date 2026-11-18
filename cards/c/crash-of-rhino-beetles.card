@@ -1,0 +1,8 @@
+card "Crash of Rhino Beetles" {
+  oracle_id 61dd63b7-11dc-49db-8106-36d455a182be
+  cost {4}{G}
+  type Creature — Insect
+  pt 5/5
+  keywords trample
+  static this: +10/+10 as long as you control 10 land
+}

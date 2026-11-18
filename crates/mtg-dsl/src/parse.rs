@@ -12,7 +12,8 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join, Kind, Mod,
-    Mode, Recipient, Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -75,6 +76,22 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["reach"], Keyword::Reach),
     (&["trample"], Keyword::Trample),
     (&["vigilance"], Keyword::Vigilance),
+    (
+        &["protection", "from", "white"],
+        Keyword::ProtectionFromWhite,
+    ),
+    (&["protection", "from", "blue"], Keyword::ProtectionFromBlue),
+    (
+        &["protection", "from", "black"],
+        Keyword::ProtectionFromBlack,
+    ),
+    (&["protection", "from", "red"], Keyword::ProtectionFromRed),
+    (
+        &["protection", "from", "green"],
+        Keyword::ProtectionFromGreen,
+    ),
+    (&["devoid"], Keyword::Devoid),
+    (&["changeling"], Keyword::Changeling),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a
@@ -861,8 +878,28 @@ impl P {
                     then: Vec::new(),
                 }))
             }
+            "label" => {
+                self.pos += 1;
+                let label = self.string()?;
+                let ability = self.ability()?;
+                Ok(Ability::Labeled {
+                    label,
+                    ability: Box::new(ability),
+                })
+            }
             "static" => {
                 self.pos += 1;
+                let mut condition = None;
+                let mut cond_first = false;
+                if self.eat_words(&["as", "long", "as"]) {
+                    condition = Some(self.static_cond()?);
+                    cond_first = true;
+                    self.expect(&Tok::Comma)?;
+                } else if self.eat_words(&["during", "your", "turn"]) {
+                    condition = Some(StaticCond::DuringYourTurn);
+                    cond_first = true;
+                    self.expect(&Tok::Comma)?;
+                }
                 let filter = self.filter()?;
                 self.expect(&Tok::Colon)?;
                 let mut mods = Vec::new();
@@ -877,11 +914,60 @@ impl P {
                     }
                     break;
                 }
+                if condition.is_none() && self.eat_words(&["as", "long", "as"]) {
+                    condition = Some(self.static_cond()?);
+                }
                 self.end_stmt()?;
-                Ok(Ability::Static { filter, mods })
+                Ok(Ability::Static {
+                    filter,
+                    mods,
+                    condition,
+                    cond_first,
+                })
             }
             _ => self.unexpected("a statement"),
         }
+    }
+
+    /// `7 cards in your graveyard`, `4 card types in your graveyard`,
+    /// `you control [3] <filter>`, `your turn`, or the ability words
+    /// `threshold`, `delirium`, `metalcraft`.
+    fn static_cond(&mut self) -> R<StaticCond> {
+        if self.eat_word("threshold") {
+            return Ok(StaticCond::CardsInGraveyard(7));
+        }
+        if self.eat_word("delirium") {
+            return Ok(StaticCond::CardTypesInGraveyard(4));
+        }
+        if self.eat_word("metalcraft") {
+            return Ok(StaticCond::YouControl {
+                filter: Filter {
+                    types: vec![CardType::Artifact],
+                    ..Default::default()
+                },
+                at_least: 3,
+            });
+        }
+        if self.eat_words(&["your", "turn"]) {
+            return Ok(StaticCond::YourTurn);
+        }
+        if self.eat_words(&["you", "control"]) {
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let filter = self.filter()?;
+            return Ok(StaticCond::YouControl { filter, at_least });
+        }
+        let n = self.number()?;
+        if self.eat_words(&["cards", "in", "your", "graveyard"]) {
+            return Ok(StaticCond::CardsInGraveyard(n));
+        }
+        if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
+            return Ok(StaticCond::CardTypesInGraveyard(n));
+        }
+        self.unexpected("a condition (threshold, 7 cards in your graveyard, you control 3 artifact, your turn, ...)")
     }
 
     fn enters_outcome(&mut self) -> R<Outcome> {
@@ -1396,6 +1482,7 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
+            "investigate" => Ok(Effect::Investigate),
             "surveil" => Ok(Effect::Surveil(self.num()?)),
             "counter" => {
                 let to = self.recipient()?;

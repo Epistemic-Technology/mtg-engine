@@ -1,0 +1,7 @@
+card "Coast Watcher" {
+  oracle_id 02eef375-5166-4b6b-bb17-b38074a6ba53
+  cost {1}{U}
+  type Creature — Bird Soldier
+  pt 1/1
+  keywords flying, protection from green
+}

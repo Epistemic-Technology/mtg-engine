@@ -1,0 +1,8 @@
+card "Foundry Screecher" {
+  oracle_id 0e0bef57-d977-48d1-be78-9a4f0aacd9c0
+  cost {2}{B}
+  type Creature — Bat
+  pt 2/1
+  keywords flying
+  static this: +1/+0 as long as you control artifact
+}

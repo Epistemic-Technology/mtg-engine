@@ -1,0 +1,8 @@
+card "Dauntless River Marshal" {
+  oracle_id 544c4cb3-cd43-4670-9883-e9545dad9cd6
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  static this: +1/+1 as long as you control Island
+  activated {3}{U}: tap target creature
+}

@@ -1,0 +1,7 @@
+card "Dragonback Assault" {
+  oracle_id 413fb2db-f1a1-4d22-ac37-a52821d35ca2
+  cost {3}{G}{U}{R}
+  type Enchantment
+  triggered when this enters: deal 3 damage to each creature and each planeswalker
+  label "Landfall" triggered whenever land you control enters: create 1 "4/4 red Dragon creature with flying"
+}

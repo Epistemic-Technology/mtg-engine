@@ -1,0 +1,7 @@
+card "Canyon Jerboa" {
+  oracle_id 254d4918-de40-4ac4-b542-f5c67a5e21eb
+  cost {2}{W}
+  type Creature — Mouse
+  pt 1/2
+  label "Landfall" triggered whenever land you control enters: each creature you control gets +1/+1
+}

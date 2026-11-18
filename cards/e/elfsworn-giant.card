@@ -1,0 +1,8 @@
+card "Elfsworn Giant" {
+  oracle_id f6abdf34-cfdc-465c-b067-cdebb659406e
+  cost {3}{G}{G}
+  type Creature — Giant
+  pt 5/3
+  keywords reach
+  label "Landfall" triggered whenever land you control enters: create 1 "1/1 green Elf Warrior creature"
+}

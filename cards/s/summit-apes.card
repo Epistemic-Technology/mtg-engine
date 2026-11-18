@@ -1,0 +1,7 @@
+card "Summit Apes" {
+  oracle_id 01799149-4bca-417b-9e89-14493fd46c79
+  cost {3}{G}
+  type Creature — Ape
+  pt 5/2
+  static as long as you control Mountain, this: has menace
+}

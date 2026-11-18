@@ -1,0 +1,7 @@
+card "Vulshok Refugee" {
+  oracle_id 7220769a-9d63-4211-9365-9feaf4d9a518
+  cost {1}{R}{R}
+  type Creature — Human Warrior
+  pt 3/2
+  keywords protection from red
+}

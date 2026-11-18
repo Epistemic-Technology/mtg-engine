@@ -1,0 +1,8 @@
+card "Mystic Enforcer" {
+  oracle_id cf3b79cc-ce97-48e9-a578-625e323d1b62
+  cost {2}{G}{W}
+  type Creature — Human Nomad Mystic
+  pt 3/3
+  keywords protection from black
+  label "Threshold" static as long as 7 cards in your graveyard, this: +3/+3, has flying
+}

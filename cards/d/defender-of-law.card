@@ -1,0 +1,7 @@
+card "Defender of Law" {
+  oracle_id 656513cf-1bf0-431e-8d3a-2d1ec79d0bec
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords flash, protection from red
+}

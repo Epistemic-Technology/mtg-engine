@@ -1,0 +1,7 @@
+card "Woodland Changeling" {
+  oracle_id 338f0ab6-f744-4e5a-a358-05e71b93758d
+  cost {1}{G}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling
+}

@@ -71,8 +71,8 @@ impl GameState {
             let targets_ok = match def.modes() {
                 Some(modes) => modes
                     .iter()
-                    .any(|m| self.targets_available(p, &m.targets, None)),
-                None => self.targets_available(p, def.cast_targets(), None),
+                    .any(|m| self.targets_available(p, &m.targets, Some(*id))),
+                None => self.targets_available(p, def.cast_targets(), Some(*id)),
             };
             if targets_ok {
                 options.push(Choice::Cast(*id));
@@ -102,8 +102,8 @@ impl GameState {
                 let targets_ok = match def.modes() {
                     Some(modes) => modes
                         .iter()
-                        .any(|m| self.targets_available(p, &m.targets, None)),
-                    None => self.targets_available(p, def.cast_targets(), None),
+                        .any(|m| self.targets_available(p, &m.targets, Some(*id))),
+                    None => self.targets_available(p, def.cast_targets(), Some(*id)),
                 };
                 if targets_ok {
                     options.push(Choice::Cast(*id));
@@ -455,7 +455,7 @@ impl GameState {
         modes
             .iter()
             .enumerate()
-            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, None))
+            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, Some(spell)))
             .map(|(i, _)| Choice::Mode(i))
             .collect()
     }

@@ -1,0 +1,7 @@
+card "Cerulean Wyvern" {
+  oracle_id 7a7f37a3-9e99-4d3d-b705-b074fb3e9b3e
+  cost {4}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying, protection from green
+}

@@ -1,0 +1,7 @@
+card "Byway Courier" {
+  oracle_id e186cc6f-8c11-4475-a704-0b4c3a9eade9
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/2
+  triggered when this dies: investigate
+}

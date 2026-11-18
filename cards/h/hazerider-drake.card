@@ -1,0 +1,7 @@
+card "Hazerider Drake" {
+  oracle_id b9be76a3-e14f-48dd-8824-17d5708ac7e0
+  cost {2}{W}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flying, protection from red
+}

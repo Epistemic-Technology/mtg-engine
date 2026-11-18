@@ -1,0 +1,7 @@
+card "Snapping Creeper" {
+  oracle_id bb4e1340-da63-46b8-a5e3-79dfedec3e78
+  cost {2}{G}
+  type Creature — Plant
+  pt 2/3
+  label "Landfall" triggered whenever land you control enters: this gains vigilance
+}

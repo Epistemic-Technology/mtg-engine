@@ -1,0 +1,8 @@
+card "Mystic Familiar" {
+  oracle_id 9d3931a2-baba-4e6e-b923-44df00900e51
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  label "Threshold" static as long as 7 cards in your graveyard, this: +1/+1, has protection from black
+}

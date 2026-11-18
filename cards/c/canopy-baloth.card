@@ -1,0 +1,7 @@
+card "Canopy Baloth" {
+  oracle_id 4493828f-144f-49cf-9fd2-61de86e632ec
+  cost {3}{G}
+  type Creature — Beast
+  pt 4/3
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

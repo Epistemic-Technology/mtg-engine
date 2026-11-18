@@ -37,7 +37,7 @@ Clue: CR 111.10) prints by name: "create a Treasure token".
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), and `changeling` (CR 702.73). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -60,6 +60,8 @@ Clue: CR 111.10) prints by name: "create a Treasure token".
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). |
+| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last. `static during your turn, this: has first strike` prints "During your turn, ...". |
+| `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -98,6 +100,12 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`).
+
+Static conditions: `7 cards in your graveyard` ("there are seven or more
+cards in your graveyard"), `4 card types in your graveyard`, `you control 3
+artifact` ("you control three or more artifacts"), `you control Island`
+("you control an Island"), `your turn` ("it's your turn"), and the
+shorthands `threshold`, `delirium`, `metalcraft`.
 
 ### Replacement events and outcomes
 
@@ -166,7 +174,7 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
-`scry 2`, `surveil 1`,
+`scry 2`, `surveil 1`, `investigate` (create a Clue token),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `you may <clause>`, `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage

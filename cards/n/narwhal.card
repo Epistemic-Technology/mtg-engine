@@ -1,0 +1,7 @@
+card "Narwhal" {
+  oracle_id 3552eea9-aee9-4555-b3cb-8e4fc5b728cc
+  cost {2}{U}{U}
+  type Creature — Whale
+  pt 2/2
+  keywords first strike, protection from red
+}

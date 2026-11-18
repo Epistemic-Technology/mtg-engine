@@ -1,0 +1,8 @@
+card "Plated Geopede" {
+  oracle_id d1efc4fd-2978-4434-8fdf-ddc05484ebb1
+  cost {1}{R}
+  type Creature — Insect
+  pt 1/1
+  keywords first strike
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

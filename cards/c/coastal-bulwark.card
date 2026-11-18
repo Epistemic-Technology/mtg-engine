@@ -1,0 +1,9 @@
+card "Coastal Bulwark" {
+  oracle_id 449ed4b4-9e1e-4181-9090-af91802eba49
+  cost {2}
+  type Artifact Creature — Wall
+  pt 1/3
+  keywords defender
+  static this: +2/+0 as long as you control Island
+  activated {2}, {T}: surveil 1
+}

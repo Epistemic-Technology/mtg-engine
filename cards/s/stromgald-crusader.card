@@ -1,0 +1,9 @@
+card "Stromgald Crusader" {
+  oracle_id 059ed13a-857c-420a-a127-5f720010b9fd
+  cost {B}{B}
+  type Creature — Zombie Knight
+  pt 2/1
+  keywords protection from white
+  activated {B}: this gains flying
+  activated {B}{B}: this gets +1/+0
+}

@@ -1,0 +1,7 @@
+card "Fledgling Griffin" {
+  oracle_id 314748a6-4e7f-4afb-b77e-5ef366e02b90
+  cost {1}{W}
+  type Creature — Griffin
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: this gains flying
+}

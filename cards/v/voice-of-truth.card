@@ -1,0 +1,7 @@
+card "Voice of Truth" {
+  oracle_id 33435856-ea24-4d10-84d5-6872b35b63a3
+  cost {3}{W}
+  type Creature — Angel
+  pt 2/2
+  keywords flying, protection from white
+}

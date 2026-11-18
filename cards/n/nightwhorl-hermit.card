@@ -1,0 +1,8 @@
+card "Nightwhorl Hermit" {
+  oracle_id 99007c40-1eb5-4c3a-9889-6d12417d8191
+  cost {2}{U}
+  type Creature — Rat Rogue
+  pt 1/4
+  keywords vigilance
+  label "Threshold" static as long as 7 cards in your graveyard, this: +1/+0, has can't be blocked
+}

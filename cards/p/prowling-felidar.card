@@ -1,0 +1,8 @@
+card "Prowling Felidar" {
+  oracle_id ed26f6bf-fcd6-4cf4-9b65-a492cb79f2df
+  cost {3}{W}
+  type Creature — Cat Beast
+  pt 2/3
+  keywords vigilance
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Backwoods Survivalists" {
+  oracle_id d2aecca6-fe03-4686-9daa-68f1f6c73ab4
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 4/3
+  label "Delirium" static this: +1/+1, has trample as long as 4 card types in your graveyard
+}

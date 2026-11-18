@@ -1,0 +1,7 @@
+card "Vedalken Outlander" {
+  oracle_id 814a30dc-14e4-45cb-9320-b043e686b8ba
+  cost {W}{U}
+  type Artifact Creature — Vedalken Scout
+  pt 2/2
+  keywords protection from red
+}

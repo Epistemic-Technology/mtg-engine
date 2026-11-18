@@ -1,0 +1,8 @@
+card "Battlewise Aven" {
+  oracle_id f165e482-5b87-4062-87ac-bbe8303f74c9
+  cost {3}{W}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  label "Threshold" static as long as 7 cards in your graveyard, this: +1/+1, has first strike
+}

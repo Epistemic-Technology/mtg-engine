@@ -1,0 +1,8 @@
+card "Stalking Drone" {
+  oracle_id 2659cc53-d20d-476f-bc64-4b35a4288d0e
+  cost {1}{G}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  keywords devoid
+  activated {C}, once: this gets +1/+2
+}

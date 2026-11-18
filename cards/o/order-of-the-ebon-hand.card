@@ -1,0 +1,9 @@
+card "Order of the Ebon Hand" {
+  oracle_id 2f65f16f-c6c2-48f0-b556-63cf7d162000
+  cost {B}{B}
+  type Creature — Cleric Knight
+  pt 2/1
+  keywords protection from white
+  activated {B}: this gains first strike
+  activated {B}{B}: this gets +1/+0
+}

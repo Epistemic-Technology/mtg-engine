@@ -1,0 +1,7 @@
+card "Inquisitor's Ox" {
+  oracle_id 224788aa-3876-4844-949e-918e6273151d
+  cost {3}{W}
+  type Creature — Ox
+  pt 2/5
+  label "Delirium" static this: +1/+0, has vigilance as long as 4 card types in your graveyard
+}

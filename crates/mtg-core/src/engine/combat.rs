@@ -45,6 +45,10 @@ impl GameState {
         if a.has(Keyword::Unblockable) {
             return false;
         }
+        // CR 702.16e: can't be blocked by creatures with the quality.
+        if a.protected_from(&b) {
+            return false;
+        }
         // CR 702.14b: landwalk makes the attacker unblockable while the
         // defending player controls a land of that basic type.
         if a.keywords.intersects(crate::card::KeywordSet::LANDWALK) {

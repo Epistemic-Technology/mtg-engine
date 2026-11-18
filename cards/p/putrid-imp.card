@@ -1,0 +1,8 @@
+card "Putrid Imp" {
+  oracle_id 7192ff07-9a84-49ad-a40c-ce255ce21544
+  cost {B}
+  type Creature — Zombie Imp
+  pt 1/1
+  activated discard 1 card: this gains flying
+  label "Threshold" static as long as 7 cards in your graveyard, this: +1/+1, has can't block
+}

@@ -1,0 +1,7 @@
+card "Carapace Forger" {
+  oracle_id 9e623e0a-3c2d-4536-b12f-9437ef820499
+  cost {1}{G}
+  type Creature — Elf Artificer
+  pt 2/2
+  label "Metalcraft" static this: +2/+2 as long as you control 3 artifact
+}

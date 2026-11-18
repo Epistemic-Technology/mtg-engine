@@ -1,0 +1,7 @@
+card "Paranoid Parish-Blade" {
+  oracle_id d1c2b124-5290-4e66-9f6b-4db4d662a74c
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  label "Delirium" static this: +1/+0, has first strike as long as 4 card types in your graveyard
+}

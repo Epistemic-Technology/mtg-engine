@@ -2126,6 +2126,19 @@ their additional costs (Laughing Mad with an empty hand), fixed. Corpus
 scenarios pass (1 skipped); fuzz 0 panics, 0 unfinished; throughput
 within 2% of M4.
 
+Status 2026-11-18, slice 2 (conditions and protection) done:
+conditional static abilities (CR 611.3a) for threshold, delirium,
+metalcraft, "you control an Island", and "during your turn", judged as
+the layers are applied (the turn change now bumps the characteristics
+cache); ability words as labels (`label "Landfall" ...`); protection
+from a color (no damage, enchanting or equipping, blocking, or targeting
+by that color; a spell is now its own target source); devoid; changeling
+(every creature type, with land, artifact, enchantment, and spell
+subtypes interned first so a subtype knows whether it is a creature
+type); and investigate. Corpus 4,740 cards: 3,346 Pauper (31.2%), 3,588
+Modern (16.5%); 855 scenarios pass (16 new), 1 skipped; fuzz 0 panics,
+0 unfinished; throughput within 2% of slice 1.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

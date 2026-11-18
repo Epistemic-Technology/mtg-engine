@@ -1,0 +1,7 @@
+card "Gearsmith Prodigy" {
+  oracle_id 589d6b67-17ad-4ca7-9b0c-1b919bf03a27
+  cost {U}
+  type Creature — Human Artificer
+  pt 1/2
+  static this: +1/+0 as long as you control artifact
+}

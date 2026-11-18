@@ -1,0 +1,7 @@
+card "Duskrider Falcon" {
+  oracle_id d87ab916-5d49-4840-8d5b-805af800a83c
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, protection from black
+}

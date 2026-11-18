@@ -1,0 +1,7 @@
+card "Hedron Rover" {
+  oracle_id 1b2826ea-a3d5-4b8a-b362-0b0880d1cc48
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

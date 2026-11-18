@@ -1,0 +1,10 @@
+card "Slip Through Space" {
+  oracle_id 2516949d-75bb-4aea-a41d-0298bb129471
+  cost {U}
+  type Sorcery
+  keywords devoid
+  spell {
+    target creature can't be blocked
+    draw 1 cards
+  }
+}

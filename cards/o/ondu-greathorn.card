@@ -1,0 +1,8 @@
+card "Ondu Greathorn" {
+  oracle_id 9d061ec5-1edf-46e7-9e6a-4ddc9ced4114
+  cost {3}{W}
+  type Creature — Beast
+  pt 2/3
+  keywords first strike
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

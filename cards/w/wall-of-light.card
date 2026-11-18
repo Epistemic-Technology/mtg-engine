@@ -1,0 +1,7 @@
+card "Wall of Light" {
+  oracle_id d0c05cad-6e14-4726-b7fc-8f2fc7df7267
+  cost {2}{W}
+  type Creature — Wall
+  pt 1/5
+  keywords defender, protection from black
+}

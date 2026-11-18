@@ -1,0 +1,7 @@
+card "Sazh's Chocobo" {
+  oracle_id c2b082b4-5d9c-4125-b353-d1cf4f334720
+  cost {G}
+  type Creature — Bird
+  pt 0/1
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on this
+}

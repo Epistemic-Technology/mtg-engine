@@ -1,0 +1,7 @@
+card "Pouncing Lynx" {
+  oracle_id d8d92f97-d54c-4954-8324-b9c0a9b96ec2
+  cost {1}{W}
+  type Creature — Cat
+  pt 2/1
+  static during your turn, this: has first strike
+}

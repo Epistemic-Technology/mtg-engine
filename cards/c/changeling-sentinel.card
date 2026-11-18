@@ -1,0 +1,7 @@
+card "Changeling Sentinel" {
+  oracle_id 2977aae2-225d-4f3f-8bf7-535f542a7391
+  cost {3}{W}
+  type Creature — Shapeshifter
+  pt 3/2
+  keywords changeling, vigilance
+}

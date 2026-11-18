@@ -1,0 +1,8 @@
+card "Faithful Pikemaster" {
+  oracle_id 17d5c53d-7c77-45c2-b8be-7e43c1ecd902
+  cost {3}{W}
+  type Creature — Rhino Monk Soldier
+  pt 3/4
+  triggered when this enters: scry 2
+  static as long as your turn, this: has first strike
+}

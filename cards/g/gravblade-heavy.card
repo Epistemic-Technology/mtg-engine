@@ -1,0 +1,7 @@
+card "Gravblade Heavy" {
+  oracle_id 67821712-e58f-4fee-81af-021059ac72ea
+  cost {3}{B}
+  type Creature — Human Soldier
+  pt 3/4
+  static as long as you control artifact, this: +1/+0, has deathtouch
+}

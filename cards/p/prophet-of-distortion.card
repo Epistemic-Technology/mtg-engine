@@ -1,0 +1,8 @@
+card "Prophet of Distortion" {
+  oracle_id 6bc82093-0246-4c60-bf30-0b605bef01cd
+  cost {U}
+  type Creature — Eldrazi Drone
+  pt 1/2
+  keywords devoid
+  activated {3}{C}: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Avian Changeling" {
+  oracle_id 767c1f97-03de-474d-9112-e7521ba3b3f3
+  cost {2}{W}
+  type Creature — Shapeshifter
+  pt 2/2
+  keywords changeling, flying
+}

@@ -1,0 +1,8 @@
+card "Cephalid Inkmage" {
+  oracle_id 8d979a0b-ba04-4abb-8f78-c707ce15351a
+  cost {2}{U}
+  type Creature — Octopus Wizard
+  pt 2/2
+  triggered when this enters: surveil 3
+  label "Threshold" static this: has can't be blocked as long as 7 cards in your graveyard
+}

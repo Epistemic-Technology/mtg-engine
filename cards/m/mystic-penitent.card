@@ -1,0 +1,8 @@
+card "Mystic Penitent" {
+  oracle_id d3d59704-569d-42a7-8b31-8a31b9c0395f
+  cost {W}
+  type Creature — Human Nomad Mystic
+  pt 1/1
+  keywords vigilance
+  label "Threshold" static as long as 7 cards in your graveyard, this: +1/+1, has flying
+}

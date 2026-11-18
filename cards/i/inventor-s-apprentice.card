@@ -1,0 +1,7 @@
+card "Inventor's Apprentice" {
+  oracle_id ed8d54fa-ec02-45d6-b70e-4c7e1c66efd6
+  cost {R}
+  type Creature — Human Artificer
+  pt 1/2
+  static this: +1/+1 as long as you control artifact
+}

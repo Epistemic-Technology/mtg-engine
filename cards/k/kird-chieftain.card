@@ -1,0 +1,8 @@
+card "Kird Chieftain" {
+  oracle_id 3a7cca31-ccca-459b-9ac6-c8f384136ba5
+  cost {3}{R}
+  type Creature — Ape
+  pt 3/3
+  static this: +1/+1 as long as you control Forest
+  activated {4}{G}: target creature gets +2/+2 and gains trample
+}

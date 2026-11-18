@@ -1,0 +1,8 @@
+card "Windrider Eel" {
+  oracle_id 9a3b16ae-210b-4d9b-83db-2801edfba394
+  cost {3}{U}
+  type Creature — Fish
+  pt 2/2
+  keywords flying
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

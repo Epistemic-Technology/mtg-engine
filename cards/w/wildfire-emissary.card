@@ -1,0 +1,8 @@
+card "Wildfire Emissary" {
+  oracle_id 8fb44b03-017f-4cf3-a79b-8f6cc33570ca
+  cost {3}{R}
+  type Creature — Efreet
+  pt 2/4
+  keywords protection from white
+  activated {1}{R}: this gets +1/+0
+}

@@ -1,0 +1,8 @@
+card "Eviscerator" {
+  oracle_id 710e6d6a-caaa-4b76-82c8-e363e9438bec
+  cost {3}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 5/5
+  keywords protection from white
+  triggered when this enters: you loses 5 life
+}

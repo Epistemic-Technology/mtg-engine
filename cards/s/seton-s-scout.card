@@ -1,0 +1,8 @@
+card "Seton's Scout" {
+  oracle_id 7b2a32ca-ef5b-40a5-acf7-aefac1d09e5b
+  cost {1}{G}
+  type Creature — Centaur Druid Scout Archer
+  pt 2/1
+  keywords reach
+  label "Threshold" static this: +2/+2 as long as 7 cards in your graveyard
+}

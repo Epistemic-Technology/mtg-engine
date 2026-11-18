@@ -1,0 +1,8 @@
+card "Maja, Bretagard Protector" {
+  oracle_id 0a2075b5-9609-433d-bcd2-e0a637456cf8
+  cost {2}{G}{W}{W}
+  type Legendary Creature — Human Warrior
+  pt 2/3
+  static other creature you control: +1/+1
+  label "Landfall" triggered whenever land you control enters: create 1 "1/1 white Human Warrior creature"
+}

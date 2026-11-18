@@ -11,7 +11,8 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, CdaCount, CounterKind, Layer, Modification, ObjFilter, PtValue, Subtype,
+    AbilityDef, AbilityId, CdaCount, CounterKind, Layer, Modification, ObjFilter, PtValue,
+    StaticCondition, Subtype,
 };
 use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone};
@@ -254,6 +255,42 @@ fn stored_effects(state: &GameState) -> Vec<Live> {
         .collect()
 }
 
+/// Whether a conditional static ability's condition holds (CR 611.3a),
+/// judged from its source's controller with the characteristics worked
+/// out so far.
+fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId) -> bool {
+    let state = work.state;
+    let you = work.controller_of(source);
+    match cond {
+        StaticCondition::CardsInGraveyard(n) => state.player(you).graveyard.len() >= *n as usize,
+        StaticCondition::CardTypesInGraveyard(n) => {
+            let mut types = crate::card::TypeSet::default();
+            for g in &state.player(you).graveyard {
+                types = types.union(state.pool.get(state.objects[*g].def).types);
+            }
+            types.len() >= *n
+        }
+        StaticCondition::YouControl { filter, at_least } => {
+            let n = work
+                .ids
+                .iter()
+                .filter(|id| {
+                    work.on_battlefield(**id)
+                        && filter.matches(
+                            **id,
+                            work.controller_of(**id),
+                            &work.chars[work.index[*id]],
+                            Some(source),
+                            Some(you),
+                        )
+                })
+                .count();
+            n >= *at_least as usize
+        }
+        StaticCondition::YourTurn => state.active_player == you,
+    }
+}
+
 /// Static abilities of battlefield permanents whose ability currently exists
 /// become live effects (CR 611.3); already-live ones persist (CR 613.6).
 fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
@@ -267,6 +304,11 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 continue;
             };
             if !sa.parts.iter().any(|p| p.layer() == layer) {
+                continue;
+            }
+            if let Some(cond) = &sa.condition
+                && !static_condition_holds(work, cond, *id)
+            {
                 continue;
             }
             let origin = Origin::Static {

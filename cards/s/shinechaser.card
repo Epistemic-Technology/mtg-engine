@@ -1,0 +1,9 @@
+card "Shinechaser" {
+  oracle_id 6267ad33-34a6-47c8-ae09-f8d1499a761a
+  cost {1}{W}{U}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying, vigilance
+  static this: +1/+1 as long as you control artifact
+  static this: +1/+1 as long as you control enchantment
+}

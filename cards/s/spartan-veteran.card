@@ -1,0 +1,8 @@
+card "Spartan Veteran" {
+  oracle_id b255d1ec-49ac-49a2-9af8-21915bbcd224
+  cost {R}
+  type Creature — Human Soldier
+  pt 1/1
+  static during your turn, this: has first strike
+  activated {2}: this gets +1/+0
+}

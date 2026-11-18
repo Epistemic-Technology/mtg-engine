@@ -1,0 +1,7 @@
+card "Thraben Foulbloods" {
+  oracle_id 08adacab-96c3-4532-8ab3-0c8064fa4150
+  cost {2}{B}
+  type Creature — Zombie Dog
+  pt 3/2
+  label "Delirium" static this: +1/+1, has menace as long as 4 card types in your graveyard
+}

@@ -1,0 +1,9 @@
+card "Survive the Night" {
+  oracle_id e8fcc7ff-6274-4130-a3a5-99f545eeee30
+  cost {2}{W}
+  type Instant
+  spell {
+    target creature gets +1/+0 and gains indestructible
+    investigate
+  }
+}

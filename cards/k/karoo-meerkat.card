@@ -1,0 +1,7 @@
+card "Karoo Meerkat" {
+  oracle_id 871549e6-24c0-4fbd-8b71-ba8639b0ee47
+  cost {1}{G}
+  type Creature — Mongoose
+  pt 2/1
+  keywords protection from blue
+}

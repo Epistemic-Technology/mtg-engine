@@ -1,0 +1,7 @@
+card "Aeronaut Tinkerer" {
+  oracle_id a15bb807-ea31-4bff-b573-c249c4c78dd6
+  cost {2}{U}
+  type Creature — Human Artificer
+  pt 2/3
+  static this: has flying as long as you control artifact
+}

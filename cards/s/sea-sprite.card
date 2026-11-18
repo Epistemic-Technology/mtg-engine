@@ -1,0 +1,7 @@
+card "Sea Sprite" {
+  oracle_id b318d94e-314f-4df8-a178-b5ddd756e1c4
+  cost {1}{U}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying, protection from red
+}

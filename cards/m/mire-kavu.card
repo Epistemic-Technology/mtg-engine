@@ -1,0 +1,7 @@
+card "Mire Kavu" {
+  oracle_id 0bc58096-7925-4870-bb95-58cce51ea8e7
+  cost {3}{R}
+  type Creature — Kavu
+  pt 3/2
+  static this: +1/+1 as long as you control Swamp
+}

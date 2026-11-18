@@ -1,0 +1,7 @@
+card "Woodlot Crawler" {
+  oracle_id e5b11e43-fc7c-4cea-a44a-8af3f124e29e
+  cost {U}{B}
+  type Creature — Insect
+  pt 2/1
+  keywords forestwalk, protection from green
+}

@@ -1,0 +1,8 @@
+card "Skilled Battlecarver" {
+  oracle_id 4fc7c7a0-bfff-4833-a0d0-a38dc29e9dfb
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  static during your turn, this: has first strike
+  activated {1}{R}: this gets +1/+0
+}

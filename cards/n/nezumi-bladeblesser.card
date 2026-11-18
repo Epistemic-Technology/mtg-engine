@@ -1,0 +1,8 @@
+card "Nezumi Bladeblesser" {
+  oracle_id 408512c7-5016-4df4-b708-b7467bcdf0ae
+  cost {2}{B}
+  type Creature — Rat Samurai
+  pt 3/2
+  static this: has deathtouch as long as you control artifact
+  static this: has menace as long as you control enchantment
+}

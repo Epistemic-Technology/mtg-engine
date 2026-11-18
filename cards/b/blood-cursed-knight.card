@@ -1,0 +1,7 @@
+card "Blood-Cursed Knight" {
+  oracle_id fdf51294-6270-4c94-a2a9-8df37dfcaa0d
+  cost {1}{W}{B}
+  type Creature — Vampire Knight
+  pt 3/2
+  static as long as you control enchantment, this: +1/+1, has lifelink
+}

@@ -1,0 +1,7 @@
+card "Scythe Leopard" {
+  oracle_id ab539b16-d2a0-404d-8ad3-7ff33f2f1abe
+  cost {G}
+  type Creature — Cat
+  pt 1/1
+  label "Landfall" triggered whenever land you control enters: this gets +1/+1
+}

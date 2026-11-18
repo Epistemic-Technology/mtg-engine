@@ -1,0 +1,7 @@
+card "Windreaper Falcon" {
+  oracle_id aa17782b-d8e7-423b-9f03-01ccb600f69a
+  cost {1}{R}{G}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, protection from blue
+}

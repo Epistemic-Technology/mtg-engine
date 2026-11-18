@@ -1,0 +1,7 @@
+card "Dining Room" {
+  oracle_id 0880461e-8943-443b-90e7-ff84eef46550
+  type Land
+  enters tapped
+  mana {R} or {G}
+  activated {4}, {T}: investigate
+}

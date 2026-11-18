@@ -1,0 +1,7 @@
+card "Gangly Stompling" {
+  oracle_id 60206d4e-4301-4d7a-a68e-46a2ad9fc407
+  cost {2}{R/G}
+  type Creature — Shapeshifter
+  pt 4/2
+  keywords changeling, trample
+}

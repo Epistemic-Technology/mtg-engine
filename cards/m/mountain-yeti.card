@@ -1,0 +1,7 @@
+card "Mountain Yeti" {
+  oracle_id 375ea10b-da68-4c66-b3eb-f5113c09ea4b
+  cost {2}{R}{R}
+  type Creature — Yeti
+  pt 3/3
+  keywords mountainwalk, protection from white
+}

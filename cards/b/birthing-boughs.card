@@ -1,0 +1,6 @@
+card "Birthing Boughs" {
+  oracle_id c6836d78-ca71-4413-aced-d4de19976221
+  cost {3}
+  type Artifact
+  activated {4}, {T}: create 1 "2/2 colorless Shapeshifter creature with changeling"
+}

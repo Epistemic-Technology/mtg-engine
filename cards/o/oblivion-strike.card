@@ -1,0 +1,7 @@
+card "Oblivion Strike" {
+  oracle_id ad3564f5-11f7-456b-8881-4db00a18a2ed
+  cost {3}{B}
+  type Sorcery
+  keywords devoid
+  spell: exile target creature
+}

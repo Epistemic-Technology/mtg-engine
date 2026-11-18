@@ -1,0 +1,7 @@
+card "Loam Lion" {
+  oracle_id 18961e25-3feb-4dba-a77f-240a4d664ecb
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  static this: +1/+2 as long as you control Forest
+}

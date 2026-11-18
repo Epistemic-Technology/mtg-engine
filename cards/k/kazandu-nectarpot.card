@@ -1,0 +1,7 @@
+card "Kazandu Nectarpot" {
+  oracle_id 263b526c-8b81-44ee-a7c4-5c24bf9b42a4
+  cost {1}{G}
+  type Creature — Insect
+  pt 1/3
+  label "Landfall" triggered whenever land you control enters: you gains 1 life
+}

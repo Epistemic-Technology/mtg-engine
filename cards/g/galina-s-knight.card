@@ -1,0 +1,7 @@
+card "Galina's Knight" {
+  oracle_id 9a484eb3-ae4a-465b-9dbc-f7a42a036e07
+  cost {W}{U}
+  type Creature — Merfolk Knight
+  pt 2/2
+  keywords protection from red
+}

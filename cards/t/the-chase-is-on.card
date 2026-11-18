@@ -1,0 +1,6 @@
+card "The Chase Is On" {
+  oracle_id 789899eb-3a33-4a41-b6b5-5e2f55a9af51
+  cost {2}{R}
+  type Instant
+  spell: target creature gets +3/+0 and gains first strike; investigate
+}

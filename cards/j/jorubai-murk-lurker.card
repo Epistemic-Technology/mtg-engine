@@ -1,0 +1,8 @@
+card "Jorubai Murk Lurker" {
+  oracle_id 12e091d0-3fd0-4058-84a9-529023b74c74
+  cost {2}{U}
+  type Creature — Leech
+  pt 1/3
+  static this: +1/+1 as long as you control Swamp
+  activated {1}{B}: target creature gains lifelink
+}

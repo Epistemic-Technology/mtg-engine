@@ -1,0 +1,8 @@
+card "War-Spike Changeling" {
+  oracle_id b6ddb093-1fff-4648-b7a1-141a3875599c
+  cost {3}{R}
+  type Creature — Shapeshifter
+  pt 3/3
+  keywords changeling
+  activated {R}: this gains first strike
+}

@@ -1,0 +1,8 @@
+card "Slaughter Drone" {
+  oracle_id 047e09c0-cbd9-45ba-9729-bf35ebe24e69
+  cost {1}{B}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  keywords devoid
+  activated {C}: this gains deathtouch
+}

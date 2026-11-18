@@ -1,0 +1,8 @@
+card "Bloated Toad" {
+  oracle_id 5ddcc7a5-c869-49fd-baa1-ab5f5f456f90
+  cost {2}{G}
+  type Creature — Frog
+  pt 2/2
+  keywords protection from blue
+  cycling {2}
+}

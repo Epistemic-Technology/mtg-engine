@@ -1,0 +1,7 @@
+card "Blood Burglar" {
+  oracle_id 9c975fda-471a-4d41-9bb6-ea42edc6a0e6
+  cost {1}{B}
+  type Creature — Vampire Rogue
+  pt 2/2
+  static during your turn, this: has lifelink
+}

@@ -1,0 +1,7 @@
+card "Fearless Fledgling" {
+  oracle_id 75ae9b87-7137-47a0-b3e1-8915ccd0edf1
+  cost {1}{W}
+  type Creature — Griffin
+  pt 1/1
+  label "Landfall" triggered whenever land you control enters: put 1 +1/+1 counters on this; this gains flying
+}

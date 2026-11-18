@@ -1,0 +1,7 @@
+card "Wildwood Geist" {
+  oracle_id 9fb4aa2d-6414-4176-9070-e5230e100c6a
+  cost {4}{G}
+  type Creature — Spirit
+  pt 3/3
+  static during your turn, this: +2/+2
+}

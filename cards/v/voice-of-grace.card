@@ -1,0 +1,7 @@
+card "Voice of Grace" {
+  oracle_id 7338f964-b7d8-4491-b933-7d8b7d1b56ed
+  cost {3}{W}
+  type Creature — Angel
+  pt 2/2
+  keywords flying, protection from black
+}

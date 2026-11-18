@@ -1,0 +1,7 @@
+card "Silver Knight" {
+  oracle_id aa7cd6e6-35a6-4c18-9d66-dc2a95206401
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike, protection from red
+}

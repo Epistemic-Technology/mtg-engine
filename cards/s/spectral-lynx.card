@@ -1,0 +1,8 @@
+card "Spectral Lynx" {
+  oracle_id b5187725-9a39-433c-ae09-eccd6111574c
+  cost {1}{W}
+  type Creature — Cat Spirit
+  pt 2/1
+  keywords protection from green
+  activated {B}: regenerate this
+}

@@ -97,9 +97,9 @@ impl GameState {
                 // 704.5m: an Aura not legally attached goes to its owner's
                 // graveyard.
                 if let Some(spec) = self.pool.get(o.def).enchant()
-                    && !o
-                        .attached_to
-                        .is_some_and(|t| self.is_legal_attachment(spec, t))
+                    && !o.attached_to.is_some_and(|t| {
+                        self.is_legal_attachment(spec, t) && !self.protected_attachment(id, t)
+                    })
                 {
                     to_graveyard.push(id);
                     continue;
@@ -107,8 +107,10 @@ impl GameState {
                 // 704.5n: an Equipment attached to something it cannot
                 // equip becomes unattached.
                 if self.pool.get(o.def).is_equipment()
-                    && o.attached_to
-                        .is_some_and(|t| !self.is_legal_attachment(TargetSpec::Creature, t))
+                    && o.attached_to.is_some_and(|t| {
+                        !self.is_legal_attachment(TargetSpec::Creature, t)
+                            || self.protected_attachment(id, t)
+                    })
                 {
                     unattach.push(id);
                 }

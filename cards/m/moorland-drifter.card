@@ -1,0 +1,7 @@
+card "Moorland Drifter" {
+  oracle_id f5fa9138-9640-4586-bc81-caa6b8eae8b6
+  cost {1}{W}
+  type Creature — Spirit
+  pt 2/2
+  label "Delirium" static this: has flying as long as 4 card types in your graveyard
+}

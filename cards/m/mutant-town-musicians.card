@@ -1,0 +1,8 @@
+card "Mutant Town Musicians" {
+  oracle_id 9f318ddc-3dc5-4e43-92b3-3a776e41c56e
+  cost {2}{R}
+  type Creature — Mutant Bard Performer
+  pt 2/4
+  keywords trample
+  label "Alliance" triggered whenever other creature you control enters: this gets +1/+0
+}

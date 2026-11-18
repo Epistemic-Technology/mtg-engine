@@ -1,0 +1,7 @@
+card "Metamorphic Wurm" {
+  oracle_id 512477f0-1083-423b-9675-a8bc852f7d88
+  cost {3}{G}{G}
+  type Creature — Elephant Wurm
+  pt 3/3
+  label "Threshold" static this: +4/+4 as long as 7 cards in your graveyard
+}

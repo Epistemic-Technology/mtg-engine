@@ -15,7 +15,7 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
-    Replacement, Replaces, SacCost, Sentence, Target, Trigger, TriggerObj,
+    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -145,6 +145,7 @@ pub fn keyword_name(k: Keyword) -> &'static str {
         Keyword::Swampwalk => "swampwalk",
         Keyword::Mountainwalk => "mountainwalk",
         Keyword::Forestwalk => "forestwalk",
+        k => k.name(),
     }
 }
 
@@ -1151,6 +1152,7 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
+        Effect::Investigate => Clause::imperative("investigate".to_string()),
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -1811,7 +1813,9 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             Mod::AddTypes(_) | Mod::AddLandType(_) | Mod::AddSubtype(_) | Mod::AddColors(_)
         )
     });
-    let (subject, plural_form) = if filter.enchanted {
+    let (subject, plural_form) = if filter.relation == Relation::This {
+        (format!("This {}", self_noun(card)), false)
+    } else if filter.enchanted {
         (capitalize(&filter_phrase(filter, card, false)), false)
     } else if each {
         (
@@ -1836,6 +1840,52 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     };
     let parts: Vec<String> = mods.iter().map(|m| mod_text(m, plural_form)).collect();
     format!("{subject} {}.", list(&parts))
+}
+
+/// "seven or more cards are in your graveyard", "you control an Island".
+fn static_cond_text(c: &StaticCond, card: &Card) -> String {
+    let or_more = |n: u32| format!("{} or more", count_words(Num::N(n), "one"));
+    match c {
+        StaticCond::CardsInGraveyard(n) => {
+            format!("there are {} cards in your graveyard", or_more(*n))
+        }
+        StaticCond::CardTypesInGraveyard(n) => format!(
+            "there are {} card types among cards in your graveyard",
+            or_more(*n)
+        ),
+        StaticCond::YouControl { filter, at_least } => {
+            let mut f = filter.clone();
+            f.who = None;
+            let what = if *at_least == 1 {
+                with_article(&filter_phrase(&f, card, false))
+            } else {
+                format!("{} {}", or_more(*at_least), filter_phrase(&f, card, true))
+            };
+            format!("you control {what}")
+        }
+        StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+    }
+}
+
+/// A static ability's text with its condition: "As long as <cond>, <text>"
+/// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
+fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> String {
+    let cond = static_cond_text(c, card);
+    if first {
+        let rest = if body.starts_with(&card.name) {
+            body.to_string()
+        } else {
+            lowercase_first(body)
+        };
+        if *c == StaticCond::DuringYourTurn {
+            format!("During your turn, {rest}")
+        } else {
+            format!("As long as {cond}, {rest}")
+        }
+    } else {
+        let stem = body.strip_suffix('.').unwrap_or(body);
+        format!("{stem} as long as {cond}.")
+    }
 }
 
 // ---- abilities and cards ----
@@ -1930,7 +1980,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             replacement_text(r, &mut ctx, false)
         }
-        Ability::Static { filter, mods } => static_text(filter, mods, card),
+        Ability::Static {
+            filter,
+            mods,
+            condition,
+            cond_first,
+        } => {
+            let body = static_text(filter, mods, card);
+            match condition {
+                None => body,
+                Some(c) => conditional_static(&body, c, *cond_first, card),
+            }
+        }
+        Ability::Labeled { label, ability } => {
+            format!("{label} — {}", ability_text(card, ability, lookup))
+        }
         Ability::EntersAsCopy(f) => {
             let mut s = format!(
                 "You may have this {} enter as a copy of any {} on the battlefield",

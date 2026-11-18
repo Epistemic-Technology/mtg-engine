@@ -1,0 +1,7 @@
+card "Belligerent Whiptail" {
+  oracle_id cf0a15f5-5f41-4eea-81f7-02059b9586a2
+  cost {3}{R}
+  type Creature — Wurm
+  pt 4/2
+  label "Landfall" triggered whenever land you control enters: this gains first strike
+}

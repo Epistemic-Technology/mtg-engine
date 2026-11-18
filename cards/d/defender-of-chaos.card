@@ -1,0 +1,7 @@
+card "Defender of Chaos" {
+  oracle_id e5f04e8a-e9ae-4f00-8ada-f63b3454ed30
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/1
+  keywords flash, protection from white
+}

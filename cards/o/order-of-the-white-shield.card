@@ -1,0 +1,9 @@
+card "Order of the White Shield" {
+  oracle_id e0b3cfc1-68d4-46a8-9ae4-71bdb9c87889
+  cost {W}{W}
+  type Creature — Human Knight
+  pt 2/1
+  keywords protection from black
+  activated {W}: this gains first strike
+  activated {W}{W}: this gets +1/+0
+}
