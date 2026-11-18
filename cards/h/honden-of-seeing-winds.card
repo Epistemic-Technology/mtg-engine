@@ -1,0 +1,6 @@
+card "Honden of Seeing Winds" {
+  oracle_id 45beca46-480c-4771-ba46-78b6ac7d5c2c
+  cost {4}{U}
+  type Legendary Enchantment — Shrine
+  triggered at beginning of your upkeep: draw count each Shrine you control cards
+}

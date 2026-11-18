@@ -1,0 +1,8 @@
+card "Conifer Wurm" {
+  oracle_id 8f780497-23bb-44c3-982c-e2b8a7a29999
+  cost {4}{G}
+  type Snow Creature — Wurm
+  pt 4/4
+  keywords trample
+  activated {3}{G}: this gets +1/+1 count where snow permanent you control
+}

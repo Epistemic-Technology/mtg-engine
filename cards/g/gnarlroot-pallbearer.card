@@ -1,0 +1,8 @@
+card "Gnarlroot Pallbearer" {
+  oracle_id 18da85d4-2a51-45c0-a18c-bce9bc39fa64
+  cost {4}{G}{G}
+  type Creature — Treefolk Druid
+  pt 5/5
+  keywords trample
+  triggered when this enters: target creature gets +1/+1 count where graveyard creature
+}

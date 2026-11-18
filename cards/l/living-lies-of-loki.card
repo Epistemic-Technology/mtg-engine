@@ -1,0 +1,8 @@
+card "Living Lies of Loki" {
+  oracle_id cbbf61b0-5dd2-4643-8857-b7a10ec76ec8
+  cost {1}{U}
+  type Creature — Illusion Villain
+  pt 1/3
+  static this: +1/+0 count each other Illusion you control
+  triggered when this dies: draw 1 cards
+}

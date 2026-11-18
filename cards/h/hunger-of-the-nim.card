@@ -1,0 +1,6 @@
+card "Hunger of the Nim" {
+  oracle_id 1af3c6ff-2884-4d8c-a01f-6f74d8ea10cc
+  cost {1}{B}
+  type Sorcery
+  spell: target creature gets +1/+0 count each artifact you control
+}

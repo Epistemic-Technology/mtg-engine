@@ -1,0 +1,7 @@
+card "Pennon Blade" {
+  oracle_id b97e6acd-a676-429e-b875-b734759ebea7
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each creature you control
+  equip {4}
+}

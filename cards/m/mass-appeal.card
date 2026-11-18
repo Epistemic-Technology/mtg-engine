@@ -1,0 +1,6 @@
+card "Mass Appeal" {
+  oracle_id aef067b4-cd9c-4f18-8c63-fbbc39b63376
+  cost {2}{U}
+  type Sorcery
+  spell: draw count each Human you control cards
+}

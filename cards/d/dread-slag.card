@@ -1,0 +1,8 @@
+card "Dread Slag" {
+  oracle_id 4fd87eb8-624b-48f4-b6f0-ee2e09f91387
+  cost {3}{B}{R}
+  type Creature — Horror
+  pt 9/9
+  keywords trample
+  static this: -4/-4 count each hand
+}

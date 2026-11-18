@@ -1,0 +1,7 @@
+card "Granite Grip" {
+  oracle_id 19e09405-3294-4f98-a18f-60cf0a8a2e4e
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0 count each Mountain you control
+}

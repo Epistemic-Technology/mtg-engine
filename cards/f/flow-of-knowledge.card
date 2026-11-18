@@ -1,0 +1,6 @@
+card "Flow of Knowledge" {
+  oracle_id b65f20de-52fa-4904-bbfe-7ba53ccd8ae5
+  cost {4}{U}
+  type Instant
+  spell: draw count each Island you control cards then discard 2 cards
+}

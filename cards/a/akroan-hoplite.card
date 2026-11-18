@@ -1,0 +1,7 @@
+card "Akroan Hoplite" {
+  oracle_id e15db59f-4477-4139-8e7e-741ab4584e7f
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 1/2
+  triggered whenever this attacks: this gets +1/+0 count where attacking creature you control
+}

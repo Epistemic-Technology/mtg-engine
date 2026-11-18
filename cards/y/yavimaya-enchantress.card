@@ -1,0 +1,7 @@
+card "Yavimaya Enchantress" {
+  oracle_id 495fc654-7986-4d76-9d5c-bc1484e98de2
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 2/2
+  static this: +1/+1 count each enchantment on battlefield
+}

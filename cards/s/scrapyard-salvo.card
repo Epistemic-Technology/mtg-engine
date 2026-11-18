@@ -1,0 +1,6 @@
+card "Scrapyard Salvo" {
+  oracle_id f63894a8-318f-4cfb-9a17-359fb9153e74
+  cost {1}{R}{R}
+  type Sorcery
+  spell: deal count equal graveyard artifact damage to target player or planeswalker
+}

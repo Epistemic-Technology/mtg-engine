@@ -1,0 +1,13 @@
+card "Horn of Valhalla // Ysgard's Call" {
+  oracle_id d02179a0-a6b7-49ef-a73e-cf11cabb896f
+  layout adventure
+  cost {1}{W}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each creature you control
+  equip {3}
+  face "Ysgard's Call" {
+    cost {X}{W}{W}
+    type Sorcery — Adventure
+    spell: create X "1/1 white Soldier creature"
+  }
+}

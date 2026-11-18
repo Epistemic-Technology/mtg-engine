@@ -1,0 +1,6 @@
+card "Dogpile" {
+  oracle_id a4364218-f746-42ff-8495-bf8ca69c3b62
+  cost {3}{R}
+  type Instant
+  spell: deal count equal attacking creature you control damage to any target
+}

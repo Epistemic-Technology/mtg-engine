@@ -1,0 +1,9 @@
+card "Foundry Champion" {
+  oracle_id d1c44856-ca53-4b6e-902e-8d9c6fe1f61c
+  cost {4}{R}{W}
+  type Creature — Elemental Soldier
+  pt 4/4
+  triggered when this enters: deal count equal creature you control damage to any target
+  activated {R}: this gets +1/+0
+  activated {W}: this gets +0/+1
+}

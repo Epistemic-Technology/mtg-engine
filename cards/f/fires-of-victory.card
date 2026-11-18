@@ -1,0 +1,7 @@
+card "Fires of Victory" {
+  oracle_id d6afb1a9-c9ed-4a56-ba7d-700ab71f2e0d
+  cost {1}{R}
+  type Instant
+  kicker {2}{U}
+  spell: if kicked, draw 1 cards; deal count equal hand damage to target creature or planeswalker
+}

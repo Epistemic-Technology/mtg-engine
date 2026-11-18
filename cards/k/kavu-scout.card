@@ -1,0 +1,7 @@
+card "Kavu Scout" {
+  oracle_id 2bd91ce8-1797-4dd7-8150-0d4caa7dad61
+  cost {2}{R}
+  type Creature — Kavu Scout
+  pt 0/2
+  label "Domain" static this: +1/+0 count each domain
+}

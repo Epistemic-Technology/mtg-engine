@@ -161,6 +161,14 @@ impl Compiler<'_> {
         if let Some((p, t)) = card.pt {
             b = b.pt(p, t);
         }
+        if !card.counts.is_empty() {
+            let counts = card
+                .counts
+                .iter()
+                .map(|c| self.count_expr(&c.expr))
+                .collect();
+            b = b.counts(counts);
+        }
         if let Some(n) = card.loyalty {
             b = b.loyalty(n);
         }
@@ -249,6 +257,20 @@ impl Compiler<'_> {
             tapped: f.tapped,
             attacking: f.attacking,
             blocking: f.blocking,
+        }
+    }
+
+    fn count_expr(&mut self, c: &crate::ast::CountExpr) -> mtg_core::card::CountExpr {
+        use crate::ast::CountExpr as A;
+        use mtg_core::card::CountExpr as C;
+        match c {
+            A::Permanents(f) => C::Permanents(self.filter(f)),
+            A::Domain => C::Domain,
+            A::CardsInHand => C::CardsInHand,
+            A::CardsInGraveyard(f) => C::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
+            A::SourcePower => C::SourcePower,
+            A::TargetPower(i) => C::TargetPower(*i),
+            A::Life => C::Life,
         }
     }
 
@@ -448,6 +470,17 @@ impl Compiler<'_> {
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
+            Effect::PumpVar {
+                power,
+                toughness,
+                times,
+                to,
+            } => out.push(CoreEffect::PumpVar {
+                power: *power,
+                toughness: *toughness,
+                times: *times,
+                to: r(*to),
+            }),
             Effect::PutInLibrary { what, top } => out.push(CoreEffect::PutInLibrary {
                 what: r(*what),
                 top: *top,
@@ -661,6 +694,31 @@ impl Compiler<'_> {
 
     fn modification(&mut self, m: &Mod) -> Modification {
         match m {
+            Mod::ModifyPtPer {
+                power,
+                toughness,
+                count,
+            } => {
+                let expr = match count {
+                    mtg_core::card::Num::Count(i) => self
+                        .card
+                        .counts
+                        .get(usize::from(*i))
+                        .map(|c| c.expr.clone()),
+                    _ => None,
+                };
+                match expr {
+                    Some(e) => Modification::ModifyPtPer {
+                        power: *power,
+                        toughness: *toughness,
+                        count: self.count_expr(&e),
+                    },
+                    None => Modification::ModifyPt {
+                        power: *power,
+                        toughness: *toughness,
+                    },
+                }
+            }
             Mod::AddTypes(t) => Modification::AddTypes(TypeSet::of(t.iter().copied())),
             Mod::AddLandType(c) => Modification::AddLandType(*c),
             Mod::SetLandType(c) => Modification::SetLandType(*c),

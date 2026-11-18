@@ -1,0 +1,6 @@
+card "Irradiate" {
+  oracle_id 84d45389-a085-44bc-a3fb-1a5f7cc6cbe0
+  cost {3}{B}
+  type Instant
+  spell: target creature gets -1/-1 count each artifact you control
+}

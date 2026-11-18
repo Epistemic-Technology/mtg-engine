@@ -1,0 +1,8 @@
+card "Hellkite Igniter" {
+  oracle_id 12aba1d4-477f-4d36-96bb-c3c7bbd51b75
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, haste
+  activated {1}{R}: this gets +1/+0 count where artifact you control
+}

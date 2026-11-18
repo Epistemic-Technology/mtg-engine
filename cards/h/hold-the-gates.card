@@ -1,0 +1,6 @@
+card "Hold the Gates" {
+  oracle_id 7e6fcbc0-691a-4bd7-b063-debc86f4506a
+  cost {2}{W}
+  type Enchantment
+  static creature you control: +0/+1 count each Gate you control, has vigilance
+}

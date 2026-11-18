@@ -1,0 +1,8 @@
+card "Nim Shrieker" {
+  oracle_id 1dff7c82-e49f-45e8-8f66-d5801f420fa6
+  cost {3}{B}
+  type Creature — Zombie
+  pt 0/1
+  keywords flying
+  static this: +1/+0 count each artifact you control
+}

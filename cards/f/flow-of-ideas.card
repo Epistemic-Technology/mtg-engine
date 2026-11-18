@@ -1,0 +1,6 @@
+card "Flow of Ideas" {
+  oracle_id dd397a32-06b0-4530-b075-412e2881aa53
+  cost {5}{U}
+  type Sorcery
+  spell: draw count each Island you control cards
+}

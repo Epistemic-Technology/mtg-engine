@@ -1,0 +1,8 @@
+card "Meria's Outrider" {
+  oracle_id 6ae9aa10-38f5-4b10-8b44-1164b85acd7f
+  cost {4}{R}
+  type Creature — Elf Archer
+  pt 4/4
+  keywords reach
+  label "Domain" triggered when this enters: deal count equal domain damage to each opponent
+}

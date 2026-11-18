@@ -1,0 +1,6 @@
+card "Grim Flowering" {
+  oracle_id 65428247-b386-410c-91b7-81dd278c0927
+  cost {5}{G}
+  type Sorcery
+  spell: draw count each graveyard creature cards
+}

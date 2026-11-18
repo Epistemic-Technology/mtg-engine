@@ -1,0 +1,7 @@
+card "Grim Strider" {
+  oracle_id b9dcdf5b-0fdb-4d8e-8ddf-08e44f67018d
+  cost {3}{B}
+  type Creature — Horror
+  pt 6/6
+  static this: -1/-1 count each hand
+}

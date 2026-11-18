@@ -1,0 +1,6 @@
+card "Collective Unconscious" {
+  oracle_id 38abf769-e4ef-4b47-9c79-c8cda0b90f6c
+  cost {4}{G}{G}
+  type Sorcery
+  spell: draw count each creature you control cards
+}

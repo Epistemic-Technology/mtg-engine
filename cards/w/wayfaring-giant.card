@@ -1,0 +1,7 @@
+card "Wayfaring Giant" {
+  oracle_id e20e5ad9-36b5-4962-acc2-555d069c5daf
+  cost {5}{W}
+  type Creature — Giant
+  pt 1/3
+  label "Domain" static this: +1/+1 count each domain
+}

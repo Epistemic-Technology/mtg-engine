@@ -1,0 +1,42 @@
+# M5 slice 8: variable amounts ("where X is the number of ...", "equal
+# to the number of ...", "for each ..."), one-shot and static.
+
+scenario "equal to: Earth Tremor deals damage equal to lands you control" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Earth Tremor"
+  turn 1 A: cast "Earth Tremor" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "for each: Defile shrinks by the number of Swamps" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Craw Wurm"
+  hand A: "Defile"
+  turn 1 A: cast "Defile" targeting "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert power "Craw Wurm" 3
+  assert toughness "Craw Wurm" 1
+}
+
+scenario "static for each: Kavu Scout counts basic land types" {
+  battlefield A: "Kavu Scout", "Mountain", "Forest", "Island"
+  assert power "Kavu Scout" 3
+}
+
+scenario "static for each: the count follows the board" {
+  battlefield A: "Kavu Scout", "Mountain", "Forest"
+  battlefield B: "Mountain"
+  hand B: "Stone Rain"
+  assert power "Kavu Scout" 2
+}
+
+scenario "static for each in hand: Empyrial Armor follows draws" {
+  battlefield A: "Grizzly Bears", "Empyrial Armor" on "Grizzly Bears"
+  hand A: "Forest", "Island"
+  assert power "Grizzly Bears" 4
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+}

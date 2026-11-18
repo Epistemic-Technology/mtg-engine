@@ -1,0 +1,6 @@
+card "Mob Justice" {
+  oracle_id 0ff97869-f27c-4379-92fd-605062aa5418
+  cost {1}{R}
+  type Sorcery
+  spell: deal count equal creature you control damage to target player or planeswalker
+}

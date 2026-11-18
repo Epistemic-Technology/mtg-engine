@@ -1,0 +1,7 @@
+card "Mogg Squad" {
+  oracle_id 4dac142a-c8f8-45c8-85d3-40e170dee112
+  cost {1}{R}
+  type Creature — Goblin
+  pt 3/3
+  static this: -1/-1 count each other creature on battlefield
+}

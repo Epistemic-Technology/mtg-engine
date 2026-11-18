@@ -1,0 +1,6 @@
+card "Massive Raid" {
+  oracle_id 032367fd-e869-463e-aa0f-65e3c6567e60
+  cost {1}{R}{R}
+  type Instant
+  spell: deal count equal creature you control damage to any target
+}

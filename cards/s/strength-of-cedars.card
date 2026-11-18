@@ -1,0 +1,6 @@
+card "Strength of Cedars" {
+  oracle_id 61b29c75-00d0-4ddb-9e27-cfd47302830e
+  cost {4}{G}
+  type Instant — Arcane
+  spell: target creature gets +1/+1 count where land you control
+}

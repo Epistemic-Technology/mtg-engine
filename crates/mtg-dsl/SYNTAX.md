@@ -181,7 +181,14 @@ sentence ("target player loses 1 life and you gain 1 life") and `then`
 joins them with ", then" ("draw 1 card then discard 1 card"); a clause
 after `and` may leave its subject implied ("you draw 1 card and lose 1
 life").
-Numbers are digits or `X`; "until end of turn" is implied by `gets`,
+Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
+where X is the number of ..."), `count equal <expr>` ("... equal to the
+number of ..."), or `count each <expr>` ("... for each ..."), with
+`<expr>` a filter (`creature you control`, `Elf on battlefield`),
+`domain`, `hand`, `graveyard [<filter>]`, `power` (the source's), `power
+of target 1`, or `life`; `this gets +1/+1 count each creature you
+control` scales a pump, and in a static ability `+1/+1 count each
+artifact you control` is "gets +1/+1 for each artifact you control"; "until end of turn" is implied by `gets`,
 `gains`, `becomes`, `has base power and toughness`, and `gain control of`
 and may be written or not. A sentence that starts `until end of turn,`
 prints the duration first instead ("Until end of turn, target creature you

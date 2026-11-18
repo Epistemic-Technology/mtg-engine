@@ -1,0 +1,7 @@
+card "Knotvine Paladin" {
+  oracle_id 75efff64-ea9b-4e3e-a729-fc003ee3db1e
+  cost {G}{W}
+  type Creature — Human Knight
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1 count each untapped creature you control
+}

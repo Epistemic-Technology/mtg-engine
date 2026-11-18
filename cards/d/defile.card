@@ -1,0 +1,6 @@
+card "Defile" {
+  oracle_id 49dddec0-d958-4810-8c6e-225fc8118c8f
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1 count each Swamp you control
+}

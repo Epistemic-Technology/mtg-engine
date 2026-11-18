@@ -1,0 +1,7 @@
+card "Bravado" {
+  oracle_id 69b5af09-b3e6-4abf-b62e-9199c4f43ba7
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each other creature you control
+}

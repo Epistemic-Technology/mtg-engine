@@ -1,0 +1,6 @@
+card "Might of the Masses" {
+  oracle_id f73416a8-40e5-4791-948f-147ef2221ee7
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 count each creature you control
+}

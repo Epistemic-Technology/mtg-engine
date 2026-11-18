@@ -1,0 +1,8 @@
+card "Rampaging Brontodon" {
+  oracle_id bfea2229-a1ca-40c1-aaad-5f97add3f079
+  cost {5}{G}{G}
+  type Creature — Dinosaur
+  pt 7/7
+  keywords trample
+  triggered whenever this attacks: this gets +1/+1 count each land you control
+}

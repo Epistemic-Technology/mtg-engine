@@ -1,0 +1,7 @@
+card "Ethereal Armor" {
+  oracle_id dbba75f5-2404-4bd5-982b-f6c4effa5316
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each enchantment you control, has first strike
+}

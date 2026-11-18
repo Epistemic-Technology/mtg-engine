@@ -1,0 +1,8 @@
+card "Nim Shambler" {
+  oracle_id 83d2ff7f-4d6e-4cc0-b8a9-3c5b3236eea0
+  cost {2}{B}{B}
+  type Creature — Zombie
+  pt 2/1
+  static this: +1/+0 count each artifact you control
+  activated sacrifice creature: regenerate this
+}

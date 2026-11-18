@@ -1,0 +1,7 @@
+card "Earth Servant" {
+  oracle_id 7ce30379-3f07-4b94-b2d6-a89b4763971b
+  cost {5}{R}
+  type Creature — Elemental
+  pt 4/4
+  static this: +0/+1 count each Mountain you control
+}

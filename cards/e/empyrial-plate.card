@@ -1,0 +1,7 @@
+card "Empyrial Plate" {
+  oracle_id e95e100e-4886-4bde-825c-017e878ac825
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each hand
+  equip {2}
+}

@@ -1,0 +1,7 @@
+card "Empyrial Armor" {
+  oracle_id ec9e8611-e785-4d5d-b6e1-bf63daf408df
+  cost {1}{W}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each hand
+}

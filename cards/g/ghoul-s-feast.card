@@ -1,0 +1,6 @@
+card "Ghoul's Feast" {
+  oracle_id 042e0533-faf4-475e-be7b-438d23c6e605
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +1/+0 count where graveyard creature
+}

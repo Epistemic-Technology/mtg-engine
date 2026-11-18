@@ -1,0 +1,7 @@
+card "Militant Inquisitor" {
+  oracle_id d1e326e8-6e9e-4dbd-8c2f-0bef90db2bb7
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  static this: +1/+0 count each Equipment you control
+}

@@ -1,0 +1,7 @@
+card "Helm of the Gods" {
+  oracle_id 52804094-47b9-40b9-999d-7c050d220e63
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +1/+1 count each enchantment you control
+  equip {1}
+}

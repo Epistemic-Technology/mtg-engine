@@ -1,0 +1,6 @@
+card "Armed Response" {
+  oracle_id 0258a606-1625-402e-b0c4-ffca06779b5e
+  cost {2}{W}
+  type Instant
+  spell: deal count equal Equipment you control damage to target attacking creature
+}

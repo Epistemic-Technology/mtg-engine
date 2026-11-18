@@ -1,0 +1,7 @@
+card "Manaforce Mace" {
+  oracle_id 7e92be29-ccd1-4556-bb2a-ac7902bc77c2
+  cost {4}
+  type Artifact — Equipment
+  label "Domain" static enchanted: +1/+1 count each domain
+  equip {3}
+}

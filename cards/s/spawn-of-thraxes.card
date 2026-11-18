@@ -1,0 +1,8 @@
+card "Spawn of Thraxes" {
+  oracle_id 52289774-d292-4028-91fb-8826fa004dc8
+  cost {5}{R}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying
+  triggered when this enters: deal count equal Mountains you control damage to any target
+}

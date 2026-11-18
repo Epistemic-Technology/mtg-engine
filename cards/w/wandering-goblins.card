@@ -1,0 +1,7 @@
+card "Wandering Goblins" {
+  oracle_id 8046981c-d68c-4fbb-a133-8037996c9d10
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 0/3
+  label "Domain" activated {3}: this gets +1/+0 count each domain
+}

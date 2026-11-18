@@ -53,6 +53,9 @@ pub struct Card {
     pub except: Option<Except>,
     /// Why the rendered text is allowed to differ from the Oracle text.
     pub mismatch: Option<String>,
+    /// Variable amounts (`count ...` in a number's place), indexed by
+    /// `Num::Count`.
+    pub counts: Vec<Count>,
     /// `layout adventure` / `omen` / `transform` / `split`: how `faces`
     /// relate to this block (CR 709, 712, 715).
     pub layout: mtg_core::card::Layout,
@@ -91,8 +94,40 @@ impl Card {
             line: self.line,
             layout: mtg_core::card::Layout::Normal,
             faces: Vec::new(),
+            counts: Vec::new(),
         }
     }
+}
+
+/// A variable amount and how Oracle words it.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Count {
+    pub expr: CountExpr,
+    pub style: CountStyle,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum CountStyle {
+    /// `count where ...`: "X ..., where X is the number of ...".
+    Where,
+    /// `count equal ...`: "... equal to the number of ...".
+    Equal,
+    /// `count each ...`: "... for each ...".
+    Each,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
+pub enum CountExpr {
+    /// A filter: "creatures you control"; written with `on battlefield`
+    /// when it names no controller.
+    Permanents(Filter),
+    Domain,
+    CardsInHand,
+    CardsInGraveyard(Option<Filter>),
+    SourcePower,
+    TargetPower(usize),
+    Life,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -462,6 +497,13 @@ pub enum Mod {
         power: i32,
         toughness: i32,
     },
+    /// `+1/+1 count each creature you control`: "gets +1/+1 for each
+    /// creature you control".
+    ModifyPtPer {
+        power: i32,
+        toughness: i32,
+        count: Num,
+    },
     SwitchPt,
     CdaColors(Vec<Color>),
     CdaPt {
@@ -519,6 +561,13 @@ pub enum Effect {
     Pump {
         power: i32,
         toughness: i32,
+        to: Recipient,
+    },
+    /// `this gets +1/+1 count each creature you control`.
+    PumpVar {
+        power: i32,
+        toughness: i32,
+        times: Num,
         to: Recipient,
     },
     Destroy {

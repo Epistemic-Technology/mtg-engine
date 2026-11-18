@@ -129,6 +129,80 @@ impl GameState {
         options
     }
 
+    /// A variable amount's value as an effect happens: X from the spell, or
+    /// one of the source card's counts (CR 107.3 for X; "the number of
+    /// ..." judged from the effect's controller).
+    pub(super) fn eval_num(&self, n: crate::card::Num, ctx: &EffectCtx) -> u32 {
+        use crate::card::{CountExpr, Num};
+        let i = match n {
+            Num::Count(i) => i as usize,
+            other => return other.eval(ctx.x),
+        };
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let Some(expr) = def.and_then(|d| self.pool.get(d).counts.get(i)) else {
+            return 0;
+        };
+        let you = ctx.controller;
+        let n = match expr {
+            CountExpr::Permanents(f) => self
+                .battlefield
+                .iter()
+                .filter(|id| {
+                    let o = &self.objects[**id];
+                    self.characteristics(**id).is_some_and(|c| {
+                        f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
+                    }) && self.status_ok(f, **id)
+                })
+                .count(),
+            CountExpr::Domain => {
+                let mut seen = crate::mana::ColorSet::default();
+                for id in self.permanents_of(you) {
+                    if let Some(c) = self.characteristics(id)
+                        && c.is_land()
+                    {
+                        for s in &c.subtypes {
+                            if let Some(col) = s.basic_color() {
+                                seen = seen.with(col);
+                            }
+                        }
+                    }
+                }
+                seen.iter().count()
+            }
+            CountExpr::CardsInHand => self.player(you).hand.len(),
+            CountExpr::CardsInGraveyard(f) => self
+                .player(you)
+                .graveyard
+                .iter()
+                .filter(|id| {
+                    f.as_ref().is_none_or(|f| {
+                        let c = self.base_characteristics(&self.objects[**id]);
+                        f.matches(**id, you, &c, None, Some(you)) && self.status_ok(f, **id)
+                    })
+                })
+                .count(),
+            CountExpr::SourcePower => {
+                return self
+                    .characteristics_or_lki(ctx.source)
+                    .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0));
+            }
+            CountExpr::TargetPower(t) => {
+                return match ctx.targets.get(*t) {
+                    Some(Target::Object(id)) => self
+                        .characteristics_or_lki(*id)
+                        .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0)),
+                    _ => 0,
+                };
+            }
+            CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+        };
+        u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -1155,7 +1229,7 @@ impl GameState {
         match effect {
             Effect::DealDamage { amount, to } => {
                 for t in self.recipients(ctx, *to) {
-                    self.deal_damage(ctx.source, t, amount.eval(ctx.x), false);
+                    self.deal_damage(ctx.source, t, self.eval_num(*amount, ctx), false);
                 }
             }
             Effect::Pump {
@@ -1187,21 +1261,24 @@ impl GameState {
             Effect::GainLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.gain_life(p, amount.eval(ctx.x));
+                        self.gain_life(p, self.eval_num(*amount, ctx));
                     }
                 }
             }
             Effect::LoseLife { amount, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.change_life(p, -i32::try_from(amount.eval(ctx.x)).unwrap_or(i32::MAX));
+                        self.change_life(
+                            p,
+                            -i32::try_from(self.eval_num(*amount, ctx)).unwrap_or(i32::MAX),
+                        );
                     }
                 }
             }
             Effect::DrawCards { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..count.eval(ctx.x) {
+                        for _ in 0..self.eval_num(*count, ctx) {
                             self.draw(p);
                         }
                     }
@@ -1210,7 +1287,7 @@ impl GameState {
             Effect::AddCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.add_counters(id, *kind, count.eval(ctx.x));
+                        self.add_counters(id, *kind, self.eval_num(*count, ctx));
                     }
                 }
             }
@@ -1231,7 +1308,7 @@ impl GameState {
             Effect::RemoveCounters { kind, count, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.remove_counters(id, *kind, count.eval(ctx.x));
+                        self.remove_counters(id, *kind, self.eval_num(*count, ctx));
                     }
                 }
             }
@@ -1259,7 +1336,7 @@ impl GameState {
             Effect::Mill { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.mill(p, count.eval(ctx.x));
+                        self.mill(p, self.eval_num(*count, ctx));
                     }
                 }
             }
@@ -1301,12 +1378,12 @@ impl GameState {
                 }
             }
             Effect::Scry { count } => {
-                self.scry_or_surveil(ctx.controller, count.eval(ctx.x), false);
+                self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), false);
             }
             Effect::Search { filter, count, to } => {
                 let p = ctx.controller;
                 let mut found = Vec::new();
-                for _ in 0..count.eval(ctx.x) {
+                for _ in 0..self.eval_num(*count, ctx) {
                     // One option per distinct card (copies are alike).
                     let mut seen = Vec::new();
                     let mut options = Vec::new();
@@ -1405,14 +1482,14 @@ impl GameState {
                 self.bump();
             }
             Effect::Surveil { count } => {
-                self.scry_or_surveil(ctx.controller, count.eval(ctx.x), true);
+                self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
             }
             Effect::Discard { count, who } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    for _ in 0..count.eval(ctx.x) {
+                    for _ in 0..self.eval_num(*count, ctx) {
                         let options: Vec<Choice> = self
                             .player(p)
                             .hand
@@ -1504,6 +1581,27 @@ impl GameState {
                 // controller.
                 self.sync_control();
             }
+            Effect::PumpVar {
+                power,
+                toughness,
+                times,
+                to,
+            } => {
+                let n = i32::try_from(self.eval_num(*times, ctx)).unwrap_or(i32::MAX);
+                let (p, t) = (power.saturating_mul(n), toughness.saturating_mul(n));
+                for r in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, r) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::ModifyPt {
+                                power: p,
+                                toughness: t
+                            }],
+                        );
+                    }
+                }
+            }
             Effect::Strip { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -1533,7 +1631,7 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    for _ in 0..count.eval(ctx.x) {
+                    for _ in 0..self.eval_num(*count, ctx) {
                         let options: Vec<Choice> = self
                             .permanents_of(p)
                             .filter(|id| {
@@ -1565,7 +1663,7 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    for _ in 0..count.eval(ctx.x) {
+                    for _ in 0..self.eval_num(*count, ctx) {
                         let n = self.player(p).hand.len();
                         if n == 0 {
                             break;
@@ -1616,7 +1714,7 @@ impl GameState {
             Effect::CreateToken { token, count, who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        for _ in 0..count.eval(ctx.x) {
+                        for _ in 0..self.eval_num(*count, ctx) {
                             self.create_token(*token, p);
                         }
                     }

@@ -1,0 +1,7 @@
+card "Exotic Curse" {
+  oracle_id 344476b1-8710-4c7c-826d-efb7d13ceaa7
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  label "Domain" static enchanted: -1/-1 count each domain
+}

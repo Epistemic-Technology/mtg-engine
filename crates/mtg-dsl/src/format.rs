@@ -17,6 +17,13 @@ use crate::ast::{
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
 pub fn format(card: &Card) -> String {
+    let outer = COUNTS.with(|c| c.replace(card.counts.clone()));
+    let out = format_inner(card);
+    COUNTS.with(|c| c.replace(outer));
+    out
+}
+
+fn format_inner(card: &Card) -> String {
     let mut out = String::new();
     let kind = match card.kind {
         Kind::Card => "card",
@@ -400,6 +407,16 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate => "investigate".to_string(),
+            Effect::PumpVar {
+                power,
+                toughness,
+                times,
+                to,
+            } => format!(
+                "{} gets {power:+}/{toughness:+} {}",
+                self.recipient(*to, t),
+                num(*times)
+            ),
             Effect::PutInLibrary { what, top } => format!(
                 "put {} on {} of library",
                 self.recipient(*what, t),
@@ -582,11 +599,43 @@ impl Fmt {
     }
 }
 
+thread_local! {
+    /// The counts of the card being formatted (`Num::Count` indexes them).
+    static COUNTS: std::cell::RefCell<Vec<crate::ast::Count>> =
+        const { std::cell::RefCell::new(Vec::new()) };
+}
+
 fn num(n: Num) -> String {
     match n {
         Num::N(n) => n.to_string(),
         Num::X => "X".to_string(),
+        Num::Count(i) => COUNTS.with(|c| {
+            c.borrow()
+                .get(usize::from(i))
+                .map_or_else(|| "count where life".to_string(), count_text)
+        }),
     }
+}
+
+fn count_text(c: &crate::ast::Count) -> String {
+    use crate::ast::{CountExpr, CountStyle};
+    let style = match c.style {
+        CountStyle::Where => "where",
+        CountStyle::Equal => "equal",
+        CountStyle::Each => "each",
+    };
+    let expr = match &c.expr {
+        CountExpr::Permanents(f) if f.who.is_none() => format!("{} on battlefield", filter(f)),
+        CountExpr::Permanents(f) => filter(f),
+        CountExpr::Domain => "domain".to_string(),
+        CountExpr::CardsInHand => "hand".to_string(),
+        CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
+        CountExpr::CardsInGraveyard(Some(f)) => format!("graveyard {}", filter(f)),
+        CountExpr::SourcePower => "power".to_string(),
+        CountExpr::TargetPower(i) => format!("power of target {}", i + 1),
+        CountExpr::Life => "life".to_string(),
+    };
+    format!("count {style} {expr}")
 }
 
 fn cards(n: Num) -> &'static str {
@@ -931,6 +980,11 @@ fn modification(m: &Mod) -> String {
         } => format!("base {p}/{t}"),
         Mod::SetPt { .. } => "base mv".to_string(),
         Mod::ModifyPt { power, toughness } => format!("{power:+}/{toughness:+}"),
+        Mod::ModifyPtPer {
+            power,
+            toughness,
+            count,
+        } => format!("{power:+}/{toughness:+} {}", num(*count)),
         Mod::SwitchPt => "switch pt".to_string(),
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {

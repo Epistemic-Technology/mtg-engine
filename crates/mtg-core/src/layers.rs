@@ -120,6 +120,7 @@ pub fn compute_entering(state: &GameState, obj: ObjId, controller: PlayerId) -> 
     }
 }
 
+#[allow(clippy::too_many_lines)] // the layer loop
 fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
@@ -216,9 +217,24 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
             let l = &live[i];
             let targets = l.affected.clone().unwrap_or_default();
             for part in l.parts.iter().filter(|p| p.layer() == layer) {
+                // "for each ...": the count is the source's, once.
+                let part = match part {
+                    Modification::ModifyPtPer {
+                        power,
+                        toughness,
+                        count,
+                    } => {
+                        let n = per_count(&work, l.source, l.controller, count);
+                        Modification::ModifyPt {
+                            power: power.saturating_mul(n),
+                            toughness: toughness.saturating_mul(n),
+                        }
+                    }
+                    other => other.clone(),
+                };
                 for t in &targets {
                     if let Some(&wi) = work.index.get(t) {
-                        apply(&mut work, wi, part);
+                        apply(&mut work, wi, &part);
                     }
                 }
             }
@@ -467,6 +483,54 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
 }
 
 /// What a power/toughness-defining ability of `source` counts right now.
+/// A "for each" count for a static ability of `source`.
+fn per_count(
+    work: &Work<'_>,
+    source: Option<ObjId>,
+    controller: Option<PlayerId>,
+    count: &crate::card::CountExpr,
+) -> i32 {
+    use crate::card::CountExpr;
+    let state = work.state;
+    let Some(you) = controller.or_else(|| source.map(|s| work.controller_of(s))) else {
+        return 0;
+    };
+    let n = match count {
+        CountExpr::Permanents(f) => work.matching(f, source, Some(you)).len(),
+        CountExpr::Domain => {
+            let mut seen = crate::mana::ColorSet::default();
+            for id in &work.ids {
+                if work.on_battlefield(*id) && work.controller_of(*id) == you {
+                    let c = &work.chars[work.index[id]];
+                    if c.is_land() {
+                        for s in &c.subtypes {
+                            if let Some(col) = s.basic_color() {
+                                seen = seen.with(col);
+                            }
+                        }
+                    }
+                }
+            }
+            seen.iter().count()
+        }
+        CountExpr::CardsInGraveyard(f) => state
+            .player(you)
+            .graveyard
+            .iter()
+            .filter(|id| {
+                f.as_ref().is_none_or(|f| {
+                    let c = state.base_characteristics(&state.objects[**id]);
+                    f.matches(**id, you, &c, None, Some(you))
+                })
+            })
+            .count(),
+        CountExpr::CardsInHand => state.player(you).hand.len(),
+        CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
+        CountExpr::SourcePower | CountExpr::TargetPower(_) => 0,
+    };
+    i32::try_from(n).unwrap_or(i32::MAX)
+}
+
 fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
     let state = work.state;
     // Tokens in a graveyard (gone at the next state-based check, CR
@@ -526,7 +590,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         // ability needs the working characteristics of other objects;
         // `apply` handles it, and a dependency probe never reaches layer
         // 7a (it has no filter-relevant parts).
-        Modification::Control | Modification::CdaPt { .. } => {}
+        Modification::Control | Modification::CdaPt { .. } | Modification::ModifyPtPer { .. } => {}
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),

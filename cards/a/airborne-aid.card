@@ -1,0 +1,6 @@
+card "Airborne Aid" {
+  oracle_id 7f715f72-5444-4ab3-a6ca-3d5bfd0d4851
+  cost {3}{U}
+  type Sorcery
+  spell: draw count each Bird on battlefield cards
+}

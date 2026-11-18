@@ -1,0 +1,7 @@
+card "Bag End Porter" {
+  oracle_id b80473f7-f1d4-4aa3-988e-1a8610ffbeee
+  cost {3}{G}
+  type Creature — Dwarf
+  pt 4/4
+  triggered whenever this attacks: this gets +1/+1 count where legendary creature you control
+}

@@ -1,0 +1,7 @@
+card "Squirrel Mob" {
+  oracle_id 451486df-6160-4ff7-b47c-dd3760417a31
+  cost {1}{G}{G}
+  type Creature — Squirrel
+  pt 2/2
+  static this: +1/+1 count each other Squirrel on battlefield
+}

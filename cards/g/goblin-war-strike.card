@@ -1,0 +1,6 @@
+card "Goblin War Strike" {
+  oracle_id 5944d5c7-65ab-425f-a453-ed5871ca3d73
+  cost {R}
+  type Sorcery
+  spell: deal count equal Goblin you control damage to target player or planeswalker
+}

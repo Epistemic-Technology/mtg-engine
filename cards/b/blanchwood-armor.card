@@ -1,0 +1,7 @@
+card "Blanchwood Armor" {
+  oracle_id 80ea56ad-e741-4a85-b4e8-ce62e7d593d5
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each Forest you control
+}

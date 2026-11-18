@@ -1,0 +1,7 @@
+card "Vile Deacon" {
+  oracle_id 123147b4-57d0-44cd-bdd5-a449ac86c1cb
+  cost {2}{B}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1 count where Clerics on battlefield
+}

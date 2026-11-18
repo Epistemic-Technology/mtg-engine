@@ -283,7 +283,13 @@ impl GameState {
         }
         // Graveyards feed characteristic-defining abilities (Tarmogoyf).
         let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
-        if affects_chars(old.zone) || affects_chars(to) {
+        // A static counting cards in hand (Empyrial Armor) sees hand moves.
+        let hand_static = (old.zone == Zone::Hand || to == Zone::Hand)
+            && self
+                .battlefield
+                .iter()
+                .any(|b| self.pool.get(self.objects[*b].def).hand_static);
+        if affects_chars(old.zone) || affects_chars(to) || hand_static {
             self.cbump();
         } else {
             self.bump();

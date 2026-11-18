@@ -1,0 +1,7 @@
+card "Timbermaw Larva" {
+  oracle_id e53532db-5b14-429e-8437-a369c5b8632b
+  cost {3}{G}
+  type Creature — Beast
+  pt 2/2
+  triggered whenever this attacks: this gets +1/+1 count each Forest you control
+}

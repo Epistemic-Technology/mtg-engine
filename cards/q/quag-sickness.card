@@ -1,0 +1,7 @@
+card "Quag Sickness" {
+  oracle_id c7f2c629-0d3a-4556-951e-6bc5d74fd7bc
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1 count each Swamp you control
+}

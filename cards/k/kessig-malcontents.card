@@ -1,0 +1,7 @@
+card "Kessig Malcontents" {
+  oracle_id eedaf405-4aa2-426a-af82-b0f92de7b6c3
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  triggered when this enters: deal count equal Humans you control damage to target player or planeswalker
+}

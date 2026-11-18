@@ -1,0 +1,6 @@
+card "Seismic Strike" {
+  oracle_id 3513d862-ef0d-4949-b33a-3fa9437cc444
+  cost {2}{R}
+  type Instant
+  spell: deal count equal Mountains you control damage to target creature
+}

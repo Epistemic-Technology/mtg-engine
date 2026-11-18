@@ -1,0 +1,7 @@
+card "Ancestral Mask" {
+  oracle_id db5380ed-ba28-4ea2-abc3-4998e2022903
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2 count each other enchantment on battlefield
+}

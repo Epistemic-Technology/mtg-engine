@@ -1,0 +1,7 @@
+card "Nim Grotesque" {
+  oracle_id ed4d4084-739b-43ac-bd2b-a86d1ecd7bbd
+  cost {6}{B}
+  type Creature — Zombie
+  pt 3/6
+  static this: +1/+0 count each artifact you control
+}

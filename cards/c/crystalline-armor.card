@@ -1,0 +1,7 @@
+card "Crystalline Armor" {
+  oracle_id 93d2638b-0c19-4fba-a0ad-84b6a9784eb3
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each land you control, has trample
+}

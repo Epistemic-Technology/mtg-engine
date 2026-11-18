@@ -1,0 +1,6 @@
+card "Outflank" {
+  oracle_id c3436d70-230c-4bda-b7da-935a270f135f
+  cost {W}
+  type Instant
+  spell: deal count equal creature you control damage to target attacking or blocking creature
+}

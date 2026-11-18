@@ -1,0 +1,6 @@
+card "Outnumber" {
+  oracle_id b72efd67-a234-44af-8296-3e182292c7e6
+  cost {R}
+  type Instant
+  spell: deal count equal creature you control damage to target creature
+}

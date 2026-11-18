@@ -1,0 +1,6 @@
+card "Ground Assault" {
+  oracle_id 13613f6e-a6e4-4493-b029-8ec11610c29f
+  cost {R}{G}
+  type Sorcery
+  spell: deal count equal land you control damage to target creature
+}

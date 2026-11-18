@@ -1,0 +1,6 @@
+card "Master the Way" {
+  oracle_id 909a10f5-a607-474f-8b8b-0176fd840650
+  cost {3}{U}{R}
+  type Sorcery
+  spell: draw 1 cards; deal count equal hand damage to any target
+}

@@ -402,6 +402,36 @@ fn keyword_list(s: &str) -> Option<String> {
     Some(out.join(", "))
 }
 
+/// "creatures you control", "basic land types among lands you control",
+/// "creature cards in your graveyard" → the DSL's count expression; the
+/// phrase may be singular ("for each creature you control").
+fn count_expr(s: &str) -> Option<String> {
+    let s = s.trim();
+    match s {
+        "basic land types among lands you control" | "basic land type among lands you control" => {
+            return Some("domain".to_string());
+        }
+        "cards in your hand" | "card in your hand" => return Some("hand".to_string()),
+        "cards in your graveyard" | "card in your graveyard" => {
+            return Some("graveyard".to_string());
+        }
+        _ => {}
+    }
+    if let Some(f) = s
+        .strip_suffix(" cards in your graveyard")
+        .or_else(|| s.strip_suffix(" card in your graveyard"))
+    {
+        return Some(format!("graveyard {}", singular(f)));
+    }
+    if let Some(f) = s.strip_suffix(" on the battlefield") {
+        return Some(format!("{} on battlefield", singular(f)));
+    }
+    if s.ends_with(" you control") {
+        return Some(singular(s));
+    }
+    None
+}
+
 /// Recipient phrases the DSL accepts as written.
 fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     const PLAIN: [&str; 10] = [
@@ -609,6 +639,73 @@ impl Templates {
                 },
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
+            (
+                r(r"^(?:~|this|It|it) deals X damage to (.+?), where X is the number of (.+)$"),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "deal count where {} damage to {to}",
+                        count_expr(cap(c, 2))?
+                    ))
+                },
+            ),
+            (
+                r(r"^(?:~|this|It|it) deals damage to (.+?) equal to the number of (.+)$"),
+                |c, t| {
+                    let to = recipient(cap(c, 1), t)?;
+                    Some(format!(
+                        "deal count equal {} damage to {to}",
+                        count_expr(cap(c, 2))?
+                    ))
+                },
+            ),
+            (
+                r(r"^(.+?) gets? ([+-]\d+/[+-]\d+) until end of turn for each (.+)$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gets {} count each {}",
+                        cap(c, 2),
+                        count_expr(cap(c, 3))?
+                    ))
+                },
+            ),
+            (
+                r(r"^(.+?) gets? \+X/\+X until end of turn, where X is the number of (.+)$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gets +1/+1 count where {}",
+                        count_expr(cap(c, 2))?
+                    ))
+                },
+            ),
+            (
+                r(r"^(.+?) gets? \+X/\+0 until end of turn, where X is the number of (.+)$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gets +1/+0 count where {}",
+                        count_expr(cap(c, 2))?
+                    ))
+                },
+            ),
+            (
+                r(r"^(.+?) gains? life equal to the number of (.+)$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} gains count equal {} life",
+                        count_expr(cap(c, 2))?
+                    ))
+                },
+            ),
+            (r(r"^Draw cards equal to the number of (.+)$"), |c, _| {
+                Some(format!("draw count equal {} cards", count_expr(cap(c, 1))?))
+            }),
+            (r(r"^Draw a card for each (.+)$"), |c, _| {
+                Some(format!("draw count each {} cards", count_expr(cap(c, 1))?))
+            }),
             (
                 r(r"^(.+?) sacrifices? (a|an|one|two|three|four|five) (.+?) of their choice$"),
                 |c, t| {
@@ -1086,9 +1183,16 @@ fn control_filter(s: &str) -> Option<String> {
 /// has flying").
 fn static_mods(s: &str) -> Option<String> {
     let gets = Regex::new(r"^gets? ([+-]\d+/[+-]\d+)$").unwrap();
+    let per = Regex::new(r"^gets? ([+-]\d+/[+-]\d+) for each (.+)$").unwrap();
     let mut mods = Vec::new();
     for part in s.split(" and ") {
-        if let Some(c) = gets.captures(part) {
+        if let Some(c) = per.captures(part) {
+            mods.push(format!(
+                "{} count each {}",
+                cap(&c, 1),
+                count_expr(cap(&c, 2))?
+            ));
+        } else if let Some(c) = gets.captures(part) {
             mods.push(cap(&c, 1).to_string());
         } else if let Some(rest) = part
             .strip_prefix("has ")
@@ -1148,7 +1252,14 @@ fn conditional_static(line: &str) -> Option<String> {
             static_mods(&pred)?
         ));
     }
-    let (body, cond) = line.split_once(" as long as ")?;
+    let Some((body, cond)) = line.split_once(" as long as ") else {
+        // A plain static with a "for each" count.
+        if !line.contains(" for each ") {
+            return None;
+        }
+        let (f, pred) = split_subject(line)?;
+        return Some(format!("static {f}: {}", static_mods(&pred)?));
+    };
     let cond = static_condition(cond)?;
     let (f, pred) = split_subject(body)?;
     Some(format!(

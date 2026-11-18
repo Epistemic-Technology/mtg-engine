@@ -1,0 +1,8 @@
+card "Deadeye Plunderers" {
+  oracle_id 597afe7c-a4ba-48d0-9c37-d9affe5ba195
+  cost {3}{U}{B}
+  type Creature — Human Pirate
+  pt 3/3
+  static this: +1/+1 count each artifact you control
+  activated {2}{U}{B}: create 1 "Treasure"
+}

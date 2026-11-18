@@ -1,0 +1,6 @@
+card "Rockslide Ambush" {
+  oracle_id 13958d6f-25f9-4a6c-a16c-e7a20e1b9117
+  cost {1}{R}
+  type Sorcery
+  spell: deal count equal Mountains you control damage to target creature
+}

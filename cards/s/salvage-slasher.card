@@ -1,0 +1,7 @@
+card "Salvage Slasher" {
+  oracle_id 196d6ef6-80d9-4bfd-a5ed-d9e8b00faad0
+  cost {1}{B}
+  type Artifact Creature — Human Rogue
+  pt 1/1
+  static this: +1/+0 count each graveyard artifact
+}

@@ -1,0 +1,6 @@
+card "Earth Tremor" {
+  oracle_id 1dd7d11b-e3f3-4886-b412-0c085187869c
+  cost {3}{R}
+  type Instant
+  spell: deal count equal land you control damage to target creature or planeswalker
+}

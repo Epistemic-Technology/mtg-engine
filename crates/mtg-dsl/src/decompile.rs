@@ -68,6 +68,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         display_name: None,
         layout: mtg_core::card::Layout::Normal,
         faces: Vec::new(),
+        counts: Vec::new(),
         oracle_id: None,
         cost: def.mana_cost.clone(),
         color_indicator: def.color_indicator.map(colors),
@@ -294,6 +295,17 @@ impl Decompiler<'_> {
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
+            CoreEffect::PumpVar {
+                power,
+                toughness,
+                times,
+                to,
+            } => Effect::PumpVar {
+                power: *power,
+                toughness: *toughness,
+                times: *times,
+                to: r(*to),
+            },
             CoreEffect::PutInLibrary { what, top } => Effect::PutInLibrary {
                 what: r(*what),
                 top: *top,
@@ -475,7 +487,10 @@ impl Decompiler<'_> {
                 power: *power,
                 toughness: *toughness,
             },
-            Modification::ModifyPt { power, toughness } => Mod::ModifyPt {
+            Modification::ModifyPtPer {
+                power, toughness, ..
+            }
+            | Modification::ModifyPt { power, toughness } => Mod::ModifyPt {
                 power: *power,
                 toughness: *toughness,
             },

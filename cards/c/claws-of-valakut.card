@@ -1,0 +1,7 @@
+card "Claws of Valakut" {
+  oracle_id 94b86278-bfa6-4be4-8114-09b6c6c85724
+  cost {1}{R}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0 count each Mountain you control, has first strike
+}

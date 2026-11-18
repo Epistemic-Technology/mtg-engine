@@ -41,6 +41,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         pos: 0,
         targets: Vec::new(),
         groups: Vec::new(),
+        counts: Vec::new(),
         in_delayed: false,
         subject: None,
     };
@@ -298,6 +299,8 @@ struct P {
     targets: Vec<Target>,
     /// Group recipients declared so far in the card being parsed.
     groups: Vec<Filter>,
+    /// Variable amounts declared so far in the card being parsed.
+    counts: Vec<crate::ast::Count>,
     /// Inside a delayed trigger's effects, where "it" is the object the
     /// trigger is about.
     in_delayed: bool,
@@ -475,6 +478,7 @@ impl P {
             display_name: None,
             layout: mtg_core::card::Layout::Normal,
             faces: Vec::new(),
+            counts: Vec::new(),
             oracle_id: None,
             cost: ManaCost::default(),
             color_indicator: None,
@@ -494,6 +498,7 @@ impl P {
             line,
         };
         self.groups.clear();
+        self.counts.clear();
         loop {
             self.skip_newlines();
             if self.peek() == Some(&Tok::RBrace) {
@@ -507,6 +512,7 @@ impl P {
             self.card_statement(&mut card)?;
         }
         card.groups = std::mem::take(&mut self.groups);
+        card.counts = std::mem::take(&mut self.counts);
         Ok(card)
     }
 
@@ -541,6 +547,7 @@ impl P {
                 self.expect(&Tok::LBrace)?;
                 self.end_stmt()?;
                 let outer_groups = std::mem::take(&mut self.groups);
+                let outer_counts = std::mem::take(&mut self.counts);
                 let mut face = Card {
                     name,
                     line,
@@ -559,6 +566,7 @@ impl P {
                     self.card_statement(&mut face)?;
                 }
                 face.groups = std::mem::replace(&mut self.groups, outer_groups);
+                face.counts = std::mem::replace(&mut self.counts, outer_counts);
                 card.faces.push(face);
                 Ok(())
             }
@@ -1491,6 +1499,20 @@ impl P {
                     power,
                     toughness,
                     signed: true,
+                }) if self.at_word("count") => {
+                    let times = self.num()?;
+                    self.until_end_of_turn();
+                    Ok(Effect::PumpVar {
+                        power,
+                        toughness,
+                        times,
+                        to: subject,
+                    })
+                }
+                Some(Tok::Pt {
+                    power,
+                    toughness,
+                    signed: true,
                 }) => {
                     self.until_end_of_turn();
                     Ok(Effect::Pump {
@@ -1892,6 +1914,28 @@ impl P {
     }
 
     fn num(&mut self) -> R<Num> {
+        if self.at_word("count")
+            && matches!(self.word_at(1).as_deref(), Some("where" | "equal" | "each"))
+        {
+            self.pos += 1;
+            let style = match self.word()?.as_str() {
+                "where" => crate::ast::CountStyle::Where,
+                "equal" => crate::ast::CountStyle::Equal,
+                _ => crate::ast::CountStyle::Each,
+            };
+            let expr = self.count_expr()?;
+            let c = crate::ast::Count { expr, style };
+            let i = if let Some(i) = self.counts.iter().position(|x| *x == c) {
+                i
+            } else {
+                self.counts.push(c);
+                self.counts.len() - 1
+            };
+            return Ok(Num::Count(u8::try_from(i).map_err(|_| ParseError {
+                line: self.line(),
+                message: "too many counts".to_string(),
+            })?));
+        }
         match self.peek() {
             Some(Tok::Num(n)) => {
                 let n = *n;
@@ -1921,8 +1965,48 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X => self.fail("X is not allowed here"),
+            Num::X | Num::Count(_) => self.fail("X is not allowed here"),
         }
+    }
+
+    /// `domain`, `hand`, `graveyard [<filter>]`, `power`, `power of target
+    /// N`, `life`, or a filter (`creature you control`, `Elf on
+    /// battlefield`).
+    fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
+        use crate::ast::CountExpr;
+        if self.eat_word("domain") {
+            return Ok(CountExpr::Domain);
+        }
+        if self.eat_word("hand") {
+            return Ok(CountExpr::CardsInHand);
+        }
+        if self.eat_word("life") {
+            return Ok(CountExpr::Life);
+        }
+        if self.eat_word("power") {
+            if self.eat_words(&["of", "target"]) {
+                let n = self.number()? as usize;
+                if n == 0 || n > self.targets.len() {
+                    return self.fail(format!("target {n} has not been declared"));
+                }
+                return Ok(CountExpr::TargetPower(n - 1));
+            }
+            return Ok(CountExpr::SourcePower);
+        }
+        if self.eat_word("graveyard") {
+            let f = if self.at_stmt_end()
+                || !self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            return Ok(CountExpr::CardsInGraveyard(f));
+        }
+        let f = self.filter()?;
+        self.eat_words(&["on", "battlefield"]);
+        Ok(CountExpr::Permanents(f))
     }
 
     fn counter_kind(&mut self) -> R<CounterKind> {
@@ -1967,6 +2051,7 @@ impl P {
             pos: self.pos + 1,
             targets: self.targets.clone(),
             groups: self.groups.clone(),
+            counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             subject: None,
         };
@@ -2138,6 +2223,7 @@ impl P {
                         pos: 0,
                         targets: Vec::new(),
                         groups: Vec::new(),
+                        counts: Vec::new(),
                         in_delayed: false,
                         subject: None,
                     };
@@ -2834,6 +2920,14 @@ impl P {
         {
             let (p, t) = (*power, *toughness);
             self.pos += 1;
+            if self.at_word("count") {
+                let count = self.num()?;
+                return Ok(Mod::ModifyPtPer {
+                    power: p,
+                    toughness: t,
+                    count,
+                });
+            }
             return Ok(Mod::ModifyPt {
                 power: p,
                 toughness: t,

@@ -88,7 +88,7 @@ const NUMBER_WORDS: [&str; 20] = [
 /// A count in words ("a", "two", "X").
 fn count_words(n: Num, article: &str) -> String {
     match n {
-        Num::X => "X".to_string(),
+        Num::X | Num::Count(_) => "X".to_string(),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -98,7 +98,7 @@ fn count_words(n: Num, article: &str) -> String {
 
 fn digits(n: Num) -> String {
     match n {
-        Num::X => "X".to_string(),
+        Num::X | Num::Count(_) => "X".to_string(),
         Num::N(n) => n.to_string(),
     }
 }
@@ -112,7 +112,7 @@ fn plural(n: Num, word: &str) -> String {
 }
 
 fn pluralize(word: &str) -> String {
-    if word == "Plains" {
+    if word == "Plains" || word == "Equipment" {
         return word.to_string();
     }
     if word.ends_with('y') && !word.ends_with("ey") {
@@ -943,6 +943,8 @@ struct Clause {
     subject: Option<(Recipient, String)>,
     text: String,
     suffix: Option<&'static str>,
+    /// After the suffix: ", where X is ...", " for each ...".
+    tail: String,
 }
 
 impl Clause {
@@ -951,6 +953,7 @@ impl Clause {
             subject: None,
             text,
             suffix: None,
+            tail: String::new(),
         }
     }
 
@@ -959,6 +962,7 @@ impl Clause {
             subject: Some((r, subject)),
             text,
             suffix: None,
+            tail: String::new(),
         }
     }
 
@@ -1091,7 +1095,121 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
 }
 
 #[allow(clippy::too_many_lines)]
+/// "+X", "-X", or "+0" for a scaled pump's part.
+fn x_sign(v: i32) -> &'static str {
+    match v.cmp(&0) {
+        std::cmp::Ordering::Equal => "+0",
+        std::cmp::Ordering::Greater => "+X",
+        std::cmp::Ordering::Less => "-X",
+    }
+}
+
+/// The variable amounts an effect uses.
+fn nums_of(e: &Effect) -> Vec<Num> {
+    match e {
+        Effect::DealDamage { amount, .. }
+        | Effect::GainLife { amount, .. }
+        | Effect::LoseLife { amount, .. } => vec![*amount],
+        Effect::DrawCards { count, .. }
+        | Effect::Mill { count, .. }
+        | Effect::Discard { count, .. }
+        | Effect::AddCounters { count, .. }
+        | Effect::CreateToken { count, .. } => vec![*count],
+        _ => Vec::new(),
+    }
+}
+
+/// "the number of creatures you control" (or "for each creature you
+/// control" with `each`).
+fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
+    use crate::ast::CountExpr;
+    let (one, many) = match c {
+        CountExpr::Permanents(f) => {
+            let place = if f.who.is_none() {
+                " on the battlefield"
+            } else {
+                ""
+            };
+            (
+                format!("{}{place}", filter_phrase(f, card, false)),
+                format!("{}{place}", filter_phrase(f, card, true)),
+            )
+        }
+        CountExpr::Domain => (
+            "basic land type among lands you control".to_string(),
+            "basic land types among lands you control".to_string(),
+        ),
+        CountExpr::CardsInHand => (
+            "card in your hand".to_string(),
+            "cards in your hand".to_string(),
+        ),
+        CountExpr::CardsInGraveyard(f) => match f {
+            None => (
+                "card in your graveyard".to_string(),
+                "cards in your graveyard".to_string(),
+            ),
+            Some(f) => {
+                let p = card_filter_phrase(f, card);
+                (
+                    format!("{p} card in your graveyard"),
+                    format!("{p} cards in your graveyard"),
+                )
+            }
+        },
+        CountExpr::SourcePower | CountExpr::TargetPower(_) => {
+            return if each {
+                "for each power".to_string()
+            } else {
+                "its power".to_string()
+            };
+        }
+        CountExpr::Life => return "your life total".to_string(),
+    };
+    if each {
+        format!("for each {one}")
+    } else {
+        format!("the number of {many}")
+    }
+}
+
 fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
+    use crate::ast::CountStyle;
+    let mut c = clause_inner(e, ctx);
+    for n in nums_of(e) {
+        let Num::Count(i) = n else { continue };
+        let Some(count) = ctx.card.counts.get(usize::from(i)) else {
+            continue;
+        };
+        match count.style {
+            CountStyle::Where => {
+                let _ = write!(
+                    c.tail,
+                    ", where X is {}",
+                    count_phrase(&count.expr, ctx.card, false)
+                );
+            }
+            CountStyle::Equal => {
+                c.text = c.text.replacen("X ", "", 1);
+                let _ = write!(
+                    c.tail,
+                    " equal to {}",
+                    count_phrase(&count.expr, ctx.card, false)
+                );
+            }
+            CountStyle::Each => {
+                c.text = c
+                    .text
+                    .replacen("X ", "a ", 1)
+                    .replacen("a cards", "a card", 1);
+                let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
+            }
+        }
+    }
+    c
+}
+
+#[allow(clippy::too_many_lines)] // one arm per effect kind
+fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
     match e {
         Effect::DealDamage { amount, to } => {
             let s = ctx.source();
@@ -1101,6 +1219,45 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 s,
                 format!("deals {} damage to {objs}", digits(*amount)),
             )
+        }
+        Effect::PumpVar {
+            power,
+            toughness,
+            times,
+            to,
+        } => {
+            use crate::ast::CountStyle;
+            let s = ctx.subj(*to);
+            let count = match times {
+                Num::Count(i) => ctx.card.counts.get(usize::from(*i)).cloned(),
+                _ => None,
+            };
+            let (mods, tail) = match &count {
+                Some(c) if c.style == CountStyle::Each => (
+                    pt_mod(*power, *toughness),
+                    format!(" {}", count_phrase(&c.expr, ctx.card, true)),
+                ),
+                Some(c) => {
+                    let x = |v: i32| match v {
+                        0 => "+0".to_string(),
+                        v if v > 0 => "+X".to_string(),
+                        _ => "-X".to_string(),
+                    };
+                    (
+                        format!("{}/{}", x(*power), x(*toughness)),
+                        format!(", where X is {}", count_phrase(&c.expr, ctx.card, false)),
+                    )
+                }
+                None => (
+                    format!("{}/{}", x_sign(*power), x_sign(*toughness)),
+                    String::new(),
+                ),
+            };
+            let mut c =
+                Clause::with_subject(*to, s, format!("{} {mods}", ctx.verb(*to, "gets", "get")))
+                    .until_eot();
+            c.tail = tail;
+            c
         }
         Effect::Pump {
             power,
@@ -1630,6 +1787,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             out.push(' ');
             out.push_str(suffix);
         }
+        out.push_str(&c.tail);
     }
     if shared_suffix && !s.eot_first {
         out.push(' ');
@@ -2080,7 +2238,10 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             "{} base power and base toughness each equal to its mana value",
             v("has", "have")
         ),
-        Mod::ModifyPt { power, toughness } => {
+        Mod::ModifyPt { power, toughness }
+        | Mod::ModifyPtPer {
+            power, toughness, ..
+        } => {
             format!("{} {}", v("gets", "get"), pt_mod(*power, *toughness))
         }
         Mod::SwitchPt => format!("{} its power and toughness switched", v("has", "have")),
@@ -2188,7 +2349,22 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             (capitalize(&p), true)
         }
     };
-    let parts: Vec<String> = mods.iter().map(|m| mod_text(m, plural_form)).collect();
+    let parts: Vec<String> = mods
+        .iter()
+        .map(|m| {
+            let mut t = mod_text(m, plural_form);
+            if let Mod::ModifyPtPer {
+                count: Num::Count(i),
+                ..
+            } = m
+                && let Some(c) = card.counts.get(usize::from(*i))
+            {
+                t.push(' ');
+                t.push_str(&count_phrase(&c.expr, card, true));
+            }
+            t
+        })
+        .collect();
     format!("{subject} {}.", list(&parts))
 }
 

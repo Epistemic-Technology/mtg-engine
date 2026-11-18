@@ -1,0 +1,6 @@
+card "Stonefury" {
+  oracle_id 577554de-78c3-4fa2-a866-06b80280bc97
+  cost {3}{R}{R}
+  type Instant
+  spell: deal count equal land you control damage to target creature
+}

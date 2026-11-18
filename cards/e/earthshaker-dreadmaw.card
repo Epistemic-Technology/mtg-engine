@@ -1,0 +1,8 @@
+card "Earthshaker Dreadmaw" {
+  oracle_id 454cbc6a-b7f0-445e-842c-5db267917a18
+  cost {4}{G}{G}
+  type Creature — Dinosaur
+  pt 6/6
+  keywords trample
+  triggered when this enters: draw count each other Dinosaur you control cards
+}

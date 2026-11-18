@@ -1,0 +1,8 @@
+card "Tempest Djinn" {
+  oracle_id b94c233e-11d3-4556-a1da-bd193e58b663
+  cost {U}{U}{U}
+  type Creature — Djinn
+  pt 0/4
+  keywords flying
+  static this: +1/+0 count each basic Island you control
+}

@@ -1,0 +1,7 @@
+card "Regal Force" {
+  oracle_id e264ffe3-0252-49d6-b990-dbb3654325a5
+  cost {4}{G}{G}{G}
+  type Creature — Elemental
+  pt 5/5
+  triggered when this enters: draw count each green creature you control cards
+}

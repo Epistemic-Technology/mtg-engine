@@ -1,0 +1,7 @@
+card "Elder of Laurels" {
+  oracle_id 0431b67e-ce09-4009-ba5b-9fd41e6f1df4
+  cost {2}{G}
+  type Creature — Human Advisor
+  pt 2/3
+  activated {3}{G}: target creature gets +1/+1 count where creature you control
+}

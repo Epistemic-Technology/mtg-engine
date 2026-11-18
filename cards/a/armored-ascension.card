@@ -1,0 +1,7 @@
+card "Armored Ascension" {
+  oracle_id 916db499-7f0a-45f7-8abe-94818a53e494
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1 count each Plains you control, has flying
+}

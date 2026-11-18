@@ -1,0 +1,6 @@
+card "Confront the Unknown" {
+  oracle_id 221240c5-3c97-438c-b906-2508eacf190f
+  cost {G}
+  type Instant
+  spell: investigate then target creature gets +1/+1 count each Clue you control
+}

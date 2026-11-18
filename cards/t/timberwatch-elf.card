@@ -1,0 +1,7 @@
+card "Timberwatch Elf" {
+  oracle_id 50cee3ac-cba0-4abb-babf-de1928b1590e
+  cost {2}{G}
+  type Creature — Elf
+  pt 1/2
+  activated {T}: target creature gets +1/+1 count where Elves on battlefield
+}

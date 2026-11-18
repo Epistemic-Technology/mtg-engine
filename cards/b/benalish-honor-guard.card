@@ -1,0 +1,7 @@
+card "Benalish Honor Guard" {
+  oracle_id 0595b074-8f25-469d-9e82-ed60c4a7a2cd
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 2/2
+  static this: +1/+0 count each legendary creature you control
+}

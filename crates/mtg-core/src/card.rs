@@ -978,6 +978,15 @@ pub enum Modification {
     SetPt { power: PtValue, toughness: PtValue },
     /// "+1/+1" (layer 7c).
     ModifyPt { power: i32, toughness: i32 },
+    /// "+1/+1 for each creature you control" (layer 7c), the count judged
+    /// from the static ability's controller as the layer applies. Counts
+    /// that the characteristics cache does not track (hand, life) are not
+    /// allowed here.
+    ModifyPtPer {
+        power: i32,
+        toughness: i32,
+        count: CountExpr,
+    },
     /// "switch power and toughness" (layer 7d).
     SwitchPt,
     /// A characteristic-defining ability setting colors (CR 604.3;
@@ -1023,7 +1032,7 @@ impl Modification {
             | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::CdaPt { .. } => Layer::L7aCda,
             Modification::SetPt { .. } => Layer::L7bSetPt,
-            Modification::ModifyPt { .. } => Layer::L7cModifyPt,
+            Modification::ModifyPt { .. } | Modification::ModifyPtPer { .. } => Layer::L7cModifyPt,
             Modification::SwitchPt => Layer::L7dSwitchPt,
         }
     }
@@ -1036,6 +1045,26 @@ impl Modification {
             Modification::CdaColors(_) | Modification::CdaPt { .. }
         )
     }
+}
+
+/// What a variable amount counts, judged from the effect's controller.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CountExpr {
+    /// Battlefield permanents matching the filter ("creatures you
+    /// control", "Elves on the battlefield").
+    Permanents(ObjFilter),
+    /// Basic land types among lands you control (domain).
+    Domain,
+    /// Cards in your hand.
+    CardsInHand,
+    /// Cards in your graveyard, all or matching the filter.
+    CardsInGraveyard(Option<ObjFilter>),
+    /// The source's power ("equal to its power" on a creature's ability).
+    SourcePower,
+    /// The `n`th target's power.
+    TargetPower(usize),
+    /// Your life total.
+    Life,
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -1256,13 +1285,20 @@ pub enum Recipient {
 pub enum Num {
     N(u32),
     X,
+    /// The `i`th of the source card's `CardDef::counts` ("the number of
+    /// creatures you control"), evaluated as the effect happens
+    /// (`GameState::eval_num`).
+    Count(u8),
 }
 
 impl Num {
+    /// The value without game state: a count is 0 here (see
+    /// `GameState::eval_num`).
     pub const fn eval(self, x: u32) -> u32 {
         match self {
             Num::N(n) => n,
             Num::X => x,
+            Num::Count(_) => 0,
         }
     }
 
@@ -1270,7 +1306,7 @@ impl Num {
     pub const fn hint(self) -> u32 {
         match self {
             Num::N(n) => n,
-            Num::X => 3,
+            Num::X | Num::Count(_) => 3,
         }
     }
 }
@@ -1292,6 +1328,14 @@ pub enum Effect {
     Pump {
         power: i32,
         toughness: i32,
+        to: Recipient,
+    },
+    /// "+1/+1 for each creature you control", "+X/+0": `power` and
+    /// `toughness` times `times`, until end of turn.
+    PumpVar {
+        power: i32,
+        toughness: i32,
+        times: Num,
         to: Recipient,
     },
     Destroy {
@@ -2002,10 +2046,13 @@ impl AbilityDef {
 
 /// Printed characteristics plus abilities (CR 109.3, 200.1).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // independent facts
 pub struct CardDef {
     pub name: String,
     /// How the card's faces relate (CR 709, 712, 715); see `faces`.
     pub layout: Layout,
+    /// Variable amounts the card's effects use (`Num::Count`).
+    pub counts: Vec<CountExpr>,
     /// The card's other faces, registered as their own definitions: an
     /// adventurer's or omen's spell (CR 715), a double-faced card's other
     /// face (CR 712), a split card's halves (CR 709).
@@ -2073,6 +2120,10 @@ pub struct CardDef {
     /// changes must refresh the characteristics cache.
     #[serde(skip)]
     pub combat_static: bool,
+    /// Filled in by `CardPool::add`: a static that counts cards in hand
+    /// (Empyrial Armor), so hand changes refresh the cache.
+    #[serde(skip)]
+    pub hand_static: bool,
 }
 
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
@@ -2184,6 +2235,7 @@ impl DefFlags {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|p| matches!(
                     p,
                     Modification::CdaPt { count: CdaCount::ControllerLife, .. }
+                        | Modification::ModifyPtPer { count: CountExpr::Life, .. }
                 )))
             }),
         );
@@ -2573,6 +2625,12 @@ impl CardPool {
         def.combat_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if sa.affected.attacking || sa.affected.blocking)
         });
+        def.hand_static = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
+                m,
+                Modification::ModifyPtPer { count: CountExpr::CardsInHand, .. }
+            )))
+        });
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
@@ -2665,6 +2723,8 @@ pub struct Builder(CardDef);
 impl Builder {
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
+            hand_static: false,
+            counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,
             faces: Vec::new(),
@@ -2710,6 +2770,13 @@ impl Builder {
     #[must_use]
     pub fn token(mut self) -> Self {
         self.0.token = true;
+        self
+    }
+
+    /// The card's variable amounts (`Num::Count`).
+    #[must_use]
+    pub fn counts(mut self, counts: Vec<CountExpr>) -> Self {
+        self.0.counts = counts;
         self
     }
 

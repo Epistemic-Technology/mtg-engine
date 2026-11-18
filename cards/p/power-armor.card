@@ -1,0 +1,6 @@
+card "Power Armor" {
+  oracle_id 1423b8e6-9165-4a89-a6ed-18085f460bca
+  cost {4}
+  type Artifact
+  label "Domain" activated {3}, {T}: target creature gets +1/+1 count each domain
+}

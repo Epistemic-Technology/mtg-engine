@@ -1,0 +1,8 @@
+card "Fire Dragon" {
+  oracle_id 349d8ef9-e07a-416f-a5b1-2c2be6bb322d
+  cost {6}{R}{R}{R}
+  type Creature — Dragon
+  pt 6/6
+  keywords flying
+  triggered when this enters: deal count equal Mountains you control damage to target creature
+}

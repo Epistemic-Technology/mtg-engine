@@ -1,0 +1,8 @@
+card "Borderland Behemoth" {
+  oracle_id 378a78d8-9001-4aa5-a66b-2aca27fa8180
+  cost {5}{R}{R}
+  type Creature — Giant Warrior
+  pt 4/4
+  keywords trample
+  static this: +4/+4 count each other Giant you control
+}

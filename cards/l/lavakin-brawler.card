@@ -1,0 +1,7 @@
+card "Lavakin Brawler" {
+  oracle_id fa4ad622-5021-44fe-92af-0de115059eb6
+  cost {3}{R}
+  type Creature — Elemental Warrior
+  pt 2/4
+  triggered whenever this attacks: this gets +1/+0 count each Elemental you control
+}

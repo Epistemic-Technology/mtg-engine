@@ -2227,6 +2227,18 @@ line. First results: greedy 1500, MCTS 1568 ± 41, random 1218 ± 49
 both games with no invalid replies (87 decisions, about 18,500 output
 tokens per game). M5's remaining accept item is coverage.
 
+Status 2026-11-18, slice 8 (variable amounts) done: `Num::Count`
+indexes a count table on the source card's definition (permanents
+matching a filter, domain, cards in hand or graveyard, power, life),
+evaluated as the effect happens, and printed in Oracle's three styles
+("where X is the number of ...", "equal to the number of ...", "for each
+..."); scaled pumps, and static "gets +1/+1 for each ..." in layer 7c
+(a static counting cards in hand or life refreshes the characteristics
+cache on hand moves and life changes). Corpus 5,931 cards: 4,053 Pauper
+(37.2%), 4,449 Modern (19.6%); 988 scenarios pass (5 new in
+scenarios/m5/counts.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
+throughput within 1% of slice 6.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

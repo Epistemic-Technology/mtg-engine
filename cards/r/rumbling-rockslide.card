@@ -1,0 +1,6 @@
+card "Rumbling Rockslide" {
+  oracle_id 0909cbce-b4a0-42bb-8a97-47eeb99606c0
+  cost {3}{R}
+  type Sorcery
+  spell: deal count equal land you control damage to target creature
+}

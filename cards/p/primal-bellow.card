@@ -1,0 +1,6 @@
+card "Primal Bellow" {
+  oracle_id 5cd064b9-1277-4edc-bf2c-82eb5e62f9d7
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+1 count each Forest you control
+}

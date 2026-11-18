@@ -1,0 +1,6 @@
+card "Inner Calm, Outer Strength" {
+  oracle_id b7bdbae5-549f-403b-83ca-4f9a1ac93e93
+  cost {2}{G}
+  type Instant — Arcane
+  spell: target creature gets +1/+1 count where hand
+}

@@ -1,0 +1,9 @@
+card "Frontline Rush" {
+  oracle_id b80d21de-2ace-4e0d-92b2-6f0273512621
+  cost {R}{W}
+  type Instant
+  choose one {
+    mode: create 2 "1/1 red Goblin creature"
+    mode: target creature gets +1/+1 count where creature you control
+  }
+}
