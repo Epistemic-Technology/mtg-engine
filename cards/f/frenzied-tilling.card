@@ -1,0 +1,6 @@
+card "Frenzied Tilling" {
+  oracle_id c6b915b3-b504-42fb-8059-62a3e8e224e1
+  cost {3}{R}{G}
+  type Sorcery
+  spell: destroy target land; search basic land card to battlefield tapped that card
+}

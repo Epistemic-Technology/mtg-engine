@@ -964,6 +964,19 @@ impl Modification {
     }
 }
 
+/// A card's physical layout (CR 709 split, 712 double-faced, 715
+/// adventurer). `Omen` is an adventurer whose spell is shuffled into its
+/// owner's library as it resolves instead of exiled.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum Layout {
+    #[default]
+    Normal,
+    Adventure,
+    Omen,
+    Transform,
+    Split,
+}
+
 /// Where searched-for cards go.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum SearchTo {
@@ -1239,6 +1252,11 @@ pub enum Effect {
         filter: ObjFilter,
         count: Num,
         to: SearchTo,
+    },
+    /// "Transform this creature" (CR 701.27): a double-faced permanent
+    /// turns to its other face; it stays the same object.
+    Transform {
+        what: Recipient,
     },
     /// "Add {B}{B}" (CR 106.4): mana into the controller's pool; `Any` is
     /// one mana of a color the controller chooses. An activated ability
@@ -1568,6 +1586,10 @@ pub enum Condition {
     /// "if it had no -1/-1 counters on it" (persist), judged from the
     /// source as it last existed on the battlefield.
     HadNoCounters(CounterKind),
+    /// "if no spells were cast last turn" (werewolves).
+    NoSpellsLastTurn,
+    /// "if a player cast two or more spells last turn".
+    TwoSpellsLastTurn,
 }
 
 /// A triggered ability (CR 603).
@@ -1809,6 +1831,12 @@ impl AbilityDef {
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct CardDef {
     pub name: String,
+    /// How the card's faces relate (CR 709, 712, 715); see `faces`.
+    pub layout: Layout,
+    /// The card's other faces, registered as their own definitions: an
+    /// adventurer's or omen's spell (CR 715), a double-faced card's other
+    /// face (CR 712), a split card's halves (CR 709).
+    pub faces: Vec<CardRef>,
     pub mana_cost: ManaCost,
     /// Color indicator (CR 204), for cards whose color is not their cost's.
     pub color_indicator: Option<ColorSet>,
@@ -2403,6 +2431,14 @@ impl CardPool {
         self.by_name.get(name).copied()
     }
 
+    /// Link a definition to its other faces after both are in the pool (a
+    /// double-faced card's faces name each other).
+    pub fn set_faces(&mut self, r: CardRef, layout: Layout, faces: Vec<CardRef>) {
+        let d = &mut self.defs[r.0 as usize];
+        d.layout = layout;
+        d.faces = faces;
+    }
+
     /// Intern a subtype name.
     pub fn subtype(&mut self, name: &str) -> Subtype {
         if let Some(id) = self.subtype_ids.get(name) {
@@ -2448,6 +2484,8 @@ pub struct Builder(CardDef);
 impl Builder {
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
+            layout: Layout::Normal,
+            faces: Vec::new(),
             name: name.to_string(),
             mana_cost: ManaCost::parse(cost).unwrap_or_else(|e| panic!("{name}: {e}")),
             color_indicator: None,
@@ -2490,6 +2528,14 @@ impl Builder {
     #[must_use]
     pub fn token(mut self) -> Self {
         self.0.token = true;
+        self
+    }
+
+    /// The card's layout and its other faces (already in the pool).
+    #[must_use]
+    pub fn faces(mut self, layout: Layout, faces: Vec<CardRef>) -> Self {
+        self.0.layout = layout;
+        self.0.faces = faces;
         self
     }
 

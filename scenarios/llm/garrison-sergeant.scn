@@ -1,0 +1,27 @@
+# Garrison Sergeant: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "without a Gate, Garrison Sergeant keeps its printed size" {
+  battlefield A: "Garrison Sergeant", "Plains", "Mountain", "Forest"
+  run_to turn 1 precombat_main
+  assert power "Garrison Sergeant" 3
+  assert toughness "Garrison Sergeant" 3
+}
+
+scenario "without a Gate, Garrison Sergeant deals damage only once" {
+  battlefield A: "Garrison Sergeant", "Plains", "Mountain"
+  turn 1 A: attack "Garrison Sergeant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "without a Gate, Garrison Sergeant trades with a 3/3 blocker" {
+  battlefield A: "Garrison Sergeant"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Garrison Sergeant"
+  turn 1 B: block "Garrison Sergeant" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Garrison Sergeant"
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}

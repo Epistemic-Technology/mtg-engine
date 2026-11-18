@@ -1,0 +1,14 @@
+card "Cloistered Youth // Unholy Fiend" {
+  oracle_id 7552a9b4-b82f-491f-ad52-e271cf730211
+  layout transform
+  cost {1}{W}
+  type Creature — Human
+  pt 1/1
+  triggered at beginning of your upkeep: you may transform this
+  face "Unholy Fiend" {
+    type Creature — Horror
+    pt 3/3
+    color black
+    triggered at beginning of your end step: you loses 1 life
+  }
+}

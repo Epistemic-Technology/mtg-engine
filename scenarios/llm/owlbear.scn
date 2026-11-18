@@ -1,0 +1,35 @@
+# Owlbear: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Owlbear draws a card when it enters" {
+  battlefield A: 5 "Forest"
+  hand A: "Owlbear"
+  library A: "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Owlbear"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Owlbear"
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "Owlbear tramples over a smaller blocker" {
+  battlefield A: "Owlbear"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Owlbear"
+  turn 1 B: block "Owlbear" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Owlbear" to "Grizzly Bears" 2, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Owlbear"
+}
+
+scenario "Unblocked Owlbear deals full damage" {
+  battlefield A: "Owlbear"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Owlbear"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

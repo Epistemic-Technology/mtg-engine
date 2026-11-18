@@ -1,0 +1,14 @@
+card "Thraben Gargoyle // Stonewing Antagonizer" {
+  oracle_id 9b5cf592-8385-4115-b27a-98f42bdf6329
+  layout transform
+  cost {1}
+  type Artifact Creature — Gargoyle
+  pt 2/2
+  keywords defender
+  activated {6}: transform this
+  face "Stonewing Antagonizer" {
+    type Artifact Creature — Gargoyle Horror
+    pt 4/2
+    keywords flying
+  }
+}

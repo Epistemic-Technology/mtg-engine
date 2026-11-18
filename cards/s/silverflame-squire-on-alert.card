@@ -1,0 +1,12 @@
+card "Silverflame Squire // On Alert" {
+  oracle_id 93e4308e-e701-440e-861a-a30324654095
+  layout adventure
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  face "On Alert" {
+    cost {2}{W}
+    type Instant — Adventure
+    spell: target creature gets +2/+2; untap target 1
+  }
+}

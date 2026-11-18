@@ -1,0 +1,9 @@
+card "Go Forth" {
+  oracle_id a4f3df30-383b-47ad-8576-0ee69349faf5
+  cost {G}
+  type Instant
+  choose one {
+    mode: search basic land card reveal to hand
+    mode: target creature gets +2/+2
+  }
+}

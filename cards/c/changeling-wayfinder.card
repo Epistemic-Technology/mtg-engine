@@ -1,0 +1,8 @@
+card "Changeling Wayfinder" {
+  oracle_id 93409d98-93c8-4742-a635-2a4408e66c32
+  cost {3}
+  type Creature — Shapeshifter
+  pt 1/2
+  keywords changeling
+  triggered when this enters: you may search basic land card reveal to hand
+}

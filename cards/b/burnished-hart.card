@@ -1,0 +1,7 @@
+card "Burnished Hart" {
+  oracle_id 893fed41-c144-433f-af88-bc7d419b7fb3
+  cost {3}
+  type Artifact Creature — Elk
+  pt 2/2
+  activated {3}, sacrifice this: search up to 2 basic land card to battlefield tapped
+}

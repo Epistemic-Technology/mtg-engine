@@ -61,17 +61,59 @@ pub fn add_card(
     card: &Card,
     by_name: &HashMap<&str, &Card>,
 ) -> Result<CardRef, CompileError> {
+    // Faces first (CR 709, 712, 715): each is its own definition, under its
+    // own name unless another definition already has that name.
+    let mut faces = Vec::new();
+    for f in &card.faces {
+        let prev = pool.lookup(&f.name);
+        let mut c = Compiler {
+            pool,
+            card: f,
+            lookup: by_name,
+            groups: Vec::new(),
+        };
+        let def = c.card()?;
+        let r = pool.add(def);
+        if let Some(prev) = prev {
+            pool.alias(&f.name, prev);
+        }
+        faces.push(r);
+    }
     let mut c = Compiler {
         pool,
         card,
         lookup: by_name,
         groups: Vec::new(),
     };
-    let def = c.card()?;
+    let mut def = c.card()?;
+    if !faces.is_empty() {
+        def.layout = card.layout;
+        def.faces.clone_from(&faces);
+        if card.layout == mtg_core::card::Layout::Split {
+            // CR 709.4: outside the stack a split card has both halves'
+            // characteristics combined.
+            let mut cost = String::new();
+            for f in &faces {
+                let fd = pool.get(*f);
+                cost.push_str(&fd.mana_cost.to_string());
+                def.types = def.types.union(fd.types);
+            }
+            def.mana_cost = mtg_core::mana::ManaCost::parse(&cost).unwrap_or_default();
+        } else if let Some((front, _)) = card.name.split_once(" // ") {
+            def.name = front.to_string();
+        }
+    }
     // A token known by a key keeps its plain name off whatever definition
     // already had it.
     let prev = card.display_name.as_deref().and_then(|n| pool.lookup(n));
     let r = pool.add(def);
+    if !faces.is_empty() {
+        pool.alias(&card.name, r);
+        // A double-faced card's back face turns back into the front.
+        if card.layout == mtg_core::card::Layout::Transform {
+            pool.set_faces(faces[0], mtg_core::card::Layout::Transform, vec![r]);
+        }
+    }
     if let Some(display) = &card.display_name {
         pool.alias(&card.name, r);
         if let Some(prev) = prev {
@@ -377,6 +419,7 @@ impl Compiler<'_> {
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
+            Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Search {
                 filter, count, to, ..
             } => out.push(CoreEffect::Search {
@@ -480,6 +523,10 @@ impl Compiler<'_> {
         match t {
             Trigger::Enters(o) => TriggerSpec::Enters(self.trigger_obj(o)),
             Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
+            Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
+                step: *step,
+                whose: Who::Any,
+            },
             Trigger::BeginningOfStep { step, whose } => TriggerSpec::BeginningOfStep {
                 step: *step,
                 whose: *whose,

@@ -1,0 +1,7 @@
+card "Sakura-Tribe Elder" {
+  oracle_id e3afc704-220f-498f-9eaa-0821b17dc24c
+  cost {1}{G}
+  type Creature — Snake Shaman
+  pt 1/1
+  activated sacrifice this: search basic land card to battlefield tapped that card
+}

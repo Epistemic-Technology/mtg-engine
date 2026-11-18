@@ -1,0 +1,14 @@
+card "Solitary Hunter // One of the Pack" {
+  oracle_id c99834dc-755f-407c-ad0e-550f8ae12198
+  layout transform
+  cost {3}{G}
+  type Creature — Human Warrior Werewolf
+  pt 3/4
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "One of the Pack" {
+    type Creature — Werewolf
+    pt 5/6
+    color green
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

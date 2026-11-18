@@ -1,0 +1,6 @@
+card "Karakas" {
+  oracle_id 59119143-c0fa-49dd-adf0-e2fd3029c48b
+  type Legendary Land
+  mana {W}
+  activated {T}: return target legendary creature to hand
+}

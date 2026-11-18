@@ -1,0 +1,6 @@
+card "Shared Roots" {
+  oracle_id 9e0fd3bf-f47a-4f06-8ff1-73f6bf5d1e03
+  cost {1}{G}
+  type Sorcery — Lesson
+  spell: search basic land card to battlefield tapped
+}

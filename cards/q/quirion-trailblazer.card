@@ -1,0 +1,7 @@
+card "Quirion Trailblazer" {
+  oracle_id a26c4076-c488-4700-8e32-4ceeeac2c29a
+  cost {3}{G}
+  type Creature — Elf Scout
+  pt 1/2
+  triggered when this enters: you may search basic land card to battlefield tapped that card
+}

@@ -1,0 +1,6 @@
+card "They Went This Way" {
+  oracle_id 47951720-9584-4ca3-a73d-3d259102b2f8
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped; investigate
+}

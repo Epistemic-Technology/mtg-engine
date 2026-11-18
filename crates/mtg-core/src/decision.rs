@@ -152,6 +152,12 @@ pub enum Choice {
     SurveilGraveyard(Vec<ObjId>),
     /// A color of mana to add (CR 106.4).
     Color(crate::mana::Color),
+    /// Cast one of a card's other faces: an adventurer's spell (CR 715.3)
+    /// or a split card's half (CR 709.3), `face` indexing `CardDef::faces`.
+    CastFace {
+        card: ObjId,
+        face: u8,
+    },
 }
 
 impl Choice {
@@ -232,6 +238,14 @@ impl Choice {
             }
             Choice::X(n) => format!("X = {n}"),
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
+            Choice::CastFace { card, face } => {
+                let name = state
+                    .objects
+                    .get(*card)
+                    .and_then(|o| state.pool.get(o.def).faces.get(*face as usize))
+                    .map_or("?", |f| state.pool.get(*f).name.as_str());
+                format!("cast {name}")
+            }
             Choice::AttackTarget(t) => format!("attack {}", target(t)),
             Choice::Sacrifice(id) => format!("sacrifice {}", name(id)),
             Choice::KeepLegend { def, age, .. } => {

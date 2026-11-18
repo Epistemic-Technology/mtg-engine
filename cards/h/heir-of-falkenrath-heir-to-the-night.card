@@ -1,0 +1,14 @@
+card "Heir of Falkenrath // Heir to the Night" {
+  oracle_id d5b9c62d-fe98-4cbc-b4b6-012702bf6657
+  layout transform
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/1
+  activated discard 1 card, once: transform this
+  face "Heir to the Night" {
+    type Creature — Vampire Berserker
+    pt 3/2
+    color black
+    keywords flying
+  }
+}

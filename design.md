@@ -2154,6 +2154,26 @@ text. Corpus 5,169 cards: 3,614 Pauper (33.7%), 3,878 Modern (17.9%);
 877 scenarios pass (22 new), 1 skipped; fuzz 0 panics, 0 unfinished;
 throughput within 1% of slice 2.
 
+Status 2026-11-18, slice 4 (multi-face cards) done: `layout` and `face`
+blocks in the DSL, gated face by face against the snapshot's
+`card_faces`; each face its own definition in the pool. Adventurers and
+omens (CR 715): the spell face cast from the hand, the card exiled on an
+adventure (or shuffled away, for an omen) as it resolves and the
+creature castable from exile; split cards' halves (CR 709); transforming
+double-faced cards (CR 712, 701.27) with werewolves' "no spells / two or
+more spells last turn" conditions. The template author covers each
+face; coverage now counts every layout (Pauper: 10,881 cards). Filters
+gained positive supertypes ("basic land": the search templates had been
+failing on it). Model-author batch 3 (500 of the shortest remaining
+Pauper cards): 23 accepted; the 472 unsupported reasons are the next
+slice's list (filter and target generality, "its controller", N targets
+for any verb, edicts, X counts, blocking restrictions). Not yet: day/night
+(daybound), disturb, Rooms, prepare, sagas. Corpus 5,321 cards: 3,714
+Pauper (34.1%), 4,014 Modern (17.7%); 966 scenarios pass (10 new in
+scenarios/m5/faces.scn, the rest batch 3's), 1 skipped; fuzz 0 panics, 0 unfinished; throughput 2% below
+slice 3 (about 5% below M4 over the four slices, mostly priority-option
+and mana-source enumeration: a perf pass is due).
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

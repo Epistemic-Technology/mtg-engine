@@ -1,0 +1,6 @@
+card "Traveler's Amulet" {
+  oracle_id 48b561dd-f23d-409a-87c8-e49902b2477b
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: search basic land card reveal to hand
+}

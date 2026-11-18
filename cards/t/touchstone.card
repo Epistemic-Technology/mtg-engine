@@ -1,0 +1,6 @@
+card "Touchstone" {
+  oracle_id 92382bdb-84cf-4456-8ca1-8a19badae7ad
+  cost {2}
+  type Artifact
+  activated {T}: tap target artifact you don't control
+}

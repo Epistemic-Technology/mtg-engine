@@ -1,0 +1,7 @@
+card "Odious Trow" {
+  oracle_id 0e9864e2-1bb4-4527-b2af-62433a90b669
+  cost {B/G}
+  type Creature — Troll
+  pt 1/1
+  activated {1}{B/G}: regenerate this
+}

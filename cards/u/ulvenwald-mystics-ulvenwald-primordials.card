@@ -1,0 +1,15 @@
+card "Ulvenwald Mystics // Ulvenwald Primordials" {
+  oracle_id 4418ff27-57c0-4c94-8aee-6151e4f8b0f9
+  layout transform
+  cost {2}{G}{G}
+  type Creature — Human Shaman Werewolf
+  pt 3/3
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Ulvenwald Primordials" {
+    type Creature — Werewolf
+    pt 5/5
+    color green
+    activated {G}: regenerate this
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

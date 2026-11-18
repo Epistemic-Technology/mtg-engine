@@ -1,0 +1,13 @@
+card "Rimrock Knight // Boulder Rush" {
+  oracle_id 24db950b-e4fe-42d0-977b-4957eb8229d9
+  layout adventure
+  cost {1}{R}
+  type Creature — Dwarf Knight
+  pt 3/1
+  keywords can't block
+  face "Boulder Rush" {
+    cost {R}
+    type Instant — Adventure
+    spell: target creature gets +2/+0
+  }
+}

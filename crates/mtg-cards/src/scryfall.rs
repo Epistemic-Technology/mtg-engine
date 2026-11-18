@@ -72,6 +72,49 @@ pub struct Card {
     pub legalities: BTreeMap<String, String>,
     #[serde(default)]
     pub games: Vec<String>,
+    /// Multi-face cards (split, adventure, double-faced): each face's
+    /// characteristics and text.
+    #[serde(default)]
+    pub card_faces: Vec<Face>,
+}
+
+/// One face of a multi-face card.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct Face {
+    pub name: String,
+    #[serde(default)]
+    pub mana_cost: Option<String>,
+    #[serde(default)]
+    pub type_line: Option<String>,
+    #[serde(default)]
+    pub oracle_text: Option<String>,
+    #[serde(default)]
+    pub power: Option<String>,
+    #[serde(default)]
+    pub toughness: Option<String>,
+    #[serde(default)]
+    pub loyalty: Option<String>,
+    #[serde(default)]
+    pub color_indicator: Option<Vec<String>>,
+}
+
+impl Card {
+    /// A face as a card record of its own, for per-face checks.
+    #[must_use]
+    pub fn face_record(&self, f: &Face) -> Card {
+        Card {
+            name: f.name.clone(),
+            type_line: f.type_line.clone(),
+            mana_cost: f.mana_cost.clone(),
+            oracle_text: f.oracle_text.clone(),
+            power: f.power.clone(),
+            toughness: f.toughness.clone(),
+            loyalty: f.loyalty.clone(),
+            color_indicator: f.color_indicator.clone(),
+            card_faces: Vec::new(),
+            ..self.clone()
+        }
+    }
 }
 
 impl Card {

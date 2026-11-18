@@ -1,0 +1,14 @@
+card "Assure // Assemble" {
+  oracle_id 087018b6-6355-4534-9a35-9336b4b7fccc
+  layout split
+  face "Assure" {
+    cost {G/W}{G/W}
+    type Instant
+    spell: put 1 +1/+1 counters on target creature; that creature gains indestructible
+  }
+  face "Assemble" {
+    cost {4}{G}{W}
+    type Instant
+    spell: create 3 "2/2 green and white Elf Knight creature with vigilance"
+  }
+}

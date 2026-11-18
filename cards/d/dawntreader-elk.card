@@ -1,0 +1,7 @@
+card "Dawntreader Elk" {
+  oracle_id de6d0248-79f6-48df-bdca-8ce207b2ec08
+  cost {1}{G}
+  type Creature — Elk
+  pt 2/2
+  activated {G}, sacrifice this: search basic land card to battlefield tapped
+}

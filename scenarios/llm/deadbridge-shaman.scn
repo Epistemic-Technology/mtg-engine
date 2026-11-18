@@ -1,0 +1,43 @@
+# Deadbridge Shaman: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dying to removal makes the opponent discard" {
+  battlefield A: "Deadbridge Shaman"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt", "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Deadbridge Shaman"
+  turn 2 A: trigger "Deadbridge Shaman" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Deadbridge Shaman"
+  assert graveyard B contains "Shock"
+  assert hand B lacks "Shock"
+}
+
+scenario "dying in combat makes the opponent discard" {
+  battlefield A: "Deadbridge Shaman"
+  battlefield B: "Hill Giant"
+  hand B: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Deadbridge Shaman"
+  turn 2 B: block "Deadbridge Shaman" with "Hill Giant"
+  turn 2 A: trigger "Deadbridge Shaman" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Deadbridge Shaman"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Divination"
+  assert hand B lacks "Divination"
+}
+
+scenario "the controller does not discard" {
+  battlefield A: "Deadbridge Shaman", 3 "Swamp"
+  hand A: "Murder", "Divination"
+  hand B: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Murder" targeting "Deadbridge Shaman"
+  turn 2 A: trigger "Deadbridge Shaman" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Deadbridge Shaman"
+  assert hand A contains "Divination"
+  assert graveyard B contains "Shock"
+}

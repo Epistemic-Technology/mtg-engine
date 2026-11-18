@@ -1,0 +1,16 @@
+card "Vildin-Pack Outcast // Dronepack Kindred" {
+  oracle_id 6e6f9269-c72b-4449-9c2d-a720b9bd6f06
+  layout transform
+  cost {4}{R}
+  type Creature — Werewolf Horror
+  pt 4/4
+  keywords trample
+  activated {R}: this gets +1/-1
+  activated {5}{R}{R}: transform this
+  face "Dronepack Kindred" {
+    type Creature — Eldrazi Werewolf
+    pt 5/7
+    keywords trample
+    activated {1}: this gets +1/+0
+  }
+}

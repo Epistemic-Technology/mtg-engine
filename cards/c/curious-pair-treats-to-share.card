@@ -1,0 +1,12 @@
+card "Curious Pair // Treats to Share" {
+  oracle_id e67bd8eb-66db-48af-82f8-74f5595f1928
+  layout adventure
+  cost {1}{G}
+  type Creature — Human Peasant
+  pt 1/3
+  face "Treats to Share" {
+    cost {G}
+    type Sorcery — Adventure
+    spell: create 1 "Food"
+  }
+}

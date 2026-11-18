@@ -1,0 +1,14 @@
+card "Rough // Tumble" {
+  oracle_id 5e2bf834-7f92-4da5-beac-0dad817dc233
+  layout split
+  face "Rough" {
+    cost {1}{R}
+    type Sorcery
+    spell: deal 2 damage to each creature without flying
+  }
+  face "Tumble" {
+    cost {5}{R}
+    type Sorcery
+    spell: deal 6 damage to each creature with flying
+  }
+}

@@ -1,0 +1,7 @@
+card "Greenseeker" {
+  oracle_id 693d8203-4405-4488-9067-cc1cd8041cb4
+  cost {G}
+  type Creature — Elf Spellshaper
+  pt 1/1
+  activated {G}, {T}, discard 1 card: search basic land card reveal to hand
+}

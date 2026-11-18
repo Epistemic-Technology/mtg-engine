@@ -1,0 +1,13 @@
+card "Hollow Scavenger // Bakery Raid" {
+  oracle_id 4fad3816-41af-4fa4-85b4-ba37614ec848
+  layout adventure
+  cost {2}{G}
+  type Creature — Wolf
+  pt 3/2
+  activated {1}, sacrifice Food, once: this gets +2/+2
+  face "Bakery Raid" {
+    cost {G}
+    type Sorcery — Adventure
+    spell: create 1 "Food"
+  }
+}

@@ -1,0 +1,6 @@
+card "Burst of Strength" {
+  oracle_id 1ab592fa-adfb-4879-af6c-0204eab323fb
+  cost {G}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature and untap target 1
+}

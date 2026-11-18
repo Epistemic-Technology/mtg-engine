@@ -1,0 +1,7 @@
+card "Celestial Force" {
+  oracle_id 8add6996-6c5c-4aa2-93d4-a39efcfd22b2
+  cost {5}{W}{W}{W}
+  type Creature — Elemental
+  pt 7/7
+  triggered at beginning of every upkeep: you gains 3 life
+}

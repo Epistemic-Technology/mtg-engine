@@ -1,0 +1,7 @@
+card "Pterodon Knight" {
+  oracle_id 8feb7149-a4dc-491a-a0b4-d2e8b85a97ce
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 3/3
+  static this: has flying as long as you control Dinosaur
+}

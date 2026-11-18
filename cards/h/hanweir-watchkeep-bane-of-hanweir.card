@@ -1,0 +1,16 @@
+card "Hanweir Watchkeep // Bane of Hanweir" {
+  oracle_id 8bdf986e-a47e-47b6-8cdb-576c86c4041b
+  layout transform
+  cost {2}{R}
+  type Creature — Human Warrior Werewolf
+  pt 1/5
+  keywords defender
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Bane of Hanweir" {
+    type Creature — Werewolf
+    pt 5/5
+    color red
+    keywords attacks each combat if able
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

@@ -1,0 +1,6 @@
+card "Wanderer's Twig" {
+  oracle_id fd15a4b0-abd7-4bae-8331-81b85c94fce8
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: search basic land card reveal to hand
+}

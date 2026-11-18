@@ -1,0 +1,7 @@
+card "Deep Reconnaissance" {
+  oracle_id a823e880-3d5f-4186-a7da-e710a7db583c
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped that card
+  flashback {4}{G}
+}

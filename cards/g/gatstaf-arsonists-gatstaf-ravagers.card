@@ -1,0 +1,15 @@
+card "Gatstaf Arsonists // Gatstaf Ravagers" {
+  oracle_id cde622fa-a634-409d-962c-1e4c5ddf9b3b
+  layout transform
+  cost {4}{R}
+  type Creature — Human Werewolf
+  pt 5/4
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Gatstaf Ravagers" {
+    type Creature — Werewolf
+    pt 6/5
+    color red
+    keywords menace
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

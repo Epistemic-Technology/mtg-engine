@@ -1,0 +1,7 @@
+card "Kargan Dragonrider" {
+  oracle_id df366871-8ed7-4183-8b0c-414ca361a711
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  static as long as you control Dragon, this: has flying
+}

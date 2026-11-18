@@ -1,0 +1,8 @@
+card "Silkwing Scout" {
+  oracle_id 4c76db22-1992-448d-be4a-a9095420b8cc
+  cost {2}{U}
+  type Creature — Faerie Scout
+  pt 2/1
+  keywords flying
+  activated {G}, sacrifice this: search basic land card to battlefield tapped that card
+}

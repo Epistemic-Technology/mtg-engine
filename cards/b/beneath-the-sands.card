@@ -1,0 +1,7 @@
+card "Beneath the Sands" {
+  oracle_id 27547519-9474-49fa-80e7-e604d61cb3ca
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped
+  cycling {2}
+}

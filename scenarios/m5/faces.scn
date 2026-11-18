@@ -1,0 +1,102 @@
+# M5: multi-face cards: adventurers (CR 715), omens, transforming
+# double-faced cards (CR 712, 701.27), and split cards (CR 709).
+
+scenario "adventure: cast the adventure, the card goes on an adventure" {
+  battlefield A: "Forest"
+  hand A: "Curious Pair"
+  turn 1 A: cast "Treats to Share"
+  run_to turn 1 end
+  assert battlefield A contains "Food"
+  assert exile A contains "Curious Pair"
+}
+
+scenario "adventure: then cast the creature from exile" {
+  battlefield A: 3 "Forest"
+  hand A: "Curious Pair"
+  turn 1 A: cast "Treats to Share"
+  turn 1 main2 A: cast "Curious Pair"
+  run_to turn 1 end
+  assert battlefield A contains "Curious Pair"
+  assert battlefield A contains "Food"
+}
+
+scenario "adventure: the creature may be cast from hand instead" {
+  battlefield A: 2 "Forest"
+  hand A: "Curious Pair"
+  turn 1 A: cast "Curious Pair"
+  run_to turn 1 end
+  assert battlefield A contains "Curious Pair"
+  assert battlefield A lacks "Food"
+}
+
+scenario "adventure: a countered adventure goes to the graveyard" {
+  battlefield A: "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Curious Pair"
+  hand B: "Counterspell"
+  turn 1 A: cast "Treats to Share"
+  turn 1 B: cast "Counterspell" targeting "Treats to Share"
+  run_to turn 1 end
+  assert graveyard A contains "Curious Pair"
+}
+
+scenario "omen: the card is shuffled into the library after the spell" {
+  battlefield A: "Forest"
+  hand A: "Sagu Wildling"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Roost Seek"
+  run_to turn 1 end
+  assert hand A contains "Forest"
+  assert library A contains "Sagu Wildling"
+  assert library A count 2
+}
+
+scenario "transform: a werewolf transforms when no spells were cast last turn" {
+  battlefield A: "Hinterland Logger"
+  run_to turn 2 main1
+  assert battlefield A contains "Timber Shredder"
+  assert power "Timber Shredder" 4
+  assert has "Timber Shredder" trample
+}
+
+scenario "transform: one spell last turn keeps it from transforming" {
+  battlefield A: "Hinterland Logger", 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 main2 A: cast "Shock" targeting player B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 3 main1
+  assert battlefield A contains "Hinterland Logger"
+}
+
+scenario "transform: two spells in a turn transform it back" {
+  battlefield A: "Hinterland Logger", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  run_to turn 3 main1
+  assert battlefield A contains "Timber Shredder"
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  turn 3 main2 A: cast "Shock" targeting player B
+  run_to turn 4 main1
+  assert battlefield A contains "Hinterland Logger"
+}
+
+scenario "split: cast either half" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Dead // Gone"
+  turn 1 A: cast "Dead" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Dead // Gone"
+}
+
+scenario "split: the other half" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Dead // Gone"
+  turn 1 A: cast "Gone" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+}

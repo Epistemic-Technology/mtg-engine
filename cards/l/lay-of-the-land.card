@@ -1,0 +1,6 @@
+card "Lay of the Land" {
+  oracle_id cedc52eb-66a6-4b43-87f1-9bb9f4d4871e
+  cost {G}
+  type Sorcery
+  spell: search basic land card reveal to hand
+}

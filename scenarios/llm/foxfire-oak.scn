@@ -1,0 +1,37 @@
+# Foxfire Oak: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Foxfire Oak pumps with green mana" {
+  battlefield A: "Foxfire Oak", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Foxfire Oak"
+  run_to turn 1 begin_combat
+  assert power "Foxfire Oak" 6
+  assert toughness "Foxfire Oak" 6
+}
+
+scenario "Foxfire Oak pumps with mixed red and green mana" {
+  battlefield A: "Foxfire Oak", 2 "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Foxfire Oak"
+  run_to turn 1 begin_combat
+  assert power "Foxfire Oak" 6
+  assert tapped "Forest"
+}
+
+scenario "Foxfire Oak pump wears off at end of turn" {
+  battlefield A: "Foxfire Oak", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Foxfire Oak"
+  run_to turn 2 upkeep
+  assert power "Foxfire Oak" 3
+}
+
+scenario "pumped Foxfire Oak attacks for 6" {
+  battlefield A: "Foxfire Oak", 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Foxfire Oak"
+  turn 1 A: attack "Foxfire Oak"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}

@@ -56,6 +56,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("--- Turn {turn}, {}'s turn ---", who(*player, viewer))
         }
         Event::StepBegin { step } => format!("[{step:?}]"),
+        Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
         Event::Draw { player, card } => {
             if *player == viewer {
                 format!("You draw {}.", obj(state, *card))

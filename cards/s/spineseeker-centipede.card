@@ -1,0 +1,8 @@
+card "Spineseeker Centipede" {
+  oracle_id dcfa0476-e88f-43b4-8011-d78a3de97f2a
+  cost {2}{G}
+  type Creature — Insect
+  pt 2/1
+  triggered when this enters: search basic land card reveal to hand
+  label "Delirium" static this: +1/+2, has vigilance as long as 4 card types in your graveyard
+}

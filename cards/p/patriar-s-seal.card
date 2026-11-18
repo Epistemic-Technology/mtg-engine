@@ -1,0 +1,7 @@
+card "Patriar's Seal" {
+  oracle_id ad95eac2-5b48-4102-9988-a6d7b1ec30e0
+  cost {3}
+  type Artifact
+  mana any
+  activated {1}, {T}: untap target legendary creature you control
+}

@@ -1,0 +1,13 @@
+card "Obyra's Attendants // Desperate Parry" {
+  oracle_id 396b088d-f9af-4ee1-843f-dbe1633f9cc8
+  layout adventure
+  cost {4}{U}
+  type Creature — Faerie Wizard
+  pt 3/4
+  keywords flying
+  face "Desperate Parry" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: target creature gets -4/-0
+  }
+}

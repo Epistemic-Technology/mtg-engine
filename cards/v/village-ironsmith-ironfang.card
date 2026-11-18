@@ -1,0 +1,16 @@
+card "Village Ironsmith // Ironfang" {
+  oracle_id c7b1aaff-e2c3-427c-8478-1fd053f7ffb2
+  layout transform
+  cost {1}{R}
+  type Creature — Human Werewolf
+  pt 1/1
+  keywords first strike
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Ironfang" {
+    type Creature — Werewolf
+    pt 3/1
+    color red
+    keywords first strike
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

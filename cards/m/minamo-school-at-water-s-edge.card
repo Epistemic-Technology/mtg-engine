@@ -1,0 +1,6 @@
+card "Minamo, School at Water's Edge" {
+  oracle_id 17784f90-89a1-47a5-83ef-ae60dfc30bd1
+  type Legendary Land
+  mana {U}
+  activated {U}, {T}: untap target legendary permanent
+}

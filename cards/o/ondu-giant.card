@@ -1,0 +1,7 @@
+card "Ondu Giant" {
+  oracle_id ed8b2887-15fa-4e62-83ac-55973ac6f76c
+  cost {3}{G}
+  type Creature — Giant Druid
+  pt 2/4
+  triggered when this enters: you may search basic land card to battlefield tapped
+}

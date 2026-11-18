@@ -1,0 +1,32 @@
+# Half-Elf Monk: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Stunning Strike taps target creature" {
+  battlefield A: "Half-Elf Monk", 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Half-Elf Monk" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert tapped "Grizzly Bears"
+  assert tapped "Half-Elf Monk"
+  assert tapped oldest A "Plains"
+  assert tapped newest A "Plains"
+}
+
+scenario "vigilance: attacking does not tap the monk" {
+  battlefield A: "Half-Elf Monk"
+  turn 1 A: attack "Half-Elf Monk"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert untapped "Half-Elf Monk"
+}
+
+scenario "tapped blocker cannot block" {
+  battlefield A: "Half-Elf Monk", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Half-Elf Monk" targeting "Serra Angel"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}

@@ -1,0 +1,13 @@
+card "Oakhame Ranger // Bring Back" {
+  oracle_id 9c247a17-361c-435e-90c8-ce9c6b71f7db
+  layout adventure
+  cost {G/W}{G/W}{G/W}{G/W}
+  type Creature — Elf Knight Ranger
+  pt 2/2
+  activated {T}: each creature you control gets +1/+1
+  face "Bring Back" {
+    cost {G/W}{G/W}{G/W}{G/W}
+    type Sorcery — Adventure
+    spell: create 2 "1/1 white Human creature"
+  }
+}

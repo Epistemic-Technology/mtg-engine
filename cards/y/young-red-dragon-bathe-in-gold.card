@@ -1,0 +1,13 @@
+card "Young Red Dragon // Bathe in Gold" {
+  oracle_id 2f865ae9-9328-4f6f-924f-d5e0a65aaa96
+  layout adventure
+  cost {3}{R}
+  type Creature — Dragon
+  pt 3/2
+  keywords flying, can't block
+  face "Bathe in Gold" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: create 1 "Treasure"
+  }
+}

@@ -1,0 +1,6 @@
+card "Environmental Sciences" {
+  oracle_id 2f889671-a1d6-4034-881b-58c93897d707
+  cost {2}
+  type Sorcery — Lesson
+  spell: search basic land card reveal to hand; you gains 2 life
+}

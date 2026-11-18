@@ -1,0 +1,37 @@
+# Gearsmith Guardian: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "gets +2/+0 with a blue creature" {
+  battlefield A: "Gearsmith Guardian", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Gearsmith Guardian" 5
+  assert toughness "Gearsmith Guardian" 5
+}
+
+scenario "no bonus with only a nonblue creature" {
+  battlefield A: "Gearsmith Guardian", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Gearsmith Guardian" 3
+  assert toughness "Gearsmith Guardian" 5
+}
+
+scenario "opponent's blue creature does not count" {
+  battlefield A: "Gearsmith Guardian"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Gearsmith Guardian" 3
+}
+
+scenario "bonus ends when the blue creature dies" {
+  battlefield A: "Gearsmith Guardian", "Wind Drake"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Wind Drake"
+  run_to turn 1 end
+  assert graveyard A contains "Wind Drake"
+  assert power "Gearsmith Guardian" 3
+}

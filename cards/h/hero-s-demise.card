@@ -1,0 +1,6 @@
+card "Hero's Demise" {
+  oracle_id 69ec0b59-a0aa-4878-a3b3-130cea18fee0
+  cost {1}{B}
+  type Instant
+  spell: destroy target legendary creature
+}

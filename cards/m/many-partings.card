@@ -1,0 +1,6 @@
+card "Many Partings" {
+  oracle_id 92ea750e-62b7-4422-a527-ddf435759d08
+  cost {G}
+  type Sorcery
+  spell: search basic land card reveal to hand; create 1 "Food"
+}

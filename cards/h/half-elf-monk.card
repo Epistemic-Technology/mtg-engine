@@ -1,0 +1,8 @@
+card "Half-Elf Monk" {
+  oracle_id 00d11662-9d10-4915-b80c-c1ad54b4e71b
+  cost {3}{W}
+  type Creature — Human Elf Monk
+  pt 1/4
+  keywords vigilance
+  label "Stunning Strike" activated {1}{W}, {T}: tap target creature
+}

@@ -1,0 +1,6 @@
+card "Natural Connection" {
+  oracle_id dc85c659-f2ed-4b13-807c-d853f74de410
+  cost {2}{G}
+  type Instant
+  spell: search basic land card to battlefield tapped
+}

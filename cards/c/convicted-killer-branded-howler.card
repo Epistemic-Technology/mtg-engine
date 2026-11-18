@@ -1,0 +1,14 @@
+card "Convicted Killer // Branded Howler" {
+  oracle_id c1801b5c-1a87-46d0-83d3-e8dfd94211f4
+  layout transform
+  cost {2}{R}
+  type Creature — Human Werewolf
+  pt 2/2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Branded Howler" {
+    type Creature — Werewolf
+    pt 4/4
+    color red
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

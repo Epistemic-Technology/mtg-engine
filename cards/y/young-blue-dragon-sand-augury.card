@@ -1,0 +1,13 @@
+card "Young Blue Dragon // Sand Augury" {
+  oracle_id fff28b30-9903-4a0a-a723-31216abd457d
+  layout adventure
+  cost {4}{U}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  face "Sand Augury" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: scry 1 then draw 1 cards
+  }
+}

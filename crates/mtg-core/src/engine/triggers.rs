@@ -489,6 +489,8 @@ impl GameState {
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
             Condition::HadNoCounters(k) => self.had_no_counters(source, k),
+            Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
+            Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
         }
     }
 
@@ -500,6 +502,8 @@ impl GameState {
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
             Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
+            Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
+            Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
         }
     }
 

@@ -473,6 +473,8 @@ impl P {
             kind,
             name,
             display_name: None,
+            layout: mtg_core::card::Layout::Normal,
+            faces: Vec::new(),
             oracle_id: None,
             cost: ManaCost::default(),
             color_indicator: None,
@@ -516,6 +518,49 @@ impl P {
                 self.pos += 1;
                 card.display_name = Some(self.string()?);
                 self.end_stmt()
+            }
+            "layout" => {
+                self.pos += 1;
+                card.layout = match self.word()?.as_str() {
+                    "adventure" => mtg_core::card::Layout::Adventure,
+                    "omen" => mtg_core::card::Layout::Omen,
+                    "transform" => mtg_core::card::Layout::Transform,
+                    "split" => mtg_core::card::Layout::Split,
+                    w => {
+                        return self.fail(format!(
+                            "unknown layout `{w}` (adventure, omen, transform, split)"
+                        ));
+                    }
+                };
+                self.end_stmt()
+            }
+            "face" => {
+                self.pos += 1;
+                let line = self.line();
+                let name = self.string()?;
+                self.expect(&Tok::LBrace)?;
+                self.end_stmt()?;
+                let outer_groups = std::mem::take(&mut self.groups);
+                let mut face = Card {
+                    name,
+                    line,
+                    ..card.blank()
+                };
+                loop {
+                    self.skip_newlines();
+                    if self.peek() == Some(&Tok::RBrace) {
+                        self.pos += 1;
+                        self.end_stmt()?;
+                        break;
+                    }
+                    if self.at_end() {
+                        return self.fail("unterminated face block");
+                    }
+                    self.card_statement(&mut face)?;
+                }
+                face.groups = std::mem::replace(&mut self.groups, outer_groups);
+                card.faces.push(face);
+                Ok(())
             }
             "oracle_id" => {
                 self.pos += 1;
@@ -1542,6 +1587,9 @@ impl P {
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
             "investigate" => Ok(Effect::Investigate),
+            "transform" => Ok(Effect::Transform {
+                what: self.recipient()?,
+            }),
             "search" => {
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -1959,6 +2007,17 @@ impl P {
     fn target_spec(&mut self) -> R<Target> {
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
+                // "creature you don't control": a filter goes on.
+                let more = matches!(
+                    (
+                        self.word_at(ws.len()).as_deref(),
+                        self.word_at(ws.len() + 1).as_deref()
+                    ),
+                    (Some("you"), Some("don't"))
+                );
+                if more {
+                    break;
+                }
                 self.pos += ws.len();
                 return Ok(Target::Spec(*spec));
             }
@@ -2014,6 +2073,10 @@ impl P {
                 }
                 "nonbasic" => {
                     f.not_supertypes.push(Supertype::Basic);
+                    self.pos += 1;
+                }
+                "basic" | "legendary" | "snow" => {
+                    f.supertypes.push(supertype(&w).expect("a supertype word"));
                     self.pos += 1;
                 }
                 "nonlegendary" => {
@@ -2154,6 +2217,14 @@ impl P {
             self.eat_word("the");
             self.expect_word("beginning")?;
             self.expect_word("of")?;
+            if self.eat_word("every") {
+                let w = self.word()?;
+                let Some(step) = step_by_name(&w) else {
+                    return self.fail(format!("unknown step `{w}`"));
+                };
+                self.eat_word("step");
+                return Ok(Trigger::EveryStep(step));
+            }
             let whose = if self.eat_word("your") {
                 Who::You
             } else if self.eat_words(&["each", "player's"])
@@ -2255,6 +2326,14 @@ impl P {
         }
         if self.eat_word("kicked") {
             return Ok(Condition::Kicked);
+        }
+        if self.eat_words(&["no", "spells", "were", "cast", "last", "turn"]) {
+            return Ok(Condition::NoSpellsLastTurn);
+        }
+        if self.eat_words(&[
+            "a", "player", "cast", "two", "or", "more", "spells", "last", "turn",
+        ]) {
+            return Ok(Condition::TwoSpellsLastTurn);
         }
         if self.eat_words(&["it", "had", "no"]) {
             let k = self.counter_kind()?;

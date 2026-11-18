@@ -1,0 +1,15 @@
+card "Hinterland Logger // Timber Shredder" {
+  oracle_id 29b22d41-4c6e-46de-8553-983d05f12f0f
+  layout transform
+  cost {1}{G}
+  type Creature — Human Werewolf
+  pt 2/1
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Timber Shredder" {
+    type Creature — Werewolf
+    pt 4/2
+    color green
+    keywords trample
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

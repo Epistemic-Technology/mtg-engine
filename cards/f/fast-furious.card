@@ -1,0 +1,14 @@
+card "Fast // Furious" {
+  oracle_id 62411ced-843e-4b63-bdf6-dafb2ac27047
+  layout split
+  face "Fast" {
+    cost {2}{R}
+    type Instant
+    spell: discard 1 cards then draw 2 cards
+  }
+  face "Furious" {
+    cost {3}{R}{R}
+    type Sorcery
+    spell: deal 3 damage to each creature without flying
+  }
+}

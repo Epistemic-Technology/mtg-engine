@@ -1,0 +1,7 @@
+card "Silverglade Pathfinder" {
+  oracle_id ac00d3db-d9e4-4fc3-a4ea-dd1187f406bb
+  cost {1}{G}
+  type Creature — Dryad Spellshaper
+  pt 1/1
+  activated {1}{G}, {T}, discard 1 card: search basic land card to battlefield tapped that card
+}

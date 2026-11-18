@@ -1,0 +1,45 @@
+# Obscura Initiate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "white mana grants lifelink and the attack gains life" {
+  battlefield A: "Obscura Initiate", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Obscura Initiate"
+  turn 1 A: attack "Obscura Initiate"
+  run_to turn 1 postcombat_main
+  assert has "Obscura Initiate" lifelink
+  assert life A 22
+  assert life B 18
+}
+
+scenario "black mana also pays the hybrid cost" {
+  battlefield A: "Obscura Initiate", "Swamp", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Obscura Initiate"
+  run_to turn 1 begin_combat
+  assert has "Obscura Initiate" lifelink
+  assert tapped "Swamp"
+  assert tapped "Island"
+}
+
+scenario "blue mana alone cannot pay the hybrid cost" {
+  battlefield A: "Obscura Initiate", 2 "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Obscura Initiate"
+  turn 1 A: attack "Obscura Initiate"
+  run_to turn 1 postcombat_main
+  assert has not "Obscura Initiate" lifelink
+  assert life A 20
+  assert life B 18
+}
+
+scenario "flying evades a ground blocker" {
+  battlefield A: "Obscura Initiate"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Obscura Initiate"
+  illegal turn 1 B: block "Obscura Initiate" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Obscura Initiate" flying
+  assert life B 18
+}

@@ -1,0 +1,43 @@
+# Loch Korrigan: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Loch Korrigan pumps paying black" {
+  battlefield A: "Loch Korrigan", "Swamp"
+  turn 1 A: activate "Loch Korrigan"
+  run_to turn 1 postcombat_main
+  assert power "Loch Korrigan" 2
+  assert toughness "Loch Korrigan" 2
+  assert tapped "Swamp"
+}
+
+scenario "Loch Korrigan pumps paying blue" {
+  battlefield A: "Loch Korrigan", "Island"
+  turn 1 A: activate "Loch Korrigan"
+  run_to turn 1 postcombat_main
+  assert power "Loch Korrigan" 2
+  assert toughness "Loch Korrigan" 2
+  assert tapped "Island"
+}
+
+scenario "pumped Loch Korrigan survives Shock" {
+  battlefield A: "Loch Korrigan", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Loch Korrigan"
+  turn 1 A: wait
+  turn 1 A: activate "Loch Korrigan"
+  turn 1 postcombat_main B: cast "Shock" targeting "Loch Korrigan"
+  run_to turn 1 end
+  assert battlefield A contains "Loch Korrigan"
+  assert damage "Loch Korrigan" 2
+  assert graveyard B contains "Shock"
+}
+
+scenario "unpumped Loch Korrigan dies to Shock" {
+  battlefield A: "Loch Korrigan"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 postcombat_main B: cast "Shock" targeting "Loch Korrigan"
+  run_to turn 1 end
+  assert graveyard A contains "Loch Korrigan"
+}

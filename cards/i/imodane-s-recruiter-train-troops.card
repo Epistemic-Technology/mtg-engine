@@ -1,0 +1,13 @@
+card "Imodane's Recruiter // Train Troops" {
+  oracle_id 50bee80e-89df-48c2-b608-ba66ff3e794a
+  layout adventure
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  triggered when this enters: each creature you control gets +1/+0 and gains haste
+  face "Train Troops" {
+    cost {4}{W}
+    type Sorcery — Adventure
+    spell: create 2 "2/2 white Knight creature with vigilance"
+  }
+}

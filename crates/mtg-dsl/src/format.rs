@@ -30,6 +30,12 @@ pub fn format(card: &Card) -> String {
     if let Some(id) = &card.oracle_id {
         let _ = writeln!(out, "  oracle_id {id}");
     }
+    match card.layout {
+        mtg_core::card::Layout::Normal => {}
+        l => {
+            let _ = writeln!(out, "  layout {}", format!("{l:?}").to_lowercase());
+        }
+    }
     let cost = card.cost.to_string();
     if !cost.is_empty() {
         let _ = writeln!(out, "  cost {cost}");
@@ -87,6 +93,16 @@ pub fn format(card: &Card) -> String {
     }
     if let Some(m) = &card.mismatch {
         let _ = writeln!(out, "  oracle_mismatch \"{m}\"");
+    }
+    for face in &card.faces {
+        let text = format(face);
+        for (i, line) in text.lines().enumerate() {
+            if i == 0 {
+                let _ = writeln!(out, "  face \"{}\" {{", face.name);
+            } else {
+                let _ = writeln!(out, "  {line}");
+            }
+        }
     }
     out.push_str("}\n");
     out
@@ -380,6 +396,7 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate => "investigate".to_string(),
+            Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::Search {
                 filter: f,
@@ -587,6 +604,9 @@ pub fn filter(f: &Filter) -> String {
     if f.enchanted {
         words.push("enchanted".to_string());
     }
+    for s in &f.supertypes {
+        words.push(format!("{s:?}").to_lowercase());
+    }
     for s in &f.not_supertypes {
         words.push(
             match s {
@@ -654,6 +674,16 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
+        Trigger::EveryStep(step) => {
+            let w = match step {
+                Step::Untap => "untap",
+                Step::Upkeep => "upkeep",
+                Step::Draw => "draw",
+                Step::BeginningOfCombat => "combat",
+                _ => "end",
+            };
+            format!("at beginning of every {w}")
+        }
         Trigger::BeginningOfStep { step, whose } => {
             let whose = match whose {
                 Who::You => "your",
@@ -995,6 +1025,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if no creatures are on the battlefield");
                 }
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
+                Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
+                    head.push_str(" if no spells were cast last turn");
+                }
+                Some(mtg_core::card::Condition::TwoSpellsLastTurn) => {
+                    head.push_str(" if a player cast two or more spells last turn");
+                }
                 Some(mtg_core::card::Condition::HadNoCounters(k)) => {
                     let _ = write!(head, " if it had no {}", counter(*k, Num::N(2)));
                 }

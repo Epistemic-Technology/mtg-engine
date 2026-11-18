@@ -1,0 +1,7 @@
+card "Elves of Deep Shadow" {
+  oracle_id 20347559-95a9-4689-bb79-c5bb3809b719
+  cost {G}
+  type Creature — Elf Druid
+  pt 1/1
+  activated {T}: add {B}; deal 1 damage to you
+}

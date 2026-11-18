@@ -1,0 +1,15 @@
+card "Thraben Sentry // Thraben Militia" {
+  oracle_id 9636073e-e361-4d2a-92f6-5fe049e5eb23
+  layout transform
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+  triggered whenever other creature you control dies: you may transform this
+  face "Thraben Militia" {
+    type Creature — Human Soldier
+    pt 5/4
+    color white
+    keywords trample
+  }
+}

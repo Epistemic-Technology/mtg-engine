@@ -1,0 +1,8 @@
+card "Owlbear" {
+  oracle_id 0fab815f-bccf-40ef-95e9-ba64b137fb8c
+  cost {3}{G}{G}
+  type Creature — Bird Bear
+  pt 4/4
+  keywords trample
+  label "Keen Senses" triggered when this enters: draw 1 card
+}

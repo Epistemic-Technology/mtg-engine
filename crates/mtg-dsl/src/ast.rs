@@ -53,8 +53,46 @@ pub struct Card {
     pub except: Option<Except>,
     /// Why the rendered text is allowed to differ from the Oracle text.
     pub mismatch: Option<String>,
+    /// `layout adventure` / `omen` / `transform` / `split`: how `faces`
+    /// relate to this block (CR 709, 712, 715).
+    pub layout: mtg_core::card::Layout,
+    /// `face "Stomp" { ... }`: the card's other faces, each its own block
+    /// of header and ability lines. A split card's two halves are both
+    /// faces and the block itself has no characteristics.
+    pub faces: Vec<Card>,
     /// Line of the block's opening, for error messages.
     pub line: usize,
+}
+
+impl Card {
+    /// A block with this one's kind and nothing else, for a face.
+    #[must_use]
+    pub fn blank(&self) -> Card {
+        Card {
+            kind: self.kind,
+            name: String::new(),
+            display_name: None,
+            oracle_id: None,
+            cost: ManaCost::default(),
+            color_indicator: None,
+            supertypes: Vec::new(),
+            types: Vec::new(),
+            subtypes: Vec::new(),
+            pt: None,
+            loyalty: None,
+            keywords: Vec::new(),
+            additional: None,
+            kicker: None,
+            flashback: None,
+            groups: Vec::new(),
+            abilities: Vec::new(),
+            except: None,
+            mismatch: None,
+            line: self.line,
+            layout: mtg_core::card::Layout::Normal,
+            faces: Vec::new(),
+        }
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -331,6 +369,9 @@ pub enum Affects {
 pub enum Trigger {
     Enters(TriggerObj),
     Dies(TriggerObj),
+    /// `at beginning of every upkeep`: "At the beginning of each upkeep"
+    /// (each player's, worded without "player's", as werewolves are).
+    EveryStep(Step),
     BeginningOfStep {
         step: Step,
         whose: Who,
@@ -525,6 +566,10 @@ pub enum Effect {
     Scry(Num),
     /// "Investigate" (CR 701.16): create a Clue token.
     Investigate,
+    /// `transform this`: "transform this creature" (CR 701.27).
+    Transform {
+        what: Recipient,
+    },
     /// `search basic land card to hand`, `search up to 2 basic land card
     /// to battlefield tapped`, `... to top`: "Search your library for a
     /// basic land card, reveal it, put it into your hand, then shuffle"

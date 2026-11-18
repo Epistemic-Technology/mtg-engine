@@ -1,0 +1,7 @@
+card "Rime Tender" {
+  oracle_id 1141a12a-2ebd-4e7b-8c8c-c7a1f160244c
+  cost {1}{G}
+  type Snow Creature — Human Druid
+  pt 2/2
+  activated {T}: untap another target snow permanent
+}

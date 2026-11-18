@@ -1,0 +1,16 @@
+card "Village Messenger // Moonrise Intruder" {
+  oracle_id f6634a84-a9ce-4bbd-bc2c-3f9179b7f16a
+  layout transform
+  cost {R}
+  type Creature — Human Werewolf
+  pt 1/1
+  keywords haste
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Moonrise Intruder" {
+    type Creature — Werewolf
+    pt 2/2
+    color red
+    keywords menace
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

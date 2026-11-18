@@ -1,0 +1,7 @@
+card "Farhaven Elf" {
+  oracle_id 4ce2357f-93e6-40ca-beca-8f4e15adc464
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  triggered when this enters: you may search basic land card to battlefield tapped
+}

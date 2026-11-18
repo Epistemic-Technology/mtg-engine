@@ -1,0 +1,7 @@
+card "Foxfire Oak" {
+  oracle_id 925775c6-b6d2-4793-a363-bd5aca871aa8
+  cost {5}{G}
+  type Creature — Treefolk Shaman
+  pt 3/6
+  activated {R/G}{R/G}{R/G}: this gets +3/+0
+}

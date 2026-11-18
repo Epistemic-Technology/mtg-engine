@@ -1,0 +1,46 @@
+# Elvish Hexhunter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "hybrid cost can be paid with white mana" {
+  hand A: "Elvish Hexhunter"
+  battlefield A: "Plains"
+  turn 1 A: cast "Elvish Hexhunter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elvish Hexhunter"
+  assert tapped "Plains"
+}
+
+scenario "hybrid cost can be paid with green mana" {
+  hand A: "Elvish Hexhunter"
+  battlefield A: "Forest"
+  turn 1 A: cast "Elvish Hexhunter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elvish Hexhunter"
+  assert power "Elvish Hexhunter" 1
+  assert toughness "Elvish Hexhunter" 1
+  assert tapped "Forest"
+}
+
+scenario "cannot activate without an enchantment to target" {
+  battlefield A: "Elvish Hexhunter", "Forest"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Elvish Hexhunter"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Elvish Hexhunter"
+  assert untapped "Elvish Hexhunter"
+  assert untapped "Forest"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "a 1/1 dies when blocked by a 2/2" {
+  battlefield A: "Elvish Hexhunter"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Elvish Hexhunter"
+  turn 2 B: block "Elvish Hexhunter" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Elvish Hexhunter"
+  assert damage "Grizzly Bears" 1
+  assert life B 20
+}

@@ -150,7 +150,10 @@ pub struct CastInfo(u8);
 impl CastInfo {
     const KICKED: u8 = 0x40;
     const FLASHBACK: u8 = 0x80;
-    const MODE: u8 = 0x3f;
+    /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
+    /// exile.
+    const ADVENTURE: u8 = 0x20;
+    const MODE: u8 = 0x1f;
 
     pub const fn mode(self) -> u8 {
         self.0 & Self::MODE
@@ -169,6 +172,18 @@ impl CastInfo {
             self.0 | Self::KICKED
         } else {
             self.0 & !Self::KICKED
+        };
+    }
+
+    pub const fn adventure(self) -> bool {
+        self.0 & Self::ADVENTURE != 0
+    }
+
+    pub fn set_adventure(&mut self, adventure: bool) {
+        self.0 = if adventure {
+            self.0 | Self::ADVENTURE
+        } else {
+            self.0 & !Self::ADVENTURE
         };
     }
 
@@ -246,6 +261,9 @@ pub struct PlayerState {
     /// Cards in the graveyard with flashback, so priority options skip the
     /// graveyard scan when there are none.
     pub flashback_in_graveyard: u32,
+    /// Cards this player owns that are on an adventure in exile (CR
+    /// 715.3d), so priority options skip the exile scan when there are none.
+    pub adventures_in_exile: u32,
     pub max_hand_size: usize,
     pub drew_from_empty_library: bool,
     /// Poison counters (CR 122.1f); ten or more lose the game (704.5c).
@@ -619,6 +637,10 @@ pub struct GameState {
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
     pub turn_number: u32,
+    /// Spells each player has cast this turn, and the most any one player
+    /// cast last turn ("if no spells were cast last turn", werewolves).
+    pub spells_this_turn: [u8; 4],
+    pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
     pub step: Step,

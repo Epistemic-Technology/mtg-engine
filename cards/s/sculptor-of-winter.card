@@ -1,0 +1,7 @@
+card "Sculptor of Winter" {
+  oracle_id 73109353-51fa-43a1-93e0-b74536f372a5
+  cost {1}{G}
+  type Snow Creature — Elf Rogue
+  pt 2/2
+  activated {T}: untap target snow land
+}

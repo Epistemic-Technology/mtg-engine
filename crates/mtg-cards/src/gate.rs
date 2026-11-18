@@ -108,6 +108,69 @@ pub fn header_diff(card: &Card, s: &ScryCard) -> Option<String> {
     }
 }
 
+/// The DSL faces of a multi-face card, paired with the snapshot's: the
+/// block itself is the first face unless it is a split card.
+pub fn face_pairs<'a>(card: &'a Card, s: &ScryCard) -> Option<Vec<(&'a Card, ScryCard)>> {
+    let mut dsl: Vec<&Card> = Vec::new();
+    if card.layout != mtg_core::card::Layout::Split {
+        dsl.push(card);
+    }
+    dsl.extend(card.faces.iter());
+    if dsl.len() != s.card_faces.len() {
+        return None;
+    }
+    Some(
+        dsl.into_iter()
+            .zip(s.card_faces.iter().map(|f| s.face_record(f)))
+            .collect(),
+    )
+}
+
+/// A face's text: the block's own abilities.
+fn face_text(card: &Card, lookup: &dyn Lookup) -> String {
+    render::oracle_text(card, lookup)
+}
+
+/// Gate a multi-face card face by face; the texts are joined with "//"
+/// lines.
+fn faces_status(card: &Card, s: &ScryCard, lookup: &dyn Lookup) -> (Status, String, String) {
+    let Some(pairs) = face_pairs(card, s) else {
+        return (
+            Status::HeaderMismatch(format!(
+                "{} faces in the DSL, {} in the snapshot",
+                card.faces.len() + usize::from(card.layout != mtg_core::card::Layout::Split),
+                s.card_faces.len()
+            )),
+            String::new(),
+            String::new(),
+        );
+    };
+    let mut rendered = Vec::new();
+    let mut oracle = Vec::new();
+    let mut header = Vec::new();
+    for (face, rec) in &pairs {
+        // The block's name is the whole card's; its face is the front.
+        let mut f = (*face).clone();
+        f.name.clone_from(&rec.name);
+        if let Some(d) = header_diff(&f, rec) {
+            header.push(format!("{}: {d}", rec.name));
+        }
+        rendered.push(render::normalize(&face_text(&f, lookup)));
+        oracle.push(render::normalize(rec.oracle_text.as_deref().unwrap_or("")));
+    }
+    let (r, o) = (rendered.join("\n//\n"), oracle.join("\n//\n"));
+    let status = if !header.is_empty() {
+        Status::HeaderMismatch(header.join("; "))
+    } else if r == o {
+        Status::Match
+    } else if let Some(reason) = &card.mismatch {
+        Status::Allowed(reason.clone())
+    } else {
+        Status::Mismatch
+    };
+    (status, o, r)
+}
+
 /// Run the gate over `cards` against the snapshot in `data`.
 pub fn run(data: &DataDir, cards: &[Card]) -> Result<Vec<Row>> {
     let ids: Vec<&str> = cards
@@ -123,6 +186,16 @@ pub fn run(data: &DataDir, cards: &[Card]) -> Result<Vec<Row>> {
         let (status, oracle) = match (card.kind, &card.oracle_id) {
             (Kind::Card, Some(id)) => match records.get(id) {
                 None => (Status::NotInSnapshot, None),
+                Some(s) if !card.faces.is_empty() => {
+                    let (status, oracle, text) = faces_status(card, s, lookup);
+                    rows.push(Row {
+                        name: card.name.clone(),
+                        status,
+                        rendered: text,
+                        oracle: Some(oracle),
+                    });
+                    continue;
+                }
                 Some(s) => {
                     let oracle = render::normalize(s.oracle_text.as_deref().unwrap_or(""));
                     let status = if let Some(d) = header_diff(card, s) {

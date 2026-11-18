@@ -1,0 +1,6 @@
+card "Eiganjo Castle" {
+  oracle_id 895a0e00-20a9-44f8-9215-66edcdf016b7
+  type Legendary Land
+  mana {W}
+  activated {W}, {T}: prevent next 2 damage to target legendary creature this turn
+}

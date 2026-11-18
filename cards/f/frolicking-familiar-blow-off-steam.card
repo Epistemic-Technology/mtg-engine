@@ -1,0 +1,14 @@
+card "Frolicking Familiar // Blow Off Steam" {
+  oracle_id bbb6867f-7186-41de-9828-21be469178c1
+  layout adventure
+  cost {2}{U}
+  type Creature — Otter Wizard
+  pt 2/2
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+1
+  face "Blow Off Steam" {
+    cost {R}
+    type Instant — Adventure
+    spell: deal 1 damage to any target
+  }
+}

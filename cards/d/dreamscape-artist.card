@@ -1,0 +1,7 @@
+card "Dreamscape Artist" {
+  oracle_id c2550f1a-b662-43e7-a0b2-843025739a8f
+  cost {1}{U}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {2}{U}, {T}, discard 1 card, sacrifice land: search up to 2 basic land card to battlefield
+}

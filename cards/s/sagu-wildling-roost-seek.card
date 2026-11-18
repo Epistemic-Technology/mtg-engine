@@ -1,0 +1,14 @@
+card "Sagu Wildling // Roost Seek" {
+  oracle_id 7cee6d43-5dec-4989-85ec-c635ec783ec7
+  layout omen
+  cost {4}{G}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered when this enters: you gain 3 life
+  face "Roost Seek" {
+    cost {G}
+    type Sorcery — Omen
+    spell: search basic land card reveal to hand
+  }
+}

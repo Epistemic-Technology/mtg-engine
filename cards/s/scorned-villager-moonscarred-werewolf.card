@@ -1,0 +1,17 @@
+card "Scorned Villager // Moonscarred Werewolf" {
+  oracle_id 52855f90-19c1-46c9-8eed-88b3c1722bb0
+  layout transform
+  cost {1}{G}
+  type Creature — Human Werewolf
+  pt 1/1
+  mana {G}
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Moonscarred Werewolf" {
+    type Creature — Werewolf
+    pt 2/2
+    color green
+    keywords vigilance
+    activated {T}: add {G}{G}
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

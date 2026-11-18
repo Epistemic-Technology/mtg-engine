@@ -1,0 +1,14 @@
+card "Grizzled Outcasts // Krallenhorde Wantons" {
+  oracle_id abcfcc71-77c0-46e7-93c3-726967946b12
+  layout transform
+  cost {4}{G}
+  type Creature — Human Werewolf
+  pt 4/4
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Krallenhorde Wantons" {
+    type Creature — Werewolf
+    pt 7/7
+    color green
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

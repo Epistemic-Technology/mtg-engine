@@ -1,0 +1,6 @@
+card "Deathsprout" {
+  oracle_id 793b0c73-601c-41dc-b49a-45fee4970d52
+  cost {1}{B}{B}{G}
+  type Instant
+  spell: destroy target creature; search basic land card to battlefield tapped
+}

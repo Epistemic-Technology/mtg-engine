@@ -1,0 +1,13 @@
+card "Faerie Guidemother // Gift of the Fae" {
+  oracle_id 04fbb7aa-0dd4-4ac6-837d-822227fb6356
+  layout adventure
+  cost {W}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  face "Gift of the Fae" {
+    cost {1}{W}
+    type Sorcery — Adventure
+    spell: target creature gets +2/+1 and gains flying
+  }
+}

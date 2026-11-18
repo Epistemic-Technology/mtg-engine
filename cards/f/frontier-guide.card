@@ -1,0 +1,7 @@
+card "Frontier Guide" {
+  oracle_id 5f685846-60dc-45f9-b118-02e74a443e6a
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 1/1
+  activated {3}{G}, {T}: search basic land card to battlefield tapped
+}

@@ -1,0 +1,7 @@
+card "Embodiment of Spring" {
+  oracle_id e12bba04-b10f-4bbd-959c-560f31630951
+  cost {U}
+  type Creature — Elemental
+  pt 0/3
+  activated {1}{G}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

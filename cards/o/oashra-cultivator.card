@@ -1,0 +1,7 @@
+card "Oashra Cultivator" {
+  oracle_id c07bbe66-96ae-4fab-82b9-fc6dc4f549c3
+  cost {G}
+  type Creature — Human Druid
+  pt 0/3
+  activated {2}{G}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

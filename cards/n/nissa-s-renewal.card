@@ -1,0 +1,6 @@
+card "Nissa's Renewal" {
+  oracle_id 6a6e0f0b-af11-40a5-b454-0aea2d1b99cf
+  cost {5}{G}
+  type Sorcery
+  spell: search up to 3 basic land card to battlefield tapped; you gains 7 life
+}

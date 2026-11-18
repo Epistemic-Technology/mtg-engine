@@ -1,0 +1,7 @@
+card "Loch Korrigan" {
+  oracle_id f281c47f-3587-4a3f-8726-ec59568fef94
+  cost {3}{B}
+  type Creature — Spirit
+  pt 1/1
+  activated {U/B}: this gets +1/+1
+}

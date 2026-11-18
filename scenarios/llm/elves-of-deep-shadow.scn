@@ -1,0 +1,33 @@
+# Elves of Deep Shadow: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "tapping for black mana deals 1 damage to its controller" {
+  battlefield A: "Elves of Deep Shadow"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elves of Deep Shadow"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert life B 20
+  assert tapped "Elves of Deep Shadow"
+}
+
+scenario "summoning sick elves cannot tap for mana" {
+  battlefield A: "Forest"
+  hand A: "Elves of Deep Shadow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elves of Deep Shadow"
+  illegal turn 1 postcombat_main A: activate "Elves of Deep Shadow"
+  run_to turn 1 end
+  assert battlefield A contains "Elves of Deep Shadow"
+  assert untapped "Elves of Deep Shadow"
+  assert life A 20
+}
+
+scenario "the self-damage can be lethal" {
+  life A 1
+  battlefield A: "Elves of Deep Shadow"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Elves of Deep Shadow"
+  run_to end
+  assert winner B
+}

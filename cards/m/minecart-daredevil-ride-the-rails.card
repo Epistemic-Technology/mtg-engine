@@ -1,0 +1,12 @@
+card "Minecart Daredevil // Ride the Rails" {
+  oracle_id df555f60-2164-49dc-be67-00aca9eb0d45
+  layout adventure
+  cost {2}{R}
+  type Creature — Dwarf Knight
+  pt 4/2
+  face "Ride the Rails" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: target creature gets +2/+1
+  }
+}

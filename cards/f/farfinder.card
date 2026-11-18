@@ -1,0 +1,8 @@
+card "Farfinder" {
+  oracle_id 7d306de8-a93b-429b-9436-0501be97dc8d
+  cost {3}
+  type Creature — Fox
+  pt 1/1
+  keywords vigilance
+  triggered when this enters: you may search basic land card reveal to hand
+}

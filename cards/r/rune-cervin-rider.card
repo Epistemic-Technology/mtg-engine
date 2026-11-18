@@ -1,0 +1,8 @@
+card "Rune-Cervin Rider" {
+  oracle_id 5c6956ad-8031-4708-82ed-75491755d2a4
+  cost {3}{W}
+  type Creature — Elf Knight
+  pt 2/2
+  keywords flying
+  activated {G/W}{G/W}: this gets +1/+1
+}

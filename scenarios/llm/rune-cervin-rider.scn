@@ -1,0 +1,41 @@
+# Rune-Cervin Rider: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "hybrid pump paid with green mana gives +1/+1 until end of turn" {
+  battlefield A: "Rune-Cervin Rider", 2 "Forest"
+  turn 1 A: activate "Rune-Cervin Rider"
+  run_to turn 1 postcombat_main
+  assert power "Rune-Cervin Rider" 3
+  assert toughness "Rune-Cervin Rider" 3
+  assert tapped oldest "Forest"
+  assert tapped newest "Forest"
+}
+
+scenario "pump wears off at end of turn" {
+  battlefield A: "Rune-Cervin Rider", 2 "Plains"
+  turn 1 A: activate "Rune-Cervin Rider"
+  run_to turn 2 precombat_main
+  assert power "Rune-Cervin Rider" 2
+  assert toughness "Rune-Cervin Rider" 2
+}
+
+scenario "pumped rider survives Shock" {
+  battlefield A: "Rune-Cervin Rider", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Rune-Cervin Rider"
+  turn 1 postcombat_main B: cast "Shock" targeting "Rune-Cervin Rider"
+  run_to turn 1 end
+  assert battlefield A contains "Rune-Cervin Rider"
+  assert damage "Rune-Cervin Rider" 2
+}
+
+scenario "flying rider can't be blocked by ground creature and hits pumped" {
+  battlefield A: "Rune-Cervin Rider", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Rune-Cervin Rider"
+  turn 1 A: attack "Rune-Cervin Rider"
+  illegal turn 1 B: block "Rune-Cervin Rider" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

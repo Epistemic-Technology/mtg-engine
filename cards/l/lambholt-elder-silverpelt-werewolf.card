@@ -1,0 +1,15 @@
+card "Lambholt Elder // Silverpelt Werewolf" {
+  oracle_id 12330f42-0e3f-40e1-86f3-57a34403d143
+  layout transform
+  cost {2}{G}
+  type Creature — Human Werewolf
+  pt 1/2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Silverpelt Werewolf" {
+    type Creature — Werewolf
+    pt 4/5
+    color green
+    triggered whenever this deals combat damage to a player: draw 1 cards
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

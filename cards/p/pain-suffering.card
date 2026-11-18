@@ -1,0 +1,14 @@
+card "Pain // Suffering" {
+  oracle_id 433fcba3-06b8-4f1a-a709-300838251439
+  layout split
+  face "Pain" {
+    cost {B}
+    type Sorcery
+    spell: target player discards 1 cards
+  }
+  face "Suffering" {
+    cost {3}{R}
+    type Sorcery
+    spell: destroy target land
+  }
+}

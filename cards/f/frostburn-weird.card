@@ -1,0 +1,7 @@
+card "Frostburn Weird" {
+  oracle_id f667b4b6-c97f-47fa-9146-c5c1f3f47e92
+  cost {U/R}{U/R}
+  type Creature — Weird
+  pt 1/4
+  activated {U/R}: this gets +1/-1
+}

@@ -1,0 +1,8 @@
+card "Call of the Full Moon" {
+  oracle_id 3e34a3de-ae30-4d7b-88f1-03e2b79c4451
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+2, has trample
+  triggered at beginning of every upkeep if a player cast two or more spells last turn: sacrifice this
+}

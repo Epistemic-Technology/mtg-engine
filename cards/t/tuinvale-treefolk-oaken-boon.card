@@ -1,0 +1,12 @@
+card "Tuinvale Treefolk // Oaken Boon" {
+  oracle_id 09193c40-538c-4154-a671-076eece35e54
+  layout adventure
+  cost {5}{G}
+  type Creature — Treefolk Druid
+  pt 6/5
+  face "Oaken Boon" {
+    cost {3}{G}
+    type Sorcery — Adventure
+    spell: put 2 +1/+1 counters on target creature
+  }
+}

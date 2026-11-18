@@ -1,0 +1,12 @@
+card "Embereth Shieldbreaker // Battle Display" {
+  oracle_id 52e439d0-a263-4d53-9ae3-fa1f8aa8293e
+  layout adventure
+  cost {1}{R}
+  type Creature — Human Knight
+  pt 2/1
+  face "Battle Display" {
+    cost {R}
+    type Sorcery — Adventure
+    spell: destroy target artifact
+  }
+}

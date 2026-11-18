@@ -1,0 +1,7 @@
+card "Wild Wanderer" {
+  oracle_id ff16f889-9203-4874-919b-42e540cadcbc
+  cost {3}{G}
+  type Creature — Elf Druid
+  pt 3/2
+  triggered when this enters: you may search basic land card to battlefield tapped
+}

@@ -1,0 +1,12 @@
+card "Mysterious Tome // Chilling Chronicle" {
+  oracle_id b32253d6-5f00-40a8-a7e5-dc4655cd288c
+  layout transform
+  cost {2}{U}
+  type Artifact — Book
+  activated {2}, {T}: draw 1 cards; transform this
+  face "Chilling Chronicle" {
+    type Artifact — Book
+    color blue
+    activated {1}, {T}: tap target nonland permanent; transform this
+  }
+}

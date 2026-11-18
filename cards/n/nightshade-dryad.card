@@ -1,0 +1,9 @@
+card "Nightshade Dryad" {
+  oracle_id f8263274-8cb4-4eab-b541-c7655b555830
+  cost {1}{G}
+  type Creature — Dryad
+  pt 1/2
+  keywords deathtouch
+  activated {T}: add {C}
+  activated {T}: add any
+}

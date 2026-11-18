@@ -1,0 +1,7 @@
+card "World Map" {
+  oracle_id 51d4f95e-aad2-4e5f-9f15-a68bbdf9ab3e
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: search basic land card reveal to hand
+  activated {3}, {T}, sacrifice this: search land card reveal to hand
+}

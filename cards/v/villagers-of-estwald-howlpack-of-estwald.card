@@ -1,0 +1,14 @@
+card "Villagers of Estwald // Howlpack of Estwald" {
+  oracle_id dcf692f6-baec-4b60-a6e3-2a8b731d7816
+  layout transform
+  cost {2}{G}
+  type Creature — Human Werewolf
+  pt 2/3
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Howlpack of Estwald" {
+    type Creature — Werewolf
+    pt 4/6
+    color green
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

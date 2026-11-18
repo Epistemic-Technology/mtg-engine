@@ -1,0 +1,7 @@
+card "Ominous Parcel" {
+  oracle_id be3c138b-045b-4b08-a12f-a5679d972051
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: search basic land card reveal to hand
+  activated {5}, {T}, sacrifice this: deal 4 damage to target creature
+}

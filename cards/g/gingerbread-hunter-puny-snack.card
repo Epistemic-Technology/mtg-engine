@@ -1,0 +1,13 @@
+card "Gingerbread Hunter // Puny Snack" {
+  oracle_id f762c225-1c8c-4f12-aa88-c8c89e0a7185
+  layout adventure
+  cost {4}{G}
+  type Creature — Giant
+  pt 5/5
+  triggered when this enters: create 1 "Food"
+  face "Puny Snack" {
+    cost {2}{B}
+    type Instant — Adventure
+    spell: target creature gets -2/-2
+  }
+}

@@ -1,0 +1,16 @@
+card "Wolfbitten Captive // Krallenhorde Killer" {
+  oracle_id 7f59252f-3a37-4a22-938c-001f3208bd94
+  layout transform
+  cost {G}
+  type Creature — Human Werewolf
+  pt 1/1
+  activated {1}{G}, once: this gets +2/+2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Krallenhorde Killer" {
+    type Creature — Werewolf
+    pt 2/2
+    color green
+    activated {3}{G}, once: this gets +4/+4
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

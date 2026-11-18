@@ -1,0 +1,7 @@
+card "Viridian Emissary" {
+  oracle_id c93bce5a-48cc-4dc5-930b-1e084c2bae7d
+  cost {1}{G}
+  type Creature — Phyrexian Elf Scout
+  pt 2/1
+  triggered when this dies: you may search basic land card to battlefield tapped
+}

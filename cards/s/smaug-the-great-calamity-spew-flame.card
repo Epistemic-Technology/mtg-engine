@@ -1,0 +1,13 @@
+card "Smaug, the Great Calamity // Spew Flame" {
+  oracle_id fc75cfec-e1f6-4cb5-8a3c-2f7b2c39c03f
+  layout adventure
+  cost {5}{R}{R}
+  type Legendary Creature — Dragon
+  pt 5/5
+  keywords flying
+  face "Spew Flame" {
+    cost {4}{R}
+    type Sorcery — Adventure
+    spell: deal 5 damage to target creature
+  }
+}

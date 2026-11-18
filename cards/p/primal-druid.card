@@ -1,0 +1,7 @@
+card "Primal Druid" {
+  oracle_id d031d7d2-1e41-4201-9073-c4c1be182ba4
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 0/3
+  triggered when this dies: you may search basic land card to battlefield tapped
+}

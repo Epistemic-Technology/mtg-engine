@@ -1,0 +1,7 @@
+card "Skittering Surveyor" {
+  oracle_id 85364398-923c-4ee9-8519-576fce1c26f7
+  cost {3}
+  type Artifact Creature — Construct
+  pt 1/2
+  triggered when this enters: you may search basic land card reveal to hand
+}

@@ -1,0 +1,7 @@
+card "Vastwood Surge" {
+  oracle_id 8ba2a7ad-a09b-4f52-9c76-c70510dc4feb
+  cost {3}{G}
+  type Sorcery
+  kicker {4}
+  spell: search up to 2 basic land card to battlefield tapped; if kicked, put 2 +1/+1 counters on each creature you control
+}

@@ -1,0 +1,45 @@
+# Riveteers Initiate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "paying black grants deathtouch, blocked Hill Giant dies" {
+  battlefield A: "Riveteers Initiate", "Mountain", "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Riveteers Initiate"
+  turn 1 A: attack "Riveteers Initiate"
+  turn 1 B: block "Riveteers Initiate" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Riveteers Initiate"
+  assert life B 20
+}
+
+scenario "green pays the hybrid symbol too" {
+  battlefield A: "Riveteers Initiate", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Riveteers Initiate"
+  run_to turn 1 begin_combat
+  assert has "Riveteers Initiate" deathtouch
+  assert tapped "Forest"
+  assert tapped "Mountain"
+}
+
+scenario "red mana cannot pay the hybrid symbol" {
+  battlefield A: "Riveteers Initiate", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Riveteers Initiate"
+  run_to turn 1 begin_combat
+  assert has not "Riveteers Initiate" deathtouch
+}
+
+scenario "without activation the blocker survives, and deathtouch wears off" {
+  battlefield A: "Riveteers Initiate", "Mountain", "Swamp"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Riveteers Initiate"
+  turn 1 B: block "Riveteers Initiate" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Riveteers Initiate"
+}

@@ -1,0 +1,14 @@
+card "Spellscorn Coven // Take It Back" {
+  oracle_id 9357fc7f-c9d0-4ce2-a6dd-0ff1f24bfc56
+  layout adventure
+  cost {3}{B}
+  type Creature — Faerie Warlock
+  pt 2/3
+  keywords flying
+  triggered when this enters: each opponent discards 1 cards
+  face "Take It Back" {
+    cost {2}{U}
+    type Instant — Adventure
+    spell: return target spell to hand
+  }
+}

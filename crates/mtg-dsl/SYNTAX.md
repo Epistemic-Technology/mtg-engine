@@ -27,6 +27,21 @@ creature with flying"`) and give their in-game name with a `name "Soldier"`
 line. A noncreature token whose one subtype is its name (Treasure, Food,
 Clue: CR 111.10) prints by name: "create a Treasure token".
 
+## Multi-face cards
+
+A split card, adventurer, omen, or double-faced card is one block named as
+Scryfall names it (`card "Curious Pair // Treats to Share"`) with a
+`layout` line (`adventure`, `omen`, `transform`, `split`) and a `face
+"Name" { ... }` block per other face, holding that face's header and
+ability lines. The block's own lines are the front face (a split card's
+block has none: both halves are faces). The gate compares each face with
+the snapshot's. In the engine each face is its own definition: an
+adventure or omen is cast from the hand as its spell face (CR 715.3) and
+goes on an adventure in exile as it resolves (an omen is shuffled into
+the library instead), whence the creature may be cast; a split card's
+halves are cast separately (CR 709.3); `transform this` turns a
+double-faced permanent to its other face (CR 701.27).
+
 ## Header
 
 | Line | Meaning |
@@ -92,6 +107,7 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 | `when this enters`, `whenever other creature enters` | enters the battlefield |
 | `when this dies`, `whenever creature dies`, `whenever creature you control dies` | dies; for a noncreature, "is put into a graveyard from the battlefield". A filter without `other` includes the source ("this creature or another creature"). |
 | `at beginning of your upkeep`, `at beginning of each draw step`, `at beginning of the end step` | beginning of a step; steps: `untap`, `upkeep`, `draw`, `combat`, `end` |
+| `at beginning of every upkeep` | "At the beginning of each upkeep" (werewolves' wording) |
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
 | `whenever this deals combat damage to a player` | |
 | `whenever you gain life` | |
@@ -102,7 +118,9 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
-("if it had no -1/-1 counters on it", judged as the source last existed).
+("if it had no -1/-1 counters on it", judged as the source last existed),
+`if no spells were cast last turn`, `if a player cast two or more spells
+last turn`.
 
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
@@ -177,7 +195,8 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
-`scry 2`, `surveil 1`, `investigate` (create a Clue token),
+`scry 2`, `surveil 1`, `investigate` (create a Clue token), `transform
+this`,
 `add {B}{B}` / `add any` ("Add {B}{B}.", "Add one mana of any color."; an
 activated ability that only adds mana is a mana ability and resolves at
 once, CR 605), `search basic land card reveal to hand`, `search up to 2

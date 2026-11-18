@@ -1,0 +1,8 @@
+card "Simulacrum Shaper" {
+  oracle_id 9e45e2da-7064-4ec0-8d09-55fc7d1aeaa8
+  cost {1}{G}{G}
+  type Creature — Elf Druid
+  pt 2/2
+  triggered when this enters: you may search basic land card to battlefield tapped that card
+  triggered when this dies: draw 1 cards
+}

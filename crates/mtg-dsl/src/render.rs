@@ -685,6 +685,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
                 .collect::<Vec<_>>(),
         ));
     }
+    for s in &f.supertypes {
+        words.push(format!("{s:?}").to_lowercase());
+    }
     for s in &f.not_supertypes {
         words.push(match s {
             Supertype::Basic => "nonbasic".to_string(),
@@ -1194,6 +1197,10 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::Investigate => Clause::imperative("investigate".to_string()),
+        Effect::Transform { what } => {
+            let o = ctx.obj(*what);
+            Clause::imperative(format!("transform {o}"))
+        }
         Effect::Search {
             filter,
             count,
@@ -1505,6 +1512,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 )
             }
         }
+        Trigger::EveryStep(step) => {
+            let name = step_name(*step, Who::You);
+            format!(
+                "at the beginning of each {}",
+                name.trim_start_matches("your ")
+            )
+        }
         Trigger::BeginningOfStep { step, whose } => {
             if next {
                 format!(
@@ -1579,6 +1593,8 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
         Condition::Kicked => "if it was kicked".to_string(),
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
+        Condition::NoSpellsLastTurn => "if no spells were cast last turn".to_string(),
+        Condition::TwoSpellsLastTurn => "if a player cast two or more spells last turn".to_string(),
     }
 }
 

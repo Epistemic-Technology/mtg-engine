@@ -1,0 +1,15 @@
+card "Gatstaf Shepherd // Gatstaf Howler" {
+  oracle_id c05c5375-d0d7-4cf2-92e6-76f86cd0febf
+  layout transform
+  cost {1}{G}
+  type Creature — Human Werewolf
+  pt 2/2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Gatstaf Howler" {
+    type Creature — Werewolf
+    pt 3/3
+    color green
+    keywords intimidate
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

@@ -54,7 +54,8 @@ const KEYWORDS: [&str; 31] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 27] = [
+const TEMPLATED_TAGS: [&str; 28] = [
+    "Transform",
     "Landcycling",
     "Basic landcycling",
     "Typecycling",
@@ -283,7 +284,7 @@ pub fn author_format(
         if only.is_empty() && !card.playable_in(format) {
             continue;
         }
-        if card.layout != "normal" || card.set_type == "memorabilia" || card.set_type == "funny" {
+        if card.set_type == "memorabilia" || card.set_type == "funny" || is_token_layout(&card) {
             continue;
         }
         report.total += 1;
@@ -299,7 +300,15 @@ pub fn author_format(
     Ok(report)
 }
 
-/// Cards legal in `format` (normal layout) that are in the corpus, and how
+/// Layouts that are not cards a deck can hold.
+fn is_token_layout(card: &ScryCard) -> bool {
+    matches!(
+        card.layout.as_str(),
+        "token" | "double_faced_token" | "emblem" | "art_series" | "vanguard" | "scheme" | "planar"
+    )
+}
+
+/// Cards legal in `format` (every layout) that are in the corpus, and how
 /// many there are in all.
 pub fn coverage(data: &DataDir, format: &str, corpus: &[Card]) -> Result<(usize, usize)> {
     let existing: HashSet<&str> = corpus.iter().map(|c| c.name.as_str()).collect();
@@ -307,7 +316,7 @@ pub fn coverage(data: &DataDir, format: &str, corpus: &[Card]) -> Result<(usize,
     let (mut have, mut total) = (0, 0);
     for card in scryfall::read_cards(&path)? {
         let card = card?;
-        if !card.playable_in(format) || card.layout != "normal" || card.set_type == "memorabilia" {
+        if !card.playable_in(format) || card.set_type == "memorabilia" || is_token_layout(&card) {
             continue;
         }
         total += 1;
@@ -597,6 +606,10 @@ impl Templates {
                 },
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
+            (
+                r(r"^[Tt]ransform (this creature|this artifact|this permanent|it)$"),
+                |_, _| Some("transform this".to_string()),
+            ),
             (
                 r(
                     r"^Search your library for (a|an|up to \S+) (basic land|land|Plains|Island|Swamp|Mountain|Forest|creature|artifact|enchantment|instant|sorcery)? ?cards?, (reveal (?:it|them), )?(?:put (it|them|that card) (into your hand|onto the battlefield tapped|onto the battlefield), then shuffle|then shuffle and put that card on top)$",
@@ -923,6 +936,7 @@ fn trigger_text(head: &str) -> Option<String> {
         "Whenever another creature you control dies" => "whenever other creature you control dies",
         "At the beginning of your upkeep" => "at beginning of your upkeep",
         "At the beginning of each player's upkeep" => "at beginning of each upkeep",
+        "At the beginning of each upkeep" => "at beginning of every upkeep",
         "At the beginning of your end step" => "at beginning of your end step",
         "At the beginning of the end step" => "at beginning of each end step",
         "At the beginning of your draw step" => "at beginning of your draw step",
@@ -1343,6 +1357,12 @@ impl Builder<'_> {
                 (" if no creatures are on the battlefield", r)
             } else if let Some(r) = rest.strip_prefix("if it was kicked, ") {
                 (" if kicked", r)
+            } else if let Some(r) = rest.strip_prefix("if no spells were cast last turn, ") {
+                (" if no spells were cast last turn", r)
+            } else if let Some(r) =
+                rest.strip_prefix("if a player cast two or more spells last turn, ")
+            {
+                (" if a player cast two or more spells last turn", r)
             } else {
                 ("", rest)
             };
@@ -1377,9 +1397,82 @@ impl Builder<'_> {
     }
 }
 
+/// A multi-face card (CR 709, 712, 715): each face authored as a card of
+/// its own, then joined into one block with `layout` and `face` lines.
+fn author_faces(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
+    let faces: Vec<ScryCard> = s.card_faces.iter().map(|f| s.face_record(f)).collect();
+    let layout = match s.layout.as_str() {
+        "adventure" if faces[1].type_line.as_deref().unwrap_or("").contains("Omen") => "omen",
+        "adventure" => "adventure",
+        "transform" => "transform",
+        _ => {
+            if faces
+                .iter()
+                .any(|f| f.type_line.as_deref().unwrap_or("").contains("Room"))
+            {
+                return Err(Skip::Layout("room".to_string()));
+            }
+            "split"
+        }
+    };
+    let mut bodies = Vec::new();
+    let mut tokens = Vec::new();
+    for f in &faces {
+        let mut rec = f.clone();
+        rec.layout = "normal".to_string();
+        let a = author_card(&rec, corpus)?;
+        // The block's lines between its braces, without the oracle_id.
+        let body: Vec<String> = a
+            .text
+            .lines()
+            .skip(1)
+            .filter(|l| !l.trim_start().starts_with("oracle_id ") && *l != "}")
+            .map(str::to_string)
+            .collect();
+        bodies.push(body);
+        tokens.extend(a.tokens);
+    }
+    let mut text = format!("card \"{}\" {{\n", s.name);
+    if let Some(id) = &s.oracle_id {
+        let _ = writeln!(text, "  oracle_id {id}");
+    }
+    let _ = writeln!(text, "  layout {layout}");
+    let rest = if layout == "split" {
+        &bodies[..]
+    } else {
+        for l in &bodies[0] {
+            let _ = writeln!(text, "{l}");
+        }
+        &bodies[1..]
+    };
+    let face_names: Vec<&str> = if layout == "split" {
+        faces.iter().map(|f| f.name.as_str()).collect()
+    } else {
+        faces[1..].iter().map(|f| f.name.as_str()).collect()
+    };
+    for (name, body) in face_names.iter().zip(rest) {
+        let _ = writeln!(text, "  face \"{name}\" {{");
+        for l in body {
+            let _ = writeln!(text, "  {l}");
+        }
+        text.push_str("  }\n");
+    }
+    text.push_str("}\n");
+    mtg_dsl::parse(&text).map_err(|e| Skip::Sentence(format!("parse: {e}")))?;
+    Ok(Authored {
+        name: s.name.clone(),
+        slug: mtg_dsl::slug(&s.name),
+        text,
+        tokens,
+    })
+}
+
 /// Build the card file for one Scryfall record, or say why not.
 #[allow(clippy::too_many_lines)]
 pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
+    if matches!(s.layout.as_str(), "adventure" | "transform" | "split") && s.card_faces.len() == 2 {
+        return author_faces(s, corpus);
+    }
     if s.name.contains(" // ") || s.layout != "normal" {
         return Err(Skip::Layout(s.layout.clone()));
     }

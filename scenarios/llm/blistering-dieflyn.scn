@@ -1,0 +1,44 @@
+# Blistering Dieflyn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Dieflyn pumps with black mana and flies over a ground blocker" {
+  battlefield A: "Blistering Dieflyn", "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blistering Dieflyn"
+  turn 1 A: attack "Blistering Dieflyn"
+  illegal turn 1 B: block "Blistering Dieflyn" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Swamp"
+  assert power "Blistering Dieflyn" 1
+  assert life B 19
+}
+
+scenario "Dieflyn pumps with red mana" {
+  battlefield A: "Blistering Dieflyn", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blistering Dieflyn"
+  run_to turn 1 postcombat_main
+  assert tapped "Mountain"
+  assert power "Blistering Dieflyn" 1
+  assert toughness "Blistering Dieflyn" 1
+}
+
+scenario "Dieflyn pumps twice in one turn" {
+  battlefield A: "Blistering Dieflyn", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blistering Dieflyn"
+  turn 1 begin_combat A: activate "Blistering Dieflyn"
+  turn 1 A: attack "Blistering Dieflyn"
+  run_to turn 1 postcombat_main
+  assert power "Blistering Dieflyn" 2
+  assert life B 18
+}
+
+scenario "Dieflyn pump wears off at end of turn" {
+  battlefield A: "Blistering Dieflyn", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blistering Dieflyn"
+  run_to turn 2 upkeep
+  assert power "Blistering Dieflyn" 0
+}

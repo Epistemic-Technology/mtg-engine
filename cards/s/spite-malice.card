@@ -1,0 +1,14 @@
+card "Spite // Malice" {
+  oracle_id b829de81-04cd-498e-9f31-074f23e2a488
+  layout split
+  face "Spite" {
+    cost {3}{U}
+    type Instant
+    spell: counter target noncreature spell
+  }
+  face "Malice" {
+    cost {3}{B}
+    type Instant
+    spell: destroy target nonblack creature without regeneration
+  }
+}

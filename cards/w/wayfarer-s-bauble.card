@@ -1,0 +1,6 @@
+card "Wayfarer's Bauble" {
+  oracle_id 31f15274-301b-47c5-ba19-0ced04520878
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: search basic land card to battlefield tapped that card
+}

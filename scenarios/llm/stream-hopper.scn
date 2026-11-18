@@ -1,0 +1,32 @@
+# Stream Hopper: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "paying with blue grants flying and evades a ground blocker" {
+  battlefield A: "Stream Hopper", "Island"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Stream Hopper"
+  turn 1 A: attack "Stream Hopper"
+  illegal turn 1 B: block "Stream Hopper" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Stream Hopper" flying
+  assert tapped "Island"
+  assert life B 19
+}
+
+scenario "paying with red grants flying until end of turn" {
+  battlefield A: "Stream Hopper", "Mountain"
+  turn 1 A: activate "Stream Hopper"
+  run_to turn 1 begin_combat
+  assert has "Stream Hopper" flying
+  assert tapped "Mountain"
+  run_to turn 2 upkeep
+  assert has not "Stream Hopper" flying
+}
+
+scenario "green mana cannot pay the hybrid cost" {
+  battlefield A: "Stream Hopper", "Forest"
+  illegal turn 1 A: activate "Stream Hopper"
+  run_to turn 1 begin_combat
+  assert has not "Stream Hopper" flying
+  assert untapped "Forest"
+}

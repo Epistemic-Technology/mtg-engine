@@ -1,0 +1,13 @@
+card "Rosethorn Acolyte // Seasonal Ritual" {
+  oracle_id 639a8804-8513-4ba4-8683-ea1e2e5a9530
+  layout adventure
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 2/3
+  mana any
+  face "Seasonal Ritual" {
+    cost {G}
+    type Sorcery — Adventure
+    spell: add any
+  }
+}

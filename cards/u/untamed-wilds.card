@@ -1,0 +1,6 @@
+card "Untamed Wilds" {
+  oracle_id b3b4c21d-f8d7-455f-be46-d5eb909d54df
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield that card
+}

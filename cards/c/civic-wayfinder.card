@@ -1,0 +1,7 @@
+card "Civic Wayfinder" {
+  oracle_id b9e53414-c21f-4479-b8c1-8b36c3e6e006
+  cost {2}{G}
+  type Creature — Elf Druid Warrior
+  pt 2/2
+  triggered when this enters: you may search basic land card reveal to hand
+}

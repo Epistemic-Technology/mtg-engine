@@ -1,0 +1,14 @@
+card "Tormented Pariah // Rampaging Werewolf" {
+  oracle_id bbcc2d2d-b29c-410f-bee7-5ef1609a5b32
+  layout transform
+  cost {3}{R}
+  type Creature — Human Warrior Werewolf
+  pt 3/2
+  triggered at beginning of every upkeep if no spells were cast last turn: transform this
+  face "Rampaging Werewolf" {
+    type Creature — Werewolf
+    pt 6/4
+    color red
+    triggered at beginning of every upkeep if a player cast two or more spells last turn: transform this
+  }
+}

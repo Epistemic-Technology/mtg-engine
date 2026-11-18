@@ -1,0 +1,7 @@
+card "Armory Guard" {
+  oracle_id 96c67950-df59-430c-94fd-234086c6c8f2
+  cost {3}{W}
+  type Creature — Giant Soldier
+  pt 2/5
+  static this: has vigilance as long as you control Gate
+}

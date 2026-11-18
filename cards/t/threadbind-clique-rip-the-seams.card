@@ -1,0 +1,13 @@
+card "Threadbind Clique // Rip the Seams" {
+  oracle_id bd575e82-99e7-44c7-ab93-d33f5678e1ad
+  layout adventure
+  cost {3}{U}
+  type Creature — Faerie
+  pt 3/3
+  keywords flying
+  face "Rip the Seams" {
+    cost {2}{W}
+    type Instant — Adventure
+    spell: destroy target tapped creature
+  }
+}

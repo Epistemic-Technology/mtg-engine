@@ -138,10 +138,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::ScryBottom(_) => 26,
         Choice::SurveilGraveyard(_) => 27,
         Choice::Color(_) => 28,
+        Choice::CastFace { .. } => 29,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 29] = [
+pub const CHOICE_KIND_NAMES: [&str; 30] = [
     "keep",
     "mulligan",
     "bottom",
@@ -171,6 +172,7 @@ pub const CHOICE_KIND_NAMES: [&str; 29] = [
     "scry_bottom",
     "surveil_graveyard",
     "color",
+    "cast_face",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -287,6 +289,7 @@ pub fn observation(state: &GameState, decision: Option<&Decision>, me: PlayerId)
 /// Per-option features for the first `max` options, row-major
 /// `max × OPT_F`, and the mask of live rows.
 #[allow(clippy::cast_precision_loss)]
+#[allow(clippy::too_many_lines)] // one arm per choice kind
 pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (Vec<f32>, Vec<i8>) {
     let me = decision.player;
     let mut out = vec![0.0f32; max * OPT_F];
@@ -364,6 +367,14 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             }
             Choice::X(x) => (-1.0, -1.0, 0.0, *x as f32, *x as f32),
             Choice::Color(c) => (-1.0, -1.0, 0.0, f32::from(*c as u8), 0.0),
+            Choice::CastFace { card, face } => {
+                let cost = state
+                    .objects
+                    .get(*card)
+                    .and_then(|o| state.pool.get(o.def).faces.get(*face as usize))
+                    .map_or(0.0, |f| state.pool.get(*f).mana_cost.mana_value() as f32);
+                (card_id(state, *card), -1.0, 0.0, f32::from(*face), cost)
+            }
             Choice::ScryBottom(ids) | Choice::SurveilGraveyard(ids) => {
                 (-1.0, -1.0, 0.0, ids.len() as f32, 0.0)
             }

@@ -274,6 +274,10 @@ impl GameState {
                 self.player_mut(old.owner).flashback_in_graveyard += 1;
             }
         }
+        if old.zone == Zone::Exile && old.cast.adventure() {
+            let n = &mut self.player_mut(old.owner).adventures_in_exile;
+            *n = n.saturating_sub(1);
+        }
         if old.zone == Zone::Stack && !self.x_values.is_empty() {
             self.x_values.retain(|(s, _)| *s != id);
         }

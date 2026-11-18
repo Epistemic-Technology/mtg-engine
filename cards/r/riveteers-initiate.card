@@ -1,0 +1,7 @@
+card "Riveteers Initiate" {
+  oracle_id c756d786-9aff-4d2e-9c06-6ae01d5fca2e
+  cost {1}{R}
+  type Creature — Lizard Citizen
+  pt 2/2
+  activated {1}{B/G}: this gains deathtouch
+}

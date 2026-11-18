@@ -1,0 +1,34 @@
+# Frostburn Weird: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumping once makes it a 2/3 that hits for 2" {
+  battlefield A: "Frostburn Weird", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Frostburn Weird"
+  turn 1 A: attack "Frostburn Weird"
+  run_to turn 1 postcombat_main
+  assert power "Frostburn Weird" 2
+  assert toughness "Frostburn Weird" 3
+  assert life B 18
+}
+
+scenario "the boost wears off at end of turn" {
+  battlefield A: "Frostburn Weird", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Frostburn Weird"
+  run_to turn 2 upkeep
+  assert power "Frostburn Weird" 1
+  assert toughness "Frostburn Weird" 4
+}
+
+scenario "lowered toughness lets Shock kill it" {
+  battlefield A: "Frostburn Weird", 2 "Island", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Frostburn Weird"
+  turn 1 A: activate "Frostburn Weird"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Frostburn Weird"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Frostburn Weird"
+}

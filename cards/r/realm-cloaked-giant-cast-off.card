@@ -1,0 +1,13 @@
+card "Realm-Cloaked Giant // Cast Off" {
+  oracle_id a1d17244-9c92-4094-9843-d7ee31c85ea4
+  layout adventure
+  cost {5}{W}{W}
+  type Creature — Giant
+  pt 7/7
+  keywords vigilance
+  face "Cast Off" {
+    cost {3}{W}{W}
+    type Sorcery — Adventure
+    spell: destroy each non-Giant creature
+  }
+}

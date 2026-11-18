@@ -1,0 +1,6 @@
+card "Explosive Vegetation" {
+  oracle_id a0abd957-01a0-4aa9-8fc8-0e6840d21606
+  cost {3}{G}
+  type Sorcery
+  spell: search up to 2 basic land card to battlefield tapped
+}

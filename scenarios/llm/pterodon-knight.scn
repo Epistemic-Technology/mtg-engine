@@ -1,0 +1,33 @@
+# Pterodon Knight: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "no flying without a Dinosaur" {
+  battlefield A: "Pterodon Knight", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has not "Pterodon Knight" flying
+}
+
+scenario "without a Dinosaur it can be blocked by a ground creature" {
+  battlefield A: "Pterodon Knight"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Pterodon Knight"
+  turn 1 B: block "Pterodon Knight" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Pterodon Knight"
+  assert damage "Pterodon Knight" 2
+}
+
+scenario "cast from hand, it enters without flying" {
+  battlefield A: 4 "Plains"
+  hand A: "Pterodon Knight"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pterodon Knight"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pterodon Knight"
+  assert has not "Pterodon Knight" flying
+  assert power "Pterodon Knight" 3
+}

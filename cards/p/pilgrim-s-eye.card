@@ -1,0 +1,8 @@
+card "Pilgrim's Eye" {
+  oracle_id 66155010-cc2c-449a-85d5-92c95aade514
+  cost {3}
+  type Artifact Creature — Thopter
+  pt 1/1
+  keywords flying
+  triggered when this enters: you may search basic land card reveal to hand
+}

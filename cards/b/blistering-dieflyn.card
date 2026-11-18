@@ -1,0 +1,8 @@
+card "Blistering Dieflyn" {
+  oracle_id 4cd6ad78-7441-4dd7-b486-d9575e8e0947
+  cost {3}{R}
+  type Creature — Imp
+  pt 0/1
+  keywords flying
+  activated {B/R}: this gets +1/+0
+}

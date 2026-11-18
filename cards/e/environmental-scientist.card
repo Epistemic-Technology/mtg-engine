@@ -1,0 +1,7 @@
+card "Environmental Scientist" {
+  oracle_id f30aa897-7027-47e7-ae58-73cbc448c1f0
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 2/2
+  triggered when this enters: you may search basic land card reveal to hand
+}

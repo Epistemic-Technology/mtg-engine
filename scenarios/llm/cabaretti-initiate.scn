@@ -1,0 +1,40 @@
+# Cabaretti Initiate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "activated double strike deals damage twice" {
+  battlefield A: "Cabaretti Initiate", "Mountain", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cabaretti Initiate"
+  turn 1 A: attack "Cabaretti Initiate"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Mountain"
+}
+
+scenario "hybrid cost can be paid with white mana" {
+  battlefield A: "Cabaretti Initiate", "Plains", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cabaretti Initiate"
+  turn 1 A: attack "Cabaretti Initiate"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Plains"
+}
+
+scenario "without activation it deals damage once" {
+  battlefield A: "Cabaretti Initiate", "Mountain", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Cabaretti Initiate"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "double strike ends at end of turn" {
+  battlefield A: "Cabaretti Initiate", "Mountain", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cabaretti Initiate"
+  turn 1 A: attack "Cabaretti Initiate"
+  turn 3 A: attack "Cabaretti Initiate"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}

@@ -1,0 +1,7 @@
+card "Parapet Watchers" {
+  oracle_id c2ffce33-ab1a-40f1-959b-31583219ed1a
+  cost {2}{U}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  activated {W/U}: this gets +0/+1
+}

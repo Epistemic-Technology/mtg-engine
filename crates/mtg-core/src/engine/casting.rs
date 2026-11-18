@@ -3,8 +3,8 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, Affects, Cost, CounterKind, Effect, Keyword, Modification, PtValue,
-    Recipient, Replacement, Replaces, SacCost, SearchTo, TargetSpec,
+    AbilityDef, AbilityId, Affects, Cost, CounterKind, Effect, Keyword, Layout, Modification,
+    PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
@@ -56,26 +56,40 @@ impl GameState {
                 }
                 continue;
             }
-            let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
-            if !(instant_speed || sorcery_timing) {
-                continue;
-            }
-            if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0), ps.life).is_none()
+            // CR 715.3, 709.3: an adventurer's spell or a split card's
+            // half is cast as that face.
+            if !def.faces.is_empty()
+                && matches!(def.layout, Layout::Adventure | Layout::Omen | Layout::Split)
             {
-                continue;
+                for (i, f) in def.faces.iter().enumerate() {
+                    let face = self.pool.get(*f);
+                    if self.castable(p, face, *id, sorcery_timing, &sources, &pool) {
+                        options.push(Choice::CastFace {
+                            card: *id,
+                            face: u8::try_from(i).unwrap_or(0),
+                        });
+                    }
+                }
+                if def.layout == Layout::Split {
+                    continue;
+                }
             }
-            if !self.additional_payable(p, &def.additional, *id) {
-                continue;
-            }
-            // A modal spell needs some mode to have its targets (CR 601.2b).
-            let targets_ok = match def.modes() {
-                Some(modes) => modes
-                    .iter()
-                    .any(|m| self.targets_available(p, &m.targets, Some(*id))),
-                None => self.targets_available(p, def.cast_targets(), Some(*id)),
-            };
-            if targets_ok {
+            if self.castable(p, def, *id, sorcery_timing, &sources, &pool) {
                 options.push(Choice::Cast(*id));
+            }
+        }
+        // CR 715.3d: a card on an adventure may be cast from exile (its
+        // main face).
+        if ps.adventures_in_exile > 0 {
+            for id in &ps.exile {
+                let o = &self.objects[*id];
+                if !o.cast.adventure() {
+                    continue;
+                }
+                let def = self.pool.get(o.def);
+                if self.castable(p, def, *id, sorcery_timing, &sources, &pool) {
+                    options.push(Choice::Cast(*id));
+                }
             }
         }
         // CR 702.34a: instants and sorceries with flashback may be cast
@@ -113,6 +127,44 @@ impl GameState {
         self.activation_options(p, sorcery_timing, &sources, &mut options);
         options.push(Choice::Pass);
         options
+    }
+
+    /// Whether `p` could cast `def` (the card `id`, or one of its faces)
+    /// now: timing, mana, additional costs, and targets (CR 601.2).
+    #[inline]
+    fn castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        pool: &crate::mana::ManaPool,
+    ) -> bool {
+        let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        if !(instant_speed || sorcery_timing) {
+            return false;
+        }
+        if payment_plan_from(
+            sources,
+            pool,
+            &def.mana_cost.requirements(0),
+            self.player(p).life,
+        )
+        .is_none()
+        {
+            return false;
+        }
+        if !self.additional_payable(p, &def.additional, id) {
+            return false;
+        }
+        // A modal spell needs some mode to have its targets (CR 601.2b).
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.cast_targets(), Some(id)),
+        }
     }
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
@@ -705,6 +757,8 @@ impl GameState {
             self.pay_other_costs(caster, fb, spell, None, None);
         }
         self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
+        let n = &mut self.spells_this_turn[caster.index().min(3)];
+        *n = n.saturating_add(1);
         self.emit(Event::Cast {
             player: caster,
             spell,
@@ -877,10 +931,27 @@ impl GameState {
             if def.is_permanent_card() {
                 self.choose_copy_on_entering(spell);
                 self.put_onto_battlefield(spell, obj.controller);
+            } else if obj.cast.adventure() {
+                self.finish_adventure(spell);
             } else {
                 self.leave_stack(spell);
             }
         }
+    }
+
+    /// A resolved adventure goes on an adventure in exile (CR 715.4); a
+    /// resolved omen is shuffled into its owner's library.
+    fn finish_adventure(&mut self, spell: ObjId) {
+        let o = &self.objects[spell];
+        let owner = o.owner;
+        if self.pool.get(o.card).layout == Layout::Omen {
+            self.move_object(spell, Zone::Library, true);
+            self.shuffle_library(owner);
+            return;
+        }
+        let new = self.move_object(spell, Zone::Exile, true);
+        self.objects[new].cast.set_adventure(true);
+        self.player_mut(owner).adventures_in_exile += 1;
     }
 
     /// CR 707.?: "you may have ~ enter as a copy of ...". The controller
@@ -1264,6 +1335,34 @@ impl GameState {
                     let lib = &mut self.player_mut(p).library;
                     lib.retain(|x| *x != id);
                     lib.push(id);
+                }
+            }
+            Effect::Transform { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    let Some(o) = self.objects.get(id) else {
+                        continue;
+                    };
+                    if o.zone != Zone::Battlefield {
+                        continue;
+                    }
+                    let d = self.pool.get(o.def);
+                    if d.layout != Layout::Transform {
+                        continue;
+                    }
+                    let Some(other) = d.faces.first().copied() else {
+                        continue;
+                    };
+                    let legendary = d.is_legendary();
+                    let flags = self.flags_of(&self.objects[id]);
+                    self.count_sources(flags, legendary, false);
+                    self.objects[id].def = other;
+                    let flags = self.flags_of(&self.objects[id]);
+                    self.count_sources(flags, self.pool.get(other).is_legendary(), true);
+                    self.emit(Event::Transformed { obj: id });
+                    self.cbump();
                 }
             }
             Effect::AddMana(mana) => {

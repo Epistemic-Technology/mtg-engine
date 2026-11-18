@@ -1,0 +1,8 @@
+card "Yavimaya Elder" {
+  oracle_id 7fd4c452-07f2-492c-9c78-d1c6362d9eec
+  cost {1}{G}{G}
+  type Creature — Human Druid
+  pt 2/1
+  triggered when this dies: you may search up to 2 basic land card reveal to hand
+  activated {2}, sacrifice this: draw 1 cards
+}

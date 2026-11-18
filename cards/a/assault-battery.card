@@ -1,0 +1,14 @@
+card "Assault // Battery" {
+  oracle_id fcdeb83f-531c-4087-9254-7f19eb065f00
+  layout split
+  face "Assault" {
+    cost {R}
+    type Sorcery
+    spell: deal 2 damage to any target
+  }
+  face "Battery" {
+    cost {3}{G}
+    type Sorcery
+    spell: create 1 "3/3 green Elephant creature"
+  }
+}

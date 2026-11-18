@@ -1,0 +1,7 @@
+card "Centaur Rootcaster" {
+  oracle_id 0aaefa00-86f4-4e12-87ae-3a362d862fa4
+  cost {3}{G}
+  type Creature — Centaur Druid
+  pt 2/2
+  triggered whenever this deals combat damage to a player: you may search basic land card to battlefield tapped that card
+}

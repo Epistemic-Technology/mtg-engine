@@ -1,0 +1,7 @@
+card "Scout the Wilderness" {
+  oracle_id 422aca0b-8e8f-4774-9a20-6f7a1cae967e
+  cost {2}{G}
+  type Sorcery
+  kicker {1}{W}
+  spell: search basic land card to battlefield tapped; if kicked, create 2 "1/1 white Soldier creature"
+}

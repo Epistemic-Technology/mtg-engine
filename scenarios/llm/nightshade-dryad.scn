@@ -1,0 +1,46 @@
+# Nightshade Dryad: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Nightshade Dryad blocking kills attacker with deathtouch" {
+  battlefield A: "Nightshade Dryad"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Nightshade Dryad"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Nightshade Dryad"
+}
+
+scenario "Nightshade Dryad attacking kills a large blocker" {
+  battlefield A: "Nightshade Dryad"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Nightshade Dryad"
+  turn 1 B: block "Nightshade Dryad" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Nightshade Dryad"
+}
+
+scenario "Nightshade Dryad colorless mana pays for a spell" {
+  battlefield A: "Nightshade Dryad", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: activate "Nightshade Dryad" ability 1
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Nightshade Dryad"
+}
+
+scenario "Nightshade Dryad any-color mana pays for a spell" {
+  battlefield A: "Nightshade Dryad", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: activate "Nightshade Dryad" ability 2
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Nightshade Dryad"
+}

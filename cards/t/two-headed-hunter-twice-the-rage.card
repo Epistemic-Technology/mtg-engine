@@ -1,0 +1,13 @@
+card "Two-Headed Hunter // Twice the Rage" {
+  oracle_id 0f222f3d-f02b-42b9-aedf-fb7ed92d4889
+  layout adventure
+  cost {4}{R}
+  type Creature — Giant
+  pt 5/4
+  keywords menace
+  face "Twice the Rage" {
+    cost {1}{R}
+    type Instant — Adventure
+    spell: target creature gains double strike
+  }
+}

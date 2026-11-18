@@ -1,0 +1,39 @@
+# Odious Trow: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "regeneration shield saves Odious Trow from Lightning Bolt" {
+  battlefield A: "Odious Trow", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Odious Trow"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Odious Trow"
+  run_to turn 1 end
+  assert battlefield A contains "Odious Trow"
+  assert tapped "Odious Trow"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "without a shield Odious Trow dies to Lightning Bolt" {
+  battlefield A: "Odious Trow"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Odious Trow"
+  run_to turn 1 end
+  assert graveyard A contains "Odious Trow"
+}
+
+scenario "hybrid cost paid with green mana regenerates a blocking Odious Trow" {
+  battlefield A: "Odious Trow", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Odious Trow"
+  turn 2 declare_blockers A: activate "Odious Trow"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Odious Trow"
+  assert tapped "Odious Trow"
+  assert life A 20
+  assert battlefield B contains "Grizzly Bears"
+}

@@ -1,0 +1,7 @@
+card "Verdant Force" {
+  oracle_id 7a21ea22-3cd7-4c11-8895-5943c0d93a0d
+  cost {5}{G}{G}{G}
+  type Creature — Elemental
+  pt 7/7
+  triggered at beginning of every upkeep: create 1 "1/1 green Saproling creature"
+}

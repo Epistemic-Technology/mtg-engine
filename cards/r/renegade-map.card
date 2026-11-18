@@ -1,0 +1,7 @@
+card "Renegade Map" {
+  oracle_id f8506acb-3fc5-4fdf-8304-586843db6cfd
+  cost {1}
+  type Artifact
+  enters tapped
+  activated {T}, sacrifice this: search basic land card reveal to hand
+}

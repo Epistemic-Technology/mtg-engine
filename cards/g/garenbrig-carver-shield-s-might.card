@@ -1,0 +1,12 @@
+card "Garenbrig Carver // Shield's Might" {
+  oracle_id 496c9633-ff17-48df-9b24-1d8cbfd06126
+  layout adventure
+  cost {3}{G}
+  type Creature — Human Warrior
+  pt 3/2
+  face "Shield's Might" {
+    cost {1}{G}
+    type Instant — Adventure
+    spell: target creature gets +2/+2
+  }
+}

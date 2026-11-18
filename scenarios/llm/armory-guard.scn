@@ -1,0 +1,31 @@
+# Armory Guard: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "without a Gate, Armory Guard taps to attack" {
+  battlefield A: "Armory Guard", 4 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Armory Guard"
+  run_to turn 1 postcombat_main
+  assert tapped "Armory Guard"
+  assert life B 18
+}
+
+scenario "basic lands are not Gates, so no vigilance" {
+  battlefield A: "Armory Guard", "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has not "Armory Guard" vigilance
+}
+
+scenario "Armory Guard blocks Hill Giant and survives" {
+  battlefield A: "Armory Guard"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Armory Guard"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Armory Guard"
+  assert damage "Armory Guard" 3
+  assert damage "Hill Giant" 2
+  assert life A 20
+}

@@ -1,0 +1,6 @@
+card "Font of Fertility" {
+  oracle_id 7fb6f960-38f6-45fa-bfec-d43fc174daa7
+  cost {G}
+  type Enchantment
+  activated {1}{G}, sacrifice this: search basic land card to battlefield tapped
+}

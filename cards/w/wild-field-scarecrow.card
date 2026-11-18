@@ -1,0 +1,8 @@
+card "Wild-Field Scarecrow" {
+  oracle_id f6a07af3-e54b-4dcb-ae2a-3dfdac386bab
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 1/4
+  keywords defender
+  activated {2}, sacrifice this: search up to 2 basic land card reveal to hand
+}

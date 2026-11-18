@@ -1,0 +1,15 @@
+card "Ulvenwald Captive // Ulvenwald Abomination" {
+  oracle_id 0272ca81-e727-4f4b-b06e-072d70bb5558
+  layout transform
+  cost {1}{G}
+  type Creature — Werewolf Horror
+  pt 1/2
+  keywords defender
+  mana {G}
+  activated {5}{G}{G}: transform this
+  face "Ulvenwald Abomination" {
+    type Creature — Eldrazi Werewolf
+    pt 4/6
+    activated {T}: add {C}{C}
+  }
+}

@@ -1,0 +1,14 @@
+card "Wax // Wane" {
+  oracle_id 4744b086-fea2-4992-bfef-68c58cdf9cf0
+  layout split
+  face "Wax" {
+    cost {G}
+    type Instant
+    spell: target creature gets +2/+2
+  }
+  face "Wane" {
+    cost {W}
+    type Instant
+    spell: destroy target enchantment
+  }
+}

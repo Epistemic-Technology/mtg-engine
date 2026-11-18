@@ -791,14 +791,18 @@ impl Runner {
                     discard,
                     ..
                 } => {
-                    let id = if *from_graveyard {
-                        self.in_graveyard(a.line, d.player, name)?
+                    let choice = if *from_graveyard {
+                        Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
+                    } else if let Some(c) = self.face_in_hand(d.player, name) {
+                        c
+                    } else if let Some(id) = self.on_adventure(d.player, name) {
+                        Choice::Cast(id)
                     } else {
-                        self.in_hand(a.line, d.player, name)?
+                        Choice::Cast(self.in_hand(a.line, d.player, name)?)
                     };
                     (
                         name,
-                        Choice::Cast(id),
+                        choice,
                         Some(targets.clone()),
                         *mode,
                         (*x, sacrifice.clone(), discard.clone(), *kicked),
@@ -806,7 +810,9 @@ impl Runner {
                 }
                 _ => unreachable!("filtered to play/cast"),
             };
-            let (Choice::PlayLand(id) | Choice::Cast(id)) = option else {
+            let (Choice::PlayLand(id) | Choice::Cast(id) | Choice::CastFace { card: id, .. }) =
+                option
+            else {
                 unreachable!()
             };
             let found = index_of(d, &option);
@@ -884,7 +890,14 @@ impl Runner {
         name: &str,
         mode: Option<usize>,
     ) -> Res<(usize, Option<usize>)> {
-        let def = self.state().def_of(id).expect("card in hand");
+        let st = self.state();
+        let mut def = st.def_of(id).expect("card in hand");
+        // `cast "Stomp"`: the named face of the card.
+        if def.name != name
+            && let Some(f) = def.faces.iter().find(|f| st.pool.get(**f).name == name)
+        {
+            def = st.pool.get(*f);
+        }
         let Some(modes) = def.modes() else {
             if mode.is_some() {
                 return fail(line, format!("\"{name}\" is not modal"));
@@ -1315,6 +1328,32 @@ impl Runner {
     }
 
     // ----- name resolution ---------------------------------------------------
+
+    /// `cast "Stomp"`: a card in hand one of whose other faces has that
+    /// name (an adventure, a split card's half).
+    fn face_in_hand(&self, p: PlayerId, name: &str) -> Option<Choice> {
+        let st = self.state();
+        st.player(p).hand.iter().find_map(|id| {
+            let def = st.pool.get(st.objects[*id].def);
+            def.faces
+                .iter()
+                .position(|f| st.pool.get(*f).name == name)
+                .map(|i| Choice::CastFace {
+                    card: *id,
+                    face: u8::try_from(i).unwrap_or(0),
+                })
+        })
+    }
+
+    /// A card of this name on an adventure in `p`'s exile (CR 715.3d).
+    fn on_adventure(&self, p: PlayerId, name: &str) -> Option<ObjId> {
+        let st = self.state();
+        st.player(p)
+            .exile
+            .iter()
+            .copied()
+            .find(|id| st.objects[*id].cast.adventure() && st.name_of(*id) == name)
+    }
 
     fn in_hand(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {
         self.state()
@@ -1761,6 +1800,9 @@ impl Runner {
             Choice::Pass => "pass".into(),
             Choice::PlayLand(id) => format!("play {}", self.describe_ids(&[*id])),
             Choice::Cast(id) => format!("cast {}", self.describe_ids(&[*id])),
+            Choice::CastFace { card, face } => {
+                format!("cast face {face} of {}", self.describe_ids(&[*card]))
+            }
             Choice::Target(t) => self.describe_target(*t),
             Choice::Attackers(set) => format!("attack with {}", self.describe_ids(set)),
             Choice::AddAttacker(id) => format!("add attacker {}", self.describe_ids(&[*id])),

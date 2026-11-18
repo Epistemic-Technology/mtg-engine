@@ -66,6 +66,8 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         },
         name: def.name.clone(),
         display_name: None,
+        layout: mtg_core::card::Layout::Normal,
+        faces: Vec::new(),
         oracle_id: None,
         cost: def.mana_cost.clone(),
         color_indicator: def.color_indicator.map(colors),
@@ -273,6 +275,7 @@ impl Decompiler<'_> {
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
+            CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search { filter, count, to } => Effect::Search {
                 filter: self.filter(filter),
                 count: *count,

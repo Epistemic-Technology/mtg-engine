@@ -1,0 +1,8 @@
+card "Omen of the Hunt" {
+  oracle_id 53295b03-717d-481d-9d5c-212c5f30bbbf
+  cost {2}{G}
+  type Enchantment
+  keywords flash
+  triggered when this enters: you may search basic land card to battlefield tapped
+  activated {2}{G}, sacrifice this: scry 2
+}
