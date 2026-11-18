@@ -1,0 +1,7 @@
+card "Emberhorn Minotaur" {
+  oracle_id c2d258be-8634-4534-bb09-c064329f0940
+  cost {3}{R}
+  type Creature — Minotaur Warrior
+  pt 4/3
+  exert: this gets +1/+1 and gains menace
+}

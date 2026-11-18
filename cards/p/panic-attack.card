@@ -1,0 +1,6 @@
+card "Panic Attack" {
+  oracle_id c1346677-d89e-49d0-9819-08805f00bb64
+  cost {2}{R}
+  type Sorcery
+  spell: up to three target creatures can't block
+}

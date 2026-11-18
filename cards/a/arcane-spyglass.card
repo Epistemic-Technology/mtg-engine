@@ -1,0 +1,7 @@
+card "Arcane Spyglass" {
+  oracle_id c2fbdc80-ad5d-4fe0-a860-3e4f452e6302
+  cost {4}
+  type Artifact
+  activated {2}, {T}, sacrifice land: draw 1 card and put 1 charge counter on this
+  activated remove 3 charge counters from this: draw 1 card
+}

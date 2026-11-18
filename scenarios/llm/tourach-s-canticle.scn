@@ -1,0 +1,38 @@
+# Tourach's Canticle: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two cards in hand: both are discarded" {
+  battlefield A: 4 "Swamp"
+  hand A: "Tourach's Canticle"
+  hand B: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tourach's Canticle" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard A contains "Tourach's Canticle"
+}
+
+scenario "three cards in hand: two are discarded" {
+  battlefield A: 4 "Swamp"
+  hand A: "Tourach's Canticle"
+  hand B: "Grizzly Bears", "Lightning Bolt", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tourach's Canticle" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+}
+
+scenario "one card in hand: the chosen card is discarded and the random discard does nothing" {
+  battlefield A: 4 "Swamp"
+  hand A: "Tourach's Canticle"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tourach's Canticle" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Hill Giant"
+  assert hand A count 0
+}

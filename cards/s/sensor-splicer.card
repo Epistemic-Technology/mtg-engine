@@ -1,0 +1,8 @@
+card "Sensor Splicer" {
+  oracle_id 9676da93-1e17-4f6c-b610-a242b78c71ab
+  cost {4}{W}
+  type Creature — Phyrexian Artificer
+  pt 1/1
+  triggered when this enters: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+  static Golem creature you control: has vigilance
+}

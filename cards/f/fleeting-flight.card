@@ -1,0 +1,6 @@
+card "Fleeting Flight" {
+  oracle_id 6336401f-4e2d-4ebe-8c5b-24aa6f516abf
+  cost {W}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature; target 1 gains flying until end of turn; prevent all combat damage to target 1 this turn
+}

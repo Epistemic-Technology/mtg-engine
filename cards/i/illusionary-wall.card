@@ -1,0 +1,8 @@
+card "Illusionary Wall" {
+  oracle_id 77a8945f-4d52-4445-8913-425007e7948c
+  cost {4}{U}
+  type Creature — Illusion Wall
+  pt 7/4
+  keywords defender, flying, first strike
+  cumulative upkeep {U}
+}

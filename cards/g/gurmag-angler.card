@@ -1,0 +1,7 @@
+card "Gurmag Angler" {
+  oracle_id 315772f2-abd2-4681-b8c8-1db4b0ccbbcd
+  cost {6}{B}
+  type Creature — Zombie Fish
+  pt 5/5
+  keywords delve
+}

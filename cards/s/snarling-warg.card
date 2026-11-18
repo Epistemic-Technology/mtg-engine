@@ -1,0 +1,8 @@
+card "Snarling Warg" {
+  oracle_id 978a7a96-ca79-4f73-a4c6-99d662605969
+  cost {3}{B}
+  type Creature — Wolf
+  pt 3/4
+  keywords menace
+  static as long as you control Goblin or Orc, this: +1/+0
+}

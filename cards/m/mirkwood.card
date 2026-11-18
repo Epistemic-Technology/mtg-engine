@@ -1,0 +1,7 @@
+card "Mirkwood" {
+  oracle_id cd49aa99-bf84-4edd-aecc-6dae78b73412
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {2}{B}{G}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target Bear, Spider, or Wolf you control
+}

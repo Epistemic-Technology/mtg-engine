@@ -147,7 +147,7 @@ impl Fmt {
                             format!("another target {}", filter(&g))
                         }
                         Target::Filter(f) => format!("target {}", filter(f)),
-                        Target::Spell(f) => format!("target {} spell", filter(f)),
+                        Target::Spell(f) => spell_target(f),
                         Target::GraveyardCard { filter: f, who }
                             if f.relation == Relation::Other =>
                         {
@@ -168,6 +168,21 @@ impl Fmt {
             Recipient::ThatTarget(i) => {
                 self.mentioned[i] = true;
                 format!("that target {}", i + 1)
+            }
+            // "up to 2 target creature": declares them together.
+            Recipient::Targets(a, n) if self.mentioned[a] => {
+                format!("targets {} to {}", a + 1, a + n)
+            }
+            Recipient::Targets(a, n) => {
+                let first = self.recipient(Recipient::Target(a), targets);
+                for m in &mut self.mentioned[a..a + n] {
+                    *m = true;
+                }
+                match first.strip_prefix("up to 1 ") {
+                    Some(rest) => format!("up to {n} {rest}"),
+                    None if first.starts_with("target ") => format!("{n} {first}"),
+                    None => first,
+                }
             }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
@@ -328,6 +343,9 @@ impl Fmt {
             Effect::Manifest => "manifest".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
             Effect::Discover(n) => format!("discover {n}"),
+            Effect::MoveSourceCounters { .. } | Effect::CumulativeUpkeep(_) => {
+                unreachable!("only in expansions")
+            }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
             Effect::Dig {
@@ -971,6 +989,44 @@ fn filter_one(f: &Filter) -> String {
     words.join(" ")
 }
 
+/// `target instant spell that targets a creature`.
+fn spell_target(f: &Filter) -> String {
+    let mut g = f.clone();
+    let t = g.targeting.take();
+    let base = filter(&g);
+    let mut s = if base.is_empty() {
+        "target spell".to_string()
+    } else {
+        format!("target {base} spell")
+    };
+    if let Some(t) = t {
+        s.push_str(" that targets ");
+        s.push_str(&targeting(&t, filter));
+    }
+    s
+}
+
+/// "you or a creature you control", "a player", "a creature".
+pub fn targeting(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> String) -> String {
+    let mut parts = Vec::new();
+    if t.you {
+        parts.push("you".to_string());
+    }
+    if t.player {
+        parts.push("a player".to_string());
+    }
+    if let Some(f) = &t.filter {
+        let p = phrase(f);
+        let a = if p.starts_with(['a', 'e', 'i', 'o', 'u']) {
+            "an"
+        } else {
+            "a"
+        };
+        parts.push(format!("{a} {p}"));
+    }
+    parts.join(" or ")
+}
+
 /// "Goblin or Orc you control", "another Wolf or Werewolf", "Elf or
 /// Soldier creature": qualifiers printed once apply to both sides of an
 /// `or`. Parsing shares them out (this); printing factors them back
@@ -1417,6 +1473,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
+        Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
         Ability::Modal(modes) | Ability::ModalBoth(modes) => {
             let head = if matches!(ability, Ability::ModalBoth(_)) {
                 "choose one or both"
@@ -1657,6 +1714,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
                 crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
+                crate::ast::Mechanic::Modular(n) => format!("modular {n}"),
+                crate::ast::Mechanic::CumulativeUpkeep(c) => format!("cumulative upkeep {c}"),
                 crate::ast::Mechanic::Escape(c, n) => format!("escape {c} exile {n}"),
                 crate::ast::Mechanic::EscapesWith(n) => {
                     format!("escapes with {n} +1/+1 counters")

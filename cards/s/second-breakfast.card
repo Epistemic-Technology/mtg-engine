@@ -1,0 +1,6 @@
+card "Second Breakfast" {
+  oracle_id bf5f68b8-8ae2-4d08-b86c-4e6d3b653fec
+  cost {2}{W}
+  type Instant
+  spell: up to two target creatures each gets +2/+1; create 1 "Food"
+}

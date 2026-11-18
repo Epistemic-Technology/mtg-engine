@@ -1,0 +1,7 @@
+card "Rhet-Crop Spearmaster" {
+  oracle_id 4853bb11-2994-4caf-9981-8a480d472004
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 3/1
+  exert: this gets +1/+0 and gains first strike
+}

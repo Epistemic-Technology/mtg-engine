@@ -1,0 +1,41 @@
+# Minotaur Tactician: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "haste lets it attack the turn it is cast, unboosted alone" {
+  battlefield A: 4 "Mountain"
+  hand A: "Minotaur Tactician"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Minotaur Tactician"
+  turn 1 A: attack "Minotaur Tactician"
+  run_to turn 1 postcombat_main
+  assert power "Minotaur Tactician" 1
+  assert toughness "Minotaur Tactician" 1
+  assert life B 19
+}
+
+scenario "white creature gives +1/+1" {
+  battlefield A: "Minotaur Tactician", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Minotaur Tactician" 2
+  assert toughness "Minotaur Tactician" 2
+}
+
+scenario "white and blue creatures give +2/+2" {
+  battlefield A: "Minotaur Tactician", "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Minotaur Tactician" 3
+  assert toughness "Minotaur Tactician" 3
+}
+
+scenario "losing the white creature removes its bonus" {
+  battlefield A: "Minotaur Tactician", "Serra Angel", "Wind Drake", 3 "Swamp"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Serra Angel"
+  assert power "Minotaur Tactician" 2
+  assert toughness "Minotaur Tactician" 2
+}

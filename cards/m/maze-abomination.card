@@ -1,0 +1,8 @@
+card "Maze Abomination" {
+  oracle_id eaa72823-413e-474e-a926-aebb0a78ff31
+  cost {5}{B}
+  type Creature — Elemental
+  pt 4/5
+  keywords deathtouch
+  static multicolored creature you control: has deathtouch
+}

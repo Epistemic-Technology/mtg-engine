@@ -1,0 +1,6 @@
+card "Intervene" {
+  oracle_id 380b386f-90c8-45c5-a611-1ed6803b52d2
+  cost {U}
+  type Instant
+  spell: counter target spell that targets a creature
+}

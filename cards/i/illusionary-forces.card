@@ -1,0 +1,8 @@
+card "Illusionary Forces" {
+  oracle_id e17e3bda-75cb-47a1-9f60-f50705a46a1e
+  cost {3}{U}
+  type Creature — Illusion
+  pt 4/4
+  keywords flying
+  cumulative upkeep {U}
+}

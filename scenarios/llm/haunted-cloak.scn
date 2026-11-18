@@ -1,0 +1,42 @@
+# Haunted Cloak: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "equipped creature has haste and vigilance" {
+  battlefield A: "Haunted Cloak", 2 "Forest", "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Haunted Cloak" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Haunted Cloak" to "Grizzly Bears"
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}
+
+scenario "equipped creature tramples over a blocker" {
+  battlefield A: "Haunted Cloak", "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Haunted Cloak" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 A: assign "Hill Giant" to "Grizzly Bears" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+scenario "keywords granted only while equipped" {
+  battlefield A: "Haunted Cloak", "Grizzly Bears", "Hill Giant", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Haunted Cloak" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" vigilance
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" haste
+  assert has not "Hill Giant" trample
+  assert has not "Hill Giant" vigilance
+}

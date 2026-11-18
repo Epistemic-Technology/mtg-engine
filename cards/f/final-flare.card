@@ -1,0 +1,7 @@
+card "Final Flare" {
+  oracle_id 34f9a03e-ca95-4d3e-9e63-7297b5513481
+  cost {2}{R}
+  type Instant
+  additional cost sacrifice creature or enchantment
+  spell: deal 5 damage to target creature
+}

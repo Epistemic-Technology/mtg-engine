@@ -1,0 +1,9 @@
+card "Confound" {
+  oracle_id ca8a0e81-f885-47ee-82bb-fb25ec61bb1c
+  cost {1}{U}
+  type Instant
+  spell {
+    counter target spell that targets a creature
+    draw 1 cards
+  }
+}

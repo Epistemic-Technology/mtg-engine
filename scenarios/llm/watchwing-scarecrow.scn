@@ -1,0 +1,37 @@
+# Watchwing Scarecrow: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "no white or blue creature: neither vigilance nor flying" {
+  battlefield A: "Watchwing Scarecrow", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has not "Watchwing Scarecrow" vigilance
+  assert has not "Watchwing Scarecrow" flying
+}
+
+scenario "white creature grants vigilance; attacking does not tap" {
+  battlefield A: "Watchwing Scarecrow", "Serra Angel"
+  turn 1 A: attack "Watchwing Scarecrow"
+  run_to turn 1 postcombat_main
+  assert has "Watchwing Scarecrow" vigilance
+  assert has not "Watchwing Scarecrow" flying
+  assert untapped "Watchwing Scarecrow"
+  assert life B 18
+}
+
+scenario "blue creature grants flying" {
+  battlefield A: "Watchwing Scarecrow", "Wind Drake"
+  run_to turn 1 precombat_main
+  assert has "Watchwing Scarecrow" flying
+  assert has not "Watchwing Scarecrow" vigilance
+}
+
+scenario "flying lost when the blue creature dies" {
+  battlefield A: "Watchwing Scarecrow", "Wind Drake"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert has not "Watchwing Scarecrow" flying
+}

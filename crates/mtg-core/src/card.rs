@@ -270,6 +270,9 @@ pub enum Keyword {
     /// CR 702.110: "When this creature enters, you may sacrifice a
     /// creature."
     Exploit,
+    /// CR 702.66: each card exiled from the graveyard while casting pays
+    /// for {1}.
+    Delve,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -385,7 +388,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 53] = [
+    pub const ALL: [Keyword; 54] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -439,6 +442,7 @@ impl Keyword {
         Keyword::Cascade,
         Keyword::Rebound,
         Keyword::Exploit,
+        Keyword::Delve,
     ];
 
     /// The keyword as Oracle prints it.
@@ -497,6 +501,7 @@ impl Keyword {
             Keyword::Cascade => "cascade",
             Keyword::Rebound => "rebound",
             Keyword::Exploit => "exploit",
+            Keyword::Delve => "delve",
         }
     }
 
@@ -869,6 +874,21 @@ pub struct ObjFilter {
     /// An alternative: matches this filter or that one ("creature or
     /// Vehicle", "attacking or blocking creature").
     pub or: Option<Box<ObjFilter>>,
+    /// A spell "that targets ..." (judged with the spell's targets, where a
+    /// spell is targeted).
+    pub targeting: Option<Box<SpellTargets>>,
+}
+
+/// What a spell must target ("that targets a creature", "that targets you
+/// or a permanent you control").
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SpellTargets {
+    /// "you" (the player judging).
+    pub you: bool,
+    /// "a player".
+    pub player: bool,
+    /// "a creature", "a permanent you control".
+    pub filter: Option<ObjFilter>,
 }
 
 /// A comparison in a filter.
@@ -1349,6 +1369,16 @@ pub enum CounterKind {
     Indestructible,
 }
 
+impl Keyword {
+    /// Keywords that add payment helpers while casting (convoke,
+    /// improvise, delve).
+    pub fn helps_pay(set: KeywordSet) -> bool {
+        set.contains(Keyword::Convoke)
+            || set.contains(Keyword::Improvise)
+            || set.contains(Keyword::Delve)
+    }
+}
+
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
     pub const NAMED: [(&'static str, CounterKind); 26] = [
@@ -1518,6 +1548,9 @@ pub enum Recipient {
     OwnerOf(usize),
     /// The `n`th chosen target.
     Target(usize),
+    /// Chosen targets `first..first + count` together ("up to two target
+    /// creatures each get +1/+0").
+    Targets(u8, u8),
     /// The spell's or ability's controller ("you").
     You,
     /// Every opponent of the controller.
@@ -1949,6 +1982,15 @@ pub enum Effect {
     /// Exploit (CR 702.110): the controller may sacrifice a creature; if
     /// they do, the source's "when this exploits a creature" triggers.
     Exploit,
+    /// Modular's dies trigger (CR 702.43a): the source's +1/+1 counters as
+    /// it last existed, put on the recipient.
+    MoveSourceCounters {
+        to: Recipient,
+    },
+    /// Cumulative upkeep (CR 702.24a): an age counter on the source, then
+    /// sacrifice it unless its controller pays the cost once per age
+    /// counter.
+    CumulativeUpkeep(ManaCost),
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
@@ -2011,6 +2053,7 @@ impl Effect {
                 | Effect::Cascade
                 | Effect::Discover(_)
                 | Effect::Exploit
+                | Effect::CumulativeUpkeep(_)
         )
     }
 }
@@ -2728,6 +2771,9 @@ pub struct CardDef {
     pub entwine: Option<ManaCost>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
     pub escape: Option<(ManaCost, u32)>,
+    /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
+    /// trigger is an ordinary ability).
+    pub modular: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -3609,6 +3655,7 @@ impl Builder {
             suspend: None,
             entwine: None,
             escape: None,
+            modular: 0,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3734,6 +3781,13 @@ impl Builder {
     #[must_use]
     pub fn foretell(mut self, cost: ManaCost) -> Self {
         self.0.foretell = Some(cost);
+        self
+    }
+
+    /// Modular N's entering counters (CR 702.43).
+    #[must_use]
+    pub fn modular(mut self, n: u32) -> Self {
+        self.0.modular = n;
         self
     }
 

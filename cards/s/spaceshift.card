@@ -1,0 +1,6 @@
+card "Spaceshift" {
+  oracle_id 5c63a244-75d7-4372-baf4-7a3526f240c8
+  cost {1}{U}
+  type Instant
+  spell: exile target artifact or creature then return that token to battlefield with 1 +1/+1 counter
+}

@@ -19,7 +19,8 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 37] = [
+const KEYWORDS: [&str; 38] = [
+    "Delve",
     "Exploit",
     "Cascade",
     "Rebound",
@@ -60,7 +61,7 @@ const KEYWORDS: [&str; 37] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 60] = [
+const TEMPLATED_TAGS: [&str; 64] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -122,6 +123,10 @@ const TEMPLATED_TAGS: [&str; 60] = [
     "Escape",
     "Discover",
     "Exploit",
+    "Delve",
+    "Modular",
+    "Cumulative upkeep",
+    "Exert",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -2111,9 +2116,10 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst) (\d+)$")
-            .unwrap()
-            .captures(line)
+        if let Some(c) =
+            Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular) (\d+)$")
+                .unwrap()
+                .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
@@ -2307,6 +2313,27 @@ impl Builder<'_> {
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
             self.statements.push(format!("activated {cost}: {effects}"));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Cumulative upkeep ((?:\{[0-9WUBRGC]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("cumulative upkeep {}", cap(&c, 1)));
+            return Ok(());
+        }
+        // CR 701.43: "You may exert this creature as it attacks. When you
+        // do, ...".
+        if let Some(rest) =
+            line.strip_prefix("You may exert this creature as it attacks. When you do, ")
+        {
+            let mut targets = 0;
+            let effects = self.templates.effects(rest, &mut targets)?;
+            if targets > 0 {
+                return Err(Skip::Sentence(line.to_string()));
+            }
+            self.statements.push(format!("exert: {effects}"));
             return Ok(());
         }
         // Triggered abilities: "<trigger>, [if <condition>, ]<effects>".

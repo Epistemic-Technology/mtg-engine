@@ -1,0 +1,31 @@
+# Drift of the Dead: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "with no snow lands it is 0/0 and dies on resolution" {
+  battlefield A: 4 "Swamp"
+  hand A: "Drift of the Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drift of the Dead"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Drift of the Dead"
+  assert graveyard A contains "Drift of the Dead"
+}
+
+scenario "non-snow lands of every kind do not count" {
+  battlefield A: "Drift of the Dead", 2 "Swamp", "Forest", "Island"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Drift of the Dead"
+  assert battlefield A contains 2 "Swamp"
+}
+
+scenario "opponent's lands do not keep it alive" {
+  battlefield A: 4 "Swamp"
+  battlefield B: 3 "Plains"
+  hand A: "Drift of the Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drift of the Dead"
+  run_to turn 1 end
+  assert graveyard A contains "Drift of the Dead"
+  assert life B 20
+}

@@ -1,0 +1,9 @@
+card "Snowmelt Stag" {
+  oracle_id b25ccb64-e114-4d54-a07a-c8cd4560b511
+  cost {3}{U}
+  type Creature — Elemental Elk
+  pt 2/5
+  keywords vigilance
+  static during your turn, this: base 5/2
+  activated {5}{U}{U}: this can't be blocked this turn
+}

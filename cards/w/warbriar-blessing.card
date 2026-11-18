@@ -1,0 +1,8 @@
+card "Warbriar Blessing" {
+  oracle_id 4a58954a-1d20-48b8-847c-3615de67e122
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: enchanted creature fights up to one target creature you don't control
+  static enchanted: +0/+2
+}

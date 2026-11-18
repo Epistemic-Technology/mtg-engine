@@ -1,0 +1,37 @@
+# March of the Drowned: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "first mode returns a creature card to hand" {
+  battlefield A: "Swamp"
+  hand A: "March of the Drowned"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "March of the Drowned" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A contains "March of the Drowned"
+}
+
+scenario "first mode returns only the chosen creature card" {
+  battlefield A: "Swamp"
+  hand A: "March of the Drowned"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "March of the Drowned" mode 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "cannot be cast with only noncreature, non-Pirate cards in graveyard" {
+  battlefield A: "Swamp"
+  hand A: "March of the Drowned"
+  graveyard A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "March of the Drowned" mode 1 targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert hand A contains "March of the Drowned"
+}

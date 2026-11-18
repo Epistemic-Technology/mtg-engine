@@ -1,0 +1,6 @@
+card "Demonic Gifts" {
+  oracle_id 162bcc9d-6edf-4b3b-83e6-2c933e2a5967
+  cost {1}{B}
+  type Instant
+  spell: until end of turn, target creature gets +2/+0 and target 1 gains ability { triggered when this dies: return this to battlefield }
+}

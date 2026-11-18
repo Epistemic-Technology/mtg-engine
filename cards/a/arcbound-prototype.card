@@ -1,0 +1,7 @@
+card "Arcbound Prototype" {
+  oracle_id ac1003b4-1f7c-4801-9dd3-5cb7d9881af8
+  cost {1}{W}
+  type Artifact Creature — Assembly-Worker
+  pt 0/0
+  modular 2
+}

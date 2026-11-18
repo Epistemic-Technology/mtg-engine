@@ -1,0 +1,42 @@
+# Wandering Champion: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "with a blue permanent, combat damage lets you discard and draw" {
+  battlefield A: "Wandering Champion", "Wind Drake"
+  hand A: "Forest"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wandering Champion"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Forest"
+  assert hand A contains "Shock"
+  assert hand A count 1
+}
+
+scenario "lands are colorless, so no trigger without a blue or red permanent" {
+  battlefield A: "Wandering Champion", "Island", "Mountain"
+  hand A: "Forest"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wandering Champion"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Forest"
+  assert graveyard A lacks "Forest"
+  assert library A contains "Shock"
+}
+
+scenario "declining the may keeps the hand" {
+  battlefield A: "Wandering Champion", "Wind Drake"
+  hand A: "Forest"
+  library A: "Shock", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Wandering Champion"
+  turn 1 combat_damage A: decline "Wandering Champion"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert library A contains "Shock"
+}

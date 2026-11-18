@@ -139,6 +139,13 @@ impl Decompiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
+            targeting: f.targeting.as_ref().map(|t| {
+                Box::new(crate::ast::Targeting {
+                    you: t.you,
+                    player: t.player,
+                    filter: t.filter.as_ref().map(|g| self.filter(g)),
+                })
+            }),
         }
     }
 
@@ -227,6 +234,7 @@ impl Decompiler<'_> {
     fn recipient(r: CoreRecipient) -> Recipient {
         match r {
             CoreRecipient::Target(i) => Recipient::Target(i),
+            CoreRecipient::Targets(a, n) => Recipient::Targets(usize::from(a), usize::from(n)),
             CoreRecipient::You => Recipient::You,
             CoreRecipient::EachOpponent => Recipient::EachOpponent,
             CoreRecipient::Source => Recipient::Source,
@@ -488,6 +496,10 @@ impl Decompiler<'_> {
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Discover(n) => Effect::Discover(*n),
+            CoreEffect::MoveSourceCounters { to } => Effect::MoveSourceCounters {
+                to: Self::recipient(*to),
+            },
+            CoreEffect::CumulativeUpkeep(c) => Effect::CumulativeUpkeep(c.clone()),
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },

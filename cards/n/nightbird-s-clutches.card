@@ -1,0 +1,7 @@
+card "Nightbird's Clutches" {
+  oracle_id d12b875c-0056-4a57-a7ff-09c73d00f8cc
+  cost {1}{R}
+  type Sorcery
+  spell: up to two target creatures can't block
+  flashback {3}{R}
+}

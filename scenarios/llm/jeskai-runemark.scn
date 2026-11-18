@@ -1,0 +1,48 @@
+# Jeskai Runemark: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "runemark gives +2/+2 but no flying without red or white permanent" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Jeskai Runemark"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jeskai Runemark" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Jeskai Runemark" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "runemark grants flying while you control a white permanent" {
+  battlefield A: 3 "Island", "Grizzly Bears", "Serra Angel"
+  hand A: "Jeskai Runemark"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jeskai Runemark" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+
+scenario "flying is lost when the white permanent leaves" {
+  battlefield A: "Grizzly Bears", "Serra Angel", "Jeskai Runemark" on "Grizzly Bears"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Murder" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard A contains "Serra Angel"
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "enchanted creature with flying can block a flyer" {
+  battlefield A: "Grizzly Bears", "Serra Angel" tapped, "Jeskai Runemark" on "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  turn 2 A: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+}

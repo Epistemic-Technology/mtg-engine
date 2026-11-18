@@ -1,0 +1,41 @@
+# Self-Assembler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Self-Assembler finds another Self-Assembler" {
+  battlefield A: 5 "Plains"
+  hand A: "Self-Assembler"
+  library A: "Grizzly Bears", "Self-Assembler", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Self-Assembler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Self-Assembler"
+  assert hand A contains "Self-Assembler"
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Self-Assembler search may be declined" {
+  battlefield A: 5 "Plains"
+  hand A: "Self-Assembler"
+  library A: "Grizzly Bears", "Self-Assembler", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Self-Assembler"
+  turn 1 A: decline "Self-Assembler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Self-Assembler"
+  assert hand A count 0
+  assert library A contains "Self-Assembler"
+}
+
+scenario "Self-Assembler cannot find non-Assembly-Worker creatures" {
+  battlefield A: 5 "Plains"
+  hand A: "Self-Assembler"
+  library A: "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Self-Assembler"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Self-Assembler"
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Hill Giant"
+}

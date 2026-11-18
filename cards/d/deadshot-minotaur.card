@@ -1,0 +1,8 @@
+card "Deadshot Minotaur" {
+  oracle_id 3992369a-2158-4cf8-b7e5-be517b91c1f5
+  cost {3}{R}{G}
+  type Creature — Minotaur
+  pt 3/4
+  triggered when this enters: deal 3 damage to target creature with flying
+  cycling {R/G}
+}

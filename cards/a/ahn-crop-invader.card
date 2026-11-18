@@ -1,0 +1,8 @@
+card "Ahn-Crop Invader" {
+  oracle_id d7d163a7-6f3f-40ab-a47c-ed497df92244
+  cost {2}{R}
+  type Creature — Zombie Minotaur Warrior
+  pt 2/2
+  static during your turn, this: has first strike
+  activated {1}, sacrifice other creature: this gets +2/+0
+}

@@ -1,0 +1,6 @@
+card "Ghostform" {
+  oracle_id 8d813b72-8ead-4a61-88ff-e93c8d843196
+  cost {1}{U}
+  type Sorcery
+  spell: up to two target creatures can't be blocked
+}

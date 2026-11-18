@@ -1,0 +1,8 @@
+card "Nef-Crop Entangler" {
+  oracle_id 04dc245b-011f-4207-ab5c-1528037200f5
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords trample
+  exert: this gets +1/+2
+}

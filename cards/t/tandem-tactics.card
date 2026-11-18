@@ -1,0 +1,6 @@
+card "Tandem Tactics" {
+  oracle_id e42cd4da-f049-4304-a16f-911769985e6c
+  cost {1}{W}
+  type Instant
+  spell: up to two target creatures each gets +1/+2; you gains 2 life
+}

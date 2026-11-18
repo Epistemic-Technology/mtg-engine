@@ -1,0 +1,43 @@
+# Manticore: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Tail Spikes destroys a creature an opponent controls that was dealt damage" {
+  battlefield A: "Mountain", 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Manticore"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Manticore"
+  turn 1 A: trigger "Manticore" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Manticore"
+  assert has "Manticore" flying
+}
+
+scenario "Tail Spikes has no legal target when no opposing creature was damaged" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Manticore"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Manticore"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Manticore"
+}
+
+scenario "flash lets Manticore finish a creature damaged in combat on the opponent's turn" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Manticore"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 end A: cast "Manticore"
+  turn 2 end A: trigger "Manticore" targeting "Hill Giant"
+  run_to turn 3
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Manticore"
+}

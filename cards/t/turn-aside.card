@@ -1,0 +1,6 @@
+card "Turn Aside" {
+  oracle_id 4325ae73-af43-4a7d-a552-9909f0dc77db
+  cost {U}
+  type Instant
+  spell: counter target spell that targets a permanent you control
+}

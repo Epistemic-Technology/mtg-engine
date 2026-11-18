@@ -1,0 +1,8 @@
+card "Swiftgear Drake" {
+  oracle_id b7618312-6835-4851-9651-b5402001b3b0
+  cost {5}
+  type Artifact Creature — Drake
+  pt 2/4
+  keywords flying, haste
+  triggered when this enters: put up to one target card from a graveyard on bottom of library
+}

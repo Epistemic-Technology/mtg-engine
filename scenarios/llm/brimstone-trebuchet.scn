@@ -1,0 +1,34 @@
+# Brimstone Trebuchet: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "tap ability deals 1 damage to each opponent" {
+  battlefield A: "Brimstone Trebuchet"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brimstone Trebuchet"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 20
+  assert tapped "Brimstone Trebuchet"
+}
+
+scenario "reach lets it block a flyer" {
+  battlefield A: "Brimstone Trebuchet"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  turn 2 A: block "Wind Drake" with "Brimstone Trebuchet"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert damage "Brimstone Trebuchet" 2
+  assert battlefield A contains "Brimstone Trebuchet"
+  assert damage "Wind Drake" 1
+}
+
+scenario "defender cannot attack" {
+  battlefield A: "Brimstone Trebuchet", "Grizzly Bears"
+  start turn 1 A
+  illegal turn 1 A: attack "Brimstone Trebuchet"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Brimstone Trebuchet"
+}

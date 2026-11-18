@@ -1,0 +1,10 @@
+card "Quiet Disrepair" {
+  oracle_id 311666bf-705b-4f78-a0b3-0d5bf46db205
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant artifact or enchantment
+  triggered at beginning of your upkeep step: choose one {
+    mode: destroy attached
+    mode: you gain 2 life
+  }
+}

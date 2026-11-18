@@ -1,0 +1,40 @@
+# Demonic Gifts: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "demonic gifts gives +2/+0" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Demonic Gifts"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Demonic Gifts" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert graveyard A contains "Demonic Gifts"
+}
+
+scenario "creature that dies returns to the battlefield" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", "Mountain"
+  hand A: "Demonic Gifts", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Demonic Gifts" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "returned creature is a new object and stays dead the second time" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", 2 "Mountain"
+  hand A: "Demonic Gifts", "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Demonic Gifts" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Grizzly Bears"
+  assert graveyard A contains "Grizzly Bears"
+}

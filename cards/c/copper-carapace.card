@@ -1,0 +1,7 @@
+card "Copper Carapace" {
+  oracle_id 8ffbff60-a59d-4f71-864e-3c16cb61e43b
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: +2/+2, has can't block
+  equip {3}
+}

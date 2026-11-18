@@ -1,0 +1,7 @@
+card "Arnjlot's Ascent" {
+  oracle_id f2cedb38-12b0-4489-a62b-9b6a3776d695
+  cost {1}{U}{U}
+  type Enchantment
+  cumulative upkeep {U}
+  activated {1}: target creature gains flying
+}

@@ -1,0 +1,8 @@
+card "Stasis Cell" {
+  oracle_id 8b2ba6f8-1060-4167-9941-3ab7bd4e0ca8
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap during its controller's untap step
+  activated {3}{U}: attach to target creature
+}

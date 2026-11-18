@@ -1,0 +1,7 @@
+card "Shrine Steward" {
+  oracle_id 993a91fa-84ed-4688-9884-e03cbad6c791
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/2
+  triggered when this enters: you may search Aura or Shrine card reveal to hand
+}

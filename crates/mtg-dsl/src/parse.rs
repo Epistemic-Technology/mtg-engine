@@ -120,6 +120,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["cascade"], Keyword::Cascade),
     (&["rebound"], Keyword::Rebound),
     (&["exploit"], Keyword::Exploit),
+    (&["delve"], Keyword::Delve),
     (
         &[
             "doesn't",
@@ -864,6 +865,26 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::EscapesWith(n)))
             }
+            "modular" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Modular(n)))
+            }
+            "cumulative" if self.word_at(1).as_deref() == Some("upkeep") => {
+                self.pos += 2;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::CumulativeUpkeep(c)))
+            }
+            "exert" if self.peek_at(1) == Some(&Tok::Colon) => {
+                self.pos += 1;
+                let effects = self.effects_body()?;
+                if !self.targets.is_empty() {
+                    return self.fail("an exert ability has no targets");
+                }
+                Ok(Ability::Exert(effects))
+            }
             "escape" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                 self.pos += 1;
                 let c = self.mana_cost()?;
@@ -1536,6 +1557,9 @@ impl P {
         if w == "it" || w == "target" || w == "another" {
             return true;
         }
+        if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            return true;
+        }
         if w == "up" && self.word_at(1).as_deref() == Some("to") {
             return true;
         }
@@ -1649,7 +1673,22 @@ impl P {
         }
         if self.at_recipient() {
             let subjects = self.recipients()?;
-            let subject = if subjects.len() == 1 {
+            // "up to two target creatures each get": consecutive targets
+            // as one subject.
+            let group = match subjects.first() {
+                Some(Recipient::Target(a)) if subjects.len() > 1 => subjects
+                    .iter()
+                    .enumerate()
+                    .all(|(k, r)| *r == Recipient::Target(a + k))
+                    .then_some(Recipient::Targets(*a, subjects.len())),
+                _ => None,
+            };
+            if group.is_some() {
+                self.eat_word("each");
+            }
+            let subject = if let Some(g) = group {
+                g
+            } else if subjects.len() == 1 {
                 subjects[0]
             } else {
                 return self.fail("a sentence subject must be one recipient");
@@ -2632,6 +2671,32 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per recipient form
     fn recipient(&mut self) -> R<Recipient> {
+        // "up to 1 target creature", "up to 2 target creatures".
+        if self.at_words(&["up", "to"])
+            && (matches!(self.peek_at(2), Some(Tok::Num(_)))
+                || self
+                    .word_at(2)
+                    .is_some_and(|w| NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())))
+            && self.word_at(3).as_deref() == Some("target")
+        {
+            let g = self.recipient_group()?;
+            return match g.as_slice() {
+                [one] => Ok(*one),
+                [Recipient::Target(a), ..] => Ok(Recipient::Targets(*a, g.len())),
+                _ => self.fail("expected targets"),
+            };
+        }
+        // `targets 1 to 2`: a declared group again.
+        if self.at_word("targets") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let a = self.number()? as usize;
+            self.expect_word("to")?;
+            let b = self.number()? as usize;
+            if a == 0 || b < a || b > self.targets.len() {
+                return self.fail("targets out of range");
+            }
+            return Ok(Recipient::Targets(a - 1, b - a + 1));
+        }
         if self.eat_word("it") {
             if self.in_delayed {
                 return Ok(Recipient::SameObject);
@@ -2784,6 +2849,26 @@ impl P {
         })
     }
 
+    /// `that targets you or a creature you control`, if there.
+    fn spell_targeting(&mut self) -> R<Option<Box<crate::ast::Targeting>>> {
+        if !self.eat_words(&["that", "targets"]) {
+            return Ok(None);
+        }
+        let mut t = crate::ast::Targeting::default();
+        if self.eat_word("you") {
+            t.you = true;
+            if !self.eat_word("or") {
+                return Ok(Some(Box::new(t)));
+            }
+        }
+        if self.eat_words(&["a", "player"]) {
+            t.player = true;
+            return Ok(Some(Box::new(t)));
+        }
+        t.filter = Some(self.filter()?);
+        Ok(Some(Box::new(t)))
+    }
+
     fn target_spec(&mut self) -> R<Target> {
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
@@ -2803,10 +2888,16 @@ impl P {
                     };
                     probe.keyword().is_some()
                 };
+                // "creature, Vehicle, or nonbasic land": a list goes on.
+                let subtype_listed = matches!(self.peek_at(ws.len() + 1), Some(Tok::Word(w))
+                    if w.chars().next().is_some_and(char::is_uppercase))
+                    && (self.peek_at(ws.len() + 2) == Some(&Tok::Comma)
+                        || self.word_at(ws.len() + 2).as_deref() == Some("or"));
                 let comma_type = self.peek_at(ws.len()) == Some(&Tok::Comma)
-                    && self
-                        .word_at(ws.len() + 1)
-                        .is_some_and(|w| card_type(&w).is_some() || w == "or");
+                    && (subtype_listed
+                        || self
+                            .word_at(ws.len() + 1)
+                            .is_some_and(|w| card_type(&w).is_some() || w == "or"));
                 let more = matches!(
                     (next.as_deref(), after.as_deref()),
                     (Some("you"), Some("don't"))
@@ -2830,6 +2921,13 @@ impl P {
                     break;
                 }
                 self.pos += ws.len();
+                // "target spell that targets a creature".
+                if matches!(spec, TargetSpec::Spell) && self.at_words(&["that", "targets"]) {
+                    return Ok(Target::Spell(Filter {
+                        targeting: self.spell_targeting()?,
+                        ..Default::default()
+                    }));
+                }
                 return Ok(Target::Spec(*spec));
             }
         }
@@ -2848,6 +2946,8 @@ impl P {
             self.filter()?
         };
         if self.eat_word("spell") || self.eat_word("spells") {
+            let mut f = f;
+            f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
         if self.at_words(&["card", "from"]) || self.at_words(&["cards", "from"]) {
@@ -2893,6 +2993,29 @@ impl P {
                             && self.word_at(2).as_deref().and_then(card_type).is_some()));
                 if negation {
                     self.pos += 1;
+                    continue;
+                }
+                // "Bear, Spider, or Wolf", "creature, Vehicle, or nonbasic
+                // land": a list of alternatives, each an `or`.
+                let alternatives = !listed_type
+                    && f != Filter::default()
+                    && (next == "or"
+                        || (self.peek_at(2) == Some(&Tok::Comma)
+                            && self.word_at(3).as_deref() == Some("or")));
+                if alternatives {
+                    self.pos += 1;
+                    if next != "or" {
+                        let before = self.pos;
+                        match self.filter() {
+                            Ok(mut alt) if f.or.is_none() => {
+                                crate::format::share_qualifiers(&mut f, &mut alt);
+                                f.or = Some(Box::new(alt));
+                                consumed += self.pos - before;
+                            }
+                            _ => self.pos = before - 1,
+                        }
+                        break;
+                    }
                     continue;
                 }
                 if listed_type {

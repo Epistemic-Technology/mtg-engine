@@ -1,0 +1,37 @@
+# Mortis Dogs: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Mortis Dogs gets +2/+0 when it attacks" {
+  battlefield A: "Mortis Dogs"
+  start turn 2 A
+  turn 2 A: attack "Mortis Dogs"
+  run_to turn 2 combat_damage
+  assert power "Mortis Dogs" 4
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Mortis Dogs dying makes target player lose life equal to its power" {
+  battlefield A: "Mortis Dogs"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Mortis Dogs"
+  turn 2 A: trigger "Mortis Dogs" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Mortis Dogs"
+  assert life B 18
+}
+
+scenario "Mortis Dogs dying in combat uses its pumped power" {
+  battlefield A: "Mortis Dogs"
+  battlefield B: "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Mortis Dogs"
+  turn 2 B: block "Mortis Dogs" with "Hill Giant"
+  turn 2 A: trigger "Mortis Dogs" targeting player B
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Mortis Dogs"
+  assert graveyard B contains "Hill Giant"
+  assert life B 16
+}

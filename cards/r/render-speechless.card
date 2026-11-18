@@ -1,0 +1,9 @@
+card "Render Speechless" {
+  oracle_id 6fdddab4-fcc9-4622-9c17-c69f9d4bca08
+  cost {2}{W}{B}
+  type Sorcery
+  spell {
+    target opponent reveals hand discarding nonland card
+    put 2 +1/+1 counters on up to one target creature
+  }
+}

@@ -1,0 +1,24 @@
+# Quiet Disrepair: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "cannot enchant a creature" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Quiet Disrepair"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main A: cast "Quiet Disrepair" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Quiet Disrepair"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "cannot enchant a land" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Quiet Disrepair"
+  start turn 1 A precombat_main
+  illegal turn 1 precombat_main A: cast "Quiet Disrepair" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Quiet Disrepair"
+  assert battlefield B contains "Mountain"
+}

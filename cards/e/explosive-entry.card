@@ -1,0 +1,6 @@
+card "Explosive Entry" {
+  oracle_id 57544b37-fd5d-4da5-bbb6-7b4a09501dd1
+  cost {1}{R}
+  type Sorcery
+  spell: destroy up to one target artifact; put 1 +1/+1 counters on up to one target creature
+}

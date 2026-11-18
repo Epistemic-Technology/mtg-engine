@@ -1,0 +1,35 @@
+# Halimar Depths: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Halimar Depths enters tapped" {
+  hand A: "Halimar Depths"
+  start turn 1 A precombat_main
+  turn 1 A: play "Halimar Depths"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Halimar Depths"
+  assert tapped "Halimar Depths"
+}
+
+scenario "Halimar Depths enter trigger keeps the cards in the library" {
+  hand A: "Halimar Depths"
+  library A: "Island", "Forest", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Halimar Depths"
+  run_to turn 1 postcombat_main
+  assert stack count 0
+  assert hand A count 0
+  assert library A contains "Island"
+  assert library A contains "Forest"
+  assert library A contains "Mountain"
+  assert library A contains "Plains"
+}
+
+scenario "Halimar Depths taps for blue" {
+  battlefield A: "Halimar Depths", 2 "Mountain"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert tapped "Halimar Depths"
+}

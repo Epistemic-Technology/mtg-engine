@@ -1,0 +1,46 @@
+# Snowmelt Stag: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Snowmelt Stag is 5/2 during its controller's turn" {
+  battlefield A: "Snowmelt Stag"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Snowmelt Stag" 5
+  assert toughness "Snowmelt Stag" 2
+}
+
+scenario "Snowmelt Stag is 2/5 on the opponent's turn and survives blocking Hill Giant" {
+  battlefield A: "Snowmelt Stag"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Snowmelt Stag"
+  run_to turn 2 postcombat_main
+  assert power "Snowmelt Stag" 2
+  assert toughness "Snowmelt Stag" 5
+  assert battlefield A contains "Snowmelt Stag"
+  assert damage "Snowmelt Stag" 3
+  assert damage "Hill Giant" 2
+  assert life A 20
+}
+
+scenario "Snowmelt Stag has vigilance" {
+  battlefield A: "Snowmelt Stag"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Snowmelt Stag"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert untapped "Snowmelt Stag"
+}
+
+scenario "Snowmelt Stag's ability makes it unblockable" {
+  battlefield A: "Snowmelt Stag", 7 "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Snowmelt Stag"
+  turn 1 A: attack "Snowmelt Stag"
+  illegal turn 1 declare_blockers B: block "Snowmelt Stag" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield B contains "Grizzly Bears"
+}

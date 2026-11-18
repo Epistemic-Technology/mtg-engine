@@ -1,0 +1,7 @@
+card "Haunted Cloak" {
+  oracle_id 74fc88d5-19c3-4516-9a06-e9573d659caa
+  cost {3}
+  type Artifact — Equipment
+  static enchanted: has vigilance, trample, haste
+  equip {1}
+}

@@ -1,0 +1,37 @@
+# Groundshaker Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "groundshaker sliver tramples over a blocker" {
+  battlefield A: "Groundshaker Sliver"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Groundshaker Sliver"
+  turn 1 B: block "Groundshaker Sliver" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Groundshaker Sliver" to "Grizzly Bears" 2, player B 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Groundshaker Sliver"
+}
+
+scenario "only slivers gain trample" {
+  battlefield A: "Groundshaker Sliver", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert has "Groundshaker Sliver" trample
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "no excess damage when blocker is pumped" {
+  battlefield A: "Groundshaker Sliver"
+  battlefield B: "Hill Giant", "Forest"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Groundshaker Sliver"
+  turn 1 B: block "Groundshaker Sliver" with "Hill Giant"
+  turn 1 declare_blockers B: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 5
+}

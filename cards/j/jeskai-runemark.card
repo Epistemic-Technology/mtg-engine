@@ -1,0 +1,8 @@
+card "Jeskai Runemark" {
+  oracle_id 5fe13418-c63c-4f3c-9a42-7ab06949e3cd
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has flying as long as you control red or white permanent
+}

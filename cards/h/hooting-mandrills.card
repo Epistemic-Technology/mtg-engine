@@ -1,0 +1,7 @@
+card "Hooting Mandrills" {
+  oracle_id 70e35385-6129-4bd1-861c-df04469566b7
+  cost {5}{G}
+  type Creature — Ape
+  pt 4/4
+  keywords delve, trample
+}

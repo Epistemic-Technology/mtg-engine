@@ -1,0 +1,7 @@
+card "Bile-Vial Boggart" {
+  oracle_id 5a651557-ce08-46ba-aecd-0e4fbfdef3c0
+  cost {B}
+  type Creature — Goblin Assassin
+  pt 1/1
+  triggered when this dies: put 1 -1/-1 counters on up to one target creature
+}

@@ -1,0 +1,8 @@
+card "Mortis Dogs" {
+  oracle_id a89994d0-2110-4ca0-abfc-5dd232981acf
+  cost {3}{B}
+  type Creature — Phyrexian Dog
+  pt 2/2
+  triggered whenever this attacks: this gets +2/+0
+  triggered when this dies: target player loses count equal power life
+}

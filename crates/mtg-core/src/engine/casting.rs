@@ -299,8 +299,7 @@ impl GameState {
         if def.self_cost.is_some() || !changers.is_empty() {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
-        let helped =
-            def.keywords.contains(Keyword::Convoke) || def.keywords.contains(Keyword::Improvise);
+        let helped = Keyword::helps_pay(def.keywords);
         let payable = if helped {
             let mut all = sources.clone();
             all.extend(self.helper_sources(p, def));
@@ -458,6 +457,12 @@ impl GameState {
         let convoke = def.keywords.contains(Keyword::Convoke);
         let improvise = def.keywords.contains(Keyword::Improvise);
         let mut out = Sources::new();
+        // CR 702.66a: each card exiled from the graveyard pays for {1}.
+        if def.keywords.contains(Keyword::Delve) {
+            for id in &self.player(p).graveyard {
+                out.push((*id, Mana::Colorless));
+            }
+        }
         if !convoke && !improvise {
             return out;
         }
@@ -489,7 +494,7 @@ impl GameState {
         let o = &self.objects[spell];
         let mut s = self.mana_sources(o.controller);
         let def = self.pool.get(o.def);
-        if def.keywords.contains(Keyword::Convoke) || def.keywords.contains(Keyword::Improvise) {
+        if Keyword::helps_pay(def.keywords) {
             s.extend(self.helper_sources(o.controller, def));
         }
         s
@@ -1412,6 +1417,16 @@ impl GameState {
         let (plan, req, life) = resolve_payment(sources, &ps.mana_pool, req, ps.life)
             .expect("cast was offered only when payable");
         for (id, mana) in plan {
+            // Delve's cards are exiled; everything else is tapped.
+            if self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Graveyard)
+            {
+                self.move_object(id, Zone::Exile, true);
+                self.player_mut(p).mana_pool.add(mana);
+                continue;
+            }
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
             if self.sacrifices_for_mana(id) {
@@ -1766,6 +1781,15 @@ impl GameState {
                     && let Some(t) = ctx.targets.get(i)
                 {
                     out.push(*t);
+                }
+            }
+            Recipient::Targets(first, count) => {
+                for i in usize::from(first)..usize::from(first) + usize::from(count) {
+                    if ctx.legal.get(i).copied().unwrap_or(false)
+                        && let Some(t) = ctx.targets.get(i)
+                    {
+                        out.push(*t);
+                    }
                 }
             }
             Recipient::ControllerOf(i) | Recipient::OwnerOf(i) => {
@@ -2853,6 +2877,53 @@ impl GameState {
             Effect::Cascade => self.cascade(ctx, None),
             Effect::Discover(n) => self.cascade(ctx, Some(*n)),
             Effect::Exploit => self.exploit(ctx),
+            Effect::MoveSourceCounters { to } => {
+                let n = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.counters(CounterKind::PlusOnePlusOne))
+                    .or_else(|| {
+                        self.lki
+                            .get(&ctx.source)
+                            .map(|l| l.object.counters(CounterKind::PlusOnePlusOne))
+                    })
+                    .unwrap_or(0);
+                if n > 0 {
+                    for t in self.recipients(ctx, *to) {
+                        if let Some(id) = on_battlefield(self, t) {
+                            self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+                        }
+                    }
+                }
+            }
+            Effect::CumulativeUpkeep(cost) => {
+                let Some(id) = self
+                    .current_object(ctx.source)
+                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                else {
+                    return;
+                };
+                self.add_counters(id, CounterKind::Age, 1);
+                let n = self.objects[id].counters(CounterKind::Age);
+                let mut req = ManaRequirement::default();
+                for _ in 0..n {
+                    req.add(&cost.requirements(0));
+                }
+                let p = ctx.controller;
+                let paid = self.payment_plan(p, &req).is_some()
+                    && self.choose_mid(
+                        p,
+                        DecisionKind::YouMay {
+                            def: self.objects[id].def,
+                        },
+                        vec![Choice::Accept, Choice::Decline],
+                    ) == 0;
+                if paid {
+                    self.pay(p, &req);
+                } else {
+                    self.sacrifice(id);
+                }
+            }
             Effect::Adapt(n) => {
                 if let Some(id) = self.current_object(ctx.source)
                     && self.objects[id].zone == Zone::Battlefield

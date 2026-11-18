@@ -1,0 +1,39 @@
+# Stampede Rider: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "gets +1/+1 at beginning of combat with a power 4 creature" {
+  battlefield A: "Stampede Rider", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert power "Stampede Rider" 3
+  assert toughness "Stampede Rider" 4
+}
+
+scenario "no bonus without a power 4 creature" {
+  battlefield A: "Stampede Rider", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 declare_attackers
+  assert power "Stampede Rider" 2
+  assert toughness "Stampede Rider" 3
+}
+
+scenario "triggers on the opponent's combat too" {
+  battlefield A: "Stampede Rider", "Serra Angel"
+  start turn 2 B precombat_main
+  run_to turn 2 declare_attackers
+  assert power "Stampede Rider" 3
+  assert toughness "Stampede Rider" 4
+}
+
+scenario "pumped rider tramples over a blocker" {
+  battlefield A: "Stampede Rider", "Serra Angel"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Stampede Rider"
+  turn 1 B: block "Stampede Rider" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Stampede Rider" to "Grizzly Bears" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Stampede Rider"
+}

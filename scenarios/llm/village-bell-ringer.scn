@@ -1,0 +1,40 @@
+# Village Bell-Ringer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "untapped attackers stay in combat" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Village Bell-Ringer"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Village Bell-Ringer"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Village Bell-Ringer"
+  assert untapped "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "untaps only creatures you control" {
+  battlefield A: "Grizzly Bears" tapped, 3 "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Village Bell-Ringer"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Village Bell-Ringer"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Village Bell-Ringer"
+  assert untapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "flash in as a surprise blocker" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Village Bell-Ringer"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Village Bell-Ringer"
+  turn 2 A: block "Hill Giant" with "Village Bell-Ringer"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Village Bell-Ringer"
+  assert damage "Village Bell-Ringer" 3
+}

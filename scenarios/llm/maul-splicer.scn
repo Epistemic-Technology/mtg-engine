@@ -1,0 +1,39 @@
+# Maul Splicer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Maul Splicer creates two Golems that have trample" {
+  battlefield A: 7 "Forest"
+  hand A: "Maul Splicer"
+  turn 1 A: cast "Maul Splicer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Maul Splicer"
+  assert battlefield A contains 2 "Phyrexian Golem"
+  assert has oldest A "Phyrexian Golem" trample
+  assert has newest A "Phyrexian Golem" trample
+  assert has not "Maul Splicer" trample
+}
+
+scenario "Golem token tramples over a blocker" {
+  battlefield A: 7 "Forest"
+  hand A: "Maul Splicer"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Maul Splicer"
+  turn 3 A: attack "Phyrexian Golem"
+  turn 3 B: block "Phyrexian Golem" with "Grizzly Bears"
+  turn 3 combat_damage A: assign "Phyrexian Golem" to "Grizzly Bears" 2, player B 1
+  run_to turn 3 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Golems lose trample when Maul Splicer leaves" {
+  battlefield A: 7 "Forest", "Mountain"
+  hand A: "Maul Splicer", "Lightning Bolt"
+  turn 1 A: cast "Maul Splicer"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Maul Splicer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Maul Splicer"
+  assert battlefield A contains 2 "Phyrexian Golem"
+  assert has not oldest A "Phyrexian Golem" trample
+}

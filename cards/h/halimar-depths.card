@@ -1,0 +1,7 @@
+card "Halimar Depths" {
+  oracle_id 42d121a2-5266-483a-ab16-e0a8073cd6a3
+  type Land
+  enters tapped
+  triggered when this enters: look at top 3
+  mana {U}
+}

@@ -1,0 +1,45 @@
+# Armor of Shadows: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "armored creature survives lethal burn and gets +1/+0" {
+  battlefield A: "Grizzly Bears", "Swamp", "Mountain"
+  hand A: "Armor of Shadows", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armor of Shadows" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" indestructible
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "armored creature survives Murder" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  hand A: "Armor of Shadows", "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Armor of Shadows" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Murder"
+}
+
+scenario "armored attacker kills its blocker and lives, effect ends at end of turn" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Armor of Shadows"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Armor of Shadows" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" indestructible
+}

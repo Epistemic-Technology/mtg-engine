@@ -1,0 +1,8 @@
+card "Abzan Runemark" {
+  oracle_id 0a9276fc-387c-4bde-a6d6-b0dd7abee94b
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has vigilance as long as you control black or green permanent
+}

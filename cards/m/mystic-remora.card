@@ -1,0 +1,7 @@
+card "Mystic Remora" {
+  oracle_id 8a52f3c0-2552-4425-b2e3-5496eb2232a7
+  cost {U}
+  type Enchantment
+  cumulative upkeep {1}
+  triggered whenever an opponent casts noncreature spell: you may draw 1 cards unless that player pays {4}
+}

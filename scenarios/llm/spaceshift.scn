@@ -1,0 +1,56 @@
+# Spaceshift: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Spaceshift returns own creature with a +1/+1 counter" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Spaceshift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spaceshift" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert graveyard A contains "Spaceshift"
+}
+
+scenario "Spaceshift returns opponent's creature under its owner's control" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Spaceshift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spaceshift" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+  assert counters "Hill Giant" +1/+1 1
+  assert toughness "Hill Giant" 4
+}
+
+scenario "Spaceshift resets damage on the returned creature" {
+  battlefield A: "Hill Giant", "Mountain", 2 "Island"
+  hand A: "Shock", "Spaceshift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Spaceshift" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert power "Hill Giant" 4
+}
+
+scenario "Spaceshift in response to Lightning Bolt saves the creature" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Spaceshift"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: cast "Spaceshift" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Lightning Bolt"
+}

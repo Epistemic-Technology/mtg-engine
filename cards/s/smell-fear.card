@@ -1,0 +1,9 @@
+card "Smell Fear" {
+  oracle_id c9739382-9fe0-4d24-b58e-1e45a88491b6
+  cost {1}{G}
+  type Sorcery
+  spell {
+    proliferate
+    target creature you control fights up to one target creature you don't control
+  }
+}

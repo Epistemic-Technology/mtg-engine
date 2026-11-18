@@ -1,0 +1,7 @@
+card "Fen Stalker" {
+  oracle_id cfd00c0e-d034-4b39-a3d3-f8b8842045dd
+  cost {3}{B}
+  type Creature — Nightstalker
+  pt 3/2
+  static this: has fear as long as you control no untapped land
+}

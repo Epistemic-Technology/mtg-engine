@@ -1,0 +1,8 @@
+card "Tah-Crop Elite" {
+  oracle_id 9af1750e-90cc-446a-9ba2-d44e03c9d01b
+  cost {3}{W}
+  type Creature — Bird Warrior
+  pt 2/2
+  keywords flying
+  exert: each creature you control gets +1/+1
+}

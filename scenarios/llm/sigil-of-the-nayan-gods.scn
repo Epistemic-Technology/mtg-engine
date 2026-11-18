@@ -1,0 +1,38 @@
+# Sigil of the Nayan Gods: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sigil counts the creatures you control, including the enchanted one" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Forest", "Plains"
+  hand A: "Sigil of the Nayan Gods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sigil of the Nayan Gods" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Sigil of the Nayan Gods" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+}
+
+scenario "sigil on an opponent's creature counts your creatures" {
+  battlefield A: "Grizzly Bears", 2 "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Sigil of the Nayan Gods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sigil of the Nayan Gods" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Sigil of the Nayan Gods" to "Hill Giant"
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "bonus shrinks when a creature you control dies" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Mountain", "Sigil of the Nayan Gods" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}

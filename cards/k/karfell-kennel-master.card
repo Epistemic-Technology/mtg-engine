@@ -1,0 +1,7 @@
+card "Karfell Kennel-Master" {
+  oracle_id 2cde1ca7-d126-4d3a-82a6-0acfd7c85cdb
+  cost {4}{B}
+  type Creature — Zombie Berserker
+  pt 4/4
+  triggered when this enters: up to two target creatures each gets +1/+0 and gains indestructible
+}

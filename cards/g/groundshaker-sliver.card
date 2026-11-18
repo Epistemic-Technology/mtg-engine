@@ -1,0 +1,7 @@
+card "Groundshaker Sliver" {
+  oracle_id 106e343f-c6f4-4155-ad01-63e482d4d38e
+  cost {6}{G}
+  type Creature — Sliver
+  pt 5/5
+  static Sliver creature you control: has trample
+}

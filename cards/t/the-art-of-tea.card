@@ -1,0 +1,6 @@
+card "The Art of Tea" {
+  oracle_id 9ed4e48f-91bd-45f9-9f31-a2705b330713
+  cost {1}{G}
+  type Instant — Lesson
+  spell: put 1 +1/+1 counters on up to one target creature you control; create 1 "Food"
+}

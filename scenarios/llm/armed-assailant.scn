@@ -1,0 +1,37 @@
+# Armed Assailant: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "unequipped Armed Assailant is a 1/3 deathtoucher without menace" {
+  battlefield A: "Armed Assailant"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Armed Assailant" 1
+  assert toughness "Armed Assailant" 3
+  assert has "Armed Assailant" deathtouch
+  assert has not "Armed Assailant" menace
+}
+
+scenario "deathtouch kills a larger attacker when blocking" {
+  battlefield A: "Armed Assailant"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Armed Assailant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Armed Assailant"
+}
+
+scenario "unequipped Armed Assailant can be blocked by one creature" {
+  battlefield A: "Armed Assailant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Armed Assailant"
+  turn 1 B: block "Armed Assailant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Armed Assailant"
+  assert damage "Armed Assailant" 2
+}

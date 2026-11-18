@@ -1,0 +1,7 @@
+card "Sultai Scavenger" {
+  oracle_id 837f72a9-9522-46e9-a48c-c6ff6d0bbe67
+  cost {5}{B}
+  type Creature — Bird Warrior
+  pt 3/3
+  keywords delve, flying
+}

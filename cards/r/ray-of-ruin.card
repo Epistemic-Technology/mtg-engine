@@ -1,0 +1,6 @@
+card "Ray of Ruin" {
+  oracle_id e36b78ed-4e3e-406d-85b3-fe0deb493418
+  cost {4}{B}
+  type Sorcery
+  spell: exile target creature, Vehicle, or nonbasic land; scry 1
+}

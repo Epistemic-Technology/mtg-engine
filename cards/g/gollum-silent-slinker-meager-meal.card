@@ -1,0 +1,13 @@
+card "Gollum, Silent Slinker // Meager Meal" {
+  oracle_id 0296d57e-e5b9-456f-bb21-eb584adefb4c
+  layout adventure
+  cost {3}{B}
+  type Legendary Creature — Halfling Horror
+  pt 4/3
+  keywords menace
+  face "Meager Meal" {
+    cost {B}
+    type Sorcery — Adventure
+    spell: put 1 +1/+1 counters on up to one target creature; target player gains 2 life
+  }
+}

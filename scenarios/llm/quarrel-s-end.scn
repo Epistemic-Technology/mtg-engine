@@ -1,0 +1,38 @@
+# Quarrel's End: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "discard a card, draw two" {
+  battlefield A: 3 "Mountain"
+  hand A: "Quarrel's End", "Grizzly Bears"
+  library A: "Hill Giant", "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Quarrel's End" discarding "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Quarrel's End"
+}
+
+scenario "cannot be cast without a card to discard" {
+  battlefield A: 3 "Mountain"
+  hand A: "Quarrel's End"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Quarrel's End"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Quarrel's End"
+  assert hand A count 1
+}
+
+scenario "sorcery speed only" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Quarrel's End", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 declare_attackers A: cast "Quarrel's End"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Quarrel's End"
+  assert life A 18
+}

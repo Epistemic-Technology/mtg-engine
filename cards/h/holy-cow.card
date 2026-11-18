@@ -1,0 +1,8 @@
+card "Holy Cow" {
+  oracle_id 748003fd-84c5-4c99-b146-d7d382eef64d
+  cost {2}{W}
+  type Creature — Ox Angel
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: you gain 2 life and scry 1
+}

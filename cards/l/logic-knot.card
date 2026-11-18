@@ -1,0 +1,7 @@
+card "Logic Knot" {
+  oracle_id b2da7acb-d80c-414c-9f7d-753a5d6ccad9
+  cost {X}{U}{U}
+  type Instant
+  keywords delve
+  spell: counter target spell unless its controller pays {X}
+}

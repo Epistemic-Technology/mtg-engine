@@ -1,0 +1,33 @@
+# Thicket Crasher: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Thicket Crasher tramples over a smaller blocker" {
+  battlefield A: "Thicket Crasher"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Thicket Crasher"
+  turn 1 B: block "Thicket Crasher" with "Grizzly Bears"
+  turn 1 A: assign "Thicket Crasher" to "Grizzly Bears" 2, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Thicket Crasher"
+}
+
+scenario "non-Elementals do not gain trample" {
+  battlefield A: "Thicket Crasher", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has "Thicket Crasher" trample
+  assert has not "Grizzly Bears" trample
+}
+
+scenario "two Crashers both have trample" {
+  battlefield A: 2 "Thicket Crasher"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has oldest A "Thicket Crasher" trample
+  assert has newest A "Thicket Crasher" trample
+  assert has not "Hill Giant" trample
+}

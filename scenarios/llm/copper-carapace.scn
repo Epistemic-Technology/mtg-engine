@@ -1,0 +1,33 @@
+# Copper Carapace: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "equip gives +2/+2" {
+  battlefield A: "Grizzly Bears", "Copper Carapace", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Copper Carapace" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Copper Carapace" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "equipped creature can't block" {
+  battlefield A: "Grizzly Bears", "Copper Carapace", 3 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Copper Carapace" targeting "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "equipped creature attacks for more" {
+  battlefield A: "Grizzly Bears", "Copper Carapace", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Copper Carapace" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

@@ -1,0 +1,41 @@
+# Sensor Splicer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters and creates a 3/3 Golem token with vigilance" {
+  battlefield A: 5 "Plains"
+  hand A: "Sensor Splicer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sensor Splicer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sensor Splicer"
+  assert battlefield A contains "Phyrexian Golem"
+  assert power "Phyrexian Golem" 3
+  assert toughness "Phyrexian Golem" 3
+  assert has "Phyrexian Golem" vigilance
+  assert has not "Sensor Splicer" vigilance
+}
+
+scenario "Golem attacks without tapping" {
+  battlefield A: 5 "Plains"
+  hand A: "Sensor Splicer"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sensor Splicer"
+  turn 3 A: attack "Phyrexian Golem"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert untapped "Phyrexian Golem"
+}
+
+scenario "Golem loses vigilance when the Splicer dies" {
+  battlefield A: 5 "Plains"
+  hand A: "Sensor Splicer"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sensor Splicer"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Sensor Splicer"
+  run_to turn 1 end
+  assert graveyard A contains "Sensor Splicer"
+  assert battlefield A contains "Phyrexian Golem"
+  assert has not "Phyrexian Golem" vigilance
+}

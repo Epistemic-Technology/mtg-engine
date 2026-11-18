@@ -1,0 +1,8 @@
+card "Khenra Scrapper" {
+  oracle_id 6ab8958b-10a2-4601-a609-7a372a47f36c
+  cost {2}{R}
+  type Creature — Jackal Warrior
+  pt 2/3
+  keywords menace
+  exert: this gets +2/+0
+}

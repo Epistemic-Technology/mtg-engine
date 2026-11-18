@@ -1,0 +1,40 @@
+# Djeru's Resolve: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Djeru's Resolve untaps target creature" {
+  battlefield A: "Grizzly Bears" tapped, "Plains"
+  hand A: "Djeru's Resolve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Djeru's Resolve" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Djeru's Resolve"
+}
+
+scenario "Djeru's Resolve prevents damage from Lightning Bolt" {
+  battlefield A: "Grizzly Bears", "Plains", "Mountain"
+  hand A: "Djeru's Resolve", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Djeru's Resolve" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "untapped attacker stays in combat and takes no damage" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Djeru's Resolve"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  turn 2 declare_blockers A: cast "Djeru's Resolve" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert life B 20
+}

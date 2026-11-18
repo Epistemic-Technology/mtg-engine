@@ -1,0 +1,8 @@
+card "Arcbound Stinger" {
+  oracle_id 7e6e2c37-3a06-456a-ae0f-37b7dc1a3e2b
+  cost {2}
+  type Artifact Creature — Insect
+  pt 0/0
+  keywords flying
+  modular 1
+}

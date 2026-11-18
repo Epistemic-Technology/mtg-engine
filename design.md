@@ -2527,3 +2527,12 @@ moved out of `GameState` into a box. Corpus 7,906 cards: 5,886 Pauper
 (54.1%), 5,988 Modern (26.4%); 2,174 scenarios pass (7 new in
 scenarios/m5/slice20.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
 throughput 0.5% above slice 19, 2.1% below the perf pass.
+
+Status 2026-11-18, slice 21 done: delve (graveyard cards as payment
+helpers, exiled when used), modular, cumulative upkeep, exert (an
+attack trigger), "target spell that targets ...", groups of targets as
+one subject ("up to two target creatures each get"), and comma lists of
+alternatives in filters; model-author batch 8 (56 of 500; batches end at
+about $93 of the $100). Corpus 8,025 cards: 6,005 Pauper (55.2%), 6,092
+Modern (26.8%); 2,362 scenarios pass, 1 skipped; fuzz 0 panics, 0
+unfinished; throughput 0.5% below slice 20, 2.4% below the perf pass.

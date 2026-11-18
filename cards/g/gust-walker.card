@@ -1,0 +1,7 @@
+card "Gust Walker" {
+  oracle_id 48bf69ec-0030-44ee-9fbd-6c204b64da7d
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  exert: this gets +1/+1 and gains flying
+}

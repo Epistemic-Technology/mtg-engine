@@ -1,0 +1,8 @@
+card "Temur Runemark" {
+  oracle_id 590c2455-90f7-4ff6-a6cf-5d0d25575cda
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has trample as long as you control blue or red permanent
+}

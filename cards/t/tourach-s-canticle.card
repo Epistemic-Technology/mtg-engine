@@ -1,0 +1,6 @@
+card "Tourach's Canticle" {
+  oracle_id 738d2be9-c40b-4a9b-95ed-18d659080918
+  cost {3}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding card then discards 1 card at random
+}

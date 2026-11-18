@@ -1,0 +1,6 @@
+card "Seismic Shift" {
+  oracle_id b81894bc-d5ca-44ee-b837-bdb8fec32881
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target land; up to two target creatures can't block
+}

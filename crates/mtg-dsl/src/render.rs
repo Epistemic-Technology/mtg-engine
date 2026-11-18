@@ -511,6 +511,25 @@ impl<'a> Ctx<'a> {
         }
     }
 
+    /// "target spell that targets a creature".
+    fn spell_target_phrase(&self, spell: &Filter) -> String {
+        let mut base_filter = spell.clone();
+        let targeting = base_filter.targeting.take();
+        let base = card_filter_phrase(&base_filter, self.card);
+        let mut out = if base.is_empty() {
+            "target spell".to_string()
+        } else {
+            format!("target {base} spell")
+        };
+        if let Some(what) = targeting {
+            out.push_str(" that targets ");
+            out.push_str(&crate::format::targeting(&what, |g| {
+                filter_phrase(g, self.card, false)
+            }));
+        }
+        out
+    }
+
     fn target_phrase_of(&self, i: usize) -> String {
         match self.targets[i].base() {
             Target::UpTo(_) => unreachable!("base"),
@@ -522,7 +541,7 @@ impl<'a> Ctx<'a> {
                 format!("another target {}", filter_phrase(&g, self.card, false))
             }
             Target::Filter(f) => format!("target {}", filter_phrase(f, self.card, false)),
-            Target::Spell(f) => format!("target {} spell", card_filter_phrase(f, self.card)),
+            Target::Spell(f) => self.spell_target_phrase(f),
             Target::GraveyardCard { filter, who } => {
                 let whose = match who {
                     Who::You => "your",
@@ -551,6 +570,14 @@ impl<'a> Ctx<'a> {
     /// A recipient as the object of a verb.
     fn obj(&mut self, r: Recipient) -> String {
         match r {
+            Recipient::Targets(a, n) => {
+                if self.target_mentioned[a] {
+                    "them".to_string()
+                } else {
+                    let rs: Vec<Recipient> = (a..a + n).map(Recipient::Target).collect();
+                    self.obj_list(&rs, false)
+                }
+            }
             Recipient::Target(i) => {
                 if self.target_mentioned[i] {
                     "it".to_string()
@@ -611,6 +638,14 @@ impl<'a> Ctx<'a> {
     /// A recipient as the subject of a sentence.
     fn subj(&mut self, r: Recipient) -> String {
         match r {
+            Recipient::Targets(a, n) => {
+                if self.target_mentioned[a] {
+                    "they".to_string()
+                } else {
+                    let rs: Vec<Recipient> = (a..a + n).map(Recipient::Target).collect();
+                    self.obj_list(&rs, false)
+                }
+            }
             Recipient::Target(i) | Recipient::ThatTarget(i) => {
                 if self.target_mentioned[i] {
                     "it".to_string()
@@ -741,6 +776,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::EachCreatureYouControl
                 | Recipient::EachPermanentYouControl
                 | Recipient::Group(_)
+                | Recipient::Targets(..)
         )
     }
 
@@ -881,12 +917,24 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             filter_phrase_one(&rest, card, plural_form)
         );
     }
-    let (b, a) = crate::format::factor_qualifiers(&base, alt);
-    format!(
-        "{} or {}",
-        filter_phrase_one(&b, card, plural_form),
-        filter_phrase(&a, card, plural_form)
-    )
+    // A chain of three or more prints as a list: "Bear, Spider, or Wolf".
+    let mut sides = Vec::new();
+    let mut cur = f.clone();
+    loop {
+        let Some(next) = cur.or.clone() else {
+            sides.push(filter_phrase_one(&cur, card, plural_form));
+            break;
+        };
+        let (b, a) = crate::format::factor_qualifiers(&cur, &next);
+        sides.push(filter_phrase_one(&b, card, plural_form));
+        cur = a;
+    }
+    if sides.len() == 2 {
+        format!("{} or {}", sides[0], sides[1])
+    } else {
+        let last = sides.pop().expect("three or more");
+        format!("{}, or {last}", sides.join(", "))
+    }
 }
 
 #[allow(clippy::too_many_lines)] // one clause per qualifier
@@ -1456,11 +1504,17 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
         } => {
             let s = ctx.subj(*to);
+            // "Up to two target creatures each get +1/+0".
+            let each = if matches!(to, Recipient::Targets(..)) {
+                "each "
+            } else {
+                ""
+            };
             Clause::with_subject(
                 *to,
                 s,
                 format!(
-                    "{} {}",
+                    "{each}{} {}",
                     ctx.verb(*to, "gets", "get"),
                     pt_mod(*power, *toughness)
                 ),
@@ -1496,6 +1550,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
+        Effect::MoveSourceCounters { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("put its +1/+1 counters on {o}"))
+        }
+        Effect::CumulativeUpkeep(c) => Clause::imperative(format!(
+            "put an age counter on this permanent, then sacrifice it unless you pay {c} for each age counter on it"
+        )),
         Effect::Connive { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
@@ -3018,6 +3079,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 format!("Enchant {}", filter_phrase(f, card, false))
             }
         },
+        Ability::Exert(effects) => {
+            let mut ctx = Ctx::new(card, lookup, &[]);
+            ctx.current = Some(a);
+            ctx.source_mentioned = true;
+            format!(
+                "You may exert this {} as it attacks. When you do, {}",
+                self_noun(card),
+                lowercase_first(&sentences(effects, &mut ctx))
+            )
+        }
         Ability::Spell { targets, effects } => {
             let mut ctx = Ctx::new(card, lookup, targets);
             ctx.current = Some(a);
@@ -3176,6 +3247,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
+            crate::ast::Mechanic::Modular(n) => format!("Modular {n}"),
+            crate::ast::Mechanic::CumulativeUpkeep(c) => format!("Cumulative upkeep {c}"),
             crate::ast::Mechanic::Escape(c, n) => format!(
                 "Escape\u{2014}{c}, Exile {} other cards from your graveyard.",
                 count_words(Num::N(*n), "a")

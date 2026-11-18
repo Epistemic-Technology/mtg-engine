@@ -1,0 +1,8 @@
+card "Arcbound Hybrid" {
+  oracle_id 4bd7b380-ed4b-46a1-8211-1c4b651a52c6
+  cost {4}
+  type Artifact Creature — Beast
+  pt 0/0
+  keywords haste
+  modular 2
+}

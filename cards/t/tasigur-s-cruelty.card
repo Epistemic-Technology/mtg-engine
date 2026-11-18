@@ -1,0 +1,7 @@
+card "Tasigur's Cruelty" {
+  oracle_id a232daf3-db54-4711-88b0-e5072c05f58e
+  cost {5}{B}
+  type Sorcery
+  keywords delve
+  spell: each opponent discards 2 cards
+}

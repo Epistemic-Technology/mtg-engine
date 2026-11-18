@@ -1,0 +1,34 @@
+# Stasis Cell: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature doesn't untap" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Stasis Cell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stasis Cell" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert attached "Stasis Cell" to "Hill Giant"
+  assert tapped "Hill Giant"
+}
+
+scenario "activated ability moves the aura and frees the old creature" {
+  battlefield A: "Grizzly Bears" tapped, "Hill Giant", "Stasis Cell" on "Grizzly Bears", 4 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stasis Cell" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Stasis Cell" to "Hill Giant"
+  run_to turn 3 precombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "creature without the aura untaps normally" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant" tapped, "Grizzly Bears" tapped
+  hand A: "Stasis Cell"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stasis Cell" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}

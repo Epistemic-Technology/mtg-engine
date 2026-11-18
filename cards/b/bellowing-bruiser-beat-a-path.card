@@ -1,0 +1,13 @@
+card "Bellowing Bruiser // Beat a Path" {
+  oracle_id cdb84830-faf2-4beb-8d57-ad696d75876b
+  layout adventure
+  cost {4}{R}
+  type Creature — Ogre
+  pt 4/4
+  keywords haste
+  face "Beat a Path" {
+    cost {2}{R}
+    type Sorcery — Adventure
+    spell: up to two target creatures can't block
+  }
+}

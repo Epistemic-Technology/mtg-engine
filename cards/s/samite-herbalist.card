@@ -1,0 +1,7 @@
+card "Samite Herbalist" {
+  oracle_id af753429-c121-4957-b768-8bed43dc06cb
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  triggered whenever this becomes tapped: you gain 1 life and scry 1
+}

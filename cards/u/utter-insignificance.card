@@ -1,0 +1,9 @@
+card "Utter Insignificance" {
+  oracle_id 44074791-da32-498b-879f-22192b94a9b0
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: loses all abilities, base 1/1
+  activated {2}{C}: exile enchanted creature
+}

@@ -1,0 +1,8 @@
+card "Ember Weaver" {
+  oracle_id c92221f7-76e8-483a-9d68-b19ff4d0baaf
+  cost {2}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach
+  static as long as you control red permanent, this: +1/+0, has first strike
+}

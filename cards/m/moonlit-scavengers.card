@@ -1,0 +1,7 @@
+card "Moonlit Scavengers" {
+  oracle_id 8403ea46-e6ac-458c-9c17-4c8a81f21659
+  cost {5}{U}
+  type Creature — Merfolk Rogue
+  pt 4/5
+  triggered when this enters if you control artifact or enchantment: return target creature an opponent controls to hand
+}

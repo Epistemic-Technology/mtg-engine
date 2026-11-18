@@ -1,0 +1,7 @@
+card "Burning Sun's Fury" {
+  oracle_id 9c0073d7-a12a-45ba-8ac3-9e2230e2fb06
+  cost {1}{R}
+  type Instant
+  keywords convoke
+  spell: up to two target creatures each gets +2/+0 and gains haste
+}

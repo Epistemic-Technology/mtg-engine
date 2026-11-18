@@ -1,0 +1,45 @@
+# Drown in Sorrow: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "all creatures get -2/-2, small ones die" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel", "Grizzly Bears"
+  hand A: "Drown in Sorrow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drown in Sorrow"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Drown in Sorrow"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert power "Serra Angel" 2
+  assert toughness "Serra Angel" 2
+}
+
+scenario "the -2/-2 wears off at end of turn" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Drown in Sorrow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drown in Sorrow"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+}
+
+scenario "Giant Growth in response saves a creature" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand A: "Drown in Sorrow"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drown in Sorrow"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Drown in Sorrow"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}

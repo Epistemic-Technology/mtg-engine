@@ -1,0 +1,39 @@
+# Deadshot Minotaur: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters trigger kills an opposing flier" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Deadshot Minotaur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadshot Minotaur"
+  turn 1 A: trigger "Deadshot Minotaur" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Deadshot Minotaur"
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "only fliers can be targeted; a big flier survives" {
+  battlefield A: 3 "Mountain", 2 "Forest"
+  battlefield B: "Serra Angel", "Hill Giant"
+  hand A: "Deadshot Minotaur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadshot Minotaur"
+  turn 1 A: trigger "Deadshot Minotaur" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+  assert damage "Hill Giant" 0
+}
+
+scenario "mandatory trigger must hit your own flier" {
+  battlefield A: 3 "Mountain", 2 "Forest", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  hand A: "Deadshot Minotaur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadshot Minotaur"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}

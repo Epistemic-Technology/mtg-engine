@@ -207,6 +207,9 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Escape(cost, n)) => {
                     b = b.escape(cost.clone(), *n);
                 }
+                Ability::Mechanic(Mechanic::Modular(n)) => {
+                    b = b.modular(*n);
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -344,6 +347,13 @@ impl Compiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
+            targeting: f.targeting.as_ref().map(|t| {
+                Box::new(mtg_core::card::SpellTargets {
+                    you: t.you,
+                    player: t.player,
+                    filter: t.filter.as_ref().map(|g| self.filter(g)),
+                })
+            }),
         }
     }
 
@@ -494,6 +504,10 @@ impl Compiler<'_> {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
+            Recipient::Targets(a, n) => CoreRecipient::Targets(
+                u8::try_from(a).unwrap_or(u8::MAX),
+                u8::try_from(n).unwrap_or(u8::MAX),
+            ),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent => CoreRecipient::EachOpponent,
             Recipient::Source => CoreRecipient::Source,
@@ -815,6 +829,10 @@ impl Compiler<'_> {
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
             Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
+            Effect::MoveSourceCounters { to } => {
+                out.push(CoreEffect::MoveSourceCounters { to: r(*to) });
+            }
+            Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
             Effect::Dig {
@@ -1117,6 +1135,20 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
             }),
             Ability::Replacement(r) => AbilityDef::Replacement(self.replacement(r)?),
+            // CR 701.43: modeled as an attack trigger: exerting is "it
+            // doesn't untap during your next untap step".
+            Ability::Exert(effects) => {
+                let mut inner = vec![Sentence::new(vec![crate::ast::Effect::SkipNextUntap {
+                    to: Recipient::Source,
+                }])];
+                inner.extend(effects.iter().cloned());
+                return self.ability(&Ability::Triggered {
+                    trigger: Trigger::Attacks(TriggerObj::This),
+                    condition: None,
+                    targets: Vec::new(),
+                    effects: vec![Sentence::new(vec![crate::ast::Effect::YouMay(inner)])],
+                });
+            }
             Ability::Static {
                 filter,
                 mods,
@@ -1249,6 +1281,33 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                 amount: Num::N(*n),
                 who: Recipient::DefendingPlayer,
             }),
+        },
+        // CR 702.43a: "When this dies, you may put its +1/+1 counters on
+        // target artifact creature." (The counters it enters with are the
+        // card's `modular`.)
+        Mechanic::Modular(_) => Ability::Triggered {
+            trigger: Trigger::Dies(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::Filter(Filter {
+                types: vec![
+                    mtg_core::card::CardType::Artifact,
+                    mtg_core::card::CardType::Creature,
+                ],
+                ..Default::default()
+            })],
+            effects: one(E::YouMay(one(E::MoveSourceCounters {
+                to: Recipient::Target(0),
+            }))),
+        },
+        // CR 702.24a.
+        Mechanic::CumulativeUpkeep(cost) => Ability::Triggered {
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::You,
+            },
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::CumulativeUpkeep(cost.clone())),
         },
         Mechanic::Soulshift(n) => Ability::Triggered {
             trigger: Trigger::Dies(TriggerObj::This),

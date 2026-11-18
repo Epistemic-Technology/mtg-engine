@@ -1,0 +1,6 @@
+card "Drown in Sorrow" {
+  oracle_id 5c93ec85-f87f-4121-9fbf-61fd598d1e65
+  cost {1}{B}{B}
+  type Sorcery
+  spell: each creature gets -2/-2; scry 1
+}

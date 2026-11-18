@@ -1,0 +1,6 @@
+card "Nahiri's Stoneblades" {
+  oracle_id 769774f9-1d8d-406f-8b0c-2d6713e7ab3e
+  cost {1}{R}
+  type Instant
+  spell: up to two target creatures each gets +2/+0
+}

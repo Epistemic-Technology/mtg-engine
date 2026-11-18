@@ -1,0 +1,7 @@
+card "Awaken the Inferno" {
+  oracle_id e729fce5-a1cf-4e95-9fd5-fccf4f704d31
+  cost {4}{R}
+  type Sorcery
+  spell: deal 6 damage to target creature or planeswalker an opponent controls; put 1 +1/+1 counters on up to one target creature you control
+  basic landcycling {2}
+}

@@ -1,0 +1,114 @@
+# M5 slice 21: delve, modular, cumulative upkeep, exert.
+
+scenario "delve: Gurmag Angler for {B}, exiling six graveyard cards" {
+  battlefield A: "Swamp"
+  graveyard A: 6 "Island"
+  hand A: "Gurmag Angler"
+  turn 1 A: cast "Gurmag Angler"
+  run_to turn 1 end
+  assert battlefield A contains "Gurmag Angler"
+  assert graveyard A count 0
+}
+
+scenario "delve: not enough cards to exile" {
+  battlefield A: "Swamp"
+  graveyard A: 5 "Island"
+  hand A: "Gurmag Angler"
+  illegal turn 1 A: cast "Gurmag Angler"
+  run_to turn 1 end
+  assert hand A contains "Gurmag Angler"
+}
+
+scenario "modular: Arcbound Worker's counter moves to another artifact creature" {
+  battlefield A: 2 "Mountain", "Ornithopter"
+  hand A: "Shock", "Arcbound Worker"
+  turn 1 A: cast "Arcbound Worker"
+  turn 1 postcombat_main A: cast "Shock" targeting "Arcbound Worker"
+  turn 1 postcombat_main A: trigger "Arcbound Worker" targeting "Ornithopter"
+  run_to turn 1 end
+  assert power "Ornithopter" 1
+}
+
+scenario "cumulative upkeep: paid twice, then the sacrifice" {
+  battlefield A: "Uktabi Efreet", 2 "Forest"
+  library A: 5 "Forest"
+  library B: 5 "Island"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Uktabi Efreet"
+  run_to turn 5 precombat_main
+  assert graveyard A contains "Uktabi Efreet"
+}
+
+scenario "exert: Hooded Brawler hits for 5 and stays tapped" {
+  battlefield A: "Hooded Brawler"
+  library A: 5 "Forest"
+  library B: 5 "Island"
+  turn 1 A: attack "Hooded Brawler"
+  run_to turn 1 end
+  assert life B 15
+  run_to turn 3 precombat_main
+  assert tapped "Hooded Brawler"
+}
+
+scenario "spell that targets: Intervene counters a Shock at a creature" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Intervene"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: cast "Intervene" targeting "Shock" in response to "Shock"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}
+
+scenario "spell that targets: not a Shock at a player" {
+  battlefield A: "Island"
+  battlefield B: "Mountain"
+  hand A: "Intervene"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  illegal turn 1 A: cast "Intervene" targeting "Shock" in response to "Shock"
+  run_to turn 1 end
+  assert life A 18
+}
+
+scenario "spell that targets: Hindering Light counters a spell at you" {
+  battlefield A: "Island", "Plains"
+  battlefield B: "Mountain"
+  hand A: "Hindering Light"
+  hand B: "Shock"
+  library A: 3 "Island"
+  turn 1 B: cast "Shock" targeting player A
+  turn 1 A: cast "Hindering Light" targeting "Shock" in response to "Shock"
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "up to two targets: Nahiri's Stoneblades pumps both" {
+  battlefield A: 2 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Nahiri's Stoneblades"
+  turn 1 A: cast "Nahiri's Stoneblades" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+}
+
+scenario "up to two targets: one is enough" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  hand A: "Nahiri's Stoneblades"
+  turn 1 A: cast "Nahiri's Stoneblades" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "up to three targets: Panic Attack stops blockers" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Gray Ogre"
+  hand A: "Panic Attack"
+  turn 1 A: cast "Panic Attack" targeting "Hill Giant", "Gray Ogre"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 18
+}

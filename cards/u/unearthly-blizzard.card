@@ -1,0 +1,6 @@
+card "Unearthly Blizzard" {
+  oracle_id 3066802a-35d0-4e07-99e2-b495398d88b6
+  cost {2}{R}
+  type Sorcery — Arcane
+  spell: up to three target creatures can't block
+}

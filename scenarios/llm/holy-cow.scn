@@ -1,0 +1,33 @@
+# Holy Cow: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Holy Cow enters and gains 2 life" {
+  battlefield A: 3 "Plains"
+  hand A: "Holy Cow"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Holy Cow"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Holy Cow"
+  assert life A 22
+}
+
+scenario "Holy Cow can be cast with flash on the opponent's turn" {
+  battlefield A: 3 "Plains"
+  hand A: "Holy Cow"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Holy Cow"
+  run_to turn 3 upkeep
+  assert battlefield A contains "Holy Cow"
+  assert life A 22
+}
+
+scenario "Holy Cow has flying and can't be blocked by ground creatures" {
+  battlefield A: "Holy Cow"
+  battlefield B: "Grizzly Bears"
+  start turn 3 A precombat_main
+  turn 3 A: attack "Holy Cow"
+  illegal turn 3 B: block "Holy Cow" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert has "Holy Cow" flying
+  assert life B 18
+}

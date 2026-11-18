@@ -1,0 +1,9 @@
+card "Hindering Light" {
+  oracle_id 945ac15c-780b-44a9-8a8e-011cf1c30876
+  cost {W}{U}
+  type Instant
+  spell {
+    counter target spell that targets you or a permanent you control
+    draw 1 cards
+  }
+}

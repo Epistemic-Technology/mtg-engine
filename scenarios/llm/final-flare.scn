@@ -1,0 +1,40 @@
+# Final Flare: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Final Flare sacrifices a creature and deals 5 damage to target creature" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Final Flare"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Flare" sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Final Flare"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A contains 3 "Mountain"
+}
+
+scenario "Final Flare cannot be cast without a creature or enchantment to sacrifice" {
+  battlefield A: 3 "Mountain"
+  hand A: "Final Flare"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Final Flare" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Final Flare"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Final Flare's 5 damage does not kill a pumped 7/7" {
+  battlefield A: 3 "Mountain", "Hill Giant"
+  hand A: "Final Flare"
+  battlefield B: "Forest", "Serra Angel"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Flare" sacrificing "Hill Giant" targeting "Serra Angel"
+  turn 1 B: cast "Giant Growth" targeting "Serra Angel" in response to "Final Flare"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 5
+}

@@ -1,0 +1,36 @@
+# Maze Abomination: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "deathtouch kills a pumped attacker larger than its power" {
+  battlefield A: "Maze Abomination"
+  battlefield B: "Hill Giant", "Forest"
+  hand B: "Giant Growth"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Maze Abomination"
+  turn 2 declare_blockers B: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Maze Abomination"
+  assert life A 20
+}
+
+scenario "monocolored creatures do not gain deathtouch" {
+  battlefield A: "Maze Abomination", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert has "Maze Abomination" deathtouch
+  assert has not "Grizzly Bears" deathtouch
+}
+
+scenario "deathtouch blocker kills a larger attacker without dying" {
+  battlefield A: "Maze Abomination"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Maze Abomination"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Maze Abomination"
+  assert damage "Maze Abomination" 3
+}

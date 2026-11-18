@@ -1,0 +1,6 @@
+card "Outwit" {
+  oracle_id eac02e36-15c8-4b6d-b9b4-da549a722336
+  cost {U}
+  type Instant
+  spell: counter target spell that targets a player
+}

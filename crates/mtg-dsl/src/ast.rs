@@ -198,6 +198,14 @@ pub enum SacCost {
     Filter(Filter),
 }
 
+/// What a spell targets ("that targets you or a creature").
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
+pub struct Targeting {
+    pub you: bool,
+    pub player: bool,
+    pub filter: Option<Filter>,
+}
+
 /// Which objects something applies to; see `mtg_core::card::ObjFilter`.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 #[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
@@ -242,6 +250,8 @@ pub struct Filter {
     pub damaged: bool,
     /// `creature or Vehicle`: an alternative filter.
     pub or: Option<Box<Filter>>,
+    /// `that targets you or a permanent you control` (spells).
+    pub targeting: Option<Box<Targeting>>,
 }
 
 impl Filter {
@@ -375,6 +385,9 @@ pub enum Ability {
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
+    /// `exert: effects`: "You may exert this creature as it attacks. When
+    /// you do, [effects]." (CR 701.43).
+    Exert(Vec<Sentence>),
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
@@ -455,6 +468,10 @@ pub enum Mechanic {
     Escape(ManaCost, u32),
     /// `escapes with 2 +1/+1 counters`.
     EscapesWith(u32),
+    /// CR 702.43: `modular 2`.
+    Modular(u32),
+    /// CR 702.24: `cumulative upkeep {1}`.
+    CumulativeUpkeep(ManaCost),
     /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt
     /// damage this turn.
     Bloodthirst(u32),
@@ -744,6 +761,9 @@ pub enum Recipient {
     /// The `n`th target (0-based), declared by its first mention; printed
     /// as "it" after that.
     Target(usize),
+    /// Targets `first..first + count` as one subject ("up to two target
+    /// creatures each get +1/+0").
+    Targets(usize, usize),
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),
@@ -1023,6 +1043,12 @@ pub enum Effect {
     Adapt(u32),
     /// `discover 4` (CR 701.57).
     Discover(u32),
+    /// Modular's "put its +1/+1 counters on [recipient]" (internal).
+    MoveSourceCounters {
+        to: Recipient,
+    },
+    /// Cumulative upkeep's payment (internal).
+    CumulativeUpkeep(ManaCost),
     /// `this connives` (CR 701.50).
     Connive {
         what: Recipient,

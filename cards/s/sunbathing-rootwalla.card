@@ -1,0 +1,7 @@
+card "Sunbathing Rootwalla" {
+  oracle_id c47ae79c-4e07-47f2-8920-2ab62b471e4f
+  cost {1}{G}
+  type Creature — Lizard
+  pt 2/2
+  label "Domain" activated {3}{G}, once: until end of turn, this gets +1/+1 count each domain
+}

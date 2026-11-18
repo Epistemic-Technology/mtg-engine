@@ -1,0 +1,10 @@
+card "Dawn Charm" {
+  oracle_id a8f5cfa7-4956-4182-8e44-acf3493239f0
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: prevent all combat damage this turn
+    mode: regenerate target creature
+    mode: counter target spell that targets you
+  }
+}

@@ -1,0 +1,6 @@
+card "Armor of Shadows" {
+  oracle_id 64de050c-7167-4ebd-8584-f064d8be3302
+  cost {B}
+  type Instant
+  spell: until end of turn, target creature gets +1/+0 and target 1 gains indestructible
+}

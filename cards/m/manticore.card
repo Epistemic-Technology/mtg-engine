@@ -1,0 +1,8 @@
+card "Manticore" {
+  oracle_id fe35b55e-52ae-428e-b27e-817ee78b5d8c
+  cost {3}{B}
+  type Creature — Manticore
+  pt 2/1
+  keywords flash, flying
+  label "Tail Spikes" triggered whenever this enters: destroy target damaged creature an opponent controls
+}

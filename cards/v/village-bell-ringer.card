@@ -1,0 +1,8 @@
+card "Village Bell-Ringer" {
+  oracle_id d7b50175-b473-452a-bb30-19a71c42e649
+  cost {2}{W}
+  type Creature — Human Scout
+  pt 1/4
+  keywords flash
+  triggered whenever this enters: untap all creature you control
+}

@@ -1,0 +1,28 @@
+# Slumbering Keepguard: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pump with no enchantments gives nothing" {
+  battlefield A: "Slumbering Keepguard", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slumbering Keepguard"
+  run_to turn 1 postcombat_main
+  assert power "Slumbering Keepguard" 1
+  assert toughness "Slumbering Keepguard" 1
+  assert battlefield A contains "Slumbering Keepguard"
+}
+
+scenario "pump needs three mana" {
+  battlefield A: "Slumbering Keepguard", 2 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Slumbering Keepguard"
+  run_to turn 1 postcombat_main
+  assert power "Slumbering Keepguard" 1
+}
+
+scenario "keepguard attacks for one" {
+  battlefield A: "Slumbering Keepguard"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Slumbering Keepguard"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

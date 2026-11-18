@@ -1,0 +1,7 @@
+card "Hydromorph Guardian" {
+  oracle_id c426c2b0-82fa-4ea0-bbdb-3a40e60c495e
+  cost {2}{U}
+  type Creature — Elemental
+  pt 2/2
+  activated {U}, sacrifice this: counter target spell that targets a creature you control
+}

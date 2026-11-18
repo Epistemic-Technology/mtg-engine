@@ -1,0 +1,8 @@
+card "Maul Splicer" {
+  oracle_id b0d0c534-8bd2-4801-aadd-dcc9c92d6ec3
+  cost {6}{G}
+  type Creature — Phyrexian Human Artificer
+  pt 1/1
+  triggered when this enters: create 2 "3/3 colorless Phyrexian Golem artifact creature"
+  static Golem creature you control: has trample
+}

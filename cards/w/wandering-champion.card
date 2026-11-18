@@ -1,0 +1,7 @@
+card "Wandering Champion" {
+  oracle_id 54af9e23-459e-470d-9b0e-e91a0fa45c98
+  cost {1}{W}
+  type Creature — Human Monk
+  pt 3/1
+  triggered whenever this deals combat damage to a player if you control blue or red permanent: you may discard 1 card; if you do, draw 1 card
+}

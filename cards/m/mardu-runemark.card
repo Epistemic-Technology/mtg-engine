@@ -1,0 +1,8 @@
+card "Mardu Runemark" {
+  oracle_id a912834b-e4bc-4ccc-ae13-915ebe5acd00
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has first strike as long as you control white or black permanent
+}

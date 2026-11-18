@@ -1,0 +1,8 @@
+card "Watchwing Scarecrow" {
+  oracle_id 24bd190c-04bf-44d3-97ba-9dafd9adf7ae
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 2/4
+  static this: has vigilance as long as you control white creature
+  static this: has flying as long as you control blue creature
+}

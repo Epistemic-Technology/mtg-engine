@@ -1,0 +1,44 @@
+# Utter Insignificance: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature loses flying and becomes 1/1" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Utter Insignificance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Utter Insignificance" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert attached "Utter Insignificance" to "Serra Angel"
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+}
+
+scenario "flash during combat shrinks an attacker before blocks" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Utter Insignificance"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Utter Insignificance" targeting "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Utter Insignificance"
+  assert life A 20
+}
+
+scenario "pump effects still apply on top of base 1/1" {
+  battlefield A: 2 "Island", "Forest", "Serra Angel"
+  hand A: "Utter Insignificance", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Utter Insignificance" targeting "Serra Angel"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+}

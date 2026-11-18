@@ -166,6 +166,16 @@ impl GameState {
         if d.types.contains(crate::card::CardType::Planeswalker) && d.loyalty > 0 {
             counters.push((CounterKind::Loyalty, d.loyalty));
         }
+        // CR 702.43a: modular's counters.
+        if d.modular > 0 {
+            match counters
+                .iter_mut()
+                .find(|(k, _)| *k == CounterKind::PlusOnePlusOne)
+            {
+                Some((_, n)) => *n += d.modular,
+                None => counters.push((CounterKind::PlusOnePlusOne, d.modular)),
+            }
+        }
         counters
     }
 

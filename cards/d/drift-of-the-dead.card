@@ -1,0 +1,7 @@
+card "Drift of the Dead" {
+  oracle_id bcea5e7e-655d-48ea-871e-28ca49e5c574
+  cost {3}{B}
+  type Creature — Wall
+  keywords defender
+  static this: cda pt count snow land you control
+}

@@ -1,0 +1,9 @@
+card "Daring Discovery" {
+  oracle_id a9564593-b5a6-4a83-be1e-2af8caf647d7
+  cost {4}{R}
+  type Sorcery
+  spell {
+    up to three target creatures can't block
+    discover 4
+  }
+}

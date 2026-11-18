@@ -1,0 +1,7 @@
+card "Hooded Brawler" {
+  oracle_id 4e40a68a-5e0c-4f4f-9757-02f8139797e2
+  cost {2}{G}
+  type Creature — Snake Warrior
+  pt 3/2
+  exert: this gets +2/+2
+}

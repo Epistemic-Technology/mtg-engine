@@ -1255,6 +1255,28 @@ impl GameState {
         true
     }
 
+    /// Whether the spell `obj` targets what `t` asks for, judged by
+    /// `you`.
+    fn spell_targets(
+        &self,
+        obj: &GameObject,
+        t: &crate::card::SpellTargets,
+        you: PlayerId,
+    ) -> bool {
+        obj.targets.iter().any(|x| match *x {
+            Target::Player(p) => t.player || (t.you && p == you),
+            Target::Object(o) => t.filter.as_ref().is_some_and(|f| {
+                self.objects
+                    .get(o)
+                    .is_some_and(|ob| ob.zone == Zone::Battlefield)
+                    && self.characteristics(o).is_some_and(|c| {
+                        f.matches(o, self.objects[o].controller, &c, None, Some(you))
+                    })
+                    && self.status_ok(f, o)
+            }),
+        })
+    }
+
     /// CR 702.16c: a permanent with protection can't be enchanted or
     /// equipped by something with the quality.
     pub fn protected_attachment(&self, attachment: ObjId, target: ObjId) -> bool {
@@ -1503,13 +1525,12 @@ impl GameState {
                         TargetSpec::NoncreatureSpell => !creature,
                         TargetSpec::SpellFiltered(f) => {
                             let c = self.base_characteristics(obj);
-                            self.pool.filter(f).matches(
-                                id,
-                                obj.controller,
-                                &c,
-                                source,
-                                Some(caster),
-                            ) && self.status_ok(self.pool.filter(f), id)
+                            let f = self.pool.filter(f);
+                            f.matches(id, obj.controller, &c, source, Some(caster))
+                                && self.status_ok(f, id)
+                                && f.targeting
+                                    .as_ref()
+                                    .is_none_or(|t| self.spell_targets(obj, t, caster))
                         }
                         _ => true,
                     };

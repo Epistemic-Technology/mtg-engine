@@ -1,0 +1,7 @@
+card "Shambling Attendants" {
+  oracle_id cd17bd00-90b1-4b89-9368-2d8735159e47
+  cost {7}{B}
+  type Creature — Zombie
+  pt 3/5
+  keywords delve, deathtouch
+}

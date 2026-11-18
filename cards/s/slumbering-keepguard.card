@@ -1,0 +1,8 @@
+card "Slumbering Keepguard" {
+  oracle_id 89078485-c438-4035-95dc-dbe37fb13e50
+  cost {W}
+  type Creature — Human Knight
+  pt 1/1
+  triggered whenever enchantment you control enters: scry 1
+  activated {2}{W}: this gets +1/+1 count each enchantment you control
+}

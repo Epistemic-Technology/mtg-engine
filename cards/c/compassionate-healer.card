@@ -1,0 +1,7 @@
+card "Compassionate Healer" {
+  oracle_id 6ef464bd-2ed0-4f99-af4a-ebf276f55384
+  cost {1}{W}
+  type Creature — Human Cleric Ally
+  pt 2/2
+  triggered whenever this becomes tapped: you gain 1 life and scry 1
+}

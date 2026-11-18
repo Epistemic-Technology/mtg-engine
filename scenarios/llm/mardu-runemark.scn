@@ -1,0 +1,35 @@
+# Mardu Runemark: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "cast Mardu Runemark gives +2/+2" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  hand A: "Mardu Runemark"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mardu Runemark" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Mardu Runemark" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "no white or black permanent: no first strike, damage is simultaneous" {
+  battlefield A: "Grizzly Bears", "Mardu Runemark" on "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "controlling a white permanent grants first strike" {
+  battlefield A: "Grizzly Bears", "Mardu Runemark" on "Grizzly Bears", "Serra Angel"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}

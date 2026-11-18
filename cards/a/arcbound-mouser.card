@@ -1,0 +1,8 @@
+card "Arcbound Mouser" {
+  oracle_id 5e59199c-facc-46b4-9681-988de0cfaba2
+  cost {W}
+  type Artifact Creature — Cat
+  pt 0/0
+  keywords lifelink
+  modular 1
+}

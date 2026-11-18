@@ -1,0 +1,7 @@
+card "Death Rattle" {
+  oracle_id ae327976-1026-4318-8846-f6b0cac373a7
+  cost {5}{B}
+  type Instant
+  keywords delve
+  spell: destroy target nongreen creature without regeneration
+}

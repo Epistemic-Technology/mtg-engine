@@ -1,0 +1,8 @@
+card "Thicket Crasher" {
+  oracle_id 998e850a-b3c7-4ab2-85ac-25beef98ab20
+  cost {3}{G}
+  type Creature — Elemental Rhino
+  pt 4/3
+  keywords trample
+  static other Elemental you control: has trample
+}

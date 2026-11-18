@@ -1,0 +1,7 @@
+card "Quarrel's End" {
+  oracle_id fc46649d-9d84-4082-9d2d-fbb7ce91c6a4
+  cost {2}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards and create 1 "1/1 white Human Soldier creature"
+}

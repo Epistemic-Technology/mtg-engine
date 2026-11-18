@@ -1,0 +1,8 @@
+card "Stampede Rider" {
+  oracle_id 580112bd-6804-4981-97ad-0f5e43627b22
+  cost {2}{R}
+  type Creature — Satyr
+  pt 2/3
+  keywords trample
+  triggered at beginning of every combat if you control creature with power 4 or greater: this gets +1/+1 until end of turn
+}

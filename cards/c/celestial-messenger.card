@@ -1,0 +1,8 @@
+card "Celestial Messenger" {
+  oracle_id cf40caa2-cd5b-4372-ad4a-7f4cf564241e
+  cost {2}{U}{U}
+  type Creature — Bird Spirit
+  pt 3/2
+  keywords flash, flying
+  static this: +1/+1 as long as you control Yanling planeswalker
+}

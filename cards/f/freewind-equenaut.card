@@ -1,0 +1,8 @@
+card "Freewind Equenaut" {
+  oracle_id 028335db-58f6-47fe-8c6a-f336d0d91fb1
+  cost {2}{W}
+  type Creature — Human Archer
+  pt 2/2
+  keywords flying
+  static as long as enchanted, this: has ability { activated {T}: deal 2 damage to target attacking or blocking creature }
+}

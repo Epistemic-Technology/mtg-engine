@@ -1,0 +1,9 @@
+card "Ghoulcaller's Chant" {
+  oracle_id b685fff3-f1b4-42d5-9b7b-e0885bcc92d2
+  cost {B}
+  type Sorcery
+  choose one {
+    mode: return target creature card from your graveyard to hand
+    mode: return 2 target Zombie cards from your graveyard to hand
+  }
+}

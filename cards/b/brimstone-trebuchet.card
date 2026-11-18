@@ -1,0 +1,9 @@
+card "Brimstone Trebuchet" {
+  oracle_id d8dd601f-3615-4cef-b837-52329cb361f8
+  cost {2}{R}
+  type Artifact Creature — Wall
+  pt 1/3
+  keywords defender, reach
+  activated {T}: deal 1 damage to each opponent
+  triggered whenever Knight you control enters: untap this
+}
