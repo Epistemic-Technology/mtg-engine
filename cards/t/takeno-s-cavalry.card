@@ -1,0 +1,8 @@
+card "Takeno's Cavalry" {
+  oracle_id c5577514-d2af-4904-9f94-b472228c6e3d
+  cost {3}{W}
+  type Creature — Human Samurai Archer
+  pt 1/1
+  bushido 1
+  activated {T}: deal 1 damage to target attacking or blocking Spirit
+}

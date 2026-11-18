@@ -1,0 +1,8 @@
+card "Guerrilla Gorilla" {
+  oracle_id 6cb65b68-91b2-45ba-867b-3b31d6dd5643
+  cost {1}{G}
+  type Creature — Ape Soldier Hero
+  pt 2/2
+  keywords reach
+  activated sacrifice this, sorcery: destroy target noncreature artifact or noncreature enchantment
+}

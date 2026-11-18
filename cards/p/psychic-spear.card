@@ -1,0 +1,6 @@
+card "Psychic Spear" {
+  oracle_id 284b0605-4b33-499e-aff3-e8b9edcce39b
+  cost {B}
+  type Sorcery
+  spell: target player reveals hand discarding Spirit or Arcane card
+}

@@ -1,0 +1,9 @@
+card "Aether Poisoner" {
+  oracle_id 73757d44-7889-416b-94d2-e730e601ace3
+  cost {1}{B}
+  type Creature — Human Artificer
+  pt 1/1
+  keywords deathtouch
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, create 1 "1/1 colorless Servo artifact creature"
+}

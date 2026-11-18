@@ -174,6 +174,14 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
 
+Energy (CR 107.14): `you get 2 energy` ("you get {E}{E}"), `pay 2
+energy` inside `may` and as a cost ("Pay {E}{E}").
+
+Filters may have an alternative: `creature or Vehicle`, `land or
+nonblack creature`, `attacking or blocking creature`. A trailing
+`you control`, a leading `another`, and a type after two subtypes
+(`Elf or Soldier creature`) apply to both sides.
+
 Events: `damage to <affects>`, `combat damage to <affects>`,
 `damage from creature you control to <affects>`, `you gain life`,
 `a player gains life`, `you draw`, `you draw with empty library`,

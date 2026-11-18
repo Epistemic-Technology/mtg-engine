@@ -380,6 +380,12 @@ fn parse_statement(line: &mut Line, sc: &mut Scenario) -> Result<(), ParseError>
             sc.setup.poison[p.index()] =
                 u32::try_from(line.number()?).or_else(|_| line.fail("poison out of range"))?;
         }
+        "energy" => {
+            let p = line.player()?;
+            line.colon()?;
+            sc.setup.energy[p.index()] =
+                u32::try_from(line.number()?).or_else(|_| line.fail("energy out of range"))?;
+        }
         "battlefield" | "hand" | "graveyard" | "library" | "exile" => {
             let zone = zone_by_name(&head).expect("matched zone name");
             let player = line.player()?;
@@ -712,6 +718,13 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
 fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
     let what = line.ident()?;
     Ok(match what.as_str() {
+        "energy" => {
+            let p = line.player()?;
+            Assertion::Energy(
+                p,
+                u32::try_from(line.number()?).or_else(|_| line.fail("energy out of range"))?,
+            )
+        }
         "poison" => {
             let p = line.player()?;
             Assertion::Poison(

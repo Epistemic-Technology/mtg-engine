@@ -22,6 +22,7 @@ scenario "name" {
 | Line | Meaning |
 |---|---|
 | `life A 15` | Starting life (default 20). |
+| `poison B: 2`, `energy A: 3` | Starting poison or energy counters (`assert poison B 2`, `assert energy A 2` check them). |
 | `battlefield A: "Grizzly Bears", 2 "Forest", "Hill Giant" tapped, "Flight" on "Grizzly Bears", "Phantom Tiger" with 2 +1/+1` | Permanents A controls. `N "name"` repeats; `tapped` taps; `on "name"` attaches an Aura to that permanent (either player's); `with N +1/+1` (or `-1/-1`) puts counters on it. Permanents count as controlled since the turn began, so they may attack. Timestamps follow listing order, player A first. |
 | `hand A: "Lightning Bolt"` | Cards in hand. |
 | `graveyard A: ...`, `exile A: ...` | Likewise. |

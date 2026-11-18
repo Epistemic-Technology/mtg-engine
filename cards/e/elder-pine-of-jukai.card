@@ -1,0 +1,8 @@
+card "Elder Pine of Jukai" {
+  oracle_id 1658528b-df40-44fd-b3f6-eb042706c522
+  cost {2}{G}
+  type Creature — Spirit
+  pt 2/1
+  triggered whenever you cast Spirit or Arcane spell: dig 3 reveal take all land card rest bottom
+  soulshift 2
+}

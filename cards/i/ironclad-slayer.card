@@ -1,0 +1,7 @@
+card "Ironclad Slayer" {
+  oracle_id 964e20e2-2947-4d8a-a0a2-b8b5fde27ff8
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered when this enters: you may return target Aura or Equipment card from your graveyard to hand
+}

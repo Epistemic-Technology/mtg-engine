@@ -1,0 +1,9 @@
+card "Aether Inspector" {
+  oracle_id 9373a176-a5e9-4fdc-906b-bc6aef657e5b
+  cost {3}{W}
+  type Creature — Dwarf Artificer
+  pt 2/3
+  keywords vigilance
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, create 1 "1/1 colorless Servo artifact creature"
+}

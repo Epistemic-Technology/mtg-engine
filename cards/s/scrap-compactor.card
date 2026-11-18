@@ -1,0 +1,7 @@
+card "Scrap Compactor" {
+  oracle_id 7f113875-a411-463b-8b4d-91d1dee95c2a
+  cost {1}
+  type Artifact
+  activated {3}, {T}, sacrifice this: deal 3 damage to target creature
+  activated {6}, {T}, sacrifice this: destroy target creature or Vehicle
+}

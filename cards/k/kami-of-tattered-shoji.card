@@ -1,0 +1,7 @@
+card "Kami of Tattered Shoji" {
+  oracle_id a7cb1da6-e56a-42b6-8087-cf822783373f
+  cost {4}{W}
+  type Creature — Spirit
+  pt 2/5
+  triggered whenever you cast Spirit or Arcane spell: this gains flying
+}

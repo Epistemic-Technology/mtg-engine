@@ -1,0 +1,6 @@
+card "Celestial Flare" {
+  oracle_id efdaa3eb-e5d1-4438-b21d-2ec0fff44721
+  cost {W}{W}
+  type Instant
+  spell: target player sacrifices 1 attacking or blocking creature
+}

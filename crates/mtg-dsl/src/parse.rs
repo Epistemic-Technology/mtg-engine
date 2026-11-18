@@ -1836,6 +1836,17 @@ impl P {
             }
             "get" | "gets"
                 if matches!(self.peek(), Some(Tok::Num(_)))
+                    && matches!(self.word_at(1).as_deref(), Some("energy")) =>
+            {
+                let count = self.num()?;
+                self.pos += 1;
+                Ok(Effect::AddEnergy {
+                    count,
+                    who: subject,
+                })
+            }
+            "get" | "gets"
+                if matches!(self.peek(), Some(Tok::Num(_)))
                     && matches!(self.word_at(1).as_deref(), Some("poison")) =>
             {
                 let count = self.num()?;
@@ -2070,6 +2081,14 @@ impl P {
                 }
                 let what = self.recipients()?;
                 Ok(Effect::Exile { what })
+            }
+            "pay"
+                if matches!(self.peek(), Some(Tok::Num(_)))
+                    && self.word_at(1).as_deref() == Some("energy") =>
+            {
+                let n = self.count()?;
+                self.pos += 1;
+                Ok(Effect::PayEnergy(n))
             }
             "pay" => {
                 let (mana, life) = self.pay_amount()?;
@@ -2668,6 +2687,12 @@ impl P {
                 spec = match spec {
                     Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
                     Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
+                    Target::Spec(TargetSpec::AttackingCreature) => Target::Filter(Filter {
+                        types: vec![CardType::Creature],
+                        attacking: true,
+                        relation: Relation::Other,
+                        ..Default::default()
+                    }),
                     Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
                         types: vec![CardType::Artifact],
                         relation: Relation::Other,
@@ -2769,7 +2794,10 @@ impl P {
                         | (Some("that"), Some("was"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
-                        && after.as_deref().and_then(card_type).is_some())
+                        && !matches!(
+                            after.as_deref(),
+                            Some("ability" | "abilities" | "player" | "players")
+                        ))
                     || keyword_after
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
@@ -2824,6 +2852,7 @@ impl P {
     fn filter(&mut self) -> R<Filter> {
         let mut f = Filter::default();
         let mut consumed = 0;
+        let mut or_blocking = false;
         loop {
             // "nonartifact, nonblack creature"; "artifact, enchantment, or
             // land": a comma inside the filter.
@@ -2944,6 +2973,11 @@ impl P {
                     f.tapped = Some(w == "tapped");
                     self.pos += 1;
                 }
+                "attacking" if self.at_words(&["attacking", "or", "blocking"]) => {
+                    f.attacking = true;
+                    or_blocking = true;
+                    self.pos += 3;
+                }
                 "attacking" => {
                     f.attacking = true;
                     self.pos += 1;
@@ -2982,6 +3016,26 @@ impl P {
                     let t = card_type(&self.word()?).expect("checked");
                     f.any_types.append(&mut f.types);
                     f.any_types.push(t);
+                }
+                // "creature or Vehicle", "land or nonblack creature": an
+                // alternative filter, if one follows.
+                "or" if f != Filter::default()
+                    && !matches!(
+                        self.word_at(1).as_deref(),
+                        Some("ability" | "abilities" | "player" | "players" | "less" | "greater")
+                    ) =>
+                {
+                    let save = self.pos;
+                    self.pos += 1;
+                    match self.filter() {
+                        Ok(mut alt) if f.or.is_none() => {
+                            crate::format::share_qualifiers(&mut f, &mut alt);
+                            f.or = Some(Box::new(alt));
+                            consumed += self.pos - before;
+                        }
+                        _ => self.pos = save,
+                    }
+                    break;
                 }
                 "without" if self.word_at(1).as_deref() != Some("regeneration") => {
                     self.pos += 1;
@@ -3043,6 +3097,12 @@ impl P {
         }
         if consumed == 0 {
             return self.unexpected("a filter (creature you control, nonbasic land, ...)");
+        }
+        if or_blocking && f.or.is_none() {
+            let mut alt = f.clone();
+            alt.attacking = false;
+            alt.blocking = true;
+            f.or = Some(Box::new(alt));
         }
         Ok(f)
     }
@@ -3399,9 +3459,15 @@ impl P {
                     }
                     "pay" => {
                         self.pos += 1;
-                        cost.life = self.count()?;
-                        self.expect_word("life")?;
-                        cost.order.push(CostItem::Life);
+                        let n = self.count()?;
+                        if self.eat_word("energy") {
+                            cost.energy = n;
+                            cost.order.push(CostItem::Energy);
+                        } else {
+                            cost.life = n;
+                            self.expect_word("life")?;
+                            cost.order.push(CostItem::Life);
+                        }
                     }
                     "sorcery" => {
                         self.pos += 1;

@@ -377,7 +377,13 @@ fn strip_reminder(text: &str) -> String {
         }
     }
     out.lines()
-        .map(|l| l.split_whitespace().collect::<Vec<_>>().join(" "))
+        .map(|l| {
+            l.split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ")
+                .replace(" .", ".")
+                .replace(" ,", ",")
+        })
         .filter(|l| !l.is_empty())
         .collect::<Vec<_>>()
         .join("\n")
@@ -976,6 +982,22 @@ impl Templates {
             (r(r"^Pay ((?:\{[0-9WUBRGC]+\})+|\d+ life)$"), |c, _| {
                 Some(format!("pay {}", cap(c, 1)))
             }),
+            (r(r"^Pay ((?:\{E\})+)$"), |c, _| {
+                Some(format!("pay {} energy", cap(c, 1).len() / 3))
+            }),
+            (
+                r(r"^[Yy]ou gain (\d+) life and get ((?:\{E\})+)$"),
+                |c, _| {
+                    Some(format!(
+                        "you gain {} life and you get {} energy",
+                        cap(c, 1),
+                        cap(c, 2).len() / 3
+                    ))
+                },
+            ),
+            (r(r"^(?:[Yy]ou )?[Gg]et ((?:\{E\})+)$"), |c, _| {
+                Some(format!("you get {} energy", cap(c, 1).len() / 3))
+            }),
             (r(r"^Add one mana of any color$"), |_, _| {
                 Some("add any".to_string())
             }),
@@ -1435,10 +1457,13 @@ fn cost_text(s: &str) -> Option<String> {
             // "Discard a creature card": one card matching a filter.
             format!("discard {what} card")
         } else {
-            let n = part
-                .strip_prefix("Pay ")
-                .and_then(|r| r.strip_suffix(" life"))?;
-            format!("pay {n} life")
+            let rest = part.strip_prefix("Pay ")?;
+            if !rest.is_empty() && rest.len() % 3 == 0 && rest.chars().all(|c| "{E}".contains(c)) {
+                format!("pay {} energy", rest.len() / 3)
+            } else {
+                let n = rest.strip_suffix(" life")?;
+                format!("pay {n} life")
+            }
         };
         items.push(item);
     }
@@ -2448,7 +2473,6 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         symbol.captures_iter(text).any(|c| {
             let inner = &c[1];
             inner == "S"
-                || inner == "E"
                 || (inner.contains('/')
                     && mtg_core::mana::ManaCost::parse(&format!("{{{inner}}}")).is_err())
         })

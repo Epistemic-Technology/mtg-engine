@@ -58,6 +58,8 @@ pub struct SetupSpec {
     pub life: [Option<i32>; 2],
     /// `poison B: 9`: starting poison counters.
     pub poison: [u32; 2],
+    /// `energy A: 3`: starting energy counters.
+    pub energy: [u32; 2],
     pub zones: Vec<ZoneSpec>,
     /// `start turn N P [step]`.
     pub start: Option<(u32, PlayerId, Step)>,
@@ -232,6 +234,8 @@ pub enum Assertion {
     Life(PlayerId, i32),
     /// `assert poison B 1`.
     Poison(PlayerId, u32),
+    /// `assert energy A 2`.
+    Energy(PlayerId, u32),
     /// `zone P contains [N] "name"`: at least one, or exactly N.
     ZoneContains {
         zone: Zone,

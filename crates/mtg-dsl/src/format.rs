@@ -399,6 +399,15 @@ impl Fmt {
                 filter(f),
                 if *tapped { " tapped" } else { "" }
             ),
+            Effect::AddEnergy { count, who } => {
+                let v = if *who == Recipient::You {
+                    "get"
+                } else {
+                    "gets"
+                };
+                format!("{} {v} {} energy", self.recipient(*who, t), num(*count))
+            }
+            Effect::PayEnergy(n) => format!("pay {n} energy"),
             Effect::AddPoison { count, who } => {
                 let v = if *who == Recipient::You {
                     "get"
@@ -850,6 +859,19 @@ pub fn graveyard_target(f: &Filter, who: Who) -> String {
 }
 
 pub fn filter(f: &Filter) -> String {
+    if let Some(alt) = &f.or {
+        let mut base = f.clone();
+        base.or = None;
+        if let Some(rest) = attacking_or_blocking(&base, alt) {
+            return format!("attacking or blocking {}", filter(&rest));
+        }
+        let (b, a) = factor_qualifiers(&base, alt);
+        return format!("{} or {}", filter_one(&b), filter(&a));
+    }
+    filter_one(f)
+}
+
+fn filter_one(f: &Filter) -> String {
     let mut words: Vec<String> = Vec::new();
     if f.all {
         words.push("all".to_string());
@@ -946,6 +968,60 @@ pub fn filter(f: &Filter) -> String {
         words.push("with no abilities".to_string());
     }
     words.join(" ")
+}
+
+/// "Goblin or Orc you control", "another Wolf or Werewolf", "Elf or
+/// Soldier creature": qualifiers printed once apply to both sides of an
+/// `or`. Parsing shares them out (this); printing factors them back
+/// (`factor_qualifiers`).
+pub fn share_qualifiers(base: &mut Filter, alt: &mut Filter) {
+    if base.who.is_none() && alt.who.is_some() {
+        base.who = alt.who;
+        base.dont_control = alt.dont_control;
+    }
+    if base.types.is_empty()
+        && !base.subtypes.is_empty()
+        && !alt.subtypes.is_empty()
+        && !alt.types.is_empty()
+    {
+        base.types.clone_from(&alt.types);
+    }
+    if base.relation == Relation::Other && alt.relation == Relation::Any {
+        alt.relation = Relation::Other;
+    }
+}
+
+/// The two sides of an `or` as printed: shared qualifiers once.
+pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
+    let (mut b, mut a) = (base.clone(), alt.clone());
+    b.or = None;
+    if b.who.is_some() && b.who == a.who && b.dont_control == a.dont_control {
+        b.who = None;
+        b.dont_control = false;
+    }
+    if !b.subtypes.is_empty() && !a.subtypes.is_empty() && !a.types.is_empty() && b.types == a.types
+    {
+        b.types.clear();
+    }
+    // The relation prints once, before the first side ("another Wolf or
+    // Werewolf"), however the caller printed it.
+    if a.relation == Relation::Other && b.relation != Relation::This {
+        a.relation = Relation::Any;
+    }
+    (b, a)
+}
+
+/// "attacking or blocking creature": the two sides differ only there; the
+/// shared rest.
+pub fn attacking_or_blocking(base: &Filter, alt: &Filter) -> Option<Filter> {
+    if !base.attacking || base.blocking || !alt.blocking || alt.attacking {
+        return None;
+    }
+    let mut b = base.clone();
+    b.attacking = false;
+    let mut a = alt.clone();
+    a.blocking = false;
+    (b == a && a.or.is_none()).then_some(b)
 }
 
 fn trigger_obj(o: &TriggerObj) -> String {
@@ -1128,6 +1204,7 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("pay {} life", c.life));
                 }
             }
+            CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
         }
     }
     if c.sorcery && c.loyalty.is_none() {

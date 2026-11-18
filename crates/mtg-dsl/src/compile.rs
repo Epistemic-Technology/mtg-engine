@@ -335,6 +335,7 @@ impl Compiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
         }
     }
 
@@ -465,6 +466,7 @@ impl Compiler<'_> {
             exile_self: c.exile_self,
             crew: c.crew,
             remove_counters: c.remove_counters,
+            energy: c.energy,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -846,6 +848,11 @@ impl Compiler<'_> {
                 count: *count,
                 who: r(*who),
             }),
+            Effect::AddEnergy { count, who } => out.push(CoreEffect::AddEnergy {
+                count: *count,
+                who: r(*who),
+            }),
+            Effect::PayEnergy(n) => out.push(CoreEffect::PayEnergy(*n)),
         }
         Ok(())
     }

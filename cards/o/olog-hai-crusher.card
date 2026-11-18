@@ -1,0 +1,8 @@
+card "Olog-hai Crusher" {
+  oracle_id fb6f04bc-3514-49b2-9d17-f80980d996a8
+  cost {3}{R}
+  type Creature — Troll Soldier
+  pt 4/4
+  keywords trample
+  can't block unless you control a Goblin or Orc
+}

@@ -1,0 +1,8 @@
+card "Solstice Zealot" {
+  oracle_id 1ec63280-ae5b-4892-8854-de2d8127ea83
+  cost {2}{W}
+  type Creature — Rhino Cleric
+  pt 2/3
+  triggered when this enters: you get 2 energy
+  activated {T}, pay 1 energy: tap target creature
+}

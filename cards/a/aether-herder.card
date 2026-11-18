@@ -1,0 +1,8 @@
+card "Aether Herder" {
+  oracle_id be89a032-8ade-4048-b95d-76e958dca330
+  cost {3}{G}
+  type Creature — Elf Artificer Druid
+  pt 3/3
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, create 1 "1/1 colorless Servo artifact creature"
+}

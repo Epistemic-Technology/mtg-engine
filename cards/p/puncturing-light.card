@@ -1,0 +1,6 @@
+card "Puncturing Light" {
+  oracle_id 15e71226-feb0-4870-a3ea-d8604ca5b3dc
+  cost {1}{W}
+  type Instant
+  spell: destroy target attacking or blocking creature with power 3 or less
+}

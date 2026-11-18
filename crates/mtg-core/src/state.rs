@@ -334,6 +334,8 @@ pub struct PlayerState {
     pub drew_from_empty_library: bool,
     /// Poison counters (CR 122.1f); ten or more lose the game (704.5c).
     pub poison: u32,
+    /// Energy counters (CR 122.1, 107.14).
+    pub energy: u32,
     pub lost: Option<LossReason>,
     pub mulligans_taken: u8,
 }
@@ -1189,6 +1191,22 @@ impl GameState {
     pub fn status_ok(&self, f: &crate::card::ObjFilter, id: ObjId) -> bool {
         if !f.needs_state() {
             return true;
+        }
+        // With an alternative, one side must match whole: its
+        // characteristics and its state.
+        if let Some(alt) = &f.or {
+            let Some(o) = self.objects.get(id) else {
+                return false;
+            };
+            let Some(c) = self.characteristics(id) else {
+                return false;
+            };
+            let mut base = f.clone();
+            base.or = None;
+            let side = |g: &crate::card::ObjFilter| {
+                g.matches(id, o.controller, &c, None, None) && self.status_ok(g, id)
+            };
+            return side(&base) || side(alt);
         }
         let Some(o) = self.objects.get(id) else {
             return false;

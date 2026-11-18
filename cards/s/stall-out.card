@@ -1,0 +1,7 @@
+card "Stall Out" {
+  oracle_id ce55c0a9-3334-440e-ae1b-c04a9e1c3d87
+  cost {1}{U}
+  type Sorcery
+  spell: tap target creature or Vehicle then put 3 stun counters on target 1
+  cycling {2}
+}

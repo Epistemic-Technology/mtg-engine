@@ -1,0 +1,7 @@
+card "Dreamcatcher" {
+  oracle_id 61529c3a-9b7e-4e73-9f6e-58c992ef1ffc
+  cost {U}
+  type Creature — Spirit
+  pt 1/1
+  triggered whenever you cast Spirit or Arcane spell: you may sacrifice this; if you do, draw 1 cards
+}

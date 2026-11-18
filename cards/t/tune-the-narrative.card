@@ -1,0 +1,6 @@
+card "Tune the Narrative" {
+  oracle_id 4262a726-d1da-4bdc-ab14-73212aa83f9c
+  cost {U}
+  type Instant
+  spell: draw 1 cards; you get 2 energy
+}

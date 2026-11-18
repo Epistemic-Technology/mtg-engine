@@ -1,0 +1,7 @@
+card "Hungry Ridgewolf" {
+  oracle_id 5a7cd356-c07b-47dd-b089-8ecdd0e15581
+  cost {1}{R}
+  type Creature — Wolf
+  pt 2/2
+  static as long as you control other Wolf or Werewolf, this: +1/+0, has trample
+}

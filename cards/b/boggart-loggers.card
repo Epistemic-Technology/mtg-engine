@@ -1,0 +1,8 @@
+card "Boggart Loggers" {
+  oracle_id f8fac28d-adf4-47e9-bdd3-8402cbf0f228
+  cost {2}{B}
+  type Creature — Goblin Rogue
+  pt 2/1
+  keywords forestwalk
+  activated {2}{B}, sacrifice this: destroy target Treefolk or Forest
+}

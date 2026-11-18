@@ -1,0 +1,9 @@
+card "Captain America's Motorcycle" {
+  oracle_id 19e60344-57a8-41e0-8eca-87dbedf5a81a
+  cost {1}{R}
+  type Artifact — Vehicle
+  pt 3/1
+  keywords flash
+  triggered when this enters: target creature or Vehicle gets +2/+0
+  crew 1
+}

@@ -1,0 +1,7 @@
+card "Howlpack Wolf" {
+  oracle_id a2fb7d03-d6bf-4716-9ca4-bd7dbcf9ae66
+  cost {2}{R}
+  type Creature — Wolf
+  pt 3/3
+  can't block unless you control another Wolf or Werewolf
+}

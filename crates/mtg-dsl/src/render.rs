@@ -328,6 +328,16 @@ fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
 /// A filter naming cards rather than permanents ("nonland card", "instant
 /// card"): without a type it has no noun of its own.
 fn card_filter_phrase(f: &Filter, card: &Card) -> String {
+    if let Some(alt) = &f.or
+        && crate::format::attacking_or_blocking(f, alt).is_none()
+    {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        return format!(
+            "{} or {}",
+            card_filter_phrase(&b, card),
+            card_filter_phrase(&a, card)
+        );
+    }
     let p = filter_phrase(f, card, false);
     if f.types.is_empty() && f.subtypes.is_empty() && f.any_types.is_empty() {
         p.replace(" permanent", "").replace("permanent", "")
@@ -860,6 +870,27 @@ fn enchanted_noun(card: &Card) -> &'static str {
 /// control", "nonbasic land") or plural.
 #[allow(clippy::too_many_lines)] // one block per filter part
 fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    let Some(alt) = &f.or else {
+        return filter_phrase_one(f, card, plural_form);
+    };
+    let mut base = f.clone();
+    base.or = None;
+    if let Some(rest) = crate::format::attacking_or_blocking(&base, alt) {
+        return format!(
+            "attacking or blocking {}",
+            filter_phrase_one(&rest, card, plural_form)
+        );
+    }
+    let (b, a) = crate::format::factor_qualifiers(&base, alt);
+    format!(
+        "{} or {}",
+        filter_phrase_one(&b, card, plural_form),
+        filter_phrase(&a, card, plural_form)
+    )
+}
+
+#[allow(clippy::too_many_lines)] // one clause per qualifier
+fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.enchanted {
         if is_equipment(card) {
             return "equipped creature".to_string();
@@ -1082,6 +1113,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Pay {} life", cost.life));
                 }
             }
+            CostItem::Energy => parts.push(format!("Pay {}", energy(cost.energy))),
         }
     }
     parts.join(", ")
@@ -1124,6 +1156,11 @@ impl Clause {
 }
 
 const EOT: &str = "until end of turn";
+
+/// "{E}{E}{E}".
+fn energy(n: u32) -> String {
+    "{E}".repeat(n as usize)
+}
 
 fn counter_name(k: CounterKind) -> &'static str {
     k.name()
@@ -1581,6 +1618,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
         }
         Effect::ClearEcho => Clause::imperative(String::new()),
+        Effect::AddEnergy { count, who } => {
+            let s = ctx.subj(*who);
+            let n = match count {
+                Num::N(n) => *n,
+                _ => 1,
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} {}", ctx.verb(*who, "gets", "get"), energy(n)),
+            )
+        }
+        Effect::PayEnergy(n) => Clause::imperative(format!("pay {}", energy(*n))),
         Effect::AddPoison { count, who } => {
             let s = ctx.subj(*who);
             let what = if *count == Num::N(1) {
@@ -3287,7 +3337,13 @@ pub fn normalize(text: &str) -> String {
                 _ => {}
             }
         }
-        let line = line.split_whitespace().collect::<Vec<_>>().join(" ");
+        // Removed reminder text can leave "you get {E}{E} ." behind.
+        let line = line
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .replace(" .", ".")
+            .replace(" ,", ",");
         if line.is_empty() {
             continue;
         }

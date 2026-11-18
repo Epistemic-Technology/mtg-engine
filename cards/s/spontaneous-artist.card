@@ -1,0 +1,8 @@
+card "Spontaneous Artist" {
+  oracle_id c0602911-7d44-4a7a-a04c-837036ed3b82
+  cost {3}{R}
+  type Creature — Human Rogue
+  pt 3/3
+  triggered when this enters: you get 1 energy
+  activated pay 1 energy: target creature gains haste
+}

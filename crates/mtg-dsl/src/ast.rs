@@ -163,6 +163,8 @@ pub struct Cost {
     pub exile_self: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
+    /// `pay 2 energy`: "Pay {E}{E}".
+    pub energy: u32,
     /// `remove 1 charge counter from this`: "Remove a charge counter from
     /// this artifact".
     pub remove_counters: Option<(CounterKind, u32)>,
@@ -180,6 +182,7 @@ pub struct Cost {
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
     RemoveCounters,
+    Energy,
     Exile,
     Mana,
     Tap,
@@ -237,6 +240,8 @@ pub struct Filter {
     pub blocking: bool,
     /// `damaged`: "that was dealt damage this turn".
     pub damaged: bool,
+    /// `creature or Vehicle`: an alternative filter.
+    pub or: Option<Box<Filter>>,
 }
 
 impl Filter {
@@ -1060,4 +1065,11 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
+    /// `you get 2 energy`: "you get {E}{E}".
+    AddEnergy {
+        count: Num,
+        who: Recipient,
+    },
+    /// `pay 2 energy`, inside `may`.
+    PayEnergy(u32),
 }

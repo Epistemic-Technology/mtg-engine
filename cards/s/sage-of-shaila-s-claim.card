@@ -1,0 +1,7 @@
+card "Sage of Shaila's Claim" {
+  oracle_id a0b413cc-b16f-4112-8061-2ccded7f481d
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/1
+  triggered when this enters: you get 3 energy
+}

@@ -860,6 +860,9 @@ pub struct ObjFilter {
     /// "that was dealt damage this turn" (damage is marked until the
     /// cleanup step, CR 514.2).
     pub damaged: bool,
+    /// An alternative: matches this filter or that one ("creature or
+    /// Vehicle", "attacking or blocking creature").
+    pub or: Option<Box<ObjFilter>>,
 }
 
 /// A comparison in a filter.
@@ -940,6 +943,21 @@ impl ObjFilter {
     /// controlled by `controller`. The `enchanted` field needs game state and
     /// is the caller's job.
     pub fn matches(
+        &self,
+        obj: crate::ids::ObjId,
+        obj_controller: crate::ids::PlayerId,
+        c: &crate::state::Characteristics,
+        source: Option<crate::ids::ObjId>,
+        controller: Option<crate::ids::PlayerId>,
+    ) -> bool {
+        self.matches_one(obj, obj_controller, c, source, controller)
+            || self
+                .or
+                .as_ref()
+                .is_some_and(|a| a.matches(obj, obj_controller, c, source, controller))
+    }
+
+    fn matches_one(
         &self,
         obj: crate::ids::ObjId,
         obj_controller: crate::ids::PlayerId,
@@ -1039,7 +1057,8 @@ impl ObjFilter {
     /// Whether the filter has conditions on game state beyond
     /// characteristics (see `GameState::status_ok`) or the mana value.
     pub const fn needs_state(&self) -> bool {
-        self.tapped.is_some()
+        self.or.is_some()
+            || self.tapped.is_some()
             || self.attacking
             || self.blocking
             || self.damaged
@@ -1854,6 +1873,13 @@ pub enum Effect {
         count: Num,
         who: Recipient,
     },
+    /// "You get {E}{E}" (CR 107.14).
+    AddEnergy {
+        count: Num,
+        who: Recipient,
+    },
+    /// "Pay {E}{E}", inside "you may": like `Pay`.
+    PayEnergy(u32),
     /// Proliferate (CR 701.27): the controller adds one of each kind of
     /// counter already there to the permanents and players they choose;
     /// the engine chooses their own permanents' and players' beneficial
@@ -2294,6 +2320,8 @@ pub struct Cost {
     pub crew: u32,
     /// "Remove a charge counter from this artifact" (CR 122.8).
     pub remove_counters: Option<(CounterKind, u32)>,
+    /// "Pay {E}{E}" (CR 107.14).
+    pub energy: u32,
     /// What a `SacCost::Filter` cost does to the chosen permanent:
     /// sacrifice it, return it to its owner's hand ("Return a land you
     /// control to its owner's hand"), or tap it ("Tap an untapped creature
@@ -2324,6 +2352,7 @@ impl Cost {
             exile_self: false,
             crew: 0,
             remove_counters: None,
+            energy: 0,
             chosen: ChosenCost::Sacrifice,
             life: 0,
             discard: 0,

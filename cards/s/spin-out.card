@@ -1,0 +1,6 @@
+card "Spin Out" {
+  oracle_id c1b6795a-1ac6-4edb-bcee-4db1f1fbe8ea
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature or Vehicle
+}

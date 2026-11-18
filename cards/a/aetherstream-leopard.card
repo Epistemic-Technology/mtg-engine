@@ -1,0 +1,9 @@
+card "Aetherstream Leopard" {
+  oracle_id 8517e5f4-89c5-4879-9b4f-b35e268798df
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/3
+  keywords trample
+  triggered when this enters: you get 1 energy
+  triggered whenever this attacks: you may pay 1 energy; if you do, this gets +2/+0
+}

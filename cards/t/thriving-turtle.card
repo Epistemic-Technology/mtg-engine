@@ -1,0 +1,8 @@
+card "Thriving Turtle" {
+  oracle_id 85dda096-48b2-414e-8c4d-4ffa6e5dac11
+  cost {U}
+  type Creature — Turtle
+  pt 0/3
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, put 1 +1/+1 counters on this
+}

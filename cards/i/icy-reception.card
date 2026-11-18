@@ -1,0 +1,9 @@
+card "Icy Reception" {
+  oracle_id 612c7807-be70-4e2f-afd2-3d3c03eddbbe
+  cost {1}{U}
+  type Instant
+  choose one {
+    mode: counter target creature or legendary spell unless its controller pays {3}
+    mode: target creature gets -5/-0
+  }
+}

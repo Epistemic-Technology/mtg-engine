@@ -1,0 +1,6 @@
+card "Highspire Infusion" {
+  oracle_id c86ed70b-ab09-402e-8aaf-6332b4749453
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3; you get 2 energy
+}

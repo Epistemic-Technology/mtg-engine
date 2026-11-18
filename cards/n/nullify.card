@@ -1,0 +1,6 @@
+card "Nullify" {
+  oracle_id 5ea295af-e117-49cc-836b-da16b5d5bbdf
+  cost {U}{U}
+  type Instant
+  spell: counter target creature or Aura spell
+}

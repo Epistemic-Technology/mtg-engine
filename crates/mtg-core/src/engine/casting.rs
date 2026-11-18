@@ -841,6 +841,9 @@ impl GameState {
                 {
                     continue;
                 }
+                if ab.cost.energy > self.player(p).energy {
+                    continue;
+                }
                 if ab.cost.life > 0
                     && self.player(p).life < i32::try_from(ab.cost.life).unwrap_or(i32::MAX)
                 {
@@ -1253,6 +1256,10 @@ impl GameState {
         }
         if let Some((k, n)) = cost.remove_counters {
             self.remove_counters(this, k, n);
+        }
+        if cost.energy > 0 {
+            let e = &mut self.player_mut(p).energy;
+            *e = e.saturating_sub(cost.energy);
         }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
@@ -2617,6 +2624,24 @@ impl GameState {
                     {
                         self.become_copy(source, id, x);
                     }
+                }
+            }
+            Effect::AddEnergy { count, who } => {
+                let n = self.eval_num(*count, ctx);
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.player_mut(p).energy += n;
+                        self.bump();
+                    }
+                }
+            }
+            Effect::PayEnergy(n) => {
+                let p = ctx.controller;
+                if self.player(p).energy >= *n {
+                    self.player_mut(p).energy -= n;
+                    self.bump();
+                } else {
+                    ctx.did = false;
                 }
             }
             Effect::AddPoison { count, who } => {

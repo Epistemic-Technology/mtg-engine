@@ -1,0 +1,9 @@
+card "Hexgold Slith" {
+  oracle_id 0a467e75-f68d-4ad0-85ff-b8516de8d5bc
+  cost {1}{W}
+  type Creature — Slith
+  pt 2/1
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, this gains first strike
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

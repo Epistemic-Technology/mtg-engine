@@ -1,0 +1,7 @@
+card "Scaled Hulk" {
+  oracle_id ce4570eb-f637-45d1-afbc-f11357c09bf9
+  cost {5}{G}
+  type Creature — Spirit
+  pt 4/4
+  triggered whenever you cast Spirit or Arcane spell: this gets +2/+2
+}

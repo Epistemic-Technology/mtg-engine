@@ -138,6 +138,7 @@ impl Decompiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
         }
     }
 
@@ -176,6 +177,7 @@ impl Decompiler<'_> {
             exile_self: c.exile_self,
             crew: c.crew,
             remove_counters: c.remove_counters,
+            energy: c.energy,
             chosen: c.chosen,
             order: Vec::new(),
         }
@@ -462,6 +464,11 @@ impl Decompiler<'_> {
                 count: *count,
                 who: Self::recipient(*who),
             },
+            CoreEffect::AddEnergy { count, who } => Effect::AddEnergy {
+                count: *count,
+                who: Self::recipient(*who),
+            },
+            CoreEffect::PayEnergy(n) => Effect::PayEnergy(*n),
             CoreEffect::Proliferate => Effect::Proliferate,
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),

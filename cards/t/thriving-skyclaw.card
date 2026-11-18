@@ -1,0 +1,9 @@
+card "Thriving Skyclaw" {
+  oracle_id d268143f-27f0-4f14-8cd3-481923aaff6d
+  cost {2}{R}{R}
+  type Creature — Cat Dragon
+  pt 3/2
+  keywords flying
+  triggered when this enters: you get 3 energy
+  triggered whenever this attacks: you may pay 3 energy; if you do, put 1 +1/+1 counters on this
+}

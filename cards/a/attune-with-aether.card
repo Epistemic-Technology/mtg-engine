@@ -1,0 +1,6 @@
+card "Attune with Aether" {
+  oracle_id b337c241-f2c4-48e3-a303-371b172fcd18
+  cost {G}
+  type Sorcery
+  spell: search basic land card reveal to hand; you get 2 energy
+}

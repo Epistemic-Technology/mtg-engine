@@ -1,0 +1,9 @@
+card "Drill Too Deep" {
+  oracle_id 0413e0e4-c8f8-44c3-a749-c799766bc8cd
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: put 5 charge counters on target Spacecraft or Planet you control
+    mode: destroy target artifact
+  }
+}

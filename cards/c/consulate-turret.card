@@ -1,0 +1,7 @@
+card "Consulate Turret" {
+  oracle_id 14d71432-c2e6-4c81-92ef-cf98e1fcf5f8
+  cost {3}
+  type Artifact
+  activated {T}: you get 1 energy
+  activated {T}, pay 3 energy: deal 2 damage to target player or planeswalker
+}

@@ -1,0 +1,6 @@
+card "Bounce Off" {
+  oracle_id d9c29e6e-5949-4599-bf74-b9539e753f76
+  cost {U}
+  type Instant
+  spell: return target creature or Vehicle to hand
+}

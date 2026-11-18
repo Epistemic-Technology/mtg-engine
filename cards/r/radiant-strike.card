@@ -1,0 +1,6 @@
+card "Radiant Strike" {
+  oracle_id 186efd85-83d4-40cc-b617-76f32dbe99ce
+  cost {3}{W}
+  type Instant
+  spell: destroy target artifact or tapped creature; you gains 3 life
+}

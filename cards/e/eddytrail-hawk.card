@@ -1,0 +1,9 @@
+card "Eddytrail Hawk" {
+  oracle_id 748729bf-bfa0-4cbf-b643-ed5d7d007081
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 1 energy; if you do, another target attacking creature gains flying
+}

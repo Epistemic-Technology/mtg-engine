@@ -1,0 +1,6 @@
+card "Searing Light" {
+  oracle_id 2bad07d2-6284-4f87-9e2e-2e9ec5d2dd57
+  cost {W}
+  type Instant
+  spell: destroy target attacking or blocking creature with power 2 or less
+}

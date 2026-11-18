@@ -154,6 +154,7 @@ impl Runner {
         for (i, p) in players.iter_mut().enumerate() {
             p.life = sc.setup.life[i].unwrap_or(20);
             p.poison = sc.setup.poison[i];
+            p.energy = sc.setup.energy[i];
         }
         for z in &sc.setup.zones {
             let ps = &mut players[z.player.index()];
@@ -1618,6 +1619,10 @@ impl Runner {
             Assertion::Poison(p, want) => {
                 let have = st.player(*p).poison;
                 expect(line, format!("poison of {}", player_name(*p)), have, *want)
+            }
+            Assertion::Energy(p, want) => {
+                let have = st.player(*p).energy;
+                expect(line, format!("energy of {}", player_name(*p)), have, *want)
             }
             Assertion::ZoneContains {
                 zone,

@@ -1,0 +1,8 @@
+card "Shipwreck Moray" {
+  oracle_id 6c0b07c4-bb7c-4100-81e5-b0ee95d18625
+  cost {3}{U}
+  type Creature — Fish
+  pt 0/5
+  triggered when this enters: you get 4 energy
+  activated pay 1 energy: this gets +2/-2
+}

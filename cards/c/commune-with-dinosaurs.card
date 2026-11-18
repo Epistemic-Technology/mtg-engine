@@ -1,0 +1,6 @@
+card "Commune with Dinosaurs" {
+  oracle_id 27ca27f0-95a5-4292-b30b-1db3e9d639f8
+  cost {G}
+  type Sorcery
+  spell: dig 5 take Dinosaur or land card may revealing rest bottom
+}

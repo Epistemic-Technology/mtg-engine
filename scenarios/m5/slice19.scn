@@ -1,0 +1,98 @@
+# M5 slice 19: energy; filters with an alternative ("creature or
+# Vehicle", "attacking or blocking creature", "Goblin or Orc").
+
+scenario "energy: Solstice Zealot gets two, then pays one to tap" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Solstice Zealot"
+  library A: 3 "Plains"
+  library B: 3 "Island"
+  turn 1 A: cast "Solstice Zealot"
+  run_to turn 1 end
+  assert energy A 2
+  turn 3 A: activate "Solstice Zealot" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert energy A 1
+  assert tapped "Hill Giant"
+}
+
+scenario "energy: an activation needs the energy" {
+  battlefield A: "Solstice Zealot"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Solstice Zealot" targeting "Hill Giant"
+  run_to turn 1 end
+  assert untapped "Hill Giant"
+}
+
+scenario "energy: Thriving Rats pays two as it attacks for a counter" {
+  energy A: 2
+  battlefield A: "Thriving Rats"
+  turn 1 A: attack "Thriving Rats"
+  run_to turn 1 end
+  assert energy A 0
+  assert power "Thriving Rats" 2
+  assert life B 18
+}
+
+scenario "energy: without enough, no counter" {
+  energy A: 1
+  battlefield A: "Thriving Rats"
+  turn 1 A: attack "Thriving Rats"
+  run_to turn 1 end
+  assert energy A 1
+  assert power "Thriving Rats" 1
+}
+
+scenario "or filter: Befoul destroys a land" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Befoul"
+  turn 1 A: cast "Befoul" targeting "Forest"
+  run_to turn 1 end
+  assert graveyard B contains "Forest"
+}
+
+scenario "or filter: Daring Demolition can't target a non-Vehicle artifact" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Necrogen Censer"
+  hand A: "Daring Demolition"
+  illegal turn 1 A: cast "Daring Demolition" targeting "Necrogen Censer"
+  run_to turn 1 end
+  assert battlefield B contains "Necrogen Censer"
+}
+
+scenario "or filter: Daring Demolition destroys a Vehicle" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Adventurer's Airship"
+  hand A: "Daring Demolition"
+  turn 1 A: cast "Daring Demolition" targeting "Adventurer's Airship"
+  run_to turn 1 end
+  assert graveyard B contains "Adventurer's Airship"
+}
+
+scenario "or filter: Searing Light only hits an attacking or blocking creature" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Searing Light"
+  illegal turn 1 A: cast "Searing Light" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "or filter: Olog-hai Crusher blocks with a Goblin around" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Olog-hai Crusher", "Akki Avalanchers"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Olog-hai Crusher"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "or filter: without a Goblin or Orc, Olog-hai Crusher can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Olog-hai Crusher"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Olog-hai Crusher"
+  run_to turn 1 end
+  assert life B 18
+}

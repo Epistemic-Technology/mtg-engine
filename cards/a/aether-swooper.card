@@ -1,0 +1,9 @@
+card "Aether Swooper" {
+  oracle_id f7ed301a-dce7-49d0-a68a-d3a099201f65
+  cost {1}{U}
+  type Creature — Vedalken Artificer
+  pt 1/2
+  keywords flying
+  triggered when this enters: you get 2 energy
+  triggered whenever this attacks: you may pay 2 energy; if you do, create 1 "1/1 colorless Servo artifact creature"
+}

@@ -1,0 +1,7 @@
+card "Glassblower's Puzzleknot" {
+  oracle_id 0fbe0610-8565-4910-bf35-2c10e38b633a
+  cost {2}
+  type Artifact
+  triggered when this enters: scry 2 then you get 2 energy
+  activated {2}{U}, sacrifice this: scry 2 then you get 2 energy
+}

@@ -1,0 +1,6 @@
+card "Befoul" {
+  oracle_id c573c59a-5a79-4fe1-a6d8-5e0153b5c059
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy target land or nonblack creature without regeneration
+}

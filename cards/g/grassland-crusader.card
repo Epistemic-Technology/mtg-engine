@@ -1,0 +1,7 @@
+card "Grassland Crusader" {
+  oracle_id b4cff81a-0c60-417d-acf9-2170ebdbea14
+  cost {5}{W}
+  type Creature — Human Cleric Soldier
+  pt 2/4
+  activated {T}: target Elf or Soldier creature gets +2/+2
+}

@@ -1,0 +1,7 @@
+card "Daring Mechanic" {
+  oracle_id 9b1d79b7-a812-4f48-9be0-789294da3b56
+  cost {2}{W}
+  type Creature — Human Artificer
+  pt 3/3
+  activated {3}{W}: put 1 +1/+1 counters on target Mount or Vehicle
+}

@@ -1,0 +1,7 @@
+card "Goblin-town" {
+  oracle_id 98d20908-6d68-4d31-b719-207f93c9b402
+  type Land
+  enters tapped
+  mana {B} or {R}
+  activated {2}{B}{R}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target Goblin or Orc you control
+}

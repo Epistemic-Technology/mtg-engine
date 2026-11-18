@@ -1,0 +1,7 @@
+card "Reservoir Walker" {
+  oracle_id 7177361a-f86f-4a50-b517-229cb1eaac07
+  cost {5}
+  type Artifact Creature — Construct
+  pt 3/3
+  triggered when this enters: you gain 3 life and you get 3 energy
+}

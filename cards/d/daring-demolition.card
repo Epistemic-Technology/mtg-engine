@@ -1,0 +1,6 @@
+card "Daring Demolition" {
+  oracle_id 8c8a3962-42a5-4070-8719-00d7483c7dbe
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy target creature or Vehicle
+}

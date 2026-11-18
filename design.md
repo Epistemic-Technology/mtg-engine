@@ -2507,3 +2507,12 @@ cascade's cast trigger are built-in abilities of the pool. Corpus 7,802
 cards: 5,782 Pauper (53.1%), 5,886 Modern (25.9%); 2,157 scenarios pass
 (8 new in scenarios/m5/exile-cast.scn), 1 skipped; fuzz 0 panics, 0
 unfinished; throughput 0.8% below slice 17 and 2% below the perf pass.
+
+Status 2026-11-18, slice 19 done: energy (a player counter, "you get
+{E}{E}", "Pay {E}" costs and payments) and filters with an alternative
+(`ObjFilter::or`: either side matches whole, characteristics and state;
+qualifiers printed once are shared by both sides). Corpus 7,874 cards:
+5,853 Pauper (53.8%), 5,955 Modern (26.2%); 2,167 scenarios pass (10 new
+in scenarios/m5/slice19.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
+throughput 0.7% below slice 18, about 2.5% below the perf pass (a perf
+pass is due).

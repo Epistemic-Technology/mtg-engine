@@ -74,6 +74,8 @@ pub struct PlayerSetup {
     pub life: i32,
     /// Starting poison counters (scenarios).
     pub poison: u32,
+    /// Starting energy counters (scenarios).
+    pub energy: u32,
     /// Bottom first; the last card is on top. Not shuffled.
     pub library: Vec<CardRef>,
     pub hand: Vec<CardRef>,
@@ -178,6 +180,7 @@ impl Engine {
         let mut state = GameState::blank(pool, setup.active_player, &lives, rng, setup.logging);
         for (i, p) in setup.players.iter().enumerate() {
             state.players[i].poison = p.poison;
+            state.players[i].energy = p.energy;
         }
         let mut attachments: Vec<(ObjId, String)> = Vec::new();
         for (i, ps) in setup.players.iter().enumerate() {
@@ -446,6 +449,7 @@ impl GameState {
                     exile: Vec::new(),
                     mana_pool: crate::mana::ManaPool::default(),
                     poison: 0,
+                    energy: 0,
                     adventures_in_exile: 0,
                     lands_played_this_turn: 0,
                     flashback_in_graveyard: 0,

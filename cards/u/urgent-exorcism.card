@@ -1,0 +1,6 @@
+card "Urgent Exorcism" {
+  oracle_id 2f87ebc6-68b0-4121-bfaf-b412b077d75b
+  cost {1}{W}
+  type Instant
+  spell: destroy target Spirit or enchantment
+}

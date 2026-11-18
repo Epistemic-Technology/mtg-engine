@@ -1,0 +1,6 @@
+card "Gravkill" {
+  oracle_id 15c6837c-775b-4b4a-a2f7-9fd79215fa05
+  cost {3}{B}
+  type Instant
+  spell: exile target creature or Spacecraft
+}

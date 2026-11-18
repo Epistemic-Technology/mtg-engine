@@ -1,0 +1,7 @@
+card "Kami of the Hunt" {
+  oracle_id 96e68c7a-f187-4aa6-998c-238e7c833809
+  cost {2}{G}
+  type Creature — Spirit
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: this gets +1/+1
+}

@@ -1,0 +1,7 @@
+card "Soul of Magma" {
+  oracle_id 1566af29-bd7b-41bb-a589-499348fbd32c
+  cost {3}{R}{R}
+  type Creature — Spirit
+  pt 2/2
+  triggered whenever you cast Spirit or Arcane spell: deal 1 damage to target creature
+}

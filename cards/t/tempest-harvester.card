@@ -1,0 +1,8 @@
+card "Tempest Harvester" {
+  oracle_id 5c0ffe37-16ce-4788-a434-58b6fc34bd9c
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  triggered when this enters: you get 2 energy
+  activated {T}, pay 1 energy: draw 1 cards then discard 1 cards
+}

@@ -1,0 +1,11 @@
+card "Inspired Inventor" {
+  oracle_id 126679aa-f150-4949-8566-12d223af3960
+  cost {2}{W}
+  type Creature — Human Artificer
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: you get 3 energy
+    mode: put 1 +1/+1 counters on target creature
+    mode: create 1 "1/1 colorless Servo artifact creature"
+  }
+}
