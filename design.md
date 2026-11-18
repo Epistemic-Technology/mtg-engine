@@ -2209,6 +2209,24 @@ wrapped, so the engine enumerated an astronomically large set (24 GB);
 the count now saturates. Agents get `choose_in(&Engine, ...)`, which the
 simulator calls.
 
+Status 2026-11-18, slice 7 (benchmark harness) done; the M5 accept item
+"the benchmark harness published" is met: `mtg-bench` and
+[BENCHMARK.md](BENCHMARK.md). Tracks per §9.5: rated games against the
+agent ladder in mirrored pairs (same seed and decks, controllers
+swapped), the free agent ladder that anchors the ratings, and
+win-this-turn puzzles (`scenarios/puzzles/`, whose scripted solutions
+the scenario suite checks). One stateless Messages API request per model
+decision with the fixed auto-pass policy (single-option decisions and
+keeping the opening hand are automatic), up to two retries after an
+illegal reply, then a counted greedy fallback; each decision's reply,
+tokens, and latency go into the `GameRecord` (`notes`). `report` fits
+Bradley–Terry Elo anchored on greedy at 1500 with a one-draw prior and
+95% intervals, and shows cost only from prices given on the command
+line. First results: greedy 1500, MCTS 1568 ± 41, random 1218 ± 49
+(1,200 ladder games); a live pair of Claude Haiku against greedy won
+both games with no invalid replies (87 decisions, about 18,500 output
+tokens per game). M5's remaining accept item is coverage.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

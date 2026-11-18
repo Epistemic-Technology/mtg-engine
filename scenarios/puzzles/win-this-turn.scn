@@ -1,0 +1,47 @@
+# Benchmark puzzles (design §9.5): A to win this turn. Each scripted
+# solution is checked by the scenario suite; `mtg-bench puzzles` gives a
+# model the position without the script and scores whether it wins
+# before the turn ends.
+
+scenario "puzzle: burn for the last points" {
+  battlefield A: "Mountain", "Mountain", "Grizzly Bears"
+  battlefield B: "Craw Wurm"
+  hand A: "Lightning Bolt", "Shock"
+  life B 5
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 main2 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert winner A
+}
+
+scenario "puzzle: pump the creature that isn't blocked" {
+  battlefield A: "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Giant Growth"
+  life B 5
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Giant Growth" targeting A "Grizzly Bears"
+  run_to turn 1 end
+  assert winner A
+}
+
+scenario "puzzle: clear the blocker first" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  life B 3
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 end
+  assert winner A
+}
+
+scenario "puzzle: the flyer gets through" {
+  battlefield A: "Island", "Wind Drake", "Grizzly Bears"
+  battlefield B: "Craw Wurm", "Hill Giant"
+  life B 2
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 end
+  assert winner A
+}

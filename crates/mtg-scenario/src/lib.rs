@@ -17,7 +17,7 @@ use mtg_core::card::CardPool;
 use thiserror::Error;
 
 pub use parse::{ParseError, parse};
-pub use run::{Failure, Report, run};
+pub use run::{Failure, Report, run, start_engine};
 
 #[derive(Debug, Error)]
 pub enum FileError {

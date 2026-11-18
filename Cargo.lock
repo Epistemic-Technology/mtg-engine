@@ -1082,6 +1082,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "mtg-bench"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "mtg-agents",
+ "mtg-core",
+ "mtg-dsl",
+ "mtg-scenario",
+ "mtg-sim",
+ "rayon",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "mtg-cards"
 version = "0.1.0"
 dependencies = [

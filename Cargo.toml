@@ -11,6 +11,7 @@ members = [
     "crates/mtg-py",
     "crates/mtg-mcp",
     "crates/mtg-review",
+    "crates/mtg-bench",
 ]
 
 [workspace.package]

@@ -139,6 +139,12 @@ struct Runner {
     block_queue: Option<Vec<(ObjId, ObjId)>>,
 }
 
+/// An engine at the scenario's starting position, its scripted actions
+/// not taken (the benchmark's puzzle track plays them itself).
+pub fn start_engine(pool: &Arc<CardPool>, sc: &Scenario) -> Result<Engine, Failure> {
+    Runner::new(pool, sc).map(|r| r.engine)
+}
+
 impl Runner {
     fn new(pool: &Arc<CardPool>, sc: &Scenario) -> Res<Runner> {
         let (turn_number, active_player, step) =

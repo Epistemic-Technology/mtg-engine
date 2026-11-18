@@ -1,0 +1,29 @@
+[package]
+name = "mtg-bench"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Benchmark harness: language models against the agent ladder and puzzles (design §9.5)"
+
+[[bin]]
+name = "mtg-bench"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+mtg-agents = { path = "../mtg-agents" }
+mtg-core = { path = "../mtg-core" }
+mtg-dsl = { path = "../mtg-dsl" }
+mtg-scenario = { path = "../mtg-scenario" }
+mtg-sim = { path = "../mtg-sim" }
+rayon.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

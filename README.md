@@ -7,23 +7,19 @@ non-negotiable properties are rules fidelity (behaviour matches the
 Comprehensive Rules) and speed (thousands of complete games per second per
 core with cheap agents).
 
-Status: milestone M2 (continuous effects and the event pipeline) is
-complete: the CR 613 layer system, Auras and Equipment, counters,
-triggered abilities (CR 603) including delayed ones, replacement and
-prevention effects (CR 614–616), activated abilities (CR 602), tokens,
-control-changing effects, the legend rule, copy effects (CR 707),
-characteristic-defining abilities, modal spells, "you may" clauses, X and
-non-mana costs, regeneration, damage redirection, the CR 614.12
-look-ahead, planeswalkers (CR 306, 606), and emblems are in. M3 (the card
-DSL and authoring pipeline) is under way: cards are text files under
-`cards/` that compile to the engine's definitions and render back to
-Oracle text, and a gate checks that rendering against Scryfall. The
-corpus holds 4,124 cards (147 hand-written and 112 model-authored, all
-scenario-tested; the rest authored from Oracle text by templates; 28% of
-Pauper, 14% of Modern), all matching their Oracle text. Random agents
-play complete games at about 4,500 games per second per core on
-effect-free boards. An 821-scenario rules corpus passes, 29 of them
-converted from XMage's tests. See [design.md](design.md) for the
+Status: milestones M0–M4 are complete (core loop, continuous effects and
+the event pipeline, the card DSL and authoring pipeline, and the Python,
+MCP, and review tools). M5 (coverage and hardening) is under way: cards
+are text files under `cards/` that compile to the engine's definitions
+and render back to Oracle text, checked against Scryfall by a gate; the
+corpus holds 5,825 cards (37% of Pauper over every layout, 19% of
+Modern), multi-face cards (adventures, omens, split and transforming
+double-faced cards) included. Random agents play complete games at about
+4,200 games per second per core on effect-free boards. A 980-scenario
+rules corpus passes. An IS-MCTS agent (`--agent1 mcts`) beats the greedy
+agent 62% to 38% over both seats, and `mtg-bench` (see
+[BENCHMARK.md](BENCHMARK.md)) rates language models against the agents.
+See [design.md](design.md) for the
 architecture, roadmap, and open questions.
 
 ```
@@ -89,6 +85,17 @@ cargo run --release -p mtg-cli -- sim --games 10 --agent1 greedy --record-dir da
 cargo run --release -p mtg-review -- --store data/games serve
 ```
 
+Benchmark: `mtg-bench` plays a model against the agent ladder in
+mirrored pairs and on win-this-turn puzzles, logs its reasoning, tokens,
+and latency per decision, and fits Elo ratings anchored on the greedy
+agent ([BENCHMARK.md](BENCHMARK.md)):
+
+```
+cargo run --release -p mtg-bench -- ladder --pairs 10 --out results.jsonl
+cargo run --release -p mtg-bench -- rated --model claude-haiku-5-5 --out results.jsonl
+cargo run --release -p mtg-bench -- report results.jsonl
+```
+
 Fuzzing draws random two-color decks from the whole corpus:
 
 ```
@@ -105,11 +112,15 @@ crates/
   mtg-dsl/       card DSL: parser, compiler, Oracle-text printer, built-in corpus
   mtg-cards/     card database: Scryfall/MTGJSON ingest, round-trip gate
   mtg-scenario/  scenario test DSL and runner
-  mtg-agents/    baseline agents
+  mtg-agents/    agents: random, greedy, IS-MCTS
   mtg-sim/       batch simulation, fuzzing, benchmarks
   mtg-cli/       human/debug CLI
+  mtg-py/        Python binding and PettingZoo environment
+  mtg-mcp/       MCP server
+  mtg-review/    game-record store and playback page
+  mtg-bench/     benchmark harness for language models
 cards/           the card corpus (*.card, one per card under cards/<letter>/), embedded at build time
-scenarios/       rules-test corpus (*.scn)
+scenarios/       rules-test corpus (*.scn); scenarios/puzzles/ holds the benchmark puzzles
 scripts/         fuzz and A/B benchmark scripts
 data/
   sources.lock   pinned Scryfall and MTGJSON snapshot (committed)

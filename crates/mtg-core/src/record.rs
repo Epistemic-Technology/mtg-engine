@@ -23,6 +23,28 @@ pub struct GameRecord {
     /// Free-form labels: agent names, tags.
     #[serde(default)]
     pub meta: Vec<(String, String)>,
+    /// What a model said and spent at each decision it made (the
+    /// benchmark harness, design §9.5).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<DecisionNote>,
+}
+
+/// One model decision, kept with the record.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct DecisionNote {
+    /// Index into `actions`.
+    pub action: usize,
+    pub player: u8,
+    /// The model's reasoning text, as it replied.
+    pub reasoning: String,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_read_tokens: u64,
+    pub latency_ms: u64,
+    /// Replies that named no legal option before this one was accepted.
+    pub invalid: u32,
+    /// No legal reply came; the fallback agent chose.
+    pub fallback: bool,
 }
 
 impl GameRecord {
@@ -40,6 +62,7 @@ impl GameRecord {
             result: engine.state().result,
             turns: engine.state().turn_number,
             meta: Vec::new(),
+            notes: Vec::new(),
         }
     }
 
