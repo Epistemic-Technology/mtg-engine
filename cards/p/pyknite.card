@@ -1,0 +1,7 @@
+card "Pyknite" {
+  oracle_id 857f9a8d-ba77-4afd-922d-994f66e478ef
+  cost {2}{G}
+  type Creature — Ouphe
+  pt 1/1
+  triggered when this enters: delayed this: draw 1 cards at beginning of the next turn's upkeep
+}

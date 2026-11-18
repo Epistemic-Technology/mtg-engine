@@ -1,0 +1,8 @@
+card "Aspect of Lamprey" {
+  oracle_id 7d3c25bb-5175-4fb1-992f-62a44722f535
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: target opponent discards 2 cards
+  static enchanted: has lifelink
+}

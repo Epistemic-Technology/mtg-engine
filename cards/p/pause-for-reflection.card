@@ -1,0 +1,7 @@
+card "Pause for Reflection" {
+  oracle_id a7f266b5-7258-4eaa-b447-66460ec38505
+  cost {2}{G}
+  type Instant
+  keywords convoke
+  spell: prevent all combat damage this turn
+}

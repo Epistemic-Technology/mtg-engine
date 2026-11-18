@@ -1,0 +1,7 @@
+card "Pack's Favor" {
+  oracle_id 072288da-5ba0-4176-b0e6-b3e43ecab2ec
+  cost {2}{G}
+  type Instant
+  keywords convoke
+  spell: target creature gets +3/+3
+}

@@ -2312,6 +2312,18 @@ changes. Corpus 7,094 cards: 5,081 Pauper (46.7%), 5,309 Modern
 rest with batch 5's cards), 1 skipped; fuzz 0 panics, 0 unfinished.
 Throughput not measured: the machine was loaded by other work.
 
+Status 2026-11-18, slice 13 done: convoke and improvise (creatures and
+artifacts as extra payment sources, used after mana sources),
+"at the beginning of the next turn's upkeep" delays, "If that creature
+would die this turn, exile it instead" (`Replaces::Dies`, locked to the
+target), Aura-granted restrictions ("Enchanted creature can't attack or
+block."); the template author tries every matching rule rather than the
+first. Corpus 7,306 cards: 5,291 Pauper (48.6%), 5,472 Modern (24.1%);
+1,761 scenarios pass (5 new in scenarios/m5/slice13.scn), 1 skipped;
+fuzz 0 panics, 0 unfinished. Throughput: slice 12 within 1% of slice 11;
+slice 13 3% below slice 12, 5.6% below slice 8 (no new hot function in
+the profile; a perf pass is due).
+
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional
 "enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't

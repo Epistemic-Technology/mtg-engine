@@ -1,0 +1,8 @@
+card "Zookeeper Mechan" {
+  oracle_id 6d4d98a8-a5a3-4cc1-9277-c45dafe40ea0
+  cost {1}{R}
+  type Artifact Creature — Robot
+  pt 1/3
+  mana {R}
+  activated {6}{R}, sorcery: target creature you control gets +4/+0
+}

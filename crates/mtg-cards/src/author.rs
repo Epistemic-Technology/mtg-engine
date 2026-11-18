@@ -19,7 +19,9 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 32] = [
+const KEYWORDS: [&str; 34] = [
+    "Convoke",
+    "Improvise",
     "Flanking",
     "Shroud",
     "Fear",
@@ -492,7 +494,12 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         "two target creatures",
     ];
     let lowered;
-    let s = if s.starts_with("Another target ") || s.starts_with("Up to ") {
+    let s = if s.starts_with("Another target ")
+        || s.starts_with("Up to ")
+        || s.starts_with("Target ")
+        || s.starts_with("Enchanted ")
+        || s.starts_with("Equipped ")
+    {
         lowered = lowercase_first(s);
         lowered.as_str()
     } else {
@@ -874,6 +881,19 @@ impl Templates {
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
             (
+                r(r"^If (that creature|it) would die this turn, exile it instead$"),
+                |_, t| (*t > 0).then(|| format!("this turn, replace target {t} dies: exile")),
+            ),
+            (
+                r(r"^Draw (a|two|three) cards? at the beginning of the next turn's upkeep$"),
+                |c, _| {
+                    Some(format!(
+                        "delayed this: draw {} cards at beginning of the next turn's upkeep",
+                        number(cap(c, 1))?
+                    ))
+                },
+            ),
+            (
                 r(r"^(.+) doesn't untap during its controller's next untap step$"),
                 |c, t| {
                     let who = recipient(&lowercase_first(cap(c, 1)), t)?;
@@ -1030,9 +1050,15 @@ impl Templates {
     }
 
     fn sentence(&self, s: &str, targets: &mut usize) -> Option<String> {
+        // The first rule that matches and makes something; a rule that
+        // matches but declines leaves the next one a chance.
         for (re, f) in &self.rules {
             if let Some(c) = re.captures(s) {
-                return f(&c, targets);
+                let before = *targets;
+                if let Some(out) = f(&c, targets) {
+                    return Some(out);
+                }
+                *targets = before;
             }
         }
         None
@@ -1816,6 +1842,19 @@ impl Builder<'_> {
             let _ = c;
             self.statements
                 .push("static enchanted: has doesn't untap".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^(Enchanted creature|Equipped creature) (can't attack or block|can't block|can't attack|can't be blocked|attacks each combat if able)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let ks = match cap(&c, 2) {
+                "can't attack or block" => "can't attack, can't block",
+                other => other,
+            };
+            self.statements.push(format!("static enchanted: has {ks}"));
             return Ok(());
         }
         if line == "This creature doesn't untap during your untap step."

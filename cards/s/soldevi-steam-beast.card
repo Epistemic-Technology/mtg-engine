@@ -1,0 +1,8 @@
+card "Soldevi Steam Beast" {
+  oracle_id 935728dd-ad97-47a9-97ca-068af7960d07
+  cost {5}
+  type Artifact Creature — Beast
+  pt 4/2
+  triggered whenever this becomes tapped: target opponent gains 2 life
+  activated {2}: regenerate this
+}

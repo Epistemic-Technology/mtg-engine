@@ -1,0 +1,7 @@
+card "Bleak Coven Vampires" {
+  oracle_id 698f3526-489e-47a1-ac10-70cca73dea10
+  cost {3}{B}{B}
+  type Creature — Vampire Warrior
+  pt 4/3
+  label "Metalcraft" triggered when this enters if you control 3 artifact: target player loses 4 life and you gains 4 life
+}

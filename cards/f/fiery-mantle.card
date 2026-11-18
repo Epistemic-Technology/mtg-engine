@@ -1,0 +1,8 @@
+card "Fiery Mantle" {
+  oracle_id 1b553ed4-12eb-4a53-8e1f-d47ec92b1d65
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  activated {R}: enchanted creature gets +1/+0
+  triggered when this dies: return this to hand
+}

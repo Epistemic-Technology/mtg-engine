@@ -1,0 +1,8 @@
+card "Falkenrath Noble" {
+  oracle_id 3739b179-bc81-4737-8376-66a57e16b942
+  cost {3}{B}
+  type Creature — Vampire Noble
+  pt 2/2
+  keywords flying
+  triggered whenever creature dies: target player loses 1 life and you gains 1 life
+}

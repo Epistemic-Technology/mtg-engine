@@ -1,0 +1,7 @@
+card "Adventuring Gear" {
+  oracle_id 17042684-7af4-43a6-88c7-885032cfb27c
+  cost {1}
+  type Artifact — Equipment
+  label "Landfall" triggered whenever land you control enters: equipped creature gets +2/+2
+  equip {1}
+}

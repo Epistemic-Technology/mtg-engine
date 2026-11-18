@@ -1,0 +1,7 @@
+card "Reverse Engineer" {
+  oracle_id f56596be-e12f-4ab6-af61-3ef8dc87134c
+  cost {3}{U}{U}
+  type Sorcery
+  keywords improvise
+  spell: draw 3 cards
+}

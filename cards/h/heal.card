@@ -1,0 +1,9 @@
+card "Heal" {
+  oracle_id 013c42a4-d555-46c9-9d57-b50d6b59ae9e
+  cost {W}
+  type Instant
+  spell {
+    prevent next 1 damage to any target this turn
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

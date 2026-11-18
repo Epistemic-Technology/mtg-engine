@@ -1,0 +1,9 @@
+card "The Torment of Gollum" {
+  oracle_id 8b70aad1-bcb1-4359-b27e-ba8b40ef2752
+  cost {3}{B}
+  type Sorcery
+  spell {
+    target opponent reveals hand discarding nonland card
+    amass Orcs 2
+  }
+}

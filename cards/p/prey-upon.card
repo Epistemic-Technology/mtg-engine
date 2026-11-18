@@ -1,0 +1,6 @@
+card "Prey Upon" {
+  oracle_id b3c12848-528d-4005-878f-4f950a07240a
+  cost {G}
+  type Sorcery
+  spell: target creature you control fights target creature you don't control
+}

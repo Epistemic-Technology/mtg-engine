@@ -1,0 +1,6 @@
+card "Woodcutter's Grit" {
+  oracle_id 7756d2b9-7b10-4d05-8ad3-8d8f39c1eb23
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +3/+3 and gains hexproof
+}

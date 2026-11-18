@@ -1,0 +1,6 @@
+card "Dive Down" {
+  oracle_id 2f990b54-fbf3-4949-85bb-9ba39710e72a
+  cost {U}
+  type Instant
+  spell: target creature you control gets +0/+3 and gains hexproof
+}

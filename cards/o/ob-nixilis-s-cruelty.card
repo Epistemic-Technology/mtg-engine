@@ -1,0 +1,6 @@
+card "Ob Nixilis's Cruelty" {
+  oracle_id c638957f-88bf-40c2-834c-2be39d73bf41
+  cost {2}{B}
+  type Instant
+  spell: target creature gets -5/-5; this turn, replace target 1 dies: exile
+}

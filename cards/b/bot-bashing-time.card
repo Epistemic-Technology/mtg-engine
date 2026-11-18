@@ -1,0 +1,6 @@
+card "Bot Bashing Time" {
+  oracle_id 14079f05-fbc1-401c-9008-da678656b4c6
+  cost {3}{R}
+  type Sorcery
+  spell: deal 6 damage to target creature; this turn, replace target 1 dies: exile
+}

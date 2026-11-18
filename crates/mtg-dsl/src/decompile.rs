@@ -584,6 +584,9 @@ impl Decompiler<'_> {
                 CoreReplaces::PlusCounters { on } => Replaces::PlusCounters {
                     on: self.filter(on),
                 },
+                CoreReplaces::Dies { to } => Replaces::Dies {
+                    to: self.affects(to),
+                },
                 CoreReplaces::Destroy { to } => Replaces::Destroy {
                     to: self.affects(to),
                 },

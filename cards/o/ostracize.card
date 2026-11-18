@@ -1,0 +1,6 @@
+card "Ostracize" {
+  oracle_id 43975c07-103c-4664-b7e6-55bb29d85183
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding creature card
+}

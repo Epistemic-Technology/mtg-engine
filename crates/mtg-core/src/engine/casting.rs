@@ -257,7 +257,16 @@ impl GameState {
         if def.self_cost.is_some() || !changers.is_empty() {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
-        if payment_plan_from(sources, pool, &req, self.player(p).life).is_none() {
+        let helped =
+            def.keywords.contains(Keyword::Convoke) || def.keywords.contains(Keyword::Improvise);
+        let payable = if helped {
+            let mut all = sources.clone();
+            all.extend(self.helper_sources(p, def));
+            payment_plan_from(&all, pool, &req, self.player(p).life).is_some()
+        } else {
+            payment_plan_from(sources, pool, &req, self.player(p).life).is_some()
+        };
+        if !payable {
             return false;
         }
         if !self.additional_payable(p, &def.additional, id) {
@@ -275,6 +284,51 @@ impl GameState {
     /// Whether some permanent may have abilities its definition lacks.
     pub(super) fn grants_exist(&self) -> bool {
         self.grant_sources > 0 || self.eot_grants > 0
+    }
+
+    /// Convoke and improvise (CR 702.51, 702.126): untapped creatures (each
+    /// paying one mana of its color, or generic) and untapped artifacts
+    /// (generic) that may be tapped to help cast `def`; after mana
+    /// sources, so they are used last.
+    pub(super) fn helper_sources(&self, p: PlayerId, def: &crate::card::CardDef) -> Sources {
+        let convoke = def.keywords.contains(Keyword::Convoke);
+        let improvise = def.keywords.contains(Keyword::Improvise);
+        let mut out = Sources::new();
+        if !convoke && !improvise {
+            return out;
+        }
+        for id in self.permanents_of(p) {
+            if self.objects[id].tapped {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            if convoke && c.is_creature() {
+                let mut any = false;
+                for col in c.colors.iter() {
+                    out.push((id, Mana::Colored(col)));
+                    any = true;
+                }
+                if !any {
+                    out.push((id, Mana::Colorless));
+                }
+            } else if improvise && c.types.contains(crate::card::CardType::Artifact) {
+                out.push((id, Mana::Colorless));
+            }
+        }
+        out
+    }
+
+    /// The sources that may pay for the spell `spell` being cast.
+    fn spell_sources(&self, spell: ObjId) -> Sources {
+        let o = &self.objects[spell];
+        let mut s = self.mana_sources(o.controller);
+        let def = self.pool.get(o.def);
+        if def.keywords.contains(Keyword::Convoke) || def.keywords.contains(Keyword::Improvise) {
+            s.extend(self.helper_sources(o.controller, def));
+        }
+        s
     }
 
     /// Permanents with a static ability that changes what spells cost.
@@ -650,7 +704,7 @@ impl GameState {
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
         let caster = self.objects[spell].controller;
-        let sources = self.mana_sources(caster);
+        let sources = self.spell_sources(spell);
         let pool = self.player(caster).mana_pool;
         (0..=MAX_X)
             .take_while(|x| {
@@ -942,8 +996,14 @@ impl GameState {
     }
 
     pub(super) fn pay(&mut self, p: PlayerId, req: &ManaRequirement) {
+        let sources = self.mana_sources(p);
+        self.pay_from(p, req, &sources);
+    }
+
+    /// `pay` from these sources (a spell's, with convoke or improvise).
+    fn pay_from(&mut self, p: PlayerId, req: &ManaRequirement, sources: &Sources) {
         let ps = self.player(p);
-        let (plan, req, life) = resolve_payment(&self.mana_sources(p), &ps.mana_pool, req, ps.life)
+        let (plan, req, life) = resolve_payment(sources, &ps.mana_pool, req, ps.life)
             .expect("cast was offered only when payable");
         for (id, mana) in plan {
             self.tap(id);
@@ -978,7 +1038,8 @@ impl GameState {
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
         let def = self.pool.get(def_ref).clone();
         let req = self.spell_requirements(spell, x);
-        self.pay(caster, &req);
+        let sources = self.spell_sources(spell);
+        self.pay_from(caster, &req, &sources);
         if let (Some(fb), true) = (&def.flashback, flashback) {
             self.pay_other_costs(caster, fb, spell, None, None);
         }
@@ -2442,6 +2503,9 @@ impl GameState {
             Replaces::Damage {
                 to: Affects::Target(i),
                 ..
+            }
+            | Replaces::Dies {
+                to: Affects::Target(i),
             } => {
                 if !ctx.legal.get(*i).copied().unwrap_or(false) {
                     return;

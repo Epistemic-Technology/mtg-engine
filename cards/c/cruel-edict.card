@@ -1,0 +1,6 @@
+card "Cruel Edict" {
+  oracle_id 10c585c4-bf5b-4d8f-94a9-e9a5036a688f
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent sacrifices 1 creature
+}

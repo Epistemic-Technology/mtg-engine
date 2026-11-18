@@ -1,0 +1,7 @@
+card "Liberated Dwarf" {
+  oracle_id c5081f2d-ebe2-4ff3-a8ef-fe50f8ecde60
+  cost {R}
+  type Creature — Dwarf
+  pt 1/1
+  activated {R}, sacrifice this: target green creature gets +1/+0 and gains first strike
+}

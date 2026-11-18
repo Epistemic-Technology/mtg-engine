@@ -1,0 +1,6 @@
+card "Chase Inspiration" {
+  oracle_id 9c055ef0-1164-4a9f-80de-23405423aed5
+  cost {U}
+  type Instant
+  spell: target creature you control gets +0/+3 and gains hexproof
+}

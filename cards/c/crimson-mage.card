@@ -1,0 +1,7 @@
+card "Crimson Mage" {
+  oracle_id d7bf23c4-172a-42fd-b826-3b074a588610
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 2/1
+  activated {R}: target creature you control gains haste
+}

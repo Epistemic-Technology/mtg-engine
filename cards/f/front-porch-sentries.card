@@ -1,0 +1,7 @@
+card "Front Porch Sentries" {
+  oracle_id b39f03cf-3d1a-42ad-903f-e3b3542878b0
+  cost {1}{B}
+  type Creature — Goblin Soldier
+  pt 2/2
+  triggered when this dies: target creature an opponent controls gets -1/-1
+}

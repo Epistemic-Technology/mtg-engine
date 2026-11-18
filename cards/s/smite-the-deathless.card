@@ -1,0 +1,6 @@
+card "Smite the Deathless" {
+  oracle_id 37994591-3494-4314-a7da-49c112b0866f
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; that creature loses indestructible; this turn, replace target 1 dies: exile
+}

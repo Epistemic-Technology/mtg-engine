@@ -1,0 +1,9 @@
+card "Enervate" {
+  oracle_id f763d95e-87af-473f-9b1f-cf16221e5792
+  cost {1}{U}
+  type Instant
+  spell {
+    tap target artifact, creature, or land
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

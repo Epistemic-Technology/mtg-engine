@@ -1,0 +1,8 @@
+card "Living Totem" {
+  oracle_id 0a2e2d97-1348-4fa6-ad94-4da23ad8f43b
+  cost {3}{G}
+  type Creature — Plant Elemental
+  pt 2/3
+  keywords convoke
+  triggered when this enters: you may put 1 +1/+1 counters on another target creature
+}

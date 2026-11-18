@@ -1,0 +1,9 @@
+card "Ray of Erasure" {
+  oracle_id 29d828fa-a813-48f6-8dcb-43f6047b88a3
+  cost {U}
+  type Instant
+  spell {
+    target player mills 1 cards
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

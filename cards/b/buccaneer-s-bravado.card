@@ -1,0 +1,9 @@
+card "Buccaneer's Bravado" {
+  oracle_id e85421f3-37f6-49ee-9fc4-4424fd4f5236
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: target creature gets +1/+1 and gains first strike
+    mode: target Pirate gets +1/+1 and gains double strike
+  }
+}

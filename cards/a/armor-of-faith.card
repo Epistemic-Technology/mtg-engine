@@ -1,0 +1,8 @@
+card "Armor of Faith" {
+  oracle_id 1c482b20-b423-48ef-b162-53960d43b4f7
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated {W}: enchanted creature gets +0/+1
+}

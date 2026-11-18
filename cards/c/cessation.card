@@ -1,0 +1,8 @@
+card "Cessation" {
+  oracle_id a8b3a35e-0172-4f7b-b50f-571e59d7ca5f
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack
+  triggered when this dies: return this to hand
+}

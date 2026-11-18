@@ -1,0 +1,9 @@
+card "Feral Instinct" {
+  oracle_id f8f3fc11-25b4-4a23-9d79-f380a14f0420
+  cost {1}{G}
+  type Instant
+  spell {
+    target creature gets +1/+1
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

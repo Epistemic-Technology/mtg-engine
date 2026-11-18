@@ -1,0 +1,7 @@
+card "Bump in the Night" {
+  oracle_id d9f2c571-b357-4d4d-94c5-fd47551bb842
+  cost {B}
+  type Sorcery
+  spell: target opponent loses 3 life
+  flashback {5}{R}
+}

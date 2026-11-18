@@ -1,0 +1,7 @@
+card "Metallic Rebuke" {
+  oracle_id c4920e95-a6fc-4373-a0d6-244f51851364
+  cost {2}{U}
+  type Instant
+  keywords improvise
+  spell: counter target spell unless its controller pays {3}
+}

@@ -1,0 +1,8 @@
+card "Brinebarrow Intruder" {
+  oracle_id eba73313-5ec5-4004-8040-658861b71a8f
+  cost {U}
+  type Creature — Human Rogue
+  pt 1/2
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -2/-0
+}

@@ -1,0 +1,7 @@
+card "Flowstone Blade" {
+  oracle_id 77a77622-dc5b-4ff2-a98b-732d44c8856e
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  activated {R}: enchanted creature gets +1/-1
+}

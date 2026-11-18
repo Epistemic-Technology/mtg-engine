@@ -1,0 +1,7 @@
+card "Triplicate Spirits" {
+  oracle_id 48090c64-f41a-447b-ad7a-54e3194f759b
+  cost {4}{W}{W}
+  type Sorcery
+  keywords convoke
+  spell: create 3 "1/1 white Spirit creature with flying"
+}

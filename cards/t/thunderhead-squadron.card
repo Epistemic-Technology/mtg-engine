@@ -1,0 +1,7 @@
+card "Thunderhead Squadron" {
+  oracle_id d74d6f6a-aff0-4a36-9a99-8b2281f5e29d
+  cost {5}{U}
+  type Creature — Human Knight
+  pt 3/4
+  keywords convoke, flying
+}

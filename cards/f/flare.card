@@ -1,0 +1,9 @@
+card "Flare" {
+  oracle_id ff8fae94-3a34-4bc6-aaa2-7ab7d2e2d0dd
+  cost {2}{R}
+  type Instant
+  spell {
+    deal 1 damage to any target
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

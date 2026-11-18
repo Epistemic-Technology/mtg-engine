@@ -253,6 +253,11 @@ pub enum Keyword {
     /// "Doesn't untap during its controller's untap step" (CR 502.3): a
     /// restriction kept with the keywords.
     DoesntUntap,
+    /// CR 702.51: creatures tapped while casting pay for {1} or one mana of
+    /// their color.
+    Convoke,
+    /// CR 702.126: artifacts tapped while casting pay for {1}.
+    Improvise,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -335,7 +340,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 47] = [
+    pub const ALL: [Keyword; 49] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -383,6 +388,8 @@ impl Keyword {
         Keyword::CantBlockAlone,
         Keyword::Flanking,
         Keyword::DoesntUntap,
+        Keyword::Convoke,
+        Keyword::Improvise,
     ];
 
     /// The keyword as Oracle prints it.
@@ -435,6 +442,8 @@ impl Keyword {
             Keyword::CantBlockAlone => "can't block alone",
             Keyword::Flanking => "flanking",
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
+            Keyword::Convoke => "convoke",
+            Keyword::Improvise => "improvise",
         }
     }
 
@@ -1830,6 +1839,9 @@ pub enum Replaces {
     /// A permanent would be destroyed (CR 701.7); regeneration shields
     /// (CR 701.15) replace this.
     Destroy { to: Affects },
+    /// A creature would die ("If that creature would die this turn, exile
+    /// it instead").
+    Dies { to: Affects },
     /// How this permanent itself enters the battlefield (CR 614.1c).
     Enters,
 }

@@ -1,0 +1,8 @@
+card "Krovikan Fetish" {
+  oracle_id 20c7630d-a97f-4f09-9ec5-b7a1739107de
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: delayed this: draw 1 cards at beginning of the next turn's upkeep
+  static enchanted: +1/+1
+}

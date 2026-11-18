@@ -1,0 +1,9 @@
+card "Manacles of Decay" {
+  oracle_id 69095c25-6ae6-42f5-9c3d-1d8f86f03fae
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack
+  activated {B}: enchanted creature gets -1/-1
+  activated {R}: enchanted creature can't block
+}

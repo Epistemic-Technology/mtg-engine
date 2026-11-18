@@ -1,0 +1,9 @@
+card "Agate Assault" {
+  oracle_id 7b89b7d2-c724-4d5d-9f0b-7d3302ad1168
+  cost {2}{R}
+  type Sorcery
+  choose one {
+    mode: deal 4 damage to target creature; this turn, replace target 1 dies: exile
+    mode: exile target artifact
+  }
+}

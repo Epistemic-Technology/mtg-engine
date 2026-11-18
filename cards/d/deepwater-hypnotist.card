@@ -1,0 +1,7 @@
+card "Deepwater Hypnotist" {
+  oracle_id e30c639a-d46c-4488-bfdd-d4282046153c
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  label "Inspired" triggered whenever this becomes untapped: target creature an opponent controls gets -3/-0
+}

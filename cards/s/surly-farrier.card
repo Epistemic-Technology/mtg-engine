@@ -1,0 +1,7 @@
+card "Surly Farrier" {
+  oracle_id ef67c170-68aa-4ada-8cee-261a4dbb1b5d
+  cost {1}{G}
+  type Creature — Kithkin Citizen
+  pt 2/2
+  activated {T}, sorcery: target creature you control gets +1/+1 and gains vigilance
+}

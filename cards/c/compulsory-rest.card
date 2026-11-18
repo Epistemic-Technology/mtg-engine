@@ -1,0 +1,8 @@
+card "Compulsory Rest" {
+  oracle_id 020225db-5623-49c2-8cdf-1ec2a05b8b0a
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  static enchanted: has ability { activated {2}, sacrifice this: you gains 2 life }
+}

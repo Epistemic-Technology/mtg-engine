@@ -1,0 +1,6 @@
+card "Wild Instincts" {
+  oracle_id 99d9d928-a426-431a-85ee-cdec86a283cd
+  cost {3}{G}
+  type Sorcery
+  spell: target creature you control gets +2/+2; target 1 fights target creature an opponent controls
+}

@@ -1,0 +1,7 @@
+card "Grim Bauble" {
+  oracle_id 431d6a2b-e22c-4921-a5f1-dd672f764f78
+  cost {B}
+  type Artifact
+  triggered when this enters: target creature an opponent controls gets -2/-2
+  activated {2}{B}, {T}, sacrifice this: surveil 2
+}

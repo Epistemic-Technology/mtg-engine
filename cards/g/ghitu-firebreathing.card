@@ -1,0 +1,9 @@
+card "Ghitu Firebreathing" {
+  oracle_id 893cdd4f-0b22-4ddc-98a3-5d202564ffa5
+  cost {1}{R}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  activated {R}: enchanted creature gets +1/+0
+  activated {R}: return this to hand
+}

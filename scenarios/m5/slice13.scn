@@ -1,0 +1,51 @@
+# M5 slice 13: convoke, "at the beginning of the next turn's upkeep", "if
+# that creature would die this turn, exile it instead", and restrictions
+# granted by Auras.
+
+scenario "convoke: creatures pay for Aerial Boost" {
+  battlefield A: "Grizzly Bears", "Savannah Lions"
+  hand A: "Aerial Boost"
+  turn 1 A: cast "Aerial Boost" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert tapped "Savannah Lions"
+}
+
+scenario "convoke: not without enough creatures" {
+  battlefield A: "Grizzly Bears"
+  hand A: "Aerial Boost"
+  illegal turn 1 A: cast "Aerial Boost" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "next turn's upkeep: Blessed Wine draws a card later" {
+  battlefield A: 2 "Plains"
+  hand A: "Blessed Wine"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Blessed Wine"
+  run_to turn 1 end
+  assert hand A count 0
+  run_to turn 2 draw
+  assert hand A count 1
+}
+
+scenario "dies this turn: Agate Assault exiles the creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Agate Assault"
+  turn 1 A: cast "Agate Assault" mode 1 targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "an Aura's restriction: Bound in Silence" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Bound in Silence"
+  turn 1 A: cast "Bound in Silence" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 end
+  assert life A 20
+}

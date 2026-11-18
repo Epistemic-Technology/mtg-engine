@@ -1,0 +1,6 @@
+card "Barbed Sextant" {
+  oracle_id 97ba11a1-16cd-47ee-a187-1e919c468e4e
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: add any; delayed this: draw 1 cards at beginning of the next turn's upkeep
+}

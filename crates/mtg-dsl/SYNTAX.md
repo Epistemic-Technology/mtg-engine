@@ -52,7 +52,7 @@ double-faced permanent to its other face (CR 701.27).
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), and `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step.") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), and `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step.") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -277,11 +277,14 @@ count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage
 [to <affects>] this turn`, `prevent next 4 damage to <affects> this turn`,
-`this turn, replace <event>: <outcome>`, `players can't gain life this turn`,
+`this turn, replace <event>: <outcome>` (`this turn, replace target 1
+dies: exile`: "If that creature would die this turn, exile it
+instead."), `players can't gain life this turn`,
 `damage can't be prevented this turn`, and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
-effects, to print it that way). Inside a delayed ability `it` is the object
+effects, to print it that way); `at beginning of the next turn's upkeep`
+also works ("Draw a card at the beginning of the next turn's upkeep"). Inside a delayed ability `it` is the object
 the ability is about.
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,

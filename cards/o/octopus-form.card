@@ -1,0 +1,6 @@
+card "Octopus Form" {
+  oracle_id 6fec368d-374d-4318-861b-ff478ba51a3c
+  cost {U}
+  type Instant — Lesson
+  spell: target creature you control gets +1/+1 and gains hexproof; untap target 1
+}

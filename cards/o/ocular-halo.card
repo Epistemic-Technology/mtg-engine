@@ -1,0 +1,8 @@
+card "Ocular Halo" {
+  oracle_id e649614a-ff23-4234-92f4-6f564cbfe648
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: draw 1 cards }
+  activated {W}: enchanted creature gains vigilance
+}

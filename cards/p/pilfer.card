@@ -1,0 +1,6 @@
+card "Pilfer" {
+  oracle_id d13f0907-de39-4a90-940a-831740d7aa9b
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding nonland card
+}

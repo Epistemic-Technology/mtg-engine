@@ -331,6 +331,7 @@ impl GameState {
 
     /// Whether effect `r` of `source` (controlled by `controller`, locked to
     /// `locked` if from a targeted spell) applies to `ev`.
+    #[allow(clippy::too_many_lines)] // one arm per replaced event
     fn applies(
         &self,
         r: &ReplacementAbility,
@@ -427,6 +428,20 @@ impl GameState {
                     regenerate: true,
                 },
             ) => self.affects(to, Target::Object(*obj), source, controller, locked),
+            (
+                Replaces::Dies { to },
+                Proposed::ZoneChange {
+                    obj,
+                    to: Zone::Graveyard,
+                    ..
+                },
+            ) => {
+                self.objects
+                    .get(*obj)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                    && self.characteristics(*obj).is_some_and(|c| c.is_creature())
+                    && self.affects(to, Target::Object(*obj), source, controller, locked)
+            }
             // `Enters` effects apply only from the entering permanent itself
             // (handled in `candidates`), never from the battlefield.
             _ => false,

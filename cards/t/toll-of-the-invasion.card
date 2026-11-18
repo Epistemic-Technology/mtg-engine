@@ -1,0 +1,9 @@
+card "Toll of the Invasion" {
+  oracle_id 3a7c2e32-8585-4f7f-8635-199e3c6cd8a9
+  cost {2}{B}
+  type Sorcery
+  spell {
+    target opponent reveals hand discarding nonland card
+    amass Zombies 1
+  }
+}

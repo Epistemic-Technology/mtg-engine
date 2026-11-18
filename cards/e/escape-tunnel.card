@@ -1,0 +1,6 @@
+card "Escape Tunnel" {
+  oracle_id 0056fc91-4398-471c-b561-7ff99750ac8a
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped
+  activated {T}, sacrifice this: target creature with power 2 or less can't be blocked
+}

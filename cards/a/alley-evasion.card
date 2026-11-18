@@ -1,0 +1,9 @@
+card "Alley Evasion" {
+  oracle_id b59c7c62-ce2f-4062-9790-566191aded69
+  cost {W}
+  type Instant
+  choose one {
+    mode: target creature you control gets +1/+2
+    mode: return target creature you control to hand
+  }
+}

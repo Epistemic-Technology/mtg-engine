@@ -1,0 +1,6 @@
+card "Epic Confrontation" {
+  oracle_id 31123cb5-2dd5-4f2b-a2fd-8f87095972c6
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control gets +1/+2; target 1 fights target creature you don't control
+}

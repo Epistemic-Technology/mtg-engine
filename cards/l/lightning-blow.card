@@ -1,0 +1,9 @@
+card "Lightning Blow" {
+  oracle_id 6b7bbdb7-bdd5-4eb1-912e-f2f810772ac8
+  cost {1}{W}
+  type Instant
+  spell {
+    target creature gains first strike
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

@@ -1,0 +1,7 @@
+card "Dwarven Nomad" {
+  oracle_id db130ff4-7525-421f-b7e7-200921ecbdec
+  cost {2}{R}
+  type Creature — Dwarf Nomad
+  pt 1/1
+  activated {T}: target creature with power 2 or less can't be blocked
+}

@@ -1,0 +1,9 @@
+card "Mind Ravel" {
+  oracle_id 8cd0fcac-800a-431c-aca9-804998704606
+  cost {2}{B}
+  type Sorcery
+  spell {
+    target player discards 1 cards
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

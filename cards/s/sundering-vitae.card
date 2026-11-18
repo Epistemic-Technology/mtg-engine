@@ -1,0 +1,7 @@
+card "Sundering Vitae" {
+  oracle_id 132c8a62-00bc-4b89-b775-099d8909f200
+  cost {2}{G}
+  type Instant
+  keywords convoke
+  spell: destroy target artifact or enchantment
+}

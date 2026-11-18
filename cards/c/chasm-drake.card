@@ -1,0 +1,8 @@
+card "Chasm Drake" {
+  oracle_id e0f44bb8-f07b-416c-b767-87b9fe6461aa
+  cost {4}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: target creature you control gains flying
+}

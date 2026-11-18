@@ -1,0 +1,6 @@
+card "Bleed Dry" {
+  oracle_id 6c3faf4f-83c1-4098-98b8-bae15d59b0de
+  cost {2}{B}{B}
+  type Instant
+  spell: target creature gets -13/-13; this turn, replace target 1 dies: exile
+}

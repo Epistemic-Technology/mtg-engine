@@ -1,0 +1,6 @@
+card "Smashing Spree" {
+  oracle_id f0371d3d-ca11-432a-bebd-684caad5781f
+  cost {1}{R}
+  type Instant
+  spell: target attacking creature gets +3/+3 and gains trample
+}

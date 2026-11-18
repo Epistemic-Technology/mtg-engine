@@ -1,0 +1,6 @@
+card "Masterful Flourish" {
+  oracle_id 1cb419cc-d8e4-4676-987f-089cebccc374
+  cost {B}
+  type Instant
+  spell: target creature you control gets +1/+0 and gains indestructible
+}

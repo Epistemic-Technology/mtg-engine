@@ -1,0 +1,8 @@
+card "Fen Hauler" {
+  oracle_id 0f909cfd-c643-48d2-983a-da2e38cd2bff
+  cost {6}{B}
+  type Creature — Insect
+  pt 5/5
+  keywords improvise
+  can't be blocked by artifact creature
+}

@@ -1,0 +1,14 @@
+card "Blessed Hippogriff // Tyr's Blessing" {
+  oracle_id 3372b994-47de-4e89-9bfc-76e1cb3f1cfa
+  layout adventure
+  cost {3}{W}
+  type Creature — Hippogriff
+  pt 2/3
+  keywords flying
+  triggered whenever this attacks: target attacking creature without flying gains flying
+  face "Tyr's Blessing" {
+    cost {W}
+    type Instant — Adventure
+    spell: target creature gains indestructible
+  }
+}

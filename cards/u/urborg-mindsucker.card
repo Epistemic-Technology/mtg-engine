@@ -1,0 +1,7 @@
+card "Urborg Mindsucker" {
+  oracle_id 19d11ca8-a95b-4e6e-a71f-8f9d06c580fd
+  cost {2}{B}
+  type Creature — Horror
+  pt 2/2
+  activated {B}, sacrifice this, sorcery: target opponent discards 1 cards at random
+}

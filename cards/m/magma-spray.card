@@ -1,0 +1,6 @@
+card "Magma Spray" {
+  oracle_id fe16f1ab-58b4-4452-abe4-cbd9addd348f
+  cost {R}
+  type Instant
+  spell: deal 2 damage to target creature; this turn, replace target 1 dies: exile
+}

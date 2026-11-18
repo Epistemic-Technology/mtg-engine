@@ -560,6 +560,10 @@ pub enum Replaces {
     Destroy {
         to: Affects,
     },
+    /// `target 1 dies`: "If that creature would die".
+    Dies {
+        to: Affects,
+    },
     Enters,
 }
 

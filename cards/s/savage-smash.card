@@ -1,0 +1,6 @@
+card "Savage Smash" {
+  oracle_id 676c0315-1cb3-4d80-b136-16d88fd612cb
+  cost {1}{R}{G}
+  type Sorcery
+  spell: target creature you control gets +2/+2; target 1 fights target creature you don't control
+}

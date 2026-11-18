@@ -1,0 +1,9 @@
+card "Keldon Mantle" {
+  oracle_id 170cc0c4-0fba-4751-8613-e934b0438364
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  activated {B}: regenerate enchanted creature
+  activated {R}: enchanted creature gets +1/+0
+  activated {G}: enchanted creature gains trample
+}

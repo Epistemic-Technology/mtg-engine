@@ -1,0 +1,9 @@
+card "Brainbite" {
+  oracle_id fef94125-aa8d-4147-a609-1e990961bde2
+  cost {2}{U}{B}
+  type Sorcery
+  spell {
+    target opponent reveals hand discarding card
+    draw 1 cards
+  }
+}

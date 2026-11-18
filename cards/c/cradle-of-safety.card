@@ -1,0 +1,9 @@
+card "Cradle of Safety" {
+  oracle_id e0717287-9bff-446b-838d-6fc0adccc768
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature you control
+  triggered when this enters: enchanted creature gains hexproof
+  static enchanted: +1/+1
+}

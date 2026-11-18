@@ -881,6 +881,9 @@ impl Compiler<'_> {
             Replaces::PlusCounters { on } => CoreReplaces::PlusCounters {
                 on: self.filter(on),
             },
+            Replaces::Dies { to } => CoreReplaces::Dies {
+                to: self.affects(to),
+            },
             Replaces::Destroy { to } => CoreReplaces::Destroy {
                 to: self.affects(to),
             },

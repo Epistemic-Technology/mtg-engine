@@ -1,0 +1,8 @@
+card "Ritual of Steel" {
+  oracle_id 0af91b63-a874-4184-8f8f-3871429fd1ad
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: delayed this: draw 1 cards at beginning of the next turn's upkeep
+  static enchanted: +0/+2
+}

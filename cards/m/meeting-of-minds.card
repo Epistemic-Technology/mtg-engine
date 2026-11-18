@@ -1,0 +1,7 @@
+card "Meeting of Minds" {
+  oracle_id 3b91dc3e-46ef-4a68-829f-ef7d79598cf7
+  cost {3}{U}
+  type Instant
+  keywords convoke
+  spell: draw 2 cards
+}

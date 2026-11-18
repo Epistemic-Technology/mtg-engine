@@ -1,0 +1,6 @@
+card "Reduce to Ashes" {
+  oracle_id 9aab4b32-c5b3-4707-b359-9b5e3b63cd11
+  cost {4}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature; this turn, replace target 1 dies: exile
+}

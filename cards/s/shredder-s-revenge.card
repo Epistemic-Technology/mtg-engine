@@ -1,0 +1,9 @@
+card "Shredder's Revenge" {
+  oracle_id 5dd31fcd-72db-4daf-b127-ceb27bf25a94
+  cost {2}{B}
+  type Sorcery
+  choose one {
+    mode: target player discards 2 cards
+    mode: target player draws two cards and loses 2 life
+  }
+}

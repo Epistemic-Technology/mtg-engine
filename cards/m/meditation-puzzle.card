@@ -1,0 +1,7 @@
+card "Meditation Puzzle" {
+  oracle_id 724c29a2-1783-401e-887c-2189afd5a944
+  cost {3}{W}{W}
+  type Instant
+  keywords convoke
+  spell: you gains 8 life
+}

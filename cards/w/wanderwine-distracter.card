@@ -1,0 +1,7 @@
+card "Wanderwine Distracter" {
+  oracle_id 6c0f6673-bc24-4c84-b4e7-736283ffd60e
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 4/3
+  triggered whenever this becomes tapped: target creature an opponent controls gets -3/-0
+}

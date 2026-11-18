@@ -1,0 +1,7 @@
+card "Crossroads Consecrator" {
+  oracle_id a4f41c7b-b4ae-46cd-9fdc-8b8e6c29a62d
+  cost {G}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {G}, {T}: target attacking Human gets +1/+1
+}

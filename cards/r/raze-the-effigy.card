@@ -1,0 +1,9 @@
+card "Raze the Effigy" {
+  oracle_id 9286ddc5-8151-4129-aaf6-2a2abe7047e5
+  cost {R}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: target attacking creature gets +2/+2
+  }
+}

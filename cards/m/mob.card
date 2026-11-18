@@ -1,0 +1,7 @@
+card "Mob" {
+  oracle_id 5307a61f-2142-4e12-8329-ceb729f6eb79
+  cost {4}{B}
+  type Instant
+  keywords convoke
+  spell: destroy target creature
+}

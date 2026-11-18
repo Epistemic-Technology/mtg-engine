@@ -1,0 +1,7 @@
+card "Foundry Assembler" {
+  oracle_id 8242f4f5-c51d-42dc-a6ae-67060368fed9
+  cost {5}
+  type Artifact Creature — Assembly-Worker
+  pt 3/3
+  keywords improvise
+}

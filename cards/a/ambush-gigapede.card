@@ -1,0 +1,8 @@
+card "Ambush Gigapede" {
+  oracle_id 4faf62c3-3ba7-4540-be26-777305ef184e
+  cost {4}{B}{B}
+  type Creature — Insect
+  pt 6/2
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -2/-2
+}

@@ -1,0 +1,7 @@
+card "Brush with Death" {
+  oracle_id d87e580f-eca1-4f91-962b-82d684cba5e7
+  cost {2}{B}
+  type Sorcery
+  buyback {2}{B}{B}
+  spell: target opponent loses 2 life; you gains 2 life
+}

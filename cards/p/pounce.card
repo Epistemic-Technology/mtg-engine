@@ -1,0 +1,6 @@
+card "Pounce" {
+  oracle_id f4126dac-add4-4d5f-bf52-6f74c7c6aa67
+  cost {1}{G}
+  type Instant
+  spell: target creature you control fights target creature you don't control
+}

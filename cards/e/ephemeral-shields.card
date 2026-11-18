@@ -1,0 +1,7 @@
+card "Ephemeral Shields" {
+  oracle_id e1a89535-7126-48e0-b335-b732a677b157
+  cost {1}{W}
+  type Instant
+  keywords convoke
+  spell: target creature gains indestructible
+}

@@ -1,0 +1,9 @@
+card "Swift Maneuver" {
+  oracle_id d7b5fb4b-8f3c-4143-9fb0-2e2544612528
+  cost {1}{W}
+  type Instant
+  spell {
+    prevent next 2 damage to any target this turn
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

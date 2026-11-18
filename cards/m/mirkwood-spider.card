@@ -1,0 +1,8 @@
+card "Mirkwood Spider" {
+  oracle_id 07fb2903-b239-43d0-864b-c4437b7a5230
+  cost {G}
+  type Creature — Spider
+  pt 1/1
+  keywords deathtouch
+  triggered whenever this attacks: target legendary creature you control gains deathtouch
+}

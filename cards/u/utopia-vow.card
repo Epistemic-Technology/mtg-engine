@@ -1,0 +1,8 @@
+card "Utopia Vow" {
+  oracle_id 917652c7-ac12-4cd7-ab2d-f2260a620d02
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  static enchanted: has ability { mana any }
+}

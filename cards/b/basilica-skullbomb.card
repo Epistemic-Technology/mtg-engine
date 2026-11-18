@@ -1,0 +1,7 @@
+card "Basilica Skullbomb" {
+  oracle_id 43057d84-b424-489c-abec-3fb4cb823d80
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 cards
+  activated {2}{W}, sacrifice this, sorcery: target creature you control gets +2/+2 and gains flying; draw 1 cards
+}

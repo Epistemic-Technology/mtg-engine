@@ -1,0 +1,7 @@
+card "Fang Skulkin" {
+  oracle_id 54bed864-fe2e-4359-b0ac-c27a2c225487
+  cost {2}
+  type Artifact Creature — Scarecrow
+  pt 2/1
+  activated {2}: target black creature gains wither
+}

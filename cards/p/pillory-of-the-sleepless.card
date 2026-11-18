@@ -1,0 +1,8 @@
+card "Pillory of the Sleepless" {
+  oracle_id 74776491-29c3-46e6-989b-cf9a00bbfcef
+  cost {1}{W}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  static enchanted: has ability { triggered at beginning of your upkeep: you loses 1 life }
+}

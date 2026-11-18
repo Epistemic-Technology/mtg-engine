@@ -1,0 +1,8 @@
+card "Conclave's Blessing" {
+  oracle_id 938e738f-c982-4bbf-b15f-0c3dd3a9901e
+  cost {3}{W}
+  type Enchantment — Aura
+  keywords convoke
+  enchant creature
+  static enchanted: +0/+2 count each other creature you control
+}

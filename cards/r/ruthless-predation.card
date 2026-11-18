@@ -1,0 +1,6 @@
+card "Ruthless Predation" {
+  oracle_id 478e59b8-03ad-4f8e-8c18-6ab5ad77a6f8
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control gets +1/+2; target 1 fights target creature you don't control
+}

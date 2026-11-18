@@ -1,0 +1,7 @@
+card "Pathmaker Initiate" {
+  oracle_id c0247a19-9c8f-422c-88cf-9f298c3a8c96
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {T}: target creature with power 2 or less can't be blocked
+}

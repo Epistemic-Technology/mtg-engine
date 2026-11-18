@@ -1,0 +1,7 @@
+card "Absorb Vis" {
+  oracle_id 04ea7e88-7ea5-4b4c-9a7c-2a6ac0bc0682
+  cost {6}{B}
+  type Sorcery
+  spell: target player loses 4 life and you gains 4 life
+  basic landcycling {1}{B}
+}

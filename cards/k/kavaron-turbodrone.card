@@ -1,0 +1,7 @@
+card "Kavaron Turbodrone" {
+  oracle_id 3ebb8542-5d1d-4f0b-92a9-5a98425860fd
+  cost {2}{R}
+  type Artifact Creature — Robot Scout
+  pt 2/3
+  activated {T}, sorcery: target creature you control gets +1/+1 and gains haste
+}

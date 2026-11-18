@@ -1,0 +1,7 @@
+card "Aerial Boost" {
+  oracle_id d7fa5c42-7cd5-42e7-a42e-724c1a3df96a
+  cost {1}{W}
+  type Instant
+  keywords convoke
+  spell: target creature gets +2/+2 and gains flying
+}

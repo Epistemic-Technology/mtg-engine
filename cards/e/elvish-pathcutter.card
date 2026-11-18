@@ -1,0 +1,7 @@
+card "Elvish Pathcutter" {
+  oracle_id 0bb860c5-41af-494e-9b0f-d05d6fa8255c
+  cost {3}{G}
+  type Creature — Elf Scout
+  pt 1/2
+  activated {2}{G}: target Elf creature gains forestwalk
+}

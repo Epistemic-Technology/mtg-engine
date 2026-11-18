@@ -1,0 +1,7 @@
+card "Conclave Equenaut" {
+  oracle_id 4127794b-84d1-4efb-b0e9-543a02b07fa8
+  cost {4}{W}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords convoke, flying
+}

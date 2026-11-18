@@ -1,0 +1,8 @@
+card "Choking Restraints" {
+  oracle_id 42bc33dd-3bba-462d-b272-2e8bd58c649e
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {3}{W}{W}, sacrifice this: exile enchanted creature
+}

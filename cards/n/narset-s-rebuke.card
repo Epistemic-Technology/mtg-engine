@@ -1,0 +1,6 @@
+card "Narset's Rebuke" {
+  oracle_id 247075c5-62f8-41a1-91b3-562ff0aabb30
+  cost {4}{R}
+  type Instant
+  spell: deal 5 damage to target creature; add {U}{R}{W}; this turn, replace target 1 dies: exile
+}

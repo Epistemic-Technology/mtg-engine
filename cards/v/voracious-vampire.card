@@ -1,0 +1,8 @@
+card "Voracious Vampire" {
+  oracle_id c584bdf2-b328-4e50-81e3-45ca6c2aff7a
+  cost {2}{B}
+  type Creature — Vampire Knight
+  pt 2/2
+  keywords menace
+  triggered when this enters: target Vampire you control gets +1/+1 and gains menace
+}

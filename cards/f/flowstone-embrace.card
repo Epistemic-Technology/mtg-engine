@@ -1,0 +1,7 @@
+card "Flowstone Embrace" {
+  oracle_id 18a45b81-1946-4be6-8f2c-8c21d11c86f8
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  activated {T}: enchanted creature gets +2/-2
+}

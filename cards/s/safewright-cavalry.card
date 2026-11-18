@@ -1,0 +1,8 @@
+card "Safewright Cavalry" {
+  oracle_id 6e04a375-303e-43ba-bca1-4e959711a7f6
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 4/4
+  can't be blocked by more than one creature
+  activated {5}: target Elf you control gets +2/+2
+}

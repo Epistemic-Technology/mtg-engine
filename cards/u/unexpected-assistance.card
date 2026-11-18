@@ -1,0 +1,7 @@
+card "Unexpected Assistance" {
+  oracle_id c452e748-8a2a-4f68-8869-e294925a8b0b
+  cost {3}{U}{U}
+  type Instant
+  keywords convoke
+  spell: draw 3 cards then discard 1 cards
+}

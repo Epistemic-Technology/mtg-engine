@@ -1,0 +1,8 @@
+card "Cage of Hands" {
+  oracle_id 18ffd8ad-1556-450d-8bc1-8103a3d0404e
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {1}{W}: return this to hand
+}

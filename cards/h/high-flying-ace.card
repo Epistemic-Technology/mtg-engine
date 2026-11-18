@@ -1,0 +1,8 @@
+card "High-Flying Ace" {
+  oracle_id 84a56740-8563-4ce5-8560-d44998d7f80d
+  cost {2}{W}
+  type Creature — Bird Mutant
+  pt 2/3
+  keywords flying
+  activated {3}{W}, sorcery: target creature without flying gains flying
+}

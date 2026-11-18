@@ -1,0 +1,8 @@
+card "Trusted Pegasus" {
+  oracle_id 18729459-8669-4c56-a78d-fd5982c3b2ac
+  cost {2}{W}
+  type Creature — Pegasus
+  pt 2/2
+  keywords flying
+  triggered whenever this attacks: target attacking creature without flying gains flying
+}

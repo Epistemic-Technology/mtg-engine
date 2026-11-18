@@ -1,0 +1,6 @@
+card "Quicksand" {
+  oracle_id ef2bb4fa-f292-4d19-aaa4-cfbe445caf45
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: target attacking creature without flying gets -1/-2
+}

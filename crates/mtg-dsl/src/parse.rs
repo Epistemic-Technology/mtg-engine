@@ -115,6 +115,8 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["persist"], Keyword::Persist),
     (&["undying"], Keyword::Undying),
     (&["flanking"], Keyword::Flanking),
+    (&["convoke"], Keyword::Convoke),
+    (&["improvise"], Keyword::Improvise),
     (
         &[
             "doesn't",
@@ -3020,6 +3022,8 @@ impl P {
             } else {
                 return self.unexpected("`your`, `each`, or `the`");
             };
+            // "the next turn's upkeep".
+            self.eat_word("turn's");
             let w = self.word()?;
             let Some(step) = step_by_name(&w) else {
                 return self.fail(format!("unknown step `{w}`"));
@@ -3302,9 +3306,28 @@ impl P {
         })
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per event
     fn replaces(&mut self) -> R<Replaces> {
         if self.eat_word("enters") {
             return Ok(Replaces::Enters);
+        }
+        // `target 1 dies`.
+        if self.at_word("target")
+            && matches!(self.peek_at(1), Some(Tok::Num(_)))
+            && self.word_at(2).as_deref() == Some("dies")
+        {
+            self.pos += 1;
+            let Some(Tok::Num(n)) = self.next() else {
+                unreachable!("checked")
+            };
+            self.pos += 1;
+            let n = n as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Replaces::Dies {
+                to: Affects::Target(n - 1),
+            });
         }
         if self.eat_word("destroy") {
             return Ok(Replaces::Destroy {

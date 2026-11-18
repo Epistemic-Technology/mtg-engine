@@ -1,0 +1,7 @@
+card "Crowd's Favor" {
+  oracle_id 7a23915f-8bce-4aad-8395-0c736450a62d
+  cost {R}
+  type Instant
+  keywords convoke
+  spell: target creature gets +1/+0 and gains first strike
+}

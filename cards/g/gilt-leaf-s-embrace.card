@@ -1,0 +1,9 @@
+card "Gilt-Leaf's Embrace" {
+  oracle_id 5eb8bb1d-7567-4c24-913b-463b5fe463c4
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: enchanted creature gains trample, indestructible
+  static enchanted: +2/+0
+}

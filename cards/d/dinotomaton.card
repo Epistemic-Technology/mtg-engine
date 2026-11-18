@@ -1,0 +1,8 @@
+card "Dinotomaton" {
+  oracle_id 443f2272-6475-4966-8ca2-717d4cf208ee
+  cost {3}{R}
+  type Artifact Creature — Dinosaur Gnome
+  pt 4/3
+  keywords menace
+  triggered when this enters: target creature you control gains menace
+}

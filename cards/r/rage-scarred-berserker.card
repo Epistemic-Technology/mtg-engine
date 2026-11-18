@@ -1,0 +1,7 @@
+card "Rage-Scarred Berserker" {
+  oracle_id 658d54d4-e967-490c-b958-3743b3b1ef45
+  cost {4}{B}
+  type Creature — Minotaur Berserker
+  pt 5/4
+  triggered when this enters: target creature you control gets +1/+0 and gains indestructible
+}

@@ -1,0 +1,8 @@
+card "Kirtar's Desire" {
+  oracle_id 4f21a664-96e3-49be-ba9f-4af4b6bd7475
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack
+  label "Threshold" static enchanted: has can't block as long as 7 cards in your graveyard
+}

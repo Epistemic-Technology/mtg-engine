@@ -1,0 +1,6 @@
+card "Swift Kick" {
+  oracle_id 8c54fd75-e89f-490e-90dd-788f22b6e316
+  cost {3}{R}
+  type Instant
+  spell: target creature you control gets +1/+0; target 1 fights target creature you don't control
+}

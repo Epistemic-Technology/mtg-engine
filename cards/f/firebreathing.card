@@ -1,0 +1,7 @@
+card "Firebreathing" {
+  oracle_id 8603bf74-faab-4910-8e45-0f2e3b318efb
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  activated {R}: enchanted creature gets +1/+0
+}

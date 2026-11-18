@@ -1,0 +1,7 @@
+card "Rosemane Centaur" {
+  oracle_id 54b3ccdc-e5b0-44d9-bc81-a296fc5dc005
+  cost {3}{G}{W}
+  type Creature — Centaur Soldier
+  pt 4/4
+  keywords convoke, vigilance
+}

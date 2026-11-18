@@ -1,0 +1,8 @@
+card "Rampaging Spiketail" {
+  oracle_id 41f6d6d9-3fe5-44b0-904d-1cb90d36f2b6
+  cost {4}{B}{B}
+  type Creature — Dinosaur
+  pt 5/6
+  triggered when this enters: target creature you control gets +2/+0 and gains indestructible
+  swampcycling {2}
+}

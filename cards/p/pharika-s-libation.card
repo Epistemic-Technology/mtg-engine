@@ -1,0 +1,9 @@
+card "Pharika's Libation" {
+  oracle_id 32c84176-cf11-4010-b1cc-ed570a8c3e54
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: target opponent sacrifices 1 creature
+    mode: target opponent sacrifices 1 enchantment
+  }
+}

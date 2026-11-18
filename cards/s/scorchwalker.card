@@ -1,0 +1,7 @@
+card "Scorchwalker" {
+  oracle_id 566d6fcd-dd50-4135-a912-ec923fc433df
+  cost {3}{R}
+  type Creature — Elemental
+  pt 5/1
+  label "Bloodrush" activated {1}{R}{R}, discard this: target attacking creature gets +5/+1
+}

@@ -1,0 +1,6 @@
+card "Tawnos's Wand" {
+  oracle_id 2138533a-d33c-477a-9765-7369d1ec30b0
+  cost {4}
+  type Artifact
+  activated {2}, {T}: target creature with power 2 or less can't be blocked
+}

@@ -1,0 +1,9 @@
+card "Infuse" {
+  oracle_id 6035303e-22b3-4b64-8160-1f46ae3dad55
+  cost {2}{U}
+  type Instant
+  spell {
+    untap target artifact, creature, or land
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

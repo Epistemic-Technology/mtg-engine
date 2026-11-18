@@ -1,0 +1,6 @@
+card "Alesha's Legacy" {
+  oracle_id c4229cc8-11e5-4221-b00d-86969701e21b
+  cost {1}{B}
+  type Instant
+  spell: target creature you control gains deathtouch, indestructible
+}

@@ -1,0 +1,8 @@
+card "Cogwork Wrestler" {
+  oracle_id db27e3f0-5750-4c4b-9da9-70c3ab627f9c
+  cost {U}
+  type Artifact Creature — Gnome
+  pt 1/2
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -2/-0
+}

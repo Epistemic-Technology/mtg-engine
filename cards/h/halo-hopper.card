@@ -1,0 +1,7 @@
+card "Halo Hopper" {
+  oracle_id f48d30ee-bba6-4449-8c50-caf0d7f06528
+  cost {3}
+  type Artifact Creature — Frog
+  pt 3/2
+  keywords convoke
+}

@@ -1,0 +1,7 @@
+card "Guardian of Vitu-Ghazi" {
+  oracle_id a7d5a9ca-27ec-4843-a9fd-0de0d67def39
+  cost {6}{G}{W}
+  type Creature — Elemental
+  pt 4/7
+  keywords convoke, vigilance
+}

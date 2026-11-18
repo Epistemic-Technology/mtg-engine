@@ -1,0 +1,9 @@
+card "Reverent Howl" {
+  oracle_id 86214b4c-a3ad-4372-b5fe-8f742a7a3d4c
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: target player draws two cards and loses 2 life
+    mode: target creature gets +2/+2 and gains lifelink
+  }
+}

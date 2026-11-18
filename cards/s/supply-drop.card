@@ -1,0 +1,8 @@
+card "Supply Drop" {
+  oracle_id 9594b8e0-a176-447a-a52e-e1a77175b748
+  cost {3}
+  type Artifact
+  keywords flash
+  triggered when this enters: target creature you control gets +2/+2
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

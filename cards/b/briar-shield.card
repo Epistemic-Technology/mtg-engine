@@ -1,0 +1,8 @@
+card "Briar Shield" {
+  oracle_id 9d437391-d476-4976-8714-6a1d3185ab52
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated sacrifice this: enchanted creature gets +3/+3
+}

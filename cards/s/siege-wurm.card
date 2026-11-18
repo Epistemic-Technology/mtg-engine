@@ -1,0 +1,7 @@
+card "Siege Wurm" {
+  oracle_id 8a802eae-abfb-47fd-8458-1689055531ef
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 5/5
+  keywords convoke, trample
+}

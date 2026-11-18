@@ -1,0 +1,8 @@
+card "Krosan Constrictor" {
+  oracle_id c9747b5d-0f6d-4a9a-8921-1d5c0be3bd60
+  cost {3}{G}
+  type Creature — Snake
+  pt 2/2
+  keywords swampwalk
+  activated {T}: target black creature gets -2/-0
+}

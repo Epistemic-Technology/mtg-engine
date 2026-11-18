@@ -1,0 +1,8 @@
+card "Stonehands" {
+  oracle_id 8beccaff-d30f-4164-a264-cb7119cee4f1
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2
+  activated {R}: enchanted creature gets +1/+0
+}

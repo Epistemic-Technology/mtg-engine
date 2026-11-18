@@ -1,0 +1,7 @@
+card "Antler Skulkin" {
+  oracle_id 30572dd1-c982-4872-9f35-a91ed8b238f7
+  cost {5}
+  type Artifact Creature — Scarecrow
+  pt 3/3
+  activated {2}: target white creature gains persist
+}

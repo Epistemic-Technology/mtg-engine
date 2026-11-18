@@ -1,0 +1,6 @@
+card "Scorchmark" {
+  oracle_id 8dc1148f-c6bc-469c-8d1a-7e3efd2de7e2
+  cost {1}{R}
+  type Instant
+  spell: deal 2 damage to target creature; this turn, replace target 1 dies: exile
+}

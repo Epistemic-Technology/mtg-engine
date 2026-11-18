@@ -2119,7 +2119,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             )
         }
         Trigger::BeginningOfStep { step, whose } => {
-            if next {
+            if next && *step == Step::Upkeep && *whose == Who::Any {
+                "at the beginning of the next turn's upkeep".to_string()
+            } else if next {
                 format!(
                     "at the beginning of the next {}",
                     step_name(*step, *whose).trim_start_matches("the ")
@@ -2431,6 +2433,17 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             self_noun(ctx.card),
             counters(*n, *kind)
         ),
+        (Replaces::Dies { to }, Outcome::Instead(_)) => {
+            let who = match to {
+                Affects::Target(i) => {
+                    ctx.target_mentioned[*i] = true;
+                    format!("that {}", ctx.target_noun[*i])
+                }
+                other => affects_to(other, ctx),
+            };
+            let when = if this_turn { " this turn" } else { "" };
+            format!("If {who} would die{when}, exile it instead.")
+        }
         (Replaces::Destroy { to }, Outcome::Regenerate) => {
             let to = affects_to(to, ctx);
             format!("Regenerate {to}.")

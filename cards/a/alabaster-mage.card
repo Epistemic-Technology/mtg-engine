@@ -1,0 +1,7 @@
+card "Alabaster Mage" {
+  oracle_id ea7a8acb-f01f-4a69-9b3c-954d8f0d3155
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/1
+  activated {1}{W}: target creature you control gains lifelink
+}

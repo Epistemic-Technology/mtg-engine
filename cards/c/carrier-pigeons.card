@@ -1,0 +1,8 @@
+card "Carrier Pigeons" {
+  oracle_id 2d30a634-43c6-4e78-ba10-7ef7ee17ac40
+  cost {3}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: delayed this: draw 1 cards at beginning of the next turn's upkeep
+}

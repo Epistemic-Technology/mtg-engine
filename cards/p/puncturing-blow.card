@@ -1,0 +1,6 @@
+card "Puncturing Blow" {
+  oracle_id 1128d2ab-0b6e-4912-8735-15521bc314e6
+  cost {2}{R}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature; this turn, replace target 1 dies: exile
+}

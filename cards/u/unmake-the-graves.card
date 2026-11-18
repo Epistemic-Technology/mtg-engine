@@ -1,0 +1,7 @@
+card "Unmake the Graves" {
+  oracle_id d9b99c58-8e2e-496c-8288-eda934f49162
+  cost {4}{B}
+  type Instant
+  keywords convoke
+  spell: return up to two target creature cards from your graveyard to hand
+}

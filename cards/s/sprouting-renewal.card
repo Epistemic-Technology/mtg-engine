@@ -1,0 +1,10 @@
+card "Sprouting Renewal" {
+  oracle_id 674202f0-6832-4392-a118-d513162bcd03
+  cost {2}{G}
+  type Sorcery
+  keywords convoke
+  choose one {
+    mode: create 1 "2/2 green and white Elf Knight creature with vigilance"
+    mode: destroy target artifact or enchantment
+  }
+}

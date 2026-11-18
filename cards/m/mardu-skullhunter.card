@@ -1,0 +1,8 @@
+card "Mardu Skullhunter" {
+  oracle_id 2a87e3a9-10e3-4b00-aeb9-d3336b2fa3b3
+  cost {1}{B}
+  type Creature — Human Warrior
+  pt 2/1
+  enters tapped
+  label "Raid" triggered when this enters if attacked this turn: target opponent discards 1 cards
+}

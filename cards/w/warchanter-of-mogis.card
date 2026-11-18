@@ -1,0 +1,7 @@
+card "Warchanter of Mogis" {
+  oracle_id 9fb5ea12-5b87-462b-b9c0-904cd0f55a9c
+  cost {3}{B}{B}
+  type Creature — Minotaur Shaman
+  pt 3/3
+  label "Inspired" triggered whenever this becomes untapped: target creature you control gains intimidate
+}

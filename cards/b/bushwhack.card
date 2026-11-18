@@ -1,0 +1,9 @@
+card "Bushwhack" {
+  oracle_id c61374e5-a7f6-455e-a40b-a481751b536b
+  cost {G}
+  type Sorcery
+  choose one {
+    mode: search basic land card reveal to hand
+    mode: target creature you control fights target creature you don't control
+  }
+}

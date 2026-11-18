@@ -1,0 +1,9 @@
+card "Starlit Mantle" {
+  oracle_id 8a7643e4-b824-441a-bbe6-349fc7a3e11e
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature you control
+  triggered when this enters: enchanted creature gains hexproof
+  static enchanted: +1/+1
+}

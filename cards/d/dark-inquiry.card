@@ -1,0 +1,6 @@
+card "Dark Inquiry" {
+  oracle_id fa04f161-4141-491b-ad6f-a16f69c862f3
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding nonland card
+}

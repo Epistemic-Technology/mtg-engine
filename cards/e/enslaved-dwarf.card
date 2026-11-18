@@ -1,0 +1,7 @@
+card "Enslaved Dwarf" {
+  oracle_id ff052137-2ffd-4399-8fdd-906f8e2041f8
+  cost {R}
+  type Creature — Dwarf
+  pt 1/1
+  activated {R}, sacrifice this: target black creature gets +1/+0 and gains first strike
+}

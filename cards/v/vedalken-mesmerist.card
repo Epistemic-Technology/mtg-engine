@@ -1,0 +1,7 @@
+card "Vedalken Mesmerist" {
+  oracle_id f507f9ba-a7e9-4e45-86dc-8c60a72a6234
+  cost {1}{U}
+  type Creature — Vedalken Wizard
+  pt 2/1
+  triggered whenever this attacks: target creature an opponent controls gets -2/-0
+}

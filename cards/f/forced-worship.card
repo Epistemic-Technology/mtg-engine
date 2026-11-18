@@ -1,0 +1,8 @@
+card "Forced Worship" {
+  oracle_id ea6b1e8e-b6e7-4fce-bfb7-7adf66b9f240
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack
+  activated {2}{W}: return this to hand
+}

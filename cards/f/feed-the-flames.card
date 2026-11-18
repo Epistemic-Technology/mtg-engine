@@ -1,0 +1,6 @@
+card "Feed the Flames" {
+  oracle_id f474d244-d9be-4580-bf62-f97660e9c1a3
+  cost {3}{R}
+  type Instant
+  spell: deal 5 damage to target creature; this turn, replace target 1 dies: exile
+}

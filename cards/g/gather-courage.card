@@ -1,0 +1,7 @@
+card "Gather Courage" {
+  oracle_id ae033eb6-47ec-4b9e-9cdb-6d023aca07d1
+  cost {G}
+  type Instant
+  keywords convoke
+  spell: target creature gets +2/+2
+}

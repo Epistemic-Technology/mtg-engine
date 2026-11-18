@@ -1,0 +1,7 @@
+card "Go for Blood" {
+  oracle_id 11cf103c-f8a3-4892-942d-2c4472dd5716
+  cost {1}{R}
+  type Sorcery
+  spell: target creature you control fights target creature you don't control
+  cycling {1}
+}

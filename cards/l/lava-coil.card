@@ -1,0 +1,6 @@
+card "Lava Coil" {
+  oracle_id fa71db44-5181-4c51-8b24-7fbedf36e3ca
+  cost {1}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature; this turn, replace target 1 dies: exile
+}

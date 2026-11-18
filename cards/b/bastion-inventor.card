@@ -1,0 +1,7 @@
+card "Bastion Inventor" {
+  oracle_id 900ae045-0160-4e85-b283-e35399c2acec
+  cost {5}{U}
+  type Creature — Vedalken Artificer
+  pt 4/4
+  keywords improvise, hexproof
+}

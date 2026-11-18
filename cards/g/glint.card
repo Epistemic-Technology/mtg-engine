@@ -1,0 +1,6 @@
+card "Glint" {
+  oracle_id 2fc07680-3ffb-4507-a1e1-b9580f5ce878
+  cost {1}{U}
+  type Instant
+  spell: target creature you control gets +0/+3 and gains hexproof
+}

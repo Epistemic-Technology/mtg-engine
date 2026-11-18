@@ -1,0 +1,8 @@
+card "Blitz Leech" {
+  oracle_id 7679942f-fcbc-4750-8e8c-fe0ad8103c11
+  cost {5}{B}
+  type Creature — Leech
+  pt 5/2
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -2/-2; remove all counters from that creature
+}

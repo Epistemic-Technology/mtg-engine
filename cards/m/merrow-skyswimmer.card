@@ -1,0 +1,8 @@
+card "Merrow Skyswimmer" {
+  oracle_id d709f396-021f-49eb-adb5-374aa790eaae
+  cost {3}{W/U}{W/U}
+  type Creature — Merfolk Soldier
+  pt 2/2
+  keywords convoke, flying, vigilance
+  triggered when this enters: create 1 "1/1 white and blue Merfolk creature"
+}

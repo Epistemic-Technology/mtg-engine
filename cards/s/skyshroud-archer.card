@@ -1,0 +1,7 @@
+card "Skyshroud Archer" {
+  oracle_id 42641a05-a6b6-4856-a72c-54181b97c190
+  cost {G}
+  type Creature — Elf Archer
+  pt 1/1
+  activated {T}: target creature with flying gets -1/-1
+}

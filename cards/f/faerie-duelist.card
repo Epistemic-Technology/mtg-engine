@@ -1,0 +1,8 @@
+card "Faerie Duelist" {
+  oracle_id ccbf7141-69c9-407d-b68e-c1c63ddef213
+  cost {1}{U}
+  type Creature — Faerie Rogue
+  pt 1/2
+  keywords flash, flying
+  triggered when this enters: target creature an opponent controls gets -2/-0
+}

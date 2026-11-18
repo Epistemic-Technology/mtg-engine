@@ -1,0 +1,10 @@
+card "Shambling Ghast" {
+  oracle_id e5e6229a-3422-4afd-9a87-86daa2d31d3a
+  cost {B}
+  type Creature — Zombie
+  pt 1/1
+  triggered when this dies: choose one {
+    mode: target creature an opponent controls gets -1/-1
+    mode: create 1 "Treasure"
+  }
+}

@@ -1,0 +1,9 @@
+card "Suplex" {
+  oracle_id 2d1bbeda-2e81-4aaa-9494-094ec3dd6c3b
+  cost {1}{R}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to target creature; this turn, replace target 1 dies: exile
+    mode: exile target artifact
+  }
+}

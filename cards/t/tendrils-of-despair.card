@@ -1,0 +1,7 @@
+card "Tendrils of Despair" {
+  oracle_id 3b00f415-2496-4333-be89-601fd837fe7c
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: target opponent discards 2 cards
+}

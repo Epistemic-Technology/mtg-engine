@@ -1,0 +1,9 @@
+card "Headstone" {
+  oracle_id cbf767d4-9be4-417a-bbf7-0c72ede727b4
+  cost {1}{B}
+  type Instant
+  spell {
+    exile target card from a graveyard
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

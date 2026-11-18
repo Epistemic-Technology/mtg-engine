@@ -1,0 +1,6 @@
+card "Duress" {
+  oracle_id 33d405ea-7a9a-4970-b70f-9c05d90dd6f0
+  cost {B}
+  type Sorcery
+  spell: target opponent reveals hand discarding noncreature nonland card
+}

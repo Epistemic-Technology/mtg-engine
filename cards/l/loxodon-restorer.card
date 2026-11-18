@@ -1,0 +1,8 @@
+card "Loxodon Restorer" {
+  oracle_id 77eb2374-44a0-4383-b229-edc116c7d835
+  cost {4}{W}{W}
+  type Creature — Elephant Cleric
+  pt 3/4
+  keywords convoke
+  triggered when this enters: you gains 4 life
+}

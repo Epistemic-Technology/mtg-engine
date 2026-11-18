@@ -1,0 +1,6 @@
+card "Shore Up" {
+  oracle_id c9d8c983-2845-42e6-b6b8-bf7cf2729b23
+  cost {U}
+  type Instant
+  spell: target creature you control gets +1/+1 and gains hexproof; untap target 1
+}

@@ -1,0 +1,9 @@
+card "Military Discipline" {
+  oracle_id c910c1c0-2b78-4e0f-bb55-e0581b2e07e8
+  cost {W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: enchanted creature gains first strike
+  static enchanted: +1/+0
+}

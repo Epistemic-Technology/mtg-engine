@@ -1,0 +1,6 @@
+card "Mind Knives" {
+  oracle_id f9be5566-c3df-44cc-9de4-29510c8c245f
+  cost {1}{B}
+  type Sorcery
+  spell: target opponent discards 1 cards at random
+}

@@ -1,0 +1,9 @@
+card "Fire-Rim Form" {
+  oracle_id 89fb21dc-4cf2-4c9a-b0ae-cc6e10277fb6
+  cost {1}{R}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: enchanted creature gains first strike
+  static enchanted: +2/+0
+}

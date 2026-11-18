@@ -1,0 +1,8 @@
+card "Nimana Skydancer" {
+  oracle_id 27a66362-f2f5-4d46-9faf-a73752753304
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/1
+  keywords flash, flying
+  triggered when this enters: target opponent mills 2 cards
+}

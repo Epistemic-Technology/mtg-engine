@@ -1,0 +1,7 @@
+card "Without Weakness" {
+  oracle_id fffa9334-3576-4f70-9605-2ad062cdbc69
+  cost {1}{B}
+  type Instant
+  spell: target creature you control gains indestructible
+  cycling {2}
+}

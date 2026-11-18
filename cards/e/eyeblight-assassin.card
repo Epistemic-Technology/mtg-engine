@@ -1,0 +1,7 @@
+card "Eyeblight Assassin" {
+  oracle_id 09cacd93-5c20-4993-9ee2-a756204796f7
+  cost {2}{B}
+  type Creature — Elf Assassin
+  pt 2/2
+  triggered when this enters: target creature an opponent controls gets -1/-1
+}

@@ -1,0 +1,7 @@
+card "Shell Skulkin" {
+  oracle_id 82df38bc-f29b-49f8-b734-e4df6d0f645a
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 3/2
+  activated {3}: target blue creature gains shroud
+}

@@ -1,0 +1,9 @@
+card "Accelerated Evolution" {
+  oracle_id 6401d0ae-4635-497d-91ef-ce2eabefb893
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature you control
+  triggered when this enters: enchanted creature gains hexproof
+  static enchanted: +2/+2
+}

@@ -1,0 +1,7 @@
+card "Maze Skullbomb" {
+  oracle_id 3cb91e96-285d-4191-97cd-ee7ce5d86eb2
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 cards
+  activated {2}{G}, sacrifice this, sorcery: target creature you control gets +3/+3 and gains trample; draw 1 cards
+}

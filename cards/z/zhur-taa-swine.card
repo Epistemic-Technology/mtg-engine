@@ -1,0 +1,7 @@
+card "Zhur-Taa Swine" {
+  oracle_id dcc31cbf-f75d-4584-a97b-aa9d19d7b142
+  cost {3}{R}{G}
+  type Creature — Boar
+  pt 5/4
+  label "Bloodrush" activated {1}{R}{G}, discard this: target attacking creature gets +5/+4
+}

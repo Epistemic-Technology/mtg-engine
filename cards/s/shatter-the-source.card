@@ -1,0 +1,10 @@
+card "Shatter the Source" {
+  oracle_id d8b3bcf2-1be1-46ed-9531-ca4ce98e3b3c
+  cost {5}{R}
+  type Instant
+  keywords convoke
+  choose one {
+    mode: deal 6 damage to target creature, planeswalker, or battle
+    mode: destroy target artifact
+  }
+}

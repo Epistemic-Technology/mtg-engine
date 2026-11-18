@@ -252,6 +252,7 @@ impl Fmt {
             }
             Replaces::PlusCounters { on } => format!("+1/+1 counters put on {}", filter(on)),
             Replaces::Destroy { to } => format!("destroy {}", self.affects(to, targets)),
+            Replaces::Dies { to } => format!("{} dies", self.affects(to, targets)),
             Replaces::Enters => "enters".to_string(),
         }
     }

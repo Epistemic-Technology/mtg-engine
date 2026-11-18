@@ -1,0 +1,8 @@
+card "Humbling Elder" {
+  oracle_id 013bcab8-e527-4700-82c9-4cb9cb8a4807
+  cost {U}
+  type Creature — Human Monk
+  pt 1/2
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -2/-0
+}

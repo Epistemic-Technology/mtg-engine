@@ -1,0 +1,10 @@
+card "Hearth Charm" {
+  oracle_id 4ce95005-82b3-4921-b1c4-60d775a012a2
+  cost {R}
+  type Instant
+  choose one {
+    mode: destroy target artifact creature
+    mode: each attacking creature gets +1/+0
+    mode: target creature with power 2 or less can't be blocked
+  }
+}

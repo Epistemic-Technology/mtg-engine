@@ -1,0 +1,6 @@
+card "Ranger's Guile" {
+  oracle_id 694cb93a-bcc5-44b0-a76c-19ae4a4e5e0f
+  cost {G}
+  type Instant
+  spell: target creature you control gets +1/+1 and gains hexproof
+}

@@ -1,0 +1,8 @@
+card "Burrog Befuddler" {
+  oracle_id 73b60c2c-7c74-4554-8861-daa0d6fc22b4
+  cost {1}{U}
+  type Creature — Frog Wizard
+  pt 2/1
+  keywords flash
+  triggered when this enters: target creature an opponent controls gets -1/-0
+}

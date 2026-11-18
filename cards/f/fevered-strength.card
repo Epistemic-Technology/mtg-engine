@@ -1,0 +1,9 @@
+card "Fevered Strength" {
+  oracle_id 52512d7a-9b1c-4475-80aa-c95f4efa1015
+  cost {2}{B}
+  type Instant
+  spell {
+    target creature gets +2/+0
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

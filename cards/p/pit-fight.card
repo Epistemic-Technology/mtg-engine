@@ -1,0 +1,6 @@
+card "Pit Fight" {
+  oracle_id ef4b0ced-70a1-41d8-9aed-34e75f979c5f
+  cost {1}{R/G}
+  type Instant
+  spell: target creature you control fights another target creature
+}

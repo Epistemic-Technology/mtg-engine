@@ -1,0 +1,9 @@
+card "Prizefight" {
+  oracle_id c0c4ecf6-84e6-443e-8a81-e395b31c631d
+  cost {1}{G}
+  type Instant
+  spell {
+    target creature you control fights target creature you don't control
+    create 1 "Treasure"
+  }
+}
