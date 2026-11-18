@@ -1,0 +1,8 @@
+card "Roaming Ghostlight" {
+  oracle_id 0d5eb0b9-9b08-4d26-b141-a9d612a680a6
+  cost {3}{U}{U}
+  type Creature — Spirit
+  pt 3/2
+  keywords flying
+  triggered when this enters: return up to one target non-Spirit creature to hand
+}

@@ -1,0 +1,8 @@
+card "Afterthought Sentry" {
+  oracle_id f0c533a2-751a-4c5a-8cec-b83da3c8c62f
+  cost {2}
+  type Artifact Creature — Gargoyle
+  pt 2/2
+  activated {2}: this gains flying
+  triggered whenever this attacks: exile up to one target card from a graveyard
+}

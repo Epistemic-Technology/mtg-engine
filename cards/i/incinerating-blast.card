@@ -1,0 +1,9 @@
+card "Incinerating Blast" {
+  oracle_id 49f0da4a-e046-4220-b90e-e105a5f2ef00
+  cost {4}{R}
+  type Sorcery
+  spell {
+    deal 6 damage to target creature
+    you may discard 1 cards; if you do, draw 1 cards
+  }
+}

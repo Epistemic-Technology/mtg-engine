@@ -1,0 +1,8 @@
+card "Temur Devotee" {
+  oracle_id e444f072-ce24-4fd1-99eb-d20d12bc119a
+  cost {1}{U}
+  type Creature — Human Druid
+  pt 3/3
+  keywords defender
+  activated {1}, once: add {G} or {U} or {R}
+}

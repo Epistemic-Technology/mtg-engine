@@ -1,0 +1,8 @@
+card "Gearseeker Serpent" {
+  oracle_id fdbd8a95-1dc8-4df2-bab0-a93d1941a405
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 5/6
+  affinity for artifact
+  activated {5}{U}: this can't be blocked
+}

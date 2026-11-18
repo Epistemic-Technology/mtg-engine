@@ -1,0 +1,7 @@
+card "Foundry Inspector" {
+  oracle_id 18f22960-87ec-43cd-82ea-ec5cabf49ad3
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/2
+  spells artifact you cast cost {1} less
+}

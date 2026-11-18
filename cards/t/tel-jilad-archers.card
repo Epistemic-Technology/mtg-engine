@@ -1,0 +1,8 @@
+card "Tel-Jilad Archers" {
+  oracle_id 939203ec-3de4-44d8-932e-63a32e5f2d47
+  cost {4}{G}
+  type Creature — Elf Archer
+  pt 2/4
+  keywords reach
+  protection from artifact
+}

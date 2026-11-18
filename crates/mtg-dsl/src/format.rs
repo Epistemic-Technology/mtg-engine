@@ -135,12 +135,19 @@ impl Fmt {
                     format!("target {}", i + 1)
                 } else {
                     self.mentioned[i] = true;
-                    match &targets[i] {
+                    let up_to = matches!(targets[i], Target::UpTo(_));
+                    let phrase = match targets[i].base() {
                         Target::Spec(s) => target_phrase(*s),
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
                         Target::Filter(f) => format!("target {}", filter(f)),
                         Target::Spell(f) => format!("target {} spell", filter(f)),
                         Target::GraveyardCard { filter: f, who } => graveyard_target(f, *who),
+                        Target::UpTo(_) => unreachable!("base"),
+                    };
+                    if up_to {
+                        format!("up to 1 {phrase}")
+                    } else {
+                        phrase
                     }
                 }
             }
@@ -451,6 +458,20 @@ impl Fmt {
             },
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
+            Effect::AddManaOneOf(m) => format!(
+                "add {}",
+                m.iter()
+                    .map(|x| crate::render::mana_symbols(&[*x], "any"))
+                    .collect::<Vec<_>>()
+                    .join(" or ")
+            ),
+            Effect::AddManaTimes { mana, count } => {
+                format!(
+                    "add {} {}",
+                    crate::render::mana_symbols(&[*mana], "any"),
+                    num(*count)
+                )
+            }
             Effect::Search {
                 filter: f,
                 count,
@@ -523,6 +544,22 @@ impl Fmt {
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effect,
+            } => {
+                let inner = self.effect(effect, t);
+                let who = if *payer == Recipient::You {
+                    "you pay".to_string()
+                } else {
+                    format!("{} pays", self.recipient(*payer, t))
+                };
+                format!("{inner} unless {who} {}", pay_amount(mana, *life))
+            }
             Effect::SetBasePt {
                 to,
                 power,
@@ -603,6 +640,14 @@ thread_local! {
     /// The counts of the card being formatted (`Num::Count` indexes them).
     static COUNTS: std::cell::RefCell<Vec<crate::ast::Count>> =
         const { std::cell::RefCell::new(Vec::new()) };
+}
+
+fn pay_amount(mana: &mtg_core::mana::ManaCost, life: u32) -> String {
+    if life > 0 {
+        format!("{life} life")
+    } else {
+        mana.to_string()
+    }
 }
 
 fn num(n: Num) -> String {
@@ -1064,6 +1109,16 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("you control {at_least} {}", filter(fl)),
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "your turn".to_string(),
+        StaticCond::Attacking => "attacking".to_string(),
+        StaticCond::Enchanted => "enchanted".to_string(),
+        StaticCond::Equipped => "equipped".to_string(),
+        StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
+        StaticCond::YourLife { n, at_least } => {
+            format!(
+                "your life {n} or {}",
+                if *at_least { "more" } else { "less" }
+            )
+        }
     }
 }
 
@@ -1093,12 +1148,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}mana {sym}, sacrifice this");
         }
         Ability::Enchant(t) => {
-            let phrase = match t {
+            let phrase = match t.base() {
                 Target::Spec(s) => target_phrase(*s).replace("target ", ""),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
                 Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
                     filter(f)
                 }
+                Target::UpTo(_) => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
@@ -1269,6 +1325,57 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
+        }
+        Ability::CostChange {
+            filter: f,
+            whose,
+            generic,
+        } => {
+            let subject = if *f == Filter::default() {
+                String::new()
+            } else {
+                format!(" {}", filter(f))
+            };
+            let whose = match whose {
+                Who::You => " you cast",
+                Who::Opponents => " your opponents cast",
+                Who::Any => "",
+            };
+            let more = if *generic > 0 { "more" } else { "less" };
+            let _ = writeln!(
+                out,
+                "{indent}spells{subject}{whose} cost {{{}}} {more}",
+                generic.unsigned_abs()
+            );
+        }
+        Ability::SelfCost { per, times } => {
+            let _ = writeln!(
+                out,
+                "{indent}this spell costs {{{per}}} less {}",
+                num(*times)
+            );
+        }
+        Ability::Affinity(f) => {
+            let _ = writeln!(out, "{indent}affinity for {}", filter(f));
+        }
+        Ability::HandSize { whose, delta } => {
+            let who = if *whose == Who::Opponents {
+                " opponents"
+            } else {
+                ""
+            };
+            let d = match delta {
+                None => "none".to_string(),
+                Some(n) => format!("{n:+}"),
+            };
+            let _ = writeln!(out, "{indent}hand size{who} {d}");
+        }
+        Ability::Protection(f) => {
+            if *f == Filter::default() {
+                let _ = writeln!(out, "{indent}protection from everything");
+            } else {
+                let _ = writeln!(out, "{indent}protection from {}", filter(f));
+            }
         }
     }
 }

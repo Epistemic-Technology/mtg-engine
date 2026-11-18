@@ -1,0 +1,8 @@
+card "Scale of Chiss-Goria" {
+  oracle_id 1ab0a315-0d0d-4247-9bb9-107b35b353d6
+  cost {3}
+  type Artifact
+  keywords flash
+  affinity for artifact
+  activated {T}: target creature gets +0/+1
+}

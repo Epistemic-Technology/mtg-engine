@@ -1,0 +1,7 @@
+card "Vectis Dominator" {
+  oracle_id 1ed63322-f877-4f1c-90bd-e1adb3668d6d
+  cost {1}{W}{B}
+  type Artifact Creature — Human Wizard
+  pt 0/2
+  activated {T}: tap target creature unless its controller pays 2 life
+}

@@ -1,0 +1,7 @@
+card "Goblin Electromancer" {
+  oracle_id 81f06f84-1580-43c0-89d5-08d34541a519
+  cost {U}{R}
+  type Creature — Goblin Wizard
+  pt 2/2
+  spells instant or sorcery you cast cost {1} less
+}

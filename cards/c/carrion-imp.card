@@ -1,0 +1,8 @@
+card "Carrion Imp" {
+  oracle_id bba44fad-b3ca-4892-b7d1-2d03478062af
+  cost {3}{B}
+  type Creature — Imp
+  pt 2/3
+  keywords flying
+  triggered when this enters: you may exile target creature card from a graveyard; if you do, you gains 2 life
+}

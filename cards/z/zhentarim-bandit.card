@@ -1,0 +1,7 @@
+card "Zhentarim Bandit" {
+  oracle_id 86a7f685-05d0-4167-b5bb-8f6943c23087
+  cost {1}{B}
+  type Creature — Halfling Rogue
+  pt 2/1
+  triggered whenever this attacks: you may pay 1 life; if you do, create 1 "Treasure"
+}

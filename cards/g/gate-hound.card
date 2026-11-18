@@ -1,0 +1,7 @@
+card "Gate Hound" {
+  oracle_id 762e01d8-c16a-44b8-8ba0-052d1a2f312f
+  cost {2}{W}
+  type Creature — Dog
+  pt 1/1
+  static creature you control: has vigilance as long as enchanted
+}

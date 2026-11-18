@@ -380,6 +380,18 @@ impl Runner {
             | DecisionKind::PayOrCounter { .. } => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
+                // Optional targets ("up to two") past the scripted ones are
+                // declined.
+                if let Some(done) = index_of(d, &Choice::Done)
+                    && self.state().objects[spell].kind != ObjKind::Ability
+                    && self
+                        .pending_targets
+                        .as_ref()
+                        .is_none_or(|t| index >= t.len())
+                {
+                    self.pending_targets = None;
+                    return Ok(done);
+                }
                 if self.state().objects[spell].kind == ObjKind::Ability {
                     self.choose_ability_target(d, spell, index, pos)
                 } else {
@@ -664,8 +676,9 @@ impl Runner {
                     unreachable!()
                 };
                 let needed = self.state().targets_of(ability).len();
+                let optional = optional_count(self.state().targets_of(ability));
                 let targets = expand_auto(targets, needed);
-                if targets.len() != needed {
+                if targets.len() > needed || targets.len() + optional < needed {
                     return fail(
                         self.actions[i].line,
                         format!(
@@ -861,7 +874,8 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
-                        let (needed, pending_mode) = self.cast_needs(a.line, id, name, mode)?;
+                        let ((needed, optional), pending_mode) =
+                            self.cast_needs(a.line, id, name, mode)?;
                         self.pending_mode = pending_mode;
                         (
                             self.pending_x,
@@ -870,7 +884,7 @@ impl Runner {
                             self.pending_kicked,
                         ) = costs;
                         let targets = expand_auto(&targets, needed);
-                        if targets.len() != needed {
+                        if targets.len() > needed || targets.len() + optional < needed {
                             return fail(
                                 a.line,
                                 format!(
@@ -896,7 +910,7 @@ impl Runner {
         id: ObjId,
         name: &str,
         mode: Option<usize>,
-    ) -> Res<(usize, Option<usize>)> {
+    ) -> Res<((usize, usize), Option<usize>)> {
         let st = self.state();
         let mut def = st.def_of(id).expect("card in hand");
         // `cast "Stomp"`: the named face of the card.
@@ -909,7 +923,8 @@ impl Runner {
             if mode.is_some() {
                 return fail(line, format!("\"{name}\" is not modal"));
             }
-            return Ok((def.cast_targets().len(), None));
+            let t = def.cast_targets();
+            return Ok(((t.len(), optional_count(t)), None));
         };
         let m = mode.unwrap_or(1);
         let Some(chosen) = modes.get(m - 1) else {
@@ -918,7 +933,10 @@ impl Runner {
                 format!("\"{name}\" has {} modes, not {m}", modes.len()),
             );
         };
-        Ok((chosen.targets.len(), Some(m)))
+        Ok((
+            (chosen.targets.len(), optional_count(&chosen.targets)),
+            Some(m),
+        ))
     }
 
     /// A scripted `activate`: the option activating an ability of the named
@@ -1011,9 +1029,10 @@ impl Runner {
                 let Choice::Activate { ability, .. } = &d.options[idx] else {
                     unreachable!()
                 };
-                let needed = self.state().pool.ability(*ability).targets().len();
+                let specs = self.state().pool.ability(*ability).targets();
+                let (needed, optional) = (specs.len(), optional_count(specs));
                 let targets = expand_auto(targets, needed);
-                if targets.len() != needed {
+                if targets.len() > needed || targets.len() + optional < needed {
                     return fail(
                         a.line,
                         format!(
@@ -2089,4 +2108,12 @@ mod tests {
         assert_eq!(r.skipped.as_deref(), Some("not yet"));
         assert!(!r.passed());
     }
+}
+
+/// Targets that may be left unchosen ("up to two").
+fn optional_count(specs: &[mtg_core::card::TargetSpec]) -> usize {
+    specs
+        .iter()
+        .filter(|s| matches!(s, mtg_core::card::TargetSpec::UpTo(_)))
+        .count()
 }

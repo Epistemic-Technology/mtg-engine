@@ -1,0 +1,7 @@
+card "Carnophage" {
+  oracle_id 9ac77cfd-7d78-4c8a-bffc-17649a852114
+  cost {B}
+  type Creature — Zombie
+  pt 2/2
+  triggered at beginning of your upkeep: tap this unless you pay 1 life
+}

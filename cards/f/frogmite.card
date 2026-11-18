@@ -1,0 +1,7 @@
+card "Frogmite" {
+  oracle_id a927fd33-f183-48d9-b582-55d379d70e13
+  cost {4}
+  type Artifact Creature — Frog
+  pt 2/2
+  affinity for artifact
+}

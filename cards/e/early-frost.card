@@ -1,0 +1,6 @@
+card "Early Frost" {
+  oracle_id 9f9cdbc2-d2f2-4390-8506-350fabf3f89a
+  cost {1}{U}
+  type Instant
+  spell: tap up to three target lands
+}

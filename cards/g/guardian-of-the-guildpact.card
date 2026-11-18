@@ -1,0 +1,7 @@
+card "Guardian of the Guildpact" {
+  oracle_id 20822aa7-5f84-442d-add3-b56167e6eb38
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/3
+  protection from monocolored
+}

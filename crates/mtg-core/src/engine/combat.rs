@@ -46,7 +46,7 @@ impl GameState {
             return false;
         }
         // CR 702.16e: can't be blocked by creatures with the quality.
-        if a.protected_from(&b) {
+        if a.protected_from(&b, &self.pool) {
             return false;
         }
         // CR 509.1b: blocking restrictions of the attacker and the blocker.
@@ -230,7 +230,16 @@ impl GameState {
     /// Attackers declared. If the defender controls a planeswalker, each
     /// attacker chooses what it attacks (CR 508.1a); otherwise they all
     /// attack the defending player.
-    pub(super) fn finish_attackers(&mut self, set: Vec<ObjId>) {
+    pub(super) fn finish_attackers(&mut self, mut set: Vec<ObjId>) {
+        // CR 506.5: a creature that can't attack alone attacks only with
+        // another; declared alone, it stays home.
+        if let [only] = set.as_slice()
+            && self
+                .characteristics(*only)
+                .is_some_and(|c| c.has(Keyword::CantAttackAlone))
+        {
+            set.clear();
+        }
         let defender = self.opponent(self.active_player);
         if !set.is_empty() && self.planeswalkers_of(defender).next().is_some() {
             self.flow = crate::state::Flow::AttackTargets {
@@ -300,7 +309,16 @@ impl GameState {
         self.give_priority(self.active_player);
     }
 
-    pub(super) fn finish_blocks(&mut self, blocks: Vec<(ObjId, ObjId)>) {
+    pub(super) fn finish_blocks(&mut self, mut blocks: Vec<(ObjId, ObjId)>) {
+        // CR 506.5: "can't block alone".
+        if let Some((first, _)) = blocks.first().copied()
+            && blocks.iter().all(|(b, _)| *b == first)
+            && self
+                .characteristics(first)
+                .is_some_and(|c| c.has(Keyword::CantBlockAlone))
+        {
+            blocks.clear();
+        }
         let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
         for (blocker, attacker) in &blocks {
             if let Some(a) = self.combat.as_mut().and_then(|c| c.attacker_mut(*attacker)) {

@@ -1,0 +1,8 @@
+card "Angelic Curator" {
+  oracle_id cca29a9b-794f-4712-8e6c-36ce3da9cb8b
+  cost {1}{W}
+  type Creature — Angel Spirit
+  pt 1/1
+  keywords flying
+  protection from artifact
+}

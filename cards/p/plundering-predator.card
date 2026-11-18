@@ -1,0 +1,8 @@
+card "Plundering Predator" {
+  oracle_id dfd260f2-90e6-464b-91e2-a66bb3877918
+  cost {4}{R}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+}

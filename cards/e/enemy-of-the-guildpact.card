@@ -1,0 +1,7 @@
+card "Enemy of the Guildpact" {
+  oracle_id e5cf7b75-b59b-4cac-bfd2-13e452457d74
+  cost {4}{B}
+  type Creature — Spirit
+  pt 4/2
+  protection from multicolored
+}

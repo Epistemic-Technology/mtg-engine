@@ -1,0 +1,8 @@
+card "Starnheim Courser" {
+  oracle_id 01317d6c-8c11-40e1-8f7b-d36050973ada
+  cost {2}{W}
+  type Creature — Pegasus
+  pt 2/2
+  keywords flying
+  spells artifact or enchantment you cast cost {1} less
+}

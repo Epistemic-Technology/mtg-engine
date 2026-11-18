@@ -1,0 +1,8 @@
+card "Soltari Lancer" {
+  oracle_id d2cbd71a-841b-4ff2-a794-247a030e0233
+  cost {2}{W}
+  type Creature — Soltari Knight
+  pt 2/2
+  keywords shadow
+  static this: has first strike as long as attacking
+}

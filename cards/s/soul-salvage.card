@@ -1,0 +1,6 @@
+card "Soul Salvage" {
+  oracle_id 60b6bd93-3eb3-4b81-bc4d-1e3351ee2e64
+  cost {2}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand
+}

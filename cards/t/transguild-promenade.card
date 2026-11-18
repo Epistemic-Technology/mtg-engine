@@ -1,0 +1,7 @@
+card "Transguild Promenade" {
+  oracle_id 98334bfa-c516-4c20-bdc5-9e32e7127adc
+  type Land
+  enters tapped
+  triggered when this enters: sacrifice this unless you pay {1}
+  mana any
+}

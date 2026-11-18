@@ -316,6 +316,7 @@ impl GameState {
             self.legendary_count += d(legendary);
             self.activated_sources += d(flags.has_activated());
             self.life_cda_sources += d(flags.has_life_cda());
+            self.cost_change_sources += d(flags.has_cost_change());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -323,6 +324,7 @@ impl GameState {
             self.legendary_count -= d(legendary);
             self.activated_sources -= d(flags.has_activated());
             self.life_cda_sources -= d(flags.has_life_cda());
+            self.cost_change_sources -= d(flags.has_cost_change());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();
@@ -547,7 +549,7 @@ impl GameState {
                 // CR 702.16d: damage from a source with the quality is
                 // prevented.
                 if let Some(sc) = src.as_ref()
-                    && c.protected_from(sc)
+                    && c.protected_from(sc, &self.pool)
                 {
                     return;
                 }

@@ -1,0 +1,7 @@
+card "Druid of the Anima" {
+  oracle_id 8d7933c4-4c74-492f-a9cd-50b339a4b29e
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {R} or {G} or {W}
+}

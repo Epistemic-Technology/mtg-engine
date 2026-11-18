@@ -1,0 +1,8 @@
+card "Razor Golem" {
+  oracle_id c7b2188a-7571-48b8-ac66-ca741bf2e779
+  cost {6}
+  type Artifact Creature — Golem
+  pt 3/4
+  affinity for Plain
+  keyword vigilance
+}

@@ -54,7 +54,7 @@ const KEYWORDS: [&str; 31] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 28] = [
+const TEMPLATED_TAGS: [&str; 29] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -83,6 +83,7 @@ const TEMPLATED_TAGS: [&str; 28] = [
     "Surveil",
     "Cycling",
     "Fight",
+    "Affinity",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -143,7 +144,10 @@ const PHRASE_KEYWORDS: [&str; 7] = [
 
 /// Restrictions Oracle prints as sentences; the DSL keeps them with the
 /// keywords.
-const RESTRICTIONS: [&str; 4] = [
+const RESTRICTIONS: [&str; 7] = [
+    "can't attack or block alone",
+    "can't attack alone",
+    "can't block alone",
     "can't block",
     "can't attack",
     "attacks each combat if able",
@@ -499,6 +503,18 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         *targets += if s.starts_with("two ") { 2 } else { 1 };
         return Some(s.to_string());
     }
+    // "up to two target creatures": optional targets.
+    if let Some(rest) = s.strip_prefix("up to ") {
+        let (n, tail) = rest.split_once(' ')?;
+        let k = ["one", "two", "three", "four", "five"]
+            .iter()
+            .position(|w| *w == n)?
+            + 1;
+        if tail.starts_with("target ") {
+            *targets += k;
+            return Some(s.to_string());
+        }
+    }
     // Any other "target <filter>" phrase: the DSL parser and the render
     // check decide whether it is one the engine knows.
     if s.starts_with("target ") || s.starts_with("another target ") {
@@ -533,7 +549,24 @@ fn singular(s: &str) -> String {
     s.split(' ')
         .map(|w| match w {
             "creatures" | "artifacts" | "enchantments" | "lands" | "permanents" | "Auras"
-            | "Slivers" | "Goblins" | "Walls" => w.trim_end_matches('s').to_string(),
+            | "Slivers" | "Goblins" | "Walls" | "instants" | "sorceries" | "planeswalkers" => {
+                if w == "sorceries" {
+                    "sorcery".to_string()
+                } else {
+                    w.trim_end_matches('s').to_string()
+                }
+            }
+            "Elves" => "Elf".to_string(),
+            "Dwarves" => "Dwarf".to_string(),
+            "Wolves" => "Wolf".to_string(),
+            other
+                if other.len() > 3
+                    && other.ends_with('s')
+                    && !other.ends_with("ss")
+                    && other.chars().next().is_some_and(char::is_uppercase) =>
+            {
+                other[..other.len() - 1].to_string()
+            }
             other => other.to_string(),
         })
         .collect::<Vec<_>>()
@@ -786,6 +819,30 @@ impl Templates {
             (r(r"^Add ((?:\{[WUBRGC]\})+)$"), |c, _| {
                 Some(format!("add {}", cap(c, 1)))
             }),
+            (r(r"^Add (\{[WUBRGC]\}) or (\{[WUBRGC]\})$"), |c, _| {
+                Some(format!("add {} or {}", cap(c, 1), cap(c, 2)))
+            }),
+            (
+                r(r"^Add ((?:\{[WUBRGC]\}, )+)or (\{[WUBRGC]\})$"),
+                |c, _| {
+                    let syms: Vec<&str> = cap(c, 1)
+                        .split(", ")
+                        .filter(|s| !s.is_empty())
+                        .chain([cap(c, 2)])
+                        .collect();
+                    Some(format!("add {}", syms.join(" or ")))
+                },
+            ),
+            (r(r"^Add (\{[WUBRGC]\}) for each (.+)$"), |c, _| {
+                Some(format!(
+                    "add {} count each {}",
+                    cap(c, 1),
+                    count_expr(cap(c, 2))?
+                ))
+            }),
+            (r(r"^Pay ((?:\{[0-9WUBRGC]+\})+|\d+ life)$"), |c, _| {
+                Some(format!("pay {}", cap(c, 1)))
+            }),
             (r(r"^Add one mana of any color$"), |_, _| {
                 Some("add any".to_string())
             }),
@@ -940,6 +997,10 @@ impl Templates {
             }
             return Ok(out);
         }
+        let unless = Regex::new(
+            r"^(.+) unless (you pay|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
+        )
+        .unwrap();
         let mut out: Vec<String> = Vec::new();
         for sentence in split_sentences(text) {
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
@@ -951,8 +1012,13 @@ impl Templates {
                     _ => return Err(Skip::Sentence(sentence)),
                 }
             }
-            let (prefix, body) = if let Some(rest) = sentence.strip_prefix("you may ") {
+            let (prefix, body) = if let Some(rest) = sentence
+                .strip_prefix("you may ")
+                .or_else(|| sentence.strip_prefix("You may "))
+            {
                 ("you may ", rest.to_string())
+            } else if let Some(rest) = sentence.strip_prefix("If you do, ") {
+                ("if you do, ", rest.to_string())
             } else if let Some(rest) = sentence.strip_prefix("If this spell was kicked, ") {
                 ("if kicked, ", rest.to_string())
             } else {
@@ -966,10 +1032,17 @@ impl Templates {
                 body.split(", then ").collect()
             };
             for clause in clauses {
-                let Some(e) = self.sentence(&capitalize(clause), targets) else {
+                let (head, tail) = match unless.captures(clause) {
+                    Some(c) => (
+                        c.get(1).map_or("", |m| m.as_str()).to_string(),
+                        format!(" unless {} {}", cap(&c, 2), cap(&c, 3)),
+                    ),
+                    None => (clause.to_string(), String::new()),
+                };
+                let Some(e) = self.sentence(&capitalize(&head), targets) else {
                     return Err(Skip::Sentence(sentence.clone()));
                 };
-                parts.push(e);
+                parts.push(format!("{e}{tail}"));
             }
             let e = parts.join(" then ");
             out.push(format!("{prefix}{e}"));
@@ -1132,8 +1205,24 @@ fn trigger_text(head: &str) -> Option<String> {
 /// "seven or more cards are in your graveyard" → `7 cards in your
 /// graveyard`, and the other conditions `static_cond` parses.
 fn static_condition(s: &str) -> Option<String> {
-    if s == "it's your turn" {
-        return Some("your turn".to_string());
+    match s {
+        "it's your turn" => return Some("your turn".to_string()),
+        "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
+        "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
+        "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        _ => {}
+    }
+    if let Some(c) = Regex::new(r"^an opponent has (\d+) or less life$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("opponent life {} or less", cap(&c, 1)));
+    }
+    if let Some(c) = Regex::new(r"^you have (\d+) or (more|less) life$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("your life {} or {}", cap(&c, 1), cap(&c, 2)));
     }
     let more = Regex::new(r"^there are (\S+) or more cards in your graveyard$").unwrap();
     if let Some(c) = more.captures(s) {
@@ -1317,6 +1406,36 @@ impl Builder<'_> {
             }
             return Ok(());
         }
+        // "Flying, protection from enchantments": keywords and a quality.
+        if line.contains(", ")
+            && keyword_list(line).is_none()
+            && line.chars().next().is_some_and(char::is_uppercase)
+        {
+            let parts: Vec<&str> = line.split(", ").collect();
+            if parts.iter().all(|p| {
+                keyword_list(p).is_some() || p.to_ascii_lowercase().starts_with("protection from ")
+            }) {
+                for p in parts {
+                    let p = capitalize(p);
+                    self.line(&p)?;
+                }
+                return Ok(());
+            }
+        }
+        // "Protection from artifacts" (a quality other than a color).
+        if let Some(q) = line.strip_prefix("Protection from ")
+            && keyword_list(line).is_none()
+            && !q.contains(" and ")
+            && !q.contains(',')
+        {
+            let what = match q {
+                "everything" => "everything".to_string(),
+                "multicolored" | "monocolored" | "colorless" => q.to_string(),
+                _ => singular(q),
+            };
+            self.statements.push(format!("protection from {what}"));
+            return Ok(());
+        }
         // Blocking restrictions with a filter.
         if let Some(rest) = line
             .strip_prefix("This creature ")
@@ -1347,6 +1466,11 @@ impl Builder<'_> {
             && let Some(rest) = rest.strip_suffix('.')
             && let Some(k) = RESTRICTIONS.iter().find(|r| **r == rest)
         {
+            let k = if *k == "can't attack or block alone" {
+                &"can't attack alone, can't block alone"
+            } else {
+                k
+            };
             if self.statements.is_empty() {
                 self.keywords.push((*k).to_string());
             } else {
@@ -1439,6 +1563,76 @@ impl Builder<'_> {
             .captures(line)
         {
             self.statements.push(format!("mana {}", cap(&c, 1)));
+            return Ok(());
+        }
+        // "{T}: Add {R}, {G}, or {W}."
+        if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\}, )+)or (\{[WUBRGC]\})\.$")
+            .unwrap()
+            .captures(line)
+        {
+            let syms: Vec<&str> = cap(&c, 1)
+                .split(", ")
+                .filter(|s| !s.is_empty())
+                .chain([cap(&c, 2)])
+                .collect();
+            self.statements.push(format!("mana {}", syms.join(" or ")));
+            return Ok(());
+        }
+        if line == "You have no maximum hand size." {
+            self.statements.push("hand size none".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^(Your|Each opponent's) maximum hand size is (increased|reduced) by (\w+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+            && let Some(n) = number(cap(&c, 3))
+        {
+            let sign = if cap(&c, 2) == "increased" { "+" } else { "-" };
+            let who = if cap(&c, 1) == "Your" {
+                ""
+            } else {
+                " opponents"
+            };
+            self.statements.push(format!("hand size{who} {sign}{n}"));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
+            self.statements
+                .push(format!("affinity for {}", singular(cap(&c, 1))));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^This spell costs \{(\d+)\} less to cast for each (.+)\.$")
+            .unwrap()
+            .captures(line)
+            && let Some(expr) = count_expr(cap(&c, 2))
+        {
+            self.statements.push(format!(
+                "this spell costs {{{}}} less count each {expr}",
+                cap(&c, 1)
+            ));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^(?:(.+) )?[Ss]pells( you cast| your opponents cast)? cost \{(\d+)\} (less|more) to cast\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let subject = cap(&c, 1).replace(" and ", " or ");
+            let subject = lowercase_first(&subject);
+            let subject = if subject.is_empty() {
+                String::new()
+            } else {
+                format!(" {}", singular(&subject))
+            };
+            self.statements.push(format!(
+                "spells{subject}{} cost {{{}}} {}",
+                cap(&c, 2),
+                cap(&c, 3),
+                cap(&c, 4)
+            ));
             return Ok(());
         }
         if line == "This land enters tapped."

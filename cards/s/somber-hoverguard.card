@@ -1,0 +1,8 @@
+card "Somber Hoverguard" {
+  oracle_id 3c88108e-d983-427a-9b85-b9cdd2d5083b
+  cost {5}{U}
+  type Creature — Drone
+  pt 3/2
+  affinity for artifact
+  keyword flying
+}

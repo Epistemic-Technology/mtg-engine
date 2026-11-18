@@ -1,0 +1,8 @@
+card "Null Group Biological Assets" {
+  oracle_id 49598fd5-2aad-4974-b499-38b60fc371b6
+  cost {2}{R}
+  type Creature — Mutant Mercenary
+  pt 3/1
+  static during your turn, this: has first strike
+  triggered whenever this attacks: you may discard 1 cards; if you do, draw 1 cards
+}

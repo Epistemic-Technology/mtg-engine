@@ -1,0 +1,6 @@
+card "Obelisk of Grixis" {
+  oracle_id e193ae18-91a0-4870-b8a1-f8dedf744708
+  cost {3}
+  type Artifact
+  mana {U} or {B} or {R}
+}

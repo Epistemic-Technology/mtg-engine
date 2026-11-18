@@ -1,0 +1,8 @@
+card "Sultai Devotee" {
+  oracle_id ee7b3fc0-6128-4bf6-b3e7-7371e6f93c4b
+  cost {1}{G}
+  type Creature — Zombie Snake Druid
+  pt 2/1
+  keywords deathtouch
+  activated {1}, once: add {B} or {G} or {U}
+}

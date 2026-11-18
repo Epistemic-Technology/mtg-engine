@@ -1,0 +1,7 @@
+card "Gnat Miser" {
+  oracle_id cfb5da72-9f00-4ae2-8d59-f997faab451b
+  cost {B}
+  type Creature — Rat Shaman
+  pt 1/1
+  hand size opponents -1
+}

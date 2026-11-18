@@ -1,0 +1,6 @@
+card "Inner Fire" {
+  oracle_id 27348fe5-21d4-40f7-9feb-bba2c2321008
+  cost {3}{R}
+  type Sorcery
+  spell: add {R} count each hand
+}

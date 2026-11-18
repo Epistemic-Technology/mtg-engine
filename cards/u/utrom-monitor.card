@@ -1,0 +1,8 @@
+card "Utrom Monitor" {
+  oracle_id 976e1fe6-ac32-4ea9-9828-acd3c4791e01
+  cost {4}{U}
+  type Artifact Creature — Utrom Scientist
+  pt 3/3
+  affinity for artifact
+  keyword flying
+}

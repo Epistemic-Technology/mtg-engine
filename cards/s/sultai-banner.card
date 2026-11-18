@@ -1,0 +1,7 @@
+card "Sultai Banner" {
+  oracle_id 93b139a5-2678-46a5-b8eb-45344ee3290a
+  cost {3}
+  type Artifact
+  mana {B} or {G} or {U}
+  activated {B}{G}{U}, {T}, sacrifice this: draw 1 cards
+}

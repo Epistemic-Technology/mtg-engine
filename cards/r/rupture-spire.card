@@ -1,0 +1,7 @@
+card "Rupture Spire" {
+  oracle_id 7eadffcb-1e15-44c1-b1db-78c71b8ec1ce
+  type Land
+  enters tapped
+  triggered when this enters: sacrifice this unless you pay {1}
+  mana any
+}

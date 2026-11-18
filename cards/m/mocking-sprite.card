@@ -1,0 +1,8 @@
+card "Mocking Sprite" {
+  oracle_id 013ca531-1ff7-4efc-a280-4bc3ab574072
+  cost {2}{U}
+  type Creature — Faerie Rogue
+  pt 2/1
+  keywords flying
+  spells instant or sorcery you cast cost {1} less
+}

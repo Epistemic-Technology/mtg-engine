@@ -1,0 +1,8 @@
+card "Dross Golem" {
+  oracle_id 336d51cf-dcb3-4257-bd6c-926820a2f9de
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/2
+  affinity for Swamp
+  keyword fear
+}

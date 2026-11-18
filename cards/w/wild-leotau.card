@@ -1,0 +1,7 @@
+card "Wild Leotau" {
+  oracle_id d5277fe0-b707-41bb-9ff9-62f8be249dd2
+  cost {2}{G}{G}
+  type Creature — Cat
+  pt 5/4
+  triggered at beginning of your upkeep: sacrifice this unless you pay {G}
+}

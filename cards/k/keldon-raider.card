@@ -1,0 +1,7 @@
+card "Keldon Raider" {
+  oracle_id 004f82f0-74cc-4bc7-ab22-ab1a5247bc29
+  cost {2}{R}{R}
+  type Creature — Human Warrior
+  pt 4/3
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+}

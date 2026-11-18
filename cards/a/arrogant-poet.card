@@ -1,0 +1,7 @@
+card "Arrogant Poet" {
+  oracle_id 0b2e9571-0c28-4a8f-9ba7-0147b40290a7
+  cost {1}{B}
+  type Creature — Human Warlock
+  pt 2/1
+  triggered whenever this attacks: you may pay 2 life; if you do, this gains flying
+}

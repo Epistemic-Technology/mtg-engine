@@ -1,0 +1,7 @@
+card "Ember Beast" {
+  oracle_id 58edb282-a124-47bc-b123-1c34b6804f48
+  cost {2}{R}
+  type Creature — Beast
+  pt 3/4
+  keywords can't attack alone, can't block alone
+}

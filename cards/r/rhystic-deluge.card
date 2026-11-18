@@ -1,0 +1,6 @@
+card "Rhystic Deluge" {
+  oracle_id d59cfff9-2bce-439a-9456-ae68eabbf67d
+  cost {2}{U}
+  type Enchantment
+  activated {U}: tap target creature unless its controller pays {1}
+}

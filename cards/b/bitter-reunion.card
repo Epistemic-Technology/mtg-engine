@@ -1,0 +1,7 @@
+card "Bitter Reunion" {
+  oracle_id 173e86f4-17f3-44f5-8073-78e7e2e12c4a
+  cost {1}{R}
+  type Enchantment
+  triggered when this enters: you may discard 1 cards; if you do, draw 2 cards
+  activated {1}, sacrifice this: each creature you control gains haste
+}

@@ -1,0 +1,8 @@
+card "Drifter il-Dal" {
+  oracle_id dbe8ad46-d862-4ff6-bf17-238fb8341075
+  cost {U}
+  type Creature — Human Wizard
+  pt 2/1
+  keywords shadow
+  triggered at beginning of your upkeep: sacrifice this unless you pay {U}
+}

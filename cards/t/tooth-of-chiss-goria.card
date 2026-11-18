@@ -1,0 +1,8 @@
+card "Tooth of Chiss-Goria" {
+  oracle_id e5e7e7e4-a774-4d68-8767-8ba2bae38250
+  cost {3}
+  type Artifact
+  keywords flash
+  affinity for artifact
+  activated {T}: target creature gets +1/+0
+}

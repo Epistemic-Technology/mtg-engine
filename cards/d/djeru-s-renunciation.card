@@ -1,0 +1,7 @@
+card "Djeru's Renunciation" {
+  oracle_id 11b21086-0779-4d16-8a56-252c6bee9bed
+  cost {1}{W}
+  type Instant
+  spell: tap up to two target creatures
+  cycling {W}
+}

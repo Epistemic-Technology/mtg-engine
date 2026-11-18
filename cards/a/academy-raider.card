@@ -1,0 +1,8 @@
+card "Academy Raider" {
+  oracle_id 75131d75-0703-44d0-b503-35190be8e66f
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 1/1
+  keywords intimidate
+  triggered whenever this deals combat damage to a player: you may discard 1 cards; if you do, draw 1 cards
+}

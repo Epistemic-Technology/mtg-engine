@@ -1,0 +1,6 @@
+card "Downpour" {
+  oracle_id 78eb5fb1-cb91-4300-9056-4225a416aec0
+  cost {1}{U}
+  type Instant
+  spell: tap up to three target creatures
+}

@@ -1,0 +1,7 @@
+card "Whipstitched Zombie" {
+  oracle_id c498f0ff-812a-4106-834b-f43a0a7e0bac
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered at beginning of your upkeep: sacrifice this unless you pay {B}
+}

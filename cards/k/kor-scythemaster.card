@@ -1,0 +1,7 @@
+card "Kor Scythemaster" {
+  oracle_id 21083222-12b6-4892-8078-1859140b7cc3
+  cost {2}{W}
+  type Creature — Kor Soldier Ally
+  pt 3/1
+  static this: has first strike as long as attacking
+}

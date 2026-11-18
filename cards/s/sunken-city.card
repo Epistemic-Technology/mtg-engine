@@ -1,0 +1,7 @@
+card "Sunken City" {
+  oracle_id 17841133-c526-42a3-a1d2-a874e9bb7138
+  cost {U}{U}
+  type Enchantment
+  triggered at beginning of your upkeep: sacrifice this unless you pay {U}{U}
+  static blue creature: +1/+1
+}

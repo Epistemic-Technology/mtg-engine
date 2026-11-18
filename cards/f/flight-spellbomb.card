@@ -1,0 +1,7 @@
+card "Flight Spellbomb" {
+  oracle_id 9f679093-86a0-4211-8491-de1f6d81c483
+  cost {1}
+  type Artifact
+  activated {T}, sacrifice this: target creature gains flying
+  triggered when this dies: you may pay {U}; if you do, draw 1 cards
+}

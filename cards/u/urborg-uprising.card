@@ -1,0 +1,9 @@
+card "Urborg Uprising" {
+  oracle_id 882d3be7-1c0f-4d2b-8f2e-32369488ef82
+  cost {4}{B}
+  type Sorcery
+  spell {
+    return up to two target creature cards from your graveyard to hand
+    draw 1 cards
+  }
+}

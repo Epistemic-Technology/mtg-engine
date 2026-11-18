@@ -1,0 +1,7 @@
+card "Jackal Familiar" {
+  oracle_id e4d5d666-fd55-4c1a-89c8-2348288f6b30
+  cost {R}
+  type Creature — Jackal
+  pt 2/2
+  keywords can't attack alone, can't block alone
+}

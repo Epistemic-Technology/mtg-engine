@@ -1,0 +1,7 @@
+card "Ruthless Cullblade" {
+  oracle_id b7748ad6-a8cd-45e7-a4d6-4ee747722657
+  cost {1}{B}
+  type Creature — Vampire Warrior
+  pt 2/1
+  static this: +2/+1 as long as opponent life 10 or less
+}

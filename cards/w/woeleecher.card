@@ -1,0 +1,7 @@
+card "Woeleecher" {
+  oracle_id 52e73390-75e4-45a1-8dbe-96e7cceb0a14
+  cost {5}{W}
+  type Creature — Elemental
+  pt 3/5
+  activated {W}, {T}: remove 1 -1/-1 counters from target creature; if you do, you gains 2 life
+}

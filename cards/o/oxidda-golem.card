@@ -1,0 +1,8 @@
+card "Oxidda Golem" {
+  oracle_id 9c51d843-d155-44ed-ab1f-dfa2ff848f53
+  cost {6}
+  type Artifact Creature — Golem
+  pt 3/2
+  affinity for Mountain
+  keyword haste
+}

@@ -1,0 +1,6 @@
+card "Pull from the Grave" {
+  oracle_id c5373026-8b43-42a7-aa69-a1b0f1619795
+  cost {2}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand; you gains 2 life
+}

@@ -1,0 +1,6 @@
+card "Dutiful Return" {
+  oracle_id c8f958da-3a31-4064-9a78-66e9b65b85ab
+  cost {3}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand
+}

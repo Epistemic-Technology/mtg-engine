@@ -1,0 +1,6 @@
+card "Songs of the Damned" {
+  oracle_id 39419d29-47e7-4d71-953b-96a2e14ae964
+  cost {B}
+  type Instant
+  spell: add {B} count each graveyard creature
+}

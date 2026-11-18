@@ -1,0 +1,8 @@
+card "Impaler Shrike" {
+  oracle_id db98ee99-d4e5-4623-8446-5cce5d11dca0
+  cost {2}{U}{U}
+  type Creature — Phyrexian Bird
+  pt 3/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may sacrifice this; if you do, draw 3 cards
+}

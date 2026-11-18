@@ -1,0 +1,7 @@
+card "Order of the Golden Cricket" {
+  oracle_id 02abe85a-c603-4963-aba4-524cc80847ea
+  cost {1}{W}
+  type Creature — Kithkin Knight
+  pt 2/2
+  triggered whenever this attacks: you may pay {W}; if you do, this gains flying
+}

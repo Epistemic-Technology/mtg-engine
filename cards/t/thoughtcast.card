@@ -1,0 +1,7 @@
+card "Thoughtcast" {
+  oracle_id cce9bbff-82dc-4b2f-addd-d6715588de20
+  cost {4}{U}
+  type Sorcery
+  affinity for artifact
+  spell: draw 2 cards
+}

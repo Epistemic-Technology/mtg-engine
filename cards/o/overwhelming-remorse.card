@@ -1,0 +1,7 @@
+card "Overwhelming Remorse" {
+  oracle_id bb4507c1-1e5d-48b5-8fc0-1d26bd1c9e72
+  cost {4}{B}
+  type Instant
+  this spell costs {1} less count each graveyard creature
+  spell: exile target creature or planeswalker
+}

@@ -1,0 +1,7 @@
+card "Temur Banner" {
+  oracle_id 8a35f23d-f59a-4677-9736-035c60c22a2b
+  cost {3}
+  type Artifact
+  mana {G} or {U} or {R}
+  activated {G}{U}{R}, {T}, sacrifice this: draw 1 cards
+}

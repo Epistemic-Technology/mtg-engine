@@ -1,0 +1,8 @@
+card "Mardu Devotee" {
+  oracle_id 24ee57b5-a505-4264-97ca-8b8dfb12298e
+  cost {W}
+  type Creature — Human Scout
+  pt 1/2
+  triggered when this enters: scry 2
+  activated {1}, once: add {R} or {W} or {B}
+}

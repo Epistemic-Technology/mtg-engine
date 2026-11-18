@@ -1,0 +1,6 @@
+card "Obelisk of Esper" {
+  oracle_id 9da963f6-734b-4d3c-a3be-dd5cca2c7b19
+  cost {3}
+  type Artifact
+  mana {W} or {U} or {B}
+}

@@ -1,0 +1,7 @@
+card "Etherium Sculptor" {
+  oracle_id 96b87445-6362-4a17-91b2-cbf203fd03fd
+  cost {1}{U}
+  type Artifact Creature — Vedalken Artificer
+  pt 1/2
+  spells artifact you cast cost {1} less
+}

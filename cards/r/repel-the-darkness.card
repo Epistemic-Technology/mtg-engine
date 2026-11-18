@@ -1,0 +1,9 @@
+card "Repel the Darkness" {
+  oracle_id 47f5ea79-2bf2-4e17-9c6d-e1cbcd9d30d1
+  cost {2}{W}
+  type Instant
+  spell {
+    tap up to two target creatures
+    draw 1 cards
+  }
+}

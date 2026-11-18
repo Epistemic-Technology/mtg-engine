@@ -1,0 +1,8 @@
+card "Argivian Phalanx" {
+  oracle_id 1ca8d2cb-58ba-476b-a4f2-1bf273a54cf3
+  cost {5}{W}
+  type Creature — Human Kor Soldier
+  pt 4/4
+  affinity for creature
+  keyword vigilance
+}

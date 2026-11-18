@@ -1,0 +1,7 @@
+card "Hungry Mist" {
+  oracle_id dedfbd92-4f12-423c-9d56-167753f03bff
+  cost {2}{G}{G}
+  type Creature — Elemental
+  pt 6/2
+  triggered at beginning of your upkeep: sacrifice this unless you pay {G}{G}
+}

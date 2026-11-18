@@ -1,0 +1,7 @@
+card "Drainpipe Vermin" {
+  oracle_id b6d39905-e074-4517-b806-d081d1069f74
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+  triggered when this dies: you may pay {B}; if you do, target player discards 1 cards
+}

@@ -1,0 +1,7 @@
+card "Rishadan Cutpurse" {
+  oracle_id 147e0e74-f76b-4f0a-951f-d39afdd72c02
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 1/1
+  triggered when this enters: each opponent sacrifices 1 permanent unless they pay {1}
+}

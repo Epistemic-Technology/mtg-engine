@@ -1,0 +1,7 @@
+card "Raging Kronch" {
+  oracle_id c05c2eae-1a9c-4ce7-9c76-22e40781c1a9
+  cost {2}{R}
+  type Creature — Beast
+  pt 4/3
+  keywords can't attack alone
+}

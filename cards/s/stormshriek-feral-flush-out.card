@@ -1,0 +1,14 @@
+card "Stormshriek Feral // Flush Out" {
+  oracle_id e24916ff-7566-4f27-8e31-732311a4a88c
+  layout omen
+  cost {4}{R}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying, haste
+  activated {1}{R}: this gets +1/+0
+  face "Flush Out" {
+    cost {1}{R}
+    type Sorcery — Omen
+    spell: discard 1 cards; if you do, draw 2 cards
+  }
+}

@@ -263,6 +263,19 @@ pub enum Target {
         filter: Filter,
         who: Who,
     },
+    /// `up to 2 target creatures`: an optional target (CR 601.2c); the
+    /// optional targets of an ability come last.
+    UpTo(Box<Target>),
+}
+
+impl Target {
+    /// The target without its "up to".
+    pub fn base(&self) -> &Target {
+        match self {
+            Target::UpTo(t) => t.base(),
+            t => t,
+        }
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -313,6 +326,34 @@ pub enum Ability {
     /// block only creature with flying`, `can't block creature with
     /// flying`.
     BlockRule(BlockRule),
+    /// `spells artifact you cast cost {1} less`: "Artifact spells you
+    /// cast cost {1} less to cast." (CR 601.2f); `generic` above zero is
+    /// "more". `whose` is `Any` for "Noncreature spells cost {1} more".
+    CostChange {
+        filter: Filter,
+        whose: Who,
+        generic: i32,
+    },
+    /// `this spell costs {1} less count each artifact you control`: "This
+    /// spell costs {1} less to cast for each artifact you control."
+    SelfCost {
+        per: u32,
+        times: Num,
+    },
+    /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
+    /// spell costs {1} less for each such permanent you control.
+    Affinity(Filter),
+    /// `protection from artifact`, `protection from everything`:
+    /// "Protection from artifacts" (CR 702.16), a quality other than a
+    /// color (those are keywords).
+    Protection(Filter),
+    /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
+    /// have no maximum hand size.", "Your maximum hand size is increased
+    /// by one.", "Each opponent's maximum hand size is reduced by one."
+    HandSize {
+        whose: Who,
+        delta: Option<i32>,
+    },
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
@@ -343,12 +384,26 @@ pub enum StaticCond {
     CardTypesInGraveyard(u32),
     /// `you control 3 artifact`: "you control three or more artifacts";
     /// `you control Island`: "you control an Island".
-    YouControl { filter: Filter, at_least: u32 },
+    YouControl {
+        filter: Filter,
+        at_least: u32,
+    },
     /// `your turn`: "it's your turn"; `static during your turn, ...`
     /// prints "During your turn, ..." instead.
     YourTurn,
     /// Written `static during your turn, <filter>: ...`.
     DuringYourTurn,
+    /// `attacking`, `enchanted`, `equipped`: "it's attacking" (the source).
+    Attacking,
+    Enchanted,
+    Equipped,
+    /// `opponent life 10 or less`: "an opponent has 10 or less life".
+    OpponentLifeAtMost(i32),
+    /// `your life 30 or more`: "you have 30 or more life".
+    YourLife {
+        n: i32,
+        at_least: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -716,6 +771,14 @@ pub enum Effect {
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).
     AddMana(Vec<Mana>),
+    /// `add {R} or {W}`: "Add {R} or {W}." (one, chosen).
+    AddManaOneOf(Vec<Mana>),
+    /// `add {G} count each Elf you control`: "Add {G} for each Elf you
+    /// control."
+    AddManaTimes {
+        mana: Mana,
+        count: Num,
+    },
     Surveil(Num),
     /// `who` is `None` for the imperative "discard a card".
     Discard {
@@ -736,6 +799,21 @@ pub enum Effect {
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
+    /// `pay {2}`, `pay 2 life` (inside `you may`).
+    Pay {
+        mana: ManaCost,
+        life: u32,
+    },
+    /// `if you do, ...`: only if the optional action before happened.
+    IfYouDo(Vec<Sentence>),
+    /// `<clause> unless you pay {2}`, `... unless they pay {2}`: the payer
+    /// may pay to stop it.
+    UnlessPays {
+        payer: Recipient,
+        mana: ManaCost,
+        life: u32,
+        effect: Box<Effect>,
+    },
     /// "<what> has base power and toughness 4/4 until end of turn".
     SetBasePt {
         to: Recipient,

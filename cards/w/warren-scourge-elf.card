@@ -1,0 +1,7 @@
+card "Warren-Scourge Elf" {
+  oracle_id 64368768-77b9-4f78-adb7-951ca71dfb28
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 1/1
+  protection from Goblin
+}

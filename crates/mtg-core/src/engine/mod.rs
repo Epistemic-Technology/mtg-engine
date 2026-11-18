@@ -230,6 +230,7 @@ impl Engine {
                 state.legendary_count += u32::from(def.is_legendary());
                 state.activated_sources += u32::from(def.has_activated());
                 state.life_cda_sources += u32::from(def.flags().has_life_cda());
+                state.cost_change_sources += u32::from(def.flags().has_cost_change());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -461,6 +462,7 @@ impl GameState {
             legendary_count: 0,
             activated_sources: 0,
             life_cda_sources: 0,
+            cost_change_sources: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
@@ -651,13 +653,43 @@ impl GameState {
                     } else {
                         spell
                     });
-                    let options: Vec<Choice> = self
-                        .legal_targets(caster, specs[next_target], source)
+                    let spec = specs[next_target];
+                    let optional = matches!(spec, TargetSpec::UpTo(_));
+                    let chosen = &self.objects[spell].targets;
+                    // CR 115.3: one "target" word names different objects
+                    // ("two target lands").
+                    let mut options: Vec<Choice> = self
+                        .legal_targets(caster, spec, source)
                         .into_iter()
+                        .filter(|t| !chosen.iter().zip(&specs).any(|(c, s)| c == t && *s == spec))
                         .map(Choice::Target)
                         .collect();
+                    if optional {
+                        if options.is_empty() {
+                            self.flow = Flow::Casting {
+                                spell,
+                                next_target: specs.len(),
+                                sacrifice,
+                                discard,
+                            };
+                            continue;
+                        }
+                        options.push(Choice::Done);
+                    }
                     if options.is_empty() {
-                        unreachable!("cast offered without legal targets");
+                        // Checked when offered (`targets_available`); keep
+                        // going rather than stall if that ever falls short.
+                        options = self
+                            .legal_targets(caster, spec, source)
+                            .into_iter()
+                            .map(Choice::Target)
+                            .collect();
+                    }
+                    if options.is_empty() {
+                        unreachable!(
+                            "{} offered without legal targets for {spec:?}",
+                            self.pool.get(def).name
+                        );
                     }
                     return StepResult::Decision(Decision {
                         player: caster,
@@ -844,8 +876,9 @@ impl GameState {
                 }
                 Flow::Discarding => {
                     let p = self.active_player;
+                    let max = self.max_hand_size(p);
                     let ps = self.player(p);
-                    if ps.hand.len() <= ps.max_hand_size {
+                    if ps.hand.len() <= max {
                         self.finish_cleanup();
                         continue;
                     }
@@ -1069,6 +1102,23 @@ impl GameState {
                 },
             ) => {
                 self.activate(player, source, ability, sacrifice, discard);
+            }
+            (
+                Flow::Casting {
+                    spell,
+                    sacrifice,
+                    discard,
+                    ..
+                },
+                Choice::Done,
+            ) => {
+                // Optional targets declined: the rest are optional too.
+                self.flow = Flow::Casting {
+                    spell,
+                    next_target: usize::MAX,
+                    sacrifice,
+                    discard,
+                };
             }
             (
                 Flow::Casting {
@@ -1342,6 +1392,31 @@ impl GameState {
 
     /// CR 514.2 onward: remove damage, end "until end of turn" effects, then
     /// the 514.3a check.
+    /// CR 402.2, 514.1: the hand size `p` discards down to, after static
+    /// abilities that change it (`usize::MAX` for none).
+    fn max_hand_size(&self, p: PlayerId) -> usize {
+        let mut n = i64::try_from(self.player(p).max_hand_size).unwrap_or(7);
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let crate::card::AbilityDef::HandSize { whose, delta } = self.pool.ability(*a) {
+                    let applies = match whose {
+                        crate::card::Who::Any => true,
+                        crate::card::Who::You => o.controller == p,
+                        crate::card::Who::Opponents => o.controller != p,
+                    };
+                    if applies {
+                        match delta {
+                            None => return usize::MAX,
+                            Some(d) => n += i64::from(*d),
+                        }
+                    }
+                }
+            }
+        }
+        usize::try_from(n.max(0)).unwrap_or(0)
+    }
+
     fn finish_cleanup(&mut self) {
         for (_, o) in &mut self.objects {
             o.damage = 0;

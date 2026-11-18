@@ -1,0 +1,7 @@
+card "Insidious Bookworms" {
+  oracle_id ff3eeed9-6801-4cab-a97a-72f5f28acb24
+  cost {B}
+  type Creature — Worm
+  pt 1/1
+  triggered when this dies: you may pay {1}{B}; if you do, target player discards 1 cards at random
+}

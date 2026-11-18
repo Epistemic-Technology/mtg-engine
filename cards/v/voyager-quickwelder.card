@@ -1,0 +1,7 @@
+card "Voyager Quickwelder" {
+  oracle_id 87e8c044-5f83-437d-a89e-8a95559045f6
+  cost {2}{W}
+  type Artifact Creature — Robot Artificer
+  pt 2/4
+  spells artifact you cast cost {1} less
+}

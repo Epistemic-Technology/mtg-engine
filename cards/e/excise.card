@@ -1,0 +1,6 @@
+card "Excise" {
+  oracle_id 28e1a613-30ad-4013-be0b-b0365f627201
+  cost {X}{W}
+  type Instant
+  spell: exile target attacking creature unless its controller pays {X}
+}

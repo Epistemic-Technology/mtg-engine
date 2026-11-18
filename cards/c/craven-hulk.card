@@ -1,0 +1,7 @@
+card "Craven Hulk" {
+  oracle_id 3cd13364-3ee8-4a00-986a-489b0ccf90c7
+  cost {3}{R}
+  type Creature — Giant Coward
+  pt 4/4
+  keywords can't block alone
+}

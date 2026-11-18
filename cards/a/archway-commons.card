@@ -1,0 +1,7 @@
+card "Archway Commons" {
+  oracle_id 69c63055-ed44-4b32-b591-f3c6c2f3e7d1
+  type Land
+  enters tapped
+  triggered when this enters: sacrifice this unless you pay {1}
+  mana any
+}

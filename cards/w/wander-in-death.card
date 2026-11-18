@@ -1,0 +1,7 @@
+card "Wander in Death" {
+  oracle_id f25c5451-58fa-4916-8342-ae88c5e406cc
+  cost {2}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand
+  cycling {2}
+}

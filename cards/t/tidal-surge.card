@@ -1,0 +1,6 @@
+card "Tidal Surge" {
+  oracle_id be738992-77fe-498d-b219-e5da4ce5bf07
+  cost {1}{U}
+  type Sorcery
+  spell: tap up to three target creatures without flying
+}

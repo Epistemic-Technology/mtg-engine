@@ -1,0 +1,8 @@
+card "Salt Road Packbeast" {
+  oracle_id 50261b9d-48f2-4bad-a35b-14f13b3cdd32
+  cost {5}{W}
+  type Creature — Beast
+  pt 4/3
+  affinity for creature
+  triggered when this enters: draw 1 cards
+}

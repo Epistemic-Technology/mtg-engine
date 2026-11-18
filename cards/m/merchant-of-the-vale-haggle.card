@@ -1,0 +1,13 @@
+card "Merchant of the Vale // Haggle" {
+  oracle_id f88a096e-7497-4297-ab65-f18769b1cc47
+  layout adventure
+  cost {2}{R}
+  type Creature — Human Peasant
+  pt 2/3
+  activated {2}{R}, discard 1 card: draw 1 cards
+  face "Haggle" {
+    cost {R}
+    type Instant — Adventure
+    spell: you may discard 1 cards; if you do, draw 1 cards
+  }
+}

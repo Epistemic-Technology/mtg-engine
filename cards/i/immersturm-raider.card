@@ -1,0 +1,7 @@
+card "Immersturm Raider" {
+  oracle_id e3179dd6-5558-4385-8883-f78f9d1b1c4f
+  cost {1}{R}
+  type Creature — Demon Berserker
+  pt 2/1
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+}

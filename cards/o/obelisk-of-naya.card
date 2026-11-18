@@ -1,0 +1,6 @@
+card "Obelisk of Naya" {
+  oracle_id 02e81bb8-ba80-4483-9b9f-973dcae0fc9d
+  cost {3}
+  type Artifact
+  mana {R} or {G} or {W}
+}

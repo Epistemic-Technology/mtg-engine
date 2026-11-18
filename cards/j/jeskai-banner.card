@@ -1,0 +1,7 @@
+card "Jeskai Banner" {
+  oracle_id fda10ef2-f431-4d9b-96a4-4db4c98d2b0c
+  cost {3}
+  type Artifact
+  mana {U} or {R} or {W}
+  activated {U}{R}{W}, {T}, sacrifice this: draw 1 cards
+}

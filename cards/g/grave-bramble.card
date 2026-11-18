@@ -1,0 +1,8 @@
+card "Grave Bramble" {
+  oracle_id 9e2f854b-17f7-4d52-927c-abdfef86c1f8
+  cost {1}{G}{G}
+  type Creature — Plant
+  pt 3/4
+  keywords defender
+  protection from Zombie
+}

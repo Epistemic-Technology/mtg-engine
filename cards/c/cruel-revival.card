@@ -1,0 +1,6 @@
+card "Cruel Revival" {
+  oracle_id 836d074a-8888-42a0-8dce-11ffce00d2f5
+  cost {4}{B}
+  type Instant
+  spell: destroy target non-Zombie creature without regeneration; return up to one target Zombie card from your graveyard to hand
+}

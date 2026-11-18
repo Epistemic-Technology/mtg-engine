@@ -1,0 +1,7 @@
+card "Hasran Ogress" {
+  oracle_id a57d4a9d-4ac5-4a68-adb9-a73754034d7c
+  cost {B}{B}
+  type Creature — Ogre
+  pt 3/2
+  triggered whenever this attacks: deal 3 damage to you unless you pay {2}
+}

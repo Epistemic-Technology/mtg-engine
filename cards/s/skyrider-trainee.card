@@ -1,0 +1,7 @@
+card "Skyrider Trainee" {
+  oracle_id d8b6d9be-11a6-402c-a847-ec6cababe560
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  static this: has flying as long as enchanted
+}

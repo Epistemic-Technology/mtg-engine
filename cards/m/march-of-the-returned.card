@@ -1,0 +1,6 @@
+card "March of the Returned" {
+  oracle_id 53a40369-0e62-4ad2-a6bd-65a5ff0da65e
+  cost {3}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand
+}

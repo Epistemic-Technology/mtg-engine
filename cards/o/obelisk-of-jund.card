@@ -1,0 +1,6 @@
+card "Obelisk of Jund" {
+  oracle_id eb0be178-55f9-4743-8128-34bc86f134ec
+  cost {3}
+  type Artifact
+  mana {B} or {R} or {G}
+}

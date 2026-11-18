@@ -1,0 +1,6 @@
+card "Morbid Plunder" {
+  oracle_id 1bb7009b-aeb0-4545-be4c-c8c5d723bcf5
+  cost {1}{B}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand
+}

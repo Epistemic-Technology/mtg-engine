@@ -2239,6 +2239,23 @@ cache on hand moves and life changes). Corpus 5,931 cards: 4,053 Pauper
 scenarios/m5/counts.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
 throughput within 1% of slice 6.
 
+Status 2026-11-18, slice 9 (batch 3's remaining reasons) done. The
+target is now the whole 95% (the user set it on 2026-11-18, with a model
+budget of $100 for this push). Optional targets ("up to two target
+creatures", `TargetSpec::UpTo`; one "target" word names different
+objects, CR 115.3); cost changes from statics and from the spell itself
+(affinity, "costs {1} less for each", CR 601.2f), counted per battlefield
+source so listing options costs nothing without one; protection from a
+quality other than a color (`AbilityDef::Protection`); "can't attack or
+block alone"; three-way and scaled mana ("Add {G} for each Elf");
+maximum hand size statics; static conditions on the source (attacking,
+enchanted, equipped) and on life totals; "you may pay {2}. If you do,
+..." and "... unless you pay {1}". Fuzz found that a flashback spell
+could target its own card in the graveyard (fixed, CR 601.2a). Corpus
+6,236 cards: 4,231 Pauper (38.9%), 4,596 Modern (20.2%); 1,007
+scenarios pass (19 new in scenarios/m5/slice9.scn), 1 skipped; fuzz 0
+panics, 0 unfinished; throughput within 1% of slice 8.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

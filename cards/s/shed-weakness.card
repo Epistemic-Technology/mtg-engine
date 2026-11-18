@@ -1,0 +1,6 @@
+card "Shed Weakness" {
+  oracle_id e3390776-66cc-4e0a-a034-701793b05db8
+  cost {G}
+  type Instant
+  spell: target creature gets +2/+2; you may remove 1 -1/-1 counters from target 1
+}

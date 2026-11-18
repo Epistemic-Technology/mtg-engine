@@ -1,0 +1,8 @@
+card "Spire Golem" {
+  oracle_id bfdc6bbc-7402-40ae-91be-658afca2f145
+  cost {6}
+  type Artifact Creature — Golem
+  pt 2/4
+  affinity for Island
+  keyword flying
+}

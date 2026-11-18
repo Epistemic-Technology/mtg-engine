@@ -1,0 +1,7 @@
+card "Nacatl Savage" {
+  oracle_id 475412c9-8960-4085-bd8f-5f8a7c7485b9
+  cost {1}{G}
+  type Creature — Cat Warrior
+  pt 2/1
+  protection from artifact
+}

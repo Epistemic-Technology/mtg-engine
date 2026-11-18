@@ -1,0 +1,7 @@
+card "Grasping Scoundrel" {
+  oracle_id d8c3298f-da96-46ee-8b46-ce1d0df95f62
+  cost {B}
+  type Creature — Human Pirate
+  pt 1/1
+  static this: +1/+0 as long as attacking
+}

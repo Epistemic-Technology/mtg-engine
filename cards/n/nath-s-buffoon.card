@@ -1,0 +1,7 @@
+card "Nath's Buffoon" {
+  oracle_id da404c9c-3fb0-418c-947f-f42d6aff6899
+  cost {1}{B}
+  type Creature — Goblin Rogue
+  pt 1/1
+  protection from Elf
+}

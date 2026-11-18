@@ -1,0 +1,8 @@
+card "Ambush Wolf" {
+  oracle_id 4c48de92-e053-4af7-b936-d7ec0875e0d3
+  cost {2}{G}
+  type Creature — Wolf
+  pt 4/2
+  keywords flash
+  triggered when this enters: exile up to one target card from a graveyard
+}

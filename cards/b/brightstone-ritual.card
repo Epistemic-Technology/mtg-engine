@@ -1,0 +1,6 @@
+card "Brightstone Ritual" {
+  oracle_id 08e90e85-4103-4acb-a8a7-e1329b460aa7
+  cost {R}
+  type Instant
+  spell: add {R} count each Goblin on battlefield
+}

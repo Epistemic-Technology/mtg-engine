@@ -306,6 +306,29 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             n >= *at_least as usize
         }
         StaticCondition::YourTurn => state.active_player == you,
+        StaticCondition::SourceAttacking => state
+            .combat
+            .as_ref()
+            .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
+        StaticCondition::SourceEnchanted | StaticCondition::SourceEquipped => {
+            let want = if *cond == StaticCondition::SourceEnchanted {
+                crate::card::Subtype::AURA
+            } else {
+                crate::card::Subtype::EQUIPMENT
+            };
+            work.ids.iter().any(|id| {
+                work.on_battlefield(*id)
+                    && state.objects[*id].attached_to == Some(source)
+                    && work.chars[work.index[id]].has_subtype(want)
+            })
+        }
+        StaticCondition::OpponentLifeAtMost(n) => state
+            .players_in_game()
+            .any(|p| p != you && state.player(p).life <= *n),
+        StaticCondition::YourLife { n, at_least } => {
+            let l = state.player(you).life;
+            if *at_least { l >= *n } else { l <= *n }
+        }
     }
 }
 

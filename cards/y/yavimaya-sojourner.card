@@ -1,0 +1,7 @@
+card "Yavimaya Sojourner" {
+  oracle_id b3e9917e-1bcf-4e8e-9550-7f5897dcb433
+  cost {7}{G}
+  type Creature — Treefolk
+  pt 4/6
+  label "Domain" this spell costs {1} less count each domain
+}

@@ -1,0 +1,7 @@
+card "Loyal Pegasus" {
+  oracle_id 3b7b862a-7edd-4e96-b4b9-f7113b4c93f9
+  cost {W}
+  type Creature — Pegasus
+  pt 2/1
+  keywords flying, can't attack alone, can't block alone
+}

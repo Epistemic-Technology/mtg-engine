@@ -1,0 +1,7 @@
+card "Estwald Shieldbasher" {
+  oracle_id a9f111aa-5d34-4317-9a03-35cd94a888c7
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 4/2
+  triggered whenever this attacks: you may pay {1}; if you do, this gains indestructible
+}

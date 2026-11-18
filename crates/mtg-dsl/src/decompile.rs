@@ -51,7 +51,9 @@ fn colors(c: ColorSet) -> Vec<Color> {
 }
 
 fn keywords(k: KeywordSet) -> Vec<mtg_core::card::Keyword> {
-    k.iter().collect()
+    k.iter()
+        .filter(|k| *k != mtg_core::card::Keyword::ProtectionFromFilter)
+        .collect()
 }
 
 pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
@@ -149,6 +151,7 @@ impl Decompiler<'_> {
                 filter: self.filter(self.pool.filter(filter)),
                 who,
             },
+            TargetSpec::UpTo(_) => Target::UpTo(Box::new(self.target(self.pool.base_spec(t)))),
             other => Target::Spec(other),
         }
     }
@@ -295,6 +298,11 @@ impl Decompiler<'_> {
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
+            CoreEffect::AddManaOneOf(m) => Effect::AddManaOneOf(m.clone()),
+            CoreEffect::AddManaTimes { mana, count } => Effect::AddManaTimes {
+                mana: *mana,
+                count: *count,
+            },
             CoreEffect::PumpVar {
                 power,
                 toughness,
@@ -361,6 +369,26 @@ impl Decompiler<'_> {
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
+            CoreEffect::Pay { mana, life } => Effect::Pay {
+                mana: mana.clone(),
+                life: *life,
+            },
+            CoreEffect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effects,
+            } => Effect::UnlessPays {
+                payer: Self::recipient(*payer),
+                mana: mana.clone(),
+                life: *life,
+                effect: Box::new(
+                    effects
+                        .first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+            },
             CoreEffect::SetBasePt {
                 to,
                 power,
@@ -514,6 +542,16 @@ impl Decompiler<'_> {
     fn ability(&self, a: &AbilityDef) -> Ability {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
+            AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::HandSize { whose, delta } => Ability::HandSize {
+                whose: *whose,
+                delta: *delta,
+            },
+            AbilityDef::CostChange(c) => Ability::CostChange {
+                filter: self.filter(&c.spells),
+                whose: c.whose,
+                generic: c.generic,
+            },
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::BlockRule(r) => Ability::BlockRule(match r {
                 mtg_core::card::BlockRule::NotBy(f) => crate::ast::BlockRule::NotBy(self.filter(f)),
@@ -586,6 +624,14 @@ impl Decompiler<'_> {
                         }
                     }
                     StaticCondition::YourTurn => StaticCond::YourTurn,
+                    StaticCondition::SourceAttacking => StaticCond::Attacking,
+                    StaticCondition::SourceEnchanted => StaticCond::Enchanted,
+                    StaticCondition::SourceEquipped => StaticCond::Equipped,
+                    StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
+                    StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
+                        n: *n,
+                        at_least: *at_least,
+                    },
                 }),
                 cond_first: false,
             },

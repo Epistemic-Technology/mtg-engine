@@ -1,0 +1,6 @@
+card "Macabre Waltz" {
+  oracle_id cf75dbd8-b65a-48d9-b96b-4afb43f336d1
+  cost {1}{B}
+  type Sorcery
+  spell: return up to two target creature cards from your graveyard to hand then discard 1 cards
+}

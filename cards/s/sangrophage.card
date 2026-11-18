@@ -1,0 +1,7 @@
+card "Sangrophage" {
+  oracle_id 5d03e6a7-81ea-47d3-add7-8dfdbbfec6d3
+  cost {B}{B}
+  type Creature — Zombie
+  pt 3/3
+  triggered at beginning of your upkeep: tap this unless you pay 2 life
+}

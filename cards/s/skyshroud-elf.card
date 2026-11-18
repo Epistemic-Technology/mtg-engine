@@ -1,0 +1,8 @@
+card "Skyshroud Elf" {
+  oracle_id 84a666a0-e453-4b34-815c-48dbfc9b4f4b
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {G}
+  activated {1}: add {R} or {W}
+}

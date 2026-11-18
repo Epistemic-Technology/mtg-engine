@@ -1,0 +1,8 @@
+card "Spindrift Drake" {
+  oracle_id 53599f89-1598-4d3d-8aa7-75b397b258eb
+  cost {U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  triggered at beginning of your upkeep: sacrifice this unless you pay {U}
+}

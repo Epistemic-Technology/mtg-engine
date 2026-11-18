@@ -1,0 +1,8 @@
+card "Zephyr Winder" {
+  oracle_id 13c4437e-48a9-4c51-9b76-9e83e3ec362f
+  cost {1}{U}
+  type Creature — Elemental
+  pt 2/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: untap up to one target creature
+}

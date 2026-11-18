@@ -1,0 +1,7 @@
+card "Midnight Duelist" {
+  oracle_id e8e2e1e9-13a6-4cfd-b9ed-2080e984844d
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+  protection from Vampire
+}

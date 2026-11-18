@@ -373,6 +373,8 @@ impl GreedyAgent {
             }),
             DecisionKind::ChooseTarget { spell, .. } => Self::best_by(d, |c| match c {
                 Choice::Target(t) => i64::from(Self::target_score(state, me, spell, *t)),
+                // Declining an optional target ("up to two").
+                Choice::Done => 0,
                 _ => i64::MIN,
             }),
             DecisionKind::DeclareAttackers => {

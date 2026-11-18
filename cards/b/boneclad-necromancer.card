@@ -1,0 +1,7 @@
+card "Boneclad Necromancer" {
+  oracle_id 6494e3c4-5489-44a5-94b6-4ee2d7830896
+  cost {3}{B}{B}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: you may exile target creature card from a graveyard; if you do, create 1 "2/2 black Zombie creature"
+}

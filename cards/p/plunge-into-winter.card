@@ -1,0 +1,6 @@
+card "Plunge into Winter" {
+  oracle_id a272f15d-caa2-40e9-894f-19638bd5f375
+  cost {1}{W}
+  type Instant
+  spell: tap up to one target creature; scry 1 then draw 1 cards
+}

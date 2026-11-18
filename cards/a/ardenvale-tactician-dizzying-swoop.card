@@ -1,0 +1,13 @@
+card "Ardenvale Tactician // Dizzying Swoop" {
+  oracle_id ea27c8bf-33c5-443f-b8b2-51235efc2491
+  layout adventure
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords flying
+  face "Dizzying Swoop" {
+    cost {1}{W}
+    type Instant — Adventure
+    spell: tap up to two target creatures
+  }
+}

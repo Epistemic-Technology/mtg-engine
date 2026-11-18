@@ -1,0 +1,8 @@
+card "Jeskai Elder" {
+  oracle_id dfbd5ad1-0f68-4219-95c4-98f674f321be
+  cost {1}{U}
+  type Creature — Human Monk
+  pt 1/2
+  keywords prowess
+  triggered whenever this deals combat damage to a player: you may draw 1 cards; if you do, discard 1 cards
+}

@@ -1,0 +1,7 @@
+card "Yavimaya Scion" {
+  oracle_id 6e06b5cc-444c-49c9-b08a-81ef8d97c9ab
+  cost {4}{G}
+  type Creature — Treefolk
+  pt 4/4
+  protection from artifact
+}

@@ -1,0 +1,6 @@
+card "Battle Hymn" {
+  oracle_id 4b977117-741c-4157-8fcf-719e475a8a4c
+  cost {1}{R}
+  type Instant
+  spell: add {R} count each creature you control
+}

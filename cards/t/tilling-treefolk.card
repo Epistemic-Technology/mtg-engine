@@ -1,0 +1,7 @@
+card "Tilling Treefolk" {
+  oracle_id 8a011d0d-da29-4287-b50c-12746abfa38c
+  cost {2}{G}
+  type Creature — Treefolk Druid
+  pt 1/3
+  triggered when this enters: you may return up to two target land cards from your graveyard to hand
+}

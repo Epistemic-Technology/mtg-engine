@@ -1,0 +1,6 @@
+card "Tweeze" {
+  oracle_id 9a294cbd-df18-4ee0-acaa-e31390a7f508
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target; you may discard 1 cards; if you do, draw 1 cards
+}

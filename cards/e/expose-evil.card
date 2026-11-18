@@ -1,0 +1,9 @@
+card "Expose Evil" {
+  oracle_id b5483037-5dd2-4282-a201-de2e08aaa76e
+  cost {1}{W}
+  type Instant
+  spell {
+    tap up to two target creatures
+    investigate
+  }
+}

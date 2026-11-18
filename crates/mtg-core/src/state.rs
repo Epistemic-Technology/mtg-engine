@@ -460,12 +460,17 @@ impl Characteristics {
     /// Whether this object has protection from something with `source`'s
     /// colors (CR 702.16b–e).
     #[inline]
-    pub fn protected_from(&self, source: &Characteristics) -> bool {
+    pub fn protected_from(&self, source: &Characteristics, pool: &crate::card::CardPool) -> bool {
         self.keywords
             .intersects(crate::card::KeywordSet::PROTECTION)
-            && crate::mana::Color::ALL
+            && (crate::mana::Color::ALL
                 .into_iter()
                 .any(|col| self.has(Keyword::protection_from(col)) && source.colors.contains(col))
+                || self.has(Keyword::ProtectionFromFilter)
+                    && self.abilities.iter().any(|a| {
+                        matches!(pool.ability(*a),
+                            crate::card::AbilityDef::Protection(f) if f.matches_characteristics(source))
+                    }))
     }
 
     /// No keyword or other abilities (Muraganda Petroglyphs).
@@ -677,6 +682,8 @@ pub struct GameState {
     /// Battlefield objects whose definition has a life-dependent CDA, so
     /// that life changes bump `cversion` only when one is in play.
     pub life_cda_sources: u32,
+    /// Battlefield permanents with a static ability changing spell costs.
+    pub cost_change_sources: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
@@ -1081,7 +1088,7 @@ impl GameState {
             self.characteristics(target),
             self.characteristics(attachment),
         ) {
-            (Some(t), Some(a)) => t.protected_from(&a),
+            (Some(t), Some(a)) => t.protected_from(&a, &self.pool),
             _ => false,
         }
     }
@@ -1134,6 +1141,7 @@ impl GameState {
             | TargetSpec::PlayerOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::GraveyardCard { .. }
+            | TargetSpec::UpTo(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
     }
@@ -1186,6 +1194,9 @@ impl GameState {
         source: Option<ObjId>,
     ) -> bool {
         use crate::card::TargetSpec;
+        if let TargetSpec::UpTo(_) = spec {
+            return self.is_legal_target_for(caster, self.pool.base_spec(spec), target, source);
+        }
         match target {
             Target::Player(p) => {
                 p.index() < self.num_players()
@@ -1316,6 +1327,7 @@ impl GameState {
                     | TargetSpec::Spell
                     | TargetSpec::CreatureSpell
                     | TargetSpec::NoncreatureSpell
+                    | TargetSpec::UpTo(_)
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)
@@ -1325,7 +1337,7 @@ impl GameState {
                 let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)
                     || !source
                         .and_then(|s| self.characteristics_or_lki(s))
-                        .is_some_and(|sc| c.protected_from(&sc));
+                        .is_some_and(|sc| c.protected_from(&sc, &self.pool));
                 type_ok && hexproof_ok && protection_ok
             }
         }

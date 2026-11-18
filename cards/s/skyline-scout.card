@@ -1,0 +1,7 @@
+card "Skyline Scout" {
+  oracle_id 77dfca02-3ca3-4a9c-b3e1-479a951cbfaa
+  cost {1}{W}
+  type Creature — Human Scout
+  pt 2/1
+  triggered whenever this attacks: you may pay {1}{W}; if you do, this gains flying
+}

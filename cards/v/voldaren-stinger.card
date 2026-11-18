@@ -1,0 +1,8 @@
+card "Voldaren Stinger" {
+  oracle_id 5bd66394-6e1e-4b13-8824-e83768fb533e
+  cost {R}
+  type Creature — Vampire Warrior
+  pt 1/1
+  static this: has first strike as long as attacking
+  activated {2}{R}: this gets +2/+0
+}

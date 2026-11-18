@@ -1,0 +1,7 @@
+card "Vivid Flying Fish" {
+  oracle_id e8ec9ba4-dc6b-437d-863f-5ec37f4ae9cd
+  cost {1}{U}
+  type Creature — Fish Lizard
+  pt 1/1
+  static this: has flying as long as attacking
+}

@@ -52,7 +52,7 @@ double-faced permanent to its other face (CR 701.27).
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, and `can't be blocked` are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5) are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -80,6 +80,11 @@ double-faced permanent to its other face (CR 701.27).
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
+| `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
+| `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
+| `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
+| `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
+| `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
 Effects written after `:` sit on one line; write `{` instead of `:` and put
@@ -127,7 +132,10 @@ last turn`.
 Static conditions: `7 cards in your graveyard` ("there are seven or more
 cards in your graveyard"), `4 card types in your graveyard`, `you control 3
 artifact` ("you control three or more artifacts"), `you control Island`
-("you control an Island"), `your turn` ("it's your turn"), and the
+("you control an Island"), `your turn` ("it's your turn"), `attacking`,
+`enchanted`, `equipped` ("it's attacking", or "this creature is
+attacking" when the subject is something else), `opponent life 10 or
+less` ("an opponent has 10 or less life"), `your life 30 or more`, and the
 shorthands `threshold`, `delirium`, `metalcraft`.
 
 ### Replacement events and outcomes
@@ -224,7 +232,13 @@ Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
-`you may <clause>`, `if kicked, <clause>` ("If this spell was kicked, ..."
+`you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
+<clause>` (only if the optional action before it happened: "You may pay
+{2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
+they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
+stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `add {G}
+count each Elf on battlefield` ("Add {G} for each Elf on the
+battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage
 [to <affects>] this turn`, `prevent next 4 damage to <affects> this turn`,
 `this turn, replace <event>: <outcome>`, `players can't gain life this turn`,
@@ -251,7 +265,9 @@ creatures you control get +2/+2" as a subject), and targets.
 `target creature` declares a target; the first mention names it, and later
 mentions refer to it by number: `target 1`, printed as "it", or
 `that target 1`, printed as "that creature". `2 target lands` declares two
-targets of one kind. `another target creature` excludes the source.
+targets of one kind (two different objects, CR 115.3); `up to 2 target
+creatures` declares optional ones (CR 601.2c), which come after an
+ability's other targets. `another target creature` excludes the source.
 Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `creature or planeswalker`, `land`, `tapped creature`, `creature you control`,
 `nonlegendary creature you control`, `artifact`, `enchantment`,

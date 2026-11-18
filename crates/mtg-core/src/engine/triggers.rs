@@ -377,8 +377,11 @@ impl GameState {
         let def = t.ability.def;
         let specs = self.pool.ability(t.ability.ability).targets().to_vec();
         if specs.iter().any(|s| {
-            self.legal_targets(t.controller, *s, Some(t.ability.source))
-                .is_empty()
+            !matches!(s, crate::card::TargetSpec::UpTo(_))
+                && self
+                    .legal_targets(t.controller, *s, Some(t.ability.source))
+                    .len()
+                    < specs.iter().filter(|x| *x == s).count()
         }) {
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
@@ -457,7 +460,7 @@ impl GameState {
                 self.is_legal_target_for(obj.controller, *spec, *target, Some(sa.source))
             })
             .collect();
-        if !targets.is_empty() && legal.iter().all(|l| !l) {
+        if !legal.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
                 spell: id,
                 def: obj.def,
@@ -478,6 +481,7 @@ impl GameState {
             trigger_player: sa.trigger_player,
             created: None,
             x: 0,
+            did: false,
         };
         for effect in &effects {
             self.apply_effect(&mut ctx, effect);

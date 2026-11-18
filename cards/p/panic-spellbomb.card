@@ -1,0 +1,7 @@
+card "Panic Spellbomb" {
+  oracle_id 4429a30e-17f1-4bcc-92f0-55ab1315adff
+  cost {1}
+  type Artifact
+  activated {T}, sacrifice this: target creature can't block
+  triggered when this dies: you may pay {R}; if you do, draw 1 cards
+}

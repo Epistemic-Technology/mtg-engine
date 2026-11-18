@@ -1,0 +1,9 @@
+card "Urza's Rebuff" {
+  oracle_id db3b294a-87b1-4dda-b1f6-ea63a9722faf
+  cost {1}{U}{U}
+  type Instant
+  choose one {
+    mode: counter target spell
+    mode: tap up to two target creatures
+  }
+}

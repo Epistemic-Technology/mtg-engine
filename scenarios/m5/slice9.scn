@@ -1,0 +1,157 @@
+# M5 slice 9: optional targets ("up to two"), cost changes (affinity, "cost
+# {1} less"), protection from a quality, "can't attack or block alone",
+# choice and scaled mana, hand size, conditions on the source and on life
+# totals, "If you do", and "unless you pay".
+
+scenario "up to two targets: one chosen" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Dutiful Return"
+  turn 1 A: cast "Dutiful Return" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Llanowar Elves"
+}
+
+scenario "up to two targets: none chosen, the spell still resolves" {
+  battlefield A: 4 "Swamp"
+  hand A: "Dutiful Return"
+  turn 1 A: cast "Dutiful Return"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dutiful Return"
+}
+
+scenario "affinity: Myr Enforcer costs {1} less per artifact" {
+  battlefield A: 3 "Ornithopter", 4 "Island"
+  hand A: "Myr Enforcer"
+  turn 1 A: cast "Myr Enforcer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myr Enforcer"
+}
+
+scenario "affinity: not enough artifacts" {
+  battlefield A: 1 "Ornithopter", 4 "Island"
+  hand A: "Myr Enforcer"
+  illegal turn 1 A: cast "Myr Enforcer"
+  run_to turn 1 end
+}
+
+scenario "cost reduction: Foundry Inspector makes artifact spells cheaper" {
+  battlefield A: "Foundry Inspector", "Island"
+  hand A: "Prophetic Prism"
+  turn 1 A: cast "Prophetic Prism"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Prophetic Prism"
+}
+
+scenario "cost reduction: only artifact spells" {
+  battlefield A: "Foundry Inspector", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "protection from artifacts: artifact creatures can't block" {
+  battlefield A: "Nacatl Savage"
+  battlefield B: "Ornithopter", "Grizzly Bears"
+  turn 1 A: attack "Nacatl Savage"
+  illegal turn 1 B: block "Nacatl Savage" with "Ornithopter"
+  turn 1 B: block "Nacatl Savage" with "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "can't attack alone: Mogg Flunkies stays home by itself" {
+  battlefield A: "Mogg Flunkies"
+  turn 1 A: attack "Mogg Flunkies"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "can't attack alone: with another attacker it attacks" {
+  battlefield A: "Mogg Flunkies", "Grizzly Bears"
+  turn 1 A: attack "Mogg Flunkies", "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 15
+}
+
+scenario "a choice of three colors pays for green" {
+  battlefield A: "Obelisk of Naya"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "no maximum hand size: nothing is discarded" {
+  battlefield A: "Thought Vessel"
+  hand A: 9 "Island"
+  run_to turn 2 upkeep
+  assert hand A count 9
+}
+
+scenario "maximum hand size: without the Vessel, down to seven" {
+  hand A: 9 "Island"
+  turn 1 A: discard "Island"
+  turn 1 A: discard "Island"
+  run_to turn 2 upkeep
+  assert hand A count 7
+}
+
+scenario "as long as it's attacking: Kitesail Corsair flies" {
+  battlefield A: "Kitesail Corsair"
+  battlefield B: "Grizzly Bears"
+  assert has not "Kitesail Corsair" flying
+  turn 1 A: attack "Kitesail Corsair"
+  illegal turn 1 B: block "Kitesail Corsair" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "an opponent at 10 or less life: Ruthless Cullblade grows" {
+  life B 10
+  battlefield A: "Ruthless Cullblade"
+  assert power "Ruthless Cullblade" 4
+}
+
+scenario "an opponent above 10 life: no bonus" {
+  battlefield A: "Ruthless Cullblade"
+  assert power "Ruthless Cullblade" 2
+}
+
+scenario "unless you pay: Wild Leotau stays when its upkeep is paid" {
+  start turn 1 A upkeep
+  battlefield A: "Wild Leotau", "Forest"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Wild Leotau"
+  assert tapped "Forest"
+}
+
+scenario "unless you pay: Wild Leotau is sacrificed without mana" {
+  start turn 1 A upkeep
+  battlefield A: "Wild Leotau"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Wild Leotau"
+}
+
+scenario "if you do: Keldon Raider discards, then draws" {
+  battlefield A: 4 "Mountain"
+  hand A: "Keldon Raider", "Island"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Keldon Raider"
+  turn 1 A: accept "Keldon Raider"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A contains "Forest"
+}
+
+scenario "if you do: declining draws nothing" {
+  battlefield A: 4 "Mountain"
+  hand A: "Keldon Raider", "Island"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Keldon Raider"
+  turn 1 A: decline "Keldon Raider"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert hand A count 1
+}

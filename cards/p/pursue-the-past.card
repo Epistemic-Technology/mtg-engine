@@ -1,0 +1,7 @@
+card "Pursue the Past" {
+  oracle_id 4384996f-aeaa-41ac-aa0e-12d72c887731
+  cost {R}{W}
+  type Sorcery
+  spell: you gains 2 life; you may discard 1 cards; if you do, draw 2 cards
+  flashback {2}{R}{W}
+}

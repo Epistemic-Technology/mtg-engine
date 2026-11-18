@@ -1,0 +1,7 @@
+card "Fissure Wizard" {
+  oracle_id e3474632-6d81-43a8-9329-4c7e0c631755
+  cost {1}{R}
+  type Creature — Goblin Wizard
+  pt 2/1
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+}

@@ -18,6 +18,7 @@ use crate::state::{
 impl GameState {
     // ----- priority actions --------------------------------------------------------
 
+    #[allow(clippy::too_many_lines)] // one block per zone cast from
     pub(super) fn priority_options(&self, p: PlayerId) -> Vec<Choice> {
         let mut options = Vec::new();
         let sorcery_timing =
@@ -25,6 +26,7 @@ impl GameState {
         let ps = self.player(p);
         let sources = self.mana_sources(p);
         let pool = ps.mana_pool;
+        let changers = self.cost_changers();
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             // Abilities activated from the hand (cycling, CR 702.29) are
@@ -63,7 +65,7 @@ impl GameState {
             {
                 for (i, f) in def.faces.iter().enumerate() {
                     let face = self.pool.get(*f);
-                    if self.castable(p, face, *id, sorcery_timing, &sources, &pool) {
+                    if self.castable(p, face, *id, sorcery_timing, &sources, &pool, &changers) {
                         options.push(Choice::CastFace {
                             card: *id,
                             face: u8::try_from(i).unwrap_or(0),
@@ -74,7 +76,7 @@ impl GameState {
                     continue;
                 }
             }
-            if self.castable(p, def, *id, sorcery_timing, &sources, &pool) {
+            if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers) {
                 options.push(Choice::Cast(*id));
             }
         }
@@ -87,7 +89,7 @@ impl GameState {
                     continue;
                 }
                 let def = self.pool.get(o.def);
-                if self.castable(p, def, *id, sorcery_timing, &sources, &pool) {
+                if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers) {
                     options.push(Choice::Cast(*id));
                 }
             }
@@ -104,7 +106,9 @@ impl GameState {
                 if !(instant_speed || sorcery_timing) {
                     continue;
                 }
-                if payment_plan_from(&sources, &pool, &fb.mana.requirements(0), ps.life).is_none() {
+                let mut req = fb.mana.requirements(0);
+                adjust_generic(&mut req, self.cost_delta(p, def, *id, &changers));
+                if payment_plan_from(&sources, &pool, &req, ps.life).is_none() {
                     continue;
                 }
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
@@ -206,6 +210,7 @@ impl GameState {
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
     fn castable(
         &self,
         p: PlayerId,
@@ -214,19 +219,17 @@ impl GameState {
         sorcery_timing: bool,
         sources: &Sources,
         pool: &crate::mana::ManaPool,
+        changers: &[ObjId],
     ) -> bool {
         let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
         if !(instant_speed || sorcery_timing) {
             return false;
         }
-        if payment_plan_from(
-            sources,
-            pool,
-            &def.mana_cost.requirements(0),
-            self.player(p).life,
-        )
-        .is_none()
-        {
+        let mut req = def.mana_cost.requirements(0);
+        if def.self_cost.is_some() || !changers.is_empty() {
+            adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
+        }
+        if payment_plan_from(sources, pool, &req, self.player(p).life).is_none() {
             return false;
         }
         if !self.additional_payable(p, &def.additional, id) {
@@ -239,6 +242,69 @@ impl GameState {
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
             None => self.targets_available(p, def.cast_targets(), Some(id)),
         }
+    }
+
+    /// Permanents with a static ability that changes what spells cost.
+    pub(super) fn cost_changers(&self) -> SmallVec<[ObjId; 2]> {
+        if self.cost_change_sources == 0 {
+            return SmallVec::new();
+        }
+        self.battlefield
+            .iter()
+            .copied()
+            .filter(|id| self.flags_of(&self.objects[*id]).has_cost_change())
+            .collect()
+    }
+
+    /// CR 601.2f: how much more (or, below zero, less) generic mana `def`
+    /// costs `p` to cast as the card `id`, from its own text and from
+    /// `changers`' static abilities.
+    pub(super) fn cost_delta(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        changers: &[ObjId],
+    ) -> i32 {
+        let mut d = 0i32;
+        if let Some(sc) = &def.self_cost {
+            let ctx = EffectCtx {
+                source: id,
+                controller: p,
+                targets: Vec::new(),
+                legal: Vec::new(),
+                trigger_obj: None,
+                trigger_player: None,
+                created: None,
+                x: 0,
+                did: false,
+            };
+            let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
+            d -= i32::try_from(n).unwrap_or(i32::MAX);
+        }
+        let Some(chars) = def.printed.as_ref() else {
+            return d;
+        };
+        for src in changers {
+            let o = &self.objects[*src];
+            for a in &self.pool.get(o.def).ability_ids {
+                if let AbilityDef::CostChange(cc) = self.pool.ability(*a) {
+                    let whose = match cc.whose {
+                        crate::card::Who::Any => true,
+                        crate::card::Who::You => p == o.controller,
+                        crate::card::Who::Opponents => p != o.controller,
+                    };
+                    if whose
+                        && cc
+                            .spells
+                            .matches(id, p, chars, Some(*src), Some(o.controller))
+                    {
+                        d += cc.generic;
+                    }
+                }
+            }
+        }
+        d
     }
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
@@ -301,6 +367,10 @@ impl GameState {
         }
         let mut req = def.mana_cost.requirements(0);
         req.add(&k.requirements(0));
+        adjust_generic(
+            &mut req,
+            self.cost_delta(o.controller, def, spell, &self.cost_changers()),
+        );
         self.payment_plan(o.controller, &req).is_some()
     }
 
@@ -317,6 +387,12 @@ impl GameState {
             && let Some(k) = &def.kicker
         {
             req.add(&k.requirements(0));
+        }
+        if def.self_cost.is_some() || !self.cost_changers().is_empty() {
+            adjust_generic(
+                &mut req,
+                self.cost_delta(o.controller, def, spell, &self.cost_changers()),
+            );
         }
         req
     }
@@ -552,9 +628,12 @@ impl GameState {
     /// Whether every one of `specs` has a legal target for `p` (for an
     /// ability of `source`).
     fn targets_available(&self, p: PlayerId, specs: &[TargetSpec], source: Option<ObjId>) -> bool {
-        specs
-            .iter()
-            .all(|s| !self.legal_targets(p, *s, source).is_empty())
+        // CR 115.3: "two target lands" needs two different lands.
+        specs.iter().all(|s| {
+            matches!(s, TargetSpec::UpTo(_))
+                || self.legal_targets(p, *s, source).len()
+                    >= specs.iter().filter(|x| *x == s).count()
+        })
     }
 
     /// The permanents a stack object targets become its targets (CR 115.?):
@@ -626,12 +705,15 @@ impl GameState {
         spec: TargetSpec,
         source: Option<ObjId>,
     ) -> Vec<Target> {
+        let spec = self.pool.base_spec(spec);
         let mut out = Vec::new();
         if spec.is_graveyard() {
             for p in self.players_in_game() {
                 for id in &self.player(p).graveyard {
                     let t = Target::Object(*id);
-                    if self.is_legal_target_for(caster, spec, t, source) {
+                    // A spell cast from a graveyard is on the stack by the
+                    // time it targets (CR 601.2a, 601.2c).
+                    if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
                         out.push(t);
                     }
                 }
@@ -969,7 +1051,8 @@ impl GameState {
                 .zip(obj.targets.iter())
                 .map(|(spec, t)| self.is_legal_target_for(obj.controller, *spec, *t, Some(spell)))
                 .collect();
-            if !specs.is_empty() && legal.iter().all(|l| !l) {
+            // A spell whose optional targets were all declined has none.
+            if !legal.is_empty() && legal.iter().all(|l| !l) {
                 self.emit(Event::Fizzle {
                     spell,
                     def: obj.def,
@@ -990,6 +1073,7 @@ impl GameState {
                 trigger_player: None,
                 created: None,
                 x: self.x_of(spell),
+                did: false,
             };
             for effect in &effects {
                 self.apply_effect(&mut ctx, effect);
@@ -1481,6 +1565,45 @@ impl GameState {
                 }
                 self.bump();
             }
+            Effect::AddManaOneOf(mana) => {
+                let p = ctx.controller;
+                let options: Vec<Choice> = mana
+                    .iter()
+                    .filter_map(|m| match m {
+                        Mana::Colored(c) => Some(Choice::Color(*c)),
+                        _ => None,
+                    })
+                    .collect();
+                let m = if options.len() == mana.len() && !options.is_empty() {
+                    let k = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                    match options[k.min(options.len() - 1)] {
+                        Choice::Color(c) => Mana::Colored(c),
+                        _ => unreachable!("color options"),
+                    }
+                } else {
+                    mana.first().copied().unwrap_or(Mana::Colorless)
+                };
+                self.player_mut(p).mana_pool.add(m);
+                self.bump();
+            }
+            Effect::AddManaTimes { mana, count } => {
+                let p = ctx.controller;
+                let n = self.eval_num(*count, ctx);
+                if n > 0 {
+                    let m = if *mana == Mana::Any {
+                        let options: Vec<Choice> =
+                            Color::ALL.into_iter().map(Choice::Color).collect();
+                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                        Mana::Colored(Color::ALL[k.min(4)])
+                    } else {
+                        *mana
+                    };
+                    for _ in 0..n.min(1000) {
+                        self.player_mut(p).mana_pool.add(m);
+                    }
+                    self.bump();
+                }
+            }
             Effect::Surveil { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), true);
             }
@@ -1489,6 +1612,9 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
+                    if self.player(p).hand.is_empty() {
+                        ctx.did = false;
+                    }
                     for _ in 0..self.eval_num(*count, ctx) {
                         let options: Vec<Choice> = self
                             .player(p)
@@ -1803,8 +1929,72 @@ impl GameState {
                     DecisionKind::YouMay { def },
                     vec![Choice::Accept, Choice::Decline],
                 );
+                ctx.did = k == 0;
                 if k == 0 {
                     for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::Pay { mana, life } => {
+                let p = ctx.controller;
+                let req = mana.requirements(0);
+                let life_ok =
+                    *life == 0 || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
+                if life_ok && self.payment_plan(p, &req).is_some() {
+                    self.pay(p, &req);
+                    if *life > 0 {
+                        self.change_life(p, -i32::try_from(*life).unwrap_or(i32::MAX));
+                    }
+                } else {
+                    ctx.did = false;
+                }
+            }
+            Effect::IfYouDo(inner) => {
+                if ctx.did {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effects,
+            } => {
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                let payer = self
+                    .recipients(ctx, *payer)
+                    .into_iter()
+                    .find_map(|t| match t {
+                        Target::Player(p) => Some(p),
+                        Target::Object(_) => None,
+                    });
+                let req = mana.requirements(0);
+                let pays = payer.is_some_and(|p| {
+                    let life_ok = *life == 0
+                        || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
+                    life_ok
+                        && self.payment_plan(p, &req).is_some()
+                        && self.choose_mid(
+                            p,
+                            DecisionKind::PayOrCounter { def },
+                            vec![Choice::Accept, Choice::Decline],
+                        ) == 0
+                });
+                if pays && let Some(p) = payer {
+                    self.pay(p, &req);
+                    if *life > 0 {
+                        self.change_life(p, -i32::try_from(*life).unwrap_or(i32::MAX));
+                    }
+                } else {
+                    for e in effects {
                         self.apply_effect(ctx, e);
                     }
                 }
@@ -2007,6 +2197,9 @@ pub(super) struct EffectCtx {
     pub created: Option<ObjId>,
     /// X of the resolving spell (CR 107.3); 0 for abilities.
     pub x: u32,
+    /// Whether the last optional action ("you may pay {1}") happened, for
+    /// "If you do".
+    pub did: bool,
 }
 
 /// A canonical payment plan: which sources to tap, and for what, so that
@@ -2015,6 +2208,13 @@ pub(super) struct EffectCtx {
 /// exact; multi-type lands are assigned to the first color that needs them.
 /// Mana sources, inline for typical board sizes.
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+/// Apply a cost change to the generic part (CR 601.2f): a reduction
+/// takes off generic mana only, and never below zero.
+fn adjust_generic(req: &mut ManaRequirement, delta: i32) {
+    let g = i64::from(req.generic) + i64::from(delta);
+    req.generic = u32::try_from(g.max(0)).unwrap_or(u32::MAX);
+}
 
 fn payment_plan_from(
     sources: &[(ObjId, Mana)],

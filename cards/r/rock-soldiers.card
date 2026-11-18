@@ -1,0 +1,7 @@
+card "Rock Soldiers" {
+  oracle_id 0217da8e-e74f-4f5c-ab75-f17600f94405
+  cost {3}{R}
+  type Artifact Creature — Elemental Soldier
+  pt 4/3
+  triggered when this enters: destroy up to one target noncreature artifact
+}

@@ -1,0 +1,7 @@
+card "Mogg Flunkies" {
+  oracle_id b92fc9c1-7264-4894-90b8-a193039489c5
+  cost {1}{R}
+  type Creature — Goblin
+  pt 3/3
+  keywords can't attack alone, can't block alone
+}

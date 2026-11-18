@@ -1,0 +1,7 @@
+card "Myr Enforcer" {
+  oracle_id 2d8e1054-654f-42e8-8c29-12c3cf13a3eb
+  cost {7}
+  type Artifact Creature — Myr
+  pt 4/4
+  affinity for artifact
+}

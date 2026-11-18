@@ -63,6 +63,8 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::MustAttack,
     ),
     (&["can't", "be", "blocked"], Keyword::Unblockable),
+    (&["can't", "attack", "alone"], Keyword::CantAttackAlone),
+    (&["can't", "block", "alone"], Keyword::CantBlockAlone),
     (&["can't", "attack"], Keyword::CantAttack),
     (&["can't", "block"], Keyword::CantBlock),
     (&["double", "strike"], Keyword::DoubleStrike),
@@ -765,6 +767,82 @@ impl P {
         self.subject = None;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
+            "spells" => {
+                self.pos += 1;
+                let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost")
+                {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                let whose = if self.eat_words(&["you", "cast"]) {
+                    Who::You
+                } else if self.eat_words(&["your", "opponents", "cast"]) {
+                    Who::Opponents
+                } else {
+                    Who::Any
+                };
+                self.expect_word("cost")?;
+                let n = i32::try_from(self.mana_cost()?.mana_value()).unwrap_or(0);
+                let generic = if self.eat_word("less") {
+                    -n
+                } else {
+                    self.expect_word("more")?;
+                    n
+                };
+                self.end_stmt()?;
+                Ok(Ability::CostChange {
+                    filter,
+                    whose,
+                    generic,
+                })
+            }
+            "this" if self.at_words(&["this", "spell", "costs"]) => {
+                self.pos += 3;
+                let per = self.mana_cost()?.mana_value();
+                self.expect_word("less")?;
+                let times = self.num()?;
+                self.end_stmt()?;
+                Ok(Ability::SelfCost { per, times })
+            }
+            "protection"
+                if self.word_at(1).as_deref() == Some("from")
+                    && self.word_at(2).as_deref().and_then(color).is_none() =>
+            {
+                self.pos += 2;
+                let filter = if self.eat_word("everything") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                self.end_stmt()?;
+                Ok(Ability::Protection(filter))
+            }
+            "hand" if self.word_at(1).as_deref() == Some("size") => {
+                self.pos += 2;
+                let whose = if self.eat_word("opponents") {
+                    Who::Opponents
+                } else {
+                    Who::You
+                };
+                let delta = if self.eat_word("none") {
+                    None
+                } else {
+                    match self.next() {
+                        Some(Tok::Signed(n)) => Some(n),
+                        _ => return self.fail("expected `none` or a signed number such as +1"),
+                    }
+                };
+                self.end_stmt()?;
+                Ok(Ability::HandSize { whose, delta })
+            }
+            "affinity" => {
+                self.pos += 1;
+                self.expect_word("for")?;
+                let filter = self.filter()?;
+                self.end_stmt()?;
+                Ok(Ability::Affinity(filter))
+            }
             w if w.ends_with("cycling") && w != "cycling"
                 || w == "basic" && self.word_at(1).as_deref() == Some("landcycling") =>
             {
@@ -1084,6 +1162,31 @@ impl P {
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
         }
+        if self.eat_word("attacking") {
+            return Ok(StaticCond::Attacking);
+        }
+        if self.eat_word("enchanted") {
+            return Ok(StaticCond::Enchanted);
+        }
+        if self.eat_word("equipped") {
+            return Ok(StaticCond::Equipped);
+        }
+        if self.eat_words(&["opponent", "life"]) {
+            let n = i32::try_from(self.number()?).unwrap_or(0);
+            self.expect_words(&["or", "less"])?;
+            return Ok(StaticCond::OpponentLifeAtMost(n));
+        }
+        if self.eat_words(&["your", "life"]) {
+            let n = i32::try_from(self.number()?).unwrap_or(0);
+            self.expect_word("or")?;
+            let at_least = if self.eat_word("more") {
+                true
+            } else {
+                self.expect_word("less")?;
+                false
+            };
+            return Ok(StaticCond::YourLife { n, at_least });
+        }
         if self.eat_words(&["you", "control"]) {
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
                 self.number()?
@@ -1173,7 +1276,8 @@ impl P {
         if eot_first && self.peek() == Some(&Tok::Comma) {
             self.pos += 1;
         }
-        let mut clauses = vec![self.clause()?];
+        let first = self.clause()?;
+        let mut clauses = vec![self.unless_suffix(first)?];
         let mut joins = Vec::new();
         loop {
             if self.at_word("and") {
@@ -1190,7 +1294,8 @@ impl P {
             } else {
                 break;
             }
-            clauses.push(self.clause()?);
+            let c = self.clause()?;
+            clauses.push(self.unless_suffix(c)?);
         }
         Ok(Sentence {
             effects: clauses,
@@ -1198,6 +1303,44 @@ impl P {
             eot_first,
             joins,
         })
+    }
+
+    /// `<clause> unless you pay {2}` / `unless they pay 2 life` / `unless
+    /// <recipient> pays {2}`.
+    fn unless_suffix(&mut self, e: Effect) -> R<Effect> {
+        if !self.at_word("unless") {
+            return Ok(e);
+        }
+        self.pos += 1;
+        let payer = if self.eat_words(&["you", "pay"]) {
+            Recipient::You
+        } else if self.eat_words(&["they", "pay"]) {
+            match self.subject {
+                Some(s) => s,
+                None => return self.fail("`unless they pay` needs a clause with a subject"),
+            }
+        } else {
+            let r = self.recipient()?;
+            self.expect_word("pays")?;
+            r
+        };
+        let (mana, life) = self.pay_amount()?;
+        Ok(Effect::UnlessPays {
+            payer,
+            mana,
+            life,
+            effect: Box::new(e),
+        })
+    }
+
+    /// `{2}` or `2 life`.
+    fn pay_amount(&mut self) -> R<(ManaCost, u32)> {
+        if matches!(self.peek(), Some(Tok::Sym(_))) {
+            return Ok((self.mana_cost()?, 0));
+        }
+        let n = self.number()?;
+        self.expect_word("life")?;
+        Ok((ManaCost::default(), n))
     }
 
     fn at_recipient(&self) -> bool {
@@ -1212,6 +1355,9 @@ impl P {
             return true;
         }
         if w == "it" || w == "target" || w == "another" {
+            return true;
+        }
+        if w == "up" && self.word_at(1).as_deref() == Some("to") {
             return true;
         }
         if w == "its" && matches!(self.word_at(1).as_deref(), Some("controller" | "owner")) {
@@ -1271,6 +1417,17 @@ impl P {
                 vec![s]
             };
             return Ok(Effect::YouMay(inner));
+        }
+        // "if you do, ...": after an optional action.
+        if self.at_words(&["if", "you", "do"]) {
+            self.pos += 3;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfYouDo(vec![s]));
         }
         // "if kicked, ..." (CR 702.33c).
         if self.at_words(&["if", "kicked"]) {
@@ -1685,6 +1842,10 @@ impl P {
                 let what = self.recipients()?;
                 Ok(Effect::Exile { what })
             }
+            "pay" => {
+                let (mana, life) = self.pay_amount()?;
+                Ok(Effect::Pay { mana, life })
+            }
             "sacrifice" => {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
@@ -1778,6 +1939,24 @@ impl P {
                 }
                 if out.is_empty() {
                     return self.unexpected("mana to add");
+                }
+                if out.len() == 1 && self.at_word("or") {
+                    while self.eat_word("or") {
+                        let c = self.mana_cost()?;
+                        match c.symbols() {
+                            [mtg_core::mana::ManaSymbol::Colored(c)] => out.push(Mana::Colored(*c)),
+                            [mtg_core::mana::ManaSymbol::Colorless] => out.push(Mana::Colorless),
+                            _ => return self.unexpected("one mana symbol after `or`"),
+                        }
+                    }
+                    return Ok(Effect::AddManaOneOf(out));
+                }
+                if out.len() == 1 && self.at_word("count") {
+                    let count = self.num()?;
+                    return Ok(Effect::AddManaTimes {
+                        mana: out[0],
+                        count,
+                    });
                 }
                 Ok(Effect::AddMana(out))
             }
@@ -2066,6 +2245,16 @@ impl P {
 
     /// A recipient, or `N target <spec>` declaring several.
     fn recipient_group(&mut self) -> R<Vec<Recipient>> {
+        // "up to two target creatures": optional targets (CR 601.2c).
+        let up_to = self.at_words(&["up", "to"])
+            && (matches!(self.peek_at(2), Some(Tok::Num(_)))
+                || self
+                    .word_at(2)
+                    .is_some_and(|w| NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())))
+            && self.word_at(3).as_deref() == Some("target");
+        if up_to {
+            self.pos += 2;
+        }
         let count = match self.peek() {
             Some(Tok::Num(n)) if self.word_at(1).as_deref() == Some("target") => {
                 let n = *n;
@@ -2085,9 +2274,12 @@ impl P {
             }
             _ => 1,
         };
-        if count > 1 {
+        if count > 1 || up_to {
             self.expect_word("target")?;
-            let spec = self.target_spec()?;
+            let mut spec = self.target_spec()?;
+            if up_to {
+                spec = Target::UpTo(Box::new(spec));
+            }
             let mut out = Vec::new();
             for _ in 0..count {
                 out.push(Recipient::Target(self.targets.len()));

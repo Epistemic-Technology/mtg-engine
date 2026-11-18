@@ -240,6 +240,14 @@ pub enum Keyword {
     Persist,
     /// CR 702.93: a triggered ability (return with a +1/+1 counter).
     Undying,
+    /// Protection from a quality other than a color ("protection from
+    /// artifacts", CR 702.16): a marker that one of the object's
+    /// abilities is an `AbilityDef::Protection`. Not printed.
+    ProtectionFromFilter,
+    /// "This creature can't attack alone." (CR 506.5)
+    CantAttackAlone,
+    /// "This creature can't block alone."
+    CantBlockAlone,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -304,7 +312,8 @@ impl KeywordSet {
         .with(Keyword::ProtectionFromBlue)
         .with(Keyword::ProtectionFromBlack)
         .with(Keyword::ProtectionFromRed)
-        .with(Keyword::ProtectionFromGreen);
+        .with(Keyword::ProtectionFromGreen)
+        .with(Keyword::ProtectionFromFilter);
 
     pub const fn contains_all(self, other: KeywordSet) -> bool {
         self.0 & other.0 == other.0
@@ -320,7 +329,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 42] = [
+    pub const ALL: [Keyword; 45] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -363,6 +372,9 @@ impl Keyword {
         Keyword::Exalted,
         Keyword::Persist,
         Keyword::Undying,
+        Keyword::ProtectionFromFilter,
+        Keyword::CantAttackAlone,
+        Keyword::CantBlockAlone,
     ];
 
     /// The keyword as Oracle prints it.
@@ -410,6 +422,9 @@ impl Keyword {
             Keyword::Exalted => "exalted",
             Keyword::Persist => "persist",
             Keyword::Undying => "undying",
+            Keyword::ProtectionFromFilter => "protection",
+            Keyword::CantAttackAlone => "can't attack alone",
+            Keyword::CantBlockAlone => "can't block alone",
         }
     }
 
@@ -476,6 +491,10 @@ impl Subtype {
     pub const fn basic(c: Color) -> Subtype {
         Subtype(c as u16)
     }
+
+    /// Interned in `NONCREATURE_SUBTYPES` order after the basic types.
+    pub const EQUIPMENT: Subtype = Subtype(5 + 18);
+    pub const AURA: Subtype = Subtype(5 + 30);
 
     /// The color a basic land type produces (CR 305.6), if this is one.
     pub fn basic_color(self) -> Option<Color> {
@@ -933,6 +952,21 @@ impl ObjFilter {
         !self.no_abilities || c.has_no_abilities()
     }
 
+    /// Whether characteristics alone match (no relation, controller, or
+    /// state parts): protection's qualities (CR 702.16a).
+    pub fn matches_characteristics(&self, c: &crate::state::Characteristics) -> bool {
+        let mut f = self.clone();
+        f.relation = Relation::Any;
+        f.who = None;
+        f.matches(
+            crate::ids::ObjId::default(),
+            crate::ids::PlayerId(0),
+            c,
+            None,
+            None,
+        )
+    }
+
     /// Whether the filter has conditions on game state beyond
     /// characteristics (see `GameState::status_ok`) or the mana value.
     pub const fn needs_state(&self) -> bool {
@@ -1128,10 +1162,25 @@ pub enum StaticCondition {
     CardTypesInGraveyard(u32),
     /// "you control three or more artifacts" (metalcraft); `at_least` 1 is
     /// "you control an Island".
-    YouControl { filter: ObjFilter, at_least: u32 },
+    YouControl {
+        filter: ObjFilter,
+        at_least: u32,
+    },
     /// "it's your turn" ("during your turn"). The turn change bumps the
     /// characteristics cache.
     YourTurn,
+    /// "as long as it's attacking" (the source).
+    SourceAttacking,
+    /// "as long as it's enchanted" / "as long as it's equipped".
+    SourceEnchanted,
+    SourceEquipped,
+    /// "as long as an opponent has 10 or less life"; "as long as you have
+    /// 30 or more life" (`at_least`), "you have 5 or less life".
+    OpponentLifeAtMost(i32),
+    YourLife {
+        n: i32,
+        at_least: bool,
+    },
 }
 
 /// Kinds of counters (CR 122).
@@ -1211,6 +1260,10 @@ pub enum TargetSpec {
         filter: u16,
         who: Who,
     },
+    /// "up to two target creatures" (CR 601.2c, 115.1d): the pool's `n`th
+    /// optional spec (`CardPool::up_to`). The caster may stop choosing at
+    /// an optional target; the optional targets come last.
+    UpTo(u16),
 }
 
 impl TargetSpec {
@@ -1466,6 +1519,14 @@ pub enum Effect {
     /// whose only effects add mana and that has no targets is a mana
     /// ability (CR 605.1a) and resolves on activation.
     AddMana(Vec<crate::mana::Mana>),
+    /// "Add {R} or {W}", "Add {B}, {G}, or {U}": one of these, chosen.
+    AddManaOneOf(Vec<crate::mana::Mana>),
+    /// "Add {G} for each Elf you control": `count` of this mana (`Any`:
+    /// of one color, chosen once).
+    AddManaTimes {
+        mana: crate::mana::Mana,
+        count: Num,
+    },
     /// The recipient player discards N cards of their choice (CR 701.8).
     Discard {
         count: Num,
@@ -1529,6 +1590,23 @@ pub enum Effect {
     },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),
+    /// "pay {2}" / "pay 2 life", inside "you may": it happens only if the
+    /// controller can pay; "If you do" then sees whether it did.
+    Pay {
+        mana: ManaCost,
+        life: u32,
+    },
+    /// "If you do, [these]": only if the optional action before happened
+    /// (CR 608.2c).
+    IfYouDo(Vec<Effect>),
+    /// "[these] unless [payer] pays {2}": the payer may pay; if they
+    /// don't, the effects happen.
+    UnlessPays {
+        payer: Recipient,
+        mana: ManaCost,
+        life: u32,
+        effects: Vec<Effect>,
+    },
     /// "If this spell was kicked, [do these]" (CR 702.33c).
     IfKicked(Vec<Effect>),
     /// "has base power and toughness N/N until end of turn" (layer 7b).
@@ -1577,12 +1655,16 @@ impl Effect {
             self,
             Effect::YouMay(_)
                 | Effect::IfKicked(_)
+                | Effect::IfYouDo(_)
+                | Effect::UnlessPays { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
                 | Effect::Discard { .. }
                 | Effect::CounterUnlessPays { .. }
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
+                | Effect::AddManaOneOf(_)
+                | Effect::AddManaTimes { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
@@ -1922,8 +2004,32 @@ impl ActivatedAbility {
         self.targets.is_empty()
             && self.cost.loyalty == 0
             && !self.effects.is_empty()
-            && self.effects.iter().all(|e| matches!(e, Effect::AddMana(_)))
+            && self.effects.iter().all(|e| {
+                matches!(
+                    e,
+                    Effect::AddMana(_) | Effect::AddManaOneOf(_) | Effect::AddManaTimes { .. }
+                )
+            })
     }
+}
+
+/// A static ability changing the generic part of spells' costs (CR
+/// 601.2f): `generic` below zero is "cost {N} less", above is "more".
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct CostChange {
+    /// What the spell must be, judged on its characteristics.
+    pub spells: ObjFilter,
+    /// Whose spells, from the source's controller.
+    pub whose: Who,
+    pub generic: i32,
+}
+
+/// "This spell costs {1} less to cast for each artifact you control"
+/// (affinity, CR 702.41): `per` generic mana less, `times` times.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct SelfCost {
+    pub per: u32,
+    pub times: Num,
 }
 
 /// One mode of a "choose one" spell (CR 700.2).
@@ -1970,6 +2076,19 @@ pub enum AbilityDef {
     /// A blocking restriction on this creature (CR 509.1b–c): "can't be
     /// blocked by Walls", "can block only creatures with flying".
     BlockRule(BlockRule),
+    /// "Artifact spells you cast cost {1} less to cast" (CR 601.2f).
+    CostChange(CostChange),
+    /// Protection from what matches the filter ("protection from
+    /// artifacts", "from Goblins", "from everything"), judged on a source's
+    /// characteristics (CR 702.16); the object also has
+    /// `Keyword::ProtectionFromFilter`.
+    Protection(ObjFilter),
+    /// "You have no maximum hand size" (`delta` None), "Your maximum hand
+    /// size is increased by one" (CR 402.2); `whose` from the controller.
+    HandSize {
+        whose: Who,
+        delta: Option<i32>,
+    },
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -1990,6 +2109,9 @@ impl AbilityDef {
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
             | AbilityDef::BlockRule(_)
+            | AbilityDef::CostChange(_)
+            | AbilityDef::Protection(_)
+            | AbilityDef::HandSize { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -2007,6 +2129,9 @@ impl AbilityDef {
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
             | AbilityDef::BlockRule(_)
+            | AbilityDef::CostChange(_)
+            | AbilityDef::Protection(_)
+            | AbilityDef::HandSize { .. }
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -2019,7 +2144,11 @@ impl AbilityDef {
     pub fn all_effects(&self) -> Vec<&Effect> {
         fn walk<'a>(e: &'a Effect, out: &mut Vec<&'a Effect>) {
             out.push(e);
-            if let Effect::YouMay(inner) | Effect::IfKicked(inner) = e {
+            if let Effect::YouMay(inner)
+            | Effect::IfKicked(inner)
+            | Effect::IfYouDo(inner)
+            | Effect::UnlessPays { effects: inner, .. } = e
+            {
                 for i in inner {
                     walk(i, out);
                 }
@@ -2096,6 +2225,8 @@ pub struct CardDef {
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<ManaCost>,
+    /// What this spell's own text takes off its cost (affinity).
+    pub self_cost: Option<SelfCost>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -2129,28 +2260,30 @@ pub struct CardDef {
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub struct DefFlags(u8);
+pub struct DefFlags(u16);
 
 impl DefFlags {
-    const TRIGGERS: u8 = 1;
-    const REPLACEMENTS: u8 = 2;
-    const MODIFIES_ENTERING: u8 = 4;
-    const ACTIVATED: u8 = 8;
-    const CONTROL_STATIC: u8 = 16;
-    const EQUIPMENT: u8 = 32;
-    const MID_CHOICE: u8 = 64;
+    const TRIGGERS: u16 = 1;
+    const REPLACEMENTS: u16 = 2;
+    const MODIFIES_ENTERING: u16 = 4;
+    const ACTIVATED: u16 = 8;
+    const CONTROL_STATIC: u16 = 16;
+    const EQUIPMENT: u16 = 32;
+    const MID_CHOICE: u16 = 64;
     /// A characteristic-defining ability that reads a life total (Ajani's
     /// Avatar): life changes must then invalidate the characteristics cache.
-    const LIFE_CDA: u8 = 128;
-    const CDA: u8 = 128;
+    const LIFE_CDA: u16 = 128;
+    const CDA: u16 = 256;
+    /// A static ability that changes what spells cost (CR 601.2f).
+    const COST_CHANGE: u16 = 512;
     /// `MODIFIES_ENTERING`, for callers outside this module.
-    pub const MODIFIES_ENTERING_FLAG: u8 = DefFlags::MODIFIES_ENTERING;
+    pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
-    pub const fn has(self, f: u8) -> bool {
+    pub const fn has(self, f: u16) -> bool {
         self.0 & f != 0
     }
 
-    fn set(&mut self, f: u8, on: bool) {
+    fn set(&mut self, f: u16, on: bool) {
         if on {
             self.0 |= f;
         }
@@ -2187,6 +2320,10 @@ impl DefFlags {
 
     pub const fn has_life_cda(self) -> bool {
         self.has(DefFlags::LIFE_CDA)
+    }
+
+    pub const fn has_cost_change(self) -> bool {
+        self.has(DefFlags::COST_CHANGE)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -2236,8 +2373,16 @@ impl DefFlags {
                     p,
                     Modification::CdaPt { count: CdaCount::ControllerLife, .. }
                         | Modification::ModifyPtPer { count: CountExpr::Life, .. }
+                )) || matches!(s.condition, Some(
+                    StaticCondition::OpponentLifeAtMost(_) | StaticCondition::YourLife { .. }
                 )))
             }),
+        );
+        flags.set(
+            DefFlags::COST_CHANGE,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::CostChange(_))),
         );
         flags.set(
             DefFlags::MID_CHOICE,
@@ -2423,6 +2568,8 @@ pub struct CardPool {
     abilities: Vec<AbilityDef>,
     /// Filters behind `TargetSpec::Filtered`.
     filters: Vec<ObjFilter>,
+    /// Specs behind `TargetSpec::UpTo`.
+    up_to: Vec<TargetSpec>,
     /// Per ability: whether resolving it may ask its controller a
     /// question ("you may").
     asks: Vec<bool>,
@@ -2452,6 +2599,7 @@ impl CardPool {
             subtype_ids: HashMap::new(),
             abilities: Vec::new(),
             filters: Vec::new(),
+            up_to: Vec::new(),
             asks: Vec::new(),
             enters: Vec::new(),
             prowess: AbilityId(0),
@@ -2466,6 +2614,8 @@ impl CardPool {
         for name in NONCREATURE_SUBTYPES {
             pool.subtype(name);
         }
+        debug_assert_eq!(pool.subtype("Equipment"), Subtype::EQUIPMENT);
+        debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
             trigger: TriggerSpec::CastsSpell {
                 whose: Who::You,
@@ -2565,6 +2715,25 @@ impl CardPool {
         &self.filters[i as usize]
     }
 
+    /// Intern an optional target spec for `TargetSpec::UpTo`.
+    pub fn intern_up_to(&mut self, spec: TargetSpec) -> TargetSpec {
+        let i = if let Some(i) = self.up_to.iter().position(|x| *x == spec) {
+            i
+        } else {
+            self.up_to.push(spec);
+            self.up_to.len() - 1
+        };
+        TargetSpec::UpTo(u16::try_from(i).expect("few optional specs"))
+    }
+
+    /// The spec an optional target must meet; other specs are themselves.
+    pub fn base_spec(&self, spec: TargetSpec) -> TargetSpec {
+        match spec {
+            TargetSpec::UpTo(i) => self.up_to[i as usize],
+            s => s,
+        }
+    }
+
     /// Every interned filter, by index.
     pub fn filters(&self) -> &[ObjFilter] {
         &self.filters
@@ -2623,7 +2792,9 @@ impl CardPool {
             });
         def.except_watch_mask = def.copy_except.as_ref().map_or(0, |x| mask(&x.abilities));
         def.combat_static = def.abilities.iter().any(|a| {
-            matches!(a, AbilityDef::Static(sa) if sa.affected.attacking || sa.affected.blocking)
+            matches!(a, AbilityDef::Static(sa) if sa.affected.attacking
+                || sa.affected.blocking
+                || sa.condition == Some(StaticCondition::SourceAttacking))
         });
         def.hand_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
@@ -2750,6 +2921,7 @@ impl Builder {
             except_flags: DefFlags::default(),
             additional: Cost::default(),
             kicker: None,
+            self_cost: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -2847,6 +3019,13 @@ impl Builder {
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
         self.0.kicker = Some(cost);
+        self
+    }
+
+    /// "This spell costs {1} less to cast for each ..." (affinity).
+    #[must_use]
+    pub fn self_cost(mut self, c: SelfCost) -> Self {
+        self.0.self_cost = Some(c);
         self
     }
 

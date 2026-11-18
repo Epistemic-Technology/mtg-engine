@@ -1,0 +1,7 @@
+card "Urborg Elf" {
+  oracle_id 9c382817-5c62-44ff-8f29-d283e65712a1
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  mana {B} or {G} or {U}
+}

@@ -1,0 +1,7 @@
+card "Frenzied Goblin" {
+  oracle_id 6ac470a1-c2be-4971-a5ca-10bb189ebe4d
+  cost {R}
+  type Creature — Goblin Berserker
+  pt 1/1
+  triggered whenever this attacks: you may pay {R}; if you do, target creature can't block
+}

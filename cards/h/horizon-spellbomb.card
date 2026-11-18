@@ -1,0 +1,7 @@
+card "Horizon Spellbomb" {
+  oracle_id 12080ea9-0800-4601-b553-6711dd9f9806
+  cost {1}
+  type Artifact
+  activated {2}, {T}, sacrifice this: search basic land card reveal to hand
+  triggered when this dies: you may pay {G}; if you do, draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Writhing Necromass" {
+  oracle_id 7f6505a1-ab8b-468b-a5de-33451598b464
+  cost {6}{B}
+  type Creature — Zombie Giant
+  pt 5/5
+  this spell costs {1} less count each graveyard creature
+  keyword deathtouch
+}

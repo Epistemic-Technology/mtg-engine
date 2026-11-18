@@ -1,0 +1,8 @@
+card "Thorned Moloch" {
+  oracle_id d2a49109-6db8-4f08-828c-da7a456a78a7
+  cost {2}{R}
+  type Creature — Lizard
+  pt 2/2
+  keywords prowess
+  static this: has first strike as long as attacking
+}

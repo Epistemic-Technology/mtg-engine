@@ -1,0 +1,7 @@
+card "Mardu Banner" {
+  oracle_id 9805b7b3-086a-4c91-810f-52c8f8f95f6a
+  cost {3}
+  type Artifact
+  mana {R} or {W} or {B}
+  activated {R}{W}{B}, {T}, sacrifice this: draw 1 cards
+}

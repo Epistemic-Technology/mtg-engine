@@ -1,0 +1,8 @@
+card "Militia Rallier" {
+  oracle_id d5377597-3454-4636-8563-7e6a5544e36a
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  keywords can't attack alone
+  triggered whenever this attacks: untap target creature
+}

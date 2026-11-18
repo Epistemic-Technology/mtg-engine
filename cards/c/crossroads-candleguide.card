@@ -1,0 +1,8 @@
+card "Crossroads Candleguide" {
+  oracle_id 1b817184-4965-4186-bfa9-6d9cf198050e
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 3/4
+  triggered when this enters: exile up to one target card from a graveyard
+  activated {2}: add any
+}

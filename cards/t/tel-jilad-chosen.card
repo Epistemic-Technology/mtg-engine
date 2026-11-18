@@ -1,0 +1,7 @@
+card "Tel-Jilad Chosen" {
+  oracle_id de6854d1-bdb0-4b9a-b442-08d4d90a538d
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/1
+  protection from artifact
+}

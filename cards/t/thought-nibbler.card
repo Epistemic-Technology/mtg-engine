@@ -1,0 +1,8 @@
+card "Thought Nibbler" {
+  oracle_id 9a640695-fc17-4ccc-ac88-ce48b6c6ad53
+  cost {U}
+  type Creature — Beast
+  pt 1/1
+  keywords flying
+  hand size -2
+}

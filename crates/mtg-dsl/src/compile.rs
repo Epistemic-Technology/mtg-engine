@@ -139,6 +139,7 @@ impl Compiler<'_> {
         })
     }
 
+    #[allow(clippy::too_many_lines)] // one step per header part
     fn card(&mut self) -> Result<mtg_core::card::CardDef, CompileError> {
         let card = self.card;
         let keywords = card
@@ -149,6 +150,12 @@ impl Compiler<'_> {
                 Ability::Keyword(k) => Some(*k),
                 _ => None,
             }));
+        let protection = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Protection(_)))
+            .then_some(mtg_core::card::Keyword::ProtectionFromFilter);
+        let keywords = keywords.chain(protection);
         let mut b = Builder::new(
             card.display_name.as_deref().unwrap_or(&card.name),
             &card.cost.to_string(),
@@ -161,12 +168,33 @@ impl Compiler<'_> {
         if let Some((p, t)) = card.pt {
             b = b.pt(p, t);
         }
-        if !card.counts.is_empty() {
-            let counts = card
-                .counts
-                .iter()
-                .map(|c| self.count_expr(&c.expr))
-                .collect();
+        let mut counts: Vec<mtg_core::card::CountExpr> = card
+            .counts
+            .iter()
+            .map(|c| self.count_expr(&c.expr))
+            .collect();
+        for a in &card.abilities {
+            match unlabeled(a) {
+                Ability::SelfCost { per, times } => {
+                    b = b.self_cost(mtg_core::card::SelfCost {
+                        per: *per,
+                        times: *times,
+                    });
+                }
+                Ability::Affinity(f) => {
+                    let mut f = self.filter(f);
+                    f.who = Some(mtg_core::card::Who::You);
+                    counts.push(mtg_core::card::CountExpr::Permanents(f));
+                    let i = u8::try_from(counts.len() - 1).expect("few counts");
+                    b = b.self_cost(mtg_core::card::SelfCost {
+                        per: 1,
+                        times: Num::Count(i),
+                    });
+                }
+                _ => {}
+            }
+        }
+        if !counts.is_empty() {
             b = b.counts(counts);
         }
         if let Some(n) = card.loyalty {
@@ -209,7 +237,10 @@ impl Compiler<'_> {
             );
         }
         for a in &card.abilities {
-            if matches!(a, Ability::Keyword(_)) {
+            if matches!(
+                unlabeled(a),
+                Ability::Keyword(_) | Ability::SelfCost { .. } | Ability::Affinity(_)
+            ) {
                 continue;
             }
             let compiled = self.ability(a)?;
@@ -294,6 +325,10 @@ impl Compiler<'_> {
                     filter: self.pool.intern_filter(f),
                     who: *who,
                 }
+            }
+            Target::UpTo(t) => {
+                let inner = self.target(t);
+                self.pool.intern_up_to(inner)
             }
         }
     }
@@ -470,6 +505,11 @@ impl Compiler<'_> {
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
+            Effect::AddManaOneOf(m) => out.push(CoreEffect::AddManaOneOf(m.clone())),
+            Effect::AddManaTimes { mana, count } => out.push(CoreEffect::AddManaTimes {
+                mana: *mana,
+                count: *count,
+            }),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -562,6 +602,29 @@ impl Compiler<'_> {
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
+            }
+            Effect::IfYouDo(inner) => {
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::IfYouDo(effects));
+            }
+            Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
+                mana: mana.clone(),
+                life: *life,
+            }),
+            Effect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effect,
+            } => {
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::UnlessPays {
+                    payer: r(*payer),
+                    mana: mana.clone(),
+                    life: *life,
+                    effects,
+                });
             }
             Effect::SetBasePt {
                 to,
@@ -756,6 +819,7 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
@@ -831,6 +895,14 @@ impl Compiler<'_> {
                         at_least: *at_least,
                     },
                     StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+                    StaticCond::Attacking => StaticCondition::SourceAttacking,
+                    StaticCond::Enchanted => StaticCondition::SourceEnchanted,
+                    StaticCond::Equipped => StaticCondition::SourceEquipped,
+                    StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
+                    StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
+                        n: *n,
+                        at_least: *at_least,
+                    },
                 }),
             }),
             Ability::Labeled { ability, .. } => return self.ability(ability),
@@ -848,7 +920,32 @@ impl Compiler<'_> {
                 }
             }),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
+            Ability::CostChange {
+                filter,
+                whose,
+                generic,
+            } => AbilityDef::CostChange(mtg_core::card::CostChange {
+                spells: self.filter(filter),
+                whose: *whose,
+                generic: *generic,
+            }),
+            Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::HandSize { whose, delta } => AbilityDef::HandSize {
+                whose: *whose,
+                delta: *delta,
+            },
+            Ability::SelfCost { .. } | Ability::Affinity(_) => {
+                return self.err("a cost reduction of the spell itself is not an ability");
+            }
         })
+    }
+}
+
+/// An ability without its ability word.
+fn unlabeled(a: &Ability) -> &Ability {
+    match a {
+        Ability::Labeled { ability, .. } => unlabeled(ability),
+        other => other,
     }
 }
 

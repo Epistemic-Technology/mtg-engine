@@ -112,8 +112,22 @@ fn plural(n: Num, word: &str) -> String {
 }
 
 fn pluralize(word: &str) -> String {
-    if word == "Plains" || word == "Equipment" {
-        return word.to_string();
+    // Creature types with irregular or unchanged plurals.
+    match word {
+        "Plains" | "Equipment" | "Kavu" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin" | "Merfolk"
+        | "Samurai" | "Kor" | "Vedalken" | "Aetherborn" | "Eldrazi" | "Treefolk" => {
+            return word.to_string();
+        }
+        "Elf" => return "Elves".to_string(),
+        "Dwarf" => return "Dwarves".to_string(),
+        "Wolf" => return "Wolves".to_string(),
+        "Werewolf" => return "Werewolves".to_string(),
+        "Sphinx" => return "Sphinxes".to_string(),
+        "Fox" => return "Foxes".to_string(),
+        "Ox" => return "Oxen".to_string(),
+        "Mouse" => return "Mice".to_string(),
+        "Homunculus" => return "Homunculi".to_string(),
+        _ => {}
     }
     if word.ends_with('y') && !word.ends_with("ey") {
         format!("{}ies", &word[..word.len() - 1])
@@ -190,7 +204,12 @@ pub fn keyword_name(k: Keyword) -> &'static str {
 pub fn is_restriction(k: Keyword) -> bool {
     matches!(
         k,
-        Keyword::CantAttack | Keyword::CantBlock | Keyword::MustAttack | Keyword::Unblockable
+        Keyword::CantAttack
+            | Keyword::CantBlock
+            | Keyword::MustAttack
+            | Keyword::Unblockable
+            | Keyword::CantAttackAlone
+            | Keyword::CantBlockAlone
     )
 }
 
@@ -202,6 +221,15 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
     } else {
         for k in ks {
             if matches!(k, Keyword::CantAttack | Keyword::CantBlock) {
+                parts.push(keyword_name(*k).to_string());
+            }
+        }
+    }
+    if ks.contains(&Keyword::CantAttackAlone) && ks.contains(&Keyword::CantBlockAlone) {
+        parts.push("can't attack or block alone".to_string());
+    } else {
+        for k in ks {
+            if matches!(k, Keyword::CantAttackAlone | Keyword::CantBlockAlone) {
                 parts.push(keyword_name(*k).to_string());
             }
         }
@@ -296,6 +324,33 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
     } else {
         p
     }
+}
+
+/// The subject of a cost change: "Artifact spells", "Instant and
+/// sorcery spells", "Spells".
+fn spells_subject(f: &Filter, card: &Card) -> String {
+    if *f == Filter::default() {
+        return "Spells".to_string();
+    }
+    let mut g = f.clone();
+    let noun = if g.any_types.is_empty() {
+        card_filter_phrase(&g, card)
+    } else {
+        let types: Vec<String> = g
+            .any_types
+            .iter()
+            .map(|t| type_noun(*t).to_string())
+            .collect();
+        g.any_types.clear();
+        let rest = card_filter_phrase(&g, card);
+        let joined = list(&types);
+        if rest.is_empty() {
+            joined
+        } else {
+            format!("{rest} {joined}")
+        }
+    };
+    capitalize(&format!("{} spells", noun.trim()))
 }
 
 /// "red or green", "artifact, creature, or land".
@@ -420,7 +475,17 @@ impl<'a> Ctx<'a> {
 
     fn target_first(&mut self, i: usize) -> String {
         self.target_mentioned[i] = true;
-        match &self.targets[i] {
+        let phrase = self.target_phrase_of(i);
+        if matches!(self.targets[i], Target::UpTo(_)) {
+            format!("up to one {phrase}")
+        } else {
+            phrase
+        }
+    }
+
+    fn target_phrase_of(&self, i: usize) -> String {
+        match self.targets[i].base() {
+            Target::UpTo(_) => unreachable!("base"),
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
             Target::Filter(f) if f.relation == Relation::Other => {
@@ -574,7 +639,16 @@ impl<'a> Ctx<'a> {
             for i in &fresh {
                 self.target_mentioned[*i] = true;
             }
-            let noun = match &self.targets[fresh[0]] {
+            let up_to = if matches!(self.targets[fresh[0]], Target::UpTo(_)) {
+                "up to "
+            } else {
+                ""
+            };
+            let noun = match self.targets[fresh[0]].base() {
+                Target::UpTo(_) => unreachable!("base"),
+                Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
+                    "creature cards from your graveyard".to_string()
+                }
                 Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
                 Target::Filter(f) => filter_phrase(f, self.card, true),
@@ -596,7 +670,7 @@ impl<'a> Ctx<'a> {
                 }
             };
             return format!(
-                "{} target {noun}",
+                "{up_to}{} target {noun}",
                 count_words(Num::N(u32::try_from(fresh.len()).expect("small")), "a")
             );
         }
@@ -645,7 +719,8 @@ impl<'a> Ctx<'a> {
 }
 
 fn target_noun(t: &Target) -> String {
-    match t {
+    match t.base() {
+        Target::UpTo(_) => unreachable!("base"),
         Target::CreatureOfSubtype(_) => "creature".to_string(),
         Target::Spell(_) => "spell".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
@@ -670,6 +745,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::Permanent
             | TargetSpec::OtherPermanent
             | TargetSpec::ArtifactOrCreature
+            | TargetSpec::UpTo(_)
             | TargetSpec::Filtered(_) => "permanent".to_string(),
             TargetSpec::Artifact => "artifact".to_string(),
             TargetSpec::Enchantment => "enchantment".to_string(),
@@ -721,6 +797,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::AttackingCreature => "target attacking creature",
         TargetSpec::BlockingCreature => "target blocking creature",
         TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
+        TargetSpec::UpTo(_) => "up to one target permanent",
     }
     .to_string()
 }
@@ -1114,6 +1191,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::Mill { count, .. }
         | Effect::Discard { count, .. }
         | Effect::AddCounters { count, .. }
+        | Effect::AddManaTimes { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
         _ => Vec::new(),
     }
@@ -1363,7 +1441,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let yours = what.iter().all(|w| {
                 matches!(
                     w,
-                    Recipient::Target(i) if matches!(ctx.targets[*i],
+                    Recipient::Target(i) if matches!(ctx.targets[*i].base(),
                         Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                         | Target::GraveyardCard { who: Who::You, .. })
                 )
@@ -1620,6 +1698,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::AddMana(m) => {
             Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
         }
+        Effect::AddManaOneOf(m) => {
+            let syms: Vec<String> = m.iter().map(|x| mana_symbols(&[*x], "?")).collect();
+            Clause::imperative(format!("add {}", or_list(&syms)))
+        }
+        Effect::AddManaTimes { mana, .. } => Clause::imperative(format!(
+            "add {}",
+            mana_symbols(&[*mana], "X mana of any one color")
+        )),
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -1672,6 +1758,39 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 text.push_str(". It's still a land");
             }
             Clause::with_subject(*to, s, text)
+        }
+        Effect::IfYouDo(inner) => {
+            let body = sentences(inner, ctx);
+            let body = lowercase_first(&body);
+            Clause::imperative(format!("if you do, {}", body.trim_end_matches('.')))
+        }
+        Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
+            format!("pay {life} life")
+        } else {
+            format!("pay {mana}")
+        }),
+        Effect::UnlessPays {
+            payer,
+            mana,
+            life,
+            effect,
+        } => {
+            let mut c = clause(effect, ctx);
+            let amount = if *life > 0 {
+                format!("{life} life")
+            } else {
+                mana.to_string()
+            };
+            let who = match (payer, &c.subject) {
+                (Recipient::You, _) => "you pay".to_string(),
+                (p, Some((s, _))) if p == s => "they pay".to_string(),
+                (p, _) => {
+                    let w = ctx.obj(*p);
+                    format!("{w} pays")
+                }
+            };
+            let _ = write!(c.tail, " unless {who} {amount}");
+            c
         }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
@@ -2159,6 +2278,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
 
 // ---- statics ----
 
+#[allow(clippy::too_many_lines)] // one arm per modification
 fn mod_text(m: &Mod, plural_form: bool) -> String {
     let v = |s: &str, p: &str| {
         if plural_form {
@@ -2390,13 +2510,30 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {what}")
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+        StaticCond::Attacking => "it's attacking".to_string(),
+        StaticCond::Enchanted => "it's enchanted".to_string(),
+        StaticCond::Equipped => "it's equipped".to_string(),
+        StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
+        StaticCond::YourLife { n, at_least } => format!(
+            "you have {n} or {} life",
+            if *at_least { "more" } else { "less" }
+        ),
     }
 }
 
 /// A static ability's text with its condition: "As long as <cond>, <text>"
 /// or "<text> as long as <cond>." ("During your turn, ..." for the turn).
 fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> String {
-    let cond = static_cond_text(c, card);
+    let mut cond = static_cond_text(c, card);
+    // "as long as it's enchanted" about the subject; "as long as this
+    // creature is enchanted" when the subject is something else.
+    if matches!(
+        c,
+        StaticCond::Attacking | StaticCond::Enchanted | StaticCond::Equipped
+    ) && !body.starts_with("This ")
+    {
+        cond = cond.replace("it's", &format!("this {} is", self_noun(card)));
+    }
     if first {
         let rest = if body.starts_with(&card.name) {
             body.to_string()
@@ -2431,7 +2568,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     Mana::Any => "one mana of any color".to_string(),
                 })
                 .collect();
-            format!("{{T}}: Add {}.", syms.join(" or "))
+            format!("{{T}}: Add {}.", or_list(&syms))
         }
         Ability::SacMana(m) => {
             let what = match m {
@@ -2441,7 +2578,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("{{T}}, Sacrifice this {}: Add {what}.", self_noun(card))
         }
-        Ability::Enchant(t) => match t {
+        Ability::Enchant(t) => match t.base() {
+            Target::UpTo(_) => unreachable!("base"),
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
             Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
@@ -2541,6 +2679,75 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::Labeled { label, ability } => {
             format!("{label} — {}", ability_text(card, ability, lookup))
         }
+        Ability::CostChange {
+            filter,
+            whose,
+            generic,
+        } => {
+            let whose = match whose {
+                Who::You => " you cast",
+                Who::Opponents => " your opponents cast",
+                Who::Any => "",
+            };
+            let more = if *generic > 0 { "more" } else { "less" };
+            format!(
+                "{} {whose} cost {{{}}} {more} to cast.",
+                spells_subject(filter, card),
+                generic.unsigned_abs()
+            )
+            .replace("  ", " ")
+        }
+        Ability::SelfCost { per, times } => {
+            let tail = match times {
+                Num::Count(i) => card
+                    .counts
+                    .get(usize::from(*i))
+                    .map(|c| format!(" {}", count_phrase(&c.expr, card, true)))
+                    .unwrap_or_default(),
+                _ => String::new(),
+            };
+            format!("This spell costs {{{per}}} less to cast{tail}.")
+        }
+        Ability::HandSize { whose, delta } => {
+            let (subject, have) = if *whose == Who::Opponents {
+                ("Each opponent's", "Each opponent has")
+            } else {
+                ("Your", "You have")
+            };
+            match delta {
+                None => format!("{have} no maximum hand size."),
+                Some(n) => format!(
+                    "{subject} maximum hand size is {} by {}.",
+                    if *n > 0 { "increased" } else { "reduced" },
+                    count_words(Num::N(n.unsigned_abs()), "one")
+                ),
+            }
+        }
+        Ability::Protection(f) => {
+            if *f == Filter::default() {
+                "Protection from everything".to_string()
+            } else if f.types.is_empty()
+                && f.subtypes.is_empty()
+                && f.any_types.is_empty()
+                && let Some(cc) = f.color_count
+            {
+                format!(
+                    "Protection from {}",
+                    match cc {
+                        mtg_core::card::ColorCount::Multicolored => "multicolored",
+                        mtg_core::card::ColorCount::Monocolored => "monocolored",
+                        mtg_core::card::ColorCount::Colorless => "colorless",
+                    }
+                )
+            } else {
+                format!("Protection from {}", filter_phrase(f, card, true))
+            }
+        }
+        Ability::Affinity(f) => {
+            let mut g = f.clone();
+            g.who = None;
+            format!("Affinity for {}", filter_phrase(&g, card, true))
+        }
         Ability::EntersAsCopy(f) => {
             let mut s = format!(
                 "You may have this {} enter as a copy of any {} on the battlefield",
@@ -2565,7 +2772,19 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
+    let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
+        && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
+        if alone_pair && *k == Keyword::CantBlockAlone {
+            continue;
+        }
+        if alone_pair && *k == Keyword::CantAttackAlone {
+            lines.push(format!(
+                "This {} can't attack or block alone.",
+                self_noun(card)
+            ));
+            continue;
+        }
         lines.push(keyword_line(card, *k));
     }
     if let Some(k) = &card.kicker {
@@ -2629,10 +2848,13 @@ pub fn normalize(text: &str) -> String {
             continue;
         }
         let parts: Vec<&str> = line.split(", ").collect();
+        // Keywords, or protection from a quality ("Flying, protection
+        // from enchantments").
         let all_keywords = parts.iter().all(|p| {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
+                || (p.to_ascii_lowercase().starts_with("protection from ") && !p.contains(" and "))
         });
         if parts.len() > 1 && all_keywords {
             for p in parts {

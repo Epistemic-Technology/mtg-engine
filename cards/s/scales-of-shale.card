@@ -1,0 +1,7 @@
+card "Scales of Shale" {
+  oracle_id 655a2b78-6a6c-4b9e-b7c0-48d3768978f5
+  cost {2}{B}
+  type Instant
+  affinity for Lizard
+  spell: target creature gets +2/+0 and gains lifelink, indestructible
+}

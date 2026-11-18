@@ -1,0 +1,10 @@
+card "Heritage Reclamation" {
+  oracle_id 09955b4b-6052-4c27-8b63-9548482b3c5c
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: destroy target enchantment
+    mode: exile up to one target card from a graveyard; draw 1 cards
+  }
+}

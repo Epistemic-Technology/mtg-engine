@@ -1,0 +1,6 @@
+card "Abandon Attachments" {
+  oracle_id 82333385-631f-4abf-b159-bb367f1c6fd9
+  cost {1}{U/R}
+  type Instant — Lesson
+  spell: you may discard 1 cards; if you do, draw 2 cards
+}

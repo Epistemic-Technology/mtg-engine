@@ -1,0 +1,7 @@
+card "Kitesail Corsair" {
+  oracle_id 6103f294-f920-4307-af80-d44cc71167fd
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 2/1
+  static this: has flying as long as attacking
+}

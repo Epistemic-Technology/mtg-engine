@@ -1,0 +1,7 @@
+card "Into Thin Air" {
+  oracle_id 06df923f-916e-49f4-960a-7b3fb108c704
+  cost {5}{U}
+  type Instant
+  affinity for artifact
+  spell: return target artifact to hand
+}

@@ -1,0 +1,6 @@
+card "Terashi's Cry" {
+  oracle_id 64212311-9d66-4c25-8cf0-88ae4cac132f
+  cost {3}{W}
+  type Sorcery — Arcane
+  spell: tap up to three target creatures
+}

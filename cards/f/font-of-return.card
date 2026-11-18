@@ -1,0 +1,6 @@
+card "Font of Return" {
+  oracle_id b8805aa6-fa5f-4c70-ad90-8502611bef5a
+  cost {1}{B}
+  type Enchantment
+  activated {3}{B}, sacrifice this: return up to three target creature cards from your graveyard to hand
+}

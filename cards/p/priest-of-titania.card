@@ -1,0 +1,7 @@
+card "Priest of Titania" {
+  oracle_id 3a198a16-17b9-481e-b516-5bc945c7e247
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  activated {T}: add {G} count each Elf on battlefield
+}

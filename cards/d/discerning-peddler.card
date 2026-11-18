@@ -1,0 +1,7 @@
+card "Discerning Peddler" {
+  oracle_id a6584af7-583d-4d89-9b46-d61be8236413
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 2/2
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+}

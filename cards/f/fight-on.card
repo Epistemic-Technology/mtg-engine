@@ -1,0 +1,6 @@
+card "Fight On!" {
+  oracle_id 4ab42daa-8726-4973-947d-1d6c32f0ba61
+  cost {2}{B}
+  type Instant
+  spell: return up to two target creature cards from your graveyard to hand
+}

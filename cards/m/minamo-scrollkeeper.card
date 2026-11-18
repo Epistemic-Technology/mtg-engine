@@ -1,0 +1,8 @@
+card "Minamo Scrollkeeper" {
+  oracle_id 9ad4f876-e923-4a09-8e70-eb826aacf89d
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  keywords defender
+  hand size +1
+}
