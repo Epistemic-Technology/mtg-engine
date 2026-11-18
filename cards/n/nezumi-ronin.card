@@ -1,0 +1,7 @@
+card "Nezumi Ronin" {
+  oracle_id 0f9672ac-f4fc-46e8-9fe5-93b3e66810a4
+  cost {2}{B}
+  type Creature — Rat Samurai
+  pt 3/1
+  bushido 1
+}

@@ -1,0 +1,32 @@
+# Goblin Locksmith: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Goblin Locksmith attacks unblocked and deals damage" {
+  battlefield A: "Goblin Locksmith"
+  turn 1 A: attack "Goblin Locksmith"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Goblin Locksmith"
+}
+
+scenario "creatures without defender can still block Goblin Locksmith" {
+  battlefield A: "Goblin Locksmith"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Goblin Locksmith"
+  turn 1 B: block "Goblin Locksmith" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Goblin Locksmith"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Goblin Locksmith attacking alongside another creature" {
+  battlefield A: "Goblin Locksmith", "Hill Giant"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Goblin Locksmith", "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Goblin Locksmith"
+}

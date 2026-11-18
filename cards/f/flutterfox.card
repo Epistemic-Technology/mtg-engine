@@ -1,0 +1,7 @@
+card "Flutterfox" {
+  oracle_id 58805c22-29cc-4ab2-a95c-b1798eb7a90d
+  cost {1}{W}
+  type Creature — Fox
+  pt 2/2
+  static as long as you control artifact or enchantment, this: has flying
+}

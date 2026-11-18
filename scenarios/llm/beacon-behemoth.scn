@@ -1,0 +1,35 @@
+# Beacon Behemoth: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Beacon Behemoth gives itself vigilance and attacks without tapping" {
+  battlefield A: "Beacon Behemoth", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Beacon Behemoth" targeting "Beacon Behemoth"
+  turn 1 A: attack "Beacon Behemoth"
+  run_to turn 1 postcombat_main
+  assert untapped "Beacon Behemoth"
+  assert life B 15
+}
+
+scenario "Beacon Behemoth's vigilance lasts only until end of turn" {
+  battlefield A: "Beacon Behemoth", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Beacon Behemoth" targeting "Beacon Behemoth"
+  run_to turn 1 postcombat_main
+  assert has "Beacon Behemoth" vigilance
+  run_to turn 2 precombat_main
+  assert has not "Beacon Behemoth" vigilance
+}
+
+scenario "Beacon Behemoth gives vigilance to a creature pumped to power 5" {
+  battlefield A: "Beacon Behemoth", "Grizzly Bears", 2 "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Beacon Behemoth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life B 15
+}

@@ -1,0 +1,8 @@
+card "Ahriman" {
+  oracle_id 37d1d507-25dc-4cd0-b51e-2f1e9b24832c
+  cost {2}{B}
+  type Creature — Eye Horror
+  pt 2/2
+  keywords flying, deathtouch
+  activated {3}, sacrifice other creature or artifact: draw 1 card
+}

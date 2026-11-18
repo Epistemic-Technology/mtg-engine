@@ -1,0 +1,33 @@
+# Geothermal Crevice: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Geothermal Crevice enters tapped" {
+  hand A: "Geothermal Crevice"
+  start turn 1 A precombat_main
+  turn 1 A: play "Geothermal Crevice"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Geothermal Crevice"
+  assert tapped "Geothermal Crevice"
+}
+
+scenario "Geothermal Crevice taps for red without being sacrificed" {
+  battlefield A: "Geothermal Crevice"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Geothermal Crevice"
+  assert tapped "Geothermal Crevice"
+}
+
+scenario "Geothermal Crevice sacrifices for black and green" {
+  battlefield A: "Geothermal Crevice"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Geothermal Crevice"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Geothermal Crevice"
+}

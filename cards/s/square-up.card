@@ -1,0 +1,6 @@
+card "Square Up" {
+  oracle_id 013a465b-7034-45fe-bf62-c3d273131ec5
+  cost {1}{G/U}
+  type Instant
+  spell: target creature has base power and toughness 4/4
+}

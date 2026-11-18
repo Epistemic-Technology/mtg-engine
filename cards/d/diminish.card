@@ -1,0 +1,6 @@
+card "Diminish" {
+  oracle_id 3e554ab4-8179-4d3e-84ba-9a67b51cff7f
+  cost {U}
+  type Instant
+  spell: target creature has base power and toughness 1/1
+}

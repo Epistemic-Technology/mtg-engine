@@ -1,0 +1,7 @@
+card "Mistford River Turtle" {
+  oracle_id c5e9389e-6ee3-48df-89bc-9334544e0a4c
+  cost {3}{U}
+  type Creature — Turtle
+  pt 1/5
+  triggered whenever this attacks: another target attacking non-Human creature can't be blocked
+}

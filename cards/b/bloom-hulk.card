@@ -1,0 +1,7 @@
+card "Bloom Hulk" {
+  oracle_id c99896a8-8b58-4946-8f2d-b4e2562f278a
+  cost {3}{G}
+  type Creature — Plant Elemental
+  pt 4/4
+  triggered when this enters: proliferate
+}

@@ -1,0 +1,47 @@
+# Geth's Verdict: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "target player sacrifices a creature and loses 1 life" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Geth's Verdict"
+  turn 1 A: cast "Geth's Verdict" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert life B 19
+  assert graveyard A contains "Geth's Verdict"
+}
+
+scenario "player with no creatures still loses 1 life" {
+  battlefield A: 2 "Swamp", "Hill Giant"
+  hand A: "Geth's Verdict"
+  turn 1 A: cast "Geth's Verdict" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "only one creature is sacrificed" {
+  battlefield A: 2 "Swamp"
+  battlefield B: 2 "Grizzly Bears"
+  hand A: "Geth's Verdict"
+  turn 1 A: cast "Geth's Verdict" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 1 "Grizzly Bears"
+  assert graveyard B contains 1 "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "caster can target themselves" {
+  battlefield A: 2 "Swamp", "Wind Drake"
+  battlefield B: "Serra Angel"
+  hand A: "Geth's Verdict"
+  turn 1 A: cast "Geth's Verdict" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert life A 19
+  assert battlefield B contains "Serra Angel"
+  assert life B 20
+}

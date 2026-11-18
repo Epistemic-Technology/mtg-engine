@@ -1,0 +1,7 @@
+card "Mnemonic Sphere" {
+  oracle_id 53bfffae-b99e-44bd-8954-6cf236f93f26
+  cost {1}{U}
+  type Artifact
+  activated {1}{U}, sacrifice this: draw 2 cards
+  label "Channel" activated {U}, discard this: draw 1 cards
+}

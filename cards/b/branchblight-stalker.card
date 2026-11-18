@@ -1,0 +1,7 @@
+card "Branchblight Stalker" {
+  oracle_id ae685a9b-4cb8-4a8a-935d-378102431c51
+  cost {1}{G}
+  type Creature — Phyrexian Elf Scout
+  pt 3/1
+  toxic 2
+}

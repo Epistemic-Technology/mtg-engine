@@ -1,0 +1,24 @@
+# Sootstoke Kindler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Sootstoke Kindler has haste and attacks the turn it is cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Sootstoke Kindler"
+  start turn 1 A
+  turn 1 A: cast "Sootstoke Kindler"
+  turn 1 A: attack "Sootstoke Kindler"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Kindler gives a freshly cast red creature haste" {
+  battlefield A: "Sootstoke Kindler", 4 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A
+  turn 1 A: cast "Hill Giant"
+  turn 1 begin_combat A: activate "Sootstoke Kindler" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Sootstoke Kindler"
+}

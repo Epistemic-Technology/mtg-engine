@@ -1,0 +1,40 @@
+# Chandra's Magmutt: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Magmutt pings a player" {
+  battlefield A: "Chandra's Magmutt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra's Magmutt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Chandra's Magmutt"
+}
+
+scenario "Magmutt cannot tap the turn it enters" {
+  hand A: "Chandra's Magmutt"
+  battlefield A: 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chandra's Magmutt"
+  illegal turn 1 postcombat_main A: activate "Chandra's Magmutt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Chandra's Magmutt"
+  assert life B 20
+}
+
+scenario "Magmutt can only ping once while tapped" {
+  battlefield A: "Chandra's Magmutt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Chandra's Magmutt" targeting player B
+  illegal turn 1 postcombat_main A: activate "Chandra's Magmutt" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Magmutt pings at instant speed on the opponent's turn" {
+  battlefield A: "Chandra's Magmutt"
+  start turn 2 B upkeep
+  turn 2 upkeep A: activate "Chandra's Magmutt" targeting player B
+  run_to turn 2 precombat_main
+  assert life B 19
+  assert tapped "Chandra's Magmutt"
+}

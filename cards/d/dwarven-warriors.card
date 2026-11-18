@@ -1,0 +1,7 @@
+card "Dwarven Warriors" {
+  oracle_id cfc553cd-3b4c-47a9-bffb-e5790befb32c
+  cost {2}{R}
+  type Creature — Dwarf Warrior
+  pt 1/1
+  activated {T}: target creature with power 2 or less can't be blocked
+}

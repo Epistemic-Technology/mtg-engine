@@ -1,0 +1,8 @@
+card "Merfolk Pupil" {
+  oracle_id bb244878-6440-4dfe-b96b-c9e18d0abe45
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  triggered when this enters: draw 1 cards then discard 1 cards
+  activated {1}{U}, exile this from graveyard: draw 1 cards then discard 1 cards
+}

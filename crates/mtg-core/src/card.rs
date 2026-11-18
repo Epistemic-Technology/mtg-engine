@@ -248,6 +248,8 @@ pub enum Keyword {
     CantAttackAlone,
     /// "This creature can't block alone."
     CantBlockAlone,
+    /// CR 702.25: a triggered ability; see `CardPool::keyword_trigger`.
+    Flanking,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -304,7 +306,8 @@ impl KeywordSet {
         .with(Keyword::Prowess)
         .with(Keyword::Exalted)
         .with(Keyword::Persist)
-        .with(Keyword::Undying);
+        .with(Keyword::Undying)
+        .with(Keyword::Flanking);
 
     /// The five protection-from-a-color keywords (CR 702.16).
     pub const PROTECTION: KeywordSet = KeywordSet::NONE
@@ -329,7 +332,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 45] = [
+    pub const ALL: [Keyword; 46] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -375,6 +378,7 @@ impl Keyword {
         Keyword::ProtectionFromFilter,
         Keyword::CantAttackAlone,
         Keyword::CantBlockAlone,
+        Keyword::Flanking,
     ];
 
     /// The keyword as Oracle prints it.
@@ -425,6 +429,7 @@ impl Keyword {
             Keyword::ProtectionFromFilter => "protection",
             Keyword::CantAttackAlone => "can't attack alone",
             Keyword::CantBlockAlone => "can't block alone",
+            Keyword::Flanking => "flanking",
         }
     }
 
@@ -1645,6 +1650,33 @@ pub enum Effect {
         of: Recipient,
         except: bool,
     },
+    /// "Each opponent gets a poison counter" (CR 122.1f).
+    AddPoison {
+        count: Num,
+        who: Recipient,
+    },
+    /// Proliferate (CR 701.27): the controller adds one of each kind of
+    /// counter already there to the permanents and players they choose;
+    /// the engine chooses their own permanents' and players' beneficial
+    /// counters and opponents' harmful ones (+1/+1 and loyalty on yours,
+    /// -1/-1 on theirs, poison on opponents).
+    Proliferate,
+    /// The recipient creature explores (CR 701.44): its controller reveals
+    /// the top card of their library; a land goes to their hand, otherwise
+    /// the creature gets a +1/+1 counter and the card may go to the
+    /// graveyard.
+    Explore {
+        what: Recipient,
+    },
+    /// Amass N (CR 701.47): put N +1/+1 counters on an Army the
+    /// controller controls, creating `token` (a 0/0 Army) first if they
+    /// control none.
+    Amass {
+        count: Num,
+        token: CardRef,
+    },
+    /// The source's echo has been dealt with (CR 702.30a).
+    ClearEcho,
 }
 
 impl Effect {
@@ -1668,6 +1700,7 @@ impl Effect {
                 | Effect::SacrificeChosen { .. }
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
+                | Effect::Explore { .. }
         )
     }
 }
@@ -1838,6 +1871,13 @@ pub enum TriggerSpec {
     /// "When ~ becomes the target of a spell or ability" (CR 115.4?; Phantasmal
     /// Image).
     BecomesTarget(TriggerObj),
+    /// "Whenever a creature without flanking blocks this creature": the
+    /// blocker is the triggering object.
+    BlockedBy(ObjFilter),
+    /// Ward (CR 702.21a): "Whenever this permanent becomes the target of a
+    /// spell or ability an opponent controls"; the spell or ability is the
+    /// triggering object.
+    TargetedByOpponent,
 }
 
 impl TriggerSpec {
@@ -1858,11 +1898,12 @@ impl TriggerSpec {
             TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
-            | TriggerSpec::BlocksOrBlocked(_) => WATCH_BLOCK,
+            | TriggerSpec::BlocksOrBlocked(_)
+            | TriggerSpec::BlockedBy(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_) => WATCH_DAMAGE,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. } => WATCH_CAST,
-            TriggerSpec::BecomesTarget(_) => WATCH_TARGETED,
+            TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
         }
     }
 }
@@ -1884,6 +1925,9 @@ pub enum Condition {
     NoSpellsLastTurn,
     /// "if a player cast two or more spells last turn".
     TwoSpellsLastTurn,
+    /// Echo (CR 702.30a): the source came under its controller's control
+    /// since their last upkeep.
+    EchoDue,
 }
 
 /// A triggered ability (CR 603).
@@ -1912,6 +1956,9 @@ pub struct Cost {
     /// "Discard this card" (cycling, CR 702.29): the source leaves the hand
     /// as the cost is paid.
     pub discard_self: bool,
+    /// "Exile this card from your graveyard" (an ability activated from
+    /// the graveyard).
+    pub exile_self: bool,
     /// "Pay N life" (CR 119.4: payable only with at least that much life).
     pub life: u32,
     /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
@@ -1934,6 +1981,7 @@ impl Cost {
         Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
             discard_self: false,
+            exile_self: false,
             life: 0,
             discard: 0,
             discard_filter: None,
@@ -1983,6 +2031,7 @@ impl Cost {
 /// An activated ability (CR 602): "[cost]: [effect]". Uses the stack like a
 /// spell; mana abilities are `AbilityDef::TapForMana` instead (CR 605).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // independent restrictions
 pub struct ActivatedAbility {
     pub cost: Cost,
     pub targets: Vec<TargetSpec>,
@@ -1994,6 +2043,8 @@ pub struct ActivatedAbility {
     /// Activated from the hand rather than the battlefield (cycling, CR
     /// 702.29).
     pub from_hand: bool,
+    /// Activated from the graveyard (unearth, CR 702.84).
+    pub from_graveyard: bool,
     /// The ability's text, for naming the choice.
     pub text: String,
 }
@@ -2083,6 +2134,9 @@ pub enum AbilityDef {
     /// characteristics (CR 702.16); the object also has
     /// `Keyword::ProtectionFromFilter`.
     Protection(ObjFilter),
+    /// Toxic N (CR 702.164): combat damage this deals to a player also
+    /// gives them N poison counters.
+    Toxic(u32),
     /// "You have no maximum hand size" (`delta` None), "Your maximum hand
     /// size is increased by one" (CR 402.2); `whose` from the controller.
     HandSize {
@@ -2112,6 +2166,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -2132,6 +2187,7 @@ impl AbilityDef {
             | AbilityDef::CostChange(_)
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
+            | AbilityDef::Toxic(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -2227,6 +2283,9 @@ pub struct CardDef {
     pub kicker: Option<ManaCost>,
     /// What this spell's own text takes off its cost (affinity).
     pub self_cost: Option<SelfCost>,
+    /// Buyback (CR 702.27): an optional additional cost; if paid, the
+    /// spell goes to its owner's hand as it resolves.
+    pub buyback: Option<ManaCost>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -2423,6 +2482,18 @@ impl CardDef {
         &self.cast_targets
     }
 
+    /// Whether the card does something from its owner's graveyard
+    /// (flashback, unearth): such cards are counted per player
+    /// (`flashback_in_graveyard`) so listing options skips the graveyard
+    /// otherwise.
+    pub fn graveyard_active(&self) -> bool {
+        self.flashback.is_some()
+            || self
+                .abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.from_graveyard))
+    }
+
     pub fn has_static(&self) -> bool {
         self.abilities
             .iter()
@@ -2582,6 +2653,7 @@ pub struct CardPool {
     exalted: AbilityId,
     persist: AbilityId,
     undying: AbilityId,
+    flanking: AbilityId,
 }
 
 impl Default for CardPool {
@@ -2606,6 +2678,7 @@ impl CardPool {
             exalted: AbilityId(0),
             persist: AbilityId(0),
             undying: AbilityId(0),
+            flanking: AbilityId(0),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -2639,6 +2712,21 @@ impl CardPool {
             effects: vec![Effect::Pump {
                 power: 1,
                 toughness: 1,
+                to: Recipient::TriggeringObject,
+            }],
+        }));
+        // CR 702.25a: "Whenever a creature without flanking blocks this
+        // creature, the blocking creature gets -1/-1 until end of turn."
+        pool.flanking = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::BlockedBy(ObjFilter {
+                not_keywords: KeywordSet::NONE.with(Keyword::Flanking),
+                ..ObjFilter::creatures()
+            }),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Pump {
+                power: -1,
+                toughness: -1,
                 to: Recipient::TriggeringObject,
             }],
         }));
@@ -2747,6 +2835,7 @@ impl CardPool {
             Keyword::Exalted => Some(self.exalted),
             Keyword::Persist => Some(self.persist),
             Keyword::Undying => Some(self.undying),
+            Keyword::Flanking => Some(self.flanking),
             _ => None,
         }
     }
@@ -2922,6 +3011,7 @@ impl Builder {
             additional: Cost::default(),
             kicker: None,
             self_cost: None,
+            buyback: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3019,6 +3109,13 @@ impl Builder {
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
         self.0.kicker = Some(cost);
+        self
+    }
+
+    /// Buyback (CR 702.27).
+    #[must_use]
+    pub fn buyback(mut self, cost: ManaCost) -> Self {
+        self.0.buyback = Some(cost);
         self
     }
 

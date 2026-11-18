@@ -1,0 +1,35 @@
+# Tinder Farm: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Tinder Farm enters tapped" {
+  hand A: "Tinder Farm"
+  start turn 1 A precombat_main
+  turn 1 A: play "Tinder Farm"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tinder Farm"
+  assert tapped "Tinder Farm"
+}
+
+scenario "Tinder Farm taps for green without being sacrificed" {
+  battlefield A: "Tinder Farm", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert battlefield A contains "Tinder Farm"
+  assert tapped "Tinder Farm"
+  assert graveyard A contains "Giant Growth"
+}
+
+scenario "Tinder Farm sacrifices for red and white" {
+  battlefield A: "Tinder Farm"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tinder Farm"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Tinder Farm"
+  assert battlefield A lacks "Tinder Farm"
+}

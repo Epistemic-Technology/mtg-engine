@@ -1,0 +1,6 @@
+card "Burning Inquiry" {
+  oracle_id af98156b-3064-4f16-940e-10039241f2b0
+  cost {R}
+  type Sorcery
+  spell: each player draws 3 cards then each player discards 3 cards at random
+}

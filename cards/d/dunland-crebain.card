@@ -1,0 +1,8 @@
+card "Dunland Crebain" {
+  oracle_id 9dd755a5-0bef-4bde-92fa-14ef2a1a1410
+  cost {2}{B}
+  type Creature — Bird Horror
+  pt 1/1
+  keywords flying
+  triggered when this enters: amass Orcs 2
+}

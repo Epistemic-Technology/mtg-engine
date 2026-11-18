@@ -1,0 +1,7 @@
+card "Guise of Fire" {
+  oracle_id 69d4d459-d680-45d9-a3dc-468e4ecce12e
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/-1, has attacks each combat if able
+}

@@ -1,0 +1,7 @@
+card "Elvish Vanguard" {
+  oracle_id 4163aa30-7e3d-424f-b003-f4a300f0071e
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 1/1
+  triggered whenever other Elf enters: put 1 +1/+1 counter on this
+}

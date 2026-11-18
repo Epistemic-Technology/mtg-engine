@@ -1,0 +1,7 @@
+card "The Surgical Bay" {
+  oracle_id db9c155f-b342-41bb-9e1a-50358fb9f40e
+  type Land — Sphere
+  enters tapped
+  mana {U}
+  activated {1}{U}, {T}, sacrifice this: draw 1 cards
+}

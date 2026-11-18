@@ -1,0 +1,7 @@
+card "Suspicious Shambler" {
+  oracle_id ea6ee33f-0cba-4e96-817f-dc89c9064ead
+  cost {3}{B}
+  type Creature — Zombie
+  pt 4/2
+  activated {4}{B}{B}, exile this from graveyard, sorcery: create 2 "2/2 black Zombie creature"
+}

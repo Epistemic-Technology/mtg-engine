@@ -1,0 +1,8 @@
+card "Venerable Kumo" {
+  oracle_id 3910a155-89dc-45fe-98ec-762e8e42f052
+  cost {4}{G}
+  type Creature — Spirit
+  pt 2/3
+  keywords reach
+  soulshift 4
+}

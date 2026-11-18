@@ -1,0 +1,8 @@
+card "Intrepid Provisioner" {
+  oracle_id 7d84873a-c079-4a0f-8878-c62e4bade20a
+  cost {3}{G}
+  type Creature — Human Scout
+  pt 3/3
+  keywords trample
+  triggered when this enters: another target Human you control gets +2/+2
+}

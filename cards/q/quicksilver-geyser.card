@@ -1,0 +1,6 @@
+card "Quicksilver Geyser" {
+  oracle_id 6ee7b00b-b875-48e2-92f2-889c154b0f82
+  cost {4}{U}
+  type Instant
+  spell: return up to 2 target nonland permanents to hand
+}

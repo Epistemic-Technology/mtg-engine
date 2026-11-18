@@ -1,0 +1,8 @@
+card "Blightbelly Rat" {
+  oracle_id b0102259-7a2c-470e-b04b-4a1f615d057c
+  cost {1}{B}
+  type Creature — Phyrexian Rat
+  pt 2/2
+  toxic 1
+  triggered when this dies: proliferate
+}

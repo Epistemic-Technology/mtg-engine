@@ -1,0 +1,8 @@
+card "Vine Kami" {
+  oracle_id e77923b9-7c72-4cc3-96dd-084908593a98
+  cost {6}{G}
+  type Creature — Spirit
+  pt 4/4
+  keywords menace
+  soulshift 6
+}

@@ -1,0 +1,9 @@
+card "Warlord's Fury" {
+  oracle_id 7340199d-60c7-4c27-9a0f-047790273db0
+  cost {R}
+  type Sorcery
+  spell {
+    each creature you control gain first strike
+    draw 1 card
+  }
+}

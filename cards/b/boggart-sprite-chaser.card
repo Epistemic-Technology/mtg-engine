@@ -1,0 +1,7 @@
+card "Boggart Sprite-Chaser" {
+  oracle_id e52d8e5c-59cf-48bb-80f7-f7996c8a81bc
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  static as long as you control Faerie, this: +1/+1, has flying
+}

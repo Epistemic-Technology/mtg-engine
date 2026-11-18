@@ -1,0 +1,8 @@
+card "Queen's Agent" {
+  oracle_id 59104038-28c0-4ebd-9201-d7ae60d79c1c
+  cost {5}{B}
+  type Creature — Vampire Scout
+  pt 3/3
+  keywords lifelink
+  triggered when this enters: this explores
+}

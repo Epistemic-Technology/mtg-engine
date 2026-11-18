@@ -1,0 +1,8 @@
+card "Inspiring Overseer" {
+  oracle_id d646e42b-5635-4798-b633-29c093b66a55
+  cost {2}{W}
+  type Creature — Angel Cleric
+  pt 2/1
+  keywords flying
+  triggered whenever this enters: you gain 1 life and draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Terminal Moraine" {
+  oracle_id 58eaaa8b-45c6-439b-bdd1-5f4e77a75a8c
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: search basic land card to battlefield tapped that card
+}

@@ -1,0 +1,8 @@
+card "Kathari Screecher" {
+  oracle_id fb51bafe-5a70-4910-a42e-ef75d9dd2f0a
+  cost {2}{U}
+  type Creature — Bird Soldier
+  pt 2/2
+  keywords flying
+  unearth {2}{U}
+}

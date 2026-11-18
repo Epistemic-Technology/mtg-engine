@@ -1,0 +1,38 @@
+# Crafty Pathmage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "targeted small creature can't be blocked" {
+  battlefield A: "Crafty Pathmage", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Crafty Pathmage" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Crafty Pathmage"
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "no creature with power 2 or less means no activation" {
+  battlefield A: "Crafty Pathmage", "Hill Giant", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Crafty Pathmage"
+  illegal turn 1 postcombat_main A: activate "Crafty Pathmage" targeting "Hill Giant"
+  run_to turn 1 end
+  assert untapped "Crafty Pathmage"
+  assert power "Crafty Pathmage" 4
+}
+
+scenario "pumping after resolution keeps it unblockable" {
+  battlefield A: "Crafty Pathmage", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  battlefield B: "Serra Angel"
+  turn 1 A: activate "Crafty Pathmage" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Grizzly Bears"
+}

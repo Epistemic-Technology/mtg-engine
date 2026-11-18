@@ -1,0 +1,7 @@
+card "Skirk Outrider" {
+  oracle_id 40e52554-74e9-4d15-9a38-fc945f7d7ab8
+  cost {3}{R}
+  type Creature — Goblin
+  pt 2/2
+  static as long as you control Beast, this: +2/+2, has trample
+}

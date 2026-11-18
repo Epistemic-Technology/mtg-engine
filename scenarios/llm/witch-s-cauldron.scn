@@ -1,0 +1,33 @@
+# Witch's Cauldron: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing a creature gains 1 life and draws a card" {
+  battlefield A: "Witch's Cauldron", 2 "Swamp", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Witch's Cauldron" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A count 1
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Witch's Cauldron"
+}
+
+scenario "cannot activate without a creature to sacrifice" {
+  battlefield A: "Witch's Cauldron", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Witch's Cauldron"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert hand A count 0
+}
+
+scenario "cannot activate without enough mana" {
+  battlefield A: "Witch's Cauldron", "Swamp", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Witch's Cauldron"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 20
+  assert hand A count 0
+}

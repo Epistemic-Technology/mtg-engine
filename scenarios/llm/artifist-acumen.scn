@@ -1,0 +1,54 @@
+# Artifist Acumen: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "first strike lets attacker kill blocker without taking damage" {
+  battlefield A: "Hill Giant", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Artifist Acumen"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Artifist Acumen"
+  turn 2 A: attack "Hill Giant"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}
+
+scenario "draws a card" {
+  battlefield A: "Mountain"
+  hand A: "Artifist Acumen"
+  library A: "Forest", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Artifist Acumen"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+  assert graveyard A contains "Artifist Acumen"
+}
+
+scenario "opponent's creatures do not gain first strike" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Artifist Acumen"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Artifist Acumen"
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "first strike wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Artifist Acumen"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Artifist Acumen"
+  turn 3 B: attack "Grizzly Bears"
+  turn 3 A: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}

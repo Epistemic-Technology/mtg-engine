@@ -1,0 +1,8 @@
+card "Mishra's Juggernaut" {
+  oracle_id fa6fa2f5-eb9b-402e-82f4-e0a8d30df245
+  cost {5}
+  type Artifact Creature — Juggernaut
+  pt 5/3
+  keywords trample, attacks each combat if able
+  unearth {5}{R}
+}

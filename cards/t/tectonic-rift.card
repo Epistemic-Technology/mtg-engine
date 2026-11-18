@@ -1,0 +1,6 @@
+card "Tectonic Rift" {
+  oracle_id b94fcdd2-7e50-439c-b5eb-aaa9ec7dee08
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target land; all creature without flying gain can't block
+}

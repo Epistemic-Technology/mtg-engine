@@ -1,0 +1,7 @@
+card "Mushroom Watchdogs" {
+  oracle_id 82259c84-773d-4670-9b09-d73f5a3be7ea
+  cost {1}{G}
+  type Creature — Dog
+  pt 2/2
+  activated sacrifice Food, sorcery: put 1 +1/+1 counters on this; this gains vigilance
+}

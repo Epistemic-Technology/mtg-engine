@@ -1,0 +1,7 @@
+card "Bog Wreckage" {
+  oracle_id bce32541-3bc4-4553-ace2-784a58f164aa
+  type Land
+  enters tapped
+  mana {B}
+  activated {T}, sacrifice this: add any
+}

@@ -1,0 +1,7 @@
+card "Waterfront District" {
+  oracle_id 18b0b583-d17b-4c67-bc67-c4d9aad155c7
+  type Land
+  enters tapped
+  mana {U} or {B}
+  activated {2}{U}{B}, {T}, sacrifice this: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Lightning Wolf" {
+  oracle_id d50f1ff7-d2bc-4e36-876d-77648f447f5b
+  cost {3}{R}
+  type Creature — Wolf
+  pt 4/3
+  activated {1}{R}, sorcery: this gains first strike
+}

@@ -1,0 +1,7 @@
+card "Irrigation Ditch" {
+  oracle_id e0c3c87b-83e3-4cff-b05f-78a192e2bba4
+  type Land
+  enters tapped
+  mana {W}
+  activated {T}, sacrifice this: add {G}{U}
+}

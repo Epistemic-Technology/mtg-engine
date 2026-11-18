@@ -1,0 +1,8 @@
+card "Goblin Smuggler" {
+  oracle_id eae15f7d-1f6e-4dfc-afea-7698b93cd145
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 2/2
+  keywords haste
+  activated {T}: another target creature with power 2 or less can't be blocked
+}

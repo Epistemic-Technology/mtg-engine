@@ -1,0 +1,8 @@
+card "Pestilent Syphoner" {
+  oracle_id 1b27303b-756e-45b9-956f-6bbbd83d31ab
+  cost {1}{B}
+  type Creature — Phyrexian Insect
+  pt 1/1
+  keywords flying
+  toxic 1
+}

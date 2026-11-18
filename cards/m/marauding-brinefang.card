@@ -1,0 +1,8 @@
+card "Marauding Brinefang" {
+  oracle_id cbbd507e-06da-4b47-befc-61db8c92539e
+  cost {5}{U}{U}
+  type Creature — Dinosaur
+  pt 6/7
+  ward {3}
+  islandcycling {2}
+}

@@ -1,0 +1,9 @@
+card "Bramble Wurm" {
+  oracle_id db4f67a9-6b47-4abe-9367-718da9e0609e
+  cost {6}{G}
+  type Creature — Wurm
+  pt 7/6
+  keywords reach, trample
+  triggered when this enters: you gains 5 life
+  activated {2}{G}, exile this from graveyard: you gains 5 life
+}

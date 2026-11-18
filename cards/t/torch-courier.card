@@ -1,0 +1,8 @@
+card "Torch Courier" {
+  oracle_id 34e2d6eb-aad4-4776-872e-cebab3938aa0
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  keywords haste
+  activated sacrifice this: another target creature gains haste
+}

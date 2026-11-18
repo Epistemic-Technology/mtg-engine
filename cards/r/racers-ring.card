@@ -1,0 +1,7 @@
+card "Racers' Ring" {
+  oracle_id 7e2eb4d5-22a3-43c1-8cf3-e85723da1b61
+  type Land
+  enters tapped
+  mana {R} or {G}
+  activated {2}{R}{G}, {T}, sacrifice this: draw 1 cards
+}

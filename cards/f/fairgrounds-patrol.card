@@ -1,0 +1,7 @@
+card "Fairgrounds Patrol" {
+  oracle_id 8b0689b5-7c68-46b3-a72a-4f97ef1d0a15
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  activated {1}{W}, exile this from graveyard, sorcery: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

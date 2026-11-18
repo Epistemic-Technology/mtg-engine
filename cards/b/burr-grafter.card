@@ -1,0 +1,8 @@
+card "Burr Grafter" {
+  oracle_id eb527a7d-8957-4667-b50d-ed4398418664
+  cost {3}{G}
+  type Creature — Spirit
+  pt 2/2
+  activated sacrifice this: target creature gets +2/+2
+  soulshift 3
+}

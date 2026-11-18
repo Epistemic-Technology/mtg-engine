@@ -1,0 +1,41 @@
+# Kithkin Greatheart: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Kithkin Greatheart without a Giant trades with a blocker" {
+  battlefield A: "Kithkin Greatheart"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Kithkin Greatheart"
+  turn 1 B: block "Kithkin Greatheart" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Kithkin Greatheart"
+}
+
+scenario "Kithkin Greatheart with a Giant gets +1/+1" {
+  battlefield A: "Kithkin Greatheart", "Hill Giant"
+  run_to turn 1 precombat_main
+  assert power "Kithkin Greatheart" 3
+  assert toughness "Kithkin Greatheart" 2
+}
+
+scenario "Kithkin Greatheart with a Giant kills a blocker with first strike and survives" {
+  battlefield A: "Kithkin Greatheart", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Kithkin Greatheart"
+  turn 1 B: block "Kithkin Greatheart" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Kithkin Greatheart"
+  assert damage "Kithkin Greatheart" 0
+}
+
+scenario "Kithkin Greatheart loses the bonus when the Giant dies" {
+  battlefield A: "Kithkin Greatheart", "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert power "Kithkin Greatheart" 2
+  assert toughness "Kithkin Greatheart" 1
+}

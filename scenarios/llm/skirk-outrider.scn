@@ -1,0 +1,42 @@
+# Skirk Outrider: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "without a Beast it is a plain 2/2 without trample" {
+  battlefield A: "Skirk Outrider"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Skirk Outrider" 2
+  assert toughness "Skirk Outrider" 2
+  assert has not "Skirk Outrider" trample
+}
+
+scenario "non-Beast creatures do not turn it on" {
+  battlefield A: "Skirk Outrider", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Skirk Outrider" 2
+  assert toughness "Skirk Outrider" 2
+  assert has not "Skirk Outrider" trample
+}
+
+scenario "blocked without a Beast it trades and deals no excess damage" {
+  battlefield A: "Skirk Outrider"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Skirk Outrider"
+  turn 2 B: block "Skirk Outrider" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Skirk Outrider"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "two toughness without a Beast dies to Shock" {
+  battlefield A: "Skirk Outrider"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Skirk Outrider"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Skirk Outrider"
+}

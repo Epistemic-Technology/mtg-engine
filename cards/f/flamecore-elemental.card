@@ -1,0 +1,7 @@
+card "Flamecore Elemental" {
+  oracle_id ad3a649f-1a79-45c7-b761-9d7a26cdd0c1
+  cost {2}{R}{R}
+  type Creature — Elemental
+  pt 5/4
+  echo {2}{R}{R}
+}

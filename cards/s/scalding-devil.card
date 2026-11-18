@@ -1,0 +1,7 @@
+card "Scalding Devil" {
+  oracle_id 3bb1536f-06cc-433f-aeeb-afd528f9af03
+  cost {1}{R}
+  type Creature — Devil
+  pt 1/1
+  activated {2}{R}: deal 1 damage to target player or planeswalker
+}

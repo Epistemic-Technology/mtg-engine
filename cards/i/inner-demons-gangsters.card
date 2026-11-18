@@ -1,0 +1,7 @@
+card "Inner Demons Gangsters" {
+  oracle_id 40b43763-3fbf-4ecd-8187-5d2c2c9cda82
+  cost {3}{B}
+  type Creature — Human Rogue Villain
+  pt 3/4
+  activated discard 1 card, sorcery: this gets +1/+0 and gains menace
+}

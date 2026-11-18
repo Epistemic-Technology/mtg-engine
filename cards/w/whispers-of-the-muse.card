@@ -1,0 +1,7 @@
+card "Whispers of the Muse" {
+  oracle_id a4a8af4e-8686-45ba-94fd-ccf6cc8adaae
+  cost {U}
+  type Instant
+  buyback {5}
+  spell: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Ronin Cavekeeper" {
+  oracle_id 56551cba-3871-4746-a11f-7ab8aaf46cf6
+  cost {5}{R}
+  type Creature — Human Samurai
+  pt 4/3
+  bushido 2
+}

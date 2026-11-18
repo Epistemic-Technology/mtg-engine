@@ -1,0 +1,8 @@
+card "Viscera Dragger" {
+  oracle_id 77630700-3828-4063-95a7-f6283f0f9da5
+  cost {3}{B}
+  type Creature — Zombie Ogre Warrior
+  pt 3/3
+  cycling {2}
+  unearth {1}{B}
+}

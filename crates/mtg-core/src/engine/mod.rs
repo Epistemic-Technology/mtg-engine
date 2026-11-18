@@ -569,6 +569,18 @@ impl GameState {
                         options: vec![Choice::Accept, Choice::Decline],
                     });
                 }
+                Flow::ChoosingBuyback { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Buyback { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
                 Flow::ChoosingX { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -1092,6 +1104,13 @@ impl GameState {
             (Flow::ChoosingKicker { spell }, Choice::Decline) => {
                 self.flow = self.after_kicker(spell);
             }
+            (Flow::ChoosingBuyback { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_bought_back(true);
+                self.flow = self.after_buyback(spell);
+            }
+            (Flow::ChoosingBuyback { spell }, Choice::Decline) => {
+                self.flow = self.after_buyback(spell);
+            }
             (
                 Flow::Priority,
                 Choice::Activate {
@@ -1257,6 +1276,14 @@ impl GameState {
     }
 
     fn after_kicker(&self, spell: ObjId) -> Flow {
+        if self.buyback_payable(spell) {
+            Flow::ChoosingBuyback { spell }
+        } else {
+            self.after_buyback(spell)
+        }
+    }
+
+    fn after_buyback(&self, spell: ObjId) -> Flow {
         if self.pool.get(self.objects[spell].def).mana_cost.has_x() {
             Flow::ChoosingX { spell }
         } else {

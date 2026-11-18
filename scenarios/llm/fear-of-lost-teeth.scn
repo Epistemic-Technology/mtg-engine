@@ -1,0 +1,42 @@
+# Fear of Lost Teeth: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dies trigger pings a player and gains life" {
+  battlefield A: "Fear of Lost Teeth"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Fear of Lost Teeth"
+  turn 1 A: trigger "Fear of Lost Teeth" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Fear of Lost Teeth"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "dies in combat and finishes off the blocked attacker" {
+  battlefield A: "Fear of Lost Teeth"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Fear of Lost Teeth"
+  turn 2 A: trigger "Fear of Lost Teeth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Fear of Lost Teeth"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 21
+}
+
+scenario "illegal target means no life gain" {
+  battlefield A: "Fear of Lost Teeth"
+  battlefield B: 2 "Mountain", "Grizzly Bears"
+  hand B: "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Fear of Lost Teeth"
+  turn 1 A: trigger "Fear of Lost Teeth" targeting "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Fear of Lost Teeth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Fear of Lost Teeth"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}

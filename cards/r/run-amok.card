@@ -1,0 +1,6 @@
+card "Run Amok" {
+  oracle_id d463de75-8d3c-4077-a2cc-c304a63acc69
+  cost {1}{R}
+  type Instant
+  spell: target attacking creature gets +3/+3 and target 1 gains trample
+}

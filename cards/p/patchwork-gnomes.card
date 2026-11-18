@@ -1,0 +1,7 @@
+card "Patchwork Gnomes" {
+  oracle_id 00ad27a1-9162-408d-ac75-970e45d7e06c
+  cost {3}
+  type Artifact Creature — Gnome
+  pt 2/1
+  activated discard 1 card: regenerate this
+}

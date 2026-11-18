@@ -1,0 +1,8 @@
+card "Spellweaver Eternal" {
+  oracle_id 71f3d3d3-3f82-43f6-b2a9-d21afbdd7739
+  cost {1}{U}
+  type Creature — Zombie Snake Wizard
+  pt 2/1
+  keywords prowess
+  afflict 2
+}

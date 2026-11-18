@@ -1,0 +1,7 @@
+card "Unburied Earthcarver" {
+  oracle_id 75da657e-0e36-4f2a-9b81-b7eba7d8e050
+  cost {1}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  activated {2}, sacrifice other creature: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,35 @@
+# Avatar Enthusiasts: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another Ally entering grows the existing Enthusiasts" {
+  battlefield A: "Avatar Enthusiasts", 3 "Plains"
+  hand A: "Avatar Enthusiasts"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Avatar Enthusiasts"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Avatar Enthusiasts"
+  assert counters oldest A "Avatar Enthusiasts" +1/+1 1
+  assert power oldest A "Avatar Enthusiasts" 3
+  assert power newest A "Avatar Enthusiasts" 2
+}
+
+scenario "a non-Ally creature entering does not trigger" {
+  battlefield A: "Avatar Enthusiasts", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Avatar Enthusiasts" 2
+  assert toughness "Avatar Enthusiasts" 2
+}
+
+scenario "Enthusiasts entering does not trigger itself" {
+  battlefield A: 3 "Plains"
+  hand A: "Avatar Enthusiasts"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Avatar Enthusiasts"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Avatar Enthusiasts"
+  assert power "Avatar Enthusiasts" 2
+}

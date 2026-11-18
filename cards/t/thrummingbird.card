@@ -1,0 +1,8 @@
+card "Thrummingbird" {
+  oracle_id eac94269-4baa-4b8e-a0fd-d6b227d1cde3
+  cost {1}{U}
+  type Creature — Phyrexian Bird Horror
+  pt 1/1
+  keywords flying
+  triggered whenever this deals combat damage to a player: proliferate
+}

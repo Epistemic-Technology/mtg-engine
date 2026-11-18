@@ -1,0 +1,7 @@
+card "Dregscape Zombie" {
+  oracle_id be9d1346-4416-4ade-ae84-7a4121e0bd12
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  unearth {B}
+}

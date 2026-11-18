@@ -1,0 +1,8 @@
+card "Scuttling Death" {
+  oracle_id f9927216-edf2-4ef7-90eb-447b9e08f7b3
+  cost {4}{B}
+  type Creature — Spirit
+  pt 4/2
+  activated sacrifice this: target creature gets -1/-1
+  soulshift 4
+}

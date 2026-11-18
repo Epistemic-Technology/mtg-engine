@@ -1,0 +1,6 @@
+card "Ashes to Ashes" {
+  oracle_id 944a52d9-bb14-43c5-8d05-2afaf023dc9f
+  cost {1}{B}{B}
+  type Sorcery
+  spell: exile 2 target nonartifact creatures; deal 5 damage to you
+}

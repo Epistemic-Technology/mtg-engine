@@ -1,0 +1,43 @@
+# Illusory Wrappings: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature becomes 0/2" {
+  battlefield A: 3 "Island"
+  hand A: "Illusory Wrappings"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Illusory Wrappings" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Illusory Wrappings" to "Hill Giant"
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 2
+}
+
+scenario "pump applies on top of the new base" {
+  battlefield A: "Grizzly Bears", "Forest", "Illusory Wrappings" on "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "shock kills the shrunken creature" {
+  battlefield A: "Mountain", "Illusory Wrappings" on "Hill Giant"
+  hand A: "Shock"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Illusory Wrappings"
+}
+
+scenario "enchanted attacker deals no damage" {
+  battlefield A: "Grizzly Bears", "Illusory Wrappings" on "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

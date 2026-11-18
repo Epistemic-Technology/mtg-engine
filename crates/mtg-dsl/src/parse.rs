@@ -12,8 +12,8 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, BlockRule, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join,
-    Kind, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target,
-    Trigger, TriggerObj,
+    Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond,
+    Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -114,6 +114,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["exalted"], Keyword::Exalted),
     (&["persist"], Keyword::Persist),
     (&["undying"], Keyword::Undying),
+    (&["flanking"], Keyword::Flanking),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a
@@ -835,6 +836,31 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::HandSize { whose, delta })
+            }
+            "bushido" | "soulshift" | "afflict" | "toxic" => {
+                self.pos += 1;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "bushido" => Mechanic::Bushido(n),
+                    "soulshift" => Mechanic::Soulshift(n),
+                    "afflict" => Mechanic::Afflict(n),
+                    _ => Mechanic::Toxic(n),
+                }))
+            }
+            "ward" | "echo" | "unearth" | "buyback" | "outlast"
+                if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
+            {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "ward" => Mechanic::Ward(c),
+                    "echo" => Mechanic::Echo(c),
+                    "unearth" => Mechanic::Unearth(c),
+                    "buyback" => Mechanic::Buyback(c),
+                    _ => Mechanic::Outlast(c),
+                }))
             }
             "affinity" => {
                 self.pos += 1;
@@ -1651,6 +1677,21 @@ impl P {
                     to: subject,
                 })
             }
+            "get" | "gets"
+                if matches!(self.peek(), Some(Tok::Num(_)))
+                    && matches!(self.word_at(1).as_deref(), Some("poison")) =>
+            {
+                let count = self.num()?;
+                self.pos += 1;
+                if !(self.eat_word("counters") || self.eat_word("counter")) {
+                    return self.unexpected("`counters`");
+                }
+                Ok(Effect::AddPoison {
+                    count,
+                    who: subject,
+                })
+            }
+            "explores" => Ok(Effect::Explore { what: subject }),
             "get" | "gets" => match self.next() {
                 Some(Tok::Pt {
                     power,
@@ -1845,6 +1886,16 @@ impl P {
             "pay" => {
                 let (mana, life) = self.pay_amount()?;
                 Ok(Effect::Pay { mana, life })
+            }
+            "proliferate" => Ok(Effect::Proliferate),
+            "amass" => {
+                let kind = self.word()?;
+                let count = self.num()?;
+                Ok(Effect::Amass { kind, count })
+            }
+            "clear" => {
+                self.expect_word("echo")?;
+                Ok(Effect::ClearEcho)
             }
             "sacrifice" => {
                 let what = self.recipient()?;
@@ -2817,6 +2868,9 @@ impl P {
                 {
                     return self.unexpected("`targeted`");
                 }
+                if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
+                    return Ok(Trigger::TargetedByOpponent);
+                }
                 Ok(Trigger::BecomesTarget(obj))
             }
             _ => self.fail(format!("unknown trigger event `{w}`")),
@@ -2832,6 +2886,9 @@ impl P {
         }
         if self.eat_word("kicked") {
             return Ok(Condition::Kicked);
+        }
+        if self.eat_words(&["echo", "due"]) {
+            return Ok(Condition::EchoDue);
         }
         if self.eat_words(&["no", "spells", "were", "cast", "last", "turn"]) {
             return Ok(Condition::NoSpellsLastTurn);
@@ -2890,6 +2947,11 @@ impl P {
                             cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         }
                         cost.order.push(CostItem::Sacrifice);
+                    }
+                    "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {
+                        self.pos += 4;
+                        cost.exile_self = true;
+                        cost.order.push(CostItem::Exile);
                     }
                     "discard" => {
                         self.pos += 1;

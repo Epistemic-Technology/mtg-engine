@@ -1,0 +1,7 @@
+card "Ravaged Highlands" {
+  oracle_id 68919931-b995-4aa0-9d2a-e80eae2f335f
+  type Land
+  enters tapped
+  mana {R}
+  activated {T}, sacrifice this: add any
+}

@@ -1,0 +1,7 @@
+card "Stone Docent" {
+  oracle_id dbb1690a-f6f5-459c-9d7f-cb6541fb6688
+  cost {1}{W}
+  type Creature — Spirit Chimera
+  pt 3/1
+  activated {W}, exile this from graveyard, sorcery: you gains 2 life; surveil 1
+}

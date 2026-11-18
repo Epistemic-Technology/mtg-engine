@@ -1,0 +1,49 @@
+# Diminish: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Diminish sets base power and toughness to 1/1" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Diminish"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diminish" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+  assert graveyard A contains "Diminish"
+}
+
+scenario "Diminish wears off at end of turn" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Diminish"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diminish" targeting "Hill Giant"
+  run_to turn 2 upkeep
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+}
+
+scenario "pump after Diminish still applies" {
+  battlefield A: "Island", "Forest", "Grizzly Bears"
+  hand A: "Diminish", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diminish" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Diminished creature dies to Shock" {
+  battlefield A: "Island", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Diminish", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Diminish" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

@@ -1,0 +1,7 @@
+card "Ghoulcaller's Accomplice" {
+  oracle_id 16616aa2-5490-4fab-9de4-f37ca8c8be08
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  activated {3}{B}, exile this from graveyard, sorcery: create 1 "2/2 black Zombie creature"
+}

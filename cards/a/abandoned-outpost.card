@@ -1,0 +1,7 @@
+card "Abandoned Outpost" {
+  oracle_id 5a70ccfa-d12d-4e62-a1a4-f05cda2fd442
+  type Land
+  enters tapped
+  mana {W}
+  activated {T}, sacrifice this: add any
+}

@@ -1,0 +1,8 @@
+card "Scrapwork Cohort" {
+  oracle_id 149694e6-5cf0-4983-9546-a4bd579b2ade
+  cost {4}
+  type Artifact Creature — Soldier
+  pt 3/1
+  triggered when this enters: create 1 "1/1 colorless Soldier artifact creature"
+  unearth {2}{W}
+}

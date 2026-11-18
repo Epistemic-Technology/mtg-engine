@@ -1,0 +1,7 @@
+card "Mother Bear" {
+  oracle_id fe742976-ef13-4c25-972f-254b1ed436de
+  cost {1}{G}
+  type Creature — Bear
+  pt 2/2
+  activated {3}{G}{G}, exile this from graveyard, sorcery: create 2 "2/2 green Bear creature"
+}

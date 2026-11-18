@@ -1,0 +1,7 @@
+card "Heavy Ballista" {
+  oracle_id b4219836-c802-49e2-9a66-f03ca8f13895
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  activated {T}: deal 2 damage to target attacking or blocking creature
+}

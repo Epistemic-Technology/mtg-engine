@@ -1,0 +1,6 @@
+card "Spread the Sickness" {
+  oracle_id 142af8f1-6d6b-4043-8cc4-6632481972c1
+  cost {4}{B}
+  type Sorcery
+  spell: destroy target creature then proliferate
+}

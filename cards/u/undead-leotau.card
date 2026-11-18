@@ -1,0 +1,8 @@
+card "Undead Leotau" {
+  oracle_id dd7df06c-9434-46ce-893c-80081fbc2df7
+  cost {5}{B}
+  type Creature — Zombie Cat
+  pt 3/4
+  activated {R}: this gets +1/-1
+  unearth {2}{B}
+}

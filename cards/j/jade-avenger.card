@@ -1,0 +1,7 @@
+card "Jade Avenger" {
+  oracle_id 177248b7-f3fd-42f8-b325-2625a2bb28ff
+  cost {1}{G}
+  type Creature — Frog Samurai
+  pt 2/2
+  bushido 2
+}

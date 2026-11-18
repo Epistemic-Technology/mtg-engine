@@ -1,0 +1,46 @@
+# Dreadwaters: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Dreadwaters mills the target player one card per land you control" {
+  battlefield A: 4 "Island"
+  hand A: "Dreadwaters"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreadwaters" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+  assert graveyard B lacks "Forest"
+  assert library B contains "Forest"
+  assert library B contains "Mountain"
+  assert graveyard A contains "Dreadwaters"
+}
+
+scenario "Dreadwaters counts only lands its controller controls" {
+  battlefield A: 4 "Island"
+  battlefield B: 5 "Forest"
+  hand A: "Dreadwaters"
+  library B: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Shock", "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreadwaters" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert graveyard B lacks "Shock"
+  assert library B contains "Shock"
+  assert library B contains "Murder"
+}
+
+scenario "Dreadwaters counts every land type and can target its caster" {
+  battlefield A: 4 "Island", 2 "Mountain"
+  hand A: "Dreadwaters"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Shock", "Murder", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dreadwaters" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Murder"
+  assert graveyard A lacks "Divination"
+  assert library A contains "Divination"
+}

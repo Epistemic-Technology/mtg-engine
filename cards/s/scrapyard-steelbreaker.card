@@ -1,0 +1,7 @@
+card "Scrapyard Steelbreaker" {
+  oracle_id 172e7250-94a4-466f-9438-159174925012
+  cost {3}{R}
+  type Artifact Creature — Human Warrior
+  pt 3/4
+  activated {1}, sacrifice other artifact: this gets +2/+1
+}

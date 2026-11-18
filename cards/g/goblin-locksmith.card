@@ -1,0 +1,7 @@
+card "Goblin Locksmith" {
+  oracle_id d692adcf-8ab5-4208-85d1-c75285a85c59
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 2/1
+  triggered whenever this attacks: each creature with defender can't block
+}

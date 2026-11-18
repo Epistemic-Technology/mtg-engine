@@ -1,0 +1,42 @@
+# Goblin Tunneler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "tunneler makes a small creature unblockable" {
+  battlefield A: "Goblin Tunneler", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Tunneler" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Goblin Tunneler"
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "only the targeted creature is unblockable" {
+  battlefield A: "Goblin Tunneler", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Tunneler" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "pumping after resolution keeps it unblockable" {
+  battlefield A: "Goblin Tunneler", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Tunneler" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

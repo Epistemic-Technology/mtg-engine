@@ -1,0 +1,7 @@
+card "Vengeful Dead" {
+  oracle_id 277c8ee9-0157-4e45-96ad-1b67716955ee
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/2
+  triggered whenever Zombie dies: each opponent loses 1 life
+}

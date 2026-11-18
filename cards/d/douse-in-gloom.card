@@ -1,0 +1,6 @@
+card "Douse in Gloom" {
+  oracle_id 1fd754fd-c053-4638-b379-46d903357b01
+  cost {2}{B}
+  type Instant
+  spell: deal 2 damage to target creature and you gain 2 life
+}

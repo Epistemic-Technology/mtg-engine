@@ -1,0 +1,8 @@
+card "Mothrider Samurai" {
+  oracle_id 38530399-d2c9-4445-92ba-14c5cd438055
+  cost {3}{W}
+  type Creature — Human Samurai
+  pt 2/2
+  keywords flying
+  bushido 1
+}

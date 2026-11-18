@@ -1,0 +1,8 @@
+card "Pillardrop Warden" {
+  oracle_id 6ee2a7ba-a676-4d05-b214-7db52e41afe7
+  cost {3}{R}
+  type Creature — Spirit Dwarf
+  pt 1/5
+  keywords reach
+  activated {2}, {T}, sacrifice this, sorcery: return target instant or sorcery card from your graveyard to hand
+}

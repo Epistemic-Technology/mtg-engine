@@ -1,0 +1,7 @@
+card "Halo Scarab" {
+  oracle_id 1201c146-54af-4668-a544-cde3ece23f2e
+  cost {2}
+  type Artifact Creature — Insect
+  pt 2/1
+  activated {2}, exile this from graveyard: create 1 "Treasure"
+}

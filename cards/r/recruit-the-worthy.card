@@ -1,0 +1,7 @@
+card "Recruit the Worthy" {
+  oracle_id e25e2a3f-4add-4744-b1f8-2e880998a51f
+  cost {W}
+  type Instant
+  buyback {3}
+  spell: create 1 "1/1 white Soldier creature"
+}

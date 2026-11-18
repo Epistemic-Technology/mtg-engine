@@ -1,0 +1,7 @@
+card "Disowned Ancestor" {
+  oracle_id 192603a4-720e-4c53-bee5-4f2826c1ed7f
+  cost {B}
+  type Creature — Spirit Warrior
+  pt 0/4
+  outlast {1}{B}
+}

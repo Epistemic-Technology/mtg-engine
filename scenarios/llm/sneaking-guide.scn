@@ -1,0 +1,24 @@
+# Sneaking Guide: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "targeted small creature can't be blocked" {
+  battlefield A: "Sneaking Guide", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Sneaking Guide" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Sneaking Guide"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "untargeted creature can still be blocked" {
+  battlefield A: "Sneaking Guide", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}

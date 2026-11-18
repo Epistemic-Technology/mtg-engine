@@ -1,0 +1,7 @@
+card "Jack-o'-Lantern" {
+  oracle_id 192b5dd7-f420-4d5b-86d6-66e86fa67f41
+  cost {1}
+  type Artifact
+  activated {1}, {T}, sacrifice this: exile up to one target card from a graveyard; draw 1 cards
+  activated {1}, exile this from graveyard: add any
+}

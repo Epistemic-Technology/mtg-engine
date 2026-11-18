@@ -1,0 +1,7 @@
+card "Hungry Ghoul" {
+  oracle_id 4a7a55a3-568c-4c31-9460-5b94dc0121d8
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/2
+  activated {1}, sacrifice other creature: put 1 +1/+1 counter on this
+}

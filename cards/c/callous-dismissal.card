@@ -1,0 +1,9 @@
+card "Callous Dismissal" {
+  oracle_id 9219b7d5-642d-4470-a7c4-f3e56bfae8c7
+  cost {1}{U}
+  type Sorcery
+  spell {
+    return target nonland permanent to hand
+    amass Zombies 1
+  }
+}

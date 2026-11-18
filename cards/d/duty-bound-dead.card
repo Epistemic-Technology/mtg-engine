@@ -1,0 +1,8 @@
+card "Duty-Bound Dead" {
+  oracle_id 44ee7def-6de3-473a-a0ae-6cac1b00dab4
+  cost {B}
+  type Creature — Skeleton
+  pt 0/2
+  keywords exalted
+  activated {3}{B}: regenerate this
+}

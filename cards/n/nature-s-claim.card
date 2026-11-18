@@ -1,0 +1,6 @@
+card "Nature's Claim" {
+  oracle_id 6d4e558e-9109-4918-a082-fdcbaffd516b
+  cost {G}
+  type Instant
+  spell: destroy target artifact or enchantment; its controller gains 4 life
+}

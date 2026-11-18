@@ -1,0 +1,33 @@
+# Orcish Bloodpainter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice another creature to ping a player" {
+  battlefield A: "Orcish Bloodpainter", "Grizzly Bears"
+  turn 1 A: activate "Orcish Bloodpainter" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Orcish Bloodpainter"
+  assert tapped "Orcish Bloodpainter"
+}
+
+scenario "sacrifice itself to damage a creature" {
+  battlefield A: "Orcish Bloodpainter"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Orcish Bloodpainter" sacrificing "Orcish Bloodpainter" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Orcish Bloodpainter"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "tap cost cannot be paid while summoning sick" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Orcish Bloodpainter"
+  turn 1 A: cast "Orcish Bloodpainter"
+  illegal turn 1 postcombat_main A: activate "Orcish Bloodpainter" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Orcish Bloodpainter"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 20
+}

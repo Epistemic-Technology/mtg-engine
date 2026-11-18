@@ -1,0 +1,8 @@
+card "Wose Pathfinder" {
+  oracle_id eb2ff7f2-b7fd-4984-a4e8-cf57b619c1a5
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 1/1
+  mana any
+  activated {6}{G}, {T}: another target creature gets +3/+3 and gains trample
+}

@@ -1,0 +1,7 @@
+card "Bumbleflower's Sharepot" {
+  oracle_id 6e152529-64b4-472c-8e50-99095af6af99
+  cost {2}
+  type Artifact
+  triggered when this enters: create 1 "Food"
+  activated {5}, {T}, sacrifice this, sorcery: destroy target nonland permanent
+}

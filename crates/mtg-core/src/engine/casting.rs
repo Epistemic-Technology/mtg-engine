@@ -42,6 +42,7 @@ impl GameState {
                             ps.life,
                         )
                         .is_some()
+                        && self.targets_available(p, &ab.targets, Some(*id))
                     {
                         options.push(Choice::Activate {
                             source: *id,
@@ -99,6 +100,31 @@ impl GameState {
         if ps.flashback_in_graveyard > 0 {
             for id in &ps.graveyard {
                 let def = self.pool.get(self.objects[*id].def);
+                // CR 702.84a and friends: abilities activated from the
+                // graveyard (unearth).
+                if def.graveyard_active() {
+                    for a in &def.ability_ids {
+                        if let AbilityDef::Activated(ab) = self.pool.ability(*a)
+                            && ab.from_graveyard
+                            && (!ab.sorcery_speed || sorcery_timing)
+                            && payment_plan_from(
+                                &sources,
+                                &pool,
+                                &ab.cost.mana.requirements(0),
+                                ps.life,
+                            )
+                            .is_some()
+                            && self.targets_available(p, &ab.targets, Some(*id))
+                        {
+                            options.push(Choice::Activate {
+                                source: *id,
+                                ability: *a,
+                                sacrifice: None,
+                                discard: None,
+                            });
+                        }
+                    }
+                }
                 let Some(fb) = &def.flashback else {
                     continue;
                 };
@@ -374,6 +400,22 @@ impl GameState {
         self.payment_plan(o.controller, &req).is_some()
     }
 
+    /// Whether `spell` (being cast) has a buyback cost its caster could pay
+    /// on top of its cost and any kicker (CR 702.27).
+    pub(super) fn buyback_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(b) = &def.buyback else {
+            return false;
+        };
+        if o.cast.flashback() {
+            return false;
+        }
+        let mut req = self.spell_requirements(spell, 0);
+        req.add(&b.requirements(0));
+        self.payment_plan(o.controller, &req).is_some()
+    }
+
     /// The mana a spell being cast costs with X fixed: its mana cost (or
     /// its flashback cost, CR 702.34a) plus its kicker if kicked.
     pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
@@ -387,6 +429,11 @@ impl GameState {
             && let Some(k) = &def.kicker
         {
             req.add(&k.requirements(0));
+        }
+        if o.cast.bought_back()
+            && let Some(b) = &def.buyback
+        {
+            req.add(&b.requirements(0));
         }
         if def.self_cost.is_some() || !self.cost_changers().is_empty() {
             adjust_generic(
@@ -439,7 +486,10 @@ impl GameState {
                 if ab.sorcery_speed && !sorcery_timing {
                     continue;
                 }
-                if ab.from_hand || (ab.once_per_turn && self.activated_once.contains(&(id, *a))) {
+                if ab.from_hand
+                    || ab.from_graveyard
+                    || (ab.once_per_turn && self.activated_once.contains(&(id, *a)))
+                {
                     continue;
                 }
                 // CR 302.6: a creature's {T} needs it to have been controlled
@@ -545,6 +595,7 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
+            echo_due: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -681,6 +732,9 @@ impl GameState {
             self.tap(sa.source);
         }
         self.pay(controller, &ab.cost.mana.requirements(0));
+        if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
+            self.move_object(sa.source, Zone::Exile, false);
+        }
         if ab.cost.discard_self && self.objects[sa.source].zone == Zone::Hand {
             self.discard_card(controller, sa.source);
         }
@@ -1092,6 +1146,9 @@ impl GameState {
                 self.put_onto_battlefield(spell, obj.controller);
             } else if obj.cast.adventure() {
                 self.finish_adventure(spell);
+            } else if obj.cast.bought_back() && !obj.cast.flashback() {
+                // CR 702.27a: to its owner's hand as it resolves.
+                self.move_object(spell, Zone::Hand, false);
             } else {
                 self.leave_stack(spell);
             }
@@ -2092,6 +2149,54 @@ impl GameState {
                     }
                 }
             }
+            Effect::AddPoison { count, who } => {
+                let n = self.eval_num(*count, ctx);
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t
+                        && n > 0
+                    {
+                        self.player_mut(p).poison += n;
+                        self.bump();
+                        self.sba_touch();
+                    }
+                }
+            }
+            Effect::Proliferate => self.proliferate(ctx.controller),
+            Effect::Explore { what } => {
+                for t in self.recipients(ctx, *what) {
+                    if let Target::Object(id) = t {
+                        self.explore(ctx, id);
+                    }
+                }
+            }
+            Effect::Amass { count, token } => {
+                let n = self.eval_num(*count, ctx);
+                let p = ctx.controller;
+                let army = self.pool.subtype_lookup("Army");
+                let mut target = army.and_then(|a| {
+                    self.permanents_of(p).find(|id| {
+                        self.characteristics(*id)
+                            .is_some_and(|c| c.is_creature() && c.has_subtype(a))
+                    })
+                });
+                if target.is_none() {
+                    let new = self.create_token(*token, p);
+                    if self.objects.contains_key(new) {
+                        target = Some(new);
+                        ctx.created = Some(new);
+                    }
+                }
+                if let Some(id) = target {
+                    self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+                }
+            }
+            Effect::ClearEcho => {
+                if let Some(id) = self.current_object(ctx.source)
+                    && let Some(o) = self.objects.get_mut(id)
+                {
+                    o.echo_due = false;
+                }
+            }
             Effect::CreateTokenCopy { of, except } => {
                 let x = except.then(|| {
                     self.objects
@@ -2108,6 +2213,81 @@ impl GameState {
                 }
             }
         }
+    }
+
+    /// Proliferate (CR 701.27) with the choices a player would make: one
+    /// more of each kind of counter on their own permanents (+1/+1,
+    /// loyalty), on opponents' permanents with -1/-1 counters, and on
+    /// opponents with poison counters.
+    fn proliferate(&mut self, p: PlayerId) {
+        let ids: Vec<ObjId> = self.battlefield.clone();
+        for id in ids {
+            let o = &self.objects[id];
+            let mine = o.controller == p;
+            let kinds: SmallVec<[CounterKind; 2]> = o
+                .counters
+                .iter()
+                .filter(|(k, n)| {
+                    *n > 0
+                        && match k {
+                            CounterKind::PlusOnePlusOne | CounterKind::Loyalty => mine,
+                            CounterKind::MinusOneMinusOne => !mine,
+                        }
+                })
+                .map(|(k, _)| *k)
+                .collect();
+            for k in kinds {
+                self.add_counters(id, k, 1);
+            }
+        }
+        let opponents: SmallVec<[PlayerId; 2]> =
+            self.players_in_game().filter(|q| *q != p).collect();
+        for q in opponents {
+            if self.player(q).poison > 0 {
+                self.player_mut(q).poison += 1;
+                self.bump();
+                self.sba_touch();
+            }
+        }
+    }
+
+    /// The creature `id` explores (CR 701.44).
+    fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let p = o.controller;
+        let Some(top) = self.player(p).library.last().copied() else {
+            // CR 701.44b: nothing revealed is a nonland card.
+            self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
+            return;
+        };
+        let land = self.pool.get(self.objects[top].def).is_land();
+        let top_def = self.objects[top].def;
+        self.emit(Event::Revealed {
+            obj: top,
+            def: top_def,
+        });
+        if land {
+            self.move_object(top, Zone::Hand, false);
+            return;
+        }
+        self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
+        let def = self.objects[top].def;
+        let k = self.choose_mid(
+            p,
+            DecisionKind::YouMay { def },
+            vec![Choice::Accept, Choice::Decline],
+        );
+        if k == 0
+            && self
+                .objects
+                .get(top)
+                .is_some_and(|o| o.zone == Zone::Library)
+        {
+            self.move_object(top, Zone::Graveyard, false);
+        }
+        let _ = ctx;
     }
 
     /// Store a replacement or prevention effect until end of turn (CR 614.3,

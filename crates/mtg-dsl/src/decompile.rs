@@ -171,6 +171,8 @@ impl Decompiler<'_> {
                 CoreSacCost::Filter(f) => SacCost::Filter(self.filter(f)),
             }),
             sorcery: false,
+            from_graveyard: false,
+            exile_self: c.exile_self,
             order: Vec::new(),
         }
     }
@@ -411,6 +413,19 @@ impl Decompiler<'_> {
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
             CoreEffect::Rule(k) => Effect::Rule(*k),
+            CoreEffect::AddPoison { count, who } => Effect::AddPoison {
+                count: *count,
+                who: Self::recipient(*who),
+            },
+            CoreEffect::Proliferate => Effect::Proliferate,
+            CoreEffect::Explore { what } => Effect::Explore {
+                what: Self::recipient(*what),
+            },
+            CoreEffect::Amass { count, token } => Effect::Amass {
+                kind: format!("{}s", self.pool.get(*token).name.trim_end_matches(" Army")),
+                count: *count,
+            },
+            CoreEffect::ClearEcho => Effect::ClearEcho,
         }
     }
 
@@ -448,6 +463,10 @@ impl Decompiler<'_> {
                 instant_or_sorcery: *instant_or_sorcery,
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
+            TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::BlockedBy(f) => {
+                Trigger::BecomesBlocked(TriggerObj::Filter(self.filter(f)))
+            }
         }
     }
 
@@ -543,6 +562,7 @@ impl Decompiler<'_> {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
             AbilityDef::HandSize { whose, delta } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,

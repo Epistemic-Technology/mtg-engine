@@ -1,0 +1,7 @@
+card "Bloodpyre Elemental" {
+  oracle_id 7c683855-f32e-42f9-8681-c3335d5eaf79
+  cost {4}{R}
+  type Creature — Elemental
+  pt 4/1
+  activated sacrifice this, sorcery: deal 4 damage to target creature
+}

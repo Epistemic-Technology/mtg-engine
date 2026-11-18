@@ -305,6 +305,22 @@ impl Fmt {
                 };
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
+            Effect::Proliferate => "proliferate".to_string(),
+            Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
+            Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
+            Effect::ClearEcho => "clear echo".to_string(),
+            Effect::AddPoison { count, who } => {
+                let v = if *who == Recipient::You {
+                    "get"
+                } else {
+                    "gets"
+                };
+                format!(
+                    "{} {v} {} poison counters",
+                    self.recipient(*who, t),
+                    num(*count)
+                )
+            }
             Effect::LoseLife { amount, who } => {
                 let v = if *who == Recipient::You {
                     "lose"
@@ -921,6 +937,7 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
             format!("whenever {who} {what}")
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
+        Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
     }
 }
 
@@ -956,6 +973,11 @@ fn cost_text(c: &Cost) -> String {
                 Some(SacCost::Filter(f)) => parts.push(format!("sacrifice {}", filter(f))),
                 None => {}
             },
+            CostItem::Exile => {
+                if c.exile_self {
+                    parts.push("exile this from graveyard".to_string());
+                }
+            }
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());
@@ -1234,6 +1256,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::NoCreatures) => {
                     head.push_str(" if no creatures are on the battlefield");
                 }
+                Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
                     head.push_str(" if no spells were cast last turn");
@@ -1357,6 +1380,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Affinity(f) => {
             let _ = writeln!(out, "{indent}affinity for {}", filter(f));
+        }
+        Ability::Mechanic(m) => {
+            let text = match m {
+                crate::ast::Mechanic::Bushido(n) => format!("bushido {n}"),
+                crate::ast::Mechanic::Soulshift(n) => format!("soulshift {n}"),
+                crate::ast::Mechanic::Afflict(n) => format!("afflict {n}"),
+                crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
+                crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
+                crate::ast::Mechanic::Echo(c) => format!("echo {c}"),
+                crate::ast::Mechanic::Unearth(c) => format!("unearth {c}"),
+                crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),
+                crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
+            };
+            let _ = writeln!(out, "{indent}{text}");
         }
         Ability::HandSize { whose, delta } => {
             let who = if *whose == Who::Opponents {

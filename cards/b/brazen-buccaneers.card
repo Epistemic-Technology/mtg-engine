@@ -1,0 +1,8 @@
+card "Brazen Buccaneers" {
+  oracle_id c8afa4b5-01be-400a-836f-aa27e1ae1346
+  cost {3}{R}
+  type Creature — Human Pirate
+  pt 2/2
+  keywords haste
+  triggered when this enters: this explores
+}

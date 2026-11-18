@@ -1,0 +1,7 @@
+card "Captivating Cave" {
+  oracle_id 4c77767a-8133-43bc-b7a5-09a73259d354
+  type Land — Cave
+  mana {C}
+  activated {1}, {T}: add any
+  activated {4}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target creature
+}

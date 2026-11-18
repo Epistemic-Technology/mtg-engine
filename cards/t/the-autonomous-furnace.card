@@ -1,0 +1,7 @@
+card "The Autonomous Furnace" {
+  oracle_id e2dd05d5-312e-47f1-873e-c0741ee6ef4a
+  type Land — Sphere
+  enters tapped
+  mana {R}
+  activated {1}{R}, {T}, sacrifice this: draw 1 cards
+}

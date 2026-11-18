@@ -1,0 +1,8 @@
+card "Toadstool Admirer" {
+  oracle_id 77b48b3c-c780-4c5b-90e6-33c5fd940c16
+  cost {G}
+  type Creature — Ouphe
+  pt 1/1
+  ward {2}
+  activated {3}{G}: put 1 +1/+1 counters on this
+}

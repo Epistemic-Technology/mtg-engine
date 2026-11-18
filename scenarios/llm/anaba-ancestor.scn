@@ -1,0 +1,32 @@
+# Anaba Ancestor: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Anaba Ancestor pumps another Minotaur until end of turn" {
+  battlefield A: "Anaba Ancestor", "Anaba Ancestor"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Anaba Ancestor" targeting newest A "Anaba Ancestor"
+  run_to turn 1 postcombat_main
+  assert power newest A "Anaba Ancestor" 2
+  assert toughness newest A "Anaba Ancestor" 2
+  assert power oldest A "Anaba Ancestor" 1
+  run_to turn 2 precombat_main
+  assert power newest A "Anaba Ancestor" 1
+}
+
+scenario "Anaba Ancestor cannot target a non-Minotaur creature" {
+  battlefield A: "Anaba Ancestor", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Anaba Ancestor" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert untapped "Anaba Ancestor"
+}
+
+scenario "Anaba Ancestor cannot target itself" {
+  battlefield A: "Anaba Ancestor"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Anaba Ancestor" targeting "Anaba Ancestor"
+  run_to turn 1 postcombat_main
+  assert power "Anaba Ancestor" 1
+  assert untapped "Anaba Ancestor"
+}

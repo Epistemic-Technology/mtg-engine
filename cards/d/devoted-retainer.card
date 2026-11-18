@@ -1,0 +1,7 @@
+card "Devoted Retainer" {
+  oracle_id 54970935-b3d3-4f65-a262-c4975f2787e5
+  cost {W}
+  type Creature — Human Samurai
+  pt 1/1
+  bushido 1
+}

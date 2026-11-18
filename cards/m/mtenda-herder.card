@@ -1,0 +1,7 @@
+card "Mtenda Herder" {
+  oracle_id 0edf5bac-36a9-4f35-afd1-73f7e1aab51b
+  cost {W}
+  type Creature — Human Scout
+  pt 1/1
+  keywords flanking
+}

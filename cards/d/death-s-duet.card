@@ -1,0 +1,6 @@
+card "Death's Duet" {
+  oracle_id 28d24add-da3a-4697-8fd2-5106c9225c0e
+  cost {2}{B}
+  type Sorcery
+  spell: return 2 target creature cards from your graveyard to hand
+}

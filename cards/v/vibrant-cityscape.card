@@ -1,0 +1,5 @@
+card "Vibrant Cityscape" {
+  oracle_id 6a7f3e1f-6798-4644-b64c-7765f81f0938
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped
+}

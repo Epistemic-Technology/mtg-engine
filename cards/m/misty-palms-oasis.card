@@ -1,0 +1,7 @@
+card "Misty Palms Oasis" {
+  oracle_id dfd2c57a-4557-4df1-8f6f-da2cbd317f12
+  type Land
+  enters tapped
+  mana {W} or {B}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

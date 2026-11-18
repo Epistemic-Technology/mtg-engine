@@ -1,0 +1,7 @@
+card "Mind Games" {
+  oracle_id ea43372f-b0a7-4d1b-be3e-a4a738b06d59
+  cost {U}
+  type Instant
+  buyback {2}{U}
+  spell: tap target artifact, creature, or land
+}

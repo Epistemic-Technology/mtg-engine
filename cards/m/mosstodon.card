@@ -1,0 +1,7 @@
+card "Mosstodon" {
+  oracle_id a41b610e-125d-4921-81f9-6391f9214d12
+  cost {4}{G}
+  type Creature — Plant Elephant
+  pt 5/3
+  activated {1}: target creature with power 5 or greater gains trample
+}

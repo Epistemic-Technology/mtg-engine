@@ -1,0 +1,7 @@
+card "Tomakul Honor Guard" {
+  oracle_id b68cf4e6-205e-40b6-b28b-f4b7d8af7017
+  cost {1}{G}
+  type Creature — Human Soldier
+  pt 3/1
+  ward {2}
+}

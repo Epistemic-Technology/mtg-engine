@@ -1,0 +1,9 @@
+card "Prologue to Phyresis" {
+  oracle_id 3f661b58-e8ca-412c-bdac-af151162de12
+  cost {1}{U}
+  type Instant
+  spell {
+    each opponent gets 1 poison counters
+    draw 1 cards
+  }
+}

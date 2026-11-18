@@ -1,0 +1,7 @@
+card "Seafloor Debris" {
+  oracle_id eef64810-4187-40c1-8e59-1cb8773ebea3
+  type Land
+  enters tapped
+  mana {U}
+  activated {T}, sacrifice this: add any
+}

@@ -1,0 +1,8 @@
+card "Greater Tanuki" {
+  oracle_id b2d19232-9a80-4ea2-9aa7-c47b4719106c
+  cost {4}{G}{G}
+  type Enchantment Creature — Dog
+  pt 6/5
+  keywords trample
+  label "Channel" activated {2}{G}, discard this: search basic land card to battlefield tapped
+}

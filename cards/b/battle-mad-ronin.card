@@ -1,0 +1,8 @@
+card "Battle-Mad Ronin" {
+  oracle_id 39a7c52d-0b89-47c1-a376-5004c94c2e0f
+  cost {1}{R}
+  type Creature — Human Samurai
+  pt 1/1
+  bushido 2
+  keyword attacks each combat if able
+}

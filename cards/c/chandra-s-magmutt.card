@@ -1,0 +1,7 @@
+card "Chandra's Magmutt" {
+  oracle_id a2c4537e-70a6-416d-9e8b-f549ad535147
+  cost {1}{R}
+  type Creature — Elemental Dog
+  pt 2/2
+  activated {T}: deal 1 damage to target player or planeswalker
+}

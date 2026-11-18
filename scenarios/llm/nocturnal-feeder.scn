@@ -1,0 +1,39 @@
+# Nocturnal Feeder: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dies to Lightning Bolt: opponent loses 2, controller gains 2" {
+  battlefield A: "Nocturnal Feeder"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Nocturnal Feeder"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Nocturnal Feeder"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "flying: ground creature cannot block it" {
+  battlefield A: "Nocturnal Feeder"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nocturnal Feeder"
+  illegal turn 1 B: block "Nocturnal Feeder" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+  assert battlefield A contains "Nocturnal Feeder"
+}
+
+scenario "dies in combat to a flying blocker and drains" {
+  battlefield A: "Nocturnal Feeder"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Nocturnal Feeder"
+  turn 1 B: block "Nocturnal Feeder" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Nocturnal Feeder"
+  assert graveyard B contains "Wind Drake"
+  assert life A 22
+  assert life B 18
+}

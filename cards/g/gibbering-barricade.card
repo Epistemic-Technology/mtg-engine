@@ -1,0 +1,8 @@
+card "Gibbering Barricade" {
+  oracle_id c6106021-08ae-49c8-b32c-fdc7397522e7
+  cost {2}{B}
+  type Creature — Nightmare Wall
+  pt 2/4
+  keywords defender
+  activated {2}{B}, sacrifice creature: you gain 1 life and draw 1 card
+}

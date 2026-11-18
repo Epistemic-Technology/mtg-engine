@@ -1,0 +1,6 @@
+card "Ideas Unbound" {
+  oracle_id 6b4d34bc-fa64-4c42-90e0-190671a5b988
+  cost {U}{U}
+  type Sorcery — Arcane
+  spell: draw 3 cards; delayed this: discard 3 cards at beginning of the next end step
+}

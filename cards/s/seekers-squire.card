@@ -1,0 +1,7 @@
+card "Seekers' Squire" {
+  oracle_id a494cbe7-a4a5-4657-9f68-3811fe56a17e
+  cost {1}{B}
+  type Creature — Human Scout
+  pt 1/2
+  triggered when this enters: this explores
+}

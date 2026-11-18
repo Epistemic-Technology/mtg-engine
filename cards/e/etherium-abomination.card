@@ -1,0 +1,7 @@
+card "Etherium Abomination" {
+  oracle_id e1135564-ca93-4c5b-8686-cafdbaf0205e
+  cost {3}{U}{B}
+  type Artifact Creature — Horror
+  pt 4/3
+  unearth {1}{U}{B}
+}

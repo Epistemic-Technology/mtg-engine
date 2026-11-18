@@ -1,0 +1,7 @@
+card "Pathfinding Axejaw" {
+  oracle_id 54452df0-560c-4561-9dd2-3903ae49c91b
+  cost {3}{G}
+  type Creature — Dinosaur
+  pt 4/3
+  triggered when this enters: this explores
+}

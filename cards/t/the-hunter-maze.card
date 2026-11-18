@@ -1,0 +1,7 @@
+card "The Hunter Maze" {
+  oracle_id b0ea4975-a944-4585-8711-60f203cffa4a
+  type Land — Sphere
+  enters tapped
+  mana {G}
+  activated {1}{G}, {T}, sacrifice this: draw 1 cards
+}

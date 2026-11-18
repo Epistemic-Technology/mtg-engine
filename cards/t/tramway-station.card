@@ -1,0 +1,7 @@
+card "Tramway Station" {
+  oracle_id e90e519d-023e-4d19-85ad-9972a76df3ba
+  type Land
+  enters tapped
+  mana {B} or {R}
+  activated {2}{B}{R}, {T}, sacrifice this: draw 1 cards
+}

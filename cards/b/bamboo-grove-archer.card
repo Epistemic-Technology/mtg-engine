@@ -1,0 +1,8 @@
+card "Bamboo Grove Archer" {
+  oracle_id 657f6318-aa09-46f1-ab69-896b17a48950
+  cost {1}{G}
+  type Enchantment Creature — Snake Archer
+  pt 3/3
+  keywords defender, reach
+  label "Channel" activated {4}{G}, discard this: destroy target creature with flying
+}

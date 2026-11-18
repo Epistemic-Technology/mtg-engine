@@ -1,0 +1,6 @@
+card "Consume Strength" {
+  oracle_id 53fd9fb1-c28f-4d73-bf98-94cdab418f21
+  cost {1}{B}{G}
+  type Instant
+  spell: target creature gets +2/+2; another target creature gets -2/-2
+}

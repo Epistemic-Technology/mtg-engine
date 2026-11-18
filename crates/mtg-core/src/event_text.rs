@@ -60,6 +60,7 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("{} reveals their hand.", who(*player, viewer))
         }
         Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
+        Event::Revealed { def, .. } => format!("{} is revealed.", state.pool.get(*def).name),
         Event::Draw { player, card } => {
             if *player == viewer {
                 format!("You draw {}.", obj(state, *card))

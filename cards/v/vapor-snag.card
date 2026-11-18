@@ -1,0 +1,6 @@
+card "Vapor Snag" {
+  oracle_id a1408bae-ed5f-4837-a1a7-438dc30a2786
+  cost {U}
+  type Instant
+  spell: return target creature to hand; its controller loses 1 life
+}

@@ -1,0 +1,8 @@
+card "Aven Eternal" {
+  oracle_id ba7aad10-6897-4e85-a976-1bf9282de5de
+  cost {2}{U}
+  type Creature — Zombie Bird Warrior
+  pt 2/2
+  keywords flying
+  triggered when this enters: amass Zombies 1
+}

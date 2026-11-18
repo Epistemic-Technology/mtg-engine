@@ -1,0 +1,47 @@
+# Douse in Gloom: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Douse in Gloom kills a 2-toughness creature and gains 2 life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Douse in Gloom"
+  turn 1 A: cast "Douse in Gloom" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Douse in Gloom"
+  assert life A 22
+  assert life B 20
+}
+
+scenario "Douse in Gloom marks damage on a larger creature and still gains life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Douse in Gloom"
+  turn 1 A: cast "Douse in Gloom" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert life A 22
+}
+
+scenario "Giant Growth in response saves the creature but life is still gained" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Douse in Gloom"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Douse in Gloom" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Douse in Gloom"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert life A 22
+}
+
+scenario "Douse in Gloom cannot target a player" {
+  battlefield A: 3 "Swamp"
+  hand A: "Douse in Gloom"
+  illegal turn 1 A: cast "Douse in Gloom" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life B 20
+}

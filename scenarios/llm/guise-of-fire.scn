@@ -1,0 +1,40 @@
+# Guise of Fire: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Guise of Fire gives +1/-1" {
+  battlefield A: "Grizzly Bears", "Guise of Fire" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 1
+}
+
+scenario "Guise of Fire cast on a creature" {
+  battlefield A: "Mountain", "Hill Giant"
+  hand A: "Guise of Fire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Guise of Fire" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert attached "Guise of Fire" to "Hill Giant"
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 2
+}
+
+scenario "enchanted creature attacks each combat if able" {
+  battlefield A: "Grizzly Bears", "Guise of Fire" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "enchanted creature dies to Shock with lowered toughness" {
+  battlefield A: "Hill Giant", "Guise of Fire" on "Hill Giant"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Guise of Fire"
+}

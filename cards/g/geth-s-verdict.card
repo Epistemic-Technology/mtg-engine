@@ -1,0 +1,6 @@
+card "Geth's Verdict" {
+  oracle_id 0f575f18-4606-4b85-9a90-07f8d8d46d06
+  cost {B}{B}
+  type Instant
+  spell: target player sacrifices 1 creature and loses 1 life
+}

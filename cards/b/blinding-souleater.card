@@ -1,0 +1,7 @@
+card "Blinding Souleater" {
+  oracle_id f5f330a5-14a0-4bfe-ba46-4616692b7bd3
+  cost {3}
+  type Artifact Creature — Phyrexian Cleric
+  pt 1/3
+  activated {W/P}, {T}: tap target creature
+}

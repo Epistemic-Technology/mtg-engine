@@ -1,0 +1,8 @@
+card "Twisted Abomination" {
+  oracle_id 139af10d-a3e5-4ade-b876-87324e6c8017
+  cost {5}{B}
+  type Creature — Zombie Mutant
+  pt 5/3
+  activated {B}: regenerate this
+  swampcycling {2}
+}

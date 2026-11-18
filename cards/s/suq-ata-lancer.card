@@ -1,0 +1,7 @@
+card "Suq'Ata Lancer" {
+  oracle_id f348b326-8a73-4df9-8faf-e271a36ce373
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords haste, flanking
+}

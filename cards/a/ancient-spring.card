@@ -1,0 +1,7 @@
+card "Ancient Spring" {
+  oracle_id 2160849a-184f-4a49-8931-fd021e16f7cb
+  type Land
+  enters tapped
+  mana {U}
+  activated {T}, sacrifice this: add {W}{B}
+}

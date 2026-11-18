@@ -1,0 +1,160 @@
+# M5 slice 10: keyword abilities with a parameter (bushido, flanking,
+# soulshift, ward, echo, unearth, buyback, outlast, toxic, afflict) and
+# keyword actions (proliferate, explore, amass).
+
+scenario "bushido: Battle-Mad Ronin gets +2/+2 when blocked" {
+  battlefield A: "Battle-Mad Ronin"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Battle-Mad Ronin"
+  turn 1 B: block "Battle-Mad Ronin" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Battle-Mad Ronin"
+}
+
+scenario "flanking: a blocker without flanking gets -1/-1" {
+  battlefield A: "Burning Shield Askari"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Burning Shield Askari"
+  turn 1 B: block "Burning Shield Askari" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Burning Shield Askari"
+}
+
+scenario "soulshift: Crawling Filth returns a Spirit from the graveyard" {
+  battlefield A: "Crawling Filth", 2 "Mountain"
+  graveyard A: "Kami of Old Stone"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Crawling Filth"
+  turn 1 A: trigger "Crawling Filth" targeting "Kami of Old Stone"
+  turn 1 A: accept "Crawling Filth"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Kami of Old Stone"
+}
+
+scenario "ward: the opponent's spell is countered unless they pay" {
+  battlefield A: "Mountain"
+  battlefield B: "Marauding Brinefang"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Marauding Brinefang"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert damage "Marauding Brinefang" 0
+}
+
+scenario "ward: paid, the spell resolves" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Marauding Brinefang"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Marauding Brinefang"
+  run_to turn 1 postcombat_main
+  assert damage "Marauding Brinefang" 3
+}
+
+scenario "echo: paid at the first upkeep, not again" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Acridian"
+  library A: 3 "Forest"
+  turn 1 A: cast "Acridian"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Acridian"
+  assert tapped oldest "Forest"
+  assert tapped newest "Forest"
+  run_to turn 5 precombat_main
+  assert battlefield A contains "Acridian"
+  assert untapped oldest "Forest"
+}
+
+scenario "unearth: Dregscape Zombie returns with haste, exiled at end of turn" {
+  battlefield A: "Swamp"
+  graveyard A: "Dregscape Zombie"
+  turn 1 A: activate "Dregscape Zombie"
+  turn 1 A: attack "Dregscape Zombie"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 upkeep
+  assert exile A contains "Dregscape Zombie"
+}
+
+scenario "buyback: Capsize returns to its owner's hand" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Capsize"
+  turn 1 A: cast "Capsize" kicked targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Capsize"
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "buyback: not paid, to the graveyard" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Capsize"
+  turn 1 A: cast "Capsize" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Capsize"
+}
+
+scenario "outlast: a +1/+1 counter as a sorcery" {
+  battlefield A: "Salt Road Patrol", "Plains", "Plains"
+  turn 1 A: activate "Salt Road Patrol"
+  run_to turn 1 postcombat_main
+  assert power "Salt Road Patrol" 3
+}
+
+scenario "toxic: combat damage to a player also gives poison" {
+  battlefield A: "Blightbelly Rat"
+  turn 1 A: attack "Blightbelly Rat"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert poison B 1
+}
+
+scenario "afflict: becoming blocked costs the defender life" {
+  battlefield A: "Khenra Eternal"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Khenra Eternal"
+  turn 1 B: block "Khenra Eternal" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "proliferate: one more counter on your permanents and the opponent's poison" {
+  poison B: 2
+  battlefield A: "Salt Road Patrol", 2 "Plains", 4 "Forest"
+  hand A: "Bloom Hulk"
+  turn 1 A: activate "Salt Road Patrol"
+  turn 1 A: cast "Bloom Hulk"
+  run_to turn 1 postcombat_main
+  assert power "Salt Road Patrol" 4
+  assert poison B 3
+}
+
+scenario "explore: a land revealed goes to the hand" {
+  battlefield A: 4 "Swamp"
+  hand A: "Dire Fleet Interloper"
+  library A: "Island"
+  turn 1 A: cast "Dire Fleet Interloper"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+  assert power "Dire Fleet Interloper" 2
+}
+
+scenario "explore: a nonland gives a +1/+1 counter" {
+  battlefield A: 4 "Swamp"
+  hand A: "Dire Fleet Interloper"
+  library A: "Grizzly Bears"
+  turn 1 A: cast "Dire Fleet Interloper"
+  run_to turn 1 postcombat_main
+  assert power "Dire Fleet Interloper" 3
+}
+
+scenario "amass: a 0/0 Zombie Army with a counter" {
+  battlefield A: 3 "Island"
+  hand A: "Aven Eternal"
+  turn 1 A: cast "Aven Eternal"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Army"
+  assert power "Zombie Army" 1
+}

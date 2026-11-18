@@ -1,0 +1,32 @@
+# Union of the Third Path: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "draw then gain life equal to hand size" {
+  battlefield A: 3 "Plains"
+  hand A: "Union of the Third Path", "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Union of the Third Path"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert life A 23
+  assert graveyard A contains "Union of the Third Path"
+}
+
+scenario "with an otherwise empty hand, the drawn card counts" {
+  battlefield A: 3 "Plains"
+  hand A: "Union of the Third Path"
+  turn 1 A: cast "Union of the Third Path"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 21
+}
+
+scenario "cast at instant speed on the opponent's turn" {
+  battlefield A: 3 "Plains"
+  hand A: "Union of the Third Path", "Shock"
+  start turn 2 B
+  turn 2 end A: cast "Union of the Third Path"
+  run_to turn 2 cleanup
+  assert hand A count 2
+  assert life A 22
+  assert graveyard A contains "Union of the Third Path"
+}

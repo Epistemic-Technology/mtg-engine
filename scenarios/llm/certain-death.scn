@@ -1,0 +1,41 @@
+# Certain Death: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Certain Death destroys an opponent's creature and drains 2" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Certain Death"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Certain Death" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Certain Death"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Certain Death on your own creature: you lose 2 and gain 2" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  hand A: "Certain Death"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Certain Death" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "Certain Death with an illegal target changes no life totals" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears", "Mountain"
+  hand A: "Certain Death"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Certain Death" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Certain Death"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Certain Death"
+  assert life A 20
+  assert life B 20
+}

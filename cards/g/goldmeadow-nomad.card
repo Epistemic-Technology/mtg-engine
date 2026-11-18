@@ -1,0 +1,7 @@
+card "Goldmeadow Nomad" {
+  oracle_id 79dfe2eb-82b9-4dae-95c8-58fdf9006bc7
+  cost {W}
+  type Creature — Kithkin Scout
+  pt 1/2
+  activated {W}, exile this from graveyard, sorcery: create 1 "1/1 green and white Kithkin creature"
+}

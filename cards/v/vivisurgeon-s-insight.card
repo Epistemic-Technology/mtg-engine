@@ -1,0 +1,6 @@
+card "Vivisurgeon's Insight" {
+  oracle_id cf6ff089-63d7-4a98-b95d-2837c017a866
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 3 cards; proliferate
+}

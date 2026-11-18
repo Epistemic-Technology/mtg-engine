@@ -1,0 +1,8 @@
+card "Sunrise Seeker" {
+  oracle_id db05f30f-2866-48ed-8a7d-264d94c0257a
+  cost {4}{W}
+  type Creature — Human Scout
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: this explores
+}

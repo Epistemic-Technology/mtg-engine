@@ -1,0 +1,8 @@
+card "River Herald Guide" {
+  oracle_id b9687fef-4cb2-4bf1-91ad-49dada07f4d6
+  cost {2}{G}
+  type Creature — Merfolk Scout
+  pt 3/1
+  keywords vigilance
+  triggered when this enters: this explores
+}

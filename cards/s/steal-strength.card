@@ -1,0 +1,6 @@
+card "Steal Strength" {
+  oracle_id e67434e6-5408-416a-be19-64291fca8e3e
+  cost {1}{B}
+  type Instant
+  spell: target creature gets +1/+1; another target creature gets -1/-1
+}

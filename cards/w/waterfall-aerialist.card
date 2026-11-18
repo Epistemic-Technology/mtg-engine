@@ -1,0 +1,8 @@
+card "Waterfall Aerialist" {
+  oracle_id 736026b2-84d4-4452-ae0d-5d1b0af0a400
+  cost {3}{U}
+  type Creature — Djinn Wizard
+  pt 3/1
+  keywords flying
+  ward {2}
+}

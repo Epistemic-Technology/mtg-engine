@@ -1,0 +1,7 @@
+card "Capsize" {
+  oracle_id 77637eff-2963-4402-88f3-ca346f762fc8
+  cost {1}{U}{U}
+  type Instant
+  buyback {3}
+  spell: return target permanent to hand
+}

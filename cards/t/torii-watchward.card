@@ -1,0 +1,8 @@
+card "Torii Watchward" {
+  oracle_id 8b52c2ed-c1a1-4abc-a33b-223c3d0e229d
+  cost {4}{W}
+  type Creature — Spirit
+  pt 3/3
+  keywords vigilance
+  soulshift 4
+}

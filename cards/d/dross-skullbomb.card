@@ -1,0 +1,7 @@
+card "Dross Skullbomb" {
+  oracle_id 0c43e9b4-013a-47ee-9805-f41afb0a3bde
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 cards
+  activated {2}{B}, sacrifice this, sorcery: return target creature card from your graveyard to hand; draw 1 cards
+}

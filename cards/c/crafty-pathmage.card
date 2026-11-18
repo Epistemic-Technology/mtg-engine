@@ -1,0 +1,7 @@
+card "Crafty Pathmage" {
+  oracle_id c4020178-71d9-4363-a0bd-b9a7eecd5d02
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: target creature with power 2 or less can't be blocked
+}

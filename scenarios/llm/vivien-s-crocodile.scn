@@ -1,0 +1,43 @@
+# Vivien's Crocodile: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "without a Vivien planeswalker the crocodile is a 3/3" {
+  battlefield A: "Vivien's Crocodile", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Vivien's Crocodile" 3
+  assert toughness "Vivien's Crocodile" 3
+}
+
+scenario "cast the crocodile and attack with it next turn" {
+  battlefield A: 3 "Forest"
+  hand A: "Vivien's Crocodile"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vivien's Crocodile"
+  turn 3 A: attack "Vivien's Crocodile"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Vivien's Crocodile"
+  assert life B 17
+}
+
+scenario "Lightning Bolt kills the unboosted crocodile" {
+  battlefield A: "Vivien's Crocodile"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Vivien's Crocodile"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Vivien's Crocodile"
+}
+
+scenario "crocodile trades with a blocking Hill Giant" {
+  battlefield A: "Vivien's Crocodile"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Vivien's Crocodile"
+  turn 1 B: block "Vivien's Crocodile" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Vivien's Crocodile"
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}

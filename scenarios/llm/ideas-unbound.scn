@@ -1,0 +1,44 @@
+# Ideas Unbound: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Ideas Unbound draws three, then discards three at the next end step" {
+  battlefield A: 2 "Island"
+  hand A: "Ideas Unbound"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Plains", "Plains"
+  turn 1 A: cast "Ideas Unbound"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Ideas Unbound"
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Serra Angel"
+}
+
+scenario "Ideas Unbound discards only three when more cards are in hand" {
+  battlefield A: 2 "Island"
+  hand A: "Ideas Unbound", "Grizzly Bears", "Hill Giant"
+  library A: "Wind Drake", "Serra Angel", "Divination", "Plains", "Plains"
+  turn 1 A: cast "Ideas Unbound"
+  run_to turn 1 postcombat_main
+  assert hand A count 5
+  run_to turn 2 precombat_main
+  assert hand A count 2
+}
+
+scenario "Ideas Unbound discards what is left if fewer than three cards remain" {
+  battlefield A: 2 "Island"
+  hand A: "Ideas Unbound"
+  library A: "Mountain", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Ideas Unbound"
+  turn 1 A: wait
+  turn 1 A: play "Mountain"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 1
+  run_to turn 2 precombat_main
+  assert hand A count 0
+  assert graveyard A contains "Shock"
+}

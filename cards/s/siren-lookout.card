@@ -1,0 +1,8 @@
+card "Siren Lookout" {
+  oracle_id 9f0d82ae-38bf-45d8-8cda-982b6ead1d72
+  cost {2}{U}
+  type Creature — Siren Pirate
+  pt 1/2
+  keywords flying
+  triggered when this enters: this explores
+}

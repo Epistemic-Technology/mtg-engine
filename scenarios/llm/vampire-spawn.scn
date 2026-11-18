@@ -1,0 +1,46 @@
+# Vampire Spawn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vampire Spawn drains 2 on entering" {
+  battlefield A: 3 "Swamp"
+  hand A: "Vampire Spawn"
+  turn 1 A: cast "Vampire Spawn"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire Spawn"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Vampire Spawn drain works for the second player too" {
+  life B 10
+  life A 5
+  battlefield B: 3 "Swamp"
+  hand B: "Vampire Spawn"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Vampire Spawn"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Vampire Spawn"
+  assert life A 3
+  assert life B 12
+}
+
+scenario "Vampire Spawn drain can finish an opponent" {
+  life B 2
+  battlefield A: 3 "Swamp"
+  hand A: "Vampire Spawn"
+  turn 1 A: cast "Vampire Spawn"
+  run_to end
+  assert winner A
+}
+
+scenario "Vampire Spawn blocks Grizzly Bears and survives" {
+  battlefield A: "Vampire Spawn"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Vampire Spawn"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Vampire Spawn"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}

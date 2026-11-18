@@ -1,0 +1,8 @@
+card "Duelist of Deep Faith" {
+  oracle_id 30d69e88-2bf6-43b8-8678-2cf37f6a5cf5
+  cost {1}{W}
+  type Creature — Phyrexian Soldier
+  pt 2/2
+  toxic 1
+  static during your turn, this: has first strike
+}

@@ -1,0 +1,7 @@
+card "Brokers Initiate" {
+  oracle_id 9bdf033e-87d4-4bc4-ba08-4b497cc1b559
+  cost {W}
+  type Creature — Cat Citizen
+  pt 0/4
+  activated {4}{G/U}: this has base power and toughness 5/5 until end of turn
+}

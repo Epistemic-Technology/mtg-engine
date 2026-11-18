@@ -1,0 +1,7 @@
+card "Change of Heart" {
+  oracle_id a8c0b41b-916c-4da9-9c39-a058c91a78f4
+  cost {W}
+  type Instant
+  buyback {3}
+  spell: target creature can't attack
+}

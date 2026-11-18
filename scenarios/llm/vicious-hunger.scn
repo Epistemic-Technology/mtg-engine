@@ -1,0 +1,38 @@
+# Vicious Hunger: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vicious Hunger kills a 2/2 and gains 2 life" {
+  life A 15
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vicious Hunger"
+  turn 1 A: cast "Vicious Hunger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Vicious Hunger"
+  assert life A 17
+}
+
+scenario "Vicious Hunger deals only 2 damage to a 3/3" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Vicious Hunger"
+  turn 1 A: cast "Vicious Hunger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert life A 22
+}
+
+scenario "Giant Growth in response saves the creature but life is still gained" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Vicious Hunger"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Vicious Hunger" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Vicious Hunger"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert life A 22
+}

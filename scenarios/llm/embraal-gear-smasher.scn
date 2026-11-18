@@ -1,0 +1,41 @@
+# Embraal Gear-Smasher: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "gear-smasher cannot activate without an artifact to sacrifice" {
+  battlefield A: "Embraal Gear-Smasher", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Embraal Gear-Smasher"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Embraal Gear-Smasher"
+  assert battlefield A contains "Embraal Gear-Smasher"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "gear-smasher blocks a 2/2 and survives" {
+  battlefield A: "Embraal Gear-Smasher"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Embraal Gear-Smasher"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Embraal Gear-Smasher"
+  assert damage "Embraal Gear-Smasher" 2
+}
+
+scenario "gear-smasher survives shock but not lightning bolt" {
+  battlefield A: "Embraal Gear-Smasher"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Embraal Gear-Smasher"
+  run_to turn 2 begin_combat
+  assert battlefield A contains "Embraal Gear-Smasher"
+  assert damage "Embraal Gear-Smasher" 2
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Embraal Gear-Smasher"
+  run_to turn 2 end
+  assert graveyard A contains "Embraal Gear-Smasher"
+}

@@ -1,0 +1,8 @@
+card "Rubblebelt Maverick" {
+  oracle_id 1ba59349-a162-4444-b3e0-cddfc01ef03b
+  cost {G}
+  type Creature — Human Detective
+  pt 1/1
+  triggered when this enters: surveil 2
+  activated {G}, exile this from graveyard, sorcery: put 1 +1/+1 counters on target creature
+}

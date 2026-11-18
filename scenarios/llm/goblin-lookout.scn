@@ -1,0 +1,28 @@
+# Goblin Lookout: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two lookouts: sacrifice one, the surviving goblin gets +2/+0, non-goblins unaffected" {
+  battlefield A: 2 "Goblin Lookout", "Grizzly Bears"
+  turn 1 A: activate "Goblin Lookout"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Goblin Lookout"
+  assert graveyard A contains "Goblin Lookout"
+  assert power "Goblin Lookout" 3
+  assert toughness "Goblin Lookout" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "lookout can sacrifice itself to pay the cost" {
+  battlefield A: "Goblin Lookout"
+  turn 1 A: activate "Goblin Lookout" sacrificing "Goblin Lookout"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Goblin Lookout"
+  assert battlefield A lacks "Goblin Lookout"
+}
+
+scenario "pump wears off at end of turn" {
+  battlefield A: 2 "Goblin Lookout"
+  turn 1 A: activate "Goblin Lookout"
+  run_to turn 2 precombat_main
+  assert power "Goblin Lookout" 1
+}

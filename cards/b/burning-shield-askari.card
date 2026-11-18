@@ -1,0 +1,8 @@
+card "Burning Shield Askari" {
+  oracle_id 042fd95a-5e85-4ce5-bb68-066a295c54fb
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  activated {R}{R}: this gains first strike
+}

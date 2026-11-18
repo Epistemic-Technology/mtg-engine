@@ -1,0 +1,7 @@
+card "Illusory Wrappings" {
+  oracle_id bda363b6-4be1-4415-8b3e-92882df1f630
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: base 0/2
+}

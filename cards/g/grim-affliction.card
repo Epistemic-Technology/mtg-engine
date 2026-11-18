@@ -1,0 +1,6 @@
+card "Grim Affliction" {
+  oracle_id 411ba1a2-30bb-4618-b874-6be0d996f07d
+  cost {2}{B}
+  type Instant
+  spell: put 1 -1/-1 counters on target creature then proliferate
+}

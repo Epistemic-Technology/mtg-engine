@@ -1,0 +1,8 @@
+card "Action News Crew" {
+  oracle_id a9d68cf5-3055-4ec9-9893-244bfd7046be
+  cost {1}{W}
+  type Creature — Human Citizen
+  pt 2/2
+  keywords vigilance
+  label "Channel" activated {6}, discard this: put 1 +1/+1 counters on each creature you control; draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Lazotep Reaver" {
+  oracle_id 85643f9b-49ea-434b-9f27-c1431064345e
+  cost {1}{B}
+  type Creature — Zombie Beast
+  pt 1/2
+  triggered when this enters: amass Zombies 1
+}

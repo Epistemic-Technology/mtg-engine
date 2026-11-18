@@ -1,0 +1,7 @@
+card "Surgical Skullbomb" {
+  oracle_id 6d364283-617a-4661-865d-abd9c304b2f9
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 cards
+  activated {2}{U}, sacrifice this, sorcery: return target creature to hand; draw 1 cards
+}

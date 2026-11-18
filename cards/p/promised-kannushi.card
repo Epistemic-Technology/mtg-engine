@@ -1,0 +1,7 @@
+card "Promised Kannushi" {
+  oracle_id b92bd85f-20c4-410e-af19-77d987d7dc02
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  soulshift 7
+}

@@ -1,0 +1,7 @@
+card "Nightsoil Kami" {
+  oracle_id 2efd1c86-41ba-4b86-bf63-e60e3263cb06
+  cost {4}{G}{G}
+  type Creature — Spirit
+  pt 6/4
+  soulshift 5
+}

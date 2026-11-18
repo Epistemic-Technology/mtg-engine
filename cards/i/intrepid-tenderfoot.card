@@ -1,0 +1,7 @@
+card "Intrepid Tenderfoot" {
+  oracle_id 94023b23-339a-426e-85cc-cc361ef68754
+  cost {1}{G}
+  type Creature — Insect Citizen
+  pt 2/2
+  activated {3}, sorcery: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,40 @@
+# Scalding Devil: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Scalding Devil pings a player" {
+  battlefield A: "Scalding Devil", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scalding Devil" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert untapped "Scalding Devil"
+}
+
+scenario "Scalding Devil can activate repeatedly without tapping" {
+  battlefield A: "Scalding Devil", 6 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scalding Devil" targeting player B
+  turn 1 A: wait
+  turn 1 A: activate "Scalding Devil" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Scalding Devil"
+}
+
+scenario "Scalding Devil activates while tapped from attacking" {
+  battlefield A: "Scalding Devil", 3 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Scalding Devil"
+  turn 2 postcombat_main A: activate "Scalding Devil" targeting player B
+  run_to turn 2 end
+  assert tapped "Scalding Devil"
+  assert life B 18
+}
+
+scenario "Scalding Devil needs three mana" {
+  battlefield A: "Scalding Devil", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Scalding Devil" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

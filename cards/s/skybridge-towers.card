@@ -1,0 +1,7 @@
+card "Skybridge Towers" {
+  oracle_id 46466819-3c8b-4f7e-82c2-93cb0118a6e6
+  type Land
+  enters tapped
+  mana {W} or {U}
+  activated {2}{W}{U}, {T}, sacrifice this: draw 1 cards
+}

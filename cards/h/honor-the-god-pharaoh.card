@@ -1,0 +1,7 @@
+card "Honor the God-Pharaoh" {
+  oracle_id 5ce7780d-8a32-44c2-b779-aae732f5b05d
+  cost {2}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards; amass Zombies 1
+}

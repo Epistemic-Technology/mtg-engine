@@ -1,0 +1,7 @@
+card "Orcish Mechanics" {
+  oracle_id 0ec58835-de2d-4064-89a9-f92db80bc276
+  cost {2}{R}
+  type Creature — Orc
+  pt 1/1
+  activated {T}, sacrifice artifact: deal 2 damage to any target
+}

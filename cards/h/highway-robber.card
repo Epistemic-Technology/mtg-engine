@@ -1,0 +1,7 @@
+card "Highway Robber" {
+  oracle_id 5de0769e-5141-42d5-aaa6-549cfc154de8
+  cost {2}{B}{B}
+  type Creature — Human Mercenary
+  pt 2/2
+  triggered whenever this enters: target opponent loses 2 life and you gain 2 life
+}

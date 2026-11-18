@@ -1,0 +1,33 @@
+# Etched Familiar: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dying to a spell drains each opponent and gains life" {
+  battlefield A: "Etched Familiar", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Etched Familiar"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Etched Familiar"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "dying in combat triggers the drain" {
+  battlefield A: "Etched Familiar"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Etched Familiar"
+  turn 1 B: block "Etched Familiar" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Etched Familiar"
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "no trigger while it survives" {
+  battlefield A: "Etched Familiar"
+  turn 1 A: attack "Etched Familiar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Etched Familiar"
+  assert life A 20
+  assert life B 17
+}

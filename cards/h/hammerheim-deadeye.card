@@ -1,0 +1,8 @@
+card "Hammerheim Deadeye" {
+  oracle_id a6962ccc-9883-48ca-9a5f-aeb68e66fd97
+  cost {3}{R}
+  type Creature — Giant Warrior
+  pt 3/3
+  echo {5}{R}
+  triggered when this enters: destroy target creature with flying
+}

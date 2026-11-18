@@ -1,0 +1,37 @@
+# Elvish Vanguard: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another Elf entering grows Vanguard, but not the entering one itself" {
+  battlefield A: "Elvish Vanguard", 2 "Forest"
+  hand A: "Elvish Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elvish Vanguard"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Elvish Vanguard"
+  assert power oldest A "Elvish Vanguard" 2
+  assert toughness oldest A "Elvish Vanguard" 2
+  assert power newest A "Elvish Vanguard" 1
+}
+
+scenario "non-Elf creature entering does not trigger" {
+  battlefield A: "Elvish Vanguard", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Elvish Vanguard" 1
+  assert toughness "Elvish Vanguard" 1
+}
+
+scenario "an opponent's Elf entering also triggers" {
+  battlefield A: 2 "Forest"
+  hand A: "Elvish Vanguard"
+  battlefield B: "Elvish Vanguard"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Elvish Vanguard"
+  run_to turn 1 postcombat_main
+  assert power B "Elvish Vanguard" 2
+  assert counters B "Elvish Vanguard" +1/+1 1
+  assert power A "Elvish Vanguard" 1
+}

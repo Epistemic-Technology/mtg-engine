@@ -1,0 +1,8 @@
+card "Frontline Devastator" {
+  oracle_id 5ace15b8-f853-4c44-b9c7-d307367b612c
+  cost {3}{R}
+  type Creature — Zombie Minotaur Warrior
+  pt 3/3
+  afflict 2
+  activated {1}{R}: this gets +1/+0
+}

@@ -1,0 +1,7 @@
+card "Boiling Rock Prison" {
+  oracle_id 6caabc45-4644-4941-a2f3-f04ee7b50a89
+  type Land
+  enters tapped
+  mana {B} or {R}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

@@ -1,0 +1,8 @@
+card "Cursed Ronin" {
+  oracle_id 23e98711-0b3f-446d-abcc-9b0378178feb
+  cost {3}{B}
+  type Creature — Human Samurai
+  pt 1/1
+  bushido 1
+  activated {B}: this gets +1/+1
+}

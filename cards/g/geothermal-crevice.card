@@ -1,0 +1,7 @@
+card "Geothermal Crevice" {
+  oracle_id 83f9d84a-a011-4fa9-a3a4-51eb39159c54
+  type Land
+  enters tapped
+  mana {R}
+  activated {T}, sacrifice this: add {B}{G}
+}

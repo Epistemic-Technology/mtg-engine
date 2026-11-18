@@ -1,0 +1,8 @@
+card "Wall of Distortion" {
+  oracle_id cc9cbbbc-8b02-42ef-a4d8-e2837e742c88
+  cost {2}{B}{B}
+  type Creature — Wall
+  pt 1/3
+  keywords defender
+  activated {2}{B}, {T}, sorcery: target player discards 1 cards
+}

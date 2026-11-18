@@ -1,0 +1,8 @@
+card "Zhalfirin Knight" {
+  oracle_id a534f06e-dae4-4d1a-96e9-7693bbb21e12
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  activated {W}{W}: this gains first strike
+}

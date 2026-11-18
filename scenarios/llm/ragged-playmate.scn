@@ -1,0 +1,42 @@
+# Ragged Playmate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Ragged Playmate makes a small creature unblockable" {
+  battlefield A: "Ragged Playmate", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ragged Playmate" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Ragged Playmate"
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Only the targeted creature becomes unblockable" {
+  battlefield A: "Ragged Playmate", "Grizzly Bears", "Hill Giant", "Mountain"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ragged Playmate" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "Pumping after resolution keeps the creature unblockable" {
+  battlefield A: "Ragged Playmate", "Grizzly Bears", "Mountain", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ragged Playmate" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

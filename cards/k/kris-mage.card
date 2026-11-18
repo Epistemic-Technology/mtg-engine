@@ -1,0 +1,7 @@
+card "Kris Mage" {
+  oracle_id d53623b0-f7d8-401f-a8f1-80034f6f20df
+  cost {R}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {R}, {T}, discard 1 card: deal 1 damage to any target
+}

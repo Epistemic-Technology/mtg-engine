@@ -1,0 +1,7 @@
+card "Goblin Patrol" {
+  oracle_id edf25cbe-fa28-44ca-b4be-1d2312e4f6ac
+  cost {R}
+  type Creature — Goblin
+  pt 2/1
+  echo {R}
+}

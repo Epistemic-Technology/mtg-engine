@@ -1,0 +1,32 @@
+# Vengeful Dead: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vengeful Dead dying makes each opponent lose 1 life" {
+  battlefield A: "Vengeful Dead", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Vengeful Dead"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Vengeful Dead"
+  assert life B 19
+  assert life A 20
+}
+
+scenario "another Zombie dying also triggers, and the dying one triggers too" {
+  battlefield A: "Vengeful Dead", "Vengeful Dead", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting oldest A "Vengeful Dead"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Vengeful Dead"
+  assert graveyard A contains "Vengeful Dead"
+  assert life B 18
+}
+
+scenario "a non-Zombie dying does not trigger" {
+  battlefield A: "Vengeful Dead", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Vengeful Dead"
+  assert life B 20
+}

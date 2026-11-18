@@ -1,0 +1,7 @@
+card "Westfold Rider" {
+  oracle_id 17d35b8f-2189-4587-9c57-425e93d883c6
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+  activated sacrifice this, sorcery: destroy target artifact or enchantment
+}

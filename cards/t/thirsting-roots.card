@@ -1,0 +1,9 @@
+card "Thirsting Roots" {
+  oracle_id c0ef21d5-f4bf-4417-b701-d98c2dbbaa43
+  cost {G}
+  type Sorcery
+  choose one {
+    mode: search basic land card reveal to hand
+    mode: proliferate
+  }
+}

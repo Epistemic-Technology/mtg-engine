@@ -1,0 +1,7 @@
+card "Vampire Spawn" {
+  oracle_id 33cee4b4-3d80-46f1-9223-49ed785891a1
+  cost {2}{B}
+  type Creature — Vampire
+  pt 2/3
+  triggered when this enters: each opponent loses 2 life and you gain 2 life
+}

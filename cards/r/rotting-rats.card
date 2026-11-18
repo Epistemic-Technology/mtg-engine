@@ -1,0 +1,8 @@
+card "Rotting Rats" {
+  oracle_id 1f361ae9-98a2-40ff-a579-fa5b9f510df4
+  cost {1}{B}
+  type Creature — Zombie Rat
+  pt 1/1
+  triggered when this enters: each player discards 1 cards
+  unearth {1}{B}
+}

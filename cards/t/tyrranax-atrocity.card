@@ -1,0 +1,8 @@
+card "Tyrranax Atrocity" {
+  oracle_id 08261b68-b261-4e47-a085-c489ba394108
+  cost {3}{G}{G}
+  type Creature — Phyrexian Dinosaur
+  pt 4/4
+  keywords haste
+  toxic 3
+}

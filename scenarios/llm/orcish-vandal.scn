@@ -1,0 +1,32 @@
+# Orcish Vandal: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "orcish vandal cannot activate without an artifact to sacrifice" {
+  battlefield A: "Orcish Vandal", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Orcish Vandal" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Orcish Vandal"
+  assert untapped "Orcish Vandal"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "orcish vandal attacks as a 1/1" {
+  battlefield A: "Orcish Vandal"
+  turn 1 A: attack "Orcish Vandal"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Orcish Vandal" 1
+  assert toughness "Orcish Vandal" 1
+}
+
+scenario "orcish vandal dies to shock" {
+  battlefield A: "Mountain"
+  battlefield B: "Orcish Vandal"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Orcish Vandal"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Orcish Vandal"
+  assert battlefield B lacks "Orcish Vandal"
+}

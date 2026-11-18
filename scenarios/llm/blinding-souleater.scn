@@ -1,0 +1,37 @@
+# Blinding Souleater: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "souleater taps a creature paying white mana" {
+  battlefield A: "Blinding Souleater", "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: activate "Blinding Souleater" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Blinding Souleater"
+  assert tapped "Plains"
+  assert life A 20
+}
+
+scenario "souleater pays 2 life for phyrexian white without white mana" {
+  battlefield A: "Blinding Souleater", "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: activate "Blinding Souleater" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert untapped "Mountain"
+  assert life A 18
+}
+
+scenario "tapped blocker cannot block" {
+  battlefield A: "Blinding Souleater", "Plains", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: activate "Blinding Souleater" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}

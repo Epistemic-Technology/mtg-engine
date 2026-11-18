@@ -1,0 +1,7 @@
+card "Sidewinder Sliver" {
+  oracle_id de8ccd32-f537-4a11-8dc4-e48836a0b139
+  cost {W}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has flanking
+}

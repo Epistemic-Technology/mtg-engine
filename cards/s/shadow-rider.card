@@ -1,0 +1,7 @@
+card "Shadow Rider" {
+  oracle_id a518b31a-7e9a-460d-839f-39cb1de4f570
+  cost {2}{B}{B}
+  type Creature — Knight
+  pt 3/3
+  keywords flanking
+}

@@ -1,0 +1,7 @@
+card "Botanical Plaza" {
+  oracle_id 19e6ebaf-7148-428f-8c79-1e9e57a4e659
+  type Land
+  enters tapped
+  mana {G} or {W}
+  activated {2}{G}{W}, {T}, sacrifice this: draw 1 cards
+}

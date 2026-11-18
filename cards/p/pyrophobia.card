@@ -1,0 +1,6 @@
+card "Pyrophobia" {
+  oracle_id fa70903d-3c8b-49f7-8817-f708b5ba250f
+  cost {1}{R}
+  type Sorcery
+  spell: deal 3 damage to target creature; each Coward can't block
+}

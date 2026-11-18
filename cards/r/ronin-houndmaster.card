@@ -1,0 +1,8 @@
+card "Ronin Houndmaster" {
+  oracle_id 69a3de91-bb18-4e37-975e-0f4becafa34f
+  cost {2}{R}
+  type Creature — Human Samurai
+  pt 2/2
+  keywords haste
+  bushido 1
+}

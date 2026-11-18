@@ -1,0 +1,7 @@
+card "Fallen Askari" {
+  oracle_id 4956008e-d912-48ba-9b82-176258281060
+  cost {1}{B}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking, can't block
+}

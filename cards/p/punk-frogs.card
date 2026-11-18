@@ -1,0 +1,7 @@
+card "Punk Frogs" {
+  oracle_id dfb13eca-55fd-4ac6-aee3-2bdbfe9e1c4e
+  cost {3}{G/U}{G/U}
+  type Creature — Frog Mutant Rebel
+  pt 4/5
+  ward {3}
+}

@@ -1,0 +1,8 @@
+card "Sootstoke Kindler" {
+  oracle_id 16a96727-c53a-4563-8151-f8b7abb7e534
+  cost {1}{B/R}
+  type Creature — Elemental Shaman
+  pt 1/1
+  keywords haste
+  activated {T}: target black or red creature gains haste
+}

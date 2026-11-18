@@ -1,0 +1,6 @@
+card "Volt Charge" {
+  oracle_id c57907d1-c5a1-45c7-80a8-38fedf86dd19
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target; proliferate
+}

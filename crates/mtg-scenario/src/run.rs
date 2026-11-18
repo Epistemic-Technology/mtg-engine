@@ -412,7 +412,8 @@ impl Runner {
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
             DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
-            DecisionKind::Kicker { .. } => Ok(self.choose_kicker(d)),
+            // `kicked` also pays buyback (an optional additional cost).
+            DecisionKind::Kicker { .. } | DecisionKind::Buyback { .. } => Ok(self.choose_kicker(d)),
         }
     }
 

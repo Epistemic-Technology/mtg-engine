@@ -1,0 +1,7 @@
+card "Implement of Malice" {
+  oracle_id 16923d37-bac0-4e6a-bd02-f3aa9360deeb
+  cost {2}
+  type Artifact
+  activated {B}, sacrifice this, sorcery: target player discards 1 cards
+  triggered when this dies: draw 1 cards
+}

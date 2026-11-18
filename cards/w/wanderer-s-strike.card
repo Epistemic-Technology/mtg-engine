@@ -1,0 +1,6 @@
+card "Wanderer's Strike" {
+  oracle_id d6239ada-c72a-49b2-882c-6dae1dd366e3
+  cost {4}{W}
+  type Sorcery
+  spell: exile target creature then proliferate
+}

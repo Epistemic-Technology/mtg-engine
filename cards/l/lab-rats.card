@@ -1,0 +1,7 @@
+card "Lab Rats" {
+  oracle_id c53d6d3e-64e3-48b9-afab-3bde3164888f
+  cost {B}
+  type Sorcery
+  buyback {4}
+  spell: create 1 "1/1 black Rat creature"
+}

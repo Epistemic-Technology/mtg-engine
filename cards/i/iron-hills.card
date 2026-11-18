@@ -1,0 +1,7 @@
+card "Iron Hills" {
+  oracle_id a71e8d07-1a49-47a0-834e-de87d750a200
+  type Land
+  enters tapped
+  mana {R} or {W}
+  activated {2}{R}{W}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target Dwarf you control
+}

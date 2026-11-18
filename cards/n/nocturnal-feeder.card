@@ -1,0 +1,8 @@
+card "Nocturnal Feeder" {
+  oracle_id f71bbaf2-02ea-4fc0-9a39-49d6689b36cd
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 2/1
+  keywords flying
+  triggered when this dies: each opponent loses 2 life and you gain 2 life
+}

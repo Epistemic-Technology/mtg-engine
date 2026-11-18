@@ -1,0 +1,9 @@
+card "Steady Progress" {
+  oracle_id d2145ad3-fe7e-459b-b155-1b3ed089e936
+  cost {2}{U}
+  type Instant
+  spell {
+    proliferate
+    draw 1 cards
+  }
+}

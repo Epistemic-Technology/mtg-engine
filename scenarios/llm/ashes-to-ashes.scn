@@ -1,0 +1,42 @@
+# Ashes to Ashes: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Ashes to Ashes exiles two creatures and deals 5 damage to its caster" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Ashes to Ashes"
+  turn 1 A: cast "Ashes to Ashes" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Ashes to Ashes"
+  assert life A 15
+  assert life B 20
+}
+
+scenario "one illegal target: the other is still exiled and the damage is still dealt" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Mountain"
+  hand A: "Ashes to Ashes"
+  hand B: "Shock"
+  turn 1 A: cast "Ashes to Ashes" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Ashes to Ashes"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert exile B lacks "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert life A 15
+}
+
+scenario "Ashes to Ashes can't be cast with only one creature to target" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Ashes to Ashes"
+  illegal turn 1 A: cast "Ashes to Ashes" targeting auto
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ashes to Ashes"
+  assert battlefield B contains "Grizzly Bears"
+  assert life A 20
+}

@@ -1,0 +1,28 @@
+# Ancient Spring: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Ancient Spring enters tapped" {
+  hand A: "Ancient Spring"
+  turn 1 A: play "Ancient Spring"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ancient Spring"
+  assert tapped "Ancient Spring"
+}
+
+scenario "Ancient Spring taps for blue without being sacrificed" {
+  battlefield A: "Ancient Spring", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert battlefield A contains "Ancient Spring"
+}
+
+scenario "Ancient Spring sacrifices itself for its second ability" {
+  battlefield A: "Ancient Spring"
+  turn 1 A: activate "Ancient Spring"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ancient Spring"
+  assert battlefield A lacks "Ancient Spring"
+}

@@ -1,0 +1,5 @@
+card "Evolving Wilds" {
+  oracle_id a75445d3-1303-4bb5-89ad-26ea93fecd48
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped
+}

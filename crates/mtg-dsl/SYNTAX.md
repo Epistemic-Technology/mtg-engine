@@ -84,6 +84,7 @@ double-faced permanent to its other face (CR 701.27).
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
+| `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -103,8 +104,11 @@ Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
 a matching permanent they control), `discard 1 card`, `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
-card"), `discard this`, `pay 3 life`, `sorcery` (activate only as a
-sorcery), `once` (activate only once each turn). `none` for a free ability.
+card"), `discard this`, `exile this from graveyard` ("Exile this card from
+your graveyard"; the ability is activated from the graveyard), `pay 3
+life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
+only once each turn). `none` for a free ability. An ability whose cost
+includes `discard this` is activated from the hand (cycling, channel).
 
 ### Triggers
 
@@ -121,6 +125,7 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell` | |
 | `when this becomes targeted` | becomes the target of a spell or ability |
+| `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
@@ -236,7 +241,11 @@ print "that card" for "it"),
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
-stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `add {G}
+stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `proliferate` (CR
+701.27; the engine makes the usual choices: your permanents' +1/+1 and
+loyalty counters, opponents' -1/-1 counters and poison), `<what>
+explores` (CR 701.44), `amass Zombies 2` (CR 701.47; needs the token
+"0/0 black Zombie Army creature"), `<who> gets 1 poison counters`, `add {G}
 count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage

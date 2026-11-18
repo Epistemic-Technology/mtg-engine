@@ -1,0 +1,7 @@
+card "Spark Reaper" {
+  oracle_id 894176e3-af9c-41ef-9f35-59dfdda3c17f
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/3
+  activated {3}, sacrifice creature or planeswalker: you gain 1 life and draw 1 card
+}

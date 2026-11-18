@@ -1,0 +1,30 @@
+# Rogue Kavu: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Rogue Kavu attacking alone gets +2/+0" {
+  battlefield A: "Rogue Kavu"
+  turn 1 A: attack "Rogue Kavu"
+  run_to turn 1 postcombat_main
+  assert power "Rogue Kavu" 3
+  assert toughness "Rogue Kavu" 1
+  assert life B 17
+}
+
+scenario "Rogue Kavu attacking with another creature gets no bonus" {
+  battlefield A: "Rogue Kavu", "Grizzly Bears"
+  turn 1 A: attack "Rogue Kavu", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Rogue Kavu" 1
+  assert life B 17
+}
+
+scenario "Rogue Kavu pumped alone trades with Hill Giant" {
+  battlefield A: "Rogue Kavu"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Rogue Kavu"
+  turn 1 B: block "Rogue Kavu" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Rogue Kavu"
+  assert life B 20
+}

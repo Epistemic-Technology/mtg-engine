@@ -1,0 +1,32 @@
+# Sanguine Syphoner: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger drains each opponent" {
+  battlefield A: "Sanguine Syphoner"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Sanguine Syphoner"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert life A 21
+}
+
+scenario "trigger drains even when blocked" {
+  battlefield A: "Sanguine Syphoner"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Sanguine Syphoner"
+  turn 2 B: block "Sanguine Syphoner" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert battlefield A contains "Sanguine Syphoner"
+  assert damage "Sanguine Syphoner" 2
+}
+
+scenario "no trigger without attacking" {
+  battlefield A: "Sanguine Syphoner"
+  start turn 2 A precombat_main
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert life A 20
+}

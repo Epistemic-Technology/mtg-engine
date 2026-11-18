@@ -1,0 +1,7 @@
+card "Serpent's Pass" {
+  oracle_id f715f701-a735-42ab-b31a-8e1bd04ac5ff
+  type Land
+  enters tapped
+  mana {U} or {B}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

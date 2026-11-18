@@ -1,0 +1,42 @@
+# Run Amok: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Run Amok pumps a blocked attacker and lets it trample over" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Run Amok"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Run Amok" targeting "Grizzly Bears"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Hill Giant" 3, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 5
+  assert graveyard A contains "Run Amok"
+}
+
+scenario "Run Amok cannot target a creature that is not attacking" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Run Amok"
+  illegal turn 1 A: cast "Run Amok" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Run Amok"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Run Amok on an unblocked attacker, wearing off at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Run Amok"
+  turn 1 declare_attackers A: attack "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Run Amok" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}

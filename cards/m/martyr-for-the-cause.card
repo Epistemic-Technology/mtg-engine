@@ -1,0 +1,7 @@
+card "Martyr for the Cause" {
+  oracle_id b19cbb92-bdf9-4b34-bd16-db5a594f51b7
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered when this dies: proliferate
+}

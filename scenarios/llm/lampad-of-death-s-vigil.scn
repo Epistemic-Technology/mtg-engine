@@ -1,0 +1,32 @@
+# Lampad of Death's Vigil: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature drains one life" {
+  battlefield A: "Lampad of Death's Vigil", "Grizzly Bears", "Swamp"
+  turn 1 A: activate "Lampad of Death's Vigil" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Lampad of Death's Vigil"
+  assert tapped "Swamp"
+}
+
+scenario "lampad can be sacrificed to pay for its own ability" {
+  battlefield A: "Lampad of Death's Vigil", "Swamp"
+  turn 1 A: activate "Lampad of Death's Vigil" sacrificing "Lampad of Death's Vigil"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Lampad of Death's Vigil"
+}
+
+scenario "ability needs mana to activate" {
+  battlefield A: "Lampad of Death's Vigil", "Grizzly Bears"
+  illegal turn 1 A: activate "Lampad of Death's Vigil"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Lampad of Death's Vigil"
+}

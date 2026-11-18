@@ -1,0 +1,7 @@
+card "Brave-Kin Duo" {
+  oracle_id 1f5b7f4c-a3d2-4472-80f5-8504562fc7fd
+  cost {W}
+  type Creature — Rabbit Mouse
+  pt 1/1
+  activated {1}, {T}, sorcery: target creature gets +1/+1
+}

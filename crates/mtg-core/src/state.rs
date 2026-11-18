@@ -105,6 +105,7 @@ pub enum Target {
 }
 
 #[derive(Clone, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent facts
 pub struct GameObject {
     /// The definition whose copiable values this object has (CR 707.2):
     /// the card itself, or what a copy effect made it a copy of.
@@ -129,6 +130,9 @@ pub struct GameObject {
     /// Under its controller's control continuously since their most recent
     /// turn began (CR 302.6).
     pub controlled_since_turn_start: bool,
+    /// Came onto the battlefield since its echo was last dealt with (CR
+    /// 702.30a): set as it enters, cleared by its echo trigger.
+    pub echo_due: bool,
     pub timestamp: Timestamp,
     /// Chosen targets, for a spell on the stack.
     pub targets: SmallVec<[Target; 2]>,
@@ -153,7 +157,22 @@ impl CastInfo {
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
     /// exile.
     const ADVENTURE: u8 = 0x20;
-    const MODE: u8 = 0x1f;
+    /// Cast with its buyback cost paid (CR 702.27): to its owner's hand as
+    /// it resolves.
+    const BUYBACK: u8 = 0x10;
+    const MODE: u8 = 0x0f;
+
+    pub const fn bought_back(self) -> bool {
+        self.0 & Self::BUYBACK != 0
+    }
+
+    pub fn set_bought_back(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::BUYBACK
+        } else {
+            self.0 & !Self::BUYBACK
+        };
+    }
 
     pub const fn mode(self) -> u8 {
         self.0 & Self::MODE
@@ -590,6 +609,11 @@ pub enum Flow {
     /// Choosing whether to pay a spell's kicker (CR 702.33), after the mode
     /// and before X.
     ChoosingKicker {
+        spell: ObjId,
+    },
+    /// Choosing whether to pay a spell's buyback cost (CR 702.27), after
+    /// kicker and before X.
+    ChoosingBuyback {
         spell: ObjId,
     },
     /// Attackers declared; each chooses the player or planeswalker it

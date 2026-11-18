@@ -1,0 +1,7 @@
+card "Tishana's Wayfinder" {
+  oracle_id 86468528-833d-48f9-b299-cdf54dd47d77
+  cost {2}{G}
+  type Creature — Merfolk Scout
+  pt 2/2
+  triggered when this enters: this explores
+}

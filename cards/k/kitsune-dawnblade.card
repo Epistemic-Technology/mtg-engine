@@ -1,0 +1,8 @@
+card "Kitsune Dawnblade" {
+  oracle_id cd954a2a-5799-4c65-af8a-47adb1ce5e91
+  cost {4}{W}
+  type Creature — Fox Samurai
+  pt 2/3
+  bushido 1
+  triggered when this enters: you may tap target creature
+}

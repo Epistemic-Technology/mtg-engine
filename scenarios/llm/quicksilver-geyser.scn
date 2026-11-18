@@ -1,0 +1,38 @@
+# Quicksilver Geyser: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Quicksilver Geyser returns two opposing creatures" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Quicksilver Geyser"
+  turn 1 A: cast "Quicksilver Geyser" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Quicksilver Geyser"
+}
+
+scenario "Quicksilver Geyser with a single target" {
+  battlefield A: 5 "Island"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Quicksilver Geyser"
+  turn 1 A: cast "Quicksilver Geyser" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Serra Angel"
+  assert battlefield B lacks "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Quicksilver Geyser returns permanents to their owners" {
+  battlefield A: 5 "Island", "Wind Drake"
+  battlefield B: "Hill Giant"
+  hand A: "Quicksilver Geyser"
+  turn 1 A: cast "Quicksilver Geyser" targeting "Wind Drake", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wind Drake"
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Wind Drake"
+  assert battlefield B lacks "Hill Giant"
+}

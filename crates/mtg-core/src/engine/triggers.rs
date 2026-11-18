@@ -311,6 +311,25 @@ impl GameState {
                 let p = on_battlefield(what, *target)?;
                 Some((Some(*target), Some(p)))
             }
+            (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))
+            }
+            (TriggerSpec::BlockedBy(f), Event::Block { blocker, attacker }) => {
+                if *attacker != w.source {
+                    return None;
+                }
+                let o = self.objects.get(*blocker)?;
+                let c = self.characteristics(*blocker)?;
+                (f.matches(
+                    *blocker,
+                    o.controller,
+                    &c,
+                    Some(w.source),
+                    Some(w.controller),
+                ) && self.status_ok(f, *blocker))
+                .then_some((Some(*blocker), Some(o.controller)))
+            }
             (
                 TriggerSpec::CastsSpell {
                     whose,
@@ -404,6 +423,7 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
+            echo_due: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -503,6 +523,7 @@ impl GameState {
             Condition::HadNoCounters(k) => self.had_no_counters(source, k),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
+            Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
         }
     }
 
@@ -516,6 +537,7 @@ impl GameState {
             Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
+            Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
         }
     }
 

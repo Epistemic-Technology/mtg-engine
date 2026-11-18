@@ -1,0 +1,8 @@
+card "Wrecking Gecko" {
+  oracle_id 4a9e0294-c967-4e90-b776-6d3195034a23
+  cost {4}{G}
+  type Artifact Creature — Lizard Construct
+  pt 5/5
+  ward {2}
+  activated {6}{G}{G}: this gets +4/+4 and gains trample
+}

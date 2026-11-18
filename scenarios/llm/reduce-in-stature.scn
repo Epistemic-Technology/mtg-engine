@@ -1,0 +1,43 @@
+# Reduce in Stature: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature has base power and toughness 0/2" {
+  battlefield A: 3 "Island"
+  hand A: "Reduce in Stature"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reduce in Stature" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Reduce in Stature" to "Hill Giant"
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 2
+}
+
+scenario "pump effects still apply on top of the base 0/2" {
+  battlefield A: "Forest", "Hill Giant", "Reduce in Stature" on "Hill Giant"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 5
+}
+
+scenario "shrunken creature dies to two damage and the aura goes too" {
+  battlefield A: "Mountain"
+  hand A: "Shock"
+  battlefield B: "Hill Giant", "Reduce in Stature" on "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Reduce in Stature"
+}
+
+scenario "enchanted attacker deals no combat damage" {
+  battlefield A: "Serra Angel", "Reduce in Stature" on "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

@@ -1,0 +1,5 @@
+card "Terramorphic Expanse" {
+  oracle_id 1bd3e453-aa21-4ee6-95c2-d6d920ee8e7a
+  type Land
+  activated {T}, sacrifice this: search basic land card to battlefield tapped
+}

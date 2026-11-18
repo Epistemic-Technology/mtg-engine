@@ -1,0 +1,7 @@
+card "Gitaxian Anatomist" {
+  oracle_id aa9bde06-098c-41b3-b816-49daacc02c50
+  cost {3}{U}
+  type Creature — Phyrexian Wizard
+  pt 2/5
+  triggered when this enters: you may tap this; if you do, proliferate
+}

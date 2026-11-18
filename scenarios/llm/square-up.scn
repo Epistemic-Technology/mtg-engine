@@ -1,0 +1,47 @@
+# Square Up: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Square Up sets base power and toughness to 4/4" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Square Up"
+  turn 1 A: cast "Square Up" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert graveyard A contains "Square Up"
+}
+
+scenario "Giant Growth applies on top of the base 4/4 regardless of order" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  hand A: "Giant Growth", "Square Up"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Square Up" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+}
+
+scenario "the effect ends at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Square Up"
+  turn 1 A: cast "Square Up" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "a 4/4 Grizzly Bears survives Lightning Bolt" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Square Up"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Square Up" targeting "Grizzly Bears"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Lightning Bolt"
+}

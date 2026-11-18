@@ -1,0 +1,7 @@
+card "Traveling Minister" {
+  oracle_id 1d789ccd-8192-41b1-a5bb-1e2174657698
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}, sorcery: target creature gets +1/+0; you gains 1 life
+}

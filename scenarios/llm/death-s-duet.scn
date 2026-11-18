@@ -1,0 +1,38 @@
+# Death's Duet: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "returns two creature cards from graveyard to hand" {
+  battlefield A: 3 "Swamp"
+  hand A: "Death's Duet"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Death's Duet" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Death's Duet"
+}
+
+scenario "cannot be cast with only one creature card in graveyard" {
+  battlefield A: 3 "Swamp"
+  hand A: "Death's Duet"
+  graveyard A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Death's Duet" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Death's Duet"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "cannot target a noncreature card" {
+  battlefield A: 3 "Swamp"
+  hand A: "Death's Duet"
+  graveyard A: "Grizzly Bears", "Lightning Bolt"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Death's Duet" targeting "Grizzly Bears", "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Death's Duet"
+  assert graveyard A contains "Lightning Bolt"
+}

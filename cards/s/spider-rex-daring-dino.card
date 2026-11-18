@@ -1,0 +1,8 @@
+card "Spider-Rex, Daring Dino" {
+  oracle_id 58b771d4-dfaf-4189-a5f6-4bc0fb4c0fa3
+  cost {4}{G}{G}
+  type Legendary Creature — Spider Dinosaur Hero
+  pt 6/6
+  keywords reach, trample
+  ward {2}
+}

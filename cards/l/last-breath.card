@@ -1,0 +1,6 @@
+card "Last Breath" {
+  oracle_id e6fb4f0d-ce49-4913-a2ef-88365e4916cf
+  cost {1}{W}
+  type Instant
+  spell: exile target creature with power 2 or less; its controller gains 4 life
+}

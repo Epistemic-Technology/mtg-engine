@@ -1,0 +1,7 @@
+card "The Dross Pits" {
+  oracle_id 8110fe69-c66c-4e2c-86ee-dcc8dc9a13d1
+  type Land — Sphere
+  enters tapped
+  mana {B}
+  activated {1}{B}, {T}, sacrifice this: draw 1 cards
+}

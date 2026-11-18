@@ -1,0 +1,7 @@
+card "Implement of Ferocity" {
+  oracle_id b92629c0-1619-4214-929f-4404992fabeb
+  cost {1}
+  type Artifact
+  activated {G}, sacrifice this, sorcery: put 1 +1/+1 counters on target creature
+  triggered when this dies: draw 1 cards
+}

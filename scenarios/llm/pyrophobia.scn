@@ -1,0 +1,38 @@
+# Pyrophobia: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Pyrophobia kills a three-toughness creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Pyrophobia"
+  turn 1 A: cast "Pyrophobia" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Pyrophobia"
+  assert tapped oldest A "Mountain"
+  assert tapped newest A "Mountain"
+}
+
+scenario "Pyrophobia marks 3 damage on a larger creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Pyrophobia"
+  turn 1 A: cast "Pyrophobia" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+  assert graveyard A contains "Pyrophobia"
+}
+
+scenario "Giant Growth in response saves the target" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Pyrophobia"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Pyrophobia" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Pyrophobia"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert graveyard A contains "Pyrophobia"
+}

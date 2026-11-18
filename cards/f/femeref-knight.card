@@ -1,0 +1,8 @@
+card "Femeref Knight" {
+  oracle_id 4365521e-996d-4eca-bbc9-b0988fa973ae
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  activated {W}: this gains vigilance
+}

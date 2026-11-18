@@ -16,8 +16,8 @@ use mtg_core::mana::{ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mod, Recipient, Replacement,
-    Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mechanic, Mod, Recipient,
+    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -181,6 +181,9 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
+                Ability::Mechanic(Mechanic::Buyback(cost)) => {
+                    b = b.buyback(cost.clone());
+                }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
                     f.who = Some(mtg_core::card::Who::You);
@@ -239,7 +242,10 @@ impl Compiler<'_> {
         for a in &card.abilities {
             if matches!(
                 unlabeled(a),
-                Ability::Keyword(_) | Ability::SelfCost { .. } | Ability::Affinity(_)
+                Ability::Keyword(_)
+                    | Ability::SelfCost { .. }
+                    | Ability::Affinity(_)
+                    | Ability::Mechanic(Mechanic::Buyback(_))
             ) {
                 continue;
             }
@@ -341,6 +347,7 @@ impl Compiler<'_> {
         CoreCost {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
+            exile_self: c.exile_self,
             life: c.life,
             discard: c.discard,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
@@ -661,6 +668,24 @@ impl Compiler<'_> {
                 out.push(CoreEffect::CreateReplacement(compiled));
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
+            Effect::Proliferate => out.push(CoreEffect::Proliferate),
+            Effect::Explore { what } => out.push(CoreEffect::Explore { what: r(*what) }),
+            Effect::Amass { kind, count } => {
+                // "Amass Zombies 2": a Zombie Army token.
+                let key = format!("0/0 black {} Army creature", kind.trim_end_matches('s'));
+                let Some(token) = self.pool.lookup(&key) else {
+                    return self.err(format!("unknown token \"{key}\""));
+                };
+                out.push(CoreEffect::Amass {
+                    count: *count,
+                    token,
+                });
+            }
+            Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
+            Effect::AddPoison { count, who } => out.push(CoreEffect::AddPoison {
+                count: *count,
+                who: r(*who),
+            }),
         }
         Ok(())
     }
@@ -703,6 +728,7 @@ impl Compiler<'_> {
                 instant_or_sorcery: *instant_or_sorcery,
             },
             Trigger::BecomesTarget(o) => TriggerSpec::BecomesTarget(self.trigger_obj(o)),
+            Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
         }
     }
 
@@ -862,7 +888,8 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
                 once_per_turn: cost.once,
-                from_hand: *cycling,
+                from_hand: *cycling || cost.discard_self,
+                from_graveyard: cost.from_graveyard || cost.exile_self,
                 text: render::ability_text(self.card, a, self.lookup),
             }),
             Ability::Triggered {
@@ -930,6 +957,16 @@ impl Compiler<'_> {
                 generic: *generic,
             }),
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
+            Ability::Mechanic(m) => match m {
+                Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
+                Mechanic::Buyback(_) => {
+                    return self.err("buyback is part of the spell's cost, not an ability");
+                }
+                other => {
+                    let expanded = expand_mechanic(other);
+                    return self.ability(&expanded);
+                }
+            },
             Ability::HandSize { whose, delta } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
@@ -938,6 +975,140 @@ impl Compiler<'_> {
                 return self.err("a cost reduction of the spell itself is not an ability");
             }
         })
+    }
+}
+
+/// What a keyword ability with a parameter stands for, as an ordinary
+/// ability (CR 702).
+#[allow(clippy::too_many_lines)] // one arm per mechanic
+fn expand_mechanic(m: &Mechanic) -> Ability {
+    use crate::ast::{Effect as E, Join};
+    let one = |e: E| vec![Sentence::new(vec![e])];
+    match m {
+        Mechanic::Bushido(n) => Ability::Triggered {
+            trigger: Trigger::BlocksOrBlocked(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::Pump {
+                power: i32::try_from(*n).unwrap_or(0),
+                toughness: i32::try_from(*n).unwrap_or(0),
+                to: Recipient::Source,
+            }),
+        },
+        Mechanic::Afflict(n) => Ability::Triggered {
+            trigger: Trigger::BecomesBlocked(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::LoseLife {
+                amount: Num::N(*n),
+                who: Recipient::DefendingPlayer,
+            }),
+        },
+        Mechanic::Soulshift(n) => Ability::Triggered {
+            trigger: Trigger::Dies(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::GraveyardCard {
+                filter: Filter {
+                    subtypes: vec!["Spirit".to_string()],
+                    mana_value: Some((
+                        mtg_core::card::Cmp::AtMost,
+                        u8::try_from(*n).unwrap_or(u8::MAX),
+                    )),
+                    ..Default::default()
+                },
+                who: Who::You,
+            }],
+            effects: one(E::YouMay(one(E::ReturnToHand {
+                what: vec![Recipient::Target(0)],
+            }))),
+        },
+        Mechanic::Ward(cost) => Ability::Triggered {
+            trigger: Trigger::TargetedByOpponent,
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::CounterUnlessPays {
+                to: Recipient::TriggeringObject,
+                mana: cost.clone(),
+            }),
+        },
+        Mechanic::Echo(cost) => Ability::Triggered {
+            trigger: Trigger::BeginningOfStep {
+                step: mtg_core::turn::Step::Upkeep,
+                whose: Who::You,
+            },
+            condition: Some(mtg_core::card::Condition::EchoDue),
+            targets: Vec::new(),
+            effects: vec![Sentence {
+                effects: vec![
+                    E::ClearEcho,
+                    E::UnlessPays {
+                        payer: Recipient::You,
+                        mana: cost.clone(),
+                        life: 0,
+                        effect: Box::new(E::Sacrifice {
+                            what: Recipient::Source,
+                        }),
+                    },
+                ],
+                para: false,
+                eot_first: false,
+                joins: vec![Join::Then],
+            }],
+        },
+        Mechanic::Unearth(cost) => Ability::Activated {
+            cost: Cost {
+                mana: cost.clone(),
+                sorcery: true,
+                from_graveyard: true,
+                ..Default::default()
+            },
+            targets: Vec::new(),
+            effects: vec![Sentence {
+                effects: vec![
+                    E::ReturnToBattlefield {
+                        what: Recipient::Source,
+                        counters: None,
+                    },
+                    E::Grant {
+                        keywords: vec![mtg_core::card::Keyword::Haste],
+                        to: Recipient::Source,
+                    },
+                    E::Delayed {
+                        about: Recipient::Source,
+                        trigger: Trigger::BeginningOfStep {
+                            step: mtg_core::turn::Step::End,
+                            whose: Who::Any,
+                        },
+                        effects: one(E::Exile {
+                            what: vec![Recipient::SameObject],
+                        }),
+                        trigger_first: false,
+                    },
+                ],
+                para: false,
+                eot_first: false,
+                joins: vec![Join::And, Join::And],
+            }],
+            equip: false,
+            cycling: false,
+        },
+        Mechanic::Outlast(cost) => Ability::Activated {
+            cost: Cost {
+                mana: cost.clone(),
+                tap: true,
+                sorcery: true,
+                ..Default::default()
+            },
+            targets: Vec::new(),
+            effects: one(E::AddCounters {
+                kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                count: Num::N(1),
+                to: Recipient::Source,
+            }),
+            equip: false,
+            cycling: false,
+        },
+        Mechanic::Toxic(_) | Mechanic::Buyback(_) => unreachable!("not an expansion"),
     }
 }
 

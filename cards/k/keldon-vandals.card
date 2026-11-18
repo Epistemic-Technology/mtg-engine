@@ -1,0 +1,8 @@
+card "Keldon Vandals" {
+  oracle_id 0aa7bd6a-0a8d-4413-a9e8-b7a459300841
+  cost {2}{R}
+  type Creature — Human Rogue
+  pt 4/1
+  echo {2}{R}
+  triggered when this enters: destroy target artifact
+}

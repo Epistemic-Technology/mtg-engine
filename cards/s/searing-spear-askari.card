@@ -1,0 +1,8 @@
+card "Searing Spear Askari" {
+  oracle_id d3c68573-95b1-4db5-bbea-363b86f713c1
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  activated {1}{R}: this gains menace
+}

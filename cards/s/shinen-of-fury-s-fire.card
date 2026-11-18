@@ -1,0 +1,8 @@
+card "Shinen of Fury's Fire" {
+  oracle_id 5b3b512e-6849-4d2e-9352-a36bc1646a92
+  cost {2}{R}
+  type Creature — Spirit
+  pt 2/1
+  keywords haste
+  label "Channel" activated {R}, discard this: target creature gains haste
+}

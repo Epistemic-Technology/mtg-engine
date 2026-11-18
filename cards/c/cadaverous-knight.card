@@ -1,0 +1,8 @@
+card "Cadaverous Knight" {
+  oracle_id 250a027f-2b3e-4eaf-899a-a9da8be20070
+  cost {2}{B}
+  type Creature — Zombie Knight
+  pt 2/2
+  keywords flanking
+  activated {1}{B}{B}: regenerate this
+}

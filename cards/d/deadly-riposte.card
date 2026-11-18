@@ -1,0 +1,6 @@
+card "Deadly Riposte" {
+  oracle_id e341478e-c3f8-45d9-9430-abe3a58fa2fc
+  cost {1}{W}
+  type Instant
+  spell: deal 3 damage to target tapped creature and you gain 2 life
+}

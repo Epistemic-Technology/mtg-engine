@@ -1,0 +1,8 @@
+card "Ironhoof Boar" {
+  oracle_id 90266ce6-4360-4de4-9b06-adff7d6c378b
+  cost {5}{R}
+  type Artifact Creature — Boar
+  pt 5/4
+  keywords trample, haste
+  label "Channel" activated {1}{R}, discard this: target creature gets +3/+1 and gains trample
+}

@@ -1,0 +1,8 @@
+card "Araba Mothrider" {
+  oracle_id d6b54f58-7775-4180-b2e5-1b57da65a409
+  cost {1}{W}
+  type Creature — Human Samurai
+  pt 1/1
+  keywords flying
+  bushido 1
+}

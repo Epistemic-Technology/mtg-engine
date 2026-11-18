@@ -1,0 +1,7 @@
+card "Sun-Blessed Peak" {
+  oracle_id d188a397-c7d9-4f16-bc21-d9e1b5ffc951
+  type Land
+  enters tapped
+  mana {R} or {W}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

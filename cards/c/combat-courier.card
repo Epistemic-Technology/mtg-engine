@@ -1,0 +1,8 @@
+card "Combat Courier" {
+  oracle_id 54d32245-c796-4e8e-b61e-c218e3902565
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/1
+  activated {2}, sacrifice this: draw 1 cards
+  unearth {U}
+}

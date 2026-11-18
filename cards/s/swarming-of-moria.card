@@ -1,0 +1,9 @@
+card "Swarming of Moria" {
+  oracle_id c96402dc-1509-4136-bbfd-c86a85e3ee6f
+  cost {2}{R}
+  type Sorcery
+  spell {
+    create 1 "Treasure"
+    amass Orcs 2
+  }
+}

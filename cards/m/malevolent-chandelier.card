@@ -1,0 +1,8 @@
+card "Malevolent Chandelier" {
+  oracle_id 437553c1-0aa4-4093-b6e5-c175ede5f278
+  cost {6}
+  type Artifact Creature — Construct
+  pt 4/4
+  keywords flying
+  activated {2}, sorcery: put target card from a graveyard on bottom of library
+}

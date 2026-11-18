@@ -19,7 +19,8 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 31] = [
+const KEYWORDS: [&str; 32] = [
+    "Flanking",
     "Shroud",
     "Fear",
     "Intimidate",
@@ -54,7 +55,7 @@ const KEYWORDS: [&str; 31] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 29] = [
+const TEMPLATED_TAGS: [&str; 42] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -84,11 +85,25 @@ const TEMPLATED_TAGS: [&str; 29] = [
     "Cycling",
     "Fight",
     "Affinity",
+    "Bushido",
+    "Soulshift",
+    "Afflict",
+    "Toxic",
+    "Ward",
+    "Echo",
+    "Unearth",
+    "Buyback",
+    "Outlast",
+    "Proliferate",
+    "Explore",
+    "Amass",
+    // Scryfall tags some regenerating cards "Heal".
+    "Heal",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
 /// "Landfall — <ability>". Scryfall tags them like keywords.
-const ABILITY_WORDS: [&str; 40] = [
+const ABILITY_WORDS: [&str; 41] = [
     "Landfall",
     "Threshold",
     "Metalcraft",
@@ -129,6 +144,7 @@ const ABILITY_WORDS: [&str; 40] = [
     "Undergrowth",
     "Pack tactics",
     "Void",
+    "Channel",
 ];
 
 /// Keywords whose Oracle wording is a phrase the DSL takes as written.
@@ -437,6 +453,7 @@ fn count_expr(s: &str) -> Option<String> {
 }
 
 /// Recipient phrases the DSL accepts as written.
+#[allow(clippy::too_many_lines)] // one check per phrase family
 fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     const PLAIN: [&str; 10] = [
         "you",
@@ -470,6 +487,13 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         "another target permanent",
         "two target creatures",
     ];
+    let lowered;
+    let s = if s.starts_with("Another target ") || s.starts_with("Up to ") {
+        lowered = lowercase_first(s);
+        lowered.as_str()
+    } else {
+        s
+    };
     if PLAIN.contains(&s) {
         return Some(s.to_string());
     }
@@ -840,6 +864,20 @@ impl Templates {
                     count_expr(cap(c, 2))?
                 ))
             }),
+            (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (r(r"^Amass (\w+) (\w+)$"), |c, _| {
+                Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
+            }),
+            (r(r"^(It|This creature|~) explores$"), |_, t| {
+                (*t == 0).then(|| "this explores".to_string())
+            }),
+            (r(r"^(.+) gets? (a|\w+) poison counters?$"), |c, t| {
+                Some(format!(
+                    "{} gets {} poison counters",
+                    recipient(&subject(cap(c, 1)), t)?,
+                    number(cap(c, 2))?
+                ))
+            }),
             (r(r"^Pay ((?:\{[0-9WUBRGC]+\})+|\d+ life)$"), |c, _| {
                 Some(format!("pay {}", cap(c, 1)))
             }),
@@ -1113,6 +1151,8 @@ fn cost_text(s: &str) -> Option<String> {
                 | "Sacrifice this artifact"
                 | "Sacrifice this enchantment"
                 | "Sacrifice this permanent"
+                | "Sacrifice this land"
+                | "Sacrifice this Aura"
         ) {
             "sacrifice this".to_string()
         } else if let Some(rest) = part
@@ -1127,6 +1167,8 @@ fn cost_text(s: &str) -> Option<String> {
             "discard 1 card".to_string()
         } else if part == "Discard this card" {
             "discard this".to_string()
+        } else if part == "Exile this card from your graveyard" {
+            "exile this from graveyard".to_string()
         } else if let Some(what) = part
             .strip_prefix("Discard a ")
             .or_else(|| part.strip_prefix("Discard an "))
@@ -1598,6 +1640,23 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
+        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic) (\d+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        if let Some(c) =
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast) ((?:\{[0-9WUBRGCX/]+\})+)$")
+                .unwrap()
+                .captures(line)
+        {
+            self.statements
+                .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
             self.statements
                 .push(format!("affinity for {}", singular(cap(&c, 1))));
@@ -1729,6 +1788,13 @@ impl Builder<'_> {
             let rest = match rest.strip_suffix(" Activate only once each turn.") {
                 Some(r) => {
                     cost.push_str(", once");
+                    r
+                }
+                None => rest,
+            };
+            let rest = match rest.strip_suffix(" Activate only as a sorcery.") {
+                Some(r) => {
+                    cost.push_str(", sorcery");
                     r
                 }
                 None => rest,

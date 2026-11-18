@@ -1,0 +1,38 @@
+# Fledgling Djinn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Fledgling Djinn deals 1 damage to its controller only in their own upkeep" {
+  battlefield A: "Fledgling Djinn"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert life A 19
+  assert life B 20
+  run_to turn 2 postcombat_main
+  assert life A 19
+  run_to turn 3 precombat_main
+  assert life A 18
+}
+
+scenario "Fledgling Djinn flies over a ground blocker" {
+  battlefield A: "Fledgling Djinn"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Fledgling Djinn"
+  illegal turn 1 B: block "Fledgling Djinn" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Fledgling Djinn"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Fledgling Djinn can be blocked by a flyer" {
+  battlefield A: "Fledgling Djinn"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Fledgling Djinn"
+  turn 1 B: block "Fledgling Djinn" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Fledgling Djinn"
+  assert graveyard B contains "Wind Drake"
+}

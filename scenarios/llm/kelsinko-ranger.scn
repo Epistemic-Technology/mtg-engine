@@ -1,0 +1,34 @@
+# Kelsinko Ranger: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "first strike from Kelsinko Ranger wins combat" {
+  battlefield A: "Kelsinko Ranger", "Grizzly Bears", "Plains", "Mountain"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 declare_blockers A: activate "Kelsinko Ranger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Plains"
+  assert tapped "Mountain"
+}
+
+scenario "without the activation the creatures trade" {
+  battlefield A: "Kelsinko Ranger", "Grizzly Bears", "Plains", "Mountain"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Grizzly Bears"
+  assert untapped "Plains"
+}
+
+scenario "Kelsinko Ranger cannot target a nongreen creature" {
+  battlefield A: "Kelsinko Ranger", "Hill Giant", "Plains", "Mountain"
+  illegal turn 1 A: activate "Kelsinko Ranger" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert untapped "Plains"
+  assert untapped "Mountain"
+}

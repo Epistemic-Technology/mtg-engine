@@ -1,0 +1,8 @@
+card "Hundred-Talon Kami" {
+  oracle_id 100b4440-c588-423e-93d2-23c9b595614d
+  cost {4}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  soulshift 4
+}

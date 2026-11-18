@@ -1,0 +1,32 @@
+# Blood Bairn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature pumps Blood Bairn" {
+  battlefield A: "Blood Bairn", "Grizzly Bears"
+  turn 1 A: activate "Blood Bairn" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Blood Bairn" 4
+  assert toughness "Blood Bairn" 4
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Blood Bairn"
+}
+
+scenario "Blood Bairn cannot sacrifice itself" {
+  battlefield A: "Blood Bairn"
+  illegal turn 1 A: activate "Blood Bairn"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Blood Bairn"
+  assert power "Blood Bairn" 2
+}
+
+scenario "pumped Blood Bairn survives Lightning Bolt" {
+  battlefield A: "Blood Bairn", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Blood Bairn" sacrificing "Grizzly Bears"
+  turn 1 end B: cast "Lightning Bolt" targeting "Blood Bairn"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Blood Bairn"
+  assert graveyard B contains "Lightning Bolt"
+  assert power "Blood Bairn" 2
+}

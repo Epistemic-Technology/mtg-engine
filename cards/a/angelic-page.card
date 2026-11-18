@@ -1,0 +1,8 @@
+card "Angelic Page" {
+  oracle_id f7f76abc-8656-4e97-9b7f-7f89ca3e6d93
+  cost {1}{W}
+  type Creature — Angel Spirit
+  pt 1/1
+  keywords flying
+  activated {T}: target attacking or blocking creature gets +1/+1
+}

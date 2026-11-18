@@ -1,0 +1,6 @@
+card "Indestructible Aura" {
+  oracle_id e10e8d56-bba6-412d-970e-c24969f32b5b
+  cost {W}
+  type Instant
+  spell: prevent all damage to target creature this turn
+}

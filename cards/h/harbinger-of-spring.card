@@ -1,0 +1,8 @@
+card "Harbinger of Spring" {
+  oracle_id 11c2e14c-cee5-480d-b1be-a6b7e245332a
+  cost {4}{G}
+  type Creature — Spirit
+  pt 2/1
+  protection from non-Spirit creature
+  soulshift 4
+}

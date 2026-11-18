@@ -1,0 +1,8 @@
+card "Treetop Snarespinner" {
+  oracle_id 2f57a220-9f64-4143-979a-d6aaf63d49b2
+  cost {3}{G}
+  type Creature — Spider
+  pt 1/4
+  keywords reach, deathtouch
+  activated {2}{G}, sorcery: put 1 +1/+1 counters on target creature you control
+}

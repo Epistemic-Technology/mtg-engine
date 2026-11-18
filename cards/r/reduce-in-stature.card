@@ -1,0 +1,7 @@
+card "Reduce in Stature" {
+  oracle_id 7ebaeef0-4e4c-4bf0-85dd-07c6b6be0741
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: base 0/2
+}

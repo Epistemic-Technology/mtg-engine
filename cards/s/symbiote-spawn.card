@@ -1,0 +1,7 @@
+card "Symbiote Spawn" {
+  oracle_id 7c3ff360-461a-44f3-a8f2-eb061b149cf5
+  cost {2}{B}
+  type Creature — Symbiote Villain
+  pt 3/2
+  triggered when this dies: each opponent loses 2 life and you gain 2 life
+}

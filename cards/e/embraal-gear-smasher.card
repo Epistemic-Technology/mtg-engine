@@ -1,0 +1,7 @@
+card "Embraal Gear-Smasher" {
+  oracle_id 01e81249-6c45-4fae-86ee-9ef5fbec99ec
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/3
+  activated {T}, sacrifice artifact: deal 2 damage to each opponent
+}

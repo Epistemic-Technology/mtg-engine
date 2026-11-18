@@ -1,0 +1,6 @@
+card "Union of the Third Path" {
+  oracle_id 4492c329-174a-44aa-be4d-9f018173b9a7
+  cost {2}{W}
+  type Instant
+  spell: draw 1 card then you gain count equal hand life
+}

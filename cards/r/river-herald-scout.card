@@ -1,0 +1,7 @@
+card "River Herald Scout" {
+  oracle_id 021428b1-005c-40ed-9d47-fb5aa970598b
+  cost {1}{U}
+  type Creature — Merfolk Scout
+  pt 1/2
+  triggered when this enters: this explores
+}

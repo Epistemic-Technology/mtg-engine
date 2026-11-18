@@ -1,0 +1,7 @@
+card "Dauntless Cathar" {
+  oracle_id c14bd133-ff17-48b3-a1c8-56c93d8c6e43
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  activated {1}{W}, exile this from graveyard, sorcery: create 1 "1/1 white Spirit creature with flying"
+}

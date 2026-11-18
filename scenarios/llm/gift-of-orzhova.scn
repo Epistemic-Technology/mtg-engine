@@ -1,0 +1,46 @@
+# Gift of Orzhova: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Gift of Orzhova grants +1/+1, flying and lifelink, castable with hybrid mana" {
+  battlefield A: "Grizzly Bears", "Plains", 2 "Swamp"
+  hand A: "Gift of Orzhova"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gift of Orzhova" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Gift of Orzhova" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" lifelink
+}
+
+scenario "enchanted creature deals lifelink combat damage" {
+  battlefield A: "Grizzly Bears", "Gift of Orzhova" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "enchanted creature can't be blocked by a creature without flying or reach" {
+  battlefield A: "Grizzly Bears", "Gift of Orzhova" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Aura goes to the graveyard when the enchanted creature dies" {
+  battlefield A: "Grizzly Bears", "Gift of Orzhova" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Gift of Orzhova"
+}

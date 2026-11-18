@@ -1,0 +1,39 @@
+# Goblin Fireslinger: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Goblin Fireslinger pings a player" {
+  battlefield A: "Goblin Fireslinger"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Fireslinger" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Goblin Fireslinger"
+}
+
+scenario "Goblin Fireslinger can't tap the turn it is cast" {
+  battlefield A: "Mountain"
+  hand A: "Goblin Fireslinger"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Goblin Fireslinger"
+  illegal turn 1 postcombat_main A: activate "Goblin Fireslinger" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Goblin Fireslinger"
+  assert life B 20
+}
+
+scenario "Goblin Fireslinger can only ping once per untap" {
+  battlefield A: "Goblin Fireslinger"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Fireslinger" targeting player B
+  illegal turn 1 postcombat_main A: activate "Goblin Fireslinger" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Goblin Fireslinger pings at instant speed on the opponent's turn" {
+  battlefield A: "Goblin Fireslinger"
+  start turn 2 B precombat_main
+  turn 2 end A: activate "Goblin Fireslinger" targeting player B
+  run_to turn 2 cleanup
+  assert life B 19
+}

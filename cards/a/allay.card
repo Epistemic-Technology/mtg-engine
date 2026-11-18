@@ -1,0 +1,7 @@
+card "Allay" {
+  oracle_id 664d982a-5cd8-4289-afb8-fa2e083042c9
+  cost {1}{W}
+  type Instant
+  buyback {3}
+  spell: destroy target enchantment
+}

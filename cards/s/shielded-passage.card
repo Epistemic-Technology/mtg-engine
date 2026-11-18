@@ -1,0 +1,6 @@
+card "Shielded Passage" {
+  oracle_id a6933789-bb4f-4d45-975e-402b8e0b0e68
+  cost {W}
+  type Instant
+  spell: prevent all damage to target creature this turn
+}

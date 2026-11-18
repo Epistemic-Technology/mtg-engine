@@ -1,0 +1,7 @@
+card "The Fair Basilica" {
+  oracle_id 8618f8e8-fd86-47e3-905d-e6624b599b9b
+  type Land — Sphere
+  enters tapped
+  mana {W}
+  activated {1}{W}, {T}, sacrifice this: draw 1 cards
+}

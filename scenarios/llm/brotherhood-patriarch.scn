@@ -1,0 +1,37 @@
+# Brotherhood Patriarch: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dying to a spell drains each opponent for 2 and gains 2" {
+  battlefield A: "Brotherhood Patriarch"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Brotherhood Patriarch"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Brotherhood Patriarch"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "dying in combat triggers the drain" {
+  battlefield A: "Brotherhood Patriarch"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Brotherhood Patriarch"
+  turn 1 B: block "Brotherhood Patriarch" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Brotherhood Patriarch"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+  assert life B 18
+}
+
+scenario "no trigger when it survives" {
+  battlefield A: "Brotherhood Patriarch"
+  start turn 1 A
+  turn 1 A: attack "Brotherhood Patriarch"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Brotherhood Patriarch"
+  assert life A 20
+  assert life B 16
+}

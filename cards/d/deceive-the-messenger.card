@@ -1,0 +1,9 @@
+card "Deceive the Messenger" {
+  oracle_id a9720545-37f4-42f1-932f-13ef88c9ea72
+  cost {U}
+  type Instant
+  spell {
+    target creature gets -3/-0
+    amass Orcs 1
+  }
+}

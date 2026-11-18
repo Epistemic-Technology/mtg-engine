@@ -2256,6 +2256,23 @@ could target its own card in the graveyard (fixed, CR 601.2a). Corpus
 scenarios pass (19 new in scenarios/m5/slice9.scn), 1 skipped; fuzz 0
 panics, 0 unfinished; throughput within 1% of slice 8.
 
+Status 2026-11-18, slice 10 (keyword mechanics) done, with model-author
+batch 4. Keyword abilities with a parameter compile to what they stand
+for: bushido, soulshift, afflict, ward (a trigger on an opponent's spell
+or ability targeting it), echo (a per-object "came under your control"
+flag), unearth (abilities activated from the graveyard), buyback (a
+cast flag and decision, like kicker), outlast, flanking (a keyword
+trigger with a new "blocked by" trigger), and toxic (poison with combat
+damage). Keyword actions proliferate, explore, and amass; "Exile this
+card from your graveyard" costs; channel-style hand abilities with
+targets; "Activate only as a sorcery." printed. Batch 4 (500 of the
+shortest remaining Pauper cards, 105 accepted, about $20) is the first
+since slice 5 and its 382 unsupported reasons are the slice 11 list.
+Corpus 6,599 cards: 4,587 Pauper (42.2%), 4,881 Modern (21.5%); 1,369
+scenarios pass (16 new in scenarios/m5/mechanics.scn, the rest from
+batch 4), 1 skipped; fuzz 0 panics, 0 unfinished; throughput 1% below
+slice 8.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

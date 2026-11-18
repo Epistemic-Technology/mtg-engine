@@ -1,0 +1,8 @@
+card "Shinen of Flight's Wings" {
+  oracle_id 5fa542e5-d3a7-45d3-ac1d-32546fbfe784
+  cost {4}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  label "Channel" activated {U}, discard this: target creature gains flying
+}

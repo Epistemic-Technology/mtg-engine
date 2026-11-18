@@ -1,0 +1,39 @@
+# Warlord's Fury: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "first strike lets attacker kill blocker without taking damage" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Warlord's Fury"
+  turn 1 A: cast "Warlord's Fury"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Warlord's Fury"
+}
+
+scenario "draws a card even with no creatures" {
+  battlefield A: "Mountain"
+  hand A: "Warlord's Fury"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Warlord's Fury"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Island"
+  assert graveyard A contains "Warlord's Fury"
+}
+
+scenario "first strike lasts only until end of turn" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Warlord's Fury"
+  turn 1 A: cast "Warlord's Fury"
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}

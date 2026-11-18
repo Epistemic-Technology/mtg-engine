@@ -1,0 +1,39 @@
+# Furor of the Bitten: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "cast Furor gives +2/+2 and forces attack" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Furor of the Bitten"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Furor of the Bitten" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Furor of the Bitten" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "enchanted creature attacks without being told" {
+  battlefield A: "Grizzly Bears", "Furor of the Bitten" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "tapped enchanted creature does not attack" {
+  battlefield A: "Grizzly Bears" tapped, "Furor of the Bitten" on "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert tapped "Grizzly Bears"
+}
+
+scenario "toughness boost lets creature survive Lightning Bolt" {
+  battlefield A: "Grizzly Bears", "Furor of the Bitten" on "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+}

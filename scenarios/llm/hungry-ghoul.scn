@@ -1,0 +1,42 @@
+# Hungry Ghoul: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature puts a +1/+1 counter on Hungry Ghoul" {
+  battlefield A: "Hungry Ghoul", "Grizzly Bears", "Swamp"
+  turn 1 A: activate "Hungry Ghoul" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hungry Ghoul" +1/+1 1
+  assert power "Hungry Ghoul" 3
+  assert toughness "Hungry Ghoul" 3
+  assert tapped "Swamp"
+}
+
+scenario "Hungry Ghoul cannot sacrifice itself" {
+  battlefield A: "Hungry Ghoul", "Swamp"
+  illegal turn 1 A: activate "Hungry Ghoul"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hungry Ghoul"
+  assert counters "Hungry Ghoul" +1/+1 0
+  assert untapped "Swamp"
+}
+
+scenario "Hungry Ghoul needs {1} to activate" {
+  battlefield A: "Hungry Ghoul", "Grizzly Bears"
+  illegal turn 1 A: activate "Hungry Ghoul"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Hungry Ghoul" 2
+}
+
+scenario "Hungry Ghoul can grow twice in one turn" {
+  battlefield A: "Hungry Ghoul", "Grizzly Bears", "Hill Giant", 2 "Swamp"
+  turn 1 A: activate "Hungry Ghoul" sacrificing "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Hungry Ghoul" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert counters "Hungry Ghoul" +1/+1 2
+  assert power "Hungry Ghoul" 4
+}

@@ -1,0 +1,8 @@
+card "Multani's Acolyte" {
+  oracle_id d08725e6-ed9a-4c82-89d4-0dd037c376f6
+  cost {G}{G}
+  type Creature — Elf
+  pt 2/1
+  echo {G}{G}
+  triggered when this enters: draw 1 cards
+}

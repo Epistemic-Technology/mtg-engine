@@ -1,0 +1,7 @@
+card "Seething Anger" {
+  oracle_id 2effcd1c-5833-4e0e-bb67-2d2ffb22a014
+  cost {R}
+  type Sorcery
+  buyback {3}
+  spell: target creature gets +3/+0
+}

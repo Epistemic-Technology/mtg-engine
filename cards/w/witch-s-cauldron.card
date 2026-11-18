@@ -1,0 +1,6 @@
+card "Witch's Cauldron" {
+  oracle_id cb65ee08-bfdb-4c18-8967-8bcf31fcabfa
+  cost {B}
+  type Artifact
+  activated {1}{B}, {T}, sacrifice creature: you gain 1 life and draw 1 card
+}

@@ -1,0 +1,7 @@
+card "Elvenking's Halls" {
+  oracle_id a91e0154-14a9-4681-8236-04db231592a4
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {2}{G}{U}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target Elf you control
+}

@@ -1,0 +1,7 @@
+card "Elvish Fury" {
+  oracle_id 557d2af0-04c5-461d-826b-7208c4535dc2
+  cost {G}
+  type Instant
+  buyback {4}
+  spell: target creature gets +2/+2
+}

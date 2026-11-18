@@ -1,0 +1,8 @@
+card "Scrapwork Mutt" {
+  oracle_id 5906b378-c7a7-44fd-a63b-55a347d97854
+  cost {2}
+  type Artifact Creature — Dog
+  pt 2/1
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+  unearth {1}{R}
+}

@@ -1,0 +1,7 @@
+card "Herald of the Dreadhorde" {
+  oracle_id 9cdbe247-9dd3-4894-8e65-43d879c19321
+  cost {3}{B}
+  type Creature — Zombie Warrior
+  pt 3/2
+  triggered when this dies: amass Zombies 2
+}

@@ -1,0 +1,7 @@
+card "D'Avenant Archer" {
+  oracle_id 81bc4a5e-812f-4809-b6df-271c3c22f4fc
+  cost {2}{W}
+  type Creature — Human Soldier Archer
+  pt 1/2
+  activated {T}: deal 1 damage to target attacking or blocking creature
+}

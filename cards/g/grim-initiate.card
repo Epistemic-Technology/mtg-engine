@@ -1,0 +1,8 @@
+card "Grim Initiate" {
+  oracle_id 96264dde-c0b6-4912-afc4-18757f938a4d
+  cost {R}
+  type Creature — Zombie Warrior
+  pt 1/1
+  keywords first strike
+  triggered when this dies: amass Zombies 1
+}

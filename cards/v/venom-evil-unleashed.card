@@ -1,0 +1,8 @@
+card "Venom, Evil Unleashed" {
+  oracle_id 6731d861-cc52-4a2e-8c33-154681fd50e4
+  cost {4}{B}
+  type Legendary Creature — Symbiote Villain
+  pt 4/5
+  keywords deathtouch
+  activated {2}{B}, exile this from graveyard, sorcery: put 2 +1/+1 counters on target creature; target 1 gains deathtouch
+}

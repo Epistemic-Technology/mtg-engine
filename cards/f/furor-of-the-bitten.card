@@ -1,0 +1,7 @@
+card "Furor of the Bitten" {
+  oracle_id 40be0923-5d57-46fd-84ef-7f1a1fd5da42
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has attacks each combat if able
+}

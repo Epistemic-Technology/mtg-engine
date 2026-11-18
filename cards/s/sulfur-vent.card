@@ -1,0 +1,7 @@
+card "Sulfur Vent" {
+  oracle_id bc2906cd-9e0c-4aa8-b656-fb1045d810ac
+  type Land
+  enters tapped
+  mana {B}
+  activated {T}, sacrifice this: add {U}{R}
+}

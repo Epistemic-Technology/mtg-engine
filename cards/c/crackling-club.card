@@ -1,0 +1,8 @@
+card "Crackling Club" {
+  oracle_id 876affb5-155d-4268-9e46-4437a9fbccc7
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0
+  activated sacrifice this: deal 1 damage to target creature
+}

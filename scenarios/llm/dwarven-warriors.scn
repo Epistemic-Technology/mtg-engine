@@ -1,0 +1,37 @@
+# Dwarven Warriors: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dwarven warriors makes a small creature unblockable" {
+  battlefield A: "Dwarven Warriors", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Dwarven Warriors" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Dwarven Warriors"
+  assert life B 18
+}
+
+scenario "without the ability the creature can be blocked" {
+  battlefield A: "Dwarven Warriors", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Dwarven Warriors"
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "pumping after the ability resolves keeps it unblockable" {
+  battlefield A: "Dwarven Warriors", "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Giant Growth"
+  turn 1 A: activate "Dwarven Warriors" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}

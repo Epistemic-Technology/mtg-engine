@@ -1,0 +1,7 @@
+card "Kelsinko Ranger" {
+  oracle_id 4d47e598-690e-4850-97e4-7136bc7b497e
+  cost {W}
+  type Creature — Human Ranger
+  pt 1/1
+  activated {1}{W}: target green creature gains first strike
+}

@@ -1,0 +1,8 @@
+card "Shinen of Stars' Light" {
+  oracle_id d43f813b-3607-4bc3-b996-3dbad6977bd8
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords first strike
+  label "Channel" activated {1}{W}, discard this: target creature gains first strike
+}

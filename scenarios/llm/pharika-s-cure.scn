@@ -1,0 +1,50 @@
+# Pharika's Cure: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Pharika's Cure kills a 2/2 and gains 2 life" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pharika's Cure"
+  turn 1 A: cast "Pharika's Cure" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Pharika's Cure"
+  assert life A 22
+}
+
+scenario "Pharika's Cure damages a larger creature without killing it" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Pharika's Cure"
+  turn 1 A: cast "Pharika's Cure" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+  assert life A 22
+}
+
+scenario "Pharika's Cure with an illegal target does nothing, no life gained" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", 3 "Swamp"
+  hand A: "Pharika's Cure"
+  hand B: "Murder"
+  turn 1 A: cast "Pharika's Cure" targeting "Grizzly Bears"
+  turn 1 B: cast "Murder" targeting "Grizzly Bears" in response to "Pharika's Cure"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Pharika's Cure"
+  assert life A 20
+}
+
+scenario "Pharika's Cure still gains life when the creature survives via Giant Growth" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Pharika's Cure"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Pharika's Cure" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Pharika's Cure"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert life A 22
+}

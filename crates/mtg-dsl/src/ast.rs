@@ -156,6 +156,11 @@ pub struct Cost {
     /// "Discard this card" (cycling): the source leaves the hand as the
     /// cost is paid.
     pub discard_self: bool,
+    /// Activated from the graveyard (unearth's expansion).
+    pub from_graveyard: bool,
+    /// `exile this from graveyard`: "Exile this card from your graveyard"
+    /// (activated from the graveyard).
+    pub exile_self: bool,
     /// "Activate only once each turn."
     pub once: bool,
     /// The order the parts were written in, which is the order printed
@@ -166,6 +171,7 @@ pub struct Cost {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
+    Exile,
     Mana,
     Tap,
     Sacrifice,
@@ -347,6 +353,9 @@ pub enum Ability {
     /// "Protection from artifacts" (CR 702.16), a quality other than a
     /// color (those are keywords).
     Protection(Filter),
+    /// A keyword ability with a number or cost, printed as the keyword
+    /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
+    Mechanic(Mechanic),
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
     /// by one.", "Each opponent's maximum hand size is reduced by one."
@@ -360,6 +369,35 @@ pub enum Ability {
         label: String,
         ability: Box<Ability>,
     },
+}
+
+/// Keyword abilities with a parameter (CR 702).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum Mechanic {
+    /// CR 702.45: blocks or becomes blocked, +N/+N until end of turn.
+    Bushido(u32),
+    /// CR 702.46: dies, you may return a Spirit card with mana value N or
+    /// less from your graveyard to your hand.
+    Soulshift(u32),
+    /// CR 702.130: becomes blocked, defending player loses N life.
+    Afflict(u32),
+    /// CR 702.164: combat damage to a player also gives N poison counters.
+    Toxic(u32),
+    /// CR 702.21: becomes the target of an opponent's spell or ability,
+    /// counter it unless its controller pays.
+    Ward(ManaCost),
+    /// CR 702.30: at your upkeep, if it came under your control since your
+    /// last upkeep, sacrifice it unless you pay.
+    Echo(ManaCost),
+    /// CR 702.84: from the graveyard as a sorcery: return it with haste,
+    /// exile it at the next end step.
+    Unearth(ManaCost),
+    /// CR 702.27: an optional additional cost; the spell returns to its
+    /// owner's hand as it resolves.
+    Buyback(ManaCost),
+    /// CR 702.107: "{cost}, {T}: Put a +1/+1 counter on this creature.
+    /// Activate only as a sorcery."
+    Outlast(ManaCost),
 }
 
 /// A blocking restriction on this creature.
@@ -521,6 +559,9 @@ pub enum Trigger {
         instant_or_sorcery: bool,
     },
     BecomesTarget(TriggerObj),
+    /// Ward's trigger: "becomes the target of a spell or ability an
+    /// opponent controls".
+    TargetedByOpponent,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -831,4 +872,23 @@ pub enum Effect {
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),
     Rule(RuleKind),
+    /// `proliferate` (CR 701.27).
+    Proliferate,
+    /// `this explores` (CR 701.44).
+    Explore {
+        what: Recipient,
+    },
+    /// `amass Zombies 2` (CR 701.47): the token is "0/0 black <kind> Army
+    /// creature".
+    Amass {
+        kind: String,
+        count: Num,
+    },
+    /// Echo's bookkeeping (from its expansion).
+    ClearEcho,
+    /// `each opponent gets 1 poison counter`.
+    AddPoison {
+        count: Num,
+        who: Recipient,
+    },
 }

@@ -1,0 +1,8 @@
+card "Scourge Devil" {
+  oracle_id 3ee65210-547f-4375-8f9a-3484d963339f
+  cost {4}{R}
+  type Creature — Devil
+  pt 3/3
+  triggered when this enters: each creature you control gets +1/+0
+  unearth {2}{R}
+}

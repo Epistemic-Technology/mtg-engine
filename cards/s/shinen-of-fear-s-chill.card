@@ -1,0 +1,8 @@
+card "Shinen of Fear's Chill" {
+  oracle_id 72e61b73-980c-4ee4-b529-a367897620ec
+  cost {4}{B}
+  type Creature — Spirit
+  pt 3/2
+  keywords can't block
+  label "Channel" activated {1}{B}, discard this: target creature can't block
+}

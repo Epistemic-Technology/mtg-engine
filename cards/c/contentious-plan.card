@@ -1,0 +1,9 @@
+card "Contentious Plan" {
+  oracle_id 2fc6de19-9d04-422b-90bc-eee2f9f8c84c
+  cost {1}{U}
+  type Sorcery
+  spell {
+    proliferate
+    draw 1 cards
+  }
+}

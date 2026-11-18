@@ -1,0 +1,7 @@
+card "Anaba Ancestor" {
+  oracle_id 9d2e7422-397a-47d4-9a1e-1957c7db9a18
+  cost {1}{R}
+  type Creature — Minotaur Spirit
+  pt 1/1
+  activated {T}: target another Minotaur creature gets +1/+1
+}

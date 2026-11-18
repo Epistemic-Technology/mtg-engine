@@ -1,0 +1,43 @@
+# Blossoming Wreath: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "gain life equal to creature cards in graveyard" {
+  battlefield A: "Forest"
+  hand A: "Blossoming Wreath"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Lightning Bolt", "Forest"
+  turn 1 A: cast "Blossoming Wreath"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Blossoming Wreath"
+}
+
+scenario "no creature cards gains nothing" {
+  battlefield A: "Forest"
+  hand A: "Blossoming Wreath"
+  graveyard A: "Lightning Bolt", "Murder"
+  turn 1 A: cast "Blossoming Wreath"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "opponent's graveyard creatures do not count" {
+  battlefield A: "Forest"
+  hand A: "Blossoming Wreath"
+  graveyard A: "Serra Angel"
+  graveyard B: "Grizzly Bears", "Hill Giant", "Wind Drake"
+  turn 1 A: cast "Blossoming Wreath"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert life B 20
+}
+
+scenario "creatures counted on resolution" {
+  battlefield A: "Forest", "Mountain", "Grizzly Bears"
+  hand A: "Blossoming Wreath", "Shock"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Blossoming Wreath"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears" in response to "Blossoming Wreath"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 22
+}

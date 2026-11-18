@@ -1,0 +1,14 @@
+card "Dirgur Island Dragon // Skimming Strike" {
+  oracle_id 23cda76b-6e47-4922-a38d-93f7aae1eb00
+  layout omen
+  cost {5}{U}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  ward {2}
+  face "Skimming Strike" {
+    cost {1}{U}
+    type Instant — Omen
+    spell: tap up to one target creature; draw 1 cards
+  }
+}

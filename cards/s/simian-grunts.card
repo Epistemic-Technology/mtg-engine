@@ -1,0 +1,8 @@
+card "Simian Grunts" {
+  oracle_id 158f4e87-60f1-43c1-b03d-9bbe4b824b39
+  cost {2}{G}
+  type Creature — Ape
+  pt 3/4
+  keywords flash
+  echo {2}{G}
+}

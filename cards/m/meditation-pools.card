@@ -1,0 +1,7 @@
+card "Meditation Pools" {
+  oracle_id 66208129-20fb-4cb4-8f00-8d4574c9c653
+  type Land
+  enters tapped
+  mana {G} or {U}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

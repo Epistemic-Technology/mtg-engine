@@ -1,0 +1,7 @@
+card "Timberland Ruins" {
+  oracle_id 29c7f059-2eeb-40f9-8f50-03eba2d0d5e0
+  type Land
+  enters tapped
+  mana {G}
+  activated {T}, sacrifice this: add any
+}

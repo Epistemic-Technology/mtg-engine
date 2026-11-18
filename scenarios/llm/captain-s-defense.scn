@@ -1,0 +1,43 @@
+# Captain's Defense: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumped blocker survives and kills the attacker, caster draws" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Captain's Defense"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Captain's Defense" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert damage "Grizzly Bears" 3
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Captain's Defense"
+  assert hand A count 1
+  assert life A 20
+}
+
+scenario "cannot be cast outside combat with no blocking creature" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Captain's Defense"
+  illegal turn 1 precombat_main A: cast "Captain's Defense" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Captain's Defense"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "an unblocked attacker is not a legal target" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Captain's Defense"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_blockers A: cast "Captain's Defense" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Captain's Defense"
+  assert life A 17
+  assert power "Hill Giant" 3
+}

@@ -1,0 +1,8 @@
+card "Illuminated Wings" {
+  oracle_id 7a22389a-34e7-4726-a551-f6fbc225cefe
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  activated {2}, sacrifice this: draw 1 cards
+}

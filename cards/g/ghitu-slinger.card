@@ -1,0 +1,8 @@
+card "Ghitu Slinger" {
+  oracle_id 8e2b5f90-e405-4b24-a71a-0988c37cf67a
+  cost {2}{R}
+  type Creature — Human Nomad
+  pt 2/2
+  echo {2}{R}
+  triggered when this enters: deal 2 damage to any target
+}

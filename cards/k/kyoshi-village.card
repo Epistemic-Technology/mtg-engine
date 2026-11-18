@@ -1,0 +1,7 @@
+card "Kyoshi Village" {
+  oracle_id da81b78b-89fd-4fc1-9395-b5b01b96be70
+  type Land
+  enters tapped
+  mana {G} or {W}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

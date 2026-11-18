@@ -1,0 +1,6 @@
+card "Shire Terrace" {
+  oracle_id 619173f4-0403-49cd-9659-2fedd5028a90
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

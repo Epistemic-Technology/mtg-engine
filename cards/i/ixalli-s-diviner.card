@@ -1,0 +1,7 @@
+card "Ixalli's Diviner" {
+  oracle_id 56c930c4-77e8-4547-8d55-663dc68ccf13
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 0/3
+  triggered when this enters: this explores
+}

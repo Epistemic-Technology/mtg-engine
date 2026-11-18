@@ -1,0 +1,8 @@
+card "Fledgling Djinn" {
+  oracle_id 2c73ef77-ae58-401f-8747-538c4cd075d0
+  cost {1}{B}
+  type Creature — Djinn
+  pt 2/2
+  keywords flying
+  triggered at beginning of your upkeep step: deal 1 damage to you
+}

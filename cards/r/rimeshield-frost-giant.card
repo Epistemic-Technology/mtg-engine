@@ -1,0 +1,7 @@
+card "Rimeshield Frost Giant" {
+  oracle_id ec47cf67-2580-464f-8118-7eabea5be11c
+  cost {3}{U}{U}
+  type Creature — Giant Warrior
+  pt 4/5
+  ward {3}
+}

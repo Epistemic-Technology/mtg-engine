@@ -1,0 +1,7 @@
+card "Agility" {
+  oracle_id 0f5f8b47-d104-4e29-b052-02d730d76ec0
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flanking
+}

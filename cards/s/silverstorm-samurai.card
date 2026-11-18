@@ -1,0 +1,8 @@
+card "Silverstorm Samurai" {
+  oracle_id 3df0a392-bcc1-4456-bd6e-d044bcc83a16
+  cost {4}{W}{W}
+  type Creature — Fox Samurai
+  pt 3/3
+  keywords flash
+  bushido 1
+}

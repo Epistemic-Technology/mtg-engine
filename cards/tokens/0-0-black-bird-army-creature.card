@@ -1,0 +1,6 @@
+token "0/0 black Bird Army creature" {
+  name "Bird Army"
+  type Creature — Bird Army
+  pt 0/0
+  color black
+}

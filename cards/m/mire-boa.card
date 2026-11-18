@@ -1,0 +1,8 @@
+card "Mire Boa" {
+  oracle_id e9a3a466-df78-49a0-add3-975b94c5cd09
+  cost {1}{G}
+  type Creature — Snake
+  pt 2/1
+  keywords swampwalk
+  activated {G}: regenerate this
+}

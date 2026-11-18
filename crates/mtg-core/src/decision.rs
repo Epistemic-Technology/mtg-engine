@@ -69,6 +69,8 @@ pub enum DecisionKind {
     PayOrCounter { def: CardRef },
     /// Whether to pay `spell`'s kicker (CR 702.33): `Accept` kicks.
     Kicker { spell: ObjId },
+    /// Whether to pay a spell's buyback cost (CR 702.27).
+    Buyback { spell: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

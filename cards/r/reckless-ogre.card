@@ -1,0 +1,7 @@
+card "Reckless Ogre" {
+  oracle_id fe455177-d9e5-4893-ad87-ebbba5e2fa45
+  cost {3}{R}
+  type Creature — Ogre
+  pt 3/2
+  triggered whenever this attacks alone: this gets +3/+0
+}

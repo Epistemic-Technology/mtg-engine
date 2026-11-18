@@ -1,0 +1,7 @@
+card "Anoint" {
+  oracle_id fcb03c54-5b9a-428d-bbf6-ef8977770c8d
+  cost {W}
+  type Instant
+  buyback {3}
+  spell: prevent next 3 damage to target creature this turn
+}

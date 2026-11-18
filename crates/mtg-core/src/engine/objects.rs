@@ -59,7 +59,7 @@ impl GameState {
 
     pub(super) fn new_object(&mut self, def: CardRef, owner: PlayerId, zone: Zone) -> ObjId {
         let timestamp = self.tick();
-        if zone == Zone::Graveyard && self.pool.get(def).flashback.is_some() {
+        if zone == Zone::Graveyard && self.pool.get(def).graveyard_active() {
             self.player_mut(owner).flashback_in_graveyard += 1;
         }
         self.objects.insert(GameObject {
@@ -75,6 +75,7 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
+            echo_due: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -223,6 +224,7 @@ impl GameState {
             damage: 0,
             deathtouch_damage: false,
             controlled_since_turn_start: false,
+            echo_due: to == Zone::Battlefield,
             // CR 702.33c: a permanent spell's kicker was paid, so the
             // permanent was kicked.
             cast: if old.zone == Zone::Stack && to == Zone::Battlefield {
@@ -265,7 +267,7 @@ impl GameState {
         if old.kind == ObjKind::Token && to != Zone::Battlefield {
             self.stray_tokens.push(new);
         }
-        if old.kind == ObjKind::Card && self.pool.get(old.card).flashback.is_some() {
+        if old.kind == ObjKind::Card && self.pool.get(old.card).graveyard_active() {
             if old.zone == Zone::Graveyard {
                 let n = &mut self.player_mut(old.owner).flashback_in_graveyard;
                 *n = n.saturating_sub(1);
@@ -534,6 +536,22 @@ impl GameState {
                 } else {
                     let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
                     self.change_life(p, delta);
+                }
+                // CR 702.164c: toxic adds poison counters with combat damage.
+                if combat && let Some(c) = src.as_ref() {
+                    let toxic: u32 = c
+                        .abilities
+                        .iter()
+                        .map(|a| match self.pool.ability(*a) {
+                            crate::card::AbilityDef::Toxic(n) => *n,
+                            _ => 0,
+                        })
+                        .sum();
+                    if toxic > 0 {
+                        self.player_mut(p).poison += toxic;
+                        self.bump();
+                        self.sba_touch();
+                    }
                 }
             }
             Target::Object(id) => {

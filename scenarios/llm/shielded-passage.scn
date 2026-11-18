@@ -1,0 +1,51 @@
+# Shielded Passage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Shielded Passage prevents burn to the target creature" {
+  battlefield A: "Grizzly Bears", "Plains", "Mountain"
+  hand A: "Shielded Passage", "Lightning Bolt"
+  turn 1 A: cast "Shielded Passage" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Shielded Passage"
+}
+
+scenario "Shielded Passage prevents combat damage to the creature but not from it" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Shielded Passage"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Shielded Passage" targeting "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Shielded Passage only protects its target" {
+  battlefield A: "Grizzly Bears", "Plains", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shielded Passage", "Lightning Bolt"
+  turn 1 A: cast "Shielded Passage" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Shielded Passage wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Mountain"
+  hand A: "Shielded Passage"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Shielded Passage" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}

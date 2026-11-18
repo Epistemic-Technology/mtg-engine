@@ -1,0 +1,6 @@
+card "Certain Death" {
+  oracle_id 1d4b8a31-6500-4e3d-bcaf-f6f184d7743e
+  cost {5}{B}
+  type Sorcery
+  spell: destroy target creature; its controller loses 2 life and you gain 2 life
+}

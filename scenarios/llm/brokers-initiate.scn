@@ -1,0 +1,35 @@
+# Brokers Initiate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "activation sets base power and toughness 5/5 until end of turn" {
+  battlefield A: "Brokers Initiate", 4 "Plains", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brokers Initiate"
+  run_to turn 1 postcombat_main
+  assert power "Brokers Initiate" 5
+  assert toughness "Brokers Initiate" 5
+  run_to turn 2
+  assert power "Brokers Initiate" 0
+  assert toughness "Brokers Initiate" 4
+}
+
+scenario "pumped initiate attacks for 5" {
+  battlefield A: "Brokers Initiate", 4 "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Brokers Initiate"
+  turn 1 A: attack "Brokers Initiate"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "giant growth applies on top of the new base" {
+  battlefield A: "Brokers Initiate", 4 "Plains", "Island", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Brokers Initiate"
+  turn 1 A: wait
+  turn 1 A: activate "Brokers Initiate"
+  run_to turn 1 postcombat_main
+  assert power "Brokers Initiate" 8
+  assert toughness "Brokers Initiate" 8
+}

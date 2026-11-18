@@ -1,0 +1,7 @@
+card "Vivien's Crocodile" {
+  oracle_id b49791f9-525c-4b04-954d-d7678c5565e3
+  cost {2}{G}
+  type Creature — Crocodile Spirit
+  pt 3/3
+  static this: +1/+1 as long as you control Vivien planeswalker
+}

@@ -1,0 +1,49 @@
+# Last Breath: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Last Breath exiles a small creature and its controller gains 4 life" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Last Breath"
+  turn 1 A: cast "Last Breath" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert life B 24
+  assert life A 20
+  assert graveyard A contains "Last Breath"
+}
+
+scenario "Last Breath cannot target a creature with power 3 or more" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Last Breath"
+  illegal turn 1 A: cast "Last Breath" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert hand A contains "Last Breath"
+  assert life B 20
+}
+
+scenario "Last Breath does nothing if the target grows out of range" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Last Breath"
+  hand B: "Giant Growth"
+  turn 1 A: cast "Last Breath" targeting "Grizzly Bears"
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears" in response to "Last Breath"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 20
+  assert graveyard A contains "Last Breath"
+}
+
+scenario "Last Breath on your own creature gains you 4 life" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Last Breath"
+  turn 1 A: cast "Last Breath" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert life A 24
+  assert life B 20
+}

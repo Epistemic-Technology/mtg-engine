@@ -1,0 +1,35 @@
+# Sulfur Vent: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Sulfur Vent enters tapped" {
+  hand A: "Sulfur Vent"
+  start turn 1 A precombat_main
+  turn 1 A: play "Sulfur Vent"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sulfur Vent"
+  assert tapped "Sulfur Vent"
+}
+
+scenario "sacrifice Sulfur Vent for red to cast Lightning Bolt" {
+  battlefield A: "Sulfur Vent"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sulfur Vent"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Sulfur Vent"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Sulfur Vent's two mana pays for Divination with an Island" {
+  battlefield A: "Sulfur Vent", "Island"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sulfur Vent"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Sulfur Vent"
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}

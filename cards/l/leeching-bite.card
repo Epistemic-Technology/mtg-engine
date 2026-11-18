@@ -1,0 +1,6 @@
+card "Leeching Bite" {
+  oracle_id 42e4a55b-12c8-4ad0-a27d-28bbdbb06940
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +1/+1; another target creature gets -1/-1
+}

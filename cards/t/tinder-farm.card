@@ -1,0 +1,7 @@
+card "Tinder Farm" {
+  oracle_id af0ad159-8264-4526-9a95-eddd32c0a13f
+  type Land
+  enters tapped
+  mana {G}
+  activated {T}, sacrifice this: add {R}{W}
+}

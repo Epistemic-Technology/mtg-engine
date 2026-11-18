@@ -1,0 +1,7 @@
+card "Foggy Bottom Swamp" {
+  oracle_id b56bb8cb-457e-4b85-9bf9-5e891e79f1dd
+  type Land
+  enters tapped
+  mana {B} or {G}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

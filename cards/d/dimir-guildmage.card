@@ -1,0 +1,8 @@
+card "Dimir Guildmage" {
+  oracle_id 1b6c67e5-5913-4db9-85d9-8dae57da02ee
+  cost {U/B}{U/B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {3}{U}, sorcery: target player draws 1 cards
+  activated {3}{B}, sorcery: target player discards 1 cards
+}

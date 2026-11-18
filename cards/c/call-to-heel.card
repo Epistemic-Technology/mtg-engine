@@ -1,0 +1,6 @@
+card "Call to Heel" {
+  oracle_id 8ef3dd68-f6a1-43b9-8837-40b326019b1b
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand; its controller draws 1 card
+}

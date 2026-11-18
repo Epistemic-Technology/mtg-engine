@@ -1,0 +1,36 @@
+# Heavy Ballista: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Heavy Ballista kills an attacking creature" {
+  battlefield A: "Heavy Ballista"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "Heavy Ballista" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+  assert tapped "Heavy Ballista"
+}
+
+scenario "Heavy Ballista damages a blocking creature" {
+  battlefield A: "Heavy Ballista", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Heavy Ballista" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Heavy Ballista cannot target a creature not in combat" {
+  battlefield A: "Heavy Ballista"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Heavy Ballista" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert untapped "Heavy Ballista"
+}

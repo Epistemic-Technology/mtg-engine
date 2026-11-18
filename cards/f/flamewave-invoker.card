@@ -1,0 +1,7 @@
+card "Flamewave Invoker" {
+  oracle_id ee17706a-edc0-4301-8330-1da539679c7a
+  cost {2}{R}
+  type Creature — Goblin Mutant
+  pt 2/2
+  activated {7}{R}: deal 5 damage to target player or planeswalker
+}

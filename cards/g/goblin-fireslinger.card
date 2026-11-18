@@ -1,0 +1,7 @@
+card "Goblin Fireslinger" {
+  oracle_id 396564be-3747-49dd-98dc-afb81a375f18
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  activated {T}: deal 1 damage to target player or planeswalker
+}

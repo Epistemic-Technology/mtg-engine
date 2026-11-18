@@ -1,0 +1,7 @@
+card "Kami of Empty Graves" {
+  oracle_id bff92baa-fc0e-4da4-8bd5-e57e4963d642
+  cost {3}{B}
+  type Creature — Spirit
+  pt 4/1
+  soulshift 3
+}

@@ -1,0 +1,7 @@
+card "Airship Engine Room" {
+  oracle_id 01ed9139-293d-4477-a145-3c6fe59266c7
+  type Land
+  enters tapped
+  mana {U} or {R}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

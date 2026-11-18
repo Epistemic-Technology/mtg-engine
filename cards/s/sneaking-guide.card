@@ -1,0 +1,7 @@
+card "Sneaking Guide" {
+  oracle_id 3eabd27c-bd65-479a-9743-e90e4273c016
+  cost {R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  activated {2}, {T}: target creature with power 2 or less can't be blocked
+}

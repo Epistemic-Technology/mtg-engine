@@ -1,0 +1,39 @@
+# Mosstodon: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Mosstodon gives itself trample and tramples over a blocker" {
+  battlefield A: "Mosstodon", "Forest"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Mosstodon" targeting "Mosstodon"
+  turn 1 A: attack "Mosstodon"
+  turn 1 B: block "Mosstodon" with "Grizzly Bears"
+  turn 1 A: assign "Mosstodon" to "Grizzly Bears" 2, player B 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Mosstodon"
+  assert has "Mosstodon" trample
+}
+
+scenario "a creature pumped to power 5 or greater can be given trample" {
+  battlefield A: "Mosstodon", "Hill Giant", 2 "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Mosstodon" targeting "Hill Giant"
+  run_to turn 1 begin_combat
+  assert power "Hill Giant" 6
+  assert has "Hill Giant" trample
+  assert has not "Mosstodon" trample
+}
+
+scenario "without the ability Mosstodon has no trample" {
+  battlefield A: "Mosstodon"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Mosstodon"
+  turn 1 B: block "Mosstodon" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+  assert has not "Mosstodon" trample
+}

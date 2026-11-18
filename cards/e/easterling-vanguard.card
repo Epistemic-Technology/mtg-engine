@@ -1,0 +1,7 @@
+card "Easterling Vanguard" {
+  oracle_id 149887fa-6b2d-495e-b3e0-b2ac7d3dc838
+  cost {1}{B}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered when this dies: amass Orcs 1
+}

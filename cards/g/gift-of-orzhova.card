@@ -1,0 +1,7 @@
+card "Gift of Orzhova" {
+  oracle_id dcb6d317-5c55-4973-8e3d-2e98211dc30e
+  cost {1}{W/B}{W/B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flying, lifelink
+}

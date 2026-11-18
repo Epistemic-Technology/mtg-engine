@@ -1,0 +1,21 @@
+# Irrigation Ditch: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Irrigation Ditch enters tapped" {
+  hand A: "Irrigation Ditch"
+  start turn 1 A precombat_main
+  turn 1 A: play "Irrigation Ditch"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Irrigation Ditch"
+  assert tapped "Irrigation Ditch"
+}
+
+scenario "Irrigation Ditch sacrifices itself for its second ability" {
+  battlefield A: "Irrigation Ditch"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Irrigation Ditch"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Irrigation Ditch"
+  assert battlefield A lacks "Irrigation Ditch"
+  assert life A 20
+}

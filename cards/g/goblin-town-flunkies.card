@@ -1,0 +1,8 @@
+card "Goblin-town Flunkies" {
+  oracle_id 85ceb4ac-7a1c-4c7e-95a3-515a5b5d6116
+  cost {1}{R}
+  type Creature — Goblin Soldier
+  pt 1/1
+  keywords haste
+  triggered when this enters: amass Goblins 1
+}

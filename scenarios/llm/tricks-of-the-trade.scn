@@ -1,0 +1,34 @@
+# Tricks of the Trade: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature gets +2/+0" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Tricks of the Trade"
+  turn 1 A: cast "Tricks of the Trade" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Tricks of the Trade" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "enchanted creature can't be blocked" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Tricks of the Trade"
+  turn 1 A: cast "Tricks of the Trade" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "aura goes to graveyard when enchanted creature dies" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield A: "Tricks of the Trade" on "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Tricks of the Trade"
+}

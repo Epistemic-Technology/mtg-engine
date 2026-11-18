@@ -1,0 +1,51 @@
+# Furious Resistance: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "blocker gets +3/+0 and first strike, kills attacker first" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Furious Resistance"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Furious Resistance" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 5
+  assert damage "Grizzly Bears" 0
+  assert life A 20
+  assert graveyard A contains "Furious Resistance"
+}
+
+scenario "pump lasts only until end of turn" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Furious Resistance"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Furious Resistance" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "cannot target a creature that is not blocking" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Furious Resistance"
+  illegal turn 1 A: cast "Furious Resistance" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Furious Resistance"
+}
+
+scenario "cannot target an attacking creature" {
+  battlefield A: "Mountain"
+  hand A: "Furious Resistance"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_blockers A: cast "Furious Resistance" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert hand A contains "Furious Resistance"
+}

@@ -1,0 +1,8 @@
+card "Uktabi Drake" {
+  oracle_id c12b4b1a-fab0-4e9f-8e04-d8a409a965bc
+  cost {G}
+  type Creature — Drake
+  pt 2/1
+  keywords flying, haste
+  echo {1}{G}{G}
+}

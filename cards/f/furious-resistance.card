@@ -1,0 +1,6 @@
+card "Furious Resistance" {
+  oracle_id e69a6fee-c4c0-4b31-8899-6e0935a6cded
+  cost {R}
+  type Instant
+  spell: target blocking creature gets +3/+0 and target 1 gains first strike
+}

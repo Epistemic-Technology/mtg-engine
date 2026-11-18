@@ -1,0 +1,7 @@
+card "Goblin Tunneler" {
+  oracle_id 1005bc16-8a6a-476a-a647-4ed40d2e96de
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  activated {T}: target creature with power 2 or less can't be blocked
+}

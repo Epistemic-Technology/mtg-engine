@@ -1,0 +1,7 @@
+card "Goblin Lookout" {
+  oracle_id e4ac0c25-cdfa-49a4-9b2c-b848f50c604d
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/2
+  activated {T}, sacrifice Goblin: all Goblin creature gets +2/+0
+}

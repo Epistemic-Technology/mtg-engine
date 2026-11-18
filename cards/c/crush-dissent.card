@@ -1,0 +1,9 @@
+card "Crush Dissent" {
+  oracle_id 3ece897d-5b52-4fca-9f97-d7e864134c0b
+  cost {3}{U}
+  type Instant
+  spell {
+    counter target spell unless its controller pays {2}
+    amass Zombies 2
+  }
+}

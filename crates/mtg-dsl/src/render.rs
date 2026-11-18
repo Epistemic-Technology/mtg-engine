@@ -990,6 +990,11 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
                 None => {}
             },
+            CostItem::Exile => {
+                if cost.exile_self {
+                    parts.push("Exile this card from your graveyard".to_string());
+                }
+            }
             CostItem::Discard => {
                 if cost.discard_self {
                     parts.push("Discard this card".to_string());
@@ -1378,6 +1383,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     digits(*amount)
                 ),
             )
+        }
+        Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::Explore { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "explores".to_string())
+        }
+        Effect::Amass { kind, count } => {
+            Clause::imperative(format!("amass {kind} {}", digits(*count)))
+        }
+        Effect::ClearEcho => Clause::imperative(String::new()),
+        Effect::AddPoison { count, who } => {
+            let s = ctx.subj(*who);
+            let what = if *count == Num::N(1) {
+                "a poison counter".to_string()
+            } else {
+                format!("{} poison counters", count_words(*count, "a"))
+            };
+            Clause::with_subject(*who, s, format!("{} {what}", ctx.verb(*who, "gets", "get")))
         }
         Effect::LoseLife { amount, who } => {
             let s = ctx.subj(*who);
@@ -2074,6 +2097,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             format!("whenever {who} {what}")
         }
+        Trigger::TargetedByOpponent => format!(
+            "whenever {} becomes the target of a spell or ability an opponent controls",
+            this(ctx)
+        ),
         Trigger::BecomesTarget(TriggerObj::This) => format!(
             "when {} becomes the target of a spell or ability",
             this(ctx)
@@ -2095,6 +2122,9 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
         Condition::NoSpellsLastTurn => "if no spells were cast last turn".to_string(),
         Condition::TwoSpellsLastTurn => "if a player cast two or more spells last turn".to_string(),
+        Condition::EchoDue => {
+            "if it came under your control since the beginning of your last upkeep".to_string()
+        }
     }
 }
 
@@ -2621,6 +2651,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
             let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
+            // Loyalty abilities are sorcery-speed by rule (CR 606.3).
+            if cost.sorcery && cost.loyalty.is_none() {
+                text.push_str(" Activate only as a sorcery.");
+            }
             if cost.once {
                 text.push_str(" Activate only once each turn.");
             }
@@ -2708,6 +2742,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             };
             format!("This spell costs {{{per}}} less to cast{tail}.")
         }
+        Ability::Mechanic(m) => match m {
+            crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),
+            crate::ast::Mechanic::Soulshift(n) => format!("Soulshift {n}"),
+            crate::ast::Mechanic::Afflict(n) => format!("Afflict {n}"),
+            crate::ast::Mechanic::Toxic(n) => format!("Toxic {n}"),
+            crate::ast::Mechanic::Ward(c) => format!("Ward {c}"),
+            crate::ast::Mechanic::Echo(c) => format!("Echo {c}"),
+            crate::ast::Mechanic::Unearth(c) => format!("Unearth {c}"),
+            crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
+            crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
+        },
         Ability::HandSize { whose, delta } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")

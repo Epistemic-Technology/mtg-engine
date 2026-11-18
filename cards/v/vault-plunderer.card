@@ -1,0 +1,7 @@
+card "Vault Plunderer" {
+  oracle_id 80e5d768-cc1f-48f8-b0fe-ed974e4d1a56
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 3/1
+  triggered when this enters: target player draws 1 card and loses 1 life
+}

@@ -1,0 +1,7 @@
+card "Shattering Pulse" {
+  oracle_id 77953b7a-813e-45f5-ad7f-ab72a79a0112
+  cost {1}{R}
+  type Instant
+  buyback {3}
+  spell: destroy target artifact
+}

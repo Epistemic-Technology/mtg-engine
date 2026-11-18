@@ -1,0 +1,35 @@
+# Spark Reaper: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Spark Reaper sacrifices another creature to gain 1 life and draw" {
+  battlefield A: "Spark Reaper", "Grizzly Bears", 3 "Swamp"
+  library A: "Lightning Bolt", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spark Reaper" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A count 1
+  assert hand A contains "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Spark Reaper"
+}
+
+scenario "Spark Reaper can sacrifice itself" {
+  battlefield A: "Spark Reaper", 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spark Reaper" sacrificing "Spark Reaper"
+  run_to turn 1 postcombat_main
+  assert life A 21
+  assert hand A count 1
+  assert graveyard A contains "Spark Reaper"
+}
+
+scenario "Spark Reaper cannot activate without three mana" {
+  battlefield A: "Spark Reaper", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Spark Reaper"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert hand A count 0
+  assert battlefield A contains "Grizzly Bears"
+}

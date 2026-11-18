@@ -1,0 +1,6 @@
+card "Courage in Crisis" {
+  oracle_id 41b929ad-0c44-4e50-84d3-13b318035543
+  cost {2}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counters on target creature then proliferate
+}

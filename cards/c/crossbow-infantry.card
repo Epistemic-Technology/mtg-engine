@@ -1,0 +1,7 @@
+card "Crossbow Infantry" {
+  oracle_id dd99d791-3305-4195-ad12-96d958a28764
+  cost {1}{W}
+  type Creature — Human Soldier Archer
+  pt 1/1
+  activated {T}: deal 1 damage to target attacking or blocking creature
+}

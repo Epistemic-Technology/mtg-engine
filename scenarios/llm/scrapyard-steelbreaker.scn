@@ -1,0 +1,38 @@
+# Scrapyard Steelbreaker: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another artifact gives +2/+1" {
+  battlefield A: 2 "Scrapyard Steelbreaker", "Mountain"
+  turn 1 A: activate "Scrapyard Steelbreaker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Scrapyard Steelbreaker"
+  assert graveyard A contains "Scrapyard Steelbreaker"
+  assert power "Scrapyard Steelbreaker" 5
+  assert toughness "Scrapyard Steelbreaker" 5
+  assert tapped "Mountain"
+}
+
+scenario "cannot sacrifice itself" {
+  battlefield A: "Scrapyard Steelbreaker", "Mountain"
+  illegal turn 1 A: activate "Scrapyard Steelbreaker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Scrapyard Steelbreaker"
+  assert power "Scrapyard Steelbreaker" 3
+}
+
+scenario "pumped attacker deals extra damage" {
+  battlefield A: 2 "Scrapyard Steelbreaker", "Mountain"
+  start turn 3 A
+  turn 3 A: activate "Scrapyard Steelbreaker"
+  turn 3 A: attack "Scrapyard Steelbreaker"
+  run_to turn 3 postcombat_main
+  assert life B 15
+}
+
+scenario "bonus ends at end of turn" {
+  battlefield A: 2 "Scrapyard Steelbreaker", "Mountain"
+  turn 1 A: activate "Scrapyard Steelbreaker"
+  run_to turn 2 precombat_main
+  assert power "Scrapyard Steelbreaker" 3
+  assert toughness "Scrapyard Steelbreaker" 4
+}

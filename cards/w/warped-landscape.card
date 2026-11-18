@@ -1,0 +1,6 @@
+card "Warped Landscape" {
+  oracle_id 543e6bb3-a867-43bf-a737-2f5d6d8dc631
+  type Land
+  mana {C}
+  activated {2}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

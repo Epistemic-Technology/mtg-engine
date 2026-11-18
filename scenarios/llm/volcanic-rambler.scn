@@ -1,0 +1,40 @@
+# Volcanic Rambler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Volcanic Rambler pings a player for {2}{R}" {
+  battlefield A: "Volcanic Rambler", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Volcanic Rambler" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped oldest A "Mountain"
+  assert tapped newest A "Mountain"
+  assert untapped "Volcanic Rambler"
+}
+
+scenario "Volcanic Rambler can activate more than once per turn" {
+  battlefield A: "Volcanic Rambler", 6 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Volcanic Rambler" targeting player B
+  turn 1 postcombat_main A: activate "Volcanic Rambler" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Volcanic Rambler activates while tapped from attacking" {
+  battlefield A: "Volcanic Rambler", 3 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Volcanic Rambler"
+  turn 2 postcombat_main A: activate "Volcanic Rambler" targeting player B
+  run_to turn 2 end
+  assert life B 13
+  assert tapped "Volcanic Rambler"
+}
+
+scenario "Volcanic Rambler cannot activate without enough mana" {
+  battlefield A: "Volcanic Rambler", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Volcanic Rambler" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

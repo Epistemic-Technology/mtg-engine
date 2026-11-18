@@ -1,0 +1,9 @@
+card "Captain's Defense" {
+  oracle_id c3f83115-398f-4738-9bf2-b37bd363e9f6
+  cost {W}
+  type Instant
+  spell {
+    target blocking creature gets +2/+2
+    draw 1 card
+  }
+}

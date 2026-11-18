@@ -1,0 +1,7 @@
+card "Khenra Eternal" {
+  oracle_id 91b46b22-8062-434b-8432-5ed1062ccaf9
+  cost {1}{B}
+  type Creature — Zombie Jackal Warrior
+  pt 2/2
+  afflict 1
+}

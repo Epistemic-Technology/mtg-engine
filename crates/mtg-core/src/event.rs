@@ -20,6 +20,11 @@ pub enum Event {
     RevealedHand {
         player: PlayerId,
     },
+    /// A card was revealed (the top of a library, as a creature explores).
+    Revealed {
+        obj: ObjId,
+        def: CardRef,
+    },
     /// A double-faced permanent turned to its other face (CR 701.27).
     Transformed {
         obj: ObjId,

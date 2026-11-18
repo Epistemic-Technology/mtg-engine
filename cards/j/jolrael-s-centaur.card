@@ -1,0 +1,7 @@
+card "Jolrael's Centaur" {
+  oracle_id 39b699e1-79c6-4960-97dc-d58574181bbe
+  cost {1}{G}{G}
+  type Creature — Centaur Archer
+  pt 2/2
+  keywords shroud, flanking
+}

@@ -1,0 +1,36 @@
+# Kris Mage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Kris Mage discards a card to ping a player" {
+  battlefield A: "Kris Mage", "Mountain"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kris Mage" discarding "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Forest"
+  assert hand A count 0
+  assert tapped "Kris Mage"
+  assert tapped "Mountain"
+}
+
+scenario "Kris Mage deals 1 damage to a creature" {
+  battlefield A: "Kris Mage", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kris Mage" discarding "Plains" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Plains"
+}
+
+scenario "Kris Mage cannot activate with an empty hand" {
+  battlefield A: "Kris Mage", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Kris Mage" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Kris Mage"
+}

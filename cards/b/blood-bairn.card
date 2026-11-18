@@ -1,0 +1,7 @@
+card "Blood Bairn" {
+  oracle_id 33bea2f0-c5aa-44b5-8714-5f50f7f2bb05
+  cost {2}{B}
+  type Creature — Vampire
+  pt 2/2
+  activated sacrifice other creature: this gets +2/+2
+}

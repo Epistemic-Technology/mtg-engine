@@ -1,0 +1,50 @@
+# D'Avenant Archer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "archer pings an attacking creature" {
+  battlefield A: "D'Avenant Archer"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: activate "D'Avenant Archer" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert tapped "D'Avenant Archer"
+  assert life A 18
+}
+
+scenario "archer combines with blocker damage to kill a blocked attacker" {
+  battlefield A: "D'Avenant Archer", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  turn 2 declare_blockers A: activate "D'Avenant Archer" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "archer pings a blocking creature" {
+  battlefield A: "D'Avenant Archer", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers A: activate "D'Avenant Archer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+  assert tapped "D'Avenant Archer"
+}
+
+scenario "archer cannot target a creature that is not in combat" {
+  battlefield A: "D'Avenant Archer"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "D'Avenant Archer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 0
+  assert untapped "D'Avenant Archer"
+}

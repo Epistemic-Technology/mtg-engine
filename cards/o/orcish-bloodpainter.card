@@ -1,0 +1,7 @@
+card "Orcish Bloodpainter" {
+  oracle_id 259bba2f-8c68-4267-8f51-0b2144778653
+  cost {2}{R}
+  type Creature — Orc Shaman
+  pt 2/1
+  activated {T}, sacrifice creature: deal 1 damage to any target
+}

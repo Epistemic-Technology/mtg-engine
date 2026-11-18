@@ -1,0 +1,7 @@
+card "Kithkin Greatheart" {
+  oracle_id 6034e7c1-b3ec-4927-b517-f8e3ca87252e
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 2/1
+  static as long as you control Giant, this: +1/+1, has first strike
+}

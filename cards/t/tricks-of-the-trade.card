@@ -1,0 +1,7 @@
+card "Tricks of the Trade" {
+  oracle_id 9fd288d6-445e-4605-b206-aab43e300dde
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has can't be blocked
+}

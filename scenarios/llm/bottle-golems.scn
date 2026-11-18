@@ -1,0 +1,34 @@
+# Bottle Golems: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Bottle Golems tramples over a blocker" {
+  battlefield A: "Bottle Golems"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Bottle Golems"
+  turn 1 B: block "Bottle Golems" with "Grizzly Bears"
+  turn 1 A: assign "Bottle Golems" to "Grizzly Bears" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Bottle Golems"
+}
+
+scenario "Bottle Golems dying gains life equal to its power" {
+  battlefield A: "Bottle Golems", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Bottle Golems"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bottle Golems"
+  assert life A 23
+}
+
+scenario "Bottle Golems uses its last known power" {
+  battlefield A: "Bottle Golems", "Forest", 3 "Swamp"
+  hand A: "Giant Growth", "Murder"
+  turn 1 A: cast "Giant Growth" targeting "Bottle Golems"
+  turn 1 A: wait
+  turn 1 A: cast "Murder" targeting "Bottle Golems"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bottle Golems"
+  assert life A 26
+}

@@ -1,0 +1,7 @@
+card "Death Cultist" {
+  oracle_id edbde032-4432-4610-83a2-a52f6ce199e1
+  cost {B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated sacrifice this: target player loses 1 life and you gain 1 life
+}

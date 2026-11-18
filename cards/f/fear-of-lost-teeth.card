@@ -1,0 +1,7 @@
+card "Fear of Lost Teeth" {
+  oracle_id 3724cc42-1bbd-4a11-8469-ab8492ddba52
+  cost {B}
+  type Enchantment Creature — Nightmare
+  pt 1/1
+  triggered whenever this dies: deal 1 damage to any target and you gain 1 life
+}

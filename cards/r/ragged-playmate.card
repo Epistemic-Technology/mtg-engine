@@ -1,0 +1,7 @@
+card "Ragged Playmate" {
+  oracle_id d0732ebf-91ad-4e3c-a09a-f410d20587fc
+  cost {1}{R}
+  type Artifact Creature — Toy
+  pt 2/2
+  activated {1}, {T}: target creature with power 2 or less can't be blocked
+}

@@ -1,0 +1,8 @@
+card "Gibbering Kami" {
+  oracle_id 8a5610bd-5f04-43f3-9e2e-d6c728ee899b
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  soulshift 3
+}

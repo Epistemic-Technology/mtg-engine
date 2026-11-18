@@ -1,0 +1,6 @@
+card "Basilisk Gate" {
+  oracle_id 8733a4fc-4068-4af4-9598-dc3d895e8556
+  type Land — Gate
+  mana {C}
+  activated {2}, {T}, sorcery: target creature gets +1/+1 count where Gate you control
+}

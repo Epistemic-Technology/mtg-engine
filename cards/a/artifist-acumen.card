@@ -1,0 +1,9 @@
+card "Artifist Acumen" {
+  oracle_id 129b41cf-8327-42f0-b186-1111b42c08ab
+  cost {R}
+  type Sorcery
+  spell {
+    each creature you control gain first strike
+    draw 1 card
+  }
+}

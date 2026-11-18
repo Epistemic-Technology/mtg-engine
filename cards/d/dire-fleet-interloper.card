@@ -1,0 +1,8 @@
+card "Dire Fleet Interloper" {
+  oracle_id 7ae7cfde-8f2a-4e66-abe2-c15477e9fac3
+  cost {3}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  keywords menace
+  triggered when this enters: this explores
+}

@@ -1,0 +1,8 @@
+card "Sokenzan Spellblade" {
+  oracle_id 26e47cc5-9dc7-4d54-80a6-1eb77587df36
+  cost {4}{R}
+  type Creature — Ogre Samurai Shaman
+  pt 2/3
+  bushido 1
+  activated {1}{R}: this gets +1/+0 count where hand
+}

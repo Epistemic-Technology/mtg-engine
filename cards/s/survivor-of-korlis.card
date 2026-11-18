@@ -1,0 +1,8 @@
+card "Survivor of Korlis" {
+  oracle_id ca7a25f4-c280-48b8-9e04-b15f4c13e569
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords first strike
+  activated {1}{W}, exile this from graveyard: scry 2
+}

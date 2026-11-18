@@ -1,0 +1,7 @@
+card "Omashu City" {
+  oracle_id 6f9a4bb2-5959-4a5c-83af-c2729e6673df
+  type Land
+  enters tapped
+  mana {R} or {G}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

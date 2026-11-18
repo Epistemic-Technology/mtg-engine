@@ -1,0 +1,8 @@
+card "Gravity Negator" {
+  oracle_id 18dcf3db-d6c6-4780-a931-546e71a3ae3f
+  cost {3}{U}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid, flying
+  triggered whenever this attacks: you may pay {C}; if you do, another target creature gains flying
+}

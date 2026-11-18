@@ -1,0 +1,7 @@
+card "Volcanic Rambler" {
+  oracle_id 97f929ce-3eb3-4040-972f-0b21d5f2f61f
+  cost {5}{R}
+  type Creature — Elemental
+  pt 6/4
+  activated {2}{R}: deal 1 damage to target player or planeswalker
+}

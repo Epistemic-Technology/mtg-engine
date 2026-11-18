@@ -1,0 +1,6 @@
+card "Promising Vein" {
+  oracle_id 861eb7d7-7616-4620-a4fd-4b8c3bf00dd1
+  type Land — Cave
+  mana {C}
+  activated {1}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

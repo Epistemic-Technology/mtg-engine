@@ -1,0 +1,7 @@
+card "North Pole Gates" {
+  oracle_id 3fcd1432-66d0-40e1-85ef-b57a6fa94b7c
+  type Land
+  enters tapped
+  mana {W} or {U}
+  activated {4}, {T}, sacrifice this: draw 1 cards
+}

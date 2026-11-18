@@ -1,0 +1,7 @@
+card "Wither and Bloom" {
+  oracle_id cf1e1d8d-c02e-4b66-b1db-49ec48fa4b03
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -3/-3
+  activated {1}{B}, exile this from graveyard, sorcery: put 1 +1/+1 counters on target creature you control
+}

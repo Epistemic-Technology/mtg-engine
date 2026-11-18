@@ -1,0 +1,7 @@
+card "Spirit of Malevolence" {
+  oracle_id 15323e45-8260-43dc-b72b-efd661a58d75
+  cost {1}{B}
+  type Creature — Spirit
+  pt 2/1
+  triggered whenever this dies: each opponent loses 1 life and you gain 1 life
+}

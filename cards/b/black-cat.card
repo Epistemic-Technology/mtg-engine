@@ -1,0 +1,7 @@
+card "Black Cat" {
+  oracle_id 10edf7e0-d6be-4510-819f-8834bedfba41
+  cost {1}{B}
+  type Creature — Zombie Cat
+  pt 1/1
+  triggered when this dies: target opponent discards 1 card at random
+}

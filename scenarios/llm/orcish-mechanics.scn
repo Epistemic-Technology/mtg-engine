@@ -1,0 +1,45 @@
+# Orcish Mechanics: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "orcish mechanics cannot activate without an artifact to sacrifice" {
+  battlefield A: "Orcish Mechanics", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Orcish Mechanics" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Orcish Mechanics"
+  assert battlefield A contains "Orcish Mechanics"
+  assert battlefield A contains 3 "Mountain"
+}
+
+scenario "orcish mechanics cannot target a creature without an artifact" {
+  battlefield A: "Orcish Mechanics"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Orcish Mechanics" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "orcish mechanics attacks as a 1/1" {
+  battlefield A: "Orcish Mechanics"
+  start turn 1 A
+  turn 1 A: attack "Orcish Mechanics"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Orcish Mechanics" 1
+  assert toughness "Orcish Mechanics" 1
+}
+
+scenario "orcish mechanics dies to shock" {
+  battlefield A: "Orcish Mechanics"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Orcish Mechanics"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Orcish Mechanics"
+  assert graveyard B contains "Shock"
+}
