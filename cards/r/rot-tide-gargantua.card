@@ -1,0 +1,8 @@
+card "Rot-Tide Gargantua" {
+  oracle_id 69c54156-255b-40d9-9c63-4cb9099aa859
+  cost {3}{B}{B}
+  type Creature — Zombie Kraken
+  pt 5/4
+  keywords exploit
+  triggered when this exploits a creature: each opponent sacrifices 1 creature
+}

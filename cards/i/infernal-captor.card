@@ -1,0 +1,8 @@
+card "Infernal Captor" {
+  oracle_id 2f0dec6c-797f-4dc3-9994-066c00cbf1a4
+  cost {3}{R}
+  type Creature — Devil Rogue
+  pt 3/3
+  keywords exploit
+  triggered when this exploits a creature: gain control of target artifact or creature; untap that target 1; target 1 gains haste
+}

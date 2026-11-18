@@ -216,6 +216,7 @@ impl Decompiler<'_> {
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
+            StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -479,10 +480,14 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
-            CoreEffect::CastExiled(_) | CoreEffect::SuspendTick | CoreEffect::Cascade => {
+            CoreEffect::CastExiled(_)
+            | CoreEffect::SuspendTick
+            | CoreEffect::Cascade
+            | CoreEffect::Exploit => {
                 unreachable!("built-in abilities only")
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
+            CoreEffect::Discover(n) => Effect::Discover(*n),
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),
             },
@@ -572,6 +577,7 @@ impl Decompiler<'_> {
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TurnedFaceUp => Trigger::TurnedFaceUp,
+            TriggerSpec::Exploits => Trigger::Exploits,
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
@@ -779,9 +785,13 @@ impl Decompiler<'_> {
                 ..
             }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, .. },
+                replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, .. },
                 ..
-            }) => Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n)),
+            }) => Ability::Mechanic(if *self.pool.condition(*cond) == StaticCondition::Escaped {
+                crate::ast::Mechanic::EscapesWith(*n)
+            } else {
+                crate::ast::Mechanic::Bloodthirst(*n)
+            }),
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),
             AbilityDef::Static(s) => Ability::Static {
                 filter: self.filter(&s.affected),

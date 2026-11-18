@@ -1,0 +1,10 @@
+card "Wail of the Nim" {
+  oracle_id dcf503b5-c7ef-49e5-87ed-3b8758197446
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: regenerate each creature you control
+    mode: deal 1 damage to each creature and each player
+  }
+  entwine {B}
+}

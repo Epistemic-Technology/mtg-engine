@@ -114,7 +114,10 @@ impl GameState {
                     let timing_ok =
                         sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash);
                     if timing_ok
-                        && !self.foretold_this_turn.contains(id)
+                        && !self
+                            .exile_casts
+                            .as_ref()
+                            .is_some_and(|e| e.foretold_this_turn.contains(id))
                         && self.exile_castable(p, *id, AltCast::Foretell)
                     {
                         options.push(Choice::Cast(*id));
@@ -159,6 +162,12 @@ impl GameState {
                             });
                         }
                     }
+                }
+                if def.flashback.is_none() {
+                    if def.escape.is_some() && self.escape_castable(p, *id, sorcery_timing) {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
                 }
                 let Some(fb) = &def.flashback else {
                     continue;
@@ -647,6 +656,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Foretell && def.foretell.is_some() => {
                 def.foretell.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
+                def.escape.as_ref().expect("checked").0.requirements(x)
+            }
             (_, false) if o.cast.evoked() && def.evoke.is_some() => {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
@@ -666,6 +678,12 @@ impl GameState {
         {
             req.add(&b.requirements(0));
         }
+        // CR 702.42a: every mode, for the entwine cost on top.
+        if let Some(e) = &def.entwine
+            && self.mode_split_of(spell).is_some()
+        {
+            req.add(&e.requirements(0));
+        }
         if def.self_cost.is_some() || !self.cost_changers().is_empty() {
             adjust_generic(
                 &mut req,
@@ -673,6 +691,35 @@ impl GameState {
             );
         }
         req
+    }
+
+    /// CR 702.138a: a card with escape in the graveyard, castable for its
+    /// escape cost with enough other cards to exile.
+    #[cold]
+    #[inline(never)]
+    fn escape_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
+        let def = self.pool.get(self.objects[card].def);
+        let Some((cost, n)) = &def.escape else {
+            return false;
+        };
+        let instant = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        if !(instant || sorcery_timing) || self.player(p).graveyard.len() <= *n as usize {
+            return false;
+        }
+        let mut req = cost.requirements(0);
+        adjust_generic(
+            &mut req,
+            self.cost_delta(p, def, card, &self.cost_changers()),
+        );
+        if self.payment_plan(p, &req).is_none() {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(card))),
+            None => self.targets_available(p, def.cast_targets(), Some(card)),
+        }
     }
 
     /// Whether `card` (exiled) could be cast `alt`'s way now: a nonland
@@ -712,6 +759,10 @@ impl GameState {
     /// be cast.
     pub(super) fn offer_exile_cast(&mut self, card: ObjId, alt: AltCast) -> bool {
         let p = self.objects[card].owner;
+        self.offer_exile_cast_by(card, alt, p)
+    }
+
+    pub(super) fn offer_exile_cast_by(&mut self, card: ObjId, alt: AltCast, p: PlayerId) -> bool {
         if !self.exile_castable(p, card, alt) {
             return false;
         }
@@ -721,7 +772,10 @@ impl GameState {
             vec![Choice::Accept, Choice::Decline],
         );
         if k == 0 {
-            self.pending_casts.push((p, card, alt));
+            self.exile_casts
+                .get_or_insert_with(Box::default)
+                .pending
+                .push((p, card, alt));
             true
         } else {
             false
@@ -731,17 +785,23 @@ impl GameState {
     /// CR 702.85a: exile cards from the top of the library until a nonland
     /// card with lesser mana value; it may be cast free; the rest go to the
     /// bottom in a random order.
-    fn cascade(&mut self, ctx: &EffectCtx) {
+    /// Discover N (CR 701.57a) is the same with mana value N or less, and
+    /// the card goes to the hand if not cast.
+    fn cascade(&mut self, ctx: &EffectCtx, discover: Option<u32>) {
         let p = ctx.controller;
-        let def = self
-            .objects
-            .get(ctx.source)
-            .map(|o| o.def)
-            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
-        let Some(def) = def else {
-            return;
+        let mv = if let Some(n) = discover {
+            n + 1
+        } else {
+            let def = self
+                .objects
+                .get(ctx.source)
+                .map(|o| o.def)
+                .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+            let Some(def) = def else {
+                return;
+            };
+            self.pool.get(def).mana_cost.mana_value()
         };
-        let mv = self.pool.get(def).mana_cost.mana_value();
         let mut exiled: Vec<ObjId> = Vec::new();
         let mut hit = None;
         while let Some(top) = self.player(p).library.last().copied() {
@@ -754,14 +814,50 @@ impl GameState {
             exiled.push(new);
         }
         if let Some(h) = hit
-            && !self.offer_exile_cast(h, AltCast::Free)
+            && !self.offer_exile_cast_by(h, AltCast::Free, p)
         {
-            exiled.push(h);
+            if discover.is_some() {
+                self.move_object(h, Zone::Hand, false);
+            } else {
+                exiled.push(h);
+            }
         }
         rand::seq::SliceRandom::shuffle(exiled.as_mut_slice(), &mut self.rng);
         for id in exiled {
             if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
                 self.move_object(id, Zone::Library, false);
+            }
+        }
+    }
+
+    /// CR 702.110a: the controller may sacrifice a creature; if they do,
+    /// the source's "when this exploits a creature" abilities trigger.
+    fn exploit(&mut self, ctx: &EffectCtx) {
+        let p = ctx.controller;
+        let mut options: Vec<Choice> = self.creatures_of(p).map(Choice::Sacrifice).collect();
+        if options.is_empty() {
+            return;
+        }
+        options.push(Choice::Decline);
+        let k = self.choose_mid(p, DecisionKind::Edict, options.clone());
+        let Choice::Sacrifice(victim) = options[k] else {
+            return;
+        };
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        self.sacrifice(victim);
+        let Some(def) = def else {
+            return;
+        };
+        let pool = std::sync::Arc::clone(&self.pool);
+        for a in &pool.get(def).ability_ids {
+            if let AbilityDef::Triggered(t) = pool.ability(*a)
+                && t.trigger == crate::card::TriggerSpec::Exploits
+            {
+                self.queue_builtin(p, *a, ctx.source, def);
             }
         }
     }
@@ -1055,10 +1151,25 @@ impl GameState {
             return Vec::new();
         };
         let source = Some(o.ability.map_or(spell, |a| a.source));
+        let def = self.pool.get(o.def);
         modes
             .iter()
             .enumerate()
             .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
+            .filter(|(_, m)| {
+                // Entwined, the spell costs more (CR 702.42a).
+                m.split.is_none()
+                    || o.kind == ObjKind::Ability
+                    || def.entwine.as_ref().is_none_or(|e| {
+                        let mut req = def.mana_cost.requirements(0);
+                        req.add(&e.requirements(0));
+                        adjust_generic(
+                            &mut req,
+                            self.cost_delta(o.controller, def, spell, &self.cost_changers()),
+                        );
+                        self.payment_plan(o.controller, &req).is_some()
+                    })
+            })
             .map(|(i, _)| Choice::Mode(i))
             .collect()
     }
@@ -1338,6 +1449,21 @@ impl GameState {
         self.pay_from(caster, &req, &sources);
         if let (Some(fb), true) = (&def.flashback, flashback) {
             self.pay_other_costs(caster, fb, spell, None, None);
+        }
+        // CR 702.138a: exile the other cards escape asks for (the oldest).
+        if self.objects[spell].alt == AltCast::Escape
+            && let Some((_, n)) = def.escape
+        {
+            let gone: Vec<ObjId> = self
+                .player(caster)
+                .graveyard
+                .iter()
+                .copied()
+                .take(n as usize)
+                .collect();
+            for id in gone {
+                self.move_object(id, Zone::Exile, true);
+            }
         }
         self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
         let n = &mut self.spells_this_turn[caster.index().min(3)];
@@ -2724,7 +2850,9 @@ impl GameState {
                     self.offer_exile_cast(card, AltCast::Suspend);
                 }
             }
-            Effect::Cascade => self.cascade(ctx),
+            Effect::Cascade => self.cascade(ctx, None),
+            Effect::Discover(n) => self.cascade(ctx, Some(*n)),
+            Effect::Exploit => self.exploit(ctx),
             Effect::Adapt(n) => {
                 if let Some(id) = self.current_object(ctx.source)
                     && self.objects[id].zone == Zone::Battlefield

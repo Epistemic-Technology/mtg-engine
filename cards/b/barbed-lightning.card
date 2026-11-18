@@ -1,0 +1,10 @@
+card "Barbed Lightning" {
+  oracle_id f6e1eb52-9f13-425c-8309-1b08ed6557db
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: deal 3 damage to target creature
+    mode: deal 3 damage to target player or planeswalker
+  }
+  entwine {2}
+}

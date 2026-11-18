@@ -1495,6 +1495,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
+        Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
         Effect::Connive { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
@@ -2392,6 +2393,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {who} {} spell", with_article(&what))
         }
         Trigger::TurnedFaceUp => format!("when {} is turned face up", this(ctx)),
+        Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)
@@ -2919,6 +2921,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
+        StaticCond::Escaped => "it escaped".to_string(),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(
@@ -3172,6 +3175,16 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
             crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
             crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
+            crate::ast::Mechanic::Entwine(c) => format!("Entwine {c}"),
+            crate::ast::Mechanic::Escape(c, n) => format!(
+                "Escape\u{2014}{c}, Exile {} other cards from your graveyard.",
+                count_words(Num::N(*n), "a")
+            ),
+            crate::ast::Mechanic::EscapesWith(n) => format!(
+                "This {} escapes with {} on it.",
+                self_noun(card),
+                counters(Num::N(*n), CounterKind::PlusOnePlusOne)
+            ),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),

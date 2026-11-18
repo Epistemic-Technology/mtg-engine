@@ -1,0 +1,7 @@
+card "Hidden Necropolis" {
+  oracle_id f780ee53-62b0-4c32-b5b7-047651f48e5f
+  type Land — Cave
+  enters tapped
+  mana {B}
+  activated {4}{B}, {T}, sacrifice this, sorcery: discover 4
+}

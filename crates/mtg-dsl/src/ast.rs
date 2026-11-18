@@ -448,6 +448,13 @@ pub enum Mechanic {
     Foretell(ManaCost),
     /// CR 702.62: `suspend 4 {1}{U}`.
     Suspend(u32, ManaCost),
+    /// CR 702.42: `entwine {2}`: every mode of the "choose one" spell for
+    /// this cost on top.
+    Entwine(ManaCost),
+    /// CR 702.138: `escape {W} exile 2`.
+    Escape(ManaCost, u32),
+    /// `escapes with 2 +1/+1 counters`.
+    EscapesWith(u32),
     /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt
     /// damage this turn.
     Bloodthirst(u32),
@@ -518,6 +525,8 @@ pub enum StaticCond {
     /// `opponent damaged this turn`: "an opponent was dealt damage this
     /// turn".
     OpponentDamagedThisTurn,
+    /// Cast with escape (internal: "escapes with").
+    Escaped,
     /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
     /// less`: "you have no cards in hand".
     CardsInHand {
@@ -670,6 +679,8 @@ pub enum Trigger {
         whose: Who,
         filter: Filter,
     },
+    /// `when this exploits a creature` (CR 702.110).
+    Exploits,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1010,6 +1021,8 @@ pub enum Effect {
     Manifest,
     /// `adapt 2` (CR 701.46).
     Adapt(u32),
+    /// `discover 4` (CR 701.57).
+    Discover(u32),
     /// `this connives` (CR 701.50).
     Connive {
         what: Recipient,

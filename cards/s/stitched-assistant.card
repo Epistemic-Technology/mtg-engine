@@ -1,0 +1,8 @@
+card "Stitched Assistant" {
+  oracle_id eedbc164-032c-420f-ac59-bd2675ff1b69
+  cost {2}{U}
+  type Creature — Zombie
+  pt 3/2
+  keywords exploit
+  triggered when this exploits a creature: scry 1 then draw 1 cards
+}

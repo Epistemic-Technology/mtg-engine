@@ -1,0 +1,10 @@
+card "Reap and Sow" {
+  oracle_id efce3575-66ee-412f-af5b-961fd242bbde
+  cost {3}{G}
+  type Sorcery
+  choose one {
+    mode: destroy target land
+    mode: search land card to battlefield that card
+  }
+  entwine {1}{G}
+}

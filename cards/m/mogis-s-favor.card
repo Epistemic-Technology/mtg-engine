@@ -1,0 +1,8 @@
+card "Mogis's Favor" {
+  oracle_id 312dbc3a-3ffb-4ed2-a278-8950d8ce8c86
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/-1
+  escape {2}{B} exile 2
+}

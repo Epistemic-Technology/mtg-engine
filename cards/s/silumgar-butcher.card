@@ -1,0 +1,8 @@
+card "Silumgar Butcher" {
+  oracle_id 77216efa-4f34-4534-9df3-918f0b888ce1
+  cost {4}{B}
+  type Creature — Zombie Djinn
+  pt 3/3
+  keywords exploit
+  triggered when this exploits a creature: target creature gets -3/-3
+}

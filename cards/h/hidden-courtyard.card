@@ -1,0 +1,7 @@
+card "Hidden Courtyard" {
+  oracle_id e19d5071-4ea1-4883-b067-a21e553f96e0
+  type Land — Cave
+  enters tapped
+  mana {W}
+  activated {4}{W}, {T}, sacrifice this, sorcery: discover 4
+}

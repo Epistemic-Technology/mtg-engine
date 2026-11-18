@@ -1,0 +1,7 @@
+card "Hidden Volcano" {
+  oracle_id a1c7cd7a-0795-4135-b787-effeb981d95b
+  type Land — Cave
+  enters tapped
+  mana {R}
+  activated {4}{R}, {T}, sacrifice this, sorcery: discover 4
+}

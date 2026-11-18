@@ -1,0 +1,7 @@
+card "Hidden Nursery" {
+  oracle_id 1a26e2d6-6bfc-4cdc-9bd6-8b37a9be2961
+  type Land — Cave
+  enters tapped
+  mana {G}
+  activated {4}{G}, {T}, sacrifice this, sorcery: discover 4
+}

@@ -2516,3 +2516,14 @@ qualifiers printed once are shared by both sides). Corpus 7,874 cards:
 in scenarios/m5/slice19.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
 throughput 0.7% below slice 18, about 2.5% below the perf pass (a perf
 pass is due).
+
+Status 2026-11-18, slice 20 done: entwine (the synthesized all-modes
+mode costs the entwine cost on top), discover (cascade with a mana value
+limit, else to hand), escape (cast from the graveyard, exiling the
+oldest other cards; "escapes with" counters), exploit (a keyword
+trigger; "when this exploits a creature" abilities are queued by it, so
+a creature that exploits itself still triggers). The exile-cast lists
+moved out of `GameState` into a box. Corpus 7,906 cards: 5,886 Pauper
+(54.1%), 5,988 Modern (26.4%); 2,174 scenarios pass (7 new in
+scenarios/m5/slice20.scn), 1 skipped; fuzz 0 panics, 0 unfinished;
+throughput 0.5% above slice 19, 2.1% below the perf pass.

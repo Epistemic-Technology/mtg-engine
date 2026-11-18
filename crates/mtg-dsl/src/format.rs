@@ -327,6 +327,7 @@ impl Fmt {
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
             Effect::Adapt(n) => format!("adapt {n}"),
+            Effect::Discover(n) => format!("discover {n}"),
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
             Effect::Dig {
@@ -1107,6 +1108,7 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
         Trigger::TurnedFaceUp => "when this is turned face up".to_string(),
+        Trigger::Exploits => "when this exploits a creature".to_string(),
         Trigger::BecomesTargetWhenever(o) => {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
@@ -1365,6 +1367,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
+        StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
@@ -1653,6 +1656,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Madness(c) => format!("madness {c}"),
                 crate::ast::Mechanic::Foretell(c) => format!("foretell {c}"),
                 crate::ast::Mechanic::Suspend(n, c) => format!("suspend {n} {c}"),
+                crate::ast::Mechanic::Entwine(c) => format!("entwine {c}"),
+                crate::ast::Mechanic::Escape(c, n) => format!("escape {c} exile {n}"),
+                crate::ast::Mechanic::EscapesWith(n) => {
+                    format!("escapes with {n} +1/+1 counters")
+                }
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),

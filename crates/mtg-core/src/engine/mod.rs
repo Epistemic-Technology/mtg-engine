@@ -430,8 +430,7 @@ impl GameState {
             attacked_this_turn: 0,
             creatures_died_this_turn: 0,
             damaged_this_turn: 0,
-            pending_casts: Vec::new(),
-            foretold_this_turn: Vec::new(),
+            exile_casts: None,
             suspended_count: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
@@ -559,7 +558,9 @@ impl GameState {
                     // Spells cast while an effect resolved ("you may cast
                     // it without paying its mana cost") are cast now,
                     // before anything else happens.
-                    if let Some((p, card, alt)) = self.pending_casts.pop() {
+                    if let Some((p, card, alt)) =
+                        self.exile_casts.as_mut().and_then(|e| e.pending.pop())
+                    {
                         if self
                             .objects
                             .get(card)
@@ -1128,9 +1129,11 @@ impl GameState {
                 // CR 702.34a: a card cast from the graveyard is cast with
                 // flashback.
                 let o = &self.objects[id];
-                let flashback = o.zone == Zone::Graveyard;
+                let escape = self.pool.get(o.def).flashback.is_none();
+                let flashback = o.zone == Zone::Graveyard && !escape;
                 let alt = match (o.zone, o.alt) {
                     (Zone::Hand, _) => crate::state::AltCast::Hand,
+                    (Zone::Graveyard, _) if escape => crate::state::AltCast::Escape,
                     (Zone::Exile, crate::state::AltCast::Foretold) => {
                         crate::state::AltCast::Foretell
                     }
@@ -1164,7 +1167,10 @@ impl GameState {
                 let new = self.move_object(id, Zone::Exile, true);
                 self.objects[new].alt = crate::state::AltCast::Foretold;
                 self.player_mut(player).adventures_in_exile += 1;
-                self.foretold_this_turn.push(new);
+                self.exile_casts
+                    .get_or_insert_with(Box::default)
+                    .foretold_this_turn
+                    .push(new);
                 self.give_priority(player);
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
@@ -1666,7 +1672,9 @@ impl GameState {
             self.attacked_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.damaged_this_turn = 0;
-            self.foretold_this_turn.clear();
+            if let Some(e) = &mut self.exile_casts {
+                e.foretold_this_turn.clear();
+            }
             self.eot_grants = 0;
             self.active_player = self.next_player_in_game(self.active_player);
             // "During your turn" static abilities (CR 611.3a) change with

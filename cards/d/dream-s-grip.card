@@ -1,0 +1,10 @@
+card "Dream's Grip" {
+  oracle_id 8b239262-c392-4ec6-9ae1-8b4a076e4bf0
+  cost {U}
+  type Instant
+  choose one {
+    mode: tap target permanent
+    mode: untap target permanent
+  }
+  entwine {1}
+}

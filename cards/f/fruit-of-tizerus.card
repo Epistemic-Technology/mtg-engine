@@ -1,0 +1,7 @@
+card "Fruit of Tizerus" {
+  oracle_id 8d6ad0a0-3b71-4fab-8874-470285c39299
+  cost {B}
+  type Sorcery
+  spell: target player loses 2 life
+  escape {3}{B} exile 3
+}

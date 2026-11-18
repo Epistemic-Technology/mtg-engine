@@ -1,0 +1,10 @@
+card "Flourishing Strike" {
+  oracle_id 98c44298-7b6a-4f98-bcb7-1a63a4c29f87
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: deal 5 damage to target creature with flying
+    mode: target creature gets +3/+3
+  }
+  entwine {2}{G}
+}

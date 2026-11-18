@@ -1,0 +1,9 @@
+card "Underworld Rage-Hound" {
+  oracle_id a1418e8d-dea5-43e1-b041-3f6a88f9a6d7
+  cost {1}{R}
+  type Creature — Elemental Dog
+  pt 3/1
+  keywords attacks each combat if able
+  escape {3}{R} exile 3
+  escapes with 1 +1/+1 counters
+}

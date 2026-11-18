@@ -1,0 +1,66 @@
+# M5 slice 20: entwine, discover, escape, exploit.
+
+scenario "entwine: Barbed Lightning's both modes for {2} more" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Barbed Lightning"
+  turn 1 A: cast "Barbed Lightning" mode 3 targeting "Hill Giant", player B
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "discover: Primordial Gnawer dies and casts a cheap card free" {
+  battlefield A: "Primordial Gnawer", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Lightning Bolt" targeting "Primordial Gnawer"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 3
+}
+
+scenario "escape: Fruit of Tizerus from the graveyard, exiling three others" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Fruit of Tizerus", 3 "Island"
+  turn 1 A: cast "Fruit of Tizerus" from graveyard targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A count 1
+  assert graveyard A contains "Fruit of Tizerus"
+}
+
+scenario "escape: not without enough other cards" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Fruit of Tizerus", 2 "Island"
+  illegal turn 1 A: cast "Fruit of Tizerus" from graveyard targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "escape: Underworld Charger escapes with two counters" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Underworld Charger", 3 "Island"
+  turn 1 A: cast "Underworld Charger" from graveyard
+  run_to turn 1 end
+  assert power "Underworld Charger" 5
+}
+
+scenario "escape: cast from hand, no counters" {
+  battlefield A: 3 "Swamp"
+  hand A: "Underworld Charger"
+  turn 1 A: cast "Underworld Charger"
+  run_to turn 1 end
+  assert power "Underworld Charger" 3
+}
+
+scenario "exploit: Sidisi's Faithful exploits itself to bounce a creature" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Sidisi's Faithful"
+  turn 1 A: cast "Sidisi's Faithful"
+  turn 1 A: trigger "Sidisi's Faithful" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Sidisi's Faithful"
+}

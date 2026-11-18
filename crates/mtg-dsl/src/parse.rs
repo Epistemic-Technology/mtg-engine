@@ -119,6 +119,7 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["improvise"], Keyword::Improvise),
     (&["cascade"], Keyword::Cascade),
     (&["rebound"], Keyword::Rebound),
+    (&["exploit"], Keyword::Exploit),
     (
         &[
             "doesn't",
@@ -854,6 +855,23 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::HandSize { whose, delta })
             }
+            "escapes" if self.word_at(1).as_deref() == Some("with") => {
+                self.pos += 2;
+                let n = self.number()?;
+                if self.counter_kind()? != CounterKind::PlusOnePlusOne {
+                    return self.fail("escapes with +1/+1 counters only");
+                }
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::EscapesWith(n)))
+            }
+            "escape" if matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                self.pos += 1;
+                let c = self.mana_cost()?;
+                self.expect_word("exile")?;
+                let n = self.number()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Escape(c, n)))
+            }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" => {
                 self.pos += 1;
                 let n = self.number()?;
@@ -868,7 +886,7 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke" | "madness" | "foretell"
+            | "disguise" | "evoke" | "madness" | "foretell" | "entwine"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -883,6 +901,7 @@ impl P {
                     "evoke" => Mechanic::Evoke(c),
                     "madness" => Mechanic::Madness(c),
                     "foretell" => Mechanic::Foretell(c),
+                    "entwine" => Mechanic::Entwine(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
                     _ => Mechanic::Outlast(c),
@@ -2096,6 +2115,7 @@ impl P {
             }
             "proliferate" => Ok(Effect::Proliferate),
             "adapt" => Ok(Effect::Adapt(self.count()?)),
+            "discover" => Ok(Effect::Discover(self.count()?)),
             "dig" => {
                 let count = self.num()?;
                 let reveal_top = self.eat_word("reveal");
@@ -3245,6 +3265,13 @@ impl P {
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
             "dies" => Ok(Trigger::Dies(obj)),
+            "exploits" if self.at_words(&["a", "creature"]) => {
+                self.pos += 2;
+                if obj != TriggerObj::This {
+                    return self.fail("only `this` exploits");
+                }
+                Ok(Trigger::Exploits)
+            }
             "is" if self.at_words(&["turned", "face", "up"]) => {
                 self.pos += 3;
                 if obj != TriggerObj::This {

@@ -1,0 +1,8 @@
+card "Sidisi's Faithful" {
+  oracle_id 45de1caf-46c2-4acc-8be2-08e1840a3b98
+  cost {U}
+  type Creature — Snake Wizard
+  pt 0/4
+  keywords exploit
+  triggered when this exploits a creature: return target creature to hand
+}

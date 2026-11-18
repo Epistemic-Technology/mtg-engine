@@ -1,0 +1,8 @@
+card "Qarsi Sadist" {
+  oracle_id 69e15fd8-9531-4392-8b85-b539c138ea91
+  cost {1}{B}
+  type Creature — Human Cleric
+  pt 1/3
+  keywords exploit
+  triggered when this exploits a creature: target opponent loses 2 life and you gains 2 life
+}

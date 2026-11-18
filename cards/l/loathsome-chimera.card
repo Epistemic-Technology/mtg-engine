@@ -1,0 +1,8 @@
+card "Loathsome Chimera" {
+  oracle_id fe983088-6e0d-4544-90bd-f5ebb95c3418
+  cost {2}{G}
+  type Creature — Chimera
+  pt 4/1
+  escape {4}{G} exile 3
+  escapes with 1 +1/+1 counters
+}

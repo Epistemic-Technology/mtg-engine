@@ -1,0 +1,8 @@
+card "Voracious Typhon" {
+  oracle_id f62784c0-9c67-4a05-a09b-aabf03a9390f
+  cost {2}{G}{G}
+  type Creature — Snake Beast
+  pt 4/4
+  escape {5}{G}{G} exile 4
+  escapes with 3 +1/+1 counters
+}

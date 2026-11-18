@@ -150,6 +150,16 @@ pub struct GameObject {
     pub ability: Option<StackAbility>,
 }
 
+/// Cards waiting to be cast from exile, and foretold ones.
+#[derive(Clone, Debug, Default)]
+pub struct ExileCasts {
+    /// Cards to be cast as the current resolution finishes ("you may cast
+    /// it without paying its mana cost"): the caster, the card, how.
+    pub pending: Vec<(PlayerId, ObjId, AltCast)>,
+    /// Cards foretold this turn (CR 702.143a: castable on a later turn).
+    pub foretold_this_turn: Vec<ObjId>,
+}
+
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent
 /// for its haste), or what an exiled card waits for.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
@@ -167,6 +177,9 @@ pub enum AltCast {
     /// Cast without paying its mana cost as the last time counter was
     /// removed; a creature has haste (CR 702.62a).
     Suspend,
+    /// Cast from the graveyard with escape (CR 702.138); kept by the
+    /// permanent ("escapes with").
+    Escape,
     /// In exile: discarded with madness, waiting for its trigger.
     MadnessExiled,
     /// In exile: foretold, castable on a later turn.
@@ -766,11 +779,9 @@ pub struct GameState {
     pub creatures_died_this_turn: u16,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
-    /// Cards to be cast as the current resolution finishes ("you may cast
-    /// it without paying its mana cost"): the caster, the card, how.
-    pub pending_casts: Vec<(PlayerId, ObjId, AltCast)>,
-    /// Cards foretold this turn (CR 702.143a: castable on a later turn).
-    pub foretold_this_turn: Vec<ObjId>,
+    /// Casting from exile's bookkeeping, boxed: most games never need it,
+    /// and the state is copied for every mid-event snapshot.
+    pub exile_casts: Option<Box<ExileCasts>>,
     /// Suspended cards in exile, so upkeeps skip the scan without any.
     pub suspended_count: u32,
     pub spells_last_turn: [u8; 4],
@@ -1374,6 +1385,10 @@ impl GameState {
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::Escaped => self
+                .objects
+                .get(source)
+                .is_some_and(|o| o.alt == AltCast::Escape),
             C::OpponentDamagedThisTurn => self
                 .players_in_game()
                 .any(|p| p != you && self.damaged_this_turn & (1 << p.index().min(7)) != 0),

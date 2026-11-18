@@ -267,6 +267,9 @@ pub enum Keyword {
     /// CR 702.88: cast from hand, it's exiled as it resolves and may be
     /// cast free at its owner's next upkeep.
     Rebound,
+    /// CR 702.110: "When this creature enters, you may sacrifice a
+    /// creature."
+    Exploit,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -356,7 +359,8 @@ impl KeywordSet {
         .with(Keyword::Persist)
         .with(Keyword::Undying)
         .with(Keyword::Flanking)
-        .with(Keyword::Evoke);
+        .with(Keyword::Evoke)
+        .with(Keyword::Exploit);
 
     /// The five protection-from-a-color keywords (CR 702.16).
     pub const PROTECTION: KeywordSet = KeywordSet::NONE
@@ -381,7 +385,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 52] = [
+    pub const ALL: [Keyword; 53] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -434,6 +438,7 @@ impl Keyword {
         Keyword::Evoke,
         Keyword::Cascade,
         Keyword::Rebound,
+        Keyword::Exploit,
     ];
 
     /// The keyword as Oracle prints it.
@@ -491,6 +496,7 @@ impl Keyword {
             Keyword::Evoke => "evoke",
             Keyword::Cascade => "cascade",
             Keyword::Rebound => "rebound",
+            Keyword::Exploit => "exploit",
         }
     }
 
@@ -1289,6 +1295,8 @@ pub enum StaticCondition {
     YouControlNone(ObjFilter),
     /// Raid: "you attacked this turn".
     AttackedThisTurn,
+    /// The entering object was cast with escape ("escapes with").
+    Escaped,
     /// Bloodthirst: "an opponent was dealt damage this turn".
     OpponentDamagedThisTurn,
     /// Morbid: "a creature died this turn".
@@ -1935,6 +1943,12 @@ pub enum Effect {
     SuspendTick,
     /// Cascade from the source spell (CR 702.85a).
     Cascade,
+    /// Discover N (CR 701.57): like cascade, mana value N or less; the card
+    /// is cast free or put into the hand.
+    Discover(u32),
+    /// Exploit (CR 702.110): the controller may sacrifice a creature; if
+    /// they do, the source's "when this exploits a creature" triggers.
+    Exploit,
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
@@ -1995,6 +2009,8 @@ impl Effect {
                 | Effect::CastExiled(_)
                 | Effect::SuspendTick
                 | Effect::Cascade
+                | Effect::Discover(_)
+                | Effect::Exploit
         )
     }
 }
@@ -2207,6 +2223,9 @@ pub enum TriggerSpec {
     CastsFiltered { whose: Who, filter: ObjFilter },
     /// "When this creature is turned face up" (CR 708.8).
     TurnedFaceUp,
+    /// "When this creature exploits a creature" (CR 702.110): queued by
+    /// the exploit trigger itself, never by an event.
+    Exploits,
 }
 
 /// What a damage trigger's damage must be dealt to.
@@ -2243,6 +2262,7 @@ impl TriggerSpec {
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp => WATCH_FACE_UP,
+            TriggerSpec::Exploits => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. } | TriggerSpec::CastsFiltered { .. } => WATCH_CAST,
             TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
@@ -2703,6 +2723,11 @@ pub struct CardDef {
     pub foretell: Option<ManaCost>,
     /// Suspend N—cost (CR 702.62).
     pub suspend: Option<(u32, ManaCost)>,
+    /// Entwine (CR 702.42): every mode of a "choose one" spell for this
+    /// cost on top.
+    pub entwine: Option<ManaCost>,
+    /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
+    pub escape: Option<(ManaCost, u32)>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -2933,6 +2958,7 @@ impl CardDef {
     /// otherwise.
     pub fn graveyard_active(&self) -> bool {
         self.flashback.is_some()
+            || self.escape.is_some()
             || self
                 .abilities
                 .iter()
@@ -3103,6 +3129,7 @@ pub struct CardPool {
     undying: AbilityId,
     flanking: AbilityId,
     evoke: AbilityId,
+    exploit: AbilityId,
     builtins: [AbilityId; 4],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
@@ -3137,6 +3164,7 @@ impl CardPool {
             undying: AbilityId(0),
             flanking: AbilityId(0),
             evoke: AbilityId(0),
+            exploit: AbilityId(0),
             builtins: [AbilityId(0); 4],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
@@ -3200,6 +3228,12 @@ impl CardPool {
             effects: vec![Effect::Sacrifice {
                 what: Recipient::Source,
             }],
+        }));
+        pool.exploit = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::Enters(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Exploit],
         }));
         for (i, effect) in [
             Effect::CastExiled(ExileCast::Madness),
@@ -3391,6 +3425,7 @@ impl CardPool {
             Keyword::Undying => Some(self.undying),
             Keyword::Flanking => Some(self.flanking),
             Keyword::Evoke => Some(self.evoke),
+            Keyword::Exploit => Some(self.exploit),
             _ => None,
         }
     }
@@ -3572,6 +3607,8 @@ impl Builder {
             madness: None,
             foretell: None,
             suspend: None,
+            entwine: None,
+            escape: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3697,6 +3734,20 @@ impl Builder {
     #[must_use]
     pub fn foretell(mut self, cost: ManaCost) -> Self {
         self.0.foretell = Some(cost);
+        self
+    }
+
+    /// Entwine (CR 702.42).
+    #[must_use]
+    pub fn entwine(mut self, cost: ManaCost) -> Self {
+        self.0.entwine = Some(cost);
+        self
+    }
+
+    /// Escape (CR 702.138).
+    #[must_use]
+    pub fn escape(mut self, cost: ManaCost, exile: u32) -> Self {
+        self.0.escape = Some((cost, exile));
         self
     }
 

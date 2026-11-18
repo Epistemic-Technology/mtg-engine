@@ -1,0 +1,10 @@
+card "Goblin War Party" {
+  oracle_id fa4417e5-229a-4465-9bc5-0b3d6209b4a4
+  cost {3}{R}
+  type Sorcery
+  choose one {
+    mode: create 3 "1/1 red Goblin creature"
+    mode: each creature you control gets +1/+1 and gains haste
+  }
+  entwine {2}{R}
+}

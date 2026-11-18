@@ -1,0 +1,7 @@
+card "Hidden Cataract" {
+  oracle_id 927979d7-9b5c-4448-aef0-baf2907a89f1
+  type Land — Cave
+  enters tapped
+  mana {U}
+  activated {4}{U}, {T}, sacrifice this, sorcery: discover 4
+}

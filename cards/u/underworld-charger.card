@@ -1,0 +1,9 @@
+card "Underworld Charger" {
+  oracle_id 39694a3f-536e-41e0-adf6-d49de721aabd
+  cost {2}{B}
+  type Creature — Nightmare Horse
+  pt 3/3
+  keywords can't block
+  escape {4}{B} exile 3
+  escapes with 2 +1/+1 counters
+}

@@ -201,6 +201,12 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
                     b = b.suspend(*n, cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Entwine(cost)) => {
+                    b = b.entwine(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Escape(cost, n)) => {
+                    b = b.escape(cost.clone(), *n);
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -282,6 +288,8 @@ impl Compiler<'_> {
                             | Mechanic::Madness(_)
                             | Mechanic::Foretell(_)
                             | Mechanic::Suspend(..)
+                            | Mechanic::Entwine(_)
+                            | Mechanic::Escape(..)
                             | Mechanic::Morph(_)
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
@@ -406,6 +414,7 @@ impl Compiler<'_> {
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
+            StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -805,6 +814,7 @@ impl Compiler<'_> {
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
+            Effect::Discover(n) => out.push(CoreEffect::Discover(*n)),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
             Effect::Dig {
@@ -899,6 +909,7 @@ impl Compiler<'_> {
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
             Trigger::TurnedFaceUp => TriggerSpec::TurnedFaceUp,
+            Trigger::Exploits => TriggerSpec::Exploits,
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
@@ -1058,7 +1069,16 @@ impl Compiler<'_> {
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
             },
-            Ability::Modal(modes) => AbilityDef::Modal(self.modes(modes, false)?),
+            // CR 702.42a: entwined, every mode.
+            Ability::Modal(modes) => AbilityDef::Modal(
+                self.modes(
+                    modes,
+                    self.card
+                        .abilities
+                        .iter()
+                        .any(|a| matches!(a, Ability::Mechanic(Mechanic::Entwine(_)))),
+                )?,
+            ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true)?),
             Ability::Activated {
                 cost,
@@ -1158,10 +1178,14 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
-                Mechanic::Bloodthirst(n) => {
-                    let cond = self
-                        .pool
-                        .intern_condition(StaticCondition::OpponentDamagedThisTurn);
+                Mechanic::Bloodthirst(n) | Mechanic::EscapesWith(n) => {
+                    let cond =
+                        self.pool
+                            .intern_condition(if matches!(m, Mechanic::EscapesWith(_)) {
+                                StaticCondition::Escaped
+                            } else {
+                                StaticCondition::OpponentDamagedThisTurn
+                            });
                     AbilityDef::Replacement(ReplacementAbility {
                         replaces: mtg_core::card::Replaces::Enters,
                         replacement: mtg_core::card::Replacement::EnterWithCountersIf {
@@ -1177,6 +1201,8 @@ impl Compiler<'_> {
                 | Mechanic::Madness(_)
                 | Mechanic::Foretell(_)
                 | Mechanic::Suspend(..)
+                | Mechanic::Entwine(_)
+                | Mechanic::Escape(..)
                 | Mechanic::Morph(_)
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_) => {
@@ -1358,6 +1384,9 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
         | Mechanic::Madness(_)
         | Mechanic::Foretell(_)
         | Mechanic::Suspend(..)
+        | Mechanic::Entwine(_)
+        | Mechanic::Escape(..)
+        | Mechanic::EscapesWith(_)
         | Mechanic::Buyback(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)

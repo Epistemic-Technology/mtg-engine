@@ -19,7 +19,8 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 36] = [
+const KEYWORDS: [&str; 37] = [
+    "Exploit",
     "Cascade",
     "Rebound",
     "Convoke",
@@ -59,7 +60,7 @@ const KEYWORDS: [&str; 36] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 56] = [
+const TEMPLATED_TAGS: [&str; 60] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -117,6 +118,10 @@ const TEMPLATED_TAGS: [&str; 56] = [
     "Bloodthirst",
     "Adapt",
     "Connive",
+    "Entwine",
+    "Escape",
+    "Discover",
+    "Exploit",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -904,6 +909,9 @@ impl Templates {
                 ))
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (r(r"^[Dd]iscover (\d+)$"), |c, _| {
+                Some(format!("discover {}", cap(c, 1)))
+            }),
             (r(r"^Adapt (\d+)$"), |c, _| {
                 Some(format!("adapt {}", cap(c, 1)))
             }),
@@ -1532,6 +1540,7 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever this creature becomes tapped" => "whenever this becomes tapped",
         "When this creature is turned face up" => "when this is turned face up",
+        "When this creature exploits a creature" => "when this exploits a creature",
         "Whenever this creature becomes untapped" => "whenever this becomes untapped",
         "Whenever this creature is dealt damage" => "whenever this is dealt damage",
         "Whenever this creature deals damage" => "whenever this deals damage",
@@ -2111,12 +2120,38 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^Escape\u{2014}((?:\{[0-9WUBRGCX/]+\})+), Exile (\w+) other cards from your graveyard\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            self.statements
+                .push(format!("escape {} exile {n}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^This (?:creature|permanent) escapes with (an?|\w+) \+1/\+1 counters? on it\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let n = if matches!(cap(&c, 1), "a" | "an") {
+                "1".to_string()
+            } else {
+                number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?
+            };
+            self.statements
+                .push(format!("escapes with {n} +1/+1 counters"));
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Suspend (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")

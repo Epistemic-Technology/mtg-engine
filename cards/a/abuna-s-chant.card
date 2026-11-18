@@ -1,0 +1,10 @@
+card "Abuna's Chant" {
+  oracle_id 2d4721f1-1a49-45aa-99d5-ab8c6f3f3ab6
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: you gains 5 life
+    mode: prevent next 5 damage to target creature this turn
+  }
+  entwine {2}
+}

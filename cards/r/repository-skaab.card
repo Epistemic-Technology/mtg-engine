@@ -1,0 +1,8 @@
+card "Repository Skaab" {
+  oracle_id 7932ddef-b274-4f56-be7f-72e82d17fc59
+  cost {3}{U}
+  type Creature — Zombie
+  pt 3/3
+  keywords exploit
+  triggered when this exploits a creature: return target instant or sorcery card from your graveyard to hand
+}

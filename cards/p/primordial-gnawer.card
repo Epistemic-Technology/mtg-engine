@@ -1,0 +1,7 @@
+card "Primordial Gnawer" {
+  oracle_id 80ca6596-9763-4310-b30b-7153ade9f567
+  cost {4}{B}
+  type Creature — Insect Horror
+  pt 5/2
+  triggered when this dies: discover 3
+}

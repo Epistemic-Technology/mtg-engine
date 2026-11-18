@@ -345,8 +345,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     Some(you),
                 )
         }),
-        // Judged as attackers are declared, not by a static ability.
-        StaticCondition::DefenderControls { .. } => false,
+        // Judged as attackers are declared, or as a permanent enters; not
+        // by a static ability.
+        StaticCondition::DefenderControls { .. } | StaticCondition::Escaped => false,
         StaticCondition::AttackedThisTurn => {
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }

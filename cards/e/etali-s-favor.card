@@ -1,0 +1,8 @@
+card "Etali's Favor" {
+  oracle_id df98b93b-0aa6-4bea-9d8d-798ebc795b0b
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: discover 3
+  static enchanted: +1/+1, has trample
+}

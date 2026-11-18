@@ -1,0 +1,7 @@
+card "Sleep of the Dead" {
+  oracle_id 5e1b400f-ec5c-4703-bf30-65bb16bd3ca6
+  cost {U}
+  type Sorcery
+  spell: tap target creature; target 1 doesn't untap next untap step
+  escape {2}{U} exile 3
+}

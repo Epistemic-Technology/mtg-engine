@@ -1,0 +1,8 @@
+card "Gurmag Drowner" {
+  oracle_id 9839f80b-d28b-49c7-a31a-40c245af2edc
+  cost {3}{U}
+  type Creature — Snake Wizard
+  pt 2/4
+  keywords exploit
+  triggered when this exploits a creature: dig 4 take card rest graveyard
+}
