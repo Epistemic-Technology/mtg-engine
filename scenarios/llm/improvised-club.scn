@@ -1,0 +1,33 @@
+# Improvised Club: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing a creature, Improvised Club kills a 4-toughness creature" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Improvised Club"
+  turn 1 A: cast "Improvised Club" sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Improvised Club"
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Improvised Club deals 4 damage to a player" {
+  battlefield A: 2 "Mountain", "Hill Giant"
+  hand A: "Improvised Club"
+  turn 1 A: cast "Improvised Club" sacrificing "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Improvised Club can't be cast without an artifact or creature to sacrifice" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Improvised Club"
+  illegal turn 1 A: cast "Improvised Club" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand A contains "Improvised Club"
+  assert battlefield B contains "Grizzly Bears"
+}

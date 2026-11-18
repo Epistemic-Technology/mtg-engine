@@ -1,0 +1,7 @@
+card "Network Terminal" {
+  oracle_id a0eb1d5b-2c54-44fa-b7ad-bdd4b1147929
+  cost {3}
+  type Artifact
+  mana any
+  activated {1}, {T}, tap other untapped artifact you control: draw 1 card then discard 1 card
+}

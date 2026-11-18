@@ -1,0 +1,8 @@
+card "Way of the Thief" {
+  oracle_id b43ba23b-ff92-4f52-a4f4-2d0825abb7ed
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  static enchanted: has can't be blocked as long as you control Gate
+}

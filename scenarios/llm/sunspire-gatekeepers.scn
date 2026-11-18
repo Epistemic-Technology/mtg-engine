@@ -1,0 +1,37 @@
+# Sunspire Gatekeepers: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "no token without two Gates" {
+  battlefield A: 4 "Plains"
+  hand A: "Sunspire Gatekeepers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sunspire Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sunspire Gatekeepers"
+  assert battlefield A lacks "Knight"
+}
+
+scenario "gatekeepers is a 2/4 that survives a Shock" {
+  battlefield A: "Sunspire Gatekeepers"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Sunspire Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert power "Sunspire Gatekeepers" 2
+  assert toughness "Sunspire Gatekeepers" 4
+  assert damage "Sunspire Gatekeepers" 2
+  assert battlefield A contains "Sunspire Gatekeepers"
+}
+
+scenario "gatekeepers blocks a Hill Giant and survives" {
+  battlefield A: "Sunspire Gatekeepers"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Sunspire Gatekeepers"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert battlefield A contains "Sunspire Gatekeepers"
+  assert damage "Hill Giant" 2
+}

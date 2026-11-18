@@ -1,0 +1,8 @@
+card "Dune Mover" {
+  oracle_id 38d2176c-1a1e-4030-9c63-e28ba4a69b6d
+  cost {2}
+  type Artifact Creature — Phyrexian Golem
+  pt 2/1
+  toxic 1
+  triggered when this enters: you may search basic land card reveal to top that card
+}

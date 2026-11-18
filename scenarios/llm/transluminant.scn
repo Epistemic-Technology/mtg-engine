@@ -1,0 +1,36 @@
+# Transluminant: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing makes a flying Spirit at the next end step" {
+  battlefield A: "Transluminant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Transluminant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Transluminant"
+  assert battlefield A lacks "Spirit"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Spirit"
+  assert has "Spirit" flying
+  assert power "Spirit" 1
+  assert toughness "Spirit" 1
+}
+
+scenario "activating during the end step waits for the next end step" {
+  battlefield A: "Transluminant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 end A: activate "Transluminant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Transluminant"
+  assert battlefield A lacks "Spirit"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Spirit"
+}
+
+scenario "the ability needs white mana" {
+  battlefield A: "Transluminant", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Transluminant"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Transluminant"
+  assert battlefield A lacks "Spirit"
+}

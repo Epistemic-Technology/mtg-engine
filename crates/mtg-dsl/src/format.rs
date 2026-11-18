@@ -139,8 +139,22 @@ impl Fmt {
                     let phrase = match targets[i].base() {
                         Target::Spec(s) => target_phrase(*s),
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
+                        // "target other creature you control" would read as
+                        // "target other creature" and a stray "you control".
+                        Target::Filter(f) if f.relation == Relation::Other && f.who.is_some() => {
+                            let mut g = f.clone();
+                            g.relation = Relation::Any;
+                            format!("another target {}", filter(&g))
+                        }
                         Target::Filter(f) => format!("target {}", filter(f)),
                         Target::Spell(f) => format!("target {} spell", filter(f)),
+                        Target::GraveyardCard { filter: f, who }
+                            if f.relation == Relation::Other =>
+                        {
+                            let mut g = f.clone();
+                            g.relation = Relation::Any;
+                            format!("another {}", graveyard_target(&g, *who))
+                        }
                         Target::GraveyardCard { filter: f, who } => graveyard_target(f, *who),
                         Target::UpTo(_) => unreachable!("base"),
                     };

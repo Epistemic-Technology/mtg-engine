@@ -1,0 +1,7 @@
+card "Totem-Guide Hartebeest" {
+  oracle_id c3a1bb65-556a-4016-a06a-3894710cb190
+  cost {4}{W}
+  type Creature — Antelope
+  pt 2/5
+  triggered when this enters: you may search Aura card reveal to hand
+}

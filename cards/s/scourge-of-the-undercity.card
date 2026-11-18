@@ -1,0 +1,8 @@
+card "Scourge of the Undercity" {
+  oracle_id 541ba65b-9b4e-45bb-9055-4f7560563425
+  cost {1}{B}
+  type Creature — Gorgon Vampire
+  pt 2/1
+  keywords lifelink
+  triggered when this enters: another target creature you control gains lifelink
+}

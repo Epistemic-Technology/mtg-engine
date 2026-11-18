@@ -1,0 +1,8 @@
+card "Flesh Burrower" {
+  oracle_id 04c4250e-014a-4067-80e8-4134069354f7
+  cost {1}{G}
+  type Creature — Insect
+  pt 2/2
+  keywords deathtouch
+  triggered whenever this attacks: another target creature you control gains deathtouch
+}

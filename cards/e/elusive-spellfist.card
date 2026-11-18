@@ -1,0 +1,7 @@
+card "Elusive Spellfist" {
+  oracle_id b9ba00f2-b11c-45d8-9c38-f9ade5d07d0f
+  cost {1}{U}
+  type Creature — Human Monk
+  pt 1/3
+  triggered whenever you cast a noncreature spell: this gets +1/+0 and this gains can't be blocked
+}

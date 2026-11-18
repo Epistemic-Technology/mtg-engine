@@ -1,0 +1,7 @@
+card "Artillerize" {
+  oracle_id d14a8d90-13c0-4eb0-ab7b-86edb2c7fb96
+  cost {3}{R}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: deal 5 damage to any target
+}

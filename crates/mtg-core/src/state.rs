@@ -1411,6 +1411,9 @@ impl GameState {
                         crate::card::Who::Opponents => obj.owner != caster,
                     };
                     let c = self.base_characteristics(obj);
+                    // "another target card": the source's card after it
+                    // moved to the graveyard is the source still.
+                    let source = source.map(|s| self.current_object(s).unwrap_or(s));
                     return obj.zone == Zone::Graveyard
                         && whose
                         && self

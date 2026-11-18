@@ -1,0 +1,41 @@
+# Myr Kinsmith: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Myr Kinsmith fetches a Myr card from the library" {
+  battlefield A: 4 "Plains"
+  hand A: "Myr Kinsmith"
+  library A: "Grizzly Bears", "Myr Kinsmith", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Myr Kinsmith"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myr Kinsmith"
+  assert hand A contains "Myr Kinsmith"
+  assert library A lacks "Myr Kinsmith"
+  assert library A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Myr Kinsmith search may be declined" {
+  battlefield A: 4 "Plains"
+  hand A: "Myr Kinsmith"
+  library A: "Grizzly Bears", "Myr Kinsmith", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Myr Kinsmith"
+  turn 1 A: decline "Myr Kinsmith"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myr Kinsmith"
+  assert hand A count 0
+  assert library A contains "Myr Kinsmith"
+}
+
+scenario "Myr Kinsmith finds nothing without a Myr in the library" {
+  battlefield A: 4 "Plains"
+  hand A: "Myr Kinsmith"
+  library A: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Myr Kinsmith"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myr Kinsmith"
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}

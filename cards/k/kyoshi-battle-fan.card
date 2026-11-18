@@ -1,0 +1,8 @@
+card "Kyoshi Battle Fan" {
+  oracle_id 849e54f9-7662-4186-859c-e4f52afbccac
+  cost {2}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 white Ally creature" then attach to that token
+  static enchanted: +1/+0
+  equip {2}
+}

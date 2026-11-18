@@ -1,0 +1,38 @@
+# Cloak of the Bat: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "equipped creature gains flying and haste" {
+  battlefield A: "Cloak of the Bat", "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  assert has not "Grizzly Bears" flying
+  assert has not "Grizzly Bears" haste
+  turn 1 A: activate "Cloak of the Bat" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert attached "Cloak of the Bat" to "Grizzly Bears"
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" haste
+}
+
+scenario "haste lets a freshly cast creature attack" {
+  battlefield A: "Cloak of the Bat", 2 "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Cloak of the Bat" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "flying equipped creature can't be blocked by a ground creature" {
+  battlefield A: "Cloak of the Bat", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cloak of the Bat" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}

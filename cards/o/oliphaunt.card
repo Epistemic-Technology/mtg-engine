@@ -1,0 +1,9 @@
+card "Oliphaunt" {
+  oracle_id 186b2256-4af3-48cb-96b0-b0e80a7ee6dc
+  cost {5}{R}
+  type Creature — Elephant
+  pt 6/4
+  keywords trample
+  triggered whenever this attacks: another target creature you control gets +2/+0 and gains trample
+  mountaincycling {1}
+}

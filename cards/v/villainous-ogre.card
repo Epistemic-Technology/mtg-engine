@@ -1,0 +1,8 @@
+card "Villainous Ogre" {
+  oracle_id 30b54308-73c7-4352-a62c-10f69ab6ff22
+  cost {2}{B}
+  type Creature — Ogre Warrior
+  pt 3/2
+  keywords can't block
+  static as long as you control Demon, this: has ability { activated {B}: regenerate this }
+}

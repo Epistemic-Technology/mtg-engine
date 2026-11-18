@@ -1,0 +1,9 @@
+card "Heartstabber Mosquito" {
+  oracle_id f8fca88f-5eab-4854-913c-44261720a4d2
+  cost {3}{B}
+  type Creature — Insect
+  pt 2/2
+  kicker {2}{B}
+  keyword flying
+  triggered when this enters if kicked: destroy target creature
+}

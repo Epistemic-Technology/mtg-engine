@@ -1,0 +1,8 @@
+card "Guardian Idol" {
+  oracle_id 829d2e11-192f-4093-99f8-e13767b321a2
+  cost {2}
+  type Artifact
+  enters tapped
+  mana {C}
+  activated {2}: this becomes 2/2 Golem artifact creature
+}

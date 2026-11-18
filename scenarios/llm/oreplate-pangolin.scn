@@ -1,0 +1,38 @@
+# Oreplate Pangolin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "paying {1} when another artifact enters adds a counter" {
+  battlefield A: "Oreplate Pangolin", 4 "Mountain"
+  hand A: "Oreplate Pangolin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oreplate Pangolin"
+  turn 1 A: accept "Oreplate Pangolin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Oreplate Pangolin"
+  assert counters oldest A "Oreplate Pangolin" +1/+1 1
+  assert power oldest A "Oreplate Pangolin" 3
+  assert power newest A "Oreplate Pangolin" 2
+}
+
+scenario "declining to pay adds no counter" {
+  battlefield A: "Oreplate Pangolin", 4 "Mountain"
+  hand A: "Oreplate Pangolin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oreplate Pangolin"
+  turn 1 A: decline "Oreplate Pangolin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Oreplate Pangolin"
+  assert power oldest A "Oreplate Pangolin" 2
+  assert power newest A "Oreplate Pangolin" 2
+}
+
+scenario "a nonartifact creature entering does not trigger" {
+  battlefield A: "Oreplate Pangolin", 4 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Oreplate Pangolin" 2
+  assert toughness "Oreplate Pangolin" 2
+}

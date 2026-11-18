@@ -1,0 +1,38 @@
+# Way of the Thief: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Way of the Thief gives enchanted creature +2/+2" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Way of the Thief"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Way of the Thief" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Way of the Thief" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Without a Gate the enchanted creature can be blocked" {
+  battlefield A: "Grizzly Bears", "Way of the Thief" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "Enchanted creature survives Lightning Bolt" {
+  battlefield A: "Grizzly Bears", "Way of the Thief" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+}

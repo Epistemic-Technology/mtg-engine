@@ -1,0 +1,7 @@
+card "Cutthroat Centurion" {
+  oracle_id 5707c278-dab9-43bc-b3a3-a6b7923511f4
+  cost {2}{B}
+  type Artifact Creature — Phyrexian Warrior
+  pt 2/2
+  activated sacrifice other artifact or creature, once: this gets +2/+2
+}

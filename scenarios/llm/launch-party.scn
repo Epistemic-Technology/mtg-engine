@@ -1,0 +1,54 @@
+# Launch Party: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Launch Party destroys target creature and its controller loses 2 life" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Launch Party"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Launch Party" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Launch Party"
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Launch Party does nothing if its target becomes illegal" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Launch Party"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Launch Party" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant" in response to "Launch Party"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Launch Party can't be cast without a creature to sacrifice" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Launch Party"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Launch Party" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Launch Party"
+  assert battlefield B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Launch Party on your own creature makes you lose 2 life" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 4 "Swamp"
+  hand A: "Launch Party"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Launch Party" sacrificing "Grizzly Bears" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serra Angel"
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 18
+  assert life B 20
+}

@@ -2487,3 +2487,11 @@ https://github.com/modelcontextprotocol/rust-sdk; Rust 1.99.1, edition
 2024. Crates: slotmap 1.1, smallvec 1.16, rayon 1.12, postcard 1.1,
 rkyv 0.8, proptest 1.12, cargo-fuzz 0.13, criterion 0.8, insta 1.49,
 logos 0.16, chumsky 0.13.
+
+Status 2026-11-18, slice 17 done: template mismatch fixes ("another
+target" kept through formatting and graveyard targets, attaching to a
+created token, kicker before keywords) and model-author batch 7 (49 of
+500 accepted; batches pause at about $75 of the $100 as the yield
+falls). Corpus 7,728 cards: 5,709 Pauper (52.5%), 5,822 Modern (25.6%);
+2,149 scenarios pass, 1 skipped; fuzz 0 panics, 0 unfinished;
+throughput within 1% of the perf pass.

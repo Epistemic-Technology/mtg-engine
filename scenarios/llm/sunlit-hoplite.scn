@@ -1,0 +1,36 @@
+# Sunlit Hoplite: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "first strike on its controller's turn kills blocker first" {
+  battlefield A: "Sunlit Hoplite"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Sunlit Hoplite"
+  turn 1 B: block "Sunlit Hoplite" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sunlit Hoplite"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "no first strike on opponent's turn, trades with attacker" {
+  battlefield A: "Sunlit Hoplite"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Sunlit Hoplite"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Sunlit Hoplite"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "no power bonus without an Elspeth planeswalker" {
+  battlefield A: "Sunlit Hoplite"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Sunlit Hoplite" 2
+  assert toughness "Sunlit Hoplite" 1
+  run_to turn 2 precombat_main
+  assert power "Sunlit Hoplite" 2
+}

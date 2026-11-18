@@ -1,0 +1,8 @@
+card "Ancestral Blade" {
+  oracle_id ab28a801-6ab1-4db2-8ae2-c24bb4c10ebb
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 white Soldier creature" then attach to that token
+  static enchanted: +1/+1
+  equip {1}
+}

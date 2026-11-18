@@ -1,0 +1,7 @@
+card "The Howling Commandos" {
+  oracle_id 49325445-0825-405e-be86-2a814699ce03
+  cost {1}{W}
+  type Legendary Creature — Human Soldier Hero
+  pt 3/1
+  activated {5}: each creature you control gets +1/+1; each Soldier you control gains vigilance
+}

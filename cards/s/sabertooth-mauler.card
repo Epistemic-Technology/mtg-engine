@@ -1,0 +1,7 @@
+card "Sabertooth Mauler" {
+  oracle_id da4f4094-b0ce-4b5b-8ac3-8c0a5159220f
+  cost {3}{G}
+  type Creature — Cat
+  pt 3/3
+  triggered at beginning of your end step if creature died this turn: put 1 +1/+1 counter on this and untap this
+}

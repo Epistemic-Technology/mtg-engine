@@ -1,0 +1,7 @@
+card "Sea's Claim" {
+  oracle_id ed11efb6-1423-4ce0-be1d-9e0320124758
+  cost {U}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: set land Island
+}

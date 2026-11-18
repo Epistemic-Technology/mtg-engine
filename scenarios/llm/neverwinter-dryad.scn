@@ -1,0 +1,38 @@
+# Neverwinter Dryad: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice to fetch a basic Forest tapped" {
+  battlefield A: "Neverwinter Dryad", 2 "Mountain"
+  library A: "Plains", "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Neverwinter Dryad"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Neverwinter Dryad"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert library A lacks "Forest"
+  assert library A count 2
+}
+
+scenario "only a Forest can be found" {
+  battlefield A: "Neverwinter Dryad", 2 "Mountain"
+  library A: "Plains", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Neverwinter Dryad"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Neverwinter Dryad"
+  assert battlefield A lacks "Plains"
+  assert battlefield A lacks "Island"
+  assert battlefield A lacks "Swamp"
+  assert library A count 3
+}
+
+scenario "needs two mana to activate" {
+  battlefield A: "Neverwinter Dryad", "Mountain"
+  library A: "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Neverwinter Dryad"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Neverwinter Dryad"
+  assert library A contains "Forest"
+}

@@ -1,0 +1,7 @@
+card "Stoic Grove-Guide" {
+  oracle_id 96c4b51c-8a10-428c-a948-e1ba9c652bfd
+  cost {4}{B/G}
+  type Creature — Elf Druid
+  pt 5/4
+  activated {1}{B/G}, exile this from graveyard, sorcery: create 1 "2/2 black and green Elf creature"
+}

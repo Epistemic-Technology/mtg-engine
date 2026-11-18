@@ -1,0 +1,6 @@
+card "Vicious Rumors" {
+  oracle_id 55b72b1f-6463-406a-8824-d99a3c028285
+  cost {B}
+  type Sorcery
+  spell: deal 1 damage to each opponent; each opponent discards 1 card then mills 1 card; you gain 1 life
+}

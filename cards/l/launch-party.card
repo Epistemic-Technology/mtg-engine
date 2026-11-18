@@ -1,0 +1,7 @@
+card "Launch Party" {
+  oracle_id f713a6b4-bd9c-4bc3-9e00-26ecf16e4a92
+  cost {3}{B}
+  type Instant
+  additional cost sacrifice creature
+  spell: destroy target creature; its controller loses 2 life
+}

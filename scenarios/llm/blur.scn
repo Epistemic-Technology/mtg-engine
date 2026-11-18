@@ -1,0 +1,49 @@
+# Blur: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Blur flickers a creature, removing its counters, and draws a card" {
+  battlefield A: "Grizzly Bears" with 2 +1/+1, 3 "Island"
+  hand A: "Blur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blur" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert graveyard A contains "Blur"
+  assert hand A count 1
+}
+
+scenario "Blur returns a tapped creature untapped" {
+  battlefield A: "Hill Giant" tapped, 3 "Island"
+  hand A: "Blur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blur" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+}
+
+scenario "Blur clears damage from the returned creature" {
+  battlefield A: "Hill Giant", 3 "Island", "Mountain"
+  hand A: "Shock", "Blur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Blur" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Blur"
+}
+
+scenario "Blur cannot target an opponent's creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Blur"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Blur" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert hand A contains "Blur"
+}

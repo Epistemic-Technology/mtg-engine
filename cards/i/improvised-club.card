@@ -1,0 +1,7 @@
+card "Improvised Club" {
+  oracle_id 20c705e3-4141-41f8-ad73-bf953f0e1ddd
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: deal 4 damage to any target
+}

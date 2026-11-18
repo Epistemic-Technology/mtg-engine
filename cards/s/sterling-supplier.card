@@ -1,0 +1,8 @@
+card "Sterling Supplier" {
+  oracle_id ab23cca2-b59e-4d34-80de-98bd08985275
+  cost {4}{W}
+  type Creature — Bird Soldier
+  pt 3/4
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counters on another target creature you control
+}

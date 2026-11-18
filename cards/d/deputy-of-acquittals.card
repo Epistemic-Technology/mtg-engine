@@ -1,0 +1,8 @@
+card "Deputy of Acquittals" {
+  oracle_id 3cbb5045-8566-4279-b7d3-3e599b11ccc5
+  cost {W}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords flash
+  triggered when this enters: you may return another target creature you control to hand
+}

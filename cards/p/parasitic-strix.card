@@ -1,0 +1,8 @@
+card "Parasitic Strix" {
+  oracle_id 975b4e0f-1133-4ffa-a6b1-d319d248dcde
+  cost {2}{U}
+  type Artifact Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters if you control black permanent: target player loses 2 life and you gain 2 life
+}

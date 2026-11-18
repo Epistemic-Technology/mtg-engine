@@ -1,0 +1,56 @@
+# Skulduggery: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "skulduggery pumps own creature and shrinks opponent's" {
+  battlefield A: "Hill Giant", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Skulduggery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skulduggery" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  assert graveyard A contains "Skulduggery"
+}
+
+scenario "skulduggery effects end at end of turn" {
+  battlefield A: "Hill Giant", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Skulduggery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skulduggery" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "two skulduggeries kill a 2/2" {
+  battlefield A: "Hill Giant", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: 2 "Skulduggery"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Skulduggery" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Skulduggery" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power "Hill Giant" 5
+}
+
+scenario "skulduggery as a combat trick" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Skulduggery"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Skulduggery" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+}

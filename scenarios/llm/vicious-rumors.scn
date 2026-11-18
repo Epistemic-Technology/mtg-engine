@@ -1,0 +1,43 @@
+# Vicious Rumors: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Vicious Rumors damages, discards, mills, and gains life" {
+  battlefield A: "Swamp"
+  hand A: "Vicious Rumors"
+  hand B: "Lightning Bolt"
+  library B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Vicious Rumors"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert hand B count 0
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard B contains "Grizzly Bears"
+  assert library B contains "Hill Giant"
+  assert graveyard A contains "Vicious Rumors"
+}
+
+scenario "Vicious Rumors with an empty opposing hand still mills" {
+  battlefield A: "Swamp"
+  hand A: "Vicious Rumors"
+  library B: "Serra Angel", "Wind Drake"
+  turn 1 A: cast "Vicious Rumors"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard B contains "Serra Angel"
+  assert library B contains "Wind Drake"
+}
+
+scenario "Vicious Rumors discards one card from a larger hand" {
+  battlefield A: "Swamp"
+  hand A: "Vicious Rumors"
+  hand B: "Shock", "Murder"
+  library B: "Forest", "Island"
+  turn 1 A: cast "Vicious Rumors"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B contains "Forest"
+  assert library B contains "Island"
+  assert life B 19
+}

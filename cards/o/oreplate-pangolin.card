@@ -1,0 +1,7 @@
+card "Oreplate Pangolin" {
+  oracle_id 72e8c978-f66d-42e1-ac5f-d1c307d7b93c
+  cost {1}{R}
+  type Artifact Creature — Robot Pangolin
+  pt 2/2
+  triggered whenever other artifact you control enters: you may pay {1}; if you do, put 1 +1/+1 counter on this
+}

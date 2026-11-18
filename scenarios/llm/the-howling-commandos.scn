@@ -1,0 +1,37 @@
+# The Howling Commandos: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Howling Commandos pumps creatures and gives Soldiers vigilance" {
+  battlefield A: "The Howling Commandos", "Grizzly Bears", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Howling Commandos"
+  run_to turn 1 begin_combat
+  assert power "The Howling Commandos" 4
+  assert toughness "The Howling Commandos" 2
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert has "The Howling Commandos" vigilance
+  assert has not "Grizzly Bears" vigilance
+}
+
+scenario "Howling Commandos attacks without tapping after activation" {
+  battlefield A: "The Howling Commandos", "Grizzly Bears", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Howling Commandos"
+  turn 1 A: attack "The Howling Commandos", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 13
+  assert untapped "The Howling Commandos"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Howling Commandos effects end at end of turn" {
+  battlefield A: "The Howling Commandos", "Grizzly Bears", 5 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "The Howling Commandos"
+  run_to turn 2 upkeep
+  assert power "The Howling Commandos" 3
+  assert toughness "The Howling Commandos" 1
+  assert power "Grizzly Bears" 2
+  assert has not "The Howling Commandos" vigilance
+}

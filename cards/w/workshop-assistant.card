@@ -1,0 +1,7 @@
+card "Workshop Assistant" {
+  oracle_id 319ee221-bace-41e9-b386-6b528bd780c1
+  cost {3}
+  type Artifact Creature — Construct
+  pt 1/2
+  triggered when this dies: return another target artifact card from your graveyard to hand
+}

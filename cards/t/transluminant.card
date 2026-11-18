@@ -1,0 +1,7 @@
+card "Transluminant" {
+  oracle_id f4d54a89-8409-4fbc-b01f-3b03f352820f
+  cost {1}{G}
+  type Creature — Dryad Shaman
+  pt 2/2
+  activated {W}, sacrifice this: delayed this: create 1 "1/1 white Spirit creature with flying" at beginning of the next end step
+}

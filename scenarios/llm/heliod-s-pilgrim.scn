@@ -1,0 +1,39 @@
+# Heliod's Pilgrim: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Heliod's Pilgrim enters; search finds no Aura, so no non-Aura card comes to hand" {
+  battlefield A: 3 "Plains"
+  hand A: "Heliod's Pilgrim"
+  library A: "Grizzly Bears", "Serra Angel", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heliod's Pilgrim"
+  turn 1 A: accept "Heliod's Pilgrim"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Heliod's Pilgrim"
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+  assert library A contains "Serra Angel"
+}
+
+scenario "Heliod's Pilgrim search may be declined" {
+  battlefield A: 3 "Plains"
+  hand A: "Heliod's Pilgrim"
+  library A: "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Heliod's Pilgrim"
+  turn 1 A: decline "Heliod's Pilgrim"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Heliod's Pilgrim"
+  assert hand A count 0
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "Heliod's Pilgrim is a 1/2 that dies to Shock" {
+  battlefield A: "Heliod's Pilgrim"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Heliod's Pilgrim"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Heliod's Pilgrim"
+}

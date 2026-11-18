@@ -1,0 +1,6 @@
+card "Profane Prayers" {
+  oracle_id 6eb427e9-e679-4891-a29e-ea54b1935892
+  cost {2}{B}{B}
+  type Sorcery
+  spell: deal X damage to any target and you gain count where Cleric on battlefield life
+}

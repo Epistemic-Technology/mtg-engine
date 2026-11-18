@@ -1,0 +1,8 @@
+card "Giant Ladybug" {
+  oracle_id abfe31f1-7c6d-4a7a-9f44-7f3e4166d9f1
+  cost {2}{G}
+  type Creature — Insect
+  pt 4/1
+  keywords reach
+  triggered when this enters: you may search basic land card reveal to top that card
+}

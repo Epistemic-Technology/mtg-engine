@@ -1,0 +1,38 @@
+# Sea's Claim: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted land becomes an Island and loses its old type" {
+  battlefield A: "Island", "Forest"
+  hand A: "Sea's Claim"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sea's Claim" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert attached "Sea's Claim" to "Forest"
+  assert is "Forest" island
+  assert is not "Forest" forest
+}
+
+scenario "opponent's Forest no longer taps for green" {
+  battlefield A: "Island"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand A: "Sea's Claim"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sea's Claim" targeting "Forest"
+  illegal turn 2 B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Giant Growth"
+  assert is "Forest" island
+}
+
+scenario "enchanted land taps for blue" {
+  battlefield A: "Island", "Forest", 2 "Plains"
+  hand A: "Sea's Claim", "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sea's Claim" targeting "Forest"
+  turn 1 A: wait
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}

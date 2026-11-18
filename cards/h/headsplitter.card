@@ -1,0 +1,8 @@
+card "Headsplitter" {
+  oracle_id 8333c82f-aae6-470f-a9db-63ab24f9bb46
+  cost {1}{R}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 black Assassin creature with menace" then attach to that token
+  static enchanted: +1/+0
+  equip {2}
+}

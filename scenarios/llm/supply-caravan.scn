@@ -1,0 +1,46 @@
+# Supply Caravan: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Supply Caravan makes a Warrior when you control a tapped creature" {
+  battlefield A: 5 "Plains", "Grizzly Bears" tapped
+  hand A: "Supply Caravan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Supply Caravan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Supply Caravan"
+  assert battlefield A contains 1 "Warrior"
+  assert has "Warrior" vigilance
+  assert power "Warrior" 1
+}
+
+scenario "Supply Caravan makes no Warrior when your creatures are untapped" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Supply Caravan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Supply Caravan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Supply Caravan"
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "Supply Caravan makes no Warrior with no other creatures" {
+  battlefield A: 5 "Plains"
+  hand A: "Supply Caravan"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Supply Caravan"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Supply Caravan"
+  assert battlefield A lacks "Warrior"
+}
+
+scenario "a creature tapped by attacking enables Supply Caravan after combat" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Supply Caravan"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Supply Caravan"
+  run_to turn 1 end
+  assert life B 18
+  assert tapped "Grizzly Bears"
+  assert battlefield A contains 1 "Warrior"
+}

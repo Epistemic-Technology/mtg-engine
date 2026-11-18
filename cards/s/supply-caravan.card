@@ -1,0 +1,7 @@
+card "Supply Caravan" {
+  oracle_id 1abcfe8d-4beb-4910-b353-1227e1256329
+  cost {4}{W}
+  type Creature — Camel
+  pt 3/5
+  triggered whenever this enters if you control tapped creature: create 1 "1/1 white Warrior creature with vigilance"
+}

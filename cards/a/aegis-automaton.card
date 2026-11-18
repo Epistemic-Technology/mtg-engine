@@ -1,0 +1,7 @@
+card "Aegis Automaton" {
+  oracle_id 727f4734-53cc-4279-ba51-dfa26c4ceb1d
+  cost {2}
+  type Artifact Creature — Construct
+  pt 0/3
+  activated {4}{W}: return another target creature you control to hand
+}

@@ -1,0 +1,8 @@
+card "Breaching Hippocamp" {
+  oracle_id 5ba04e0d-a3eb-448d-8a97-08c155ef9694
+  cost {3}{U}
+  type Creature — Horse Fish
+  pt 3/2
+  keywords flash
+  triggered when this enters: untap another target creature you control
+}

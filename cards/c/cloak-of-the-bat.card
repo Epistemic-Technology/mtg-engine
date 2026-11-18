@@ -1,0 +1,7 @@
+card "Cloak of the Bat" {
+  oracle_id ecd28e2a-e172-4f4c-8416-b9a0d97ee497
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has flying, haste
+  equip {2}
+}

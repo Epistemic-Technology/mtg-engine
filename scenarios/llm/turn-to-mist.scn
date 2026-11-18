@@ -1,0 +1,48 @@
+# Turn to Mist: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "turn to mist exiles own creature and returns it at end step without counters" {
+  battlefield A: "Plains", "Island", "Grizzly Bears" with 2 +1/+1
+  hand A: "Turn to Mist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Turn to Mist" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "turn to mist removes an attacker and it returns to its owner" {
+  battlefield A: "Plains", "Island"
+  hand A: "Turn to Mist"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Turn to Mist" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert exile B contains "Hill Giant"
+  run_to turn 3 upkeep
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A lacks "Hill Giant"
+}
+
+scenario "turn to mist in response to lightning bolt saves the creature" {
+  battlefield A: "Plains", "Island", "Grizzly Bears"
+  hand A: "Turn to Mist"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: cast "Turn to Mist" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard A lacks "Grizzly Bears"
+  assert exile A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+}

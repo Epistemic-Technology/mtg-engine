@@ -2181,7 +2181,8 @@ impl GameState {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         for _ in 0..self.eval_num(*count, ctx) {
-                            self.create_token(*token, p);
+                            // "then attach this Equipment to it".
+                            ctx.created = Some(self.create_token(*token, p));
                         }
                     }
                 }

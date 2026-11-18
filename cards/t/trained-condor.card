@@ -1,0 +1,8 @@
+card "Trained Condor" {
+  oracle_id 99742ec7-7b67-4301-9307-3c2068046e33
+  cost {2}{U}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  triggered whenever this attacks: another target creature you control gains flying
+}

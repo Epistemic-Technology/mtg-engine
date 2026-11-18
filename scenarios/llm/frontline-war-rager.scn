@@ -1,0 +1,36 @@
+# Frontline War-Rager: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two tapped creatures at end step grow War-Rager" {
+  battlefield A: "Frontline War-Rager", "Grizzly Bears" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert counters "Frontline War-Rager" +1/+1 1
+  assert power "Frontline War-Rager" 3
+  assert toughness "Frontline War-Rager" 4
+}
+
+scenario "only one tapped creature does not trigger" {
+  battlefield A: "Frontline War-Rager", "Grizzly Bears" tapped, "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert power "Frontline War-Rager" 2
+  assert toughness "Frontline War-Rager" 3
+}
+
+scenario "attacking taps War-Rager itself and counts it" {
+  battlefield A: "Frontline War-Rager", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Frontline War-Rager", "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert life B 16
+  assert counters "Frontline War-Rager" +1/+1 1
+  assert power "Frontline War-Rager" 3
+}
+
+scenario "opponent's end step does not trigger" {
+  battlefield A: "Frontline War-Rager", "Grizzly Bears" tapped, "Grizzly Bears" tapped
+  start turn 2 B precombat_main
+  run_to turn 3 upkeep
+  assert power "Frontline War-Rager" 2
+}

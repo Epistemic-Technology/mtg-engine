@@ -1,0 +1,7 @@
+card "Myr Retriever" {
+  oracle_id d07d3be3-f69d-4484-8467-cffd43871788
+  cost {2}
+  type Artifact Creature — Myr
+  pt 1/1
+  triggered when this dies: return another target artifact card from your graveyard to hand
+}

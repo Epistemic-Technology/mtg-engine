@@ -1,0 +1,7 @@
+card "Striking Sliver" {
+  oracle_id 6a15599d-8b00-4e0f-ac0c-d05f07c1e50d
+  cost {R}
+  type Creature — Sliver
+  pt 1/1
+  static Sliver creature you control: has first strike
+}

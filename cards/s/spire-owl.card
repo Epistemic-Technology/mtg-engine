@@ -1,0 +1,8 @@
+card "Spire Owl" {
+  oracle_id 7fa1eca4-0db1-446b-b3cb-15a619ffa97b
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: look at top 4
+}

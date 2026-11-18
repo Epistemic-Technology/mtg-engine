@@ -1,0 +1,7 @@
+card "Powerstone Fracture" {
+  oracle_id f13baf38-27fc-4c5d-8fee-459eefdb32da
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice artifact or creature
+  spell: destroy target creature or planeswalker
+}

@@ -1,0 +1,8 @@
+card "Toxic Scorpion" {
+  oracle_id 612ea70d-f4f2-4909-a025-218161ae1059
+  cost {1}{G}
+  type Creature — Scorpion
+  pt 1/1
+  keywords deathtouch
+  triggered when this enters: another target creature you control gains deathtouch
+}

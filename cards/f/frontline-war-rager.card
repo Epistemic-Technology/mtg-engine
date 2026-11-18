@@ -1,0 +1,7 @@
+card "Frontline War-Rager" {
+  oracle_id 610d006a-3ceb-4136-b92b-a500c74d06b0
+  cost {2}{R}
+  type Creature — Kavu Soldier
+  pt 2/3
+  triggered at beginning of your end step if you control 2 tapped creature: put 1 +1/+1 counter on this
+}

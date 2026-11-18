@@ -1,0 +1,47 @@
+# Doom's Servo-Guards: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters: gain 2 life and mill two cards" {
+  battlefield A: 2 "Swamp"
+  hand A: "Doom's Servo-Guards"
+  library A: "Island", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom's Servo-Guards"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A contains "Doom's Servo-Guards"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+  assert graveyard A lacks "Mountain"
+  assert library A contains "Mountain"
+  assert is "Doom's Servo-Guards" artifact
+  assert is "Doom's Servo-Guards" creature
+}
+
+scenario "empty library still gains life" {
+  battlefield A: 2 "Swamp"
+  hand A: "Doom's Servo-Guards"
+  library A:
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom's Servo-Guards"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A contains "Doom's Servo-Guards"
+  assert not game_over
+}
+
+scenario "a 2/2 that dies to Shock" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Doom's Servo-Guards"
+  hand B: "Shock"
+  library A: "Island", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Doom's Servo-Guards"
+  turn 1 postcombat_main B: cast "Shock" targeting "Doom's Servo-Guards"
+  run_to turn 1 end
+  assert life A 22
+  assert graveyard A contains "Doom's Servo-Guards"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Forest"
+}

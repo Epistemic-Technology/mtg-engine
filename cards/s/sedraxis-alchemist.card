@@ -1,0 +1,7 @@
+card "Sedraxis Alchemist" {
+  oracle_id 56f3f1b4-c36a-41f3-95a1-45e9d7e74cf9
+  cost {2}{B}
+  type Creature — Zombie Wizard
+  pt 2/2
+  triggered when this enters if you control blue permanent: return target nonland permanent to hand
+}

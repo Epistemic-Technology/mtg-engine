@@ -1,0 +1,38 @@
+# Spire Owl: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Spire Owl enters and looks at the top four, keeping the library intact" {
+  battlefield A: 2 "Island"
+  hand A: "Spire Owl"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Spire Owl"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spire Owl"
+  assert hand A count 0
+  assert library A count 5
+  assert library A contains "Forest"
+  assert stack count 0
+}
+
+scenario "Spire Owl flies over a ground blocker" {
+  battlefield A: "Spire Owl"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Spire Owl"
+  illegal turn 1 B: block "Spire Owl" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Spire Owl" flying
+  assert life B 19
+  assert battlefield A contains "Spire Owl"
+}
+
+scenario "Spire Owl dies to Shock" {
+  battlefield A: "Spire Owl"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Spire Owl"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Spire Owl"
+  assert battlefield A lacks "Spire Owl"
+}

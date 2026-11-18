@@ -1,0 +1,7 @@
+card "Hardened Escort" {
+  oracle_id 2c6ef9e8-6b60-436c-8391-ae0baabb3a1b
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered whenever this attacks: another target creature you control gets +1/+0 and gains indestructible
+}

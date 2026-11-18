@@ -1,0 +1,36 @@
+# Artillerize: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Artillerize sacrifices a creature and deals 5 to a player" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Artillerize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Artillerize" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Artillerize"
+  assert battlefield A lacks "Grizzly Bears"
+}
+
+scenario "Artillerize kills a creature" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Artillerize"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Artillerize" sacrificing "Hill Giant" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Artillerize cannot be cast without an artifact or creature to sacrifice" {
+  battlefield A: 4 "Mountain"
+  hand A: "Artillerize"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Artillerize" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A contains "Artillerize"
+  assert life B 20
+}

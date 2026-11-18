@@ -1,0 +1,7 @@
+card "Vito's Inquisitor" {
+  oracle_id 03ee49c9-95a3-44f1-b010-f7c4b2f86a7c
+  cost {3}{B}
+  type Creature — Vampire Knight
+  pt 3/3
+  activated {B}, sacrifice other creature or artifact: put 1 +1/+1 counter on this; this gains menace
+}

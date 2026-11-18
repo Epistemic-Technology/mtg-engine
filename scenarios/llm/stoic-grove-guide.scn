@@ -1,0 +1,36 @@
+# Stoic Grove-Guide: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "exile from graveyard to create an Elf token" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Stoic Grove-Guide"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stoic Grove-Guide"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Elf"
+  assert exile A contains "Stoic Grove-Guide"
+  assert graveyard A lacks "Stoic Grove-Guide"
+  assert tapped oldest A "Swamp"
+  assert tapped newest A "Swamp"
+}
+
+scenario "graveyard ability is sorcery speed only" {
+  battlefield A: 2 "Forest"
+  graveyard A: "Stoic Grove-Guide"
+  start turn 2 B precombat_main
+  illegal turn 2 A: activate "Stoic Grove-Guide"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Stoic Grove-Guide"
+  assert battlefield A lacks "Elf"
+}
+
+scenario "cast with hybrid paid by green mana" {
+  battlefield A: 5 "Forest"
+  hand A: "Stoic Grove-Guide"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Stoic Grove-Guide"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Stoic Grove-Guide"
+  assert power "Stoic Grove-Guide" 5
+  assert toughness "Stoic Grove-Guide" 4
+}

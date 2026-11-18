@@ -1,0 +1,35 @@
+# Network Terminal: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "network terminal loots by tapping another artifact" {
+  battlefield A: 2 "Network Terminal", "Island"
+  hand A: "Hill Giant"
+  library A: "Grizzly Bears", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Network Terminal"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert tapped "Island"
+  assert library A count 2
+}
+
+scenario "network terminal cannot loot without another untapped artifact" {
+  battlefield A: "Network Terminal", "Island"
+  hand A: "Hill Giant"
+  library A: "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Network Terminal"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert untapped "Network Terminal"
+}
+
+scenario "network terminal taps for colored mana" {
+  battlefield A: "Network Terminal", "Island"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Network Terminal"
+}

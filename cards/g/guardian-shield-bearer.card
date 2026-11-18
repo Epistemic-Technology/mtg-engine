@@ -1,0 +1,8 @@
+card "Guardian Shield-Bearer" {
+  oracle_id 2bd8a6a4-d0ac-4da3-be1d-5f404ae4b614
+  cost {1}{G}
+  type Creature — Human Soldier
+  pt 2/1
+  megamorph {3}{G}
+  triggered when this is turned face up: put 1 +1/+1 counters on another target creature you control
+}

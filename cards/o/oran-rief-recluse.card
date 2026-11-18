@@ -1,0 +1,9 @@
+card "Oran-Rief Recluse" {
+  oracle_id 043fa53c-8a46-4fbd-836f-2403c62e0121
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/3
+  kicker {2}{G}
+  keyword reach
+  triggered when this enters if kicked: destroy target creature with flying
+}

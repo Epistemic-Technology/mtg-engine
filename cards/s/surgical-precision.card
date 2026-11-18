@@ -1,0 +1,9 @@
+card "Surgical Precision" {
+  oracle_id 0caccec3-4942-499a-9434-0c94389afcf8
+  cost {1}{W}
+  type Sorcery
+  choose one {
+    mode: destroy target creature with toughness 4 or greater; you gain 1 life
+    mode: you draw 1 card and gain 2 life
+  }
+}

@@ -1,0 +1,7 @@
+card "Fountain of Ichor" {
+  oracle_id 9082d364-9fe4-47bd-9097-8888ae75b2e1
+  cost {3}
+  type Artifact
+  mana any
+  activated {3}: this becomes 3/3 Dinosaur artifact creature
+}

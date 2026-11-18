@@ -1,0 +1,40 @@
+# Sabertooth Mauler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "creature died this turn: counter and untap at end step" {
+  battlefield A: "Sabertooth Mauler", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: attack "Sabertooth Mauler"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+  assert counters "Sabertooth Mauler" +1/+1 1
+  assert power "Sabertooth Mauler" 4
+  assert untapped "Sabertooth Mauler"
+}
+
+scenario "no creature died: no trigger" {
+  battlefield A: "Sabertooth Mauler"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Sabertooth Mauler"
+  run_to turn 2 upkeep
+  assert life B 17
+  assert power "Sabertooth Mauler" 3
+  assert tapped "Sabertooth Mauler"
+}
+
+scenario "own creature dying in combat also counts" {
+  battlefield A: "Sabertooth Mauler", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Sabertooth Mauler", "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 17
+  assert counters "Sabertooth Mauler" +1/+1 1
+  assert untapped "Sabertooth Mauler"
+}

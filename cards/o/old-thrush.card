@@ -1,0 +1,8 @@
+card "Old Thrush" {
+  oracle_id c8259b0e-131f-44f0-86d4-7c4d711b328d
+  cost {2}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  triggered when this enters: you gains 2 life; you may search basic land card reveal to top that card
+}

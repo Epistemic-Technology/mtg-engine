@@ -1,0 +1,7 @@
+card "TVA Bureaucrat" {
+  oracle_id e9638ad1-4e1d-4721-91f5-8cf13d0d0d0d
+  cost {1}{U}
+  type Creature — Human Advisor
+  pt 1/3
+  triggered whenever you cast a noncreature spell: this gets +1/+0 and this gains can't be blocked
+}

@@ -2657,9 +2657,24 @@ impl P {
                 spec = match spec {
                     Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
                     Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
+                    Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
+                        types: vec![CardType::Artifact],
+                        relation: Relation::Other,
+                        ..Default::default()
+                    }),
+                    Target::Spec(TargetSpec::CreatureYouControl) => Target::Filter(Filter {
+                        types: vec![CardType::Creature],
+                        who: Some(Who::You),
+                        relation: Relation::Other,
+                        ..Default::default()
+                    }),
                     Target::Filter(mut f) if f.relation == Relation::Any => {
                         f.relation = Relation::Other;
                         Target::Filter(f)
+                    }
+                    Target::GraveyardCard { mut filter, who } => {
+                        filter.relation = Relation::Other;
+                        Target::GraveyardCard { filter, who }
                     }
                     other => other,
                 };

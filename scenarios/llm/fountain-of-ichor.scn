@@ -1,0 +1,40 @@
+# Fountain of Ichor: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Fountain of Ichor taps for mana of any color" {
+  battlefield A: "Fountain of Ichor"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert tapped "Fountain of Ichor"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Fountain of Ichor becomes a 3/3 Dinosaur until end of turn" {
+  battlefield A: "Fountain of Ichor", 3 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fountain of Ichor"
+  run_to turn 2 postcombat_main
+  assert is "Fountain of Ichor" creature
+  assert is "Fountain of Ichor" artifact
+  assert is "Fountain of Ichor" "Dinosaur"
+  assert power "Fountain of Ichor" 3
+  assert toughness "Fountain of Ichor" 3
+  run_to turn 3 upkeep
+  assert is not "Fountain of Ichor" creature
+  assert battlefield A contains "Fountain of Ichor"
+}
+
+scenario "animated Fountain of Ichor can be killed as a creature" {
+  battlefield A: "Fountain of Ichor", 3 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fountain of Ichor"
+  turn 2 postcombat_main B: cast "Lightning Bolt" targeting "Fountain of Ichor"
+  run_to turn 2 end
+  assert graveyard A contains "Fountain of Ichor"
+  assert battlefield A lacks "Fountain of Ichor"
+}

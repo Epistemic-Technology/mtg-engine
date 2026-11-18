@@ -1,0 +1,6 @@
+card "Tribal Flames" {
+  oracle_id c82eda61-d195-49c9-8ff0-a78dfa650689
+  cost {1}{R}
+  type Sorcery
+  label "Domain" spell: deal count where domain damage to any target
+}

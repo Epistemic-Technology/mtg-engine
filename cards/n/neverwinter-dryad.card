@@ -1,0 +1,7 @@
+card "Neverwinter Dryad" {
+  oracle_id a6e654fb-3567-4b92-ae9b-d064bba7112a
+  cost {G}
+  type Creature — Dryad
+  pt 1/1
+  activated {2}, sacrifice this: search basic Forest card to battlefield tapped
+}

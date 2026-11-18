@@ -1,0 +1,7 @@
+card "Heartfire" {
+  oracle_id 2f6f5054-4a48-458e-969e-3a0f0e507354
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice creature or planeswalker
+  spell: deal 4 damage to any target
+}

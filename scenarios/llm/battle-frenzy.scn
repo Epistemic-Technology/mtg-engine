@@ -1,0 +1,47 @@
+# Battle Frenzy: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "green creatures get +1/+1, nongreen get +1/+0" {
+  battlefield A: 3 "Mountain", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Battle Frenzy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle Frenzy"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 3
+  assert power "Serra Angel" 5
+  assert toughness "Serra Angel" 4
+  assert graveyard A contains "Battle Frenzy"
+}
+
+scenario "opponent's creatures are unaffected and the bonus ends at end of turn" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  hand A: "Battle Frenzy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battle Frenzy"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 3
+  assert power B "Grizzly Bears" 2
+  assert toughness B "Grizzly Bears" 2
+  run_to turn 2 upkeep
+  assert power A "Grizzly Bears" 2
+  assert toughness A "Grizzly Bears" 2
+}
+
+scenario "cast after blocks, the green attacker survives and kills its blocker" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  hand A: "Battle Frenzy"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 declare_blockers A: cast "Battle Frenzy"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 2
+  assert graveyard B contains "Wind Drake"
+  assert life B 20
+}

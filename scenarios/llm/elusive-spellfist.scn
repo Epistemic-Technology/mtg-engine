@@ -1,0 +1,35 @@
+# Elusive Spellfist: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "noncreature spell makes Spellfist unblockable and stronger" {
+  battlefield A: "Elusive Spellfist", "Mountain"
+  hand A: "Shock"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: attack "Elusive Spellfist"
+  illegal turn 1 B: block "Elusive Spellfist" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "creature spell does not trigger Spellfist" {
+  battlefield A: "Elusive Spellfist", "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Elusive Spellfist"
+  turn 1 B: block "Elusive Spellfist" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Elusive Spellfist"
+}
+
+scenario "Spellfist bonus lasts until end of turn" {
+  battlefield A: "Elusive Spellfist", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Elusive Spellfist" 2
+  run_to turn 2 upkeep
+  assert power "Elusive Spellfist" 1
+}

@@ -1,0 +1,8 @@
+card "Sage Owl" {
+  oracle_id d47fc902-51f7-4ad1-8ee4-c973e32192b8
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: look at top 4
+}

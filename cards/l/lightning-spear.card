@@ -1,0 +1,8 @@
+card "Lightning Spear" {
+  oracle_id 2202faf1-5638-46bf-8bf4-91870b669717
+  cost {1}{R}
+  type Artifact — Equipment
+  static enchanted: +1/+0, has trample
+  activated {2}{R}, sacrifice this: deal 3 damage to any target
+  equip {1}
+}

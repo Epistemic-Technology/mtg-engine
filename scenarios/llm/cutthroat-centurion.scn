@@ -1,0 +1,35 @@
+# Cutthroat Centurion: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature gives +2/+2 until end of turn" {
+  battlefield A: "Cutthroat Centurion", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cutthroat Centurion" sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Cutthroat Centurion" 4
+  assert toughness "Cutthroat Centurion" 4
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Cutthroat Centurion" 2
+  assert toughness "Cutthroat Centurion" 2
+}
+
+scenario "activate only once each turn" {
+  battlefield A: "Cutthroat Centurion", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Cutthroat Centurion" sacrificing "Grizzly Bears"
+  illegal turn 1 postcombat_main A: activate "Cutthroat Centurion"
+  run_to turn 1 end
+  assert power "Cutthroat Centurion" 4
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "cannot sacrifice itself" {
+  battlefield A: "Cutthroat Centurion"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Cutthroat Centurion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Cutthroat Centurion"
+  assert power "Cutthroat Centurion" 2
+}

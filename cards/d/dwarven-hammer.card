@@ -1,0 +1,8 @@
+card "Dwarven Hammer" {
+  oracle_id a6365f98-f652-492b-81de-5f8cd6fe0a1c
+  cost {2}{R}
+  type Artifact — Equipment
+  triggered when this enters: you may pay {2}; if you do, create 1 "2/1 red Dwarf Berserker creature" then attach to that token
+  static enchanted: +3/+0, has trample
+  equip {3}
+}

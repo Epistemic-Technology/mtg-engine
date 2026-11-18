@@ -1,0 +1,8 @@
+card "Aetherjacket" {
+  oracle_id 062c8e40-dea7-4df7-bcaa-f1d696fe61c3
+  cost {3}
+  type Artifact Creature — Thopter
+  pt 2/1
+  keywords flying, vigilance
+  activated {2}, {T}, sacrifice this, sorcery: destroy target another artifact
+}

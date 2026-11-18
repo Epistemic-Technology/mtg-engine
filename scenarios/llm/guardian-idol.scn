@@ -1,0 +1,46 @@
+# Guardian Idol: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Guardian Idol enters tapped" {
+  battlefield A: 2 "Plains"
+  hand A: "Guardian Idol"
+  turn 1 A: cast "Guardian Idol"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Guardian Idol"
+  assert tapped "Guardian Idol"
+}
+
+scenario "Guardian Idol taps for colorless mana" {
+  battlefield A: "Guardian Idol", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Guardian Idol"
+}
+
+scenario "Guardian Idol becomes a 2/2 Golem until end of turn" {
+  battlefield A: "Guardian Idol", 2 "Plains"
+  turn 1 A: activate "Guardian Idol"
+  run_to turn 1 postcombat_main
+  assert is "Guardian Idol" creature
+  assert is "Guardian Idol" artifact
+  assert is "Guardian Idol" Golem
+  assert power "Guardian Idol" 2
+  assert toughness "Guardian Idol" 2
+  run_to turn 2 precombat_main
+  assert is not "Guardian Idol" creature
+  assert is "Guardian Idol" artifact
+}
+
+scenario "animated Guardian Idol dies to Lightning Bolt" {
+  battlefield A: "Guardian Idol", 2 "Plains", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: activate "Guardian Idol"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Guardian Idol"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Guardian Idol"
+  assert battlefield A lacks "Guardian Idol"
+}

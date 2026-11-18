@@ -1,0 +1,42 @@
+# Aetherjacket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Aetherjacket destroys another artifact" {
+  battlefield A: "Aetherjacket", 2 "Plains"
+  battlefield B: "Aetherjacket"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Aetherjacket" targeting B "Aetherjacket"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Aetherjacket"
+  assert graveyard B contains "Aetherjacket"
+  assert battlefield B lacks "Aetherjacket"
+}
+
+scenario "Aetherjacket cannot target itself" {
+  battlefield A: "Aetherjacket", 2 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Aetherjacket" targeting "Aetherjacket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aetherjacket"
+}
+
+scenario "Aetherjacket activates only as a sorcery" {
+  battlefield A: "Aetherjacket", 2 "Plains"
+  battlefield B: "Aetherjacket"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "Aetherjacket" targeting B "Aetherjacket"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Aetherjacket"
+  assert battlefield B contains "Aetherjacket"
+}
+
+scenario "Aetherjacket attacks with flying and vigilance" {
+  battlefield A: "Aetherjacket"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Aetherjacket"
+  illegal turn 1 B: block "Aetherjacket" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Aetherjacket"
+}

@@ -1,0 +1,7 @@
+card "Myr Kinsmith" {
+  oracle_id 97bb382b-16b2-44db-a2bd-de09ca90bfcc
+  cost {4}
+  type Artifact Creature — Myr
+  pt 3/1
+  triggered whenever this enters: you may search Myr card reveal to hand
+}

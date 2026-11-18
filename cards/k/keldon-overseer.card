@@ -1,0 +1,9 @@
+card "Keldon Overseer" {
+  oracle_id 1b1dc78b-0102-49d6-8e54-89bc18a1628f
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  kicker {3}{R}
+  keyword haste
+  triggered when this enters if kicked: gain control of target creature; untap that creature; target 1 gains haste
+}

@@ -1,0 +1,39 @@
+# Villainous Ogre: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Villainous Ogre can't block" {
+  battlefield A: "Villainous Ogre"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Villainous Ogre"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield A contains "Villainous Ogre"
+}
+
+scenario "Villainous Ogre has no regeneration without a Demon" {
+  battlefield A: "Villainous Ogre", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Villainous Ogre"
+  run_to turn 1 postcombat_main
+  assert untapped oldest "Swamp"
+}
+
+scenario "Villainous Ogre dies to Lightning Bolt without a Demon" {
+  battlefield A: "Villainous Ogre", "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Villainous Ogre"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Villainous Ogre"
+}
+
+scenario "Villainous Ogre attacks for three" {
+  battlefield A: "Villainous Ogre"
+  start turn 3 A
+  turn 3 A: attack "Villainous Ogre"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}

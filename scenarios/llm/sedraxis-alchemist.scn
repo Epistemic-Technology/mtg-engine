@@ -1,0 +1,39 @@
+# Sedraxis Alchemist: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "with a blue permanent, bounces an opponent's creature" {
+  battlefield A: 3 "Swamp", "Wind Drake"
+  battlefield B: "Hill Giant"
+  hand A: "Sedraxis Alchemist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sedraxis Alchemist"
+  turn 1 A: trigger "Sedraxis Alchemist" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sedraxis Alchemist"
+  assert battlefield B lacks "Hill Giant"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "without a blue permanent, nothing is returned" {
+  battlefield A: 3 "Swamp", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Sedraxis Alchemist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sedraxis Alchemist"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sedraxis Alchemist"
+  assert battlefield B contains "Hill Giant"
+  assert hand B lacks "Hill Giant"
+}
+
+scenario "can return your own blue permanent" {
+  battlefield A: 3 "Swamp", "Wind Drake"
+  hand A: "Sedraxis Alchemist"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sedraxis Alchemist"
+  turn 1 A: trigger "Sedraxis Alchemist" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Wind Drake"
+  assert hand A contains "Wind Drake"
+  assert battlefield A contains "Sedraxis Alchemist"
+}

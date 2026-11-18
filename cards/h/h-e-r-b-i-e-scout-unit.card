@@ -1,0 +1,8 @@
+card "H.E.R.B.I.E. Scout Unit" {
+  oracle_id 393ff8c5-4da0-4290-b498-222cc0244026
+  cost {4}
+  type Artifact Creature — Robot Scout
+  pt 2/1
+  keywords flying
+  triggered when this enters: draw 1 card then you may put land card from hand onto battlefield tapped
+}

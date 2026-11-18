@@ -1,0 +1,7 @@
+card "Fleetfeather Sandals" {
+  oracle_id 9811d1fa-1398-49a2-bcbe-0e40d9779ef1
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has flying, haste
+  equip {2}
+}

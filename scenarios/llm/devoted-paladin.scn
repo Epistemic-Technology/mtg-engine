@@ -1,0 +1,41 @@
+# Devoted Paladin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Beacon of Hope pumps creatures you control and grants vigilance" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Devoted Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Devoted Paladin"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Devoted Paladin" 5
+  assert toughness "Devoted Paladin" 5
+  assert has "Grizzly Bears" vigilance
+  assert has "Devoted Paladin" vigilance
+  assert power B "Hill Giant" 3
+  assert has not B "Hill Giant" vigilance
+}
+
+scenario "pumped creature attacks without tapping" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Devoted Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Devoted Paladin"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "the bonus ends at end of turn" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Devoted Paladin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Devoted Paladin"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert power "Devoted Paladin" 4
+  assert has not "Grizzly Bears" vigilance
+}

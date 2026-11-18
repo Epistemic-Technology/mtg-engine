@@ -1,0 +1,8 @@
+card "Sunlit Hoplite" {
+  oracle_id e99c58bd-b405-4474-bd32-1a993c9f2979
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  static during your turn, this: has first strike
+  static this: +1/+0 as long as you control Elspeth planeswalker
+}

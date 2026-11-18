@@ -519,12 +519,19 @@ impl<'a> Ctx<'a> {
                     Who::Opponents => "an opponent's",
                     Who::Any => "a",
                 };
-                if *filter == Filter::default() {
-                    format!("target card from {whose} graveyard")
+                let mut g = filter.clone();
+                let tgt = if g.relation == Relation::Other {
+                    g.relation = Relation::Any;
+                    "another target"
+                } else {
+                    "target"
+                };
+                if g == Filter::default() {
+                    format!("{tgt} card from {whose} graveyard")
                 } else {
                     format!(
-                        "target {} card from {whose} graveyard",
-                        card_filter_phrase(filter, self.card)
+                        "{tgt} {} card from {whose} graveyard",
+                        card_filter_phrase(&g, self.card)
                     )
                 }
             }
@@ -1741,7 +1748,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Attach { to } => {
             let o = ctx.obj(*to);
-            Clause::imperative(format!("attach {} to {o}", ctx.source()))
+            // After creating a token, "it" is the token: Oracle names the
+            // source again ("attach this Equipment to it").
+            let me = if *to == Recipient::CreatedObject && !is_spell(ctx.card) {
+                format!("this {}", self_noun(ctx.card))
+            } else {
+                ctx.source()
+            };
+            Clause::imperative(format!("attach {me} to {o}"))
         }
         Effect::CreateToken { token, count } => {
             Clause::imperative(format!("create {}", token_description(token, *count, ctx)))
@@ -3194,6 +3208,10 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
+    // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
+    if let Some(k) = &card.kicker {
+        lines.push(format!("Kicker {k}"));
+    }
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
@@ -3208,9 +3226,6 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             continue;
         }
         lines.push(keyword_line(card, *k));
-    }
-    if let Some(k) = &card.kicker {
-        lines.push(format!("Kicker {k}"));
     }
     if let Some(cost) = &card.additional {
         let mut ctx = Ctx::new(card, lookup, &[]);

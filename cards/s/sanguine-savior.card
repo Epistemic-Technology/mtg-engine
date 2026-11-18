@@ -1,0 +1,9 @@
+card "Sanguine Savior" {
+  oracle_id cc3a6c83-a671-4ce8-b98e-434989fb6778
+  cost {1}{W}{B}
+  type Creature — Vampire Cleric
+  pt 2/1
+  keywords flying, lifelink
+  disguise {W/B}{W/B}
+  triggered when this is turned face up: another target creature you control gains lifelink
+}

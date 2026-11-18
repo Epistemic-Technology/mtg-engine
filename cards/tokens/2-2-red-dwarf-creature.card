@@ -1,0 +1,6 @@
+token "2/2 red Dwarf creature" {
+  name "Dwarf"
+  type Creature — Dwarf
+  pt 2/2
+  color red
+}

@@ -1,0 +1,7 @@
+card "Doom's Servo-Guards" {
+  oracle_id 296e79f9-57cb-4af7-9e18-48d2d655b537
+  cost {1}{B}
+  type Artifact Creature — Robot Villain
+  pt 2/2
+  triggered when this enters: you gain 2 life and mill 2 cards
+}

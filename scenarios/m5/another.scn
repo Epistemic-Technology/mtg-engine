@@ -1,0 +1,29 @@
+# "another target": the source itself is never a legal target, even
+# after it changed zones.
+
+scenario "Myr Retriever can't return itself" {
+  battlefield A: "Myr Retriever", 2 "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Myr Retriever"
+  run_to turn 1 end
+  assert graveyard A contains "Myr Retriever"
+  assert hand A count 0
+}
+
+scenario "Myr Retriever returns another artifact card" {
+  battlefield A: "Myr Retriever", 2 "Mountain"
+  graveyard A: "Ornithopter"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Myr Retriever"
+  turn 1 A: trigger "Myr Retriever" targeting "Ornithopter"
+  run_to turn 1 end
+  assert hand A contains "Ornithopter"
+}
+
+scenario "Headsplitter attaches itself to its token" {
+  battlefield A: 2 "Mountain"
+  hand A: "Headsplitter"
+  turn 1 A: cast "Headsplitter"
+  run_to turn 1 end
+  assert power "Assassin" 2
+}

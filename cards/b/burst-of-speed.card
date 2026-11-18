@@ -1,0 +1,6 @@
+card "Burst of Speed" {
+  oracle_id 91e33674-b13a-41de-8998-4b57016ae42f
+  cost {R}
+  type Sorcery
+  spell: each creature you control gain haste
+}

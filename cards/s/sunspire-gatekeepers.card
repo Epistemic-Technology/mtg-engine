@@ -1,0 +1,7 @@
+card "Sunspire Gatekeepers" {
+  oracle_id df2cc4ba-70b8-4875-8f84-9c268ab8d5f6
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered whenever this enters if you control 2 Gate: create 1 "2/2 white Knight creature with vigilance"
+}

@@ -1,0 +1,9 @@
+card "Battle Frenzy" {
+  oracle_id 0fca46ec-ec1a-4e6c-bb0e-cdb834b38c92
+  cost {2}{R}
+  type Instant
+  spell {
+    each green creature you control gets +1/+1
+    each nongreen creature you control gets +1/+0
+  }
+}

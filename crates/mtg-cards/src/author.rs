@@ -607,6 +607,7 @@ fn singular(s: &str) -> String {
                 if other.len() > 3
                     && other.ends_with('s')
                     && !other.ends_with("ss")
+                    && !other.ends_with("us")
                     && other.chars().next().is_some_and(char::is_uppercase) =>
             {
                 other[..other.len() - 1].to_string()
@@ -858,7 +859,8 @@ impl Templates {
                         "onto the battlefield" => " to battlefield",
                         _ => " to top",
                     });
-                    if cap(c, 4) == "that card" {
+                    // "then shuffle and put that card on top".
+                    if cap(c, 4) == "that card" || cap(c, 5).is_empty() {
                         t.push_str(" that card");
                     }
                     Some(t)
@@ -1290,6 +1292,19 @@ impl Templates {
                     ),
                     None => (clause.to_string(), String::new()),
                 };
+                // "create a token, then attach this Equipment to it": "it"
+                // is the token.
+                if parts
+                    .last()
+                    .is_some_and(|p: &String| p.starts_with("create "))
+                    && matches!(
+                        head.as_str(),
+                        "attach this Equipment to it" | "attach it to it"
+                    )
+                {
+                    parts.push("attach to that token".to_string());
+                    continue;
+                }
                 let Some(e) = self.sentence(&capitalize(&head), targets) else {
                     return Err(Skip::Sentence(sentence.clone()));
                 };

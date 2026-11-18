@@ -1,0 +1,40 @@
+# Burst of Speed: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "creature cast this turn can attack after Burst of Speed" {
+  battlefield A: "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears", "Burst of Speed"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Grizzly Bears"
+  turn 3 A: wait
+  turn 3 A: cast "Burst of Speed"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Burst of Speed"
+}
+
+scenario "creature that arrives after Burst of Speed resolves lacks haste" {
+  battlefield A: "Forest", 2 "Mountain"
+  hand A: "Grizzly Bears", "Burst of Speed"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Burst of Speed"
+  turn 3 A: wait
+  turn 3 A: cast "Grizzly Bears"
+  illegal turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert has not "Grizzly Bears" haste
+  assert life B 20
+}
+
+scenario "only creatures you control gain haste" {
+  battlefield A: "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Burst of Speed"
+  start turn 3 A precombat_main
+  turn 3 A: cast "Burst of Speed"
+  run_to turn 3 begin_combat
+  assert has "Hill Giant" haste
+  assert has not "Grizzly Bears" haste
+}

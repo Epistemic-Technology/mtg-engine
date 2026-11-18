@@ -1,0 +1,50 @@
+# H.E.R.B.I.E. Scout Unit: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters: draws a land and puts it onto the battlefield tapped" {
+  battlefield A: 4 "Plains"
+  hand A: "H.E.R.B.I.E. Scout Unit"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "H.E.R.B.I.E. Scout Unit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "H.E.R.B.I.E. Scout Unit"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert hand A count 0
+}
+
+scenario "enters: may decline to put the land onto the battlefield" {
+  battlefield A: 4 "Plains"
+  hand A: "H.E.R.B.I.E. Scout Unit"
+  library A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "H.E.R.B.I.E. Scout Unit"
+  turn 1 A: decline "H.E.R.B.I.E. Scout Unit"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Forest"
+  assert hand A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "enters: draws a nonland card, nothing to put onto the battlefield" {
+  battlefield A: 4 "Plains"
+  hand A: "H.E.R.B.I.E. Scout Unit"
+  library A: "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "H.E.R.B.I.E. Scout Unit"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert battlefield A contains 4 "Plains"
+}
+
+scenario "flying: can't be blocked by a creature without flying or reach" {
+  battlefield A: "H.E.R.B.I.E. Scout Unit"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "H.E.R.B.I.E. Scout Unit"
+  illegal turn 1 B: block "H.E.R.B.I.E. Scout Unit" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+token "1/1 black Assassin creature with menace" {
+  name "Assassin"
+  type Creature — Assassin
+  pt 1/1
+  color black
+  keywords menace
+}

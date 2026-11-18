@@ -1,0 +1,35 @@
+# Powerstone Fracture: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice a creature to destroy target creature" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Powerstone Fracture"
+  turn 1 A: cast "Powerstone Fracture" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Powerstone Fracture"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "cannot be cast without an artifact or creature to sacrifice" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Powerstone Fracture"
+  illegal turn 1 A: cast "Powerstone Fracture" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Powerstone Fracture"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "chosen creature is sacrificed, the other stays" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 2 "Swamp"
+  battlefield B: "Wind Drake"
+  hand A: "Powerstone Fracture"
+  turn 1 A: cast "Powerstone Fracture" sacrificing "Grizzly Bears" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Serra Angel"
+  assert graveyard B contains "Wind Drake"
+}

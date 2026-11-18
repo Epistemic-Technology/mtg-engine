@@ -1,0 +1,8 @@
+card "Blooming Stinger" {
+  oracle_id ab282bb1-900e-40b8-9821-8e2de88927bc
+  cost {1}{G}
+  type Creature — Plant Scorpion
+  pt 2/2
+  keywords deathtouch
+  triggered when this enters: another target creature you control gains deathtouch
+}

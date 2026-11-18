@@ -1,0 +1,8 @@
+card "Dwarven Shortsword" {
+  oracle_id 9cc52afb-9788-46f6-9f9b-347513f8a64f
+  cost {3}{W}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "2/2 red Dwarf creature" then attach to that token
+  static enchanted: +1/+2
+  equip {2}
+}

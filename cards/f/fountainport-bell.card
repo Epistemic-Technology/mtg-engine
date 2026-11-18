@@ -1,0 +1,7 @@
+card "Fountainport Bell" {
+  oracle_id ea4c5b8f-a5ff-47dd-8e47-5ae7b21926b4
+  cost {1}
+  type Artifact
+  triggered when this enters: you may search basic land card reveal to top that card
+  activated {1}, sacrifice this: draw 1 cards
+}
