@@ -1,0 +1,6 @@
+card "Grim Bounty" {
+  oracle_id 8060dc97-9868-4846-85f4-0ef70da2b021
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy target creature or planeswalker; create 1 "Treasure"
+}

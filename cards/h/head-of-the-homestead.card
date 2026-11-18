@@ -1,0 +1,7 @@
+card "Head of the Homestead" {
+  oracle_id 467d6acb-9a3c-433f-836d-54e0e670b7d0
+  cost {3}{G/W}{G/W}
+  type Creature — Rabbit Citizen
+  pt 3/2
+  triggered when this enters: create 2 "1/1 white Rabbit creature"
+}

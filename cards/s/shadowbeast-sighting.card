@@ -1,0 +1,7 @@
+card "Shadowbeast Sighting" {
+  oracle_id f05d5632-0a82-45bf-b66e-22cf4080ed5e
+  cost {3}{G}
+  type Sorcery
+  flashback {6}{G}
+  spell: create 1 "4/4 green Beast creature"
+}

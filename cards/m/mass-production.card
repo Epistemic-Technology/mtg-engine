@@ -1,0 +1,6 @@
+card "Mass Production" {
+  oracle_id 20150b58-a442-472c-8191-b44581322eeb
+  cost {5}{W}
+  type Sorcery
+  spell: create 4 "1/1 colorless Soldier artifact creature"
+}

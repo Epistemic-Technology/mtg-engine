@@ -1,0 +1,7 @@
+card "Beast Attack" {
+  oracle_id 3f5acd90-199c-4ed3-9c8a-eeac4670d876
+  cost {2}{G}{G}{G}
+  type Instant
+  flashback {2}{G}{G}{G}
+  spell: create 1 "4/4 green Beast creature"
+}

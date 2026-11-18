@@ -1,0 +1,7 @@
+card "Somnomancer" {
+  oracle_id c819ebc8-feb5-48fa-81d2-a4f5aaa4fdbb
+  cost {1}{W/U}
+  type Creature — Kithkin Wizard
+  pt 2/1
+  triggered when this enters: you may tap target creature
+}

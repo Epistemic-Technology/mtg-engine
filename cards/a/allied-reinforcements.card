@@ -1,0 +1,6 @@
+card "Allied Reinforcements" {
+  oracle_id 2baf2ee6-e290-4a2b-89a0-0e725edde06d
+  cost {3}{W}
+  type Sorcery
+  spell: create 2 "2/2 white Knight Ally creature"
+}

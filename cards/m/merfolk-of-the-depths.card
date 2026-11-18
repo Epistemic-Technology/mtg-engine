@@ -1,0 +1,7 @@
+card "Merfolk of the Depths" {
+  oracle_id 263df914-aea1-48dc-b517-7d515307789e
+  cost {4}{G/U}{G/U}
+  type Creature — Merfolk Soldier
+  pt 4/2
+  keywords flash
+}

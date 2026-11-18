@@ -1,0 +1,8 @@
+card "Dragoon's Wyvern" {
+  oracle_id f328012f-4696-47bb-ab43-247bdcb13f03
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  triggered when this enters: create 1 "1/1 colorless Hero creature"
+}

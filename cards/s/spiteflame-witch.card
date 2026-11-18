@@ -1,0 +1,7 @@
+card "Spiteflame Witch" {
+  oracle_id b4ab38e5-c446-4845-b509-4d6f4438949d
+  cost {1}{B/R}
+  type Creature — Elemental Shaman
+  pt 2/1
+  activated {B}{R}: each player loses 1 life
+}

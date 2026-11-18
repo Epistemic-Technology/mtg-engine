@@ -1,0 +1,7 @@
+card "Dwarven Castle Guard" {
+  oracle_id b51e0ae3-126b-4b7e-9dd1-818a5b8e512a
+  cost {1}{W}
+  type Creature — Dwarf Soldier
+  pt 2/1
+  triggered when this dies: create 1 "1/1 colorless Hero creature"
+}

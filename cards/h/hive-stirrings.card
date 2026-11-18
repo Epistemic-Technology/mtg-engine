@@ -1,0 +1,6 @@
+card "Hive Stirrings" {
+  oracle_id c7dd0614-e11e-4b6b-a2cb-9904e457148f
+  cost {2}{W}
+  type Sorcery
+  spell: create 2 "1/1 colorless Sliver creature"
+}

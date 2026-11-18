@@ -1,0 +1,7 @@
+card "Wilt-Leaf Cavaliers" {
+  oracle_id 69ae765d-03c9-46d9-bdad-8e5936df9616
+  cost {G/W}{G/W}{G/W}
+  type Creature — Elf Knight
+  pt 3/4
+  keywords vigilance
+}

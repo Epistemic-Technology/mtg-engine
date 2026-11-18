@@ -1,0 +1,7 @@
+card "Myr Sire" {
+  oracle_id 25794033-bd17-4056-b116-68d3acf52569
+  cost {2}
+  type Artifact Creature — Phyrexian Myr
+  pt 1/1
+  triggered when this dies: create 1 "1/1 colorless Phyrexian Myr artifact creature"
+}

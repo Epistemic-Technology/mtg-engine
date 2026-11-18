@@ -1,0 +1,7 @@
+card "Footlight Fiend" {
+  oracle_id 77a5305a-2611-4a64-adb4-da131dcea233
+  cost {B/R}
+  type Creature — Devil
+  pt 1/1
+  triggered when this dies: deal 1 damage to any target
+}

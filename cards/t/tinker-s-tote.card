@@ -1,0 +1,7 @@
+card "Tinker's Tote" {
+  oracle_id cd1e6225-31b7-4a70-81ab-681abe860328
+  cost {2}{W}
+  type Artifact
+  triggered when this enters: create 2 "1/1 colorless Gnome artifact creature"
+  activated {W}, sacrifice this: you gains 3 life
+}

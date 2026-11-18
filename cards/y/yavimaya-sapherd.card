@@ -1,0 +1,7 @@
+card "Yavimaya Sapherd" {
+  oracle_id 42a1954f-774e-4d80-98b3-a736f23e2060
+  cost {2}{G}
+  type Creature — Fungus
+  pt 2/2
+  triggered when this enters: create 1 "1/1 green Saproling creature"
+}

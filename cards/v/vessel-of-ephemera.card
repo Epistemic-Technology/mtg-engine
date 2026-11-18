@@ -1,0 +1,6 @@
+card "Vessel of Ephemera" {
+  oracle_id bfddc488-ab38-4e6d-8dfc-22bf1a8e03fa
+  cost {1}{W}
+  type Enchantment
+  activated {2}{W}, sacrifice this: create 2 "1/1 white Spirit creature with flying"
+}

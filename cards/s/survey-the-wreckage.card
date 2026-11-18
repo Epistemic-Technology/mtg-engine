@@ -1,0 +1,6 @@
+card "Survey the Wreckage" {
+  oracle_id 35df2d01-2f9f-49a7-8fa1-cfaa52e5c7b6
+  cost {4}{R}
+  type Sorcery
+  spell: destroy target land; create 1 "1/1 red Goblin creature"
+}

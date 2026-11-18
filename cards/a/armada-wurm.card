@@ -1,0 +1,8 @@
+card "Armada Wurm" {
+  oracle_id 33598888-0367-4085-9415-f4e21da08354
+  cost {2}{G}{G}{W}{W}
+  type Creature — Wurm
+  pt 5/5
+  keywords trample
+  triggered when this enters: create 1 "5/5 green Wurm creature with trample"
+}

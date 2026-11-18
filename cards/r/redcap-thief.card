@@ -1,0 +1,7 @@
+card "Redcap Thief" {
+  oracle_id e055bc6d-d395-4f85-8e15-3bce65b7fcca
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 2/3
+  triggered when this enters: create 1 "Treasure"
+}

@@ -1,0 +1,8 @@
+card "Elturgard Ranger" {
+  oracle_id 27083627-a5d0-4fc6-9e66-fa44803ef080
+  cost {4}{G}
+  type Creature — Human Elf Ranger
+  pt 4/1
+  keywords reach
+  triggered when this enters: create 1 "2/2 green Wolf creature"
+}

@@ -1,0 +1,7 @@
+card "Discordant Piper" {
+  oracle_id bb0107f4-723a-4f2c-8e4b-237d5f668e3c
+  cost {1}{B}
+  type Creature — Zombie Satyr
+  pt 2/1
+  triggered when this dies: create 1 "0/1 white Goat creature"
+}

@@ -1,0 +1,6 @@
+card "Talrand's Invocation" {
+  oracle_id 43355ac4-bf8c-48f6-a322-fafbc9d132d1
+  cost {2}{U}{U}
+  type Sorcery
+  spell: create 2 "2/2 blue Drake creature with flying"
+}

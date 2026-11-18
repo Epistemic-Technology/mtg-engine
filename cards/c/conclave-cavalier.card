@@ -1,0 +1,8 @@
+card "Conclave Cavalier" {
+  oracle_id 653de668-beb0-4be7-bb05-30de5f52a3f1
+  cost {G}{G}{W}{W}
+  type Creature — Centaur Knight
+  pt 4/4
+  keywords vigilance
+  triggered when this dies: create 2 "2/2 green and white Elf Knight creature with vigilance"
+}

@@ -1,0 +1,7 @@
+card "Cultbrand Cinder" {
+  oracle_id cbb030aa-ba4f-4d9e-920d-001a40982f5e
+  cost {4}{B/R}
+  type Creature — Elemental Shaman
+  pt 3/3
+  triggered when this enters: put 1 -1/-1 counters on target creature
+}

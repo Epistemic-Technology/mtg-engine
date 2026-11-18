@@ -1,0 +1,8 @@
+card "Experimental Aviator" {
+  oracle_id 47f221a4-b51a-46b9-a4fc-46bc8ec7ddd3
+  cost {3}{U}{U}
+  type Creature — Human Artificer
+  pt 0/3
+  keywords flying
+  triggered when this enters: create 2 "1/1 colorless Thopter artifact creature with flying"
+}

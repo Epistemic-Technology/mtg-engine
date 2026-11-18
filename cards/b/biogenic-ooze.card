@@ -1,0 +1,9 @@
+card "Biogenic Ooze" {
+  oracle_id d2d84ba5-0d20-4ce3-8f1f-93cd9ef94f5f
+  cost {3}{G}{G}
+  type Creature — Ooze
+  pt 2/2
+  triggered when this enters: create 1 "2/2 green Ooze creature"
+  triggered at beginning of your end step: put 1 +1/+1 counters on each Ooze you control
+  activated {1}{G}{G}{G}: create 1 "2/2 green Ooze creature"
+}

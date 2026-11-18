@@ -1,0 +1,6 @@
+token "4/4 colorless Construct artifact creature" {
+  name "Construct"
+  type Artifact Creature — Construct
+  pt 4/4
+  color
+}

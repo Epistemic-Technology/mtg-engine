@@ -1,0 +1,8 @@
+card "Scream Puff" {
+  oracle_id b46ddf4b-7ed8-49c4-8828-f0fbbc023c1f
+  cost {4}{B}
+  type Creature — Horror
+  pt 4/5
+  keywords deathtouch
+  triggered whenever this deals combat damage to a player: create 1 "Food"
+}

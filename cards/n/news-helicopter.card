@@ -1,0 +1,8 @@
+card "News Helicopter" {
+  oracle_id 192dd1e2-b6c2-432a-a1b4-e52ff39b3db2
+  cost {3}
+  type Artifact Creature — Construct
+  pt 1/1
+  keywords flying
+  triggered when this enters: create 1 "1/1 green and white Human Citizen creature"
+}

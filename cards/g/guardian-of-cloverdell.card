@@ -1,0 +1,8 @@
+card "Guardian of Cloverdell" {
+  oracle_id 27d6b1fb-ce53-45d6-a601-9f5b9ee7ab2f
+  cost {5}{G}{G}
+  type Creature — Treefolk Shaman
+  pt 4/5
+  triggered when this enters: create 3 "1/1 white Kithkin Soldier creature"
+  activated {G}, sacrifice Kithkin: you gains 1 life
+}

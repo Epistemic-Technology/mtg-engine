@@ -1,0 +1,7 @@
+card "Hobgoblin Dragoon" {
+  oracle_id 3bbfceba-9f3a-4988-a009-13c9472138b1
+  cost {2}{R/W}
+  type Creature — Goblin Knight
+  pt 1/2
+  keywords flying, first strike
+}

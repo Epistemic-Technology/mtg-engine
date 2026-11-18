@@ -1,0 +1,8 @@
+card "Crested Herdcaller" {
+  oracle_id 86c0ddaa-6926-450d-949a-6c89f43c71c2
+  cost {3}{G}{G}
+  type Creature — Dinosaur
+  pt 3/3
+  keywords trample
+  triggered when this enters: create 1 "3/3 green Dinosaur creature with trample"
+}

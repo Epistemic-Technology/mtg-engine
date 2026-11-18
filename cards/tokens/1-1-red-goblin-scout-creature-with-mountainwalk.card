@@ -1,0 +1,7 @@
+token "1/1 red Goblin Scout creature with mountainwalk" {
+  name "Goblin Scout"
+  type Creature — Goblin Scout
+  pt 1/1
+  color red
+  keywords mountainwalk
+}

@@ -1,0 +1,7 @@
+card "Martyr of Dusk" {
+  oracle_id 794aaf8a-6d8e-41fb-acbe-a2b73d65d9d9
+  cost {1}{W}
+  type Creature — Vampire Soldier
+  pt 2/1
+  triggered when this dies: create 1 "1/1 white Vampire creature with lifelink"
+}

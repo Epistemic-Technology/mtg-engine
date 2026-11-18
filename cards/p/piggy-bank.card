@@ -1,0 +1,7 @@
+card "Piggy Bank" {
+  oracle_id a13f4095-300b-434f-aa9a-3608aaae5163
+  cost {1}{R}
+  type Artifact Creature — Boar Toy
+  pt 3/2
+  triggered when this dies: create 1 "Treasure"
+}

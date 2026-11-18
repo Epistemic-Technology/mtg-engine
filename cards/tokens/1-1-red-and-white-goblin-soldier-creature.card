@@ -1,0 +1,6 @@
+token "1/1 red and white Goblin Soldier creature" {
+  name "Goblin Soldier"
+  type Creature — Goblin Soldier
+  pt 1/1
+  color red white
+}

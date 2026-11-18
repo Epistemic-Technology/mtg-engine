@@ -1,0 +1,7 @@
+card "Cogworker's Puzzleknot" {
+  oracle_id 2065e9d0-c6e9-4270-898e-9822b532d467
+  cost {2}
+  type Artifact
+  triggered when this enters: create 1 "1/1 colorless Servo artifact creature"
+  activated {1}{W}, sacrifice this: create 1 "1/1 colorless Servo artifact creature"
+}

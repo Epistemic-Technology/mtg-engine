@@ -1,0 +1,7 @@
+card "Garrison Cat" {
+  oracle_id e7bc7c44-946c-4131-b764-add0c5f21020
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  triggered when this dies: create 1 "1/1 white Human Soldier creature"
+}

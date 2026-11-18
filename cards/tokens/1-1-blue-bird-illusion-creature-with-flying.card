@@ -1,0 +1,7 @@
+token "1/1 blue Bird Illusion creature with flying" {
+  name "Bird Illusion"
+  type Creature — Bird Illusion
+  pt 1/1
+  color blue
+  keywords flying
+}

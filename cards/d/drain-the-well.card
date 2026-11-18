@@ -1,0 +1,6 @@
+card "Drain the Well" {
+  oracle_id 84e89aac-439c-4e09-b7d9-2ee047c224c5
+  cost {2}{B/G}{B/G}
+  type Sorcery
+  spell: destroy target land; you gains 2 life
+}

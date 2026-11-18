@@ -1,0 +1,7 @@
+card "Reap the Seagraf" {
+  oracle_id 95ff3ba5-cbd2-4723-9498-3fc6df5be973
+  cost {2}{B}
+  type Sorcery
+  flashback {4}{U}
+  spell: create 1 "2/2 black Zombie creature"
+}

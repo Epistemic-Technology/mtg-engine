@@ -1,0 +1,7 @@
+card "Rise of the Ants" {
+  oracle_id d9d33dcd-3352-478e-afc4-40f2ff369c39
+  cost {4}{G}{G}
+  type Sorcery
+  flashback {6}{G}{G}
+  spell: create 2 "3/3 green Insect creature"; you gains 2 life
+}

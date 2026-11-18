@@ -1,0 +1,7 @@
+token "1/1 white Pegasus creature with flying" {
+  name "Pegasus"
+  type Creature — Pegasus
+  pt 1/1
+  color white
+  keywords flying
+}

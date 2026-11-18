@@ -1,0 +1,7 @@
+card "Symbiotic Elf" {
+  oracle_id cfaa0d5d-d9f1-4586-a7b1-6576a58c0f1e
+  cost {3}{G}
+  type Creature — Elf
+  pt 2/2
+  triggered when this dies: create 2 "1/1 green Insect creature"
+}

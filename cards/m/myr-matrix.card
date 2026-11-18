@@ -1,0 +1,8 @@
+card "Myr Matrix" {
+  oracle_id 46a07fdd-0ca3-4654-9caa-a88fae80c414
+  cost {5}
+  type Artifact
+  keywords indestructible
+  static Myr creature: +1/+1
+  activated {5}: create 1 "1/1 colorless Myr artifact creature"
+}

@@ -1,0 +1,8 @@
+card "Searchlight Companion" {
+  oracle_id 426569c7-d868-4af1-bc83-5b5200532d17
+  cost {3}
+  type Artifact Creature — Drone
+  pt 1/1
+  keywords flying
+  triggered when this enters: create 1 "1/1 colorless Spirit creature"
+}

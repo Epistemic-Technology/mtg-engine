@@ -1,0 +1,7 @@
+card "Nimble Thopterist" {
+  oracle_id 01813091-75e8-431b-ba3f-b1ea1ba20a3b
+  cost {3}{U}
+  type Creature — Vedalken Artificer
+  pt 3/2
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

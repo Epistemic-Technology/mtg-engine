@@ -1,0 +1,7 @@
+card "Tempest Angler" {
+  oracle_id 60ac490c-b489-4ad2-bcc2-3babaabf8ccb
+  cost {1}{U/R}{U/R}
+  type Creature — Otter Wizard
+  pt 2/2
+  triggered whenever you cast a noncreature spell: put 1 +1/+1 counters on this
+}

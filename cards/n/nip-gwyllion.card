@@ -1,0 +1,7 @@
+card "Nip Gwyllion" {
+  oracle_id cd53f7cf-e4da-4e93-8550-60556300b56c
+  cost {W/B}
+  type Creature — Hag
+  pt 1/1
+  keywords lifelink
+}

@@ -1,0 +1,7 @@
+card "Infestation Sage" {
+  oracle_id d398dca3-f3a5-44c9-998f-b4fce9e5c2bf
+  cost {B}
+  type Creature — Elf Warlock
+  pt 1/1
+  triggered when this dies: create 1 "1/1 black and green Insect creature with flying"
+}

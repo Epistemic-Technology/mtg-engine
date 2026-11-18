@@ -1,0 +1,7 @@
+card "Bear's Companion" {
+  oracle_id 930248b3-44e6-4c0b-bd7d-4b48323a7272
+  cost {2}{G}{U}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered when this enters: create 1 "4/4 green Bear creature"
+}

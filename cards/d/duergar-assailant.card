@@ -1,0 +1,7 @@
+card "Duergar Assailant" {
+  oracle_id 85b52f70-b583-4f04-a2ab-226d7291c03a
+  cost {R/W}
+  type Creature — Dwarf Soldier
+  pt 1/1
+  activated sacrifice this: deal 1 damage to target attacking or blocking creature
+}

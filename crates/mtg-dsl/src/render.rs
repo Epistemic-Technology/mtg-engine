@@ -850,6 +850,21 @@ fn token_description(name: &str, count: Num, ctx: &Ctx) -> String {
             plural(count, "token")
         );
     };
+    // Predefined tokens (CR 111.10: Treasure, Food, Clue, ...) are named,
+    // not described: "create a Treasure token".
+    if token.pt.is_none()
+        && !token.types.contains(&CardType::Creature)
+        && token.subtypes.len() == 1
+        && token.subtypes[0] == token.display_name.as_deref().unwrap_or(&token.name)
+        && token.keywords.is_empty()
+    {
+        let sub = &token.subtypes[0];
+        return format!(
+            "{} {sub} {}",
+            count_words(count, article(sub)),
+            plural(count, "token")
+        );
+    }
     let mut words: Vec<String> = Vec::new();
     let has_cda_pt = token.abilities.iter().any(|a| {
         matches!(a, Ability::Static { mods, .. } if mods.iter().any(|m| matches!(m, Mod::CdaPt { .. })))
@@ -1826,6 +1841,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
 // ---- abilities and cards ----
 
 /// The text of one ability, as Oracle prints it.
+#[allow(clippy::too_many_lines)] // one arm per ability kind
 pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
@@ -1840,6 +1856,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 })
                 .collect();
             format!("{{T}}: Add {}.", syms.join(" or "))
+        }
+        Ability::SacMana(m) => {
+            let what = match m {
+                Mana::Colorless => "{C}".to_string(),
+                Mana::Colored(c) => format!("{{{}}}", c.letter()),
+                Mana::Any => "one mana of any color".to_string(),
+            };
+            format!("{{T}}, Sacrifice this {}: Add {what}.", self_noun(card))
         }
         Ability::Enchant(t) => match t {
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),

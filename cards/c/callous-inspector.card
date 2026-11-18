@@ -1,0 +1,8 @@
+card "Callous Inspector" {
+  oracle_id 5d950fd4-8956-4b1a-ab0f-ab31bcffce4e
+  cost {B}
+  type Creature — Human Soldier
+  pt 1/1
+  keywords menace
+  triggered when this dies: deal 1 damage to you; create 1 "Clue"
+}

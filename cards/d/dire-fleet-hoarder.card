@@ -1,0 +1,7 @@
+card "Dire Fleet Hoarder" {
+  oracle_id 7d48ad95-d428-4e2d-b697-56907c3ce579
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 2/1
+  triggered when this dies: create 1 "Treasure"
+}

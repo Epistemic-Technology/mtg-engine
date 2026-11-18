@@ -1,0 +1,6 @@
+card "Contract Killing" {
+  oracle_id a7a0e473-77c1-4a85-b6d7-b0dfdadb696f
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; create 2 "Treasure"
+}

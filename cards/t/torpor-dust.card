@@ -1,0 +1,8 @@
+card "Torpor Dust" {
+  oracle_id da1ca3ec-8bef-4b7e-896e-4d50e8cffbe5
+  cost {2}{U/B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -3/-0
+}

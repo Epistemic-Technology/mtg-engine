@@ -1,0 +1,6 @@
+card "Goblin Rally" {
+  oracle_id 9ccb6ce8-ccb6-4809-a1cc-cebd38744815
+  cost {3}{R}{R}
+  type Sorcery
+  spell: create 4 "1/1 red Goblin creature"
+}

@@ -1,0 +1,8 @@
+card "Senate Griffin" {
+  oracle_id 7ddf9c12-8f75-481c-a218-d42f925c6503
+  cost {2}{W/U}{W/U}
+  type Creature — Griffin
+  pt 3/2
+  keywords flying
+  triggered when this enters: scry 1
+}

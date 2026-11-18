@@ -1,0 +1,7 @@
+card "Sewn-Eye Drake" {
+  oracle_id 994cf8bb-c900-448f-b055-ecc2ee6cf9e2
+  cost {2}{U/R}{B}
+  type Creature — Zombie Drake
+  pt 3/1
+  keywords flying, haste
+}

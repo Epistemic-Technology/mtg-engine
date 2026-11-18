@@ -1,0 +1,10 @@
+card "Skeletal Vampire" {
+  oracle_id 7ed8a69b-fba0-4d4d-98b2-311a92373669
+  cost {4}{B}{B}
+  type Creature — Vampire Skeleton
+  pt 3/3
+  keywords flying
+  triggered when this enters: create 2 "1/1 black Bat creature with flying"
+  activated {3}{B}{B}, sacrifice Bat: create 2 "1/1 black Bat creature with flying"
+  activated sacrifice Bat: regenerate this
+}

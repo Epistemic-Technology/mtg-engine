@@ -1,0 +1,7 @@
+card "Jungleborn Pioneer" {
+  oracle_id 60662463-6050-46c6-84ab-64e203b67b4d
+  cost {2}{G}
+  type Creature — Merfolk Scout
+  pt 2/2
+  triggered when this enters: create 1 "1/1 blue Merfolk creature with hexproof"
+}

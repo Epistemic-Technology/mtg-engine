@@ -1,0 +1,6 @@
+card "Inkling Summoning" {
+  oracle_id 999a9310-d145-4c1a-8518-9d96602ca672
+  cost {1}{W/B}{W/B}
+  type Sorcery — Lesson
+  spell: create 1 "2/1 white and black Inkling creature with flying"
+}

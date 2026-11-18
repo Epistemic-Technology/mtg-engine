@@ -1,0 +1,7 @@
+card "Blistercoil Weird" {
+  oracle_id bf9b24e1-60d4-4739-808a-535336e191c2
+  cost {U/R}
+  type Creature — Weird
+  pt 1/1
+  triggered whenever you cast an instant or sorcery spell: this gets +1/+1; untap this
+}

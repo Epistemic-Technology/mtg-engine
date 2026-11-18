@@ -1,0 +1,7 @@
+card "Ghirapur Gearcrafter" {
+  oracle_id 710dc9b1-7d32-4330-95a8-3e91a668202a
+  cost {2}{R}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

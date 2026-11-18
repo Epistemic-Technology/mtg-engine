@@ -1,0 +1,8 @@
+card "Guarded Heir" {
+  oracle_id 63e79a6f-ed98-480a-a740-d44e111046f7
+  cost {5}{W}
+  type Creature — Human Noble
+  pt 1/1
+  keywords lifelink
+  triggered when this enters: create 2 "3/3 white Knight creature"
+}

@@ -1,0 +1,8 @@
+card "Penumbra Spider" {
+  oracle_id 47678f44-b595-492e-af00-4e73f941e24e
+  cost {2}{G}{G}
+  type Creature — Spider
+  pt 2/4
+  keywords reach
+  triggered when this dies: create 1 "2/4 black Spider creature with reach"
+}

@@ -1,0 +1,6 @@
+card "Servo Exhibition" {
+  oracle_id 76a6ddc2-f894-4331-89a9-87ca16efd0c0
+  cost {1}{W}
+  type Sorcery
+  spell: create 2 "1/1 colorless Servo artifact creature"
+}

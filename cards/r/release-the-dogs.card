@@ -1,0 +1,6 @@
+card "Release the Dogs" {
+  oracle_id b97d21b4-d730-479f-872f-3e1645b66751
+  cost {3}{W}
+  type Sorcery
+  spell: create 4 "1/1 white Dog creature"
+}

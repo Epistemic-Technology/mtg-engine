@@ -1,0 +1,8 @@
+card "Prideful Parent" {
+  oracle_id a90d1d35-6d67-43b3-8256-b0318b3a4b07
+  cost {2}{W}
+  type Creature — Cat
+  pt 2/2
+  keywords vigilance
+  triggered when this enters: create 1 "1/1 white Cat creature"
+}

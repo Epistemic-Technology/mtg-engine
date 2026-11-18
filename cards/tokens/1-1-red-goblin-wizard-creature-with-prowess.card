@@ -1,0 +1,7 @@
+token "1/1 red Goblin Wizard creature with prowess" {
+  name "Goblin Wizard"
+  type Creature — Goblin Wizard
+  pt 1/1
+  color red
+  keywords prowess
+}

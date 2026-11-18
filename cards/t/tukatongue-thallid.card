@@ -1,0 +1,7 @@
+card "Tukatongue Thallid" {
+  oracle_id c7dbd008-e941-497e-8305-80c53b1dffe2
+  cost {G}
+  type Creature — Fungus
+  pt 1/1
+  triggered when this dies: create 1 "1/1 green Saproling creature"
+}

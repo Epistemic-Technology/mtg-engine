@@ -1,0 +1,7 @@
+token "1/1 white Monk creature with prowess" {
+  name "Monk"
+  type Creature — Monk
+  pt 1/1
+  color white
+  keywords prowess
+}

@@ -1,0 +1,6 @@
+token "0/1 colorless Pest artifact creature" {
+  name "Pest"
+  type Artifact Creature — Pest
+  pt 0/1
+  color
+}

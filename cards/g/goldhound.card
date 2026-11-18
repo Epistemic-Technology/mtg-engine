@@ -1,0 +1,8 @@
+card "Goldhound" {
+  oracle_id b5eb72bb-897f-4911-a797-3153c31df3e0
+  cost {R}
+  type Artifact Creature — Treasure Dog
+  pt 1/1
+  keywords first strike, menace
+  mana any, sacrifice this
+}

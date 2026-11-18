@@ -1,0 +1,6 @@
+card "Double Cleave" {
+  oracle_id d86f3d5e-838c-4787-9417-85a6997c3bde
+  cost {1}{R/W}
+  type Instant
+  spell: target creature gains double strike
+}

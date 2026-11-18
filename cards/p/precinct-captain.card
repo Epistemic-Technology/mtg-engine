@@ -1,0 +1,8 @@
+card "Precinct Captain" {
+  oracle_id 3c75234b-e367-46da-8454-be4315f9b9de
+  cost {W}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords first strike
+  triggered whenever this deals combat damage to a player: create 1 "1/1 white Soldier creature"
+}

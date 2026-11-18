@@ -1,0 +1,8 @@
+card "Flamekin Gildweaver" {
+  oracle_id bc8427fb-e5ee-4b44-9a4f-6d9f01b4b896
+  cost {3}{R}
+  type Creature — Elemental Sorcerer
+  pt 4/3
+  keywords trample
+  triggered when this enters: create 1 "Treasure"
+}

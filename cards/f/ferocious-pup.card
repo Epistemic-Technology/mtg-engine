@@ -1,0 +1,7 @@
+card "Ferocious Pup" {
+  oracle_id a1112750-8d38-49e0-ab1c-77110b2bbc4d
+  cost {2}{G}
+  type Creature — Wolf
+  pt 0/1
+  triggered when this enters: create 1 "2/2 green Wolf creature"
+}

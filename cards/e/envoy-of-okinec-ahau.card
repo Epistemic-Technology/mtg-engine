@@ -1,0 +1,7 @@
+card "Envoy of Okinec Ahau" {
+  oracle_id ebc70734-bf1a-4754-8094-bcbb4db91f30
+  cost {2}{W}
+  type Creature — Cat Advisor
+  pt 3/3
+  activated {4}{W}: create 1 "1/1 colorless Gnome artifact creature"
+}

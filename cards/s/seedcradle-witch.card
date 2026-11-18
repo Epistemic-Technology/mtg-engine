@@ -1,0 +1,7 @@
+card "Seedcradle Witch" {
+  oracle_id 278ea996-3094-4a76-b6e1-db1d002e5502
+  cost {G/W}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated {2}{G}{W}: target creature gets +3/+3; untap that creature
+}

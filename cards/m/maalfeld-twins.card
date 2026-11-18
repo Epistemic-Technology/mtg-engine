@@ -1,0 +1,7 @@
+card "Maalfeld Twins" {
+  oracle_id dda4b515-49c0-43fe-9f6a-36defa326bb1
+  cost {5}{B}
+  type Creature — Zombie
+  pt 4/4
+  triggered when this dies: create 2 "2/2 black Zombie creature"
+}

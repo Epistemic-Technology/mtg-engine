@@ -1,0 +1,6 @@
+card "Hordeling Outburst" {
+  oracle_id a6450b8e-eb18-431c-9eb7-7daf107978b2
+  cost {1}{R}{R}
+  type Sorcery
+  spell: create 3 "1/1 red Goblin creature"
+}

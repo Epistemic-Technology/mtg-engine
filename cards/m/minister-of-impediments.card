@@ -1,0 +1,7 @@
+card "Minister of Impediments" {
+  oracle_id 5a51a0ee-bc81-4c42-bb17-a41cea957d9a
+  cost {2}{W/U}
+  type Creature — Human Advisor
+  pt 1/1
+  activated {T}: tap target creature
+}

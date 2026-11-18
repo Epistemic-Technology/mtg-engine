@@ -1,0 +1,7 @@
+card "Penumbra Bobcat" {
+  oracle_id f0787397-8edb-4794-8ee1-22f97a057be8
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/1
+  triggered when this dies: create 1 "2/1 black Cat creature"
+}

@@ -1,0 +1,6 @@
+card "Flame Javelin" {
+  oracle_id 58363090-bf89-4174-bbb2-636afc1c7a06
+  cost {2/R}{2/R}{2/R}
+  type Instant
+  spell: deal 4 damage to any target
+}

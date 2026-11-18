@@ -1,0 +1,9 @@
+card "Retrofitter Foundry" {
+  oracle_id aaadfe41-b2be-4183-b45e-a70e53a59d2e
+  cost {1}
+  type Artifact
+  activated {3}: untap this
+  activated {2}, {T}: create 1 "1/1 colorless Servo artifact creature"
+  activated {1}, {T}, sacrifice Servo: create 1 "1/1 colorless Thopter artifact creature with flying"
+  activated {T}, sacrifice Thopter: create 1 "4/4 colorless Construct artifact creature"
+}

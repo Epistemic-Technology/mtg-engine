@@ -1,0 +1,6 @@
+card "Nature's Chant" {
+  oracle_id 46e4ace2-e8bf-4b72-81de-286215886a10
+  cost {1}{G/W}
+  type Instant
+  spell: destroy target artifact or enchantment
+}

@@ -1,0 +1,6 @@
+card "Goblin Offensive" {
+  oracle_id 25cb5c86-83cd-4a06-b0d1-a0f6fc9158a6
+  cost {X}{1}{R}{R}
+  type Sorcery
+  spell: create X "1/1 red Goblin creature"
+}

@@ -1,0 +1,7 @@
+card "Penumbra Kavu" {
+  oracle_id 0abcf934-2552-4885-bbe7-38d93ce0e642
+  cost {4}{G}
+  type Creature — Kavu
+  pt 3/3
+  triggered when this dies: create 1 "3/3 black Kavu creature"
+}

@@ -1,0 +1,7 @@
+token "5/5 black Demon creature with flying" {
+  name "Demon"
+  type Creature — Demon
+  pt 5/5
+  color black
+  keywords flying
+}

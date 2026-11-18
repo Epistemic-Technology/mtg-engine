@@ -1,0 +1,6 @@
+card "Daily Bugle Newspaper" {
+  oracle_id d2a3f735-9523-4ddd-96a9-b0a5ecd39284
+  cost {2}
+  type Artifact
+  activated {2}, {T}: draw 1 cards then discard 1 cards; create 1 "Treasure"
+}

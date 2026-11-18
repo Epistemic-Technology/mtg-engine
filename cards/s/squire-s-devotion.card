@@ -1,0 +1,8 @@
+card "Squire's Devotion" {
+  oracle_id 4770ad4a-a346-4108-8f61-a077155d4bd1
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has lifelink
+  triggered when this enters: create 1 "1/1 white Vampire creature with lifelink"
+}

@@ -1,0 +1,6 @@
+card "Ayula's Influence" {
+  oracle_id 25d955e3-2b98-4a75-bb51-6072000111be
+  cost {G}{G}{G}
+  type Enchantment
+  activated discard land card: create 1 "2/2 green Bear creature"
+}

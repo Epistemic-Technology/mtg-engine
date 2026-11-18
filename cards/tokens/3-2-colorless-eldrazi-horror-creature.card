@@ -1,0 +1,6 @@
+token "3/2 colorless Eldrazi Horror creature" {
+  name "Eldrazi Horror"
+  type Creature — Eldrazi Horror
+  pt 3/2
+  color
+}

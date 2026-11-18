@@ -1,0 +1,8 @@
+card "Jewel-Eyed Cobra" {
+  oracle_id bbfee53c-30a6-4ed0-beef-5c254be75fc5
+  cost {2}{G}
+  type Creature — Snake
+  pt 3/1
+  keywords deathtouch
+  triggered when this dies: create 1 "Treasure"
+}

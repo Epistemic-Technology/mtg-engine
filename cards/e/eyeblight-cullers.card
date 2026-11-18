@@ -1,0 +1,7 @@
+card "Eyeblight Cullers" {
+  oracle_id b7d69422-b90b-4149-8c6d-eef636d5c6f5
+  cost {4}{B}
+  type Creature — Elf Warrior
+  pt 3/3
+  triggered when this dies: create 3 "1/1 green Elf Warrior creature" then mill 3 cards
+}

@@ -1,0 +1,9 @@
+card "Muse's Encouragement" {
+  oracle_id 62421084-96e6-40dd-8d34-7c8c1091d4a4
+  cost {4}{U}
+  type Instant
+  spell {
+    create 1 "3/3 blue and red Elemental creature with flying"
+    surveil 2
+  }
+}

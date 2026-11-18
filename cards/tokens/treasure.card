@@ -1,0 +1,4 @@
+token "Treasure" {
+  type Artifact — Treasure
+  mana any, sacrifice this
+}

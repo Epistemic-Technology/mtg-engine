@@ -1,0 +1,7 @@
+card "Weirding Shaman" {
+  oracle_id ed8e0c38-64b1-48a5-9623-935d59ffaacc
+  cost {1}{B}
+  type Creature — Goblin Shaman
+  pt 2/1
+  activated {3}{B}, sacrifice Goblin: create 2 "1/1 black Goblin Rogue creature"
+}

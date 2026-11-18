@@ -1,0 +1,7 @@
+card "Pretending Poxbearers" {
+  oracle_id fefef024-3a05-4221-bb74-419ee08716e5
+  cost {1}{W/B}
+  type Creature — Human Citizen Ally
+  pt 2/1
+  triggered when this dies: create 1 "1/1 white Ally creature"
+}

@@ -1,0 +1,6 @@
+card "Midnight Haunting" {
+  oracle_id a79e21fc-89bd-4547-8bef-5510554e1431
+  cost {2}{W}
+  type Instant
+  spell: create 2 "1/1 white Spirit creature with flying"
+}

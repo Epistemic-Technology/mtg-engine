@@ -1,0 +1,8 @@
+card "Boros Guildmage" {
+  oracle_id 266c2f49-82eb-48e9-a7ea-e0da787fa40e
+  cost {R/W}{R/W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}{R}: target creature gains haste
+  activated {1}{W}: target creature gains first strike
+}

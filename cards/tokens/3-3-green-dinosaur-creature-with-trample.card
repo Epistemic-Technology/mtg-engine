@@ -1,0 +1,7 @@
+token "3/3 green Dinosaur creature with trample" {
+  name "Dinosaur"
+  type Creature — Dinosaur
+  pt 3/3
+  color green
+  keywords trample
+}

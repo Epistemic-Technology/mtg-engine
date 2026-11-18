@@ -1,0 +1,7 @@
+card "Third Path Iconoclast" {
+  oracle_id f7156897-2b02-4ecd-868d-d4d59244e9ed
+  cost {U}{R}
+  type Creature — Human Monk
+  pt 2/1
+  triggered whenever you cast a noncreature spell: create 1 "1/1 colorless Soldier artifact creature"
+}

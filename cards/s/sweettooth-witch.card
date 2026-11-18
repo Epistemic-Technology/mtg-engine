@@ -1,0 +1,8 @@
+card "Sweettooth Witch" {
+  oracle_id 635b854d-de71-4c85-9755-8c97bf3cba36
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 3/2
+  triggered when this enters: create 1 "Food"
+  activated {2}, sacrifice Food: target player loses 2 life
+}

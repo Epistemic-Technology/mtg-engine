@@ -1,0 +1,7 @@
+card "Mausoleum Guard" {
+  oracle_id 64f3af46-f8ab-4ba4-9dff-7412cefb4eea
+  cost {3}{W}
+  type Creature — Human Scout
+  pt 2/2
+  triggered when this dies: create 2 "1/1 white Spirit creature with flying"
+}

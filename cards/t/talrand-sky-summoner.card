@@ -1,0 +1,7 @@
+card "Talrand, Sky Summoner" {
+  oracle_id ea1eb902-a23c-44ff-9169-19baf71de238
+  cost {2}{U}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 2/2
+  triggered whenever you cast an instant or sorcery spell: create 1 "2/2 blue Drake creature with flying"
+}

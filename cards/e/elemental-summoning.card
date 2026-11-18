@@ -1,0 +1,6 @@
+card "Elemental Summoning" {
+  oracle_id f9e668f9-21af-4fd8-9a37-6505ab2234e3
+  cost {3}{U/R}{U/R}
+  type Sorcery — Lesson
+  spell: create 1 "4/4 blue and red Elemental creature"
+}

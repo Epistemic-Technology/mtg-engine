@@ -1,0 +1,7 @@
+card "Wily Goblin" {
+  oracle_id d27ffb4c-3a34-41aa-b464-6b897132c4ea
+  cost {R}{R}
+  type Creature — Goblin Pirate
+  pt 1/1
+  triggered when this enters: create 1 "Treasure"
+}

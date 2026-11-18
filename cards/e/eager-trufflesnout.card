@@ -1,0 +1,8 @@
+card "Eager Trufflesnout" {
+  oracle_id 7f2ba562-8d5e-4915-967e-54916c3c5876
+  cost {2}{G}
+  type Creature — Boar
+  pt 4/2
+  keywords trample
+  triggered whenever this deals combat damage to a player: create 1 "Food"
+}

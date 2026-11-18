@@ -1,0 +1,7 @@
+card "Elephant Ambush" {
+  oracle_id 09386931-59bd-481f-bccc-32e8a8abc0f9
+  cost {2}{G}{G}
+  type Instant
+  flashback {6}{G}{G}
+  spell: create 1 "3/3 green Elephant creature"
+}

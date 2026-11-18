@@ -1,0 +1,87 @@
+# M5 slice 1: hybrid, monocolored hybrid, and Phyrexian mana (CR 107.4e-f).
+
+scenario "hybrid: {R/W} is paid with white" {
+  battlefield A: "Plains"
+  hand A: "Boros Recruit"
+  turn 1 A: cast "Boros Recruit"
+  run_to turn 1 end
+  assert battlefield A contains "Boros Recruit"
+}
+
+scenario "hybrid: {R/W} is paid with red" {
+  battlefield A: "Mountain"
+  hand A: "Boros Recruit"
+  turn 1 A: cast "Boros Recruit"
+  run_to turn 1 end
+  assert battlefield A contains "Boros Recruit"
+}
+
+scenario "hybrid: {R/W} can't be paid with green" {
+  battlefield A: "Forest"
+  hand A: "Boros Recruit"
+  illegal turn 1 A: cast "Boros Recruit"
+  run_to turn 1 end
+  assert hand A contains "Boros Recruit"
+}
+
+scenario "Phyrexian: with no red, Gut Shot costs 2 life" {
+  battlefield B: "Grizzly Bears"
+  hand A: "Gut Shot"
+  turn 1 A: cast "Gut Shot" targeting player B
+  run_to turn 1 end
+  assert life A 18
+  assert life B 19
+}
+
+scenario "Phyrexian: with red available, Gut Shot is paid with mana" {
+  battlefield A: "Mountain"
+  hand A: "Gut Shot"
+  turn 1 A: cast "Gut Shot" targeting player B
+  run_to turn 1 end
+  assert life A 20
+  assert life B 19
+}
+
+scenario "Phyrexian: a player with 1 life can't pay 2 life" {
+  life A 1
+  hand A: "Gut Shot"
+  illegal turn 1 A: cast "Gut Shot" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "monocolored hybrid: {2/G}{2/U}{2/R} paid with six generic" {
+  battlefield A: 6 "Plains"
+  hand A: "Temur Tawnyback"
+  turn 1 A: cast "Temur Tawnyback"
+  run_to turn 1 end
+  assert battlefield A contains "Temur Tawnyback"
+}
+
+scenario "monocolored hybrid: {2/G}{2/U}{2/R} paid with G, U, and two generic" {
+  battlefield A: "Forest"
+  battlefield A: "Island"
+  battlefield A: 2 "Plains"
+  hand A: "Temur Tawnyback"
+  turn 1 A: cast "Temur Tawnyback"
+  run_to turn 1 end
+  assert battlefield A contains "Temur Tawnyback"
+}
+
+scenario "monocolored hybrid: five lands can't pay {2/G}{2/U}{2/R} without a color" {
+  battlefield A: 5 "Plains"
+  hand A: "Temur Tawnyback"
+  illegal turn 1 A: cast "Temur Tawnyback"
+  run_to turn 1 end
+  assert hand A contains "Temur Tawnyback"
+}
+
+scenario "Phyrexian: {4}{G/P}{G/P} with one Forest pays 2 life" {
+  battlefield A: 4 "Plains"
+  battlefield A: "Forest"
+  hand A: "Thundering Tanadon"
+  turn 1 A: cast "Thundering Tanadon"
+  run_to turn 1 end
+  assert battlefield A contains "Thundering Tanadon"
+  assert life A 18
+}

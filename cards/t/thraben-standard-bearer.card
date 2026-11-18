@@ -1,0 +1,7 @@
+card "Thraben Standard Bearer" {
+  oracle_id 679d5a1d-8da8-4142-924b-97b359f55309
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {1}{W}, {T}, discard 1 card: create 1 "1/1 white Human Soldier creature"
+}

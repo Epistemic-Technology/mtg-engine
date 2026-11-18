@@ -1,0 +1,7 @@
+card "Marisi's Twinclaws" {
+  oracle_id 1fa3839a-127e-4740-bd2e-97b18fdddedc
+  cost {2}{R/W}{G}
+  type Creature — Cat Warrior
+  pt 2/4
+  keywords double strike
+}

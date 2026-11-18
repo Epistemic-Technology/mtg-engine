@@ -1,0 +1,6 @@
+card "Violet Pall" {
+  oracle_id bf6ea336-6a4d-4653-acdd-f09af0b9f0e3
+  cost {4}{B}
+  type Kindred Instant — Faerie
+  spell: destroy target nonblack creature; create 1 "1/1 black Faerie Rogue creature with flying"
+}

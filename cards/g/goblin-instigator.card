@@ -1,0 +1,7 @@
+card "Goblin Instigator" {
+  oracle_id 8b022754-6d16-470e-b754-4df6e4f4709e
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  triggered when this enters: create 1 "1/1 red Goblin creature"
+}

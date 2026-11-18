@@ -1,0 +1,8 @@
+card "Mantle of the Wolf" {
+  oracle_id cd69b2c7-2be7-4915-9d17-4fd400ace6b8
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +4/+4
+  triggered when this dies: create 2 "2/2 green Wolf creature"
+}

@@ -1,0 +1,7 @@
+card "Porcelain Legionnaire" {
+  oracle_id 66442396-f804-47f3-8daa-0d43d8cfb482
+  cost {2}{W/P}
+  type Artifact Creature — Phyrexian Soldier
+  pt 3/1
+  keywords first strike
+}

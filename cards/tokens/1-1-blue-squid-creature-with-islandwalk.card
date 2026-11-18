@@ -1,0 +1,7 @@
+token "1/1 blue Squid creature with islandwalk" {
+  name "Squid"
+  type Creature — Squid
+  pt 1/1
+  color blue
+  keywords islandwalk
+}

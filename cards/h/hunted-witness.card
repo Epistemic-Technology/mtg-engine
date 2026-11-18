@@ -1,0 +1,7 @@
+card "Hunted Witness" {
+  oracle_id 1fde570c-aa96-45ca-a6be-f59c8e4f4b6a
+  cost {W}
+  type Creature — Human
+  pt 1/1
+  triggered when this dies: create 1 "1/1 white Soldier creature with lifelink"
+}

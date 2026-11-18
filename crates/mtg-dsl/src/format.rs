@@ -24,6 +24,9 @@ pub fn format(card: &Card) -> String {
         Kind::Emblem => "emblem",
     };
     let _ = writeln!(out, "{kind} \"{}\" {{", card.name);
+    if let Some(n) = &card.display_name {
+        let _ = writeln!(out, "  name {n:?}");
+    }
     if let Some(id) = &card.oracle_id {
         let _ = writeln!(out, "  oracle_id {id}");
     }
@@ -844,6 +847,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 })
                 .collect();
             let _ = writeln!(out, "{indent}mana {}", syms.join(" or "));
+        }
+        Ability::SacMana(m) => {
+            let sym = match m {
+                Mana::Colorless => "{C}".to_string(),
+                Mana::Colored(c) => format!("{{{}}}", c.letter()),
+                Mana::Any => "any".to_string(),
+            };
+            let _ = writeln!(out, "{indent}mana {sym}, sacrifice this");
         }
         Ability::Enchant(t) => {
             let phrase = match t {

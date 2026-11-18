@@ -1,0 +1,6 @@
+card "Shattering Blow" {
+  oracle_id dc9374df-134d-4d32-842e-991e2bfb2dc1
+  cost {1}{R/W}
+  type Instant
+  spell: exile target artifact
+}

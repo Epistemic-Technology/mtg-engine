@@ -1,0 +1,7 @@
+card "Riot Spikes" {
+  oracle_id 3df676fe-c4f8-41c0-9743-781090bdc547
+  cost {B/R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/-1
+}

@@ -1,0 +1,6 @@
+card "Advent of the Wurm" {
+  oracle_id eb62aa4b-c11b-4195-ae85-cff8f78ce17b
+  cost {1}{G}{G}{W}
+  type Instant
+  spell: create 1 "5/5 green Wurm creature with trample"
+}

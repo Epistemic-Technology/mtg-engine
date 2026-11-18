@@ -1,0 +1,9 @@
+card "Mouser Attack!" {
+  oracle_id bae5dc68-1fd1-428d-bee7-c238e07b21ea
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: create 1 "1/1 colorless Robot artifact creature"
+    mode: target creature gets +3/+0 and gains first strike
+  }
+}

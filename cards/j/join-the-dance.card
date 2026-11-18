@@ -1,0 +1,7 @@
+card "Join the Dance" {
+  oracle_id d8fc015c-7e6d-441d-bbeb-98ca74b21314
+  cost {G}{W}
+  type Sorcery
+  flashback {3}{G}{W}
+  spell: create 2 "1/1 white Human creature"
+}

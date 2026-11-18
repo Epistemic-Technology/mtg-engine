@@ -1,0 +1,7 @@
+card "Brazen Freebooter" {
+  oracle_id 13e8d063-eece-4f38-83f6-02403130defa
+  cost {3}{R}
+  type Creature — Human Pirate
+  pt 3/3
+  triggered when this enters: create 1 "Treasure"
+}

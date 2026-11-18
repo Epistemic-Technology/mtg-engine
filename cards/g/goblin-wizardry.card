@@ -1,0 +1,6 @@
+card "Goblin Wizardry" {
+  oracle_id f621dcaa-c500-4a17-a65a-60d9b5516a3b
+  cost {3}{R}
+  type Instant
+  spell: create 2 "1/1 red Goblin Wizard creature with prowess"
+}

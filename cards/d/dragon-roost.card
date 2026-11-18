@@ -1,0 +1,6 @@
+card "Dragon Roost" {
+  oracle_id 6dc98143-7c4c-4b75-9bbb-5226d800b1d6
+  cost {4}{R}{R}
+  type Enchantment
+  activated {5}{R}{R}: create 1 "5/5 red Dragon creature with flying"
+}

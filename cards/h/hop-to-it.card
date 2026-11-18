@@ -1,0 +1,6 @@
+card "Hop to It" {
+  oracle_id e8a9350a-07c1-47ed-8c4f-88e4b3b17545
+  cost {2}{W}
+  type Sorcery
+  spell: create 3 "1/1 white Rabbit creature"
+}

@@ -1,0 +1,8 @@
+card "Messenger Falcons" {
+  oracle_id 01fda82a-227d-4e3d-8481-a13c3812392a
+  cost {2}{G/U}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: draw 1 cards
+}

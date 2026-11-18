@@ -1,0 +1,8 @@
+card "Draconic Disciple" {
+  oracle_id 781cee5f-f9cb-42ed-b408-543d297bf96d
+  cost {1}{R}{G}
+  type Creature — Human Shaman
+  pt 2/2
+  mana any
+  activated {7}, {T}, sacrifice this: create 1 "5/5 red Dragon creature with flying"
+}

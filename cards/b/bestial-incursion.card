@@ -1,0 +1,7 @@
+card "Bestial Incursion" {
+  oracle_id bc00f29a-e9d2-4b86-bb22-33b686ac4365
+  cost {3}{G}
+  type Sorcery
+  flashback {5}{G}
+  spell: create 1 "4/4 green Beast creature with trample"
+}

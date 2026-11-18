@@ -1,0 +1,8 @@
+card "Jewel Thief" {
+  oracle_id 470f0bbf-a0c9-4216-96f0-d400dac17aef
+  cost {2}{G}
+  type Creature — Cat Rogue
+  pt 3/3
+  keywords vigilance, trample
+  triggered when this enters: create 1 "Treasure"
+}

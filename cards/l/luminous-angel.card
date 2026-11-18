@@ -1,0 +1,8 @@
+card "Luminous Angel" {
+  oracle_id 8d7cf56c-94fd-47d8-9e0f-cd3163688983
+  cost {4}{W}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered at beginning of your upkeep: you may create 1 "1/1 white Spirit creature with flying"
+}

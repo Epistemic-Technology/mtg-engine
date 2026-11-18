@@ -1,0 +1,6 @@
+card "Savor" {
+  oracle_id dfc1dc36-0cc2-47cc-b0dd-1cc7c31057aa
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -2/-2; create 1 "Food"
+}

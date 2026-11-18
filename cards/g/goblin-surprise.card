@@ -1,0 +1,9 @@
+card "Goblin Surprise" {
+  oracle_id 79cd09e8-d738-47c0-9473-b6281bec6935
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: each creature you control gets +2/+0
+    mode: create 2 "1/1 red Goblin creature"
+  }
+}

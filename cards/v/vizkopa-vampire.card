@@ -1,0 +1,7 @@
+card "Vizkopa Vampire" {
+  oracle_id fcedc288-5e27-45a2-a07b-06c7aa7a9230
+  cost {2}{W/B}
+  type Creature — Vampire
+  pt 3/1
+  keywords lifelink
+}

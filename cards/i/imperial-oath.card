@@ -1,0 +1,6 @@
+card "Imperial Oath" {
+  oracle_id 4a4a061d-bc4e-49da-8d20-90fcb571b025
+  cost {5}{W}
+  type Sorcery
+  spell: create 3 "2/2 white Samurai creature with vigilance"; scry 3
+}

@@ -21,14 +21,18 @@ card "Name" {
 
 `token "Name" { ... }` and `emblem "Name" { ... }` define the tokens and
 emblems that effects create (CR 111, 114). They have no `oracle_id` and are
-not gated.
+not gated. A token's block name is the key `create` uses; tokens the
+author generates are keyed by their description (`token "1/1 white Soldier
+creature with flying"`) and give their in-game name with a `name "Soldier"`
+line. A noncreature token whose one subtype is its name (Treasure, Food,
+Clue: CR 111.10) prints by name: "create a Treasure token".
 
 ## Header
 
 | Line | Meaning |
 |---|---|
 | `oracle_id 2b93787d-...` | The Scryfall `oracle_id` the card was authored against. Required for cards. |
-| `cost {1}{G}` | Mana cost. Omit for lands and tokens. |
+| `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, and Phyrexian `{R/P}` symbols are accepted (CR 107.4e–f); the engine pays them in a canonical order and pays 2 life for a Phyrexian symbol only when mana can't. |
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
@@ -44,6 +48,7 @@ not gated.
 | Line | Meaning |
 |---|---|
 | `mana {G}` / `mana {W} or {U}` / `mana any` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color". Basic land types grant theirs intrinsically. |
+| `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
 | `spell: <effects>` | What an instant or sorcery does on resolution. |

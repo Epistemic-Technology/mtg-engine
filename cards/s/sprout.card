@@ -1,0 +1,6 @@
+card "Sprout" {
+  oracle_id 424c6f5e-b386-47e9-b3fe-25b263097d40
+  cost {G}
+  type Instant
+  spell: create 1 "1/1 green Saproling creature"
+}

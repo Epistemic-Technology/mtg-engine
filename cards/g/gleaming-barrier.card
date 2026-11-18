@@ -1,0 +1,8 @@
+card "Gleaming Barrier" {
+  oracle_id 1eb9e401-8975-447b-839d-f7cd23897465
+  cost {2}
+  type Artifact Creature — Wall
+  pt 0/4
+  keywords defender
+  triggered when this dies: create 1 "Treasure"
+}

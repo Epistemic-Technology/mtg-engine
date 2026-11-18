@@ -1,0 +1,8 @@
+card "Priest of the Blood Rite" {
+  oracle_id 441cdd7d-6c4c-4a91-a118-7eaa35276660
+  cost {3}{B}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: create 1 "5/5 black Demon creature with flying"
+  triggered at beginning of your upkeep: you loses 2 life
+}

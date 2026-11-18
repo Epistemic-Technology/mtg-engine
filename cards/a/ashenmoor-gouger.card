@@ -1,0 +1,7 @@
+card "Ashenmoor Gouger" {
+  oracle_id eaedc09f-43b8-42db-a645-0ac3baf1de12
+  cost {B/R}{B/R}{B/R}
+  type Creature — Elemental Warrior
+  pt 4/4
+  keywords can't block
+}

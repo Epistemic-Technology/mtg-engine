@@ -1,0 +1,7 @@
+card "Prosperous Pirates" {
+  oracle_id 9dc6281b-08e0-4c66-9aef-abc7184ca36a
+  cost {4}{U}
+  type Creature — Human Pirate
+  pt 3/4
+  triggered when this enters: create 2 "Treasure"
+}

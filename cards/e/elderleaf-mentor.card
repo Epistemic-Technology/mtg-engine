@@ -1,0 +1,7 @@
+card "Elderleaf Mentor" {
+  oracle_id 3795fc31-2369-47d0-b9c9-120f44b8f114
+  cost {3}{G}
+  type Creature — Elf Warrior
+  pt 3/2
+  triggered when this enters: create 1 "1/1 green Elf Warrior creature"
+}

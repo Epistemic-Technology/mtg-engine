@@ -1,0 +1,60 @@
+# M5 slice 1: predefined tokens (CR 111.10), sacrifice-for-mana abilities,
+# and generated creature tokens.
+
+scenario "Treasure: Crack Open makes one, and it pays for a spell" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Lotus Petal"
+  hand A: "Crack Open", "Lightning Bolt"
+  turn 1 A: cast "Crack Open" targeting "Lotus Petal"
+  turn 1 main2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield A lacks "Treasure"
+  assert graveyard B contains "Lotus Petal"
+}
+
+scenario "Treasure: lands are tapped before a Treasure is sacrificed" {
+  battlefield A: "Mountain", "Treasure"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Lotus Petal: sacrificed for one mana of any color" {
+  battlefield A: "Lotus Petal"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert graveyard A contains "Lotus Petal"
+}
+
+scenario "Lotus Petal: can't pay for two mana" {
+  battlefield A: "Lotus Petal"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Lotus Petal"
+}
+
+scenario "Food: Bake into a Pie makes one; it gains 3 life" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Bake into a Pie"
+  turn 1 A: cast "Bake into a Pie" targeting "Grizzly Bears"
+  turn 1 main2 A: activate "Food"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 23
+  assert battlefield A lacks "Food"
+}
+
+scenario "generated token: Call of the Conclave makes a 3/3 Centaur" {
+  battlefield A: "Forest", "Plains"
+  hand A: "Call of the Conclave"
+  turn 1 A: cast "Call of the Conclave"
+  run_to turn 1 end
+  assert battlefield A contains "Centaur"
+}

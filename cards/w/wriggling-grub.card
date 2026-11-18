@@ -1,0 +1,7 @@
+card "Wriggling Grub" {
+  oracle_id d25e8f54-1915-4d0b-b4b1-93ee40da2cfa
+  cost {1}{B}
+  type Creature — Worm
+  pt 1/1
+  triggered when this dies: create 2 "1/1 black and green Worm creature"
+}

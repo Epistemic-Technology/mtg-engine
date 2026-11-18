@@ -1,0 +1,6 @@
+card "Improvised Weaponry" {
+  oracle_id fa5dad0b-8e23-4b88-b383-849f7318e01f
+  cost {2}{R}
+  type Sorcery
+  spell: deal 2 damage to any target; create 1 "Treasure"
+}

@@ -1,0 +1,6 @@
+card "Spectral Procession" {
+  oracle_id 376271a6-80f0-47a6-990a-5ec5517aae42
+  cost {2/W}{2/W}{2/W}
+  type Sorcery
+  spell: create 3 "1/1 white Spirit creature with flying"
+}

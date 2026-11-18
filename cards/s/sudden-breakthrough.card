@@ -1,0 +1,9 @@
+card "Sudden Breakthrough" {
+  oracle_id f5576cd4-6b21-4b29-902c-9c1fbdd7b2be
+  cost {1}{R}
+  type Instant
+  spell {
+    target creature gets +2/+0 and gains first strike
+    create 1 "Treasure"
+  }
+}

@@ -1,0 +1,7 @@
+card "Sliver Queen" {
+  oracle_id b8376cca-ea96-478a-8e98-c4482031300a
+  cost {W}{U}{B}{R}{G}
+  type Legendary Creature — Sliver
+  pt 7/7
+  activated {2}: create 1 "1/1 colorless Sliver creature"
+}

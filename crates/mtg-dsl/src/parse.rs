@@ -436,6 +436,7 @@ impl P {
         let mut card = Card {
             kind,
             name,
+            display_name: None,
             oracle_id: None,
             cost: ManaCost::default(),
             color_indicator: None,
@@ -475,6 +476,11 @@ impl P {
     fn card_statement(&mut self, card: &mut Card) -> R<()> {
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
+            "name" => {
+                self.pos += 1;
+                card.display_name = Some(self.string()?);
+                self.end_stmt()
+            }
             "oracle_id" => {
                 self.pos += 1;
                 card.oracle_id = Some(self.word()?);
@@ -715,6 +721,17 @@ impl P {
                     if !(self.eat_word("or") || self.eat_word("and")) {
                         break;
                     }
+                }
+                if self.peek() == Some(&Tok::Comma) {
+                    self.next();
+                    self.expect_word("sacrifice")?;
+                    self.expect_word("this")?;
+                    let [one] = out.as_slice() else {
+                        return self.fail("a sacrifice mana ability makes one kind of mana");
+                    };
+                    let one = *one;
+                    self.end_stmt()?;
+                    return Ok(Ability::SacMana(one));
                 }
                 self.end_stmt()?;
                 Ok(Ability::Mana(out))

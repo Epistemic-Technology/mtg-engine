@@ -43,7 +43,9 @@ const KEYWORDS: [&str; 20] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 11] = [
+const TEMPLATED_TAGS: [&str; 13] = [
+    "Treasure",
+    "Food",
     "Kicker",
     "Flashback",
     "Landwalk",
@@ -105,6 +107,44 @@ pub struct Authored {
     pub name: String,
     pub slug: String,
     pub text: String,
+    /// Token definitions the card creates that the corpus lacks, as
+    /// (slug, file text), for `cards/tokens/`.
+    pub tokens: Vec<(String, String)>,
+}
+
+/// "Create two 1/1 white Soldier creature tokens with flying": the count,
+/// then the key the generated token is filed under (the description
+/// without the count and "token").
+const TOKEN_PHRASE: &str = r"^[Cc]reate (\S+) ((?:\d+/\d+) (?:colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) (?:[A-Z][a-z]+ )+(?:artifact )?creature) tokens?((?: with [a-z ,]+)?)$";
+
+/// The token block for a key from `TOKEN_PHRASE` ("1/1 white Soldier
+/// creature"), or `None` if the key doesn't describe one.
+fn token_block(key: &str) -> Option<String> {
+    let re = Regex::new(
+        r"^(\d+)/(\d+) (colorless|(?:white|blue|black|red|green)(?: and (?:white|blue|black|red|green))?) ((?:[A-Z][a-z]+ )+)(artifact )?creature(?: with ([a-z ,]+))?$",
+    )
+    .unwrap();
+    let c = re.captures(key)?;
+    let subtypes = cap(&c, 4).trim();
+    let color = match cap(&c, 3) {
+        "colorless" => String::new(),
+        cs => format!(" {}", cs.replace(" and ", " ")),
+    };
+    let types = if cap(&c, 5).is_empty() {
+        "Creature"
+    } else {
+        "Artifact Creature"
+    };
+    let keywords = if cap(&c, 6).is_empty() {
+        String::new()
+    } else {
+        format!("  keywords {}\n", keyword_list(cap(&c, 6))?)
+    };
+    Some(format!(
+        "token \"{key}\" {{\n  name \"{subtypes}\"\n  type {types} — {subtypes}\n  pt {}/{}\n  color{color}\n{keywords}}}\n",
+        cap(&c, 1),
+        cap(&c, 2)
+    ))
 }
 
 #[derive(Debug, Default)]
@@ -435,6 +475,15 @@ impl Templates {
             }),
             (r(r"^Draw (\S+) cards?$"), |c, _| {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
+            }),
+            (
+                r(r"^[Cc]reate (\S+) (Treasure|Food|Clue) tokens?$"),
+                |c, _| Some(format!("create {} \"{}\"", number(cap(c, 1))?, cap(c, 2))),
+            ),
+            (r(TOKEN_PHRASE), |c, _| {
+                let key = format!("{}{}", cap(c, 2), cap(c, 3));
+                token_block(&key)?;
+                Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
             (r(r"^Mill (\S+) cards?$"), |c, _| {
                 Some(format!("mill {} cards", number(cap(c, 1))?))
@@ -838,6 +887,12 @@ impl Builder<'_> {
                 .push(format!("flashback {}, pay {} life", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
+        if line == "{T}, Sacrifice this artifact: Add one mana of any color."
+            || line == "{T}, Sacrifice this creature: Add one mana of any color."
+        {
+            self.statements.push("mana any, sacrifice this".to_string());
+            return Ok(());
+        }
         if line == "{T}: Add one mana of any color." {
             self.statements.push("mana any".to_string());
             return Ok(());
@@ -1061,12 +1116,21 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             return Err(Skip::Keyword(k.clone()));
         }
     }
-    let odd_symbol = Regex::new(r"\{[^}]*[/PSE][^}]*\}").unwrap();
-    if odd_symbol.is_match(s.mana_cost.as_deref().unwrap_or(""))
-        || odd_symbol.is_match(s.oracle_text.as_deref().unwrap_or(""))
-    {
+    // Hybrid and Phyrexian symbols the engine parses are fine; snow,
+    // energy, and the rarer hybrids ({W/U/P}, {C/W}) are not.
+    let symbol = Regex::new(r"\{([^}]*)\}").unwrap();
+    let odd = |text: &str| {
+        symbol.captures_iter(text).any(|c| {
+            let inner = &c[1];
+            inner == "S"
+                || inner == "E"
+                || (inner.contains('/')
+                    && mtg_core::mana::ManaCost::parse(&format!("{{{inner}}}")).is_err())
+        })
+    };
+    if odd(s.mana_cost.as_deref().unwrap_or("")) || odd(s.oracle_text.as_deref().unwrap_or("")) {
         return Err(Skip::Keyword(
-            "hybrid, Phyrexian, snow, or energy symbol".to_string(),
+            "snow, energy, or unusual hybrid symbol".to_string(),
         ));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
@@ -1158,14 +1222,33 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         }
     }
     text.push_str("}\n");
+    // Tokens it creates that the corpus lacks are generated from their key.
+    let created = Regex::new(r#"create \S+ "([^"]+)""#).unwrap();
+    let mut tokens = Vec::new();
+    let mut token_cards = Vec::new();
+    for c in created.captures_iter(&text) {
+        let key = &c[1];
+        if corpus.iter().any(|t| t.name == key) || tokens.iter().any(|(k, _)| k == key) {
+            continue;
+        }
+        let block =
+            token_block(key).ok_or_else(|| Skip::Sentence(format!("unknown token {key}")))?;
+        token_cards.extend(
+            mtg_dsl::parse(&block).map_err(|e| Skip::Sentence(format!("token parse: {e}")))?,
+        );
+        tokens.push((key.to_string(), block));
+    }
     // Verify: parse, render, compare.
     let mut cards = mtg_dsl::parse(&text).map_err(|e| Skip::Sentence(format!("parse: {e}")))?;
     let card = cards.remove(0);
     if card.kind != Kind::Card {
         return Err(Skip::Layout("not a card".to_string()));
     }
-    let by_name: std::collections::HashMap<&str, &Card> =
-        corpus.iter().map(|c| (c.name.as_str(), c)).collect();
+    let by_name: std::collections::HashMap<&str, &Card> = corpus
+        .iter()
+        .chain(token_cards.iter())
+        .map(|c| (c.name.as_str(), c))
+        .collect();
     let lookup: &dyn Lookup = &by_name;
     let rendered = render::normalize(&render::oracle_text(&card, lookup));
     let expected = render::normalize(s.oracle_text.as_deref().unwrap_or(""));
@@ -1180,5 +1263,9 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         name: s.name.clone(),
         slug: mtg_dsl::slug(&s.name),
         text,
+        tokens: tokens
+            .into_iter()
+            .map(|(k, b)| (mtg_dsl::slug(&k), b))
+            .collect(),
     })
 }

@@ -25,6 +25,10 @@ pub enum Kind {
 pub struct Card {
     pub kind: Kind,
     pub name: String,
+    /// A token's in-game name when its block name is a key that tells
+    /// apart tokens of the same name (`token "1/1 white Soldier creature"
+    /// { name "Soldier" ... }`).
+    pub display_name: Option<String>,
     /// Scryfall `oracle_id` the card was authored against.
     pub oracle_id: Option<String>,
     pub cost: ManaCost,
@@ -173,6 +177,9 @@ pub enum Ability {
     Keyword(Keyword),
     /// "{T}: Add {W} or {U}." One entry per choice.
     Mana(Vec<Mana>),
+    /// "{T}, Sacrifice this artifact: Add one mana of any color."
+    /// (`mana any, sacrifice this`).
+    SacMana(Mana),
     Enchant(Target),
     Spell {
         targets: Vec<Target>,

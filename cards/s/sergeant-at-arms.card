@@ -1,0 +1,8 @@
+card "Sergeant-at-Arms" {
+  oracle_id 2ea95e03-b95d-4ccf-afc6-1a26ac6cf354
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  kicker {2}{W}
+  triggered when this enters if kicked: create 2 "1/1 white Soldier creature"
+}

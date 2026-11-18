@@ -1,0 +1,7 @@
+card "Rubble Slinger" {
+  oracle_id 4de340bf-eab6-4066-896d-7084a9c13c2d
+  cost {2}{R/G}
+  type Creature — Human Warrior
+  pt 2/3
+  keywords reach
+}

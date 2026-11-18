@@ -1,0 +1,8 @@
+card "Faerie Formation" {
+  oracle_id 0366c2f6-6e78-4526-808c-fa7bace6006e
+  cost {4}{U}
+  type Creature — Faerie
+  pt 5/4
+  keywords flying
+  activated {3}{U}: create 1 "1/1 blue Faerie creature with flying"; draw 1 cards
+}

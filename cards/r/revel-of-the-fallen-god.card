@@ -1,0 +1,6 @@
+card "Revel of the Fallen God" {
+  oracle_id 5d46b8dd-2a4a-4d9f-b4c6-2b45f05081c2
+  cost {3}{R}{R}{G}{G}
+  type Sorcery
+  spell: create 4 "2/2 red and green Satyr creature with haste"
+}

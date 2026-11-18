@@ -1,0 +1,8 @@
+card "Whisper Agent" {
+  oracle_id 2ed76a99-fe5c-4d68-b572-a30848055c8a
+  cost {1}{U/B}{U/B}
+  type Creature — Human Rogue
+  pt 3/2
+  keywords flash
+  triggered when this enters: surveil 1
+}

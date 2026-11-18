@@ -1,0 +1,7 @@
+card "Common Crook" {
+  oracle_id ebcbfdba-34c7-40eb-91a9-d306ff5ae8b9
+  cost {1}{B}
+  type Creature — Human Rogue Villain
+  pt 2/2
+  triggered when this dies: create 1 "Treasure"
+}

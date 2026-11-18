@@ -1,0 +1,7 @@
+card "Vault Skirge" {
+  oracle_id 64cf5d59-7bcd-4b0b-a160-c8468d4c0f60
+  cost {1}{B/P}
+  type Artifact Creature — Phyrexian Imp
+  pt 1/1
+  keywords flying, lifelink
+}

@@ -1,0 +1,7 @@
+card "Beetleback Chief" {
+  oracle_id f5c5f64c-6911-430c-a825-b32b96d39c7d
+  cost {2}{R}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered when this enters: create 2 "1/1 red Goblin creature"
+}

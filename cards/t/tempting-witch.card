@@ -1,0 +1,8 @@
+card "Tempting Witch" {
+  oracle_id 82284fe4-ecb3-4b27-bb03-27290ad15b17
+  cost {2}{B}
+  type Creature — Human Warlock
+  pt 1/3
+  triggered when this enters: create 1 "Food"
+  activated {2}, {T}, sacrifice Food: target player loses 3 life
+}

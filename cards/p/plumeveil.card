@@ -1,0 +1,7 @@
+card "Plumeveil" {
+  oracle_id 14fa0771-cf2b-4563-98b2-ff4ee24bce21
+  cost {W/U}{W/U}{W/U}
+  type Creature — Elemental
+  pt 4/4
+  keywords flash, defender, flying
+}

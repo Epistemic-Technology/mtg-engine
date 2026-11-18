@@ -1,0 +1,6 @@
+card "Grand Crescendo" {
+  oracle_id dc600c06-8239-409e-b53d-20f813a3f5e7
+  cost {X}{W}{W}
+  type Instant
+  spell: create X "1/1 green and white Citizen creature"; each creature you control gains indestructible
+}

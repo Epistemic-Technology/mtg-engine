@@ -1,0 +1,6 @@
+card "Pirate's Prize" {
+  oracle_id 6de8bdc0-9b2a-4105-bbac-d5a2f73f52dc
+  cost {3}{U}
+  type Sorcery
+  spell: draw 2 cards; create 1 "Treasure"
+}

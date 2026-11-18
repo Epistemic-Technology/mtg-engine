@@ -1,0 +1,8 @@
+card "Penumbra Wurm" {
+  oracle_id abccb19f-098b-4453-b7bc-838ad5914ebe
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 6/6
+  keywords trample
+  triggered when this dies: create 1 "6/6 black Wurm creature with trample"
+}

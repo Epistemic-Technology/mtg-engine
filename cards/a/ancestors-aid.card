@@ -1,0 +1,9 @@
+card "Ancestors' Aid" {
+  oracle_id a95a0b13-d50f-41cf-8668-de60d445e7b0
+  cost {1}{R}
+  type Instant
+  spell {
+    target creature gets +2/+0 and gains first strike
+    create 1 "Treasure"
+  }
+}

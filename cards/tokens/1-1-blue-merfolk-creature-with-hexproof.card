@@ -1,0 +1,7 @@
+token "1/1 blue Merfolk creature with hexproof" {
+  name "Merfolk"
+  type Creature — Merfolk
+  pt 1/1
+  color blue
+  keywords hexproof
+}

@@ -1,0 +1,6 @@
+card "Collector's Vault" {
+  oracle_id f460ff80-8175-43f7-9810-540cf3817085
+  cost {2}
+  type Artifact
+  activated {2}, {T}: draw 1 cards then discard 1 cards; create 1 "Treasure"
+}

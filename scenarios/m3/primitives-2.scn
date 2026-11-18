@@ -190,3 +190,22 @@ scenario "vampire hounds: a land is not a creature card" {
   assert life B 18
   assert hand A contains "Forest"
 }
+
+scenario "flashback: the additional discard cost still applies from the graveyard" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Laughing Mad"
+  illegal turn 1 A: cast "Laughing Mad" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Laughing Mad"
+}
+
+scenario "flashback: with a card to discard, Laughing Mad is cast from the graveyard" {
+  battlefield A: 4 "Mountain"
+  graveyard A: "Laughing Mad"
+  hand A: "Grizzly Bears"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Laughing Mad" from graveyard
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+}

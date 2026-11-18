@@ -1,0 +1,4 @@
+token "Food" {
+  type Artifact — Food
+  activated {2}, {T}, sacrifice this: you gains 3 life
+}

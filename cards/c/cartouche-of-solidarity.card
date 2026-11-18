@@ -1,0 +1,8 @@
+card "Cartouche of Solidarity" {
+  oracle_id b9176173-c4a1-45ae-8f34-bd6b31c141fe
+  cost {W}
+  type Enchantment — Aura Cartouche
+  enchant creature you control
+  triggered when this enters: create 1 "1/1 white Warrior creature with vigilance"
+  static enchanted: +1/+1, has first strike
+}

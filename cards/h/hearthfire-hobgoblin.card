@@ -1,0 +1,7 @@
+card "Hearthfire Hobgoblin" {
+  oracle_id bc940eda-efa8-4227-9b56-0c6fbf1398d2
+  cost {R/W}{R/W}{R/W}
+  type Creature — Goblin Soldier
+  pt 2/2
+  keywords double strike
+}

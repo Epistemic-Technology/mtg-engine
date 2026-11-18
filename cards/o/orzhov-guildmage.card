@@ -1,0 +1,8 @@
+card "Orzhov Guildmage" {
+  oracle_id 877bfa3f-6e30-4cb3-831e-d56849b01334
+  cost {W/B}{W/B}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {2}{W}: target player gains 1 life
+  activated {2}{B}: each player loses 1 life
+}

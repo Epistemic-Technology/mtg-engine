@@ -1,0 +1,8 @@
+card "Twin-Silk Spider" {
+  oracle_id a2193302-402a-4cf0-8014-5facecad647b
+  cost {2}{G}
+  type Creature — Spider
+  pt 1/2
+  keywords reach
+  triggered when this enters: create 1 "1/2 green Spider creature with reach"
+}

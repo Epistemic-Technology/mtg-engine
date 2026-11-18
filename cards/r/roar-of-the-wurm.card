@@ -1,0 +1,7 @@
+card "Roar of the Wurm" {
+  oracle_id b8b9e6fd-b3ed-4fbc-8753-74018fa33caa
+  cost {6}{G}
+  type Sorcery
+  flashback {3}{G}
+  spell: create 1 "6/6 green Wurm creature"
+}

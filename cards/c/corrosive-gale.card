@@ -1,0 +1,6 @@
+card "Corrosive Gale" {
+  oracle_id 6143073f-4110-4a37-bc0c-89fbda2fc839
+  cost {X}{G/P}
+  type Sorcery
+  spell: deal X damage to each creature with flying
+}

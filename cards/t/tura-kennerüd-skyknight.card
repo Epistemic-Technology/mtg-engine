@@ -1,0 +1,8 @@
+card "Tura Kennerüd, Skyknight" {
+  oracle_id 4cb3a303-9ded-46d5-90e7-1cc1c65a75da
+  cost {2}{W}{U}{U}
+  type Legendary Creature — Human Knight
+  pt 3/3
+  keywords flying
+  triggered whenever you cast an instant or sorcery spell: create 1 "1/1 white Soldier creature"
+}

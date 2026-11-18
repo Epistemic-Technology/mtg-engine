@@ -1,0 +1,7 @@
+card "Beskir Shieldmate" {
+  oracle_id a1090a50-2347-48d0-bb67-379accb8e02d
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered when this dies: create 1 "1/1 white Human Warrior creature"
+}

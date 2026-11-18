@@ -1,0 +1,6 @@
+card "Arrows of Justice" {
+  oracle_id 46e311ef-c86e-4aad-8b42-ef0d68a90c2e
+  cost {2}{R/W}
+  type Instant
+  spell: deal 4 damage to target attacking or blocking creature
+}

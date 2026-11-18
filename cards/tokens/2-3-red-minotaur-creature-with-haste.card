@@ -1,0 +1,7 @@
+token "2/3 red Minotaur creature with haste" {
+  name "Minotaur"
+  type Creature — Minotaur
+  pt 2/3
+  color red
+  keywords haste
+}

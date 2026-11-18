@@ -1,0 +1,8 @@
+card "Valorous Steed" {
+  oracle_id 4b5f30a6-b0fb-4dcb-85d5-1db1bba73737
+  cost {4}{W}
+  type Creature — Unicorn
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: create 1 "2/2 white Knight creature with vigilance"
+}

@@ -1,0 +1,7 @@
+card "Oracle of Nectars" {
+  oracle_id f7ea8725-db0e-4ce5-ac77-7dfc2a4e9286
+  cost {2}{G/W}
+  type Creature — Elf Cleric
+  pt 2/2
+  activated {X}, {T}: you gains X life
+}

@@ -1,0 +1,6 @@
+card "Old Ghastbark" {
+  oracle_id a5207cb5-7519-4802-85c5-ac8c4313693e
+  cost {3}{G/W}{G/W}
+  type Creature — Treefolk Warrior
+  pt 3/6
+}

@@ -1,0 +1,6 @@
+token "1/1 white Kithkin Soldier creature" {
+  name "Kithkin Soldier"
+  type Creature — Kithkin Soldier
+  pt 1/1
+  color white
+}

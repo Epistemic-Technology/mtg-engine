@@ -1,0 +1,7 @@
+card "Dragon Trainer" {
+  oracle_id 328a0691-9453-4f2d-a9c3-5c69da252d20
+  cost {3}{R}{R}
+  type Creature — Human
+  pt 1/1
+  triggered when this enters: create 1 "4/4 red Dragon creature with flying"
+}

@@ -1,0 +1,7 @@
+card "Gallant Citizen" {
+  oracle_id 2fcb1c1c-6157-4955-b899-e8a8b337d188
+  cost {G/W}{G/W}
+  type Creature — Human Citizen
+  pt 1/1
+  triggered when this enters: draw 1 cards
+}

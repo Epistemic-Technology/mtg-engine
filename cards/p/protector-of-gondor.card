@@ -1,0 +1,7 @@
+card "Protector of Gondor" {
+  oracle_id cf6bb391-4fde-43c4-a0c5-990630d0ddcf
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered when this enters: create 1 "1/1 white Human Soldier creature"
+}

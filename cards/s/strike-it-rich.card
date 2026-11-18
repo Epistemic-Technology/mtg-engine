@@ -1,0 +1,7 @@
+card "Strike It Rich" {
+  oracle_id c34c17c7-3827-49a2-be25-67f44fdfe150
+  cost {R}
+  type Sorcery
+  flashback {2}{R}
+  spell: create 1 "Treasure"
+}

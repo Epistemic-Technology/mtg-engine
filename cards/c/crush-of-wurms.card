@@ -1,0 +1,7 @@
+card "Crush of Wurms" {
+  oracle_id 6c12cd05-b673-453c-9f6b-f3aa022467c1
+  cost {6}{G}{G}{G}
+  type Sorcery
+  flashback {9}{G}{G}{G}
+  spell: create 3 "6/6 green Wurm creature"
+}

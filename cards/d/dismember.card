@@ -1,0 +1,6 @@
+card "Dismember" {
+  oracle_id fd74f8eb-0253-42dd-8277-186d4934da38
+  cost {1}{B/P}{B/P}
+  type Instant
+  spell: target creature gets -5/-5
+}

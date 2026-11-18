@@ -1,0 +1,8 @@
+card "Fierce Witchstalker" {
+  oracle_id ad69f48e-c387-4376-a04f-37d3992c7946
+  cost {2}{G}{G}
+  type Creature — Wolf
+  pt 4/4
+  keywords trample
+  triggered when this enters: create 1 "Food"
+}

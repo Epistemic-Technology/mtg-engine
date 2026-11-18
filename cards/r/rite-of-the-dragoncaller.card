@@ -1,0 +1,6 @@
+card "Rite of the Dragoncaller" {
+  oracle_id 5097f4e6-50af-4641-909f-db44abf0ce32
+  cost {4}{R}{R}
+  type Enchantment
+  triggered whenever you cast an instant or sorcery spell: create 1 "5/5 red Dragon creature with flying"
+}

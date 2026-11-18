@@ -1,0 +1,7 @@
+card "Goblin Gang Leader" {
+  oracle_id 79d99305-b3dd-4687-af69-bf4b28704aae
+  cost {2}{R}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered when this enters: create 2 "1/1 red Goblin creature"
+}

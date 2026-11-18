@@ -1,0 +1,7 @@
+card "The Underworld Cookbook" {
+  oracle_id 37d5c720-d090-44bc-91df-0a7bab79a03e
+  cost {1}
+  type Artifact — Book
+  activated {T}, discard 1 card: create 1 "Food"
+  activated {4}, {T}, sacrifice this: return target creature card from your graveyard to hand
+}

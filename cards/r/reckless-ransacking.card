@@ -1,0 +1,6 @@
+card "Reckless Ransacking" {
+  oracle_id ebcd198e-7fbd-46e0-a6d9-ff499e541978
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+2; create 1 "Treasure"
+}

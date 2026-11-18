@@ -1,0 +1,6 @@
+token "1/1 colorless Phyrexian Myr artifact creature" {
+  name "Phyrexian Myr"
+  type Artifact Creature — Phyrexian Myr
+  pt 1/1
+  color
+}

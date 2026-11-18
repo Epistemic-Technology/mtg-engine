@@ -1,0 +1,8 @@
+card "Selesnya Guildmage" {
+  oracle_id 8fbdca3a-7aa3-4b5a-98d7-9168856045ac
+  cost {G/W}{G/W}
+  type Creature — Elf Wizard
+  pt 2/2
+  activated {3}{G}: create 1 "1/1 green Saproling creature"
+  activated {3}{W}: each creature you control gets +1/+1
+}

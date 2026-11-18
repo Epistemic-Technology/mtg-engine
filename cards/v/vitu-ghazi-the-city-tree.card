@@ -1,0 +1,6 @@
+card "Vitu-Ghazi, the City-Tree" {
+  oracle_id 88fb9e82-28b9-4275-a1e2-cb3a9bfda127
+  type Land
+  mana {C}
+  activated {2}{G}{W}, {T}: create 1 "1/1 green Saproling creature"
+}

@@ -1,0 +1,7 @@
+card "Slippery Bogle" {
+  oracle_id f64878c1-1fba-44f7-a24f-d24bef2e03ae
+  cost {G/U}
+  type Creature — Beast
+  pt 1/1
+  keywords hexproof
+}

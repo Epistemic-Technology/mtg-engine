@@ -1,0 +1,6 @@
+card "Call the Cavalry" {
+  oracle_id 855b168b-e514-4a43-8bbe-7f1df40031ae
+  cost {3}{W}
+  type Sorcery
+  spell: create 2 "2/2 white Knight creature with vigilance"
+}

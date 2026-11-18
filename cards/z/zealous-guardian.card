@@ -1,0 +1,7 @@
+card "Zealous Guardian" {
+  oracle_id 508fdfb1-87d6-4342-a05a-01158f253896
+  cost {W/U}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  keywords flash
+}

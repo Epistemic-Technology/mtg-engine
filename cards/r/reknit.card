@@ -1,0 +1,6 @@
+card "Reknit" {
+  oracle_id 963e36de-b803-417f-8166-4d328d358203
+  cost {1}{G/W}
+  type Instant
+  spell: regenerate target permanent
+}

@@ -1,0 +1,6 @@
+card "Goblin Scouts" {
+  oracle_id 87b55d99-badc-45e3-8364-173a400c4d7e
+  cost {3}{R}{R}
+  type Sorcery
+  spell: create 3 "1/1 red Goblin Scout creature with mountainwalk"
+}

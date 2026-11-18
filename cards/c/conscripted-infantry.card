@@ -1,0 +1,7 @@
+card "Conscripted Infantry" {
+  oracle_id cf0f3aee-78b6-4a98-8e09-8861b73c2e74
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 3/1
+  triggered when this dies: create 1 "1/1 colorless Soldier artifact creature"
+}

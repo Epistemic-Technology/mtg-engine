@@ -1,0 +1,8 @@
+card "Drider" {
+  oracle_id 1db76752-31ed-4a16-986a-d0852ba7d812
+  cost {4}{B}
+  type Creature — Elf Spider
+  pt 4/3
+  keywords reach
+  triggered whenever this deals combat damage to a player: create 1 "2/1 black Spider creature with reach and menace"
+}

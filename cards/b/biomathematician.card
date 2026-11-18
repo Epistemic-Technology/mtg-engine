@@ -1,0 +1,7 @@
+card "Biomathematician" {
+  oracle_id 70868667-a843-4954-863f-990854188c53
+  cost {1}{G}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: create 1 "0/0 green and blue Fractal creature"; put 1 +1/+1 counters on each Fractal you control
+}

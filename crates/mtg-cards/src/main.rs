@@ -420,6 +420,13 @@ fn run() -> Result<ExitCode> {
                     }
                     std::fs::write(&path, &a.text)?;
                     written += 1;
+                    for (slug, block) in &a.tokens {
+                        let path = dir.join("tokens").join(format!("{slug}.card"));
+                        if !path.exists() {
+                            std::fs::write(&path, block)?;
+                            written += 1;
+                        }
+                    }
                 }
                 println!("wrote {written} files to {}", dir.display());
             }

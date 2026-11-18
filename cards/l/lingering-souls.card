@@ -1,0 +1,7 @@
+card "Lingering Souls" {
+  oracle_id 0b8c3337-04dd-4798-8203-6d8b8cfb936b
+  cost {2}{W}
+  type Sorcery
+  flashback {1}{B}
+  spell: create 2 "1/1 white Spirit creature with flying"
+}

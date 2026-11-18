@@ -33,8 +33,13 @@ impl GameState {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
-                        && payment_plan_from(&sources, &pool, &ab.cost.mana.requirements(0))
-                            .is_some()
+                        && payment_plan_from(
+                            &sources,
+                            &pool,
+                            &ab.cost.mana.requirements(0),
+                            ps.life,
+                        )
+                        .is_some()
                     {
                         options.push(Choice::Activate {
                             source: *id,
@@ -55,21 +60,11 @@ impl GameState {
             if !(instant_speed || sorcery_timing) {
                 continue;
             }
-            if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0)).is_none() {
-                continue;
-            }
-            // Additional costs must be payable (CR 601.2h): enough life
-            // (CR 119.4), another card to discard, something to sacrifice.
-            let add = &def.additional;
-            if add.life > 0 && ps.life < i32::try_from(add.life).unwrap_or(i32::MAX) {
-                continue;
-            }
-            if add.discard > 0 && ps.hand.len() <= add.discard as usize {
-                continue;
-            }
-            if let Some(SacCost::Filter(f)) = &add.sacrifice
-                && self.sacrifice_candidates(p, f, *id).is_empty()
+            if payment_plan_from(&sources, &pool, &def.mana_cost.requirements(0), ps.life).is_none()
             {
+                continue;
+            }
+            if !self.additional_payable(p, &def.additional, *id) {
                 continue;
             }
             // A modal spell needs some mode to have its targets (CR 601.2b).
@@ -95,10 +90,13 @@ impl GameState {
                 if !(instant_speed || sorcery_timing) {
                     continue;
                 }
-                if payment_plan_from(&sources, &pool, &fb.mana.requirements(0)).is_none() {
+                if payment_plan_from(&sources, &pool, &fb.mana.requirements(0), ps.life).is_none() {
                     continue;
                 }
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
+                    continue;
+                }
+                if !self.additional_payable(p, &def.additional, *id) {
                     continue;
                 }
                 let targets_ok = match def.modes() {
@@ -119,6 +117,30 @@ impl GameState {
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
     /// with this filter ("discard a creature card").
+    /// Whether `p` can pay a spell's additional costs (CR 601.2h): enough
+    /// life (CR 119.4), other cards to discard, something to sacrifice.
+    /// The spell's own card is never one of them, wherever it is cast from.
+    fn additional_payable(&self, p: PlayerId, add: &Cost, spell: ObjId) -> bool {
+        let ps = self.player(p);
+        if add.life > 0 && ps.life < i32::try_from(add.life).unwrap_or(i32::MAX) {
+            return false;
+        }
+        if add.discard > 0
+            && self
+                .discard_candidates(p, add.discard_filter.as_ref(), spell)
+                .len()
+                < add.discard as usize
+        {
+            return false;
+        }
+        if let Some(SacCost::Filter(f)) = &add.sacrifice
+            && self.sacrifice_candidates(p, f, spell).is_empty()
+        {
+            return false;
+        }
+        true
+    }
+
     pub(super) fn discard_candidates(
         &self,
         p: PlayerId,
@@ -197,6 +219,7 @@ impl GameState {
             return;
         }
         let pool = self.player(p).mana_pool;
+        let life = self.player(p).life;
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
             if !self.flags_of(o).has_activated() {
@@ -224,9 +247,9 @@ impl GameState {
                 // A source tapped as a cost cannot also tap for mana.
                 let payable = if ab.cost.tap {
                     let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
-                    payment_plan_from(&rest, &pool, &ab.cost.mana.requirements(0)).is_some()
+                    payment_plan_from(&rest, &pool, &ab.cost.mana.requirements(0), life).is_some()
                 } else {
-                    payment_plan_from(sources, &pool, &ab.cost.mana.requirements(0)).is_some()
+                    payment_plan_from(sources, &pool, &ab.cost.mana.requirements(0), life).is_some()
                 };
                 if !payable {
                     continue;
@@ -367,7 +390,13 @@ impl GameState {
         let pool = self.player(caster).mana_pool;
         (0..=MAX_X)
             .take_while(|x| {
-                payment_plan_from(&sources, &pool, &self.spell_requirements(spell, *x)).is_some()
+                payment_plan_from(
+                    &sources,
+                    &pool,
+                    &self.spell_requirements(spell, *x),
+                    self.player(caster).life,
+                )
+                .is_some()
             })
             .map(Choice::X)
             .collect()
@@ -513,6 +542,7 @@ impl GameState {
         // abilities such as Mishra's Factory) are listed last so that the
         // canonical payment plan taps plain lands first.
         let mut later = Sources::new();
+        let mut any_sacrificed = false;
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
             if o.tapped {
@@ -537,18 +567,57 @@ impl GameState {
                 }
             }
             for a in &c.abilities {
-                if let AbilityDef::TapForMana(m) = self.pool.ability(*a) {
-                    list.push((id, *m));
+                match self.pool.ability(*a) {
+                    AbilityDef::TapForMana(m) => list.push((id, *m)),
+                    // Sources that sacrifice themselves go after the rest.
+                    AbilityDef::SacForMana(_) => any_sacrificed = true,
+                    _ => {}
                 }
             }
         }
         out.extend(later);
+        if any_sacrificed {
+            for id in self.permanents_of(p) {
+                let o = &self.objects[id];
+                if o.tapped {
+                    continue;
+                }
+                let Some(c) = self.characteristics(id) else {
+                    continue;
+                };
+                if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
+                    continue;
+                }
+                for a in &c.abilities {
+                    if let AbilityDef::SacForMana(m) = self.pool.ability(*a) {
+                        out.push((id, *m));
+                    }
+                }
+            }
+        }
         out
+    }
+
+    /// Whether `id` makes mana by sacrificing itself (and has no plain
+    /// `{T}` mana ability the plan could have used instead). Read from the
+    /// printed definition: no effect grants a sacrifice mana ability.
+    fn sacrifices_for_mana(&self, id: ObjId) -> bool {
+        let def = self.pool.get(self.objects[id].def);
+        let mut sac = false;
+        for a in &def.ability_ids {
+            match self.pool.ability(*a) {
+                AbilityDef::TapForMana(_) => return false,
+                AbilityDef::SacForMana(_) => sac = true,
+                _ => {}
+            }
+        }
+        sac
     }
 
     /// A canonical payment plan for `p`; see `payment_plan_from`.
     pub(super) fn payment_plan(&self, p: PlayerId, req: &ManaRequirement) -> Option<Sources> {
-        payment_plan_from(&self.mana_sources(p), &self.player(p).mana_pool, req)
+        let ps = self.player(p);
+        payment_plan_from(&self.mana_sources(p), &ps.mana_pool, req, ps.life)
     }
 
     /// CR 601.2g–h: activate mana abilities per the plan, then pay from the
@@ -591,18 +660,25 @@ impl GameState {
     }
 
     pub(super) fn pay(&mut self, p: PlayerId, req: &ManaRequirement) {
-        let plan = self
-            .payment_plan(p, req)
+        let ps = self.player(p);
+        let (plan, req, life) = resolve_payment(&self.mana_sources(p), &ps.mana_pool, req, ps.life)
             .expect("cast was offered only when payable");
         for (id, mana) in plan {
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
+            if self.sacrifices_for_mana(id) {
+                self.sacrifice(id);
+            }
         }
         let pool = self.player(p).mana_pool;
         let left = pool
-            .payment_plan(req)
+            .payment_plan(&req)
             .expect("pool covers the cost after activating mana abilities");
         self.player_mut(p).mana_pool = left;
+        // CR 107.4f: Phyrexian symbols the mana could not cover cost 2 life.
+        if life > 0 {
+            self.change_life(p, -i32::try_from(life).unwrap_or(i32::MAX));
+        }
         self.bump();
     }
 
@@ -1529,6 +1605,39 @@ pub(super) struct EffectCtx {
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
 
 fn payment_plan_from(
+    sources: &[(ObjId, Mana)],
+    pool: &crate::mana::ManaPool,
+    req: &ManaRequirement,
+    life: i32,
+) -> Option<Sources> {
+    if req.is_plain() {
+        return plain_payment_plan(sources, pool, req);
+    }
+    resolve_payment(sources, pool, req, life).map(|(plan, _, _)| plan)
+}
+
+/// The first expansion of `req` (hybrid and Phyrexian symbols resolved,
+/// see `ManaRequirement::expansions`) that `sources` and `pool` can pay
+/// with life to spare (CR 119.4): the plan, the plain requirement, and the
+/// life to pay.
+pub(super) fn resolve_payment(
+    sources: &[(ObjId, Mana)],
+    pool: &crate::mana::ManaPool,
+    req: &ManaRequirement,
+    life: i32,
+) -> Option<(Sources, ManaRequirement, u32)> {
+    if req.is_plain() {
+        return plain_payment_plan(sources, pool, req).map(|p| (p, *req, 0));
+    }
+    req.expansions().into_iter().find_map(|(r, l)| {
+        if i64::from(l) > i64::from(life) {
+            return None;
+        }
+        plain_payment_plan(sources, pool, &r).map(|p| (p, r, l))
+    })
+}
+
+fn plain_payment_plan(
     sources: &[(ObjId, Mana)],
     pool: &crate::mana::ManaPool,
     req: &ManaRequirement,

@@ -1,0 +1,6 @@
+card "Spectral Reserves" {
+  oracle_id 628e5c1d-c7f9-4a98-98fb-13d7d5f81f64
+  cost {3}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Spirit creature with flying"; you gains 2 life
+}

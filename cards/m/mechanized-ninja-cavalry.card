@@ -1,0 +1,7 @@
+card "Mechanized Ninja Cavalry" {
+  oracle_id 2db8dda3-8136-4cf2-ba2d-ecc344a36725
+  cost {1}{R/W}
+  type Artifact Creature — Robot Ninja
+  pt 1/1
+  triggered when this enters: create 1 "1/1 colorless Robot artifact creature"
+}

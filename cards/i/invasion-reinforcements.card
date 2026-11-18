@@ -1,0 +1,8 @@
+card "Invasion Reinforcements" {
+  oracle_id 185316ff-6fb7-4b5c-8a60-3238674562a6
+  cost {1}{W}
+  type Creature — Human Warrior Ally
+  pt 1/1
+  keywords flash
+  triggered when this enters: create 1 "1/1 white Ally creature"
+}

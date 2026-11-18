@@ -1,0 +1,8 @@
+card "Conclave Guildmage" {
+  oracle_id 9d0eb1f4-08ef-4ac9-902b-47335ab46984
+  cost {G}{W}
+  type Creature — Elf Cleric
+  pt 2/2
+  activated {G}, {T}: each creature you control gains trample
+  activated {5}{W}, {T}: create 1 "2/2 green and white Elf Knight creature with vigilance"
+}

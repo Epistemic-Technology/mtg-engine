@@ -1,0 +1,6 @@
+token "1/1 colorless Servo artifact creature" {
+  name "Servo"
+  type Artifact Creature — Servo
+  pt 1/1
+  color
+}

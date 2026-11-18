@@ -1,0 +1,8 @@
+card "Rakka Mar" {
+  oracle_id 6d92f14b-470b-40bc-b294-f725d46f307e
+  cost {2}{R}{R}
+  type Legendary Creature — Human Shaman
+  pt 2/2
+  keywords haste
+  activated {R}, {T}: create 1 "3/1 red Elemental creature with haste"
+}

@@ -1,0 +1,7 @@
+card "Pith Driller" {
+  oracle_id 62d293a6-4fad-4aaa-af87-62d705e243ca
+  cost {4}{B/P}
+  type Artifact Creature — Phyrexian Horror
+  pt 2/4
+  triggered when this enters: put 1 -1/-1 counters on target creature
+}

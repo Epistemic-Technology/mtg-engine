@@ -1,0 +1,9 @@
+card "Mishra's Onslaught" {
+  oracle_id 3684edb5-bbf1-4ed7-b5b7-f24b452dbd64
+  cost {3}{R}
+  type Instant
+  choose one {
+    mode: create 2 "1/1 colorless Soldier artifact creature"
+    mode: each creature you control gets +2/+0
+  }
+}

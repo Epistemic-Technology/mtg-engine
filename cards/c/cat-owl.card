@@ -1,0 +1,8 @@
+card "Cat-Owl" {
+  oracle_id ba6840a6-b6fd-4b91-ac1a-a61b7b15849a
+  cost {3}{W/U}
+  type Creature — Cat Bird
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: untap target artifact or creature
+}

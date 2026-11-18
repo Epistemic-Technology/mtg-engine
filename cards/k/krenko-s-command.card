@@ -1,0 +1,6 @@
+card "Krenko's Command" {
+  oracle_id 9cfe86ae-eebe-44aa-a956-4b3e9e621105
+  cost {1}{R}
+  type Sorcery
+  spell: create 2 "1/1 red Goblin creature"
+}

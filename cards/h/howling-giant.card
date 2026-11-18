@@ -1,0 +1,8 @@
+card "Howling Giant" {
+  oracle_id c616242a-95f0-4cd8-99a1-9237cfea0e57
+  cost {5}{G}{G}
+  type Creature — Giant Druid
+  pt 5/5
+  keywords reach
+  triggered when this enters: create 2 "2/2 green Wolf creature"
+}

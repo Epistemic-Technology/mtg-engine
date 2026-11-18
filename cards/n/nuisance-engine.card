@@ -1,0 +1,6 @@
+card "Nuisance Engine" {
+  oracle_id 288afdb9-708d-4a52-991a-e1b07f62ee99
+  cost {3}
+  type Artifact
+  activated {2}, {T}: create 1 "0/1 colorless Pest artifact creature"
+}

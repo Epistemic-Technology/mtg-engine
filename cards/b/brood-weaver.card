@@ -1,0 +1,8 @@
+card "Brood Weaver" {
+  oracle_id f0a7ef59-7897-4e84-a85e-1fcbe3dc9f6a
+  cost {3}{G}
+  type Creature — Spider
+  pt 2/4
+  keywords reach
+  triggered when this dies: create 1 "1/2 green Spider creature with reach"
+}

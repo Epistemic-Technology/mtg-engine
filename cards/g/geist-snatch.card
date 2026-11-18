@@ -1,0 +1,6 @@
+card "Geist Snatch" {
+  oracle_id b5fcfcf5-8af5-4395-b989-427fa92e0dd2
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target creature spell; create 1 "1/1 blue Spirit creature with flying"
+}

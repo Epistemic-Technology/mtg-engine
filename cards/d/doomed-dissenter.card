@@ -1,0 +1,7 @@
+card "Doomed Dissenter" {
+  oracle_id 11cb509d-21af-48f1-b355-135ebd3e4bd1
+  cost {1}{B}
+  type Creature — Human
+  pt 1/1
+  triggered when this dies: create 1 "2/2 black Zombie creature"
+}

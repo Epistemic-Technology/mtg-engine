@@ -1525,7 +1525,7 @@ once the MCP server records reasoning.
 
 ### 9.5 Public benchmark site (`mtg-bench`, working name)
 
-Intent recorded 2026-11-17; not yet scheduled (see M6 in §11). A public
+Intent recorded 2026-11-17; not yet scheduled (see M7 in §11). A public
 website modelled on chessbench.org and chessbench.ai: a leaderboard of
 language models ranked by how well they play Magic on this engine, with
 every rated game available as a replay. It fills the gap named in §2:
@@ -2099,12 +2099,40 @@ it).
   complete game via MCP; that game is opened in the review UI and
   stepped through from a recorded `GameRecord`.
 
-**M5: Coverage and hardening (ongoing)**
+**M5: Coverage and hardening**
 - Pauper to ≥ 95% supported; Standard snapshot; modal and multi-face
   cards; remaining CR 702 keywords; IS-MCTS baseline agent; published
   benchmark harness.
+- Accept (added 2026-11-17): ≥ 95% of Pauper-legal cards supported
+  through the gate; multi-face cards (adventure, transform, split, and
+  the rest Pauper uses) in the grammar and the engine; the IS-MCTS agent
+  beats the greedy agent over a fixed matchup set; the benchmark harness
+  published. After M5, Pauper coverage is maintenance per new set.
 
-**M6: Public benchmark site (after M4; not scheduled)**
+Status 2026-11-18, slice 1 (mana symbols and tokens) done: hybrid
+(`{R/G}`), monocolored hybrid (`{2/W}`), and Phyrexian (`{R/P}`) symbols
+in costs; the payment planner tries each way to pay them in a canonical
+order and pays 2 life for a Phyrexian symbol only when mana can't cover
+it (the player's choice of life over mana is not yet offered). Treasure,
+Food, and Clue tokens; `mana any, sacrifice this` mana abilities
+(Treasure, Lotus Petal), tapped after every other source; and generated
+creature tokens: the author files "create two 1/1 white Soldier creature
+tokens with flying" under a key naming the description, writes the
+token's block (`name "Soldier"` gives its in-game name) to
+`cards/tokens/`, and the printer names predefined tokens ("a Treasure
+token"). Fuzzing the new cards found flashback casts offered without
+their additional costs (Laughing Mad with an empty hand), fixed. Corpus
+4,458 cards: 3,170 Pauper (29.6%), 3,391 Modern (15.6%); 839
+scenarios pass (1 skipped); fuzz 0 panics, 0 unfinished; throughput
+within 2% of M4.
+
+**M6: Arena parity (after M5)**
+- Support the cards available on MTG Arena (Standard, Alchemy-free
+  Historic and Timeless pools as Scryfall lists them), so any Arena deck
+  can be played. The size of that pool and the share already supported
+  are measured at the start of M6, and the accept line set from them.
+
+**M7: Public benchmark site (after M4; not scheduled)**
 - `mtg-bench` (§9.5): LLM harness with cost and token logging, the
   puzzle track, rated games against the agent ladder, rating pipeline,
   leaderboard, and public read-only replays.
@@ -2150,7 +2178,7 @@ it).
 11. **Benchmark rating method.** How many mirrored pairs give a stable
    Elo given Magic's variance, and whether model-vs-model games are
    affordable or the ladder of built-in agents has to carry the rating.
-   Needs the cost-per-game measurement from the M6 prototype.
+   Needs the cost-per-game measurement from the M7 prototype.
 12. **Benchmark auto-pass policy.** Which priority passes are taken
    without asking the model. Too few and games cost too much; too many
    and the benchmark makes decisions the model should have made (holding

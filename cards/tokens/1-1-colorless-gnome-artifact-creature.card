@@ -1,0 +1,6 @@
+token "1/1 colorless Gnome artifact creature" {
+  name "Gnome"
+  type Artifact Creature — Gnome
+  pt 1/1
+  color
+}

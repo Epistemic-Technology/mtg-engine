@@ -1,0 +1,7 @@
+card "Filigree Crawler" {
+  oracle_id f74095aa-232f-432e-a899-86e9463ab5be
+  cost {4}
+  type Artifact Creature — Insect
+  pt 2/2
+  triggered when this dies: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

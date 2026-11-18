@@ -1,0 +1,6 @@
+card "Sworn Companions" {
+  oracle_id d1a9fd14-fecb-4d2a-983c-70143238275b
+  cost {2}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Soldier creature with lifelink"
+}

@@ -1,0 +1,7 @@
+card "Pond Prophet" {
+  oracle_id 6eabebdf-c1a3-4789-a67f-859f0957c5df
+  cost {G/U}{G/U}
+  type Creature — Frog Advisor
+  pt 1/1
+  triggered when this enters: draw 1 cards
+}

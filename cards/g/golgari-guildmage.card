@@ -1,0 +1,8 @@
+card "Golgari Guildmage" {
+  oracle_id 46dad873-11f5-4269-8ec2-f126419fbd7d
+  cost {B/G}{B/G}
+  type Creature — Elf Shaman
+  pt 2/2
+  activated {4}{B}, sacrifice creature: return target creature card from your graveyard to hand
+  activated {4}{G}: put 1 +1/+1 counters on target creature
+}

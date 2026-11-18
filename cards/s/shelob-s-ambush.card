@@ -1,0 +1,6 @@
+card "Shelob's Ambush" {
+  oracle_id c2816923-9daf-4277-adf7-20427d14ba4a
+  cost {B}
+  type Instant
+  spell: target creature gets +1/+2 and gains deathtouch; create 1 "Food"
+}

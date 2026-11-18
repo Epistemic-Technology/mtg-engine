@@ -1,0 +1,6 @@
+card "Queen's Commission" {
+  oracle_id 5e4c02c2-2e54-4e8d-8d94-6b2454027e7e
+  cost {2}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Vampire creature with lifelink"
+}

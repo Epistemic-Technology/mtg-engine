@@ -1,0 +1,6 @@
+token "3/3 black Kavu creature" {
+  name "Kavu"
+  type Creature — Kavu
+  pt 3/3
+  color black
+}

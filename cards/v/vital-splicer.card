@@ -1,0 +1,8 @@
+card "Vital Splicer" {
+  oracle_id e1899133-635d-46ff-b90d-6f8d46a1ffe1
+  cost {3}{G}
+  type Creature — Phyrexian Human Artificer
+  pt 1/1
+  triggered when this enters: create 1 "3/3 colorless Phyrexian Golem artifact creature"
+  activated {1}: regenerate target Golem you control
+}

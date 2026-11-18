@@ -1,0 +1,9 @@
+card "Cunning Maneuver" {
+  oracle_id 96335212-ec57-4beb-bab1-11c8eaa62119
+  cost {1}{R}
+  type Instant
+  spell {
+    target creature gets +3/+1
+    create 1 "Clue"
+  }
+}

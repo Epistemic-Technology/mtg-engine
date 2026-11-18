@@ -1,0 +1,7 @@
+card "Wistful Selkie" {
+  oracle_id 4503d0fb-842d-49f1-9769-8509ff0f2ce1
+  cost {G/U}{G/U}{G/U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered when this enters: draw 1 cards
+}

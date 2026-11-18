@@ -1,0 +1,6 @@
+card "Unmake" {
+  oracle_id c551ba63-2a74-439d-8996-d566e2efbd5f
+  cost {W/B}{W/B}{W/B}
+  type Instant
+  spell: exile target creature
+}

@@ -1,0 +1,6 @@
+token "0/0 green and blue Fractal creature" {
+  name "Fractal"
+  type Creature — Fractal
+  pt 0/0
+  color green blue
+}

@@ -1,0 +1,6 @@
+card "Golgari Longlegs" {
+  oracle_id f1534fbf-eab6-4f12-8037-e71d6861b636
+  cost {3}{B/G}{B/G}
+  type Creature — Insect
+  pt 5/4
+}

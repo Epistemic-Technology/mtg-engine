@@ -1,0 +1,7 @@
+card "Brindle Shoat" {
+  oracle_id d385c2e1-a62e-43ad-80ef-a6178deac82c
+  cost {1}{G}
+  type Creature — Boar
+  pt 1/1
+  triggered when this dies: create 1 "3/3 green Boar creature"
+}

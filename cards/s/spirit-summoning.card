@@ -1,0 +1,6 @@
+card "Spirit Summoning" {
+  oracle_id a4825093-ea29-47d9-b52c-1c7735f1909e
+  cost {1}{R/W}{R/W}
+  type Sorcery — Lesson
+  spell: create 1 "3/2 red and white Spirit creature"
+}

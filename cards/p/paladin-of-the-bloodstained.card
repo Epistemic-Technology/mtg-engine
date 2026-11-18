@@ -1,0 +1,7 @@
+card "Paladin of the Bloodstained" {
+  oracle_id f340018d-8b68-45d5-a72e-a922be68365d
+  cost {3}{W}
+  type Creature — Vampire Knight
+  pt 3/2
+  triggered when this enters: create 1 "1/1 white Vampire creature with lifelink"
+}

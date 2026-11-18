@@ -1,0 +1,6 @@
+card "Scar" {
+  oracle_id 4eafe158-abff-43e9-aeae-596430c5ce21
+  cost {B/R}
+  type Instant
+  spell: put 1 -1/-1 counters on target creature
+}

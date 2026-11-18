@@ -1,0 +1,7 @@
+token "6/6 black Wurm creature with trample" {
+  name "Wurm"
+  type Creature — Wurm
+  pt 6/6
+  color black
+  keywords trample
+}

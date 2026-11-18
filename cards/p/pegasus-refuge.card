@@ -1,0 +1,6 @@
+card "Pegasus Refuge" {
+  oracle_id 07462467-e4a3-409e-bcef-9cc92ca4c299
+  cost {3}{W}
+  type Enchantment
+  activated {2}, discard 1 card: create 1 "1/1 white Pegasus creature with flying"
+}

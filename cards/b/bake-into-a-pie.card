@@ -1,0 +1,6 @@
+card "Bake into a Pie" {
+  oracle_id 1b9ec782-0ba1-41f1-bc39-d3302494ecb3
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target creature; create 1 "Food"
+}

@@ -65,6 +65,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
             Kind::Card
         },
         name: def.name.clone(),
+        display_name: None,
         oracle_id: None,
         cost: def.mana_cost.clone(),
         color_indicator: def.color_indicator.map(colors),
@@ -441,6 +442,7 @@ impl Decompiler<'_> {
     fn ability(&self, a: &AbilityDef) -> Ability {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
+            AbilityDef::SacForMana(m) => Ability::SacMana(*m),
             AbilityDef::Enchant(t) => Ability::Enchant(self.target(*t)),
             AbilityDef::Spell { targets, effects } => Ability::Spell {
                 targets: targets.iter().map(|t| self.target(*t)).collect(),

@@ -1,0 +1,7 @@
+card "Icatian Crier" {
+  oracle_id 668312dd-7b6e-46bf-9c6a-bfb03dd75b8f
+  cost {2}{W}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {1}{W}, {T}, discard 1 card: create 2 "1/1 white Citizen creature"
+}

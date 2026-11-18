@@ -1,0 +1,7 @@
+card "Forecasting Fortune Teller" {
+  oracle_id a5a05edd-2a30-414b-b766-f0651d5783f5
+  cost {1}{U}
+  type Creature — Human Advisor Ally
+  pt 1/3
+  triggered when this enters: create 1 "Clue"
+}

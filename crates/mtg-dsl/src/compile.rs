@@ -67,7 +67,17 @@ pub fn add_card(
         groups: Vec::new(),
     };
     let def = c.card()?;
-    Ok(pool.add(def))
+    // A token known by a key keeps its plain name off whatever definition
+    // already had it.
+    let prev = card.display_name.as_deref().and_then(|n| pool.lookup(n));
+    let r = pool.add(def);
+    if let Some(display) = &card.display_name {
+        pool.alias(&card.name, r);
+        if let Some(prev) = prev {
+            pool.alias(display, prev);
+        }
+    }
+    Ok(r)
 }
 
 struct Compiler<'a> {
@@ -96,12 +106,15 @@ impl Compiler<'_> {
                 Ability::Keyword(k) => Some(*k),
                 _ => None,
             }));
-        let mut b = Builder::new(&card.name, &card.cost.to_string())
-            .supertypes(card.supertypes.iter().copied())
-            .types(card.types.iter().copied())
-            .subtypes(&card.subtypes.iter().map(String::as_str).collect::<Vec<_>>())
-            .keywords(keywords)
-            .text(&render::oracle_text(card, self.lookup));
+        let mut b = Builder::new(
+            card.display_name.as_deref().unwrap_or(&card.name),
+            &card.cost.to_string(),
+        )
+        .supertypes(card.supertypes.iter().copied())
+        .types(card.types.iter().copied())
+        .subtypes(&card.subtypes.iter().map(String::as_str).collect::<Vec<_>>())
+        .keywords(keywords)
+        .text(&render::oracle_text(card, self.lookup));
         if let Some((p, t)) = card.pt {
             b = b.pt(p, t);
         }
@@ -567,6 +580,7 @@ impl Compiler<'_> {
                     _ => return self.err("a `mana` line with several choices must be split"),
                 }
             }
+            Ability::SacMana(m) => AbilityDef::SacForMana(*m),
             Ability::Enchant(t) => AbilityDef::Enchant(self.target(t)),
             Ability::Spell { targets, effects } => AbilityDef::Spell {
                 targets: self.targets(targets),

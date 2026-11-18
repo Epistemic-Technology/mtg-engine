@@ -1,0 +1,7 @@
+token "2/2 blue Elemental creature with flying" {
+  name "Elemental"
+  type Creature — Elemental
+  pt 2/2
+  color blue
+  keywords flying
+}

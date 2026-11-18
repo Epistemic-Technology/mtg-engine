@@ -1,0 +1,7 @@
+card "Clachan Festival" {
+  oracle_id 5396045d-744b-435e-8324-a1bfbb03449d
+  cost {2}{W}
+  type Kindred Enchantment — Kithkin
+  triggered when this enters: create 2 "1/1 green and white Kithkin creature"
+  activated {4}{W}: create 1 "1/1 green and white Kithkin creature"
+}

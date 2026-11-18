@@ -1,0 +1,7 @@
+card "Sailor of Means" {
+  oracle_id c4efae03-99de-4439-925b-504602623bfd
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 1/4
+  triggered when this enters: create 1 "Treasure"
+}

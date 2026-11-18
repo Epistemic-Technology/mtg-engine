@@ -1,0 +1,7 @@
+card "Symbiotic Wurm" {
+  oracle_id 99e3b8ee-29e3-41de-af31-a4e8800c4619
+  cost {5}{G}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  triggered when this dies: create 7 "1/1 green Insect creature"
+}

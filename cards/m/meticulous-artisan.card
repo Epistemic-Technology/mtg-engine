@@ -1,0 +1,8 @@
+card "Meticulous Artisan" {
+  oracle_id 2b2b3b16-389c-4581-b889-b8a2e76f83a2
+  cost {3}{R}
+  type Creature — Djinn Artificer
+  pt 3/3
+  keywords prowess
+  triggered when this enters: create 1 "Treasure"
+}

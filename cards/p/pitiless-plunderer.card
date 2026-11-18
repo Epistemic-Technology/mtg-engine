@@ -1,0 +1,7 @@
+card "Pitiless Plunderer" {
+  oracle_id a784481f-eccb-4112-bb38-04a659319660
+  cost {3}{B}
+  type Creature — Human Pirate
+  pt 1/4
+  triggered whenever other creature you control dies: create 1 "Treasure"
+}

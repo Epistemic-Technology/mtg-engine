@@ -1,0 +1,7 @@
+card "Acorn Harvest" {
+  oracle_id 6aeba615-2d37-4eb8-a377-41a517e95aa3
+  cost {3}{G}
+  type Sorcery
+  flashback {1}{G}, pay 3 life
+  spell: create 2 "1/1 green Squirrel creature"
+}

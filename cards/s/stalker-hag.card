@@ -1,0 +1,7 @@
+card "Stalker Hag" {
+  oracle_id c6aa6091-5503-4c22-91af-f999112b0081
+  cost {B/G}{B/G}{B/G}
+  type Creature — Hag
+  pt 3/2
+  keywords swampwalk, forestwalk
+}

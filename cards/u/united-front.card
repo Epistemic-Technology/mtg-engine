@@ -1,0 +1,6 @@
+card "United Front" {
+  oracle_id c23f260b-b7d3-4c25-a08a-dabdb99e1791
+  cost {X}{W}{W}
+  type Sorcery
+  spell: create X "1/1 white Ally creature" then put 1 +1/+1 counters on each creature you control
+}

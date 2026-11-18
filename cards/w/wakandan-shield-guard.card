@@ -1,0 +1,7 @@
+card "Wakandan Shield Guard" {
+  oracle_id a9268e61-2697-46ff-b219-4f2be646cbe4
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered when this enters: create 1 "1/1 white Soldier creature"
+}

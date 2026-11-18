@@ -1,0 +1,8 @@
+card "Jund Battlemage" {
+  oracle_id d2567448-f8a5-4bf3-9804-f5aac3b645ce
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {B}, {T}: target player loses 1 life
+  activated {G}, {T}: create 1 "1/1 green Saproling creature"
+}

@@ -1,0 +1,8 @@
+card "Sunhome Guildmage" {
+  oracle_id f211d21f-7d78-4435-a592-a6896023af3b
+  cost {R}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}{R}{W}: each creature you control gets +1/+0
+  activated {2}{R}{W}: create 1 "1/1 red and white Soldier creature with haste"
+}

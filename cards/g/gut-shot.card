@@ -1,0 +1,6 @@
+card "Gut Shot" {
+  oracle_id 9afb3b6e-4909-4efa-aa79-81c0229411c9
+  cost {R/P}
+  type Instant
+  spell: deal 1 damage to any target
+}

@@ -1,0 +1,9 @@
+card "Robotics Mastery" {
+  oracle_id 855318cb-9382-4183-87c7-93bdfac86431
+  cost {4}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: create 2 "1/1 colorless Robot artifact creature with flying"
+  static enchanted: +2/+2
+}

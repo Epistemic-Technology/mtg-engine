@@ -1,0 +1,8 @@
+card "Courier's Briefcase" {
+  oracle_id 00cd3bf9-0dd6-4ec0-a841-1839a71604ab
+  cost {1}{G}
+  type Artifact — Treasure
+  triggered when this enters: create 1 "1/1 green and white Citizen creature"
+  mana any, sacrifice this
+  activated {W}{U}{B}{R}{G}, {T}, sacrifice this: draw 3 cards
+}

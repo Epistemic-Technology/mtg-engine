@@ -1,0 +1,6 @@
+card "Summoner's Bane" {
+  oracle_id b9b0c209-e346-45ee-a272-0b53589c21df
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target creature spell; create 1 "2/2 blue Illusion creature"
+}

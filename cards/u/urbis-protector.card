@@ -1,0 +1,7 @@
+card "Urbis Protector" {
+  oracle_id 564dd5e7-6c1e-4959-a594-60e08552aec9
+  cost {4}{W}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered when this enters: create 1 "4/4 white Angel creature with flying"
+}

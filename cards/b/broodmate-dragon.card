@@ -1,0 +1,8 @@
+card "Broodmate Dragon" {
+  oracle_id 86529f12-6f0f-4b0d-96f1-785474f6763a
+  cost {3}{B}{R}{G}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered when this enters: create 1 "4/4 red Dragon creature with flying"
+}

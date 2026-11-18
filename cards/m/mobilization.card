@@ -1,0 +1,7 @@
+card "Mobilization" {
+  oracle_id 6b8119e9-a9a9-4349-be32-adcb84b8eb79
+  cost {2}{W}
+  type Enchantment
+  static Soldier creature: has vigilance
+  activated {2}{W}: create 1 "1/1 white Soldier creature"
+}

@@ -1,0 +1,7 @@
+card "Pitiless Gorgon" {
+  oracle_id 4704ce78-b287-4038-abdd-ddb20116874d
+  cost {1}{B/G}{B/G}
+  type Creature — Gorgon
+  pt 2/2
+  keywords deathtouch
+}

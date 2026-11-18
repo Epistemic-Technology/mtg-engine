@@ -1,0 +1,8 @@
+card "Prosperous Innkeeper" {
+  oracle_id da785227-cf8a-4d44-9e7c-fc909ea868f2
+  cost {1}{G}
+  type Creature — Halfling Citizen
+  pt 1/1
+  triggered when this enters: create 1 "Treasure"
+  triggered whenever other creature you control enters: you gains 1 life
+}

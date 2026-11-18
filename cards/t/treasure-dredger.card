@@ -1,0 +1,7 @@
+card "Treasure Dredger" {
+  oracle_id 9a691e96-fb47-4c23-a063-3b287c51147b
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  activated {1}, {T}, pay 1 life: create 1 "Treasure"
+}

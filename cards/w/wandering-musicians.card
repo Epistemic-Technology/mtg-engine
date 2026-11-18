@@ -1,0 +1,7 @@
+card "Wandering Musicians" {
+  oracle_id 7166bf81-05c2-457d-a0bb-a175175b8e79
+  cost {3}{R/W}
+  type Creature — Human Bard Ally
+  pt 2/5
+  triggered whenever this attacks: each creature you control gets +1/+0
+}

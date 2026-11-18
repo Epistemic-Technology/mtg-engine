@@ -1,0 +1,7 @@
+card "Moan of the Unhallowed" {
+  oracle_id ce87e5ed-2562-4563-9a5b-bd53c04ec4a5
+  cost {2}{B}{B}
+  type Sorcery
+  flashback {5}{B}{B}
+  spell: create 2 "2/2 black Zombie creature"
+}

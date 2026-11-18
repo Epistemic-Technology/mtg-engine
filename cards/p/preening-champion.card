@@ -1,0 +1,8 @@
+card "Preening Champion" {
+  oracle_id e1c458ca-10f6-4da8-a93d-3adfb86fe97d
+  cost {2}{U}
+  type Creature — Bird Knight
+  pt 2/2
+  keywords flying
+  triggered when this enters: create 1 "1/1 blue and red Elemental creature"
+}

@@ -1,0 +1,7 @@
+card "Doomed Traveler" {
+  oracle_id a30907c0-fbde-4fd3-a8c7-f304305fcea7
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered when this dies: create 1 "1/1 white Spirit creature with flying"
+}

@@ -1,0 +1,6 @@
+card "Loamdragger Giant" {
+  oracle_id b7523824-8c3e-4735-8fbc-6a5f99d1e1ac
+  cost {4}{R/G}{R/G}{R/G}
+  type Creature — Giant Warrior
+  pt 7/6
+}

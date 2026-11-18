@@ -1,0 +1,7 @@
+card "Hot Dog Cart" {
+  oracle_id cf27f1f8-2d95-4a00-97f8-72a244837f08
+  cost {3}
+  type Artifact
+  triggered when this enters: create 1 "Food"
+  mana any
+}

@@ -1,0 +1,6 @@
+card "Deadly Derision" {
+  oracle_id 4b74d2d9-d75b-496e-bbb4-2b95b3d3ba55
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target creature or planeswalker; create 1 "Treasure"
+}

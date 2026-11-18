@@ -1,0 +1,7 @@
+card "Boros Recruit" {
+  oracle_id 00abb43b-550f-42d2-9049-61ac56ff5d8d
+  cost {R/W}
+  type Creature — Goblin Soldier
+  pt 1/1
+  keywords first strike
+}

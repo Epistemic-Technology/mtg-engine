@@ -1,0 +1,6 @@
+token "2/2 white Knight Ally creature" {
+  name "Knight Ally"
+  type Creature — Knight Ally
+  pt 2/2
+  color white
+}

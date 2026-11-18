@@ -1,0 +1,7 @@
+card "Seller of Songbirds" {
+  oracle_id 87e4c6ff-f83f-412b-9d23-aac7a57ef6db
+  cost {2}{W}
+  type Creature — Human
+  pt 1/2
+  triggered when this enters: create 1 "1/1 white Bird creature with flying"
+}

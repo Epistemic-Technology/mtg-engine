@@ -1,0 +1,9 @@
+card "Charge the Sanctum" {
+  oracle_id 9d835137-584c-46bd-952e-4b2812bba1a3
+  cost {2}{R/W}
+  type Instant
+  choose one {
+    mode: each creature you control gets +2/+0
+    mode: target creature gets +2/+0 and gains first strike; put 1 +1/+1 counters on target 1
+  }
+}

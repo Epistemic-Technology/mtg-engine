@@ -1,0 +1,7 @@
+card "Agents of HYDRA" {
+  oracle_id 31816924-1430-4581-86e8-325e2ca16217
+  cost {1}{B}
+  type Creature — Human Spy Villain
+  pt 1/1
+  triggered when this dies: create 1 "2/1 black Villain creature with menace"
+}

@@ -1,0 +1,8 @@
+card "Moonrise Cleric" {
+  oracle_id d8067f42-68c0-42da-a1d6-859953939555
+  cost {1}{W/B}{W/B}
+  type Creature — Bat Cleric
+  pt 2/3
+  keywords flying
+  triggered whenever this attacks: you gains 1 life
+}

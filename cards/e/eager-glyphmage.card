@@ -1,0 +1,7 @@
+card "Eager Glyphmage" {
+  oracle_id 070aa6c7-4741-47de-b68a-629aa4201ac0
+  cost {3}{W}
+  type Creature — Cat Cleric
+  pt 3/3
+  triggered when this enters: create 1 "1/1 white and black Inkling creature with flying"
+}

@@ -1,0 +1,6 @@
+card "Take Up Arms" {
+  oracle_id 61e2d557-f08d-489b-94c8-aff87e5189f9
+  cost {4}{W}
+  type Instant
+  spell: create 3 "1/1 white Warrior creature"
+}

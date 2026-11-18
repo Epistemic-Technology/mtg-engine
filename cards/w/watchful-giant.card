@@ -1,0 +1,7 @@
+card "Watchful Giant" {
+  oracle_id 8239c63d-097a-449a-953a-cd480e594aa8
+  cost {5}{W}
+  type Creature — Giant Soldier
+  pt 3/6
+  triggered when this enters: create 1 "1/1 white Human creature"
+}

@@ -1,0 +1,6 @@
+card "Mutagenic Growth" {
+  oracle_id c17b9e5b-58b6-4ccf-8283-945ba77429e7
+  cost {G/P}
+  type Instant
+  spell: target creature gets +2/+2
+}

@@ -1,0 +1,8 @@
+card "Knight-Captain of Eos" {
+  oracle_id 611f1714-a8bb-4ce4-a810-4d26fe64e358
+  cost {4}{W}
+  type Creature — Human Knight
+  pt 2/2
+  triggered when this enters: create 2 "1/1 white Soldier creature"
+  activated {W}, sacrifice Soldier: prevent all combat damage this turn
+}

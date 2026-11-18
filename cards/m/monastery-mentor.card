@@ -1,0 +1,8 @@
+card "Monastery Mentor" {
+  oracle_id 3979067a-9c68-443d-a85f-d9f07be880b9
+  cost {2}{W}
+  type Creature — Human Monk
+  pt 2/2
+  keywords prowess
+  triggered whenever you cast a noncreature spell: create 1 "1/1 white Monk creature with prowess"
+}

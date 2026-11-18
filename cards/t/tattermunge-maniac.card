@@ -1,0 +1,7 @@
+card "Tattermunge Maniac" {
+  oracle_id 69ba7864-0d09-4517-ad1a-7efaf437ded0
+  cost {R/G}
+  type Creature — Goblin Warrior
+  pt 2/1
+  keywords attacks each combat if able
+}

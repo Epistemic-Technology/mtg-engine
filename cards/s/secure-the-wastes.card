@@ -1,0 +1,6 @@
+card "Secure the Wastes" {
+  oracle_id b2347910-d6c6-4681-8316-7ef27056485c
+  cost {X}{W}
+  type Instant
+  spell: create X "1/1 white Warrior creature"
+}

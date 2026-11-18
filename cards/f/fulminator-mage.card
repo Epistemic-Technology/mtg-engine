@@ -1,0 +1,7 @@
+card "Fulminator Mage" {
+  oracle_id bd4c46a3-b723-4b35-9061-9a1dee7cc9d8
+  cost {1}{B/R}{B/R}
+  type Creature — Elemental Shaman
+  pt 2/2
+  activated sacrifice this: destroy target nonbasic land
+}

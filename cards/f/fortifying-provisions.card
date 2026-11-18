@@ -1,0 +1,7 @@
+card "Fortifying Provisions" {
+  oracle_id f00dc657-4695-497d-aad3-af7b6a3ccf94
+  cost {2}{W}
+  type Enchantment
+  static creature you control: +0/+1
+  triggered when this enters: create 1 "Food"
+}

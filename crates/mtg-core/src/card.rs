@@ -1482,6 +1482,9 @@ pub enum AbilityDef {
     /// "{T}: Add <mana>" (CR 605). Basic land types grant theirs
     /// intrinsically (CR 305.6) and do not list this.
     TapForMana(Mana),
+    /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
+    /// Petal): a mana ability that sacrifices its source.
+    SacForMana(Mana),
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -1500,6 +1503,7 @@ impl AbilityDef {
             AbilityDef::Activated(a) => &a.targets,
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
+            | AbilityDef::SacForMana(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -1515,6 +1519,7 @@ impl AbilityDef {
             AbilityDef::Activated(a) => &a.effects,
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
+            | AbilityDef::SacForMana(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -2088,6 +2093,11 @@ impl CardPool {
         self.by_name.insert(def.name.clone(), r);
         self.defs.push(def);
         r
+    }
+
+    /// Make `r` findable by `key` as well as its name.
+    pub fn alias(&mut self, key: &str, r: CardRef) {
+        self.by_name.insert(key.to_string(), r);
     }
 
     pub fn get(&self, r: CardRef) -> &CardDef {

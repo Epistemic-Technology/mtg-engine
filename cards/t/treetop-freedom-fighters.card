@@ -1,0 +1,8 @@
+card "Treetop Freedom Fighters" {
+  oracle_id 922176b8-7174-4248-92fb-b196ceb802c7
+  cost {2}{R}
+  type Creature — Human Rebel Ally
+  pt 2/1
+  keywords haste
+  triggered when this enters: create 1 "1/1 white Ally creature"
+}

@@ -1,0 +1,7 @@
+card "Spined Thopter" {
+  oracle_id 45f2af87-0235-49f8-a63d-370faff3a097
+  cost {2}{U/P}
+  type Artifact Creature — Phyrexian Thopter
+  pt 2/1
+  keywords flying
+}

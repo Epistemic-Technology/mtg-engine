@@ -1,0 +1,6 @@
+card "Knight Watch" {
+  oracle_id 4965f5fe-a5fe-4976-822c-5cf40fea8c34
+  cost {4}{W}
+  type Sorcery
+  spell: create 2 "2/2 white Knight creature with vigilance"
+}

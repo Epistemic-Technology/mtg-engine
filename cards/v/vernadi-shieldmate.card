@@ -1,0 +1,7 @@
+card "Vernadi Shieldmate" {
+  oracle_id 03e04034-48b5-4f1f-9859-2b46dedf4d8b
+  cost {1}{G/W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+}

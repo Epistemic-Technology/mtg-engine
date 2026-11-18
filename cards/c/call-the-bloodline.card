@@ -1,0 +1,6 @@
+card "Call the Bloodline" {
+  oracle_id 8e90300b-c0da-4484-b065-e2fafa4e1b15
+  cost {1}{B}
+  type Enchantment
+  activated {1}, discard 1 card, once: create 1 "1/1 black Vampire Knight creature with lifelink"
+}

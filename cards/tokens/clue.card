@@ -1,0 +1,4 @@
+token "Clue" {
+  type Artifact — Clue
+  activated {2}, sacrifice this: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Deathbloom Thallid" {
+  oracle_id ce873790-de4d-4ba3-8023-c44306ba3ff8
+  cost {2}{B}
+  type Creature — Fungus
+  pt 3/2
+  triggered when this dies: create 1 "1/1 green Saproling creature"
+}

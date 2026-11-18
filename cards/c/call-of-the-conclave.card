@@ -1,0 +1,6 @@
+card "Call of the Conclave" {
+  oracle_id e1635acd-ed1e-4038-a11a-6518df285253
+  cost {G}{W}
+  type Sorcery
+  spell: create 1 "3/3 green Centaur creature"
+}

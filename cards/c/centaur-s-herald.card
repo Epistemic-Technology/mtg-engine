@@ -1,0 +1,7 @@
+card "Centaur's Herald" {
+  oracle_id b47fd32d-1a56-414f-9d91-ddd46d4b5ac7
+  cost {G}
+  type Creature — Elf Scout
+  pt 0/1
+  activated {2}{G}, sacrifice this: create 1 "3/3 green Centaur creature"
+}

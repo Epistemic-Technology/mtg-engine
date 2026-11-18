@@ -1,0 +1,6 @@
+card "Crack Open" {
+  oracle_id 412197f2-0e95-47fb-83db-ae8301c90ff0
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target artifact or enchantment; create 1 "Treasure"
+}

@@ -1,0 +1,9 @@
+card "Sokka's Sword Training" {
+  oracle_id 19963c90-e7b2-4935-adcd-d41f0faf401a
+  cost {1}{W}
+  type Instant — Lesson
+  spell {
+    target creature gets +2/+2
+    create 1 "Clue"
+  }
+}

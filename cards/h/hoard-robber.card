@@ -1,0 +1,7 @@
+card "Hoard Robber" {
+  oracle_id 1a04f70c-288d-4010-a6d5-24e9778b9b45
+  cost {1}{B}
+  type Creature — Tiefling Rogue
+  pt 1/3
+  triggered whenever this deals combat damage to a player: create 1 "Treasure"
+}

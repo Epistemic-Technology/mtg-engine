@@ -1,0 +1,7 @@
+card "Rakdos Shred-Freak" {
+  oracle_id e900b2b5-4bb2-482d-89ee-b5bbaf246698
+  cost {B/R}{B/R}
+  type Creature — Human Berserker
+  pt 2/1
+  keywords haste
+}
