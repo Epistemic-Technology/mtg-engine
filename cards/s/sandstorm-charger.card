@@ -1,0 +1,7 @@
+card "Sandstorm Charger" {
+  oracle_id aa7a9689-e79a-4562-a621-eadc45966ce8
+  cost {4}{W}
+  type Creature — Beast
+  pt 3/4
+  megamorph {4}{W}
+}

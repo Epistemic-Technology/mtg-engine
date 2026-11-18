@@ -1,0 +1,9 @@
+card "Wingbeat Warrior" {
+  oracle_id 857392fe-1ce6-4d53-b039-98339d292ebb
+  cost {2}{W}
+  type Creature — Bird Soldier Warrior
+  pt 2/1
+  keywords flying
+  morph {2}{W}
+  triggered when this is turned face up: target creature gains first strike
+}

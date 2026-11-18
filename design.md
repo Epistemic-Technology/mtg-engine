@@ -2326,6 +2326,22 @@ the profile; a perf pass is due). The pass found casting and resolution
 deep-copying card definitions; borrowing through a clone of the pool's
 `Arc` brought throughput back to slice 8's level (+4.7%).
 
+Status 2026-11-18, slice 14 (face-down permanents) done. A face-down
+object's definition is one of two built-in face-down definitions (a
+nameless colorless 2/2 creature, the second with ward {2} for disguise,
+CR 708.2a) while its `card` stays the physical card, so every
+characteristic lookup, copy effect, and zone change already does the
+right thing; casting face down sets the spell's definition (as casting
+an adventure's face does) and costs {3}; turning face up is a special
+action at priority (`Choice::TurnFaceUp`, CR 116.2b) that restores the
+card's definition, adds megamorph's counter, and emits a TurnedFaceUp
+event for "When this creature is turned face up" triggers; manifest
+turns the library's top card face down before it moves. A count of
+face-down permanents keeps the check off the hot path. Corpus 7,374
+cards: 5,359 Pauper (49.3%), 5,511 Modern (24.3%); 1,766 scenarios pass
+(5 new in scenarios/m5/face-down.scn), 1 skipped; fuzz 0 panics, 0
+unfinished; throughput within 1% of the perf pass.
+
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional
 "enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't

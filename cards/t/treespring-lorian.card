@@ -1,0 +1,7 @@
+card "Treespring Lorian" {
+  oracle_id 6f3ed8a1-ff5f-411b-9d87-0cce52f42344
+  cost {5}{G}
+  type Creature — Beast
+  pt 5/4
+  morph {5}{G}
+}

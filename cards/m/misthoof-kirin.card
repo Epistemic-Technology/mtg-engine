@@ -1,0 +1,8 @@
+card "Misthoof Kirin" {
+  oracle_id 678eee7a-549d-4f40-a81c-70d036fc299d
+  cost {2}{W}
+  type Creature — Kirin
+  pt 2/1
+  keywords flying, vigilance
+  megamorph {1}{W}
+}

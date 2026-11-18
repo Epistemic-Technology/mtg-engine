@@ -166,10 +166,17 @@ pub enum Choice {
         card: ObjId,
         face: u8,
     },
+    /// Cast a card with morph or disguise face down as a 2/2 for {3}
+    /// (CR 702.37c, 702.168).
+    CastFaceDown(ObjId),
+    /// Turn a face-down permanent face up for its morph (or disguise, or
+    /// manifested creature card's mana) cost: a special action (CR 116.2b).
+    TurnFaceUp(ObjId),
 }
 
 impl Choice {
     /// Human-readable form using card names from `state`.
+    #[allow(clippy::too_many_lines)] // one arm per choice kind
     pub fn describe(&self, state: &GameState) -> String {
         let name = |id: &ObjId| state.name_of(*id).to_string();
         let names = |ids: &[ObjId]| -> String {
@@ -245,6 +252,20 @@ impl Choice {
                 out
             }
             Choice::X(n) => format!("X = {n}"),
+            Choice::CastFaceDown(id) => {
+                let card = state
+                    .objects
+                    .get(*id)
+                    .map_or("?", |o| state.pool.get(o.card).name.as_str());
+                format!("cast {card} face down")
+            }
+            Choice::TurnFaceUp(id) => {
+                let card = state
+                    .objects
+                    .get(*id)
+                    .map_or("?", |o| state.pool.get(o.card).name.as_str());
+                format!("turn {card} face up")
+            }
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
             Choice::CastFace { card, face } => {
                 let name = state

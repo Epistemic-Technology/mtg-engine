@@ -1,0 +1,8 @@
+card "Goblin Taskmaster" {
+  oracle_id 64fddd5e-06e4-4d54-9ea6-0c9b82f3b153
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated {1}{R}: target Goblin creature gets +1/+0
+  morph {R}
+}

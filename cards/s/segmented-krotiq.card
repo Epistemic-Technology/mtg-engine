@@ -1,0 +1,7 @@
+card "Segmented Krotiq" {
+  oracle_id 05221ba6-53fd-4f45-b8b4-493724f75963
+  cost {5}{G}
+  type Creature — Insect
+  pt 6/5
+  megamorph {6}{G}
+}

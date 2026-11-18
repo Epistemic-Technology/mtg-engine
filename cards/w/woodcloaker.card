@@ -1,0 +1,8 @@
+card "Woodcloaker" {
+  oracle_id 92d17a26-bf73-4b62-b826-4cbe913d5c5e
+  cost {5}{G}
+  type Creature — Elf
+  pt 3/3
+  morph {2}{G}{G}
+  triggered when this is turned face up: target creature gains trample
+}

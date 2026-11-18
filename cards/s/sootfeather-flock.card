@@ -1,0 +1,8 @@
+card "Sootfeather Flock" {
+  oracle_id 54a4bde3-c61f-44ea-bd2f-cdbf6a76eefa
+  cost {4}{B}
+  type Creature — Bird
+  pt 3/2
+  keywords flying
+  morph {3}{B}
+}

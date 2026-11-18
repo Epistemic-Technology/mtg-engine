@@ -1,0 +1,6 @@
+card "Fierce Invocation" {
+  oracle_id 4e75fc29-68e3-41a9-9f59-adb4460663b2
+  cost {4}{R}
+  type Sorcery
+  spell: manifest then put 2 +1/+1 counters on that card
+}

@@ -1,0 +1,7 @@
+card "Canyon Lurkers" {
+  oracle_id a744c5d7-c903-446a-bb30-30788058d9db
+  cost {4}{R}
+  type Creature — Human Rogue
+  pt 5/2
+  morph {3}{R}
+}

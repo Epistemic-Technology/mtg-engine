@@ -1,0 +1,8 @@
+card "Voidmage Apprentice" {
+  oracle_id 980939db-d867-4c16-a288-52f6528f2376
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  morph {2}{U}{U}
+  triggered when this is turned face up: counter target spell
+}

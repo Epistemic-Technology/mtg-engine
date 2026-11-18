@@ -1,0 +1,8 @@
+card "Foothill Guide" {
+  oracle_id d91c7e21-43af-40f9-b544-f39d1e77dee9
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  protection from Goblin
+  morph {W}
+}

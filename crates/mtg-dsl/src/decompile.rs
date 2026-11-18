@@ -467,6 +467,7 @@ impl Decompiler<'_> {
                 count: *count,
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
+            CoreEffect::Manifest => Effect::Manifest,
             CoreEffect::Modes(modes) => Effect::Modes(
                 modes
                     .iter()
@@ -528,6 +529,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::TurnedFaceUp => Trigger::TurnedFaceUp,
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),

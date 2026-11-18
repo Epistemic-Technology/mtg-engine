@@ -82,6 +82,14 @@ impl GameState {
             {
                 options.push(Choice::Cast(*id));
             }
+            // CR 702.37c: face down as a 2/2 creature spell for {3}.
+            if def.morph.is_some() && sorcery_timing {
+                self.face_down_option(p, *id, &sources, &mut options);
+            }
+        }
+        // CR 116.2b: turning a face-down permanent face up.
+        if self.face_down_count > 0 {
+            self.face_up_options(p, &sources, &mut options);
         }
         // CR 715.3d: a card on an adventure may be cast from exile (its
         // main face).
@@ -278,6 +286,51 @@ impl GameState {
                 .iter()
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
             None => self.targets_available(p, def.cast_targets(), Some(id)),
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn face_down_option(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+        sources: &Sources,
+        options: &mut Vec<Choice>,
+    ) {
+        let ps = self.player(p);
+        if payment_plan_from(sources, &ps.mana_pool, &three(), ps.life).is_some() {
+            options.push(Choice::CastFaceDown(id));
+        }
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn face_up_options(&self, p: PlayerId, sources: &Sources, options: &mut Vec<Choice>) {
+        let ps = self.player(p);
+        for id in self.permanents_of(p) {
+            if let Some(cost) = self.face_up_cost(id)
+                && payment_plan_from(sources, &ps.mana_pool, &cost.requirements(0), ps.life)
+                    .is_some()
+            {
+                options.push(Choice::TurnFaceUp(id));
+            }
+        }
+    }
+
+    /// What turning the face-down permanent `id` face up costs: its morph
+    /// or disguise cost, or a manifested creature card's mana cost (CR
+    /// 701.34a); `None` if it isn't face down or can't be turned up.
+    pub(super) fn face_up_cost(&self, id: ObjId) -> Option<crate::mana::ManaCost> {
+        let o = self.objects.get(id)?;
+        if !self.pool.is_face_down(o.def) || o.zone != Zone::Battlefield {
+            return None;
+        }
+        let card = self.pool.get(o.card);
+        match &card.morph {
+            Some((cost, _)) => Some(cost.clone()),
+            None if card.is_creature() => Some(card.mana_cost.clone()),
+            None => None,
         }
     }
 
@@ -484,6 +537,10 @@ impl GameState {
         let def = self.pool.get(o.def);
         let mut req = match (&def.flashback, o.cast.flashback()) {
             (Some(fb), true) => fb.mana.requirements(x),
+            // CR 702.37c: a face-down spell costs {3}.
+            _ if self.pool.is_face_down(o.def) => crate::mana::ManaCost::parse("{3}")
+                .expect("a mana cost")
+                .requirements(0),
             _ => def.mana_cost.requirements(x),
         };
         if o.cast.kicked()
@@ -2338,6 +2395,16 @@ impl GameState {
             }
             // Resolved through the chosen mode (`effects_of`).
             Effect::Modes(_) => {}
+            Effect::Manifest => {
+                let p = ctx.controller;
+                if let Some(top) = self.player(p).library.last().copied() {
+                    // Face down before it moves, so nothing sees the card's
+                    // own characteristics enter (CR 701.34a).
+                    self.objects[top].def = self.pool.face_down(false);
+                    let new = self.put_onto_battlefield(top, p);
+                    ctx.created = Some(new);
+                }
+            }
             Effect::ClearEcho => {
                 if let Some(id) = self.current_object(ctx.source)
                     && let Some(o) = self.objects.get_mut(id)
@@ -2570,6 +2637,14 @@ pub(super) struct EffectCtx {
 /// exact; multi-type lands are assigned to the first color that needs them.
 /// Mana sources, inline for typical board sizes.
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+/// {3}: what a face-down spell costs (CR 702.37c).
+fn three() -> ManaRequirement {
+    ManaRequirement {
+        generic: 3,
+        ..ManaRequirement::default()
+    }
+}
 
 /// Apply a cost change to the generic part (CR 601.2f): a reduction
 /// takes off generic mana only, and never below zero.

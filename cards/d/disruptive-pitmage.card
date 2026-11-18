@@ -1,0 +1,8 @@
+card "Disruptive Pitmage" {
+  oracle_id c7a60f81-f7cb-4fd7-b422-963290964069
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: counter target spell unless its controller pays {1}
+  morph {U}
+}

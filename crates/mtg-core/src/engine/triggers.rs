@@ -380,6 +380,9 @@ impl GameState {
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))
             }
+            (TriggerSpec::TurnedFaceUp, Event::TurnedFaceUp { obj }) => {
+                (*obj == w.source).then_some((Some(*obj), Some(w.controller)))
+            }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))

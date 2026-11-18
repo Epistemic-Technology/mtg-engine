@@ -1,0 +1,8 @@
+card "Riptide Biologist" {
+  oracle_id fe378f26-5c80-4548-8127-10724ac0c452
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  protection from Beast
+  morph {2}{U}
+}

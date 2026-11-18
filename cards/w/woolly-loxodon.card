@@ -1,0 +1,7 @@
+card "Woolly Loxodon" {
+  oracle_id b588df7a-64d8-449e-b573-13badc8cdf56
+  cost {5}{G}{G}
+  type Creature — Elephant Warrior
+  pt 6/7
+  morph {5}{G}
+}

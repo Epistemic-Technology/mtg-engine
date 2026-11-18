@@ -1,0 +1,8 @@
+card "Ojutai Interceptor" {
+  oracle_id ecc42076-5cce-4e00-a21b-34846ea41df2
+  cost {3}{U}
+  type Creature — Bird Soldier
+  pt 3/1
+  keywords flying
+  megamorph {3}{U}
+}

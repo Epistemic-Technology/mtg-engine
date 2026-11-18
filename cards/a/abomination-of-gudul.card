@@ -1,0 +1,9 @@
+card "Abomination of Gudul" {
+  oracle_id 3d98af5f-7a0b-4a5a-b3e4-f3c9d150c993
+  cost {3}{B}{G}{U}
+  type Creature — Horror
+  pt 3/4
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may draw 1 cards; if you do, discard 1 cards
+  morph {2}{B}{G}{U}
+}

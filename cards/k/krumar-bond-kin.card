@@ -1,0 +1,7 @@
+card "Krumar Bond-Kin" {
+  oracle_id 8e34f487-aa75-4afb-af75-3349de456c79
+  cost {3}{B}{B}
+  type Creature — Orc Warrior
+  pt 5/3
+  morph {4}{B}
+}

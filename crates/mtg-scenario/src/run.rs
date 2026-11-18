@@ -754,6 +754,20 @@ impl Runner {
             .iter()
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
+        let face_up = self.matching(d.player, pos, true, |a| matches!(a, Action::TurnFaceUp(_)));
+        for i in face_up {
+            let Action::TurnFaceUp(name) = &self.actions[i].action else {
+                unreachable!()
+            };
+            let found = d.options.iter().position(|c| {
+                matches!(c, Choice::TurnFaceUp(id)
+                    if self.state().pool.get(self.state().objects[*id].card).name == *name)
+            });
+            if let Some(k) = found {
+                self.fired[i] = true;
+                return Ok(idx_u32(k));
+            }
+        }
         let candidates = self.matching(d.player, pos, false, |a| match a {
             Action::Play(_) | Action::Activate { .. } | Action::Wait => true,
             Action::Cast { respond_to, .. } => {
@@ -811,9 +825,12 @@ impl Runner {
                     x,
                     sacrifice,
                     discard,
+                    face_down,
                     ..
                 } => {
-                    let choice = if *from_graveyard {
+                    let choice = if *face_down {
+                        Choice::CastFaceDown(self.in_hand(a.line, d.player, name)?)
+                    } else if *from_graveyard {
                         Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
                         c
@@ -832,8 +849,10 @@ impl Runner {
                 }
                 _ => unreachable!("filtered to play/cast"),
             };
-            let (Choice::PlayLand(id) | Choice::Cast(id) | Choice::CastFace { card: id, .. }) =
-                option
+            let (Choice::PlayLand(id)
+            | Choice::Cast(id)
+            | Choice::CastFace { card: id, .. }
+            | Choice::CastFaceDown(id)) = option
             else {
                 unreachable!()
             };
@@ -1830,6 +1849,11 @@ impl Runner {
             Choice::Cast(id) => format!("cast {}", self.describe_ids(&[*id])),
             Choice::CastFace { card, face } => {
                 format!("cast face {face} of {}", self.describe_ids(&[*card]))
+            }
+            Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
+            Choice::TurnFaceUp(id) => {
+                let card = self.state().objects[*id].card;
+                format!("turn {} face up", self.state().pool.get(card).name)
             }
             Choice::Target(t) => self.describe_target(*t),
             Choice::Attackers(set) => format!("attack with {}", self.describe_ids(set)),

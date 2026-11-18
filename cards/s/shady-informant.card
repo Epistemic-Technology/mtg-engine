@@ -1,0 +1,8 @@
+card "Shady Informant" {
+  oracle_id 5cf3727b-eb7b-414e-982c-3acf4c05ddf1
+  cost {3}{B}{R}
+  type Creature — Ogre Rogue
+  pt 4/2
+  triggered when this dies: deal 2 damage to any target
+  disguise {2}{B/R}{B/R}
+}

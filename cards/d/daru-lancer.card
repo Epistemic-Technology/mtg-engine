@@ -1,0 +1,8 @@
+card "Daru Lancer" {
+  oracle_id 21edfe1a-2c53-44b3-b0d1-3dba8fb3346d
+  cost {4}{W}{W}
+  type Creature — Human Soldier
+  pt 3/4
+  keywords first strike
+  morph {2}{W}{W}
+}

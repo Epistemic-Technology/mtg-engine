@@ -474,6 +474,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let face_down = if line.peek_ident("face_down") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let kicked = if line.peek_ident("kicked") {
                 line.pos += 1;
                 true
@@ -532,6 +538,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 Action::Cast {
                     name,
                     from_graveyard,
+                    face_down,
                     kicked,
                     mode,
                     x,
@@ -601,6 +608,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             (Action::Trigger { source, targets }, None)
         }
         "apply" => (Action::Apply(line.string()?), None),
+        "unmorph" => (Action::TurnFaceUp(line.string()?), None),
         "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {
             let source = line.string()?;

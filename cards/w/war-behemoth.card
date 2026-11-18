@@ -1,0 +1,7 @@
+card "War Behemoth" {
+  oracle_id 4792a05e-b557-4132-8303-235feefe0d99
+  cost {5}{W}
+  type Creature — Beast
+  pt 3/6
+  morph {4}{W}
+}

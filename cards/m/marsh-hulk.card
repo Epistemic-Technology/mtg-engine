@@ -1,0 +1,7 @@
+card "Marsh Hulk" {
+  oracle_id 979a581b-22a0-4461-8638-d219587323d7
+  cost {4}{B}{B}
+  type Creature — Zombie Ogre
+  pt 4/6
+  megamorph {6}{B}
+}

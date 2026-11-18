@@ -1,0 +1,8 @@
+card "Sage-Eye Harrier" {
+  oracle_id 589d1c6e-5808-424c-a6e4-dadef90d119e
+  cost {4}{W}
+  type Creature — Bird Warrior
+  pt 1/5
+  keywords flying
+  morph {3}{W}
+}

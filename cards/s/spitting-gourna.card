@@ -1,0 +1,8 @@
+card "Spitting Gourna" {
+  oracle_id 413e8f01-4ee0-48df-8647-c614db38681e
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 3/4
+  keywords reach
+  morph {4}{G}
+}

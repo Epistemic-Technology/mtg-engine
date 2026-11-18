@@ -1,0 +1,8 @@
+card "Riftburst Hellion" {
+  oracle_id e121f9cb-ed25-4be1-9822-b68cce2f2623
+  cost {5}{R}{G}
+  type Creature — Hellion
+  pt 6/7
+  keywords reach
+  disguise {4}{R/G}{R/G}
+}

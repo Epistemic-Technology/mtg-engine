@@ -1,0 +1,8 @@
+card "Battering Craghorn" {
+  oracle_id a084bca4-fe72-443e-adf4-ab5456c7e699
+  cost {2}{R}{R}
+  type Creature — Goat Beast
+  pt 3/1
+  keywords first strike
+  morph {1}{R}{R}
+}

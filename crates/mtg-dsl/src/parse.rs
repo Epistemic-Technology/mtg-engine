@@ -863,7 +863,8 @@ impl P {
                     _ => Mechanic::Toxic(n),
                 }))
             }
-            "ward" | "echo" | "unearth" | "buyback" | "outlast"
+            "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
+            | "disguise"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -874,6 +875,9 @@ impl P {
                     "echo" => Mechanic::Echo(c),
                     "unearth" => Mechanic::Unearth(c),
                     "buyback" => Mechanic::Buyback(c),
+                    "morph" => Mechanic::Morph(c),
+                    "megamorph" => Mechanic::Megamorph(c),
+                    "disguise" => Mechanic::Disguise(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -2044,6 +2048,10 @@ impl P {
                 Ok(Effect::Pay { mana, life })
             }
             "proliferate" => Ok(Effect::Proliferate),
+            "manifest" => {
+                self.eat_words(&["the", "top", "card", "of", "your", "library"]);
+                Ok(Effect::Manifest)
+            }
             "switch" => {
                 self.expect_words(&["pt", "of"])?;
                 let to = self.recipient()?;
@@ -3079,6 +3087,13 @@ impl P {
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
             "dies" => Ok(Trigger::Dies(obj)),
+            "is" if self.at_words(&["turned", "face", "up"]) => {
+                self.pos += 3;
+                if obj != TriggerObj::This {
+                    return self.fail("only `this` is turned face up");
+                }
+                Ok(Trigger::TurnedFaceUp)
+            }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;
                 Ok(Trigger::DealtDamage(obj))

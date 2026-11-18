@@ -1,0 +1,8 @@
+card "Vengeful Creeper" {
+  oracle_id d5b7c283-357b-409f-9afc-985a3b89cc40
+  cost {4}{G}
+  type Creature — Plant Elemental
+  pt 5/5
+  disguise {5}{G}
+  triggered when this is turned face up: destroy target artifact or enchantment an opponent controls
+}

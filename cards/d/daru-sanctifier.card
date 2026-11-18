@@ -1,0 +1,8 @@
+card "Daru Sanctifier" {
+  oracle_id 7e81539e-b790-41eb-bd5e-d1de130b46a1
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  morph {1}{W}
+  triggered when this is turned face up: destroy target enchantment
+}

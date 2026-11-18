@@ -1,0 +1,8 @@
+card "Skirk Marauder" {
+  oracle_id 8ba0e831-054a-4e01-92ed-2845bd2fa12f
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/1
+  morph {2}{R}
+  triggered when this is turned face up: deal 2 damage to any target
+}

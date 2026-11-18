@@ -1,0 +1,7 @@
+card "Glacial Stalker" {
+  oracle_id 49d06291-c8cb-4e22-b178-d0598582b2ee
+  cost {5}{U}
+  type Creature — Elemental
+  pt 4/5
+  morph {4}{U}
+}

@@ -1,0 +1,8 @@
+card "Whip-Spine Drake" {
+  oracle_id 70e165a1-494a-4728-8d7e-1a9f306414db
+  cost {3}{U}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  morph {2}{W}
+}

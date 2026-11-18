@@ -1,0 +1,8 @@
+card "Abzan Guide" {
+  oracle_id 85b2fb89-5ebe-4c13-bc12-38d1417e5880
+  cost {3}{W}{B}{G}
+  type Creature — Human Warrior
+  pt 4/4
+  keywords lifelink
+  morph {2}{W}{B}{G}
+}

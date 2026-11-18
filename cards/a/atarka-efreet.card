@@ -1,0 +1,8 @@
+card "Atarka Efreet" {
+  oracle_id 177c1f2d-abb9-40ea-afe4-141b08fdeabb
+  cost {3}{R}
+  type Creature — Efreet Shaman
+  pt 5/1
+  megamorph {2}{R}
+  triggered when this is turned face up: deal 1 damage to any target
+}

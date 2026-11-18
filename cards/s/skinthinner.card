@@ -1,0 +1,8 @@
+card "Skinthinner" {
+  oracle_id c4dee5fe-36f0-4155-9437-2c0504feba2c
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  morph {3}{B}{B}
+  triggered when this is turned face up: destroy target nonblack creature without regeneration
+}

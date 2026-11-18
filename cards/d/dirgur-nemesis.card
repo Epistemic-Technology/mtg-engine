@@ -1,0 +1,8 @@
+card "Dirgur Nemesis" {
+  oracle_id c08b444b-6617-4199-b9da-5d4e81cd7597
+  cost {5}{U}
+  type Creature — Serpent
+  pt 6/5
+  keywords defender
+  megamorph {6}{U}
+}

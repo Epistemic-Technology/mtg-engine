@@ -469,6 +469,7 @@ impl GameState {
             grant_sources: 0,
             eot_grants: 0,
             undone_cast: None,
+            face_down_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
@@ -1051,6 +1052,27 @@ impl GameState {
                 let new = self.move_object(id, Zone::Battlefield, true);
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
+            }
+            (Flow::Priority, Choice::CastFaceDown(card)) => {
+                self.consecutive_passes = 0;
+                let ward = matches!(
+                    self.pool.get(self.objects[card].def).morph,
+                    Some((_, crate::card::MorphKind::Disguise))
+                );
+                let spell = self.move_object(card, Zone::Stack, true);
+                self.objects[spell].controller = player;
+                // CR 708.2a: the spell has only face-down characteristics.
+                self.objects[spell].def = self.pool.face_down(ward);
+                self.cbump();
+                self.flow = self.after_mode(spell);
+            }
+            (Flow::Priority, Choice::TurnFaceUp(id)) => {
+                // CR 116.2b: a special action; the player keeps priority.
+                if let Some(cost) = self.face_up_cost(id) {
+                    self.pay(player, &cost.requirements(0));
+                    self.turn_face_up(id);
+                }
+                self.give_priority(player);
             }
             (Flow::Priority, Choice::CastFace { card, face }) => {
                 self.consecutive_passes = 0;

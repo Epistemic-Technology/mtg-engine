@@ -1,0 +1,8 @@
+card "Mystic of the Hidden Way" {
+  oracle_id 530853b4-68a0-4814-b0aa-ffeb5585cd43
+  cost {4}{U}
+  type Creature — Human Monk
+  pt 3/2
+  keywords can't be blocked
+  morph {2}{U}
+}

@@ -145,10 +145,12 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::SurveilGraveyard(_) => 27,
         Choice::Color(_) => 28,
         Choice::CastFace { .. } => 29,
+        Choice::CastFaceDown(_) => 30,
+        Choice::TurnFaceUp(_) => 31,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 30] = [
+pub const CHOICE_KIND_NAMES: [&str; 32] = [
     "keep",
     "mulligan",
     "bottom",
@@ -179,6 +181,8 @@ pub const CHOICE_KIND_NAMES: [&str; 30] = [
     "surveil_graveyard",
     "color",
     "cast_face",
+    "cast_face_down",
+    "turn_face_up",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -322,7 +326,9 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             Choice::Bottom(id)
             | Choice::PlayLand(id)
             | Choice::AddAttacker(id)
-            | Choice::Sacrifice(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            | Choice::Sacrifice(id)
+            | Choice::TurnFaceUp(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {
                 let cost = state
                     .objects

@@ -1,0 +1,9 @@
+card "Alley Assailant" {
+  oracle_id 57eba48e-87bd-4b54-8635-7348020f2ba4
+  cost {2}{B}
+  type Creature — Vampire Rogue
+  pt 3/3
+  enters tapped
+  disguise {4}{B}{B}
+  triggered when this is turned face up: target opponent loses 3 life and you gains 3 life
+}

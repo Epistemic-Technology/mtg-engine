@@ -1,0 +1,9 @@
+card "Kolaghan Stormsinger" {
+  oracle_id 0790c8bd-a094-49b5-8843-e8b02cba145b
+  cost {R}
+  type Creature — Human Shaman
+  pt 1/1
+  keywords haste
+  megamorph {R}
+  triggered when this is turned face up: target creature gains haste
+}

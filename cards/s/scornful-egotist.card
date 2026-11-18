@@ -1,0 +1,7 @@
+card "Scornful Egotist" {
+  oracle_id 455cbf35-f340-4f1f-a331-5b082c9034ec
+  cost {7}{U}
+  type Creature — Human Wizard
+  pt 1/1
+  morph {U}
+}

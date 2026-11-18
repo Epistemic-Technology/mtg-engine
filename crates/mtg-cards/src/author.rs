@@ -57,7 +57,7 @@ const KEYWORDS: [&str; 34] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 42] = [
+const TEMPLATED_TAGS: [&str; 46] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -101,6 +101,10 @@ const TEMPLATED_TAGS: [&str; 42] = [
     "Amass",
     // Scryfall tags some regenerating cards "Heal".
     "Heal",
+    "Morph",
+    "Megamorph",
+    "Disguise",
+    "Manifest",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -880,6 +884,9 @@ impl Templates {
                 ))
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (r(r"^Manifest the top card of your library$"), |_, _| {
+                Some("manifest".to_string())
+            }),
             (
                 r(r"^If (that creature|it) would die this turn, exile it instead$"),
                 |_, t| (*t > 0).then(|| format!("this turn, replace target {t} dies: exile")),
@@ -1066,6 +1073,7 @@ impl Templates {
 
     /// Sentences of one paragraph to `;`-joined DSL effects. `targets`
     /// counts targets declared so far in the ability.
+    #[allow(clippy::too_many_lines)] // the sentence forms that need more than one rule
     fn effects(&self, text: &str, targets: &mut usize) -> Result<String, Skip> {
         // "Target opponent reveals their hand. You choose a nonland card
         // from it. That player discards that card." is one effect.
@@ -1117,6 +1125,10 @@ impl Templates {
                 _ => Err(Skip::Sentence(text.to_string())),
             };
         }
+        let manifest_then = Regex::new(
+            r"^Manifest the top card of your library, then put (a|two|three) \+1/\+1 counters? on it$",
+        )
+        .unwrap();
         let mut out: Vec<String> = Vec::new();
         for sentence in split_sentences(text) {
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
@@ -1140,6 +1152,15 @@ impl Templates {
             } else {
                 ("", sentence.clone())
             };
+            // "Manifest the top card of your library, then put two +1/+1
+            // counters on it": "it" is the manifested creature.
+            if let Some(c) = manifest_then.captures(&body) {
+                let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(sentence.clone()))?;
+                out.push(format!(
+                    "{prefix}manifest then put {n} +1/+1 counters on that card"
+                ));
+                continue;
+            }
             // "Draw a card, then discard a card": clauses joined by "then".
             let mut parts = Vec::new();
             let clauses: Vec<&str> = if body.contains("earch your library") {
@@ -1321,6 +1342,7 @@ fn trigger_text(head: &str) -> Option<String> {
             "whenever this becomes targeted"
         }
         "Whenever this creature becomes tapped" => "whenever this becomes tapped",
+        "When this creature is turned face up" => "when this is turned face up",
         "Whenever this creature becomes untapped" => "whenever this becomes untapped",
         "Whenever this creature is dealt damage" => "whenever this is dealt damage",
         "Whenever this creature deals damage" => "whenever this deals damage",
@@ -1898,7 +1920,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {

@@ -1,0 +1,8 @@
+card "Defenestrated Phantom" {
+  oracle_id e73addfa-d18a-46f7-882e-7bc2f292230b
+  cost {4}{W}{W}
+  type Creature — Spirit
+  pt 4/3
+  keywords flying
+  disguise {4}{W}
+}

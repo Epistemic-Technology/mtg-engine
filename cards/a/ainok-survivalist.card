@@ -1,0 +1,8 @@
+card "Ainok Survivalist" {
+  oracle_id 7a5dae5f-29ab-4996-b236-c754de8769bc
+  cost {1}{G}
+  type Creature — Dog Shaman
+  pt 2/1
+  megamorph {1}{G}
+  triggered when this is turned face up: destroy target artifact or enchantment an opponent controls
+}

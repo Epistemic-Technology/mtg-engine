@@ -1727,6 +1727,9 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// Manifest (CR 701.34): the top card of the controller's library
+    /// onto the battlefield face down as a 2/2 creature.
+    Manifest,
     /// "Target creature gains '...' until end of turn": a registered
     /// ability granted until end of turn (layer 6).
     GrantAbility {
@@ -1916,6 +1919,7 @@ pub const WATCH_LIFE_CHANGE: u16 = 32;
 pub const WATCH_CAST: u16 = 64;
 pub const WATCH_TARGETED: u16 = 128;
 pub const WATCH_TAP: u16 = 256;
+pub const WATCH_FACE_UP: u16 = 512;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -1980,6 +1984,8 @@ pub enum TriggerSpec {
     /// "Whenever you cast an artifact spell", "a multicolored spell", "a
     /// Spirit or Arcane spell": the spell matches the filter.
     CastsFiltered { whose: Who, filter: ObjFilter },
+    /// "When this creature is turned face up" (CR 708.8).
+    TurnedFaceUp,
 }
 
 /// What a damage trigger's damage must be dealt to.
@@ -2015,6 +2021,7 @@ impl TriggerSpec {
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
+            TriggerSpec::TurnedFaceUp => WATCH_FACE_UP,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. } | TriggerSpec::CastsFiltered { .. } => WATCH_CAST,
             TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
@@ -2179,6 +2186,16 @@ impl ActivatedAbility {
                 )
             })
     }
+}
+
+/// How a face-down card turns face up (CR 702.37, 702.168).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum MorphKind {
+    Morph,
+    /// Also gets a +1/+1 counter as it turns face up (CR 702.37b).
+    Megamorph,
+    /// Face down, it has ward {2} (CR 702.168).
+    Disguise,
 }
 
 /// A static ability changing the generic part of spells' costs (CR
@@ -2425,6 +2442,9 @@ pub struct CardDef {
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<ManaCost>,
+    /// Morph, megamorph, or disguise (CR 702.37, 702.168): cast face down
+    /// for {3}, turned face up for this cost.
+    pub morph: Option<(ManaCost, MorphKind)>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -2824,6 +2844,11 @@ pub struct CardPool {
     persist: AbilityId,
     undying: AbilityId,
     flanking: AbilityId,
+    /// A face-down permanent's or spell's characteristics (CR 708.2a): a
+    /// nameless, colorless 2/2 creature with no abilities; and the same
+    /// with ward {2}, for disguise (CR 702.168b).
+    face_down: CardRef,
+    face_down_ward: CardRef,
 }
 
 impl Default for CardPool {
@@ -2833,6 +2858,7 @@ impl Default for CardPool {
 }
 
 impl CardPool {
+    #[allow(clippy::too_many_lines)] // the built-in definitions
     pub fn new() -> Self {
         let mut pool = CardPool {
             defs: Vec::new(),
@@ -2850,6 +2876,8 @@ impl CardPool {
             persist: AbilityId(0),
             undying: AbilityId(0),
             flanking: AbilityId(0),
+            face_down: CardRef(0),
+            face_down_ward: CardRef(0),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -2901,6 +2929,29 @@ impl CardPool {
                 to: Recipient::TriggeringObject,
             }],
         }));
+        // Named only for logs: a face-down permanent has no name.
+        pool.face_down = pool.add(
+            Builder::new("face-down creature", "")
+                .types([CardType::Creature])
+                .pt(2, 2)
+                .build(),
+        );
+        let ward = AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::TargetedByOpponent,
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::CounterUnlessPays {
+                to: Recipient::TriggeringObject,
+                mana: ManaCost::parse("{2}").expect("a mana cost"),
+            }],
+        });
+        pool.face_down_ward = pool.add(
+            Builder::new("face-down creature", "")
+                .types([CardType::Creature])
+                .pt(2, 2)
+                .ability(ward)
+                .build(),
+        );
         for (kind, slot) in [
             (CounterKind::MinusOneMinusOne, 0),
             (CounterKind::PlusOnePlusOne, 1),
@@ -3011,6 +3062,21 @@ impl CardPool {
     /// Every interned filter, by index.
     pub fn filters(&self) -> &[ObjFilter] {
         &self.filters
+    }
+
+    /// The definition a face-down object has (CR 708.2a); with ward {2}
+    /// for disguise.
+    pub fn face_down(&self, ward: bool) -> CardRef {
+        if ward {
+            self.face_down_ward
+        } else {
+            self.face_down
+        }
+    }
+
+    /// Whether a definition is a face-down one.
+    pub fn is_face_down(&self, def: CardRef) -> bool {
+        def == self.face_down || def == self.face_down_ward
     }
 
     /// The triggered ability a keyword stands for, for keywords that are
@@ -3198,6 +3264,7 @@ impl Builder {
             kicker: None,
             self_cost: None,
             buyback: None,
+            morph: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3295,6 +3362,13 @@ impl Builder {
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
         self.0.kicker = Some(cost);
+        self
+    }
+
+    /// Morph, megamorph, or disguise (CR 702.37, 702.168).
+    #[must_use]
+    pub fn morph(mut self, cost: ManaCost, kind: MorphKind) -> Self {
+        self.0.morph = Some((cost, kind));
         self
     }
 

@@ -1,0 +1,7 @@
+card "Sultai Emissary" {
+  oracle_id 0274f286-46a1-4028-878a-88c2146a895c
+  cost {1}{B}
+  type Creature — Zombie Warrior
+  pt 1/1
+  triggered when this dies: manifest
+}

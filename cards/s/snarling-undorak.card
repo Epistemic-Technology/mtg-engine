@@ -1,0 +1,8 @@
+card "Snarling Undorak" {
+  oracle_id a932e265-604a-4aed-b8a9-6234a3db16a5
+  cost {2}{G}{G}
+  type Creature — Beast
+  pt 3/3
+  activated {2}{G}: target Beast creature gets +1/+1
+  morph {1}{G}{G}
+}

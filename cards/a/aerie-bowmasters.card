@@ -1,0 +1,8 @@
+card "Aerie Bowmasters" {
+  oracle_id 43ace4d5-9006-4bad-bd17-3d368c20564d
+  cost {2}{G}{G}
+  type Creature — Dog Archer
+  pt 3/4
+  keywords reach
+  megamorph {5}{G}
+}

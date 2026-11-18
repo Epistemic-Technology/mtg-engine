@@ -1,0 +1,54 @@
+# M5 slice 14: face-down permanents (CR 708): morph, megamorph, disguise,
+# and manifest.
+
+scenario "morph: cast face down as a 2/2 for {3}" {
+  battlefield A: 3 "Mountain"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  run_to turn 1 postcombat_main
+  assert battlefield A count 4
+  assert hand A count 0
+}
+
+scenario "megamorph: turned face up, a +1/+1 counter and its trigger" {
+  battlefield A: 6 "Mountain"
+  hand A: "Atarka Efreet"
+  turn 1 A: cast "Atarka Efreet" face_down
+  turn 1 postcombat_main A: unmorph "Atarka Efreet"
+  turn 1 A: trigger "Atarka Efreet" targeting player B
+  run_to turn 1 end
+  assert power "Atarka Efreet" 6
+  assert life B 19
+}
+
+scenario "face down: a 2/2 with no abilities" {
+  battlefield A: 3 "Forest"
+  hand A: "Aerie Bowmasters"
+  turn 1 A: cast "Aerie Bowmasters" face_down
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert power "face-down creature" 2
+  assert has not "face-down creature" reach
+}
+
+scenario "disguise: face down it has ward {2}" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Mountain"
+  hand A: "Alley Assailant"
+  hand B: "Shock"
+  turn 1 A: cast "Alley Assailant" face_down
+  turn 2 B: cast "Shock" targeting "face-down creature"
+  run_to turn 2 end
+  assert battlefield A contains "face-down creature"
+  assert graveyard B contains "Shock"
+}
+
+scenario "manifest: the top card becomes a face-down 2/2" {
+  battlefield A: 4 "Forest"
+  hand A: "Formless Nurturing"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: cast "Formless Nurturing"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "face-down creature"
+  assert power "face-down creature" 3
+}

@@ -1,0 +1,8 @@
+card "Monastery Flock" {
+  oracle_id fd05f23e-8974-445d-9059-d706a3740d89
+  cost {2}{U}
+  type Creature — Bird
+  pt 0/5
+  keywords defender, flying
+  morph {U}
+}

@@ -1,0 +1,8 @@
+card "Kin-Tree Warden" {
+  oracle_id 1ea9517a-c2ed-4aec-8fd3-e603b0e7dec9
+  cost {G}
+  type Creature — Human Warrior
+  pt 1/1
+  activated {2}: regenerate this
+  morph {G}
+}

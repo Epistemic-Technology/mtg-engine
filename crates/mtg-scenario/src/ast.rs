@@ -124,7 +124,11 @@ pub enum Action {
         /// `in response to "X"`: fire only while an object named X is on
         /// the stack.
         respond_to: Option<String>,
+        /// `face_down`: cast face down for {3} (morph, CR 702.37c).
+        face_down: bool,
     },
+    /// `unmorph "X"`: turn the face-down permanent that is card X face up.
+    TurnFaceUp(String),
     /// `attack "X" [at <target>], ...`: attackers, each optionally with
     /// the player or planeswalker it attacks (CR 508.1a).
     Attack(Vec<(String, Option<TargetRef>)>),
@@ -196,6 +200,7 @@ impl Action {
             Action::YouMay { accept: false, .. } => "decline",
             Action::Copy(_) => "copy",
             Action::Wait => "wait",
+            Action::TurnFaceUp(_) => "unmorph",
         }
     }
 }

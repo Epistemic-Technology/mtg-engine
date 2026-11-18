@@ -20,6 +20,10 @@ pub enum Event {
     RevealedHand {
         player: PlayerId,
     },
+    /// A face-down permanent was turned face up (CR 708.8).
+    TurnedFaceUp {
+        obj: ObjId,
+    },
     /// A card was revealed (the top of a library, as a creature explores).
     Revealed {
         obj: ObjId,
@@ -264,7 +268,7 @@ impl Event {
     #[inline]
     pub fn watch_bit(&self) -> u16 {
         use crate::card::{
-            WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_DAMAGE, WATCH_LIFE_CHANGE,
+            WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_DAMAGE, WATCH_FACE_UP, WATCH_LIFE_CHANGE,
             WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
@@ -277,6 +281,7 @@ impl Event {
             Event::Cast { .. } => WATCH_CAST,
             Event::Targeted { .. } => WATCH_TARGETED,
             Event::Tapped { .. } | Event::Untapped { .. } => WATCH_TAP,
+            Event::TurnedFaceUp { .. } => WATCH_FACE_UP,
             _ => 0,
         }
     }

@@ -184,6 +184,15 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Morph(cost)) => {
+                    b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
+                }
+                Ability::Mechanic(Mechanic::Megamorph(cost)) => {
+                    b = b.morph(cost.clone(), mtg_core::card::MorphKind::Megamorph);
+                }
+                Ability::Mechanic(Mechanic::Disguise(cost)) => {
+                    b = b.morph(cost.clone(), mtg_core::card::MorphKind::Disguise);
+                }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
                     f.who = Some(mtg_core::card::Who::You);
@@ -250,7 +259,12 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::SelfCost { .. }
                     | Ability::Affinity(_)
-                    | Ability::Mechanic(Mechanic::Buyback(_))
+                    | Ability::Mechanic(
+                        Mechanic::Buyback(_)
+                            | Mechanic::Morph(_)
+                            | Mechanic::Megamorph(_)
+                            | Mechanic::Disguise(_)
+                    )
             ) {
                 continue;
             }
@@ -762,6 +776,7 @@ impl Compiler<'_> {
                 });
             }
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
+            Effect::Manifest => out.push(CoreEffect::Manifest),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false)?;
                 out.push(CoreEffect::Modes(modes));
@@ -829,6 +844,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::TurnedFaceUp => TriggerSpec::TurnedFaceUp,
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
@@ -1088,8 +1104,11 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
-                Mechanic::Buyback(_) => {
-                    return self.err("buyback is part of the spell's cost, not an ability");
+                Mechanic::Buyback(_)
+                | Mechanic::Morph(_)
+                | Mechanic::Megamorph(_)
+                | Mechanic::Disguise(_) => {
+                    return self.err("a cost of the card, not an ability");
                 }
                 other => {
                     let expanded = expand_mechanic(other);
@@ -1239,7 +1258,11 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             equip: false,
             cycling: false,
         },
-        Mechanic::Toxic(_) | Mechanic::Buyback(_) => unreachable!("not an expansion"),
+        Mechanic::Toxic(_)
+        | Mechanic::Buyback(_)
+        | Mechanic::Morph(_)
+        | Mechanic::Megamorph(_)
+        | Mechanic::Disguise(_) => unreachable!("not an expansion"),
     }
 }
 

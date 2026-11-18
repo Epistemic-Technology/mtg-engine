@@ -1,0 +1,6 @@
+card "Soul Summons" {
+  oracle_id 0f5b79ca-9f80-420b-a6c5-bb2a9a95c7e7
+  cost {1}{W}
+  type Sorcery
+  spell: manifest
+}

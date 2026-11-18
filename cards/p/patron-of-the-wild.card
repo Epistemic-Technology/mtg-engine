@@ -1,0 +1,8 @@
+card "Patron of the Wild" {
+  oracle_id 7ba8ae5b-8025-40eb-969d-38a85eefe7d6
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  morph {2}{G}
+  triggered when this is turned face up: target creature gets +3/+3
+}

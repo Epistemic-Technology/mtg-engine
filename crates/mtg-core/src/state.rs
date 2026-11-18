@@ -757,6 +757,9 @@ pub struct GameState {
     pub life_cda_sources: u32,
     /// Battlefield permanents with a static ability changing spell costs.
     pub cost_change_sources: u32,
+    /// Face-down permanents on the battlefield, so listing options skips
+    /// the turn-face-up check without any.
+    pub face_down_count: u32,
     /// A cast just undone (CR 726) and the state version then: it is not
     /// offered again until something changes, so an agent can't loop on it.
     pub undone_cast: Option<(ObjId, u64)>,

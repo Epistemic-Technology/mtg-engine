@@ -1,0 +1,8 @@
+card "Echo Tracer" {
+  oracle_id 34efa2fe-95ef-4a06-9a84-97f03ec68908
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  morph {2}{U}
+  triggered when this is turned face up: return target creature to hand
+}

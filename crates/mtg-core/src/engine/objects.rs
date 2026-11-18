@@ -184,6 +184,9 @@ impl GameState {
             .expect("moving an object that exists");
         self.remove_from_zone_list(id);
         let old = self.objects.remove(id).expect("object exists");
+        if old.zone == Zone::Battlefield && self.pool.is_face_down(old.def) {
+            self.face_down_count = self.face_down_count.saturating_sub(1);
+        }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
             self.creatures_died_this_turn = self.creatures_died_this_turn.saturating_add(1);
         }
@@ -254,6 +257,9 @@ impl GameState {
         if to == Zone::Battlefield {
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
+            if self.pool.is_face_down(def) {
+                self.face_down_count += 1;
+            }
         }
         match to {
             Zone::Battlefield => self.battlefield.push(new),
@@ -384,6 +390,28 @@ impl GameState {
     /// CR 707: `id` becomes a copy of `of`, keeping `except`'s exceptions
     /// (CR 707.9b). Counters, damage, and attachments stay; the board
     /// counts follow the new definition.
+    /// CR 708.8: a face-down permanent turns face up as the card it is;
+    /// megamorph adds a +1/+1 counter (CR 702.37b).
+    pub(super) fn turn_face_up(&mut self, id: ObjId) {
+        let o = &self.objects[id];
+        let (old_flags, card) = (self.flags_of(o), o.card);
+        self.count_sources(old_flags, false, false);
+        self.face_down_count = self.face_down_count.saturating_sub(1);
+        self.objects[id].def = card;
+        let def = self.pool.get(card);
+        let (flags, legend, mega) = (
+            self.flags_of(&self.objects[id]),
+            def.is_legendary(),
+            matches!(def.morph, Some((_, crate::card::MorphKind::Megamorph))),
+        );
+        self.count_sources(flags, legend, true);
+        self.cbump();
+        if mega {
+            self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
+        }
+        self.emit(Event::TurnedFaceUp { obj: id });
+    }
+
     pub(super) fn become_copy(&mut self, id: ObjId, of: ObjId, except: Option<CardRef>) {
         let (def, x) = {
             let o = &self.objects[of];

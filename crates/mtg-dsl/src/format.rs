@@ -311,6 +311,7 @@ impl Fmt {
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
+            Effect::Manifest => "manifest".to_string(),
             Effect::Modes(modes) => {
                 let mut s = "choose one {\n".to_string();
                 for m in modes {
@@ -975,6 +976,7 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TurnedFaceUp => "when this is turned face up".to_string(),
         Trigger::BecomesTargetWhenever(o) => {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
@@ -1499,6 +1501,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Unearth(c) => format!("unearth {c}"),
                 crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
+                crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
+                crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
+                crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

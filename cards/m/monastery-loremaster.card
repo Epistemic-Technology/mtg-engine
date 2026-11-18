@@ -1,0 +1,8 @@
+card "Monastery Loremaster" {
+  oracle_id 1c8ef715-3c3c-4d04-9f30-941b870b11d3
+  cost {3}{U}
+  type Creature — Djinn Wizard
+  pt 3/2
+  megamorph {5}{U}
+  triggered when this is turned face up: return target noncreature, nonland card from your graveyard to hand
+}

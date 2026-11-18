@@ -1,0 +1,8 @@
+card "Nantuko Vigilante" {
+  oracle_id 28ea78dc-7ad6-4006-aaf8-4b25057ec019
+  cost {3}{G}
+  type Creature — Insect Druid Mutant
+  pt 3/2
+  morph {1}{G}
+  triggered when this is turned face up: destroy target artifact or enchantment
+}

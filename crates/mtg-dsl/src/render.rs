@@ -1426,6 +1426,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
         }
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Modes(modes) => {
             let mut out = "choose one —".to_string();
             for m in modes {
@@ -2226,6 +2227,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             format!("whenever {who} {} spell", with_article(&what))
         }
+        Trigger::TurnedFaceUp => format!("when {} is turned face up", this(ctx)),
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)
@@ -2998,6 +3000,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Unearth(c) => format!("Unearth {c}"),
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
+            crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
+            crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
+            crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
         },
         Ability::EntersTappedUnless(c) => format!(
             "This {} enters tapped unless {}.",

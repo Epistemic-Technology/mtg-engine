@@ -1,0 +1,8 @@
+card "Fallen Cleric" {
+  oracle_id 7330201a-41ff-44bf-a623-2ed062878c58
+  cost {4}{B}
+  type Creature — Zombie Cleric
+  pt 4/2
+  protection from Cleric
+  morph {4}{B}
+}

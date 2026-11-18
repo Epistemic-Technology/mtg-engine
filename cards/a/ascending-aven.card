@@ -1,0 +1,9 @@
+card "Ascending Aven" {
+  oracle_id 67b4a4bc-0b02-4cef-b5c8-41c839eaf0cd
+  cost {2}{U}{U}
+  type Creature — Bird Soldier
+  pt 3/2
+  keywords flying
+  can block only creature with flying
+  morph {2}{U}
+}

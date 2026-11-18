@@ -1,0 +1,8 @@
+card "Sagu Archer" {
+  oracle_id cf8a8482-e243-4155-bc21-a1e474c6f1e7
+  cost {4}{G}
+  type Creature — Snake Archer
+  pt 2/5
+  keywords reach
+  morph {4}{G}
+}

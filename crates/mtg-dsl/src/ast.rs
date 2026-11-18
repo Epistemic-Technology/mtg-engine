@@ -422,6 +422,12 @@ pub enum Mechanic {
     /// CR 702.107: "{cost}, {T}: Put a +1/+1 counter on this creature.
     /// Activate only as a sorcery."
     Outlast(ManaCost),
+    /// CR 702.37: cast face down for {3}; turn face up for the cost.
+    Morph(ManaCost),
+    /// CR 702.37b: morph, and a +1/+1 counter as it turns face up.
+    Megamorph(ManaCost),
+    /// CR 702.168: morph with ward {2} while face down.
+    Disguise(ManaCost),
 }
 
 /// A blocking restriction on this creature.
@@ -610,6 +616,8 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `when this is turned face up` (CR 708.8).
+    TurnedFaceUp,
     /// `whenever this becomes targeted`: printed "Whenever" (most
     /// creatures) where `when ...` prints "When".
     BecomesTargetWhenever(TriggerObj),
@@ -960,6 +968,8 @@ pub enum Effect {
     },
     /// Echo's bookkeeping (from its expansion).
     ClearEcho,
+    /// `manifest`: "manifest the top card of your library" (CR 701.34).
+    Manifest,
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),

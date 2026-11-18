@@ -1,0 +1,8 @@
+card "Haunted Cadaver" {
+  oracle_id 7f46839f-175d-4292-8057-c3e0da206075
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever this deals combat damage to a player: you may sacrifice this; if you do, that player discards 3 cards
+  morph {1}{B}
+}

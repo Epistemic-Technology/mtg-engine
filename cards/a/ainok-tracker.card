@@ -1,0 +1,8 @@
+card "Ainok Tracker" {
+  oracle_id bf84a598-12d3-406d-8eeb-40592e782b87
+  cost {5}{R}
+  type Creature — Dog Scout
+  pt 3/3
+  keywords first strike
+  morph {4}{R}
+}

@@ -1,0 +1,7 @@
+card "Spined Basher" {
+  oracle_id 4891923b-9c8c-4816-9623-d9362e4eb503
+  cost {2}{B}
+  type Creature — Zombie Beast
+  pt 3/1
+  morph {2}{B}
+}
