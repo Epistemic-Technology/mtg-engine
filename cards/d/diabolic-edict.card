@@ -1,0 +1,6 @@
+card "Diabolic Edict" {
+  oracle_id 058917c1-21ab-488a-9f9c-591c55f3c596
+  cost {1}{B}
+  type Instant
+  spell: target player sacrifices 1 creature
+}

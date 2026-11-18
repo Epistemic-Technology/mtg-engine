@@ -1,0 +1,7 @@
+card "Dryad's Revival" {
+  oracle_id 8a69a0f0-5f0f-4098-ab6d-be3233af5cd3
+  cost {2}{G}
+  type Sorcery
+  spell: return target card from your graveyard to hand
+  flashback {4}{G}
+}

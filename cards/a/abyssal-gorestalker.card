@@ -1,0 +1,7 @@
+card "Abyssal Gorestalker" {
+  oracle_id 465cda20-c8f3-4a7c-a250-875877bce21d
+  cost {4}{B}{B}
+  type Creature — Horror
+  pt 6/6
+  triggered when this enters: each player sacrifices 2 creature
+}

@@ -1,0 +1,9 @@
+card "Reckless Air Strike" {
+  oracle_id 89247308-e16f-4f60-a2a2-0b5e297c1fc1
+  cost {R}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to target creature with flying
+    mode: destroy target artifact
+  }
+}

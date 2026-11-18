@@ -1,0 +1,7 @@
+card "Fade from Memory" {
+  oracle_id 7c943883-06af-45a4-b5ed-b4564835dbb0
+  cost {B}
+  type Instant
+  spell: exile target card from a graveyard
+  cycling {B}
+}

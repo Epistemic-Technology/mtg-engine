@@ -1386,8 +1386,9 @@ impl GameState {
         for p in &mut self.players {
             p.mana_pool.empty();
         }
-        if self.step == Step::EndOfCombat {
-            self.combat = None;
+        if self.step == Step::EndOfCombat && self.combat.take().is_some() {
+            // Filters on attacking and blocking creatures see the change.
+            self.combat_bump();
         }
         if self.step == Step::Cleanup && self.cleanup_repeat {
             self.cleanup_repeat = false;

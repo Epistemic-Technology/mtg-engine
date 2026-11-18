@@ -1,0 +1,8 @@
+card "Gloomwidow" {
+  oracle_id e5139376-cdb1-4f1e-b417-b956d6b713b9
+  cost {2}{G}
+  type Creature — Spider
+  pt 3/3
+  keywords reach
+  can block only creature with flying
+}

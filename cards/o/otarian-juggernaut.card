@@ -1,0 +1,8 @@
+card "Otarian Juggernaut" {
+  oracle_id c19f79bb-a608-4455-98ef-aac129cea8c5
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 2/3
+  can't be blocked by Wall
+  label "Threshold" static as long as 7 cards in your graveyard, this: +3/+0, has attacks each combat if able
+}

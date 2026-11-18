@@ -1,0 +1,9 @@
+card "Moment of Valor" {
+  oracle_id bfac8072-2bbc-43ca-b141-9cd0799840f7
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode: untap target creature; target 1 gets +1/+0 and gains indestructible
+    mode: destroy target creature with power 4 or greater
+  }
+}

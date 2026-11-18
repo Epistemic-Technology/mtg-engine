@@ -1,0 +1,8 @@
+card "Air Servant" {
+  oracle_id 49638d96-e83e-4aab-bafb-d6183a6e3ff6
+  cost {4}{U}
+  type Creature — Elemental
+  pt 4/3
+  keywords flying
+  activated {2}{U}: tap target creature with flying
+}

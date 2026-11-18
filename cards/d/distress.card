@@ -1,0 +1,6 @@
+card "Distress" {
+  oracle_id 7bb1b48b-aa6b-4064-9355-c43b0f509388
+  cost {B}{B}
+  type Sorcery
+  spell: target player reveals hand discarding nonland card
+}

@@ -1,0 +1,6 @@
+card "Repel" {
+  oracle_id 6e072b3a-7a83-4d77-bae3-72de0e646b81
+  cost {3}{U}
+  type Instant
+  spell: put target creature on top of library
+}

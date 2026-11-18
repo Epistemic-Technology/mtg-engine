@@ -1,0 +1,6 @@
+card "Excommunicate" {
+  oracle_id 6c2cf22e-5dbb-4fa9-8ece-17069e6f1d7f
+  cost {2}{W}
+  type Sorcery
+  spell: put target creature on top of library
+}

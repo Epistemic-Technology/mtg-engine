@@ -1,0 +1,8 @@
+card "Sureshot Sower" {
+  oracle_id 5bbc9d7d-91bd-4a58-8d19-f7be650720b7
+  cost {1}{G}
+  type Creature — Human Archer
+  pt 3/1
+  keywords reach
+  activated {3}{G}, discard this: destroy target creature with flying
+}

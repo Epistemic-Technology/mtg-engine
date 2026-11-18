@@ -1,0 +1,7 @@
+card "Jukai Trainee" {
+  oracle_id cb9fa34d-1d5f-461c-acad-bc573d41ceb2
+  cost {1}{G}
+  type Creature — Human Samurai
+  pt 2/2
+  triggered whenever this blocks or becomes blocked: this gets +1/+1
+}

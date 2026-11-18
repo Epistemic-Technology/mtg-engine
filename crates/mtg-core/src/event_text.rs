@@ -56,6 +56,9 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             format!("--- Turn {turn}, {}'s turn ---", who(*player, viewer))
         }
         Event::StepBegin { step } => format!("[{step:?}]"),
+        Event::RevealedHand { player } => {
+            format!("{} reveals their hand.", who(*player, viewer))
+        }
         Event::Transformed { obj } => format!("{} transforms.", state.name_of_or_lki(*obj)),
         Event::Draw { player, card } => {
             if *player == viewer {
@@ -113,7 +116,10 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             s.push('.');
             s
         }
-        Event::Tapped { .. } | Event::Untapped { .. } | Event::Pass { .. } => return None,
+        Event::Tapped { .. }
+        | Event::Untapped { .. }
+        | Event::Pass { .. }
+        | Event::Blocked { .. } => return None,
         Event::Resolve { spell, .. } => format!("{} resolves.", obj(state, *spell)),
         Event::Fizzle { spell, .. } => {
             format!("{} fizzles (its targets are illegal).", obj(state, *spell))

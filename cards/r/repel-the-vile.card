@@ -1,0 +1,9 @@
+card "Repel the Vile" {
+  oracle_id aa108554-f1a0-45b6-aa15-597d42be7a8a
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: exile target creature with power 4 or greater
+    mode: exile target enchantment
+  }
+}

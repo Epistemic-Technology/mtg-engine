@@ -1,0 +1,7 @@
+card "Razorclaw Bear" {
+  oracle_id 3ee07899-e6d6-4dcf-8596-4d2420690d7c
+  cost {2}{G}{G}
+  type Creature — Bear
+  pt 3/3
+  triggered whenever this becomes blocked: this gets +2/+2
+}

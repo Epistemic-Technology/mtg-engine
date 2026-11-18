@@ -1,0 +1,6 @@
+card "Army of Allah" {
+  oracle_id 3483946d-8645-4c22-b0ba-a65a44456324
+  cost {1}{W}{W}
+  type Instant
+  spell: each attacking creature gets +2/+0
+}

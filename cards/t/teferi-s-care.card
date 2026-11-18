@@ -1,0 +1,7 @@
+card "Teferi's Care" {
+  oracle_id 6c5c7b26-9cd6-4f29-bbb2-a0745153ee5d
+  cost {2}{W}
+  type Enchantment
+  activated {W}, sacrifice enchantment: destroy target enchantment
+  activated {3}{U}{U}: counter target enchantment spell
+}

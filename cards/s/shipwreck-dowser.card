@@ -1,0 +1,8 @@
+card "Shipwreck Dowser" {
+  oracle_id dc3073fc-dc23-426e-b867-fee5dd99fe25
+  cost {3}{U}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  keywords prowess
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+}

@@ -59,6 +59,9 @@ pub enum DecisionKind {
     Surveil { count: u32 },
     /// The color of one mana of any color an ability adds.
     ChooseColor,
+    /// A permanent to sacrifice for an edict ("sacrifices a creature of
+    /// their choice"): `Sacrifice` options.
+    Edict,
     /// A card to find in a library search (CR 701.19): `Target` of a
     /// library card, or `Decline` to find nothing.
     SearchLibrary,

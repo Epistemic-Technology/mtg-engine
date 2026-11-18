@@ -1,0 +1,7 @@
+card "Brushwagg" {
+  oracle_id 33a981ac-878d-4257-936f-55b4e6543c12
+  cost {1}{G}{G}
+  type Creature — Brushwagg
+  pt 3/2
+  triggered whenever this blocks or becomes blocked: this gets -2/+2
+}

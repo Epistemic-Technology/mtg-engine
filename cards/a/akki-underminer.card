@@ -1,0 +1,7 @@
+card "Akki Underminer" {
+  oracle_id 8358f65a-7572-430d-b4f0-4fba7a372bd9
+  cost {3}{R}
+  type Creature — Goblin Rogue Shaman
+  pt 1/1
+  triggered whenever this deals combat damage to a player: that player sacrifices 1 permanent
+}

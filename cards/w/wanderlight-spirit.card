@@ -1,0 +1,8 @@
+card "Wanderlight Spirit" {
+  oracle_id 7b4c2dcf-86f4-409d-90c3-8fe83966cac0
+  cost {2}{U}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  can block only creature with flying
+}

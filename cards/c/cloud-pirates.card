@@ -1,0 +1,8 @@
+card "Cloud Pirates" {
+  oracle_id d334aa85-3470-4f5d-9cbc-b88bf991a5af
+  cost {U}
+  type Creature — Human Pirate
+  pt 1/1
+  keywords flying
+  can block only creature with flying
+}

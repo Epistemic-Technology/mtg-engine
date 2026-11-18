@@ -1,0 +1,7 @@
+card "Voltaic Construct" {
+  oracle_id f5677831-6ca9-4c7b-b02d-f44079c3f663
+  cost {4}
+  type Artifact Creature — Golem Construct
+  pt 2/2
+  activated {2}: untap target artifact creature
+}

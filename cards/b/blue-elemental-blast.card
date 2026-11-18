@@ -1,0 +1,9 @@
+card "Blue Elemental Blast" {
+  oracle_id 65e1558c-6b09-4ddc-b520-f19f4fb972af
+  cost {U}
+  type Instant
+  choose one {
+    mode: counter target red spell
+    mode: destroy target red permanent
+  }
+}

@@ -1,0 +1,14 @@
+card "Collision // Colossus" {
+  oracle_id 197ce21b-3387-4e76-a49c-04b9c371c031
+  layout split
+  face "Collision" {
+    cost {1}{R/G}
+    type Instant
+    spell: deal 6 damage to target creature with flying
+  }
+  face "Colossus" {
+    cost {R}{G}
+    type Instant
+    spell: target creature gets +4/+2 and gains trample
+  }
+}

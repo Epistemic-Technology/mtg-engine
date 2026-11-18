@@ -1,0 +1,6 @@
+card "Deathgrip" {
+  oracle_id 20ae75a7-14ca-4366-af0a-3f3f02159f3f
+  cost {B}{B}
+  type Enchantment
+  activated {B}{B}: counter target green spell
+}

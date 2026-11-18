@@ -1,0 +1,8 @@
+card "Benalish Sleeper" {
+  oracle_id 14c3692d-16a9-4ef0-98cd-60d15e4aa31f
+  cost {1}{W}
+  type Creature — Phyrexian Human Soldier
+  pt 3/1
+  kicker {B}
+  triggered when this enters if kicked: each player sacrifices 1 creature
+}

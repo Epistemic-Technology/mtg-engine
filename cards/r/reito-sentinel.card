@@ -1,0 +1,9 @@
+card "Reito Sentinel" {
+  oracle_id e574bfdb-505b-4d61-a376-6d26f03cd9b1
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/3
+  keywords defender
+  triggered when this enters: target player mills 3 cards
+  activated {3}: put target card from a graveyard on bottom of library
+}

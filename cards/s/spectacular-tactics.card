@@ -1,0 +1,9 @@
+card "Spectacular Tactics" {
+  oracle_id 15948fdf-3f9e-4eed-b85b-c5a554ff0571
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: put 1 +1/+1 counters on target creature you control; target 1 gains hexproof
+    mode: destroy target creature with power 4 or greater
+  }
+}

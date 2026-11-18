@@ -1,0 +1,6 @@
+card "Celestial Purge" {
+  oracle_id ec1f6188-2516-46ac-8a03-7b7285b23a62
+  cost {1}{W}
+  type Instant
+  spell: exile target black or red permanent
+}

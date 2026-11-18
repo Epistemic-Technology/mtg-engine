@@ -1,0 +1,8 @@
+card "Ruin Rat" {
+  oracle_id f77012cd-170f-40df-816b-330bf85e809d
+  cost {1}{B}
+  type Creature — Rat
+  pt 1/1
+  keywords deathtouch
+  triggered when this dies: exile target card from an opponent's graveyard
+}

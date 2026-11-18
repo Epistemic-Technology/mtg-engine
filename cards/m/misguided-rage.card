@@ -1,0 +1,6 @@
+card "Misguided Rage" {
+  oracle_id f5c77355-96dc-46af-a7de-f547a1368ff1
+  cost {2}{R}
+  type Sorcery
+  spell: target player sacrifices 1 permanent
+}

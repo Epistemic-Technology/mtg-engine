@@ -1,0 +1,8 @@
+card "Vaporkin" {
+  oracle_id 169e415a-9ff6-43bb-bb68-fc49e69f95a8
+  cost {1}{U}
+  type Creature — Elemental
+  pt 2/1
+  keywords flying
+  can block only creature with flying
+}

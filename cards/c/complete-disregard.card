@@ -1,0 +1,7 @@
+card "Complete Disregard" {
+  oracle_id b0bd842c-d518-42b3-850c-22a70f7f1436
+  cost {2}{B}
+  type Instant
+  keywords devoid
+  spell: exile target creature with power 3 or less
+}

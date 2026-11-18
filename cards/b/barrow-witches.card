@@ -1,0 +1,7 @@
+card "Barrow Witches" {
+  oracle_id 9d4b34cc-0452-42a4-90e4-2a48e7ffadc0
+  cost {4}{B}
+  type Creature — Human Warlock
+  pt 3/4
+  triggered when this enters: return target Knight card from your graveyard to hand
+}

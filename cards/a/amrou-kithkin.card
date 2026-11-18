@@ -1,0 +1,7 @@
+card "Amrou Kithkin" {
+  oracle_id 79644192-8f99-4d04-b151-6f74a4dbda0a
+  cost {W}{W}
+  type Creature — Kithkin
+  pt 1/1
+  can't be blocked by creature with power 3 or greater
+}

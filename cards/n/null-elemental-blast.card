@@ -1,0 +1,9 @@
+card "Null Elemental Blast" {
+  oracle_id ec7699e3-ce56-46e4-9e4d-5ed2bd5fca83
+  cost {C}
+  type Instant
+  choose one {
+    mode: counter target multicolored spell
+    mode: destroy target multicolored permanent
+  }
+}

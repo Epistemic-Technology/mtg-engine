@@ -1,0 +1,7 @@
+card "Bristling Boar" {
+  oracle_id f4aed3d2-04f5-49a4-a6be-d3cf097903f8
+  cost {3}{G}
+  type Creature — Boar
+  pt 4/3
+  can't be blocked by more than one creature
+}

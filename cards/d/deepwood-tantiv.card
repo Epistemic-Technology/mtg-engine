@@ -1,0 +1,7 @@
+card "Deepwood Tantiv" {
+  oracle_id 3b31a9a7-6c97-4e82-bf72-de83034f81a9
+  cost {4}{G}
+  type Creature — Beast
+  pt 2/4
+  triggered whenever this becomes blocked: you gains 2 life
+}

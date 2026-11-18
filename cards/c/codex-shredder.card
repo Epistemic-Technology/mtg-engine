@@ -1,0 +1,7 @@
+card "Codex Shredder" {
+  oracle_id ef7b11ab-24e7-4e7c-91a7-920bade6e60b
+  cost {1}
+  type Artifact
+  activated {T}: target player mills 1 cards
+  activated {5}, {T}, sacrifice this: return target card from your graveyard to hand
+}

@@ -1,0 +1,10 @@
+card "Consuming Sinkhole" {
+  oracle_id 03fde598-5b6b-4c7f-ba13-c06ed1fa918a
+  cost {3}{R}
+  type Instant
+  keywords devoid
+  choose one {
+    mode: exile target land creature
+    mode: deal 4 damage to target player or planeswalker
+  }
+}

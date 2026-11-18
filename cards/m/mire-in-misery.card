@@ -1,0 +1,6 @@
+card "Mire in Misery" {
+  oracle_id da1d1f64-e239-4b92-9eb9-fe9ea06aa18a
+  cost {1}{B}
+  type Sorcery
+  spell: each opponent sacrifices 1 creature or enchantment
+}

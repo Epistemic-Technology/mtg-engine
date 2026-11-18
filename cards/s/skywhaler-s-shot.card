@@ -1,0 +1,6 @@
+card "Skywhaler's Shot" {
+  oracle_id f3d4e48e-5f98-44a6-ad5c-a1c068aa01eb
+  cost {2}{W}
+  type Instant
+  spell: destroy target creature with power 3 or greater; scry 1
+}

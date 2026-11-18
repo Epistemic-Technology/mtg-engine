@@ -1,0 +1,7 @@
+card "Treetop Scout" {
+  oracle_id f62d4910-4547-43f6-909c-fc6a86ecc922
+  cost {G}
+  type Creature — Elf Scout
+  pt 1/1
+  can't be blocked except by creature with flying
+}

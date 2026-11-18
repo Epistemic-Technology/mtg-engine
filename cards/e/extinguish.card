@@ -1,0 +1,6 @@
+card "Extinguish" {
+  oracle_id b2c9f074-57ca-4709-976d-f432f632483f
+  cost {1}{U}
+  type Instant
+  spell: counter target sorcery spell
+}

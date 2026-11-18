@@ -1,0 +1,6 @@
+card "Epic Downfall" {
+  oracle_id ed5d6aba-0b8d-48b3-a84c-618f45fb67b1
+  cost {1}{B}
+  type Sorcery
+  spell: exile target creature with mana value 3 or greater
+}

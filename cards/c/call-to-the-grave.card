@@ -1,0 +1,7 @@
+card "Call to the Grave" {
+  oracle_id db5a4c25-5ae5-4a04-be79-bdee39b9152c
+  cost {4}{B}
+  type Enchantment
+  triggered at beginning of each upkeep: that player sacrifices 1 non-Zombie creature
+  triggered at beginning of each end step if no creatures are on the battlefield: sacrifice this
+}

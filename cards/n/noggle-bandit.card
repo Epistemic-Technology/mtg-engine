@@ -1,0 +1,7 @@
+card "Noggle Bandit" {
+  oracle_id 3e7707df-54e3-4307-9695-2de4e3edcf89
+  cost {1}{U/R}{U/R}
+  type Creature — Noggle Rogue
+  pt 2/2
+  can't be blocked except by creature with defender
+}

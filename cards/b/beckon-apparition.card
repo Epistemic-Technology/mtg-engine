@@ -1,0 +1,6 @@
+card "Beckon Apparition" {
+  oracle_id 10762505-ebaa-47de-9f3e-08d48f2ac240
+  cost {W/B}
+  type Instant
+  spell: exile target card from a graveyard; create 1 "1/1 white and black Spirit creature with flying"
+}

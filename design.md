@@ -2174,6 +2174,23 @@ scenarios/m5/faces.scn, the rest batch 3's), 1 skipped; fuzz 0 panics, 0 unfinis
 slice 3 (about 5% below M4 over the four slices, mostly priority-option
 and mana-source enumeration: a perf pass is due).
 
+Status 2026-11-18, slice 5 (DSL generality, from batch 3's reasons)
+done: filters gained power, toughness, and mana-value comparisons, color
+and type disjunctions, multicolored/colorless, and tapped, attacking,
+and blocking status (checked by `GameState::status_ok`; combat changes
+refresh the characteristics cache only when a permanent's static looks
+at combat status); targets for typed spells ("target instant spell")
+and graveyard cards ("target card from a graveyard"), and filters after
+any target spec ("target creature with flying", "target artifact
+creature"); "its controller" / "its owner"; several targets for exile
+and return; edicts, top/bottom of library, "loses flying", hand reveals,
+random and caster-chosen discards (Duress); blocking restrictions
+("can't be blocked by Walls", "except by", "more than one", "can block
+only"); "becomes blocked" and "blocks or becomes blocked" triggers.
+Corpus 5,825 cards: 3,999 Pauper (36.8%), 4,367 Modern (19.2%); 979
+scenarios pass (13 new in scenarios/m5/generality.scn), 1 skipped; fuzz
+0 panics, 0 unfinished; throughput 2% below slice 4.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

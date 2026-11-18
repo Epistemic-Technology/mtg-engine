@@ -1,0 +1,9 @@
+card "Hydrolash" {
+  oracle_id 31279757-499a-4d52-aa81-76b6f1983b53
+  cost {2}{U}
+  type Instant
+  spell {
+    each attacking creature gets -2/-0
+    draw 1 cards
+  }
+}

@@ -1,0 +1,6 @@
+card "Fallow Earth" {
+  oracle_id 05a4acfd-3bf3-4ec2-a28a-bc43ba7c6fbf
+  cost {2}{G}
+  type Sorcery
+  spell: put target land on top of library
+}

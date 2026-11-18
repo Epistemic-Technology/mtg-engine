@@ -1,0 +1,7 @@
+card "Predator, Flagship" {
+  oracle_id 647c1339-9508-4bb9-8e77-ebc3dfdf4069
+  cost {5}
+  type Legendary Artifact
+  activated {2}: target creature gains flying
+  activated {5}, {T}: destroy target creature with flying
+}

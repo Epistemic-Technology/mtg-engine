@@ -1,0 +1,6 @@
+card "Vanishing Verse" {
+  oracle_id 5b8f0cdf-572d-4025-b930-79291f7c35be
+  cost {W}{B}
+  type Instant
+  spell: exile target monocolored permanent
+}

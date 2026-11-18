@@ -1,0 +1,6 @@
+card "Neutralizing Blast" {
+  oracle_id e42ca67d-c9c3-499a-a7b7-63dc2dafdeab
+  cost {1}{U}
+  type Instant
+  spell: counter target multicolored spell
+}

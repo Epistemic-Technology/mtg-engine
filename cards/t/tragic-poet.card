@@ -1,0 +1,7 @@
+card "Tragic Poet" {
+  oracle_id 97bdfbe0-7048-4157-8a58-5b17410750ab
+  cost {W}
+  type Creature — Human
+  pt 1/1
+  activated {T}, sacrifice this: return target enchantment card from your graveyard to hand
+}

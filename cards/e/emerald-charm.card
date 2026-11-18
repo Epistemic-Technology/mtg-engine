@@ -1,0 +1,10 @@
+card "Emerald Charm" {
+  oracle_id 904b3db5-70bc-4d49-9887-f504aff8666f
+  cost {G}
+  type Instant
+  choose one {
+    mode: untap target permanent
+    mode: destroy target non-Aura enchantment
+    mode: target creature loses flying
+  }
+}

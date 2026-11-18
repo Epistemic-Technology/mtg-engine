@@ -1,0 +1,7 @@
+card "Argivian Archaeologist" {
+  oracle_id 4b889ec0-6130-4e31-bb02-03fdabd28bee
+  cost {1}{W}{W}
+  type Creature — Human Artificer
+  pt 1/1
+  activated {W}{W}, {T}: return target artifact card from your graveyard to hand
+}

@@ -1,0 +1,13 @@
+card "Stormkeld Vanguard // Bear Down" {
+  oracle_id 8a31c49f-5b3f-4f84-a08e-58b30a6bff7c
+  layout adventure
+  cost {4}{G}{G}
+  type Creature — Giant Warrior
+  pt 6/7
+  can't be blocked by creature with power 2 or less
+  face "Bear Down" {
+    cost {1}{G}
+    type Sorcery — Adventure
+    spell: destroy target artifact or enchantment
+  }
+}

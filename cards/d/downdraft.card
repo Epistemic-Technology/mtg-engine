@@ -1,0 +1,7 @@
+card "Downdraft" {
+  oracle_id c2508190-5aca-4511-adc8-2072cd228119
+  cost {2}{G}
+  type Enchantment
+  activated {G}: target creature loses flying
+  activated sacrifice this: deal 2 damage to each creature with flying
+}

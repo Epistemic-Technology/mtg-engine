@@ -1,0 +1,8 @@
+card "Abuna Acolyte" {
+  oracle_id cf082161-47ff-46b9-926d-3fa5e5727861
+  cost {1}{W}
+  type Creature — Cat Cleric
+  pt 1/1
+  activated {T}: prevent next 1 damage to any target this turn
+  activated {T}: prevent next 2 damage to target artifact creature this turn
+}

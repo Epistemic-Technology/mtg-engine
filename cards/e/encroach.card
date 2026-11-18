@@ -1,0 +1,6 @@
+card "Encroach" {
+  oracle_id b9959d63-5489-4ed1-a04e-9d6ba4a5f68e
+  cost {B}
+  type Sorcery
+  spell: target player reveals hand discarding nonbasic land card
+}

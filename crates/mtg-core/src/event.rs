@@ -12,6 +12,14 @@ use crate::turn::Step;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Event {
+    /// An attacking creature became blocked (CR 509.1h), once per combat.
+    Blocked {
+        attacker: ObjId,
+    },
+    /// A player revealed their hand (or another player looked at it).
+    RevealedHand {
+        player: PlayerId,
+    },
     /// A double-faced permanent turned to its other face (CR 701.27).
     Transformed {
         obj: ObjId,
@@ -258,7 +266,7 @@ impl Event {
             Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
             Event::StepBegin { .. } => WATCH_STEP_BEGIN,
             Event::Attack { .. } => WATCH_ATTACK,
-            Event::Block { .. } => WATCH_BLOCK,
+            Event::Block { .. } | Event::Blocked { .. } => WATCH_BLOCK,
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } => WATCH_CAST,

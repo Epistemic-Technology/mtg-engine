@@ -1,0 +1,7 @@
+card "King Crab" {
+  oracle_id 24982bfe-5276-44a8-99a5-43b497ebf51f
+  cost {4}{U}{U}
+  type Creature — Crab
+  pt 4/5
+  activated {1}{U}, {T}: put target green creature on top of library
+}

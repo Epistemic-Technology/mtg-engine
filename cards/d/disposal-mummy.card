@@ -1,0 +1,7 @@
+card "Disposal Mummy" {
+  oracle_id 002a9cea-8cf7-48ba-83eb-e1c87a7024e5
+  cost {2}{W}
+  type Creature — Zombie Jackal
+  pt 2/3
+  triggered when this enters: exile target card from an opponent's graveyard
+}

@@ -1,0 +1,7 @@
+card "Steel Leaf Champion" {
+  oracle_id 666af637-9282-4121-962a-048e528f9221
+  cost {G}{G}{G}
+  type Creature — Elf Knight
+  pt 5/4
+  can't be blocked by creature with power 2 or less
+}

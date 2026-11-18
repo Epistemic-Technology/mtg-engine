@@ -1,0 +1,6 @@
+card "Flood" {
+  oracle_id e8eb2abb-daf9-43e0-b909-d96b679f71c2
+  cost {U}
+  type Enchantment
+  activated {U}{U}: tap target creature without flying
+}

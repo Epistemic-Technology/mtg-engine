@@ -1,0 +1,7 @@
+card "Norwood Riders" {
+  oracle_id 1816b87c-73ba-4bfc-a51e-c982381c067d
+  cost {3}{G}
+  type Creature — Elf
+  pt 3/3
+  can't be blocked by more than one creature
+}

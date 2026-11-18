@@ -1,0 +1,8 @@
+card "Cloud Djinn" {
+  oracle_id 4914d38d-ed6b-4531-b72c-06f0968c44e9
+  cost {5}{U}
+  type Creature — Djinn
+  pt 5/4
+  keywords flying
+  can block only creature with flying
+}

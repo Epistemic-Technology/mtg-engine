@@ -1,0 +1,8 @@
+card "Skywinder Drake" {
+  oracle_id e894ccf5-fc71-48bd-bca5-cfeb05315f42
+  cost {2}{U}
+  type Creature — Drake
+  pt 3/1
+  keywords flying
+  can block only creature with flying
+}

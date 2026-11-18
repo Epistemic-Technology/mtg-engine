@@ -1,0 +1,6 @@
+card "Revive" {
+  oracle_id 51991d28-137e-4690-a674-d852b904bd1a
+  cost {1}{G}
+  type Sorcery
+  spell: return target green card from your graveyard to hand
+}

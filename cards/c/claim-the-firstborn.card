@@ -1,0 +1,6 @@
+card "Claim the Firstborn" {
+  oracle_id 9bb82829-05e8-4cdd-91e4-b837a620bfc8
+  cost {R}
+  type Sorcery
+  spell: gain control of target creature with mana value 3 or less; untap that creature; target 1 gains haste
+}

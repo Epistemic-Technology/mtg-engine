@@ -1,0 +1,7 @@
+card "River Darter" {
+  oracle_id 939a6815-bed1-43b0-bf4d-f0581ba0fed5
+  cost {2}{U}
+  type Creature — Merfolk Warrior
+  pt 2/3
+  can't be blocked by Dinosaurs
+}

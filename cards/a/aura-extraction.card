@@ -1,0 +1,7 @@
+card "Aura Extraction" {
+  oracle_id 84100106-1f97-4859-aadd-a35796ee000f
+  cost {1}{W}
+  type Instant
+  spell: put target enchantment on top of library
+  cycling {2}
+}

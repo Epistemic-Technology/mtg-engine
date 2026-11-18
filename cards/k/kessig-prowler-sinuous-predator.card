@@ -1,0 +1,13 @@
+card "Kessig Prowler // Sinuous Predator" {
+  oracle_id d2aff0ea-5474-4329-ae6a-80ee4908ee8d
+  layout transform
+  cost {G}
+  type Creature — Werewolf Horror
+  pt 2/1
+  activated {4}{G}: transform this
+  face "Sinuous Predator" {
+    type Creature — Eldrazi Werewolf
+    pt 4/4
+    can't be blocked by more than one creature
+  }
+}

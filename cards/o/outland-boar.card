@@ -1,0 +1,7 @@
+card "Outland Boar" {
+  oracle_id fdb109f6-d185-4d1e-92b9-768e77562f55
+  cost {2}{R}{G}
+  type Creature — Boar
+  pt 4/4
+  can't be blocked by creature with power 2 or less
+}

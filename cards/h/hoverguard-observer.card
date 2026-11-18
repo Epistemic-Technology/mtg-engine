@@ -1,0 +1,8 @@
+card "Hoverguard Observer" {
+  oracle_id 5ca8d756-a55a-4b36-b0a6-562a39484952
+  cost {2}{U}{U}
+  type Creature — Drone
+  pt 3/3
+  keywords flying
+  can block only creature with flying
+}

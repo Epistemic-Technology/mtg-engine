@@ -1,0 +1,7 @@
+card "Leery Fogbeast" {
+  oracle_id 174dfb7f-fe1e-4089-80c4-1788a9307263
+  cost {2}{G}
+  type Creature — Beast
+  pt 4/2
+  triggered whenever this becomes blocked: prevent all combat damage this turn
+}

@@ -1,0 +1,8 @@
+card "Welkin Tern" {
+  oracle_id 010c660a-a67b-48f0-a63a-15470eb89f69
+  cost {1}{U}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  can block only creature with flying
+}

@@ -1,0 +1,6 @@
+card "Lifeforce" {
+  oracle_id 07ae1fe5-5c3e-4d94-b809-8defd2ef44e3
+  cost {G}{G}
+  type Enchantment
+  activated {G}{G}: counter target black spell
+}

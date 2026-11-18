@@ -1,0 +1,6 @@
+card "Trumpet Blast" {
+  oracle_id d3b408e7-4d39-47a3-b00c-846903f8ae77
+  cost {2}{R}
+  type Instant
+  spell: each attacking creature gets +2/+0
+}

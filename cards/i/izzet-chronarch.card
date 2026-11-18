@@ -1,0 +1,7 @@
+card "Izzet Chronarch" {
+  oracle_id 1da438f3-db1c-4713-a60c-e078f31d809c
+  cost {3}{U}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+}

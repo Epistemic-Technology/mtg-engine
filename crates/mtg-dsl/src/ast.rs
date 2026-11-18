@@ -171,6 +171,20 @@ pub struct Filter {
     /// Written `all ...`; a static ability's subject then prints "All
     /// Sliver creatures" rather than "Sliver creatures".
     pub all: bool,
+    /// "artifact or enchantment": at least one of these types (written
+    /// with `or`).
+    pub any_types: Vec<CardType>,
+    /// `with power 2 or less`, `with toughness 4 or greater`, `with mana
+    /// value 3 or less`.
+    pub power: Option<(mtg_core::card::Cmp, i16)>,
+    pub toughness: Option<(mtg_core::card::Cmp, i16)>,
+    pub mana_value: Option<(mtg_core::card::Cmp, u8)>,
+    /// `multicolored`, `monocolored`, `colorless`.
+    pub color_count: Option<mtg_core::card::ColorCount>,
+    /// `tapped` / `untapped`, `attacking`, `blocking`.
+    pub tapped: Option<bool>,
+    pub attacking: bool,
+    pub blocking: bool,
 }
 
 impl Filter {
@@ -206,6 +220,14 @@ pub enum Target {
     /// Any filter phrase: "target nonblack creature", "target creature an
     /// opponent controls".
     Filter(Filter),
+    /// `target instant spell`: a spell matching the filter.
+    Spell(Filter),
+    /// `target card from a graveyard`, `target instant card from your
+    /// graveyard`: a card in a graveyard (whose: `Any`, `You`, `Opponents`).
+    GraveyardCard {
+        filter: Filter,
+        who: Who,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -251,12 +273,27 @@ pub enum Ability {
         cond_first: bool,
     },
     EntersAsCopy(Filter),
+    /// `can't be blocked by Wall`, `can't be blocked except by creature
+    /// with flying`, `can't be blocked by more than one creature`, `can
+    /// block only creature with flying`, `can't block creature with
+    /// flying`.
+    BlockRule(BlockRule),
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
         label: String,
         ability: Box<Ability>,
     },
+}
+
+/// A blocking restriction on this creature.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum BlockRule {
+    NotBy(Filter),
+    OnlyBy(Filter),
+    AtMostOne,
+    BlocksOnly(Filter),
+    CantBlock(Filter),
 }
 
 /// What a conditional static ability checks.
@@ -379,6 +416,10 @@ pub enum Trigger {
     Attacks(TriggerObj),
     /// "Whenever a creature you control attacks alone".
     AttacksAlone(TriggerObj),
+    /// `whenever this becomes blocked`.
+    BecomesBlocked(TriggerObj),
+    /// `whenever this blocks or becomes blocked`.
+    BlocksOrBlocked(TriggerObj),
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
     GainsLife {
@@ -410,6 +451,8 @@ pub enum Mod {
     AddColors(Vec<Color>),
     SetColors(Vec<Color>),
     AddKeywords(Vec<Keyword>),
+    /// `loses flying`.
+    LosesKeywords(Vec<Keyword>),
     RemoveAllAbilities,
     SetPt {
         power: PtValue,
@@ -444,6 +487,11 @@ pub enum Recipient {
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),
+    /// `its controller`: the controller of the `n`th target (the last one
+    /// declared when written).
+    ControllerOf(usize),
+    /// `its owner`.
+    OwnerOf(usize),
     You,
     EachOpponent,
     Source,
@@ -509,7 +557,7 @@ pub enum Effect {
         to: Recipient,
     },
     ReturnToHand {
-        what: Recipient,
+        what: Vec<Recipient>,
     },
     ReturnToBattlefield {
         what: Recipient,
@@ -519,7 +567,7 @@ pub enum Effect {
         to: Recipient,
     },
     Exile {
-        what: Recipient,
+        what: Vec<Recipient>,
     },
     ExileAllGraveyards,
     Sacrifice {
@@ -566,6 +614,39 @@ pub enum Effect {
     Scry(Num),
     /// "Investigate" (CR 701.16): create a Clue token.
     Investigate,
+    /// `put target creature on top of library` / `on bottom of library`.
+    PutInLibrary {
+        what: Recipient,
+        top: bool,
+    },
+    /// `each opponent sacrifices 1 creature`: "Each opponent sacrifices a
+    /// creature of their choice."
+    SacrificeChosen {
+        who: Recipient,
+        count: Num,
+        filter: Filter,
+    },
+    /// `target creature loses flying`: until end of turn.
+    Strip {
+        keywords: Vec<Keyword>,
+        to: Recipient,
+    },
+    /// `target player reveals hand`.
+    RevealHand {
+        who: Recipient,
+    },
+    /// `target player discards 1 card at random`.
+    DiscardRandom {
+        count: Num,
+        who: Recipient,
+    },
+    /// `target opponent reveals hand discarding nonland card`: "Target
+    /// opponent reveals their hand. You choose a nonland card from it.
+    /// That player discards that card."
+    DiscardChosen {
+        who: Recipient,
+        filter: Option<Filter>,
+    },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {
         what: Recipient,

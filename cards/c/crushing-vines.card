@@ -1,0 +1,9 @@
+card "Crushing Vines" {
+  oracle_id aebe0ba5-70b2-406b-b53b-03b12a95c2c2
+  cost {2}{G}
+  type Instant
+  choose one {
+    mode: destroy target creature with flying
+    mode: destroy target artifact
+  }
+}

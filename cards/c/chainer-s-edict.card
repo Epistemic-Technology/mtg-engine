@@ -1,0 +1,7 @@
+card "Chainer's Edict" {
+  oracle_id 7975cb9d-d37e-44f8-9614-86d2ad453c35
+  cost {1}{B}
+  type Sorcery
+  spell: target player sacrifices 1 creature
+  flashback {5}{B}{B}
+}

@@ -1,0 +1,7 @@
+card "Groundskeeper" {
+  oracle_id f2c19fba-9b06-461f-bb5e-e827ba41204d
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {1}{G}: return target basic land card from your graveyard to hand
+}

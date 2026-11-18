@@ -1,0 +1,8 @@
+card "Thalakos Mistfolk" {
+  oracle_id c836f8e4-6154-4c7a-a8dd-165ff74f9115
+  cost {2}{U}
+  type Creature — Thalakos Illusion
+  pt 2/1
+  keywords shadow
+  activated {U}: put this on top of library
+}

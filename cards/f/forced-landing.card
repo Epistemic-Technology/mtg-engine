@@ -1,0 +1,6 @@
+card "Forced Landing" {
+  oracle_id a787b18d-d33f-41ea-a0f8-f05e272d06eb
+  cost {1}{G}
+  type Instant
+  spell: put target creature with flying on bottom of library
+}

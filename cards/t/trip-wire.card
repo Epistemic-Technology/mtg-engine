@@ -1,0 +1,6 @@
+card "Trip Wire" {
+  oracle_id 5751df7a-aa9a-4a27-b7ab-445ec4bcbdee
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target creature with horsemanship
+}

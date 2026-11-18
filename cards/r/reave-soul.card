@@ -1,0 +1,6 @@
+card "Reave Soul" {
+  oracle_id 8eb328e6-332e-435c-9733-4c5336f17824
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target creature with power 3 or less
+}

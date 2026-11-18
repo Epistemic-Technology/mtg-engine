@@ -1,0 +1,7 @@
+card "Hurloon Shaman" {
+  oracle_id 9fc74fc9-bb02-4d9e-bb8e-f44f219d8946
+  cost {1}{R}{R}
+  type Creature — Minotaur Shaman
+  pt 2/3
+  triggered when this dies: each player sacrifices 1 land
+}

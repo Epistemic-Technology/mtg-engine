@@ -1,0 +1,13 @@
+card "Giant Killer // Chop Down" {
+  oracle_id 91e71279-c9d2-4873-916a-59da03a65741
+  layout adventure
+  cost {W}
+  type Creature — Human Peasant
+  pt 1/2
+  activated {1}{W}, {T}: tap target creature
+  face "Chop Down" {
+    cost {2}{W}
+    type Instant — Adventure
+    spell: destroy target creature with power 4 or greater
+  }
+}

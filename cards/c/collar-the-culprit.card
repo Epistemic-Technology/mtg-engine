@@ -1,0 +1,6 @@
+card "Collar the Culprit" {
+  oracle_id adc03c37-33c7-4b92-b9fd-4608e6c372c4
+  cost {3}{W}
+  type Instant
+  spell: destroy target creature with toughness 4 or greater
+}

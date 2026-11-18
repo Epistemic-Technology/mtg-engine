@@ -1,0 +1,7 @@
+card "Strongarm Thug" {
+  oracle_id a4d46c1b-7742-4ac8-9794-b669ee4d2cc1
+  cost {2}{B}
+  type Creature — Human Mercenary
+  pt 1/1
+  triggered when this enters: you may return target Mercenary card from your graveyard to hand
+}

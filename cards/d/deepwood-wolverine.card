@@ -1,0 +1,7 @@
+card "Deepwood Wolverine" {
+  oracle_id ca8060a7-30e7-49a4-a720-da5b995dd31f
+  cost {G}
+  type Creature — Wolverine
+  pt 1/1
+  triggered whenever this becomes blocked: this gets +2/+0
+}

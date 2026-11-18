@@ -1,0 +1,14 @@
+card "Fuss // Bother" {
+  oracle_id 88e9006a-cfdf-40f3-80d5-23465f3dceca
+  layout split
+  face "Fuss" {
+    cost {2}{R/W}
+    type Instant
+    spell: put 1 +1/+1 counters on each attacking creature you control
+  }
+  face "Bother" {
+    cost {4}{W/U}{W/U}
+    type Sorcery
+    spell: create 3 "1/1 colorless Thopter artifact creature with flying"; surveil 2
+  }
+}

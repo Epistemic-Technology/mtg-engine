@@ -1,0 +1,6 @@
+card "Natural State" {
+  oracle_id f500f4cc-d5ee-4995-b7b5-96a5f63dfb47
+  cost {G}
+  type Instant
+  spell: destroy target artifact or enchantment with mana value 3 or less
+}

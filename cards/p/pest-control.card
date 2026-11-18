@@ -1,0 +1,7 @@
+card "Pest Control" {
+  oracle_id 072db429-3838-42ba-89b6-e26cbce22af9
+  cost {W}{B}
+  type Sorcery
+  spell: destroy each nonland permanent with mana value 1 or less
+  cycling {2}
+}

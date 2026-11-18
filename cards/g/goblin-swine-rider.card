@@ -1,0 +1,7 @@
+card "Goblin Swine-Rider" {
+  oracle_id 9ebe32fc-3b6e-4cb9-9af0-1a6c3c6ad885
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  triggered whenever this becomes blocked: deal 2 damage to each attacking creature and each blocking creature
+}

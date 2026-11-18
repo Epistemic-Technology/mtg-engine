@@ -1,0 +1,6 @@
+card "Citywide Bust" {
+  oracle_id 3ac01298-e45b-4ea0-8379-2074279716a4
+  cost {1}{W}{W}
+  type Sorcery
+  spell: destroy each creature with toughness 4 or greater
+}

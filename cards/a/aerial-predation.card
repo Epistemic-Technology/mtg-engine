@@ -1,0 +1,6 @@
+card "Aerial Predation" {
+  oracle_id 6bac1495-16cf-4e1e-9126-482f85322c78
+  cost {2}{G}
+  type Instant
+  spell: destroy target creature with flying; you gains 2 life
+}

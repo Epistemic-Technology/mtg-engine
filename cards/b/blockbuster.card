@@ -1,0 +1,6 @@
+card "Blockbuster" {
+  oracle_id 11e50e35-bf4b-4089-b0c9-360d9c014584
+  cost {3}{R}{R}
+  type Enchantment
+  activated {1}{R}, sacrifice this: deal 3 damage to each tapped creature and each player
+}

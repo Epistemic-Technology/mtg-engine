@@ -1,0 +1,7 @@
+card "Cartographer" {
+  oracle_id 50d33663-5d83-4e3c-9ed7-074fe29a9fc8
+  cost {2}{G}
+  type Creature — Human
+  pt 2/2
+  triggered when this enters: you may return target land card from your graveyard to hand
+}

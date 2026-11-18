@@ -1,0 +1,8 @@
+card "Merfolk Seastalkers" {
+  oracle_id 86d592e1-4b2d-4411-9370-48326cf55cf1
+  cost {3}{U}
+  type Creature — Merfolk Scout
+  pt 2/3
+  keywords islandwalk
+  activated {2}{U}: tap target creature without flying
+}

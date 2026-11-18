@@ -1,0 +1,7 @@
+card "Treetop Rangers" {
+  oracle_id e4606bc2-faaa-4dd8-9109-55ce3440cf5b
+  cost {2}{G}
+  type Creature — Elf Ranger
+  pt 2/2
+  can't be blocked except by creature with flying
+}

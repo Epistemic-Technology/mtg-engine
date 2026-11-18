@@ -1,0 +1,6 @@
+card "Whisk Away" {
+  oracle_id ac141fe0-328a-4d9b-8048-b0c47f399587
+  cost {2}{U}
+  type Instant
+  spell: put target attacking or blocking creature on top of library
+}

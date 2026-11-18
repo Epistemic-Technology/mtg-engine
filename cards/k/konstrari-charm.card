@@ -1,0 +1,10 @@
+card "Konstrari Charm" {
+  oracle_id 40961b23-b153-434a-aeb9-b9c2ff613dcb
+  cost {R}{G}
+  type Instant
+  choose one {
+    mode: deal 6 damage to target creature with flying
+    mode: put 2 +1/+1 counters on target creature; target 1 gains trample
+    mode: add {C}{C}{C}
+  }
+}

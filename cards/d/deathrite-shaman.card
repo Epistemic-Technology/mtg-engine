@@ -1,0 +1,9 @@
+card "Deathrite Shaman" {
+  oracle_id 22f1a4a4-c423-4d1c-8775-0ed604a9fa51
+  cost {B/G}
+  type Creature — Elf Shaman
+  pt 1/2
+  activated {T}: exile target land card from a graveyard; add any
+  activated {B}, {T}: exile target instant or sorcery card from a graveyard; each opponent loses 2 life
+  activated {G}, {T}: exile target creature card from a graveyard; you gains 2 life
+}

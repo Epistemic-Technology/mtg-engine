@@ -1,0 +1,8 @@
+card "Nightscape Apprentice" {
+  oracle_id 429de3c3-3f2e-4d55-a04a-f414912aff3a
+  cost {B}
+  type Creature — Zombie Wizard
+  pt 1/1
+  activated {U}, {T}: put target creature you control on top of library
+  activated {R}, {T}: target creature gains first strike
+}

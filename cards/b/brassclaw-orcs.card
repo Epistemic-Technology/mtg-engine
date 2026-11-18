@@ -1,0 +1,7 @@
+card "Brassclaw Orcs" {
+  oracle_id c8ce324f-aa58-48f9-9f56-435e49dfff0a
+  cost {2}{R}
+  type Creature — Orc
+  pt 3/2
+  can't block creature with power 2 or greater
+}

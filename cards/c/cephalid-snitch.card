@@ -1,0 +1,7 @@
+card "Cephalid Snitch" {
+  oracle_id 15093579-8258-41d2-9738-aaa7e3824c40
+  cost {1}{U}
+  type Creature — Octopus Wizard
+  pt 1/1
+  activated sacrifice this: target creature loses protection from black
+}

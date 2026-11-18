@@ -1,0 +1,7 @@
+card "Dowsing Shaman" {
+  oracle_id c9cb34df-75b1-4dda-8f22-daadf59c5332
+  cost {4}{G}
+  type Creature — Centaur Shaman
+  pt 3/4
+  activated {2}{G}, {T}: return target enchantment card from your graveyard to hand
+}

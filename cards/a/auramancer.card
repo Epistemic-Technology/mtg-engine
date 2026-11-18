@@ -1,0 +1,7 @@
+card "Auramancer" {
+  oracle_id bd5eb181-6a69-4dc2-93a0-fa000291bc3d
+  cost {2}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may return target enchantment card from your graveyard to hand
+}

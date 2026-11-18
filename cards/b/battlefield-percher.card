@@ -1,0 +1,9 @@
+card "Battlefield Percher" {
+  oracle_id 2836c144-7268-411a-b651-351cc4ef8fe9
+  cost {3}{B}{B}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  can block only creature with flying
+  activated {1}{B}: this gets +1/+1
+}

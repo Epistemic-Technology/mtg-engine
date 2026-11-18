@@ -1,0 +1,7 @@
+card "Strangling Soot" {
+  oracle_id 6c9d3ad0-1ede-41de-a1b4-15de9c728216
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature with toughness 3 or less
+  flashback {5}{R}
+}

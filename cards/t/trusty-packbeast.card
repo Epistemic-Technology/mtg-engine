@@ -1,0 +1,7 @@
+card "Trusty Packbeast" {
+  oracle_id 12c7289f-da53-403a-a607-227f43c7e171
+  cost {2}{W}
+  type Creature — Beast
+  pt 2/3
+  triggered when this enters: return target artifact card from your graveyard to hand
+}

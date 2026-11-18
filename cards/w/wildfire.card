@@ -1,0 +1,6 @@
+card "Wildfire" {
+  oracle_id 0da68ca2-07fd-4359-95a9-fb2f815e6ed0
+  cost {4}{R}{R}
+  type Sorcery
+  spell: each player sacrifices 4 land; deal 4 damage to each creature
+}

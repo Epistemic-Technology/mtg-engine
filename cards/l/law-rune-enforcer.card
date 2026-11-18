@@ -1,0 +1,7 @@
+card "Law-Rune Enforcer" {
+  oracle_id bd13392e-e72a-4dbb-ba9d-68f68e47e30e
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+  activated {1}, {T}: tap target creature with mana value 2 or greater
+}

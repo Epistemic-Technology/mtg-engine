@@ -1,0 +1,8 @@
+card "Voracious Greatshark" {
+  oracle_id 5d96840e-f9b3-4c86-8f59-f12e5736318f
+  cost {3}{U}{U}
+  type Creature — Shark
+  pt 5/4
+  keywords flash
+  triggered when this enters: counter target artifact or creature spell
+}

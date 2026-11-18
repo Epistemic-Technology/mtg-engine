@@ -1,0 +1,8 @@
+card "Apostle of Purifying Light" {
+  oracle_id 0b49dbdc-4f1d-4895-b263-a48c7b7e6b44
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  keywords protection from black
+  activated {2}: exile target card from a graveyard
+}

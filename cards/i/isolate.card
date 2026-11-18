@@ -1,0 +1,6 @@
+card "Isolate" {
+  oracle_id f42d4556-5be2-4861-9f88-1b630b43eff2
+  cost {W}
+  type Instant
+  spell: exile target permanent with mana value 1
+}

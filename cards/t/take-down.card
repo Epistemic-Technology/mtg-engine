@@ -1,0 +1,9 @@
+card "Take Down" {
+  oracle_id 0925e112-c089-4aa4-9878-6d6fb0a263c8
+  cost {G}
+  type Sorcery
+  choose one {
+    mode: deal 4 damage to target creature with flying
+    mode: deal 1 damage to each creature with flying
+  }
+}

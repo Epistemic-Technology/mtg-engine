@@ -1,0 +1,6 @@
+card "Leaf Arrow" {
+  oracle_id d3d67bf0-2e9e-463f-8df8-990ab906fdec
+  cost {G}
+  type Instant
+  spell: deal 3 damage to target creature with flying
+}

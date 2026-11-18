@@ -1,0 +1,7 @@
+card "Thraben Heretic" {
+  oracle_id 67247945-17b7-4cb8-ba65-d0dfec367b77
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {T}: exile target creature card from a graveyard
+}

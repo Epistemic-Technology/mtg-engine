@@ -1,0 +1,8 @@
+card "Dauthi Horror" {
+  oracle_id 07c20708-c305-46e7-a98e-c99f54aeafec
+  cost {1}{B}
+  type Creature — Dauthi Horror
+  pt 2/1
+  keywords shadow
+  can't be blocked by white creature
+}

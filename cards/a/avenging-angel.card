@@ -1,0 +1,8 @@
+card "Avenging Angel" {
+  oracle_id 3415a199-05ac-4627-be97-f842eb1415a3
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered when this dies: you may put this on top of library
+}

@@ -1,0 +1,6 @@
+card "Reconstruction" {
+  oracle_id ad8fb78b-5ca5-4ef1-8c68-ee57d1e32fec
+  cost {U}
+  type Sorcery
+  spell: return target artifact card from your graveyard to hand
+}

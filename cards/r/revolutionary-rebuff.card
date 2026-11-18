@@ -1,0 +1,6 @@
+card "Revolutionary Rebuff" {
+  oracle_id 879c8663-5058-4998-9a59-f2e9ea8914dc
+  cost {1}{U}
+  type Instant
+  spell: counter target nonartifact spell unless its controller pays {2}
+}

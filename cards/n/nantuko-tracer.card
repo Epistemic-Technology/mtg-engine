@@ -1,0 +1,7 @@
+card "Nantuko Tracer" {
+  oracle_id 4fd567cb-0b8e-41dd-a2b7-87a196de294a
+  cost {1}{G}
+  type Creature — Insect Druid
+  pt 2/1
+  triggered when this enters: you may put target card from a graveyard on bottom of library
+}

@@ -1,0 +1,6 @@
+card "Reaver Ambush" {
+  oracle_id 0385be55-8e8e-4e7d-b6b7-51adc6eb98fa
+  cost {2}{B}
+  type Instant
+  spell: exile target creature with power 3 or less
+}

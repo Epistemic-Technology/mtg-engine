@@ -1,0 +1,8 @@
+card "Rishadan Airship" {
+  oracle_id 3c4661da-db2e-4834-9bba-d9a5592465d2
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 3/1
+  keywords flying
+  can block only creature with flying
+}

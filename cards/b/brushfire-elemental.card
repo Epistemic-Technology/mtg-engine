@@ -1,0 +1,9 @@
+card "Brushfire Elemental" {
+  oracle_id b33a7ec6-b22b-41cf-9312-65add1529b51
+  cost {R}{G}
+  type Creature — Elemental
+  pt 1/1
+  keywords haste
+  can't be blocked by creature with power 2 or less
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

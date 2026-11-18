@@ -1,0 +1,7 @@
+card "Living Lightning" {
+  oracle_id 1f4738db-be2e-4d02-ad0c-1b74dd6bbfdc
+  cost {3}{R}
+  type Creature — Elemental Shaman
+  pt 3/2
+  triggered when this dies: return target instant or sorcery card from your graveyard to hand
+}

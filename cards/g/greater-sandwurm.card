@@ -1,0 +1,8 @@
+card "Greater Sandwurm" {
+  oracle_id d1dfed64-6e88-44c2-b479-9a2d072e4be7
+  cost {5}{G}{G}
+  type Creature — Wurm
+  pt 7/7
+  can't be blocked by creature with power 2 or less
+  cycling {2}
+}

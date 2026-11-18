@@ -1,0 +1,7 @@
+card "Goldmeadow Dodger" {
+  oracle_id e120f341-4445-4b96-9777-2290471832bf
+  cost {W}
+  type Creature — Kithkin Rogue
+  pt 1/1
+  can't be blocked by creature with power 4 or greater
+}

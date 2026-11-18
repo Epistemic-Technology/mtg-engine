@@ -1,0 +1,7 @@
+card "Treasure Hunter" {
+  oracle_id 71ae3bc0-28da-4e91-bffd-a49fe545b7a9
+  cost {2}{W}
+  type Creature — Human
+  pt 2/2
+  triggered when this enters: you may return target artifact card from your graveyard to hand
+}

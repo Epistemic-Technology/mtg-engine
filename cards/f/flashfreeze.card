@@ -1,0 +1,6 @@
+card "Flashfreeze" {
+  oracle_id eaf98e03-729b-4145-b2af-c910c415c15d
+  cost {1}{U}
+  type Instant
+  spell: counter target red or green spell
+}

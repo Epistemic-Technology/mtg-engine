@@ -1,0 +1,8 @@
+card "Stratozeppelid" {
+  oracle_id f20640db-c5d4-4e00-9903-a33ff4f7820d
+  cost {4}{U}
+  type Creature — Beast
+  pt 4/4
+  keywords flying
+  can block only creature with flying
+}

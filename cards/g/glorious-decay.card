@@ -1,0 +1,10 @@
+card "Glorious Decay" {
+  oracle_id ac4277d7-d78a-4d6e-8d6d-11f9e56f8ae7
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: deal 4 damage to target creature with flying
+    mode: exile target card from a graveyard; draw 1 cards
+  }
+}

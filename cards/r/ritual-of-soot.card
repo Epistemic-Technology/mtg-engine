@@ -1,0 +1,6 @@
+card "Ritual of Soot" {
+  oracle_id 29e9cf1c-a6bd-4bee-9000-ac1b4e19d6b0
+  cost {2}{B}{B}
+  type Sorcery
+  spell: destroy each creature with mana value 3 or less
+}

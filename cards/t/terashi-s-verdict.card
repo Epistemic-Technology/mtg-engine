@@ -1,0 +1,6 @@
+card "Terashi's Verdict" {
+  oracle_id 28ea1f58-3310-4cf1-a834-40f2cc3b6898
+  cost {1}{W}
+  type Instant — Arcane
+  spell: destroy target attacking creature with power 3 or less
+}

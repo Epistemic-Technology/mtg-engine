@@ -1,0 +1,10 @@
+card "Selesnya Charm" {
+  oracle_id a1a49639-bcc4-4522-8862-c9fb13d40880
+  cost {G}{W}
+  type Instant
+  choose one {
+    mode: target creature gets +2/+2 and gains trample
+    mode: exile target creature with power 5 or greater
+    mode: create 1 "2/2 white Knight creature with vigilance"
+  }
+}

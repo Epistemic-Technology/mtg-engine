@@ -1,0 +1,6 @@
+card "Guttural Response" {
+  oracle_id 9fb80575-9c8e-4745-9a8f-d48cdcbbb868
+  cost {R/G}
+  type Instant
+  spell: counter target blue instant spell
+}

@@ -1,0 +1,7 @@
+card "Fleet-Footed Monk" {
+  oracle_id a6a26261-1915-4699-a2e9-cca43b39a3eb
+  cost {1}{W}
+  type Creature — Human Monk
+  pt 1/1
+  can't be blocked by creature with power 2 or greater
+}

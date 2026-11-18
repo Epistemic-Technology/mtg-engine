@@ -1,0 +1,10 @@
+card "Misery Charm" {
+  oracle_id 46aa8dca-2a7d-4bff-9323-5f6933ca95f2
+  cost {B}
+  type Instant
+  choose one {
+    mode: destroy target Cleric
+    mode: return target Cleric card from your graveyard to hand
+    mode: target player loses 2 life
+  }
+}

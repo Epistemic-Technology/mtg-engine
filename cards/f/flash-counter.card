@@ -1,0 +1,6 @@
+card "Flash Counter" {
+  oracle_id 75b2dd64-a2f5-4032-a19f-5b485dc44b16
+  cost {1}{U}
+  type Instant
+  spell: counter target instant spell
+}

@@ -1,0 +1,6 @@
+card "Miscast" {
+  oracle_id e08c71aa-d35c-4c20-b4db-ae9d36ee3169
+  cost {U}
+  type Instant
+  spell: counter target instant or sorcery spell unless its controller pays {3}
+}

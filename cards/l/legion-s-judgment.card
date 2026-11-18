@@ -1,0 +1,6 @@
+card "Legion's Judgment" {
+  oracle_id dce4d65f-cb91-48a2-a2a7-013e73dfb667
+  cost {2}{W}
+  type Sorcery
+  spell: destroy target creature with power 4 or greater
+}

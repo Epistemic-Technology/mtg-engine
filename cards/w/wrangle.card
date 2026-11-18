@@ -1,0 +1,6 @@
+card "Wrangle" {
+  oracle_id 6c7d8b6b-9890-4a94-85fc-f7545c4b1cf7
+  cost {1}{R}
+  type Sorcery
+  spell: gain control of target creature with power 4 or less; untap that creature; target 1 gains haste
+}

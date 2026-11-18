@@ -1,0 +1,7 @@
+card "Coffin Purge" {
+  oracle_id 9db5aa54-3deb-45ee-82a2-e88a4367c6d9
+  cost {B}
+  type Instant
+  spell: exile target card from a graveyard
+  flashback {B}
+}

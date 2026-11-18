@@ -1,0 +1,6 @@
+card "Clear a Path" {
+  oracle_id 05a1575c-8d08-4845-8ae0-85e0aba55637
+  cost {R}
+  type Sorcery
+  spell: destroy target creature with defender
+}

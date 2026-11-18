@@ -1,0 +1,10 @@
+card "Unforgiving Aim" {
+  oracle_id be7e220e-272e-45ca-8265-8d78da2cd2a7
+  cost {2}{G}
+  type Instant
+  choose one {
+    mode: destroy target creature with flying
+    mode: destroy target enchantment
+    mode: create 1 "2/2 black and green Elf creature"
+  }
+}

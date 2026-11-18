@@ -1,0 +1,10 @@
+card "Azorius Charm" {
+  oracle_id e7592863-4aee-47b3-9abf-4b863ab0b6ec
+  cost {W}{U}
+  type Instant
+  choose one {
+    mode: each creature you control gains lifelink
+    mode: draw 1 cards
+    mode: put target attacking or blocking creature on top of library
+  }
+}

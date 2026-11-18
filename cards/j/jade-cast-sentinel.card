@@ -1,0 +1,8 @@
+card "Jade-Cast Sentinel" {
+  oracle_id 985192cd-ceb6-48ad-80b9-e10fc544260e
+  cost {4}
+  type Artifact Creature — Ape Snake
+  pt 1/5
+  keywords reach
+  activated {2}, {T}: put target card from a graveyard on bottom of library
+}

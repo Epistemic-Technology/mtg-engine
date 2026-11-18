@@ -1,0 +1,6 @@
+card "Thoughtseize" {
+  oracle_id edd8d1e8-be43-4c38-bb3a-83081fbaf0b5
+  cost {B}
+  type Sorcery
+  spell: target player reveals hand discarding nonland card; you loses 2 life
+}

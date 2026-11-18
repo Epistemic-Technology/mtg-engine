@@ -1,0 +1,7 @@
+card "Anowon, the Ruin Sage" {
+  oracle_id 0c201f79-9eca-48c8-88ba-a20fa6918a07
+  cost {3}{B}{B}
+  type Legendary Creature — Vampire Shaman
+  pt 4/3
+  triggered at beginning of your upkeep: each player sacrifices 1 non-Vampire creature
+}

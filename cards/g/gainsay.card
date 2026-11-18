@@ -1,0 +1,6 @@
+card "Gainsay" {
+  oracle_id 5115eb6b-efae-4561-912a-f7909cc75775
+  cost {1}{U}
+  type Instant
+  spell: counter target blue spell
+}

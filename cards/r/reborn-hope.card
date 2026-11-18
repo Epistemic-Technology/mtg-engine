@@ -1,0 +1,6 @@
+card "Reborn Hope" {
+  oracle_id 683d8deb-2ab4-4c65-9a23-f4e733f06ba2
+  cost {G}{W}
+  type Sorcery
+  spell: return target multicolored card from your graveyard to hand
+}

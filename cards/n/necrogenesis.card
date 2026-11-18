@@ -1,0 +1,6 @@
+card "Necrogenesis" {
+  oracle_id ad08952a-bcae-41d6-8093-c18535dad7d5
+  cost {B}{G}
+  type Enchantment
+  activated {2}: exile target creature card from a graveyard; create 1 "1/1 green Saproling creature"
+}

@@ -1,0 +1,6 @@
+card "Reprisal" {
+  oracle_id fae90808-bafa-44d8-972a-17ded87576ee
+  cost {1}{W}
+  type Instant
+  spell: destroy target creature with power 4 or greater without regeneration
+}

@@ -1,0 +1,6 @@
+card "Pillar of Light" {
+  oracle_id 643c1ee3-a653-4a6c-b705-a61f3b67e38c
+  cost {2}{W}
+  type Instant
+  spell: exile target creature with toughness 4 or greater
+}

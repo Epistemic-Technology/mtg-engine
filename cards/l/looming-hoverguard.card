@@ -1,0 +1,8 @@
+card "Looming Hoverguard" {
+  oracle_id e1c49bdb-cfd1-4ebf-90f7-73bd5009f75e
+  cost {4}{U}{U}
+  type Creature — Drone
+  pt 3/3
+  keywords flying
+  triggered when this enters: put target artifact on top of library
+}

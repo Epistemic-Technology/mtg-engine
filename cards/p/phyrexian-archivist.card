@@ -1,0 +1,8 @@
+card "Phyrexian Archivist" {
+  oracle_id cdef800d-033e-4095-964d-9b6066f9fd36
+  cost {6}
+  type Artifact Creature — Phyrexian Construct
+  pt 4/5
+  keywords reach
+  activated {2}, {T}: put target card from a graveyard on bottom of library
+}

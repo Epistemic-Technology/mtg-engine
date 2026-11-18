@@ -1,0 +1,6 @@
+card "Lucky Offering" {
+  oracle_id cbb39e5c-e31a-44e9-be0c-2003c8bce599
+  cost {W}
+  type Sorcery
+  spell: destroy target artifact with mana value 3 or less; you gains 3 life
+}

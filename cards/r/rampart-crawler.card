@@ -1,0 +1,7 @@
+card "Rampart Crawler" {
+  oracle_id 302c0400-043d-42fa-abbb-488e520116ba
+  cost {B}
+  type Creature — Lizard Mercenary
+  pt 1/1
+  can't be blocked by Wall
+}

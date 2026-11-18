@@ -73,10 +73,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Kicker { .. } => 21,
         DecisionKind::ChooseColor => 22,
         DecisionKind::SearchLibrary => 23,
+        DecisionKind::Edict => 24,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 24] = [
+pub const DECISION_KIND_NAMES: [&str; 25] = [
     "mulligan",
     "bottom",
     "priority",
@@ -101,6 +102,7 @@ pub const DECISION_KIND_NAMES: [&str; 24] = [
     "kicker",
     "choose_color",
     "search_library",
+    "edict",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {

@@ -1,0 +1,6 @@
+card "Envelop" {
+  oracle_id 30062dd0-c049-4872-8011-8b4810a3fa26
+  cost {U}
+  type Instant
+  spell: counter target sorcery spell
+}

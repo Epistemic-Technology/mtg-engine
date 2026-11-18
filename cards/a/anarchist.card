@@ -1,0 +1,7 @@
+card "Anarchist" {
+  oracle_id 82b9ad93-df75-4417-9746-798db8fe6ba0
+  cost {4}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may return target sorcery card from your graveyard to hand
+}

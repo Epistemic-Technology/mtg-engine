@@ -1,0 +1,7 @@
+card "Deeproot Warrior" {
+  oracle_id 2af1930c-a5f2-4e7e-910f-e84458b051ac
+  cost {1}{G}
+  type Creature — Merfolk Warrior
+  pt 2/2
+  triggered whenever this becomes blocked: this gets +1/+1
+}

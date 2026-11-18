@@ -1,0 +1,7 @@
+card "Heap Doll" {
+  oracle_id aa7f0f15-bcbb-4af5-ad31-ff215dd81e71
+  cost {1}
+  type Artifact Creature — Scarecrow
+  pt 1/1
+  activated sacrifice this: exile target card from a graveyard
+}

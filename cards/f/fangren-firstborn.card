@@ -1,0 +1,7 @@
+card "Fangren Firstborn" {
+  oracle_id 2affbe3f-5292-43d9-a08c-23bf44629cc9
+  cost {1}{G}{G}{G}
+  type Creature — Beast
+  pt 4/2
+  triggered whenever this attacks: put 1 +1/+1 counters on each attacking creature
+}

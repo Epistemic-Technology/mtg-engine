@@ -1,0 +1,8 @@
+card "Hinterland Drake" {
+  oracle_id f457f182-69d0-468d-9bf0-7170363bac26
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/3
+  keywords flying
+  can't block artifact creature
+}

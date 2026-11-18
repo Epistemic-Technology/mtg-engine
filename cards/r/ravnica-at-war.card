@@ -1,0 +1,6 @@
+card "Ravnica at War" {
+  oracle_id 0012bc78-e69d-4a67-a302-e5fe0dfd4407
+  cost {3}{W}
+  type Sorcery
+  spell: exile each multicolored permanent
+}

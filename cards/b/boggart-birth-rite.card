@@ -1,0 +1,6 @@
+card "Boggart Birth Rite" {
+  oracle_id 030e9e3e-ce78-4c3b-bd83-969c07c70459
+  cost {B}
+  type Kindred Sorcery — Goblin
+  spell: return target Goblin card from your graveyard to hand
+}

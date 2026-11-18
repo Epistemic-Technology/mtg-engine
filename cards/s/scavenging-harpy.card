@@ -1,0 +1,8 @@
+card "Scavenging Harpy" {
+  oracle_id 94ea649c-9d4f-4882-a947-e2df4993b996
+  cost {2}{B}
+  type Creature — Harpy
+  pt 2/1
+  keywords flying
+  triggered when this enters: exile target card from an opponent's graveyard
+}

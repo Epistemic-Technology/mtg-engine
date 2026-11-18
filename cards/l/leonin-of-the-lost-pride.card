@@ -1,0 +1,7 @@
+card "Leonin of the Lost Pride" {
+  oracle_id 3c692dd9-3986-46de-ac10-cc917b7c41b7
+  cost {1}{W}
+  type Creature — Cat Warrior
+  pt 3/1
+  triggered when this dies: exile target card from an opponent's graveyard
+}

@@ -1,0 +1,6 @@
+card "Anchor to the Aether" {
+  oracle_id 3e00326d-2bf4-4731-a6cd-1c015f94f553
+  cost {2}{U}
+  type Sorcery
+  spell: put target creature on top of library; scry 1
+}

@@ -1,0 +1,8 @@
+card "Nucklavee" {
+  oracle_id 09c2d504-f2e1-4799-b948-c7b9502d5088
+  cost {4}{U/R}{U/R}
+  type Creature — Beast
+  pt 4/4
+  triggered when this enters: you may return target red sorcery card from your graveyard to hand
+  triggered when this enters: you may return target blue instant card from your graveyard to hand
+}

@@ -96,7 +96,9 @@ impl Work<'_> {
                 let affectable = self.state.objects[*id].zone == Zone::Battlefield
                     || self.entering.is_some_and(|(e, _)| e == *id);
                 let c = &self.chars[self.index[id]];
-                affectable && filter.matches(*id, self.controller_of(*id), c, source, controller)
+                affectable
+                    && filter.matches(*id, self.controller_of(*id), c, source, controller)
+                    && self.state.status_ok(filter, *id)
             })
             .collect()
     }
@@ -528,6 +530,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),
+        Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),
         Modification::RemoveAllAbilities => {
             c.keywords = crate::card::KeywordSet::NONE;
             c.abilities.clear();

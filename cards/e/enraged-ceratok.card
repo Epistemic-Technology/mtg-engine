@@ -1,0 +1,7 @@
+card "Enraged Ceratok" {
+  oracle_id e1f3f377-c7b1-474c-aed6-78b061d138c1
+  cost {2}{G}{G}
+  type Creature — Rhino
+  pt 4/4
+  can't be blocked by creature with power 2 or less
+}

@@ -1,0 +1,7 @@
+card "Clockwork Gnomes" {
+  oracle_id 21d269f2-c11c-4094-b526-500f0785f483
+  cost {4}
+  type Artifact Creature — Gnome
+  pt 2/2
+  activated {3}, {T}: regenerate target artifact creature
+}

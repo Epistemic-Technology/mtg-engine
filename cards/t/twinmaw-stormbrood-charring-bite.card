@@ -1,0 +1,14 @@
+card "Twinmaw Stormbrood // Charring Bite" {
+  oracle_id ff812a78-3fe7-47bc-9984-1c2380cff5b1
+  layout omen
+  cost {5}{W}
+  type Creature — Dragon
+  pt 5/4
+  keywords flying
+  triggered when this enters: you gains 5 life
+  face "Charring Bite" {
+    cost {1}{R}
+    type Sorcery — Omen
+    spell: deal 5 damage to target creature without flying
+  }
+}

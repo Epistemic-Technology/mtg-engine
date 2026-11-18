@@ -1,0 +1,7 @@
+card "Duskmantle Operative" {
+  oracle_id 7734ee04-1d99-4807-be68-b889e75a7551
+  cost {1}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  can't be blocked by creature with power 4 or greater
+}

@@ -1,0 +1,7 @@
+card "Grave Robbers" {
+  oracle_id 6698b059-f1ed-4023-9d44-fbdf39fb159a
+  cost {1}{B}{B}
+  type Creature — Human Rogue
+  pt 1/1
+  activated {B}, {T}: exile target artifact card from a graveyard; you gains 2 life
+}

@@ -1,0 +1,6 @@
+card "Uproot" {
+  oracle_id 891d5c5e-3d4d-4183-b9fd-ab694639d1c3
+  cost {3}{G}
+  type Sorcery — Arcane
+  spell: put target land on top of library
+}

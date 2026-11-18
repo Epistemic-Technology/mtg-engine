@@ -1,0 +1,6 @@
+card "Grotesque Demise" {
+  oracle_id eed4651b-4c45-4136-9e3d-44471031368f
+  cost {2}{B}
+  type Instant
+  spell: exile target creature with power 3 or less
+}

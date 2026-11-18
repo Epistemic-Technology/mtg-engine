@@ -1,0 +1,7 @@
+card "Akki Blizzard-Herder" {
+  oracle_id 16fe1f04-9bbf-43a3-ab14-395fdf4a3a43
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  triggered when this dies: each player sacrifices 1 land
+}

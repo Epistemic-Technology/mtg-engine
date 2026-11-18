@@ -1,0 +1,131 @@
+# M5 slice 5: filters (power, toughness, mana value, colors, status),
+# spell and graveyard targets, "its controller", several targets for one
+# verb, edicts, library placement, keyword loss, hand reveals, random and
+# chosen discards, blocking restrictions, and "becomes blocked".
+
+scenario "edict: the player sacrifices the creature of their choice" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Diabolic Edict"
+  turn 1 A: cast "Diabolic Edict" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "edict: nothing to sacrifice" {
+  battlefield A: 2 "Swamp"
+  hand A: "Diabolic Edict"
+  turn 1 A: cast "Diabolic Edict" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Diabolic Edict"
+}
+
+scenario "chosen discard: the caster picks a nonland card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Distress"
+  hand B: "Forest", "Grizzly Bears"
+  turn 1 A: cast "Distress" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Forest"
+}
+
+scenario "random discard: one card leaves the hand" {
+  battlefield A: 2 "Swamp"
+  hand A: "Specter's Wail"
+  hand B: "Forest", "Island"
+  turn 1 A: cast "Specter's Wail" targeting player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert graveyard B count 1
+}
+
+scenario "library placement: Disempower puts an artifact on top" {
+  battlefield A: "Plains", "Plains"
+  battlefield B: "Ornithopter"
+  hand A: "Disempower"
+  turn 1 A: cast "Disempower" targeting "Ornithopter"
+  run_to turn 1 end
+  assert battlefield B lacks "Ornithopter"
+  assert library B contains "Ornithopter"
+}
+
+scenario "block restriction: power 3 or greater can't block Amrou Kithkin" {
+  battlefield A: "Amrou Kithkin"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 A: attack "Amrou Kithkin"
+  illegal turn 1 B: block "Amrou Kithkin" with "Hill Giant"
+  turn 1 B: block "Amrou Kithkin" with "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Amrou Kithkin"
+}
+
+scenario "becomes blocked: Chub Toad gets +2/+2 when blocked" {
+  battlefield A: "Chub Toad"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Chub Toad"
+  turn 1 B: block "Chub Toad" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Chub Toad"
+}
+
+scenario "keyword loss: Canopy Claws takes flying away" {
+  battlefield A: "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Canopy Claws"
+  turn 1 A: cast "Canopy Claws" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert has not "Wind Drake" flying
+}
+
+scenario "filter: Arlinn's Wolf can't be blocked by power 2 or less" {
+  battlefield A: "Arlinn's Wolf"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Arlinn's Wolf"
+  illegal turn 1 B: block "Arlinn's Wolf" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "spell target: Dispel counters an instant" {
+  battlefield A: "Mountain"
+  battlefield B: "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Dispel"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Dispel" targeting "Lightning Bolt"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "spell target: Dispel can't counter a creature spell" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Dispel"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 B: cast "Dispel" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "graveyard target: Coffin Purge exiles a card from a graveyard" {
+  battlefield A: "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Coffin Purge"
+  turn 1 A: cast "Coffin Purge" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+}
+
+scenario "status filter: Mightstone pumps attacking creatures only" {
+  battlefield A: "Mightstone", "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+  run_to turn 1 end
+  assert life B 17
+  assert power "Grizzly Bears" 2
+}

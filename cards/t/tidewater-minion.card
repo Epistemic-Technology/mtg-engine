@@ -1,0 +1,9 @@
+card "Tidewater Minion" {
+  oracle_id 80b4a9f7-008d-4979-a3df-7637fae68167
+  cost {3}{U}{U}
+  type Creature — Elemental Minion
+  pt 4/4
+  keywords defender
+  activated {4}: this loses defender
+  activated {T}: untap target permanent
+}

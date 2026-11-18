@@ -1,0 +1,7 @@
+card "Sacred Prey" {
+  oracle_id e24110e8-72cf-4dd0-bca0-665758daca88
+  cost {G}
+  type Creature — Horse
+  pt 1/1
+  triggered whenever this becomes blocked: you gains 1 life
+}

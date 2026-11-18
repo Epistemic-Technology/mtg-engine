@@ -279,6 +279,38 @@ fn with_article(s: &str) -> String {
 }
 
 /// "a, b, and c".
+fn cmp_words(c: mtg_core::card::Cmp) -> &'static str {
+    match c {
+        mtg_core::card::Cmp::AtMost => " or less",
+        mtg_core::card::Cmp::AtLeast => " or greater",
+        mtg_core::card::Cmp::Exactly => "",
+    }
+}
+
+/// A filter naming cards rather than permanents ("nonland card", "instant
+/// card"): without a type it has no noun of its own.
+fn card_filter_phrase(f: &Filter, card: &Card) -> String {
+    let p = filter_phrase(f, card, false);
+    if f.types.is_empty() && f.subtypes.is_empty() && f.any_types.is_empty() {
+        p.replace(" permanent", "").replace("permanent", "")
+    } else {
+        p
+    }
+}
+
+/// "red or green", "artifact, creature, or land".
+fn or_list(items: &[String]) -> String {
+    match items {
+        [] => String::new(),
+        [a] => a.clone(),
+        [a, b] => format!("{a} or {b}"),
+        _ => {
+            let (last, rest) = items.split_last().expect("nonempty");
+            format!("{}, or {last}", rest.join(", "))
+        }
+    }
+}
+
 fn list(items: &[String]) -> String {
     match items {
         [] => String::new(),
@@ -397,6 +429,22 @@ impl<'a> Ctx<'a> {
                 format!("another target {}", filter_phrase(&g, self.card, false))
             }
             Target::Filter(f) => format!("target {}", filter_phrase(f, self.card, false)),
+            Target::Spell(f) => format!("target {} spell", card_filter_phrase(f, self.card)),
+            Target::GraveyardCard { filter, who } => {
+                let whose = match who {
+                    Who::You => "your",
+                    Who::Opponents => "an opponent's",
+                    Who::Any => "a",
+                };
+                if *filter == Filter::default() {
+                    format!("target card from {whose} graveyard")
+                } else {
+                    format!(
+                        "target {} card from {whose} graveyard",
+                        card_filter_phrase(filter, self.card)
+                    )
+                }
+            }
         }
     }
 
@@ -430,6 +478,8 @@ impl<'a> Ctx<'a> {
             }
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
@@ -528,6 +578,22 @@ impl<'a> Ctx<'a> {
                 Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
                 Target::Filter(f) => filter_phrase(f, self.card, true),
+                Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
+                Target::GraveyardCard { filter, who } => {
+                    let whose = match who {
+                        Who::You => "your graveyard",
+                        Who::Opponents => "an opponent's graveyard",
+                        Who::Any => "a single graveyard",
+                    };
+                    if *filter == Filter::default() {
+                        format!("cards from {whose}")
+                    } else {
+                        format!(
+                            "{} cards from {whose}",
+                            filter_phrase(filter, self.card, false)
+                        )
+                    }
+                }
             };
             return format!(
                 "{} target {noun}",
@@ -581,6 +647,8 @@ impl<'a> Ctx<'a> {
 fn target_noun(t: &Target) -> String {
     match t {
         Target::CreatureOfSubtype(_) => "creature".to_string(),
+        Target::Spell(_) => "spell".to_string(),
+        Target::GraveyardCard { .. } => "card".to_string(),
         Target::Spec(s) => match s {
             TargetSpec::Any => "permanent or player".to_string(),
             TargetSpec::Creature
@@ -605,10 +673,13 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::Filtered(_) => "permanent".to_string(),
             TargetSpec::Artifact => "artifact".to_string(),
             TargetSpec::Enchantment => "enchantment".to_string(),
-            TargetSpec::CreatureCardInYourGraveyard => "card".to_string(),
-            TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell => {
-                "spell".to_string()
+            TargetSpec::CreatureCardInYourGraveyard | TargetSpec::GraveyardCard { .. } => {
+                "card".to_string()
             }
+            TargetSpec::Spell
+            | TargetSpec::CreatureSpell
+            | TargetSpec::NoncreatureSpell
+            | TargetSpec::SpellFiltered(_) => "spell".to_string(),
         },
         Target::Filter(f) => {
             if f.types.contains(&CardType::Creature) {
@@ -641,7 +712,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::OtherPermanent => "another target permanent",
         TargetSpec::NonlegendaryCreatureYouControl => "target nonlegendary creature you control",
         TargetSpec::CreatureCardInYourGraveyard => "target creature card from your graveyard",
-        TargetSpec::Spell => "target spell",
+        TargetSpec::Spell | TargetSpec::SpellFiltered(_) => "target spell",
         TargetSpec::CreatureSpell => "target creature spell",
         TargetSpec::NoncreatureSpell => "target noncreature spell",
         TargetSpec::Opponent => "target opponent",
@@ -649,6 +720,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::AttackingOrBlockingCreature => "target attacking or blocking creature",
         TargetSpec::AttackingCreature => "target attacking creature",
         TargetSpec::BlockingCreature => "target blocking creature",
+        TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
     }
     .to_string()
 }
@@ -657,6 +729,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
 
 /// The noun phrase of a filter without an article, singular ("creature you
 /// control", "nonbasic land") or plural.
+#[allow(clippy::too_many_lines)] // one block per filter part
 fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.enchanted {
         let noun = if is_equipment(card) {
@@ -677,8 +750,20 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.relation == Relation::Other {
         words.push("other".to_string());
     }
+    if let Some(t) = f.tapped {
+        words.push(if t { "tapped" } else { "untapped" }.to_string());
+    }
+    if f.attacking {
+        words.push("attacking".to_string());
+    }
+    if f.blocking {
+        words.push("blocking".to_string());
+    }
+    if let Some(cc) = f.color_count {
+        words.push(format!("{cc:?}").to_lowercase());
+    }
     if let Some(colors) = &f.colors {
-        words.push(list(
+        words.push(or_list(
             &colors
                 .iter()
                 .map(|c| color_name(*c).to_string())
@@ -699,11 +784,15 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     for c in &f.not_colors {
         words.push(format!("non{}", color_name(*c)));
     }
-    for t in &f.not_types {
-        words.push(format!("non{}", type_noun(*t)));
-    }
-    for s in &f.not_subtypes {
-        words.push(format!("non-{s}"));
+    // "noncreature, nonland card": several negations are listed.
+    let mut negs: Vec<String> = f
+        .not_types
+        .iter()
+        .map(|t| format!("non{}", type_noun(*t)))
+        .collect();
+    negs.extend(f.not_subtypes.iter().map(|s| format!("non-{s}")));
+    if !negs.is_empty() {
+        words.push(negs.join(", "));
     }
     let mut noun: Vec<String> = Vec::new();
     for s in &f.subtypes {
@@ -712,15 +801,35 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     for t in &f.types {
         noun.push(type_noun(*t).to_string());
     }
-    if noun.is_empty() {
+    let any_types = !f.any_types.is_empty();
+    if noun.is_empty() && !any_types {
         noun.push("permanent".to_string());
     }
-    if plural_form {
+    if plural_form && !noun.is_empty() {
         let last = noun.pop().expect("nonempty");
         noun.push(pluralize(&last));
     }
+    if any_types {
+        let names: Vec<String> = f
+            .any_types
+            .iter()
+            .map(|t| {
+                let n = type_noun(*t).to_string();
+                if plural_form { pluralize(&n) } else { n }
+            })
+            .collect();
+        noun.push(or_list(&names));
+    }
     words.extend(noun);
     let mut s = words.join(" ");
+    for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
+        if let Some((cmp, n)) = v {
+            let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));
+        }
+    }
+    if let Some((cmp, n)) = f.mana_value {
+        let _ = write!(s, " with mana value {n}{}", cmp_words(cmp));
+    }
     if !f.keywords.is_empty() {
         let _ = write!(s, " with {}", keywords_list(&f.keywords));
     }
@@ -1094,15 +1203,26 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("remove all counters from {o}"))
         }
         Effect::ReturnToHand { what } => {
-            let yours = matches!(
-                what,
-                Recipient::Target(i) if ctx.targets[*i] == Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
-            );
-            let o = ctx.obj(*what);
-            let hand = if yours {
-                "your hand"
+            let yours = what.iter().all(|w| {
+                matches!(
+                    w,
+                    Recipient::Target(i) if matches!(ctx.targets[*i],
+                        Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                        | Target::GraveyardCard { who: Who::You, .. })
+                )
+            });
+            // "each other creature you control ... to its owner's hand";
+            // only several recipients take "their owners' hands".
+            let plural = what.len() > 1;
+            let o = if what.len() == 1 {
+                ctx.obj(what[0])
             } else {
-                "its owner's hand"
+                ctx.obj_list(what, false)
+            };
+            let hand = match (yours, plural) {
+                (true, _) => "your hand",
+                (false, false) => "its owner's hand",
+                (false, true) => "their owners' hands",
             };
             Clause::imperative(format!("return {o} to {hand}"))
         }
@@ -1122,9 +1242,15 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("regenerate {o}"))
         }
         Effect::Exile { what } => {
-            let o = ctx.obj_all(*what);
-            if let Recipient::Target(i) = what {
-                ctx.target_noun[*i] = "card".to_string();
+            let o = if what.len() == 1 {
+                ctx.obj_all(what[0])
+            } else {
+                ctx.obj_list(what, true)
+            };
+            for w in what {
+                if let Recipient::Target(i) = w {
+                    ctx.target_noun[*i] = "card".to_string();
+                }
             }
             Clause::imperative(format!("exile {o}"))
         }
@@ -1197,6 +1323,87 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::Investigate => Clause::imperative("investigate".to_string()),
+        Effect::PutInLibrary { what, top } => {
+            let o = ctx.obj(*what);
+            let place = if *top {
+                "on top of"
+            } else {
+                "on the bottom of"
+            };
+            Clause::imperative(format!("put {o} {place} its owner's library"))
+        }
+        Effect::SacrificeChosen { who, count, filter } => {
+            let s = ctx.subj(*who);
+            let what = if *count == Num::N(1) {
+                with_article(&filter_phrase(filter, ctx.card, false))
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(*count, "a"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {what} of their choice",
+                    ctx.verb(*who, "sacrifices", "sacrifice")
+                ),
+            )
+        }
+        Effect::Strip { keywords, to } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} {}",
+                    ctx.verb(*to, "loses", "lose"),
+                    keywords_list(keywords)
+                ),
+            )
+            .until_eot()
+        }
+        Effect::RevealHand { who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} their hand", ctx.verb(*who, "reveals", "reveal")),
+            )
+        }
+        Effect::DiscardRandom { count, who } => {
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {} at random",
+                    ctx.verb(*who, "discards", "discard"),
+                    if *count == Num::N(1) {
+                        "a card".to_string()
+                    } else {
+                        format!("{} cards", count_words(*count, "a"))
+                    }
+                ),
+            )
+        }
+        Effect::DiscardChosen { who, filter } => {
+            let s = ctx.subj(*who);
+            let what = match filter {
+                None => "a card".to_string(),
+                Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} their hand. You choose {what} from it. That player discards that card",
+                    ctx.verb(*who, "reveals", "reveal")
+                ),
+            )
+        }
         Effect::Transform { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("transform {o}"))
@@ -1481,6 +1688,7 @@ fn step_name(step: Step, whose: Who) -> String {
 
 /// "When this creature enters" (no trailing comma); `next` for a delayed
 /// trigger's "the next end step".
+#[allow(clippy::too_many_lines)] // one arm per trigger kind
 fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
     let this = |ctx: &mut Ctx| {
         ctx.source_mentioned = true;
@@ -1538,6 +1746,21 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::AttacksAlone(TriggerObj::Filter(f)) => {
             format!("whenever {} attacks alone", filter_a(f, ctx.card))
+        }
+        Trigger::BecomesBlocked(TriggerObj::This) => {
+            format!("whenever {} becomes blocked", this(ctx))
+        }
+        Trigger::BecomesBlocked(TriggerObj::Filter(f)) => {
+            format!("whenever {} becomes blocked", filter_a(f, ctx.card))
+        }
+        Trigger::BlocksOrBlocked(TriggerObj::This) => {
+            format!("whenever {} blocks or becomes blocked", this(ctx))
+        }
+        Trigger::BlocksOrBlocked(TriggerObj::Filter(f)) => {
+            format!(
+                "whenever {} blocks or becomes blocked",
+                filter_a(f, ctx.card)
+            )
         }
         Trigger::Blocks(TriggerObj::This) => format!("whenever {} blocks", this(ctx)),
         Trigger::Blocks(TriggerObj::Filter(f)) => {
@@ -1848,6 +2071,7 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             list(&parts)
         }
         Mod::RemoveAllAbilities => format!("{} all abilities", v("loses", "lose")),
+        Mod::LosesKeywords(ks) => format!("{} {}", v("loses", "lose"), keywords_list(ks)),
         Mod::SetPt {
             power: PtValue::Fixed(p),
             toughness: PtValue::Fixed(t),
@@ -1949,6 +2173,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             && filter.not_subtypes.is_empty()
             && filter.subtypes.is_empty()
             && !filter.no_abilities
+            && !filter.attacking
+            && !filter.blocking
+            && filter.tapped.is_none()
+            && filter.color_count.is_none()
+            && filter.power.is_none()
+            && filter.toughness.is_none()
+            && filter.mana_value.is_none()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {
@@ -2037,7 +2268,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::Enchant(t) => match t {
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
-            Target::Filter(f) => format!("Enchant {}", filter_phrase(f, card, false)),
+            Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
+                format!("Enchant {}", filter_phrase(f, card, false))
+            }
         },
         Ability::Spell { targets, effects } => {
             let mut ctx = Ctx::new(card, lookup, targets);
@@ -2112,6 +2345,21 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             match condition {
                 None => body,
                 Some(c) => conditional_static(&body, c, *cond_first, card),
+            }
+        }
+        Ability::BlockRule(r) => {
+            let me = format!("This {}", self_noun(card));
+            let pl = |f: &Filter| filter_phrase(f, card, true);
+            match r {
+                crate::ast::BlockRule::NotBy(f) => format!("{me} can't be blocked by {}.", pl(f)),
+                crate::ast::BlockRule::OnlyBy(f) => {
+                    format!("{me} can't be blocked except by {}.", pl(f))
+                }
+                crate::ast::BlockRule::AtMostOne => {
+                    format!("{me} can't be blocked by more than one creature.")
+                }
+                crate::ast::BlockRule::BlocksOnly(f) => format!("{me} can block only {}.", pl(f)),
+                crate::ast::BlockRule::CantBlock(f) => format!("{me} can't block {}.", pl(f)),
             }
         }
         Ability::Labeled { label, ability } => {

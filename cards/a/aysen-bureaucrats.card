@@ -1,0 +1,7 @@
+card "Aysen Bureaucrats" {
+  oracle_id 786b2028-cf24-4f00-b1d6-05b94e78d617
+  cost {1}{W}
+  type Creature — Human Advisor
+  pt 1/1
+  activated {T}: tap target creature with power 2 or less
+}

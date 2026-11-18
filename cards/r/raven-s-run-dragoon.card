@@ -1,0 +1,7 @@
+card "Raven's Run Dragoon" {
+  oracle_id e405800a-27e6-468a-938b-484346ee20cd
+  cost {2}{G/W}{G/W}
+  type Creature — Elf Knight
+  pt 3/3
+  can't be blocked by black creature
+}

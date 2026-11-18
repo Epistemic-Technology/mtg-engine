@@ -1,0 +1,13 @@
+card "Ettercap // Web Shot" {
+  oracle_id e0b5b3af-af89-4b91-8b55-947ec095d6f2
+  layout adventure
+  cost {4}{G}
+  type Creature — Spider Beast
+  pt 2/5
+  keywords reach
+  face "Web Shot" {
+    cost {2}{G}
+    type Instant — Adventure
+    spell: destroy target creature with flying
+  }
+}

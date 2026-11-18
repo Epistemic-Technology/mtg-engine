@@ -1,0 +1,7 @@
+card "Rootwater Diver" {
+  oracle_id 4145c153-1ee3-4583-8a60-8471959656eb
+  cost {U}
+  type Creature — Merfolk
+  pt 1/1
+  activated {T}, sacrifice this: return target artifact card from your graveyard to hand
+}

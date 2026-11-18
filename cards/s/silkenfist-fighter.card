@@ -1,0 +1,7 @@
+card "Silkenfist Fighter" {
+  oracle_id bf5ceba2-9def-4ff4-9291-740ca90c1c4d
+  cost {1}{W}
+  type Creature — Kor Soldier
+  pt 1/3
+  triggered whenever this becomes blocked: untap this
+}

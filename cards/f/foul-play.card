@@ -1,0 +1,6 @@
+card "Foul Play" {
+  oracle_id 773c7a1e-0f59-4606-a2fc-c47bda760ecd
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target creature with power 2 or less; investigate
+}

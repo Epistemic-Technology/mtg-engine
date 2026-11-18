@@ -1,0 +1,7 @@
+card "Vedalken Dismisser" {
+  oracle_id e6ed8820-4276-4ead-ba82-4654a92c415d
+  cost {5}{U}
+  type Creature — Vedalken Wizard
+  pt 2/2
+  triggered when this enters: put target creature on top of library
+}

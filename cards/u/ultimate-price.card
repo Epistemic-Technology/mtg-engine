@@ -1,0 +1,6 @@
+card "Ultimate Price" {
+  oracle_id d740453b-d8f8-48d0-8c50-72a7cdb791b5
+  cost {1}{B}
+  type Instant
+  spell: destroy target monocolored creature
+}

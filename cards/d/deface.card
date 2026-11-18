@@ -1,0 +1,9 @@
+card "Deface" {
+  oracle_id 390290b3-77cc-4180-8e6c-9cb808f6ac7a
+  cost {R}
+  type Sorcery
+  choose one {
+    mode: destroy target artifact
+    mode: destroy target creature with defender
+  }
+}

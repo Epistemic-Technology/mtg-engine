@@ -126,6 +126,14 @@ impl Decompiler<'_> {
             enchanted: f.enchanted,
             no_abilities: f.no_abilities,
             dont_control: false,
+            any_types: types(f.any_types),
+            power: f.power,
+            toughness: f.toughness,
+            mana_value: f.mana_value,
+            color_count: f.color_count,
+            tapped: f.tapped,
+            attacking: f.attacking,
+            blocking: f.blocking,
         }
     }
 
@@ -135,6 +143,11 @@ impl Decompiler<'_> {
                 Target::CreatureOfSubtype(self.pool.subtype_name(s).to_string())
             }
             TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
+            TargetSpec::SpellFiltered(i) => Target::Spell(self.filter(self.pool.filter(i))),
+            TargetSpec::GraveyardCard { filter, who } => Target::GraveyardCard {
+                filter: self.filter(self.pool.filter(filter)),
+                who,
+            },
             other => Target::Spec(other),
         }
     }
@@ -167,6 +180,8 @@ impl Decompiler<'_> {
             CoreRecipient::TriggeringObject => Recipient::TriggeringObject,
             CoreRecipient::TriggeringPlayer => Recipient::TriggeringPlayer,
             CoreRecipient::DefendingPlayer => Recipient::DefendingPlayer,
+            CoreRecipient::ControllerOf(i) => Recipient::ControllerOf(i),
+            CoreRecipient::OwnerOf(i) => Recipient::OwnerOf(i),
             CoreRecipient::EachCreature => Recipient::EachCreature,
             CoreRecipient::EachPlayer => Recipient::EachPlayer,
             CoreRecipient::EachCreatureYouControl => Recipient::EachCreatureYouControl,
@@ -236,13 +251,17 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RemoveAllCounters { to } => Effect::RemoveAllCounters { to: r(*to) },
-            CoreEffect::ReturnToHand { what } => Effect::ReturnToHand { what: r(*what) },
+            CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
+                what: vec![r(*what)],
+            },
             CoreEffect::ReturnToBattlefield { what, counters } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
-            CoreEffect::Exile { what } => Effect::Exile { what: r(*what) },
+            CoreEffect::Exile { what } => Effect::Exile {
+                what: vec![r(*what)],
+            },
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
@@ -275,6 +294,28 @@ impl Decompiler<'_> {
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
+            CoreEffect::PutInLibrary { what, top } => Effect::PutInLibrary {
+                what: r(*what),
+                top: *top,
+            },
+            CoreEffect::SacrificeChosen { who, filter, count } => Effect::SacrificeChosen {
+                who: r(*who),
+                count: *count,
+                filter: self.filter(filter),
+            },
+            CoreEffect::Strip { keywords: k, to } => Effect::Strip {
+                keywords: keywords(*k),
+                to: r(*to),
+            },
+            CoreEffect::RevealHand { who } => Effect::RevealHand { who: r(*who) },
+            CoreEffect::DiscardRandom { count, who } => Effect::DiscardRandom {
+                count: *count,
+                who: r(*who),
+            },
+            CoreEffect::DiscardChosen { who, filter } => Effect::DiscardChosen {
+                who: r(*who),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+            },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search { filter, count, to } => Effect::Search {
                 filter: self.filter(filter),
@@ -350,6 +391,8 @@ impl Decompiler<'_> {
             },
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
+            TriggerSpec::BecomesBlocked(o) => Trigger::BecomesBlocked(self.trigger_obj(o)),
+            TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
@@ -426,6 +469,7 @@ impl Decompiler<'_> {
             Modification::AddColors(c) => Mod::AddColors(colors(*c)),
             Modification::SetColors(c) => Mod::SetColors(colors(*c)),
             Modification::AddKeywords(k) => Mod::AddKeywords(keywords(*k)),
+            Modification::RemoveKeywords(k) => Mod::LosesKeywords(keywords(*k)),
             Modification::RemoveAllAbilities => Mod::RemoveAllAbilities,
             Modification::SetPt { power, toughness } => Mod::SetPt {
                 power: *power,
@@ -456,6 +500,19 @@ impl Decompiler<'_> {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
             AbilityDef::SacForMana(m) => Ability::SacMana(*m),
+            AbilityDef::BlockRule(r) => Ability::BlockRule(match r {
+                mtg_core::card::BlockRule::NotBy(f) => crate::ast::BlockRule::NotBy(self.filter(f)),
+                mtg_core::card::BlockRule::OnlyBy(f) => {
+                    crate::ast::BlockRule::OnlyBy(self.filter(f))
+                }
+                mtg_core::card::BlockRule::AtMostOne => crate::ast::BlockRule::AtMostOne,
+                mtg_core::card::BlockRule::BlocksOnly(f) => {
+                    crate::ast::BlockRule::BlocksOnly(self.filter(f))
+                }
+                mtg_core::card::BlockRule::CantBlock(f) => {
+                    crate::ast::BlockRule::CantBlock(self.filter(f))
+                }
+            }),
             AbilityDef::Enchant(t) => Ability::Enchant(self.target(*t)),
             AbilityDef::Spell { targets, effects } => Ability::Spell {
                 targets: targets.iter().map(|t| self.target(*t)).collect(),

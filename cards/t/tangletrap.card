@@ -1,0 +1,9 @@
+card "Tangletrap" {
+  oracle_id 75effdde-0427-4e5a-bd6d-c3118f301520
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: deal 5 damage to target creature with flying
+    mode: destroy target artifact
+  }
+}

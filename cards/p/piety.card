@@ -1,0 +1,6 @@
+card "Piety" {
+  oracle_id 0c017406-7fc3-4701-93ec-ddb02044c12a
+  cost {2}{W}
+  type Instant
+  spell: each blocking creature gets +0/+3
+}

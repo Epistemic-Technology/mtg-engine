@@ -1,0 +1,8 @@
+card "Ghitu Chronicler" {
+  oracle_id ab8a00c2-dbb0-48c3-9d13-ad6f1e2f3a18
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 1/3
+  kicker {3}{R}
+  triggered when this enters if kicked: return target instant or sorcery card from your graveyard to hand
+}

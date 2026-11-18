@@ -1,0 +1,7 @@
+card "Easy Prey" {
+  oracle_id b783246a-e00b-4cdf-9111-fe0afb896a8e
+  cost {1}{B}
+  type Instant
+  spell: destroy target creature with mana value 2 or less
+  cycling {2}
+}

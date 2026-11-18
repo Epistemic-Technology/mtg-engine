@@ -1,0 +1,6 @@
+card "Smother" {
+  oracle_id acdf9fb0-96eb-4520-bd4b-b6480c7c9b29
+  cost {1}{B}
+  type Instant
+  spell: destroy target creature with mana value 3 or less without regeneration
+}

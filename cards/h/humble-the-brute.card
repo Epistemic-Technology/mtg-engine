@@ -1,0 +1,9 @@
+card "Humble the Brute" {
+  oracle_id bea6606c-ea9a-4199-a8cd-b35d7c47fd7b
+  cost {4}{W}
+  type Instant
+  spell {
+    destroy target creature with power 4 or greater
+    investigate
+  }
+}

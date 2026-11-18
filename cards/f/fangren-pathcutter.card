@@ -1,0 +1,7 @@
+card "Fangren Pathcutter" {
+  oracle_id 36d1a3f4-7903-41aa-9fb7-401d8789b00c
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 4/6
+  triggered whenever this attacks: each attacking creature gains trample
+}

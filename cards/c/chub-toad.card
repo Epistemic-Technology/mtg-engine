@@ -1,0 +1,7 @@
+card "Chub Toad" {
+  oracle_id a0daace2-92fc-4c7d-b497-94b4ba775559
+  cost {2}{G}
+  type Creature — Frog
+  pt 1/1
+  triggered whenever this blocks or becomes blocked: this gets +2/+2
+}

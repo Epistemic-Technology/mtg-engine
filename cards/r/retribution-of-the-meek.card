@@ -1,0 +1,6 @@
+card "Retribution of the Meek" {
+  oracle_id 61f2083b-3018-43a4-8852-8e6d2a97d5d6
+  cost {2}{W}
+  type Sorcery
+  spell: destroy each creature with power 4 or greater without regeneration
+}

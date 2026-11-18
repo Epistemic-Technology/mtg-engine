@@ -1,0 +1,7 @@
+card "Deathcult Rogue" {
+  oracle_id fa8ae8ac-4ad2-4cda-9f6b-4ec634526658
+  cost {1}{U/B}{U/B}
+  type Creature — Human Rogue
+  pt 2/2
+  can't be blocked except by Rogues
+}

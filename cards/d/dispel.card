@@ -1,0 +1,6 @@
+card "Dispel" {
+  oracle_id 6d7be242-a072-40ce-b540-95880506cccd
+  cost {U}
+  type Instant
+  spell: counter target instant spell
+}

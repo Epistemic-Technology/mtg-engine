@@ -1,0 +1,7 @@
+card "Scribe of the Mindful" {
+  oracle_id 019a3229-dd1c-4f70-a8fb-e33dbc54df39
+  cost {2}{U}
+  type Creature — Human Cleric
+  pt 2/2
+  activated {1}, {T}, sacrifice this: return target instant or sorcery card from your graveyard to hand
+}

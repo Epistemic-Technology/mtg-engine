@@ -1,0 +1,7 @@
+card "Vagrant Plowbeasts" {
+  oracle_id e97870a3-855a-4701-8344-91a90095f70a
+  cost {5}{G}{W}
+  type Creature — Beast
+  pt 6/6
+  activated {1}: regenerate target creature with power 5 or greater
+}

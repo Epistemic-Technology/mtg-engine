@@ -1,0 +1,10 @@
+card "Pawpatch Formation" {
+  oracle_id fa99cf82-ebf1-4526-ab9c-b24eb2970f2a
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: destroy target creature with flying
+    mode: destroy target enchantment
+    mode: draw 1 cards; create 1 "Food"
+  }
+}

@@ -1,0 +1,7 @@
+card "Gnat Alley Creeper" {
+  oracle_id 17f930a9-64ee-46f9-8a7c-8877e532c94f
+  cost {2}{R}
+  type Creature — Human Rogue
+  pt 3/1
+  can't be blocked by creature with flying
+}

@@ -1,0 +1,8 @@
+card "Angel of Flight Alabaster" {
+  oracle_id 9b6a74fb-c48f-4d85-b4b3-96eb80b9efc7
+  cost {4}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered at beginning of your upkeep: return target Spirit card from your graveyard to hand
+}

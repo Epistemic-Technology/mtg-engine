@@ -1,0 +1,7 @@
+card "Taoist Mystic" {
+  oracle_id e705ec38-b8f7-4f99-8cb9-8448dc3e50ec
+  cost {2}{G}
+  type Creature — Human Mystic
+  pt 2/2
+  can't be blocked by creature with horsemanship
+}

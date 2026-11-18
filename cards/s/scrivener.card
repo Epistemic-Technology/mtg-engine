@@ -1,0 +1,7 @@
+card "Scrivener" {
+  oracle_id 27c37a8d-777a-400d-b096-bde195228ea8
+  cost {4}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may return target instant card from your graveyard to hand
+}

@@ -1,0 +1,6 @@
+card "Sandstorm" {
+  oracle_id 7bb41690-f8ec-462a-ba29-be453eb86fca
+  cost {G}
+  type Instant
+  spell: deal 1 damage to each attacking creature
+}

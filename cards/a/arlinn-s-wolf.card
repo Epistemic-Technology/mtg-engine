@@ -1,0 +1,7 @@
+card "Arlinn's Wolf" {
+  oracle_id fe4c0f02-c5fd-4cd5-9f80-0936e3875f1c
+  cost {2}{G}
+  type Creature — Wolf
+  pt 3/2
+  can't be blocked by creature with power 2 or less
+}

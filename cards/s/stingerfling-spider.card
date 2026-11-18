@@ -1,0 +1,8 @@
+card "Stingerfling Spider" {
+  oracle_id 056770e2-8ab7-424d-a2d8-7be6d6cc73f1
+  cost {4}{G}
+  type Creature — Spider
+  pt 2/5
+  keywords reach
+  triggered when this enters: you may destroy target creature with flying
+}

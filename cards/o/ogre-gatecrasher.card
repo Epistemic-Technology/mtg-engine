@@ -1,0 +1,7 @@
+card "Ogre Gatecrasher" {
+  oracle_id 0b88bc94-99c4-4be5-b474-a7dad68057b3
+  cost {3}{R}
+  type Creature — Ogre Rogue
+  pt 3/3
+  triggered when this enters: destroy target creature with defender
+}

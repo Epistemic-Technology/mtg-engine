@@ -1,0 +1,8 @@
+card "Beloved Princess" {
+  oracle_id 682cbf2a-2723-4590-ae52-7c5d8b2573cf
+  cost {W}
+  type Creature — Human Noble
+  pt 1/1
+  keywords lifelink
+  can't be blocked by creature with power 3 or greater
+}

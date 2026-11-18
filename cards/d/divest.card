@@ -1,0 +1,6 @@
+card "Divest" {
+  oracle_id 9e0d7408-3827-4a65-9905-9fef3ae23c7e
+  cost {B}
+  type Sorcery
+  spell: target player reveals hand discarding artifact or creature card
+}

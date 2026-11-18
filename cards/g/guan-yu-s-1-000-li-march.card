@@ -1,0 +1,6 @@
+card "Guan Yu's 1,000-Li March" {
+  oracle_id a1b87d5d-9493-4001-8c7e-553f40de61ea
+  cost {4}{W}{W}
+  type Sorcery
+  spell: destroy each tapped creature
+}

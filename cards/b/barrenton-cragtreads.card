@@ -1,0 +1,7 @@
+card "Barrenton Cragtreads" {
+  oracle_id 969233f8-a644-4297-a2bf-b1ca7a58bb0b
+  cost {2}{W/U}{W/U}
+  type Creature — Kithkin Scout
+  pt 3/3
+  can't be blocked by red creature
+}

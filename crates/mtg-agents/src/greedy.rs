@@ -267,13 +267,15 @@ impl GreedyAgent {
                 _ => i64::MIN,
             }),
             // Sacrifice the cheapest permanent.
-            DecisionKind::ChooseSacrifice { .. } => Self::best_by(d, |c| match c {
-                Choice::Sacrifice(id) => {
-                    let def = state.def_of(*id).expect("permanent");
-                    -i64::from(def.mana_cost.mana_value())
-                }
-                _ => i64::MIN,
-            }),
+            DecisionKind::ChooseSacrifice { .. } | DecisionKind::Edict => {
+                Self::best_by(d, |c| match c {
+                    Choice::Sacrifice(id) => {
+                        let def = state.def_of(*id).expect("permanent");
+                        -i64::from(def.mana_cost.mana_value())
+                    }
+                    _ => i64::MIN,
+                })
+            }
             // Copy the biggest creature on offer.
             DecisionKind::ChooseCopy => Self::best_by(d, |c| match c {
                 Choice::CopyOf { def, .. } => {

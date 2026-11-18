@@ -1,0 +1,8 @@
+card "Escaped Null" {
+  oracle_id 8bc17c50-f4c9-46dd-9294-3036ed46de91
+  cost {3}{B}
+  type Creature — Zombie Berserker
+  pt 1/2
+  keywords lifelink
+  triggered whenever this blocks or becomes blocked: this gets +5/+0
+}

@@ -1,0 +1,6 @@
+card "Disempower" {
+  oracle_id ff9f4bfe-1585-4eaa-943c-1e85ed79a820
+  cost {1}{W}
+  type Instant
+  spell: put target artifact or enchantment on top of library
+}

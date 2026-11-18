@@ -1,0 +1,6 @@
+card "Bring to Trial" {
+  oracle_id 968b6277-584c-4947-98ac-4d6e5f8d6754
+  cost {2}{W}
+  type Sorcery
+  spell: exile target creature with power 4 or greater
+}

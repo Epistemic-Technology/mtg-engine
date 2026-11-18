@@ -224,6 +224,7 @@ impl GameState {
                 TriggerObj::Filter(f) => {
                     let c = self.characteristics(obj)?;
                     f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
+                        && self.status_ok(f, obj)
                 }
             };
             ok.then_some(o.controller)
@@ -267,7 +268,11 @@ impl GameState {
                 (s == step && whose_ok(*whose, self.active_player))
                     .then_some((None, Some(self.active_player)))
             }
-            (TriggerSpec::Attacks(what), Event::Attack { attacker, .. }) => {
+            (TriggerSpec::Attacks(what), Event::Attack { attacker, .. })
+            | (
+                TriggerSpec::BecomesBlocked(what) | TriggerSpec::BlocksOrBlocked(what),
+                Event::Blocked { attacker },
+            ) => {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
@@ -280,7 +285,10 @@ impl GameState {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
             }
-            (TriggerSpec::Blocks(what), Event::Block { blocker, .. }) => {
+            (
+                TriggerSpec::Blocks(what) | TriggerSpec::BlocksOrBlocked(what),
+                Event::Block { blocker, .. },
+            ) => {
                 let p = on_battlefield(what, *blocker)?;
                 Some((Some(*blocker), Some(p)))
             }

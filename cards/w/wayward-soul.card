@@ -1,0 +1,8 @@
+card "Wayward Soul" {
+  oracle_id 319b4715-c3eb-49bf-b8d2-4d41e601ebe4
+  cost {2}{U}{U}
+  type Creature — Spirit
+  pt 3/2
+  keywords flying
+  activated {U}: put this on top of library
+}

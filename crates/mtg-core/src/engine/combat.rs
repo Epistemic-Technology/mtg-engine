@@ -3,10 +3,10 @@
 use smallvec::SmallVec;
 
 use super::MAX_DIVISION_OPTIONS;
-use crate::card::Keyword;
+use crate::card::{AbilityDef, BlockRule, Keyword};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{Attacker, DamageAssignment, Flow, GameState, Target, Zone};
+use crate::state::{Attacker, Characteristics, DamageAssignment, Flow, GameState, Target, Zone};
 
 impl GameState {
     // ----- combat -----------------------------------------------------------------------
@@ -49,6 +49,10 @@ impl GameState {
         if a.protected_from(&b) {
             return false;
         }
+        // CR 509.1b: blocking restrictions of the attacker and the blocker.
+        if !self.block_rules_allow(blocker, &b, attacker, &a) {
+            return false;
+        }
         if a.keywords.intersects(crate::card::KeywordSet::EVASION) || b.has(Keyword::Shadow) {
             let artifact = b.types.contains(crate::card::CardType::Artifact);
             // CR 702.28b: shadow blocks and is blocked only by shadow.
@@ -86,6 +90,68 @@ impl GameState {
         !a.has(Keyword::Flying) || b.has(Keyword::Flying) || b.has(Keyword::Reach)
     }
 
+    /// The attacker's and the blocker's `BlockRule`s (other than "more than
+    /// one", which `blockers_ok` checks).
+    fn block_rules_allow(
+        &self,
+        blocker: ObjId,
+        b: &Characteristics,
+        attacker: ObjId,
+        a: &Characteristics,
+    ) -> bool {
+        let bc = self.objects[blocker].controller;
+        let ac = self.objects[attacker].controller;
+        for id in &a.abilities {
+            if let AbilityDef::BlockRule(r) = self.pool.ability(*id) {
+                let ok = match r {
+                    BlockRule::NotBy(f) => {
+                        !(f.matches(blocker, bc, b, Some(attacker), Some(ac))
+                            && self.status_ok(f, blocker))
+                    }
+                    BlockRule::OnlyBy(f) => {
+                        f.matches(blocker, bc, b, Some(attacker), Some(ac))
+                            && self.status_ok(f, blocker)
+                    }
+                    _ => true,
+                };
+                if !ok {
+                    return false;
+                }
+            }
+        }
+        for id in &b.abilities {
+            if let AbilityDef::BlockRule(r) = self.pool.ability(*id) {
+                let ok = match r {
+                    BlockRule::BlocksOnly(f) => {
+                        f.matches(attacker, ac, a, Some(blocker), Some(bc))
+                            && self.status_ok(f, attacker)
+                    }
+                    BlockRule::CantBlock(f) => {
+                        !(f.matches(attacker, ac, a, Some(blocker), Some(bc))
+                            && self.status_ok(f, attacker))
+                    }
+                    _ => true,
+                };
+                if !ok {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    /// "can't be blocked by more than one creature".
+    pub(super) fn at_most_one_blocker(&self, attacker: ObjId) -> bool {
+        self.characteristics(attacker).is_some_and(|c| {
+            c.abilities.iter().any(|id| {
+                matches!(
+                    self.pool.ability(*id),
+                    AbilityDef::BlockRule(BlockRule::AtMostOne)
+                )
+            })
+        })
+    }
+
     /// Whether `p` controls a land with the basic land type of `c`.
     fn controls_basic_type(&self, p: PlayerId, c: crate::mana::Color) -> bool {
         self.permanents_of(p).any(|id| {
@@ -109,7 +175,15 @@ impl GameState {
             .unwrap_or_default();
         attackers.iter().all(|a| {
             let n = blocks.iter().filter(|(_, x)| x == a).count();
-            !(self.has_menace(*a) && n == 1)
+            (!self.has_menace(*a) || n != 1) && (n <= 1 || !self.at_most_one_blocker(*a))
+        })
+    }
+
+    /// An attacker that can't be blocked by more than one creature has
+    /// more (no later block can fix it).
+    fn too_many_blockers(&self, blocks: &[(ObjId, ObjId)]) -> bool {
+        blocks.iter().any(|(_, a)| {
+            blocks.iter().filter(|(_, x)| x == a).count() > 1 && self.at_most_one_blocker(*a)
         })
     }
 
@@ -121,6 +195,9 @@ impl GameState {
         all_blockers: &[ObjId],
         can_block: &[Vec<ObjId>],
     ) -> bool {
+        if self.too_many_blockers(blocks) {
+            return false;
+        }
         if self.block_set_legal(blocks) {
             return true;
         }
@@ -218,19 +295,29 @@ impl GameState {
         for (attacker, target) in events {
             self.emit(Event::Attack { attacker, target });
         }
-        self.bump();
+        // Attacking status feeds filters ("attacking creatures get +1/+0").
+        self.combat_bump();
         self.give_priority(self.active_player);
     }
 
     pub(super) fn finish_blocks(&mut self, blocks: Vec<(ObjId, ObjId)>) {
-        for (blocker, attacker) in blocks {
-            self.emit(Event::Block { blocker, attacker });
-            if let Some(a) = self.combat.as_mut().and_then(|c| c.attacker_mut(attacker)) {
-                a.blockers.push(blocker);
+        let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
+        for (blocker, attacker) in &blocks {
+            if let Some(a) = self.combat.as_mut().and_then(|c| c.attacker_mut(*attacker)) {
+                if !a.blocked {
+                    newly_blocked.push(*attacker);
+                }
+                a.blockers.push(*blocker);
                 a.blocked = true;
             }
         }
-        self.bump();
+        for (blocker, attacker) in blocks {
+            self.emit(Event::Block { blocker, attacker });
+        }
+        for attacker in newly_blocked {
+            self.emit(Event::Blocked { attacker });
+        }
+        self.combat_bump();
         self.give_priority(self.active_player);
     }
 

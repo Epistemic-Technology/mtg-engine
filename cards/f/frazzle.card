@@ -1,0 +1,6 @@
+card "Frazzle" {
+  oracle_id 55c4df81-9513-424b-aa58-10190797bba7
+  cost {3}{U}
+  type Instant
+  spell: counter target nonblue spell
+}

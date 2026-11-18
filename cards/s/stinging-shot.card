@@ -1,0 +1,7 @@
+card "Stinging Shot" {
+  oracle_id 7fd7d20d-d44c-443c-a2cf-320f39a3bec4
+  cost {G}
+  type Instant
+  spell: put 3 -1/-1 counters on target creature with flying
+  cycling {2}
+}

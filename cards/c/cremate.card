@@ -1,0 +1,9 @@
+card "Cremate" {
+  oracle_id c6a2e410-b182-48d1-aeb2-bc8de27e9cd2
+  cost {B}
+  type Instant
+  spell {
+    exile target card from a graveyard
+    draw 1 cards
+  }
+}

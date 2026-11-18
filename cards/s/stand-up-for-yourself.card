@@ -1,0 +1,6 @@
+card "Stand Up for Yourself" {
+  oracle_id 00e94b75-ad31-4e1f-b3be-eed7cd3e4d76
+  cost {2}{W}
+  type Instant
+  spell: destroy target creature with power 3 or greater
+}

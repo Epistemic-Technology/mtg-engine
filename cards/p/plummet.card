@@ -1,0 +1,6 @@
+card "Plummet" {
+  oracle_id 85bde6ac-3dd4-4946-8b57-24f57e3eae2b
+  cost {1}{G}
+  type Instant
+  spell: destroy target creature with flying
+}

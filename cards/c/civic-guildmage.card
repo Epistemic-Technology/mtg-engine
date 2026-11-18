@@ -1,0 +1,8 @@
+card "Civic Guildmage" {
+  oracle_id 6e93cb9a-44c8-49fb-b6a7-bfdf7bd725fe
+  cost {W}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {G}, {T}: target creature gets +0/+1
+  activated {U}, {T}: put target creature you control on top of library
+}

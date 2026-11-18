@@ -1,0 +1,8 @@
+card "Sunweb" {
+  oracle_id 832f96a4-0f4d-47bb-bc1c-3884e73feabc
+  cost {3}{W}
+  type Creature — Wall
+  pt 5/6
+  keywords defender, flying
+  can't block creature with power 2 or less
+}

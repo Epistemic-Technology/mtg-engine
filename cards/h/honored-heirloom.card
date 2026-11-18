@@ -1,0 +1,7 @@
+card "Honored Heirloom" {
+  oracle_id 4bf0427e-5e87-4d32-ad34-1d8946ab96fd
+  cost {3}
+  type Artifact
+  mana any
+  activated {2}, {T}: exile target card from a graveyard
+}

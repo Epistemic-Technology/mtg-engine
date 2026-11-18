@@ -1,0 +1,6 @@
+card "Eternal Isolation" {
+  oracle_id 8f69a103-d557-4d28-847e-aa94a440e908
+  cost {1}{W}
+  type Sorcery
+  spell: put target creature with power 4 or greater on bottom of library
+}

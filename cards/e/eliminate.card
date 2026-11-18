@@ -1,0 +1,6 @@
+card "Eliminate" {
+  oracle_id cf307f81-488c-4df5-8b08-ba46e3e7f3d9
+  cost {1}{B}
+  type Instant
+  spell: destroy target creature or planeswalker with mana value 3 or less
+}

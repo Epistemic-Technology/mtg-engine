@@ -1,0 +1,9 @@
+card "Warg Tactics" {
+  oracle_id d1663b51-37a1-45a0-b477-2d3e7dd0828e
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: destroy target creature with flying
+    mode: put 1 +1/+1 counters on target creature you control; target 1 gains trample, hexproof
+  }
+}

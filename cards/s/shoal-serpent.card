@@ -1,0 +1,8 @@
+card "Shoal Serpent" {
+  oracle_id 8a1d14c2-ca31-4711-b385-f4af0c1c0b04
+  cost {5}{U}
+  type Creature — Serpent
+  pt 5/5
+  keywords defender
+  label "Landfall" triggered whenever land you control enters: this loses defender
+}

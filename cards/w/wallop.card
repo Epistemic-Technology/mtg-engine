@@ -1,0 +1,6 @@
+card "Wallop" {
+  oracle_id e939ef5e-ebe1-48cd-9e9f-eb3fd516165c
+  cost {1}{G}
+  type Sorcery
+  spell: destroy target blue or black creature with flying
+}

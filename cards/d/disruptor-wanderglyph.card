@@ -1,0 +1,7 @@
+card "Disruptor Wanderglyph" {
+  oracle_id 81dda1a8-72ac-4e69-8367-4f72c445197c
+  cost {4}
+  type Artifact Creature — Golem
+  pt 3/4
+  triggered whenever this attacks: exile target card from an opponent's graveyard
+}

@@ -1,0 +1,9 @@
+card "Ruinous Rampage" {
+  oracle_id 5020628c-5e47-4a83-89c3-7bf5726e69ad
+  cost {1}{R}{R}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to each opponent
+    mode: exile each artifact with mana value 3 or less
+  }
+}

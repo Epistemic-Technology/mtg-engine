@@ -1,0 +1,14 @@
+card "Brazen Borrower // Petty Theft" {
+  oracle_id c7b044c3-3cfa-407e-bf20-2875e8e04b7b
+  layout adventure
+  cost {1}{U}{U}
+  type Creature — Faerie Rogue
+  pt 3/1
+  keywords flash, flying
+  can block only creature with flying
+  face "Petty Theft" {
+    cost {1}{U}
+    type Instant — Adventure
+    spell: return target nonland permanent an opponent controls to hand
+  }
+}

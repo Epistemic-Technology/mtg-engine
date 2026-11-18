@@ -1,0 +1,8 @@
+card "Lotus-Eye Mystics" {
+  oracle_id efb11270-4b5a-4c52-862f-1d24c6b95d73
+  cost {3}{W}
+  type Creature — Human Monk
+  pt 3/2
+  keywords prowess
+  triggered when this enters: return target enchantment card from your graveyard to hand
+}

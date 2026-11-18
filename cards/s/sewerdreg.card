@@ -1,0 +1,8 @@
+card "Sewerdreg" {
+  oracle_id f05e3fb4-a7e0-4dfa-9f3e-5109be79ef16
+  cost {3}{B}{B}
+  type Creature — Spirit
+  pt 3/3
+  keywords swampwalk
+  activated sacrifice this: exile target card from a graveyard
+}

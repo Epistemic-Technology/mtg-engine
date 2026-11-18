@@ -1,0 +1,7 @@
+card "Demon's Disciple" {
+  oracle_id d5a33091-a348-4b13-8dbd-79ab0ad99afe
+  cost {2}{B}
+  type Creature — Human Cleric
+  pt 3/1
+  triggered when this enters: each player sacrifices 1 creature or planeswalker
+}

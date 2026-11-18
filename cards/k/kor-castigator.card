@@ -1,0 +1,7 @@
+card "Kor Castigator" {
+  oracle_id fbb9dafa-b1aa-401a-b26c-c0c7e8b7222f
+  cost {1}{W}
+  type Creature — Kor Wizard Ally
+  pt 3/1
+  can't be blocked by Eldrazi Scions
+}

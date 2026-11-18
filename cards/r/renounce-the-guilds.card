@@ -1,0 +1,6 @@
+card "Renounce the Guilds" {
+  oracle_id c854f9e8-6a1c-4515-9912-3847978bf5d5
+  cost {1}{W}
+  type Instant
+  spell: each player sacrifices 1 multicolored permanent
+}

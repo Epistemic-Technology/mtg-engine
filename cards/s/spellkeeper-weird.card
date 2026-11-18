@@ -1,0 +1,7 @@
+card "Spellkeeper Weird" {
+  oracle_id 91e09399-3f09-4323-8533-51536ecb7869
+  cost {2}{U}
+  type Creature — Weird
+  pt 1/4
+  activated {2}, {T}, sacrifice this: return target instant or sorcery card from your graveyard to hand
+}

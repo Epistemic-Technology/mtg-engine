@@ -1,0 +1,6 @@
+card "Stampede" {
+  oracle_id 49c997d5-7b41-4faf-b898-58db19055671
+  cost {1}{G}{G}
+  type Instant
+  spell: each attacking creature gets +1/+0 and gains trample
+}

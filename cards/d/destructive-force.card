@@ -1,0 +1,6 @@
+card "Destructive Force" {
+  oracle_id b0967525-554b-41eb-b639-75fe36e0fe57
+  cost {5}{R}{R}
+  type Sorcery
+  spell: each player sacrifices 5 land; deal 5 damage to each creature
+}

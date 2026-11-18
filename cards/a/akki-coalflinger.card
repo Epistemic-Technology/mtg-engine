@@ -1,0 +1,8 @@
+card "Akki Coalflinger" {
+  oracle_id 96de29a1-3178-4c8b-a67b-ab0262442cb6
+  cost {1}{R}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  keywords first strike
+  activated {R}, {T}: each attacking creature gains first strike
+}

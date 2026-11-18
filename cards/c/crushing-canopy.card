@@ -1,0 +1,9 @@
+card "Crushing Canopy" {
+  oracle_id 618cd1bc-4422-441b-906f-1a209277be93
+  cost {2}{G}
+  type Instant
+  choose one {
+    mode: destroy target creature with flying
+    mode: destroy target enchantment
+  }
+}

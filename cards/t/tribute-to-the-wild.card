@@ -1,0 +1,6 @@
+card "Tribute to the Wild" {
+  oracle_id ba0fc2ca-7084-454a-9d4e-5cbca945a7ca
+  cost {1}{G}
+  type Instant
+  spell: each opponent sacrifices 1 artifact or enchantment
+}

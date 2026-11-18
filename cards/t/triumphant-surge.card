@@ -1,0 +1,6 @@
+card "Triumphant Surge" {
+  oracle_id ff281103-7a9b-4eb1-b81e-b8cd137b6e98
+  cost {3}{W}
+  type Instant
+  spell: destroy target creature with power 4 or greater; you gains 3 life
+}

@@ -1,0 +1,7 @@
+card "Swat" {
+  oracle_id 7bb5c5af-6943-4958-a666-0c322d5b9f33
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target creature with power 2 or less
+  cycling {2}
+}

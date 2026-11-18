@@ -1,0 +1,6 @@
+card "Storm Front" {
+  oracle_id 3c8044b7-3999-4825-8448-0a1a325f1b48
+  cost {G}
+  type Enchantment
+  activated {G}{G}: tap target creature with flying
+}

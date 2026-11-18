@@ -1,0 +1,7 @@
+card "Canopy Claws" {
+  oracle_id 195c6453-e5cc-4b3b-8518-eaccf29bc4a6
+  cost {G}
+  type Instant
+  spell: target creature loses flying
+  flashback {G}
+}

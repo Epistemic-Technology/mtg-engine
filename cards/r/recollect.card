@@ -1,0 +1,6 @@
+card "Recollect" {
+  oracle_id 5b38fafb-3999-46dc-928b-1677625c1943
+  cost {2}{G}
+  type Sorcery
+  spell: return target card from your graveyard to hand
+}

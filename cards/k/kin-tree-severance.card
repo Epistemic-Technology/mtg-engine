@@ -1,0 +1,6 @@
+card "Kin-Tree Severance" {
+  oracle_id 211d1c59-0111-48dd-9ff6-d03e7ff2ad5c
+  cost {2/W}{2/B}{2/G}
+  type Instant
+  spell: exile target permanent with mana value 3 or greater
+}

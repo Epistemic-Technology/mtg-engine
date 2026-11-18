@@ -1,0 +1,6 @@
+card "Ambush" {
+  oracle_id 05828c1e-9185-4b70-94fe-753eacdf45a1
+  cost {3}{R}
+  type Instant
+  spell: each blocking creature gains first strike
+}

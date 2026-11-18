@@ -1,0 +1,7 @@
+card "Ironclaw Orcs" {
+  oracle_id c645a616-0d7d-416c-b5f3-057b3a1666a0
+  cost {1}{R}
+  type Creature — Orc
+  pt 2/2
+  can't block creature with power 2 or greater
+}

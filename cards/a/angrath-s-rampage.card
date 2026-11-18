@@ -1,0 +1,10 @@
+card "Angrath's Rampage" {
+  oracle_id 850a8369-94ab-43b6-8cfe-286e3623b19d
+  cost {B}{R}
+  type Sorcery
+  choose one {
+    mode: target player sacrifices 1 artifact
+    mode: target player sacrifices 1 creature
+    mode: target player sacrifices 1 planeswalker
+  }
+}

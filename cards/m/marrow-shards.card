@@ -1,0 +1,6 @@
+card "Marrow Shards" {
+  oracle_id be2ae8dc-afae-4bcf-8a97-08a2764d1148
+  cost {W/P}
+  type Instant
+  spell: deal 1 damage to each attacking creature
+}

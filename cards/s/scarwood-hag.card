@@ -1,0 +1,8 @@
+card "Scarwood Hag" {
+  oracle_id 2b483041-4dea-468a-9857-50dae2e8a57d
+  cost {1}{G}
+  type Creature — Hag
+  pt 1/1
+  activated {G}{G}{G}{G}, {T}: target creature gains forestwalk
+  activated {T}: target creature loses forestwalk
+}

@@ -1,0 +1,7 @@
+card "Slashing Tiger" {
+  oracle_id c07a86de-ec29-478c-b6cb-057eb9d3e126
+  cost {2}{G}{G}
+  type Creature — Cat
+  pt 3/3
+  triggered whenever this becomes blocked: this gets +2/+2
+}

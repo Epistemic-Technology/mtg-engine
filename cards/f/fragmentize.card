@@ -1,0 +1,6 @@
+card "Fragmentize" {
+  oracle_id f025c1da-734e-4cbb-99d8-9d700d6edbde
+  cost {W}
+  type Sorcery
+  spell: destroy target artifact or enchantment with mana value 4 or less
+}

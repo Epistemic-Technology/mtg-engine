@@ -1,0 +1,7 @@
+card "Stalking Tiger" {
+  oracle_id e6af1429-276f-41a8-88d0-062661dc0cd4
+  cost {3}{G}
+  type Creature — Cat
+  pt 3/3
+  can't be blocked by more than one creature
+}

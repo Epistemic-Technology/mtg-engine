@@ -1,0 +1,9 @@
+card "Trading Post" {
+  oracle_id 63788566-e25a-44bb-bb55-197e1b93b3e8
+  cost {4}
+  type Artifact
+  activated {1}, {T}, discard 1 card: you gains 4 life
+  activated {1}, {T}, pay 1 life: create 1 "0/1 white Goat creature"
+  activated {1}, {T}, sacrifice creature: return target artifact card from your graveyard to hand
+  activated {1}, {T}, sacrifice artifact: draw 1 cards
+}

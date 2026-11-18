@@ -1,0 +1,6 @@
+card "Hymn to Tourach" {
+  oracle_id 992d9a72-d34d-47d7-96fb-37f0efb515ef
+  cost {B}{B}
+  type Sorcery
+  spell: target player discards 2 cards at random
+}

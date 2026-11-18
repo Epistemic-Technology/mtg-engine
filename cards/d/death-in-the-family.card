@@ -1,0 +1,6 @@
+card "Death in the Family" {
+  oracle_id f599471a-31a6-4fb0-bf27-c5b707e1db6a
+  cost {1}{B}
+  type Instant
+  spell: exile target creature with mana value 3 or less
+}

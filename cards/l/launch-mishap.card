@@ -1,0 +1,6 @@
+card "Launch Mishap" {
+  oracle_id 5d4ed768-0a37-4604-8121-43920ed9fb4a
+  cost {2}{U}
+  type Instant
+  spell: counter target creature or planeswalker spell; create 1 "1/1 colorless Thopter artifact creature with flying"
+}

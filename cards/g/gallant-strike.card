@@ -1,0 +1,7 @@
+card "Gallant Strike" {
+  oracle_id 04dcda3b-3401-4523-8b97-b700a14feb36
+  cost {1}{W}
+  type Instant
+  spell: destroy target creature with toughness 4 or greater
+  cycling {2}
+}

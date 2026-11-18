@@ -2,8 +2,8 @@
 //! line. See `SYNTAX.md` in this crate.
 
 use mtg_core::card::{
-    CardType, Condition, CounterKind, Keyword, Num, PtValue, Relation, Replacement as Outcome,
-    RuleKind, Supertype, TargetSpec, Who,
+    CardType, Cmp, ColorCount, Condition, CounterKind, Keyword, Num, PtValue, Relation,
+    Replacement as Outcome, RuleKind, Supertype, TargetSpec, Who,
 };
 use mtg_core::mana::{Color, Mana, ManaCost};
 use mtg_core::state::Zone;
@@ -11,9 +11,9 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join, Kind, Mod,
-    Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger,
-    TriggerObj,
+    Ability, Affects, BlockRule, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join,
+    Kind, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target,
+    Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -991,6 +991,27 @@ impl P {
                     ability: Box::new(ability),
                 })
             }
+            "can't" | "can" => {
+                self.pos += 1;
+                let rule = if w == "can" {
+                    self.expect_words(&["block", "only"])?;
+                    BlockRule::BlocksOnly(self.filter()?)
+                } else if self.eat_word("block") {
+                    BlockRule::CantBlock(self.filter()?)
+                } else {
+                    self.expect_words(&["be", "blocked"])?;
+                    if self.eat_words(&["by", "more", "than", "one", "creature"]) {
+                        BlockRule::AtMostOne
+                    } else if self.eat_words(&["except", "by"]) {
+                        BlockRule::OnlyBy(self.filter()?)
+                    } else {
+                        self.expect_word("by")?;
+                        BlockRule::NotBy(self.filter()?)
+                    }
+                };
+                self.end_stmt()?;
+                Ok(Ability::BlockRule(rule))
+            }
             "static" => {
                 self.pos += 1;
                 let mut condition = None;
@@ -1185,6 +1206,9 @@ impl P {
         if w == "it" || w == "target" || w == "another" {
             return true;
         }
+        if w == "its" && matches!(self.word_at(1).as_deref(), Some("controller" | "owner")) {
+            return true;
+        }
         if w == "any" && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
@@ -1219,6 +1243,9 @@ impl P {
                     | "discards"
                     | "fights"
                     | "can't"
+                    | "sacrifices"
+                    | "reveals"
+                    | "reveal"
             )
         )
     }
@@ -1324,6 +1351,61 @@ impl P {
                     who: subject,
                 })
             }
+            "lose" | "loses" if self.keyword_ahead() => {
+                let mut keywords = Vec::new();
+                while let Some(k) = self.keyword() {
+                    keywords.push(k);
+                    if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                    }
+                    if self.at_word("and") {
+                        self.pos += 1;
+                        if !self.keyword_ahead() {
+                            self.pos -= 1;
+                            break;
+                        }
+                    } else if !self.keyword_ahead() {
+                        break;
+                    }
+                }
+                self.until_end_of_turn();
+                Ok(Effect::Strip {
+                    keywords,
+                    to: subject,
+                })
+            }
+            "sacrifices" => {
+                let count = if self.eat_word("a") || self.eat_word("an") {
+                    Num::N(1)
+                } else {
+                    self.num()?
+                };
+                let filter = self.filter()?;
+                self.eat_words(&["of", "their", "choice"]);
+                Ok(Effect::SacrificeChosen {
+                    who: subject,
+                    count,
+                    filter,
+                })
+            }
+            "reveal" | "reveals" => {
+                self.eat_word("their");
+                self.expect_word("hand")?;
+                if self.eat_word("discarding") {
+                    let filter = if self.eat_word("card") {
+                        None
+                    } else {
+                        let f = self.filter()?;
+                        self.expect_word("card")?;
+                        Some(f)
+                    };
+                    return Ok(Effect::DiscardChosen {
+                        who: subject,
+                        filter,
+                    });
+                }
+                Ok(Effect::RevealHand { who: subject })
+            }
             "lose" | "loses" => {
                 let amount = self.num()?;
                 self.expect_word("life")?;
@@ -1351,6 +1433,12 @@ impl P {
             "discard" | "discards" => {
                 let count = self.num()?;
                 self.cards_word()?;
+                if self.eat_words(&["at", "random"]) {
+                    return Ok(Effect::DiscardRandom {
+                        count,
+                        who: subject,
+                    });
+                }
                 Ok(Effect::Discard {
                     count,
                     who: (explicit || subject != Recipient::You).then_some(subject),
@@ -1500,6 +1588,25 @@ impl P {
                 let no_regen = self.eat_words(&["without", "regeneration"]);
                 Ok(Effect::Destroy { to, no_regen })
             }
+            "put"
+                if !matches!(self.peek(), Some(Tok::Num(_)))
+                    && !self
+                        .word_at(0)
+                        .is_some_and(|w| NUMBER_WORDS.contains(&w.as_str()) || w == "x") =>
+            {
+                let what = self.recipient()?;
+                self.expect_word("on")?;
+                let top = if self.eat_word("top") {
+                    true
+                } else {
+                    self.expect_word("bottom")?;
+                    false
+                };
+                self.expect_word("of")?;
+                self.eat_words(&["its", "owner's"]);
+                self.expect_word("library")?;
+                Ok(Effect::PutInLibrary { what, top })
+            }
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -1519,13 +1626,18 @@ impl P {
                 Ok(Effect::RemoveCounters { kind, count, to })
             }
             "return" => {
-                let what = self.recipient()?;
+                let all = self.recipients()?;
+                let what = all[0];
                 self.expect_word("to")?;
                 if self.eat_words(&["its", "owner's", "hand"])
+                    || self.eat_words(&["their", "owners'", "hands"])
                     || self.eat_words(&["your", "hand"])
                     || self.eat_word("hand")
                 {
-                    return Ok(Effect::ReturnToHand { what });
+                    return Ok(Effect::ReturnToHand { what: all });
+                }
+                if all.len() > 1 {
+                    return self.fail("only one recipient returns to the battlefield");
                 }
                 self.eat_word("the");
                 self.expect_word("battlefield")?;
@@ -1548,7 +1660,7 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
-                let what = self.recipient()?;
+                let what = self.recipients()?;
                 Ok(Effect::Exile { what })
             }
             "sacrifice" => {
@@ -1933,6 +2045,15 @@ impl P {
             }
             return Ok(Recipient::ThatTarget(n - 1));
         }
+        if !self.targets.is_empty() {
+            let last = self.targets.len() - 1;
+            if self.eat_words(&["its", "controller"]) {
+                return Ok(Recipient::ControllerOf(last));
+            }
+            if self.eat_words(&["its", "owner"]) {
+                return Ok(Recipient::OwnerOf(last));
+            }
+        }
         let another = self.eat_word("another");
         if self.eat_word("target") {
             if let Some(Tok::Num(n)) = self.peek() {
@@ -2007,14 +2128,32 @@ impl P {
     fn target_spec(&mut self) -> R<Target> {
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
-                // "creature you don't control": a filter goes on.
+                // "creature you don't control", "creature with flying",
+                // "artifact creature": a filter goes on.
+                let next = self.word_at(ws.len());
+                let after = self.word_at(ws.len() + 1);
+                let keyword_after = matches!(next.as_deref(), Some("with" | "without")) && {
+                    let mut probe = P {
+                        toks: self.toks[self.pos + ws.len() + 1..].to_vec(),
+                        pos: 0,
+                        targets: Vec::new(),
+                        groups: Vec::new(),
+                        in_delayed: false,
+                        subject: None,
+                    };
+                    probe.keyword().is_some()
+                };
                 let more = matches!(
-                    (
-                        self.word_at(ws.len()).as_deref(),
-                        self.word_at(ws.len() + 1).as_deref()
-                    ),
+                    (next.as_deref(), after.as_deref()),
                     (Some("you"), Some("don't"))
-                );
+                ) || keyword_after
+                    || (matches!(next.as_deref(), Some("with"))
+                        && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
+                    || next.as_deref().and_then(card_type).is_some()
+                    || (matches!(next.as_deref(), Some("spell" | "spells"))
+                        && !ws.ends_with(&["spell"]))
+                    || (matches!(next.as_deref(), Some("card" | "cards"))
+                        && after.as_deref() == Some("from"));
                 if more {
                     break;
                 }
@@ -2030,7 +2169,28 @@ impl P {
             self.pos += 2;
             return Ok(Target::CreatureOfSubtype(sub));
         }
-        let f = self.filter()?;
+        // "card from a graveyard" / "instant card from your graveyard".
+        let f = if self.at_word("card") {
+            Filter::default()
+        } else {
+            self.filter()?
+        };
+        if self.eat_word("spell") || self.eat_word("spells") {
+            return Ok(Target::Spell(f));
+        }
+        if self.at_words(&["card", "from"]) || self.at_words(&["cards", "from"]) {
+            self.pos += 2;
+            let who = if self.eat_word("your") {
+                Who::You
+            } else if self.eat_words(&["an", "opponent's"]) {
+                Who::Opponents
+            } else {
+                self.expect_word("a")?;
+                Who::Any
+            };
+            self.expect_word("graveyard")?;
+            return Ok(Target::GraveyardCard { filter: f, who });
+        }
         Ok(Target::Filter(f))
     }
 
@@ -2095,6 +2255,66 @@ impl P {
                 "with" if self.at_words(&["with", "no", "abilities"]) => {
                     f.no_abilities = true;
                     self.pos += 3;
+                }
+                "with"
+                    if matches!(self.word_at(1).as_deref(), Some("power" | "toughness"))
+                        || self.at_words(&["with", "mana", "value"]) =>
+                {
+                    self.pos += 1;
+                    let what = self.word()?;
+                    if what == "mana" {
+                        self.expect_word("value")?;
+                    }
+                    let n = self.number()?;
+                    let cmp = if self.eat_words(&["or", "less"]) {
+                        Cmp::AtMost
+                    } else if self.eat_words(&["or", "greater"]) {
+                        Cmp::AtLeast
+                    } else {
+                        Cmp::Exactly
+                    };
+                    match what.as_str() {
+                        "power" => f.power = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX))),
+                        "toughness" => {
+                            f.toughness = Some((cmp, i16::try_from(n).unwrap_or(i16::MAX)));
+                        }
+                        _ => f.mana_value = Some((cmp, u8::try_from(n).unwrap_or(u8::MAX))),
+                    }
+                }
+                "tapped" | "untapped" => {
+                    f.tapped = Some(w == "tapped");
+                    self.pos += 1;
+                }
+                "attacking" => {
+                    f.attacking = true;
+                    self.pos += 1;
+                }
+                "blocking" => {
+                    f.blocking = true;
+                    self.pos += 1;
+                }
+                "multicolored" | "monocolored" | "colorless" => {
+                    f.color_count = Some(match w.as_str() {
+                        "multicolored" => ColorCount::Multicolored,
+                        "monocolored" => ColorCount::Monocolored,
+                        _ => ColorCount::Colorless,
+                    });
+                    self.pos += 1;
+                }
+                "or" if self.word_at(1).as_deref().and_then(color).is_some()
+                    && f.colors.is_some() =>
+                {
+                    self.pos += 1;
+                }
+                "or" if self.word_at(1).as_deref().and_then(card_type).is_some()
+                    && (!f.types.is_empty() || !f.any_types.is_empty()) =>
+                {
+                    // "artifact or enchantment": the types so far and the
+                    // next become alternatives.
+                    self.pos += 1;
+                    let t = card_type(&self.word()?).expect("checked");
+                    f.any_types.append(&mut f.types);
+                    f.any_types.push(t);
                 }
                 "without" if self.word_at(1).as_deref() != Some("regeneration") => {
                     self.pos += 1;
@@ -2300,10 +2520,18 @@ impl P {
                 }
                 Ok(Trigger::Attacks(obj))
             }
+            "blocks" if self.at_words(&["or", "becomes", "blocked"]) => {
+                self.pos += 3;
+                Ok(Trigger::BlocksOrBlocked(obj))
+            }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
                 self.expect_words(&["combat", "damage", "to", "a", "player"])?;
                 Ok(Trigger::DealsCombatDamageToPlayer(obj))
+            }
+            "becomes" if self.at_word("blocked") => {
+                self.pos += 1;
+                Ok(Trigger::BecomesBlocked(obj))
             }
             "becomes" => {
                 if !(self.eat_word("targeted")
@@ -2634,6 +2862,9 @@ impl P {
                 }
             }
             "has" | "have" => Ok(Mod::AddKeywords(self.keyword_list()?)),
+            "loses" | "lose" if self.keyword_ahead() => {
+                Ok(Mod::LosesKeywords(self.keyword_list()?))
+            }
             "loses" | "lose" => {
                 self.expect_words(&["all", "abilities"])?;
                 Ok(Mod::RemoveAllAbilities)

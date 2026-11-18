@@ -1,0 +1,8 @@
+card "Sunblast Angel" {
+  oracle_id 8b34d1df-4024-497d-bd28-a7caa8c3fa24
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/5
+  keywords flying
+  triggered when this enters: destroy each tapped creature
+}

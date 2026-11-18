@@ -1,0 +1,7 @@
+card "Auron's Inspiration" {
+  oracle_id 53a4d9ee-6dfa-4a8b-a1e4-7f671a666188
+  cost {2}{W}
+  type Instant
+  spell: each attacking creature gets +2/+0
+  flashback {2}{W}{W}
+}

@@ -1,0 +1,8 @@
+card "Griffin Dreamfinder" {
+  oracle_id ca5d5cbf-fc4f-43dd-a2af-767f277dfef9
+  cost {3}{W}{W}
+  type Creature — Griffin
+  pt 1/4
+  keywords flying
+  triggered when this enters: return target enchantment card from your graveyard to hand
+}

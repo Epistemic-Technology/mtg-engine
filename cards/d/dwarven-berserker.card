@@ -1,0 +1,7 @@
+card "Dwarven Berserker" {
+  oracle_id cc43507a-ca61-45ae-ac0a-4ddb851c27ef
+  cost {1}{R}
+  type Creature — Dwarf Berserker
+  pt 1/1
+  triggered whenever this becomes blocked: this gets +3/+0 and gains trample
+}

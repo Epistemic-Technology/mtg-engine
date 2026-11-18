@@ -1,0 +1,6 @@
+card "Scatter Ray" {
+  oracle_id b515dfc6-1a1e-46d6-a7a3-0e3af8279f49
+  cost {1}{U}
+  type Instant
+  spell: counter target artifact or creature spell unless its controller pays {4}
+}

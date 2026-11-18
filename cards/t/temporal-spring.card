@@ -1,0 +1,6 @@
+card "Temporal Spring" {
+  oracle_id 1d7a4e9c-b3c9-421e-b5f4-82d51d7d5125
+  cost {1}{G}{U}
+  type Sorcery
+  spell: put target permanent on top of library
+}

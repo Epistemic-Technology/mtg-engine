@@ -1,0 +1,9 @@
+card "Gone Missing" {
+  oracle_id a31a66ee-5ddf-4d70-9ae9-725fc7327706
+  cost {4}{U}
+  type Sorcery
+  spell {
+    put target permanent on top of library
+    investigate
+  }
+}

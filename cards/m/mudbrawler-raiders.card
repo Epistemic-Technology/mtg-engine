@@ -1,0 +1,7 @@
+card "Mudbrawler Raiders" {
+  oracle_id d8863b64-110d-4f6b-9d0e-4662f2b399cb
+  cost {2}{R/G}{R/G}
+  type Creature — Goblin Warrior
+  pt 3/3
+  can't be blocked by blue creature
+}

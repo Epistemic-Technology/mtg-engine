@@ -1,0 +1,7 @@
+card "Vessel of Endless Rest" {
+  oracle_id 8031285b-2add-42da-aa97-03c3f2fff226
+  cost {3}
+  type Artifact
+  triggered when this enters: put target card from a graveyard on bottom of library
+  mana any
+}

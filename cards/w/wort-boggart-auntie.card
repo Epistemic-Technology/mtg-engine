@@ -1,0 +1,8 @@
+card "Wort, Boggart Auntie" {
+  oracle_id 6f477e2e-220e-48d9-9236-9564478e796a
+  cost {2}{B}{R}
+  type Legendary Creature — Goblin Shaman
+  pt 3/3
+  keywords fear
+  triggered at beginning of your upkeep: you may return target Goblin card from your graveyard to hand
+}

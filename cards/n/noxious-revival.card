@@ -1,0 +1,6 @@
+card "Noxious Revival" {
+  oracle_id 97cabeda-9fe3-490d-99b4-4c8d87c17157
+  cost {G/P}
+  type Instant
+  spell: put target card from a graveyard on top of library
+}

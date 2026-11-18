@@ -1,0 +1,8 @@
+card "Victory's Herald" {
+  oracle_id e410f80f-cf67-46ff-aeb3-da0204237d66
+  cost {3}{W}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  triggered whenever this attacks: each attacking creature gains flying, lifelink
+}

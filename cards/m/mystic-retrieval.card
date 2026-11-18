@@ -1,0 +1,7 @@
+card "Mystic Retrieval" {
+  oracle_id b7cfbfa1-dd38-47ff-9138-fa6b247afc11
+  cost {3}{U}
+  type Sorcery
+  spell: return target instant or sorcery card from your graveyard to hand
+  flashback {2}{R}
+}

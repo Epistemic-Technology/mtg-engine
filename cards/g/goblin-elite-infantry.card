@@ -1,0 +1,7 @@
+card "Goblin Elite Infantry" {
+  oracle_id a6a8861c-b6fe-45a6-86e4-9160c36362ff
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered whenever this blocks or becomes blocked: this gets -1/-1
+}

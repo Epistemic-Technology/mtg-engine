@@ -1,0 +1,8 @@
+card "Excavation Elephant" {
+  oracle_id 45fa04ee-3b5c-45b3-8c09-bda08cca3630
+  cost {4}{W}
+  type Creature — Elephant
+  pt 3/5
+  kicker {1}{W}
+  triggered when this enters if kicked: return target artifact card from your graveyard to hand
+}

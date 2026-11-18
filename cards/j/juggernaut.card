@@ -1,0 +1,8 @@
+card "Juggernaut" {
+  oracle_id 4ac9116f-36bc-4d71-b696-d6ee064e1d58
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 5/3
+  keywords attacks each combat if able
+  can't be blocked by Wall
+}

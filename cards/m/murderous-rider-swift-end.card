@@ -1,0 +1,14 @@
+card "Murderous Rider // Swift End" {
+  oracle_id 1080c5b5-6651-4c6a-93e6-099fbe389e26
+  layout adventure
+  cost {1}{B}{B}
+  type Creature — Zombie Knight
+  pt 2/3
+  keywords lifelink
+  triggered when this dies: put this on bottom of library
+  face "Swift End" {
+    cost {1}{B}{B}
+    type Instant — Adventure
+    spell: destroy target creature or planeswalker; you loses 2 life
+  }
+}

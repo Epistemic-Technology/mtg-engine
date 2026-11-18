@@ -745,6 +745,19 @@ impl GameState {
         self.version += 1;
     }
 
+    /// Combat status changed: refresh characteristics only if a static
+    /// ability on the battlefield looks at attacking or blocking.
+    pub fn combat_bump(&mut self) {
+        self.version += 1;
+        if self
+            .battlefield
+            .iter()
+            .any(|id| self.pool.get(self.objects[*id].def).combat_static)
+        {
+            self.cversion += 1;
+        }
+    }
+
     /// A change that can alter derived characteristics (see `cversion`).
     pub fn cbump(&mut self) {
         self.version += 1;
@@ -1022,6 +1035,45 @@ impl GameState {
     /// `TargetSpec::Creature`), may be attached to `target` (CR 303.4c,
     /// 704.5n). Unlike targeting, hexproof and the "you control" of equip
     /// do not matter here.
+    /// The game-state parts of a filter (`ObjFilter::needs_state`): tapped,
+    /// attacking, blocking, and mana value.
+    pub fn status_ok(&self, f: &crate::card::ObjFilter, id: ObjId) -> bool {
+        if !f.needs_state() {
+            return true;
+        }
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        if let Some(t) = f.tapped
+            && o.tapped != t
+        {
+            return false;
+        }
+        if f.attacking
+            && !self
+                .combat
+                .as_ref()
+                .is_some_and(|cb| cb.attackers.iter().any(|a| a.id == id))
+        {
+            return false;
+        }
+        if f.blocking
+            && self
+                .combat
+                .as_ref()
+                .is_none_or(|cb| cb.blocked_by(id).is_none())
+        {
+            return false;
+        }
+        if let Some((cmp, n)) = f.mana_value {
+            let mv = self.pool.get(o.def).mana_cost.mana_value();
+            if !cmp.holds(mv, u32::from(n)) {
+                return false;
+            }
+        }
+        true
+    }
+
     /// CR 702.16c: a permanent with protection can't be enchanted or
     /// equipped by something with the quality.
     pub fn protected_attachment(&self, attachment: ObjId, target: ObjId) -> bool {
@@ -1080,6 +1132,8 @@ impl GameState {
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
             | TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::SpellFiltered(_)
+            | TargetSpec::GraveyardCard { .. }
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
     }
@@ -1153,10 +1207,22 @@ impl GameState {
                         && obj.owner == caster
                         && self.pool.get(obj.def).is_creature();
                 }
-                if matches!(
-                    spec,
-                    TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell
-                ) {
+                if let TargetSpec::GraveyardCard { filter, who } = spec {
+                    let whose = match who {
+                        crate::card::Who::Any => true,
+                        crate::card::Who::You => obj.owner == caster,
+                        crate::card::Who::Opponents => obj.owner != caster,
+                    };
+                    let c = self.base_characteristics(obj);
+                    return obj.zone == Zone::Graveyard
+                        && whose
+                        && self
+                            .pool
+                            .filter(filter)
+                            .matches(id, obj.owner, &c, source, None)
+                        && self.status_ok(self.pool.filter(filter), id);
+                }
+                if spec.is_spell() {
                     if obj.zone != Zone::Stack || obj.kind == ObjKind::Ability {
                         return false;
                     }
@@ -1164,6 +1230,16 @@ impl GameState {
                     return match spec {
                         TargetSpec::CreatureSpell => creature,
                         TargetSpec::NoncreatureSpell => !creature,
+                        TargetSpec::SpellFiltered(f) => {
+                            let c = self.base_characteristics(obj);
+                            self.pool.filter(f).matches(
+                                id,
+                                obj.controller,
+                                &c,
+                                source,
+                                Some(caster),
+                            ) && self.status_ok(self.pool.filter(f), id)
+                        }
                         _ => true,
                     };
                 }
@@ -1231,8 +1307,11 @@ impl GameState {
                         self.pool
                             .filter(f)
                             .matches(id, obj.controller, &c, source, Some(caster))
+                            && self.status_ok(self.pool.filter(f), id)
                     }
-                    TargetSpec::Player
+                    TargetSpec::SpellFiltered(_)
+                    | TargetSpec::GraveyardCard { .. }
+                    | TargetSpec::Player
                     | TargetSpec::Opponent
                     | TargetSpec::Spell
                     | TargetSpec::CreatureSpell

@@ -1,0 +1,7 @@
+card "Bearer of Memory" {
+  oracle_id 51e76d8f-95c6-428f-9030-3f8718139f93
+  cost {2}{G}
+  type Enchantment Creature — Human Monk
+  pt 3/2
+  activated {5}{G}: put 1 +1/+1 counters on target enchantment creature; target 1 gains trample
+}

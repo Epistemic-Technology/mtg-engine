@@ -1,0 +1,8 @@
+card "Demon of Loathing" {
+  oracle_id 2e55fc03-779c-4a71-beb7-aa0ade738c24
+  cost {5}{B}{B}
+  type Creature — Demon
+  pt 7/7
+  keywords flying, trample
+  triggered whenever this deals combat damage to a player: that player sacrifices 1 creature
+}

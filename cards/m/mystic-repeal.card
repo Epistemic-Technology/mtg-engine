@@ -1,0 +1,6 @@
+card "Mystic Repeal" {
+  oracle_id 3f453aca-e14f-4460-9334-f0c3f4256a0e
+  cost {G}
+  type Instant
+  spell: put target enchantment on bottom of library
+}

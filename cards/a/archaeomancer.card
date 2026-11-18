@@ -1,0 +1,7 @@
+card "Archaeomancer" {
+  oracle_id a91a3266-cadd-47a0-9b20-160307f14c07
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+}

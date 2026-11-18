@@ -1,0 +1,6 @@
+card "Rally the Forces" {
+  oracle_id 4145c75d-d052-40d2-8ef4-0a08071582b8
+  cost {2}{R}
+  type Instant
+  spell: each attacking creature gets +1/+0 and gains first strike
+}

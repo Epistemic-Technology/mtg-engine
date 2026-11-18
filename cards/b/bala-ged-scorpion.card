@@ -1,0 +1,7 @@
+card "Bala Ged Scorpion" {
+  oracle_id 753b4258-bc1d-47f4-b994-356507b0816a
+  cost {3}{B}
+  type Creature — Scorpion
+  pt 2/3
+  triggered when this enters: you may destroy target creature with power 1 or less
+}

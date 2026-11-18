@@ -1,0 +1,10 @@
+card "Bant Charm" {
+  oracle_id 324889d6-c857-41ed-bb60-408809fc9964
+  cost {G}{W}{U}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: put target creature on bottom of library
+    mode: counter target instant spell
+  }
+}

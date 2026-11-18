@@ -1,0 +1,8 @@
+card "Silhana Ledgewalker" {
+  oracle_id 5b15dcac-38dc-4957-bc01-40153ea07559
+  cost {1}{G}
+  type Creature — Elf Rogue
+  pt 1/1
+  keywords hexproof
+  can't be blocked except by creature with flying
+}

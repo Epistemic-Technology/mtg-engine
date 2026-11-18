@@ -1,0 +1,9 @@
+card "Disrupt" {
+  oracle_id 76347258-71d5-4874-adde-ff7aa932b808
+  cost {U}
+  type Instant
+  spell {
+    counter target instant or sorcery spell unless its controller pays {1}
+    draw 1 cards
+  }
+}

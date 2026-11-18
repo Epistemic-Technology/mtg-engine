@@ -1,0 +1,6 @@
+card "Relearn" {
+  oracle_id 13cb7d87-ff12-4742-8f54-f3175536db40
+  cost {1}{U}{U}
+  type Sorcery
+  spell: return target instant or sorcery card from your graveyard to hand
+}

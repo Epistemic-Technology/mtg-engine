@@ -208,6 +208,7 @@ impl GameState {
                     && filter.is_none_or(|f| {
                         self.characteristics(*id)
                             .is_some_and(|c| f.matches(*id, p, &c, Some(source), Some(p)))
+                            && self.status_ok(f, *id)
                     })
             })
             .collect()
@@ -429,6 +430,7 @@ impl GameState {
                 let sc = &self.objects[*s];
                 self.characteristics(*s)
                     .is_some_and(|c| f.matches(*s, sc.controller, &c, Some(source), Some(p)))
+                    && self.status_ok(f, *s)
             })
             .collect()
     }
@@ -551,19 +553,18 @@ impl GameState {
         source: Option<ObjId>,
     ) -> Vec<Target> {
         let mut out = Vec::new();
-        if spec == TargetSpec::CreatureCardInYourGraveyard {
-            for id in &self.player(caster).graveyard {
-                let t = Target::Object(*id);
-                if self.is_legal_target_for(caster, spec, t, source) {
-                    out.push(t);
+        if spec.is_graveyard() {
+            for p in self.players_in_game() {
+                for id in &self.player(p).graveyard {
+                    let t = Target::Object(*id);
+                    if self.is_legal_target_for(caster, spec, t, source) {
+                        out.push(t);
+                    }
                 }
             }
             return out;
         }
-        if matches!(
-            spec,
-            TargetSpec::Spell | TargetSpec::CreatureSpell | TargetSpec::NoncreatureSpell
-        ) {
+        if spec.is_spell() {
             for id in &self.stack {
                 let t = Target::Object(*id);
                 if Some(*id) != source && self.is_legal_target_for(caster, spec, t, source) {
@@ -973,7 +974,7 @@ impl GameState {
                 let t = &self.objects[*id];
                 self.characteristics(*id).is_some_and(|c| {
                     filter.matches(*id, t.controller, &c, Some(spell), Some(controller))
-                })
+                }) && self.status_ok(&filter, *id)
             })
             .collect();
         if candidates.is_empty() {
@@ -1013,6 +1014,7 @@ impl GameState {
     }
 
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
+    #[allow(clippy::too_many_lines)] // one arm per recipient kind
     fn recipients(&self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
         let mut out = SmallVec::new();
         match r {
@@ -1021,6 +1023,27 @@ impl GameState {
                     && let Some(t) = ctx.targets.get(i)
                 {
                     out.push(*t);
+                }
+            }
+            Recipient::ControllerOf(i) | Recipient::OwnerOf(i) => {
+                if let Some(Target::Object(id)) = ctx.targets.get(i) {
+                    let owner = matches!(r, Recipient::OwnerOf(_));
+                    let p = self
+                        .objects
+                        .get(*id)
+                        .map(|o| if owner { o.owner } else { o.controller })
+                        .or_else(|| {
+                            self.lki.get(id).map(|l| {
+                                if owner {
+                                    l.object.owner
+                                } else {
+                                    l.object.controller
+                                }
+                            })
+                        });
+                    if let Some(p) = p {
+                        out.push(Target::Player(p));
+                    }
                 }
             }
             Recipient::You => out.push(Target::Player(ctx.controller)),
@@ -1091,7 +1114,7 @@ impl GameState {
                             let o = &self.objects[*id];
                             self.characteristics(*id).is_some_and(|c| {
                                 filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
-                            })
+                            }) && self.status_ok(filter, *id)
                         })
                         .map(Target::Object),
                 );
@@ -1294,6 +1317,7 @@ impl GameState {
                         let o = &self.objects[*id];
                         let c = self.base_characteristics(o);
                         if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                            && self.status_ok(filter, *id)
                             && !seen.contains(&o.def)
                         {
                             seen.push(o.def);
@@ -1480,6 +1504,108 @@ impl GameState {
                 // controller.
                 self.sync_control();
             }
+            Effect::Strip { keywords, to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::RemoveKeywords(*keywords)],
+                        );
+                    }
+                }
+            }
+            Effect::PutInLibrary { what, top } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else {
+                        continue;
+                    };
+                    if !self.objects.get(id).is_some_and(|o| {
+                        matches!(o.zone, Zone::Battlefield | Zone::Graveyard | Zone::Stack)
+                    }) {
+                        continue;
+                    }
+                    self.move_object(id, Zone::Library, *top);
+                }
+            }
+            Effect::SacrificeChosen { who, filter, count } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    for _ in 0..count.eval(ctx.x) {
+                        let options: Vec<Choice> = self
+                            .permanents_of(p)
+                            .filter(|id| {
+                                self.characteristics(*id).is_some_and(|c| {
+                                    filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                                }) && self.status_ok(filter, *id)
+                            })
+                            .map(Choice::Sacrifice)
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        let k = self.choose_mid(p, DecisionKind::Edict, options.clone());
+                        if let Choice::Sacrifice(id) = options[k] {
+                            self.sacrifice(id);
+                        }
+                    }
+                }
+            }
+            Effect::RevealHand { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.emit(Event::RevealedHand { player: p });
+                    }
+                }
+            }
+            Effect::DiscardRandom { count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    for _ in 0..count.eval(ctx.x) {
+                        let n = self.player(p).hand.len();
+                        if n == 0 {
+                            break;
+                        }
+                        let i = rand::Rng::random_range(&mut self.rng, 0..n);
+                        let card = self.player(p).hand[i];
+                        self.discard_card(p, card);
+                    }
+                }
+            }
+            Effect::DiscardChosen { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    self.emit(Event::RevealedHand { player: p });
+                    let options: Vec<Choice> = self
+                        .player(p)
+                        .hand
+                        .iter()
+                        .filter(|id| {
+                            filter.as_ref().is_none_or(|f| {
+                                let c = self.base_characteristics(&self.objects[**id]);
+                                f.matches(**id, p, &c, None, None) && self.status_ok(f, **id)
+                            })
+                        })
+                        .map(|id| Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
+                    if let Choice::Discard { card, .. } = options[k] {
+                        self.discard_card(p, card);
+                    }
+                }
+            }
             Effect::Sacrifice { what } => {
                 for t in self.recipients(ctx, *what) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -1620,7 +1746,20 @@ impl GameState {
             }
             Effect::Exile { what } => {
                 for t in self.recipients(ctx, *what) {
-                    if let Some(id) = on_battlefield(self, t) {
+                    // A permanent, or a card in a graveyard ("exile target
+                    // card from a graveyard").
+                    let id = on_battlefield(self, t).or_else(|| match t {
+                        Target::Object(id)
+                            if self
+                                .objects
+                                .get(id)
+                                .is_some_and(|o| o.zone == Zone::Graveyard) =>
+                        {
+                            Some(id)
+                        }
+                        _ => None,
+                    });
+                    if let Some(id) = id {
                         let new = self.move_object(id, Zone::Exile, true);
                         ctx.created = Some(new);
                     }

@@ -1,0 +1,7 @@
+card "Merfolk Assassin" {
+  oracle_id 7edd536c-c043-4189-aa57-83d22eed3103
+  cost {U}{U}
+  type Creature — Merfolk Assassin
+  pt 1/2
+  activated {T}: destroy target creature with islandwalk
+}

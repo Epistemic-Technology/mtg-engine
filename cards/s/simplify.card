@@ -1,0 +1,6 @@
+card "Simplify" {
+  oracle_id 853cac98-34dc-471f-af87-1a94b0022b67
+  cost {G}
+  type Sorcery
+  spell: each player sacrifices 1 enchantment
+}

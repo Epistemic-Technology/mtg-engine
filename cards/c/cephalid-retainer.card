@@ -1,0 +1,7 @@
+card "Cephalid Retainer" {
+  oracle_id 9a0a926c-59ab-4bd3-a238-13988bdd96a5
+  cost {2}{U}{U}
+  type Creature — Octopus
+  pt 2/3
+  activated {U}{U}: tap target creature without flying
+}

@@ -1,0 +1,6 @@
+card "Vile Rebirth" {
+  oracle_id 6845a62f-e0f1-448c-beeb-abac2dabd975
+  cost {B}
+  type Instant
+  spell: exile target creature card from a graveyard; create 1 "2/2 black Zombie creature"
+}

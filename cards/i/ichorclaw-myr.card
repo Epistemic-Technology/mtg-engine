@@ -1,0 +1,8 @@
+card "Ichorclaw Myr" {
+  oracle_id 8462a2fa-944b-4fff-a161-10345690b56f
+  cost {2}
+  type Artifact Creature — Phyrexian Myr
+  pt 1/1
+  keywords infect
+  triggered whenever this becomes blocked: this gets +2/+2
+}

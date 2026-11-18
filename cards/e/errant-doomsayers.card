@@ -1,0 +1,7 @@
+card "Errant Doomsayers" {
+  oracle_id 82d4d70b-afb9-4ae7-8f30-16bc64dccf3e
+  cost {1}{W}
+  type Creature — Human Rebel
+  pt 1/1
+  activated {T}: tap target creature with toughness 2 or less
+}

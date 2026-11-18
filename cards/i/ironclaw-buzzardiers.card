@@ -1,0 +1,8 @@
+card "Ironclaw Buzzardiers" {
+  oracle_id 9d546a53-5beb-40f5-b358-377810c8a75d
+  cost {2}{R}
+  type Creature — Orc Scout
+  pt 2/2
+  can't block creature with power 2 or greater
+  activated {R}: this gains flying
+}

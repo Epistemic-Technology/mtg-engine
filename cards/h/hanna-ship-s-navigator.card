@@ -1,0 +1,7 @@
+card "Hanna, Ship's Navigator" {
+  oracle_id 3b008c71-e2a0-4f56-83d3-655c5dd58e0e
+  cost {1}{W}{U}
+  type Legendary Creature — Human Artificer
+  pt 1/2
+  activated {1}{W}{U}, {T}: return target artifact or enchantment card from your graveyard to hand
+}

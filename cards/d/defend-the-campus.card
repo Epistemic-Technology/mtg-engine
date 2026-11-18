@@ -1,0 +1,9 @@
+card "Defend the Campus" {
+  oracle_id 274c2781-f40a-49b4-a039-669739beaab6
+  cost {3}{W}
+  type Instant
+  choose one {
+    mode: each creature you control gets +1/+1
+    mode: destroy target creature with power 4 or greater
+  }
+}

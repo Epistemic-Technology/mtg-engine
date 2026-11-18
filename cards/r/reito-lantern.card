@@ -1,0 +1,6 @@
+card "Reito Lantern" {
+  oracle_id ea871b01-ebaf-4987-a2bf-949cdd367ad1
+  cost {2}
+  type Artifact
+  activated {3}: put target card from a graveyard on bottom of library
+}

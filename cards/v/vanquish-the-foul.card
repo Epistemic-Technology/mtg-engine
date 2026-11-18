@@ -1,0 +1,6 @@
+card "Vanquish the Foul" {
+  oracle_id 6990ac82-49d4-412d-9c3d-1e7fb5479313
+  cost {5}{W}
+  type Sorcery
+  spell: destroy target creature with power 4 or greater; scry 1
+}

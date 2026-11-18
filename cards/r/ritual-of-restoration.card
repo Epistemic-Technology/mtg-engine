@@ -1,0 +1,6 @@
+card "Ritual of Restoration" {
+  oracle_id 7cfd0320-0b1c-4ef4-8e17-600cbcbddd6f
+  cost {W}
+  type Sorcery
+  spell: return target artifact card from your graveyard to hand
+}

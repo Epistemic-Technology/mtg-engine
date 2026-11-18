@@ -1,0 +1,7 @@
+card "Gibbering Hyenas" {
+  oracle_id 2a073f00-0d03-43d0-a0a8-f5bcee0855fc
+  cost {2}{G}
+  type Creature — Hyena
+  pt 3/2
+  can't block black creature
+}

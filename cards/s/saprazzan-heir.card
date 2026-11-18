@@ -1,0 +1,7 @@
+card "Saprazzan Heir" {
+  oracle_id 8685ebfd-d04d-47f5-a919-e118db1e2276
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 1/1
+  triggered whenever this becomes blocked: you may draw 3 cards
+}

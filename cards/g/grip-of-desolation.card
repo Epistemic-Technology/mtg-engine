@@ -1,0 +1,7 @@
+card "Grip of Desolation" {
+  oracle_id a7c8d026-b5b0-4912-a4a0-4c35df5f8899
+  cost {4}{B}{B}
+  type Instant
+  keywords devoid
+  spell: exile target creature and target land
+}

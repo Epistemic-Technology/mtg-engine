@@ -1,0 +1,8 @@
+card "Fencer Clique" {
+  oracle_id 58374ee4-0497-4d12-847c-0f67555f8399
+  cost {2}{U}{U}
+  type Creature — Faerie Soldier
+  pt 3/2
+  keywords flying
+  activated {U}: put this on top of library
+}

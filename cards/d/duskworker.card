@@ -1,0 +1,8 @@
+card "Duskworker" {
+  oracle_id 14d85a83-323b-4e42-88bf-71167a8174e3
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/2
+  triggered whenever this becomes blocked: regenerate this
+  activated {3}: this gets +1/+0
+}

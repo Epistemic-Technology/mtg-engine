@@ -1,0 +1,6 @@
+card "Rally" {
+  oracle_id 274f8860-c8c3-4aeb-ba87-94a5139397d8
+  cost {W}{W}
+  type Instant
+  spell: each blocking creature gets +1/+1
+}

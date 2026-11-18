@@ -1,0 +1,7 @@
+card "Prowling Nightstalker" {
+  oracle_id 6279078a-5c77-4a9e-8e9b-e99310363b6f
+  cost {3}{B}
+  type Creature — Nightstalker
+  pt 2/2
+  can't be blocked except by black creature
+}

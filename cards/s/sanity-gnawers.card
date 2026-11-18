@@ -1,0 +1,7 @@
+card "Sanity Gnawers" {
+  oracle_id e82308d5-29ee-48eb-9d1c-f24897ef191c
+  cost {1}{B}{R}
+  type Creature — Rat
+  pt 1/1
+  triggered when this enters: target player discards 1 cards at random
+}

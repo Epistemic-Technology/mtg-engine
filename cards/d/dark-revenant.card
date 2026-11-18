@@ -1,0 +1,8 @@
+card "Dark Revenant" {
+  oracle_id 7191f765-6e66-4bc4-8aa8-85280ac61d1e
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  triggered when this dies: put this on top of library
+}

@@ -1,0 +1,8 @@
+card "Cloud Sprite" {
+  oracle_id 283433cb-9466-4b40-8af9-30934654d43b
+  cost {U}
+  type Creature — Faerie
+  pt 1/1
+  keywords flying
+  can block only creature with flying
+}

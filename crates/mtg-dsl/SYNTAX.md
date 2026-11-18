@@ -78,6 +78,7 @@ double-faced permanent to its other face (CR 701.27).
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last. `static during your turn, this: has first strike` prints "During your turn, ...". |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
+| `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -112,6 +113,7 @@ sorcery), `once` (activate only once each turn). `none` for a free ability.
 | `whenever this deals combat damage to a player` | |
 | `whenever you gain life` | |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
+| `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell` | |
 | `when this becomes targeted` | becomes the target of a spell or ability |
 
@@ -155,12 +157,18 @@ ability's subject then prints "All Sliver creatures", as old Slivers do), `Gobli
 control`, `enchanted` (the permanent this is attached to), `this` (the
 source itself, for characteristic-defining abilities).
 
+More filter words: `tapped`, `untapped`, `attacking`, `blocking`,
+`multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
+colors joined with `or` (`red or green creature`, sharing a color), types
+joined with `or` (`artifact or enchantment`, at least one), and `with
+power 2 or less`, `with toughness 4 or greater`, `with mana value 3`.
+
 ### Modifications (static abilities)
 
 Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
 `base mv` (base power and toughness each equal to its mana value),
 `has flying, trample`, `loses all abilities`, `add type creature`,
-`set land Mountain`, `add land Swamp`, `add subtype Saproling`, `control`
+`loses flying`, `set land Mountain`, `add land Swamp`, `add subtype Saproling`, `control`
 (you control it), `add color white`, `set color blue`, `switch pt`,
 `cda color all`, `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
@@ -190,7 +198,12 @@ Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
 `remove 1 +1/+1 counter from <what>`, `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
-`regenerate <what>`, `exile <what>`, `exile all graveyards`,
+`regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
+`exile all graveyards`, `put <what> on top of library` / `on bottom of
+library`, `<who> sacrifices 1 creature` ("of their choice"), `<what>
+loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
+nonland card` (Duress: you choose the card), `<who> discards 1 card at
+random`,
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
@@ -215,6 +228,7 @@ effects, to print it that way). Inside a delayed ability `it` is the object
 the ability is about.
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
+`its controller` / `its owner` (of the last target declared),
 `this` (the source), `that player` / `that creature` (what triggered the
 ability), `defending player`, `each creature`, `each creature you control`,
 `those creatures` (the same, mentioned again), `each permanent you control`,
@@ -236,7 +250,9 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `nonlegendary creature you control`, `artifact`, `enchantment`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
-`spell`, `creature spell`, `noncreature spell`, `opponent`,
+`spell`, `creature spell`, `noncreature spell`, `<filter> spell`
+("target instant or sorcery spell"), `card from a graveyard`, `<filter>
+card from your graveyard` / `from an opponent's graveyard`, `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").

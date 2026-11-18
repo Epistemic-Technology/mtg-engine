@@ -1,0 +1,7 @@
+card "Radiant's Judgment" {
+  oracle_id 85fd04e9-b39c-4ce0-97a1-58f9670a298f
+  cost {2}{W}
+  type Instant
+  spell: destroy target creature with power 4 or greater
+  cycling {2}
+}

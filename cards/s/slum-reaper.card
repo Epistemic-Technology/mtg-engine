@@ -1,0 +1,7 @@
+card "Slum Reaper" {
+  oracle_id 0cf742c1-feb5-4108-9976-37fa58528212
+  cost {3}{B}
+  type Creature — Horror
+  pt 4/2
+  triggered when this enters: each player sacrifices 1 creature
+}

@@ -1,0 +1,6 @@
+card "Deathmark" {
+  oracle_id cf09b0af-3cf1-4486-8f65-8cfd2410314a
+  cost {B}
+  type Sorcery
+  spell: destroy target green or white creature
+}

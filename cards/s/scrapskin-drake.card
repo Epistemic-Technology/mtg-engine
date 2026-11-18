@@ -1,0 +1,8 @@
+card "Scrapskin Drake" {
+  oracle_id 910e8269-6001-479a-ab2e-5a935569c33c
+  cost {2}{U}
+  type Creature — Zombie Drake
+  pt 2/3
+  keywords flying
+  can block only creature with flying
+}

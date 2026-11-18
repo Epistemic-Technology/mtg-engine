@@ -1,0 +1,7 @@
+card "Order of the Sacred Torch" {
+  oracle_id 313d7b2f-05fb-49f3-8d8a-361be4412d3c
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  activated {T}, pay 1 life: counter target black spell
+}

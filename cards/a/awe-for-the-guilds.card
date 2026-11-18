@@ -1,0 +1,6 @@
+card "Awe for the Guilds" {
+  oracle_id cb50ec2e-cb27-4ee5-a7de-64ab93619cea
+  cost {2}{R}
+  type Sorcery
+  spell: each monocolored creature can't block
+}

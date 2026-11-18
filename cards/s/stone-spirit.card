@@ -1,0 +1,7 @@
+card "Stone Spirit" {
+  oracle_id 63bc0a02-0d6c-4a00-8b17-1b024f830219
+  cost {4}{R}
+  type Creature — Elemental Spirit
+  pt 4/3
+  can't be blocked by creature with flying
+}

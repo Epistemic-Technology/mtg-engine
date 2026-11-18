@@ -1,0 +1,8 @@
+card "Cloud Dragon" {
+  oracle_id 3c46f309-69ae-43b1-adf6-bdb26599c1f4
+  cost {5}{U}
+  type Creature — Illusion Dragon
+  pt 5/4
+  keywords flying
+  can block only creature with flying
+}

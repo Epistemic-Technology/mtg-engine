@@ -1,0 +1,8 @@
+card "Vine Mare" {
+  oracle_id 499c7ee3-08a3-4f40-809a-3f7087ab9b24
+  cost {2}{G}{G}
+  type Creature — Elemental Horse
+  pt 5/3
+  keywords hexproof
+  can't be blocked by black creature
+}

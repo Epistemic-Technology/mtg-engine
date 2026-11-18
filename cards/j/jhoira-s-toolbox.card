@@ -1,0 +1,7 @@
+card "Jhoira's Toolbox" {
+  oracle_id a08475a6-1fac-4a3f-b343-aed16a61bc16
+  cost {2}
+  type Artifact Creature — Insect
+  pt 1/1
+  activated {2}: regenerate target artifact creature
+}

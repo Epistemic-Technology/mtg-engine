@@ -1,0 +1,6 @@
+card "Annul" {
+  oracle_id d08e9784-75f7-4164-ac48-d06160f8c56b
+  cost {U}
+  type Instant
+  spell: counter target artifact or enchantment spell
+}

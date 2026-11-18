@@ -1,0 +1,6 @@
+card "Elven Cache" {
+  oracle_id 8a922366-ee2a-4ddb-a904-683dcf4f191a
+  cost {2}{G}{G}
+  type Sorcery
+  spell: return target card from your graveyard to hand
+}

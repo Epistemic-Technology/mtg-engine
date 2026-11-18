@@ -1,0 +1,8 @@
+card "Sunscape Apprentice" {
+  oracle_id 4ab1411e-b255-4a6e-b81a-5de7b2d4ea12
+  cost {W}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {G}, {T}: target creature gets +1/+1
+  activated {U}, {T}: put target creature you control on top of library
+}

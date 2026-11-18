@@ -1,0 +1,6 @@
+card "Defeat" {
+  oracle_id 21645448-ecbd-4036-b9ed-47cd903079e4
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target creature with power 2 or less
+}

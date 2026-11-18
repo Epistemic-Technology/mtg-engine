@@ -1,0 +1,7 @@
+card "Kor Line-Slinger" {
+  oracle_id 1a852283-42d4-4197-91b9-5c952c7325ca
+  cost {1}{W}
+  type Creature — Kor Scout
+  pt 0/1
+  activated {T}: tap target creature with power 3 or less
+}

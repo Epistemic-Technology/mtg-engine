@@ -1,0 +1,6 @@
+card "Rain of Blades" {
+  oracle_id c7d398a4-0eb3-43cc-9952-35f3b791aa7a
+  cost {W}
+  type Instant
+  spell: deal 1 damage to each attacking creature
+}

@@ -1,0 +1,7 @@
+card "Chandler" {
+  oracle_id 520abf49-7631-4e7f-889e-547ccc8c3b95
+  cost {4}{R}
+  type Legendary Creature — Human Rogue
+  pt 3/3
+  activated {R}{R}{R}, {T}: destroy target artifact creature
+}

@@ -132,6 +132,8 @@ impl Fmt {
                         Target::Spec(s) => target_phrase(*s),
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
                         Target::Filter(f) => format!("target {}", filter(f)),
+                        Target::Spell(f) => format!("target {} spell", filter(f)),
+                        Target::GraveyardCard { filter: f, who } => graveyard_target(f, *who),
                     }
                 }
             }
@@ -145,6 +147,8 @@ impl Fmt {
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
+            Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
@@ -342,7 +346,7 @@ impl Fmt {
             Effect::RemoveAllCounters { to } => {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
-            Effect::ReturnToHand { what } => format!("return {} to hand", self.recipient(*what, t)),
+            Effect::ReturnToHand { what } => format!("return {} to hand", self.recipients(what, t)),
             Effect::ReturnToBattlefield { what, counters } => {
                 let mut s = format!("return {} to battlefield", self.recipient(*what, t));
                 if let Some((kind, n)) = counters {
@@ -351,7 +355,7 @@ impl Fmt {
                 s
             }
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
-            Effect::Exile { what } => format!("exile {}", self.recipient(*what, t)),
+            Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
@@ -396,6 +400,38 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate => "investigate".to_string(),
+            Effect::PutInLibrary { what, top } => format!(
+                "put {} on {} of library",
+                self.recipient(*what, t),
+                if *top { "top" } else { "bottom" }
+            ),
+            Effect::SacrificeChosen {
+                who,
+                count,
+                filter: f,
+            } => format!(
+                "{} sacrifices {} {}",
+                self.recipient(*who, t),
+                num(*count),
+                filter(f)
+            ),
+            Effect::Strip { keywords: ks, to } => {
+                format!("{} loses {}", self.recipient(*to, t), keywords(ks))
+            }
+            Effect::RevealHand { who } => format!("{} reveals hand", self.recipient(*who, t)),
+            Effect::DiscardRandom { count, who } => format!(
+                "{} discards {} cards at random",
+                self.recipient(*who, t),
+                num(*count)
+            ),
+            Effect::DiscardChosen { who, filter: f } => match f {
+                None => format!("{} reveals hand discarding card", self.recipient(*who, t)),
+                Some(f) => format!(
+                    "{} reveals hand discarding {} card",
+                    self.recipient(*who, t),
+                    filter(f)
+                ),
+            },
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::Search {
@@ -591,6 +627,29 @@ fn outcome(o: &Outcome) -> String {
     }
 }
 
+fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
+    match c {
+        mtg_core::card::Cmp::AtMost => " or less",
+        mtg_core::card::Cmp::AtLeast => " or greater",
+        mtg_core::card::Cmp::Exactly => "",
+    }
+}
+
+/// `target card from a graveyard`, `target instant card from your
+/// graveyard`.
+pub fn graveyard_target(f: &Filter, who: Who) -> String {
+    let whose = match who {
+        Who::You => "your",
+        Who::Opponents => "an opponent's",
+        Who::Any => "a",
+    };
+    if *f == Filter::default() {
+        format!("target card from {whose} graveyard")
+    } else {
+        format!("target {} card from {whose} graveyard", filter(f))
+    }
+}
+
 pub fn filter(f: &Filter) -> String {
     let mut words: Vec<String> = Vec::new();
     if f.all {
@@ -627,13 +686,47 @@ pub fn filter(f: &Filter) -> String {
     for c in &f.not_colors {
         words.push(format!("non{}", color_name(*c)));
     }
+    if let Some(t) = f.tapped {
+        words.push(if t { "tapped" } else { "untapped" }.to_string());
+    }
+    if f.attacking {
+        words.push("attacking".to_string());
+    }
+    if f.blocking {
+        words.push("blocking".to_string());
+    }
+    if let Some(cc) = f.color_count {
+        words.push(format!("{cc:?}").to_lowercase());
+    }
     if let Some(colors) = &f.colors {
-        words.extend(colors.iter().map(|c| color_name(*c).to_string()));
+        let names: Vec<String> = colors.iter().map(|c| color_name(*c).to_string()).collect();
+        words.push(names.join(" or "));
     }
     words.extend(f.subtypes.iter().cloned());
     words.extend(f.types.iter().map(|t| format!("{t:?}").to_lowercase()));
-    if f.subtypes.is_empty() && f.types.is_empty() && !f.enchanted && f.relation != Relation::This {
+    if !f.any_types.is_empty() {
+        let names: Vec<String> = f
+            .any_types
+            .iter()
+            .map(|t| format!("{t:?}").to_lowercase())
+            .collect();
+        words.push(names.join(" or "));
+    }
+    if f.subtypes.is_empty()
+        && f.types.is_empty()
+        && f.any_types.is_empty()
+        && !f.enchanted
+        && f.relation != Relation::This
+    {
         words.push("permanent".to_string());
+    }
+    for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
+        if let Some((cmp, n)) = v {
+            words.push(format!("with {name} {n}{}", cmp_suffix(cmp)));
+        }
+    }
+    if let Some((cmp, n)) = f.mana_value {
+        words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
     }
     if !f.keywords.is_empty() {
         words.push(format!("with {}", keywords(&f.keywords)));
@@ -700,6 +793,10 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
         }
         Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
         Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
+        Trigger::BecomesBlocked(o) => format!("whenever {} becomes blocked", trigger_obj(o)),
+        Trigger::BlocksOrBlocked(o) => {
+            format!("whenever {} blocks or becomes blocked", trigger_obj(o))
+        }
         Trigger::Blocks(o) => format!("whenever {} blocks", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
@@ -826,6 +923,7 @@ fn modification(m: &Mod) -> String {
                 .join(" ")
         ),
         Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
+        Mod::LosesKeywords(ks) => format!("loses {}", keywords(ks)),
         Mod::RemoveAllAbilities => "loses all abilities".to_string(),
         Mod::SetPt {
             power: PtValue::Fixed(p),
@@ -944,7 +1042,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let phrase = match t {
                 Target::Spec(s) => target_phrase(*s).replace("target ", ""),
                 Target::CreatureOfSubtype(sub) => format!("{sub} creature"),
-                Target::Filter(f) => filter(f),
+                Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
+                    filter(f)
+                }
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
@@ -1098,6 +1198,20 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mut tmp = String::new();
             self::ability(&mut tmp, inner, indent, groups);
             let _ = write!(out, "{indent}label \"{label}\" {}", &tmp[indent.len()..]);
+        }
+        Ability::BlockRule(r) => {
+            let text = match r {
+                crate::ast::BlockRule::NotBy(f) => format!("can't be blocked by {}", filter(f)),
+                crate::ast::BlockRule::OnlyBy(f) => {
+                    format!("can't be blocked except by {}", filter(f))
+                }
+                crate::ast::BlockRule::AtMostOne => {
+                    "can't be blocked by more than one creature".to_string()
+                }
+                crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
+                crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
+            };
+            let _ = writeln!(out, "{indent}{text}");
         }
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));

@@ -1,0 +1,9 @@
+card "Soaring Hope" {
+  oracle_id 0d09049a-6786-4b69-b448-35efaa926a71
+  cost {4}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: you gains 3 life
+  static enchanted: has flying
+  activated {W}: put this on top of library
+}

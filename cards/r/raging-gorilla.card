@@ -1,0 +1,7 @@
+card "Raging Gorilla" {
+  oracle_id 1dd6df3f-eac4-4f30-b832-4a3f3a97632f
+  cost {2}{R}
+  type Creature — Ape
+  pt 2/3
+  triggered whenever this blocks or becomes blocked: this gets +2/-2
+}

@@ -1,0 +1,6 @@
+card "Roast" {
+  oracle_id b5e60a85-2f31-47ec-a95b-2e69b2d2c00e
+  cost {1}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature without flying
+}

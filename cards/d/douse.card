@@ -1,0 +1,6 @@
+card "Douse" {
+  oracle_id 3bdc96d9-7272-4e38-b81a-ec928dd49eaa
+  cost {2}{U}
+  type Enchantment
+  activated {1}{U}: counter target red spell
+}

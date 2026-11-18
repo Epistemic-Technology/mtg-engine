@@ -241,6 +241,14 @@ impl Compiler<'_> {
             relation: f.relation,
             enchanted: f.enchanted,
             no_abilities: f.no_abilities,
+            any_types: TypeSet::of(f.any_types.iter().copied()),
+            power: f.power,
+            toughness: f.toughness,
+            mana_value: f.mana_value,
+            color_count: f.color_count,
+            tapped: f.tapped,
+            attacking: f.attacking,
+            blocking: f.blocking,
         }
     }
 
@@ -253,6 +261,17 @@ impl Compiler<'_> {
             }
             Target::CreatureOfSubtype(name) => {
                 TargetSpec::CreatureWithSubtype(self.pool.subtype(name))
+            }
+            Target::Spell(f) => {
+                let f = self.filter(f);
+                TargetSpec::SpellFiltered(self.pool.intern_filter(f))
+            }
+            Target::GraveyardCard { filter, who } => {
+                let f = self.filter(filter);
+                TargetSpec::GraveyardCard {
+                    filter: self.pool.intern_filter(f),
+                    who: *who,
+                }
             }
         }
     }
@@ -288,6 +307,8 @@ impl Compiler<'_> {
             Recipient::TriggeringObject => CoreRecipient::TriggeringObject,
             Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
             Recipient::DefendingPlayer => CoreRecipient::DefendingPlayer,
+            Recipient::ControllerOf(i) => CoreRecipient::ControllerOf(i),
+            Recipient::OwnerOf(i) => CoreRecipient::OwnerOf(i),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
@@ -367,7 +388,11 @@ impl Compiler<'_> {
             Effect::RemoveAllCounters { to } => {
                 out.push(CoreEffect::RemoveAllCounters { to: r(*to) });
             }
-            Effect::ReturnToHand { what } => out.push(CoreEffect::ReturnToHand { what: r(*what) }),
+            Effect::ReturnToHand { what } => {
+                for w in what {
+                    out.push(CoreEffect::ReturnToHand { what: r(*w) });
+                }
+            }
             Effect::ReturnToBattlefield { what, counters } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
@@ -375,7 +400,11 @@ impl Compiler<'_> {
                 });
             }
             Effect::Regenerate { to } => out.push(CoreEffect::Regenerate { to: r(*to) }),
-            Effect::Exile { what } => out.push(CoreEffect::Exile { what: r(*what) }),
+            Effect::Exile { what } => {
+                for w in what {
+                    out.push(CoreEffect::Exile { what: r(*w) });
+                }
+            }
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
             Effect::Sacrifice { what } => out.push(CoreEffect::Sacrifice { what: r(*what) }),
             Effect::Tap { to } => {
@@ -419,6 +448,34 @@ impl Compiler<'_> {
             }),
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
+            Effect::PutInLibrary { what, top } => out.push(CoreEffect::PutInLibrary {
+                what: r(*what),
+                top: *top,
+            }),
+            Effect::SacrificeChosen { who, count, filter } => {
+                let filter = self.filter(filter);
+                out.push(CoreEffect::SacrificeChosen {
+                    who: r(*who),
+                    filter,
+                    count: *count,
+                });
+            }
+            Effect::Strip { keywords, to } => out.push(CoreEffect::Strip {
+                keywords: KeywordSet::of(keywords.iter().copied()),
+                to: r(*to),
+            }),
+            Effect::RevealHand { who } => out.push(CoreEffect::RevealHand { who: r(*who) }),
+            Effect::DiscardRandom { count, who } => out.push(CoreEffect::DiscardRandom {
+                count: *count,
+                who: r(*who),
+            }),
+            Effect::DiscardChosen { who, filter } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::DiscardChosen {
+                    who: r(*who),
+                    filter,
+                });
+            }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
             Effect::Search {
                 filter, count, to, ..
@@ -533,6 +590,8 @@ impl Compiler<'_> {
             },
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::BecomesBlocked(o) => TriggerSpec::BecomesBlocked(self.trigger_obj(o)),
+            Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
             Trigger::DealsCombatDamageToPlayer(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
@@ -610,6 +669,9 @@ impl Compiler<'_> {
             Mod::AddColors(c) => Modification::AddColors(ColorSet::of(c.iter().copied())),
             Mod::SetColors(c) => Modification::SetColors(ColorSet::of(c.iter().copied())),
             Mod::AddKeywords(k) => Modification::AddKeywords(KeywordSet::of(k.iter().copied())),
+            Mod::LosesKeywords(k) => {
+                Modification::RemoveKeywords(KeywordSet::of(k.iter().copied()))
+            }
             Mod::RemoveAllAbilities => Modification::RemoveAllAbilities,
             Mod::SetPt { power, toughness } => Modification::SetPt {
                 power: *power,
@@ -714,6 +776,19 @@ impl Compiler<'_> {
                 }),
             }),
             Ability::Labeled { ability, .. } => return self.ability(ability),
+            Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
+                crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
+                crate::ast::BlockRule::OnlyBy(f) => {
+                    mtg_core::card::BlockRule::OnlyBy(self.filter(f))
+                }
+                crate::ast::BlockRule::AtMostOne => mtg_core::card::BlockRule::AtMostOne,
+                crate::ast::BlockRule::BlocksOnly(f) => {
+                    mtg_core::card::BlockRule::BlocksOnly(self.filter(f))
+                }
+                crate::ast::BlockRule::CantBlock(f) => {
+                    mtg_core::card::BlockRule::CantBlock(self.filter(f))
+                }
+            }),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
         })
     }

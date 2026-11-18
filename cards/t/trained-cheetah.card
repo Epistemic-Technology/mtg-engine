@@ -1,0 +1,7 @@
+card "Trained Cheetah" {
+  oracle_id dad3b459-725e-4bf5-bf7a-bd89866ea8c4
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/2
+  triggered whenever this becomes blocked: this gets +1/+1
+}

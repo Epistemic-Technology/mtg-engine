@@ -1,0 +1,9 @@
+card "Reality Anchor" {
+  oracle_id a7b4a519-d85f-40ae-bb5f-08bc1d301418
+  cost {1}{G}
+  type Instant
+  spell {
+    target creature loses shadow
+    draw 1 cards
+  }
+}

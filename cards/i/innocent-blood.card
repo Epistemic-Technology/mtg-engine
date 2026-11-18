@@ -1,0 +1,6 @@
+card "Innocent Blood" {
+  oracle_id 6791ec3c-c397-4087-8c8c-84d3797df415
+  cost {B}
+  type Sorcery
+  spell: each player sacrifices 1 creature
+}

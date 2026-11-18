@@ -1,0 +1,7 @@
+card "Monk Idealist" {
+  oracle_id 1f47ff5a-dd93-46de-a1ca-b412631218bf
+  cost {2}{W}
+  type Creature — Human Monk Cleric
+  pt 2/2
+  triggered when this enters: return target enchantment card from your graveyard to hand
+}

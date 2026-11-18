@@ -1,0 +1,7 @@
+card "Radjan Spirit" {
+  oracle_id c9ffce6c-a113-4c9d-9148-5ace68f68793
+  cost {3}{G}
+  type Creature — Spirit
+  pt 3/2
+  activated {T}: target creature loses flying
+}

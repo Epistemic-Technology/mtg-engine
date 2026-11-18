@@ -1,0 +1,6 @@
+card "Auroral Procession" {
+  oracle_id 511d3de9-076b-4811-bddf-00623f98993f
+  cost {G}{U}
+  type Instant
+  spell: return target card from your graveyard to hand
+}

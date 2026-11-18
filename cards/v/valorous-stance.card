@@ -1,0 +1,9 @@
+card "Valorous Stance" {
+  oracle_id 1f938353-9081-4dc1-b8e7-d18ece038bd4
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: target creature gains indestructible
+    mode: destroy target creature with toughness 4 or greater
+  }
+}

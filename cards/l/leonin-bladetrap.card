@@ -1,0 +1,7 @@
+card "Leonin Bladetrap" {
+  oracle_id ca21d597-40a5-4724-9d53-1ab6e6c6e767
+  cost {3}
+  type Artifact
+  keywords flash
+  activated {2}, sacrifice this: deal 2 damage to each attacking creature without flying
+}

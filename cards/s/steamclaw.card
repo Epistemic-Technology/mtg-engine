@@ -1,0 +1,7 @@
+card "Steamclaw" {
+  oracle_id 8cbc0fa4-4f62-47e1-90dc-c21d2682a493
+  cost {2}
+  type Artifact
+  activated {3}, {T}: exile target card from a graveyard
+  activated {1}, sacrifice this: exile target card from a graveyard
+}

@@ -1,0 +1,6 @@
+card "Griptide" {
+  oracle_id 5a6bbc45-6cb8-40ff-9f7c-7b2c5713dd78
+  cost {3}{U}
+  type Instant
+  spell: put target creature on top of library
+}

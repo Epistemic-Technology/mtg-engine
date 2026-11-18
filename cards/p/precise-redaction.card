@@ -1,0 +1,6 @@
+card "Precise Redaction" {
+  oracle_id c251b676-0e98-4047-bed1-d72c83aa8da0
+  cost {1}{U}
+  type Instant
+  spell: counter target white or black spell
+}

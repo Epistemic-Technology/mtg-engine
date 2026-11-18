@@ -1,0 +1,7 @@
+card "Zealous Lorecaster" {
+  oracle_id f82265fd-e772-4347-a27f-37b00ccd416b
+  cost {5}{R}
+  type Creature — Giant Sorcerer
+  pt 4/4
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+}

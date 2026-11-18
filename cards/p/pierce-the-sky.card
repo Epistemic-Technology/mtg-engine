@@ -1,0 +1,6 @@
+card "Pierce the Sky" {
+  oracle_id 7e4504c1-4349-408d-8fdf-0c44efdd3f56
+  cost {1}{G}
+  type Instant
+  spell: deal 7 damage to target creature with flying
+}

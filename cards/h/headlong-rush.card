@@ -1,0 +1,6 @@
+card "Headlong Rush" {
+  oracle_id cc3abacc-6643-49c5-8df8-5b56ab20fba5
+  cost {1}{R}
+  type Instant
+  spell: each attacking creature gains first strike
+}

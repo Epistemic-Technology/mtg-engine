@@ -732,6 +732,7 @@ pub enum Relation {
 /// Which battlefield objects a static ability's effect applies to
 /// (CR 611.3: re-evaluated as the layers are applied).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+#[allow(clippy::struct_excessive_bools)] // independent conditions
 pub struct ObjFilter {
     pub who: Option<Who>,
     /// Must have every one of these types.
@@ -758,6 +759,45 @@ pub struct ObjFilter {
     pub enchanted: bool,
     /// Only objects with no abilities.
     pub no_abilities: bool,
+    /// Must have at least one of these types ("artifact or enchantment").
+    pub any_types: TypeSet,
+    /// "with power 2 or less" and the like.
+    pub power: Option<(Cmp, i16)>,
+    pub toughness: Option<(Cmp, i16)>,
+    pub mana_value: Option<(Cmp, u8)>,
+    /// "multicolored", "monocolored", "colorless".
+    pub color_count: Option<ColorCount>,
+    /// Game-state conditions `matches` leaves to the caller
+    /// (`GameState::status_ok`): tapped or untapped, attacking, blocking.
+    pub tapped: Option<bool>,
+    pub attacking: bool,
+    pub blocking: bool,
+}
+
+/// A comparison in a filter.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Cmp {
+    AtMost,
+    AtLeast,
+    Exactly,
+}
+
+impl Cmp {
+    pub fn holds<T: PartialOrd + Copy>(self, have: T, n: T) -> bool {
+        match self {
+            Cmp::AtMost => have <= n,
+            Cmp::AtLeast => have >= n,
+            Cmp::Exactly => have == n,
+        }
+    }
+}
+
+/// How many colors.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ColorCount {
+    Colorless,
+    Monocolored,
+    Multicolored,
 }
 
 impl ObjFilter {
@@ -866,7 +906,37 @@ impl ObjFilter {
         {
             return false;
         }
+        if !self.any_types.is_empty() && !c.types.intersects(self.any_types) {
+            return false;
+        }
+        if let Some((cmp, n)) = self.power
+            && !cmp.holds(c.power, n)
+        {
+            return false;
+        }
+        if let Some((cmp, n)) = self.toughness
+            && !cmp.holds(c.toughness, n)
+        {
+            return false;
+        }
+        if let Some(cc) = self.color_count {
+            let n = c.colors.iter().count();
+            let ok = match cc {
+                ColorCount::Colorless => n == 0,
+                ColorCount::Monocolored => n == 1,
+                ColorCount::Multicolored => n >= 2,
+            };
+            if !ok {
+                return false;
+            }
+        }
         !self.no_abilities || c.has_no_abilities()
+    }
+
+    /// Whether the filter has conditions on game state beyond
+    /// characteristics (see `GameState::status_ok`) or the mana value.
+    pub const fn needs_state(&self) -> bool {
+        self.tapped.is_some() || self.attacking || self.blocking || self.mana_value.is_some()
     }
 }
 
@@ -900,6 +970,8 @@ pub enum Modification {
     SetColors(ColorSet),
     /// "has flying" (layer 6).
     AddKeywords(KeywordSet),
+    /// "loses flying" (layer 6).
+    RemoveKeywords(KeywordSet),
     /// "loses all abilities" (layer 6).
     RemoveAllAbilities,
     /// "has base power and toughness 1/1" (layer 7b).
@@ -946,7 +1018,9 @@ impl Modification {
             Modification::AddColors(_)
             | Modification::SetColors(_)
             | Modification::CdaColors(_) => Layer::L5Color,
-            Modification::AddKeywords(_) | Modification::RemoveAllAbilities => Layer::L6Ability,
+            Modification::AddKeywords(_)
+            | Modification::RemoveKeywords(_)
+            | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::CdaPt { .. } => Layer::L7aCda,
             Modification::SetPt { .. } => Layer::L7bSetPt,
             Modification::ModifyPt { .. } => Layer::L7cModifyPt,
@@ -975,6 +1049,21 @@ pub enum Layout {
     Omen,
     Transform,
     Split,
+}
+
+/// A restriction on how this creature blocks or is blocked.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum BlockRule {
+    /// "can't be blocked by Walls".
+    NotBy(ObjFilter),
+    /// "can't be blocked except by creatures with flying".
+    OnlyBy(ObjFilter),
+    /// "can't be blocked by more than one creature".
+    AtMostOne,
+    /// "can block only creatures with flying".
+    BlocksOnly(ObjFilter),
+    /// "can't block creatures with flying".
+    CantBlock(ObjFilter),
 }
 
 /// Where searched-for cards go.
@@ -1083,11 +1172,47 @@ pub enum TargetSpec {
     /// A battlefield object matching the pool's `n`th interned filter
     /// ("target nonblack creature", "target creature an opponent controls").
     Filtered(u16),
+    /// A spell matching the filter ("target instant spell", "target
+    /// artifact or enchantment spell"); judged on its characteristics.
+    SpellFiltered(u16),
+    /// A card in a graveyard matching the filter ("target card from a
+    /// graveyard", "target instant card from your graveyard"); `who` is
+    /// whose graveyard, judged from the caster.
+    GraveyardCard {
+        filter: u16,
+        who: Who,
+    },
+}
+
+impl TargetSpec {
+    /// Targets on the stack.
+    pub const fn is_spell(self) -> bool {
+        matches!(
+            self,
+            TargetSpec::Spell
+                | TargetSpec::CreatureSpell
+                | TargetSpec::NoncreatureSpell
+                | TargetSpec::SpellFiltered(_)
+        )
+    }
+
+    /// Targets in graveyards.
+    pub const fn is_graveyard(self) -> bool {
+        matches!(
+            self,
+            TargetSpec::CreatureCardInYourGraveyard | TargetSpec::GraveyardCard { .. }
+        )
+    }
 }
 
 /// Who or what an effect acts on.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Recipient {
+    /// The controller of the `n`th target ("its controller"), as it last
+    /// existed if it has left its zone.
+    ControllerOf(usize),
+    /// The owner of the `n`th target ("its owner").
+    OwnerOf(usize),
     /// The `n`th chosen target.
     Target(usize),
     /// The spell's or ability's controller ("you").
@@ -1253,6 +1378,40 @@ pub enum Effect {
         count: Num,
         to: SearchTo,
     },
+    /// "Put target creature on top of its owner's library" / "on the
+    /// bottom".
+    PutInLibrary {
+        what: Recipient,
+        top: bool,
+    },
+    /// "Each opponent sacrifices a creature of their choice" (an edict):
+    /// each player chooses `count` permanents matching the filter.
+    SacrificeChosen {
+        who: Recipient,
+        filter: ObjFilter,
+        count: Num,
+    },
+    /// "Target creature loses flying until end of turn".
+    Strip {
+        keywords: KeywordSet,
+        to: Recipient,
+    },
+    /// "Target player reveals their hand" / "Look at target player's
+    /// hand": information only.
+    RevealHand {
+        who: Recipient,
+    },
+    /// "discards a card at random".
+    DiscardRandom {
+        count: Num,
+        who: Recipient,
+    },
+    /// "You choose a nonland card from it. That player discards that
+    /// card.": the effect's controller picks from the player's hand.
+    DiscardChosen {
+        who: Recipient,
+        filter: Option<ObjFilter>,
+    },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
     Transform {
@@ -1380,6 +1539,9 @@ impl Effect {
                 | Effect::CounterUnlessPays { .. }
                 | Effect::Search { .. }
                 | Effect::AddMana(_)
+                | Effect::SacrificeChosen { .. }
+                | Effect::DiscardRandom { .. }
+                | Effect::DiscardChosen { .. }
         )
     }
 }
@@ -1532,6 +1694,10 @@ pub enum TriggerSpec {
     /// "Whenever a creature you control attacks alone" (exalted, CR
     /// 506.5).
     AttacksAlone(TriggerObj),
+    /// "Whenever this creature becomes blocked" (once per combat).
+    BecomesBlocked(TriggerObj),
+    /// "Whenever this creature blocks or becomes blocked".
+    BlocksOrBlocked(TriggerObj),
     /// "Whenever ~ deals combat damage to a player".
     DealsCombatDamageToPlayer(TriggerObj),
     /// "Whenever you gain life".
@@ -1564,7 +1730,9 @@ impl TriggerSpec {
             TriggerSpec::Enters(_) | TriggerSpec::Dies(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
             TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
-            TriggerSpec::Blocks(_) => WATCH_BLOCK,
+            TriggerSpec::Blocks(_)
+            | TriggerSpec::BecomesBlocked(_)
+            | TriggerSpec::BlocksOrBlocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_) => WATCH_DAMAGE,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. } => WATCH_CAST,
@@ -1755,6 +1923,9 @@ pub enum AbilityDef {
     /// "{T}, Sacrifice this artifact: Add <mana>" (Treasure, Lotus
     /// Petal): a mana ability that sacrifices its source.
     SacForMana(Mana),
+    /// A blocking restriction on this creature (CR 509.1b–c): "can't be
+    /// blocked by Walls", "can block only creatures with flying".
+    BlockRule(BlockRule),
     Activated(ActivatedAbility),
     Static(StaticAbility),
     Triggered(TriggeredAbility),
@@ -1774,6 +1945,7 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
+            | AbilityDef::BlockRule(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -1790,6 +1962,7 @@ impl AbilityDef {
             AbilityDef::Enchant(_)
             | AbilityDef::TapForMana(_)
             | AbilityDef::SacForMana(_)
+            | AbilityDef::BlockRule(_)
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
@@ -1895,6 +2068,11 @@ pub struct CardDef {
     /// Filled in by `CardPool::add`: facts the engine checks on hot paths.
     #[serde(skip)]
     flags: DefFlags,
+    /// Filled in by `CardPool::add`: a static ability whose filter looks at
+    /// attacking or blocking ("attacking creatures get +1/+0"), so combat
+    /// changes must refresh the characteristics cache.
+    #[serde(skip)]
+    pub combat_static: bool,
 }
 
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
@@ -2392,6 +2570,9 @@ impl CardPool {
                     })
             });
         def.except_watch_mask = def.copy_except.as_ref().map_or(0, |x| mask(&x.abilities));
+        def.combat_static = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(sa) if sa.affected.attacking || sa.affected.blocking)
+        });
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
@@ -2484,6 +2665,7 @@ pub struct Builder(CardDef);
 impl Builder {
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
+            combat_static: false,
             layout: Layout::Normal,
             faces: Vec::new(),
             name: name.to_string(),

@@ -1,0 +1,7 @@
+card "Charging Rhino" {
+  oracle_id 26966ecb-15d3-47e5-ab63-e38510c87ecc
+  cost {3}{G}{G}
+  type Creature — Rhino
+  pt 4/4
+  can't be blocked by more than one creature
+}

@@ -1,0 +1,6 @@
+card "Totally Lost" {
+  oracle_id e0462a2c-fb88-495f-813b-6476ee3e62bb
+  cost {4}{U}
+  type Instant
+  spell: put target nonland permanent on top of library
+}

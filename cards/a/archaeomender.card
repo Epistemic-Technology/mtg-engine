@@ -1,0 +1,7 @@
+card "Archaeomender" {
+  oracle_id 5a4553fc-f945-4094-b231-2d378ed6609e
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered when this enters: return target artifact card from your graveyard to hand
+}

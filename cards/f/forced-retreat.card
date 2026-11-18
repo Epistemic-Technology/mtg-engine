@@ -1,0 +1,6 @@
+card "Forced Retreat" {
+  oracle_id ccf1336c-2ea5-4582-84a5-0b29b3cca6c2
+  cost {2}{U}
+  type Sorcery
+  spell: put target creature on top of library
+}

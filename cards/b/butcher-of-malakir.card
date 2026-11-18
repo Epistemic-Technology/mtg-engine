@@ -1,0 +1,8 @@
+card "Butcher of Malakir" {
+  oracle_id a85197ab-dc94-4b72-9716-8dbdbbe90ff8
+  cost {5}{B}{B}
+  type Creature — Vampire Warrior
+  pt 5/4
+  keywords flying
+  triggered whenever creature you control dies: each opponent sacrifices 1 creature
+}

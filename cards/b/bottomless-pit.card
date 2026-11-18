@@ -1,0 +1,6 @@
+card "Bottomless Pit" {
+  oracle_id 91e6fb47-59e4-4616-b8dd-3a7e30070074
+  cost {1}{B}{B}
+  type Enchantment
+  triggered at beginning of each upkeep: that player discards 1 cards at random
+}

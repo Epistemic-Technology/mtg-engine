@@ -1,0 +1,8 @@
+card "Stronghold Zeppelin" {
+  oracle_id dbd86a37-8ac1-4bdb-9ba1-7caee99ab5f7
+  cost {2}{U}{U}
+  type Creature — Human
+  pt 3/3
+  keywords flying
+  can block only creature with flying
+}

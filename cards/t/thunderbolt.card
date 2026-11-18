@@ -1,0 +1,9 @@
+card "Thunderbolt" {
+  oracle_id 6ffae2fa-511a-45bf-93c4-5d53c85324f5
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: deal 3 damage to target player or planeswalker
+    mode: deal 4 damage to target creature with flying
+  }
+}

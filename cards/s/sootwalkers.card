@@ -1,0 +1,7 @@
+card "Sootwalkers" {
+  oracle_id 1492e778-b85e-4675-b48c-bc0a2eb1d105
+  cost {2}{B/R}{B/R}
+  type Creature — Elemental Rogue
+  pt 3/3
+  can't be blocked by white creature
+}

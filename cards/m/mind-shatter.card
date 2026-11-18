@@ -1,0 +1,6 @@
+card "Mind Shatter" {
+  oracle_id 26809033-a823-4251-887e-0410a545f993
+  cost {X}{B}{B}
+  type Sorcery
+  spell: target player discards X cards at random
+}

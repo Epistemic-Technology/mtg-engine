@@ -1,0 +1,9 @@
+card "Sarkhan's Resolve" {
+  oracle_id 30f058f8-5777-4c25-b881-8f1d0ce17d3a
+  cost {1}{G}
+  type Instant
+  choose one {
+    mode: target creature gets +3/+3
+    mode: destroy target creature with flying
+  }
+}

@@ -1,0 +1,8 @@
+card "Hunting Drake" {
+  oracle_id d5978943-52fc-4b57-9c1c-d802ade1b014
+  cost {4}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  triggered when this enters: put target red or green creature on top of library
+}

@@ -1,0 +1,6 @@
+card "Defenestrate" {
+  oracle_id caf840e8-c1d3-4570-8542-432a765c09ff
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature without flying
+}

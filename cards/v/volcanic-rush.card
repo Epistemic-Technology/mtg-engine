@@ -1,0 +1,6 @@
+card "Volcanic Rush" {
+  oracle_id 6944261c-9f35-4a51-9b1a-c29e24f292e1
+  cost {4}{R}
+  type Instant
+  spell: each attacking creature gets +2/+0 and gains trample
+}

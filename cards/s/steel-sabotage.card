@@ -1,0 +1,9 @@
+card "Steel Sabotage" {
+  oracle_id 0e71fc56-0332-4e5e-8658-9257cc0d8a1d
+  cost {U}
+  type Instant
+  choose one {
+    mode: counter target artifact spell
+    mode: return target artifact to hand
+  }
+}

@@ -1,0 +1,8 @@
+card "Judge's Familiar" {
+  oracle_id 22b7975c-37a5-4895-b209-bdeeec0c6aea
+  cost {W/U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  activated sacrifice this: counter target instant or sorcery spell unless its controller pays {1}
+}

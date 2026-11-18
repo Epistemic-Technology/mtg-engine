@@ -1,0 +1,8 @@
+card "Unyaro Griffin" {
+  oracle_id 27d80a75-688e-4f68-9622-54484dd3bd91
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  activated sacrifice this: counter target red instant or sorcery spell
+}

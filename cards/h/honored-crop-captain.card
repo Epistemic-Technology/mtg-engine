@@ -1,0 +1,7 @@
+card "Honored Crop-Captain" {
+  oracle_id fd561a9a-45d2-4e9b-82df-5d4b24cca24a
+  cost {R}{W}
+  type Creature — Human Warrior
+  pt 3/2
+  triggered whenever this attacks: each other attacking creature gets +1/+0
+}

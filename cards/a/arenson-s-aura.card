@@ -1,0 +1,7 @@
+card "Arenson's Aura" {
+  oracle_id 465843dc-57d0-46fd-ac47-238723034563
+  cost {2}{W}
+  type Enchantment
+  activated {W}, sacrifice enchantment: destroy target enchantment
+  activated {3}{U}{U}: counter target enchantment spell
+}

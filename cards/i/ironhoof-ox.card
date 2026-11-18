@@ -1,0 +1,7 @@
+card "Ironhoof Ox" {
+  oracle_id 1871af55-f7cd-4b8e-affb-5d010df811b1
+  cost {3}{G}{G}
+  type Creature — Ox
+  pt 4/4
+  can't be blocked by more than one creature
+}

@@ -1,0 +1,10 @@
+card "Sultai Charm" {
+  oracle_id 46ed38d1-e642-4cea-99ed-a9c17fd982b1
+  cost {B}{G}{U}
+  type Instant
+  choose one {
+    mode: destroy target monocolored creature
+    mode: destroy target artifact or enchantment
+    mode: draw 2 cards then discard 1 cards
+  }
+}

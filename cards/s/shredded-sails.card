@@ -1,0 +1,10 @@
+card "Shredded Sails" {
+  oracle_id ea908d2d-d443-4385-a71a-ebb00938cd57
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: destroy target artifact
+    mode: deal 4 damage to target creature with flying
+  }
+  cycling {2}
+}

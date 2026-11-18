@@ -1,0 +1,7 @@
+card "Ruthless Winnower" {
+  oracle_id 61f68cf6-e083-4264-89b4-cc17749b2a8b
+  cost {3}{B}{B}
+  type Creature — Elf Rogue
+  pt 4/4
+  triggered at beginning of each upkeep: that player sacrifices 1 non-Elf creature
+}

@@ -1,0 +1,9 @@
+card "Umbral Juke" {
+  oracle_id d56afdf6-51e0-4151-a86c-4c4827a50a0e
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: target player sacrifices 1 creature or planeswalker
+    mode: create 1 "2/1 white and black Inkling creature with flying"
+  }
+}

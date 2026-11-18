@@ -1,0 +1,7 @@
+card "Giltgrove Stalker" {
+  oracle_id 2be3969b-a427-47be-a49c-47b98e3d6b5f
+  cost {1}{G}
+  type Creature — Merfolk Warrior
+  pt 2/1
+  can't be blocked by creature with power 2 or less
+}

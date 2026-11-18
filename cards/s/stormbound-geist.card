@@ -1,0 +1,9 @@
+card "Stormbound Geist" {
+  oracle_id b5027d79-83e9-437a-baae-03cc3a13a608
+  cost {1}{U}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  can block only creature with flying
+  keyword undying
+}

@@ -1,0 +1,6 @@
+card "Skull of Orm" {
+  oracle_id 67601399-089b-44fe-82db-c319729c75bf
+  cost {3}
+  type Artifact
+  activated {5}, {T}: return target enchantment card from your graveyard to hand
+}

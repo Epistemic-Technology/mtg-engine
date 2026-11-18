@@ -1,0 +1,7 @@
+card "Ephara's Warden" {
+  oracle_id 805d1f48-dd91-4034-b42c-3f1f1cb75cc9
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 1/2
+  activated {T}: tap target creature with power 3 or less
+}

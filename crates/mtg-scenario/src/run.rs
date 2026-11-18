@@ -369,6 +369,7 @@ impl Runner {
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
             | DecisionKind::ChooseColor
+            | DecisionKind::Edict
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. } => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),

@@ -1,0 +1,6 @@
+card "Run Aground" {
+  oracle_id 6ef9bf18-6b09-4398-a502-6867d999ab0c
+  cost {3}{U}
+  type Instant
+  spell: put target artifact or creature on top of library
+}

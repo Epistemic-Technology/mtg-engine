@@ -1,0 +1,9 @@
+card "Brotherhood's End" {
+  oracle_id fe7bf8ca-88ae-4c6d-8d71-ef170a87c0d0
+  cost {1}{R}{R}
+  type Sorcery
+  choose one {
+    mode: deal 3 damage to each creature and each planeswalker
+    mode: destroy each artifact with mana value 3 or less
+  }
+}

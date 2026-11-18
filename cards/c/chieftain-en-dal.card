@@ -1,0 +1,7 @@
+card "Chieftain en-Dal" {
+  oracle_id 8aae3a28-dcf3-460e-89f9-4b0c96d6f55e
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  triggered whenever this attacks: each attacking creature gains first strike
+}

@@ -1,0 +1,6 @@
+card "Vanquish the Weak" {
+  oracle_id 4a3cc4f6-037f-461d-a3b7-9f9e24c4b8cf
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature with power 3 or less
+}

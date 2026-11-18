@@ -1,0 +1,7 @@
+card "Eternal Witness" {
+  oracle_id 30b24e8e-3b0e-4d8e-90f3-f66eb7c1858c
+  cost {1}{G}{G}
+  type Creature — Human Shaman
+  pt 2/1
+  triggered when this enters: you may return target card from your graveyard to hand
+}

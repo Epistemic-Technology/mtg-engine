@@ -1,0 +1,8 @@
+card "Slinking Giant" {
+  oracle_id 6d86dcaa-2295-4f4d-ada7-216f96138d81
+  cost {2}{R}{R}
+  type Creature — Giant Rogue
+  pt 4/4
+  keywords wither
+  triggered whenever this blocks or becomes blocked: this gets -3/-0
+}

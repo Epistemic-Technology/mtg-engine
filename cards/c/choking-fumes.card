@@ -1,0 +1,6 @@
+card "Choking Fumes" {
+  oracle_id 51bd7bc4-12cd-434e-8691-3123a018e634
+  cost {2}{W}
+  type Instant
+  spell: put 1 -1/-1 counters on each attacking creature
+}

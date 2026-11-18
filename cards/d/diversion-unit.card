@@ -1,0 +1,8 @@
+card "Diversion Unit" {
+  oracle_id 4d739edc-4e02-4b35-a2a0-e9685c6e2889
+  cost {1}{U}
+  type Artifact Creature — Robot
+  pt 2/1
+  keywords flying
+  activated {U}, sacrifice this: counter target instant or sorcery spell unless its controller pays {3}
+}

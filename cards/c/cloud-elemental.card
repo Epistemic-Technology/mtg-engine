@@ -1,0 +1,8 @@
+card "Cloud Elemental" {
+  oracle_id 0b751cc7-3a19-4207-9e64-83e18d279588
+  cost {2}{U}
+  type Creature — Elemental
+  pt 2/3
+  keywords flying
+  can block only creature with flying
+}

@@ -1,0 +1,8 @@
+card "Herald of the Sun" {
+  oracle_id 8331fcd2-b91d-45eb-8361-74aa73e4ff69
+  cost {4}{W}{W}
+  type Creature — Angel
+  pt 4/4
+  keywords flying
+  activated {3}{W}: put 1 +1/+1 counters on another target creature with flying
+}

@@ -1,0 +1,6 @@
+card "Asphyxiate" {
+  oracle_id 1c2ce0d0-8c3e-48e8-b1fd-54658bdb9af9
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target untapped creature
+}

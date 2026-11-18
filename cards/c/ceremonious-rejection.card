@@ -1,0 +1,6 @@
+card "Ceremonious Rejection" {
+  oracle_id 6aa5aa3d-fb46-47e5-bcf1-51a28e0f9974
+  cost {U}
+  type Instant
+  spell: counter target colorless spell
+}

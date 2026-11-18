@@ -1,0 +1,14 @@
+card "Warrant // Warden" {
+  oracle_id 19053c47-97ce-4a25-a92c-1f4061e85bf3
+  layout split
+  face "Warrant" {
+    cost {W/U}{W/U}
+    type Instant
+    spell: put target attacking or blocking creature on top of library
+  }
+  face "Warden" {
+    cost {3}{W}{U}
+    type Sorcery
+    spell: create 1 "4/4 white and blue Sphinx creature with flying and vigilance"
+  }
+}

@@ -1,0 +1,6 @@
+card "Regrowth" {
+  oracle_id e6e4a8bd-5c40-4654-8de1-0da9afed90fd
+  cost {1}{G}
+  type Sorcery
+  spell: return target card from your graveyard to hand
+}

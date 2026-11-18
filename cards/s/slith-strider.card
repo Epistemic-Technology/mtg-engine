@@ -1,0 +1,8 @@
+card "Slith Strider" {
+  oracle_id 6e52e48f-b7a0-4195-8fff-8baed7b7d3fc
+  cost {1}{U}{U}
+  type Creature — Slith
+  pt 1/1
+  triggered whenever this becomes blocked: draw 1 cards
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Undying Beast" {
+  oracle_id 5ae03181-a436-4bad-be3a-6c9f6c0ed4d6
+  cost {3}{B}
+  type Creature — Beast
+  pt 3/2
+  triggered when this dies: put this on top of library
+}

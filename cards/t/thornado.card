@@ -1,0 +1,7 @@
+card "Thornado" {
+  oracle_id 7476a14a-611e-4f81-b603-fd600e88568f
+  cost {2}{G}
+  type Instant
+  spell: destroy target creature with flying
+  cycling {1}{G}
+}

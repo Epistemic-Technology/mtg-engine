@@ -1,0 +1,8 @@
+card "Tazeem Roilmage" {
+  oracle_id 55a277b4-575f-463b-913c-7857acad20be
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  kicker {4}
+  triggered when this enters if kicked: return target instant or sorcery card from your graveyard to hand
+}

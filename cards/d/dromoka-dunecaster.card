@@ -1,0 +1,7 @@
+card "Dromoka Dunecaster" {
+  oracle_id 5ac44e0a-782f-49ee-b263-2fb65359faaa
+  cost {W}
+  type Creature — Human Wizard
+  pt 0/2
+  activated {1}{W}, {T}: tap target creature without flying
+}

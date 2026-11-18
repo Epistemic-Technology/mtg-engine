@@ -1,0 +1,6 @@
+card "Shamble Back" {
+  oracle_id 11a20648-fdb6-4f52-8fda-c66985e0c044
+  cost {B}
+  type Sorcery
+  spell: exile target creature card from a graveyard; create 1 "2/2 black Zombie creature"; you gains 2 life
+}

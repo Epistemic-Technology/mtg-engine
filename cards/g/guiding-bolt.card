@@ -1,0 +1,9 @@
+card "Guiding Bolt" {
+  oracle_id b433cf1f-a7f3-4b68-8bfb-e4196f6e3a12
+  cost {2}{W}
+  type Instant
+  spell {
+    destroy target creature with power 4 or greater
+    scry 2
+  }
+}

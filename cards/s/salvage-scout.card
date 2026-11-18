@@ -1,0 +1,7 @@
+card "Salvage Scout" {
+  oracle_id 502e991c-f4de-4095-adac-cb0c25e44a7c
+  cost {W}
+  type Creature — Human Scout
+  pt 1/1
+  activated {W}, sacrifice this: return target artifact card from your graveyard to hand
+}

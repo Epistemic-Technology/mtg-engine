@@ -1,0 +1,6 @@
+card "Natural Obsolescence" {
+  oracle_id fbafbe3a-3980-4457-a77b-3f72df7b3329
+  cost {1}{G}
+  type Instant
+  spell: put target artifact on bottom of library
+}

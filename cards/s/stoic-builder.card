@@ -1,0 +1,7 @@
+card "Stoic Builder" {
+  oracle_id cca94004-fe8e-404d-9391-ad33d0a126fb
+  cost {2}{G}
+  type Creature — Human
+  pt 2/3
+  triggered when this enters: you may return target land card from your graveyard to hand
+}

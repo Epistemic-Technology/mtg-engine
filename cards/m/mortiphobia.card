@@ -1,0 +1,7 @@
+card "Mortiphobia" {
+  oracle_id 4fb8312c-058a-415c-93ab-59d37ebad270
+  cost {1}{B}{B}
+  type Enchantment
+  activated {1}{B}, discard 1 card: exile target card from a graveyard
+  activated {1}{B}, sacrifice this: exile target card from a graveyard
+}

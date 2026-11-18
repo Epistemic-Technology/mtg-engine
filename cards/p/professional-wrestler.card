@@ -1,0 +1,8 @@
+card "Professional Wrestler" {
+  oracle_id 3dd92eea-02ca-4e55-8f69-8c8059dd7ee6
+  cost {3}{G}
+  type Creature — Human Warrior Performer
+  pt 4/4
+  triggered when this enters: create 1 "Treasure"
+  can't be blocked by more than one creature
+}

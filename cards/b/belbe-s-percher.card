@@ -1,0 +1,8 @@
+card "Belbe's Percher" {
+  oracle_id 81b51bb1-89b9-46a0-ad7a-a43c0d214f11
+  cost {2}{B}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  can block only creature with flying
+}

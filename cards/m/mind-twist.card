@@ -1,0 +1,6 @@
+card "Mind Twist" {
+  oracle_id 78f9c223-9982-4282-a496-a6f892f0a5bf
+  cost {X}{B}
+  type Sorcery
+  spell: target player discards X cards at random
+}

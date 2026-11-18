@@ -1,0 +1,7 @@
+card "Intrepid Hero" {
+  oracle_id 63c1dfcc-9d47-4dee-b4e6-1f50e716cf9e
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {T}: destroy target creature with power 4 or greater
+}

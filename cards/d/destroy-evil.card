@@ -1,0 +1,9 @@
+card "Destroy Evil" {
+  oracle_id b75e667a-1ceb-445a-acf4-ae1fd2dae9e7
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: destroy target creature with toughness 4 or greater
+    mode: destroy target enchantment
+  }
+}

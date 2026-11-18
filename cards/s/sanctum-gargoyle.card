@@ -1,0 +1,8 @@
+card "Sanctum Gargoyle" {
+  oracle_id 6ee9802a-7a44-49c7-93d9-f75c4d42e71e
+  cost {3}{W}
+  type Artifact Creature — Gargoyle
+  pt 2/3
+  keywords flying
+  triggered when this enters: you may return target artifact card from your graveyard to hand
+}

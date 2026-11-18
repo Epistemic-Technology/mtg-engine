@@ -1,0 +1,8 @@
+card "Odunos River Trawler" {
+  oracle_id 0282b5c0-e792-4099-a3fa-329eda11fb44
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered when this enters: return target enchantment creature card from your graveyard to hand
+  activated {W}, sacrifice this: return target enchantment creature card from your graveyard to hand
+}

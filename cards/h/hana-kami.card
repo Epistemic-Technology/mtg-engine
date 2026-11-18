@@ -1,0 +1,7 @@
+card "Hana Kami" {
+  oracle_id 7ac433a7-c107-46de-b36b-d7419c9ec565
+  cost {G}
+  type Creature — Spirit
+  pt 1/1
+  activated {1}{G}, sacrifice this: return target Arcane card from your graveyard to hand
+}

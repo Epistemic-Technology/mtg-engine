@@ -1,0 +1,7 @@
+card "Elvish Skysweeper" {
+  oracle_id f557697a-4c1b-44f6-a989-4879bbe26eb5
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  activated {4}{G}, sacrifice creature: destroy target creature with flying
+}

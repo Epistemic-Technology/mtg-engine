@@ -1,0 +1,8 @@
+card "Noxious Dragon" {
+  oracle_id fe75b364-9e65-499d-9763-76844cf88cf7
+  cost {4}{B}{B}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  triggered when this dies: you may destroy target creature with mana value 3 or less
+}

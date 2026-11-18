@@ -439,6 +439,9 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     if PLAIN.contains(&s) {
         return Some(s.to_string());
     }
+    if (s == "its controller" || s == "its owner") && *targets > 0 {
+        return Some(s.to_string());
+    }
     if matches!(
         s,
         "this creature"
@@ -606,6 +609,46 @@ impl Templates {
                 },
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
+            (
+                r(r"^(.+?) sacrifices? (a|an|one|two|three|four|five) (.+?) of their choice$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    if who == "you" || who == "this" {
+                        return None;
+                    }
+                    let n = number(cap(c, 2))?;
+                    Some(format!("{who} sacrifices {n} {}", singular(cap(c, 3))))
+                },
+            ),
+            (
+                r(r"^Put (.+?) on (top|the bottom) of its owner's library$"),
+                |c, t| {
+                    let what = recipient(cap(c, 1), t)?;
+                    let place = if cap(c, 2) == "top" { "top" } else { "bottom" };
+                    Some(format!("put {what} on {place} of library"))
+                },
+            ),
+            (
+                r(r"^(.+?) loses ([a-z ,]+?)(?: until end of turn)?$"),
+                |c, t| {
+                    if cap(c, 2).ends_with(" life") || cap(c, 2).contains("abilities") {
+                        return None;
+                    }
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!("{who} loses {}", keyword_list(cap(c, 2))?))
+                },
+            ),
+            (r(r"^(.+?) reveals (?:their|his or her) hand$"), |c, t| {
+                let who = recipient(&subject(cap(c, 1)), t)?;
+                Some(format!("{who} reveals hand"))
+            }),
+            (r(r"^(.+?) discards? (\S+) cards? at random$"), |c, t| {
+                let who = recipient(&subject(cap(c, 1)), t)?;
+                Some(format!(
+                    "{who} discards {} cards at random",
+                    number(cap(c, 2))?
+                ))
+            }),
             (
                 r(r"^[Tt]ransform (this creature|this artifact|this permanent|it)$"),
                 |_, _| Some("transform this".to_string()),
@@ -777,6 +820,29 @@ impl Templates {
     /// Sentences of one paragraph to `;`-joined DSL effects. `targets`
     /// counts targets declared so far in the ability.
     fn effects(&self, text: &str, targets: &mut usize) -> Result<String, Skip> {
+        // "Target opponent reveals their hand. You choose a nonland card
+        // from it. That player discards that card." is one effect.
+        let duress = Regex::new(
+            r"^(.+?) reveals their hand\. You choose (a|an) (.+? )?card from it\. That player discards that card\.?(.*)$",
+        )
+        .unwrap();
+        if let Some(c) = duress.captures(text) {
+            let who = recipient(&subject(cap(&c, 1)), targets)
+                .ok_or_else(|| Skip::Sentence(text.to_string()))?;
+            let what = cap(&c, 3).trim();
+            let what = what.replace(", ", " ");
+            let mut out = if what.is_empty() {
+                format!("{who} reveals hand discarding card")
+            } else {
+                format!("{who} reveals hand discarding {what} card")
+            };
+            let rest = cap(&c, 4).trim();
+            if !rest.is_empty() {
+                out.push_str("; ");
+                out.push_str(&self.effects(rest, targets)?);
+            }
+            return Ok(out);
+        }
         let mut out: Vec<String> = Vec::new();
         for sentence in split_sentences(text) {
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
@@ -957,6 +1023,10 @@ fn trigger_text(head: &str) -> Option<String> {
         "When this creature becomes the target of a spell or ability" => {
             "when this becomes targeted"
         }
+        "Whenever this creature becomes blocked" => "whenever this becomes blocked",
+        "Whenever this creature blocks or becomes blocked" => {
+            "whenever this blocks or becomes blocked"
+        }
         _ => return None,
     };
     Some(t.to_string())
@@ -1135,6 +1205,29 @@ impl Builder<'_> {
                 self.statements.push(format!("keyword {k}"));
             }
             return Ok(());
+        }
+        // Blocking restrictions with a filter.
+        if let Some(rest) = line
+            .strip_prefix("This creature ")
+            .and_then(|r| r.strip_suffix('.'))
+        {
+            let rule = if rest == "can't be blocked by more than one creature" {
+                Some("can't be blocked by more than one creature".to_string())
+            } else if let Some(f) = rest.strip_prefix("can't be blocked except by ") {
+                Some(format!("can't be blocked except by {}", singular(f)))
+            } else if let Some(f) = rest.strip_prefix("can't be blocked by ") {
+                Some(format!("can't be blocked by {}", singular(f)))
+            } else if let Some(f) = rest.strip_prefix("can block only ") {
+                Some(format!("can block only {}", singular(f)))
+            } else if let Some(f) = rest.strip_prefix("can't block ") {
+                (!RESTRICTIONS.contains(&rest)).then(|| format!("can't block {}", singular(f)))
+            } else {
+                None
+            };
+            if let Some(r) = rule {
+                self.statements.push(r);
+                return Ok(());
+            }
         }
         // "This creature can't block." and friends are keywords to the DSL.
         if let Some(rest) = line

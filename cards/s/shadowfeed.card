@@ -1,0 +1,6 @@
+card "Shadowfeed" {
+  oracle_id 7681ea90-be9d-4a43-845e-ba051b438429
+  cost {B}
+  type Instant
+  spell: exile target card from a graveyard; you gains 3 life
+}

@@ -1,0 +1,9 @@
+card "Tyrant's Scorn" {
+  oracle_id afb278f1-0e21-4f6d-96bb-c34aa3ef96b0
+  cost {U}{B}
+  type Instant
+  choose one {
+    mode: destroy target creature with mana value 3 or less
+    mode: return target creature to hand
+  }
+}

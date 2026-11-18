@@ -1,0 +1,7 @@
+card "Molten Frame" {
+  oracle_id 7c72df45-c3bd-4fb9-8365-5a5639566742
+  cost {1}{R}
+  type Instant
+  spell: destroy target artifact creature
+  cycling {2}
+}

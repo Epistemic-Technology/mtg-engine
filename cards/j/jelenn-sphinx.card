@@ -1,0 +1,8 @@
+card "Jelenn Sphinx" {
+  oracle_id d23b514f-3081-45da-a2cf-7ed3cf49dc24
+  cost {3}{W}{U}
+  type Creature — Sphinx
+  pt 1/5
+  keywords flying, vigilance
+  triggered whenever this attacks: each other attacking creature gets +1/+1
+}

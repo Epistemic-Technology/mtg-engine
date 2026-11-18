@@ -1,0 +1,9 @@
+card "Split Up" {
+  oracle_id 2e82520a-9da3-49ae-b5c8-37e7ac8853fe
+  cost {1}{W}{W}
+  type Sorcery
+  choose one {
+    mode: destroy each tapped creature
+    mode: destroy each untapped creature
+  }
+}

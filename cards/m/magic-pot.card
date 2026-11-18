@@ -1,0 +1,8 @@
+card "Magic Pot" {
+  oracle_id caed9999-74b8-43e3-a319-fa505c04c71c
+  cost {3}
+  type Artifact Creature — Goblin Construct
+  pt 1/4
+  triggered when this dies: create 1 "Treasure"
+  activated {2}, {T}: exile target card from a graveyard
+}

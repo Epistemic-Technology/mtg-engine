@@ -1,0 +1,6 @@
+card "Yawning Fissure" {
+  oracle_id 634ec9d3-24c9-4090-a087-2624b6d5bf5b
+  cost {4}{R}
+  type Sorcery
+  spell: each opponent sacrifices 1 land
+}
