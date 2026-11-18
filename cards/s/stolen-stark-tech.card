@@ -1,0 +1,9 @@
+card "Stolen Stark Tech" {
+  oracle_id 51023277-5434-4913-b9dc-df2a3fde1652
+  cost {1}{B}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains indestructible
+  static enchanted: +1/+0
+  equip {1}
+}

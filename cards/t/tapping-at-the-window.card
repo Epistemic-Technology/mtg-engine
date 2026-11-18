@@ -1,0 +1,7 @@
+card "Tapping at the Window" {
+  oracle_id d5b80d04-1650-4b5d-9f9b-091ecd17b6e8
+  cost {1}{G}
+  type Sorcery
+  spell: dig 3 take creature card may revealing rest graveyard
+  flashback {2}{G}
+}

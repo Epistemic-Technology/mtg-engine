@@ -86,6 +86,7 @@ double-faced permanent to its other face (CR 701.27).
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
+| `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). `triggered when this is turned face up: ...`. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. |
 | `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
@@ -108,7 +109,10 @@ Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 a matching permanent they control), `discard 1 card`, `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
 card"), `discard this`, `exile this from graveyard` ("Exile this card from
-your graveyard"; the ability is activated from the graveyard), `pay 3
+your graveyard"; the ability is activated from the graveyard), `return
+land you control` ("Return a land you control to its owner's hand") and
+`tap untapped creature you control` ("Tap an untapped creature you
+control"), chosen like a sacrifice, `pay 3
 life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
 only once each turn). `none` for a free ability. An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
@@ -263,7 +267,17 @@ print "that card" for "it"),
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
-stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `switch pt of target
+stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `dig 4 take creature
+card may revealing rest bottom` ("Look at the top four cards of your
+library. You may reveal a creature card from among them and put it into
+your hand. Put the rest on the bottom of your library in any order."; `dig
+3 take card rest graveyard`: "Put one of them into your hand and the rest
+into your graveyard"; `dig 4 reveal take all land card rest graveyard`:
+"Reveal the top four cards ... Put all land cards revealed this way into
+your hand and the rest into your graveyard"), `look at top 3` ("look at
+the top three cards of your library, then put them back in any order"),
+`return 1 land you control chosen` ("return a land you control to its
+owner's hand"), `switch pt of target
 creature` ("Switch target creature's power and toughness until end of
 turn"), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"), `<what> doesn't untap next

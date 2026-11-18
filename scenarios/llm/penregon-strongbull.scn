@@ -1,0 +1,37 @@
+# Penregon Strongbull: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "strongbull ability needs an artifact to sacrifice" {
+  battlefield A: "Penregon Strongbull", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Penregon Strongbull"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert power "Penregon Strongbull" 2
+  assert toughness "Penregon Strongbull" 3
+  assert battlefield A contains "Penregon Strongbull"
+}
+
+scenario "strongbull can be cast for three mana" {
+  hand A: "Penregon Strongbull"
+  battlefield A: 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Penregon Strongbull"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Penregon Strongbull"
+  assert power "Penregon Strongbull" 2
+  assert toughness "Penregon Strongbull" 3
+}
+
+scenario "strongbull survives a block by grizzly bears" {
+  battlefield A: "Penregon Strongbull"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Penregon Strongbull"
+  turn 1 B: block "Penregon Strongbull" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Penregon Strongbull"
+  assert damage "Penregon Strongbull" 2
+  assert life B 20
+}

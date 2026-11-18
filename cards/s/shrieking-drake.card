@@ -1,0 +1,8 @@
+card "Shrieking Drake" {
+  oracle_id 2a8e14be-6f93-428d-a204-e2399dc93797
+  cost {U}
+  type Creature — Drake
+  pt 1/1
+  keywords flying
+  triggered when this enters: return 1 creature you control chosen
+}

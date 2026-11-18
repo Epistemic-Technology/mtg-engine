@@ -1,0 +1,7 @@
+card "Horned Kavu" {
+  oracle_id 14817050-9f2d-453f-b36b-e6429fa29165
+  cost {R}{G}
+  type Creature — Kavu
+  pt 3/4
+  triggered when this enters: return 1 red or green creature you control chosen
+}

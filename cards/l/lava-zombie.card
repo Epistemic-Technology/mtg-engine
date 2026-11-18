@@ -1,0 +1,8 @@
+card "Lava Zombie" {
+  oracle_id 2232c38e-49eb-4823-a325-2342a952db72
+  cost {1}{B}{R}
+  type Creature — Zombie
+  pt 4/3
+  triggered when this enters: return 1 black or red creature you control chosen
+  activated {2}: this gets +1/+0
+}

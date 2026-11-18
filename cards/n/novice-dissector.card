@@ -1,0 +1,7 @@
+card "Novice Dissector" {
+  oracle_id d5d6a41e-84bd-4b10-9734-50d91d523d2f
+  cost {3}{B}
+  type Creature — Troll Warlock
+  pt 3/3
+  activated {1}, sorcery, sacrifice other creature: put 1 +1/+1 counter on target creature
+}

@@ -1,0 +1,31 @@
+# Defiant Salvager: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing a creature puts a +1/+1 counter on Defiant Salvager" {
+  battlefield A: "Defiant Salvager", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Defiant Salvager" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Defiant Salvager" +1/+1 1
+  assert power "Defiant Salvager" 3
+  assert toughness "Defiant Salvager" 3
+}
+
+scenario "Defiant Salvager's ability can't be activated on the opponent's turn" {
+  battlefield A: "Defiant Salvager", "Grizzly Bears"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "Defiant Salvager" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Defiant Salvager" 2
+}
+
+scenario "Defiant Salvager can sacrifice itself" {
+  battlefield A: "Defiant Salvager"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Defiant Salvager" sacrificing "Defiant Salvager"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Defiant Salvager"
+  assert battlefield A lacks "Defiant Salvager"
+}

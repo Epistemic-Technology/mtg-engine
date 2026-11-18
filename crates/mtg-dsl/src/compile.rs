@@ -441,6 +441,8 @@ impl Compiler<'_> {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             exile_self: c.exile_self,
+            crew: c.crew,
+            chosen: c.chosen,
             life: c.life,
             discard: c.discard,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
@@ -777,12 +779,32 @@ impl Compiler<'_> {
             }
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
+            Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
+            Effect::Dig {
+                count,
+                filter,
+                optional,
+                all,
+                rest_graveyard,
+                ..
+            } => out.push(CoreEffect::Dig {
+                count: *count,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                optional: *optional,
+                all: *all,
+                rest_graveyard: *rest_graveyard,
+            }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false)?;
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::ReturnChosen { count, filter } => out.push(CoreEffect::ReturnChosen {
+                who: CoreRecipient::You,
+                filter: self.filter(filter).who(Who::You),
+                count: *count,
+            }),
             Effect::GrantAbility { ability, to } => {
                 let def = self.ability(ability)?;
                 let id = self.pool.register_ability(def);
@@ -1111,7 +1133,7 @@ impl Compiler<'_> {
                     return self.err("a cost of the card, not an ability");
                 }
                 other => {
-                    let expanded = expand_mechanic(other);
+                    let expanded = expand_mechanic(other, self.card.pt);
                     return self.ability(&expanded);
                 }
             },
@@ -1129,7 +1151,7 @@ impl Compiler<'_> {
 /// What a keyword ability with a parameter stands for, as an ordinary
 /// ability (CR 702).
 #[allow(clippy::too_many_lines)] // one arm per mechanic
-fn expand_mechanic(m: &Mechanic) -> Ability {
+fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
     use crate::ast::{Effect as E, Join};
     let one = |e: E| vec![Sentence::new(vec![e])];
     match m {
@@ -1242,6 +1264,28 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
             equip: false,
             cycling: false,
         },
+        Mechanic::Crew(n) => {
+            let (power, toughness) = pt.unwrap_or((0, 0));
+            Ability::Activated {
+                cost: Cost {
+                    crew: *n,
+                    ..Default::default()
+                },
+                targets: Vec::new(),
+                effects: one(E::Animate {
+                    to: Recipient::Source,
+                    types: vec![
+                        mtg_core::card::CardType::Artifact,
+                        mtg_core::card::CardType::Creature,
+                    ],
+                    subtypes: Vec::new(),
+                    power,
+                    toughness,
+                }),
+                equip: false,
+                cycling: false,
+            }
+        }
         Mechanic::Outlast(cost) => Ability::Activated {
             cost: Cost {
                 mana: cost.clone(),

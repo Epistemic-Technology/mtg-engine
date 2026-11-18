@@ -1,0 +1,6 @@
+card "Retraction Helix" {
+  oracle_id 2707f9f4-2b80-47ac-af0a-99fc53af94bf
+  cost {U}
+  type Instant
+  spell: until end of turn, target creature gains ability { activated {T}: return target nonland permanent to hand }
+}

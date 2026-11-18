@@ -1,0 +1,8 @@
+card "Steel Leaf Paladin" {
+  oracle_id 15e0250e-a23b-499a-a8d2-24fc13084c28
+  cost {4}{G}{W}
+  type Creature — Elf Knight
+  pt 4/4
+  keywords first strike
+  triggered when this enters: return 1 green or white creature you control chosen
+}

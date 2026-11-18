@@ -1,0 +1,36 @@
+# Tilonalli's Knight: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "no Dinosaur: attacking knight gets no bonus" {
+  battlefield A: "Tilonalli's Knight"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Tilonalli's Knight"
+  run_to turn 1 combat_damage
+  assert power "Tilonalli's Knight" 2
+  assert toughness "Tilonalli's Knight" 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "no Dinosaur: knight trades with Grizzly Bears" {
+  battlefield A: "Tilonalli's Knight"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Tilonalli's Knight"
+  turn 1 B: block "Tilonalli's Knight" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Tilonalli's Knight"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Giant Growth on attacking knight without Dinosaur" {
+  battlefield A: "Tilonalli's Knight", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Tilonalli's Knight"
+  turn 1 declare_attackers A: cast "Giant Growth" targeting "Tilonalli's Knight"
+  run_to turn 1 postcombat_main
+  assert power "Tilonalli's Knight" 5
+  assert life B 15
+}

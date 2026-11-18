@@ -1,0 +1,45 @@
+# Skyswimmer Koi: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "flying koi can't be blocked by a ground creature" {
+  battlefield A: "Skyswimmer Koi"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Skyswimmer Koi"
+  illegal turn 1 B: block "Skyswimmer Koi" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "koi can be blocked by a flyer and wins the fight" {
+  battlefield A: "Skyswimmer Koi"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Skyswimmer Koi"
+  turn 1 B: block "Skyswimmer Koi" with "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Skyswimmer Koi"
+  assert damage "Skyswimmer Koi" 2
+}
+
+scenario "a nonartifact creature entering does not trigger the koi" {
+  battlefield A: "Skyswimmer Koi", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+  assert graveyard A count 0
+  assert stack count 0
+}
+
+scenario "the koi itself entering does not trigger" {
+  battlefield A: 4 "Island"
+  hand A: "Skyswimmer Koi"
+  turn 1 A: cast "Skyswimmer Koi"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skyswimmer Koi"
+  assert hand A count 0
+  assert stack count 0
+}

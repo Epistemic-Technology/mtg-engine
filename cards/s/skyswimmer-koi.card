@@ -1,0 +1,8 @@
+card "Skyswimmer Koi" {
+  oracle_id 53b9a2cf-2e6e-4ce0-bb9f-f33fb27b7b5e
+  cost {3}{U}
+  type Creature — Fish
+  pt 3/3
+  keywords flying
+  triggered whenever artifact you control enters: you may draw 1 card; if you do, discard 1 card
+}

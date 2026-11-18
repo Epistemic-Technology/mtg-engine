@@ -1,0 +1,8 @@
+card "Spotcycle Scouter" {
+  oracle_id 0f1ada92-538b-40cb-9bf3-5c415f5325e6
+  cost {1}{W}
+  type Artifact — Vehicle
+  pt 3/2
+  triggered when this enters: scry 2
+  crew 1
+}

@@ -1,0 +1,7 @@
+card "Dai Li Censor" {
+  oracle_id f13a8621-4d88-4c1f-8b6e-80f8ef383cd2
+  cost {1}{B}
+  type Creature — Human Soldier Advisor
+  pt 2/1
+  activated {1}, sacrifice other creature, once: this gets +2/+2
+}

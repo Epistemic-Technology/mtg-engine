@@ -1,0 +1,6 @@
+card "Peer Through Depths" {
+  oracle_id a61f5100-aa38-4996-b23c-3ce4ed25ed09
+  cost {1}{U}
+  type Instant — Arcane
+  spell: dig 5 take instant or sorcery card may revealing rest bottom
+}

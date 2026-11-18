@@ -1,0 +1,6 @@
+card "Commune with the Gods" {
+  oracle_id 6042a806-6e6a-4f1d-9563-5932a17f32f9
+  cost {1}{G}
+  type Sorcery
+  spell: dig 5 reveal take creature or enchantment card may rest graveyard
+}

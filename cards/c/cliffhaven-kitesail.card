@@ -1,0 +1,8 @@
+card "Cliffhaven Kitesail" {
+  oracle_id 68fb8f21-4403-4829-8826-f2418664197e
+  cost {1}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: has flying
+  equip {2}
+}

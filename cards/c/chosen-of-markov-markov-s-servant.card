@@ -1,0 +1,13 @@
+card "Chosen of Markov // Markov's Servant" {
+  oracle_id 29328bcb-e991-4095-9439-f493c8fa3f82
+  layout transform
+  cost {2}{B}
+  type Creature — Human
+  pt 2/2
+  activated {T}, tap untapped Vampire you control: transform this
+  face "Markov's Servant" {
+    type Creature — Vampire
+    pt 4/4
+    color black
+  }
+}

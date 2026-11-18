@@ -1,0 +1,7 @@
+card "Triton Waverider" {
+  oracle_id 7ee66c03-3684-404f-8f2c-dc91e99249bc
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  label "Constellation" triggered whenever enchantment you control enters: this gains flying
+}

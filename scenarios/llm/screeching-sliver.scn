@@ -1,0 +1,30 @@
+# Screeching Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "screeching sliver mills target opponent" {
+  battlefield A: "Screeching Sliver"
+  library B: "Island", "Forest"
+  turn 1 A: activate "Screeching Sliver" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Island"
+  assert library B contains "Forest"
+  assert library B lacks "Island"
+  assert tapped "Screeching Sliver"
+}
+
+scenario "screeching sliver can mill its controller" {
+  battlefield A: "Screeching Sliver"
+  library A: "Mountain", "Swamp"
+  turn 1 A: activate "Screeching Sliver" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mountain"
+  assert library A contains "Swamp"
+}
+
+scenario "non-slivers do not gain the mill ability" {
+  battlefield A: "Screeching Sliver", "Grizzly Bears"
+  illegal turn 1 A: activate "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert graveyard B count 0
+}

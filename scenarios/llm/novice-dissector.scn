@@ -1,0 +1,44 @@
+# Novice Dissector: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice another creature to put a counter on target creature" {
+  battlefield A: "Novice Dissector", "Grizzly Bears", "Hill Giant", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Novice Dissector" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hill Giant" +1/+1 1
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+  assert tapped "Swamp"
+}
+
+scenario "cannot sacrifice itself to pay the cost" {
+  battlefield A: "Novice Dissector", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Novice Dissector" targeting "Novice Dissector"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Novice Dissector"
+  assert power "Novice Dissector" 3
+  assert untapped "Swamp"
+}
+
+scenario "activate only as a sorcery" {
+  battlefield A: "Novice Dissector", "Grizzly Bears", "Hill Giant", "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Novice Dissector" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 end_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Hill Giant" 3
+}
+
+scenario "can put the counter on an opponent's creature" {
+  battlefield A: "Novice Dissector", "Grizzly Bears", "Swamp"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Novice Dissector" sacrificing "Grizzly Bears" targeting B "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Wind Drake" +1/+1 1
+  assert power "Wind Drake" 3
+}

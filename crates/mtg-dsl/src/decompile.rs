@@ -174,6 +174,8 @@ impl Decompiler<'_> {
             sorcery: false,
             from_graveyard: false,
             exile_self: c.exile_self,
+            crew: c.crew,
+            chosen: c.chosen,
             order: Vec::new(),
         }
     }
@@ -468,6 +470,22 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
+            CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
+            CoreEffect::Dig {
+                count,
+                filter,
+                optional,
+                all,
+                rest_graveyard,
+            } => Effect::Dig {
+                count: *count,
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                optional: *optional,
+                all: *all,
+                rest_graveyard: *rest_graveyard,
+                reveal_top: false,
+                revealing: *optional,
+            },
             CoreEffect::Modes(modes) => Effect::Modes(
                 modes
                     .iter()
@@ -481,6 +499,14 @@ impl Decompiler<'_> {
                 ability: Box::new(self.ability(self.pool.ability(*ability))),
                 to: Self::recipient(*to),
             },
+            CoreEffect::ReturnChosen { filter, count, .. } => {
+                let mut f = self.filter(filter);
+                f.who = Some(mtg_core::card::Who::You);
+                Effect::ReturnChosen {
+                    count: *count,
+                    filter: f,
+                }
+            }
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
             },

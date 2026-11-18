@@ -1,0 +1,9 @@
+card "Super Suit" {
+  oracle_id 606092eb-8fe3-4ef7-aaf1-2d3b2687d27a
+  cost {1}{U}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; untap that creature
+  static enchanted: +1/+2
+  equip {2}
+}

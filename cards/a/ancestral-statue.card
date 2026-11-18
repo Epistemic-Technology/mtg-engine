@@ -1,0 +1,7 @@
+card "Ancestral Statue" {
+  oracle_id da69fbf7-c894-41dd-85ec-217de23a362f
+  cost {4}
+  type Artifact Creature — Golem
+  pt 3/4
+  triggered when this enters: return 1 nonland permanent you control chosen
+}

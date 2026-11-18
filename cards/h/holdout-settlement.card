@@ -1,0 +1,6 @@
+card "Holdout Settlement" {
+  oracle_id e6b77545-de5c-4f4a-b7ea-83498fb33ba8
+  type Land
+  mana {C}
+  activated {T}, tap untapped creature you control: add any
+}

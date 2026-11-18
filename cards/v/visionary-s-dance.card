@@ -1,0 +1,7 @@
+card "Visionary's Dance" {
+  oracle_id c9f35490-462a-4c8f-9d8b-d8abca6596f7
+  cost {5}{U}{R}
+  type Sorcery
+  spell: create 2 "3/3 blue and red Elemental creature with flying"
+  activated {2}, discard this: dig 2 take card rest graveyard
+}

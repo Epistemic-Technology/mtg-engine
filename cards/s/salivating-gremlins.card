@@ -1,0 +1,7 @@
+card "Salivating Gremlins" {
+  oracle_id 4766f232-8275-4256-b756-8dd5c5e825a3
+  cost {2}{R}
+  type Creature — Gremlin
+  pt 2/3
+  triggered whenever artifact you control enters: this gets +2/+0 and this gains trample
+}

@@ -1,0 +1,7 @@
+card "Barbed Sliver" {
+  oracle_id 8fbca9ba-8b83-40ca-9f7e-5c483ba76675
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has ability { activated {2}: this gets +1/+0 }
+}

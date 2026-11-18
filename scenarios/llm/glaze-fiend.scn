@@ -1,0 +1,50 @@
+# Glaze Fiend: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another artifact entering pumps Glaze Fiend" {
+  battlefield A: "Glaze Fiend", 2 "Swamp"
+  hand A: "Glaze Fiend"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glaze Fiend"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Glaze Fiend"
+  assert power oldest A "Glaze Fiend" 2
+  assert toughness oldest A "Glaze Fiend" 3
+  assert power newest A "Glaze Fiend" 0
+  assert toughness newest A "Glaze Fiend" 1
+  assert has oldest A "Glaze Fiend" flying
+}
+
+scenario "a nonartifact creature entering does not pump" {
+  battlefield A: "Glaze Fiend", "Forest", "Swamp"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Glaze Fiend" 0
+  assert toughness "Glaze Fiend" 1
+}
+
+scenario "pump lasts only until end of turn" {
+  battlefield A: "Glaze Fiend", 2 "Swamp"
+  hand A: "Glaze Fiend"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glaze Fiend"
+  run_to turn 2 precombat_main
+  assert power oldest A "Glaze Fiend" 0
+  assert toughness oldest A "Glaze Fiend" 1
+}
+
+scenario "pumped Glaze Fiend survives Shock" {
+  battlefield A: "Glaze Fiend", 2 "Swamp"
+  hand A: "Glaze Fiend"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glaze Fiend"
+  turn 1 postcombat_main B: cast "Shock" targeting oldest A "Glaze Fiend"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Glaze Fiend"
+  assert damage oldest A "Glaze Fiend" 2
+}

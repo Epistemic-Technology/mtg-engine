@@ -1,0 +1,37 @@
+# Expedition Diviner: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "with another Wizard, dying draws a card" {
+  battlefield A: 2 "Expedition Diviner", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting oldest "Expedition Diviner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Expedition Diviner"
+  assert battlefield A contains 1 "Expedition Diviner"
+  assert hand A contains "Island"
+  assert hand A count 1
+}
+
+scenario "without another Wizard, dying draws nothing" {
+  battlefield A: "Expedition Diviner", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Expedition Diviner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Expedition Diviner"
+  assert hand A count 0
+}
+
+scenario "flying attacker can't be blocked by ground creature" {
+  battlefield A: "Expedition Diviner"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Expedition Diviner"
+  illegal turn 2 B: block "Expedition Diviner" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has "Expedition Diviner" flying
+  assert life B 17
+}

@@ -1,0 +1,7 @@
+card "Sibsig Appraiser" {
+  oracle_id 5b51958d-533a-45e4-aac1-3c157670978b
+  cost {2}{U}
+  type Creature — Zombie Advisor
+  pt 2/1
+  triggered when this enters: dig 2 take card rest graveyard
+}

@@ -1,0 +1,6 @@
+card "Extended Absence" {
+  oracle_id 973fb1e3-83d5-4763-bea8-799b426a8848
+  cost {3}{B}
+  type Instant
+  spell: exile target creature or planeswalker; deal 1 damage to each opponent and you gain 1 life
+}

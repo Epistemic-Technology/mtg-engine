@@ -1,0 +1,42 @@
+# Rook Turret: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another artifact entering lets you loot" {
+  battlefield A: "Rook Turret", 4 "Island"
+  hand A: "Rook Turret"
+  library A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rook Turret"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rook Turret"
+  assert hand A count 0
+  assert graveyard A contains "Mountain"
+  assert library A lacks "Mountain"
+}
+
+scenario "declining the loot draws and discards nothing" {
+  battlefield A: "Rook Turret", 4 "Island"
+  hand A: "Rook Turret"
+  library A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rook Turret"
+  turn 1 A: decline "Rook Turret"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rook Turret"
+  assert hand A count 0
+  assert library A contains "Mountain"
+  assert graveyard A lacks "Mountain"
+}
+
+scenario "a nonartifact creature entering does not trigger" {
+  battlefield A: "Rook Turret", 2 "Forest"
+  hand A: "Grizzly Bears", "Shock"
+  library A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 1
+  assert library A contains "Mountain"
+  assert has "Rook Turret" flying
+}

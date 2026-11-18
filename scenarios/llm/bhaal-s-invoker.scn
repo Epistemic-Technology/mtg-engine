@@ -1,0 +1,30 @@
+# Bhaal's Invoker: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Scorching Ray deals 4 damage to each opponent" {
+  battlefield A: "Bhaal's Invoker", 8 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bhaal's Invoker"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+  assert battlefield A contains "Bhaal's Invoker"
+}
+
+scenario "Scorching Ray cannot be activated with only seven lands" {
+  battlefield A: "Bhaal's Invoker", 7 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Bhaal's Invoker"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Invoker attacks as a 4/2" {
+  battlefield A: "Bhaal's Invoker"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Bhaal's Invoker"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Bhaal's Invoker" 4
+  assert toughness "Bhaal's Invoker" 2
+}

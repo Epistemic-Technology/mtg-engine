@@ -1,0 +1,6 @@
+card "Scout the Borders" {
+  oracle_id 08781f2a-0d43-495c-aac8-7ff7a2e5752f
+  cost {2}{G}
+  type Sorcery
+  spell: dig 5 reveal take creature or land card may rest graveyard
+}

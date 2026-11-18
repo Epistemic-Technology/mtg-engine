@@ -1,0 +1,8 @@
+card "Gold Pan" {
+  oracle_id 91415d12-b13d-4b5c-bb60-6ec6f4fdde6e
+  cost {2}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "Treasure"
+  static enchanted: +1/+1
+  equip {1}
+}

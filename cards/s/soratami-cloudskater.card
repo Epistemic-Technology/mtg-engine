@@ -1,0 +1,8 @@
+card "Soratami Cloudskater" {
+  oracle_id ec6a09d2-d90a-4c3b-940b-659e471baf88
+  cost {1}{U}
+  type Creature — Moonfolk Rogue
+  pt 1/1
+  keywords flying
+  activated {2}, return land you control: draw 1 cards then discard 1 cards
+}

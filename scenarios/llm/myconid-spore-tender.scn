@@ -1,0 +1,32 @@
+# Myconid Spore Tender: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters with no artifact or enchantment to destroy" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Myconid Spore Tender"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Myconid Spore Tender"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myconid Spore Tender"
+  assert battlefield B contains "Grizzly Bears"
+  assert stack count 0
+}
+
+scenario "one toughness dies to Shock" {
+  battlefield A: "Myconid Spore Tender"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Myconid Spore Tender"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Myconid Spore Tender"
+}
+
+scenario "attacks for four" {
+  battlefield A: "Myconid Spore Tender"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Myconid Spore Tender"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}

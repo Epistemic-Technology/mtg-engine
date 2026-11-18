@@ -1,0 +1,8 @@
+card "Broadcast Rambler" {
+  oracle_id 21aaecc7-b9ec-4068-8e47-4dffaa12f102
+  cost {4}{W}
+  type Artifact — Vehicle
+  pt 5/4
+  triggered when this enters: create 1 "1/1 colorless Thopter artifact creature with flying"
+  crew 1
+}

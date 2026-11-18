@@ -1,0 +1,9 @@
+card "Paladin's Shield" {
+  oracle_id dc548b03-ef5f-40df-8311-35d4cf26f3c5
+  cost {1}{W}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control
+  static enchanted: +0/+2
+  equip {3}
+}

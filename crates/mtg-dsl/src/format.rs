@@ -312,6 +312,43 @@ impl Fmt {
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
+            Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
+            Effect::Dig {
+                count,
+                filter: f,
+                optional,
+                all,
+                rest_graveyard,
+                reveal_top,
+                revealing,
+            } => {
+                let mut s = format!("dig {}", num(*count));
+                if *reveal_top {
+                    s.push_str(" reveal");
+                }
+                s.push_str(" take");
+                if *all {
+                    s.push_str(" all");
+                }
+                match f {
+                    Some(f) => {
+                        let _ = write!(s, " {} card", filter(f));
+                    }
+                    None => s.push_str(" card"),
+                }
+                if *optional {
+                    s.push_str(" may");
+                }
+                if *revealing {
+                    s.push_str(" revealing");
+                }
+                s.push_str(if *rest_graveyard {
+                    " rest graveyard"
+                } else {
+                    " rest bottom"
+                });
+                s
+            }
             Effect::Modes(modes) => {
                 let mut s = "choose one {\n".to_string();
                 for m in modes {
@@ -335,6 +372,9 @@ impl Fmt {
                 self.recipient(*to, t),
                 nested(ability, &self.groups)
             ),
+            Effect::ReturnChosen { count, filter: f } => {
+                format!("return {} {} chosen", num(*count), filter(f))
+            }
             Effect::SkipNextUntap { to } => {
                 format!("{} doesn't untap next untap step", self.recipient(*to, t))
             }
@@ -1035,7 +1075,15 @@ fn cost_text(c: &Cost) -> String {
             }
             CostItem::Sacrifice => match &c.sacrifice {
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
-                Some(SacCost::Filter(f)) => parts.push(format!("sacrifice {}", filter(f))),
+                Some(SacCost::Filter(f)) => parts.push(format!(
+                    "{} {}",
+                    match c.chosen {
+                        mtg_core::card::ChosenCost::Sacrifice => "sacrifice",
+                        mtg_core::card::ChosenCost::Return => "return",
+                        mtg_core::card::ChosenCost::Tap => "tap",
+                    },
+                    filter(f)
+                )),
                 None => {}
             },
             CostItem::Exile => {
@@ -1501,6 +1549,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Unearth(c) => format!("unearth {c}"),
                 crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
+                crate::ast::Mechanic::Crew(n) => format!("crew {n}"),
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),

@@ -1,0 +1,6 @@
+card "Rally at the Hornburg" {
+  oracle_id 7d3f542a-de64-4de8-9de0-0e25004467f1
+  cost {1}{R}
+  type Sorcery
+  spell: create 2 "1/1 white Human Soldier creature"; each Human you control gain haste
+}

@@ -1,0 +1,8 @@
+card "Vineshaper Prodigy" {
+  oracle_id c41172c6-5133-48ed-bde0-3168b5371c18
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 2/2
+  kicker {1}{U}
+  triggered when this enters if kicked: dig 3 take card rest bottom
+}

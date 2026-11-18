@@ -1,0 +1,9 @@
+card "Mirran Banesplitter" {
+  oracle_id aeaf3ce8-6bdf-4a90-8b81-cdbce0f3bb12
+  cost {R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+0
+  equip {3}
+}

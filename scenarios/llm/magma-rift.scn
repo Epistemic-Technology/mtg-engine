@@ -1,0 +1,40 @@
+# Magma Rift: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Magma Rift sacrifices a land and kills a creature" {
+  battlefield A: 3 "Mountain", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Magma Rift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magma Rift" sacrificing "Forest" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Magma Rift"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Magma Rift deals 5 damage, enough for a 4/4" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Magma Rift"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magma Rift" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Magma Rift"
+  assert life B 20
+}
+
+scenario "Giant Growth in response lets the creature survive Magma Rift" {
+  battlefield A: 3 "Mountain", "Forest"
+  battlefield B: "Hill Giant", "Forest"
+  hand A: "Magma Rift"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magma Rift" sacrificing "Forest" targeting "Hill Giant"
+  turn 1 B: cast "Giant Growth" targeting "Hill Giant" in response to "Magma Rift"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 5
+  assert graveyard A contains "Magma Rift"
+}

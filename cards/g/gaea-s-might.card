@@ -1,0 +1,6 @@
+card "Gaea's Might" {
+  oracle_id 73b26f12-78eb-4d01-9dd6-ee643c7a80a8
+  cost {G}
+  type Instant
+  label "Domain" spell: target creature gets +1/+1 count each domain
+}

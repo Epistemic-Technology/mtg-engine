@@ -1,0 +1,7 @@
+card "Noggle Bridgebreaker" {
+  oracle_id d7e127e4-56fd-4116-9c1a-421beab58e5c
+  cost {2}{U/R}{U/R}
+  type Creature — Noggle Rogue
+  pt 4/3
+  triggered when this enters: return 1 land you control chosen
+}

@@ -161,6 +161,11 @@ pub struct Cost {
     /// `exile this from graveyard`: "Exile this card from your graveyard"
     /// (activated from the graveyard).
     pub exile_self: bool,
+    /// Crew's cost (from its expansion).
+    pub crew: u32,
+    /// `return land you control` / `tap untapped creature you control`:
+    /// what the `sacrifice` filter's chosen permanent pays.
+    pub chosen: mtg_core::card::ChosenCost,
     /// "Activate only once each turn."
     pub once: bool,
     /// The order the parts were written in, which is the order printed
@@ -422,6 +427,10 @@ pub enum Mechanic {
     /// CR 702.107: "{cost}, {T}: Put a +1/+1 counter on this creature.
     /// Activate only as a sorcery."
     Outlast(ManaCost),
+    /// CR 702.122: "Tap any number of other untapped creatures you control
+    /// with total power N or more: This Vehicle becomes an artifact
+    /// creature until end of turn."
+    Crew(u32),
     /// CR 702.37: cast face down for {3}; turn face up for the cost.
     Morph(ManaCost),
     /// CR 702.37b: morph, and a +1/+1 counter as it turns face up.
@@ -853,6 +862,12 @@ pub enum Effect {
         count: Num,
         filter: Filter,
     },
+    /// `return 1 land you control`: "return a land you control to its
+    /// owner's hand" (the controller chooses).
+    ReturnChosen {
+        count: Num,
+        filter: Filter,
+    },
     /// `target creature loses flying`: until end of turn.
     Strip {
         keywords: Vec<Keyword>,
@@ -970,6 +985,28 @@ pub enum Effect {
     ClearEcho,
     /// `manifest`: "manifest the top card of your library" (CR 701.34).
     Manifest,
+    /// `dig 4 take creature card may revealing rest bottom`: "Look at the
+    /// top four cards of your library. You may reveal a creature card from
+    /// among them and put it into your hand. Put the rest on the bottom of
+    /// your library in any order." `dig 3 reveal take all land card rest
+    /// graveyard`: "Reveal the top three cards ... Put all land cards
+    /// revealed this way into your hand and the rest into your
+    /// graveyard." `take card` (no filter) is "Put one of them into your
+    /// hand".
+    Dig {
+        count: Num,
+        filter: Option<Filter>,
+        optional: bool,
+        all: bool,
+        rest_graveyard: bool,
+        /// "Reveal the top N cards" rather than "Look at".
+        reveal_top: bool,
+        /// "You may reveal a creature card from among them and put it".
+        revealing: bool,
+    },
+    /// `look at top 3`: "look at the top three cards of your library, then
+    /// put them back in any order".
+    LookAtTop(Num),
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),

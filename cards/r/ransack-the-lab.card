@@ -1,0 +1,6 @@
+card "Ransack the Lab" {
+  oracle_id 9b97a7fe-c5d9-4698-a49c-183b3f1ce4db
+  cost {1}{B}
+  type Sorcery
+  spell: dig 3 take card rest graveyard
+}

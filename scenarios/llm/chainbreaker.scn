@@ -1,0 +1,33 @@
+# Chainbreaker: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Chainbreaker enters with two -1/-1 counters" {
+  battlefield A: 2 "Plains"
+  hand A: "Chainbreaker"
+  turn 1 A: cast "Chainbreaker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Chainbreaker"
+  assert counters "Chainbreaker" -1/-1 2
+  assert power "Chainbreaker" 1
+  assert toughness "Chainbreaker" 1
+}
+
+scenario "Chainbreaker removes a -1/-1 counter from itself" {
+  battlefield A: "Chainbreaker" with 2 -1/-1, 3 "Plains"
+  turn 1 A: activate "Chainbreaker" targeting "Chainbreaker"
+  run_to turn 1 postcombat_main
+  assert counters "Chainbreaker" -1/-1 1
+  assert power "Chainbreaker" 2
+  assert toughness "Chainbreaker" 2
+  assert tapped "Chainbreaker"
+}
+
+scenario "Chainbreaker removes a -1/-1 counter from an opponent's creature" {
+  battlefield A: "Chainbreaker" with 2 -1/-1, 3 "Plains"
+  battlefield B: "Grizzly Bears" with 1 -1/-1
+  turn 1 A: activate "Chainbreaker" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert counters "Chainbreaker" -1/-1 2
+}

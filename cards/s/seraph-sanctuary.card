@@ -1,0 +1,7 @@
+card "Seraph Sanctuary" {
+  oracle_id 0b504dc6-61cc-4a72-907c-145fa4c72466
+  type Land
+  triggered whenever this enters: you gain 1 life
+  triggered whenever Angel you control enters: you gain 1 life
+  mana {C}
+}

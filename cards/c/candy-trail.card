@@ -1,0 +1,7 @@
+card "Candy Trail" {
+  oracle_id 7c8e4f29-53e0-4242-8ef8-7a9476dce178
+  cost {1}
+  type Artifact — Food Clue
+  triggered when this enters: scry 2
+  activated {2}, {T}, sacrifice this: you gain 3 life and draw 1 card
+}

@@ -1,0 +1,45 @@
+# Kitsune Loreweaver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "toughness grows by cards in hand" {
+  battlefield A: "Kitsune Loreweaver", 2 "Plains"
+  hand A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kitsune Loreweaver"
+  run_to turn 1 postcombat_main
+  assert power "Kitsune Loreweaver" 2
+  assert toughness "Kitsune Loreweaver" 4
+}
+
+scenario "pumped loreweaver survives lightning bolt" {
+  battlefield A: "Kitsune Loreweaver", 2 "Plains"
+  hand A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kitsune Loreweaver"
+  turn 1 begin_combat B: cast "Lightning Bolt" targeting "Kitsune Loreweaver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kitsune Loreweaver"
+  assert damage "Kitsune Loreweaver" 3
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "empty hand gives no toughness" {
+  battlefield A: "Kitsune Loreweaver", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kitsune Loreweaver"
+  run_to turn 1 postcombat_main
+  assert toughness "Kitsune Loreweaver" 1
+}
+
+scenario "pump wears off at end of turn" {
+  battlefield A: "Kitsune Loreweaver", 2 "Plains"
+  hand A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kitsune Loreweaver"
+  run_to turn 1 postcombat_main
+  assert toughness "Kitsune Loreweaver" 3
+  run_to turn 2 precombat_main
+  assert toughness "Kitsune Loreweaver" 1
+}

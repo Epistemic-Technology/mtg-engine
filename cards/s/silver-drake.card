@@ -1,0 +1,8 @@
+card "Silver Drake" {
+  oracle_id ec7eb7d8-92b2-4442-856e-a9790301c3b3
+  cost {1}{W}{U}
+  type Creature — Drake
+  pt 3/3
+  keywords flying
+  triggered when this enters: return 1 white or blue creature you control chosen
+}

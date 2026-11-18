@@ -1,0 +1,8 @@
+card "Whitemane Lion" {
+  oracle_id e8d6084b-9b72-438e-a30a-851b888f3e4d
+  cost {1}{W}
+  type Creature — Cat
+  pt 2/2
+  keywords flash
+  triggered when this enters: return 1 creature you control chosen
+}

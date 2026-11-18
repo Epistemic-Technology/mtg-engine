@@ -1,0 +1,38 @@
+# Salivating Gremlins: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "a nonartifact creature entering does not pump the Gremlins" {
+  battlefield A: "Salivating Gremlins", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Salivating Gremlins" 2
+  assert toughness "Salivating Gremlins" 3
+  assert has not "Salivating Gremlins" trample
+}
+
+scenario "a land entering does not pump the Gremlins" {
+  battlefield A: "Salivating Gremlins"
+  hand A: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert power "Salivating Gremlins" 2
+  assert has not "Salivating Gremlins" trample
+}
+
+scenario "unpumped Gremlins fight as a 2/3 without trample" {
+  battlefield A: "Salivating Gremlins"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Salivating Gremlins"
+  turn 1 B: block "Salivating Gremlins" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Salivating Gremlins"
+  assert damage "Salivating Gremlins" 2
+  assert life B 20
+}

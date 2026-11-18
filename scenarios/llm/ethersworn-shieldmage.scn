@@ -1,0 +1,42 @@
+# Ethersworn Shieldmage: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enter trigger prevents burn to artifact creature" {
+  battlefield A: "Plains", 2 "Island", "Mountain"
+  hand A: "Ethersworn Shieldmage", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ethersworn Shieldmage"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Ethersworn Shieldmage"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ethersworn Shieldmage"
+  assert damage "Ethersworn Shieldmage" 0
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "non-artifact creatures are not protected" {
+  battlefield A: "Plains", 2 "Island", "Mountain", "Grizzly Bears"
+  hand A: "Ethersworn Shieldmage", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ethersworn Shieldmage"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Ethersworn Shieldmage"
+}
+
+scenario "flashed in during combat it blocks and survives" {
+  battlefield A: "Plains", 2 "Island"
+  hand A: "Ethersworn Shieldmage"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Ethersworn Shieldmage"
+  turn 2 A: block "Hill Giant" with "Ethersworn Shieldmage"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Ethersworn Shieldmage"
+  assert damage "Ethersworn Shieldmage" 0
+  assert damage "Hill Giant" 2
+  assert life A 20
+}

@@ -1,0 +1,8 @@
+card "Portcullis Vine" {
+  oracle_id a217f386-11b5-48f0-b173-3b0700ba295f
+  cost {G}
+  type Creature — Plant Wall
+  pt 0/3
+  keywords defender
+  activated {2}, {T}, sacrifice creature with defender: draw 1 card
+}

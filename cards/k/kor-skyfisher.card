@@ -1,0 +1,8 @@
+card "Kor Skyfisher" {
+  oracle_id 054a0193-861e-4644-ab0a-8aa33407abc8
+  cost {1}{W}
+  type Creature — Kor Soldier
+  pt 2/3
+  keywords flying
+  triggered when this enters: return 1 permanent you control chosen
+}

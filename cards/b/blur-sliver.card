@@ -1,0 +1,7 @@
+card "Blur Sliver" {
+  oracle_id e0f05979-daba-43eb-b356-24284e7ca99c
+  cost {2}{R}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has haste
+}

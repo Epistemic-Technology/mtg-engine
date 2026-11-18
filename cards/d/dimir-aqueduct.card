@@ -1,0 +1,7 @@
+card "Dimir Aqueduct" {
+  oracle_id 378a1d57-e2f1-4b84-9692-1564602e9e99
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {U}{B}
+}

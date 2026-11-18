@@ -1,0 +1,27 @@
+# Tymora's Invoker: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Sleight of Hand draws two cards for eight mana" {
+  battlefield A: "Tymora's Invoker", 8 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tymora's Invoker"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert untapped "Tymora's Invoker"
+}
+
+scenario "Sleight of Hand cannot be activated with only seven mana" {
+  battlefield A: "Tymora's Invoker", 7 "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Tymora's Invoker"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}
+
+scenario "Sleight of Hand can be activated at instant speed on the opponent's turn" {
+  battlefield A: "Tymora's Invoker", 8 "Island"
+  start turn 2 B
+  turn 2 upkeep A: activate "Tymora's Invoker"
+  run_to turn 2 precombat_main
+  assert hand A count 2
+}

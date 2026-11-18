@@ -1,0 +1,7 @@
+card "Shard Volley" {
+  oracle_id 3d19ab38-fb32-4f2b-b68c-28db4a6864c6
+  cost {R}
+  type Instant
+  additional cost sacrifice land
+  spell: deal 3 damage to any target
+}

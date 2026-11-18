@@ -1,0 +1,9 @@
+card "Malamet Scythe" {
+  oracle_id 99c5630e-cc04-4203-9006-3bc6a6807762
+  cost {2}{G}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+2
+  equip {4}
+}

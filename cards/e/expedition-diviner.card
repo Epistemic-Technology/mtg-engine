@@ -1,0 +1,8 @@
+card "Expedition Diviner" {
+  oracle_id bd6bc87d-fc75-43bc-a7d7-49d89dabcd3a
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 3/2
+  keywords flying
+  static as long as you control other Wizard, this: has ability { triggered when this dies: draw 1 card }
+}

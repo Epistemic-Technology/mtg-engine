@@ -1,0 +1,34 @@
+# Dai Li Censor: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature pumps until end of turn" {
+  battlefield A: "Dai Li Censor", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dai Li Censor" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Dai Li Censor" 4
+  assert toughness "Dai Li Censor" 3
+  assert graveyard A contains "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Dai Li Censor" 2
+  assert toughness "Dai Li Censor" 1
+}
+
+scenario "activate only once each turn" {
+  battlefield A: "Dai Li Censor", "Grizzly Bears", "Hill Giant", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dai Li Censor" sacrificing "Grizzly Bears"
+  illegal turn 1 postcombat_main A: activate "Dai Li Censor" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert power "Dai Li Censor" 4
+}
+
+scenario "cannot sacrifice itself" {
+  battlefield A: "Dai Li Censor", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dai Li Censor"
+  run_to turn 1 end
+  assert battlefield A contains "Dai Li Censor"
+  assert power "Dai Li Censor" 2
+}

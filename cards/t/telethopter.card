@@ -1,0 +1,7 @@
+card "Telethopter" {
+  oracle_id 8202ff77-9afc-4e5b-895b-471bbfa67cce
+  cost {4}
+  type Artifact Creature — Thopter
+  pt 3/1
+  activated tap untapped creature you control: this gains flying
+}

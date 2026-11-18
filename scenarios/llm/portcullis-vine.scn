@@ -1,0 +1,30 @@
+# Portcullis Vine: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Portcullis Vine can sacrifice itself to draw a card" {
+  battlefield A: "Portcullis Vine", 2 "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Portcullis Vine" sacrificing "Portcullis Vine"
+  run_to turn 2 postcombat_main
+  assert hand A count 1
+  assert graveyard A contains "Portcullis Vine"
+  assert tapped oldest A "Forest"
+  assert tapped newest A "Forest"
+}
+
+scenario "Portcullis Vine cannot sacrifice a creature without defender" {
+  battlefield A: "Portcullis Vine", "Grizzly Bears", 2 "Forest"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Portcullis Vine" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Portcullis Vine has defender and cannot attack" {
+  battlefield A: "Portcullis Vine"
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "Portcullis Vine"
+  run_to turn 2 postcombat_main
+  assert has "Portcullis Vine" defender
+  assert life B 20
+}

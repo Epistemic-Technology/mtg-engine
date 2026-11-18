@@ -1,0 +1,8 @@
+card "Sparring Collar" {
+  oracle_id 81bfbc5a-c448-4124-ac25-79bd0944136d
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has first strike
+  activated {R}{R}: attach to target creature you control
+  equip {1}
+}

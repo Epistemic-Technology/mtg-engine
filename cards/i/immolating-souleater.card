@@ -1,0 +1,7 @@
+card "Immolating Souleater" {
+  oracle_id fb260f5a-b937-435b-ab18-dcc57d6845df
+  cost {2}
+  type Artifact Creature — Phyrexian Dog
+  pt 1/1
+  activated {R/P}: this gets +1/+0
+}

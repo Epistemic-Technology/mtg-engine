@@ -1,0 +1,8 @@
+card "Horned Helm" {
+  oracle_id 127b438d-e5c2-47ba-9554-d9d5af018d09
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +1/+1, has trample
+  activated {G}{G}: attach to target creature you control
+  equip {1}
+}

@@ -1,0 +1,33 @@
+# Immolating Souleater: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "souleater pump paid with red mana" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Immolating Souleater"
+  run_to turn 1 postcombat_main
+  assert power "Immolating Souleater" 2
+  assert toughness "Immolating Souleater" 1
+  assert tapped "Mountain"
+  assert life A 20
+}
+
+scenario "souleater pump paid with 2 life when no red mana" {
+  battlefield A: "Immolating Souleater"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Immolating Souleater"
+  run_to turn 1 postcombat_main
+  assert power "Immolating Souleater" 2
+  assert life A 18
+}
+
+scenario "souleater pump adds damage and wears off at end of turn" {
+  battlefield A: "Immolating Souleater", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Immolating Souleater"
+  turn 1 A: attack "Immolating Souleater"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  run_to turn 2 precombat_main
+  assert power "Immolating Souleater" 1
+}

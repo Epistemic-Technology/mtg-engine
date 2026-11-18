@@ -1,0 +1,8 @@
+card "Flickering Spirit" {
+  oracle_id ee679e57-4f0b-4ad4-9bfd-f331f4a5fba5
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  activated {3}{W}: exile this then return this to battlefield
+}

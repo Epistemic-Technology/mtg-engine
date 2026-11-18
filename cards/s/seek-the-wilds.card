@@ -1,0 +1,6 @@
+card "Seek the Wilds" {
+  oracle_id 3865d219-44b7-49ce-ab26-b833acb39765
+  cost {1}{G}
+  type Sorcery
+  spell: dig 4 take creature or land card may revealing rest bottom
+}

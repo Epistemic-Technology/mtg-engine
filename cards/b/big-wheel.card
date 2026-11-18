@@ -1,0 +1,9 @@
+card "Big Wheel" {
+  oracle_id b0941bc2-f482-4821-a96b-720b08c7334a
+  cost {2}{R}
+  type Artifact — Vehicle
+  pt 4/4
+  keywords trample
+  triggered when this enters: you may discard 1 cards; if you do, draw 1 cards
+  crew 2
+}

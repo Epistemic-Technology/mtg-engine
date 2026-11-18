@@ -1,0 +1,7 @@
+card "Pious Wayfarer" {
+  oracle_id 8790c7be-c14a-4293-bc4a-3d0efe42ed79
+  cost {W}
+  type Creature — Human Scout
+  pt 1/2
+  label "Constellation" triggered whenever enchantment you control enters: target creature gets +1/+1
+}

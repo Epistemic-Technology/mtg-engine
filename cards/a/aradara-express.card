@@ -1,0 +1,8 @@
+card "Aradara Express" {
+  oracle_id be96b9e1-10ef-4955-8d23-c39384def86d
+  cost {5}
+  type Artifact — Vehicle
+  pt 8/6
+  keywords menace
+  crew 4
+}

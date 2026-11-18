@@ -1,0 +1,6 @@
+card "Impulse" {
+  oracle_id f6bd2902-7f8b-419e-bbc7-bcab0c1b7e01
+  cost {1}{U}
+  type Instant
+  spell: dig 4 take card rest bottom
+}

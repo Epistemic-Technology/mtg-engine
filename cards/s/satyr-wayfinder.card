@@ -1,0 +1,7 @@
+card "Satyr Wayfinder" {
+  oracle_id ead4c01a-e2ae-49c9-95d9-651d81005907
+  cost {1}{G}
+  type Creature — Satyr
+  pt 1/1
+  triggered when this enters: dig 4 reveal take land card may rest graveyard
+}

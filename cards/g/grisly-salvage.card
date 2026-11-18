@@ -1,0 +1,6 @@
+card "Grisly Salvage" {
+  oracle_id a89ebf63-63c9-42cd-98b4-ec852cd9b0a8
+  cost {B}{G}
+  type Instant
+  spell: dig 5 reveal take creature or land card may rest graveyard
+}

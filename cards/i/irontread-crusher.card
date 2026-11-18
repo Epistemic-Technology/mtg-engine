@@ -1,0 +1,7 @@
+card "Irontread Crusher" {
+  oracle_id c951fca7-f333-4ca3-b5d6-83967d1d093d
+  cost {4}
+  type Artifact — Vehicle
+  pt 6/6
+  crew 3
+}

@@ -1,0 +1,34 @@
+# Flight-Deck Coordinator: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "two tapped attackers trigger life gain at end step" {
+  battlefield A: "Flight-Deck Coordinator", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Flight-Deck Coordinator", "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert life B 15
+  assert life A 22
+}
+
+scenario "only one tapped creature does not trigger" {
+  battlefield A: "Flight-Deck Coordinator", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Flight-Deck Coordinator"
+  run_to turn 2 upkeep
+  assert life B 17
+  assert life A 20
+}
+
+scenario "tapped creatures from setup count" {
+  battlefield A: "Flight-Deck Coordinator" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  run_to turn 2 upkeep
+  assert life A 22
+}
+
+scenario "does not trigger on opponent's end step" {
+  battlefield A: "Flight-Deck Coordinator" tapped, "Grizzly Bears" tapped
+  start turn 2 B precombat_main
+  run_to turn 3 upkeep
+  assert life A 20
+}

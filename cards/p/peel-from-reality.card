@@ -1,0 +1,6 @@
+card "Peel from Reality" {
+  oracle_id 65dc05d0-f885-4fe5-9a23-d6b75185c179
+  cost {1}{U}
+  type Instant
+  spell: return target creature you control and target creature you don't control to hand
+}

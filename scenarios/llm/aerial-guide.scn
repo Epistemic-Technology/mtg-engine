@@ -1,0 +1,36 @@
+# Aerial Guide: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger gives another attacker flying, so it can't be blocked by a ground creature" {
+  battlefield A: "Aerial Guide", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Aerial Guide", "Grizzly Bears"
+  turn 1 A: trigger "Aerial Guide" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert has "Grizzly Bears" flying
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "flying granted by the trigger ends at end of turn" {
+  battlefield A: "Aerial Guide", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Aerial Guide", "Grizzly Bears"
+  turn 1 A: trigger "Aerial Guide" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "attacking alone, the trigger has no legal target and the guide still deals damage" {
+  battlefield A: "Aerial Guide", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Aerial Guide"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" flying
+  assert life B 18
+}

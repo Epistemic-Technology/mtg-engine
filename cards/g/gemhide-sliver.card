@@ -1,0 +1,7 @@
+card "Gemhide Sliver" {
+  oracle_id 2c09ca09-8e62-4fe3-9b3d-61573dd2ffbc
+  cost {1}{G}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver: has ability { mana any }
+}

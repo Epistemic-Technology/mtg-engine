@@ -1,0 +1,8 @@
+card "Renegade Freighter" {
+  oracle_id 5e73c8d2-5cad-4201-b9ef-32be82797e3b
+  cost {3}
+  type Artifact — Vehicle
+  pt 4/3
+  triggered whenever this attacks: this gets +1/+1 and gains trample
+  crew 2
+}

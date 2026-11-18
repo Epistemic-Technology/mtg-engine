@@ -1,0 +1,9 @@
+card "Quick-Draw Dagger" {
+  oracle_id 47b4dd69-0b2a-4dc3-99e8-f572fe049327
+  cost {3}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains first strike
+  static enchanted: +1/+1
+  equip {1}
+}

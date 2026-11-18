@@ -1,0 +1,8 @@
+card "Bramble Armor" {
+  oracle_id 25328cab-c7c0-4c55-99bb-a4149f6c511a
+  cost {1}{G}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+1
+  equip {4}
+}

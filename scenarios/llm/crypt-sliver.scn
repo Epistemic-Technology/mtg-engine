@@ -1,0 +1,41 @@
+# Crypt Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "crypt sliver regenerates itself from lightning bolt" {
+  battlefield A: "Crypt Sliver"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 upkeep A: activate "Crypt Sliver" targeting "Crypt Sliver"
+  turn 2 B: cast "Lightning Bolt" targeting "Crypt Sliver"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Crypt Sliver"
+  assert graveyard A lacks "Crypt Sliver"
+  assert tapped "Crypt Sliver"
+  assert damage "Crypt Sliver" 0
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "without a shield crypt sliver dies" {
+  battlefield A: "Crypt Sliver"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Crypt Sliver"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Crypt Sliver"
+  assert battlefield A lacks "Crypt Sliver"
+}
+
+scenario "crypt sliver regenerates itself from murder" {
+  battlefield A: "Crypt Sliver"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B
+  turn 2 upkeep A: activate "Crypt Sliver" targeting "Crypt Sliver"
+  turn 2 B: cast "Murder" targeting "Crypt Sliver"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Crypt Sliver"
+  assert tapped "Crypt Sliver"
+  assert graveyard B contains "Murder"
+}

@@ -1,0 +1,7 @@
+card "Godtoucher" {
+  oracle_id 3094f214-5aa8-4003-8a1e-035485dfb978
+  cost {3}{G}
+  type Creature — Elf Cleric
+  pt 2/2
+  activated {1}{W}, {T}: prevent all damage to target creature with power 5 or greater this turn
+}

@@ -1,0 +1,7 @@
+card "Simic Growth Chamber" {
+  oracle_id 046f5783-cc7b-416a-8cf6-2bcef9c2cc1a
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {G}{U}
+}

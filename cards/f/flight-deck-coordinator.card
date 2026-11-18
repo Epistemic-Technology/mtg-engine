@@ -1,0 +1,7 @@
+card "Flight-Deck Coordinator" {
+  oracle_id 57927909-11a9-44ef-989d-1dcca1f6e23f
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered at beginning of your end step if you control 2 tapped creature: you gain 2 life
+}

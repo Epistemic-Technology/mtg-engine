@@ -1,0 +1,8 @@
+card "Saruli Caretaker" {
+  oracle_id 5e2736e6-b812-43a4-bd79-6f6095344fe1
+  cost {G}
+  type Creature — Dryad
+  pt 0/3
+  keywords defender
+  activated {T}, tap untapped creature you control: add any
+}

@@ -1,0 +1,6 @@
+card "Survivors' Encampment" {
+  oracle_id 152e7e91-4eda-4e72-a9fb-bd5cb2e68239
+  type Land — Desert
+  mana {C}
+  activated {T}, tap untapped creature you control: add any
+}

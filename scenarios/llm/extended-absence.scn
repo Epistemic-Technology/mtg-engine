@@ -1,0 +1,40 @@
+# Extended Absence: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "exiles target creature, drains each opponent for 1" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Extended Absence"
+  turn 1 A: cast "Extended Absence" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Extended Absence"
+}
+
+scenario "cast at instant speed on an attacker" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Extended Absence"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Extended Absence" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert life A 21
+  assert life B 19
+}
+
+scenario "not castable without enough mana" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Extended Absence"
+  illegal turn 1 A: cast "Extended Absence" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 1
+  assert life B 20
+}

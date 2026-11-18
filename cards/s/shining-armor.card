@@ -1,0 +1,9 @@
+card "Shining Armor" {
+  oracle_id 090a5f76-206e-4b3b-bc1d-9c9706d9955d
+  cost {1}{W}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target Knight you control
+  static enchanted: +0/+2, has vigilance
+  equip {3}
+}

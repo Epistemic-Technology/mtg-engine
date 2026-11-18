@@ -1,0 +1,6 @@
+card "Might of Alara" {
+  oracle_id 44570849-b2b0-47a8-9d77-f7c738896a0a
+  cost {G}
+  type Instant
+  label "Domain" spell: target creature gets +1/+1 count each domain
+}

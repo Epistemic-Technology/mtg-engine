@@ -1,0 +1,8 @@
+card "Storm Sculptor" {
+  oracle_id e43eb15e-e910-4165-b9df-25cbe7054e0a
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 3/2
+  keywords can't be blocked
+  triggered when this enters: return 1 creature you control chosen
+}

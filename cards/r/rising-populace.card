@@ -1,0 +1,7 @@
+card "Rising Populace" {
+  oracle_id 340de754-9d64-4824-936f-643be4a939db
+  cost {2}{W}
+  type Creature — Human
+  pt 2/2
+  triggered whenever other creature or planeswalker you control dies: put 1 +1/+1 counter on this
+}

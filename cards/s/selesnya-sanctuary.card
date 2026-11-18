@@ -1,0 +1,7 @@
+card "Selesnya Sanctuary" {
+  oracle_id 00ef1c55-dea1-4564-bd57-66de86cba4df
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {G}{W}
+}

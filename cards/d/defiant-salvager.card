@@ -1,0 +1,7 @@
+card "Defiant Salvager" {
+  oracle_id 2a8c9ef7-8171-4f6f-bf39-4a08d127e729
+  cost {2}{B}
+  type Creature — Aetherborn Artificer
+  pt 2/2
+  activated sorcery, sacrifice artifact or creature: put 1 +1/+1 counter on this
+}

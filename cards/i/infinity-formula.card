@@ -1,0 +1,8 @@
+card "Infinity Formula" {
+  oracle_id 83669321-46cd-4805-b4ce-441c5db0f338
+  cost {2}{W}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +1/+2, has ability { triggered whenever this attacks: you gains 2 life }
+  equip {2}
+}

@@ -1,0 +1,8 @@
+card "Ethersworn Shieldmage" {
+  oracle_id ee988017-fc7e-4d8a-8f5c-0a7e57a8d050
+  cost {1}{W}{U}
+  type Artifact Creature — Vedalken Wizard
+  pt 2/2
+  keywords flash
+  triggered when this enters: prevent all damage to artifact creature this turn
+}

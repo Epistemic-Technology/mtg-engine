@@ -1,0 +1,8 @@
+card "Dragonfly Suit" {
+  oracle_id f242d66c-011c-4b5b-a7d6-5e0bce257f73
+  cost {2}{W}
+  type Artifact — Vehicle
+  pt 3/2
+  keywords flying
+  crew 1
+}

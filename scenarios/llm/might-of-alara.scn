@@ -1,0 +1,41 @@
+# Might of Alara: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "counts each basic land type and wears off at end of turn" {
+  battlefield A: "Forest", "Mountain", "Island", "Grizzly Bears"
+  hand A: "Might of Alara"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of Alara" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert graveyard A contains "Might of Alara"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "duplicate land types count once" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Might of Alara"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Might of Alara" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "saves a creature from Lightning Bolt in response" {
+  battlefield A: "Forest", "Plains", "Grizzly Bears"
+  hand A: "Might of Alara"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: cast "Might of Alara" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert power "Grizzly Bears" 4
+  assert graveyard B contains "Lightning Bolt"
+}

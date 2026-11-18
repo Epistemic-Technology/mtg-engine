@@ -2342,6 +2342,18 @@ cards: 5,359 Pauper (49.3%), 5,511 Modern (24.3%); 1,766 scenarios pass
 (5 new in scenarios/m5/face-down.scn), 1 skipped; fuzz 0 panics, 0
 unfinished; throughput within 1% of the perf pass.
 
+Status 2026-11-18, slice 15 done, with model-author batch 6 (500 cards,
+63 accepted; this list included cards blocked on keywords, about $17,
+about $56 of the $100 so far). Digging through the library (`Effect::Dig`:
+look at or reveal the top N, take one or all matching cards, the rest to
+the bottom or the graveyard), crew (a "tap creatures with total power N"
+cost; the engine chooses which), costs and effects that return or tap a
+chosen permanent ("Return a land you control to its owner's hand"),
+"this Vehicle" / "this Equipment" as the self noun. Corpus 7,569 cards:
+5,554 Pauper (51.0%), 5,683 Modern (25.0%); 1,977 scenarios pass (6 new
+in scenarios/m5/slice15.scn, the rest with batch 6's cards), 1 skipped;
+fuzz 0 panics, 0 unfinished; throughput within 1% of the perf pass.
+
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional
 "enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't

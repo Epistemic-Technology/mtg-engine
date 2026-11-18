@@ -1,0 +1,8 @@
+card "Pirate's Cutlass" {
+  oracle_id ac77591c-39d7-4fd1-a6e9-805f57c6614a
+  cost {3}
+  type Artifact — Equipment
+  triggered when this enters: attach to target Pirate you control
+  static enchanted: +2/+1
+  equip {2}
+}

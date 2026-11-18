@@ -1,0 +1,6 @@
+card "Banishing Knack" {
+  oracle_id 6f23621e-eceb-402e-a8d3-8e2b734762b3
+  cost {U}
+  type Instant
+  spell: until end of turn, target creature gains ability { activated {T}: return target nonland permanent to hand }
+}

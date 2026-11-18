@@ -1,0 +1,7 @@
+card "Tymora's Invoker" {
+  oracle_id 36652a44-f5bd-4bc0-abfd-fa3688853dfd
+  cost {1}{U}
+  type Creature — Orc Rogue
+  pt 1/3
+  label "Sleight of Hand" activated {8}: draw 2 cards
+}

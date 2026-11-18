@@ -1,0 +1,8 @@
+card "Funeral Longboat" {
+  oracle_id a994de7b-0128-4f03-922f-c8cd80cb5852
+  cost {2}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords vigilance
+  crew 1
+}

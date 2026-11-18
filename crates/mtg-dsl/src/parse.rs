@@ -852,7 +852,7 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::HandSize { whose, delta })
             }
-            "bushido" | "soulshift" | "afflict" | "toxic" => {
+            "bushido" | "soulshift" | "afflict" | "toxic" | "crew" => {
                 self.pos += 1;
                 let n = self.number()?;
                 self.end_stmt()?;
@@ -860,6 +860,7 @@ impl P {
                     "bushido" => Mechanic::Bushido(n),
                     "soulshift" => Mechanic::Soulshift(n),
                     "afflict" => Mechanic::Afflict(n),
+                    "crew" => Mechanic::Crew(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -2005,6 +2006,16 @@ impl P {
                 let to = self.recipient()?;
                 Ok(Effect::RemoveCounters { kind, count, to })
             }
+            // `return 1 land you control chosen`: the controller chooses.
+            "return"
+                if matches!(self.peek(), Some(Tok::Num(_)))
+                    && (1..8).any(|k| self.word_at(k).as_deref() == Some("chosen")) =>
+            {
+                let count = self.num()?;
+                let filter = self.filter()?;
+                self.expect_word("chosen")?;
+                Ok(Effect::ReturnChosen { count, filter })
+            }
             "return" => {
                 let all = self.recipients()?;
                 let what = all[0];
@@ -2048,6 +2059,41 @@ impl P {
                 Ok(Effect::Pay { mana, life })
             }
             "proliferate" => Ok(Effect::Proliferate),
+            "dig" => {
+                let count = self.num()?;
+                let reveal_top = self.eat_word("reveal");
+                self.expect_word("take")?;
+                let all = self.eat_word("all");
+                let filter = if self.eat_word("card") {
+                    None
+                } else {
+                    let f = self.filter()?;
+                    self.expect_word("card")?;
+                    Some(f)
+                };
+                let optional = self.eat_word("may");
+                let revealing = self.eat_word("revealing");
+                self.expect_word("rest")?;
+                let rest_graveyard = if self.eat_word("graveyard") {
+                    true
+                } else {
+                    self.expect_word("bottom")?;
+                    false
+                };
+                Ok(Effect::Dig {
+                    count,
+                    filter,
+                    optional,
+                    all,
+                    rest_graveyard,
+                    reveal_top,
+                    revealing,
+                })
+            }
+            "look" if self.at_words(&["at", "top"]) => {
+                self.pos += 2;
+                Ok(Effect::LookAtTop(self.num()?))
+            }
             "manifest" => {
                 self.eat_words(&["the", "top", "card", "of", "your", "library"]);
                 Ok(Effect::Manifest)
@@ -2739,9 +2785,13 @@ impl P {
                     && (!f.not_types.is_empty()
                         || !f.not_colors.is_empty()
                         || !f.not_subtypes.is_empty());
+                // "artifact, enchantment, or land": a list goes on to an
+                // `or`; "creature, sorcery" in a cost list does not.
                 let listed_type = (!f.types.is_empty() || !f.any_types.is_empty())
                     && f.subtypes.is_empty()
-                    && (card_type(&next).is_some()
+                    && ((card_type(&next).is_some()
+                        && (self.word_at(2).as_deref() == Some("or")
+                            || self.peek_at(2) == Some(&Tok::Comma)))
                         || (next == "or"
                             && self.word_at(2).as_deref().and_then(card_type).is_some()));
                 if negation {
@@ -3201,6 +3251,7 @@ impl P {
         self.unexpected("a condition")
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per cost part
     fn cost(&mut self) -> R<Cost> {
         let mut cost = Cost::default();
         let mut mana = String::new();
@@ -3241,6 +3292,16 @@ impl P {
                         } else {
                             cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         }
+                        cost.order.push(CostItem::Sacrifice);
+                    }
+                    "return" | "tap" if !matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
+                        cost.chosen = if w.eq_ignore_ascii_case("return") {
+                            mtg_core::card::ChosenCost::Return
+                        } else {
+                            mtg_core::card::ChosenCost::Tap
+                        };
+                        self.pos += 1;
+                        cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         cost.order.push(CostItem::Sacrifice);
                     }
                     "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {

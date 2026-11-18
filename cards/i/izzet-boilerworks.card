@@ -1,0 +1,7 @@
+card "Izzet Boilerworks" {
+  oracle_id 1cb9d94a-3039-4f2e-8fcc-6996f9a45f74
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {U}{R}
+}

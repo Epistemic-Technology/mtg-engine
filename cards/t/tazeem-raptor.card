@@ -1,0 +1,8 @@
+card "Tazeem Raptor" {
+  oracle_id 3111f8b7-36af-4390-af99-5b8976b2f241
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: you may return 1 land you control chosen
+}

@@ -1,0 +1,9 @@
+card "Hulldrifter" {
+  oracle_id a0a7319d-9441-4aed-a351-9ff3fb3b1d9e
+  cost {3}{U}{U}
+  type Artifact — Vehicle
+  pt 3/2
+  keywords flying
+  triggered when this enters: draw 2 cards
+  crew 3
+}

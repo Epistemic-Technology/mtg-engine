@@ -1,0 +1,8 @@
+card "Jaspera Sentinel" {
+  oracle_id e2f98813-4f39-4135-b05b-407e9eb797f6
+  cost {G}
+  type Creature — Elf Rogue
+  pt 1/2
+  keywords reach
+  activated {T}, tap untapped creature you control: add any
+}

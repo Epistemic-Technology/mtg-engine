@@ -1,0 +1,45 @@
+# Divergent Growth: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "forests make blue mana after Divergent Growth" {
+  battlefield A: 4 "Forest"
+  hand A: "Divergent Growth", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divergent Growth"
+  turn 1 A: wait
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert graveyard A contains "Divergent Growth"
+}
+
+scenario "forests make red mana for a bolt after Divergent Growth" {
+  battlefield A: 2 "Forest"
+  hand A: "Divergent Growth", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divergent Growth"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "without Divergent Growth forests cannot pay blue" {
+  battlefield A: 4 "Forest"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wind Drake"
+}
+
+scenario "the granted ability ends at end of turn" {
+  battlefield A: 4 "Forest"
+  hand A: "Divergent Growth", "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divergent Growth"
+  illegal turn 3 A: cast "Wind Drake"
+  run_to turn 3 postcombat_main
+  assert hand A contains "Wind Drake"
+}

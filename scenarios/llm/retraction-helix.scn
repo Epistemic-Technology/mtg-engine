@@ -1,0 +1,29 @@
+# Retraction Helix: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "granted ability bounces a nonland permanent" {
+  battlefield A: "Grizzly Bears", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Retraction Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Retraction Helix" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert graveyard A contains "Retraction Helix"
+}
+
+scenario "granted ability ends at end of turn" {
+  battlefield A: "Grizzly Bears", "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Retraction Helix"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Retraction Helix" targeting "Grizzly Bears"
+  illegal turn 3 A: activate "Grizzly Bears" targeting B "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Grizzly Bears"
+}

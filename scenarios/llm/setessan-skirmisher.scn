@@ -1,0 +1,32 @@
+# Setessan Skirmisher: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "a nonenchantment creature entering does not trigger constellation" {
+  battlefield A: "Setessan Skirmisher", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Setessan Skirmisher" 2
+  assert toughness "Setessan Skirmisher" 1
+}
+
+scenario "a land entering does not trigger constellation" {
+  battlefield A: "Setessan Skirmisher"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Forest"
+  assert power "Setessan Skirmisher" 2
+  assert toughness "Setessan Skirmisher" 1
+}
+
+scenario "skirmisher attacks as a 2/1" {
+  battlefield A: "Setessan Skirmisher"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Setessan Skirmisher"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

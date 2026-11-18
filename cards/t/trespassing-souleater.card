@@ -1,0 +1,7 @@
+card "Trespassing Souleater" {
+  oracle_id 4d19b4d1-49d1-44e9-a453-dcb08b5fa6e4
+  cost {3}
+  type Artifact Creature — Phyrexian Construct
+  pt 2/2
+  activated {U/P}: this gains can't be blocked
+}

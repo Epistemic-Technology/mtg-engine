@@ -1,0 +1,6 @@
+card "Commune with Beavers" {
+  oracle_id 9108fffb-90f4-444e-8d3e-46a3d4ff3681
+  cost {G}
+  type Sorcery
+  spell: dig 3 take artifact, creature, or land card may revealing rest bottom
+}

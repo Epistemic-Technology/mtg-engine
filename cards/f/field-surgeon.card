@@ -1,0 +1,7 @@
+card "Field Surgeon" {
+  oracle_id 730809d7-cb8c-495c-8972-7e85b967358e
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated tap untapped creature you control: prevent next 1 damage to target creature this turn
+}

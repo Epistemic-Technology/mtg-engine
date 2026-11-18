@@ -1,0 +1,7 @@
+card "Selesnya Evangel" {
+  oracle_id 4a2fea39-99d6-4766-9f2c-0a63925349cb
+  cost {G}{W}
+  type Creature — Elf Shaman
+  pt 1/2
+  activated {1}, {T}, tap untapped creature you control: create 1 "1/1 green Saproling creature"
+}

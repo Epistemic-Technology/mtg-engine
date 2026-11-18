@@ -1,0 +1,7 @@
+card "Heap Gate" {
+  oracle_id 35922a30-6b84-44dd-a2f0-306554a1ae90
+  type Land — Gate
+  mana {C}
+  activated {1}, {T}: add any
+  activated {1}, {T}, tap untapped Gate you control: create 1 "Treasure"
+}

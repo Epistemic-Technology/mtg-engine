@@ -1,0 +1,8 @@
+card "Oboro Breezecaller" {
+  oracle_id 257ee9a0-5ee0-49c4-8619-e75e1134d7ac
+  cost {1}{U}
+  type Creature — Moonfolk Wizard
+  pt 1/1
+  keywords flying
+  activated {2}, return land you control: untap target land
+}

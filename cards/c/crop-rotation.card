@@ -1,0 +1,7 @@
+card "Crop Rotation" {
+  oracle_id 28b46183-c62f-47b1-9fee-3ba148202cab
+  cost {G}
+  type Instant
+  additional cost sacrifice land
+  spell: search land card to battlefield that card
+}

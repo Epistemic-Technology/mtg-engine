@@ -1,0 +1,7 @@
+card "Resentful Revelation" {
+  oracle_id 71d6aa12-4888-458d-9dc8-9954b247a246
+  cost {1}{B}
+  type Sorcery
+  spell: dig 3 take card rest graveyard
+  flashback {6}{B}
+}

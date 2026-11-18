@@ -1,0 +1,6 @@
+card "Experimental Augury" {
+  oracle_id 2ee08dcd-5558-45be-b619-8a550f3865ad
+  cost {1}{U}
+  type Instant
+  spell: dig 3 take card rest bottom; proliferate
+}

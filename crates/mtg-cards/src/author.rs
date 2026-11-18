@@ -57,7 +57,7 @@ const KEYWORDS: [&str; 34] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 46] = [
+const TEMPLATED_TAGS: [&str; 47] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -105,6 +105,7 @@ const TEMPLATED_TAGS: [&str; 46] = [
     "Megamorph",
     "Disguise",
     "Manifest",
+    "Crew",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -884,6 +885,19 @@ impl Templates {
                 ))
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (
+                r(r"^Return an? ([a-z ]+? you control) to its owner's hand$"),
+                |c, _| Some(format!("return 1 {} chosen", cap(c, 1))),
+            ),
+            (r(r"^Attach (?:it|this Equipment) to (.+)$"), |c, t| {
+                Some(format!("attach to {}", recipient(cap(c, 1), t)?))
+            }),
+            (
+                r(
+                    r"^Look at the top (\w+) cards of your library, then put them back in any order$",
+                ),
+                |c, _| Some(format!("look at top {}", number(cap(c, 1))?)),
+            ),
             (r(r"^Manifest the top card of your library$"), |_, _| {
                 Some("manifest".to_string())
             }),
@@ -1071,6 +1085,78 @@ impl Templates {
         None
     }
 
+    /// The dig paragraphs ("Look at the top N cards of your library. ...
+    /// Put the rest ..."), with whatever follows authored as usual.
+    fn dig(&self, text: &str, targets: &mut usize) -> Result<Option<String>, Skip> {
+        let text = capitalize(text);
+        let rest_of = |s: &str| -> &'static str {
+            if s.contains("graveyard") {
+                "graveyard"
+            } else {
+                "bottom"
+            }
+        };
+        let may = Regex::new(
+            r"^(Look at|Reveal) the top (\w+) cards of your library\. You may (reveal|put) (an? .+?) card from among them (?:and put it )?into your hand\. Put the rest (on the bottom of your library(?: in any order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
+        let one = Regex::new(
+            r"^Look at the top (\w+) cards of your library\. Put one of them into your hand and the (?:rest|other) (on the bottom of your library(?: in any order)?|into your graveyard)\.?\s*(.*)$",
+        )
+        .unwrap();
+        let all = Regex::new(
+            r"^Reveal the top (\w+) cards of your library\. Put all (.+?) cards revealed this way into your hand and the rest (into your graveyard|on the bottom of your library in any order)\.?\s*(.*)$",
+        )
+        .unwrap();
+        let (dsl, tail) = if let Some(c) = may.captures(&text) {
+            let n = number(cap(&c, 2)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            let reveal_top = if cap(&c, 1) == "Reveal" {
+                " reveal"
+            } else {
+                ""
+            };
+            let revealing = if cap(&c, 3) == "reveal" {
+                " revealing"
+            } else {
+                ""
+            };
+            let what = cap(&c, 4)
+                .trim_start_matches("an ")
+                .trim_start_matches("a ")
+                .to_string();
+            (
+                format!(
+                    "dig {n}{reveal_top} take {what} card may{revealing} rest {}",
+                    rest_of(cap(&c, 5))
+                ),
+                cap(&c, 6).to_string(),
+            )
+        } else if let Some(c) = one.captures(&text) {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            (
+                format!("dig {n} take card rest {}", rest_of(cap(&c, 2))),
+                cap(&c, 3).to_string(),
+            )
+        } else if let Some(c) = all.captures(&text) {
+            let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(text.clone()))?;
+            (
+                format!(
+                    "dig {n} reveal take all {} card rest {}",
+                    singular(cap(&c, 2)),
+                    rest_of(cap(&c, 3))
+                ),
+                cap(&c, 4).to_string(),
+            )
+        } else {
+            return Ok(None);
+        };
+        if tail.trim().is_empty() {
+            return Ok(Some(dsl));
+        }
+        let more = self.effects(tail.trim(), targets)?;
+        Ok(Some(format!("{dsl}; {more}")))
+    }
+
     /// Sentences of one paragraph to `;`-joined DSL effects. `targets`
     /// counts targets declared so far in the ability.
     #[allow(clippy::too_many_lines)] // the sentence forms that need more than one rule
@@ -1102,6 +1188,11 @@ impl Templates {
             r"^(.+) unless (you pay|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
         )
         .unwrap();
+        // "Look at the top four cards of your library. You may reveal a
+        // creature card from among them ..." and the other dig forms.
+        if let Some(out) = self.dig(text, targets)? {
+            return Ok(out);
+        }
         // "Target creature gains \"...\" until end of turn."
         if let Some(c) = Regex::new(r#"^(.+?) gains? "(.+)" until end of turn\.?$"#)
             .unwrap()
@@ -1268,6 +1359,17 @@ fn cost_text(s: &str) -> Option<String> {
             "discard this".to_string()
         } else if part == "Exile this card from your graveyard" {
             "exile this from graveyard".to_string()
+        } else if let Some(rest) = part
+            .strip_prefix("Return an ")
+            .or_else(|| part.strip_prefix("Return a "))
+            .and_then(|r| r.strip_suffix(" to its owner's hand"))
+        {
+            format!("return {rest}")
+        } else if let Some(rest) = part
+            .strip_prefix("Tap an ")
+            .or_else(|| part.strip_prefix("Tap a "))
+        {
+            format!("tap {rest}")
         } else if let Some(what) = part
             .strip_prefix("Discard a ")
             .or_else(|| part.strip_prefix("Discard an "))
@@ -1288,6 +1390,12 @@ fn cost_text(s: &str) -> Option<String> {
 }
 
 fn trigger_text(head: &str) -> Option<String> {
+    // A Vehicle or Equipment names itself so; the DSL's `this` prints the
+    // noun.
+    let head = head
+        .replace("this Vehicle", "this creature")
+        .replace("this Equipment", "this artifact");
+    let head = head.as_str();
     let t = match head {
         "When this creature enters"
         | "When this land enters"
@@ -1792,7 +1900,9 @@ impl Builder<'_> {
             let cost = match rest {
                 "sacrifice a creature" => "sacrifice creature".to_string(),
                 "discard a card" => "discard 1 card".to_string(),
-                _ => return Err(Skip::Sentence(line.to_string())),
+                other => {
+                    cost_text(&capitalize(other)).ok_or_else(|| Skip::Sentence(line.to_string()))?
+                }
             };
             self.additional = Some(cost);
             return Ok(());
@@ -1911,7 +2021,7 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic) (\d+)$")
+        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew) (\d+)$")
             .unwrap()
             .captures(line)
         {

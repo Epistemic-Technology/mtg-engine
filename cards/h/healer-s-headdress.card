@@ -1,0 +1,8 @@
+card "Healer's Headdress" {
+  oracle_id bf689834-dcb7-4370-a986-bf542f88aba5
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: +0/+2, has ability { activated {T}: prevent next 1 damage to any target this turn }
+  activated {W}{W}: attach to target creature you control
+  equip {1}
+}

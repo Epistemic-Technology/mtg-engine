@@ -1,0 +1,7 @@
+card "Gruul Turf" {
+  oracle_id 657243dd-e479-4f4b-99d2-09b55d833a35
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {R}{G}
+}

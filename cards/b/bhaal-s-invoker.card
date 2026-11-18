@@ -1,0 +1,7 @@
+card "Bhaal's Invoker" {
+  oracle_id 92512acd-bf1e-4133-93cd-6c6af5affb95
+  cost {2}{R}
+  type Creature — Dragon Shaman
+  pt 4/2
+  label "Scorching Ray" activated {8}: deal 4 damage to each opponent
+}

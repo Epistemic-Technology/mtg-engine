@@ -1,0 +1,6 @@
+card "Strategic Planning" {
+  oracle_id 02b5acf3-47cb-4d39-9307-e02656f1879b
+  cost {1}{U}
+  type Sorcery
+  spell: dig 3 take card rest graveyard
+}

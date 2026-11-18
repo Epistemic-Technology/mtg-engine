@@ -1,0 +1,10 @@
+card "Renewal" {
+  oracle_id 8df46910-ee13-416e-8282-dfe85a90e6d5
+  cost {2}{G}
+  type Sorcery
+  additional cost sacrifice land
+  spell {
+    search basic land card to battlefield that card
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

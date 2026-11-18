@@ -1,0 +1,7 @@
+card "Screeching Sliver" {
+  oracle_id 88485575-e491-4ab7-a020-e52dd92ae085
+  cost {U}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver: has ability { activated {T}: target player mills 1 card }
+}

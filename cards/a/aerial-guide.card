@@ -1,0 +1,8 @@
+card "Aerial Guide" {
+  oracle_id b56c0846-e465-4251-93ea-2e3e7be8dffc
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  triggered whenever this attacks: target other attacking creature gains flying
+}

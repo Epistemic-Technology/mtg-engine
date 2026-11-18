@@ -1,0 +1,39 @@
+# Shard Volley: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Shard Volley sacrifices a land and deals 3 to a player" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Shard Volley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shard Volley" sacrificing "Forest" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Shard Volley"
+  assert battlefield A lacks "Forest"
+  assert tapped "Mountain"
+}
+
+scenario "Shard Volley kills a 3-toughness creature" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Shard Volley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shard Volley" sacrificing "Forest" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Shard Volley at instant speed kills an attacker" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shard Volley"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Shard Volley" sacrificing "Forest" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Shard Volley"
+}

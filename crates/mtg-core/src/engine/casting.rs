@@ -334,6 +334,47 @@ impl GameState {
         }
     }
 
+    /// Other untapped creatures `p` controls that could crew `vehicle`,
+    /// with their power (CR 702.122a; summoning sickness doesn't matter).
+    fn crew_candidates(&self, p: PlayerId, vehicle: ObjId) -> SmallVec<[(ObjId, u32); 4]> {
+        self.creatures_of(p)
+            .filter(|id| *id != vehicle && !self.objects[*id].tapped)
+            .map(|id| {
+                let power = self
+                    .characteristics(id)
+                    .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0));
+                (id, power)
+            })
+            .collect()
+    }
+
+    fn crew_power(&self, p: PlayerId, vehicle: ObjId) -> u32 {
+        self.crew_candidates(p, vehicle)
+            .iter()
+            .map(|(_, n)| n)
+            .sum()
+    }
+
+    /// The creatures that crew: the weakest one strong enough alone, or
+    /// else the strongest until the power suffices.
+    fn crew_choice(&self, p: PlayerId, vehicle: ObjId, need: u32) -> SmallVec<[ObjId; 4]> {
+        let mut c = self.crew_candidates(p, vehicle);
+        if let Some((id, _)) = c.iter().filter(|(_, n)| *n >= need).min_by_key(|(_, n)| *n) {
+            return smallvec::smallvec![*id];
+        }
+        c.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
+        let mut total = 0;
+        let mut out = SmallVec::new();
+        for (id, n) in c {
+            if total >= need {
+                break;
+            }
+            total += n;
+            out.push(id);
+        }
+        out
+    }
+
     /// Whether some permanent may have abilities its definition lacks.
     pub(super) fn grants_exist(&self) -> bool {
         self.grant_sources > 0 || self.eot_grants > 0
@@ -629,6 +670,9 @@ impl GameState {
                 if !self.targets_available(p, &ab.targets, Some(id)) {
                     continue;
                 }
+                if ab.cost.crew > 0 && self.crew_power(p, id) < ab.cost.crew {
+                    continue;
+                }
                 if ab.cost.life > 0
                     && self.player(p).life < i32::try_from(ab.cost.life).unwrap_or(i32::MAX)
                 {
@@ -859,6 +903,11 @@ impl GameState {
             self.tap(sa.source);
         }
         self.pay(controller, &ab.cost.mana.requirements(0));
+        if ab.cost.crew > 0 {
+            for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
+                self.tap(c);
+            }
+        }
         if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
             self.move_object(sa.source, Zone::Exile, false);
         }
@@ -1041,7 +1090,13 @@ impl GameState {
             Some(SacCost::This) => self.sacrifice(this),
             Some(SacCost::Filter(_)) => {
                 if let Some(s) = sacrifice {
-                    self.sacrifice(s);
+                    match cost.chosen {
+                        crate::card::ChosenCost::Sacrifice => self.sacrifice(s),
+                        crate::card::ChosenCost::Return => {
+                            self.move_object(s, Zone::Hand, false);
+                        }
+                        crate::card::ChosenCost::Tap => self.tap(s),
+                    }
                 }
             }
             None => {}
@@ -2012,7 +2067,9 @@ impl GameState {
                     self.move_object(id, Zone::Library, *top);
                 }
             }
-            Effect::SacrificeChosen { who, filter, count } => {
+            Effect::SacrificeChosen { who, filter, count }
+            | Effect::ReturnChosen { who, filter, count } => {
+                let bounce = matches!(effect, Effect::ReturnChosen { .. });
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -2032,7 +2089,11 @@ impl GameState {
                         }
                         let k = self.choose_mid(p, DecisionKind::Edict, options.clone());
                         if let Choice::Sacrifice(id) = options[k] {
-                            self.sacrifice(id);
+                            if bounce {
+                                self.move_object(id, Zone::Hand, false);
+                            } else {
+                                self.sacrifice(id);
+                            }
                         }
                     }
                 }
@@ -2393,8 +2454,69 @@ impl GameState {
                     self.add_counters(id, CounterKind::PlusOnePlusOne, n);
                 }
             }
-            // Resolved through the chosen mode (`effects_of`).
-            Effect::Modes(_) => {}
+            // Modes resolve through the chosen mode (`effects_of`); looking
+            // at the top cards keeps their order.
+            Effect::Modes(_) | Effect::LookAtTop { .. } => {}
+            Effect::Dig {
+                count,
+                filter,
+                optional,
+                all,
+                rest_graveyard,
+            } => {
+                let p = ctx.controller;
+                let n = self.eval_num(*count, ctx) as usize;
+                let lib = &self.player(p).library;
+                let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
+                let matches = |s: &Self, id: ObjId| {
+                    filter.as_ref().is_none_or(|f| {
+                        let c = s.base_characteristics(&s.objects[id]);
+                        f.matches(id, p, &c, Some(ctx.source), Some(p)) && s.status_ok(f, id)
+                    })
+                };
+                let mut taken: Vec<ObjId> = Vec::new();
+                if *all {
+                    taken = top
+                        .iter()
+                        .copied()
+                        .filter(|id| matches(self, *id))
+                        .collect();
+                } else {
+                    let mut options: Vec<Choice> = top
+                        .iter()
+                        .copied()
+                        .filter(|id| matches(self, *id))
+                        .map(|id| Choice::Target(Target::Object(id)))
+                        .collect();
+                    if !options.is_empty() {
+                        if *optional {
+                            options.push(Choice::Decline);
+                        }
+                        let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                        if let Choice::Target(Target::Object(id)) = options[k] {
+                            taken.push(id);
+                        }
+                    }
+                }
+                for id in &taken {
+                    self.move_object(*id, Zone::Hand, false);
+                }
+                for id in top {
+                    if taken.contains(&id)
+                        || !self
+                            .objects
+                            .get(id)
+                            .is_some_and(|o| o.zone == Zone::Library)
+                    {
+                        continue;
+                    }
+                    if *rest_graveyard {
+                        self.move_object(id, Zone::Graveyard, false);
+                    } else {
+                        self.move_object(id, Zone::Library, false);
+                    }
+                }
+            }
             Effect::Manifest => {
                 let p = ctx.controller;
                 if let Some(top) = self.player(p).library.last().copied() {

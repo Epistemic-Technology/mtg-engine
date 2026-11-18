@@ -1,0 +1,7 @@
+card "Sepulcher Ghoul" {
+  oracle_id 04936cc9-c915-4182-b84a-3491d26be548
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  activated sacrifice other creature, once: this gets +2/+2
+}

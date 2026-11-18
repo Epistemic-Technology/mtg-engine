@@ -1,0 +1,7 @@
+card "Forbidden Alchemy" {
+  oracle_id 66d65cda-e3d1-4a00-8ff3-c6d5ef0ab0c1
+  cost {2}{U}
+  type Instant
+  spell: dig 4 take card rest graveyard
+  flashback {6}{B}
+}

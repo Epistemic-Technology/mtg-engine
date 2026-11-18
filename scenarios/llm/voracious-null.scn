@@ -1,0 +1,31 @@
+# Voracious Null: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature puts two +1/+1 counters on it" {
+  battlefield A: "Voracious Null", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voracious Null" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Voracious Null" +1/+1 2
+  assert power "Voracious Null" 4
+  assert toughness "Voracious Null" 4
+}
+
+scenario "cannot sacrifice itself to pay the cost" {
+  battlefield A: "Voracious Null", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Voracious Null"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Voracious Null"
+  assert power "Voracious Null" 2
+}
+
+scenario "activate only as a sorcery" {
+  battlefield A: "Voracious Null", "Grizzly Bears", 2 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Voracious Null" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Voracious Null" 2
+}

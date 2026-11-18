@@ -1,0 +1,36 @@
+# Scorch Spitter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger deals 1 damage plus 1 combat damage" {
+  battlefield A: "Scorch Spitter"
+  turn 1 A: attack "Scorch Spitter"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Scorch Spitter"
+}
+
+scenario "trigger damage happens before blockers are declared" {
+  battlefield A: "Scorch Spitter"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Scorch Spitter"
+  run_to turn 1 declare_blockers
+  assert life B 19
+  assert stack count 0
+}
+
+scenario "blocked spitter still deals trigger damage" {
+  battlefield A: "Scorch Spitter"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Scorch Spitter"
+  turn 1 B: block "Scorch Spitter" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Scorch Spitter"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "no trigger without attacking" {
+  battlefield A: "Scorch Spitter"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

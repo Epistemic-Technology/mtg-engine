@@ -1,0 +1,7 @@
+card "Armory Veteran" {
+  oracle_id 2b51bbb3-1514-4a79-861f-b9cec9f0ec1b
+  cost {1}{R}
+  type Creature — Orc Warrior
+  pt 2/2
+  static as long as equipped, this: has menace
+}

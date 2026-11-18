@@ -1,0 +1,9 @@
+card "Javelin of Lightning" {
+  oracle_id 3f244320-3e74-4eff-ba4e-a345700c40c9
+  cost {1}{R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control
+  static during your turn, enchanted: +2/+0, has first strike
+  equip {4}
+}

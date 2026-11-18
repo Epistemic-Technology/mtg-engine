@@ -1,0 +1,8 @@
+card "Floodbringer" {
+  oracle_id 6c8bba8b-44de-4bbf-bf6a-3045e7313995
+  cost {1}{U}
+  type Creature — Moonfolk Wizard
+  pt 1/2
+  keywords flying
+  activated {2}, return land you control: tap target land
+}

@@ -1,0 +1,9 @@
+card "Bladed Battle-Fan" {
+  oracle_id c4614b6c-5e77-465f-996f-504121ea8eff
+  cost {1}{B}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains indestructible
+  static enchanted: +1/+0
+  equip {1}
+}

@@ -1,0 +1,9 @@
+card "Clamorous Ironclad" {
+  oracle_id a08580da-e5aa-424b-86bf-d4535f3480d1
+  cost {3}{R}
+  type Artifact — Vehicle
+  pt 6/3
+  keywords menace
+  crew 3
+  cycling {R}
+}

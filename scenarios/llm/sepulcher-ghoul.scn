@@ -1,0 +1,42 @@
+# Sepulcher Ghoul: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature gives +2/+2" {
+  battlefield A: "Sepulcher Ghoul", "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: activate "Sepulcher Ghoul" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Sepulcher Ghoul" 4
+  assert toughness "Sepulcher Ghoul" 3
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Sepulcher Ghoul"
+}
+
+scenario "activate only once each turn" {
+  battlefield A: "Sepulcher Ghoul", 2 "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: activate "Sepulcher Ghoul" sacrificing "Grizzly Bears"
+  illegal turn 1 postcombat_main A: activate "Sepulcher Ghoul"
+  run_to turn 1 end
+  assert power "Sepulcher Ghoul" 4
+  assert battlefield A contains 1 "Grizzly Bears"
+}
+
+scenario "cannot sacrifice itself" {
+  battlefield A: "Sepulcher Ghoul"
+  start turn 1 A
+  illegal turn 1 A: activate "Sepulcher Ghoul"
+  run_to turn 1 postcombat_main
+  assert power "Sepulcher Ghoul" 2
+  assert battlefield A contains "Sepulcher Ghoul"
+}
+
+scenario "pump ends at end of turn" {
+  battlefield A: "Sepulcher Ghoul", "Hill Giant"
+  start turn 1 A
+  turn 1 A: activate "Sepulcher Ghoul" sacrificing "Hill Giant"
+  run_to turn 2 precombat_main
+  assert power "Sepulcher Ghoul" 2
+  assert toughness "Sepulcher Ghoul" 1
+  assert graveyard A contains "Hill Giant"
+}

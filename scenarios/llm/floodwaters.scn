@@ -1,0 +1,41 @@
+# Floodwaters: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Floodwaters returns two opposing creatures to hand" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Floodwaters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Floodwaters" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Floodwaters"
+}
+
+scenario "Floodwaters returns each creature to its owner's hand" {
+  battlefield A: 6 "Island", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Floodwaters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Floodwaters" targeting "Serra Angel", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Serra Angel"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Floodwaters with a single target" {
+  battlefield A: 6 "Island"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  hand A: "Floodwaters"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Floodwaters" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Wind Drake"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Floodwaters"
+}

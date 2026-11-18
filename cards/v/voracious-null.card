@@ -1,0 +1,7 @@
+card "Voracious Null" {
+  oracle_id 0f92daf5-520d-472a-a835-e6680a92fdab
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  activated {1}{B}, sorcery, sacrifice other creature: put 2 +1/+1 counters on this
+}

@@ -1,0 +1,37 @@
+# Goblin Grenade: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "goblin grenade cannot be cast without a goblin to sacrifice" {
+  battlefield A: 2 "Mountain"
+  hand A: "Goblin Grenade"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Goblin Grenade" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert hand A contains "Goblin Grenade"
+  assert untapped oldest "Mountain"
+  assert untapped newest "Mountain"
+}
+
+scenario "a non-goblin creature does not pay the additional cost" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Goblin Grenade"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Goblin Grenade" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert hand A contains "Goblin Grenade"
+}
+
+scenario "a non-goblin flier cannot be sacrificed to target a player" {
+  battlefield A: 3 "Mountain", "Serra Angel"
+  hand A: "Goblin Grenade"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Goblin Grenade" sacrificing "Serra Angel" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A lacks "Goblin Grenade"
+}

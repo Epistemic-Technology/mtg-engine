@@ -1,0 +1,8 @@
+card "Monstrous Carabid" {
+  oracle_id 2e29025e-6954-4fbd-933f-81c2309c704e
+  cost {3}{B}{R}
+  type Creature — Insect
+  pt 4/4
+  keywords attacks each combat if able
+  cycling {B/R}
+}

@@ -1,0 +1,7 @@
+card "Myconid Spore Tender" {
+  oracle_id adf59918-a021-4b4e-b672-d82be960726e
+  cost {3}{G}
+  type Creature — Fungus
+  pt 4/1
+  label "Infesting Spores" triggered when this enters: destroy up to 1 target artifact or enchantment
+}

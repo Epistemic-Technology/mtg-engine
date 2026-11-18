@@ -414,6 +414,14 @@ pub fn self_noun(card: &Card) -> String {
         return "land".to_string();
     }
     if card.types.contains(&CardType::Artifact) {
+        // "this Vehicle", "this Equipment" (Oracle's templating since
+        // 2024).
+        if card.subtypes.iter().any(|s| s == "Vehicle") {
+            return "Vehicle".to_string();
+        }
+        if card.subtypes.iter().any(|s| s == "Equipment") {
+            return "Equipment".to_string();
+        }
         return "artifact".to_string();
     }
     if card.types.contains(&CardType::Enchantment) {
@@ -1026,9 +1034,15 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::Sacrifice => match &cost.sacrifice {
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
-                Some(SacCost::Filter(f)) => {
-                    parts.push(format!("Sacrifice {}", filter_a(f, ctx.card)));
-                }
+                Some(SacCost::Filter(f)) => parts.push(match cost.chosen {
+                    mtg_core::card::ChosenCost::Sacrifice => {
+                        format!("Sacrifice {}", filter_a(f, ctx.card))
+                    }
+                    mtg_core::card::ChosenCost::Return => {
+                        format!("Return {} to its owner's hand", filter_a(f, ctx.card))
+                    }
+                    mtg_core::card::ChosenCost::Tap => format!("Tap {}", filter_a(f, ctx.card)),
+                }),
                 None => {}
             },
             CostItem::Exile => {
@@ -1427,6 +1441,66 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
+        Effect::LookAtTop(n) => Clause::imperative(format!(
+            "look at the top {} cards of your library, then put them back in any order",
+            count_words(*n, "one")
+        )),
+        Effect::Dig {
+            count,
+            filter,
+            optional,
+            all,
+            rest_graveyard,
+            reveal_top,
+            revealing,
+        } => {
+            let n = count_words(*count, "one");
+            let head = if *reveal_top {
+                format!("reveal the top {n} cards of your library")
+            } else {
+                format!("look at the top {n} cards of your library")
+            };
+            let two = *count == Num::N(2);
+            let rest = |word: &str| {
+                if *rest_graveyard {
+                    format!("{word} into your graveyard")
+                } else if two {
+                    format!("{word} on the bottom of your library")
+                } else {
+                    format!("{word} on the bottom of your library in any order")
+                }
+            };
+            let what = filter.as_ref().map(|f| card_filter_a(f, ctx.card));
+            let body = match (what, all, optional) {
+                (Some(w), true, _) => {
+                    let plural = w
+                        .trim_start_matches("a ")
+                        .trim_start_matches("an ")
+                        .replacen(" card", " cards", 1);
+                    format!(
+                        "Put all {plural} revealed this way into your hand and {}",
+                        rest("the rest")
+                    )
+                }
+                (Some(w), false, true) if *revealing => format!(
+                    "You may reveal {w} from among them and put it into your hand. Put {}",
+                    rest("the rest")
+                ),
+                (Some(w), false, true) => format!(
+                    "You may put {w} from among them into your hand. Put {}",
+                    rest("the rest")
+                ),
+                (Some(w), false, false) => format!(
+                    "Put {w} from among them into your hand and {}",
+                    rest("the rest")
+                ),
+                (None, _, _) => format!(
+                    "Put one of them into your hand and {}",
+                    rest(if two { "the other" } else { "the rest" })
+                ),
+            };
+            Clause::imperative(format!("{head}. {body}"))
+        }
         Effect::Modes(modes) => {
             let mut out = "choose one —".to_string();
             for m in modes {
@@ -1442,6 +1516,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let q = quoted(ability, ctx.card, CardType::Creature, ctx.lookup);
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
+        }
+        Effect::ReturnChosen { count, filter } => {
+            let what = if *count == Num::N(1) {
+                filter_a(filter, ctx.card)
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(*count, "a"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::imperative(format!("return {what} to its owner's hand"))
         }
         Effect::SkipNextUntap { to } => {
             let s = ctx.subj(*to);
@@ -3000,6 +3086,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Unearth(c) => format!("Unearth {c}"),
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
+            crate::ast::Mechanic::Crew(n) => format!("Crew {n}"),
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),

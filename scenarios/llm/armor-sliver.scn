@@ -1,0 +1,44 @@
+# Armor Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "armor sliver pumps its own toughness and survives shock" {
+  battlefield A: "Armor Sliver", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Armor Sliver"
+  turn 1 postcombat_main B: cast "Shock" targeting "Armor Sliver"
+  run_to turn 1 end
+  assert toughness "Armor Sliver" 3
+  assert damage "Armor Sliver" 2
+  assert battlefield A contains "Armor Sliver"
+}
+
+scenario "without activation shock kills armor sliver" {
+  battlefield A: "Armor Sliver", 2 "Plains"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Armor Sliver"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Armor Sliver"
+}
+
+scenario "non-sliver creatures do not gain the ability" {
+  battlefield A: "Armor Sliver", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "activating twice stacks" {
+  battlefield A: "Armor Sliver", 4 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Armor Sliver"
+  turn 1 A: wait
+  turn 1 postcombat_main A: activate "Armor Sliver"
+  run_to turn 1 end
+  assert toughness "Armor Sliver" 4
+  assert power "Armor Sliver" 2
+}

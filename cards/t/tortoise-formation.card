@@ -1,0 +1,6 @@
+card "Tortoise Formation" {
+  oracle_id a3bf84b3-b28a-4531-95d9-d2967ade670b
+  cost {3}{U}
+  type Instant
+  spell: all creature you control gain shroud
+}

@@ -1,0 +1,9 @@
+card "Dueling Rapier" {
+  oracle_id 7ceec1fd-4af5-40d4-9d17-424e21889d64
+  cost {R}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+0
+  equip {4}
+}

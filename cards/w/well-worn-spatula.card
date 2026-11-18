@@ -1,0 +1,8 @@
+card "Well-Worn Spatula" {
+  oracle_id 3cc333a1-c854-4b7c-8002-910e48222371
+  cost {1}
+  type Artifact — Equipment
+  triggered when this enters: you gains 2 life
+  static enchanted: +1/+1
+  equip {1}
+}

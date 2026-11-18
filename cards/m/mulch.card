@@ -1,0 +1,6 @@
+card "Mulch" {
+  oracle_id 12c03a03-36bf-487e-b8be-e55399525da5
+  cost {1}{G}
+  type Sorcery
+  spell: dig 4 reveal take all land card rest graveyard
+}

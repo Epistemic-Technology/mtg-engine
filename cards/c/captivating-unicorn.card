@@ -1,0 +1,7 @@
+card "Captivating Unicorn" {
+  oracle_id 22005b01-84b1-4d4b-9193-3c561bd422ce
+  cost {4}{W}
+  type Creature — Unicorn
+  pt 4/4
+  label "Constellation" triggered whenever enchantment you control enters: tap target creature an opponent controls
+}

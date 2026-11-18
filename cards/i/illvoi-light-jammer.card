@@ -1,0 +1,9 @@
+card "Illvoi Light Jammer" {
+  oracle_id cbc0b136-544d-45a6-be3e-cd21a573bf19
+  cost {1}{U}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains hexproof
+  static enchanted: +1/+2
+  equip {3}
+}

@@ -1,0 +1,41 @@
+# Peel from Reality: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "returns one of each player's creatures to their owners' hands" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Peel from Reality"
+  turn 1 A: cast "Peel from Reality" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Peel from Reality"
+}
+
+scenario "still bounces the opponent's creature if your own target is gone" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Peel from Reality"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Peel from Reality" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Peel from Reality"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "instant speed bounce removes an attacker from combat" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Peel from Reality"
+  start turn 2 B
+  turn 2 B: attack "Serra Angel"
+  turn 2 declare_attackers A: cast "Peel from Reality" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert hand B contains "Serra Angel"
+  assert hand A contains "Grizzly Bears"
+}

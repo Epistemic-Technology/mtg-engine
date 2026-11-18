@@ -1,0 +1,7 @@
+card "Futurist Sentinel" {
+  oracle_id 78d9faff-2ad9-4cf9-a239-27c50435d007
+  cost {3}{U}
+  type Artifact — Vehicle
+  pt 6/6
+  crew 3
+}

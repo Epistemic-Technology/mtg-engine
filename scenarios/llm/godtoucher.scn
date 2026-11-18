@@ -1,0 +1,42 @@
+# Godtoucher: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Godtoucher prevents burn to a pumped creature" {
+  battlefield A: "Godtoucher", "Grizzly Bears", "Forest", 2 "Plains", "Mountain"
+  hand A: "Giant Growth", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Godtoucher" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Godtoucher"
+  assert graveyard A contains "Lightning Bolt"
+  assert damage "Grizzly Bears" 0
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Godtoucher cannot target a creature with power less than 5" {
+  battlefield A: "Godtoucher", "Grizzly Bears", 2 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Godtoucher" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Godtoucher"
+}
+
+scenario "Godtoucher prevents combat damage to a big attacker" {
+  battlefield A: "Godtoucher", "Hill Giant", "Forest", 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Godtoucher" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 0
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B contains "Serra Angel"
+}

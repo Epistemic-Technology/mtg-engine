@@ -1,0 +1,30 @@
+# Blur Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Blur Sliver gives itself haste and attacks the turn it is cast" {
+  battlefield A: 3 "Mountain"
+  hand A: "Blur Sliver"
+  turn 1 A: cast "Blur Sliver"
+  turn 1 A: attack "Blur Sliver"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "non-Sliver creatures do not gain haste" {
+  battlefield A: "Blur Sliver", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  illegal turn 1 declare_attackers A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert has "Blur Sliver" haste
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "Blur Sliver does not grant haste to an opponent's creatures" {
+  battlefield A: "Blur Sliver"
+  battlefield B: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has A "Blur Sliver" haste
+  assert has not B "Grizzly Bears" haste
+}

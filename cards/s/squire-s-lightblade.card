@@ -1,0 +1,9 @@
+card "Squire's Lightblade" {
+  oracle_id 0ea2a099-7c81-4012-8148-4d377f2d64e1
+  cost {W}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains first strike
+  static enchanted: +1/+0
+  equip {3}
+}

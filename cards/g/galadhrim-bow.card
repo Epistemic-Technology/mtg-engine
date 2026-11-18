@@ -1,0 +1,9 @@
+card "Galadhrim Bow" {
+  oracle_id 92225b59-4f39-4175-ad0d-88e96f4d906a
+  cost {2}{G}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; untap that creature
+  static enchanted: +1/+2, has reach
+  equip {2}
+}

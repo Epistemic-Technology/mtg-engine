@@ -1,0 +1,7 @@
+card "Setessan Skirmisher" {
+  oracle_id 789d2858-f342-422c-9187-c6ace9485ed5
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/1
+  label "Constellation" triggered whenever enchantment you control enters: this gets +1/+1
+}

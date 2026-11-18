@@ -1,0 +1,7 @@
+card "Insatiable Souleater" {
+  oracle_id f81c0ddc-cd3c-42c0-a7d9-0057b69a5df1
+  cost {4}
+  type Artifact Creature — Phyrexian Beast
+  pt 5/1
+  activated {G/P}: this gains trample
+}

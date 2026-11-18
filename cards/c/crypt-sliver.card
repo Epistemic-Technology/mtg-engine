@@ -1,0 +1,7 @@
+card "Crypt Sliver" {
+  oracle_id b0bc2d60-20d0-4ca2-be86-65b297226ac7
+  cost {1}{B}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver: has ability { activated {T}: regenerate target Sliver }
+}

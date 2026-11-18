@@ -1,0 +1,6 @@
+card "Springleaf Drum" {
+  oracle_id bdeb440d-a714-40e8-9038-f651e6ae45fb
+  cost {1}
+  type Artifact
+  activated {T}, tap untapped creature you control: add any
+}

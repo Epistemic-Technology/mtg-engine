@@ -1,0 +1,8 @@
+card "Ripclaw Wrangler" {
+  oracle_id 6b2ffdb8-3681-4d64-ac03-8c860082e60e
+  cost {3}{B}
+  type Artifact — Vehicle
+  pt 4/3
+  triggered when this enters: each opponent discards 1 cards
+  crew 2
+}

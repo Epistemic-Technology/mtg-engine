@@ -1,0 +1,29 @@
+# Battered Golem: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Battered Golem stays tapped through its controller's untap step" {
+  battlefield A: "Battered Golem" tapped
+  start turn 2 B precombat_main
+  run_to turn 3 precombat_main
+  assert tapped "Battered Golem"
+}
+
+scenario "Battered Golem that attacked cannot attack again next turn" {
+  battlefield A: "Battered Golem"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Battered Golem"
+  illegal turn 3 A: attack "Battered Golem"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert tapped "Battered Golem"
+}
+
+scenario "an artifact entering lets Battered Golem untap" {
+  battlefield A: "Battered Golem" tapped, 3 "Plains"
+  hand A: "Battered Golem"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Battered Golem"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Battered Golem"
+  assert untapped oldest A "Battered Golem"
+}

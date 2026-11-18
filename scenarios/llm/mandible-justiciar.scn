@@ -1,0 +1,38 @@
+# Mandible Justiciar: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another artifact entering pumps the justiciar until end of turn" {
+  battlefield A: "Mandible Justiciar", 2 "Plains"
+  hand A: "Mandible Justiciar"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mandible Justiciar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mandible Justiciar"
+  assert power oldest A "Mandible Justiciar" 3
+  assert toughness oldest A "Mandible Justiciar" 2
+  assert power newest A "Mandible Justiciar" 2
+  assert toughness newest A "Mandible Justiciar" 1
+  run_to turn 2 precombat_main
+  assert power oldest A "Mandible Justiciar" 2
+  assert toughness oldest A "Mandible Justiciar" 1
+}
+
+scenario "a nonartifact creature entering does not pump" {
+  battlefield A: "Mandible Justiciar", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Mandible Justiciar" 2
+  assert toughness "Mandible Justiciar" 1
+}
+
+scenario "lifelink gains life on combat damage" {
+  battlefield A: "Mandible Justiciar"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Mandible Justiciar"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 22
+}

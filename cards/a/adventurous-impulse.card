@@ -1,0 +1,6 @@
+card "Adventurous Impulse" {
+  oracle_id 5bf49f39-b3d5-4148-8dc2-b5b5011769d2
+  cost {G}
+  type Sorcery
+  spell: dig 3 take creature or land card may revealing rest bottom
+}

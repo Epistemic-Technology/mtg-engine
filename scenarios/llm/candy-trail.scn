@@ -1,0 +1,33 @@
+# Candy Trail: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Candy Trail enters and scries without drawing" {
+  hand A: "Candy Trail"
+  battlefield A: "Plains"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: cast "Candy Trail"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Candy Trail"
+  assert tapped "Plains"
+  assert hand A count 0
+  assert life A 20
+}
+
+scenario "Candy Trail sacrifice gains 3 life and draws a card" {
+  battlefield A: "Candy Trail", 2 "Plains"
+  turn 1 A: activate "Candy Trail"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 1
+  assert graveyard A contains "Candy Trail"
+  assert battlefield A lacks "Candy Trail"
+}
+
+scenario "Candy Trail cannot be activated without two mana" {
+  battlefield A: "Candy Trail", "Plains"
+  illegal turn 1 A: activate "Candy Trail"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Candy Trail"
+  assert life A 20
+  assert hand A count 0
+}

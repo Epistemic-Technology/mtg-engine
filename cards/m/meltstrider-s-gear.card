@@ -1,0 +1,8 @@
+card "Meltstrider's Gear" {
+  oracle_id 1d6742a3-592b-4e67-8cc6-56e2962ad7c7
+  cost {G}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +2/+1, has reach
+  equip {5}
+}

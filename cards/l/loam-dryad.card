@@ -1,0 +1,7 @@
+card "Loam Dryad" {
+  oracle_id 1420b7db-859b-4ad5-9844-10413cc70478
+  cost {G}
+  type Creature — Dryad Horror
+  pt 1/2
+  activated {T}, tap untapped creature you control: add any
+}

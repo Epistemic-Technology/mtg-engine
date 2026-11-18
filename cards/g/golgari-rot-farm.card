@@ -1,0 +1,7 @@
+card "Golgari Rot Farm" {
+  oracle_id 1b301478-b14f-4ef8-94e6-9647d582eabe
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {B}{G}
+}

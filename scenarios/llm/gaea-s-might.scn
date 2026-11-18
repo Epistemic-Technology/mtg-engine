@@ -1,0 +1,41 @@
+# Gaea's Might: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Gaea's Might counts three basic land types" {
+  battlefield A: "Forest", "Mountain", "Island", "Grizzly Bears"
+  hand A: "Gaea's Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gaea's Might" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert graveyard A contains "Gaea's Might"
+}
+
+scenario "Gaea's Might counts types, not lands" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Gaea's Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gaea's Might" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "Gaea's Might saves a creature from Lightning Bolt and wears off" {
+  battlefield A: "Forest", "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Gaea's Might"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: cast "Gaea's Might" targeting "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert power "Grizzly Bears" 5
+  assert graveyard B contains "Lightning Bolt"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

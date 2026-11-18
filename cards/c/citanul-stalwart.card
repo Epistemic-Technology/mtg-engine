@@ -1,0 +1,7 @@
+card "Citanul Stalwart" {
+  oracle_id ce291948-125d-493d-8770-8b3aac515f9b
+  cost {G}
+  type Creature — Elf Druid Soldier
+  pt 1/1
+  activated {T}, tap untapped artifact or creature you control: add any
+}

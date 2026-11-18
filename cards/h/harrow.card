@@ -1,0 +1,7 @@
+card "Harrow" {
+  oracle_id 705509e9-a034-4a5a-9c65-66f58748b8a2
+  cost {2}{G}
+  type Instant
+  additional cost sacrifice land
+  spell: search up to 2 basic land card to battlefield
+}

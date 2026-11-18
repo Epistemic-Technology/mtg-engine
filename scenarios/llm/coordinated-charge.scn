@@ -1,0 +1,42 @@
+# Coordinated Charge: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Coordinated Charge pumps only your creatures" {
+  battlefield A: "Grizzly Bears", "Serra Angel", 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Coordinated Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Charge"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 4
+  assert toughness A "Grizzly Bears" 3
+  assert power "Serra Angel" 6
+  assert toughness "Serra Angel" 5
+  assert power B "Grizzly Bears" 2
+  assert toughness B "Grizzly Bears" 2
+  assert graveyard A contains "Coordinated Charge"
+}
+
+scenario "Coordinated Charge saves a blocked attacker in combat" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Coordinated Charge"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Coordinated Charge"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Coordinated Charge wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  hand A: "Coordinated Charge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Coordinated Charge"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

@@ -1,0 +1,6 @@
+card "Anticipate" {
+  oracle_id a97da5a9-17fc-4367-81e1-17ff81601a63
+  cost {1}{U}
+  type Instant
+  spell: dig 3 take card rest bottom
+}

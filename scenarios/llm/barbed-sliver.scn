@@ -1,0 +1,36 @@
+# Barbed Sliver: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Barbed Sliver grants itself the firebreathing ability until end of turn" {
+  battlefield A: "Barbed Sliver", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Barbed Sliver"
+  run_to turn 1 postcombat_main
+  assert power "Barbed Sliver" 3
+  assert toughness "Barbed Sliver" 2
+  assert tapped oldest A "Mountain"
+  assert tapped newest A "Mountain"
+  run_to turn 2 precombat_main
+  assert power "Barbed Sliver" 2
+}
+
+scenario "non-Sliver creatures do not gain the ability" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "pumped Barbed Sliver trades with a blocking Hill Giant" {
+  battlefield A: "Barbed Sliver", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Barbed Sliver"
+  turn 1 B: block "Barbed Sliver" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Barbed Sliver"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Barbed Sliver"
+  assert life B 20
+}

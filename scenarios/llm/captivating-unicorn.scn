@@ -1,0 +1,45 @@
+# Captivating Unicorn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "a nonenchantment creature entering does not trigger constellation" {
+  battlefield A: "Captivating Unicorn", 2 "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+scenario "the unicorn entering itself does not tap anything" {
+  battlefield A: 5 "Plains"
+  hand A: "Captivating Unicorn"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Captivating Unicorn"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Captivating Unicorn"
+  assert untapped "Serra Angel"
+}
+
+scenario "a 4/4 body kills a blocking Hill Giant and survives" {
+  battlefield A: "Captivating Unicorn"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Captivating Unicorn"
+  turn 1 B: block "Captivating Unicorn" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Captivating Unicorn"
+  assert damage "Captivating Unicorn" 3
+  assert life B 20
+}
+
+scenario "unblocked unicorn deals 4" {
+  battlefield A: "Captivating Unicorn"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Captivating Unicorn"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

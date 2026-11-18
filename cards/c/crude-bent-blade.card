@@ -1,0 +1,8 @@
+card "Crude Bent Blade" {
+  oracle_id eec81460-899d-4b4c-b33c-ce2ca704df17
+  cost {2}{B}
+  type Artifact — Equipment
+  triggered when this enters: target opponent sacrifices 1 creature
+  static enchanted: +2/+1
+  equip {2}
+}

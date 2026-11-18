@@ -1,0 +1,9 @@
+card "Adventurer's Airship" {
+  oracle_id e3016295-00f7-4daf-91b0-57653733b103
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/2
+  keywords flying
+  triggered whenever this attacks: draw 1 cards then discard 1 cards
+  crew 2
+}

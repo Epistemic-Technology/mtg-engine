@@ -1,0 +1,9 @@
+card "Dependable Quinjet" {
+  oracle_id 60105eb8-bdca-44b9-a970-68a7615526e8
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/3
+  keywords flying
+  mana any
+  crew 4
+}

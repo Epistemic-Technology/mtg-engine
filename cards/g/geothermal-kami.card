@@ -1,0 +1,7 @@
+card "Geothermal Kami" {
+  oracle_id fbf8fdf5-0d7d-41a3-a6b9-27bb7a644c20
+  cost {3}{G}
+  type Creature — Spirit
+  pt 4/3
+  triggered when this enters: you may return 1 enchantment you control chosen; if you do, you gains 3 life
+}

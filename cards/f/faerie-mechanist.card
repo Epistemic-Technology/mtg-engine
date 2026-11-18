@@ -1,0 +1,8 @@
+card "Faerie Mechanist" {
+  oracle_id fcbe14c4-1b0d-486f-bb9c-0fed452668cb
+  cost {3}{U}
+  type Artifact Creature — Faerie Artificer
+  pt 2/2
+  keywords flying
+  triggered when this enters: dig 3 take artifact card may revealing rest bottom
+}

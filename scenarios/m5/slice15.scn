@@ -1,0 +1,56 @@
+# M5 slice 15: digging through the top of the library, crew, and costs
+# and effects that return or tap a permanent you choose.
+
+scenario "dig: Commune with Nature finds a creature, the rest go to the bottom" {
+  battlefield A: "Forest"
+  hand A: "Commune with Nature"
+  library A: "Island", "Island", "Grizzly Bears", "Island", "Island"
+  turn 1 A: cast "Commune with Nature"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert library A count 4
+}
+
+scenario "dig: Forbidden Alchemy keeps one and mills the rest" {
+  battlefield A: 3 "Island"
+  hand A: "Forbidden Alchemy"
+  library A: 4 "Island", "Forest"
+  turn 1 A: cast "Forbidden Alchemy"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert graveyard A count 4
+  assert library A count 1
+}
+
+scenario "crew: a Vehicle crewed by a creature attacks" {
+  battlefield A: "Adventurer's Airship", "Grizzly Bears"
+  library A: 3 "Island"
+  turn 1 A: activate "Adventurer's Airship"
+  turn 1 A: attack "Adventurer's Airship"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Grizzly Bears"
+}
+
+scenario "crew: not enough power, no crew" {
+  battlefield A: "Adventurer's Airship", "Ornithopter"
+  illegal turn 1 A: activate "Adventurer's Airship"
+  run_to turn 1 end
+}
+
+scenario "karoo: Azorius Chancery returns a land" {
+  battlefield A: "Plains"
+  hand A: "Azorius Chancery"
+  turn 1 A: play "Azorius Chancery"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+}
+
+scenario "a return cost: Floodbringer bounces a land to tap one" {
+  battlefield A: "Floodbringer", 3 "Island"
+  battlefield B: "Forest"
+  turn 1 A: activate "Floodbringer" sacrificing "Island" targeting "Forest"
+  run_to turn 1 end
+  assert tapped "Forest"
+  assert hand A contains "Island"
+}

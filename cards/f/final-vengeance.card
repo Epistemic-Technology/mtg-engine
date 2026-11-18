@@ -1,0 +1,7 @@
+card "Final Vengeance" {
+  oracle_id cdba7f43-df9e-4bfb-9480-721c787ad051
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature or enchantment
+  spell: exile target creature
+}

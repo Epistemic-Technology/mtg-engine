@@ -1,0 +1,7 @@
+card "Deprive" {
+  oracle_id 1065eceb-9150-4ea4-bd6d-acaabda14e00
+  cost {U}{U}
+  type Instant
+  additional cost return land you control
+  spell: counter target spell
+}

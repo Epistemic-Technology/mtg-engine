@@ -1,0 +1,7 @@
+card "Magma Rift" {
+  oracle_id 0996d48a-f92a-4aaf-b8a3-f7ec8ff986ca
+  cost {2}{R}
+  type Sorcery
+  additional cost sacrifice land
+  spell: deal 5 damage to target creature
+}

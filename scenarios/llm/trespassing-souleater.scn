@@ -1,0 +1,55 @@
+# Trespassing Souleater: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "paying blue makes it unblockable" {
+  battlefield A: "Trespassing Souleater", "Island"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trespassing Souleater"
+  turn 1 A: attack "Trespassing Souleater"
+  illegal turn 1 B: block "Trespassing Souleater" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Island"
+  assert life A 20
+  assert life B 18
+  assert battlefield A contains "Trespassing Souleater"
+}
+
+scenario "paying 2 life when no blue mana is available" {
+  battlefield A: "Trespassing Souleater"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trespassing Souleater"
+  turn 1 A: attack "Trespassing Souleater"
+  illegal turn 1 B: block "Trespassing Souleater" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 18
+}
+
+scenario "without activation it can be blocked" {
+  battlefield A: "Trespassing Souleater"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Trespassing Souleater"
+  turn 1 B: block "Trespassing Souleater" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+  assert graveyard A contains "Trespassing Souleater"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "unblockability lasts only this turn" {
+  battlefield A: "Trespassing Souleater"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Trespassing Souleater"
+  run_to turn 3 precombat_main
+  turn 3 A: attack "Trespassing Souleater"
+  turn 3 B: block "Trespassing Souleater" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life A 18
+  assert life B 20
+  assert graveyard A contains "Trespassing Souleater"
+}

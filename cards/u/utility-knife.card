@@ -1,0 +1,8 @@
+card "Utility Knife" {
+  oracle_id b546c78c-5180-46c3-8594-b9d5ad9c3988
+  cost {1}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: +1/+1
+  equip {3}
+}

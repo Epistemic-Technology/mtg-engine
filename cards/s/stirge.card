@@ -1,0 +1,8 @@
+card "Stirge" {
+  oracle_id aed2d938-125d-49b4-93ac-202b7a37fcc2
+  cost {B}
+  type Creature — Insect Bat
+  pt 1/1
+  keywords flying, can't block
+  label "Blood Drain" activated {1}{B}, pay 1 life, sacrifice this: draw 1 card
+}

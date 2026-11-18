@@ -1,0 +1,7 @@
+card "Goblin Grenade" {
+  oracle_id 20aecb7b-7e37-4efe-ac27-f9f9042203f4
+  cost {R}
+  type Sorcery
+  additional cost sacrifice Goblin
+  spell: deal 5 damage to any target
+}

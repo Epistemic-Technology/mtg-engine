@@ -1,0 +1,6 @@
+card "Sleight of Hand" {
+  oracle_id 05a039ad-1689-4d13-b393-6c1219583b5d
+  cost {U}
+  type Sorcery
+  spell: dig 2 take card rest bottom
+}

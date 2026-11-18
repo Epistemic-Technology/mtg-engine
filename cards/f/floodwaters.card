@@ -1,0 +1,7 @@
+card "Floodwaters" {
+  oracle_id e89cce0e-4fd7-40fa-8a55-b07d72826956
+  cost {4}{U}{U}
+  type Sorcery
+  spell: return up to 1 target creature and up to 1 target creature to hand
+  cycling {2}
+}

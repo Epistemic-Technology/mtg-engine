@@ -1,0 +1,7 @@
+card "Azorius Chancery" {
+  oracle_id 189fc8f4-17ac-4f1d-82c8-8401445bdaf4
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {W}{U}
+}

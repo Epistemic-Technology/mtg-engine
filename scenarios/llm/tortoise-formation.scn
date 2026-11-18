@@ -1,0 +1,51 @@
+# Tortoise Formation: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "creatures you control gain shroud, opponent's do not" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Tortoise Formation"
+  turn 1 upkeep A: cast "Tortoise Formation"
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" shroud
+  assert has not "Hill Giant" shroud
+  assert graveyard A contains "Tortoise Formation"
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" shroud
+}
+
+scenario "opponent cannot target shrouded creature" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: 3 "Swamp"
+  hand A: "Tortoise Formation"
+  hand B: "Murder"
+  turn 1 upkeep A: cast "Tortoise Formation"
+  illegal turn 1 precombat_main B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B contains "Murder"
+}
+
+scenario "shroud also stops your own spells" {
+  battlefield A: "Grizzly Bears", 4 "Island", "Forest"
+  hand A: "Tortoise Formation", "Giant Growth"
+  turn 1 upkeep A: cast "Tortoise Formation"
+  illegal turn 1 precombat_main A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Giant Growth"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "cast in response, the bolt loses its target" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Tortoise Formation"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 precombat_main A: cast "Tortoise Formation" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Lightning Bolt"
+}

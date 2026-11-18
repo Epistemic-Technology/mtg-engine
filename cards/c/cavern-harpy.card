@@ -1,0 +1,9 @@
+card "Cavern Harpy" {
+  oracle_id 81c40bd8-b989-41e8-9527-eae8fb87311d
+  cost {U}{B}
+  type Creature — Harpy Beast
+  pt 2/1
+  keywords flying
+  triggered when this enters: return 1 blue or black creature you control chosen
+  activated pay 1 life: return this to hand
+}

@@ -1,0 +1,6 @@
+card "Drag Down" {
+  oracle_id 30e397e9-a705-4484-8387-04fb84010b2d
+  cost {2}{B}
+  type Instant
+  label "Domain" spell: target creature gets -1/-1 count each domain
+}

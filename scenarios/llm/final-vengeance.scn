@@ -1,0 +1,39 @@
+# Final Vengeance: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice a creature to exile target creature" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Final Vengeance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Vengeance" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Final Vengeance"
+}
+
+scenario "cannot cast without a creature or enchantment to sacrifice" {
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Final Vengeance"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Final Vengeance" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Final Vengeance"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "exiles a large flyer by sacrificing a small creature" {
+  battlefield A: "Swamp", "Wind Drake"
+  battlefield B: "Serra Angel"
+  hand A: "Final Vengeance"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Final Vengeance" sacrificing "Wind Drake" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Serra Angel"
+  assert battlefield A lacks "Wind Drake"
+  assert graveyard A contains "Wind Drake"
+}

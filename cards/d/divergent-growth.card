@@ -1,0 +1,6 @@
+card "Divergent Growth" {
+  oracle_id 0123b162-0413-4022-acc0-e5bd061d3fb4
+  cost {G}
+  type Instant
+  spell: until end of turn, each land you control gains ability { mana any }
+}

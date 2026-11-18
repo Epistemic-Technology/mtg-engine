@@ -1,0 +1,8 @@
+card "Mandible Justiciar" {
+  oracle_id ee8f3dbd-6e86-46c2-9393-7da6c3c4b46d
+  cost {1}{W}
+  type Artifact Creature — Phyrexian Cleric
+  pt 2/1
+  keywords lifelink
+  triggered whenever other artifact you control enters: this gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Rook Turret" {
+  oracle_id c5a6d752-9975-4059-8552-55c6ffb3ab68
+  cost {3}{U}
+  type Artifact Creature — Construct
+  pt 3/3
+  keywords flying
+  triggered whenever other artifact you control enters: you may draw 1 card; if you do, discard 1 card
+}

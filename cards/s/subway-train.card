@@ -1,0 +1,8 @@
+card "Subway Train" {
+  oracle_id 6d4472ad-3fbf-4a5d-94de-dfee04fda9c3
+  cost {2}
+  type Artifact — Vehicle
+  pt 3/1
+  triggered when this enters: you may pay {G}; if you do, search basic land card reveal to hand
+  crew 2
+}

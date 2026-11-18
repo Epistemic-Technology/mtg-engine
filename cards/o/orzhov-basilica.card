@@ -1,0 +1,7 @@
+card "Orzhov Basilica" {
+  oracle_id aa00ae0b-7c0f-427e-8102-ce0e2a6af5df
+  type Land
+  enters tapped
+  triggered when this enters: return 1 land you control chosen
+  activated {T}: add {W}{B}
+}

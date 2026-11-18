@@ -1,0 +1,8 @@
+card "Tower Geist" {
+  oracle_id 10e19453-84fb-4845-8db0-c9da52847e09
+  cost {3}{U}
+  type Creature — Spirit
+  pt 2/2
+  keywords flying
+  triggered when this enters: dig 2 take card rest graveyard
+}

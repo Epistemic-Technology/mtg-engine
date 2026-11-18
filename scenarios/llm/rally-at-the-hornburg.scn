@@ -1,0 +1,37 @@
+# Rally at the Hornburg: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "tokens enter with haste and can attack immediately" {
+  battlefield A: 2 "Mountain"
+  hand A: "Rally at the Hornburg"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rally at the Hornburg"
+  turn 1 A: attack "Human Soldier", "Human Soldier"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Human Soldier"
+  assert graveyard A contains "Rally at the Hornburg"
+  assert life B 18
+}
+
+scenario "only Humans gain haste" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  hand A: "Rally at the Hornburg"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rally at the Hornburg"
+  run_to turn 1 begin_combat
+  assert battlefield A contains 2 "Human Soldier"
+  assert has newest A "Human Soldier" haste
+  assert has oldest A "Human Soldier" haste
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "haste wears off at end of turn" {
+  battlefield A: 2 "Mountain"
+  hand A: "Rally at the Hornburg"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rally at the Hornburg"
+  run_to turn 2 precombat_main
+  assert battlefield A contains 2 "Human Soldier"
+  assert has not newest A "Human Soldier" haste
+  assert has not oldest A "Human Soldier" haste
+}

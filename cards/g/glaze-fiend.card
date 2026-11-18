@@ -1,0 +1,8 @@
+card "Glaze Fiend" {
+  oracle_id 6860cde7-ee8e-4a4d-baed-9dc4a1220e36
+  cost {1}{B}
+  type Artifact Creature — Illusion
+  pt 0/1
+  keywords flying
+  triggered whenever other artifact you control enters: this gets +2/+2
+}

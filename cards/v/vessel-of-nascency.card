@@ -1,0 +1,6 @@
+card "Vessel of Nascency" {
+  oracle_id e33dec01-c114-436a-befc-dab4e806c10b
+  cost {G}
+  type Enchantment
+  activated {1}{G}, sacrifice this: dig 4 reveal take artifact, creature, enchantment, land, or planeswalker card may rest graveyard
+}

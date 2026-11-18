@@ -1,0 +1,7 @@
+card "Testament Bearer" {
+  oracle_id ce0f6cd6-35d5-4f52-b81e-6d15e3bf916e
+  cost {3}{B}
+  type Creature — Phyrexian Warrior
+  pt 4/1
+  triggered when this dies: dig 3 take card rest graveyard
+}

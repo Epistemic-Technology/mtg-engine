@@ -1,0 +1,40 @@
+# Festive Funeral: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "three cards in graveyard kill a 3/3" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Festive Funeral"
+  graveyard A: 2 "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Festive Funeral" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Festive Funeral"
+}
+
+scenario "two cards in graveyard shrink a 3/3 to 1/1" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Festive Funeral"
+  graveyard A: "Forest", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Festive Funeral" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "festive funeral does not count itself" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Festive Funeral"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Festive Funeral" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert graveyard A contains "Festive Funeral"
+}

@@ -1,0 +1,7 @@
+card "Tilonalli's Knight" {
+  oracle_id ae5fe3bd-b6cf-47be-bfb0-05204387bb83
+  cost {1}{R}
+  type Creature — Human Knight
+  pt 2/2
+  triggered whenever this attacks if you control Dinosaur: this gets +1/+1 until end of turn
+}

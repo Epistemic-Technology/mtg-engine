@@ -1,0 +1,42 @@
+# Banishing Knack: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "granted ability bounces a nonland permanent" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Banishing Knack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banishing Knack" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Grizzly Bears" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert graveyard A contains "Banishing Knack"
+}
+
+scenario "the creature's controller activates the granted ability" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Banishing Knack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banishing Knack" targeting B "Hill Giant"
+  turn 1 B: activate "Hill Giant" targeting A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "granted ability ends at end of turn" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Banishing Knack"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Banishing Knack" targeting "Grizzly Bears"
+  illegal turn 2 A: activate "Grizzly Bears" targeting B "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert untapped "Grizzly Bears"
+}

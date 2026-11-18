@@ -1,0 +1,38 @@
+# Pegasus Courser: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger gives another attacker flying, ground blocker can't block it" {
+  battlefield A: "Pegasus Courser", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Pegasus Courser", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Pegasus Courser" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert life B 17
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "granted flying ends at end of turn" {
+  battlefield A: "Pegasus Courser", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Pegasus Courser", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Pegasus Courser" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" flying
+  assert life B 17
+}
+
+scenario "courser itself flies over a ground blocker" {
+  battlefield A: "Pegasus Courser"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Pegasus Courser"
+  illegal turn 1 B: block "Pegasus Courser" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Pegasus Courser" flying
+  assert life B 19
+}

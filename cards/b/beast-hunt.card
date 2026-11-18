@@ -1,0 +1,6 @@
+card "Beast Hunt" {
+  oracle_id 069c8fa1-fa04-4620-9356-a618158dad3e
+  cost {3}{G}
+  type Sorcery
+  spell: dig 3 reveal take all creature card rest graveyard
+}

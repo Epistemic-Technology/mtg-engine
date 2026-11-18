@@ -1,0 +1,7 @@
+card "Coordinated Charge" {
+  oracle_id 688a0b7d-bf00-45ab-ab3f-9d19f52f019a
+  cost {4}{W}
+  type Instant
+  spell: each creature you control gets +2/+1
+  cycling {2}
+}

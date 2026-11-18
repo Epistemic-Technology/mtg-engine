@@ -1,0 +1,8 @@
+card "Mechanical Glider" {
+  oracle_id d53d1805-c4ec-4b42-a226-3cd78cd2be84
+  cost {1}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static enchanted: has flying
+  equip {2}
+}

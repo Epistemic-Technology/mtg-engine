@@ -1,0 +1,9 @@
+card "Barbed Bloodletter" {
+  oracle_id 15febce7-8320-4591-9535-ef11c8adecc2
+  cost {1}{B}
+  type Artifact — Equipment
+  keywords flash
+  triggered when this enters: attach to target creature you control; that creature gains wither
+  static enchanted: +1/+2
+  equip {2}
+}

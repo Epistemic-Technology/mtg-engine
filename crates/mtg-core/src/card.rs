@@ -1543,6 +1543,13 @@ pub enum Effect {
         filter: ObjFilter,
         count: Num,
     },
+    /// "Return a land you control to its owner's hand": the recipient
+    /// player chooses `count` of their permanents matching the filter.
+    ReturnChosen {
+        who: Recipient,
+        filter: ObjFilter,
+        count: Num,
+    },
     /// "Target creature loses flying until end of turn".
     Strip {
         keywords: KeywordSet,
@@ -1727,6 +1734,24 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// "Look at the top four cards of your library. You may reveal a
+    /// creature card from among them and put it into your hand. Put the
+    /// rest on the bottom of your library in any order." `filter` None is
+    /// any card ("Put one of them into your hand"); `all` takes every
+    /// match ("Put all creature cards revealed this way into your hand");
+    /// the rest go to the bottom or, with `rest_graveyard`, the graveyard.
+    Dig {
+        count: Num,
+        filter: Option<ObjFilter>,
+        optional: bool,
+        all: bool,
+        rest_graveyard: bool,
+    },
+    /// "Look at the top three cards of your library, then put them back in
+    /// any order" (the engine keeps the order).
+    LookAtTop {
+        count: Num,
+    },
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
@@ -1777,10 +1802,12 @@ impl Effect {
                 | Effect::AddManaOneOf(_)
                 | Effect::AddManaTimes { .. }
                 | Effect::SacrificeChosen { .. }
+                | Effect::ReturnChosen { .. }
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }
                 | Effect::PutFromHand { .. }
+                | Effect::Dig { .. }
         )
     }
 }
@@ -2064,6 +2091,15 @@ pub struct TriggeredAbility {
     pub effects: Vec<Effect>,
 }
 
+/// What a cost does to the permanent chosen for it.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+pub enum ChosenCost {
+    #[default]
+    Sacrifice,
+    Return,
+    Tap,
+}
+
 /// What an activated ability's cost sacrifices (CR 602.2b, 701.21).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum SacCost {
@@ -2083,6 +2119,14 @@ pub struct Cost {
     /// "Exile this card from your graveyard" (an ability activated from
     /// the graveyard).
     pub exile_self: bool,
+    /// Crew N (CR 702.122): tap any number of other untapped creatures you
+    /// control with total power N or more.
+    pub crew: u32,
+    /// What a `SacCost::Filter` cost does to the chosen permanent:
+    /// sacrifice it, return it to its owner's hand ("Return a land you
+    /// control to its owner's hand"), or tap it ("Tap an untapped creature
+    /// you control").
+    pub chosen: ChosenCost,
     /// "Pay N life" (CR 119.4: payable only with at least that much life).
     pub life: u32,
     /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
@@ -2106,6 +2150,8 @@ impl Cost {
             mana: ManaCost::parse(mana).unwrap_or_else(|e| panic!("{mana}: {e}")),
             discard_self: false,
             exile_self: false,
+            crew: 0,
+            chosen: ChosenCost::Sacrifice,
             life: 0,
             discard: 0,
             discard_filter: None,

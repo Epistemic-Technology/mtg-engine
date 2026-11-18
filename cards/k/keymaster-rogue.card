@@ -1,0 +1,8 @@
+card "Keymaster Rogue" {
+  oracle_id b8c0c102-f0ef-4ab6-9b1a-ee82ee159c54
+  cost {3}{U}
+  type Creature — Human Rogue
+  pt 3/2
+  keywords can't be blocked
+  triggered when this enters: return 1 creature you control chosen
+}

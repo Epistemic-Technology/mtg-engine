@@ -1,0 +1,8 @@
+card "Mothdust Changeling" {
+  oracle_id 52237e6b-19f6-405c-a668-545c4ccb1b6d
+  cost {U}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  activated tap untapped creature you control: this gains flying
+}

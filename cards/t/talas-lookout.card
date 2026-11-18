@@ -1,0 +1,8 @@
+card "Talas Lookout" {
+  oracle_id 68bde9ff-3206-4a9c-9233-4b2387dcd306
+  cost {2}{U}{U}
+  type Creature — Human Pirate
+  pt 3/2
+  keywords flying
+  triggered when this dies: dig 2 take card rest graveyard
+}

@@ -1,0 +1,7 @@
+card "Kitsune Loreweaver" {
+  oracle_id d989d8aa-2b2a-4fd2-a8c9-1d182909987c
+  cost {1}{W}
+  type Creature — Fox Cleric
+  pt 2/1
+  activated {1}{W}: this gets +0/+1 count where hand
+}

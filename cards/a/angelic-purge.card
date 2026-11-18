@@ -1,0 +1,7 @@
+card "Angelic Purge" {
+  oracle_id b262a057-9ace-48b4-b418-1bb751ccb300
+  cost {2}{W}
+  type Sorcery
+  additional cost sacrifice permanent
+  spell: exile target artifact, creature, or enchantment
+}

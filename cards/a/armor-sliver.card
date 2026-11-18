@@ -1,0 +1,7 @@
+card "Armor Sliver" {
+  oracle_id c284b1fd-f238-478a-bcf1-c4b8f32f11f3
+  cost {2}{W}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver creature: has ability { activated {2}: this gets +0/+1 }
+}

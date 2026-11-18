@@ -1,0 +1,8 @@
+card "Neurok Stealthsuit" {
+  oracle_id cee06ea6-8bad-4858-b78e-04879a825bbe
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has shroud
+  activated {U}{U}: attach to target creature you control
+  equip {1}
+}

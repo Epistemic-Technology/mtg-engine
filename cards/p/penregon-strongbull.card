@@ -1,0 +1,7 @@
+card "Penregon Strongbull" {
+  oracle_id a4e34111-aefd-4c61-a6e3-ac8895799c3f
+  cost {2}{R}
+  type Creature — Minotaur
+  pt 2/3
+  activated {1}, sacrifice artifact: this gets +1/+1 until end of turn and deal 1 damage to each opponent
+}

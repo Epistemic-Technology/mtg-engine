@@ -1,0 +1,8 @@
+card "Rosethorn Halberd" {
+  oracle_id 94848b02-757c-456c-a12c-b0be193221d0
+  cost {G}
+  type Artifact — Equipment
+  triggered when this enters: attach to target non-Human creature you control
+  static enchanted: +2/+1
+  equip {5}
+}

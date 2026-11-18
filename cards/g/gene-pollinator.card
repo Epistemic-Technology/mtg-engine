@@ -1,0 +1,7 @@
+card "Gene Pollinator" {
+  oracle_id 0a356d04-2e86-435b-9766-27b93b468a61
+  cost {G}
+  type Artifact Creature — Robot Insect
+  pt 1/2
+  activated {T}, tap untapped permanent you control: add any
+}
