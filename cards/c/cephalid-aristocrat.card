@@ -1,0 +1,7 @@
+card "Cephalid Aristocrat" {
+  oracle_id 7a0514d0-db8f-402d-abf1-cddda87405cf
+  cost {4}{U}
+  type Creature — Octopus Noble
+  pt 3/3
+  triggered whenever this becomes targeted: mill 2 cards
+}

@@ -1,0 +1,7 @@
+card "Akki Underling" {
+  oracle_id 91f95d83-3637-4cf8-af6c-56bc4e4b2591
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  static as long as hand 7 or more, this: +2/+1, has first strike
+}

@@ -1,0 +1,7 @@
+card "Blade-Tribe Berserkers" {
+  oracle_id 655847c6-7c5e-4659-870e-825d0cf5e90c
+  cost {3}{R}
+  type Creature — Human Berserker
+  pt 3/3
+  label "Metalcraft" triggered when this enters if you control 3 artifact: this gets +3/+3 and gains haste
+}

@@ -1,0 +1,8 @@
+card "Kozilek's Sentinel" {
+  oracle_id 86ae05d6-f1ba-456d-bbc0-f35cd0d0537d
+  cost {1}{R}
+  type Creature — Eldrazi Drone
+  pt 1/4
+  keywords devoid
+  triggered whenever you cast colorless spell: this gets +1/+0
+}

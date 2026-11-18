@@ -1,0 +1,9 @@
+card "Applied Biomancy" {
+  oracle_id 93ee2ea1-4f9b-47dd-b7d4-b0ed5a26d719
+  cost {G}{U}
+  type Instant
+  choose one or both {
+    mode: target creature gets +1/+1
+    mode: return target creature to hand
+  }
+}

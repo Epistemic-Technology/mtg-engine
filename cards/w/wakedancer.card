@@ -1,0 +1,7 @@
+card "Wakedancer" {
+  oracle_id e850743e-e4c4-4a09-b797-d5f688b51451
+  cost {2}{B}
+  type Creature — Human Shaman
+  pt 2/2
+  label "Morbid" triggered when this enters if creature died this turn: create 1 "2/2 black Zombie creature"
+}

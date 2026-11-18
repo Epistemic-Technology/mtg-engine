@@ -377,7 +377,8 @@ impl Runner {
             | DecisionKind::ChooseColor
             | DecisionKind::Edict
             | DecisionKind::SearchLibrary
-            | DecisionKind::PayOrCounter { .. } => Ok(0),
+            | DecisionKind::PayOrCounter { .. }
+            | DecisionKind::PutFromHand => Ok(0),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
                 // Optional targets ("up to two") past the scripted ones are

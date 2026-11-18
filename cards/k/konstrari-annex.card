@@ -1,0 +1,6 @@
+card "Konstrari Annex" {
+  oracle_id 31ea4f3f-392a-4319-a95b-eb28790a80e6
+  type Land
+  enters tapped unless you control planeswalker
+  mana {R} or {G}
+}

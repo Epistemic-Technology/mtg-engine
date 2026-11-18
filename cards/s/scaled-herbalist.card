@@ -1,0 +1,7 @@
+card "Scaled Herbalist" {
+  oracle_id 6fd9ece7-366f-45c7-a8ea-edb4ca637a06
+  cost {1}{G}
+  type Creature — Lizard Druid
+  pt 1/3
+  activated {T}: you may put land card from hand onto battlefield
+}

@@ -1,0 +1,7 @@
+card "Thresher Lizard" {
+  oracle_id 46a69558-fad1-4a04-9bb6-8f971bbbb038
+  cost {2}{R}
+  type Creature — Lizard
+  pt 3/2
+  static this: +1/+2 as long as hand 1 or less
+}

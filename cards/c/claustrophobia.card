@@ -1,0 +1,8 @@
+card "Claustrophobia" {
+  oracle_id 62d8c8c8-bc24-42f2-9e2e-9efd08e47bb1
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,7 @@
+card "Ravenous Daggertooth" {
+  oracle_id f5ef25fb-545e-41b7-8fed-d3cfff3d8668
+  cost {2}{G}
+  type Creature — Dinosaur
+  pt 3/2
+  label "Enrage" triggered whenever this is dealt damage: you gains 2 life
+}

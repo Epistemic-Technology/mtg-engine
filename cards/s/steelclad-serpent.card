@@ -1,0 +1,7 @@
+card "Steelclad Serpent" {
+  oracle_id 6410e2bb-5ae6-4190-8b4a-6b2d5c9dff8d
+  cost {5}{U}
+  type Artifact Creature — Serpent
+  pt 4/5
+  can't attack unless you control other artifact
+}

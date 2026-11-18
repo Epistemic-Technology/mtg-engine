@@ -1,0 +1,7 @@
+card "Drowner Initiate" {
+  oracle_id 19a4010f-f5bf-48be-a1d7-eacc3bbeeb59
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  triggered whenever a player casts blue spell: you may pay {1}; if you do, target player mills 2 cards
+}

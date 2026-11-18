@@ -1,0 +1,10 @@
+card "Fateshaper Aspirant" {
+  oracle_id bb3996b6-b68d-4ea1-b3dd-1600f8da2f1c
+  cost {4}{W}
+  type Creature — Rhino Cleric
+  pt 3/4
+  triggered when this enters: choose one {
+    mode: return target legendary card from your graveyard to hand
+    mode: put 1 +1/+1 counters on target creature; target 1 gains vigilance, indestructible
+  }
+}

@@ -1,0 +1,7 @@
+card "Stampeding Horncrest" {
+  oracle_id fa6413f9-aa32-4fdc-a539-327a4ea906fe
+  cost {4}{R}
+  type Creature — Dinosaur
+  pt 4/4
+  static this: has haste as long as you control other Dinosaur
+}

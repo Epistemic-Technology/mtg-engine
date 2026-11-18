@@ -1,0 +1,8 @@
+card "Shackles" {
+  oracle_id 05861ff2-ec85-43d1-b641-c5d2da819c03
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  activated {W}: return this to hand
+}

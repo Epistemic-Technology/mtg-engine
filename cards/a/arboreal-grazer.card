@@ -1,0 +1,8 @@
+card "Arboreal Grazer" {
+  oracle_id d18a0815-59d3-4667-b52b-9acda741215e
+  cost {G}
+  type Creature — Sloth Beast
+  pt 0/3
+  keywords reach
+  triggered when this enters: you may put land card from hand onto battlefield tapped
+}

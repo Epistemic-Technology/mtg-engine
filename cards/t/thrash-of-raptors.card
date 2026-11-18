@@ -1,0 +1,7 @@
+card "Thrash of Raptors" {
+  oracle_id 5f554df8-c70f-4212-aec7-597fe8a88553
+  cost {3}{R}
+  type Creature — Dinosaur
+  pt 3/3
+  static as long as you control other Dinosaur, this: +2/+0, has trample
+}

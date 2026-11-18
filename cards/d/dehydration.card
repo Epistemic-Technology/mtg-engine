@@ -1,0 +1,7 @@
+card "Dehydration" {
+  oracle_id db27c686-e202-4b60-9a10-0a0fef25576c
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+}

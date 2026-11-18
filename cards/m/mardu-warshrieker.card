@@ -1,0 +1,7 @@
+card "Mardu Warshrieker" {
+  oracle_id fe9e9e2e-f304-4da3-a257-6886b0b1896b
+  cost {3}{R}
+  type Creature — Orc Shaman
+  pt 3/3
+  label "Raid" triggered when this enters if attacked this turn: add {R}{W}{B}
+}

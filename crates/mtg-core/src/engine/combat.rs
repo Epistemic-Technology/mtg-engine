@@ -21,6 +21,32 @@ impl GameState {
                 && (o.controlled_since_turn_start || c.has(Keyword::Haste))
                 && !c.has(Keyword::Defender)
                 && !c.has(Keyword::CantAttack)
+                && self.unless_rules_allow(*id, &c, false)
+        })
+    }
+
+    /// "Can't attack unless ..." / "can't block unless ..." (CR 508.1c,
+    /// 509.1c): whether `id`'s conditions let it attack (or block).
+    fn unless_rules_allow(
+        &self,
+        id: ObjId,
+        c: &crate::state::Characteristics,
+        block: bool,
+    ) -> bool {
+        let o = &self.objects[id];
+        if !self.flags_of(o).has_attack_rule() {
+            return true;
+        }
+        c.abilities.iter().all(|a| match self.pool.ability(*a) {
+            AbilityDef::AttackUnless {
+                condition,
+                attack: at,
+                block: bl,
+            } => {
+                let applies = if block { *bl } else { *at };
+                !applies || self.condition_now(self.pool.condition(*condition), o.controller, id)
+            }
+            _ => true,
         })
     }
 
@@ -28,9 +54,9 @@ impl GameState {
     pub(super) fn eligible_blockers(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {
         self.creatures_of(p).filter(move |id| {
             !self.objects[*id].tapped
-                && !self
-                    .characteristics(*id)
-                    .is_some_and(|c| c.has(Keyword::CantBlock))
+                && self.characteristics(*id).is_some_and(|c| {
+                    !c.has(Keyword::CantBlock) && self.unless_rules_allow(*id, &c, true)
+                })
         })
     }
 
@@ -278,6 +304,9 @@ impl GameState {
     }
 
     pub(super) fn finish_attackers_with(&mut self, set: Vec<(ObjId, Target)>) {
+        if !set.is_empty() {
+            self.attacked_this_turn |= 1 << self.active_player.index().min(7);
+        }
         let mut attackers = Vec::new();
         for (id, target) in set {
             // CR 508.1f: attacking taps the creature unless it has vigilance.

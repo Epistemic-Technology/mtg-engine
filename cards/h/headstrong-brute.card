@@ -1,0 +1,8 @@
+card "Headstrong Brute" {
+  oracle_id 675ed28e-4328-4638-aaad-3f47e5c7895f
+  cost {2}{R}
+  type Creature — Orc Pirate
+  pt 3/3
+  keywords can't block
+  static this: has menace as long as you control other Pirate
+}

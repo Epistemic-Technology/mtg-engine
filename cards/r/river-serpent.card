@@ -1,0 +1,8 @@
+card "River Serpent" {
+  oracle_id d6f8c69f-e603-41f5-8f25-da8a102f7c8d
+  cost {5}{U}
+  type Creature — Serpent
+  pt 5/5
+  can't attack unless 5 cards in your graveyard
+  cycling {U}
+}

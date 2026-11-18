@@ -1,0 +1,7 @@
+card "Slaughterhouse Bouncer" {
+  oracle_id 82076865-7917-4d3b-8fe8-c21bfcd64d29
+  cost {4}{B}
+  type Creature — Ogre Warrior
+  pt 3/3
+  label "Hellbent" triggered when this dies if hand 0 or less: target creature gets -3/-3
+}

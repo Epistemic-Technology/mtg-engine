@@ -1,0 +1,7 @@
+card "Nurturer Initiate" {
+  oracle_id 78064301-f81e-4737-9cfe-b1e8757d0dd6
+  cost {G}
+  type Creature — Elf Shaman
+  pt 1/1
+  triggered whenever a player casts green spell: you may pay {1}; if you do, target creature gets +1/+1
+}

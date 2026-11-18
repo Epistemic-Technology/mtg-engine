@@ -1,0 +1,7 @@
+card "Bubbling Beebles" {
+  oracle_id 75903c3b-2dbe-4662-b6a8-39599e49adde
+  cost {4}{U}
+  type Creature — Beeble
+  pt 3/3
+  static this: has can't be blocked as long as defending player controls enchantment
+}

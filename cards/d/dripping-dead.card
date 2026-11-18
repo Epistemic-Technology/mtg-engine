@@ -1,0 +1,8 @@
+card "Dripping Dead" {
+  oracle_id bf0c85d7-16a0-46a5-a3a6-5591849bef60
+  cost {4}{B}{B}
+  type Creature — Zombie
+  pt 4/1
+  keywords can't block
+  triggered whenever this deals combat damage to creature: destroy that creature without regeneration
+}

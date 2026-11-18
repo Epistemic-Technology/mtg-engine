@@ -1,0 +1,7 @@
+card "Thieving Otter" {
+  oracle_id 5dee663f-9e2e-4503-8086-fc51664fdf29
+  cost {2}{U}
+  type Creature — Otter
+  pt 2/2
+  triggered whenever this deals damage to opponent: draw 1 cards
+}

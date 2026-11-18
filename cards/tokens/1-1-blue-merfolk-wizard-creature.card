@@ -1,0 +1,6 @@
+token "1/1 blue Merfolk Wizard creature" {
+  name "Merfolk Wizard"
+  type Creature — Merfolk Wizard
+  pt 1/1
+  color blue
+}

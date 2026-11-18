@@ -1,0 +1,7 @@
+card "Sleeper Dart" {
+  oracle_id 1f1b6130-3f18-4989-922b-438e41d683da
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 cards
+  activated {T}, sacrifice this: target creature doesn't untap next untap step
+}

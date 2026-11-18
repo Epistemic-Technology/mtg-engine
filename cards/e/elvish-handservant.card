@@ -1,0 +1,7 @@
+card "Elvish Handservant" {
+  oracle_id 16fb84e1-0bc7-469c-bd73-40747be56d9e
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  triggered whenever a player casts Giant spell: you may put 1 +1/+1 counters on this
+}

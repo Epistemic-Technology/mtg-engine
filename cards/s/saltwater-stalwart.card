@@ -1,0 +1,7 @@
+card "Saltwater Stalwart" {
+  oracle_id 04472c4f-0df3-4de8-9cc2-882d95b822be
+  cost {3}{U}
+  type Creature — Merfolk Warrior
+  pt 2/4
+  triggered whenever this deals damage to opponent: target player draws 1 cards
+}

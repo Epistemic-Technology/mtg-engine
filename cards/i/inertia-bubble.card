@@ -1,0 +1,7 @@
+card "Inertia Bubble" {
+  oracle_id 864c7575-4589-416c-b143-310d5ef238c5
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: has doesn't untap
+}

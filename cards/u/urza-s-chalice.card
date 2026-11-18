@@ -1,0 +1,6 @@
+card "Urza's Chalice" {
+  oracle_id fde25440-1810-46ba-a112-b54091593b66
+  cost {1}
+  type Artifact
+  triggered whenever a player casts artifact spell: you may pay {1}; if you do, you gains 1 life
+}

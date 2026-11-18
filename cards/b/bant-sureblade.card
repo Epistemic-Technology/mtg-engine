@@ -1,0 +1,7 @@
+card "Bant Sureblade" {
+  oracle_id 610adb2b-9d52-4b70-92d1-0c7adeb93552
+  cost {G/U}{W}
+  type Creature — Human Soldier
+  pt 2/1
+  static as long as you control other multicolored permanent, this: +1/+1, has first strike
+}

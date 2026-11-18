@@ -1,0 +1,8 @@
+card "Cackling Prowler" {
+  oracle_id 898da62e-d29a-4ddc-be69-2ddec54614f5
+  cost {3}{G}
+  type Creature — Hyena Rogue
+  pt 4/3
+  ward {2}
+  label "Morbid" triggered at beginning of your end step if creature died this turn: put 1 +1/+1 counters on this
+}

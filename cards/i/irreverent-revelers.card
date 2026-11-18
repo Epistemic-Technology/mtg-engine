@@ -1,0 +1,10 @@
+card "Irreverent Revelers" {
+  oracle_id 05abc57a-839d-4376-986c-8e3855e34239
+  cost {2}{R}
+  type Creature — Satyr
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: destroy target artifact
+    mode: this gains haste
+  }
+}

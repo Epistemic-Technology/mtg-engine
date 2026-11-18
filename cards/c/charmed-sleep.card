@@ -1,0 +1,8 @@
+card "Charmed Sleep" {
+  oracle_id cb33edaf-b604-48b8-8b9c-d6e462a8bebb
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

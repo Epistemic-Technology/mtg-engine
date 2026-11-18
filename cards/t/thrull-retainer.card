@@ -1,0 +1,8 @@
+card "Thrull Retainer" {
+  oracle_id 81a47019-1343-4a63-893a-0d8ba5e848d5
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated sacrifice this: regenerate enchanted creature
+}

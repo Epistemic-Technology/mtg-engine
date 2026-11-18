@@ -1,0 +1,9 @@
+card "Vandalize" {
+  oracle_id 8c71cbb3-e900-4ea3-aced-8439b5803654
+  cost {4}{R}
+  type Sorcery
+  choose one or both {
+    mode: destroy target artifact
+    mode: destroy target land
+  }
+}

@@ -1,0 +1,7 @@
+card "Grixis Grimblade" {
+  oracle_id 04b1280a-b084-4f65-a3f4-2ba41d6c26fa
+  cost {U/R}{B}
+  type Creature — Zombie Warrior
+  pt 2/1
+  static as long as you control other multicolored permanent, this: +1/+1, has deathtouch
+}

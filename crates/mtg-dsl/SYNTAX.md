@@ -52,7 +52,7 @@ double-faced permanent to its other face (CR 701.27).
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
-| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5) are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
+| `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, and `undying`. The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), and `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step.") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -68,7 +68,9 @@ double-faced permanent to its other face (CR 701.27).
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
 | `enchant creature` | An Aura's "Enchant" (CR 702.5), with a target specification. |
 | `spell: <effects>` | What an instant or sorcery does on resolution. |
-| `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. |
+| `choose one { mode: <effects> ... }` | A modal spell (CR 700.2), one `mode` line per mode. `choose one or both { ... }` takes two modes, either or both ("Choose one or both —"). As a triggered ability's effect (`triggered when this enters: choose one { ... }`) the mode is chosen as the ability goes on the stack (CR 603.3c), each mode with its own targets. |
+| `enters tapped unless you control planeswalker`, `enters tapped unless player life 13 or less` | "This land enters tapped unless ..." with a static condition (CR 614.1d). |
+| `can't attack unless defending player controls Island`, `can't block unless you control other Goblin`, `can't attack or block unless ...` | Attack and block restrictions with a condition (CR 508.1c, 509.1c). |
 | `activated <cost>: <effects>` | An activated ability (CR 602). |
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise. |
 | `equip {1}` | Equip (CR 702.6). |
@@ -125,12 +127,19 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell` | |
 | `when this becomes targeted` | becomes the target of a spell or ability |
+| `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
+| `whenever this becomes tapped`, `whenever this becomes untapped` | |
+| `whenever this is dealt damage` | (enrage) |
+| `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player" |
+| `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
 | `whenever this becomes targeted by opponent` | "... becomes the target of a spell or ability an opponent controls" (ward's trigger) |
 
 Conditions (intervening "if", CR 603.4): `if this is untapped`,
 `if no creatures are on the battlefield`, `if kicked` ("if it was kicked",
 CR 702.33c, for a permanent with `kicker`), `if it had no -1/-1 counters`
 ("if it had no -1/-1 counters on it", judged as the source last existed),
+any static condition below (`if you control artifact`, `if attacked this
+turn`),
 `if no spells were cast last turn`, `if a player cast two or more spells
 last turn`.
 
@@ -140,8 +149,13 @@ artifact` ("you control three or more artifacts"), `you control Island`
 ("you control an Island"), `your turn` ("it's your turn"), `attacking`,
 `enchanted`, `equipped` ("it's attacking", or "this creature is
 attacking" when the subject is something else), `opponent life 10 or
-less` ("an opponent has 10 or less life"), `your life 30 or more`, and the
-shorthands `threshold`, `delirium`, `metalcraft`.
+less` ("an opponent has 10 or less life"), `your life 30 or more`,
+`player life 13 or less` ("a player has 13 or less life"), `defending
+player controls Island`, `you control no untapped land`, `you control
+other Goblin` ("you control another Goblin"), `attacked this turn` (raid),
+`creature died this turn` (morbid), `hand 0 or less` ("you have no cards
+in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
+the shorthands `threshold`, `delirium`, `metalcraft`.
 
 ### Replacement events and outcomes
 
@@ -241,7 +255,12 @@ print "that card" for "it"),
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
-stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `proliferate` (CR
+stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `switch pt of target
+creature` ("Switch target creature's power and toughness until end of
+turn"), `put land card from hand onto battlefield [tapped]` ("put a land
+card from your hand onto the battlefield"), `<what> doesn't untap next
+untap step` ("It doesn't untap during its controller's next untap
+step."), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
 loyalty counters, opponents' -1/-1 counters and poison), `<what>
 explores` (CR 701.44), `amass Zombies 2` (CR 701.47; needs the token
@@ -262,6 +281,8 @@ Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `this` (the source), `that player` / `that creature` (what triggered the
 ability), `defending player`, `each creature`, `each creature you control`,
 `those creatures` (the same, mentioned again), `each permanent you control`,
+`enchanted creature` / `equipped creature` / `attached` (what this Aura or
+Equipment is attached to),
 `that token` (what the previous effect created), `each <filter>` or
 `all <filter>` (every matching permanent: `each artifact`, `each blue
 creature`, `each creature without flying`, `each white creature you
@@ -278,6 +299,7 @@ targets of one kind (two different objects, CR 115.3); `up to 2 target
 creatures` declares optional ones (CR 601.2c), which come after an
 ability's other targets. `another target creature` excludes the source.
 Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
+`opponent or planeswalker`,
 `creature or planeswalker`, `land`, `tapped creature`, `creature you control`,
 `nonlegendary creature you control`, `artifact`, `enchantment`,
 `artifact or enchantment`, `artifact, creature, or land`, `permanent`,

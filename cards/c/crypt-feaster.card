@@ -1,0 +1,8 @@
+card "Crypt Feaster" {
+  oracle_id 4c22257e-8a00-40b7-a29b-55fcec7ddbd4
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/4
+  keywords menace
+  label "Threshold" triggered whenever this attacks if 7 cards in your graveyard: this gets +2/+0
+}

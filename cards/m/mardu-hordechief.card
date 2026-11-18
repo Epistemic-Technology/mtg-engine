@@ -1,0 +1,7 @@
+card "Mardu Hordechief" {
+  oracle_id f9ea5b9e-a23d-48cf-8601-56e79ca844f9
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 2/3
+  label "Raid" triggered when this enters if attacked this turn: create 1 "1/1 white Warrior creature"
+}

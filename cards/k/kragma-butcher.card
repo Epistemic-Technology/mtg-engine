@@ -1,0 +1,7 @@
+card "Kragma Butcher" {
+  oracle_id 3e6dad31-6192-4675-81df-09689906c12b
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  label "Inspired" triggered whenever this becomes untapped: this gets +2/+0
+}

@@ -1,0 +1,8 @@
+card "Drill-Skimmer" {
+  oracle_id 45657f7f-9760-41f9-bcf7-9fbd2bbdb918
+  cost {4}
+  type Artifact Creature — Thopter
+  pt 2/1
+  keywords flying
+  static this: has shroud as long as you control other artifact creature
+}

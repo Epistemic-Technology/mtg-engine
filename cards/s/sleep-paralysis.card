@@ -1,0 +1,8 @@
+card "Sleep Paralysis" {
+  oracle_id 5a8bd4a4-8b10-4eef-8341-28be2afa2c00
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

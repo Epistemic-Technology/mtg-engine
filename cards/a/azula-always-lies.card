@@ -1,0 +1,9 @@
+card "Azula Always Lies" {
+  oracle_id f56c6c35-d09b-4bee-a685-98e9afed13d1
+  cost {1}{B}
+  type Instant — Lesson
+  choose one or both {
+    mode: target creature gets -1/-1
+    mode: put 1 +1/+1 counters on target creature
+  }
+}

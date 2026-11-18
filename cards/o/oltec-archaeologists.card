@@ -1,0 +1,10 @@
+card "Oltec Archaeologists" {
+  oracle_id b19c4bbf-258f-4436-8ef9-fc905c283776
+  cost {4}{W}
+  type Creature — Human Artificer Scout
+  pt 4/4
+  triggered when this enters: choose one {
+    mode: return target artifact card from your graveyard to hand
+    mode: scry 3
+  }
+}

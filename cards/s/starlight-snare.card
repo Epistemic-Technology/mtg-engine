@@ -1,0 +1,8 @@
+card "Starlight Snare" {
+  oracle_id f0691d46-5bf4-4617-8a0a-19d17afb7219
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

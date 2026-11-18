@@ -1,0 +1,10 @@
+card "Exhibition Magician" {
+  oracle_id 758e68fd-76ba-467e-a756-c5daa7db16d5
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 2/1
+  triggered when this enters: choose one {
+    mode: create 1 "1/1 green and white Citizen creature"
+    mode: create 1 "Treasure"
+  }
+}

@@ -1,0 +1,7 @@
+card "Bog Gnarr" {
+  oracle_id 537ebea5-f805-4f78-9151-58eb43c4a62d
+  cost {4}{G}
+  type Creature — Beast
+  pt 2/2
+  triggered whenever a player casts black spell: this gets +2/+2
+}

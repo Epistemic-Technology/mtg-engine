@@ -1,0 +1,7 @@
+card "Glimmerdust Nap" {
+  oracle_id 8b476e35-77df-4332-b29d-8bf6f1bbbc3e
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant tapped creature
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,7 @@
+card "Steam Frigate" {
+  oracle_id 2e00598c-4f06-45aa-87a7-c63b5e8e92f3
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 3/3
+  can't attack unless defending player controls Island
+}

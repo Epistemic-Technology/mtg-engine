@@ -1,0 +1,8 @@
+card "Phantom Wings" {
+  oracle_id 9da74f0f-143d-4db2-81eb-c7873744a2d0
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  activated sacrifice this: return enchanted creature to hand
+}

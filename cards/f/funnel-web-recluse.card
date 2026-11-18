@@ -1,0 +1,8 @@
+card "Funnel-Web Recluse" {
+  oracle_id 6148fcf5-466a-43aa-a0f3-d3d9fae4d883
+  cost {4}{G}
+  type Creature — Spider
+  pt 3/5
+  keywords reach
+  label "Morbid" triggered when this enters if creature died this turn: investigate
+}

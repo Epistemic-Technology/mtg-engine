@@ -1,0 +1,8 @@
+card "Sun-Crested Pterodon" {
+  oracle_id 747dbf0c-dcea-49d1-ab6c-d74016d580a4
+  cost {4}{W}
+  type Creature — Dinosaur
+  pt 2/5
+  keywords flying
+  static this: has vigilance as long as you control other Dinosaur
+}

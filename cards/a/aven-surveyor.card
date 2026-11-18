@@ -1,0 +1,11 @@
+card "Aven Surveyor" {
+  oracle_id 57831c07-6915-4579-b3e1-de93a3664444
+  cost {3}{U}{U}
+  type Creature — Bird Scout
+  pt 2/2
+  keywords flying
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: return target creature to hand
+  }
+}

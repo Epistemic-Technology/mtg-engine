@@ -1,0 +1,6 @@
+card "Broken Bond" {
+  oracle_id 858e12e9-3eaa-40cf-9e22-f9ccdfe485b3
+  cost {1}{G}
+  type Sorcery
+  spell: destroy target artifact or enchantment; you may put land card from hand onto battlefield
+}

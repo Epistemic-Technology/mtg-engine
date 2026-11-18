@@ -1,0 +1,7 @@
+card "Shaper Apprentice" {
+  oracle_id ee6b0bb4-9c40-435b-8a5d-fd89d7e29ae1
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  static this: has flying as long as you control other Merfolk
+}

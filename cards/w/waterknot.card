@@ -1,0 +1,8 @@
+card "Waterknot" {
+  oracle_id 002100cd-1ab1-44da-93a0-1269d47a712a
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,7 @@
+card "Desperate Castaways" {
+  oracle_id 0432e07d-baf6-4c20-8646-08338c7dc950
+  cost {1}{B}
+  type Creature — Human Pirate
+  pt 2/3
+  can't attack unless you control artifact
+}

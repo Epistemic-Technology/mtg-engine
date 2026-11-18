@@ -1,0 +1,7 @@
+card "Esper Stormblade" {
+  oracle_id 186b2fbd-8a59-4447-bd54-45a7c3ff5af2
+  cost {W/B}{U}
+  type Artifact Creature — Vedalken Wizard
+  pt 2/1
+  static as long as you control other multicolored permanent, this: +1/+1, has flying
+}

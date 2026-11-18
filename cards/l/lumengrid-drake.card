@@ -1,0 +1,8 @@
+card "Lumengrid Drake" {
+  oracle_id 0700d889-d235-49fe-8b92-698d486b2539
+  cost {3}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  label "Metalcraft" triggered when this enters if you control 3 artifact: return target creature to hand
+}

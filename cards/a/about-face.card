@@ -1,0 +1,6 @@
+card "About Face" {
+  oracle_id 8a810017-06ac-4824-bc2f-a7d303d58ad7
+  cost {R}
+  type Instant
+  spell: switch pt of target creature
+}

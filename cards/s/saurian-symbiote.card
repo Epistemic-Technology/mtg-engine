@@ -1,0 +1,11 @@
+card "Saurian Symbiote" {
+  oracle_id 14b180d2-5701-452d-8deb-cf0845c95df5
+  cost {3}{G}
+  type Creature — Fungus Dinosaur
+  pt 2/3
+  keywords reach
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: create 1 "1/1 green Saproling creature"
+  }
+}

@@ -1,0 +1,6 @@
+card "Stingerquill Annex" {
+  oracle_id 26e20ae5-4059-4d63-9db5-6e12421d1aba
+  type Land
+  enters tapped unless you control planeswalker
+  mana {B} or {R}
+}

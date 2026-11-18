@@ -1,0 +1,7 @@
+card "Krosan Wayfarer" {
+  oracle_id 1729317d-ccfb-4f27-84c6-20b36b2826c9
+  cost {G}
+  type Creature — Human Druid
+  pt 1/1
+  activated sacrifice this: you may put land card from hand onto battlefield
+}

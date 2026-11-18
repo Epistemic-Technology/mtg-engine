@@ -1,0 +1,7 @@
+card "Rescue Leopard" {
+  oracle_id d70ad04a-b940-4bb1-bcdc-408166e91723
+  cost {2}{R}
+  type Creature — Cat
+  pt 4/2
+  triggered whenever this becomes tapped: you may discard 1 cards; if you do, draw 1 cards
+}

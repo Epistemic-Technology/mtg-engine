@@ -1,0 +1,8 @@
+card "Ballynock Trapper" {
+  oracle_id 96232342-3ec7-4740-a114-969537b8f2fc
+  cost {3}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  activated {T}: tap target creature
+  triggered whenever you cast white spell: you may untap this
+}

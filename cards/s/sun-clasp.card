@@ -1,0 +1,8 @@
+card "Sun Clasp" {
+  oracle_id cb8f5ee4-285a-4c37-adcb-514b3e4bdad3
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+3
+  activated {W}: return enchanted creature to hand
+}

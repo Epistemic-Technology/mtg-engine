@@ -1,0 +1,6 @@
+card "Meticulous Commons" {
+  oracle_id 7fdd471f-ec95-4aa7-8f8a-ad8946de5ab4
+  type Land
+  enters tapped unless you control planeswalker
+  mana {W} or {B}
+}

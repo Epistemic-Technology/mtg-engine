@@ -1,0 +1,7 @@
+card "Fire Nation Raider" {
+  oracle_id b37e9bc5-6a2c-4f08-b856-3f8d0d16defb
+  cost {3}{R}
+  type Creature — Human Soldier
+  pt 4/2
+  label "Raid" triggered when this enters if attacked this turn: create 1 "Clue"
+}

@@ -1,0 +1,8 @@
+card "Expedition Healer" {
+  oracle_id e8fbdf4b-ef64-4b82-b67f-ae5568772256
+  cost {1}{W}
+  type Creature — Kor Cleric
+  pt 2/2
+  keywords vigilance
+  static this: has lifelink as long as you control other Cleric
+}

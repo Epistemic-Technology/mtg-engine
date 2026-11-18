@@ -307,9 +307,75 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
-            (TriggerSpec::BecomesTarget(what), Event::Targeted { target, .. }) => {
-                let p = on_battlefield(what, *target)?;
-                Some((Some(*target), Some(p)))
+            (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
+            | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
+            | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })
+            | (
+                TriggerSpec::DealtDamage(what),
+                Event::Damage {
+                    target: Target::Object(obj),
+                    ..
+                },
+            ) => {
+                let p = on_battlefield(what, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
+            (
+                TriggerSpec::DealsDamage { what, to, combat },
+                Event::Damage {
+                    source,
+                    target,
+                    combat: c,
+                    ..
+                },
+            ) => {
+                if *combat && !*c {
+                    return None;
+                }
+                // The source may have left the battlefield (it dealt the
+                // damage as it last existed).
+                let ok = match what {
+                    TriggerObj::This => *source == w.source,
+                    TriggerObj::Filter(_) => on_battlefield(what, *source).is_some(),
+                };
+                if !ok {
+                    return None;
+                }
+                match (to, target) {
+                    (
+                        crate::card::DamageTo::Player | crate::card::DamageTo::Any,
+                        Target::Player(p),
+                    ) => Some((None, Some(*p))),
+                    (crate::card::DamageTo::Opponent, Target::Player(p)) => {
+                        (*p != w.controller).then_some((None, Some(*p)))
+                    }
+                    (
+                        crate::card::DamageTo::Creature | crate::card::DamageTo::Any,
+                        Target::Object(o),
+                    ) => {
+                        let obj = self.objects.get(*o)?;
+                        let creature = self.characteristics(*o).is_some_and(|c| c.is_creature());
+                        (creature || *to == crate::card::DamageTo::Any)
+                            .then_some((Some(*o), Some(obj.controller)))
+                    }
+                    _ => None,
+                }
+            }
+            (
+                TriggerSpec::CastsFiltered { whose, filter },
+                Event::Cast {
+                    player, spell, def, ..
+                },
+            ) => {
+                if !whose_ok(*whose, *player) {
+                    return None;
+                }
+                let c = self
+                    .characteristics(*spell)
+                    .or_else(|| self.pool.get(*def).printed)?;
+                (filter.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
+                    && self.status_ok(filter, *spell))
+                .then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;
@@ -395,13 +461,24 @@ impl GameState {
         let t = self.pending_triggers.remove(i);
         let def = t.ability.def;
         let specs = self.pool.ability(t.ability.ability).targets().to_vec();
-        if specs.iter().any(|s| {
-            !matches!(s, crate::card::TargetSpec::UpTo(_))
-                && self
-                    .legal_targets(t.controller, *s, Some(t.ability.source))
-                    .len()
-                    < specs.iter().filter(|x| *x == s).count()
-        }) {
+        // CR 603.3c: a modal triggered ability with no mode whose targets
+        // can be chosen is removed.
+        let modal =
+            match self.pool.ability(t.ability.ability).effects() {
+                [crate::card::Effect::Modes(modes)] => Some(modes.iter().any(|m| {
+                    self.targets_available(t.controller, &m.targets, Some(t.ability.source))
+                })),
+                _ => None,
+            };
+        if modal == Some(false)
+            || specs.iter().any(|s| {
+                !matches!(s, crate::card::TargetSpec::UpTo(_))
+                    && self
+                        .legal_targets(t.controller, *s, Some(t.ability.source))
+                        .len()
+                        < specs.iter().filter(|x| *x == s).count()
+            })
+        {
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
                 def,
@@ -424,6 +501,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            skip_untap: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -438,7 +516,9 @@ impl GameState {
             source: t.ability.source,
             def,
         });
-        self.flow = if specs.is_empty() {
+        self.flow = if modal.is_some() {
+            Flow::ChoosingMode { spell: obj }
+        } else if specs.is_empty() {
             Flow::Priority
         } else {
             Flow::Casting {
@@ -458,11 +538,15 @@ impl GameState {
     pub(super) fn resolve_ability(&mut self, id: ObjId) {
         let obj = self.objects[id].clone();
         let sa = obj.ability.expect("ability object");
-        let (condition, targets, effects) = match self.pool.ability(sa.ability) {
-            AbilityDef::Triggered(t) => (t.condition, t.targets.clone(), t.effects.clone()),
-            AbilityDef::Activated(a) => (None, a.targets.clone(), a.effects.clone()),
+        let condition = match self.pool.ability(sa.ability) {
+            AbilityDef::Triggered(t) => t.condition,
+            AbilityDef::Activated(_) => None,
             _ => unreachable!("only triggered and activated abilities use the stack"),
         };
+        // A modal ability's targets and effects are its chosen mode's.
+        let targets = self.targets_of(id).to_vec();
+        let effects = self.effects_of(id).to_vec();
+        let split = self.mode_split_of(id);
         if let Some(cond) = condition
             && !self.condition_holds(cond, sa.source)
         {
@@ -503,9 +587,7 @@ impl GameState {
             x: 0,
             did: false,
         };
-        for effect in &effects {
-            self.apply_effect(&mut ctx, effect);
-        }
+        self.apply_effects(&mut ctx, &effects, split);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);
         }
@@ -524,6 +606,14 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
+            Condition::Static(i) => {
+                let you = self
+                    .objects
+                    .get(source)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
+                you.is_some_and(|p| self.condition_now(self.pool.condition(i), p, source))
+            }
         }
     }
 
@@ -538,6 +628,9 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
+            Condition::Static(i) => {
+                self.condition_now(self.pool.condition(i), w.controller, w.source)
+            }
         }
     }
 

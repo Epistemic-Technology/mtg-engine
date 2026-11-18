@@ -1,0 +1,8 @@
+card "Eldrazi Aggressor" {
+  oracle_id aa0c6fea-c90c-4b65-aa1e-18e5b34ea6e3
+  cost {2}{R}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  static this: has haste as long as you control other colorless creature
+}

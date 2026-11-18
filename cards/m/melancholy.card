@@ -1,0 +1,9 @@
+card "Melancholy" {
+  oracle_id 58cc7682-f8ce-47cf-a291-0301fea9ddfd
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered at beginning of your upkeep: sacrifice this unless you pay {B}
+}

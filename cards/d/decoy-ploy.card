@@ -1,0 +1,9 @@
+card "Decoy Ploy" {
+  oracle_id 035cddbc-39c9-42af-9e26-c88419b43b49
+  cost {1}{B}
+  type Instant
+  choose one or both {
+    mode: return target Villain card from your graveyard to hand
+    mode: return target Hero card from your graveyard to hand
+  }
+}

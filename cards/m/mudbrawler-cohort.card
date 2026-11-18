@@ -1,0 +1,8 @@
+card "Mudbrawler Cohort" {
+  oracle_id 788bd9ae-b78e-4c86-bf12-d4e19780491a
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords haste
+  static this: +1/+1 as long as you control other red creature
+}

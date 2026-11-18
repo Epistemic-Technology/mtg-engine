@@ -1,0 +1,10 @@
+card "Trusty Retriever" {
+  oracle_id 06a2a50d-f54f-4eb7-9cf8-ce37d802794a
+  cost {3}{W}
+  type Creature — Dog
+  pt 2/3
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: return target artifact or enchantment card from your graveyard to hand
+  }
+}

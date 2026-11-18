@@ -1,0 +1,13 @@
+card "Queen of Ice // Rage of Winter" {
+  oracle_id f5511802-56fe-4922-83d2-ae723e1beab7
+  layout adventure
+  cost {2}{U}
+  type Creature — Human Noble Wizard
+  pt 2/3
+  triggered whenever this deals combat damage to creature: tap that creature; this doesn't untap next untap step
+  face "Rage of Winter" {
+    cost {1}{U}
+    type Sorcery — Adventure
+    spell: tap target creature; target 1 doesn't untap next untap step
+  }
+}

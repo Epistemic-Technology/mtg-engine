@@ -1,0 +1,7 @@
+card "Reef Pirates" {
+  oracle_id 13fb5413-0057-4022-84da-2c90ce065ed1
+  cost {1}{U}{U}
+  type Creature — Zombie Pirate
+  pt 2/2
+  triggered whenever this deals damage to opponent: that player mills 1 cards
+}

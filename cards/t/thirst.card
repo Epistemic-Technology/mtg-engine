@@ -1,0 +1,9 @@
+card "Thirst" {
+  oracle_id 61b3ad9d-485f-4479-b18f-506847af43f2
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered at beginning of your upkeep: sacrifice this unless you pay {U}
+}

@@ -1,0 +1,7 @@
+card "Predatory Hunger" {
+  oracle_id eed2606b-9a27-4af3-8120-c45a1d6b5c00
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever an opponent casts creature spell: put 1 +1/+1 counters on enchanted creature
+}

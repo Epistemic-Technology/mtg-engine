@@ -164,6 +164,7 @@ impl Fmt {
             Recipient::ControllerOf(_) => "its controller".to_string(),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
+            Recipient::Attached => "attached".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -309,6 +310,32 @@ impl Fmt {
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
+            Effect::Modes(modes) => {
+                let mut s = "choose one {\n".to_string();
+                for m in modes {
+                    let mut inner = String::new();
+                    body(
+                        &mut inner,
+                        "    ",
+                        "mode",
+                        &m.effects,
+                        &m.targets,
+                        &self.groups,
+                    );
+                    s.push_str(&inner);
+                }
+                s.push_str("  }");
+                s
+            }
+            Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::SkipNextUntap { to } => {
+                format!("{} doesn't untap next untap step", self.recipient(*to, t))
+            }
+            Effect::PutFromHand { filter: f, tapped } => format!(
+                "put {} card from hand onto battlefield{}",
+                filter(f),
+                if *tapped { " tapped" } else { "" }
+            ),
             Effect::AddPoison { count, who } => {
                 let v = if *who == Recipient::You {
                     "get"
@@ -728,6 +755,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
+        Outcome::EnterTappedUnless(_) => unreachable!("an AST ability of its own"),
         Outcome::EnterTapped => "tapped".to_string(),
         Outcome::EnterWithCounters { kind, n } => {
             format!("with {} {}", num(*n), counter(*kind, *n))
@@ -938,6 +966,32 @@ fn trigger_text(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::BecomesTargetWhenever(o) => {
+            format!("whenever {} becomes targeted", trigger_obj(o))
+        }
+        Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_obj(o)),
+        Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
+        Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
+        Trigger::DealsDamage { obj, to, combat } => format!(
+            "whenever {} deals {}damage{}",
+            trigger_obj(obj),
+            if *combat { "combat " } else { "" },
+            match to {
+                mtg_core::card::DamageTo::Any => "",
+                mtg_core::card::DamageTo::Creature => " to creature",
+                mtg_core::card::DamageTo::Player => " to player",
+                mtg_core::card::DamageTo::Opponent => " to opponent",
+            }
+        ),
+        Trigger::CastsFiltered { whose, filter: f } => format!(
+            "whenever {} {} spell",
+            match whose {
+                Who::You => "you cast",
+                Who::Opponents => "an opponent casts",
+                Who::Any => "a player casts",
+            },
+            filter(f)
+        ),
     }
 }
 
@@ -1135,6 +1189,21 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
+        StaticCond::AnyPlayerLifeAtMost(n) => format!("player life {n} or less"),
+        StaticCond::DefenderControls {
+            filter: fl,
+            at_least: 1,
+        } => format!("defending player controls {}", filter(fl)),
+        StaticCond::DefenderControls {
+            filter: fl,
+            at_least,
+        } => format!("defending player controls {at_least} {}", filter(fl)),
+        StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
+        StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
+        StaticCond::CardsInHand { n, at_most } => {
+            format!("hand {n} or {}", if *at_most { "less" } else { "more" })
+        }
         StaticCond::YourLife { n, at_least } => {
             format!(
                 "your life {n} or {}",
@@ -1181,8 +1250,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
-        Ability::Modal(modes) => {
-            let _ = writeln!(out, "{indent}choose one {{");
+        Ability::Modal(modes) | Ability::ModalBoth(modes) => {
+            let head = if matches!(ability, Ability::ModalBoth(_)) {
+                "choose one or both"
+            } else {
+                "choose one"
+            };
+            let _ = writeln!(out, "{indent}{head} {{");
             for m in modes {
                 body(
                     out,
@@ -1249,7 +1323,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             effects,
         } => {
             let mut head = format!("triggered {}", trigger_text(trigger, false));
+            let condition = match condition {
+                Some(crate::ast::TrigCond::Static(c)) => {
+                    let _ = write!(head, " if {}", static_cond(c));
+                    None
+                }
+                Some(crate::ast::TrigCond::Core(c)) => Some(c),
+                None => None,
+            };
             match condition {
+                Some(mtg_core::card::Condition::Static(_)) => unreachable!("an AST condition"),
                 Some(mtg_core::card::Condition::SourceUntapped) => {
                     head.push_str(" if this is untapped");
                 }
@@ -1394,6 +1477,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
             };
             let _ = writeln!(out, "{indent}{text}");
+        }
+        Ability::EntersTappedUnless(c) => {
+            let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
+        }
+        Ability::AttackUnless {
+            cond,
+            attack,
+            block,
+        } => {
+            let what = match (attack, block) {
+                (true, true) => "attack or block",
+                (true, false) => "attack",
+                _ => "block",
+            };
+            let _ = writeln!(out, "{indent}can't {what} unless {}", static_cond(cond));
         }
         Ability::HandSize { whose, delta } => {
             let who = if *whose == Who::Opponents {

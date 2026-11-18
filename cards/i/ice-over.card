@@ -1,0 +1,7 @@
+card "Ice Over" {
+  oracle_id 80f8a64e-b22e-413e-a143-f1943be3a574
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has doesn't untap
+}

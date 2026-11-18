@@ -1,0 +1,6 @@
+card "Vigorbloom Annex" {
+  oracle_id fcb35d42-bcd2-427c-9640-ff3602b79912
+  type Land
+  enters tapped unless you control planeswalker
+  mana {G} or {W}
+}

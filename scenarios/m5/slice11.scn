@@ -1,0 +1,168 @@
+# M5 slice 11: conditional "enters tapped", "can't attack unless", tapped,
+# untapped, and damage triggers, filtered cast triggers, intervening "if"
+# with static conditions (raid), putting a land from hand onto the
+# battlefield, switching power and toughness, "doesn't untap", modal
+# triggered abilities, and "choose one or both".
+
+scenario "enters tapped unless: a player at 13 or less life" {
+  life B 13
+  hand A: "Abandoned Campground"
+  turn 1 A: play "Abandoned Campground"
+  run_to turn 1 postcombat_main
+  assert untapped "Abandoned Campground"
+}
+
+scenario "enters tapped unless: otherwise tapped" {
+  hand A: "Abandoned Campground"
+  turn 1 A: play "Abandoned Campground"
+  run_to turn 1 postcombat_main
+  assert tapped "Abandoned Campground"
+}
+
+scenario "can't attack unless: Deep-Sea Terror with a small graveyard" {
+  battlefield A: "Deep-Sea Terror"
+  illegal turn 1 A: attack "Deep-Sea Terror"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "can't attack unless: seven cards in the graveyard" {
+  battlefield A: "Deep-Sea Terror"
+  graveyard A: 7 "Island"
+  turn 1 A: attack "Deep-Sea Terror"
+  run_to turn 1 end
+  assert life B 14
+}
+
+scenario "becomes tapped: Chrome Companion attacks and its controller gains 1 life" {
+  battlefield A: "Chrome Companion"
+  turn 1 A: attack "Chrome Companion"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "becomes untapped: inspired at the next untap step" {
+  battlefield A: "Kragma Butcher" tapped
+  run_to turn 1 precombat_main
+  assert power "Kragma Butcher" 4
+}
+
+scenario "is dealt damage: Dromad Purebred gains life" {
+  battlefield A: "Mountain"
+  battlefield B: "Dromad Purebred"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Dromad Purebred"
+  run_to turn 1 postcombat_main
+  assert life B 21
+}
+
+scenario "deals damage to an opponent: Looter il-Kor loots" {
+  battlefield A: "Looter il-Kor"
+  library A: "Forest", "Island"
+  turn 1 A: attack "Looter il-Kor"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 1
+}
+
+scenario "filtered cast trigger: Myrsmith makes a Myr for an artifact spell" {
+  battlefield A: "Myrsmith", "Plains"
+  hand A: "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Myr"
+}
+
+scenario "filtered cast trigger: not for a creature spell" {
+  battlefield A: "Myrsmith", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Myr"
+}
+
+scenario "raid: Deadeye Rig-Hauler after an attack" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Deadeye Rig-Hauler"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Deadeye Rig-Hauler"
+  turn 1 A: trigger "Deadeye Rig-Hauler" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+}
+
+scenario "raid: no attack, no trigger" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Deadeye Rig-Hauler"
+  turn 1 A: cast "Deadeye Rig-Hauler"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "a land from the hand: Arboreal Grazer" {
+  battlefield A: "Forest"
+  hand A: "Arboreal Grazer", "Forest"
+  turn 1 A: cast "Arboreal Grazer"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 3
+}
+
+scenario "switch: About Face turns a 1/7 into a 7/1" {
+  battlefield A: "Mountain", "Kami of Old Stone"
+  hand A: "About Face"
+  turn 1 A: cast "About Face" targeting "Kami of Old Stone"
+  run_to turn 1 postcombat_main
+  assert power "Kami of Old Stone" 7
+  assert toughness "Kami of Old Stone" 1
+}
+
+scenario "doesn't untap: Crippling Chill keeps a creature tapped" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Crippling Chill"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Crippling Chill" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "doesn't untap: Bubble Snare's static" {
+  battlefield A: "Island", 2 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Bubble Snare"
+  turn 1 A: cast "Bubble Snare" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "choose one or both: both modes" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Garruk Wildspeaker"
+  hand A: "Aid the Fallen"
+  turn 1 A: cast "Aid the Fallen" mode 3 targeting "Grizzly Bears", "Garruk Wildspeaker"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Garruk Wildspeaker"
+}
+
+scenario "choose one or both: one mode" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears", "Garruk Wildspeaker"
+  hand A: "Aid the Fallen"
+  turn 1 A: cast "Aid the Fallen" mode 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Garruk Wildspeaker"
+}
+
+scenario "modal trigger: Aven Surveyor's first mode" {
+  battlefield A: 5 "Island"
+  hand A: "Aven Surveyor"
+  turn 1 A: cast "Aven Surveyor"
+  run_to turn 1 postcombat_main
+  assert power "Aven Surveyor" 3
+}

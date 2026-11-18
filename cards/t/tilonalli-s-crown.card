@@ -1,0 +1,8 @@
+card "Tilonalli's Crown" {
+  oracle_id fbc2f469-09a5-4641-b990-b483d5d15c0d
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: deal 1 damage to enchanted creature
+  static enchanted: +3/+0, has trample
+}

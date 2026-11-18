@@ -1,0 +1,8 @@
+card "Brass Man" {
+  oracle_id 64f56228-7874-4465-ba58-1049083ea02f
+  cost {1}
+  type Artifact Creature — Construct
+  pt 1/3
+  keywords doesn't untap
+  triggered at beginning of your upkeep: you may pay {1}; if you do, untap this
+}

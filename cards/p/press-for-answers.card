@@ -1,0 +1,9 @@
+card "Press for Answers" {
+  oracle_id 4960c3a0-77ca-48d8-b565-6c5f1e6522cf
+  cost {1}{U}
+  type Sorcery
+  spell {
+    tap target creature; target 1 doesn't untap next untap step
+    investigate
+  }
+}

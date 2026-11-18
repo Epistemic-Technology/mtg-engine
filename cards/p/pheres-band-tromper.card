@@ -1,0 +1,7 @@
+card "Pheres-Band Tromper" {
+  oracle_id 41b2876f-0217-4552-9fad-f12f1824d06f
+  cost {3}{G}
+  type Creature — Centaur Warrior
+  pt 3/3
+  label "Inspired" triggered whenever this becomes untapped: put 1 +1/+1 counters on this
+}

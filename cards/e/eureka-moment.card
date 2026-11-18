@@ -1,0 +1,6 @@
+card "Eureka Moment" {
+  oracle_id 0e2c11b2-d95f-4402-9a4a-afd3f7ffb8be
+  cost {2}{G}{U}
+  type Instant
+  spell: draw 2 cards; you may put land card from hand onto battlefield
+}

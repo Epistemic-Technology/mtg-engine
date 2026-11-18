@@ -1,0 +1,8 @@
+card "Gravelgill Duo" {
+  oracle_id a9e28134-382b-45e5-8fd0-cc0e7d56fd0c
+  cost {2}{U/B}
+  type Creature — Merfolk Rogue Warrior
+  pt 2/1
+  triggered whenever you cast blue spell: this gets +1/+1
+  triggered whenever you cast black spell: this gains fear
+}

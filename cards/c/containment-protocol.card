@@ -1,0 +1,8 @@
+card "Containment Protocol" {
+  oracle_id d33c7ea2-4d17-4cdb-aa58-c25c57836297
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

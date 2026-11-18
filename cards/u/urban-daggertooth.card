@@ -1,0 +1,8 @@
+card "Urban Daggertooth" {
+  oracle_id cc545c68-829f-4c57-94d2-cd1edf2667a7
+  cost {2}{G}{G}
+  type Creature — Dinosaur
+  pt 4/3
+  keywords vigilance
+  label "Enrage" triggered whenever this is dealt damage: proliferate
+}

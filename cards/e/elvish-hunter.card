@@ -1,0 +1,7 @@
+card "Elvish Hunter" {
+  oracle_id 49b351d8-8b63-4f9e-a323-344ed35fdfff
+  cost {1}{G}
+  type Creature — Elf Archer
+  pt 1/1
+  activated {1}{G}, {T}: target creature doesn't untap next untap step
+}

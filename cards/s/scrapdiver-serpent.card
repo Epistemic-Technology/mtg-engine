@@ -1,0 +1,7 @@
+card "Scrapdiver Serpent" {
+  oracle_id 6f45ac24-e153-4ec1-a41f-989f9547d409
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 5/5
+  static this: has can't be blocked as long as defending player controls artifact
+}

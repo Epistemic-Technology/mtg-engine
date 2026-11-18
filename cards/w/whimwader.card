@@ -1,0 +1,7 @@
+card "Whimwader" {
+  oracle_id 21d9ce2c-eb6a-4f43-a79b-0b99b3dc4a00
+  cost {4}{U}
+  type Creature — Elemental
+  pt 6/4
+  can't attack unless defending player controls blue permanent
+}

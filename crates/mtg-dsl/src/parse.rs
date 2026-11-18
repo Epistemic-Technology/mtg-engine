@@ -115,6 +115,19 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["persist"], Keyword::Persist),
     (&["undying"], Keyword::Undying),
     (&["flanking"], Keyword::Flanking),
+    (
+        &[
+            "doesn't",
+            "untap",
+            "during",
+            "its",
+            "controller's",
+            "untap",
+            "step",
+        ],
+        Keyword::DoesntUntap,
+    ),
+    (&["doesn't", "untap"], Keyword::DoesntUntap),
 ];
 
 /// Target specifications by their text, longest first. `,` stands for a
@@ -986,26 +999,14 @@ impl P {
             "choose" => {
                 self.pos += 1;
                 self.expect_word("one")?;
-                self.expect(&Tok::LBrace)?;
+                let both = self.eat_words(&["or", "both"]);
+                let modes = self.modes_block()?;
                 self.end_stmt()?;
-                let mut modes = Vec::new();
-                loop {
-                    self.skip_newlines();
-                    if self.peek() == Some(&Tok::RBrace) {
-                        self.pos += 1;
-                        self.end_stmt()?;
-                        break;
-                    }
-                    self.expect_word("mode")?;
-                    self.targets.clear();
-                    self.subject = None;
-                    let effects = self.effects_body()?;
-                    modes.push(Mode {
-                        targets: std::mem::take(&mut self.targets),
-                        effects,
-                    });
-                }
-                Ok(Ability::Modal(modes))
+                Ok(if both {
+                    Ability::ModalBoth(modes)
+                } else {
+                    Ability::Modal(modes)
+                })
             }
             "activated" => {
                 self.pos += 1;
@@ -1059,7 +1060,13 @@ impl P {
                 self.pos += 1;
                 let trigger = self.trigger()?;
                 let condition = if self.eat_word("if") {
-                    Some(self.condition()?)
+                    let at = self.pos;
+                    if let Ok(c) = self.condition() {
+                        Some(crate::ast::TrigCond::Core(c))
+                    } else {
+                        self.pos = at;
+                        Some(crate::ast::TrigCond::Static(self.static_cond()?))
+                    }
                 } else {
                     None
                 };
@@ -1084,6 +1091,12 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::EntersAsCopy(f))
             }
+            "enters" if self.at_words(&["enters", "tapped", "unless"]) => {
+                self.pos += 3;
+                let c = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersTappedUnless(c))
+            }
             "enters" => {
                 self.pos += 1;
                 let outcome = self.enters_outcome()?;
@@ -1101,6 +1114,29 @@ impl P {
                 Ok(Ability::Labeled {
                     label,
                     ability: Box::new(ability),
+                })
+            }
+            "can't"
+                if self.at_words(&["can't", "attack", "unless"])
+                    || self.at_words(&["can't", "block", "unless"])
+                    || self.at_words(&["can't", "attack", "or", "block", "unless"]) =>
+            {
+                self.pos += 1;
+                let (attack, block) = if self.eat_words(&["attack", "or", "block"]) {
+                    (true, true)
+                } else if self.eat_word("attack") {
+                    (true, false)
+                } else {
+                    self.expect_word("block")?;
+                    (false, true)
+                };
+                self.expect_word("unless")?;
+                let cond = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::AttackUnless {
+                    cond,
+                    attack,
+                    block,
                 })
             }
             "can't" | "can" => {
@@ -1169,6 +1205,31 @@ impl P {
     /// `7 cards in your graveyard`, `4 card types in your graveyard`,
     /// `you control [3] <filter>`, `your turn`, or the ability words
     /// `threshold`, `delirium`, `metalcraft`.
+    /// `{ mode: <effects> ... }`: each mode with its own targets.
+    fn modes_block(&mut self) -> R<Vec<Mode>> {
+        self.expect(&Tok::LBrace)?;
+        self.end_stmt()?;
+        let outer = std::mem::take(&mut self.targets);
+        let mut modes = Vec::new();
+        loop {
+            self.skip_newlines();
+            if self.peek() == Some(&Tok::RBrace) {
+                self.pos += 1;
+                break;
+            }
+            self.expect_word("mode")?;
+            self.targets.clear();
+            self.subject = None;
+            let effects = self.effects_body()?;
+            modes.push(Mode {
+                targets: std::mem::take(&mut self.targets),
+                effects,
+            });
+        }
+        self.targets = outer;
+        Ok(modes)
+    }
+
     fn static_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("threshold") {
             return Ok(StaticCond::CardsInGraveyard(7));
@@ -1190,6 +1251,40 @@ impl P {
         }
         if self.eat_word("attacking") {
             return Ok(StaticCond::Attacking);
+        }
+        if self.eat_words(&["attacked", "this", "turn"]) {
+            return Ok(StaticCond::AttackedThisTurn);
+        }
+        if self.eat_words(&["creature", "died", "this", "turn"]) {
+            return Ok(StaticCond::CreatureDiedThisTurn);
+        }
+        if self.eat_words(&["player", "life"]) {
+            let n = i32::try_from(self.number()?).unwrap_or(0);
+            self.expect_words(&["or", "less"])?;
+            return Ok(StaticCond::AnyPlayerLifeAtMost(n));
+        }
+        if self.eat_word("hand") {
+            let n = self.number()?;
+            self.expect_word("or")?;
+            let at_most = if self.eat_word("less") {
+                true
+            } else {
+                self.expect_word("more")?;
+                false
+            };
+            return Ok(StaticCond::CardsInHand { n, at_most });
+        }
+        if self.eat_words(&["defending", "player", "controls"]) {
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let filter = self.filter()?;
+            return Ok(StaticCond::DefenderControls { filter, at_least });
+        }
+        if self.eat_words(&["you", "control", "no"]) {
+            return Ok(StaticCond::YouControlNone(self.filter()?));
         }
         if self.eat_word("enchanted") {
             return Ok(StaticCond::Enchanted);
@@ -1386,6 +1481,15 @@ impl P {
         if w == "up" && self.word_at(1).as_deref() == Some("to") {
             return true;
         }
+        if w == "attached"
+            || (matches!(w.as_str(), "enchanted" | "equipped")
+                && matches!(
+                    self.word_at(1).as_deref(),
+                    Some("creature" | "land" | "permanent")
+                ))
+        {
+            return true;
+        }
         if w == "its" && matches!(self.word_at(1).as_deref(), Some("controller" | "owner")) {
             return true;
         }
@@ -1443,6 +1547,11 @@ impl P {
                 vec![s]
             };
             return Ok(Effect::YouMay(inner));
+        }
+        // "choose one { mode: ... }": a modal triggered ability.
+        if self.at_words(&["choose", "one"]) && self.peek_at(2) == Some(&Tok::LBrace) {
+            self.pos += 2;
+            return Ok(Effect::Modes(self.modes_block()?));
         }
         // "if you do, ...": after an optional action.
         if self.at_words(&["if", "you", "do"]) {
@@ -1692,6 +1801,10 @@ impl P {
                 })
             }
             "explores" => Ok(Effect::Explore { what: subject }),
+            "doesn't" => {
+                self.expect_words(&["untap", "next", "untap", "step"])?;
+                Ok(Effect::SkipNextUntap { to: subject })
+            }
             "get" | "gets" => match self.next() {
                 Some(Tok::Pt {
                     power,
@@ -1809,6 +1922,21 @@ impl P {
                 Ok(Effect::Destroy { to, no_regen })
             }
             "put"
+                if (0..8).any(|k| {
+                    self.word_at(k).as_deref() == Some("from")
+                        && self.word_at(k + 1).as_deref() == Some("hand")
+                }) =>
+            {
+                let filter = if self.at_word("card") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                self.expect_words(&["card", "from", "hand", "onto", "battlefield"])?;
+                let tapped = self.eat_word("tapped");
+                Ok(Effect::PutFromHand { filter, tapped })
+            }
+            "put"
                 if !matches!(self.peek(), Some(Tok::Num(_)))
                     && !self
                         .word_at(0)
@@ -1827,6 +1955,7 @@ impl P {
                 self.expect_word("library")?;
                 Ok(Effect::PutInLibrary { what, top })
             }
+
             "put" => {
                 let count = self.num()?;
                 let kind = self.counter_kind()?;
@@ -1888,6 +2017,13 @@ impl P {
                 Ok(Effect::Pay { mana, life })
             }
             "proliferate" => Ok(Effect::Proliferate),
+            "switch" => {
+                self.expect_words(&["pt", "of"])?;
+                let to = self.recipient()?;
+                self.until_end_of_turn();
+                Ok(Effect::SwitchPt { to })
+            }
+
             "amass" => {
                 let kind = self.word()?;
                 let count = self.num()?;
@@ -2341,6 +2477,7 @@ impl P {
         Ok(vec![self.recipient()?])
     }
 
+    #[allow(clippy::too_many_lines)] // one check per recipient form
     fn recipient(&mut self) -> R<Recipient> {
         if self.eat_word("it") {
             if self.in_delayed {
@@ -2349,6 +2486,26 @@ impl P {
             return self.fail(
                 "`it` is only meaningful inside a delayed trigger; name the target (`target 1`)",
             );
+        }
+        if self.eat_word("attached")
+            || self.at_words(&["enchanted", "creature"]) && {
+                self.pos += 2;
+                true
+            }
+            || self.at_words(&["equipped", "creature"]) && {
+                self.pos += 2;
+                true
+            }
+            || self.at_words(&["enchanted", "land"]) && {
+                self.pos += 2;
+                true
+            }
+            || self.at_words(&["enchanted", "permanent"]) && {
+                self.pos += 2;
+                true
+            }
+        {
+            return Ok(Recipient::Attached);
         }
         if self.at_words(&["that", "card"]) {
             self.pos += 2;
@@ -2797,6 +2954,7 @@ impl P {
             self.eat_word("step");
             return Ok(Trigger::BeginningOfStep { step, whose });
         }
+        let whenever = self.at_word("whenever");
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
@@ -2808,15 +2966,28 @@ impl P {
             self.pos += 4;
             return Ok(Trigger::GainsLife { whose: Who::Any });
         }
-        if self.at_words(&["you", "cast"]) || self.at_words(&["an", "opponent", "casts"]) {
+        if self.at_words(&["you", "cast"])
+            || self.at_words(&["an", "opponent", "casts"])
+            || self.at_words(&["a", "player", "casts"])
+        {
             let whose = if self.at_word("you") {
                 Who::You
-            } else {
+            } else if self.at_word("an") {
                 Who::Opponents
+            } else {
+                Who::Any
             };
             self.pos += if whose == Who::You { 2 } else { 3 };
             self.eat_word("a");
             self.eat_word("an");
+            let simple = self.at_word("spell")
+                || self.at_words(&["noncreature", "spell"])
+                || self.at_words(&["instant", "or", "sorcery", "spell"]);
+            if !simple || whose == Who::Any {
+                let filter = self.filter()?;
+                self.expect_word("spell")?;
+                return Ok(Trigger::CastsFiltered { whose, filter });
+            }
             let noncreature = self.eat_word("noncreature");
             let instant_or_sorcery = self.eat_words(&["instant", "or", "sorcery"]);
             self.expect_word("spell")?;
@@ -2831,6 +3002,10 @@ impl P {
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
             "dies" => Ok(Trigger::Dies(obj)),
+            "is" if self.at_words(&["dealt", "damage"]) => {
+                self.pos += 2;
+                Ok(Trigger::DealtDamage(obj))
+            }
             "is" => {
                 self.expect_words(&[
                     "put",
@@ -2855,8 +3030,33 @@ impl P {
             }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
-                self.expect_words(&["combat", "damage", "to", "a", "player"])?;
-                Ok(Trigger::DealsCombatDamageToPlayer(obj))
+                if self.at_words(&["combat", "damage", "to", "a", "player"]) {
+                    self.pos += 5;
+                    return Ok(Trigger::DealsCombatDamageToPlayer(obj));
+                }
+                let combat = self.eat_word("combat");
+                self.expect_word("damage")?;
+                let to = if self.eat_word("to") {
+                    self.eat_word("a");
+                    self.eat_word("an");
+                    match self.word()?.as_str() {
+                        "creature" => mtg_core::card::DamageTo::Creature,
+                        "player" => mtg_core::card::DamageTo::Player,
+                        "opponent" => mtg_core::card::DamageTo::Opponent,
+                        w => return self.fail(format!("unknown damage recipient `{w}`")),
+                    }
+                } else {
+                    mtg_core::card::DamageTo::Any
+                };
+                Ok(Trigger::DealsDamage { obj, to, combat })
+            }
+            "becomes" if self.at_word("tapped") => {
+                self.pos += 1;
+                Ok(Trigger::BecomesTapped(obj))
+            }
+            "becomes" if self.at_word("untapped") => {
+                self.pos += 1;
+                Ok(Trigger::BecomesUntapped(obj))
             }
             "becomes" if self.at_word("blocked") => {
                 self.pos += 1;
@@ -2870,6 +3070,9 @@ impl P {
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
                     return Ok(Trigger::TargetedByOpponent);
+                }
+                if whenever {
+                    return Ok(Trigger::BecomesTargetWhenever(obj));
                 }
                 Ok(Trigger::BecomesTarget(obj))
             }

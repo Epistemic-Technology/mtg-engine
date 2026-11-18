@@ -1,0 +1,7 @@
+card "Sea Monster" {
+  oracle_id 21b07ce7-b4f9-438c-8c09-e624557d62d2
+  cost {4}{U}{U}
+  type Creature — Serpent
+  pt 6/6
+  can't attack unless defending player controls Island
+}

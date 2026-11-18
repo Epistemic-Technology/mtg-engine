@@ -1,0 +1,11 @@
+card "Apothecary Stomper" {
+  oracle_id 6a381121-9134-489c-8c7e-44be1936b0e2
+  cost {4}{G}{G}
+  type Creature — Elephant
+  pt 4/4
+  keywords vigilance
+  triggered when this enters: choose one {
+    mode: put 2 +1/+1 counters on target creature you control
+    mode: you gains 4 life
+  }
+}

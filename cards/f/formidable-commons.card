@@ -1,0 +1,6 @@
+card "Formidable Commons" {
+  oracle_id 3e51c060-1e86-4a0e-8fee-8b7273161468
+  type Land
+  enters tapped unless you control planeswalker
+  mana {B} or {G}
+}

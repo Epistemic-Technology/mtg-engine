@@ -1,0 +1,6 @@
+card "Transformative Commons" {
+  oracle_id 8ec56e2a-380f-4de7-9fb7-52de803008fc
+  type Land
+  enters tapped unless you control planeswalker
+  mana {G} or {U}
+}

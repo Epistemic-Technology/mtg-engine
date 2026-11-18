@@ -1,0 +1,8 @@
+card "Strands of Undeath" {
+  oracle_id 897c2c66-fedc-4201-b187-db79414583fb
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: target player discards 2 cards
+  activated {B}: regenerate enchanted creature
+}

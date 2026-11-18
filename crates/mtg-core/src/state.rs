@@ -133,6 +133,9 @@ pub struct GameObject {
     /// Came onto the battlefield since its echo was last dealt with (CR
     /// 702.30a): set as it enters, cleared by its echo trigger.
     pub echo_due: bool,
+    /// Skips its controller's next untap step ("doesn't untap during its
+    /// controller's next untap step").
+    pub skip_untap: bool,
     pub timestamp: Timestamp,
     /// Chosen targets, for a spell on the stack.
     pub targets: SmallVec<[Target; 2]>,
@@ -669,6 +672,11 @@ pub struct GameState {
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
     pub spells_this_turn: [u8; 4],
+    /// Players who declared an attacker this turn (raid), one bit each.
+    pub attacked_this_turn: u8,
+    /// Creatures put into a graveyard from the battlefield this turn
+    /// (morbid).
+    pub creatures_died_this_turn: u16,
     pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -815,9 +823,9 @@ impl GameState {
     pub fn emit(&mut self, event: Event) {
         // Cheap test first: nothing on the battlefield (or just leaving it)
         // can have a triggered ability on most boards.
-        let may_trigger = self.trigger_sources > 0
-            || self.lookback.is_some()
-            || !self.delayed_triggers.is_empty()
+        let may_trigger = event.watch_bit() != 0
+            && (self.trigger_sources > 0 || self.lookback.is_some())
+            || (!self.delayed_triggers.is_empty() && matches!(event, Event::StepBegin { .. }))
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
             self.detect_triggers(&event);
@@ -856,7 +864,13 @@ impl GameState {
             return &[];
         };
         if let Some(a) = o.ability {
-            return self.pool.ability(a.ability).targets();
+            let ab = self.pool.ability(a.ability);
+            if let [crate::card::Effect::Modes(modes)] = ab.effects() {
+                return modes
+                    .get(usize::from(o.cast.mode()))
+                    .map_or(&[], |m| &m.targets);
+            }
+            return ab.targets();
         }
         let def = self.pool.get(o.def);
         match def.modes() {
@@ -867,13 +881,40 @@ impl GameState {
         }
     }
 
+    /// The modes a stack object chooses among: a modal spell's, or a modal
+    /// triggered ability's.
+    pub fn modes_of(&self, id: ObjId) -> Option<&[crate::card::Mode]> {
+        let o = self.objects.get(id)?;
+        if let Some(a) = o.ability {
+            return match self.pool.ability(a.ability).effects() {
+                [crate::card::Effect::Modes(modes)] => Some(modes),
+                _ => None,
+            };
+        }
+        self.pool.get(o.def).modes()
+    }
+
+    /// For the chosen "both" mode (CR 700.2): from which effect, and
+    /// which target, the second mode's part starts.
+    pub fn mode_split_of(&self, id: ObjId) -> Option<(usize, usize)> {
+        let o = self.objects.get(id)?;
+        let m = self.modes_of(id)?.get(usize::from(o.cast.mode()))?;
+        m.split.map(|(e, t)| (usize::from(e), usize::from(t)))
+    }
+
     /// Effects a stack object applies on resolution.
     pub fn effects_of(&self, id: ObjId) -> &[crate::card::Effect] {
         let Some(o) = self.objects.get(id) else {
             return &[];
         };
         if let Some(a) = o.ability {
-            return self.pool.ability(a.ability).effects();
+            let ab = self.pool.ability(a.ability);
+            if let [crate::card::Effect::Modes(modes)] = ab.effects() {
+                return modes
+                    .get(usize::from(o.cast.mode()))
+                    .map_or(&[], |m| &m.effects);
+            }
+            return ab.effects();
         }
         let def = self.pool.get(o.def);
         match def.modes() {
@@ -1163,10 +1204,86 @@ impl GameState {
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
             | TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::OpponentOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::UpTo(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
+        }
+    }
+
+    /// Whether a condition holds now for `you`, about `source` (which may
+    /// be entering, not yet on the battlefield): conditional "enters
+    /// tapped", attack restrictions, and intervening "if" clauses.
+    pub fn condition_now(
+        &self,
+        cond: &crate::card::StaticCondition,
+        you: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        use crate::card::StaticCondition as C;
+        let count = |filter: &crate::card::ObjFilter, whose: PlayerId| {
+            self.battlefield
+                .iter()
+                .filter(|id| {
+                    let o = &self.objects[**id];
+                    self.characteristics(**id).is_some_and(|c| {
+                        filter.matches(**id, o.controller, &c, Some(source), Some(whose))
+                    }) && self.status_ok(filter, **id)
+                })
+                .count()
+        };
+        match cond {
+            C::CardsInGraveyard(n) => self.player(you).graveyard.len() >= *n as usize,
+            C::CardTypesInGraveyard(n) => {
+                let mut types = crate::card::TypeSet::default();
+                for g in &self.player(you).graveyard {
+                    types = types.union(self.pool.get(self.objects[*g].def).types);
+                }
+                types.len() >= *n
+            }
+            C::YouControl { filter, at_least } => count(filter, you) >= *at_least as usize,
+            C::YouControlNone(filter) => count(filter, you) == 0,
+            C::DefenderControls { filter, at_least } => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .any(|p| count(filter, p) >= *at_least as usize),
+            C::YourTurn => self.active_player == you,
+            C::SourceAttacking => self
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.attackers.iter().any(|a| a.id == source)),
+            C::SourceEnchanted | C::SourceEquipped => {
+                let want = if *cond == C::SourceEnchanted {
+                    crate::card::Subtype::AURA
+                } else {
+                    crate::card::Subtype::EQUIPMENT
+                };
+                self.battlefield.iter().any(|id| {
+                    self.objects[*id].attached_to == Some(source)
+                        && self
+                            .characteristics(*id)
+                            .is_some_and(|c| c.has_subtype(want))
+                })
+            }
+            C::OpponentLifeAtMost(n) => self
+                .players_in_game()
+                .any(|p| p != you && self.player(p).life <= *n),
+            C::YourLife { n, at_least } => {
+                let l = self.player(you).life;
+                if *at_least { l >= *n } else { l <= *n }
+            }
+            C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
+            C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
+            C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::CardsInHand { n, at_most } => {
+                let h = self.player(you).hand.len();
+                if *at_most {
+                    h <= *n as usize
+                } else {
+                    h >= *n as usize
+                }
+            }
         }
     }
 
@@ -1229,7 +1346,7 @@ impl GameState {
                         TargetSpec::Any | TargetSpec::Player | TargetSpec::PlayerOrPlaneswalker => {
                             true
                         }
-                        TargetSpec::Opponent => p != caster,
+                        TargetSpec::Opponent | TargetSpec::OpponentOrPlaneswalker => p != caster,
                         _ => false,
                     }
             }
@@ -1290,7 +1407,9 @@ impl GameState {
                     TargetSpec::Any | TargetSpec::CreatureOrPlaneswalker => {
                         c.is_creature() || c.is_planeswalker()
                     }
-                    TargetSpec::PlayerOrPlaneswalker => c.is_planeswalker(),
+                    TargetSpec::PlayerOrPlaneswalker | TargetSpec::OpponentOrPlaneswalker => {
+                        c.is_planeswalker()
+                    }
                     TargetSpec::Land => c.is_land(),
                     TargetSpec::Creature => c.is_creature(),
                     TargetSpec::CreatureWithSubtype(s) => c.is_creature() && c.has_subtype(s),

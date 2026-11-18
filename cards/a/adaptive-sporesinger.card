@@ -1,0 +1,11 @@
+card "Adaptive Sporesinger" {
+  oracle_id f6311b7a-7482-4b13-9f8f-13e80c98e98e
+  cost {2}{G}
+  type Creature — Phyrexian Druid
+  pt 2/2
+  keywords vigilance
+  triggered when this enters: choose one {
+    mode: target creature gets +2/+2 and gains vigilance
+    mode: proliferate
+  }
+}

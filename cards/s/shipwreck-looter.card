@@ -1,0 +1,7 @@
+card "Shipwreck Looter" {
+  oracle_id ead1accc-b90e-424a-a55f-2f4771726ce1
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 2/1
+  label "Raid" triggered when this enters if attacked this turn: you may draw 1 cards; if you do, discard 1 cards
+}

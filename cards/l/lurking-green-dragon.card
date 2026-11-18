@@ -1,0 +1,8 @@
+card "Lurking Green Dragon" {
+  oracle_id 262e1cf6-61c8-444d-a71b-050eebcaf932
+  cost {3}{G}
+  type Creature — Dragon
+  pt 4/4
+  keywords flying
+  can't attack unless defending player controls creature with flying
+}

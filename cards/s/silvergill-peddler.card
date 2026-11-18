@@ -1,0 +1,7 @@
+card "Silvergill Peddler" {
+  oracle_id 08688903-d9cc-4d57-ba91-14a8523551b9
+  cost {2}{U}
+  type Creature — Merfolk Citizen
+  pt 2/3
+  triggered whenever this becomes tapped: draw 1 cards then discard 1 cards
+}

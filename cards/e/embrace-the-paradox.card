@@ -1,0 +1,6 @@
+card "Embrace the Paradox" {
+  oracle_id b9110be0-3f0c-449b-8baf-689e92fdb8f0
+  cost {3}{G}{U}
+  type Instant
+  spell: draw 3 cards; you may put land card from hand onto battlefield tapped
+}

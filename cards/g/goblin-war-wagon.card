@@ -1,0 +1,8 @@
+card "Goblin War Wagon" {
+  oracle_id 81a38340-9558-49d3-8de6-d7d01babfd97
+  cost {4}
+  type Artifact Creature — Juggernaut
+  pt 3/3
+  keywords doesn't untap
+  triggered at beginning of your upkeep: you may pay {2}; if you do, untap this
+}

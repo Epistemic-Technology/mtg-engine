@@ -1,0 +1,8 @@
+card "Vampire Envoy" {
+  oracle_id cfc50aef-b17b-4fc1-af07-fe43b89689b7
+  cost {2}{B}
+  type Creature — Vampire Cleric Ally
+  pt 1/4
+  keywords flying
+  triggered whenever this becomes tapped: you gains 1 life
+}

@@ -1,0 +1,7 @@
+card "Stonybrook Schoolmaster" {
+  oracle_id 7ef67bae-4af3-47b9-95d2-08f3c5a0b39d
+  cost {2}{W}
+  type Creature — Merfolk Wizard
+  pt 1/2
+  triggered whenever this becomes tapped: you may create 1 "1/1 blue Merfolk Wizard creature"
+}

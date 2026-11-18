@@ -1,0 +1,8 @@
+card "Emberstrike Duo" {
+  oracle_id 44295009-9f85-4022-a685-a96079ba3e26
+  cost {1}{B/R}
+  type Creature — Elemental Warrior Shaman
+  pt 1/1
+  triggered whenever you cast black spell: this gets +1/+1
+  triggered whenever you cast red spell: this gains first strike
+}

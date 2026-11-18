@@ -2273,6 +2273,48 @@ scenarios pass (16 new in scenarios/m5/mechanics.scn, the rest from
 batch 4), 1 skipped; fuzz 0 panics, 0 unfinished; throughput 1% below
 slice 8.
 
+Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
+static conditions (`CardPool::intern_condition`) serves conditional
+"enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't
+attack/block unless ..." (`AbilityDef::AttackUnless`, checked as
+attackers and blockers are listed), and intervening "if" clauses
+(`Condition::Static`), evaluated by `GameState::condition_now`; new
+conditions: a player's life, what defending player controls, controlling
+none, raid and morbid (tracked per turn), cards in hand. Triggers:
+becomes tapped/untapped (a new watch bit, so the watch mask is 16 bits),
+is dealt damage, deals damage to a creature/player/opponent, cast
+triggers with any filter. Modal triggered abilities (the mode is chosen
+as the ability goes on the stack, `Effect::Modes`) and "choose one or
+both" (a third, synthesized mode whose second half sees its own
+targets). Effects: switch power and toughness, a land from the hand onto
+the battlefield, "doesn't untap during its controller's (next) untap
+step", "target opponent or planeswalker", "enchanted creature" as a
+recipient. Events no trigger can watch now skip trigger detection.
+Corpus 6,863 cards: 4,850 Pauper (44.6%), 5,099 Modern (22.4%); 1,388
+scenarios pass (19 new in scenarios/m5/slice11.scn), 1 skipped; fuzz 0
+panics, 0 unfinished; throughput 1% below slice 8.
+
+Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
+static conditions (`CardPool::intern_condition`) serves conditional
+"enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't
+attack/block unless ..." (`AbilityDef::AttackUnless`, checked as
+attackers and blockers are listed), and intervening "if" clauses
+(`Condition::Static`), evaluated by `GameState::condition_now`; new
+conditions: a player's life, what defending player controls, controlling
+none, raid and morbid (tracked per turn), cards in hand. Triggers:
+becomes tapped/untapped (a new watch bit, so the watch mask is 16 bits),
+is dealt damage, deals damage to a creature/player/opponent, cast
+triggers with any filter. Modal triggered abilities (the mode is chosen
+as the ability goes on the stack, `Effect::Modes`) and "choose one or
+both" (a third, synthesized mode whose second half sees its own
+targets). Effects: switch power and toughness, a land from the hand onto
+the battlefield, "doesn't untap during its controller's (next) untap
+step", "target opponent or planeswalker", "enchanted creature" as a
+recipient. Events no trigger can watch now skip trigger detection.
+Corpus 6,863 cards: 4,850 Pauper (44.6%), 5,099 Modern (22.4%); 1,388
+scenarios pass (19 new in scenarios/m5/slice11.scn), 1 skipped; fuzz 0
+panics, 0 unfinished; throughput 1% below slice 8.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

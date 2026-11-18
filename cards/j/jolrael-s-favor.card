@@ -1,0 +1,8 @@
+card "Jolrael's Favor" {
+  oracle_id bf71cca7-be71-4429-9cb6-1eb34ff847eb
+  cost {1}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  activated {1}{G}: regenerate enchanted creature
+}

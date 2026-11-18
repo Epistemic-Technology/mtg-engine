@@ -244,7 +244,8 @@ impl GreedyAgent {
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
             | DecisionKind::Kicker { .. }
-            | DecisionKind::Buyback { .. } => 0,
+            | DecisionKind::Buyback { .. }
+            | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.
             DecisionKind::LegendRule | DecisionKind::ChooseX { .. } => {

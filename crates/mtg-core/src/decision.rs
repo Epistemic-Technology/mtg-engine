@@ -71,6 +71,9 @@ pub enum DecisionKind {
     Kicker { spell: ObjId },
     /// Whether to pay a spell's buyback cost (CR 702.27).
     Buyback { spell: ObjId },
+    /// Which card from the hand to put onto the battlefield (offered as
+    /// `Choice::Discard` options), or `Done` for none.
+    PutFromHand,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]

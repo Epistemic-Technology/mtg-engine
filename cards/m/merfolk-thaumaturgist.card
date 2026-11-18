@@ -1,0 +1,7 @@
+card "Merfolk Thaumaturgist" {
+  oracle_id 1220e11f-aab0-459b-ae3f-b095aad37294
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 1/2
+  activated {T}: switch pt of target creature
+}

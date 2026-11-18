@@ -1,0 +1,8 @@
+card "Brass Gnat" {
+  oracle_id 7f6ddfa2-31ba-4cb7-83e7-1f099e3e8dc3
+  cost {1}
+  type Artifact Creature — Insect
+  pt 1/1
+  keywords flying, doesn't untap
+  triggered at beginning of your upkeep: you may pay {1}; if you do, untap this
+}

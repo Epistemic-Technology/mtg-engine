@@ -1,0 +1,6 @@
+card "Theorix Annex" {
+  oracle_id 00ad5200-5179-4d1b-8bb3-a09e1b31be58
+  type Land
+  enters tapped unless you control planeswalker
+  mana {U} or {B}
+}

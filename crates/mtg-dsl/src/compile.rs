@@ -232,7 +232,12 @@ impl Compiler<'_> {
         let spells = card
             .abilities
             .iter()
-            .filter(|a| matches!(a, Ability::Spell { .. } | Ability::Modal(_)))
+            .filter(|a| {
+                matches!(
+                    a,
+                    Ability::Spell { .. } | Ability::Modal(_) | Ability::ModalBoth(_)
+                )
+            })
             .count();
         if spells > 1 {
             return self.err(
@@ -294,6 +299,79 @@ impl Compiler<'_> {
             tapped: f.tapped,
             attacking: f.attacking,
             blocking: f.blocking,
+        }
+    }
+
+    /// A mode list; with `both`, a third mode that is the two together
+    /// ("choose one or both", CR 700.2).
+    fn modes(
+        &mut self,
+        modes: &[crate::ast::Mode],
+        both: bool,
+    ) -> Result<Vec<CoreMode>, CompileError> {
+        let mut out = Vec::new();
+        for m in modes {
+            out.push(CoreMode {
+                targets: self.targets(&m.targets),
+                effects: self.sentences(&m.effects)?,
+                text: render::mode_text(self.card, m, self.lookup)
+                    .trim_end_matches('.')
+                    .to_string(),
+                split: None,
+            });
+        }
+        if both {
+            let [a, b] = out.as_slice() else {
+                return self.err("`choose one or both` takes two modes");
+            };
+            let split = (
+                u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
+                u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
+            );
+            let both = CoreMode {
+                targets: a.targets.iter().chain(&b.targets).copied().collect(),
+                effects: a.effects.iter().chain(&b.effects).cloned().collect(),
+                text: format!("{} and {}", a.text, b.text),
+                split: Some(split),
+            };
+            out.push(both);
+        }
+        Ok(out)
+    }
+
+    fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
+        match c {
+            StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
+            StaticCond::CardTypesInGraveyard(n) => StaticCondition::CardTypesInGraveyard(*n),
+            StaticCond::YouControl { filter, at_least } => StaticCondition::YouControl {
+                filter: self.filter(filter).who(Who::You),
+                at_least: *at_least,
+            },
+            StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
+            StaticCond::Attacking => StaticCondition::SourceAttacking,
+            StaticCond::Enchanted => StaticCondition::SourceEnchanted,
+            StaticCond::Equipped => StaticCondition::SourceEquipped,
+            StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
+            StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
+                n: *n,
+                at_least: *at_least,
+            },
+            StaticCond::AnyPlayerLifeAtMost(n) => StaticCondition::AnyPlayerLifeAtMost(*n),
+            StaticCond::DefenderControls { filter, at_least } => {
+                StaticCondition::DefenderControls {
+                    filter: self.filter(filter).who(Who::You),
+                    at_least: *at_least,
+                }
+            }
+            StaticCond::YouControlNone(filter) => {
+                StaticCondition::YouControlNone(self.filter(filter).who(Who::You))
+            }
+            StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
+            StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
+            StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
+                n: *n,
+                at_most: *at_most,
+            },
         }
     }
 
@@ -379,6 +457,7 @@ impl Compiler<'_> {
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
             Recipient::SameObject => CoreRecipient::SameObject,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
+            Recipient::Attached => CoreRecipient::Attached,
         }
     }
 
@@ -682,6 +761,16 @@ impl Compiler<'_> {
                 });
             }
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
+            Effect::Modes(modes) => {
+                let modes = self.modes(modes, false)?;
+                out.push(CoreEffect::Modes(modes));
+            }
+            Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
+            Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::PutFromHand { filter, tapped } => out.push(CoreEffect::PutFromHand {
+                filter: self.filter(filter),
+                tapped: *tapped,
+            }),
             Effect::AddPoison { count, who } => out.push(CoreEffect::AddPoison {
                 count: *count,
                 who: r(*who),
@@ -727,8 +816,22 @@ impl Compiler<'_> {
                 noncreature: *noncreature,
                 instant_or_sorcery: *instant_or_sorcery,
             },
-            Trigger::BecomesTarget(o) => TriggerSpec::BecomesTarget(self.trigger_obj(o)),
+            Trigger::BecomesTarget(o) | Trigger::BecomesTargetWhenever(o) => {
+                TriggerSpec::BecomesTarget(self.trigger_obj(o))
+            }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
+            Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
+            Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
+            Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
+            Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
+                what: self.trigger_obj(obj),
+                to: *to,
+                combat: *combat,
+            },
+            Trigger::CastsFiltered { whose, filter } => TriggerSpec::CastsFiltered {
+                whose: *whose,
+                filter: self.filter(filter),
+            },
         }
     }
 
@@ -863,19 +966,8 @@ impl Compiler<'_> {
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
             },
-            Ability::Modal(modes) => {
-                let mut out = Vec::new();
-                for m in modes {
-                    out.push(CoreMode {
-                        targets: self.targets(&m.targets),
-                        effects: self.sentences(&m.effects)?,
-                        text: render::mode_text(self.card, m, self.lookup)
-                            .trim_end_matches('.')
-                            .to_string(),
-                    });
-                }
-                AbilityDef::Modal(out)
-            }
+            Ability::Modal(modes) => AbilityDef::Modal(self.modes(modes, false)?),
+            Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true)?),
             Ability::Activated {
                 cost,
                 targets,
@@ -899,7 +991,16 @@ impl Compiler<'_> {
                 effects,
             } => AbilityDef::Triggered(TriggeredAbility {
                 trigger: self.trigger(trigger),
-                condition: *condition,
+                condition: match condition {
+                    None => None,
+                    Some(crate::ast::TrigCond::Core(c)) => Some(*c),
+                    Some(crate::ast::TrigCond::Static(c)) => {
+                        let c = self.static_cond(c);
+                        Some(mtg_core::card::Condition::Static(
+                            self.pool.intern_condition(c),
+                        ))
+                    }
+                },
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
             }),
@@ -912,26 +1013,29 @@ impl Compiler<'_> {
             } => AbilityDef::Static(StaticAbility {
                 affected: self.filter(filter),
                 parts: mods.iter().map(|m| self.modification(m)).collect(),
-                condition: condition.as_ref().map(|c| match c {
-                    StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
-                    StaticCond::CardTypesInGraveyard(n) => {
-                        StaticCondition::CardTypesInGraveyard(*n)
-                    }
-                    StaticCond::YouControl { filter, at_least } => StaticCondition::YouControl {
-                        filter: self.filter(filter).who(Who::You),
-                        at_least: *at_least,
-                    },
-                    StaticCond::YourTurn | StaticCond::DuringYourTurn => StaticCondition::YourTurn,
-                    StaticCond::Attacking => StaticCondition::SourceAttacking,
-                    StaticCond::Enchanted => StaticCondition::SourceEnchanted,
-                    StaticCond::Equipped => StaticCondition::SourceEquipped,
-                    StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
-                    StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
-                        n: *n,
-                        at_least: *at_least,
-                    },
-                }),
+                condition: condition.as_ref().map(|c| self.static_cond(c)),
             }),
+            Ability::EntersTappedUnless(c) => {
+                let c = self.static_cond(c);
+                let i = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
+                    then: Vec::new(),
+                })
+            }
+            Ability::AttackUnless {
+                cond,
+                attack,
+                block,
+            } => {
+                let c = self.static_cond(cond);
+                AbilityDef::AttackUnless {
+                    condition: self.pool.intern_condition(c),
+                    attack: *attack,
+                    block: *block,
+                }
+            }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
                 crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
@@ -1036,7 +1140,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 step: mtg_core::turn::Step::Upkeep,
                 whose: Who::You,
             },
-            condition: Some(mtg_core::card::Condition::EchoDue),
+            condition: Some(crate::ast::TrigCond::Core(
+                mtg_core::card::Condition::EchoDue,
+            )),
             targets: Vec::new(),
             effects: vec![Sentence {
                 effects: vec![

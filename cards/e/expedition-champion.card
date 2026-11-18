@@ -1,0 +1,7 @@
+card "Expedition Champion" {
+  oracle_id d432857f-cff6-421e-949b-ce2f65854e1d
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/3
+  static this: +2/+0 as long as you control other Warrior
+}

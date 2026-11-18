@@ -1,0 +1,9 @@
+card "Branching Bolt" {
+  oracle_id 13f63b98-40b0-499b-bb5d-640b95a6ea1c
+  cost {1}{R}{G}
+  type Instant
+  choose one or both {
+    mode: deal 3 damage to target creature with flying
+    mode: deal 3 damage to target creature without flying
+  }
+}

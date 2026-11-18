@@ -1,0 +1,8 @@
+card "Slipstream Eel" {
+  oracle_id 74e6dd0f-2866-4d45-a214-8b09b837bc02
+  cost {5}{U}{U}
+  type Creature — Fish Beast
+  pt 6/6
+  can't attack unless defending player controls Island
+  cycling {1}{U}
+}

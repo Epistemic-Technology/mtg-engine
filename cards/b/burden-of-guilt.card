@@ -1,0 +1,7 @@
+card "Burden of Guilt" {
+  oracle_id 1ae88ba6-4973-45d1-a251-4d924ab4bc73
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}: tap enchanted creature
+}

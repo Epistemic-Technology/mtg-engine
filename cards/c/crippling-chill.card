@@ -1,0 +1,9 @@
+card "Crippling Chill" {
+  oracle_id 4459117a-d11c-44f4-9aac-caefc5b2d6f2
+  cost {2}{U}
+  type Instant
+  spell {
+    tap target creature; target 1 doesn't untap next untap step
+    draw 1 cards
+  }
+}

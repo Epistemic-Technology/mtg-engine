@@ -1,0 +1,8 @@
+card "Freed from the Real" {
+  oracle_id 03d32ace-dd99-48c6-bcae-9b915d041aef
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  activated {U}: tap enchanted creature
+  activated {U}: untap enchanted creature
+}

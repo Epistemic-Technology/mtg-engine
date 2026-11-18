@@ -177,6 +177,45 @@ impl Decompiler<'_> {
         }
     }
 
+    fn static_cond(&self, c: &StaticCondition) -> StaticCond {
+        let unowned = |f: &ObjFilter| {
+            let mut f = self.filter(f);
+            f.who = None;
+            f
+        };
+        match c {
+            StaticCondition::CardsInGraveyard(n) => StaticCond::CardsInGraveyard(*n),
+            StaticCondition::CardTypesInGraveyard(n) => StaticCond::CardTypesInGraveyard(*n),
+            StaticCondition::YouControl { filter, at_least } => StaticCond::YouControl {
+                filter: unowned(filter),
+                at_least: *at_least,
+            },
+            StaticCondition::YourTurn => StaticCond::YourTurn,
+            StaticCondition::SourceAttacking => StaticCond::Attacking,
+            StaticCondition::SourceEnchanted => StaticCond::Enchanted,
+            StaticCondition::SourceEquipped => StaticCond::Equipped,
+            StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
+            StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
+                n: *n,
+                at_least: *at_least,
+            },
+            StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
+            StaticCondition::DefenderControls { filter, at_least } => {
+                StaticCond::DefenderControls {
+                    filter: unowned(filter),
+                    at_least: *at_least,
+                }
+            }
+            StaticCondition::YouControlNone(f) => StaticCond::YouControlNone(unowned(f)),
+            StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
+            StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
+            StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
+                n: *n,
+                at_most: *at_most,
+            },
+        }
+    }
+
     fn recipient(r: CoreRecipient) -> Recipient {
         match r {
             CoreRecipient::Target(i) => Recipient::Target(i),
@@ -195,6 +234,7 @@ impl Decompiler<'_> {
             CoreRecipient::SameObject => Recipient::SameObject,
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
             CoreRecipient::Group(i) => Recipient::Group(i),
+            CoreRecipient::Attached => Recipient::Attached,
         }
     }
 
@@ -426,6 +466,25 @@ impl Decompiler<'_> {
                 count: *count,
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
+            CoreEffect::Modes(modes) => Effect::Modes(
+                modes
+                    .iter()
+                    .map(|m| Mode {
+                        targets: m.targets.iter().map(|t| self.target(*t)).collect(),
+                        effects: self.sentences(&m.effects),
+                    })
+                    .collect(),
+            ),
+            CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
+                to: Self::recipient(*to),
+            },
+            CoreEffect::SwitchPt { to } => Effect::SwitchPt {
+                to: Self::recipient(*to),
+            },
+            CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
+                filter: self.filter(filter),
+                tapped: *tapped,
+            },
         }
     }
 
@@ -464,6 +523,18 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
+            TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
+            TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
+            TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
+            TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
+                obj: self.trigger_obj(what),
+                to: *to,
+                combat: *combat,
+            },
+            TriggerSpec::CastsFiltered { whose, filter } => Trigger::CastsFiltered {
+                whose: *whose,
+                filter: self.filter(filter),
+            },
             TriggerSpec::BlockedBy(f) => {
                 Trigger::BecomesBlocked(TriggerObj::Filter(self.filter(f)))
             }
@@ -558,10 +629,20 @@ impl Decompiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&self, a: &AbilityDef) -> Ability {
         match a {
             AbilityDef::TapForMana(m) => Ability::Mana(vec![*m]),
             AbilityDef::Protection(f) => Ability::Protection(self.filter(f)),
+            AbilityDef::AttackUnless {
+                condition,
+                attack,
+                block,
+            } => Ability::AttackUnless {
+                cond: self.static_cond(self.pool.condition(*condition)),
+                attack: *attack,
+                block: *block,
+            },
             AbilityDef::Toxic(n) => Ability::Mechanic(crate::ast::Mechanic::Toxic(*n)),
             AbilityDef::HandSize { whose, delta } => Ability::HandSize {
                 whose: *whose,
@@ -591,15 +672,22 @@ impl Decompiler<'_> {
                 targets: targets.iter().map(|t| self.target(*t)).collect(),
                 effects: self.sentences(effects),
             },
-            AbilityDef::Modal(modes) => Ability::Modal(
-                modes
+            AbilityDef::Modal(modes) => {
+                let both = modes.iter().any(|m| m.split.is_some());
+                let modes: Vec<Mode> = modes
                     .iter()
+                    .filter(|m| m.split.is_none())
                     .map(|m| Mode {
                         targets: m.targets.iter().map(|t| self.target(*t)).collect(),
                         effects: self.sentences(&m.effects),
                     })
-                    .collect(),
-            ),
+                    .collect();
+                if both {
+                    Ability::ModalBoth(modes)
+                } else {
+                    Ability::Modal(modes)
+                }
+            }
             AbilityDef::Activated(act) => {
                 let equip = act.sorcery_speed
                     && act.targets == [TargetSpec::CreatureYouControl]
@@ -622,37 +710,24 @@ impl Decompiler<'_> {
             }
             AbilityDef::Triggered(t) => Ability::Triggered {
                 trigger: self.trigger(&t.trigger),
-                condition: t.condition,
+                condition: t.condition.map(|c| match c {
+                    mtg_core::card::Condition::Static(i) => {
+                        crate::ast::TrigCond::Static(self.static_cond(self.pool.condition(i)))
+                    }
+                    other => crate::ast::TrigCond::Core(other),
+                }),
                 targets: t.targets.iter().map(|x| self.target(*x)).collect(),
                 effects: self.sentences(&t.effects),
             },
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
+                ..
+            }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),
             AbilityDef::Static(s) => Ability::Static {
                 filter: self.filter(&s.affected),
                 mods: s.parts.iter().map(|m| self.modification(m)).collect(),
-                condition: s.condition.as_ref().map(|c| match c {
-                    StaticCondition::CardsInGraveyard(n) => StaticCond::CardsInGraveyard(*n),
-                    StaticCondition::CardTypesInGraveyard(n) => {
-                        StaticCond::CardTypesInGraveyard(*n)
-                    }
-                    StaticCondition::YouControl { filter, at_least } => {
-                        let mut f = self.filter(filter);
-                        f.who = None;
-                        StaticCond::YouControl {
-                            filter: f,
-                            at_least: *at_least,
-                        }
-                    }
-                    StaticCondition::YourTurn => StaticCond::YourTurn,
-                    StaticCondition::SourceAttacking => StaticCond::Attacking,
-                    StaticCondition::SourceEnchanted => StaticCond::Enchanted,
-                    StaticCondition::SourceEquipped => StaticCond::Equipped,
-                    StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
-                    StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
-                        n: *n,
-                        at_least: *at_least,
-                    },
-                }),
+                condition: s.condition.as_ref().map(|c| self.static_cond(c)),
                 cond_first: false,
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),

@@ -1,0 +1,7 @@
+card "Naya Hushblade" {
+  oracle_id d1f986dc-e0f0-4cc6-9dc4-fe97608da332
+  cost {R/W}{G}
+  type Creature — Elf Rogue
+  pt 2/1
+  static as long as you control other multicolored permanent, this: +1/+1, has shroud
+}

@@ -1,0 +1,7 @@
+card "Mage Tower Referee" {
+  oracle_id 3f27988b-0863-4cc1-8eb9-83bd0cd8561c
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/1
+  triggered whenever you cast multicolored spell: put 1 +1/+1 counters on this
+}

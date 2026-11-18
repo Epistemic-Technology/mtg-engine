@@ -1,0 +1,8 @@
+card "Dark Privilege" {
+  oracle_id 29f4c69a-ca59-4e9f-a808-87ba85b34f2f
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  activated sacrifice creature: regenerate enchanted creature
+}

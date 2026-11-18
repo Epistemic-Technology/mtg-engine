@@ -1,0 +1,6 @@
+card "Peculiar Lighthouse" {
+  oracle_id d55f7e20-11c6-44e2-8a21-dca67d3dbc68
+  type Land
+  enters tapped unless player life 13 or less
+  mana {U} or {R}
+}

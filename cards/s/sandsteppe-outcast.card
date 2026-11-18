@@ -1,0 +1,10 @@
+card "Sandsteppe Outcast" {
+  oracle_id fccd17b1-ca0f-4649-a002-5cbf9666b510
+  cost {2}{W}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: create 1 "1/1 white Spirit creature with flying"
+  }
+}

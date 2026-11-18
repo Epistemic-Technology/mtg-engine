@@ -455,7 +455,11 @@ fn count_expr(s: &str) -> Option<String> {
 /// Recipient phrases the DSL accepts as written.
 #[allow(clippy::too_many_lines)] // one check per phrase family
 fn recipient(s: &str, targets: &mut usize) -> Option<String> {
-    const PLAIN: [&str; 10] = [
+    const PLAIN: [&str; 14] = [
+        "enchanted creature",
+        "equipped creature",
+        "enchanted land",
+        "enchanted permanent",
         "you",
         "each opponent",
         "each player",
@@ -865,6 +869,27 @@ impl Templates {
                 ))
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (
+                r(r"^(.+) doesn't untap during its controller's next untap step$"),
+                |c, t| {
+                    let who = recipient(&lowercase_first(cap(c, 1)), t)?;
+                    Some(format!("{who} doesn't untap next untap step"))
+                },
+            ),
+            (
+                r(r"^Switch (.+)'s power and toughness until end of turn$"),
+                |c, t| Some(format!("switch pt of {}", recipient(cap(c, 1), t)?)),
+            ),
+            (
+                r(r"^Put an? (.+) card from your hand onto the battlefield( tapped)?$"),
+                |c, _| {
+                    Some(format!(
+                        "put {} card from hand onto battlefield{}",
+                        singular(cap(c, 1)),
+                        cap(c, 2)
+                    ))
+                },
+            ),
             (r(r"^Amass (\w+) (\w+)$"), |c, _| {
                 Some(format!("amass {} {}", cap(c, 1), number(cap(c, 2))?))
             }),
@@ -1239,7 +1264,39 @@ fn trigger_text(head: &str) -> Option<String> {
         "Whenever this creature blocks or becomes blocked" => {
             "whenever this blocks or becomes blocked"
         }
-        _ => return None,
+        "Whenever this creature becomes the target of a spell or ability" => {
+            "whenever this becomes targeted"
+        }
+        "Whenever this creature becomes tapped" => "whenever this becomes tapped",
+        "Whenever this creature becomes untapped" => "whenever this becomes untapped",
+        "Whenever this creature is dealt damage" => "whenever this is dealt damage",
+        "Whenever this creature deals damage" => "whenever this deals damage",
+        "Whenever this creature deals damage to a creature" => {
+            "whenever this deals damage to creature"
+        }
+        "Whenever this creature deals damage to a player" => "whenever this deals damage to player",
+        "Whenever this creature deals damage to an opponent" => {
+            "whenever this deals damage to opponent"
+        }
+        "Whenever this creature deals combat damage to a creature" => {
+            "whenever this deals combat damage to creature"
+        }
+        _ => {
+            // "Whenever you cast an artifact spell", "Whenever a player
+            // casts a multicolored spell".
+            let re = Regex::new(
+                r"^Whenever (you cast|a player casts|an opponent casts) an? (.+) spell$",
+            )
+            .unwrap();
+            let c = re.captures(head)?;
+            let who = match cap(&c, 1) {
+                "you cast" => "you cast",
+                "a player casts" => "a player casts",
+                _ => "an opponent casts",
+            };
+            let what = cap(&c, 2).replace(" and ", " or ");
+            return Some(format!("whenever {who} {what} spell"));
+        }
     };
     Some(t.to_string())
 }
@@ -1248,11 +1305,41 @@ fn trigger_text(head: &str) -> Option<String> {
 /// graveyard`, and the other conditions `static_cond` parses.
 fn static_condition(s: &str) -> Option<String> {
     match s {
+        "you attacked this turn" => return Some("attacked this turn".to_string()),
+        "a creature died this turn" => return Some("creature died this turn".to_string()),
+        "you have no cards in hand" => return Some("hand 0 or less".to_string()),
         "it's your turn" => return Some("your turn".to_string()),
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
         _ => {}
+    }
+    if let Some(c) = Regex::new(r"^a player has (\d+) or less life$")
+        .unwrap()
+        .captures(s)
+    {
+        return Some(format!("player life {} or less", cap(&c, 1)));
+    }
+    if let Some(c) = Regex::new(r"^you have (\w+) or (fewer|more) cards in hand$")
+        .unwrap()
+        .captures(s)
+    {
+        let n = number(cap(&c, 1))?;
+        let dir = if cap(&c, 2) == "fewer" {
+            "less"
+        } else {
+            "more"
+        };
+        return Some(format!("hand {n} or {dir}"));
+    }
+    if let Some(rest) = s.strip_prefix("defending player controls ") {
+        let one = rest
+            .strip_prefix("an ")
+            .or_else(|| rest.strip_prefix("a "))?;
+        return Some(format!("defending player controls {}", singular(one)));
+    }
+    if let Some(rest) = s.strip_prefix("you control another ") {
+        return Some(format!("you control other {}", singular(rest)));
     }
     if let Some(c) = Regex::new(r"^an opponent has (\d+) or less life$")
         .unwrap()
@@ -1591,6 +1678,7 @@ impl Builder<'_> {
                 "permanent" => "permanent",
                 "creature you control" => "creature you control",
                 "artifact or creature" => "artifact or creature",
+                "tapped creature" => "tapped creature",
                 _ => return Err(Skip::Sentence(line.to_string())),
             };
             self.statements.push(format!("enchant {spec}"));
@@ -1618,6 +1706,48 @@ impl Builder<'_> {
                 .chain([cap(&c, 2)])
                 .collect();
             self.statements.push(format!("mana {}", syms.join(" or ")));
+            return Ok(());
+        }
+        if let Some(c) =
+            Regex::new(r"^This (land|creature|artifact|permanent) enters tapped unless (.+)\.$")
+                .unwrap()
+                .captures(line)
+            && let Some(cond) = static_condition(cap(&c, 2))
+        {
+            self.statements.push(format!("enters tapped unless {cond}"));
+            return Ok(());
+        }
+        if let Some(c) =
+            Regex::new(r"^This creature can't (attack or block|attack|block) unless (.+)\.$")
+                .unwrap()
+                .captures(line)
+            && let Some(cond) = static_condition(cap(&c, 2))
+        {
+            self.statements
+                .push(format!("can't {} unless {cond}", cap(&c, 1)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(
+            r"^(Enchanted creature|Enchanted permanent|Enchanted land|Equipped creature|Enchanted artifact) doesn't untap during its controller's untap step\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let _ = c;
+            self.statements
+                .push("static enchanted: has doesn't untap".to_string());
+            return Ok(());
+        }
+        if line == "This creature doesn't untap during your untap step."
+            || line == "This artifact doesn't untap during your untap step."
+            || line == "This land doesn't untap during your untap step."
+            || line == "This permanent doesn't untap during your untap step."
+        {
+            if self.statements.is_empty() {
+                self.keywords.push("doesn't untap".to_string());
+            } else {
+                self.statements.push("keyword doesn't untap".to_string());
+            }
             return Ok(());
         }
         if line == "You have no maximum hand size." {
@@ -1830,6 +1960,16 @@ impl Builder<'_> {
             } else {
                 ("", rest)
             };
+            // "if you control an artifact, ...", "if you attacked this
+            // turn, ...": a static condition.
+            let static_if = rest
+                .strip_prefix("if ")
+                .and_then(|r| r.split_once(", "))
+                .and_then(|(cond, r)| Some((static_condition(cond)?, r)));
+            let (condition, rest) = match (condition, static_if) {
+                ("", Some((c, r))) => (format!(" if {c}"), r),
+                (c, _) => (c.to_string(), rest),
+            };
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
             self.statements
@@ -1847,8 +1987,13 @@ impl Builder<'_> {
         Err(Skip::Sentence(line.to_string()))
     }
 
-    fn modal(&mut self, modes: &[String]) -> Result<(), Skip> {
-        let mut lines = vec!["choose one {".to_string()];
+    fn modal(&mut self, modes: &[String], both: bool) -> Result<(), Skip> {
+        let head = if both {
+            "choose one or both {"
+        } else {
+            "choose one {"
+        };
+        let mut lines = vec![head.to_string()];
         for m in modes {
             let mut targets = 0;
             let effects = self.templates.effects(m, &mut targets)?;
@@ -1857,6 +2002,19 @@ impl Builder<'_> {
         lines.push("}".to_string());
         self.statements.push(lines.join("\n  "));
         let _ = self.corpus;
+        Ok(())
+    }
+
+    /// "When this creature enters, choose one —" with its modes.
+    fn modal_trigger(&mut self, trigger: &str, modes: &[String]) -> Result<(), Skip> {
+        let mut lines = vec![format!("triggered {trigger}: choose one {{")];
+        for m in modes {
+            let mut targets = 0;
+            let effects = self.templates.effects(m, &mut targets)?;
+            lines.push(format!("  mode: {effects}"));
+        }
+        lines.push("}".to_string());
+        self.statements.push(lines.join("\n  "));
         Ok(())
     }
 }
@@ -2006,14 +2164,28 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let mut i = 0;
     while i < lines.len() {
         let line = lines[i];
-        if line == "Choose one —" {
+        if line == "Choose one —" || line == "Choose one or both —" {
             let mut modes = Vec::new();
             i += 1;
             while i < lines.len() && lines[i].starts_with("• ") {
                 modes.push(lines[i][3..].to_string());
                 i += 1;
             }
-            b.modal(&modes)?;
+            b.modal(&modes, line == "Choose one or both —")?;
+            continue;
+        }
+        // "When this creature enters, choose one —" and its modes.
+        if let Some(head) = line.strip_suffix(", choose one —") {
+            let Some(trigger) = trigger_text(head) else {
+                return Err(Skip::Sentence(line.to_string()));
+            };
+            let mut modes = Vec::new();
+            i += 1;
+            while i < lines.len() && lines[i].starts_with("• ") {
+                modes.push(lines[i][3..].to_string());
+                i += 1;
+            }
+            b.modal_trigger(&trigger, &modes)?;
             continue;
         }
         b.line(line)?;

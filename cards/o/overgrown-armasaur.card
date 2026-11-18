@@ -1,0 +1,7 @@
+card "Overgrown Armasaur" {
+  oracle_id 9e104718-1f74-4414-977a-82def93b5a8e
+  cost {3}{G}{G}
+  type Creature — Dinosaur
+  pt 4/4
+  label "Enrage" triggered whenever this is dealt damage: create 1 "1/1 green Saproling creature"
+}

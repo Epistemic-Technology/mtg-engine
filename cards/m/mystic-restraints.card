@@ -1,0 +1,9 @@
+card "Mystic Restraints" {
+  oracle_id efb91243-2617-495f-adb0-1c26a669fb80
+  cost {2}{U}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

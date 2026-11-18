@@ -1,0 +1,9 @@
+card "Serpent Skin" {
+  oracle_id bc606d13-6c01-4f22-a514-1d0a16ec4cf6
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+1
+  activated {G}: regenerate enchanted creature
+}

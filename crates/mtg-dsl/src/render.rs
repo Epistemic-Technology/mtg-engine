@@ -210,6 +210,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::Unblockable
             | Keyword::CantAttackAlone
             | Keyword::CantBlockAlone
+            | Keyword::DoesntUntap
     )
 }
 
@@ -235,7 +236,10 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
         }
     }
     for k in ks {
-        if matches!(k, Keyword::MustAttack | Keyword::Unblockable) {
+        if matches!(
+            k,
+            Keyword::MustAttack | Keyword::Unblockable | Keyword::DoesntUntap
+        ) {
             parts.push(keyword_name(*k).to_string());
         }
     }
@@ -245,6 +249,12 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
 /// A keyword as a line of text: the name, or a restriction as a sentence
 /// about the card.
 fn keyword_line(card: &Card, k: Keyword) -> String {
+    if k == Keyword::DoesntUntap {
+        return format!(
+            "This {} doesn't untap during your untap step.",
+            self_noun(card)
+        );
+    }
     if is_restriction(k) {
         format!("This {} {}.", self_noun(card), keyword_name(k))
     } else {
@@ -561,6 +571,7 @@ impl<'a> Ctx<'a> {
                 self.groups_mentioned.insert(r);
                 format!("each {}", self.group_phrase(i, false))
             }
+            Recipient::Attached => filter_phrase(&Filter::enchanted(), self.card, false),
         }
     }
 
@@ -736,9 +747,10 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::AttackingOrBlockingCreature
             | TargetSpec::AttackingCreature
             | TargetSpec::BlockingCreature => "creature".to_string(),
-            TargetSpec::PlayerOrPlaneswalker | TargetSpec::Player | TargetSpec::Opponent => {
-                "player".to_string()
-            }
+            TargetSpec::PlayerOrPlaneswalker
+            | TargetSpec::Player
+            | TargetSpec::Opponent
+            | TargetSpec::OpponentOrPlaneswalker => "player".to_string(),
             TargetSpec::Land => "land".to_string(),
             TargetSpec::ArtifactCreatureOrLand
             | TargetSpec::ArtifactOrEnchantment
@@ -792,6 +804,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::CreatureSpell => "target creature spell",
         TargetSpec::NoncreatureSpell => "target noncreature spell",
         TargetSpec::Opponent => "target opponent",
+        TargetSpec::OpponentOrPlaneswalker => "target opponent or planeswalker",
         TargetSpec::ArtifactOrCreature => "target artifact or creature",
         TargetSpec::AttackingOrBlockingCreature => "target attacking or blocking creature",
         TargetSpec::AttackingCreature => "target attacking creature",
@@ -802,6 +815,30 @@ pub fn target_phrase(s: TargetSpec) -> String {
     .to_string()
 }
 
+/// What an Aura calls the permanent it enchants: "creature", "land",
+/// "artifact", or "permanent" when it can enchant several kinds.
+fn enchanted_noun(card: &Card) -> &'static str {
+    let enchant = card.abilities.iter().find_map(|a| match a {
+        Ability::Enchant(t) => Some(t),
+        _ => None,
+    });
+    match enchant.map(Target::base) {
+        Some(Target::Spec(TargetSpec::Land)) => "land",
+        Some(Target::Spec(TargetSpec::Artifact)) => "artifact",
+        Some(Target::Spec(TargetSpec::Enchantment)) => "enchantment",
+        Some(Target::Spec(
+            TargetSpec::Permanent
+            | TargetSpec::ArtifactOrCreature
+            | TargetSpec::ArtifactOrEnchantment
+            | TargetSpec::ArtifactCreatureOrLand
+            | TargetSpec::CreatureOrPlaneswalker,
+        )) => "permanent",
+        Some(Target::Filter(f)) if f.types == [CardType::Land] => "land",
+        Some(Target::Filter(f)) if f.types.len() + f.any_types.len() > 1 => "permanent",
+        _ => "creature",
+    }
+}
+
 // ---- filters ----
 
 /// The noun phrase of a filter without an article, singular ("creature you
@@ -809,12 +846,10 @@ pub fn target_phrase(s: TargetSpec) -> String {
 #[allow(clippy::too_many_lines)] // one block per filter part
 fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.enchanted {
-        let noun = if is_equipment(card) {
-            "equipped"
-        } else {
-            "enchanted"
-        };
-        return format!("{noun} creature");
+        if is_equipment(card) {
+            return "equipped creature".to_string();
+        }
+        return format!("enchanted {}", enchanted_noun(card));
     }
     if f.types.is_empty() && f.not_types.contains(&CardType::Planeswalker) {
         let mut s = "artifacts, creatures, enchantments, and lands".to_string();
@@ -1385,6 +1420,39 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
         }
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::Modes(modes) => {
+            let mut out = "choose one —".to_string();
+            for m in modes {
+                let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
+                inner.current = ctx.current;
+                out.push_str("\n• ");
+                out.push_str(&sentences(&m.effects, &mut inner));
+            }
+            Clause::imperative(out)
+        }
+        Effect::SkipNextUntap { to } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(
+                *to,
+                s,
+                "doesn't untap during its controller's next untap step".to_string(),
+            )
+        }
+        Effect::SwitchPt { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("switch {o}'s power and toughness")).until_eot()
+        }
+        Effect::PutFromHand { filter, tapped } => {
+            let what = if *filter == Filter::default() {
+                "a card".to_string()
+            } else {
+                with_article(&format!("{} card", card_filter_phrase(filter, ctx.card)))
+            };
+            Clause::imperative(format!(
+                "put {what} from your hand onto the battlefield{}",
+                if *tapped { " tapped" } else { "" }
+            ))
+        }
         Effect::Explore { what } => {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "explores".to_string())
@@ -1489,7 +1557,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Recipient::SameObject | Recipient::CreatedObject => "that card".to_string(),
                 other => ctx.obj(*other),
             };
-            let mut text = format!("return {o} to the battlefield under its owner's control");
+            // A card from your own graveyard is yours: Oracle drops "under
+            // its owner's control".
+            let yours = matches!(what, Recipient::Target(i) if matches!(
+                ctx.targets[*i].base(),
+                Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                    | Target::GraveyardCard { who: Who::You, .. }
+            ));
+            let mut text = if yours {
+                format!("return {o} to the battlefield")
+            } else {
+                format!("return {o} to the battlefield under its owner's control")
+            };
             if let Some((kind, n)) = c {
                 let _ = write!(text, " with {} on it", counters(Num::N(*n), *kind));
             }
@@ -2097,6 +2176,42 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             format!("whenever {who} {what}")
         }
+        Trigger::BecomesTargetWhenever(TriggerObj::This) => format!(
+            "whenever {} becomes the target of a spell or ability",
+            this(ctx)
+        ),
+        Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_subject(o, ctx)),
+        Trigger::BecomesUntapped(o) => {
+            format!("whenever {} becomes untapped", trigger_subject(o, ctx))
+        }
+        Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
+        Trigger::DealsDamage { obj, to, combat } => format!(
+            "whenever {} deals {}damage{}",
+            trigger_subject(obj, ctx),
+            if *combat { "combat " } else { "" },
+            match to {
+                mtg_core::card::DamageTo::Any => "",
+                mtg_core::card::DamageTo::Creature => " to a creature",
+                mtg_core::card::DamageTo::Player => " to a player",
+                mtg_core::card::DamageTo::Opponent => " to an opponent",
+            }
+        ),
+        Trigger::CastsFiltered { whose, filter } => {
+            let who = match whose {
+                Who::You => "you cast",
+                Who::Opponents => "an opponent casts",
+                Who::Any => "a player casts",
+            };
+            let what = spells_subject(filter, ctx.card);
+            let what = what.strip_suffix(" spells").unwrap_or(&what);
+            // "an artifact spell", but "a Giant spell".
+            let what = if filter.subtypes.is_empty() {
+                lowercase_first(what)
+            } else {
+                what.to_string()
+            };
+            format!("whenever {who} {} spell", with_article(&what))
+        }
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)
@@ -2105,10 +2220,22 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "when {} becomes the target of a spell or ability",
             this(ctx)
         ),
-        Trigger::BecomesTarget(TriggerObj::Filter(f)) => format!(
+        Trigger::BecomesTarget(TriggerObj::Filter(f))
+        | Trigger::BecomesTargetWhenever(TriggerObj::Filter(f)) => format!(
             "whenever {} becomes the target of a spell or ability",
             filter_a(f, ctx.card)
         ),
+    }
+}
+
+/// A trigger's subject: "this creature" or "a creature you control".
+fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
+    match o {
+        TriggerObj::This => {
+            ctx.source_mentioned = true;
+            format!("this {}", self_noun(ctx.card))
+        }
+        TriggerObj::Filter(f) => filter_a(f, ctx.card),
     }
 }
 
@@ -2125,6 +2252,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::EchoDue => {
             "if it came under your control since the beginning of your last upkeep".to_string()
         }
+        Condition::Static(_) => unreachable!("an AST condition"),
     }
 }
 
@@ -2532,7 +2660,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YouControl { filter, at_least } => {
             let mut f = filter.clone();
             f.who = None;
-            let what = if *at_least == 1 {
+            let what = if *at_least == 1 && f.relation == Relation::Other {
+                // "you control another Goblin".
+                let mut g = f.clone();
+                g.relation = Relation::Any;
+                format!("another {}", filter_phrase(&g, card, false))
+            } else if *at_least == 1 {
                 with_article(&filter_phrase(&f, card, false))
             } else {
                 format!("{} {}", or_more(*at_least), filter_phrase(&f, card, true))
@@ -2540,6 +2673,41 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {what}")
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
+        StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
+        StaticCond::DefenderControls { filter, at_least } => {
+            let mut f = filter.clone();
+            f.who = None;
+            if *at_least == 1 {
+                format!(
+                    "defending player controls {}",
+                    with_article(&filter_phrase(&f, card, false))
+                )
+            } else {
+                format!(
+                    "defending player controls {} {}",
+                    or_more(*at_least),
+                    filter_phrase(&f, card, true)
+                )
+            }
+        }
+        StaticCond::YouControlNone(filter) => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!("you control no {}", filter_phrase(&f, card, true))
+        }
+        StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
+        StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
+        StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
+            (0, true) => "you have no cards in hand".to_string(),
+            (n, true) => format!(
+                "you have {} or fewer cards in hand",
+                count_words(Num::N(*n), "one")
+            ),
+            (n, false) => format!(
+                "you have {} or more cards in hand",
+                count_words(Num::N(*n), "one")
+            ),
+        },
         StaticCond::Attacking => "it's attacking".to_string(),
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
@@ -2565,8 +2733,17 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         cond = cond.replace("it's", &format!("this {} is", self_noun(card)));
     }
     if first {
+        let this = format!("This {} ", self_noun(card));
         let rest = if body.starts_with(&card.name) {
             body.to_string()
+        } else if matches!(
+            c,
+            StaticCond::Attacking | StaticCond::Enchanted | StaticCond::Equipped
+        ) && body.starts_with(&this)
+        {
+            // "As long as this creature is equipped, it gets +1/+1."
+            cond = cond.replace("it's", &format!("this {} is", self_noun(card)));
+            format!("it {}", &body[this.len()..])
         } else {
             lowercase_first(body)
         };
@@ -2621,8 +2798,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             sentences(effects, &mut ctx)
         }
-        Ability::Modal(modes) => {
-            let mut out = "Choose one —".to_string();
+        Ability::Modal(modes) | Ability::ModalBoth(modes) => {
+            let mut out = if matches!(a, Ability::ModalBoth(_)) {
+                "Choose one or both —".to_string()
+            } else {
+                "Choose one —".to_string()
+            };
             for m in modes {
                 let mut ctx = Ctx::new(card, lookup, &m.targets);
                 ctx.current = Some(a);
@@ -2670,9 +2851,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             ctx.trigger = Some(trigger);
             let mut out = capitalize(&trigger_text(trigger, &mut ctx, false));
-            if let Some(c) = condition {
-                out.push_str(", ");
-                out.push_str(&condition_text(*c, &mut ctx));
+            match condition {
+                Some(crate::ast::TrigCond::Core(c)) => {
+                    out.push_str(", ");
+                    out.push_str(&condition_text(*c, &mut ctx));
+                }
+                Some(crate::ast::TrigCond::Static(c)) => {
+                    out.push_str(", if ");
+                    out.push_str(&static_cond_text(c, card));
+                    // Oracle names the source again after a condition about
+                    // something else ("..., if you control three or more
+                    // artifacts, this creature gets +3/+3").
+                    ctx.source_mentioned = false;
+                }
+                None => {}
             }
             out.push_str(", ");
             out.push_str(&effects_after(effects, &mut ctx, true));
@@ -2753,6 +2945,27 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
         },
+        Ability::EntersTappedUnless(c) => format!(
+            "This {} enters tapped unless {}.",
+            self_noun(card),
+            static_cond_text(c, card)
+        ),
+        Ability::AttackUnless {
+            cond,
+            attack,
+            block,
+        } => {
+            let what = match (attack, block) {
+                (true, true) => "attack or block",
+                (true, false) => "attack",
+                _ => "block",
+            };
+            format!(
+                "This {} can't {what} unless {}.",
+                self_noun(card),
+                static_cond_text(cond, card)
+            )
+        }
         Ability::HandSize { whose, delta } => {
             let (subject, have) = if *whose == Who::Opponents {
                 ("Each opponent's", "Each opponent has")

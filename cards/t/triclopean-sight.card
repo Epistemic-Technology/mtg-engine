@@ -1,0 +1,9 @@
+card "Triclopean Sight" {
+  oracle_id 6441456a-cc20-48bb-95e9-c981fea8ea98
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: untap enchanted creature
+  static enchanted: +1/+1, has vigilance
+}

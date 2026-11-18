@@ -1,0 +1,6 @@
+card "Bleeding Woods" {
+  oracle_id 47b6d2ae-d3d7-41eb-9172-2076eb8d028d
+  type Land
+  enters tapped unless player life 13 or less
+  mana {R} or {G}
+}

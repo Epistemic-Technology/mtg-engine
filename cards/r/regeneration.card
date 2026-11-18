@@ -1,0 +1,7 @@
+card "Regeneration" {
+  oracle_id 89390a33-b289-4edd-a114-6616e49a49c2
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  activated {G}: regenerate enchanted creature
+}

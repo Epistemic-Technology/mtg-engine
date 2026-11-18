@@ -1,0 +1,8 @@
+card "Fortitude" {
+  oracle_id 5017c07d-8ad5-4ee2-91d3-974811cdff75
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  activated sacrifice Forest: regenerate enchanted creature
+  triggered when this dies: return this to hand
+}

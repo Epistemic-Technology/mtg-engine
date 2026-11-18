@@ -1,0 +1,7 @@
+card "Soul Channeling" {
+  oracle_id 7041b3d5-c61a-4b94-811c-c5eb9f1ba664
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  activated pay 2 life: regenerate enchanted creature
+}

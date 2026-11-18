@@ -1,0 +1,7 @@
+card "Training Drone" {
+  oracle_id 4b40ad5f-b270-44e9-b62f-e94912bc3346
+  cost {3}
+  type Artifact Creature — Drone
+  pt 4/4
+  can't attack or block unless equipped
+}

@@ -1,0 +1,8 @@
+card "Sphinx's Disciple" {
+  oracle_id 54634ef2-cb7a-4203-8e48-2733f8c3911b
+  cost {3}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  keywords flying
+  label "Inspired" triggered whenever this becomes untapped: draw 1 cards
+}

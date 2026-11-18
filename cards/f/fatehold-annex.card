@@ -1,0 +1,6 @@
+card "Fatehold Annex" {
+  oracle_id d35876a3-e891-43d3-a50c-69e8469497e0
+  type Land
+  enters tapped unless you control planeswalker
+  mana {W} or {U}
+}

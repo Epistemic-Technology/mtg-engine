@@ -1,0 +1,7 @@
+card "Marauding Boneslasher" {
+  oracle_id a0bc9c88-8bec-4d92-a078-08883c82cb28
+  cost {2}{B}
+  type Creature — Zombie Minotaur
+  pt 3/3
+  can't block unless you control another Zombie
+}

@@ -1,0 +1,7 @@
+card "Red Cliffs Armada" {
+  oracle_id 063884e0-1f5e-4be9-930b-e73895b2fa41
+  cost {4}{U}
+  type Creature — Human Soldier
+  pt 5/4
+  can't attack unless defending player controls Island
+}

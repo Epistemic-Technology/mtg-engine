@@ -1,0 +1,6 @@
+card "Raucous Carnival" {
+  oracle_id 24a97436-ba61-4ebc-a560-a6c027ccfdf3
+  type Land
+  enters tapped unless player life 13 or less
+  mana {R} or {W}
+}

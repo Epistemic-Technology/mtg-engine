@@ -1,0 +1,7 @@
+card "Deadeye Rig-Hauler" {
+  oracle_id 1355424e-9909-41dc-8d43-b8d21b0919bf
+  cost {3}{U}
+  type Creature — Human Pirate
+  pt 3/2
+  label "Raid" triggered when this enters if attacked this turn: you may return target creature to hand
+}

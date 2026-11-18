@@ -1,0 +1,6 @@
+card "Neglected Manor" {
+  oracle_id c8c632ab-14ec-44e1-ac00-81d48336320d
+  type Land
+  enters tapped unless player life 13 or less
+  mana {W} or {B}
+}

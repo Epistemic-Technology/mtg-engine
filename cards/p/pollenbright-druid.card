@@ -1,0 +1,10 @@
+card "Pollenbright Druid" {
+  oracle_id 828fe0c0-e280-4a8b-9e49-68cb34c2da97
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on target creature
+    mode: proliferate
+  }
+}

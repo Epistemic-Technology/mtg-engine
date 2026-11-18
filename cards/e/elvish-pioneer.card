@@ -1,0 +1,7 @@
+card "Elvish Pioneer" {
+  oracle_id 5f4138e9-5471-467f-a15e-89e9e7929f0c
+  cost {G}
+  type Creature — Elf Druid
+  pt 1/1
+  triggered when this enters: you may put basic land card from hand onto battlefield tapped
+}

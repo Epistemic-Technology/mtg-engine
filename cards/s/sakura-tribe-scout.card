@@ -1,0 +1,7 @@
+card "Sakura-Tribe Scout" {
+  oracle_id 0c319f45-cb0f-4641-acd8-145768acb3fc
+  cost {G}
+  type Creature — Snake Shaman Scout
+  pt 1/1
+  activated {T}: you may put land card from hand onto battlefield
+}

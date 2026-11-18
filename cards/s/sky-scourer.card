@@ -1,0 +1,8 @@
+card "Sky Scourer" {
+  oracle_id d816df03-c79b-4c63-913f-41b38afc173c
+  cost {1}{B}
+  type Creature — Eldrazi Drone
+  pt 1/2
+  keywords devoid, flying
+  triggered whenever you cast colorless spell: this gets +1/+0
+}

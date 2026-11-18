@@ -1,0 +1,7 @@
+card "Lys Alana Huntmaster" {
+  oracle_id 3f3439e1-75ce-482d-881f-836492dca6e9
+  cost {2}{G}{G}
+  type Creature — Elf Warrior
+  pt 3/3
+  triggered whenever you cast Elf spell: you may create 1 "1/1 green Elf Warrior creature"
+}

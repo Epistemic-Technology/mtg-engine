@@ -250,6 +250,9 @@ pub enum Keyword {
     CantBlockAlone,
     /// CR 702.25: a triggered ability; see `CardPool::keyword_trigger`.
     Flanking,
+    /// "Doesn't untap during its controller's untap step" (CR 502.3): a
+    /// restriction kept with the keywords.
+    DoesntUntap,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -332,7 +335,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 46] = [
+    pub const ALL: [Keyword; 47] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -379,6 +382,7 @@ impl Keyword {
         Keyword::CantAttackAlone,
         Keyword::CantBlockAlone,
         Keyword::Flanking,
+        Keyword::DoesntUntap,
     ];
 
     /// The keyword as Oracle prints it.
@@ -430,6 +434,7 @@ impl Keyword {
             Keyword::CantAttackAlone => "can't attack alone",
             Keyword::CantBlockAlone => "can't block alone",
             Keyword::Flanking => "flanking",
+            Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
         }
     }
 
@@ -1186,6 +1191,26 @@ pub enum StaticCondition {
         n: i32,
         at_least: bool,
     },
+    /// "a player has 13 or less life".
+    AnyPlayerLifeAtMost(i32),
+    /// "defending player controls an Island" (the opponent, judged as
+    /// attackers are declared).
+    DefenderControls {
+        filter: ObjFilter,
+        at_least: u32,
+    },
+    /// "you control no untapped lands": fewer than one.
+    YouControlNone(ObjFilter),
+    /// Raid: "you attacked this turn".
+    AttackedThisTurn,
+    /// Morbid: "a creature died this turn".
+    CreatureDiedThisTurn,
+    /// Hellbent-style: "you have N or fewer cards in hand" (`at_most`) /
+    /// "N or more".
+    CardsInHand {
+        n: u32,
+        at_most: bool,
+    },
 }
 
 /// Kinds of counters (CR 122).
@@ -1244,6 +1269,8 @@ pub enum TargetSpec {
     NoncreatureSpell,
     /// "target opponent".
     Opponent,
+    /// "target opponent or planeswalker".
+    OpponentOrPlaneswalker,
     /// "target artifact or creature".
     ArtifactOrCreature,
     /// "target attacking or blocking creature".
@@ -1335,6 +1362,9 @@ pub enum Recipient {
     /// ("all artifacts", "each creature with flying", "white creatures you
     /// control").
     Group(u16),
+    /// What the source (an Aura or Equipment) is attached to ("enchanted
+    /// creature", "equipped creature").
+    Attached,
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell
@@ -1677,6 +1707,26 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// A modal triggered ability's modes ("When this creature enters,
+    /// choose one —"), as its only effect: the mode is chosen as the
+    /// ability is put on the stack (CR 700.2, 603.3c), and the ability's
+    /// targets are the chosen mode's.
+    Modes(Vec<Mode>),
+    /// "Switch target creature's power and toughness until end of turn"
+    /// (layer 7d).
+    SwitchPt {
+        to: Recipient,
+    },
+    /// "It doesn't untap during its controller's next untap step".
+    SkipNextUntap {
+        to: Recipient,
+    },
+    /// "You may put a land card from your hand onto the battlefield": the
+    /// controller chooses a matching card from their hand (or none).
+    PutFromHand {
+        filter: ObjFilter,
+        tapped: bool,
+    },
 }
 
 impl Effect {
@@ -1701,6 +1751,7 @@ impl Effect {
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }
+                | Effect::PutFromHand { .. }
         )
     }
 }
@@ -1785,6 +1836,9 @@ pub enum Replacement {
     WinGame,
     /// Enters tapped.
     EnterTapped,
+    /// Enters tapped unless the pool's `n`th condition holds for its
+    /// controller ("unless you control a planeswalker", CR 614.1d).
+    EnterTappedUnless(u16),
     /// Enters with counters.
     EnterWithCounters { kind: CounterKind, n: Num },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
@@ -1824,14 +1878,15 @@ pub enum TriggerObj {
 }
 
 /// Event classes a trigger can watch (`TriggerSpec::watch_mask`, `Event::watch_bit`).
-pub const WATCH_ZONE_CHANGE: u8 = 1;
-pub const WATCH_STEP_BEGIN: u8 = 2;
-pub const WATCH_ATTACK: u8 = 4;
-pub const WATCH_BLOCK: u8 = 8;
-pub const WATCH_DAMAGE: u8 = 16;
-pub const WATCH_LIFE_CHANGE: u8 = 32;
-pub const WATCH_CAST: u8 = 64;
-pub const WATCH_TARGETED: u8 = 128;
+pub const WATCH_ZONE_CHANGE: u16 = 1;
+pub const WATCH_STEP_BEGIN: u16 = 2;
+pub const WATCH_ATTACK: u16 = 4;
+pub const WATCH_BLOCK: u16 = 8;
+pub const WATCH_DAMAGE: u16 = 16;
+pub const WATCH_LIFE_CHANGE: u16 = 32;
+pub const WATCH_CAST: u16 = 64;
+pub const WATCH_TARGETED: u16 = 128;
+pub const WATCH_TAP: u16 = 256;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -1878,6 +1933,33 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever this creature becomes tapped".
+    BecomesTapped(TriggerObj),
+    /// "Whenever this creature becomes untapped" (inspired).
+    BecomesUntapped(TriggerObj),
+    /// "Whenever this creature is dealt damage" (enrage); the damaged
+    /// object is the triggering object.
+    DealtDamage(TriggerObj),
+    /// "Whenever this creature deals damage to a creature / an opponent /
+    /// a player": the damaged creature (or player) is the triggering
+    /// object (player); `combat` only for combat damage.
+    DealsDamage {
+        what: TriggerObj,
+        to: DamageTo,
+        combat: bool,
+    },
+    /// "Whenever you cast an artifact spell", "a multicolored spell", "a
+    /// Spirit or Arcane spell": the spell matches the filter.
+    CastsFiltered { whose: Who, filter: ObjFilter },
+}
+
+/// What a damage trigger's damage must be dealt to.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum DamageTo {
+    Any,
+    Creature,
+    Player,
+    Opponent,
 }
 
 impl TriggerSpec {
@@ -1891,7 +1973,7 @@ impl TriggerSpec {
     /// `Event::watch_bit`. A definition's mask is the union over its
     /// triggers, so "could anything here care about this event" is one
     /// `&` instead of a walk over abilities.
-    pub fn watch_mask(&self) -> u8 {
+    pub fn watch_mask(&self) -> u16 {
         match self {
             TriggerSpec::Enters(_) | TriggerSpec::Dies(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
@@ -1900,9 +1982,12 @@ impl TriggerSpec {
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
             | TriggerSpec::BlockedBy(_) => WATCH_BLOCK,
-            TriggerSpec::DealsCombatDamageToPlayer(_) => WATCH_DAMAGE,
+            TriggerSpec::DealsCombatDamageToPlayer(_)
+            | TriggerSpec::DealtDamage(_)
+            | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
+            TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
-            TriggerSpec::CastsSpell { .. } => WATCH_CAST,
+            TriggerSpec::CastsSpell { .. } | TriggerSpec::CastsFiltered { .. } => WATCH_CAST,
             TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
         }
     }
@@ -1928,6 +2013,9 @@ pub enum Condition {
     /// Echo (CR 702.30a): the source came under its controller's control
     /// since their last upkeep.
     EchoDue,
+    /// The pool's `n`th static condition ("if you control an artifact",
+    /// "if you have 5 or less life").
+    Static(u16),
 }
 
 /// A triggered ability (CR 603).
@@ -2089,6 +2177,10 @@ pub struct Mode {
     pub targets: Vec<TargetSpec>,
     pub effects: Vec<Effect>,
     pub text: String,
+    /// "Choose one or both" (CR 700.2): the mode that is both, made of two
+    /// modes' targets and effects one after the other. Effects from index
+    /// `.0` on see the targets from index `.1` on as their own.
+    pub split: Option<(u16, u16)>,
 }
 
 /// Modifications a copy effect makes as part of copying (CR 707.9b):
@@ -2129,6 +2221,15 @@ pub enum AbilityDef {
     BlockRule(BlockRule),
     /// "Artifact spells you cast cost {1} less to cast" (CR 601.2f).
     CostChange(CostChange),
+    /// "This creature can't attack unless defending player controls an
+    /// Island", "can't block unless you control another Goblin", "can't
+    /// attack or block unless ...": the pool's `condition`, judged for its
+    /// controller (CR 508.1c, 509.1c).
+    AttackUnless {
+        condition: u16,
+        attack: bool,
+        block: bool,
+    },
     /// Protection from what matches the filter ("protection from
     /// artifacts", "from Goblins", "from everything"), judged on a source's
     /// characteristics (CR 702.16); the object also has
@@ -2164,6 +2265,7 @@ impl AbilityDef {
             | AbilityDef::SacForMana(_)
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
+            | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::Toxic(_)
@@ -2185,6 +2287,7 @@ impl AbilityDef {
             | AbilityDef::SacForMana(_)
             | AbilityDef::BlockRule(_)
             | AbilityDef::CostChange(_)
+            | AbilityDef::AttackUnless { .. }
             | AbilityDef::Protection(_)
             | AbilityDef::HandSize { .. }
             | AbilityDef::Toxic(_)
@@ -2207,6 +2310,13 @@ impl AbilityDef {
             {
                 for i in inner {
                     walk(i, out);
+                }
+            }
+            if let Effect::Modes(modes) = e {
+                for m in modes {
+                    for i in &m.effects {
+                        walk(i, out);
+                    }
                 }
             }
         }
@@ -2292,9 +2402,9 @@ pub struct CardDef {
     pub flashback: Option<Cost>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
-    watch_mask: u8,
+    watch_mask: u16,
     /// The same for the abilities a copy exception adds.
-    except_watch_mask: u8,
+    except_watch_mask: u16,
     /// Filled in by `CardPool::add`: the printed characteristics, ready to
     /// clone (CR 109.3 before any effect).
     #[serde(skip)]
@@ -2335,6 +2445,8 @@ impl DefFlags {
     const CDA: u16 = 256;
     /// A static ability that changes what spells cost (CR 601.2f).
     const COST_CHANGE: u16 = 512;
+    /// "Can't attack unless ..." (`AbilityDef::AttackUnless`).
+    const ATTACK_RULE: u16 = 1024;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -2385,6 +2497,10 @@ impl DefFlags {
         self.has(DefFlags::COST_CHANGE)
     }
 
+    pub const fn has_attack_rule(self) -> bool {
+        self.has(DefFlags::ATTACK_RULE)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
         let mut flags = DefFlags::default();
@@ -2433,9 +2549,17 @@ impl DefFlags {
                     Modification::CdaPt { count: CdaCount::ControllerLife, .. }
                         | Modification::ModifyPtPer { count: CountExpr::Life, .. }
                 )) || matches!(s.condition, Some(
-                    StaticCondition::OpponentLifeAtMost(_) | StaticCondition::YourLife { .. }
+                    StaticCondition::OpponentLifeAtMost(_)
+                        | StaticCondition::YourLife { .. }
+                        | StaticCondition::AnyPlayerLifeAtMost(_)
                 )))
             }),
+        );
+        flags.set(
+            DefFlags::ATTACK_RULE,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::AttackUnless { .. })),
         );
         flags.set(
             DefFlags::COST_CHANGE,
@@ -2641,6 +2765,9 @@ pub struct CardPool {
     filters: Vec<ObjFilter>,
     /// Specs behind `TargetSpec::UpTo`.
     up_to: Vec<TargetSpec>,
+    /// Conditions behind `Replacement::EnterTappedUnless`,
+    /// `AbilityDef::AttackUnless`, and `Condition::Static`.
+    conditions: Vec<StaticCondition>,
     /// Per ability: whether resolving it may ask its controller a
     /// question ("you may").
     asks: Vec<bool>,
@@ -2672,6 +2799,7 @@ impl CardPool {
             abilities: Vec::new(),
             filters: Vec::new(),
             up_to: Vec::new(),
+            conditions: Vec::new(),
             asks: Vec::new(),
             enters: Vec::new(),
             prowess: AbilityId(0),
@@ -2814,6 +2942,21 @@ impl CardPool {
         TargetSpec::UpTo(u16::try_from(i).expect("few optional specs"))
     }
 
+    /// Intern a condition for `Replacement::EnterTappedUnless` and friends.
+    pub fn intern_condition(&mut self, c: StaticCondition) -> u16 {
+        let i = if let Some(i) = self.conditions.iter().position(|x| *x == c) {
+            i
+        } else {
+            self.conditions.push(c);
+            self.conditions.len() - 1
+        };
+        u16::try_from(i).expect("few conditions")
+    }
+
+    pub fn condition(&self, i: u16) -> &StaticCondition {
+        &self.conditions[i as usize]
+    }
+
     /// The spec an optional target must meet; other specs are themselves.
     pub fn base_spec(&self, spec: TargetSpec) -> TargetSpec {
         match spec {
@@ -2865,13 +3008,13 @@ impl CardPool {
             );
         }
         let mask = |abilities: &[AbilityDef]| {
-            abilities.iter().fold(0u8, |m, a| match a {
+            abilities.iter().fold(0u16, |m, a| match a {
                 AbilityDef::Triggered(t) => m | t.trigger.watch_mask(),
                 _ => m,
             })
         };
         def.watch_mask = mask(&def.abilities)
-            | def.keywords.iter().fold(0u8, |m, k| {
+            | def.keywords.iter().fold(0u16, |m, k| {
                 m | self
                     .keyword_trigger(k)
                     .map_or(0, |id| match self.ability(id) {
@@ -2889,7 +3032,7 @@ impl CardPool {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count: CountExpr::CardsInHand, .. }
-            )))
+            )) || matches!(sa.condition, Some(StaticCondition::CardsInHand { .. })))
         });
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),

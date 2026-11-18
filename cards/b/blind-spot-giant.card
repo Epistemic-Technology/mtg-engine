@@ -1,0 +1,7 @@
+card "Blind-Spot Giant" {
+  oracle_id 37165859-87bc-4d44-95a2-39051ab20a14
+  cost {2}{R}
+  type Creature — Giant Warrior
+  pt 4/3
+  can't attack or block unless you control other Giant
+}

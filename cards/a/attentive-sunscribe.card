@@ -1,0 +1,7 @@
+card "Attentive Sunscribe" {
+  oracle_id 0f85714b-e731-45a3-aa65-8cd59cd48280
+  cost {1}{W}
+  type Artifact Creature — Gnome
+  pt 2/2
+  triggered whenever this becomes tapped: scry 1
+}

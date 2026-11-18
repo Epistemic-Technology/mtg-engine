@@ -596,6 +596,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            skip_untap: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -678,7 +679,12 @@ impl GameState {
 
     /// Whether every one of `specs` has a legal target for `p` (for an
     /// ability of `source`).
-    fn targets_available(&self, p: PlayerId, specs: &[TargetSpec], source: Option<ObjId>) -> bool {
+    pub(super) fn targets_available(
+        &self,
+        p: PlayerId,
+        specs: &[TargetSpec],
+        source: Option<ObjId>,
+    ) -> bool {
         // CR 115.3: "two target lands" needs two different lands.
         specs.iter().all(|s| {
             matches!(s, TargetSpec::UpTo(_))
@@ -707,13 +713,14 @@ impl GameState {
     /// (CR 601.2b).
     pub(super) fn mode_options(&self, spell: ObjId) -> Vec<Choice> {
         let o = &self.objects[spell];
-        let Some(modes) = self.pool.get(o.def).modes() else {
+        let Some(modes) = self.modes_of(spell) else {
             return Vec::new();
         };
+        let source = Some(o.ability.map_or(spell, |a| a.source));
         modes
             .iter()
             .enumerate()
-            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, Some(spell)))
+            .filter(|(_, m)| self.targets_available(o.controller, &m.targets, source))
             .map(|(i, _)| Choice::Mode(i))
             .collect()
     }
@@ -1129,9 +1136,8 @@ impl GameState {
                 x: self.x_of(spell),
                 did: false,
             };
-            for effect in &effects {
-                self.apply_effect(&mut ctx, effect);
-            }
+            let split = self.mode_split_of(spell);
+            self.apply_effects(&mut ctx, &effects, split);
         } else {
             self.emit(Event::Resolve {
                 spell,
@@ -1316,6 +1322,15 @@ impl GameState {
             Recipient::CreatedObject => {
                 if let Some(id) = ctx.created.filter(|id| self.objects.contains_key(*id)) {
                     out.push(Target::Object(id));
+                }
+            }
+            Recipient::Attached => {
+                if let Some(t) = self
+                    .current_object(ctx.source)
+                    .and_then(|s| self.objects[s].attached_to)
+                    .filter(|t| self.objects.contains_key(*t))
+                {
+                    out.push(Target::Object(t));
                 }
             }
             Recipient::Group(f) => {
@@ -1785,6 +1800,53 @@ impl GameState {
                     }
                 }
             }
+            Effect::SkipNextUntap { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.objects[id].skip_untap = true;
+                    }
+                }
+            }
+            Effect::SwitchPt { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::SwitchPt],
+                        );
+                    }
+                }
+            }
+            Effect::PutFromHand { filter, tapped } => {
+                let p = ctx.controller;
+                let mut options: Vec<Choice> = self
+                    .player(p)
+                    .hand
+                    .iter()
+                    .filter(|id| {
+                        let o = &self.objects[**id];
+                        let c = self.base_characteristics(o);
+                        filter.matches(**id, p, &c, None, Some(p))
+                    })
+                    .map(|id| Choice::Discard {
+                        card: *id,
+                        def: self.objects[*id].def,
+                    })
+                    .collect();
+                if !options.is_empty() {
+                    options.push(Choice::Done);
+                    let k = self.choose_mid(p, DecisionKind::PutFromHand, options.clone());
+                    if let Some(Choice::Discard { card, .. }) = options.get(k) {
+                        let card = *card;
+                        let new = self.put_onto_battlefield(card, p);
+                        if *tapped && self.objects.contains_key(new) {
+                            self.tap(new);
+                        }
+                        ctx.created = Some(new);
+                    }
+                }
+            }
             Effect::Strip { keywords, to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -2190,6 +2252,8 @@ impl GameState {
                     self.add_counters(id, CounterKind::PlusOnePlusOne, n);
                 }
             }
+            // Resolved through the chosen mode (`effects_of`).
+            Effect::Modes(_) => {}
             Effect::ClearEcho => {
                 if let Some(id) = self.current_object(ctx.source)
                     && let Some(o) = self.objects.get_mut(id)
@@ -2288,6 +2352,37 @@ impl GameState {
             self.move_object(top, Zone::Graveyard, false);
         }
         let _ = ctx;
+    }
+
+    /// Apply a resolving object's effects in order. For a "both" mode
+    /// (CR 700.2), the second mode's effects see their own targets.
+    pub(super) fn apply_effects(
+        &mut self,
+        ctx: &mut EffectCtx,
+        effects: &[Effect],
+        split: Option<(usize, usize)>,
+    ) {
+        for (i, effect) in effects.iter().enumerate() {
+            match split {
+                Some((e, t)) if i >= e => {
+                    let mut second = EffectCtx {
+                        source: ctx.source,
+                        controller: ctx.controller,
+                        targets: ctx.targets.get(t..).unwrap_or(&[]).to_vec(),
+                        legal: ctx.legal.get(t..).unwrap_or(&[]).to_vec(),
+                        trigger_obj: ctx.trigger_obj,
+                        trigger_player: ctx.trigger_player,
+                        created: ctx.created,
+                        x: ctx.x,
+                        did: ctx.did,
+                    };
+                    self.apply_effect(&mut second, effect);
+                    ctx.created = second.created;
+                    ctx.did = second.did;
+                }
+                _ => self.apply_effect(ctx, effect),
+            }
+        }
     }
 
     /// Store a replacement or prevention effect until end of turn (CR 614.3,

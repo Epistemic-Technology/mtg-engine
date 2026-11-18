@@ -1,0 +1,8 @@
+card "Briarberry Cohort" {
+  oracle_id 598283f3-ae29-43b9-8743-6c065136dcad
+  cost {1}{U}
+  type Creature — Faerie Soldier
+  pt 1/1
+  keywords flying
+  static this: +1/+1 as long as you control other blue creature
+}

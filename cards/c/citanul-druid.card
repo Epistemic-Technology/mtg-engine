@@ -1,0 +1,7 @@
+card "Citanul Druid" {
+  oracle_id 0d292575-c4ff-427a-953a-abc89e40caa6
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  triggered whenever an opponent casts artifact spell: put 1 +1/+1 counters on this
+}

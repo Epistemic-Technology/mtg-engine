@@ -1,0 +1,8 @@
+card "Looter il-Kor" {
+  oracle_id c87e3b1d-2d24-4f1c-84e8-1c21a347cdc2
+  cost {1}{U}
+  type Creature — Kor Rogue
+  pt 1/1
+  keywords shadow
+  triggered whenever this deals damage to opponent: draw 1 cards then discard 1 cards
+}

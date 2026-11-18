@@ -329,6 +329,33 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             let l = state.player(you).life;
             if *at_least { l >= *n } else { l <= *n }
         }
+        StaticCondition::AnyPlayerLifeAtMost(n) => {
+            state.players_in_game().any(|p| state.player(p).life <= *n)
+        }
+        StaticCondition::YouControlNone(filter) => !work.ids.iter().any(|id| {
+            work.on_battlefield(*id)
+                && filter.matches(
+                    *id,
+                    work.controller_of(*id),
+                    &work.chars[work.index[id]],
+                    Some(source),
+                    Some(you),
+                )
+        }),
+        // Judged as attackers are declared, not by a static ability.
+        StaticCondition::DefenderControls { .. } => false,
+        StaticCondition::AttackedThisTurn => {
+            state.attacked_this_turn & (1 << you.index().min(7)) != 0
+        }
+        StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
+        StaticCondition::CardsInHand { n, at_most } => {
+            let h = state.player(you).hand.len();
+            if *at_most {
+                h <= *n as usize
+            } else {
+                h >= *n as usize
+            }
+        }
     }
 }
 

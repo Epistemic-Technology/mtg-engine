@@ -1,0 +1,7 @@
+card "Goblin Battle Jester" {
+  oracle_id eba01ee1-55c4-48db-843b-fd6d48c32eda
+  cost {3}{R}
+  type Creature — Goblin
+  pt 2/2
+  triggered whenever you cast red spell: target creature can't block
+}

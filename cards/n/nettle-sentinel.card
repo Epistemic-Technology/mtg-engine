@@ -1,0 +1,8 @@
+card "Nettle Sentinel" {
+  oracle_id 5c367b7d-3cb4-45db-b836-dad953efce15
+  cost {G}
+  type Creature — Elf Warrior
+  pt 2/2
+  keywords doesn't untap
+  triggered whenever you cast green spell: you may untap this
+}

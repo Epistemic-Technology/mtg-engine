@@ -1,0 +1,8 @@
+card "Chrome Companion" {
+  oracle_id 1ac6fabb-71db-442f-8c14-ba9e659f906c
+  cost {2}
+  type Artifact Creature — Dog
+  pt 2/1
+  triggered whenever this becomes tapped: you gains 1 life
+  activated {2}, {T}: put target card from a graveyard on bottom of library
+}

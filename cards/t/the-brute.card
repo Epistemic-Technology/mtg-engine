@@ -1,0 +1,8 @@
+card "The Brute" {
+  oracle_id 99587b7a-cbd0-4ade-b517-50aaf0635fb1
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+0
+  activated {R}{R}{R}: regenerate enchanted creature
+}

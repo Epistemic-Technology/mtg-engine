@@ -1,0 +1,6 @@
+card "Take into Custody" {
+  oracle_id 5e5f92b3-204b-42a3-b86f-8e2a1d263d1d
+  cost {U}
+  type Instant
+  spell: tap target creature; target 1 doesn't untap next untap step
+}

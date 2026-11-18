@@ -1,0 +1,8 @@
+card "Ballynock Cohort" {
+  oracle_id 7c415180-c179-474b-8c58-e7096bd2c763
+  cost {2}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords first strike
+  static this: +1/+1 as long as you control other white creature
+}

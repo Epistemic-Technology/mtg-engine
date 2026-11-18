@@ -1,0 +1,8 @@
+card "Thistledown Duo" {
+  oracle_id f6777aee-c39b-49d8-9049-5d2b1e888dd0
+  cost {2}{W/U}
+  type Creature — Kithkin Soldier Wizard
+  pt 2/2
+  triggered whenever you cast white spell: this gets +1/+1
+  triggered whenever you cast blue spell: this gains flying
+}

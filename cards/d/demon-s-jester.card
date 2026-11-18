@@ -1,0 +1,8 @@
+card "Demon's Jester" {
+  oracle_id da67c329-ca12-45fc-a9cd-8fb6f27501a9
+  cost {3}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying
+  label "Hellbent" static this: +2/+1 as long as hand 0 or less
+}

@@ -1,0 +1,8 @@
+card "Locked in the Cemetery" {
+  oracle_id 035f0aae-9c23-4b22-8c87-0d66b84b7962
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters if 5 cards in your graveyard: tap enchanted creature
+  static enchanted: has doesn't untap
+}

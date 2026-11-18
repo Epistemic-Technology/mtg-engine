@@ -1,0 +1,8 @@
+card "Merrow Levitator" {
+  oracle_id a4154dac-3f6d-4f8f-a769-9f5b8acecda7
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 2/3
+  activated {T}: target creature gains flying
+  triggered whenever you cast blue spell: you may untap this
+}

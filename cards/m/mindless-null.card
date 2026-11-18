@@ -1,0 +1,7 @@
+card "Mindless Null" {
+  oracle_id 22ff4e16-5c66-4076-94cc-32c281d42f03
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/2
+  can't block unless you control a Vampire
+}

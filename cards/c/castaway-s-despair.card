@@ -1,0 +1,8 @@
+card "Castaway's Despair" {
+  oracle_id 9dc4b172-da33-40c0-ab29-d68807dbe93f
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

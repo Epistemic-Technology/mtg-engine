@@ -1,0 +1,8 @@
+card "Phantasmal Fiend" {
+  oracle_id 821ce349-5379-4415-89e2-224e21dda24b
+  cost {3}{B}
+  type Creature — Illusion
+  pt 1/5
+  activated {B}: this gets +1/-1
+  activated {1}{U}: switch pt of this
+}

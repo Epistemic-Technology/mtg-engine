@@ -1,0 +1,7 @@
+card "Paralyzing Grasp" {
+  oracle_id c1459d75-2bc2-4dae-8c7e-4e759a4dffc9
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+}

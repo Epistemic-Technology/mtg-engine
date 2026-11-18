@@ -1,0 +1,7 @@
+card "Curse of Chains" {
+  oracle_id be951382-5173-4fb6-9dda-2c5f7fddc863
+  cost {1}{W/U}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of every upkeep: tap enchanted creature
+}

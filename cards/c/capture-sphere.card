@@ -1,0 +1,9 @@
+card "Capture Sphere" {
+  oracle_id 2dc59566-10cb-468a-b6a2-17d6c0186e6d
+  cost {3}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,9 @@
+card "Remember the Fallen" {
+  oracle_id 7ed3918d-509a-4fe6-a32d-5899df8f9046
+  cost {2}{W}
+  type Sorcery
+  choose one or both {
+    mode: return target creature card from your graveyard to hand
+    mode: return target artifact card from your graveyard to hand
+  }
+}

@@ -1,0 +1,12 @@
+card "Divining Duelist" {
+  oracle_id d0ce03fa-2284-4217-85b2-4db6b8a88c94
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 3/2
+  keywords flash
+  triggered when this enters: choose one {
+    mode: tap target creature
+    mode: untap target creature
+    mode: draw 1 cards then discard 1 cards
+  }
+}

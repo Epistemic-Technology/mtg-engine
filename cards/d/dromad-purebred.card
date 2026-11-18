@@ -1,0 +1,7 @@
+card "Dromad Purebred" {
+  oracle_id c7adac8f-8187-49a0-80b2-3281d42f1b92
+  cost {4}{W}
+  type Creature — Camel Beast
+  pt 1/5
+  triggered whenever this is dealt damage: you gains 1 life
+}

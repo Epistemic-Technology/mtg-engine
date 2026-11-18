@@ -1,0 +1,7 @@
+card "Smolder Initiate" {
+  oracle_id 0300d8a1-ff4e-4e05-a097-4822f80c47e1
+  cost {B}
+  type Creature — Elemental Shaman
+  pt 1/1
+  triggered whenever a player casts black spell: you may pay {1}; if you do, target player loses 1 life
+}

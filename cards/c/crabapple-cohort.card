@@ -1,0 +1,7 @@
+card "Crabapple Cohort" {
+  oracle_id 470f0043-3ffe-470b-981f-425f0583a87e
+  cost {4}{G}
+  type Creature — Treefolk Warrior
+  pt 4/4
+  static this: +1/+1 as long as you control other green creature
+}

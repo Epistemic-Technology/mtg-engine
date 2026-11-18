@@ -1,0 +1,7 @@
+card "Intimidator Initiate" {
+  oracle_id 227f95ba-65b1-4399-8b12-39f8b1327d62
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  triggered whenever a player casts red spell: you may pay {1}; if you do, target creature can't block
+}

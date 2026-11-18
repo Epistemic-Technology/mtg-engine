@@ -1,0 +1,9 @@
+card "Fortuitous Find" {
+  oracle_id 8cd3815d-92a6-4336-9da7-b18b1afd5460
+  cost {2}{B}
+  type Sorcery
+  choose one or both {
+    mode: return target artifact card from your graveyard to hand
+    mode: return target creature card from your graveyard to hand
+  }
+}

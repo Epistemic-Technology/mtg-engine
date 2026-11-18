@@ -716,6 +716,29 @@ impl GameState {
                 Outcome::Nothing
             }
             (
+                Replacement::EnterTappedUnless(cond),
+                Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter,
+                },
+            ) => {
+                let tapped =
+                    enter.tapped || !self.condition_now(self.pool.condition(cond), controller, obj);
+                Outcome::Event(Proposed::ZoneChange {
+                    obj,
+                    to,
+                    to_top,
+                    controller,
+                    enter: Enter {
+                        tapped,
+                        counters: enter.counters,
+                    },
+                })
+            }
+            (
                 Replacement::EnterTapped,
                 Proposed::ZoneChange {
                     obj,

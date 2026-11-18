@@ -1,0 +1,8 @@
+card "Eternity Snare" {
+  oracle_id b9bd1833-d4f9-46c0-bb94-331c456193fc
+  cost {5}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has doesn't untap
+}

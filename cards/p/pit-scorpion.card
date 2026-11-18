@@ -1,0 +1,7 @@
+card "Pit Scorpion" {
+  oracle_id 4804fc42-588c-487a-8ff7-bcc16749fc1f
+  cost {2}{B}
+  type Creature — Scorpion
+  pt 1/1
+  triggered whenever this deals damage to player: that player gets 1 poison counters
+}

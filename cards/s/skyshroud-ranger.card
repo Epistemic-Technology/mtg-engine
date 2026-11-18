@@ -1,0 +1,7 @@
+card "Skyshroud Ranger" {
+  oracle_id 8f47a230-7500-4afb-97cd-dbd444c307c8
+  cost {G}
+  type Creature — Elf Ranger
+  pt 1/1
+  activated {T}, sorcery: you may put land card from hand onto battlefield
+}

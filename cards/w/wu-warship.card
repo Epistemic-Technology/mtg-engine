@@ -1,0 +1,7 @@
+card "Wu Warship" {
+  oracle_id f184e860-05c3-43cf-a625-ab53427406c5
+  cost {2}{U}
+  type Creature — Human Soldier
+  pt 3/3
+  can't attack unless defending player controls Island
+}

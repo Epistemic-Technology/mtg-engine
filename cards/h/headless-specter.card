@@ -1,0 +1,8 @@
+card "Headless Specter" {
+  oracle_id 9aa9c7ca-e160-4bfa-8ba5-87114222fd86
+  cost {1}{B}{B}
+  type Creature — Specter
+  pt 2/2
+  keywords flying
+  label "Hellbent" triggered whenever this deals combat damage to a player if hand 0 or less: that player discards 1 cards at random
+}

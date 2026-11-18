@@ -1,0 +1,7 @@
+card "Walking Atlas" {
+  oracle_id 855a4837-7fc8-4b97-afbd-daa88e322c89
+  cost {2}
+  type Artifact Creature — Construct
+  pt 1/1
+  activated {T}: you may put land card from hand onto battlefield
+}

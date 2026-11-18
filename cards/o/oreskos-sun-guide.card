@@ -1,0 +1,7 @@
+card "Oreskos Sun Guide" {
+  oracle_id 45d939d1-e9ca-4b4b-a0a9-59b936210a5b
+  cost {1}{W}
+  type Creature — Cat Monk
+  pt 2/2
+  label "Inspired" triggered whenever this becomes untapped: you gains 2 life
+}

@@ -1,0 +1,7 @@
+card "Bouncing Beebles" {
+  oracle_id 4fa46972-d953-4328-9c31-96e134234133
+  cost {2}{U}
+  type Creature — Beeble
+  pt 2/2
+  static this: has can't be blocked as long as defending player controls artifact
+}

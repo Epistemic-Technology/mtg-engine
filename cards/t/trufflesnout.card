@@ -1,0 +1,10 @@
+card "Trufflesnout" {
+  oracle_id 8a15841a-dcb6-454a-b865-43a067f42b4e
+  cost {2}{G}
+  type Creature — Boar
+  pt 2/2
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: you gains 4 life
+  }
+}

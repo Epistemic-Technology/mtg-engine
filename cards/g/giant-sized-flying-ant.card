@@ -1,0 +1,11 @@
+card "Giant-Sized Flying Ant" {
+  oracle_id 233e3b4b-faaf-451d-8a2e-e9f5a6ced671
+  cost {3}{U}
+  type Creature — Insect
+  pt 3/2
+  keywords flash, flying
+  triggered when this enters: choose one {
+    mode: tap target nonland permanent
+    mode: untap target nonland permanent
+  }
+}

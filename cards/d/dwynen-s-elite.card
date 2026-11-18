@@ -1,0 +1,7 @@
+card "Dwynen's Elite" {
+  oracle_id 3d4a7dd3-9258-4bd1-adc4-08f0205e196a
+  cost {1}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  triggered when this enters if you control other Elf: create 1 "1/1 green Elf Warrior creature"
+}

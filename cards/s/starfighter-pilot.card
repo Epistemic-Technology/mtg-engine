@@ -1,0 +1,7 @@
+card "Starfighter Pilot" {
+  oracle_id fd6afb5e-d99a-44a7-9af4-9f064da95d63
+  cost {1}{W}
+  type Creature — Human Pilot
+  pt 2/2
+  triggered whenever this becomes tapped: surveil 1
+}

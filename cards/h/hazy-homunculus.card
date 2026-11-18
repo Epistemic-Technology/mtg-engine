@@ -1,0 +1,7 @@
+card "Hazy Homunculus" {
+  oracle_id 1af26f29-627c-48e5-a19d-deb43a11a846
+  cost {1}{U}
+  type Creature — Homunculus Illusion
+  pt 1/1
+  static this: has can't be blocked as long as defending player controls untapped land
+}

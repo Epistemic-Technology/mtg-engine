@@ -76,6 +76,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: false,
+            skip_untap: false,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -183,6 +184,9 @@ impl GameState {
             .expect("moving an object that exists");
         self.remove_from_zone_list(id);
         let old = self.objects.remove(id).expect("object exists");
+        if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
+            self.creatures_died_this_turn = self.creatures_died_this_turn.saturating_add(1);
+        }
         let old_flags = self.flags_of(&old);
         self.lki.insert(
             id,
@@ -225,6 +229,7 @@ impl GameState {
             deathtouch_damage: false,
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
+            skip_untap: false,
             // CR 702.33c: a permanent spell's kicker was paid, so the
             // permanent was kicked.
             cast: if old.zone == Zone::Stack && to == Zone::Battlefield {

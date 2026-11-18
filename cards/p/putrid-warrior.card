@@ -1,0 +1,10 @@
+card "Putrid Warrior" {
+  oracle_id 6ec24c24-7e87-4c12-b94e-3cd5b184beb5
+  cost {W}{B}
+  type Creature — Zombie Soldier Warrior
+  pt 2/2
+  triggered whenever this deals damage: choose one {
+    mode: each player loses 1 life
+    mode: each player gains 1 life
+  }
+}

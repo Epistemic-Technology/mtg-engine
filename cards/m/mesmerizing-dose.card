@@ -1,0 +1,8 @@
+card "Mesmerizing Dose" {
+  oracle_id 195ab0c7-0848-4803-a299-9155e1f56a85
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature then proliferate
+  static enchanted: has doesn't untap
+}

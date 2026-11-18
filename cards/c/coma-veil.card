@@ -1,0 +1,7 @@
+card "Coma Veil" {
+  oracle_id c062bd12-34cf-4177-92d4-8ce91206989d
+  cost {4}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has doesn't untap
+}

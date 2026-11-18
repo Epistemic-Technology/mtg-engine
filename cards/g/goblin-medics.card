@@ -1,0 +1,7 @@
+card "Goblin Medics" {
+  oracle_id 457bee4c-2332-440c-9336-36f6a69614f9
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  triggered whenever this becomes tapped: deal 1 damage to any target
+}

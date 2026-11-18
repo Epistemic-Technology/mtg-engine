@@ -1,0 +1,8 @@
+card "Emissary of the Sleepless" {
+  oracle_id f21bbacb-0436-46fa-b361-582b766d3964
+  cost {4}{W}
+  type Creature — Spirit
+  pt 2/4
+  keywords flying
+  triggered when this enters if creature died this turn: create 1 "1/1 white Spirit creature with flying"
+}

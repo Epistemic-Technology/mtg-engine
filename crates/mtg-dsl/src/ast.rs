@@ -300,6 +300,9 @@ pub enum Ability {
         effects: Vec<Sentence>,
     },
     Modal(Vec<Mode>),
+    /// `choose one or both { mode: ... mode: ... }` (CR 700.2): two modes,
+    /// either or both.
+    ModalBoth(Vec<Mode>),
     Activated {
         cost: Cost,
         targets: Vec<Target>,
@@ -312,7 +315,7 @@ pub enum Ability {
     },
     Triggered {
         trigger: Trigger,
-        condition: Option<Condition>,
+        condition: Option<TrigCond>,
         targets: Vec<Target>,
         effects: Vec<Sentence>,
     },
@@ -356,6 +359,16 @@ pub enum Ability {
     /// A keyword ability with a number or cost, printed as the keyword
     /// ("Bushido 2", "Echo {2}{R}") and compiled to what it stands for.
     Mechanic(Mechanic),
+    /// `enters tapped unless you control planeswalker`: "This land enters
+    /// tapped unless you control a planeswalker." (CR 614.1d)
+    EntersTappedUnless(StaticCond),
+    /// `can't attack unless defending player controls Island`, `can't
+    /// block unless ...`, `can't attack or block unless ...`.
+    AttackUnless {
+        cond: StaticCond,
+        attack: bool,
+        block: bool,
+    },
     /// `hand size none`, `hand size +1`, `hand size opponents -1`: "You
     /// have no maximum hand size.", "Your maximum hand size is increased
     /// by one.", "Each opponent's maximum hand size is reduced by one."
@@ -369,6 +382,15 @@ pub enum Ability {
         label: String,
         ability: Box<Ability>,
     },
+}
+
+/// An intervening "if" (CR 603.4): one of the engine's trigger conditions,
+/// or a static condition ("if you control an artifact").
+#[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::large_enum_variant)]
+pub enum TrigCond {
+    Core(Condition),
+    Static(StaticCond),
 }
 
 /// Keyword abilities with a parameter (CR 702).
@@ -441,6 +463,26 @@ pub enum StaticCond {
     YourLife {
         n: i32,
         at_least: bool,
+    },
+    /// `player life 13 or less`: "a player has 13 or less life".
+    AnyPlayerLifeAtMost(i32),
+    /// `defending player controls Island`: "defending player controls an
+    /// Island".
+    DefenderControls {
+        filter: Filter,
+        at_least: u32,
+    },
+    /// `you control no untapped land`.
+    YouControlNone(Filter),
+    /// `attacked this turn` (raid): "you attacked this turn".
+    AttackedThisTurn,
+    /// `creature died this turn` (morbid).
+    CreatureDiedThisTurn,
+    /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
+    /// less`: "you have no cards in hand".
+    CardsInHand {
+        n: u32,
+        at_most: bool,
     },
 }
 
@@ -562,6 +604,26 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
+    /// `whenever this becomes targeted`: printed "Whenever" (most
+    /// creatures) where `when ...` prints "When".
+    BecomesTargetWhenever(TriggerObj),
+    BecomesTapped(TriggerObj),
+    BecomesUntapped(TriggerObj),
+    /// `whenever this is dealt damage`.
+    DealtDamage(TriggerObj),
+    /// `whenever this deals damage to creature`, `... to player`, `... to
+    /// opponent`, `... deals combat damage to creature`.
+    DealsDamage {
+        obj: TriggerObj,
+        to: mtg_core::card::DamageTo,
+        combat: bool,
+    },
+    /// `whenever you cast artifact spell`, `whenever a player casts
+    /// multicolored spell`.
+    CastsFiltered {
+        whose: Who,
+        filter: Filter,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -644,6 +706,9 @@ pub enum Recipient {
     CreatedObject,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
+    /// `enchanted creature`, `equipped creature`: what the source is
+    /// attached to.
+    Attached,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -886,6 +951,24 @@ pub enum Effect {
     },
     /// Echo's bookkeeping (from its expansion).
     ClearEcho,
+    /// `choose one { mode: ... }` as a triggered ability's effect: "When
+    /// this creature enters, choose one —" (CR 603.3c).
+    Modes(Vec<Mode>),
+    /// `target 1 doesn't untap next untap step`: "It doesn't untap during
+    /// its controller's next untap step."
+    SkipNextUntap {
+        to: Recipient,
+    },
+    /// `switch pt of target creature`: "Switch target creature's power
+    /// and toughness until end of turn."
+    SwitchPt {
+        to: Recipient,
+    },
+    /// `put land card from hand onto battlefield [tapped]`.
+    PutFromHand {
+        filter: Filter,
+        tapped: bool,
+    },
     /// `each opponent gets 1 poison counter`.
     AddPoison {
         count: Num,

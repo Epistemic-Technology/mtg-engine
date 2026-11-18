@@ -1,0 +1,10 @@
+card "Defiant Ogre" {
+  oracle_id db849660-1ad4-4af4-8822-40ba6c0b6d73
+  cost {5}{R}
+  type Creature — Ogre Warrior
+  pt 3/5
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: destroy target artifact
+  }
+}

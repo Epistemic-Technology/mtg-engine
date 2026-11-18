@@ -1,0 +1,7 @@
+card "Deep-Sea Terror" {
+  oracle_id 36775412-0280-4acc-bae8-3ea5d4e341be
+  cost {4}{U}{U}
+  type Creature — Serpent
+  pt 6/6
+  can't attack unless 7 cards in your graveyard
+}

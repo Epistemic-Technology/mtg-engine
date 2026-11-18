@@ -1,0 +1,6 @@
+card "Strangled Cemetery" {
+  oracle_id 3a5b3405-a1e3-4aad-ab4e-1b8db2d1f3a8
+  type Land
+  enters tapped unless player life 13 or less
+  mana {B} or {G}
+}

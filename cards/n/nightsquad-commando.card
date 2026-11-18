@@ -1,0 +1,7 @@
+card "Nightsquad Commando" {
+  oracle_id 04cffc41-05da-45fb-82da-2c4d4108c7e1
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered when this enters if attacked this turn: create 1 "1/1 white Human Soldier creature"
+}

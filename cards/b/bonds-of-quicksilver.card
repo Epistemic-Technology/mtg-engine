@@ -1,0 +1,8 @@
+card "Bonds of Quicksilver" {
+  oracle_id 03ce87f1-cdda-4121-8c0a-988642053055
+  cost {3}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has doesn't untap
+}

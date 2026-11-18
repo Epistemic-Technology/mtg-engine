@@ -423,6 +423,8 @@ impl GameState {
             x_values: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
+            attacked_this_turn: 0,
+            creatures_died_this_turn: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
             starting_player,
@@ -1267,6 +1269,19 @@ impl GameState {
     /// The casting state after the mode (if any) is chosen: X if the cost
     /// has one, else targets.
     fn after_mode(&self, spell: ObjId) -> Flow {
+        // A modal triggered ability goes on to its mode's targets.
+        if self.objects[spell].kind == ObjKind::Ability {
+            return if self.targets_of(spell).is_empty() {
+                Flow::Priority
+            } else {
+                Flow::Casting {
+                    spell,
+                    next_target: 0,
+                    sacrifice: None,
+                    discard: None,
+                }
+            };
+        }
         // CR 601.2b: the kicker decision comes before X.
         if self.kicker_payable(spell) {
             Flow::ChoosingKicker { spell }
@@ -1330,7 +1345,15 @@ impl GameState {
                 // CR 502.2–502.3: untap all permanents of the active player.
                 let perms: Vec<ObjId> = self.permanents_of(active).collect();
                 for id in perms {
-                    self.objects[id].controlled_since_turn_start = true;
+                    let o = &mut self.objects[id];
+                    o.controlled_since_turn_start = true;
+                    if std::mem::take(&mut o.skip_untap)
+                        || self
+                            .characteristics(id)
+                            .is_some_and(|c| c.has(Keyword::DoesntUntap))
+                    {
+                        continue;
+                    }
                     self.untap(id);
                 }
                 self.player_mut(active).lands_played_this_turn = 0;
@@ -1515,6 +1538,8 @@ impl GameState {
             self.activated_once.clear();
             self.turn_number += 1;
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
+            self.attacked_this_turn = 0;
+            self.creatures_died_this_turn = 0;
             self.active_player = self.next_player_in_game(self.active_player);
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.

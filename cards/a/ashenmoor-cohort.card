@@ -1,0 +1,7 @@
+card "Ashenmoor Cohort" {
+  oracle_id c627f1a8-9a57-4eb9-a8a5-2c285446fe97
+  cost {5}{B}
+  type Creature — Elemental Warrior
+  pt 4/3
+  static this: +1/+1 as long as you control other black creature
+}

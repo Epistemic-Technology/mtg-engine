@@ -1,0 +1,7 @@
+card "Glade Gnarr" {
+  oracle_id 1a42fd1d-a2c3-40c4-8c34-7a3559aa9caf
+  cost {5}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered whenever a player casts blue spell: this gets +2/+2
+}

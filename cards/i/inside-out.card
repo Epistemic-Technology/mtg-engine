@@ -1,0 +1,9 @@
+card "Inside Out" {
+  oracle_id 623d9db1-a3af-4a1c-9643-975de364e073
+  cost {1}{U/R}
+  type Instant
+  spell {
+    switch pt of target creature
+    draw 1 cards
+  }
+}

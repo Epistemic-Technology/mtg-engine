@@ -1,0 +1,7 @@
+card "Llanowar Scout" {
+  oracle_id 3bdc9211-8eff-4b30-8d6f-d26f4087f77f
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 1/3
+  activated {T}: you may put land card from hand onto battlefield
+}

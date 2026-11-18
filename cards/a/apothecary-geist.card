@@ -1,0 +1,8 @@
+card "Apothecary Geist" {
+  oracle_id 3420da71-0af4-46b4-a994-91a82332d0fb
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/3
+  keywords flying
+  triggered when this enters if you control other Spirit: you gains 3 life
+}

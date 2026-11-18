@@ -1,0 +1,7 @@
+card "Deathmask Nezumi" {
+  oracle_id fede7174-261c-4724-b6b0-f2a71f8ff53f
+  cost {2}{B}
+  type Creature — Rat Shaman
+  pt 2/2
+  static as long as hand 7 or more, this: +2/+1, has fear
+}

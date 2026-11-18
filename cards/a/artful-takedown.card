@@ -1,0 +1,9 @@
+card "Artful Takedown" {
+  oracle_id edc193bf-2987-4c7b-9cf3-69089ff13764
+  cost {2}{U}{B}
+  type Instant
+  choose one or both {
+    mode: tap target creature
+    mode: target creature gets -2/-4
+  }
+}

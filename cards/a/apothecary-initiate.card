@@ -1,0 +1,7 @@
+card "Apothecary Initiate" {
+  oracle_id a74d80ec-9f42-418d-ab98-897acc23c319
+  cost {W}
+  type Creature — Kithkin Cleric
+  pt 1/1
+  triggered whenever a player casts white spell: you may pay {1}; if you do, you gains 1 life
+}

@@ -1,0 +1,8 @@
+card "Mercurial Kite" {
+  oracle_id 92f2a27d-3ec6-445c-9962-96b099f793ee
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered whenever this deals combat damage to creature: tap that creature; that creature doesn't untap next untap step
+}

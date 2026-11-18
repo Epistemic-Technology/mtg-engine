@@ -1,0 +1,7 @@
+card "Myrsmith" {
+  oracle_id 7fc3798a-3907-4f50-98a1-25b8e1977197
+  cost {1}{W}
+  type Creature — Human Artificer
+  pt 2/1
+  triggered whenever you cast artifact spell: you may pay {1}; if you do, create 1 "1/1 colorless Myr artifact creature"
+}

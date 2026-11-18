@@ -1,0 +1,9 @@
+card "Blessing of Leeches" {
+  oracle_id 923b725a-e189-4b61-b01a-c5056f1328ba
+  cost {2}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered at beginning of your upkeep: you loses 1 life
+  activated {0}: regenerate enchanted creature
+}

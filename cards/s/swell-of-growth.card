@@ -1,0 +1,6 @@
+card "Swell of Growth" {
+  oracle_id e47e0b81-0f0c-4e52-bc58-16af19b0dfe0
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2; you may put land card from hand onto battlefield
+}

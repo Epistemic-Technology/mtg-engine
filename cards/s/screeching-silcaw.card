@@ -1,0 +1,8 @@
+card "Screeching Silcaw" {
+  oracle_id 7a1a4fe7-6574-4242-ae6f-108c1b9a5635
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/2
+  keywords flying
+  label "Metalcraft" triggered whenever this deals combat damage to a player if you control 3 artifact: that player mills 4 cards
+}

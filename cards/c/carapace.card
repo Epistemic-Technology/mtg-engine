@@ -1,0 +1,8 @@
+card "Carapace" {
+  oracle_id b893b554-9156-4d79-aca8-6e09c523760b
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +0/+2
+  activated sacrifice this: regenerate enchanted creature
+}

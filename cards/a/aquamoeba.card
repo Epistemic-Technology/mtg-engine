@@ -1,0 +1,7 @@
+card "Aquamoeba" {
+  oracle_id 55de434c-0fb9-4127-81b6-47c1c0b088fe
+  cost {1}{U}
+  type Creature — Elemental Beast
+  pt 1/3
+  activated discard 1 card: switch pt of this
+}

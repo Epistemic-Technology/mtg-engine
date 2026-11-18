@@ -1,0 +1,8 @@
+card "Malfunction" {
+  oracle_id d2f98983-f395-4166-aa5a-309b4769baab
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  triggered when this enters: tap enchanted permanent
+  static enchanted: has doesn't untap
+}

@@ -1,0 +1,7 @@
+card "Wanderbrine Preacher" {
+  oracle_id 4b4dcdb1-0017-494f-8d83-6706b188e575
+  cost {1}{W}
+  type Creature — Merfolk Cleric
+  pt 2/2
+  triggered whenever this becomes tapped: you gains 2 life
+}

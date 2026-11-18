@@ -1,0 +1,7 @@
+card "Marsh Viper" {
+  oracle_id 5249df56-7571-46c0-882e-cf88e452fb4d
+  cost {3}{G}
+  type Creature — Snake
+  pt 1/2
+  triggered whenever this deals damage to player: that player gets 2 poison counters
+}

@@ -1,0 +1,7 @@
+card "Forced Adaptation" {
+  oracle_id 1c859c97-74df-4360-baf8-0f79eae97c45
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of your upkeep: put 1 +1/+1 counters on enchanted creature
+}

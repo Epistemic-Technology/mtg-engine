@@ -1,0 +1,7 @@
+card "Volatile Wanderglyph" {
+  oracle_id ebc3ca0f-35eb-4606-90ab-eb64556f81fe
+  cost {1}{R}
+  type Artifact Creature — Golem
+  pt 2/2
+  triggered whenever this becomes tapped: you may discard 1 cards; if you do, draw 1 cards
+}

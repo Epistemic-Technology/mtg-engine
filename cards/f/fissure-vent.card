@@ -1,0 +1,9 @@
+card "Fissure Vent" {
+  oracle_id f5bac25d-72e9-4655-8a04-3646fc10be27
+  cost {3}{R}{R}
+  type Sorcery
+  choose one or both {
+    mode: destroy target artifact
+    mode: destroy target nonbasic land
+  }
+}

@@ -1,0 +1,7 @@
+card "Torture" {
+  oracle_id 389b6d77-47ab-43a3-99d1-dcc762939cc4
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  activated {1}{B}: put 1 -1/-1 counters on enchanted creature
+}

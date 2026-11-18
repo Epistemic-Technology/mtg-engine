@@ -1,0 +1,11 @@
+card "Glamermite" {
+  oracle_id a7b0d897-38c0-4f90-81e8-3c5b8d31a607
+  cost {2}{U}
+  type Creature — Faerie Rogue
+  pt 2/2
+  keywords flash, flying
+  triggered when this enters: choose one {
+    mode: tap target creature
+    mode: untap target creature
+  }
+}

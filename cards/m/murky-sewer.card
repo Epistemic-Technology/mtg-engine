@@ -1,0 +1,6 @@
+card "Murky Sewer" {
+  oracle_id c2cdefeb-3176-4faf-be54-a62d31f777a5
+  type Land
+  enters tapped unless player life 13 or less
+  mana {U} or {B}
+}

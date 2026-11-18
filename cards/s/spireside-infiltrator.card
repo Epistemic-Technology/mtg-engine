@@ -1,0 +1,7 @@
+card "Spireside Infiltrator" {
+  oracle_id f46e9fa0-2ed7-4a94-8ad4-031e87a6da45
+  cost {2}{R}
+  type Creature — Human Rogue
+  pt 3/2
+  triggered whenever this becomes tapped: deal 1 damage to each opponent
+}

@@ -1,0 +1,8 @@
+card "Calcite Snapper" {
+  oracle_id 36593200-e53c-46e4-a04e-8deec8273c65
+  cost {1}{U}{U}
+  type Creature — Turtle
+  pt 1/4
+  keywords shroud
+  label "Landfall" triggered whenever land you control enters: you may switch pt of this
+}

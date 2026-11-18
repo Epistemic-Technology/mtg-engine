@@ -1,0 +1,7 @@
+card "Lamplighter of Selhoff" {
+  oracle_id a88c5540-a242-49bc-a725-39b9fda085c3
+  cost {4}{U}
+  type Creature — Zombie Horror
+  pt 3/5
+  triggered when this enters if you control other Zombie: you may draw 1 cards; if you do, discard 1 cards
+}

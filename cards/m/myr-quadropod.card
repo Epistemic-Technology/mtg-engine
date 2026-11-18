@@ -1,0 +1,7 @@
+card "Myr Quadropod" {
+  oracle_id f53732d3-d317-4042-a0ad-1a99c7ffc94f
+  cost {4}
+  type Artifact Creature — Myr
+  pt 1/4
+  activated {3}: switch pt of this
+}

@@ -1,0 +1,6 @@
+card "Etched Cornfield" {
+  oracle_id 6ccca5c2-66c3-495a-8d9e-1a9805569e52
+  type Land
+  enters tapped unless player life 13 or less
+  mana {G} or {W}
+}

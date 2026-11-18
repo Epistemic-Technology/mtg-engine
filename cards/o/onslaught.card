@@ -1,0 +1,6 @@
+card "Onslaught" {
+  oracle_id ae9ca82c-e07e-4a41-a387-0ef7d6df14b6
+  cost {R}
+  type Enchantment
+  triggered whenever you cast creature spell: tap target creature
+}

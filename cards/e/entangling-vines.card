@@ -1,0 +1,7 @@
+card "Entangling Vines" {
+  oracle_id 51e7405e-a714-4c76-8913-10d626d2361e
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant tapped creature
+  static enchanted: has doesn't untap
+}

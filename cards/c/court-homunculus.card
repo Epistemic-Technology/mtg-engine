@@ -1,0 +1,7 @@
+card "Court Homunculus" {
+  oracle_id b597e801-2648-48b9-8a21-02baa13e37af
+  cost {W}
+  type Artifact Creature — Homunculus
+  pt 1/1
+  static this: +1/+1 as long as you control other artifact
+}

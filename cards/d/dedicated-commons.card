@@ -1,0 +1,6 @@
+card "Dedicated Commons" {
+  oracle_id d4e0749a-e179-4c19-8536-bf8f1a198549
+  type Land
+  enters tapped unless you control planeswalker
+  mana {R} or {W}
+}
