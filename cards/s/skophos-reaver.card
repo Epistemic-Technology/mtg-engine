@@ -1,0 +1,8 @@
+card "Skophos Reaver" {
+  oracle_id 4bc0bdd5-32da-46df-b624-29a709efc676
+  cost {2}{R}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  static during your turn, this: +2/+0
+  madness {1}{R}
+}

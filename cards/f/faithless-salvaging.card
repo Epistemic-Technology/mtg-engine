@@ -1,0 +1,7 @@
+card "Faithless Salvaging" {
+  oracle_id 0366ccfd-c717-4ea2-8176-86e184f920f4
+  cost {1}{R}
+  type Instant
+  keywords rebound
+  spell: discard 1 cards then draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Deny Reality" {
+  oracle_id f9e31993-bfe1-46fb-8a32-418e97f9cfe1
+  cost {3}{U}{B}
+  type Sorcery
+  keywords cascade
+  spell: return target permanent to hand
+}

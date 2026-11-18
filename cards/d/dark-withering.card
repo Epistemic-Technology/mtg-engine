@@ -1,0 +1,7 @@
+card "Dark Withering" {
+  oracle_id ac2720d2-b010-4fa9-8c94-b13680b75aac
+  cost {4}{B}{B}
+  type Instant
+  spell: destroy target nonblack creature
+  madness {B}
+}

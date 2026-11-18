@@ -72,6 +72,15 @@ impl GameState {
                 });
             }
         }
+        // CR 702.62a: each suspended card of the active player's at their
+        // upkeep.
+        if let Event::StepBegin {
+            step: crate::turn::Step::Upkeep,
+        } = event
+            && self.suspended_count > 0
+        {
+            self.suspend_triggers(&mut fired);
+        }
         // CR 603.7: delayed triggered abilities, each once.
         if let Event::StepBegin { step } = event
             && !self.delayed_triggers.is_empty()
@@ -119,6 +128,29 @@ impl GameState {
         }
     }
 
+    #[cold]
+    #[inline(never)]
+    fn suspend_triggers(&self, fired: &mut SmallVec<[PendingTrigger; 2]>) {
+        let active = self.active_player;
+        let ability = self.pool.builtin(crate::card::Builtin::SuspendUpkeep);
+        for id in &self.player(active).exile {
+            let o = &self.objects[*id];
+            if o.alt == crate::state::AltCast::Suspended {
+                fired.push(PendingTrigger {
+                    controller: active,
+                    ability: StackAbility {
+                        ability,
+                        source: *id,
+                        def: o.def,
+                        trigger_obj: None,
+                        trigger_player: None,
+                    },
+                    timestamp: 0,
+                });
+            }
+        }
+    }
+
     /// Cheap pre-check: could anything have a triggered ability that sees
     /// this event?
     fn any_trigger_sources(&self, event: &Event) -> bool {
@@ -130,7 +162,11 @@ impl GameState {
                 .count(),
             "trigger source count out of sync with the battlefield"
         );
-        if self.trigger_sources > 0 || !self.delayed_triggers.is_empty() || self.grants_exist() {
+        if self.trigger_sources > 0
+            || !self.delayed_triggers.is_empty()
+            || self.suspended_count > 0
+            || self.grants_exist()
+        {
             return true;
         }
         if let Some(lb) = &self.lookback
@@ -508,6 +544,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            alt: crate::state::AltCast::None,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),

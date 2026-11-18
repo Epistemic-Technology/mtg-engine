@@ -1,0 +1,7 @@
+card "Mammoth Growth" {
+  oracle_id bd433a27-1f3f-4d69-8b7e-97239fdf165b
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +4/+4
+  foretell {G}
+}

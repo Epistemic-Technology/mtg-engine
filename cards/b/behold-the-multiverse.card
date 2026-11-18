@@ -1,0 +1,7 @@
+card "Behold the Multiverse" {
+  oracle_id d7d2f701-77df-4169-bf98-0d51d6886e9b
+  cost {3}{U}
+  type Instant
+  spell: scry 2 then draw 2 cards
+  foretell {1}{U}
+}

@@ -1,0 +1,8 @@
+card "Errant Ephemeron" {
+  oracle_id c77b89ec-4514-4e62-a508-2012f38a3e15
+  cost {6}{U}
+  type Creature — Illusion
+  pt 4/4
+  keywords flying
+  suspend 4 {1}{U}
+}

@@ -1,0 +1,7 @@
+card "Virulent Swipe" {
+  oracle_id 77f53f6a-36ab-43d1-b547-4578fd724864
+  cost {B}
+  type Instant
+  keywords rebound
+  spell: target creature gets +2/+0 and gains deathtouch
+}

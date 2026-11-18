@@ -14,7 +14,7 @@ use mtg_core::turn::Step;
 /// Steps of a turn (CR 500.1), one-hot.
 pub const STEPS: usize = 13;
 /// Decision kinds, one-hot (with room to grow without changing the layout).
-pub const DECISION_KINDS: usize = 24;
+pub const DECISION_KINDS: usize = 32;
 /// Option kinds, one-hot (likewise).
 pub const CHOICE_KINDS: usize = 40;
 /// Features per card slot.
@@ -76,10 +76,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Edict => 24,
         DecisionKind::Buyback { .. } => 25,
         DecisionKind::PutFromHand => 26,
+        DecisionKind::CastFromExile { .. } => 27,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 27] = [
+pub const DECISION_KIND_NAMES: [&str; 28] = [
     "mulligan",
     "bottom",
     "priority",
@@ -107,6 +108,7 @@ pub const DECISION_KIND_NAMES: [&str; 27] = [
     "edict",
     "buyback",
     "put_from_hand",
+    "cast_from_exile",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -148,10 +150,12 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastFaceDown(_) => 30,
         Choice::TurnFaceUp(_) => 31,
         Choice::CastEvoke(_) => 32,
+        Choice::Suspend(_) => 33,
+        Choice::Foretell(_) => 34,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 33] = [
+pub const CHOICE_KIND_NAMES: [&str; 35] = [
     "keep",
     "mulligan",
     "bottom",
@@ -185,6 +189,8 @@ pub const CHOICE_KIND_NAMES: [&str; 33] = [
     "cast_face_down",
     "turn_face_up",
     "cast_evoke",
+    "suspend",
+    "foretell",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -330,7 +336,9 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::AddAttacker(id)
             | Choice::Sacrifice(id)
             | Choice::TurnFaceUp(id)
-            | Choice::CastEvoke(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            | Choice::CastEvoke(id)
+            | Choice::Suspend(id)
+            | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {
                 let cost = state
@@ -409,3 +417,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
     }
     (out, mask)
 }
+
+// Every kind needs its own one-hot slot.
+const _: () = assert!(DECISION_KIND_NAMES.len() <= DECISION_KINDS);
+const _: () = assert!(CHOICE_KIND_NAMES.len() <= CHOICE_KINDS);

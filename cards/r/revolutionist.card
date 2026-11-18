@@ -1,0 +1,8 @@
+card "Revolutionist" {
+  oracle_id d00607b1-77ce-4b89-ad04-763d0d390c5c
+  cost {5}{R}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered when this enters: return target instant or sorcery card from your graveyard to hand
+  madness {3}{R}
+}

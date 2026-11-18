@@ -472,6 +472,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
+            CoreEffect::CastExiled(_) | CoreEffect::SuspendTick | CoreEffect::Cascade => {
+                unreachable!("built-in abilities only")
+            }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),
             CoreEffect::Connive { what } => Effect::Connive {
                 what: Self::recipient(*what),

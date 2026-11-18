@@ -3119,6 +3119,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Crew(n) => format!("Crew {n}"),
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
             crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
+            crate::ast::Mechanic::Madness(c) => format!("Madness {c}"),
+            crate::ast::Mechanic::Foretell(c) => format!("Foretell {c}"),
+            crate::ast::Mechanic::Suspend(n, c) => format!("Suspend {n}\u{2014}{c}"),
             crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
@@ -3215,7 +3218,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
-        if alone_pair && *k == Keyword::CantBlockAlone {
+        if alone_pair && *k == Keyword::CantBlockAlone || *k == Keyword::Rebound {
             continue;
         }
         if alone_pair && *k == Keyword::CantAttackAlone {
@@ -3260,6 +3263,10 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         } else {
             lines.push(format!("Flashback—{}.", cost_text(fb, &mut ctx)));
         }
+    }
+    // Oracle prints rebound after the spell's effect.
+    if card.keywords.contains(&Keyword::Rebound) {
+        lines.push("Rebound".to_string());
     }
     lines.join("\n")
 }

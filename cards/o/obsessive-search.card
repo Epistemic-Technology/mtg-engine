@@ -1,0 +1,7 @@
+card "Obsessive Search" {
+  oracle_id 116ee88e-9e13-4f21-bc6a-efa994b5bf75
+  cost {U}
+  type Instant
+  spell: draw 1 cards
+  madness {U}
+}

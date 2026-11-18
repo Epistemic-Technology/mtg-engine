@@ -1,0 +1,9 @@
+card "Jarl of the Forsaken" {
+  oracle_id 294c1fed-9473-4fbe-b10e-71a7a432b98d
+  cost {3}{B}
+  type Creature — Zombie Cleric
+  pt 3/2
+  keywords flash
+  triggered when this enters: destroy target creature or planeswalker an opponent controls that was dealt damage this turn
+  foretell {1}{B}
+}

@@ -1,0 +1,8 @@
+card "Shade of Trokair" {
+  oracle_id 61834b70-1b3e-49e6-aaf4-ee7d72155e51
+  cost {3}{W}
+  type Creature — Shade
+  pt 1/2
+  activated {W}: this gets +1/+1
+  suspend 3 {W}
+}

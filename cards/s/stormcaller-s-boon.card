@@ -1,0 +1,7 @@
+card "Stormcaller's Boon" {
+  oracle_id 28ebe75a-cddd-469b-be8a-286776b83388
+  cost {2}{W}{U}
+  type Enchantment
+  activated sacrifice this: each creature you control gains flying
+  keyword cascade
+}

@@ -1,0 +1,8 @@
+card "Arrogant Wurm" {
+  oracle_id dc7f0c33-80ea-453e-a237-473f077f038e
+  cost {3}{G}{G}
+  type Creature — Wurm
+  pt 4/4
+  keywords trample
+  madness {2}{G}
+}

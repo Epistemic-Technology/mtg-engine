@@ -1,0 +1,7 @@
+card "Fiery Temper" {
+  oracle_id f07bd49d-8e71-4d56-be2a-638514011318
+  cost {1}{R}{R}
+  type Instant
+  spell: deal 3 damage to any target
+  madness {R}
+}

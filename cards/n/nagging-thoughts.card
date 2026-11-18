@@ -1,0 +1,7 @@
+card "Nagging Thoughts" {
+  oracle_id e74c70be-2b70-4b04-9909-161d6f41a156
+  cost {1}{U}
+  type Sorcery
+  spell: dig 2 take card rest graveyard
+  madness {1}{U}
+}

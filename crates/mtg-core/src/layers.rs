@@ -125,7 +125,10 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
     // Fast path: nothing can modify anything.
     let plain = |id: &ObjId| {
         let o = &state.objects[*id];
-        o.counters.is_empty() && o.except.is_none() && !state.pool.get(o.def).has_static()
+        o.counters.is_empty()
+            && o.except.is_none()
+            && o.alt != crate::state::AltCast::Suspend
+            && !state.pool.get(o.def).has_static()
     };
     let simple = state.effects.is_empty()
         && state.emblems.is_empty()
@@ -690,6 +693,10 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
                 {
                     work.chars[i].keywords = work.chars[i].keywords.with(kw);
                 }
+            }
+            // CR 702.62a: a creature cast by suspend has haste.
+            if o.alt == crate::state::AltCast::Suspend {
+                work.chars[i].keywords = work.chars[i].keywords.with(crate::card::Keyword::Haste);
             }
         }
         return;

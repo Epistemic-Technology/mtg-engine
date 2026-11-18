@@ -1,0 +1,7 @@
+card "Taigam's Strike" {
+  oracle_id f256c828-01d2-4077-823d-8dccd15120bd
+  cost {3}{U}
+  type Sorcery
+  keywords rebound
+  spell: target creature gets +2/+0 until end of turn and can't be blocked
+}

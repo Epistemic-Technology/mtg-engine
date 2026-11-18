@@ -1,0 +1,8 @@
+card "Knight of Old Benalia" {
+  oracle_id 673ddb72-d800-49c3-9ea9-ff74a0e20a97
+  cost {3}{W}{W}
+  type Creature — Human Knight
+  pt 3/3
+  suspend 5 {W}
+  triggered when this enters: each other creature you control gets +1/+1
+}

@@ -1,0 +1,7 @@
+card "Frantic Purification" {
+  oracle_id b4025136-3146-499a-8c17-ed9de548ab8d
+  cost {2}{W}
+  type Instant
+  spell: destroy target enchantment
+  madness {W}
+}

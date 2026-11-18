@@ -1,0 +1,7 @@
+card "Twins of Maurer Estate" {
+  oracle_id 378110e9-62d6-4dcf-a2e3-813081c82ec4
+  cost {4}{B}
+  type Creature — Vampire
+  pt 3/5
+  madness {2}{B}
+}

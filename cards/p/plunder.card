@@ -1,0 +1,7 @@
+card "Plunder" {
+  oracle_id 8a515f67-f868-494b-8bd7-de63fe14477b
+  cost {4}{R}
+  type Sorcery
+  spell: destroy target artifact or land
+  suspend 4 {1}{R}
+}

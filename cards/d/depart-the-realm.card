@@ -1,0 +1,7 @@
+card "Depart the Realm" {
+  oracle_id ae069ba4-8ca6-4eda-8f5d-fc82072d7d40
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand
+  foretell {U}
+}

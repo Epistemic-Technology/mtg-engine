@@ -1,0 +1,7 @@
+card "Alchemist's Greeting" {
+  oracle_id 9aaf0df7-5e2d-4f49-a8cb-66523be15ad6
+  cost {4}{R}
+  type Sorcery
+  spell: deal 4 damage to target creature
+  madness {1}{R}
+}

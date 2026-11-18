@@ -1,0 +1,7 @@
+card "Ojutai's Breath" {
+  oracle_id 2c09d296-5d15-449a-9b98-cf5056a17b91
+  cost {2}{U}
+  type Instant
+  keywords rebound
+  spell: tap target creature; target 1 doesn't untap next untap step
+}

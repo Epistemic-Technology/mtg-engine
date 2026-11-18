@@ -1,0 +1,7 @@
+card "Staggershock" {
+  oracle_id 056c3b7d-b603-40b8-8404-18c2eb7e7129
+  cost {2}{R}
+  type Instant
+  keywords rebound
+  spell: deal 2 damage to any target
+}

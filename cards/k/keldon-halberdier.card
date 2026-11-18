@@ -1,0 +1,8 @@
+card "Keldon Halberdier" {
+  oracle_id a1472a2d-e6f7-4d65-8bb2-4ecfae2d2764
+  cost {4}{R}
+  type Creature — Human Warrior
+  pt 4/1
+  keywords first strike
+  suspend 4 {R}
+}

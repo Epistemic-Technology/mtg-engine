@@ -2495,3 +2495,15 @@ created token, kicker before keywords) and model-author batch 7 (49 of
 falls). Corpus 7,728 cards: 5,709 Pauper (52.5%), 5,822 Modern (25.6%);
 2,149 scenarios pass, 1 skipped; fuzz 0 panics, 0 unfinished;
 throughput within 1% of the perf pass.
+
+Status 2026-11-18, slice 18 done: casting from exile. An object's
+`AltCast` says how a spell was cast (from hand, for its madness or
+foretell cost, free, by suspend) or what an exiled card waits for.
+"You may cast it" asks mid-resolution; a yes queues the card, and the
+cast begins as the resolution finishes, before anything else. Madness
+replaces the discard; suspend and foretell are special actions at
+priority; suspend's upkeep trigger, rebound's delayed trigger, and
+cascade's cast trigger are built-in abilities of the pool. Corpus 7,802
+cards: 5,782 Pauper (53.1%), 5,886 Modern (25.9%); 2,157 scenarios pass
+(8 new in scenarios/m5/exile-cast.scn), 1 skipped; fuzz 0 panics, 0
+unfinished; throughput 0.8% below slice 17 and 2% below the perf pass.

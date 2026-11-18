@@ -1,0 +1,8 @@
+card "Gods' Hall Guardian" {
+  oracle_id 7d22e071-4af4-4182-b387-ecca873d00cc
+  cost {5}{W}
+  type Creature — Cat
+  pt 3/6
+  keywords vigilance
+  foretell {3}{W}
+}

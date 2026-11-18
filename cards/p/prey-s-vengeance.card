@@ -1,0 +1,7 @@
+card "Prey's Vengeance" {
+  oracle_id 67f6e949-14d9-4253-9d18-4004cac2f900
+  cost {G}
+  type Instant
+  keywords rebound
+  spell: target creature gets +2/+2
+}

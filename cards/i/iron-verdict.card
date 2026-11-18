@@ -1,0 +1,7 @@
+card "Iron Verdict" {
+  oracle_id 70528ca9-195c-49a5-9d83-d51df3b0591f
+  cost {2}{W}
+  type Instant
+  spell: deal 5 damage to target tapped creature
+  foretell {W}
+}

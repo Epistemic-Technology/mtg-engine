@@ -1,0 +1,7 @@
+card "Ojutai's Summons" {
+  oracle_id def45f3a-dba0-4d08-b086-5236d6e0edb1
+  cost {3}{U}{U}
+  type Sorcery
+  keywords rebound
+  spell: create 1 "2/2 blue Djinn Monk creature with flying"
+}

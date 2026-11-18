@@ -1,0 +1,8 @@
+card "Petrified Plating" {
+  oracle_id 8ace3c6b-b2b3-4cd1-9828-dcb9ba5b71ae
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  suspend 2 {G}
+}

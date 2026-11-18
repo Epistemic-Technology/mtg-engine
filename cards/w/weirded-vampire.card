@@ -1,0 +1,7 @@
+card "Weirded Vampire" {
+  oracle_id 3af07cd3-36c3-4792-bc93-3ec82e1606bb
+  cost {3}{B}
+  type Creature — Vampire Horror
+  pt 3/3
+  madness {2}{B}
+}

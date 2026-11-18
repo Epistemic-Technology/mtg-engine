@@ -1,0 +1,8 @@
+card "Rift Sower" {
+  oracle_id f9deeea1-bf80-4832-aac3-373fc1f4b41d
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/3
+  mana any
+  suspend 2 {G}
+}

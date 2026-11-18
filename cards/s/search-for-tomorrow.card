@@ -1,0 +1,7 @@
+card "Search for Tomorrow" {
+  oracle_id 9cdc9f99-c6fa-40cd-90b0-e47d43a8cc3c
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield
+  suspend 2 {G}
+}

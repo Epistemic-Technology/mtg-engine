@@ -1,0 +1,7 @@
+card "Durkwood Baloth" {
+  oracle_id 1732cd31-1393-426f-a2fe-9b6b3f27136b
+  cost {4}{G}{G}
+  type Creature — Beast
+  pt 5/5
+  suspend 5 {G}
+}

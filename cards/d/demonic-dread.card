@@ -1,0 +1,7 @@
+card "Demonic Dread" {
+  oracle_id b090f1e5-1f7e-4492-9928-c5911a8ef95b
+  cost {1}{B}{R}
+  type Sorcery
+  keywords cascade
+  spell: target creature can't block
+}

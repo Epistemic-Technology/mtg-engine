@@ -1,0 +1,7 @@
+card "Murderous Compulsion" {
+  oracle_id 8fd8b4ef-69c8-43aa-9cbe-c46dba845ba8
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target tapped creature
+  madness {1}{B}
+}

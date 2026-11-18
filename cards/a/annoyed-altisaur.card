@@ -1,0 +1,7 @@
+card "Annoyed Altisaur" {
+  oracle_id a8135179-51ef-454e-98ff-69137440339f
+  cost {5}{G}{G}
+  type Creature — Dinosaur
+  pt 6/5
+  keywords reach, trample, cascade
+}

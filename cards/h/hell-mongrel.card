@@ -1,0 +1,8 @@
+card "Hell Mongrel" {
+  oracle_id 64aa732c-d939-48c7-b1d6-c73fa1eedb40
+  cost {3}{B}
+  type Creature — Nightmare Dog
+  pt 4/3
+  activated discard 1 card: this gets +1/+1
+  madness {2}{B}
+}

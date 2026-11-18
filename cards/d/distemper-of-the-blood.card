@@ -1,0 +1,7 @@
+card "Distemper of the Blood" {
+  oracle_id 4d3e7cde-a4ed-428f-bd37-c6dda2104221
+  cost {1}{R}
+  type Sorcery
+  spell: target creature gets +2/+2 and gains trample
+  madness {R}
+}

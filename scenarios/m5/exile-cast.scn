@@ -1,0 +1,90 @@
+# M5 slice 18: casting from exile: madness, foretell, suspend, rebound,
+# cascade.
+
+scenario "madness: a discarded Arrogant Wurm is cast for its madness cost" {
+  battlefield A: 2 "Mountain", 3 "Forest"
+  hand A: "Faithless Salvaging", "Arrogant Wurm"
+  library A: 3 "Island"
+  turn 1 A: cast "Faithless Salvaging"
+  turn 1 precombat_main A: discard "Arrogant Wurm"
+  run_to turn 1 end
+  assert battlefield A contains "Arrogant Wurm"
+}
+
+scenario "madness: without the mana, the card goes to the graveyard" {
+  battlefield A: 2 "Mountain"
+  hand A: "Faithless Salvaging", "Arrogant Wurm"
+  library A: 3 "Island"
+  turn 1 A: cast "Faithless Salvaging"
+  turn 1 precombat_main A: discard "Arrogant Wurm"
+  run_to turn 1 end
+  assert graveyard A contains "Arrogant Wurm"
+}
+
+scenario "foretell: exiled for {2}, cast a later turn for the foretell cost" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Depart the Realm"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: foretell "Depart the Realm"
+  turn 3 A: cast "Depart the Realm" targeting "Hill Giant"
+  run_to turn 3 end
+  assert hand B contains "Hill Giant"
+}
+
+scenario "foretell: not castable the turn it was foretold" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Depart the Realm"
+  turn 1 A: foretell "Depart the Realm"
+  illegal turn 1 postcombat_main A: cast "Depart the Realm" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "suspend: Rift Bolt resolves at the next upkeep for free" {
+  battlefield A: "Mountain"
+  hand A: "Rift Bolt"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: suspend "Rift Bolt"
+  turn 3 upkeep A: cast "Rift Bolt" targeting player B
+  run_to turn 3 precombat_main
+  assert life B 17
+  assert graveyard A contains "Rift Bolt"
+}
+
+scenario "rebound: Staggershock again at the next upkeep" {
+  battlefield A: 3 "Mountain"
+  hand A: "Staggershock"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Staggershock" targeting player B
+  turn 3 upkeep A: cast "Staggershock" targeting player B
+  run_to turn 3 precombat_main
+  assert life B 16
+  assert graveyard A contains "Staggershock"
+}
+
+scenario "cascade: Captured Sunlight casts the first cheaper nonland card" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Captured Sunlight"
+  library A: "Island", "Hill Giant", "Grizzly Bears", "Island"
+  turn 1 A: cast "Captured Sunlight"
+  run_to turn 1 end
+  assert life A 24
+  assert battlefield A contains "Grizzly Bears"
+  assert library A count 3
+}
+
+scenario "suspend: the creature has haste and attacks the turn it's cast" {
+  battlefield A: 2 "Island"
+  hand A: "Infiltrator il-Kor"
+  library A: 5 "Island"
+  library B: 5 "Island"
+  turn 1 A: suspend "Infiltrator il-Kor"
+  run_to turn 5 precombat_main
+  assert battlefield A contains "Infiltrator il-Kor"
+  assert has "Infiltrator il-Kor" haste
+}

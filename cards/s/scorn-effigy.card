@@ -1,0 +1,7 @@
+card "Scorn Effigy" {
+  oracle_id 9ef2a604-4053-4ce0-bc08-43d9cc0b15cc
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/3
+  foretell {0}
+}

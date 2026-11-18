@@ -117,6 +117,8 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
     (&["flanking"], Keyword::Flanking),
     (&["convoke"], Keyword::Convoke),
     (&["improvise"], Keyword::Improvise),
+    (&["cascade"], Keyword::Cascade),
+    (&["rebound"], Keyword::Rebound),
     (
         &[
             "doesn't",
@@ -866,7 +868,7 @@ impl P {
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise" | "evoke"
+            | "disguise" | "evoke" | "madness" | "foretell"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -879,10 +881,19 @@ impl P {
                     "buyback" => Mechanic::Buyback(c),
                     "morph" => Mechanic::Morph(c),
                     "evoke" => Mechanic::Evoke(c),
+                    "madness" => Mechanic::Madness(c),
+                    "foretell" => Mechanic::Foretell(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
                     _ => Mechanic::Outlast(c),
                 }))
+            }
+            "suspend" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
+                self.pos += 1;
+                let n = self.number()?;
+                let c = self.mana_cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Suspend(n, c)))
             }
             "affinity" => {
                 self.pos += 1;

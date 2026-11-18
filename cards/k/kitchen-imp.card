@@ -1,0 +1,8 @@
+card "Kitchen Imp" {
+  oracle_id eaa2ad31-065d-4aa3-a39c-5e491dd59022
+  cost {3}{B}
+  type Creature — Imp
+  pt 2/2
+  keywords flying, haste
+  madness {B}
+}

@@ -1,0 +1,7 @@
+token "2/2 blue Djinn Monk creature with flying" {
+  name "Djinn Monk"
+  type Creature — Djinn Monk
+  pt 2/2
+  color blue
+  keywords flying
+}

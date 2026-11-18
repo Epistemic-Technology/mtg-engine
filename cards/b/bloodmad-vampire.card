@@ -1,0 +1,8 @@
+card "Bloodmad Vampire" {
+  oracle_id c8a20fc7-025b-403a-b893-ff5efcbdc9d8
+  cost {2}{R}
+  type Creature — Vampire Berserker
+  pt 4/1
+  triggered whenever this deals combat damage to a player: put 1 +1/+1 counters on this
+  madness {1}{R}
+}

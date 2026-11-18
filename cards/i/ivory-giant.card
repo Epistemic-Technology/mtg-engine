@@ -1,0 +1,8 @@
+card "Ivory Giant" {
+  oracle_id 38132f50-9e2d-433b-9f2f-9bd0a7925b68
+  cost {5}{W}{W}
+  type Creature — Giant
+  pt 3/4
+  triggered when this enters: tap each nonwhite creature
+  suspend 5 {W}
+}

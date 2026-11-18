@@ -616,6 +616,8 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
         }
         "apply" => (Action::Apply(line.string()?), None),
         "unmorph" => (Action::TurnFaceUp(line.string()?), None),
+        "suspend" => (Action::Suspend(line.string()?), None),
+        "foretell" => (Action::Foretell(line.string()?), None),
         "wait" => (Action::Wait, Some(Step::PrecombatMain)),
         "activate" => {
             let source = line.string()?;

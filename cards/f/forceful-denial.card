@@ -1,0 +1,7 @@
+card "Forceful Denial" {
+  oracle_id 21d3db6b-58cc-435c-bfd6-8320f6efcbbe
+  cost {3}{U}{U}
+  type Instant
+  keywords cascade
+  spell: counter target spell
+}

@@ -1,0 +1,7 @@
+card "Alms of the Vein" {
+  oracle_id 2013a774-e6ab-4f2d-a84f-fd277a637d7e
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent loses 3 life and you gains 3 life
+  madness {B}
+}

@@ -1,0 +1,7 @@
+card "Just the Wind" {
+  oracle_id 761ebd6a-8f53-46fa-b3cd-16616b773007
+  cost {1}{U}
+  type Instant
+  spell: return target creature to hand
+  madness {U}
+}

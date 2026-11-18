@@ -136,6 +136,9 @@ pub struct GameObject {
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
     pub skip_untap: bool,
+    /// How the spell was cast, or what an exiled card is waiting for
+    /// (madness, foretell, suspend, rebound).
+    pub alt: AltCast,
     pub timestamp: Timestamp,
     /// Chosen targets, for a spell on the stack.
     pub targets: SmallVec<[Target; 2]>,
@@ -145,6 +148,33 @@ pub struct GameObject {
     pub attached_to: Option<ObjId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
+}
+
+/// How a spell was cast (on the stack; `Suspend` stays with the permanent
+/// for its haste), or what an exiled card waits for.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum AltCast {
+    #[default]
+    None,
+    /// Cast from its owner's hand (rebound, CR 702.88a).
+    Hand,
+    /// Cast for its madness cost (CR 702.35).
+    Madness,
+    /// Cast for its foretell cost (CR 702.143).
+    Foretell,
+    /// Cast without paying its mana cost (cascade, rebound).
+    Free,
+    /// Cast without paying its mana cost as the last time counter was
+    /// removed; a creature has haste (CR 702.62a).
+    Suspend,
+    /// In exile: discarded with madness, waiting for its trigger.
+    MadnessExiled,
+    /// In exile: foretold, castable on a later turn.
+    Foretold,
+    /// In exile: suspended, with time counters.
+    Suspended,
+    /// In exile: rebounding, castable at its owner's next upkeep.
+    Rebounding,
 }
 
 /// A spell's chosen mode (CR 700.2, the low six bits) and cast flags:
@@ -734,6 +764,13 @@ pub struct GameState {
     pub creatures_died_this_turn: u16,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
+    /// Cards to be cast as the current resolution finishes ("you may cast
+    /// it without paying its mana cost"): the caster, the card, how.
+    pub pending_casts: Vec<(PlayerId, ObjId, AltCast)>,
+    /// Cards foretold this turn (CR 702.143a: castable on a later turn).
+    pub foretold_this_turn: Vec<ObjId>,
+    /// Suspended cards in exile, so upkeeps skip the scan without any.
+    pub suspended_count: u32,
     pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -896,7 +933,8 @@ impl GameState {
                 || self.lookback.is_some()
                 || self.grant_sources > 0
                 || self.eot_grants > 0)
-            || (!self.delayed_triggers.is_empty() && matches!(event, Event::StepBegin { .. }))
+            || ((!self.delayed_triggers.is_empty() || self.suspended_count > 0)
+                && matches!(event, Event::StepBegin { .. }))
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
             self.detect_triggers(&event);

@@ -261,6 +261,43 @@ pub enum Keyword {
     /// Marks a card with evoke (CR 702.74): its "sacrifice it as it enters
     /// if evoked" trigger. Printed as "Evoke {cost}", not as a keyword.
     Evoke,
+    /// CR 702.85: as it's cast, exile cards from the top of the library
+    /// until a cheaper nonland card, which may be cast free.
+    Cascade,
+    /// CR 702.88: cast from hand, it's exiled as it resolves and may be
+    /// cast free at its owner's next upkeep.
+    Rebound,
+}
+
+/// The pool's built-in triggered abilities that aren't keywords on a
+/// permanent: they're queued by the engine directly.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Builtin {
+    /// CR 702.35a: "When this card is exiled this way, its owner may cast
+    /// it by paying its madness cost. If that player doesn't, they put
+    /// this card into their graveyard."
+    Madness,
+    /// CR 702.62a: "At the beginning of your upkeep, if this card is
+    /// suspended, remove a time counter from it", and as the last is
+    /// removed, its owner may cast it without paying its mana cost.
+    SuspendUpkeep,
+    /// CR 702.88a: "At the beginning of your next upkeep, you may cast
+    /// this card from exile without paying its mana cost."
+    Rebound,
+    /// CR 702.85a: "When you cast this spell, exile cards from the top of
+    /// your library until you exile a nonland card whose mana value is
+    /// less than this spell's. You may cast it without paying its mana
+    /// cost. Put the exiled cards on the bottom in a random order."
+    Cascade,
+}
+
+/// How an exiled card is cast by a built-in trigger.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ExileCast {
+    /// For its madness cost; if not cast, to the graveyard.
+    Madness,
+    /// Without paying its mana cost.
+    Free,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -344,7 +381,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 50] = [
+    pub const ALL: [Keyword; 52] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -395,6 +432,8 @@ impl Keyword {
         Keyword::Convoke,
         Keyword::Improvise,
         Keyword::Evoke,
+        Keyword::Cascade,
+        Keyword::Rebound,
     ];
 
     /// The keyword as Oracle prints it.
@@ -450,6 +489,8 @@ impl Keyword {
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
+            Keyword::Cascade => "cascade",
+            Keyword::Rebound => "rebound",
         }
     }
 
@@ -1861,6 +1902,13 @@ pub enum Effect {
     Connive {
         what: Recipient,
     },
+    /// The source card, in exile, may be cast (madness, rebound, suspend).
+    CastExiled(ExileCast),
+    /// Remove a time counter from the suspended source card; as the last
+    /// is removed, it may be cast without paying its mana cost.
+    SuspendTick,
+    /// Cascade from the source spell (CR 702.85a).
+    Cascade,
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
@@ -1918,6 +1966,9 @@ impl Effect {
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
                 | Effect::Connive { .. }
+                | Effect::CastExiled(_)
+                | Effect::SuspendTick
+                | Effect::Cascade
         )
     }
 }
@@ -2616,6 +2667,13 @@ pub struct CardDef {
     /// Evoke (CR 702.74): an alternative cost; an evoked permanent is
     /// sacrificed as it enters.
     pub evoke: Option<ManaCost>,
+    /// Madness (CR 702.35): cast for this cost as it's discarded.
+    pub madness: Option<ManaCost>,
+    /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
+    /// this cost.
+    pub foretell: Option<ManaCost>,
+    /// Suspend N—cost (CR 702.62).
+    pub suspend: Option<(u32, ManaCost)>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -3016,6 +3074,7 @@ pub struct CardPool {
     undying: AbilityId,
     flanking: AbilityId,
     evoke: AbilityId,
+    builtins: [AbilityId; 4],
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -3049,6 +3108,7 @@ impl CardPool {
             undying: AbilityId(0),
             flanking: AbilityId(0),
             evoke: AbilityId(0),
+            builtins: [AbilityId(0); 4],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
         };
@@ -3112,6 +3172,31 @@ impl CardPool {
                 what: Recipient::Source,
             }],
         }));
+        for (i, effect) in [
+            Effect::CastExiled(ExileCast::Madness),
+            Effect::SuspendTick,
+            Effect::CastExiled(ExileCast::Free),
+            Effect::Cascade,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let trigger = if i == 2 {
+                // Delayed: matched at the next upkeep.
+                TriggerSpec::BeginningOfStep {
+                    step: crate::turn::Step::Upkeep,
+                    whose: Who::You,
+                }
+            } else {
+                TriggerSpec::Enters(TriggerObj::This)
+            };
+            pool.builtins[i] = pool.register(AbilityDef::Triggered(TriggeredAbility {
+                trigger,
+                condition: None,
+                targets: Vec::new(),
+                effects: vec![effect],
+            }));
+        }
         // Named only for logs: a face-down permanent has no name.
         pool.face_down = pool.add(
             Builder::new("face-down creature", "")
@@ -3255,6 +3340,11 @@ impl CardPool {
         } else {
             self.face_down
         }
+    }
+
+    /// A built-in triggered ability (madness, suspend, rebound, cascade).
+    pub const fn builtin(&self, b: Builtin) -> AbilityId {
+        self.builtins[b as usize]
     }
 
     /// Whether a definition is a face-down one.
@@ -3450,6 +3540,9 @@ impl Builder {
             buyback: None,
             morph: None,
             evoke: None,
+            madness: None,
+            foretell: None,
+            suspend: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3561,6 +3654,27 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(cost);
+        self
+    }
+
+    /// Madness (CR 702.35).
+    #[must_use]
+    pub fn madness(mut self, cost: ManaCost) -> Self {
+        self.0.madness = Some(cost);
+        self
+    }
+
+    /// Foretell (CR 702.143).
+    #[must_use]
+    pub fn foretell(mut self, cost: ManaCost) -> Self {
+        self.0.foretell = Some(cost);
+        self
+    }
+
+    /// Suspend N—cost (CR 702.62).
+    #[must_use]
+    pub fn suspend(mut self, n: u32, cost: ManaCost) -> Self {
+        self.0.suspend = Some((n, cost));
         self
     }
 

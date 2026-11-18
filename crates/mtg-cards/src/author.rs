@@ -19,7 +19,9 @@ use crate::DataDir;
 use crate::scryfall::{self, Card as ScryCard};
 
 /// Keyword abilities the engine implements (CR 702), as Scryfall tags them.
-const KEYWORDS: [&str; 34] = [
+const KEYWORDS: [&str; 36] = [
+    "Cascade",
+    "Rebound",
     "Convoke",
     "Improvise",
     "Flanking",
@@ -57,7 +59,7 @@ const KEYWORDS: [&str; 34] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 51] = [
+const TEMPLATED_TAGS: [&str; 56] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -107,6 +109,11 @@ const TEMPLATED_TAGS: [&str; 51] = [
     "Manifest",
     "Crew",
     "Evoke",
+    "Madness",
+    "Foretell",
+    "Suspend",
+    "Cascade",
+    "Rebound",
     "Bloodthirst",
     "Adapt",
     "Connive",
@@ -2079,12 +2086,20 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^Suspend (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("suspend {} {}", cap(&c, 1), cap(&c, 2)));
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {

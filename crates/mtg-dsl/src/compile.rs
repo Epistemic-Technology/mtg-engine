@@ -192,6 +192,15 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Evoke(cost)) => {
                     b = b.evoke(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Madness(cost)) => {
+                    b = b.madness(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Foretell(cost)) => {
+                    b = b.foretell(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Suspend(n, cost)) => {
+                    b = b.suspend(*n, cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
                 }
@@ -270,6 +279,9 @@ impl Compiler<'_> {
                     | Ability::Mechanic(
                         Mechanic::Buyback(_)
                             | Mechanic::Evoke(_)
+                            | Mechanic::Madness(_)
+                            | Mechanic::Foretell(_)
+                            | Mechanic::Suspend(..)
                             | Mechanic::Morph(_)
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
@@ -1155,6 +1167,9 @@ impl Compiler<'_> {
                 }
                 Mechanic::Buyback(_)
                 | Mechanic::Evoke(_)
+                | Mechanic::Madness(_)
+                | Mechanic::Foretell(_)
+                | Mechanic::Suspend(..)
                 | Mechanic::Morph(_)
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_) => {
@@ -1333,6 +1348,9 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
         Mechanic::Toxic(_)
         | Mechanic::Bloodthirst(_)
         | Mechanic::Evoke(_)
+        | Mechanic::Madness(_)
+        | Mechanic::Foretell(_)
+        | Mechanic::Suspend(..)
         | Mechanic::Buyback(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)

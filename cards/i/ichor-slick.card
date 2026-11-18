@@ -1,0 +1,8 @@
+card "Ichor Slick" {
+  oracle_id 7a36fc2e-bb02-4222-a335-4c80e380e690
+  cost {2}{B}
+  type Sorcery
+  spell: target creature gets -3/-3
+  cycling {2}
+  madness {3}{B}
+}

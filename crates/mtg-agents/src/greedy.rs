@@ -238,6 +238,7 @@ impl GreedyAgent {
             | DecisionKind::OrderTriggers
             | DecisionKind::ChooseReplacement
             | DecisionKind::YouMay { .. }
+            | DecisionKind::CastFromExile { .. }
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
             | DecisionKind::ChooseColor

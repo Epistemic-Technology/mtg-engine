@@ -1,0 +1,7 @@
+card "Boarding Party" {
+  oracle_id ef69ce86-48ae-4d90-8e29-051583671321
+  cost {5}{R}
+  type Creature — Human Pirate
+  pt 6/3
+  keywords haste, cascade
+}

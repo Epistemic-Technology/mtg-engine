@@ -1,0 +1,8 @@
+card "Senseless Rage" {
+  oracle_id 5036fe35-43c6-45af-99d5-7b79ebcfc406
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  madness {1}{R}
+}

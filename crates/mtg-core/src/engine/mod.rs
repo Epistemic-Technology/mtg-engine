@@ -427,6 +427,9 @@ impl GameState {
             attacked_this_turn: 0,
             creatures_died_this_turn: 0,
             damaged_this_turn: 0,
+            pending_casts: Vec::new(),
+            foretold_this_turn: Vec::new(),
+            suspended_count: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
             starting_player,
@@ -549,6 +552,19 @@ impl GameState {
                 }
                 Flow::BeginStep => self.begin_step(),
                 Flow::Priority => {
+                    // Spells cast while an effect resolved ("you may cast
+                    // it without paying its mana cost") are cast now,
+                    // before anything else happens.
+                    if let Some((p, card, alt)) = self.pending_casts.pop() {
+                        if self
+                            .objects
+                            .get(card)
+                            .is_some_and(|o| o.zone == Zone::Exile)
+                        {
+                            self.begin_cast(p, card, alt);
+                        }
+                        continue;
+                    }
                     if self.sba_loop() {
                         continue; // game-over check first, then re-enter
                     }
@@ -1105,20 +1121,47 @@ impl GameState {
                 };
             }
             (Flow::Priority, Choice::Cast(id)) => {
-                self.consecutive_passes = 0;
                 // CR 702.34a: a card cast from the graveyard is cast with
                 // flashback.
-                let flashback = self.objects[id].zone == Zone::Graveyard;
-                let spell = self.move_object(id, Zone::Stack, true);
-                self.objects[spell].controller = player;
-                self.objects[spell].cast.set_flashback(flashback);
-                // CR 601.2b: modes are chosen before X, X before targets.
-                let def = self.pool.get(self.objects[spell].def);
-                self.flow = if def.modes().is_some() {
-                    Flow::ChoosingMode { spell }
-                } else {
-                    self.after_mode(spell)
+                let o = &self.objects[id];
+                let flashback = o.zone == Zone::Graveyard;
+                let alt = match (o.zone, o.alt) {
+                    (Zone::Hand, _) => crate::state::AltCast::Hand,
+                    (Zone::Exile, crate::state::AltCast::Foretold) => {
+                        crate::state::AltCast::Foretell
+                    }
+                    _ => crate::state::AltCast::None,
                 };
+                let spell = self.begin_cast(player, id, alt);
+                self.objects[spell].cast.set_flashback(flashback);
+            }
+            (Flow::Priority, Choice::Suspend(id)) => {
+                // CR 702.62a, 116.2f: a special action; the player keeps
+                // priority.
+                let def = self.pool.get(self.objects[id].def);
+                if let Some((n, cost)) = def.suspend.clone() {
+                    self.pay(player, &cost.requirements(0));
+                    let new = self.move_object(id, Zone::Exile, true);
+                    let o = &mut self.objects[new];
+                    o.alt = crate::state::AltCast::Suspended;
+                    o.add_counters(crate::card::CounterKind::Time, n);
+                    self.suspended_count += 1;
+                }
+                self.give_priority(player);
+            }
+            (Flow::Priority, Choice::Foretell(id)) => {
+                // CR 702.143a, 116.2h: a special action for {2}.
+                self.pay(
+                    player,
+                    &crate::mana::ManaCost::parse("{2}")
+                        .expect("a mana cost")
+                        .requirements(0),
+                );
+                let new = self.move_object(id, Zone::Exile, true);
+                self.objects[new].alt = crate::state::AltCast::Foretold;
+                self.player_mut(player).adventures_in_exile += 1;
+                self.foretold_this_turn.push(new);
+                self.give_priority(player);
             }
             (Flow::ChoosingMode { spell }, Choice::Mode(i)) => {
                 self.objects[spell]
@@ -1304,6 +1347,22 @@ impl GameState {
 
     /// The casting state after the mode (if any) is chosen: X if the cost
     /// has one, else targets.
+    /// CR 601.2a: the card moves to the stack, cast `alt`'s way; modes come
+    /// before X, X before targets (CR 601.2b).
+    fn begin_cast(&mut self, player: PlayerId, card: ObjId, alt: crate::state::AltCast) -> ObjId {
+        self.consecutive_passes = 0;
+        let spell = self.move_object(card, Zone::Stack, true);
+        self.objects[spell].controller = player;
+        self.objects[spell].alt = alt;
+        let def = self.pool.get(self.objects[spell].def);
+        self.flow = if def.modes().is_some() {
+            Flow::ChoosingMode { spell }
+        } else {
+            self.after_mode(spell)
+        };
+        spell
+    }
+
     fn after_mode(&self, spell: ObjId) -> Flow {
         // A modal triggered ability goes on to its mode's targets.
         if self.objects[spell].kind == ObjKind::Ability {
@@ -1603,6 +1662,7 @@ impl GameState {
             self.attacked_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.damaged_this_turn = 0;
+            self.foretold_this_turn.clear();
             self.eot_grants = 0;
             self.active_player = self.next_player_in_game(self.active_player);
             // "During your turn" static abilities (CR 611.3a) change with

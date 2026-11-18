@@ -11,7 +11,9 @@ use crate::card::CounterKind;
 use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{Affected, CastInfo, GameObject, GameState, LastKnown, ObjKind, Target, Zone};
+use crate::state::{
+    Affected, AltCast, CastInfo, GameObject, GameState, LastKnown, ObjKind, Target, Zone,
+};
 
 impl GameState {
     // ----- the event pipeline ------------------------------------------------------
@@ -77,6 +79,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            alt: AltCast::None,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -233,6 +236,15 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
             skip_untap: false,
+            // CR 702.62a: a creature cast by suspend has haste.
+            alt: if old.zone == Zone::Stack
+                && to == Zone::Battlefield
+                && old.alt == AltCast::Suspend
+            {
+                AltCast::Suspend
+            } else {
+                AltCast::None
+            },
             // CR 702.33c: a permanent spell's kicker was paid, so the
             // permanent was kicked.
             cast: if old.zone == Zone::Stack && to == Zone::Battlefield {
@@ -287,9 +299,13 @@ impl GameState {
                 self.player_mut(old.owner).flashback_in_graveyard += 1;
             }
         }
-        if old.zone == Zone::Exile && old.cast.adventure() {
+        if old.zone == Zone::Exile && (old.cast.adventure() || matches!(old.alt, AltCast::Foretold))
+        {
             let n = &mut self.player_mut(old.owner).adventures_in_exile;
             *n = n.saturating_sub(1);
+        }
+        if old.zone == Zone::Exile && old.alt == AltCast::Suspended {
+            self.suspended_count = self.suspended_count.saturating_sub(1);
         }
         if old.zone == Zone::Stack && !self.x_values.is_empty() {
             self.x_values.retain(|(s, _)| *s != id);
@@ -712,7 +728,44 @@ impl GameState {
     /// Discard a card from hand (CR 701.8).
     pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
         self.emit(Event::Discard { player: p, card });
+        // CR 702.35a: a card with madness is discarded into exile, and its
+        // trigger lets its owner cast it for the madness cost.
+        if self.pool.get(self.objects[card].def).madness.is_some() {
+            let new = self.move_object(card, Zone::Exile, true);
+            if let Some(o) = self.objects.get_mut(new)
+                && o.zone == Zone::Exile
+            {
+                o.alt = AltCast::MadnessExiled;
+                let def = o.def;
+                let ability = self.pool.builtin(crate::card::Builtin::Madness);
+                self.queue_builtin(p, ability, new, def);
+            }
+            return;
+        }
         self.move_object(card, Zone::Graveyard, true);
+    }
+
+    /// Puts one of the pool's built-in triggered abilities (madness,
+    /// suspend, cascade) among the pending triggers, from `source`.
+    pub(super) fn queue_builtin(
+        &mut self,
+        controller: PlayerId,
+        ability: crate::card::AbilityId,
+        source: ObjId,
+        def: CardRef,
+    ) {
+        let timestamp = self.tick();
+        self.pending_triggers.push(crate::state::PendingTrigger {
+            controller,
+            ability: crate::state::StackAbility {
+                ability,
+                source,
+                def,
+                trigger_obj: None,
+                trigger_player: None,
+            },
+            timestamp,
+        });
     }
 
     pub(super) fn remove_counters(&mut self, id: ObjId, kind: CounterKind, n: u32) {

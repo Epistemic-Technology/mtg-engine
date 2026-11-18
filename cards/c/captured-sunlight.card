@@ -1,0 +1,7 @@
+card "Captured Sunlight" {
+  oracle_id 937cb494-7dcb-4a40-b1e0-6e6b31f5c8a6
+  cost {2}{G}{W}
+  type Sorcery
+  keywords cascade
+  spell: you gains 4 life
+}

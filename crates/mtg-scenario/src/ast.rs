@@ -131,6 +131,10 @@ pub enum Action {
     },
     /// `unmorph "X"`: turn the face-down permanent that is card X face up.
     TurnFaceUp(String),
+    /// `suspend "X"`: suspend card X from the hand (a special action).
+    Suspend(String),
+    /// `foretell "X"`: foretell card X from the hand (a special action).
+    Foretell(String),
     /// `attack "X" [at <target>], ...`: attackers, each optionally with
     /// the player or planeswalker it attacks (CR 508.1a).
     Attack(Vec<(String, Option<TargetRef>)>),
@@ -203,6 +207,8 @@ impl Action {
             Action::Copy(_) => "copy",
             Action::Wait => "wait",
             Action::TurnFaceUp(_) => "unmorph",
+            Action::Suspend(_) => "suspend",
+            Action::Foretell(_) => "foretell",
         }
     }
 }

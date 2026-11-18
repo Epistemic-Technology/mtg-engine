@@ -1,0 +1,8 @@
+card "Basking Rootwalla" {
+  oracle_id b2ec080f-ad5d-4274-91e3-bc6ac89fc3e4
+  cost {G}
+  type Creature — Lizard
+  pt 1/1
+  activated {1}{G}, once: this gets +2/+2
+  madness {0}
+}

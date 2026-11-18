@@ -1,0 +1,7 @@
+card "Natural Reclamation" {
+  oracle_id 98266582-12fd-4a7b-a9bb-e9cc4370ed28
+  cost {4}{G}
+  type Instant
+  keywords cascade
+  spell: destroy target artifact or enchantment
+}

@@ -1,0 +1,7 @@
+card "Terminal Agony" {
+  oracle_id b69e68e7-0612-40f8-a40a-9c4e77653442
+  cost {2}{B}{R}
+  type Sorcery
+  spell: destroy target creature
+  madness {B}{R}
+}

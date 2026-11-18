@@ -1,0 +1,7 @@
+card "Mindstab" {
+  oracle_id 338c06ec-47b5-47e7-9fe1-39ff381b36a5
+  cost {5}{B}
+  type Sorcery
+  spell: target player discards 3 cards
+  suspend 4 {B}
+}

@@ -1,0 +1,8 @@
+card "Reckless Wurm" {
+  oracle_id c9159396-81d3-4f81-88b4-dda163ff4b74
+  cost {3}{R}{R}
+  type Creature — Wurm
+  pt 4/4
+  keywords trample
+  madness {2}{R}
+}

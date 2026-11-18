@@ -1,0 +1,8 @@
+card "Corpulent Corpse" {
+  oracle_id b3a84b75-a6a2-4521-a9f1-92596796c703
+  cost {5}{B}
+  type Creature — Zombie
+  pt 3/3
+  keywords fear
+  suspend 5 {B}
+}

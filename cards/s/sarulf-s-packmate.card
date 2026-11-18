@@ -1,0 +1,8 @@
+card "Sarulf's Packmate" {
+  oracle_id f32caf11-abc1-4cae-a311-10210176ea3a
+  cost {3}{G}
+  type Creature — Wolf
+  pt 3/3
+  triggered when this enters: draw 1 cards
+  foretell {1}{G}
+}

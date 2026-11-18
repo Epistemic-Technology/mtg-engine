@@ -1,0 +1,7 @@
+card "Rift Bolt" {
+  oracle_id 2b8afa9f-4236-4c02-a8d5-3c145caecfd6
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage to any target
+  suspend 1 {R}
+}

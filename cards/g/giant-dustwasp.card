@@ -1,0 +1,8 @@
+card "Giant Dustwasp" {
+  oracle_id 5f4e45c1-2bd2-4741-bb97-b6a324c574ba
+  cost {3}{G}{G}
+  type Creature — Insect
+  pt 3/3
+  keywords flying
+  suspend 4 {1}{G}
+}

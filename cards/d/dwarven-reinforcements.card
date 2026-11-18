@@ -1,0 +1,7 @@
+card "Dwarven Reinforcements" {
+  oracle_id b38c567e-fd79-4a74-ab5f-df4a6a8f7e00
+  cost {3}{R}
+  type Sorcery
+  spell: create 2 "2/1 red Dwarf Berserker creature"
+  foretell {1}{R}
+}

@@ -1,0 +1,7 @@
+card "Artful Maneuver" {
+  oracle_id 7b58920e-3e90-44ed-a0e9-4cb1b7359a5b
+  cost {1}{W}
+  type Instant
+  keywords rebound
+  spell: target creature gets +2/+2
+}

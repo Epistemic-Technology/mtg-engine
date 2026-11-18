@@ -74,6 +74,9 @@ pub enum DecisionKind {
     /// Which card from the hand to put onto the battlefield (offered as
     /// `Choice::Discard` options), or `Done` for none.
     PutFromHand,
+    /// Whether to cast an exiled card now (madness, suspend, rebound,
+    /// cascade): `Accept` casts it.
+    CastFromExile { card: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -168,6 +171,10 @@ pub enum Choice {
     },
     /// Cast a card for its evoke cost (CR 702.74a).
     CastEvoke(ObjId),
+    /// Suspend a card from hand (CR 702.62a), a special action.
+    Suspend(ObjId),
+    /// Foretell a card from hand (CR 702.143a), a special action.
+    Foretell(ObjId),
     /// Cast a card with morph or disguise face down as a 2/2 for {3}
     /// (CR 702.37c, 702.168).
     CastFaceDown(ObjId),
@@ -255,6 +262,8 @@ impl Choice {
             }
             Choice::X(n) => format!("X = {n}"),
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
+            Choice::Suspend(id) => format!("suspend {}", name(id)),
+            Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {
                 let card = state
                     .objects

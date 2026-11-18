@@ -1,0 +1,8 @@
+card "Viscerid Deepwalker" {
+  oracle_id 9dea848b-d758-46d0-829d-b096061fd460
+  cost {4}{U}
+  type Creature — Homarid Warrior
+  pt 2/3
+  activated {U}: this gets +1/+0
+  suspend 4 {U}
+}

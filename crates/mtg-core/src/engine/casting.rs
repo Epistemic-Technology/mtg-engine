@@ -11,8 +11,8 @@ use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Color, Mana, ManaRequirement};
 use crate::state::{
-    Affected, CastInfo, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState, ObjKind,
-    ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
+    Affected, AltCast, CastInfo, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState,
+    ObjKind, ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
 };
 
 impl GameState {
@@ -94,6 +94,9 @@ impl GameState {
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
             }
+            if def.suspend.is_some() || def.foretell.is_some() {
+                self.exile_actions(p, *id, sorcery_timing, &sources, &mut options);
+            }
         }
         // CR 116.2b: turning a face-down permanent face up.
         if self.face_down_count > 0 {
@@ -104,6 +107,20 @@ impl GameState {
         if ps.adventures_in_exile > 0 {
             for id in &ps.exile {
                 let o = &self.objects[*id];
+                // CR 702.143a: a foretold card, on a later turn, for its
+                // foretell cost.
+                if o.alt == AltCast::Foretold {
+                    let def = self.pool.get(o.def);
+                    let timing_ok =
+                        sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash);
+                    if timing_ok
+                        && !self.foretold_this_turn.contains(id)
+                        && self.exile_castable(p, *id, AltCast::Foretell)
+                    {
+                        options.push(Choice::Cast(*id));
+                    }
+                    continue;
+                }
                 if !o.cast.adventure() {
                     continue;
                 }
@@ -323,6 +340,42 @@ impl GameState {
             {
                 options.push(Choice::TurnFaceUp(id));
             }
+        }
+    }
+
+    /// Suspend (CR 702.62a: whenever the card could be cast) and foretell
+    /// (CR 702.143a: any time during its owner's turn) from the hand.
+    #[cold]
+    #[inline(never)]
+    fn exile_actions(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        options: &mut Vec<Choice>,
+    ) {
+        let ps = self.player(p);
+        let def = self.pool.get(self.objects[id].def);
+        if let Some((_, cost)) = &def.suspend
+            && (sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash))
+            && payment_plan_from(sources, &ps.mana_pool, &cost.requirements(0), ps.life).is_some()
+        {
+            options.push(Choice::Suspend(id));
+        }
+        if def.foretell.is_some()
+            && p == self.active_player
+            && payment_plan_from(
+                sources,
+                &ps.mana_pool,
+                &crate::mana::ManaCost::parse("{2}")
+                    .expect("a mana cost")
+                    .requirements(0),
+                ps.life,
+            )
+            .is_some()
+        {
+            options.push(Choice::Foretell(id));
         }
     }
 
@@ -586,6 +639,14 @@ impl GameState {
         let def = self.pool.get(o.def);
         let mut req = match (&def.flashback, o.cast.flashback()) {
             (Some(fb), true) => fb.mana.requirements(x),
+            // Cast without paying its mana cost: X is 0 (CR 107.3b).
+            _ if matches!(o.alt, AltCast::Free | AltCast::Suspend) => ManaRequirement::default(),
+            (_, false) if o.alt == AltCast::Madness && def.madness.is_some() => {
+                def.madness.as_ref().expect("checked").requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Foretell && def.foretell.is_some() => {
+                def.foretell.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.cast.evoked() && def.evoke.is_some() => {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
@@ -612,6 +673,97 @@ impl GameState {
             );
         }
         req
+    }
+
+    /// Whether `card` (exiled) could be cast `alt`'s way now: a nonland
+    /// card with targets for some mode, whose cost (if any) is payable.
+    fn exile_castable(&self, p: PlayerId, card: ObjId, alt: AltCast) -> bool {
+        let def = self.pool.get(self.objects[card].def);
+        if def.is_land() {
+            return false;
+        }
+        let targets_ok = match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(card))),
+            None => self.targets_available(p, def.cast_targets(), Some(card)),
+        };
+        if !targets_ok {
+            return false;
+        }
+        let cost = match alt {
+            AltCast::Madness => def.madness.as_ref(),
+            AltCast::Foretell => def.foretell.as_ref(),
+            _ => return true,
+        };
+        let Some(cost) = cost else {
+            return false;
+        };
+        let mut req = cost.requirements(0);
+        adjust_generic(
+            &mut req,
+            self.cost_delta(p, def, card, &self.cost_changers()),
+        );
+        self.payment_plan(p, &req).is_some()
+    }
+
+    /// "You may cast it": if `card` can be cast `alt`'s way, its owner
+    /// chooses; a yes casts it as the resolution finishes. Whether it will
+    /// be cast.
+    pub(super) fn offer_exile_cast(&mut self, card: ObjId, alt: AltCast) -> bool {
+        let p = self.objects[card].owner;
+        if !self.exile_castable(p, card, alt) {
+            return false;
+        }
+        let k = self.choose_mid(
+            p,
+            DecisionKind::CastFromExile { card },
+            vec![Choice::Accept, Choice::Decline],
+        );
+        if k == 0 {
+            self.pending_casts.push((p, card, alt));
+            true
+        } else {
+            false
+        }
+    }
+
+    /// CR 702.85a: exile cards from the top of the library until a nonland
+    /// card with lesser mana value; it may be cast free; the rest go to the
+    /// bottom in a random order.
+    fn cascade(&mut self, ctx: &EffectCtx) {
+        let p = ctx.controller;
+        let def = self
+            .objects
+            .get(ctx.source)
+            .map(|o| o.def)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
+        let Some(def) = def else {
+            return;
+        };
+        let mv = self.pool.get(def).mana_cost.mana_value();
+        let mut exiled: Vec<ObjId> = Vec::new();
+        let mut hit = None;
+        while let Some(top) = self.player(p).library.last().copied() {
+            let new = self.move_object(top, Zone::Exile, true);
+            let d = self.pool.get(self.objects[new].def);
+            if !d.is_land() && d.mana_cost.mana_value() < mv {
+                hit = Some(new);
+                break;
+            }
+            exiled.push(new);
+        }
+        if let Some(h) = hit
+            && !self.offer_exile_cast(h, AltCast::Free)
+        {
+            exiled.push(h);
+        }
+        rand::seq::SliceRandom::shuffle(exiled.as_mut_slice(), &mut self.rng);
+        for id in exiled {
+            if self.objects.get(id).is_some_and(|o| o.zone == Zone::Exile) {
+                self.move_object(id, Zone::Library, false);
+            }
+        }
     }
 
     /// CR 702.34a: a spell cast with flashback is exiled instead of going
@@ -776,6 +928,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            alt: crate::state::AltCast::None,
             timestamp,
             targets: SmallVec::new(),
             counters: SmallVec::new(),
@@ -820,6 +973,9 @@ impl GameState {
     /// increasing order.
     pub(super) fn x_options(&self, spell: ObjId) -> Vec<Choice> {
         const MAX_X: u32 = 30;
+        if matches!(self.objects[spell].alt, AltCast::Free | AltCast::Suspend) {
+            return vec![Choice::X(0)];
+        }
         let caster = self.objects[spell].controller;
         let sources = self.spell_sources(spell);
         let pool = self.player(caster).mana_pool;
@@ -1185,6 +1341,11 @@ impl GameState {
             def: def_ref,
             targets,
         });
+        // CR 702.85a: cascade triggers as the spell is cast.
+        if def.keywords.contains(Keyword::Cascade) {
+            let ability = self.pool.builtin(crate::card::Builtin::Cascade);
+            self.queue_builtin(caster, ability, spell, def_ref);
+        }
         self.emit_targeted(spell);
         self.give_priority(caster);
     }
@@ -1358,10 +1519,35 @@ impl GameState {
             } else if obj.cast.bought_back() && !obj.cast.flashback() {
                 // CR 702.27a: to its owner's hand as it resolves.
                 self.move_object(spell, Zone::Hand, false);
+            } else if obj.alt == AltCast::Hand && def.keywords.contains(Keyword::Rebound) {
+                self.rebound(spell);
             } else {
                 self.leave_stack(spell);
             }
         }
+    }
+
+    /// CR 702.88a: a rebound spell cast from hand is exiled as it resolves;
+    /// at its owner's next upkeep it may be cast free.
+    fn rebound(&mut self, spell: ObjId) {
+        let controller = self.objects[spell].controller;
+        let new = self.move_object(spell, Zone::Exile, true);
+        let Some(o) = self.objects.get_mut(new) else {
+            return;
+        };
+        o.alt = AltCast::Rebounding;
+        let def = o.def;
+        let ability = self.pool.builtin(crate::card::Builtin::Rebound);
+        self.delayed_triggers.push(crate::state::DelayedTrigger {
+            controller,
+            ability: crate::state::StackAbility {
+                ability,
+                source: new,
+                def,
+                trigger_obj: None,
+                trigger_player: None,
+            },
+        });
     }
 
     /// A resolved adventure goes on an adventure in exile (CR 715.4); a
@@ -2477,6 +2663,43 @@ impl GameState {
             // Modes resolve through the chosen mode (`effects_of`); looking
             // at the top cards keeps their order.
             Effect::Modes(_) | Effect::LookAtTop { .. } => {}
+            Effect::CastExiled(kind) => {
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                else {
+                    return;
+                };
+                let alt = match kind {
+                    crate::card::ExileCast::Madness => AltCast::Madness,
+                    crate::card::ExileCast::Free => AltCast::Free,
+                };
+                self.objects[card].alt = AltCast::None;
+                if !self.offer_exile_cast(card, alt) && *kind == crate::card::ExileCast::Madness {
+                    self.move_object(card, Zone::Graveyard, true);
+                }
+            }
+            Effect::SuspendTick => {
+                let Some(card) = self
+                    .current_object(ctx.source)
+                    .filter(|c| self.objects[*c].zone == Zone::Exile)
+                else {
+                    return;
+                };
+                let o = &mut self.objects[card];
+                if o.alt != AltCast::Suspended {
+                    return;
+                }
+                o.remove_counters(CounterKind::Time, 1);
+                if o.counters(CounterKind::Time) == 0 {
+                    // CR 702.62a: as the last is removed, it may be cast;
+                    // either way it's no longer suspended.
+                    o.alt = AltCast::None;
+                    self.suspended_count = self.suspended_count.saturating_sub(1);
+                    self.offer_exile_cast(card, AltCast::Suspend);
+                }
+            }
+            Effect::Cascade => self.cascade(ctx),
             Effect::Adapt(n) => {
                 if let Some(id) = self.current_object(ctx.source)
                     && self.objects[id].zone == Zone::Battlefield

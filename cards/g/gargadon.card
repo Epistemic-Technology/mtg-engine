@@ -1,0 +1,8 @@
+card "Gargadon" {
+  oracle_id 73f808f0-3d56-46c9-967b-d452bb3611af
+  cost {5}{R}{R}
+  type Creature — Beast
+  pt 7/5
+  keywords trample
+  suspend 4 {1}{R}
+}

@@ -1,0 +1,7 @@
+card "Gisa's Bidding" {
+  oracle_id 0abc993b-18c7-4bb8-aa58-0d06a41cb48f
+  cost {2}{B}{B}
+  type Sorcery
+  spell: create 2 "2/2 black Zombie creature"
+  madness {2}{B}
+}

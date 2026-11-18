@@ -437,6 +437,12 @@ pub enum Mechanic {
     Crew(u32),
     /// CR 702.74: an alternative cost; sacrificed as it enters if evoked.
     Evoke(ManaCost),
+    /// CR 702.35: cast for this cost as it's discarded.
+    Madness(ManaCost),
+    /// CR 702.143: exiled for {2} on its owner's turn, cast later for this.
+    Foretell(ManaCost),
+    /// CR 702.62: `suspend 4 {1}{U}`.
+    Suspend(u32, ManaCost),
     /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt
     /// damage this turn.
     Bloodthirst(u32),

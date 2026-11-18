@@ -379,6 +379,7 @@ impl Runner {
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
             | DecisionKind::PutFromHand => Ok(0),
+            DecisionKind::CastFromExile { card } => Ok(self.cast_from_exile(d, pos, card)),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
                 // Optional targets ("up to two") past the scripted ones are
@@ -754,14 +755,26 @@ impl Runner {
             .iter()
             .map(|id| self.state().name_of(*id).to_string())
             .collect();
-        let face_up = self.matching(d.player, pos, true, |a| matches!(a, Action::TurnFaceUp(_)));
-        for i in face_up {
-            let Action::TurnFaceUp(name) = &self.actions[i].action else {
+        let special = self.matching(d.player, pos, true, |a| {
+            matches!(
+                a,
+                Action::TurnFaceUp(_) | Action::Suspend(_) | Action::Foretell(_)
+            )
+        });
+        for i in special {
+            let (Action::TurnFaceUp(name) | Action::Suspend(name) | Action::Foretell(name)) =
+                &self.actions[i].action
+            else {
                 unreachable!()
             };
-            let found = d.options.iter().position(|c| {
-                matches!(c, Choice::TurnFaceUp(id)
-                    if self.state().pool.get(self.state().objects[*id].card).name == *name)
+            let action = &self.actions[i].action;
+            let found = d.options.iter().position(|c| match (c, action) {
+                (Choice::TurnFaceUp(id), Action::TurnFaceUp(_))
+                | (Choice::Suspend(id), Action::Suspend(_))
+                | (Choice::Foretell(id), Action::Foretell(_)) => {
+                    self.state().pool.get(self.state().objects[*id].card).name == *name
+                }
+                _ => false,
             });
             if let Some(k) = found {
                 self.fired[i] = true;
@@ -770,8 +783,13 @@ impl Runner {
         }
         let candidates = self.matching(d.player, pos, false, |a| match a {
             Action::Play(_) | Action::Activate { .. } | Action::Wait => true,
-            Action::Cast { respond_to, .. } => {
+            // A card waiting in exile (suspend, rebound) is cast by its
+            // trigger, not at priority.
+            Action::Cast {
+                respond_to, name, ..
+            } => {
                 respond_to.as_ref().is_none_or(|n| stack_names.contains(n))
+                    && !self.waiting_in_exile(d.player, name)
             }
             _ => false,
         });
@@ -1115,6 +1133,39 @@ impl Runner {
     }
 
     /// Line of the most recently fired cast, for target errors.
+    /// "You may cast it": yes. A scripted `cast "X"` at this point (in any
+    /// step) supplies the spell's targets.
+    fn cast_from_exile(&mut self, d: &Decision, pos: Position, card: ObjId) -> ChoiceId {
+        let name = self.state().name_of(card).to_string();
+        let idxs = self.matching(
+            d.player,
+            pos,
+            true,
+            |a| matches!(a, Action::Cast { name: n, .. } if *n == name),
+        );
+        if let Some(&i) = idxs.first() {
+            self.fired[i] = true;
+            if let Action::Cast { targets, .. } = &self.actions[i].action
+                && !targets.is_empty()
+            {
+                self.pending_targets = Some(targets.clone());
+            }
+        }
+        index_of(d, &Choice::Accept).unwrap_or(0)
+    }
+
+    fn waiting_in_exile(&self, p: PlayerId, name: &str) -> bool {
+        let st = self.state();
+        st.player(p).exile.iter().any(|id| {
+            matches!(
+                st.objects[*id].alt,
+                mtg_core::state::AltCast::Suspended
+                    | mtg_core::state::AltCast::Rebounding
+                    | mtg_core::state::AltCast::MadnessExiled
+            ) && st.name_of(*id) == name
+        })
+    }
+
     fn current_cast_line(&self) -> usize {
         self.actions
             .iter()
@@ -1399,11 +1450,11 @@ impl Runner {
     /// A card of this name on an adventure in `p`'s exile (CR 715.3d).
     fn on_adventure(&self, p: PlayerId, name: &str) -> Option<ObjId> {
         let st = self.state();
-        st.player(p)
-            .exile
-            .iter()
-            .copied()
-            .find(|id| st.objects[*id].cast.adventure() && st.name_of(*id) == name)
+        st.player(p).exile.iter().copied().find(|id| {
+            (st.objects[*id].cast.adventure()
+                || st.objects[*id].alt == mtg_core::state::AltCast::Foretold)
+                && st.name_of(*id) == name
+        })
     }
 
     fn in_hand(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {
@@ -1856,6 +1907,8 @@ impl Runner {
             }
             Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
+            Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
+            Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {
                 let card = self.state().objects[*id].card;
                 format!("turn {} face up", self.state().pool.get(card).name)

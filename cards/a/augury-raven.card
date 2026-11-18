@@ -1,0 +1,8 @@
+card "Augury Raven" {
+  oracle_id ee05fc58-1356-4b2f-b9ce-bda8cc716aee
+  cost {3}{U}
+  type Creature — Bird
+  pt 3/3
+  keywords flying
+  foretell {1}{U}
+}
