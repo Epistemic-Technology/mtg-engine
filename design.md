@@ -2191,6 +2191,24 @@ Corpus 5,825 cards: 3,999 Pauper (36.8%), 4,367 Modern (19.2%); 979
 scenarios pass (13 new in scenarios/m5/generality.scn), 1 skipped; fuzz
 0 panics, 0 unfinished; throughput 2% below slice 4.
 
+Status 2026-11-18, slice 6 (IS-MCTS agent) done; the M5 accept item "the
+IS-MCTS agent beats the greedy agent" is met. `mtg-agents::MctsAgent`
+(`--agent1 mcts`, `mcts:N` for N iterations) is single-observer IS-MCTS
+(Cowling, Powley & Whitehouse 2012): each iteration determinizes what
+the searcher can't see, descends a tree of the searcher's own decisions
+by UCB1 with availability counts, models the opponent with the greedy
+policy, expands one node, plays the game out greedily for up to 400
+decisions, and scores win/loss or a life-and-board estimate. It searches
+priority, attack, block, target, and mode decisions (64 iterations by
+default) and defers the rest to greedy. `scripts/mcts-vs-greedy.sh`,
+six matchups of the built-in decks with the agents in both seats, 100
+games each: MCTS won 744 of 1,200 (62%); the same script with greedy
+against itself gives 615 of 1,200 (51%). Searching found an engine bug:
+the count of block assignments overflowed with many blockers and
+wrapped, so the engine enumerated an astronomically large set (24 GB);
+the count now saturates. Agents get `choose_in(&Engine, ...)`, which the
+simulator calls.
+
 **M6: Arena parity (after M5)**
 - Support the cards available on MTG Arena (Standard, Alchemy-free
   Historic and Timeless pools as Scryfall lists them), so any Arena deck

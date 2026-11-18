@@ -2,8 +2,10 @@
 //! fuzzing and as the performance baseline, and a one-ply greedy agent.
 
 mod greedy;
+mod mcts;
 
 pub use greedy::GreedyAgent;
+pub use mcts::MctsAgent;
 
 use std::collections::HashMap;
 
@@ -16,6 +18,12 @@ use rand_chacha::ChaCha8Rng;
 
 pub trait Agent {
     fn choose(&mut self, state: &GameState, decision: &Decision) -> ChoiceId;
+
+    /// Choose with the whole engine at hand, for agents that search by
+    /// simulating ahead. Callers that have the engine call this.
+    fn choose_in(&mut self, engine: &mtg_core::engine::Engine, decision: &Decision) -> ChoiceId {
+        self.choose(engine.state(), decision)
+    }
 }
 
 /// Keeps an agent from activating a free ability ("{0}: ...", a cost with
@@ -142,12 +150,18 @@ impl Agent for FirstOptionAgent {
     }
 }
 
-/// Construct a baseline agent by name: `random` or `greedy`.
+/// Construct an agent by name: `random`, `greedy`, `first`, `mcts`, or
+/// `mcts:N` (N iterations per searched decision).
 pub fn by_name(name: &str, seed: u64) -> Option<Box<dyn Agent + Send>> {
     Some(match name {
         "random" => Box::new(RandomAgent::new(seed)),
         "greedy" => Box::new(GreedyAgent::default()),
         "first" => Box::new(FirstOptionAgent),
+        "mcts" => Box::new(MctsAgent::new(seed, MctsAgent::DEFAULT_ITERATIONS)),
+        n if n.starts_with("mcts:") => {
+            let iters = n["mcts:".len()..].parse().ok()?;
+            Box::new(MctsAgent::new(seed, iters))
+        }
         _ => return None,
     })
 }

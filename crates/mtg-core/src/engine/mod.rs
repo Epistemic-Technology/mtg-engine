@@ -272,6 +272,12 @@ impl Engine {
         &self.state
     }
 
+    /// Whether the current decision was met in the middle of an event (its
+    /// answer replays the event; a search should not determinize here).
+    pub fn mid_decision(&self) -> bool {
+        self.snapshot.is_some()
+    }
+
     pub fn history(&self) -> &[ChoiceId] {
         &self.history
     }
@@ -792,7 +798,11 @@ impl GameState {
                             options,
                         });
                     }
-                    let combos: usize = can_block.iter().map(|v| v.len() + 1).product();
+                    // Saturating: with many blockers the product overflows
+                    // and would wrap to a small number.
+                    let combos: usize = can_block
+                        .iter()
+                        .fold(1usize, |n, v| n.saturating_mul(v.len() + 1));
                     if combos > MAX_SET_OPTIONS {
                         self.flow = Flow::DeclareBlockers {
                             chosen,

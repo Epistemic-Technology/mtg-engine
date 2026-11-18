@@ -57,7 +57,7 @@ pub fn play(
                     if decisions >= MAX_DECISIONS {
                         return Outcome::Unfinished;
                     }
-                    let choice = agents[d.player.index()].choose(engine.state(), d);
+                    let choice = agents[d.player.index()].choose_in(&engine, d);
                     engine.step(choice).expect("agent chose a legal option");
                     decisions += 1;
                 }
@@ -227,7 +227,7 @@ pub fn clone_cost(
         match engine.current() {
             StepResult::Over(_) => break,
             StepResult::Decision(d) => {
-                let c = agent.choose(engine.state(), d);
+                let c = agent.choose_in(&engine, d);
                 engine.step(c).expect("legal");
             }
         }
@@ -306,7 +306,7 @@ mod tests {
                     if std::mem::discriminant(&d.kind) == std::mem::discriminant(&kind) {
                         mid_decisions += 1;
                     }
-                    let choice = agents[d.player.index()].choose(engine.state(), d);
+                    let choice = agents[d.player.index()].choose_in(&engine, d);
                     engine.step(choice).unwrap();
                 }
                 let record = GameRecord::from_engine(&engine, &pool, &config);
@@ -354,5 +354,26 @@ mod tests {
             "greedy won only {} of {games}",
             stats.wins[0]
         );
+    }
+
+    /// The search agent plays complete games with legal choices and, in
+    /// release builds, beats greedy over both seats (M5 acceptance; the
+    /// full matchup set is `scripts/mcts-vs-greedy.sh`).
+    #[test]
+    fn mcts_plays_and_beats_greedy() {
+        let pool = Arc::new(builtin_pool());
+        let games = if cfg!(debug_assertions) { 2 } else { 60 };
+        let decks = [
+            crate::decks::by_name(&pool, "mono-red").unwrap(),
+            crate::decks::by_name(&pool, "mono-green").unwrap(),
+        ];
+        let a = batch(&pool, &decks, games, 11, false, ["mcts", "greedy"]);
+        let b = batch(&pool, &decks, games, 12, false, ["greedy", "mcts"]);
+        assert_eq!(a.panics.len() + b.panics.len(), 0);
+        assert_eq!(a.unfinished + b.unfinished, 0);
+        if !cfg!(debug_assertions) {
+            let won = a.wins[0] + b.wins[1];
+            assert!(won * 2 > games * 2, "mcts won only {won} of {}", games * 2);
+        }
     }
 }
