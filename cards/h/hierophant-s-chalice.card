@@ -1,0 +1,7 @@
+card "Hierophant's Chalice" {
+  oracle_id 52732f93-b951-43c3-bb02-c254996606e5
+  cost {3}
+  type Artifact
+  triggered when this enters: target opponent loses 1 life and you gain 1 life
+  mana {C}
+}

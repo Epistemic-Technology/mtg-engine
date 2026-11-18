@@ -1,0 +1,7 @@
+card "Reckless Fireweaver" {
+  oracle_id 180e1a7e-890d-477c-80a5-da8a5f2857b3
+  cost {1}{R}
+  type Creature — Human Artificer
+  pt 1/3
+  triggered whenever artifact you control enters: deal 1 damage to each opponent
+}

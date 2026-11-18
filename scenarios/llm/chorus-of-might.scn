@@ -1,0 +1,54 @@
+# Chorus of Might: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "chorus pumps per creature and grants trample" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Forest"
+  hand A: "Chorus of Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chorus of Might" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert graveyard A contains "Chorus of Might"
+}
+
+scenario "trample damage goes through the blocker" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Chorus of Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chorus of Might" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Wind Drake" 2, player B 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "creatures are counted on resolution" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Chorus of Might"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chorus of Might" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Hill Giant" in response to "Chorus of Might"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Hill Giant"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "the pump ends at end of turn" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 4 "Forest"
+  hand A: "Chorus of Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Chorus of Might" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert has not "Grizzly Bears" trample
+}

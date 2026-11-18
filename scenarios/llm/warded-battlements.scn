@@ -1,0 +1,35 @@
+# Warded Battlements: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attacking creatures you control get +1/+0" {
+  battlefield A: "Warded Battlements", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "non-attacking creatures are not pumped" {
+  battlefield A: "Warded Battlements", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 2
+  assert power "Warded Battlements" 0
+}
+
+scenario "defender: the wall can't attack" {
+  battlefield A: "Warded Battlements"
+  illegal turn 1 A: attack "Warded Battlements"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "opponent's attackers are not pumped" {
+  battlefield A: "Warded Battlements"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

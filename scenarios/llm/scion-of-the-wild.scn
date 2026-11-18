@@ -1,0 +1,35 @@
+# Scion of the Wild: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Scion alone counts itself" {
+  battlefield A: "Scion of the Wild"
+  run_to turn 1 precombat_main
+  assert power "Scion of the Wild" 1
+  assert toughness "Scion of the Wild" 1
+}
+
+scenario "Scion counts other creatures you control" {
+  battlefield A: "Scion of the Wild", 2 "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Scion of the Wild" 3
+  assert toughness "Scion of the Wild" 3
+}
+
+scenario "Opponent's creatures do not count" {
+  battlefield A: "Scion of the Wild"
+  battlefield B: "Hill Giant", "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Scion of the Wild" 1
+  assert toughness "Scion of the Wild" 1
+}
+
+scenario "Scion shrinks when a creature you control dies" {
+  battlefield A: "Scion of the Wild", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert power "Scion of the Wild" 1
+  assert toughness "Scion of the Wild" 1
+}

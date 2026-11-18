@@ -1,0 +1,7 @@
+card "Boros Locket" {
+  oracle_id b044b4fd-d504-4a11-80bf-eb8fb0b6e21e
+  cost {3}
+  type Artifact
+  mana {R} or {W}
+  activated {R/W}{R/W}{R/W}{R/W}, {T}, sacrifice this: draw 2 cards
+}

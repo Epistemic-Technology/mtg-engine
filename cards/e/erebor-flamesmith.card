@@ -1,0 +1,7 @@
+card "Erebor Flamesmith" {
+  oracle_id 6eb93545-a1a6-4447-82c5-421d8e9f023d
+  cost {1}{R}
+  type Creature — Dwarf Artificer
+  pt 2/1
+  triggered whenever you cast an instant or sorcery spell: deal 1 damage to each opponent
+}

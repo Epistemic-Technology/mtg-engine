@@ -1,0 +1,46 @@
+# Corpse Blockade: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature grants deathtouch to kill a blocked attacker" {
+  battlefield A: "Corpse Blockade", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Corpse Blockade"
+  turn 2 declare_blockers A: activate "Corpse Blockade" sacrificing "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Corpse Blockade"
+  assert has "Corpse Blockade" deathtouch
+  assert life A 20
+}
+
+scenario "without the activation the blocker does not kill the attacker" {
+  battlefield A: "Corpse Blockade", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Corpse Blockade"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert has not "Corpse Blockade" deathtouch
+}
+
+scenario "defender cannot attack" {
+  battlefield A: "Corpse Blockade"
+  start turn 1 A
+  illegal turn 1 A: attack "Corpse Blockade"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "cannot sacrifice itself to pay the cost" {
+  battlefield A: "Corpse Blockade"
+  start turn 1 A
+  illegal turn 1 A: activate "Corpse Blockade"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Corpse Blockade"
+  assert has not "Corpse Blockade" deathtouch
+}

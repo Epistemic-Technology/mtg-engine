@@ -1,0 +1,7 @@
+card "Power of Fire" {
+  oracle_id df4903cb-50fa-4620-8470-6a6a398fc1ef
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+}

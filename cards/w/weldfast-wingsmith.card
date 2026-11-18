@@ -1,0 +1,7 @@
+card "Weldfast Wingsmith" {
+  oracle_id a05bcc3e-25d5-4111-820e-a097189afb7e
+  cost {3}{U}
+  type Creature — Human Artificer
+  pt 3/3
+  triggered whenever artifact you control enters: this gains flying
+}

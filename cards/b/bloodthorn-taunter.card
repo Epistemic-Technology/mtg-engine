@@ -1,0 +1,8 @@
+card "Bloodthorn Taunter" {
+  oracle_id b59da333-e658-447e-a8bd-8c0124d8b905
+  cost {1}{R}
+  type Creature — Human Scout
+  pt 1/1
+  keywords haste
+  activated {T}: target creature with power 5 or greater gains haste
+}

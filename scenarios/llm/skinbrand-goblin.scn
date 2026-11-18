@@ -1,0 +1,35 @@
+# Skinbrand Goblin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "bloodrush pumps an unblocked attacker from hand" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Skinbrand Goblin"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Skinbrand Goblin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Skinbrand Goblin"
+  assert hand A count 0
+}
+
+scenario "bloodrush toughness boost lets the attacker survive a block" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Wind Drake"
+  hand A: "Skinbrand Goblin"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 declare_blockers A: activate "Skinbrand Goblin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Skinbrand Goblin"
+}
+
+scenario "bloodrush cannot target a creature that is not attacking" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Skinbrand Goblin"
+  illegal turn 1 A: activate "Skinbrand Goblin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Skinbrand Goblin"
+  assert power "Grizzly Bears" 2
+}

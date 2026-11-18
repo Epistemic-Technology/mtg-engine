@@ -1,0 +1,46 @@
+# Deadeye Tormentor: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "raid: after attacking, opponent discards a card" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Deadeye Tormentor"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Deadeye Tormentor"
+  turn 1 postcombat_main A: trigger "Deadeye Tormentor" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert battlefield A contains "Deadeye Tormentor"
+  assert graveyard B contains "Hill Giant"
+  assert hand B count 0
+}
+
+scenario "raid: no attack, no discard" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  hand A: "Deadeye Tormentor"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Deadeye Tormentor"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Deadeye Tormentor"
+  assert hand B count 1
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "raid: attacking creature need not survive" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Deadeye Tormentor"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 postcombat_main A: cast "Deadeye Tormentor"
+  turn 1 postcombat_main A: trigger "Deadeye Tormentor" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Deadeye Tormentor"
+  assert graveyard B contains "Shock"
+  assert hand B count 0
+}

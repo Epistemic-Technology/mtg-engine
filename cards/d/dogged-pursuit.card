@@ -1,0 +1,6 @@
+card "Dogged Pursuit" {
+  oracle_id 987f8c13-0164-4536-b505-d9fa799222fb
+  cost {3}{B}
+  type Enchantment
+  triggered at beginning of your end step: each opponent loses 1 life and you gain 1 life
+}

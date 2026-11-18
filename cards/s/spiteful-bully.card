@@ -1,0 +1,7 @@
+card "Spiteful Bully" {
+  oracle_id 410acdbc-3a00-49db-a712-ad970d24b363
+  cost {1}{B}
+  type Creature — Phyrexian Zombie Mercenary
+  pt 3/3
+  triggered at beginning of your upkeep step: deal 3 damage to target creature you control
+}

@@ -1,0 +1,8 @@
+card "Warded Battlements" {
+  oracle_id 7616dacf-44e2-4b03-b120-875cc2e50ea5
+  cost {2}{W}
+  type Creature — Wall
+  pt 0/3
+  keywords defender
+  static attacking creature you control: +1/+0
+}

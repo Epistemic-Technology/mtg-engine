@@ -1,0 +1,6 @@
+card "Furious Assault" {
+  oracle_id f5d1a004-5598-4201-ac07-bca6cd23008f
+  cost {2}{R}
+  type Enchantment
+  triggered whenever you cast creature spell: deal 1 damage to target player or planeswalker
+}

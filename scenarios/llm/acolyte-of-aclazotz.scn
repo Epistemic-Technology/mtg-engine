@@ -1,0 +1,31 @@
+# Acolyte of Aclazotz: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing another creature drains each opponent" {
+  battlefield A: "Acolyte of Aclazotz", "Grizzly Bears"
+  turn 1 A: activate "Acolyte of Aclazotz" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped "Acolyte of Aclazotz"
+}
+
+scenario "cannot sacrifice itself" {
+  battlefield A: "Acolyte of Aclazotz"
+  illegal turn 1 A: activate "Acolyte of Aclazotz"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+  assert battlefield A contains "Acolyte of Aclazotz"
+}
+
+scenario "chosen creature is the one sacrificed" {
+  battlefield A: "Acolyte of Aclazotz", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Acolyte of Aclazotz" sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 19
+  assert life A 21
+}

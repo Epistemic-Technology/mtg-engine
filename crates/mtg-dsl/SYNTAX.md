@@ -185,9 +185,12 @@ control`, `enchanted` (the permanent this is attached to), `this` (the
 source itself, for characteristic-defining abilities).
 
 More filter words: `tapped`, `untapped`, `attacking`, `blocking`,
+`damaged` (also written `that was dealt damage this turn`),
 `multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
 colors joined with `or` (`red or green creature`, sharing a color), types
-joined with `or` (`artifact or enchantment`, at least one), and `with
+joined with `or` or listed (`artifact or enchantment`, `artifact,
+enchantment, or land`: at least one), negations listed with commas
+(`nonartifact, nonblack creature`), and `with
 power 2 or less`, `with toughness 4 or greater`, `with mana value 3`.
 
 ### Modifications (static abilities)
@@ -199,7 +202,11 @@ Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
 (you control it), `add color white`, `set color blue`, `switch pt`,
 `cda color all`, `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
-`cda pt your life`.
+`cda pt your life`, and `has ability { <ability line> }`: a quoted ability
+granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
+damage to any target.\""), written as its own ability line (`activated
+{T}: deal 1 damage to any target`), where `this` is the object that has
+it.
 
 ### Effects
 
@@ -260,7 +267,8 @@ creature` ("Switch target creature's power and toughness until end of
 turn"), `put land card from hand onto battlefield [tapped]` ("put a land
 card from your hand onto the battlefield"), `<what> doesn't untap next
 untap step` ("It doesn't untap during its controller's next untap
-step."), `proliferate` (CR
+step."), `<what> gains ability { <ability line> }` ("Target creature
+gains \"...\" until end of turn."), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
 loyalty counters, opponents' -1/-1 counters and poison), `<what>
 explores` (CR 701.44), `amass Zombies 2` (CR 701.47; needs the token

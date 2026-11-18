@@ -1,0 +1,6 @@
+card "Swift Justice" {
+  oracle_id d363e135-0a76-4d0e-b3b7-3293944f392c
+  cost {W}
+  type Instant
+  spell: until end of turn, target creature gets +1/+0 and target 1 gains first strike, lifelink
+}

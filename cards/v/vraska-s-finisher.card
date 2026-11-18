@@ -1,0 +1,7 @@
+card "Vraska's Finisher" {
+  oracle_id 5df16529-6f1d-4978-b364-97d91abac441
+  cost {2}{B}
+  type Creature — Gorgon Assassin
+  pt 3/2
+  triggered when this enters: destroy target creature or planeswalker an opponent controls that was dealt damage this turn
+}

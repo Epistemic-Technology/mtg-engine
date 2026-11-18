@@ -1,0 +1,9 @@
+card "Ghitu Amplifier" {
+  oracle_id a965898b-9c68-46cb-82a5-a1e11397f68f
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 1/2
+  kicker {2}{U}
+  triggered when this enters if kicked: return target creature an opponent controls to hand
+  triggered whenever you cast an instant or sorcery spell: this gets +2/+0
+}

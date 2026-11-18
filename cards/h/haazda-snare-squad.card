@@ -1,0 +1,7 @@
+card "Haazda Snare Squad" {
+  oracle_id 2a174adc-0536-4e12-a6fe-c44305822714
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  triggered whenever this attacks: you may pay {W}; if you do, tap target creature an opponent controls
+}

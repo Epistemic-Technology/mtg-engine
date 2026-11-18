@@ -1,0 +1,33 @@
+# Dreg Recycler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice another creature to drain" {
+  battlefield A: "Dreg Recycler", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dreg Recycler" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped "Dreg Recycler"
+}
+
+scenario "sacrifice itself to drain" {
+  battlefield A: "Dreg Recycler"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dreg Recycler" sacrificing "Dreg Recycler"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Dreg Recycler"
+}
+
+scenario "cannot activate while tapped" {
+  battlefield A: "Dreg Recycler" tapped, "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dreg Recycler" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+  assert battlefield A contains "Grizzly Bears"
+}

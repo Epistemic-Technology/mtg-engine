@@ -1,0 +1,7 @@
+card "Clammy Prowler" {
+  oracle_id afe4a60c-747a-439b-bf61-cd323b8dffe7
+  cost {3}{U}
+  type Enchantment Creature — Horror
+  pt 2/5
+  triggered whenever this attacks: target other attacking creature gains can't be blocked
+}

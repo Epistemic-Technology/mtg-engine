@@ -1,0 +1,8 @@
+card "Blight Keeper" {
+  oracle_id 1dc73412-c91c-48c9-bde6-b169add79b37
+  cost {B}
+  type Creature — Bat Imp
+  pt 1/1
+  keywords flying
+  activated {7}{B}, {T}, sacrifice this: target opponent loses 4 life and you gain 4 life
+}

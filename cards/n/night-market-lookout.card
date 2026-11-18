@@ -1,0 +1,7 @@
+card "Night Market Lookout" {
+  oracle_id 5f5c5f59-1cc0-4a72-863c-c26db411f114
+  cost {B}
+  type Creature — Human Rogue
+  pt 1/1
+  triggered whenever this becomes tapped: each opponent loses 1 life and you gain 1 life
+}

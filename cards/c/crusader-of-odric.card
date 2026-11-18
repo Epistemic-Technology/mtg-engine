@@ -1,0 +1,6 @@
+card "Crusader of Odric" {
+  oracle_id ea384b0d-3091-4d50-b15f-1f6763647b7c
+  cost {2}{W}
+  type Creature — Human Soldier
+  static this: cda pt count creature you control
+}

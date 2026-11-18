@@ -1,0 +1,37 @@
+# Haazda Officer: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters trigger pumps target creature you control" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Haazda Officer"
+  turn 1 A: cast "Haazda Officer"
+  turn 1 A: trigger "Haazda Officer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Haazda Officer"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Haazda Officer" 3
+  assert toughness "Haazda Officer" 2
+}
+
+scenario "only creatures you control are legal targets, so it pumps itself" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Haazda Officer"
+  turn 1 A: cast "Haazda Officer"
+  run_to turn 1 postcombat_main
+  assert power "Haazda Officer" 4
+  assert toughness "Haazda Officer" 3
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 3
+}
+
+scenario "pump wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Haazda Officer"
+  turn 1 A: cast "Haazda Officer"
+  turn 1 A: trigger "Haazda Officer" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}

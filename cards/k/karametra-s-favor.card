@@ -1,0 +1,8 @@
+card "Karametra's Favor" {
+  oracle_id fc3e48c9-e303-435c-bdb1-7dc7881a9858
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has ability { mana any }
+}

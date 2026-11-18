@@ -1,0 +1,8 @@
+card "Dreadful Apathy" {
+  oracle_id 9c41b4ad-a73f-4274-9b71-9c9834910e05
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {2}{W}: exile enchanted creature
+}

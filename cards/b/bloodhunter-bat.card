@@ -1,0 +1,8 @@
+card "Bloodhunter Bat" {
+  oracle_id 7e3e09a2-b45c-4897-ba10-02628cca3f4c
+  cost {3}{B}
+  type Creature — Bat
+  pt 2/2
+  keywords flying
+  triggered when this enters: target player loses 2 life and you gain 2 life
+}

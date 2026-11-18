@@ -1,0 +1,7 @@
+card "Binding Mummy" {
+  oracle_id 5adc9d0d-3393-4d91-be85-1f9dd344698b
+  cost {1}{W}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever other Zombie you control enters: you may tap target artifact or creature
+}

@@ -1,0 +1,8 @@
+card "Corpse Blockade" {
+  oracle_id 5cb2e859-7737-4b25-a6be-b72e7b5bfada
+  cost {2}{B}
+  type Creature — Zombie
+  pt 1/4
+  keywords defender
+  activated sacrifice other creature: this gains deathtouch
+}

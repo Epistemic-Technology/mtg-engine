@@ -1,0 +1,8 @@
+card "Toucan-Puffin" {
+  oracle_id 39d283e0-9d9b-4c04-aa6a-66a9883af9a2
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: target creature you control gets +2/+0
+}

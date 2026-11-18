@@ -1,0 +1,8 @@
+card "Urban Utopia" {
+  oracle_id 77b73f11-a59a-4f2b-83d3-e6fe5064bc87
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: draw 1 cards
+  static enchanted: has ability { mana any }
+}

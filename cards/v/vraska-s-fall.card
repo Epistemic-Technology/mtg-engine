@@ -1,0 +1,6 @@
+card "Vraska's Fall" {
+  oracle_id 33fd9192-3e9b-4d3a-92aa-06de29d449df
+  cost {2}{B}
+  type Instant
+  spell: each opponent sacrifices 1 creature or planeswalker and gets 1 poison counters
+}

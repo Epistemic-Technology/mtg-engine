@@ -1,0 +1,8 @@
+card "Immobilizing Ink" {
+  oracle_id 154e865f-1aab-4d72-9e84-44e5316bbf3c
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  static enchanted: has ability { activated {1}, discard 1 card: untap this }
+}

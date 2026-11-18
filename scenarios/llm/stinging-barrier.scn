@@ -1,0 +1,36 @@
+# Stinging Barrier: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Stinging Barrier pings a player" {
+  battlefield A: "Stinging Barrier", "Island"
+  turn 1 A: activate "Stinging Barrier" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Stinging Barrier"
+  assert tapped "Island"
+}
+
+scenario "Stinging Barrier pings a creature" {
+  battlefield A: "Stinging Barrier", "Island"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Stinging Barrier" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Stinging Barrier needs blue mana" {
+  battlefield A: "Stinging Barrier", "Plains"
+  illegal turn 1 A: activate "Stinging Barrier" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Stinging Barrier"
+}
+
+scenario "Stinging Barrier has defender" {
+  battlefield A: "Stinging Barrier", "Grizzly Bears"
+  illegal turn 1 A: attack "Stinging Barrier"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert has "Stinging Barrier" defender
+}

@@ -1,0 +1,35 @@
+# Towashi Songshaper: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another artifact entering pumps the Songshaper, not the newcomer" {
+  battlefield A: "Towashi Songshaper", 2 "Mountain"
+  hand A: "Towashi Songshaper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Towashi Songshaper"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Towashi Songshaper"
+  assert power oldest A "Towashi Songshaper" 3
+  assert toughness oldest A "Towashi Songshaper" 2
+  assert power newest A "Towashi Songshaper" 2
+}
+
+scenario "a nonartifact creature entering does not trigger" {
+  battlefield A: "Towashi Songshaper", "Forest", "Mountain"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Towashi Songshaper" 2
+}
+
+scenario "the bonus lasts only until end of turn" {
+  battlefield A: "Towashi Songshaper", 2 "Mountain"
+  hand A: "Towashi Songshaper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Towashi Songshaper"
+  run_to turn 1 postcombat_main
+  assert power oldest A "Towashi Songshaper" 3
+  run_to turn 2 precombat_main
+  assert power oldest A "Towashi Songshaper" 2
+}

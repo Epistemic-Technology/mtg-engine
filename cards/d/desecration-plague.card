@@ -1,0 +1,6 @@
+card "Desecration Plague" {
+  oracle_id 131d55d1-7429-4940-b7d2-d759aabff47b
+  cost {3}{G}
+  type Sorcery
+  spell: destroy target enchantment or land
+}

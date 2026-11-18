@@ -1,0 +1,38 @@
+# Herald of the Fair: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Herald's enter trigger pumps another creature until end of turn" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Herald of the Fair"
+  turn 1 A: cast "Herald of the Fair"
+  turn 1 A: trigger "Herald of the Fair" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Herald of the Fair"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert power "Herald of the Fair" 3
+  run_to turn 2
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Herald can target itself with its own trigger" {
+  battlefield A: 3 "Plains"
+  hand A: "Herald of the Fair"
+  turn 1 A: cast "Herald of the Fair"
+  turn 1 A: trigger "Herald of the Fair" targeting "Herald of the Fair"
+  run_to turn 1 begin_combat
+  assert power "Herald of the Fair" 4
+  assert toughness "Herald of the Fair" 3
+}
+
+scenario "Herald's trigger only pumps a creature its controller controls" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Herald of the Fair"
+  turn 1 A: cast "Herald of the Fair"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert power "Herald of the Fair" 4
+}

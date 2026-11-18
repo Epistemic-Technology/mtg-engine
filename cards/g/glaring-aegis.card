@@ -1,0 +1,8 @@
+card "Glaring Aegis" {
+  oracle_id 0b0c98ba-3505-40aa-b0f2-e03c9790f51e
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap target creature an opponent controls
+  static enchanted: +1/+3
+}

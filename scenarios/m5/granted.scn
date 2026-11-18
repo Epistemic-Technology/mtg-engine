@@ -1,0 +1,75 @@
+# M5 slice 12: abilities granted by other permanents ("Enchanted creature
+# has \"{T}: ...\""), and target filters for disjunctions of types,
+# several negations, and creatures dealt damage this turn.
+
+scenario "granted ability: Hermetic Study's creature pings" {
+  battlefield A: "Grizzly Bears", "Island", "Island"
+  hand A: "Hermetic Study"
+  turn 1 A: cast "Hermetic Study" targeting "Grizzly Bears"
+  turn 1 A: activate "Grizzly Bears" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "granted ability: without the Aura, nothing to activate" {
+  battlefield A: "Grizzly Bears"
+  illegal turn 1 A: activate "Grizzly Bears" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "granted triggered ability: Infernal Scarring's creature draws as it dies" {
+  battlefield A: "Grizzly Bears", 2 "Swamp", "Mountain"
+  hand A: "Infernal Scarring", "Shock"
+  library A: "Island"
+  turn 1 A: cast "Infernal Scarring" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Island"
+}
+
+scenario "granted mana ability: Abundant Growth's land makes any color" {
+  battlefield A: "Forest"
+  hand A: "Abundant Growth", "Lightning Bolt"
+  library A: 3 "Island"
+  turn 1 A: cast "Abundant Growth" targeting "Forest"
+  run_to turn 3 precombat_main
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 end
+  assert life B 17
+}
+
+scenario "dealt damage this turn: Crushing Pain finishes a wounded creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Crushing Pain"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Crushing Pain" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "dealt damage this turn: not an undamaged creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Crushing Pain"
+  illegal turn 1 A: cast "Crushing Pain" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "artifact or land: Demolish destroys a land" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Demolish"
+  turn 1 A: cast "Demolish" targeting "Forest"
+  run_to turn 1 end
+  assert graveyard B contains "Forest"
+}
+
+scenario "nonartifact, nonblack: Terror can't target a black creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Abyssal Gatekeeper"
+  hand A: "Terror"
+  illegal turn 1 A: cast "Terror" targeting "Abyssal Gatekeeper"
+  run_to turn 1 end
+}

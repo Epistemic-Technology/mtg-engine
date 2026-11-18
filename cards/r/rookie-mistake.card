@@ -1,0 +1,6 @@
+card "Rookie Mistake" {
+  oracle_id e51680d1-3e6c-4d1b-9705-36f73d7328cf
+  cost {U}
+  type Instant
+  spell: until end of turn, target creature gets +0/+2 and another target creature gets -2/-0
+}

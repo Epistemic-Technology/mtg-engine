@@ -1,0 +1,7 @@
+card "Claim of Erebos" {
+  oracle_id 557dda97-c9e6-4d3d-95d8-8180ab9d87b3
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {1}{B}, {T}: target player loses 2 life }
+}

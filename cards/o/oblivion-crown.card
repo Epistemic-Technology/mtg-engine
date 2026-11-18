@@ -1,0 +1,8 @@
+card "Oblivion Crown" {
+  oracle_id e690461b-2925-4484-b6fa-69ca1166f5a2
+  cost {1}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has ability { activated discard 1 card: this gets +1/+1 }
+}

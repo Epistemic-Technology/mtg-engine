@@ -1,0 +1,8 @@
+card "Fire Whip" {
+  oracle_id 9d4372f0-eedf-4897-9f03-f96fb14ac4a6
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+  activated sacrifice this: deal 1 damage to any target
+}

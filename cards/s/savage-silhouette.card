@@ -1,0 +1,7 @@
+card "Savage Silhouette" {
+  oracle_id bc243497-d95a-44e0-b7e3-c56b4ff7cd69
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has ability { activated {1}{G}: regenerate this }
+}

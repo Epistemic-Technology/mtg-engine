@@ -1,0 +1,8 @@
+card "Abundant Growth" {
+  oracle_id 947a2665-2f4d-4193-8768-118f85334549
+  cost {G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: draw 1 cards
+  static enchanted: has ability { mana any }
+}

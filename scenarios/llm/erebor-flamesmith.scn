@@ -1,0 +1,43 @@
+# Erebor Flamesmith: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "instant spell triggers 1 damage to each opponent" {
+  battlefield A: "Erebor Flamesmith", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "sorcery spell triggers too" {
+  battlefield A: "Erebor Flamesmith", 2 "Island", "Mountain"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert hand A count 2
+}
+
+scenario "creature spell does not trigger" {
+  battlefield A: "Erebor Flamesmith", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "pump spell on own creature still pings opponent" {
+  battlefield A: "Erebor Flamesmith", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Erebor Flamesmith"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert power "Erebor Flamesmith" 5
+}

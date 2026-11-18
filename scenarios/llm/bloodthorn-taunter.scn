@@ -1,0 +1,35 @@
+# Bloodthorn Taunter: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Bloodthorn Taunter has haste and attacks the turn it is cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Bloodthorn Taunter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bloodthorn Taunter"
+  turn 1 A: attack "Bloodthorn Taunter"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Taunter gives haste to a freshly cast creature pumped to power 5" {
+  battlefield A: "Bloodthorn Taunter", 3 "Forest"
+  hand A: "Grizzly Bears", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Bloodthorn Taunter" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Bloodthorn Taunter"
+  assert life B 15
+}
+
+scenario "Taunter cannot target a creature with power less than 5" {
+  battlefield A: "Bloodthorn Taunter", "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Bloodthorn Taunter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Bloodthorn Taunter"
+}

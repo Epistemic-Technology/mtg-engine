@@ -1,0 +1,8 @@
+card "Fogwalker" {
+  oracle_id c597cfae-3f92-4d31-8bc1-5a2da995f1bf
+  cost {1}{U}
+  type Creature — Spirit
+  pt 1/3
+  keywords skulk
+  triggered when this enters: target creature an opponent controls doesn't untap next untap step
+}

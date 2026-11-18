@@ -1,0 +1,7 @@
+card "Krark-Clan Shaman" {
+  oracle_id 198d1792-d638-4760-a476-7ec3af495610
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  activated sacrifice artifact: deal 1 damage to each creature without flying
+}

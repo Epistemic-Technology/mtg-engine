@@ -1,0 +1,7 @@
+card "Vermin Gorger" {
+  oracle_id 7b81596b-9487-4be1-a417-6913fa72299d
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/2
+  activated {T}, sacrifice other creature: each opponent loses 2 life and you gain 2 life
+}

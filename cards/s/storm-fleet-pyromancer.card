@@ -1,0 +1,7 @@
+card "Storm Fleet Pyromancer" {
+  oracle_id 866586f4-ad97-44fa-a110-6a7a3cb3591b
+  cost {4}{R}
+  type Creature — Human Pirate Wizard
+  pt 3/2
+  label "Raid" triggered when this enters if attacked this turn: deal 2 damage to any target
+}

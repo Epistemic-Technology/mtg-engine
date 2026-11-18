@@ -1,0 +1,6 @@
+card "Blessed Light" {
+  oracle_id 918b3860-e96c-45b5-b0e6-e82cad9f304d
+  cost {4}{W}
+  type Instant
+  spell: exile target creature or enchantment
+}

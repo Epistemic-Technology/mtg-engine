@@ -1,0 +1,7 @@
+card "Skyline Cascade" {
+  oracle_id 79301ae1-8c9c-4723-be21-dc27e1646f35
+  type Land
+  enters tapped
+  triggered when this enters: target creature an opponent controls doesn't untap next untap step
+  mana {U}
+}

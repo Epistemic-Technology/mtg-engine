@@ -1,0 +1,6 @@
+card "Iona's Judgment" {
+  oracle_id abbfbe50-4caf-48d0-b8f1-f2c9212bcd2f
+  cost {4}{W}
+  type Sorcery
+  spell: exile target creature or enchantment
+}

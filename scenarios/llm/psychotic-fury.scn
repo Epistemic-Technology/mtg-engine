@@ -1,0 +1,34 @@
+# Psychotic Fury: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "psychotic fury cannot target own monocolored creature" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Psychotic Fury"
+  illegal turn 1 A: cast "Psychotic Fury" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Psychotic Fury"
+  assert untapped oldest A "Mountain"
+  assert untapped newest A "Mountain"
+}
+
+scenario "psychotic fury cannot target opponent's monocolored creature" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Psychotic Fury"
+  illegal turn 1 A: cast "Psychotic Fury" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Psychotic Fury"
+  assert graveyard A lacks "Psychotic Fury"
+}
+
+scenario "psychotic fury cannot target a monocolored attacker at instant speed" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Psychotic Fury"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  illegal turn 2 declare_attackers A: cast "Psychotic Fury" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert hand A contains "Psychotic Fury"
+}

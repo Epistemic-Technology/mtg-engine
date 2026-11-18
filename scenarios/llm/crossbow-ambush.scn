@@ -1,0 +1,52 @@
+# Crossbow Ambush: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "creatures gain reach and can block a flyer" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Crossbow Ambush"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  turn 2 declare_attackers A: cast "Crossbow Ambush"
+  turn 2 A: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Crossbow Ambush"
+}
+
+scenario "without the spell a flyer can't be blocked" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  illegal turn 2 A: block "Wind Drake" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield B contains "Wind Drake"
+}
+
+scenario "reach lasts until end of turn" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Forest"
+  hand A: "Crossbow Ambush"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crossbow Ambush"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" reach
+  assert has "Hill Giant" reach
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" reach
+  assert has not "Hill Giant" reach
+}
+
+scenario "only your creatures gain reach" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Crossbow Ambush"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crossbow Ambush"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" reach
+  assert has not "Hill Giant" reach
+}

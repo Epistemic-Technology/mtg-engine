@@ -1,0 +1,7 @@
+card "Makindi Ox" {
+  oracle_id e4f0fa12-542b-485f-a792-3a8aba933522
+  cost {4}{W}
+  type Creature — Ox
+  pt 4/4
+  label "Landfall" triggered whenever land you control enters: tap target creature an opponent controls
+}

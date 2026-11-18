@@ -1,0 +1,7 @@
+card "Towashi Songshaper" {
+  oracle_id d2c7d10e-86d9-4e2d-a0da-2e39c172aae2
+  cost {1}{R}
+  type Artifact Creature — Human Artificer
+  pt 2/2
+  triggered whenever other artifact you control enters: this gets +1/+0
+}

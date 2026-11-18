@@ -1,0 +1,32 @@
+# Simic Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Simic Locket taps for green to cast a creature" {
+  battlefield A: "Simic Locket", "Plains"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Simic Locket"
+  assert tapped "Plains"
+}
+
+scenario "Simic Locket sacrifices with hybrid mana to draw two cards" {
+  battlefield A: "Simic Locket", 2 "Forest", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Simic Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Simic Locket"
+  assert battlefield A lacks "Simic Locket"
+}
+
+scenario "Simic Locket cannot be cracked with off-color mana" {
+  battlefield A: "Simic Locket", 4 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Simic Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Simic Locket"
+  assert hand A count 0
+}

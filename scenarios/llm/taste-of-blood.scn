@@ -1,0 +1,33 @@
+# Taste of Blood: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Taste of Blood deals 1 damage to a player and gains 1 life" {
+  battlefield A: "Swamp"
+  hand A: "Taste of Blood"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Taste of Blood" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+  assert graveyard A contains "Taste of Blood"
+}
+
+scenario "Taste of Blood finishes off an opponent at 1 life" {
+  life B 1
+  battlefield A: "Swamp"
+  hand A: "Taste of Blood"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Taste of Blood" targeting player B
+  run_to end
+  assert winner A
+}
+
+scenario "Taste of Blood cannot be cast on an opponent's turn" {
+  battlefield A: "Swamp"
+  hand A: "Taste of Blood"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Taste of Blood" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert hand A contains "Taste of Blood"
+}

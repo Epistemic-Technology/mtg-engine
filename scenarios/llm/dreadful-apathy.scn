@@ -1,0 +1,35 @@
+# Dreadful Apathy: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature can't attack" {
+  battlefield A: 3 "Plains"
+  hand A: "Dreadful Apathy"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Dreadful Apathy" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert attached "Dreadful Apathy" to "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "enchanted creature can't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant", "Wind Drake", "Dreadful Apathy" on "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "activated ability exiles enchanted creature" {
+  battlefield A: 3 "Plains", "Dreadful Apathy" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dreadful Apathy"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert graveyard A contains "Dreadful Apathy"
+}

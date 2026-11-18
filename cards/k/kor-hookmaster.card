@@ -1,0 +1,7 @@
+card "Kor Hookmaster" {
+  oracle_id e6941577-8262-42ef-bf32-f6505d90b73a
+  cost {2}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

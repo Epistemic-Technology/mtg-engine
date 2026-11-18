@@ -1,0 +1,8 @@
+card "Iroas's Blessing" {
+  oracle_id 76905904-b3e4-44ee-bfcb-e518f0815af5
+  cost {3}{R}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: deal 4 damage to target creature or planeswalker an opponent controls
+  static enchanted: +1/+1
+}

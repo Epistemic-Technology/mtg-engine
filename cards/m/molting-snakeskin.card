@@ -1,0 +1,7 @@
+card "Molting Snakeskin" {
+  oracle_id 1a668556-da98-4f1e-b1f7-26b7d63357a1
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has ability { activated {2}{B}: regenerate this }
+}

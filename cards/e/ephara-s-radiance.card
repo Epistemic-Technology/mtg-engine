@@ -1,0 +1,7 @@
+card "Ephara's Radiance" {
+  oracle_id 0870e9f8-9e02-4997-9554-41a4e8eec4cb
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {1}{W}, {T}: you gains 3 life }
+}

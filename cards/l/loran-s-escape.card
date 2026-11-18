@@ -1,0 +1,6 @@
+card "Loran's Escape" {
+  oracle_id 1a9048d6-f3fa-4f3b-9baa-35318177bc6e
+  cost {W}
+  type Instant
+  spell: target artifact or creature gains hexproof, indestructible; scry 1
+}

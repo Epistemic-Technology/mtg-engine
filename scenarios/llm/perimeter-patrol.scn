@@ -1,0 +1,31 @@
+# Perimeter Patrol: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "nonartifact creature entering does not pump Perimeter Patrol" {
+  battlefield A: "Perimeter Patrol", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Perimeter Patrol" 3
+  assert toughness "Perimeter Patrol" 3
+}
+
+scenario "Perimeter Patrol attacks for 3" {
+  battlefield A: "Perimeter Patrol"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Perimeter Patrol"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Perimeter Patrol dies to Lightning Bolt" {
+  battlefield A: "Perimeter Patrol"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Perimeter Patrol"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Perimeter Patrol"
+}

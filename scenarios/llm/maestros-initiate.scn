@@ -1,0 +1,38 @@
+# Maestros Initiate: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "activating from the graveyard exiles it, draws two, discards one" {
+  battlefield A: 5 "Island"
+  graveyard A: "Maestros Initiate"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Maestros Initiate"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Maestros Initiate"
+  assert graveyard A lacks "Maestros Initiate"
+  assert hand A count 1
+}
+
+scenario "hybrid cost can be paid with red mana" {
+  battlefield A: 4 "Swamp", "Mountain"
+  graveyard A: "Maestros Initiate"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Maestros Initiate"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Maestros Initiate"
+  assert tapped "Mountain"
+  assert hand A count 1
+}
+
+scenario "ability cannot be activated while on the battlefield" {
+  battlefield A: "Maestros Initiate", 5 "Island"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Maestros Initiate"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Maestros Initiate"
+  assert hand A count 0
+  assert power "Maestros Initiate" 3
+  assert toughness "Maestros Initiate" 1
+}

@@ -130,7 +130,7 @@ impl GameState {
                 .count(),
             "trigger source count out of sync with the battlefield"
         );
-        if self.trigger_sources > 0 || !self.delayed_triggers.is_empty() {
+        if self.trigger_sources > 0 || !self.delayed_triggers.is_empty() || self.grants_exist() {
             return true;
         }
         if let Some(lb) = &self.lookback
@@ -160,7 +160,9 @@ impl GameState {
         if leaves && let Some(lb) = &self.lookback {
             return lb
                 .iter()
-                .filter(|l| self.may_watch(l.characteristics.def, l.except, event))
+                .filter(|l| {
+                    self.may_watch(l.characteristics.def, l.except, event) || self.grants_exist()
+                })
                 .map(|l| Watcher {
                     source: l.id,
                     controller: l.controller,
@@ -175,8 +177,9 @@ impl GameState {
             .filter_map(|id| {
                 let o = &self.objects[*id];
                 // Only objects whose printed abilities could see this kind
-                // of event pay for a characteristics lookup.
-                if !self.may_watch(o.def, o.except, event) {
+                // of event pay for a characteristics lookup (any object, once
+                // abilities may have been granted).
+                if !self.may_watch(o.def, o.except, event) && !self.grants_exist() {
                     return None;
                 }
                 Some(Watcher {
@@ -190,7 +193,7 @@ impl GameState {
         if leaves
             && let Event::ZoneChange { old, .. } = event
             && let Some(l) = self.lki.get(old)
-            && self.may_watch(l.object.def, l.object.except, event)
+            && (self.may_watch(l.object.def, l.object.except, event) || self.grants_exist())
         {
             out.push(Watcher {
                 source: *old,

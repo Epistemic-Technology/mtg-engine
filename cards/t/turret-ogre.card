@@ -1,0 +1,8 @@
+card "Turret Ogre" {
+  oracle_id fb4a044b-f25d-47ff-b272-754e577ce50a
+  cost {3}{R}
+  type Creature — Ogre Warrior
+  pt 4/3
+  keywords reach
+  triggered when this enters if you control other creature with power 4 or greater: deal 2 damage to each opponent
+}

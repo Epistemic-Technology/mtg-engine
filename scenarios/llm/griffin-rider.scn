@@ -1,0 +1,41 @@
+# Griffin Rider: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "without a Griffin it is a 1/1 without flying" {
+  battlefield A: "Griffin Rider", "Wind Drake", "Serra Angel"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Griffin Rider" 1
+  assert toughness "Griffin Rider" 1
+  assert has not "Griffin Rider" flying
+}
+
+scenario "a non-Griffin flyer does not grant flying, so ground creatures can block it" {
+  battlefield A: "Griffin Rider", "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Griffin Rider"
+  turn 1 B: block "Griffin Rider" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Griffin Rider"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "unblocked it deals only 1 damage" {
+  battlefield A: "Griffin Rider"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Griffin Rider"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Shock kills it without a Griffin" {
+  battlefield A: "Griffin Rider"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Griffin Rider"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Griffin Rider"
+}

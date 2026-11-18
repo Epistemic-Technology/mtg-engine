@@ -1,0 +1,8 @@
+card "Vampire Sovereign" {
+  oracle_id 49c7b7c6-c8dc-4871-9103-b057d2034c3e
+  cost {3}{B}{B}
+  type Creature — Vampire Noble
+  pt 3/4
+  keywords flying
+  triggered whenever this enters: target opponent loses 3 life and you gain 3 life
+}

@@ -1,0 +1,6 @@
+card "Magic Damper" {
+  oracle_id ada82f93-dc93-4a95-a13f-42b5942b3413
+  cost {U}
+  type Instant
+  spell: target creature you control gets +1/+1 and target 1 gains hexproof; untap target 1
+}

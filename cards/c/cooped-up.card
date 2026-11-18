@@ -1,0 +1,8 @@
+card "Cooped Up" {
+  oracle_id 3e8bcb44-b875-4fe4-b96f-97a20cbfec93
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {2}{W}: exile enchanted creature
+}

@@ -1,0 +1,8 @@
+card "Evil Eye of Orms-by-Gore" {
+  oracle_id 3f79780a-accd-4782-94a8-a6e71fb3ada7
+  cost {4}{B}
+  type Creature — Eye
+  pt 3/6
+  static non-Eye creature you control: has can't attack
+  can't be blocked except by Wall
+}

@@ -1,0 +1,6 @@
+card "Wrecking Ball" {
+  oracle_id 0a1b0910-3b0c-4aa3-b47f-8eb069122743
+  cost {2}{B}{R}
+  type Instant
+  spell: destroy target creature or land
+}

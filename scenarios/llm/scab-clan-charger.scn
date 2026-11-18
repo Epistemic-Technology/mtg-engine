@@ -1,0 +1,38 @@
+# Scab-Clan Charger: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "bloodrush pumps an unblocked attacker" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Scab-Clan Charger"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Scab-Clan Charger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 6
+  assert graveyard A contains "Scab-Clan Charger"
+  assert hand A count 0
+}
+
+scenario "bloodrushed attacker survives and kills a blocker" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Scab-Clan Charger"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Scab-Clan Charger" targeting "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert damage "Grizzly Bears" 3
+  assert life B 20
+}
+
+scenario "bloodrush needs an attacking creature" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Scab-Clan Charger"
+  illegal turn 1 A: activate "Scab-Clan Charger" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Scab-Clan Charger"
+  assert power "Grizzly Bears" 2
+}

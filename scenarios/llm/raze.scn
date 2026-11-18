@@ -1,0 +1,41 @@
+# Raze: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Raze sacrifices a land and destroys target land" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: "Plains", "Island"
+  hand A: "Raze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raze" sacrificing "Forest" targeting "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Raze"
+  assert graveyard B contains "Plains"
+  assert battlefield B contains "Island"
+  assert battlefield A contains "Mountain"
+  assert battlefield A lacks "Forest"
+}
+
+scenario "Raze can destroy one of your own lands" {
+  battlefield A: "Mountain", "Forest", "Swamp"
+  hand A: "Raze"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Raze" sacrificing "Forest" targeting "Swamp"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Swamp"
+  assert graveyard A contains "Raze"
+  assert battlefield A contains "Mountain"
+}
+
+scenario "Raze is sorcery speed" {
+  battlefield A: "Mountain", "Forest"
+  battlefield B: "Plains"
+  hand A: "Raze"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Raze" sacrificing "Forest" targeting "Plains"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Raze"
+  assert battlefield B contains "Plains"
+  assert battlefield A contains "Forest"
+}

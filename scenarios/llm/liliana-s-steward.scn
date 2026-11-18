@@ -1,0 +1,33 @@
+# Liliana's Steward: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "steward sacrifices to make opponent discard" {
+  battlefield A: "Liliana's Steward"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Liliana's Steward" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Lightning Bolt"
+  assert graveyard A contains "Liliana's Steward"
+}
+
+scenario "steward cannot be activated on opponent's turn" {
+  battlefield A: "Liliana's Steward"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: activate "Liliana's Steward" targeting player B
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Liliana's Steward"
+  assert hand B contains "Lightning Bolt"
+}
+
+scenario "steward cannot tap the turn it enters" {
+  battlefield A: "Swamp"
+  hand A: "Liliana's Steward"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Liliana's Steward"
+  illegal turn 1 postcombat_main A: activate "Liliana's Steward" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Liliana's Steward"
+  assert hand B contains "Lightning Bolt"
+}

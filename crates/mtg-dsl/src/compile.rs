@@ -299,6 +299,7 @@ impl Compiler<'_> {
             tapped: f.tapped,
             attacking: f.attacking,
             blocking: f.blocking,
+            damaged: f.damaged,
         }
     }
 
@@ -767,6 +768,14 @@ impl Compiler<'_> {
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::GrantAbility { ability, to } => {
+                let def = self.ability(ability)?;
+                let id = self.pool.register_ability(def);
+                out.push(CoreEffect::GrantAbility {
+                    ability: id,
+                    to: r(*to),
+                });
+            }
             Effect::PutFromHand { filter, tapped } => out.push(CoreEffect::PutFromHand {
                 filter: self.filter(filter),
                 tapped: *tapped,
@@ -884,8 +893,18 @@ impl Compiler<'_> {
         })
     }
 
+    /// A modification, registering a granted ability ("has \"...\"").
+    fn modification_or_grant(&mut self, m: &Mod) -> Result<Modification, CompileError> {
+        if let Mod::AddAbility(a) = m {
+            let def = self.ability(a)?;
+            return Ok(Modification::AddAbility(self.pool.register_ability(def)));
+        }
+        Ok(self.modification(m))
+    }
+
     fn modification(&mut self, m: &Mod) -> Modification {
         match m {
+            Mod::AddAbility(_) => unreachable!("compiled by modification_or_grant"),
             Mod::ModifyPtPer {
                 power,
                 toughness,
@@ -1012,7 +1031,10 @@ impl Compiler<'_> {
                 ..
             } => AbilityDef::Static(StaticAbility {
                 affected: self.filter(filter),
-                parts: mods.iter().map(|m| self.modification(m)).collect(),
+                parts: mods
+                    .iter()
+                    .map(|m| self.modification_or_grant(m))
+                    .collect::<Result<_, _>>()?,
                 condition: condition.as_ref().map(|c| self.static_cond(c)),
             }),
             Ability::EntersTappedUnless(c) => {

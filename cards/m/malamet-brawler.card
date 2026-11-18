@@ -1,0 +1,7 @@
+card "Malamet Brawler" {
+  oracle_id 06905dfb-b2df-4849-8848-fd3c964aa8c9
+  cost {1}{G}
+  type Creature — Cat Warrior
+  pt 2/2
+  triggered whenever this attacks: target attacking creature gains trample
+}

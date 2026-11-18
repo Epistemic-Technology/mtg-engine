@@ -1,0 +1,7 @@
+card "Grapeshot Catapult" {
+  oracle_id 23f73983-0337-4464-8817-5f7596d65b38
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/3
+  activated {T}: deal 1 damage to target creature with flying
+}

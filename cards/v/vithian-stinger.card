@@ -1,0 +1,8 @@
+card "Vithian Stinger" {
+  oracle_id 1c329131-bef2-41c6-823a-136c110ff0ad
+  cost {2}{R}
+  type Creature — Human Shaman
+  pt 0/1
+  activated {T}: deal 1 damage to any target
+  unearth {1}{R}
+}

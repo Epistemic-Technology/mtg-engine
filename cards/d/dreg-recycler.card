@@ -1,0 +1,7 @@
+card "Dreg Recycler" {
+  oracle_id 556c4dad-002e-41a8-8ba3-8b4eda70232f
+  cost {1}{B}
+  type Creature — Phyrexian Beast
+  pt 2/2
+  activated {T}, sacrifice artifact or creature: each opponent loses 1 life and you gain 1 life
+}

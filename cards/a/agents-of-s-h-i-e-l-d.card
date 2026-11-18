@@ -1,0 +1,7 @@
+card "Agents of S.H.I.E.L.D." {
+  oracle_id 203b72d2-a273-49cc-bd10-2fbc07ed2fc8
+  cost {2}{W}
+  type Creature — Human Spy Hero
+  pt 2/4
+  triggered whenever creature you control attacks alone: that creature gets +1/+1
+}

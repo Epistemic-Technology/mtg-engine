@@ -1,0 +1,8 @@
+card "Stitched Mangler" {
+  oracle_id 4c502f1b-7361-48c0-8def-0d3b3e9ff628
+  cost {2}{U}
+  type Creature — Zombie Horror
+  pt 2/3
+  enters tapped
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

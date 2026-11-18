@@ -1,0 +1,6 @@
+card "Stern Dismissal" {
+  oracle_id 319d5cf8-ab72-401e-b04e-c13a7a6c1aac
+  cost {U}
+  type Instant
+  spell: return target creature or enchantment an opponent controls to hand
+}

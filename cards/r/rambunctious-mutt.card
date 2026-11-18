@@ -1,0 +1,7 @@
+card "Rambunctious Mutt" {
+  oracle_id 48a53d6e-0320-4b9c-b692-6d0fc00e46cc
+  cost {3}{W}{W}
+  type Creature — Dog
+  pt 3/4
+  triggered when this enters: destroy target artifact or enchantment an opponent controls
+}

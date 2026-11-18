@@ -1,0 +1,7 @@
+card "Serrated Scorpion" {
+  oracle_id abbdc656-02e9-43a0-8e2c-263d6c37c273
+  cost {B}
+  type Creature — Scorpion
+  pt 1/2
+  triggered whenever this dies: deal 2 damage to each opponent and you gain 2 life
+}

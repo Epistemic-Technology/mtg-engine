@@ -1,0 +1,51 @@
+# Rookie Mistake: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Rookie Mistake gives +0/+2 to one target and -2/-0 to the other" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Rookie Mistake"
+  turn 1 A: cast "Rookie Mistake" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+  assert graveyard A contains "Rookie Mistake"
+}
+
+scenario "Rookie Mistake effects end at end of turn" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Rookie Mistake"
+  turn 1 A: cast "Rookie Mistake" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 upkeep
+  assert toughness "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Rookie Mistake during combat saves the attacker" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Rookie Mistake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Rookie Mistake" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Grizzly Bears" 1
+  assert damage "Hill Giant" 2
+}
+
+scenario "Rookie Mistake still affects the remaining legal target" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Rookie Mistake"
+  hand B: "Shock"
+  turn 1 A: cast "Rookie Mistake" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears" in response to "Rookie Mistake"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert power "Hill Giant" 1
+}

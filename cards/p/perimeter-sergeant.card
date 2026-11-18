@@ -1,0 +1,7 @@
+card "Perimeter Sergeant" {
+  oracle_id 6e1b21f9-c890-4d27-81d0-d38bf7493d33
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever this attacks: all other Human you control gets +1/+0
+}

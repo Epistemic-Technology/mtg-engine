@@ -1,0 +1,7 @@
+card "Midnight Covenant" {
+  oracle_id f3f2db4b-4a07-453c-ae18-aeec0adc8d3d
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {B}: this gets +1/+1 }
+}

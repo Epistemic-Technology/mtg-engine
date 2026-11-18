@@ -1,0 +1,39 @@
+# Read the Tides: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Read the Tides draws three cards" {
+  battlefield A: 6 "Island"
+  hand A: "Read the Tides"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Read the Tides" mode 1
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert graveyard A contains "Read the Tides"
+}
+
+scenario "Read the Tides returns two opposing creatures" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Read the Tides"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Read the Tides" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Read the Tides"
+}
+
+scenario "Read the Tides returns creatures to their owners' hands" {
+  battlefield A: 6 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Read the Tides"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Read the Tides" mode 2 targeting A "Grizzly Bears", B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield B lacks "Hill Giant"
+}

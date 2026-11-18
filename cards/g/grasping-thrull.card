@@ -1,0 +1,8 @@
+card "Grasping Thrull" {
+  oracle_id ec8a14d4-6ca0-43b1-abf6-0c129daf8350
+  cost {3}{W}{B}
+  type Creature — Thrull
+  pt 3/3
+  keywords flying
+  triggered when this enters: deal 2 damage to each opponent and you gain 2 life
+}

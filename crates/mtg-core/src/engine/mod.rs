@@ -231,6 +231,7 @@ impl Engine {
                 state.activated_sources += u32::from(def.has_activated());
                 state.life_cda_sources += u32::from(def.flags().has_life_cda());
                 state.cost_change_sources += u32::from(def.flags().has_cost_change());
+                state.grant_sources += u32::from(def.flags().grants_abilities());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -465,6 +466,9 @@ impl GameState {
             activated_sources: 0,
             life_cda_sources: 0,
             cost_change_sources: 0,
+            grant_sources: 0,
+            eot_grants: 0,
+            undone_cast: None,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
             pending_triggers: Vec::new(),
@@ -700,10 +704,12 @@ impl GameState {
                             .collect();
                     }
                     if options.is_empty() {
-                        unreachable!(
-                            "{} offered without legal targets for {spec:?}",
-                            self.pool.get(def).name
-                        );
+                        // Moving the card to the stack changed what is
+                        // legal (a power that counts cards in hand): the
+                        // cast is undone (CR 726).
+                        let _ = def;
+                        self.undo_cast(spell, is_ability);
+                        continue;
                     }
                     return StepResult::Decision(Decision {
                         player: caster,
@@ -1434,6 +1440,32 @@ impl GameState {
         }
     }
 
+    /// CR 726: a spell or ability that turns out to have no legal target
+    /// as it is put on the stack is rewound; nothing has been paid yet.
+    fn undo_cast(&mut self, spell: ObjId, is_ability: bool) {
+        let o = &self.objects[spell];
+        let (controller, source, def) = (o.controller, o.ability.map(|a| a.source), o.def);
+        if is_ability {
+            self.emit(Event::TriggerRemoved {
+                source: source.unwrap_or(spell),
+                def,
+            });
+            self.remove_from_game(spell);
+        } else {
+            let back = if o.cast.flashback() {
+                Zone::Graveyard
+            } else {
+                Zone::Hand
+            };
+            self.x_values.retain(|(id, _)| *id != spell);
+            let card = self.move_object(spell, back, false);
+            self.give_priority(controller);
+            self.undone_cast = Some((card, self.version));
+            return;
+        }
+        self.give_priority(controller);
+    }
+
     fn give_priority(&mut self, p: PlayerId) {
         self.priority = p;
         self.consecutive_passes = 0;
@@ -1540,6 +1572,7 @@ impl GameState {
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.attacked_this_turn = 0;
             self.creatures_died_this_turn = 0;
+            self.eot_grants = 0;
             self.active_player = self.next_player_in_game(self.active_player);
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.

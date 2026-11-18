@@ -1,0 +1,7 @@
+card "Dross Scorpion" {
+  oracle_id 132786bb-157c-4e2c-8f82-13df6a667448
+  cost {4}
+  type Artifact Creature — Scorpion
+  pt 3/1
+  triggered whenever artifact creature dies: you may untap target artifact
+}

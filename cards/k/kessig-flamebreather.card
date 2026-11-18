@@ -1,0 +1,7 @@
+card "Kessig Flamebreather" {
+  oracle_id eadd9559-6dcb-4b96-8c95-58abddd0e120
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 1/3
+  triggered whenever you cast a noncreature spell: deal 1 damage to each opponent
+}

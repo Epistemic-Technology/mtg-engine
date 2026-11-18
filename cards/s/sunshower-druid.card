@@ -1,0 +1,7 @@
+card "Sunshower Druid" {
+  oracle_id 7a70faf5-cc04-402b-92e3-67746788f510
+  cost {G}
+  type Creature — Frog Druid
+  pt 0/2
+  triggered when this enters: put 1 +1/+1 counter on target creature and you gain 1 life
+}

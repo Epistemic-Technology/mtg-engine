@@ -1,0 +1,6 @@
+card "Rhystic Study" {
+  oracle_id 53236dd7-845a-444c-96d5-f41ed7325d8f
+  cost {2}{U}
+  type Enchantment
+  triggered whenever an opponent casts a spell: you may draw 1 card unless that player pays {1}
+}

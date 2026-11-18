@@ -1,0 +1,7 @@
+card "Witty Roastmaster" {
+  oracle_id 34edbf1b-0826-49f1-a04d-15cc8c543b22
+  cost {2}{R}
+  type Creature — Devil Citizen
+  pt 3/2
+  label "Alliance" triggered whenever other creature you control enters: deal 1 damage to each opponent
+}

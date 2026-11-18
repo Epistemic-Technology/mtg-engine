@@ -1,0 +1,6 @@
+card "Fissure" {
+  oracle_id c8b1e9f3-b014-4e57-b278-6d84a7e88b23
+  cost {3}{R}{R}
+  type Instant
+  spell: destroy target creature or land without regeneration
+}

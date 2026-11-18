@@ -1,0 +1,27 @@
+# Into the North: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Into the North finds no non-snow basic land" {
+  battlefield A: 2 "Forest"
+  hand A: "Into the North"
+  library A: "Forest", "Forest", "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Into the North"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert battlefield A lacks "Plains"
+  assert battlefield A lacks "Island"
+  assert graveyard A contains "Into the North"
+  assert hand A count 0
+}
+
+scenario "Into the North is cast at sorcery speed only" {
+  battlefield A: 2 "Forest"
+  hand A: "Into the North"
+  start turn 2 B precombat_main
+  illegal turn 2 precombat_main A: cast "Into the North"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Into the North"
+  assert untapped oldest A "Forest"
+  assert untapped newest A "Forest"
+}

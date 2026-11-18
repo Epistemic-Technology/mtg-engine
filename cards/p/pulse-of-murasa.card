@@ -1,0 +1,6 @@
+card "Pulse of Murasa" {
+  oracle_id d5b446a4-a761-42f0-acf0-ea0a1a9538d6
+  cost {2}{G}
+  type Instant
+  spell: return target creature or land card from a graveyard to hand; you gains 6 life
+}

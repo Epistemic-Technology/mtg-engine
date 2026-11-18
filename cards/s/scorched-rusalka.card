@@ -1,0 +1,7 @@
+card "Scorched Rusalka" {
+  oracle_id dd05fd8e-f25e-4b9e-b162-afea1b248282
+  cost {R}
+  type Creature — Spirit
+  pt 1/1
+  activated {R}, sacrifice creature: deal 1 damage to target player or planeswalker
+}

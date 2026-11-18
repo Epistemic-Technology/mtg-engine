@@ -1,0 +1,7 @@
+card "Rakeclaw Gargantuan" {
+  oracle_id 8dbb4a8f-78e9-4ceb-824d-bb67bdf939db
+  cost {2}{R}{G}{W}
+  type Creature — Beast
+  pt 5/3
+  activated {1}: target creature with power 5 or greater gains first strike
+}

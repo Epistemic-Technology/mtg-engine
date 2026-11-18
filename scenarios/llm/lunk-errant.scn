@@ -1,0 +1,46 @@
+# Lunk Errant: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attacking alone gives +1/+1 and trample" {
+  battlefield A: "Lunk Errant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lunk Errant"
+  run_to turn 2 postcombat_main
+  assert power "Lunk Errant" 5
+  assert toughness "Lunk Errant" 5
+  assert has "Lunk Errant" trample
+  assert life B 15
+}
+
+scenario "trample damage carries over a chump blocker when attacking alone" {
+  battlefield A: "Lunk Errant"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lunk Errant"
+  turn 2 B: block "Lunk Errant" with "Grizzly Bears"
+  turn 2 combat_damage A: assign "Lunk Errant" to "Grizzly Bears" 2, player B 3
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+  assert battlefield A contains "Lunk Errant"
+}
+
+scenario "no bonus when attacking with another creature" {
+  battlefield A: "Lunk Errant", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lunk Errant", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Lunk Errant" 4
+  assert has not "Lunk Errant" trample
+  assert life B 13
+}
+
+scenario "bonus ends at end of turn" {
+  battlefield A: "Lunk Errant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Lunk Errant"
+  run_to turn 3 upkeep
+  assert power "Lunk Errant" 4
+  assert has not "Lunk Errant" trample
+  assert life B 15
+}

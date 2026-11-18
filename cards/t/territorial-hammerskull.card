@@ -1,0 +1,7 @@
+card "Territorial Hammerskull" {
+  oracle_id a690c1de-158a-4f33-a916-ed2a130f92eb
+  cost {2}{W}
+  type Creature — Dinosaur
+  pt 2/3
+  triggered whenever this attacks: tap target creature an opponent controls
+}

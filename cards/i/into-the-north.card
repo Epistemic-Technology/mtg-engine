@@ -1,0 +1,6 @@
+card "Into the North" {
+  oracle_id 30aefabc-5fd2-451b-aa93-8e5a972c7691
+  cost {1}{G}
+  type Sorcery
+  spell: search snow land card to battlefield tapped
+}

@@ -1,0 +1,7 @@
+card "Raze" {
+  oracle_id 02fde433-955d-49df-bd72-270b6feac9e7
+  cost {R}
+  type Sorcery
+  additional cost sacrifice land
+  spell: destroy target land
+}

@@ -1,0 +1,7 @@
+card "Simic Locket" {
+  oracle_id c567fed8-df00-4579-901e-8754079105bf
+  cost {3}
+  type Artifact
+  mana {G} or {U}
+  activated {G/U}{G/U}{G/U}{G/U}, {T}, sacrifice this: draw 2 cards
+}

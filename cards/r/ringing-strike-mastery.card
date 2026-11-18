@@ -1,0 +1,9 @@
+card "Ringing Strike Mastery" {
+  oracle_id 334ffdc4-9fe6-4a7f-bf5d-bcd88adab715
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  static enchanted: has ability { activated {5}: untap this }
+}

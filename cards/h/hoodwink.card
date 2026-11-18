@@ -1,0 +1,6 @@
+card "Hoodwink" {
+  oracle_id a2fe10b8-857e-4881-85ef-24a0f96a3d79
+  cost {1}{U}
+  type Instant
+  spell: return target artifact, enchantment, or land to hand
+}

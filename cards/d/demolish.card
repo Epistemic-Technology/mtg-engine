@@ -1,0 +1,6 @@
+card "Demolish" {
+  oracle_id 08c6d2fd-d9ae-4f95-bb9d-7e16b1039814
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target artifact or land
+}

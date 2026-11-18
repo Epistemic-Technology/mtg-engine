@@ -644,6 +644,11 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),
+        Modification::AddAbility(a) => {
+            if !c.abilities.contains(a) && c.abilities.len() < 8 {
+                c.abilities.push(*a);
+            }
+        }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),
         Modification::RemoveAllAbilities => {
             c.keywords = crate::card::KeywordSet::NONE;

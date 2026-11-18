@@ -1,0 +1,7 @@
+card "Bigfin Bouncer" {
+  oracle_id 4e473298-0b67-42b8-90a8-3bcdd73da473
+  cost {3}{U}
+  type Creature — Shark Pirate
+  pt 3/2
+  triggered when this enters: return target creature an opponent controls to hand
+}

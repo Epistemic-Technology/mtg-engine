@@ -1,0 +1,6 @@
+card "Emerge from the Cocoon" {
+  oracle_id fed2127c-7174-4863-ad6a-1847c96bbd3f
+  cost {4}{W}
+  type Sorcery
+  spell: return target creature card from your graveyard to battlefield; you gain 3 life
+}

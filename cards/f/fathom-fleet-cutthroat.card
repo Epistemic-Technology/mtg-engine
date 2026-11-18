@@ -1,0 +1,7 @@
+card "Fathom Fleet Cutthroat" {
+  oracle_id e90e3f58-1197-41c1-81c5-008e946eb539
+  cost {3}{B}
+  type Creature — Human Pirate
+  pt 3/3
+  triggered when this enters: destroy target creature an opponent controls that was dealt damage this turn
+}

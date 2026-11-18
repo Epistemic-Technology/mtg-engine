@@ -1,0 +1,8 @@
+card "Sabotender" {
+  oracle_id 65385311-1158-4e94-892a-683997706ca8
+  cost {1}{R}
+  type Creature — Plant
+  pt 2/1
+  keywords reach
+  label "Landfall" triggered whenever land you control enters: deal 1 damage to each opponent
+}

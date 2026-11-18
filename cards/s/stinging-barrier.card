@@ -1,0 +1,8 @@
+card "Stinging Barrier" {
+  oracle_id b56f375f-35b3-4d96-9749-c059c2d29c8b
+  cost {2}{U}{U}
+  type Creature — Wall
+  pt 0/4
+  keywords defender
+  activated {U}, {T}: deal 1 damage to any target
+}

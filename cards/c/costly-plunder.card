@@ -1,0 +1,7 @@
+card "Costly Plunder" {
+  oracle_id 8cdfd9df-4783-4138-a286-828a97f516aa
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: draw 2 cards
+}

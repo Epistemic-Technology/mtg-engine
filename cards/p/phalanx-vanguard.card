@@ -1,0 +1,8 @@
+card "Phalanx Vanguard" {
+  oracle_id 265f461e-d076-4119-8ea4-96360305f3a0
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords vigilance
+  triggered whenever artifact you control enters: this gets +1/+0
+}

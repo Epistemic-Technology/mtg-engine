@@ -1205,6 +1205,22 @@ impl P {
     /// `7 cards in your graveyard`, `4 card types in your graveyard`,
     /// `you control [3] <filter>`, `your turn`, or the ability words
     /// `threshold`, `delirium`, `metalcraft`.
+    /// `{ <ability line> }`: an ability granted by another ("has \"...\""),
+    /// parsed with targets of its own.
+    fn nested_ability(&mut self) -> R<Ability> {
+        self.expect(&Tok::LBrace)?;
+        self.skip_newlines();
+        let targets = std::mem::take(&mut self.targets);
+        let subject = self.subject.take();
+        let a = self.ability();
+        self.targets = targets;
+        self.subject = subject;
+        let a = a?;
+        self.skip_newlines();
+        self.expect(&Tok::RBrace)?;
+        Ok(a)
+    }
+
     /// `{ mode: <effects> ... }`: each mode with its own targets.
     fn modes_block(&mut self) -> R<Vec<Mode>> {
         self.expect(&Tok::LBrace)?;
@@ -1614,6 +1630,15 @@ impl P {
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
+            "gain" | "gains" if self.at_word("ability") => {
+                self.pos += 1;
+                let ability = Box::new(self.nested_ability()?);
+                self.until_end_of_turn();
+                Ok(Effect::GrantAbility {
+                    ability,
+                    to: subject,
+                })
+            }
             "gain" | "gains" => {
                 if self.at_word("control") {
                     self.pos += 1;
@@ -2629,10 +2654,19 @@ impl P {
                     };
                     probe.keyword().is_some()
                 };
+                let comma_type = self.peek_at(ws.len()) == Some(&Tok::Comma)
+                    && self
+                        .word_at(ws.len() + 1)
+                        .is_some_and(|w| card_type(&w).is_some() || w == "or");
                 let more = matches!(
                     (next.as_deref(), after.as_deref()),
                     (Some("you"), Some("don't"))
-                ) || keyword_after
+                        | (Some("an"), Some("opponent"))
+                        | (Some("that"), Some("was"))
+                ) || comma_type
+                    || (next.as_deref() == Some("or")
+                        && after.as_deref().and_then(card_type).is_some())
+                    || keyword_after
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
                     || next.as_deref().and_then(card_type).is_some()
@@ -2686,7 +2720,38 @@ impl P {
     fn filter(&mut self) -> R<Filter> {
         let mut f = Filter::default();
         let mut consumed = 0;
-        while let Some(w) = self.word_at(0) {
+        loop {
+            // "nonartifact, nonblack creature"; "artifact, enchantment, or
+            // land": a comma inside the filter.
+            if self.peek() == Some(&Tok::Comma) && consumed > 0 {
+                let next = self.word_at(1).unwrap_or_default();
+                let negation = next.starts_with("non")
+                    && (!f.not_types.is_empty()
+                        || !f.not_colors.is_empty()
+                        || !f.not_subtypes.is_empty());
+                let listed_type = (!f.types.is_empty() || !f.any_types.is_empty())
+                    && f.subtypes.is_empty()
+                    && (card_type(&next).is_some()
+                        || (next == "or"
+                            && self.word_at(2).as_deref().and_then(card_type).is_some()));
+                if negation {
+                    self.pos += 1;
+                    continue;
+                }
+                if listed_type {
+                    self.pos += 1;
+                    self.eat_word("or");
+                    let t = card_type(&self.word()?).expect("checked");
+                    f.any_types.append(&mut f.types);
+                    f.any_types.push(t);
+                    consumed += 2;
+                    continue;
+                }
+                break;
+            }
+            let Some(w) = self.word_at(0) else {
+                break;
+            };
             let raw = match self.peek() {
                 Some(Tok::Word(x)) => x.clone(),
                 _ => unreachable!(),
@@ -2778,6 +2843,14 @@ impl P {
                 "blocking" => {
                     f.blocking = true;
                     self.pos += 1;
+                }
+                "damaged" => {
+                    f.damaged = true;
+                    self.pos += 1;
+                }
+                "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
+                    f.damaged = true;
+                    self.pos += 6;
                 }
                 "multicolored" | "monocolored" | "colorless" => {
                     f.color_count = Some(match w.as_str() {
@@ -3411,6 +3484,10 @@ impl P {
                     }),
                     _ => self.fail("expected P/T or `mv` after `base`"),
                 }
+            }
+            "has" | "have" if self.at_word("ability") => {
+                self.pos += 1;
+                Ok(Mod::AddAbility(Box::new(self.nested_ability()?)))
             }
             "has" | "have" => Ok(Mod::AddKeywords(self.keyword_list()?)),
             "loses" | "lose" if self.keyword_ahead() => {

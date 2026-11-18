@@ -1,0 +1,7 @@
+card "Gruul Locket" {
+  oracle_id 7018ccd0-96e6-458f-b412-197edcb2bafd
+  cost {3}
+  type Artifact
+  mana {R} or {G}
+  activated {R/G}{R/G}{R/G}{R/G}, {T}, sacrifice this: draw 2 cards
+}

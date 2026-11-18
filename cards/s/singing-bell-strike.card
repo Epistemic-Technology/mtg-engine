@@ -1,0 +1,9 @@
+card "Singing Bell Strike" {
+  oracle_id dad07f8c-1f24-4f56-b8a6-7c4b82e27e0f
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  static enchanted: has ability { activated {6}: untap this }
+}

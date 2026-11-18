@@ -1,0 +1,8 @@
+card "Glidedive Duo" {
+  oracle_id 33c06c11-8d0a-45ce-adea-c9a7a8ac8779
+  cost {4}{B}
+  type Creature — Bat Lizard
+  pt 3/3
+  keywords flying
+  triggered when this enters: each opponent loses 2 life and you gain 2 life
+}

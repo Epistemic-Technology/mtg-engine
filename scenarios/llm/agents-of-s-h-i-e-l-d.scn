@@ -1,0 +1,40 @@
+# Agents of S.H.I.E.L.D.: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another creature attacking alone gets +1/+1" {
+  battlefield A: "Agents of S.H.I.E.L.D.", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "the Agents itself attacking alone gets +1/+1" {
+  battlefield A: "Agents of S.H.I.E.L.D."
+  turn 1 A: attack "Agents of S.H.I.E.L.D."
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert toughness "Agents of S.H.I.E.L.D." 5
+}
+
+scenario "no bonus when two creatures attack" {
+  battlefield A: "Agents of S.H.I.E.L.D.", "Grizzly Bears"
+  turn 1 A: attack "Agents of S.H.I.E.L.D.", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert power "Grizzly Bears" 2
+}
+
+scenario "pumped attacker survives a block it otherwise would not" {
+  battlefield A: "Agents of S.H.I.E.L.D.", "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Grizzly Bears"
+}

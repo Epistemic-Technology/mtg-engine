@@ -1,0 +1,7 @@
+card "Expunge" {
+  oracle_id 4b1fee86-360d-41d8-9238-eff216376732
+  cost {2}{B}
+  type Instant
+  spell: destroy target nonartifact, nonblack creature without regeneration
+  cycling {2}
+}

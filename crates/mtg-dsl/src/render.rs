@@ -893,15 +893,18 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             Supertype::World => "nonworld".to_string(),
         });
     }
-    for c in &f.not_colors {
-        words.push(format!("non{}", color_name(*c)));
-    }
-    // "noncreature, nonland card": several negations are listed.
+    // "noncreature, nonland card", "nonartifact, nonblack creature":
+    // several negations are listed, types before colors.
     let mut negs: Vec<String> = f
         .not_types
         .iter()
         .map(|t| format!("non{}", type_noun(*t)))
         .collect();
+    negs.extend(
+        f.not_colors
+            .iter()
+            .map(|c| format!("non{}", color_name(*c))),
+    );
     negs.extend(f.not_subtypes.iter().map(|s| format!("non-{s}")));
     if !negs.is_empty() {
         words.push(negs.join(", "));
@@ -956,6 +959,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.no_abilities {
         s.push_str(" with no abilities");
+    }
+    if f.damaged {
+        s.push_str(" that was dealt damage this turn");
     }
     s
 }
@@ -1429,6 +1435,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 out.push_str(&sentences(&m.effects, &mut inner));
             }
             Clause::imperative(out)
+        }
+        Effect::GrantAbility { ability, to } => {
+            let s = ctx.subj(*to);
+            let q = quoted(ability, ctx.card, CardType::Creature, ctx.lookup);
+            Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
+                .until_eot()
         }
         Effect::SkipNextUntap { to } => {
             let s = ctx.subj(*to);
@@ -2446,6 +2458,7 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
         }
     };
     match m {
+        Mod::AddAbility(_) => "has \"...\"".to_string(),
         Mod::AddTypes(types) => format!(
             "{} {} in addition to its other types",
             v("is", "are"),
@@ -2554,6 +2567,7 @@ fn cda_count_text(c: &CdaCount, card: &Card) -> String {
     }
 }
 
+#[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
@@ -2630,6 +2644,17 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     let parts: Vec<String> = mods
         .iter()
         .map(|m| {
+            if let Mod::AddAbility(a) = m {
+                let noun = if filter.types == [CardType::Land]
+                    || (filter.enchanted && enchanted_noun(card) == "land")
+                {
+                    CardType::Land
+                } else {
+                    CardType::Creature
+                };
+                let have = if plural_form { "have" } else { "has" };
+                return format!("{have} {}", quoted(a, card, noun, &()));
+            }
             let mut t = mod_text(m, plural_form);
             if let Mod::ModifyPtPer {
                 count: Num::Count(i),
@@ -2643,7 +2668,23 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             t
         })
         .collect();
-    format!("{subject} {}.", list(&parts))
+    let body = format!("{subject} {}", list(&parts));
+    if body.ends_with(".\"") {
+        body
+    } else {
+        format!("{body}.")
+    }
+}
+
+/// An ability another grants, in quotes, about the object that has it
+/// ("\"{T}: This creature deals 1 damage to any target.\"").
+fn quoted(a: &Ability, card: &Card, noun: CardType, lookup: &dyn Lookup) -> String {
+    let mut holder = card.blank();
+    holder.name.clone_from(&card.name);
+    holder.types = vec![noun];
+    holder.groups.clone_from(&card.groups);
+    holder.counts.clone_from(&card.counts);
+    format!("\"{}\"", ability_text(&holder, a, lookup))
 }
 
 /// "seven or more cards are in your graveyard", "you control an Island".

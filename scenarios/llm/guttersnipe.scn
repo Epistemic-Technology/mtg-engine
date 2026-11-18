@@ -1,0 +1,40 @@
+# Guttersnipe: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "instant spell triggers Guttersnipe for 2 to each opponent" {
+  battlefield A: "Guttersnipe", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "sorcery spell triggers Guttersnipe" {
+  battlefield A: "Guttersnipe", 3 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+
+scenario "creature spell does not trigger Guttersnipe" {
+  battlefield A: "Guttersnipe", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "opponent's instant does not trigger Guttersnipe" {
+  battlefield A: "Guttersnipe"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 B: cast "Lightning Bolt" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 20
+}

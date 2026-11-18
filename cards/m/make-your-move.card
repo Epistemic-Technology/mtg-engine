@@ -1,0 +1,6 @@
+card "Make Your Move" {
+  oracle_id 8226f31d-6f51-49c3-87f7-0c68f7f4f9ce
+  cost {2}{W}
+  type Instant
+  spell: destroy target artifact, enchantment, or creature with power 4 or greater
+}

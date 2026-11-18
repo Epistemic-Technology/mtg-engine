@@ -2294,6 +2294,24 @@ Corpus 6,863 cards: 4,850 Pauper (44.6%), 5,099 Modern (22.4%); 1,388
 scenarios pass (19 new in scenarios/m5/slice11.scn), 1 skipped; fuzz 0
 panics, 0 unfinished; throughput 1% below slice 8.
 
+Status 2026-11-18, slice 12 (quoted abilities) done, with model-author
+batch 5 (500 cards, 110 accepted, about $19). Granted abilities are
+registered in the pool and added in layer 6 (`Modification::AddAbility`,
+`Effect::GrantAbility`); while a permanent with such a static is on the
+battlefield, or an effect granted one this turn, activation listing and
+trigger detection look at every permanent's current abilities rather
+than at definitions alone. The template author authors the quoted
+ability on its own. Target filters: type disjunctions and lists
+("artifact, enchantment, or land"), listed negations ("nonartifact,
+nonblack"), "that was dealt damage this turn"; "target creature an
+opponent controls" after any verb. Fuzz found a cast whose target stopped
+being legal as the card left the hand (a power counting cards in hand):
+such a cast is now undone (CR 726) and not offered again until the state
+changes. Corpus 7,094 cards: 5,081 Pauper (46.7%), 5,309 Modern
+(23.4%); 1,756 scenarios pass (8 new in scenarios/m5/granted.scn, the
+rest with batch 5's cards), 1 skipped; fuzz 0 panics, 0 unfinished.
+Throughput not measured: the machine was loaded by other work.
+
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional
 "enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't

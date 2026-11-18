@@ -1,0 +1,9 @@
+card "Feast or Famine" {
+  oracle_id 485f710d-5bc2-4c8f-b7e9-eed6caa261a6
+  cost {3}{B}
+  type Instant
+  choose one {
+    mode: create 1 "2/2 black Zombie creature"
+    mode: destroy target nonartifact, nonblack creature without regeneration
+  }
+}

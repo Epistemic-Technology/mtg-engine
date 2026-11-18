@@ -1,0 +1,7 @@
+card "Hostile Realm" {
+  oracle_id e7c3bd74-959c-4b07-b13d-30fe0f0ede2a
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}: target creature can't block }
+}

@@ -1,0 +1,7 @@
+card "Izzet Locket" {
+  oracle_id 7ee07546-2c2e-4679-b671-7ea509b1d3ea
+  cost {3}
+  type Artifact
+  mana {U} or {R}
+  activated {U/R}{U/R}{U/R}{U/R}, {T}, sacrifice this: draw 2 cards
+}

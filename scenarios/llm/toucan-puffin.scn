@@ -1,0 +1,39 @@
+# Toucan-Puffin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters trigger pumps own creature until end of turn" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Toucan-Puffin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toucan-Puffin"
+  turn 1 A: trigger "Toucan-Puffin" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Toucan-Puffin"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+  assert power "Toucan-Puffin" 2
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "trigger can only target a creature you control" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Toucan-Puffin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toucan-Puffin"
+  run_to turn 1 begin_combat
+  assert power "Toucan-Puffin" 4
+  assert toughness "Toucan-Puffin" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "flying evades ground blockers" {
+  battlefield A: "Toucan-Puffin"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Toucan-Puffin"
+  illegal turn 1 B: block "Toucan-Puffin" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Toucan-Puffin" flying
+  assert life B 18
+}

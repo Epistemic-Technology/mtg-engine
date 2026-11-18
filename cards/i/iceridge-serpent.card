@@ -1,0 +1,7 @@
+card "Iceridge Serpent" {
+  oracle_id 53f07529-c212-43e4-b5b6-086efeadda39
+  cost {4}{U}
+  type Creature — Serpent
+  pt 3/3
+  triggered when this enters: return target creature an opponent controls to hand
+}

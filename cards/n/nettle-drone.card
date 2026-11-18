@@ -1,0 +1,9 @@
+card "Nettle Drone" {
+  oracle_id cc4e8b8e-f615-4842-84c5-d6154986b666
+  cost {2}{R}
+  type Creature — Eldrazi Drone
+  pt 3/1
+  keywords devoid
+  activated {T}: deal 1 damage to each opponent
+  triggered whenever you cast colorless spell: untap this
+}

@@ -1,0 +1,7 @@
+card "Phase Dolphin" {
+  oracle_id b70b739b-b147-4abe-8e48-26e7ea02a9f6
+  cost {2}{U}
+  type Creature — Elemental Whale
+  pt 1/4
+  triggered whenever this attacks: target other attacking creature gains can't be blocked
+}

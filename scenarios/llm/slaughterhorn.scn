@@ -1,0 +1,37 @@
+# Slaughterhorn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "bloodrush pumps an attacking creature from hand" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Slaughterhorn"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Slaughterhorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert graveyard A contains "Slaughterhorn"
+  assert hand A count 0
+  assert tapped "Forest"
+}
+
+scenario "bloodrush cannot target a creature that is not attacking" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Slaughterhorn"
+  illegal turn 1 A: activate "Slaughterhorn" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Slaughterhorn"
+  assert untapped "Forest"
+}
+
+scenario "bloodrush toughness boost lets a blocked attacker survive" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Slaughterhorn"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Slaughterhorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Slaughterhorn"
+  assert life B 20
+}

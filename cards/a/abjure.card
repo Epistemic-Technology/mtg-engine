@@ -1,0 +1,7 @@
+card "Abjure" {
+  oracle_id dd97e457-07eb-4918-b780-ae7ff42a37e7
+  cost {U}
+  type Instant
+  additional cost sacrifice blue permanent
+  spell: counter target spell
+}

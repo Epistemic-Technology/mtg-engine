@@ -1,0 +1,7 @@
+card "Sage's Row Denizen" {
+  oracle_id fc59aa9a-3abd-4479-a63e-ef0eeb35b5f2
+  cost {2}{U}
+  type Creature — Vedalken Wizard
+  pt 2/3
+  triggered whenever other blue creature you control enters: target player mills 2 cards
+}

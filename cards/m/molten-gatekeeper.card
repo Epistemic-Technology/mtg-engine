@@ -1,0 +1,8 @@
+card "Molten Gatekeeper" {
+  oracle_id 90fdfba8-f29e-44f9-91d2-7bf3c458a9c1
+  cost {2}{R}
+  type Artifact Creature — Golem
+  pt 2/3
+  triggered whenever other creature you control enters: deal 1 damage to each opponent
+  unearth {R}
+}

@@ -1,0 +1,6 @@
+card "Return to the Earth" {
+  oracle_id 722f2965-a1ec-4b97-a4bd-b99364f58b1e
+  cost {3}{G}
+  type Instant
+  spell: destroy target artifact, enchantment, or creature with flying
+}

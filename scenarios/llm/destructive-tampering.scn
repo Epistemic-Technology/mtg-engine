@@ -1,0 +1,42 @@
+# Destructive Tampering: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "mode 2 stops creatures without flying from blocking" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Destructive Tampering"
+  turn 1 A: cast "Destructive Tampering" mode 2
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Destructive Tampering"
+}
+
+scenario "mode 2 does not stop creatures with flying from blocking" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Destructive Tampering"
+  turn 1 A: cast "Destructive Tampering" mode 2
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Serra Angel"
+}
+
+scenario "the blocking restriction ends with the turn" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Destructive Tampering"
+  turn 1 A: cast "Destructive Tampering" mode 2
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 3 A: attack "Hill Giant"
+  turn 3 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Grizzly Bears"
+}

@@ -1,0 +1,8 @@
+card "Skymarch Bloodletter" {
+  oracle_id 41684707-5118-45cf-892d-46b66045d026
+  cost {2}{B}
+  type Creature — Vampire Soldier
+  pt 2/2
+  keywords flying
+  triggered when this enters: target opponent loses 1 life and you gain 1 life
+}

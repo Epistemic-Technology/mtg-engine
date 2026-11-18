@@ -1,0 +1,9 @@
+card "Psychotic Fury" {
+  oracle_id 1bf982e9-5868-46bf-81e3-f29ada33d169
+  cost {1}{R}
+  type Instant
+  spell {
+    target multicolored creature gains double strike
+    draw 1 card
+  }
+}

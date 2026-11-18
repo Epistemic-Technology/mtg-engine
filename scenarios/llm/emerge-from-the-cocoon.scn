@@ -1,0 +1,37 @@
+# Emerge from the Cocoon: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "returns creature card to the battlefield and gains 3 life" {
+  battlefield A: 5 "Plains"
+  hand A: "Emerge from the Cocoon"
+  graveyard A: "Hill Giant"
+  turn 1 A: cast "Emerge from the Cocoon" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Emerge from the Cocoon"
+  assert life A 23
+}
+
+scenario "reanimated flier is usable on the next turn" {
+  battlefield A: 5 "Plains"
+  hand A: "Emerge from the Cocoon"
+  graveyard A: "Serra Angel"
+  turn 1 A: cast "Emerge from the Cocoon" targeting "Serra Angel"
+  turn 3 A: attack "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert life B 16
+  assert life A 23
+}
+
+scenario "cannot be cast without a creature card in your graveyard" {
+  battlefield A: 5 "Plains"
+  hand A: "Emerge from the Cocoon"
+  graveyard B: "Grizzly Bears"
+  illegal turn 1 A: cast "Emerge from the Cocoon" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Emerge from the Cocoon"
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}

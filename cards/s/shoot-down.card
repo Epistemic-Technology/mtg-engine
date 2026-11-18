@@ -1,0 +1,6 @@
+card "Shoot Down" {
+  oracle_id 2a89feeb-9e66-4539-bd75-7d9d53f52d49
+  cost {3}{G}
+  type Sorcery
+  spell: exile target artifact, enchantment, or creature with flying
+}

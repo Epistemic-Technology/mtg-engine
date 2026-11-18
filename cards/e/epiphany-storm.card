@@ -1,0 +1,7 @@
+card "Epiphany Storm" {
+  oracle_id 833fe5f4-cfab-46ce-a4fe-250673896350
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {R}, {T}, discard 1 card: draw 1 cards }
+}

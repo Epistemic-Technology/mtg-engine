@@ -1,0 +1,8 @@
+card "D'Avenant Healer" {
+  oracle_id 91770dc7-3de3-458f-a240-6540455fe05f
+  cost {1}{W}{W}
+  type Creature — Human Cleric Archer
+  pt 1/2
+  activated {T}: deal 1 damage to target attacking or blocking creature
+  activated {T}: prevent next 1 damage to any target this turn
+}

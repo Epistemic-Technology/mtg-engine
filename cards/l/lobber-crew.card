@@ -1,0 +1,9 @@
+card "Lobber Crew" {
+  oracle_id 84dffb4b-02d7-48e4-9a95-43f88cd52bf3
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 0/4
+  keywords defender
+  activated {T}: deal 1 damage to each opponent
+  triggered whenever you cast multicolored spell: untap this
+}

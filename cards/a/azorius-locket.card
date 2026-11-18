@@ -1,0 +1,7 @@
+card "Azorius Locket" {
+  oracle_id ca13dda2-fbb0-4b6b-9126-3c8df04dee2b
+  cost {3}
+  type Artifact
+  mana {W} or {U}
+  activated {W/U}{W/U}{W/U}{W/U}, {T}, sacrifice this: draw 2 cards
+}

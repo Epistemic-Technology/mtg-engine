@@ -1,0 +1,40 @@
+# Patagia Tiger: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Patagia Tiger enters; trigger finds no Human and does not pump other creatures" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Patagia Tiger"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Patagia Tiger"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Patagia Tiger"
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+  assert power "Patagia Tiger" 3
+  assert toughness "Patagia Tiger" 4
+  assert stack count 0
+}
+
+scenario "Patagia Tiger flies over a ground blocker" {
+  battlefield A: "Patagia Tiger"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Patagia Tiger"
+  illegal turn 1 declare_blockers B: block "Patagia Tiger" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Patagia Tiger can be blocked by a flyer" {
+  battlefield A: "Patagia Tiger"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Patagia Tiger"
+  turn 1 B: block "Patagia Tiger" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Patagia Tiger"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}

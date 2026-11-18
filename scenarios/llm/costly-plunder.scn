@@ -1,0 +1,44 @@
+# Costly Plunder: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice a creature to draw two cards" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Costly Plunder"
+  library A: "Island", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Costly Plunder" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Costly Plunder"
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A count 2
+  assert hand A contains "Island"
+  assert hand A contains "Forest"
+}
+
+scenario "cannot be cast without an artifact or creature to sacrifice" {
+  battlefield A: 2 "Swamp"
+  hand A: "Costly Plunder"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Costly Plunder"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Costly Plunder"
+  assert hand A count 1
+}
+
+scenario "instant speed sacrifice in response to removal" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Costly Plunder"
+  library A: "Island", "Forest", "Plains"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: cast "Costly Plunder" sacrificing "Grizzly Bears" in response to "Lightning Bolt"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Costly Plunder"
+  assert graveyard B contains "Lightning Bolt"
+  assert hand A count 2
+  assert life A 20
+}

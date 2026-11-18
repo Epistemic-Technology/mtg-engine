@@ -1,0 +1,7 @@
+card "Selesnya Locket" {
+  oracle_id 9ecd98d5-8d66-4cb0-bada-23dfa0faacc0
+  cost {3}
+  type Artifact
+  mana {G} or {W}
+  activated {G/W}{G/W}{G/W}{G/W}, {T}, sacrifice this: draw 2 cards
+}

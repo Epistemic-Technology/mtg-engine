@@ -1,0 +1,7 @@
+card "Initiate's Companion" {
+  oracle_id f3264224-43a4-4c6b-b363-2d147687dfc1
+  cost {1}{G}
+  type Creature — Cat
+  pt 3/1
+  triggered whenever this deals combat damage to a player: untap target creature or land
+}

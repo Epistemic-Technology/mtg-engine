@@ -1,0 +1,6 @@
+card "Kapow!" {
+  oracle_id d6eabbff-cc0c-4000-8feb-4826e1b6bc66
+  cost {2}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counters on target creature you control; target 1 fights target creature an opponent controls
+}

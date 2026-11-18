@@ -1,0 +1,49 @@
+# Zhalfirin Shapecraft: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Shapecraft sets base 4/3 and draws a card" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Zhalfirin Shapecraft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zhalfirin Shapecraft" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert hand A count 1
+  assert graveyard A contains "Zhalfirin Shapecraft"
+}
+
+scenario "Pump applies on top of the new base" {
+  battlefield A: "Grizzly Bears", 2 "Island", "Forest"
+  hand A: "Zhalfirin Shapecraft", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zhalfirin Shapecraft" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 6
+}
+
+scenario "Effect ends at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Zhalfirin Shapecraft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zhalfirin Shapecraft" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Shrinks toughness but keeps abilities" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Zhalfirin Shapecraft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Zhalfirin Shapecraft" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 4
+  assert toughness "Serra Angel" 3
+  assert has "Serra Angel" flying
+  assert has "Serra Angel" vigilance
+}

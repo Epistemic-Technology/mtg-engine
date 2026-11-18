@@ -1,0 +1,47 @@
+# Machinesmith Automaton: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another artifact entering grows the automaton, not the newcomer" {
+  battlefield A: "Machinesmith Automaton", 3 "Mountain"
+  hand A: "Machinesmith Automaton"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Machinesmith Automaton"
+  run_to turn 1 postcombat_main
+  assert power oldest A "Machinesmith Automaton" 3
+  assert toughness oldest A "Machinesmith Automaton" 3
+  assert power newest A "Machinesmith Automaton" 2
+}
+
+scenario "a nonartifact creature entering does not trigger" {
+  battlefield A: "Machinesmith Automaton", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Machinesmith Automaton" 2
+}
+
+scenario "an opponent's artifact entering does not trigger" {
+  battlefield A: "Machinesmith Automaton"
+  battlefield B: 3 "Mountain"
+  hand B: "Machinesmith Automaton"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Machinesmith Automaton"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Machinesmith Automaton"
+  assert power A "Machinesmith Automaton" 2
+}
+
+scenario "trample carries excess damage over a blocker" {
+  battlefield A: "Machinesmith Automaton" with 1 +1/+1
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Machinesmith Automaton"
+  turn 1 B: block "Machinesmith Automaton" with "Grizzly Bears"
+  turn 1 A: assign "Machinesmith Automaton" to "Grizzly Bears" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Machinesmith Automaton"
+}

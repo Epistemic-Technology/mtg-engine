@@ -1,0 +1,9 @@
+card "Thermo-Alchemist" {
+  oracle_id 228fbae1-423e-461d-b8c3-55786938a3cb
+  cost {1}{R}
+  type Creature — Human Shaman
+  pt 0/3
+  keywords defender
+  activated {T}: deal 1 damage to each opponent
+  triggered whenever you cast an instant or sorcery spell: untap this
+}

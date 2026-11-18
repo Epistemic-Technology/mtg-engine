@@ -328,6 +328,11 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::GrantAbility { ability, to } => format!(
+                "{} gains ability {{ {} }}",
+                self.recipient(*to, t),
+                nested(ability, &self.groups)
+            ),
             Effect::SkipNextUntap { to } => {
                 format!("{} doesn't untap next untap step", self.recipient(*to, t))
             }
@@ -833,6 +838,9 @@ pub fn filter(f: &Filter) -> String {
     if f.blocking {
         words.push("blocking".to_string());
     }
+    if f.damaged {
+        words.push("damaged".to_string());
+    }
     if let Some(cc) = f.color_count {
         words.push(format!("{cc:?}").to_lowercase());
     }
@@ -1065,8 +1073,16 @@ fn cost_text(c: &Cost) -> String {
     }
 }
 
+/// An ability granted by another, on one line.
+fn nested(a: &Ability, groups: &[Filter]) -> String {
+    let mut s = String::new();
+    ability(&mut s, a, "", groups);
+    s.trim().replace('\n', " ")
+}
+
 fn modification(m: &Mod) -> String {
     match m {
+        Mod::AddAbility(_) => unreachable!("formatted with its groups"),
         Mod::AddTypes(ts) => format!(
             "add type {}",
             ts.iter()
@@ -1377,7 +1393,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             condition,
             cond_first,
         } => {
-            let mods = mods.iter().map(modification).collect::<Vec<_>>().join(", ");
+            let mods = mods
+                .iter()
+                .map(|m| match m {
+                    Mod::AddAbility(a) => format!("has ability {{ {} }}", nested(a, groups)),
+                    other => modification(other),
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
             match condition {
                 Some(StaticCond::DuringYourTurn) => {
                     let _ = writeln!(

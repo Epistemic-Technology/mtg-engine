@@ -1,0 +1,33 @@
+# Foundry Street Denizen: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "red creature entering pumps Denizen until end of turn" {
+  battlefield A: "Foundry Street Denizen", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power "Foundry Street Denizen" 2
+  assert toughness "Foundry Street Denizen" 1
+  run_to turn 2 upkeep
+  assert power "Foundry Street Denizen" 1
+}
+
+scenario "nonred creature entering does not pump Denizen" {
+  battlefield A: "Foundry Street Denizen", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Foundry Street Denizen" 1
+}
+
+scenario "second Denizen pumps the first but not itself" {
+  battlefield A: "Foundry Street Denizen", "Mountain"
+  hand A: "Foundry Street Denizen"
+  turn 1 A: cast "Foundry Street Denizen"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Foundry Street Denizen"
+  assert power oldest A "Foundry Street Denizen" 2
+  assert power newest A "Foundry Street Denizen" 1
+}

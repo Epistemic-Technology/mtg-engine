@@ -801,6 +801,9 @@ pub struct ObjFilter {
     pub tapped: Option<bool>,
     pub attacking: bool,
     pub blocking: bool,
+    /// "that was dealt damage this turn" (damage is marked until the
+    /// cleanup step, CR 514.2).
+    pub damaged: bool,
 }
 
 /// A comparison in a filter.
@@ -980,7 +983,11 @@ impl ObjFilter {
     /// Whether the filter has conditions on game state beyond
     /// characteristics (see `GameState::status_ok`) or the mana value.
     pub const fn needs_state(&self) -> bool {
-        self.tapped.is_some() || self.attacking || self.blocking || self.mana_value.is_some()
+        self.tapped.is_some()
+            || self.attacking
+            || self.blocking
+            || self.damaged
+            || self.mana_value.is_some()
     }
 }
 
@@ -1014,6 +1021,9 @@ pub enum Modification {
     SetColors(ColorSet),
     /// "has flying" (layer 6).
     AddKeywords(KeywordSet),
+    /// "has '{T}: Add {G}.'": an ability granted (layer 6), registered in
+    /// the pool.
+    AddAbility(AbilityId),
     /// "loses flying" (layer 6).
     RemoveKeywords(KeywordSet),
     /// "loses all abilities" (layer 6).
@@ -1072,6 +1082,7 @@ impl Modification {
             | Modification::SetColors(_)
             | Modification::CdaColors(_) => Layer::L5Color,
             Modification::AddKeywords(_)
+            | Modification::AddAbility(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
             Modification::CdaPt { .. } => Layer::L7aCda,
@@ -1707,6 +1718,12 @@ pub enum Effect {
     },
     /// The source's echo has been dealt with (CR 702.30a).
     ClearEcho,
+    /// "Target creature gains '...' until end of turn": a registered
+    /// ability granted until end of turn (layer 6).
+    GrantAbility {
+        ability: AbilityId,
+        to: Recipient,
+    },
     /// A modal triggered ability's modes ("When this creature enters,
     /// choose one —"), as its only effect: the mode is chosen as the
     /// ability is put on the stack (CR 700.2, 603.3c), and the ability's
@@ -2447,6 +2464,10 @@ impl DefFlags {
     const COST_CHANGE: u16 = 512;
     /// "Can't attack unless ..." (`AbilityDef::AttackUnless`).
     const ATTACK_RULE: u16 = 1024;
+    /// A static ability that grants an ability ("Enchanted creature has
+    /// '{T}: ...'"), so other objects may have abilities their definitions
+    /// lack.
+    const GRANTS: u16 = 2048;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -2501,6 +2522,10 @@ impl DefFlags {
         self.has(DefFlags::ATTACK_RULE)
     }
 
+    pub const fn grants_abilities(self) -> bool {
+        self.has(DefFlags::GRANTS)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
         let mut flags = DefFlags::default();
@@ -2553,6 +2578,12 @@ impl DefFlags {
                         | StaticCondition::YourLife { .. }
                         | StaticCondition::AnyPlayerLifeAtMost(_)
                 )))
+            }),
+        );
+        flags.set(
+            DefFlags::GRANTS,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m, Modification::AddAbility(_))))
             }),
         );
         flags.set(

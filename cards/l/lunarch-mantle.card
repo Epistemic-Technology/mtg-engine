@@ -1,0 +1,7 @@
+card "Lunarch Mantle" {
+  oracle_id 0da104ae-c46c-4106-919f-d975721d42d9
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has ability { activated {1}, sacrifice permanent: this gains flying }
+}

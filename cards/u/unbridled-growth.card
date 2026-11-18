@@ -1,0 +1,8 @@
+card "Unbridled Growth" {
+  oracle_id d749d075-6135-486a-a94a-36c3142960d7
+  cost {G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { mana any }
+  activated sacrifice this: draw 1 cards
+}

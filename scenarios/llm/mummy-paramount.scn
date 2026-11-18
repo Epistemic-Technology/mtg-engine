@@ -1,0 +1,36 @@
+# Mummy Paramount: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another Zombie entering pumps the older Mummy Paramount only" {
+  battlefield A: "Mummy Paramount", 2 "Plains"
+  hand A: "Mummy Paramount"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mummy Paramount"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Mummy Paramount"
+  assert power oldest A "Mummy Paramount" 3
+  assert toughness oldest A "Mummy Paramount" 3
+  assert power newest A "Mummy Paramount" 2
+  assert toughness newest A "Mummy Paramount" 2
+}
+
+scenario "a non-Zombie creature entering does not trigger" {
+  battlefield A: "Mummy Paramount", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Mummy Paramount" 2
+  assert toughness "Mummy Paramount" 2
+}
+
+scenario "the pump lasts only until end of turn" {
+  battlefield A: "Mummy Paramount", 2 "Plains"
+  hand A: "Mummy Paramount"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mummy Paramount"
+  run_to turn 2 upkeep
+  assert power oldest A "Mummy Paramount" 2
+  assert toughness oldest A "Mummy Paramount" 2
+}

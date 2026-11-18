@@ -1,0 +1,7 @@
+card "Morgul-Knife Wound" {
+  oracle_id f48b2349-797e-4e79-aea7-2413e78129e1
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -3/-0, has ability { triggered at beginning of your upkeep: exile this unless you pay 2 life }
+}

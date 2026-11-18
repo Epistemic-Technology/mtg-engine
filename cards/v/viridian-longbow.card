@@ -1,0 +1,7 @@
+card "Viridian Longbow" {
+  oracle_id 8b9119b0-9948-497f-aa92-2879d07bed1c
+  cost {1}
+  type Artifact — Equipment
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+  equip {3}
+}

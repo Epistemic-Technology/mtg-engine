@@ -1,0 +1,31 @@
+# Evil Eye of Orms-by-Gore: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "non-Eye creatures you control can't attack" {
+  battlefield A: "Evil Eye of Orms-by-Gore", "Grizzly Bears"
+  start turn 1 A
+  illegal turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Grizzly Bears"
+}
+
+scenario "the Eye itself can attack and can't be blocked by non-Walls" {
+  battlefield A: "Evil Eye of Orms-by-Gore"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A
+  turn 1 A: attack "Evil Eye of Orms-by-Gore"
+  illegal turn 1 B: block "Evil Eye of Orms-by-Gore" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "opponent's creatures can still attack" {
+  battlefield A: "Evil Eye of Orms-by-Gore"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

@@ -1,0 +1,40 @@
+# Phase Dolphin: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger makes another attacker unblockable" {
+  battlefield A: "Phase Dolphin", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Phase Dolphin", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Phase Dolphin" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "dolphin attacking alone can still be blocked" {
+  battlefield A: "Phase Dolphin"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Phase Dolphin"
+  turn 1 B: block "Phase Dolphin" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Phase Dolphin" 3
+  assert battlefield A contains "Phase Dolphin"
+}
+
+scenario "target stays unblockable after dolphin leaves" {
+  battlefield A: "Phase Dolphin", "Grizzly Bears"
+  battlefield B: "Hill Giant", 3 "Swamp"
+  hand B: "Murder"
+  start turn 1 A
+  turn 1 A: attack "Phase Dolphin", "Grizzly Bears"
+  turn 1 declare_attackers A: trigger "Phase Dolphin" targeting "Grizzly Bears"
+  turn 1 declare_attackers B: cast "Murder" targeting "Phase Dolphin"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Phase Dolphin"
+  assert life B 18
+}

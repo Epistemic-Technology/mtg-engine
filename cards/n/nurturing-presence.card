@@ -1,0 +1,8 @@
+card "Nurturing Presence" {
+  oracle_id 3f03c834-2cb3-4c54-bee6-c64f3a5fce47
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { triggered whenever creature you control enters: this gets +1/+1 }
+  triggered when this enters: create 1 "1/1 white Spirit creature with flying"
+}

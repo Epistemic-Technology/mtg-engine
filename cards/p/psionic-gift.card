@@ -1,0 +1,7 @@
+card "Psionic Gift" {
+  oracle_id 842bb10a-f056-4db8-a341-2d20796b99ba
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+}

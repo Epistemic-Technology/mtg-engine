@@ -1,0 +1,9 @@
+card "You Are Already Dead" {
+  oracle_id c1157d79-38ea-4a88-b346-7b12614ff78a
+  cost {B}
+  type Instant
+  spell {
+    destroy target creature that was dealt damage this turn
+    draw 1 cards
+  }
+}

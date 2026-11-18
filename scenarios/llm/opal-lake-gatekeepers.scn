@@ -1,0 +1,36 @@
+# Opal Lake Gatekeepers: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "no Gates means no card drawn" {
+  battlefield A: 4 "Island"
+  hand A: "Opal Lake Gatekeepers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opal Lake Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Opal Lake Gatekeepers"
+  assert hand A count 0
+}
+
+scenario "basic lands are not Gates" {
+  battlefield A: 2 "Island", 2 "Plains", "Forest"
+  hand A: "Opal Lake Gatekeepers", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Opal Lake Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Opal Lake Gatekeepers"
+  assert hand A count 1
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "2/4 body survives blocking Hill Giant" {
+  battlefield A: "Opal Lake Gatekeepers"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Opal Lake Gatekeepers"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Opal Lake Gatekeepers"
+  assert damage "Opal Lake Gatekeepers" 3
+  assert damage "Hill Giant" 2
+  assert life A 20
+}

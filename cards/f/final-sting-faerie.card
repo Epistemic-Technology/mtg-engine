@@ -1,0 +1,8 @@
+card "Final-Sting Faerie" {
+  oracle_id 299765d8-72b9-4ada-a607-efb36aa0f5db
+  cost {3}{B}
+  type Creature — Faerie Assassin
+  pt 2/2
+  keywords flying
+  triggered when this enters: destroy target creature that was dealt damage this turn
+}

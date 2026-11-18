@@ -1,0 +1,7 @@
+card "Trained Pronghorn" {
+  oracle_id 22528380-4f47-4bd9-a1d4-79f700cba4f5
+  cost {1}{W}
+  type Creature — Antelope
+  pt 1/1
+  activated discard 1 card: prevent all damage to this this turn
+}

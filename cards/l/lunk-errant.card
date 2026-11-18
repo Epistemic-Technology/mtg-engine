@@ -1,0 +1,7 @@
+card "Lunk Errant" {
+  oracle_id 1c2445b4-e8be-452c-950d-f42e549daf9a
+  cost {5}{R}
+  type Creature — Giant Warrior
+  pt 4/4
+  triggered whenever this attacks alone: this gets +1/+1 and this gains trample
+}

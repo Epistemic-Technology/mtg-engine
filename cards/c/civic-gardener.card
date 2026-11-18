@@ -1,0 +1,7 @@
+card "Civic Gardener" {
+  oracle_id 9eb7f301-b9b6-48c3-9dad-e7df9cc15355
+  cost {1}{G}
+  type Creature — Human Citizen
+  pt 2/2
+  triggered whenever this attacks: untap target creature or land
+}

@@ -1,0 +1,7 @@
+card "Orzhov Locket" {
+  oracle_id 8aaf248e-66cf-447b-b062-9aa2ab1ec864
+  cost {3}
+  type Artifact
+  mana {W} or {B}
+  activated {W/B}{W/B}{W/B}{W/B}, {T}, sacrifice this: draw 2 cards
+}

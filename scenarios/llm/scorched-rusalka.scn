@@ -1,0 +1,31 @@
+# Scorched Rusalka: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice another creature to deal 1 damage to a player" {
+  battlefield A: "Scorched Rusalka", "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scorched Rusalka" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Scorched Rusalka"
+  assert tapped "Mountain"
+}
+
+scenario "sacrificing itself still deals the damage" {
+  battlefield A: "Scorched Rusalka", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scorched Rusalka" sacrificing "Scorched Rusalka" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Scorched Rusalka"
+}
+
+scenario "cannot activate without red mana" {
+  battlefield A: "Scorched Rusalka", "Grizzly Bears", "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Scorched Rusalka" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains "Grizzly Bears"
+}

@@ -1,0 +1,40 @@
+# Kasmina's Transmutation: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enchanted creature loses abilities and becomes 1/1" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Kasmina's Transmutation"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kasmina's Transmutation" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert attached "Kasmina's Transmutation" to "Serra Angel"
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+}
+
+scenario "pump effects still apply on top of base 1/1" {
+  battlefield A: 2 "Island", "Forest", "Hill Giant"
+  hand A: "Kasmina's Transmutation", "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kasmina's Transmutation" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+}
+
+scenario "shrunken creature dies to small burn and aura goes to graveyard" {
+  battlefield A: 2 "Island", "Mountain", "Hill Giant"
+  hand A: "Kasmina's Transmutation", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kasmina's Transmutation" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Kasmina's Transmutation"
+}

@@ -1,0 +1,7 @@
+card "Merciless Resolve" {
+  oracle_id e9eecc10-8821-4b61-a042-01fef435d37c
+  cost {2}{B}
+  type Instant
+  additional cost sacrifice creature or land
+  spell: draw 2 cards
+}

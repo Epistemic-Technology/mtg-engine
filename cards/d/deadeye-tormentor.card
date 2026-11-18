@@ -1,0 +1,7 @@
+card "Deadeye Tormentor" {
+  oracle_id ab735456-f831-4988-84c6-50ca14351990
+  cost {2}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  label "Raid" triggered whenever this enters if attacked this turn: target opponent discards 1 card
+}

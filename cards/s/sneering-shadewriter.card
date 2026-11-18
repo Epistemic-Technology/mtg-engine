@@ -1,0 +1,8 @@
+card "Sneering Shadewriter" {
+  oracle_id 21a094d6-de3d-48d4-a35d-b99617da55db
+  cost {4}{B}
+  type Creature — Vampire Warlock
+  pt 3/3
+  keywords flying
+  triggered when this enters: each opponent loses 2 life and you gain 2 life
+}

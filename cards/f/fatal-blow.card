@@ -1,0 +1,6 @@
+card "Fatal Blow" {
+  oracle_id 16774611-c004-4383-b4e1-4a43a9b1f4aa
+  cost {B}
+  type Instant
+  spell: destroy target creature that was dealt damage this turn without regeneration
+}

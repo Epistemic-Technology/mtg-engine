@@ -1,0 +1,7 @@
+card "Acolyte of Aclazotz" {
+  oracle_id 324d2aa8-6dea-4b0d-898d-1e52ed187565
+  cost {2}{B}
+  type Creature — Vampire Cleric
+  pt 1/4
+  activated {T}, sacrifice other creature or artifact: each opponent loses 1 life and you gain 1 life
+}

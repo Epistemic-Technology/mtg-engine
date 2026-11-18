@@ -1,0 +1,32 @@
+# Crusader of Odric: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Crusader counts itself and other creatures you control" {
+  battlefield A: "Crusader of Odric", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Crusader of Odric" 3
+  assert toughness "Crusader of Odric" 3
+}
+
+scenario "Opponent's creatures are not counted" {
+  battlefield A: "Crusader of Odric"
+  battlefield B: "Serra Angel", "Wind Drake"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Crusader of Odric" 1
+  assert toughness "Crusader of Odric" 1
+}
+
+scenario "Nonlethal damage becomes lethal when a creature leaves" {
+  battlefield A: "Crusader of Odric", "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Crusader of Odric"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Crusader of Odric"
+  assert battlefield A contains "Hill Giant"
+}

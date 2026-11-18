@@ -1,0 +1,8 @@
+card "Chillbringer" {
+  oracle_id 604d2a0e-224c-4a7b-aabf-033e7dcee3f2
+  cost {4}{U}
+  type Creature — Elemental
+  pt 3/3
+  keywords flying
+  triggered when this enters: tap target creature an opponent controls; target 1 doesn't untap next untap step
+}

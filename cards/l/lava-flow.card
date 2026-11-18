@@ -1,0 +1,6 @@
+card "Lava Flow" {
+  oracle_id 91c0a76e-3992-437f-b85a-97b0b4adbb84
+  cost {3}{R}{R}
+  type Sorcery
+  spell: destroy target creature or land
+}

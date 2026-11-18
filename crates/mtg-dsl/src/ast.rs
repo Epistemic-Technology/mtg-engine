@@ -226,6 +226,8 @@ pub struct Filter {
     pub tapped: Option<bool>,
     pub attacking: bool,
     pub blocking: bool,
+    /// `damaged`: "that was dealt damage this turn".
+    pub damaged: bool,
 }
 
 impl Filter {
@@ -644,6 +646,9 @@ pub enum Mod {
     AddColors(Vec<Color>),
     SetColors(Vec<Color>),
     AddKeywords(Vec<Keyword>),
+    /// `has ability { <ability line> }`: "has \"{T}: Add {G}.\"" (a quoted
+    /// ability, layer 6).
+    AddAbility(Box<Ability>),
     /// `loses flying`.
     LosesKeywords(Vec<Keyword>),
     RemoveAllAbilities,
@@ -957,6 +962,12 @@ pub enum Effect {
     /// `target 1 doesn't untap next untap step`: "It doesn't untap during
     /// its controller's next untap step."
     SkipNextUntap {
+        to: Recipient,
+    },
+    /// `<what> gains ability { <ability line> }`: "gains \"...\" until end of
+    /// turn".
+    GrantAbility {
+        ability: Box<Ability>,
         to: Recipient,
     },
     /// `switch pt of target creature`: "Switch target creature's power

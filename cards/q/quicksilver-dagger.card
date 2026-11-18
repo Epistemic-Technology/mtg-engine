@@ -1,0 +1,7 @@
+card "Quicksilver Dagger" {
+  oracle_id 5c77bf76-bb0f-4e44-babe-0e7b7b555e1f
+  cost {1}{U}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to target player or planeswalker; you draws 1 cards }
+}

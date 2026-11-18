@@ -1,0 +1,8 @@
+card "Lurking Deadeye" {
+  oracle_id d1dd27eb-ba7b-4d5d-a36c-3f350df2ad51
+  cost {3}{B}
+  type Creature — Human Assassin
+  pt 4/2
+  keywords flash
+  triggered when this enters: destroy target creature that was dealt damage this turn
+}

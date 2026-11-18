@@ -1,0 +1,7 @@
+card "Sentinel Sliver" {
+  oracle_id 1d0f1186-be6c-45c3-9703-f0c1e13892fb
+  cost {1}{W}
+  type Creature — Sliver
+  pt 2/2
+  static Sliver creature you control: has vigilance
+}

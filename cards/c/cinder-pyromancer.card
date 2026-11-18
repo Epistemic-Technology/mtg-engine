@@ -1,0 +1,8 @@
+card "Cinder Pyromancer" {
+  oracle_id 47bfee3e-34b4-4b89-aaf8-f74e0c3d3c62
+  cost {2}{R}
+  type Creature — Elemental Shaman
+  pt 0/1
+  activated {T}: deal 1 damage to target player or planeswalker
+  triggered whenever you cast red spell: you may untap this
+}

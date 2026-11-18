@@ -1,0 +1,7 @@
+card "Urn of Godfire" {
+  oracle_id 420290d9-7bb9-4e5a-82ec-c777152ccc72
+  cost {1}
+  type Artifact
+  activated {2}: add any
+  activated {6}, {T}, sacrifice this: destroy target creature or enchantment
+}

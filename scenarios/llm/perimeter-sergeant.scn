@@ -1,0 +1,30 @@
+# Perimeter Sergeant: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger pumps other Humans but not itself or non-Humans" {
+  battlefield A: "Perimeter Sergeant", "Perimeter Sergeant", "Grizzly Bears"
+  turn 1 A: attack "Perimeter Sergeant"
+  run_to turn 1 declare_blockers
+  assert power oldest A "Perimeter Sergeant" 3
+  assert power newest A "Perimeter Sergeant" 4
+  assert power "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "two attacking Sergeants pump each other" {
+  battlefield A: "Perimeter Sergeant", "Perimeter Sergeant"
+  turn 1 A: attack "Perimeter Sergeant", "Perimeter Sergeant"
+  run_to turn 1 postcombat_main
+  assert life B 12
+}
+
+scenario "pump lasts only until end of turn" {
+  battlefield A: "Perimeter Sergeant", "Perimeter Sergeant"
+  turn 1 A: attack "Perimeter Sergeant"
+  run_to turn 1 postcombat_main
+  assert power newest A "Perimeter Sergeant" 4
+  run_to turn 2 upkeep
+  assert power newest A "Perimeter Sergeant" 3
+  assert power oldest A "Perimeter Sergeant" 3
+}

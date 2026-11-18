@@ -1,0 +1,10 @@
+card "Hooded Assassin" {
+  oracle_id a3f76c99-b608-425e-83ca-675acb7c2693
+  cost {2}{B}
+  type Creature — Human Assassin
+  pt 1/2
+  triggered when this enters: choose one {
+    mode: put 1 +1/+1 counters on this
+    mode: destroy target creature that was dealt damage this turn
+  }
+}

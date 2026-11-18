@@ -1,0 +1,6 @@
+card "Temporal Eddy" {
+  oracle_id 3a35e772-2547-41a3-a2a2-125b48c23aa5
+  cost {2}{U}{U}
+  type Sorcery
+  spell: put target creature or land on top of library
+}

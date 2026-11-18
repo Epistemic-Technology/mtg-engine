@@ -1,0 +1,8 @@
+card "Stingscourger" {
+  oracle_id 3e8d1051-1739-4a10-9cef-78f7333b4979
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  echo {3}{R}
+  triggered when this enters: return target creature an opponent controls to hand
+}

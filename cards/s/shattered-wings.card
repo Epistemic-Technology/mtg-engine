@@ -1,0 +1,6 @@
+card "Shattered Wings" {
+  oracle_id 709b9f76-0ea5-456c-b1db-2cf517370fde
+  cost {2}{G}
+  type Sorcery
+  spell: destroy target artifact, enchantment, or creature with flying; surveil 1
+}

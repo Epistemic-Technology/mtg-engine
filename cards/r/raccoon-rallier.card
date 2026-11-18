@@ -1,0 +1,7 @@
+card "Raccoon Rallier" {
+  oracle_id 50c038a4-6546-4a15-a117-176849edaa3d
+  cost {1}{R}
+  type Creature — Raccoon Bard
+  pt 2/2
+  activated {T}, sorcery: target creature you control gains haste
+}

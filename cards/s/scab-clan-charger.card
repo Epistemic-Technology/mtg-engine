@@ -1,0 +1,7 @@
+card "Scab-Clan Charger" {
+  oracle_id 2f947056-fa10-4491-95e5-532ea3b76d10
+  cost {3}{G}
+  type Creature — Centaur Warrior
+  pt 2/4
+  label "Bloodrush" activated {1}{G}, discard this: target attacking creature gets +2/+4
+}

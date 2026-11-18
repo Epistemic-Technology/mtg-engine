@@ -1,0 +1,46 @@
+# Ivy Lane Denizen: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "green creature entering puts a counter on the entering creature" {
+  battlefield A: "Ivy Lane Denizen", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: trigger "Ivy Lane Denizen" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert power "Ivy Lane Denizen" 2
+}
+
+scenario "denizen may target itself" {
+  battlefield A: "Ivy Lane Denizen", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: trigger "Ivy Lane Denizen" targeting "Ivy Lane Denizen"
+  run_to turn 1 postcombat_main
+  assert counters "Ivy Lane Denizen" +1/+1 1
+  assert power "Ivy Lane Denizen" 3
+  assert toughness "Ivy Lane Denizen" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "nongreen creature entering does not trigger" {
+  battlefield A: "Ivy Lane Denizen", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert power "Hill Giant" 3
+  assert power "Ivy Lane Denizen" 2
+  assert stack count 0
+}
+
+scenario "denizen entering itself does not trigger" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  hand A: "Ivy Lane Denizen"
+  turn 1 A: cast "Ivy Lane Denizen"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ivy Lane Denizen"
+  assert power "Ivy Lane Denizen" 2
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,36 @@
+# Clammy Prowler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger makes another attacker unblockable" {
+  battlefield A: "Clammy Prowler", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Clammy Prowler", "Grizzly Bears"
+  turn 1 A: trigger "Clammy Prowler" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "the prowler itself can still be blocked" {
+  battlefield A: "Clammy Prowler", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Clammy Prowler", "Grizzly Bears"
+  turn 1 A: trigger "Clammy Prowler" targeting "Grizzly Bears"
+  turn 1 B: block "Clammy Prowler" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert damage "Clammy Prowler" 3
+  assert battlefield A contains "Clammy Prowler"
+  assert damage "Hill Giant" 2
+}
+
+scenario "attacking alone the prowler can be blocked" {
+  battlefield A: "Clammy Prowler"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Clammy Prowler"
+  turn 1 B: block "Clammy Prowler" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Clammy Prowler" 3
+}

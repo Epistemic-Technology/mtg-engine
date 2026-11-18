@@ -1,0 +1,7 @@
+card "Arcane Teachings" {
+  oracle_id 0b633017-bfdf-47cd-a60f-c93816b47e9c
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has ability { activated {T}: deal 1 damage to any target }
+}

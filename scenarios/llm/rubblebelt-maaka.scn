@@ -1,0 +1,48 @@
+# Rubblebelt Maaka: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "bloodrush pumps an attacking creature" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Rubblebelt Maaka"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Rubblebelt Maaka" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert life B 15
+  assert graveyard A contains "Rubblebelt Maaka"
+  assert hand A count 0
+}
+
+scenario "bloodrush needs an attacking creature" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  hand A: "Rubblebelt Maaka"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Rubblebelt Maaka" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert hand A contains "Rubblebelt Maaka"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "bloodrushed attacker wins combat against a blocker" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Rubblebelt Maaka"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Rubblebelt Maaka" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert damage "Grizzly Bears" 3
+}
+
+scenario "cast as a creature" {
+  battlefield A: 4 "Mountain"
+  hand A: "Rubblebelt Maaka"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rubblebelt Maaka"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rubblebelt Maaka"
+  assert power "Rubblebelt Maaka" 3
+}

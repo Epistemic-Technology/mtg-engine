@@ -1,0 +1,6 @@
+card "Coercion" {
+  oracle_id 68413337-ddb9-46f8-8c8e-f3d2d672c652
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand discarding card
+}

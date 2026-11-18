@@ -1,0 +1,39 @@
+# Serrated Scorpion: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "dies to Lightning Bolt: opponent takes 2, controller gains 2" {
+  battlefield A: "Serrated Scorpion"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Serrated Scorpion"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Serrated Scorpion"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "dies blocking Hill Giant" {
+  battlefield A: "Serrated Scorpion"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Serrated Scorpion"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Serrated Scorpion"
+  assert damage "Hill Giant" 1
+  assert life A 22
+  assert life B 18
+}
+
+scenario "no trigger while it survives" {
+  battlefield A: "Serrated Scorpion"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serrated Scorpion"
+  assert life A 18
+  assert life B 20
+}

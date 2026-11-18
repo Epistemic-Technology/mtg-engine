@@ -1,0 +1,8 @@
+card "Rooftop Assassin" {
+  oracle_id f3baef8c-f8d7-4cb2-b5cc-b889a991e4e8
+  cost {3}{B}
+  type Creature — Vampire Assassin
+  pt 2/2
+  keywords flash, flying, lifelink
+  triggered when this enters: destroy target creature an opponent controls that was dealt damage this turn
+}

@@ -1,0 +1,7 @@
+card "Rakdos Locket" {
+  oracle_id ab784412-0722-4501-9aa0-fd68d307f6fd
+  cost {3}
+  type Artifact
+  mana {B} or {R}
+  activated {B/R}{B/R}{B/R}{B/R}, {T}, sacrifice this: draw 2 cards
+}

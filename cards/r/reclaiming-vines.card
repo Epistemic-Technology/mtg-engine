@@ -1,0 +1,6 @@
+card "Reclaiming Vines" {
+  oracle_id 3ec3d99d-2c49-469a-81d5-f1609b6e49ca
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy target artifact, enchantment, or land
+}

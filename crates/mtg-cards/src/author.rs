@@ -619,7 +619,9 @@ impl Templates {
         let r = |s: &str| Regex::new(s).unwrap();
         let rules: Vec<Rule> = vec![
             (
-                r(r"^(?:~|this|It|it) deals (\S+) damage to (.+?)(?: and (.+))?$"),
+                r(
+                    r"^(?:~|this|It|it|This creature|This artifact|This enchantment|This permanent|This land) deals (\S+) damage to (.+?)(?: and (.+))?$",
+                ),
                 |c, t| {
                     let n = number(cap(c, 1))?;
                     let mut to = recipient(cap(c, 2), t)?;
@@ -701,7 +703,9 @@ impl Templates {
             ),
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
             (
-                r(r"^(?:~|this|It|it) deals X damage to (.+?), where X is the number of (.+)$"),
+                r(
+                    r"^(?:~|this|It|it|This creature) deals X damage to (.+?), where X is the number of (.+)$",
+                ),
                 |c, t| {
                     let to = recipient(cap(c, 1), t)?;
                     Some(format!(
@@ -1064,6 +1068,29 @@ impl Templates {
             r"^(.+) unless (you pay|they pay|its controller pays|that player pays) ((?:\{[0-9WUBRGC]+\})+|\d+ life)$",
         )
         .unwrap();
+        // "Target creature gains \"...\" until end of turn."
+        if let Some(c) = Regex::new(r#"^(.+?) gains? "(.+)" until end of turn\.?$"#)
+            .unwrap()
+            .captures(text)
+        {
+            let quoted = Builder {
+                templates: self,
+                corpus: &[],
+                is_spell: false,
+                statements: Vec::new(),
+                keywords: Vec::new(),
+                additional: None,
+                spell_paragraphs: Vec::new(),
+                spell_at: None,
+                spell_targets: 0,
+            }
+            .quoted(cap(&c, 2));
+            let who = recipient(&lowercase_first(cap(&c, 1)), targets);
+            return match (quoted, who) {
+                (Some(inner), Some(who)) => Ok(format!("{who} gains ability {{ {inner} }}")),
+                _ => Err(Skip::Sentence(text.to_string())),
+            };
+        }
         let mut out: Vec<String> = Vec::new();
         for sentence in split_sentences(text) {
             if sentence == "It can't be regenerated" || sentence == "They can't be regenerated" {
@@ -1503,6 +1530,30 @@ struct Builder<'a> {
 }
 
 impl Builder<'_> {
+    /// An ability quoted inside another's text, authored on its own: the
+    /// one statement it makes.
+    fn quoted(&self, text: &str) -> Option<String> {
+        let mut inner = Builder {
+            templates: self.templates,
+            corpus: self.corpus,
+            is_spell: false,
+            statements: Vec::new(),
+            keywords: Vec::new(),
+            additional: None,
+            spell_paragraphs: Vec::new(),
+            spell_at: None,
+            spell_targets: 0,
+        };
+        // A keyword alone ("has \"Flying\"") is not an ability statement.
+        inner.statements.push(String::new());
+        inner.line(text).ok()?;
+        let made: Vec<String> = inner.statements.into_iter().skip(1).collect();
+        match made.as_slice() {
+            [one] if !one.contains('\n') => Some(one.trim().to_string()),
+            _ => None,
+        }
+    }
+
     #[allow(clippy::too_many_lines)]
     fn line(&mut self, line: &str) -> Result<(), Skip> {
         // "Landfall — <ability>": the label prefixes the one statement the
@@ -1522,6 +1573,35 @@ impl Builder<'_> {
         }
         if let Some(st) = conditional_static(line) {
             self.statements.push(st);
+            return Ok(());
+        }
+        // "Enchanted creature has \"{T}: ...\"", "Creatures you control
+        // have \"...\"", "Equipped creature gets +1/+1 and has \"...\"".
+        if let Some(c) = Regex::new(
+            r#"^(Enchanted creature|Equipped creature|Enchanted land|Enchanted permanent|Creatures you control|Other creatures you control|Lands you control|This creature) (?:(gets [+-]\d+/[+-]\d+) and )?(?:has|have) "(.+)"$"#,
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let filter = match cap(&c, 1) {
+                "Enchanted creature" | "Equipped creature" | "Enchanted land" | "Enchanted permanent" => {
+                    "enchanted"
+                }
+                "Creatures you control" => "creature you control",
+                "Other creatures you control" => "other creature you control",
+                "Lands you control" => "land you control",
+                _ => "this",
+            };
+            let inner = self
+                .quoted(cap(&c, 3))
+                .ok_or_else(|| Skip::Sentence(line.to_string()))?;
+            let pump = if cap(&c, 2).is_empty() {
+                String::new()
+            } else {
+                format!("{}, ", cap(&c, 2).trim_start_matches("gets "))
+            };
+            self.statements
+                .push(format!("static {filter}: {pump}has ability {{ {inner} }}"));
             return Ok(());
         }
         // Keyword lines: first, or in place among the abilities.
@@ -2144,9 +2224,6 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
         ));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
-    if oracle.contains('"') {
-        return Err(Skip::Sentence("quoted ability".to_string()));
-    }
     let oracle = oracle.replace(&s.name, "~");
     let templates = Templates::new();
     let mut b = Builder {

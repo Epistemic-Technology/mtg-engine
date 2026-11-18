@@ -1,0 +1,51 @@
+# Oracle's Restoration: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "pumps own creature, draws a card, gains 1 life" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Oracle's Restoration"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oracle's Restoration" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert hand A count 1
+  assert life A 21
+  assert graveyard A contains "Oracle's Restoration"
+}
+
+scenario "pump wears off at end of turn" {
+  battlefield A: "Grizzly Bears", "Forest"
+  hand A: "Oracle's Restoration"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oracle's Restoration" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "cannot target a creature you don't control" {
+  battlefield A: "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Oracle's Restoration"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Oracle's Restoration" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Oracle's Restoration"
+  assert power "Hill Giant" 3
+}
+
+scenario "target removed in response: no draw, no life" {
+  battlefield A: "Grizzly Bears", "Forest"
+  battlefield B: "Mountain"
+  hand A: "Oracle's Restoration"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Oracle's Restoration" targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Oracle's Restoration"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Oracle's Restoration"
+  assert hand A count 0
+  assert life A 20
+}

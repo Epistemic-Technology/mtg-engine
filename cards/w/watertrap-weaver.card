@@ -1,0 +1,7 @@
+card "Watertrap Weaver" {
+  oracle_id ef0ed1b1-d092-46f0-beb2-444e3645d273
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/2
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

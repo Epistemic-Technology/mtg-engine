@@ -1,0 +1,8 @@
+card "Chrome Prowler" {
+  oracle_id 6d16c2fa-4118-4b81-92ca-6c8e9efe03b6
+  cost {2}{U}
+  type Artifact Creature — Phyrexian Cat
+  pt 3/2
+  keywords flash
+  triggered when this enters: tap target creature an opponent controls
+}

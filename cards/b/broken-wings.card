@@ -1,0 +1,6 @@
+card "Broken Wings" {
+  oracle_id 5e316864-d55c-496f-8f46-773567896864
+  cost {2}{G}
+  type Instant
+  spell: destroy target artifact, enchantment, or creature with flying
+}

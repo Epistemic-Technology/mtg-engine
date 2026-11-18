@@ -1,0 +1,8 @@
+card "Patagia Tiger" {
+  oracle_id 256ab710-4210-4142-973f-22ca029d5474
+  cost {4}{W}
+  type Creature — Cat
+  pt 3/4
+  keywords flying
+  triggered when this enters: target Human you control gets +2/+2
+}

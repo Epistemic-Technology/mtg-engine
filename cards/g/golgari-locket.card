@@ -1,0 +1,7 @@
+card "Golgari Locket" {
+  oracle_id dba6e24e-7875-46b9-b51d-4cd71568ecfa
+  cost {3}
+  type Artifact
+  mana {B} or {G}
+  activated {B/G}{B/G}{B/G}{B/G}, {T}, sacrifice this: draw 2 cards
+}

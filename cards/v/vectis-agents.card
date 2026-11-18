@@ -1,0 +1,7 @@
+card "Vectis Agents" {
+  oracle_id fd9bb758-a763-46bf-9e56-4be26e271741
+  cost {3}{U}{B}
+  type Artifact Creature — Human Rogue
+  pt 4/3
+  activated {U}{B}: this gets -2/-0 and can't be blocked
+}

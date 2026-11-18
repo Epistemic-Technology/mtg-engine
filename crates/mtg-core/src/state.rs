@@ -716,6 +716,14 @@ pub struct GameState {
     pub life_cda_sources: u32,
     /// Battlefield permanents with a static ability changing spell costs.
     pub cost_change_sources: u32,
+    /// A cast just undone (CR 726) and the state version then: it is not
+    /// offered again until something changes, so an agent can't loop on it.
+    pub undone_cast: Option<(ObjId, u64)>,
+    /// Battlefield permanents with a static ability granting abilities,
+    /// plus grants made this turn by effects: while nonzero, any permanent
+    /// may have activated or triggered abilities its definition lacks.
+    pub grant_sources: u32,
+    pub eot_grants: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
@@ -824,7 +832,10 @@ impl GameState {
         // Cheap test first: nothing on the battlefield (or just leaving it)
         // can have a triggered ability on most boards.
         let may_trigger = event.watch_bit() != 0
-            && (self.trigger_sources > 0 || self.lookback.is_some())
+            && (self.trigger_sources > 0
+                || self.lookback.is_some()
+                || self.grant_sources > 0
+                || self.eot_grants > 0)
             || (!self.delayed_triggers.is_empty() && matches!(event, Event::StepBegin { .. }))
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
@@ -1119,6 +1130,9 @@ impl GameState {
         if let Some(t) = f.tapped
             && o.tapped != t
         {
+            return false;
+        }
+        if f.damaged && o.damage == 0 && !o.deathtouch_damage {
             return false;
         }
         if f.attacking

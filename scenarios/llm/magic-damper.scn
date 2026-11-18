@@ -1,0 +1,53 @@
+# Magic Damper: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Magic Damper pumps, grants hexproof, and untaps" {
+  battlefield A: "Grizzly Bears" tapped, "Island"
+  hand A: "Magic Damper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magic Damper" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" hexproof
+  assert graveyard A contains "Magic Damper"
+}
+
+scenario "Magic Damper cannot target an opponent's creature" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Magic Damper"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Magic Damper" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Magic Damper"
+  assert power "Hill Giant" 3
+}
+
+scenario "Magic Damper in response makes Shock fizzle" {
+  battlefield A: "Grizzly Bears", "Island"
+  battlefield B: "Mountain"
+  hand A: "Magic Damper"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  turn 2 A: cast "Magic Damper" targeting "Grizzly Bears" in response to "Shock"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "hexproof leaves Murder without a legal target" {
+  battlefield A: "Grizzly Bears", "Island"
+  battlefield B: 3 "Swamp"
+  hand A: "Magic Damper"
+  hand B: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Magic Damper" targeting "Grizzly Bears"
+  illegal turn 1 end B: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B contains "Murder"
+}

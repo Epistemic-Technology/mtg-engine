@@ -1,0 +1,7 @@
+card "Griffin Rider" {
+  oracle_id af8aa11b-34be-42a3-a8a2-3cad38f29f66
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 1/1
+  static as long as you control Griffin creature, this: +3/+3, has flying
+}

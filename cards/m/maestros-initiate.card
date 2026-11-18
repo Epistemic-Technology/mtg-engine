@@ -1,0 +1,7 @@
+card "Maestros Initiate" {
+  oracle_id 85905607-dceb-4c37-81a3-ab441ce9490c
+  cost {2}{B}
+  type Creature — Human Citizen
+  pt 3/1
+  activated {4}{U/R}, exile this from graveyard: draw 2 cards then discard 1 card
+}

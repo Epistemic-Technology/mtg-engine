@@ -1,0 +1,7 @@
+card "Gorehorn Raider" {
+  oracle_id 41699d92-c209-4fcb-bbd6-685b3437d0c2
+  cost {4}{R}
+  type Creature — Minotaur Pirate
+  pt 4/4
+  label "Raid" triggered when this enters if attacked this turn: deal 2 damage to any target
+}

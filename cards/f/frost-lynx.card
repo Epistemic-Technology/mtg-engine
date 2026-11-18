@@ -1,0 +1,7 @@
+card "Frost Lynx" {
+  oracle_id 9400e348-b0c6-4aa3-b92c-1fbc8bc3baf9
+  cost {2}{U}
+  type Creature — Elemental Cat
+  pt 2/2
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

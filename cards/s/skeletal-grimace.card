@@ -1,0 +1,7 @@
+card "Skeletal Grimace" {
+  oracle_id 99e03fa0-8e0c-4b5d-880f-d7de201d5f41
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has ability { activated {B}: regenerate this }
+}

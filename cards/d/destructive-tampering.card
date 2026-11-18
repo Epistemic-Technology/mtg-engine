@@ -1,0 +1,9 @@
+card "Destructive Tampering" {
+  oracle_id e6ae536a-95c0-495d-98b8-200b3564dd79
+  cost {2}{R}
+  type Sorcery
+  choose one {
+    mode: destroy target artifact
+    mode: all creature without flying gain can't block
+  }
+}

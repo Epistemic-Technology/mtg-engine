@@ -1,0 +1,6 @@
+card "Call to Glory" {
+  oracle_id b01d24d5-79d0-401f-99f5-da036628dd39
+  cost {1}{W}
+  type Instant
+  spell: untap all creature you control; each Samurai creature you control gets +1/+1
+}

@@ -1,0 +1,7 @@
+card "Evanescent Intellect" {
+  oracle_id e766b774-eaf3-41ce-bc23-fd29fd22bc39
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {1}{U}, {T}: target player mills 3 cards }
+}

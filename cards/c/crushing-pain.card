@@ -1,0 +1,6 @@
+card "Crushing Pain" {
+  oracle_id 34424168-1353-46a9-9e60-d09a344c3573
+  cost {1}{R}
+  type Instant — Arcane
+  spell: deal 6 damage to target creature that was dealt damage this turn
+}

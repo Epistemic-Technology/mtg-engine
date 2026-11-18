@@ -1,0 +1,7 @@
+card "Liliana's Steward" {
+  oracle_id cc1203cb-6758-4454-b78b-341930ff4da1
+  cost {B}
+  type Creature — Zombie
+  pt 1/2
+  activated {T}, sacrifice this, sorcery: target opponent discards 1 card
+}

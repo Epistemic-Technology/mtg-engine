@@ -1,0 +1,7 @@
+card "Pursuit of Flight" {
+  oracle_id cdce8b86-81e3-443c-af91-f6b4f62f5b59
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has ability { activated {U}: this gains flying }
+}

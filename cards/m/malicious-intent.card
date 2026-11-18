@@ -1,0 +1,7 @@
+card "Malicious Intent" {
+  oracle_id 8aac06d0-c353-4af9-a243-feb59b9d0c54
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: target creature can't block }
+}

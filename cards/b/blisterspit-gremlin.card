@@ -1,0 +1,8 @@
+card "Blisterspit Gremlin" {
+  oracle_id cd8a90a7-5502-405f-a49e-ad4252872595
+  cost {R}
+  type Creature — Gremlin
+  pt 1/1
+  activated {1}, {T}: deal 1 damage to each opponent
+  triggered whenever you cast a noncreature spell: untap this
+}

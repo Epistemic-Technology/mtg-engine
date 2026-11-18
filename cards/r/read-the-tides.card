@@ -1,0 +1,9 @@
+card "Read the Tides" {
+  oracle_id e5c4ed40-5069-4606-81f2-59dcfa1345bd
+  cost {5}{U}
+  type Sorcery
+  choose one {
+    mode: draw 3 cards
+    mode: return up to 2 target creatures to hand
+  }
+}

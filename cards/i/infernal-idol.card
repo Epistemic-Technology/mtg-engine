@@ -1,0 +1,7 @@
+card "Infernal Idol" {
+  oracle_id a0802918-e18a-4716-befb-96ae6667f2f3
+  cost {3}
+  type Artifact
+  mana {B}
+  activated {1}{B}{B}, {T}, sacrifice this: you draw 2 cards and lose 2 life
+}

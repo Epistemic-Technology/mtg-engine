@@ -1,0 +1,33 @@
+# Coercion: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "coercion makes opponent discard a spell" {
+  battlefield A: 3 "Swamp"
+  hand A: "Coercion"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Coercion" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Lightning Bolt"
+  assert hand B count 0
+  assert graveyard A contains "Coercion"
+}
+
+scenario "coercion can take a land card" {
+  battlefield A: 3 "Swamp"
+  hand A: "Coercion"
+  hand B: "Forest"
+  turn 1 A: cast "Coercion" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert hand B count 0
+}
+
+scenario "coercion against an empty hand does nothing" {
+  battlefield A: 3 "Swamp"
+  hand A: "Coercion", "Grizzly Bears"
+  turn 1 A: cast "Coercion" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Coercion"
+  assert hand A contains "Grizzly Bears"
+  assert hand B count 0
+}

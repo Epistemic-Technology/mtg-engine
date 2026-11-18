@@ -1,0 +1,46 @@
+# Makeshift Munitions: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice a creature to deal 1 damage to a player" {
+  battlefield A: "Makeshift Munitions", "Grizzly Bears", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Makeshift Munitions" sacrificing "Grizzly Bears" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Grizzly Bears"
+  assert tapped "Mountain"
+  assert battlefield A contains "Makeshift Munitions"
+}
+
+scenario "deals 1 damage to a creature" {
+  battlefield A: "Makeshift Munitions", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Makeshift Munitions" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "two activations kill a 2/2" {
+  battlefield A: "Makeshift Munitions", "Grizzly Bears", "Hill Giant", 2 "Mountain"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Makeshift Munitions" sacrificing "Hill Giant" targeting "Wind Drake"
+  turn 1 A: wait
+  turn 1 A: activate "Makeshift Munitions" sacrificing "Grizzly Bears" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "cannot activate without an artifact or creature to sacrifice" {
+  battlefield A: "Makeshift Munitions", "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Makeshift Munitions" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Mountain"
+}

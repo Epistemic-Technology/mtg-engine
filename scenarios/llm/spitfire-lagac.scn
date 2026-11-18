@@ -1,0 +1,35 @@
+# Spitfire Lagac: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "landfall deals 1 damage to each opponent when you play a land" {
+  battlefield A: "Spitfire Lagac"
+  hand A: "Mountain"
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mountain"
+  assert life B 19
+  assert life A 20
+}
+
+scenario "opponent's land entering does not trigger landfall" {
+  battlefield A: "Spitfire Lagac"
+  hand B: "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: play "Forest"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Forest"
+  assert life A 20
+  assert life B 20
+}
+
+scenario "cast the lagac then play a land" {
+  battlefield A: 4 "Mountain"
+  hand A: "Spitfire Lagac", "Mountain"
+  turn 1 A: cast "Spitfire Lagac"
+  turn 1 A: wait
+  turn 1 A: play "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Spitfire Lagac"
+  assert battlefield A contains 5 "Mountain"
+  assert life B 19
+}

@@ -1,0 +1,41 @@
+# Golgari Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "locket taps for black to help cast Murder" {
+  battlefield A: "Golgari Locket", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Golgari Locket"
+}
+
+scenario "locket taps for green to cast Giant Growth" {
+  battlefield A: "Golgari Locket", "Grizzly Bears", "Island"
+  start turn 1 A precombat_main
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert tapped "Golgari Locket"
+}
+
+scenario "hybrid black and green mana sacrifices locket to draw two" {
+  battlefield A: "Golgari Locket", 2 "Swamp", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Golgari Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Golgari Locket"
+}
+
+scenario "red mana cannot pay the hybrid cost" {
+  battlefield A: "Golgari Locket", 4 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Golgari Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Golgari Locket"
+  assert hand A count 0
+}

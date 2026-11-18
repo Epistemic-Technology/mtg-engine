@@ -1,0 +1,7 @@
+card "Herald of the Fair" {
+  oracle_id 6bb7d985-b033-46a2-9bbb-6f7ee62aaaff
+  cost {2}{W}
+  type Creature — Human
+  pt 3/2
+  triggered when this enters: target creature you control gets +1/+1
+}

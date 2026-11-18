@@ -1,0 +1,51 @@
+# Trained Pronghorn: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "discarding a card prevents burn to the pronghorn" {
+  battlefield A: "Trained Pronghorn"
+  hand A: "Forest"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B upkeep
+  turn 2 upkeep A: activate "Trained Pronghorn" discarding "Forest"
+  turn 2 B: cast "Lightning Bolt" targeting "Trained Pronghorn"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Trained Pronghorn"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Lightning Bolt"
+  assert damage "Trained Pronghorn" 0
+}
+
+scenario "without activation the pronghorn dies to shock" {
+  battlefield A: "Trained Pronghorn"
+  hand A: "Forest"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Trained Pronghorn"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Trained Pronghorn"
+  assert hand A contains "Forest"
+}
+
+scenario "prevention protects it in combat but it still deals damage" {
+  battlefield A: "Trained Pronghorn"
+  hand A: "Plains"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Trained Pronghorn"
+  turn 1 B: block "Trained Pronghorn" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Trained Pronghorn" discarding "Plains"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Trained Pronghorn"
+  assert damage "Hill Giant" 1
+  assert graveyard A contains "Plains"
+}
+
+scenario "cannot activate with an empty hand" {
+  battlefield A: "Trained Pronghorn"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Trained Pronghorn"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Trained Pronghorn"
+}

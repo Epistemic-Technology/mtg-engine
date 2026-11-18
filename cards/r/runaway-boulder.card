@@ -1,0 +1,8 @@
+card "Runaway Boulder" {
+  oracle_id 57f15861-82cf-4faf-827c-9bc7f4844d2a
+  cost {6}
+  type Artifact
+  keywords flash
+  triggered when this enters: deal 6 damage to target creature an opponent controls
+  cycling {2}
+}

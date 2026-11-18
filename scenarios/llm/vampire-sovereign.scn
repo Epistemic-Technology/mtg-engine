@@ -1,0 +1,38 @@
+# Vampire Sovereign: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "enters: opponent loses 3, you gain 3" {
+  hand A: "Vampire Sovereign"
+  battlefield A: 5 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vampire Sovereign"
+  turn 1 A: trigger "Vampire Sovereign" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Vampire Sovereign"
+  assert life B 17
+  assert life A 23
+}
+
+scenario "flying: cannot be blocked by a ground creature" {
+  battlefield A: "Vampire Sovereign"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Vampire Sovereign"
+  illegal turn 1 B: block "Vampire Sovereign" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Vampire Sovereign" flying
+  assert life B 17
+}
+
+scenario "flying: can be blocked by a flyer" {
+  battlefield A: "Vampire Sovereign"
+  battlefield B: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Vampire Sovereign"
+  turn 1 B: block "Vampire Sovereign" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Vampire Sovereign"
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}

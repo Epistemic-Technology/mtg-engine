@@ -1,0 +1,40 @@
+# Sage's Row Denizen: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another blue creature entering mills target player two cards" {
+  battlefield A: "Sage's Row Denizen", 3 "Island"
+  hand A: "Wind Drake"
+  library B: "Plains", "Island", "Swamp"
+  turn 1 A: cast "Wind Drake"
+  turn 1 A: trigger "Sage's Row Denizen" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+  assert graveyard B contains "Plains"
+  assert graveyard B contains "Island"
+  assert graveyard B lacks "Swamp"
+  assert library B contains "Swamp"
+}
+
+scenario "a nonblue creature entering does not trigger" {
+  battlefield A: "Sage's Row Denizen", 2 "Forest"
+  hand A: "Grizzly Bears"
+  library B: "Plains", "Island"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B lacks "Plains"
+  assert graveyard B lacks "Island"
+  assert graveyard A lacks "Plains"
+}
+
+scenario "the denizen entering itself does not trigger" {
+  battlefield A: 3 "Island"
+  hand A: "Sage's Row Denizen"
+  library B: "Plains", "Island"
+  turn 1 A: cast "Sage's Row Denizen"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sage's Row Denizen"
+  assert graveyard B lacks "Plains"
+  assert graveyard B lacks "Island"
+  assert graveyard A lacks "Plains"
+}

@@ -1,0 +1,7 @@
+card "Heavy Infantry" {
+  oracle_id d07707ef-fa4e-423f-8a1f-095d19100321
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/4
+  triggered when this enters: tap target creature an opponent controls
+}

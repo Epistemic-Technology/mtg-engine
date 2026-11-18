@@ -1,0 +1,33 @@
+# Azorius Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "locket sacrifices to draw two with hybrid mana" {
+  battlefield A: "Azorius Locket", 2 "Plains", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Azorius Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Azorius Locket"
+  assert battlefield A lacks "Azorius Locket"
+}
+
+scenario "locket taps for blue to cast Divination" {
+  battlefield A: "Azorius Locket", 2 "Plains"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Azorius Locket"
+  assert battlefield A contains "Azorius Locket"
+}
+
+scenario "locket draw ability needs four other mana" {
+  battlefield A: "Azorius Locket", 3 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Azorius Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Azorius Locket"
+  assert hand A count 0
+}

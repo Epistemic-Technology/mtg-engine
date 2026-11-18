@@ -1,0 +1,43 @@
+# Dimir Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice to draw two with hybrid mana" {
+  battlefield A: "Dimir Locket", 2 "Island", 2 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Dimir Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Dimir Locket"
+  assert battlefield A lacks "Dimir Locket"
+}
+
+scenario "taps for blue to cast Divination" {
+  battlefield A: "Dimir Locket", 2 "Plains"
+  hand A: "Divination"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Dimir Locket"
+}
+
+scenario "taps for black to cast Murder" {
+  battlefield A: "Dimir Locket", "Swamp", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Dimir Locket"
+}
+
+scenario "cannot activate with only three other lands" {
+  battlefield A: "Dimir Locket", 3 "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Dimir Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dimir Locket"
+  assert hand A count 0
+}

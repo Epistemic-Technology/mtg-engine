@@ -1,0 +1,7 @@
+card "Perimeter Patrol" {
+  oracle_id ef625caf-c5d3-47f4-b1fb-bd040c5d864c
+  cost {2}{G}
+  type Creature — Human Soldier
+  pt 3/3
+  triggered whenever artifact you control enters: this gets +1/+0
+}

@@ -1,0 +1,34 @@
+# Raccoon Rallier: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Raccoon Rallier gives a freshly cast creature haste" {
+  battlefield A: "Raccoon Rallier", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Raccoon Rallier" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Raccoon Rallier"
+  assert life B 18
+}
+
+scenario "Raccoon Rallier's ability is sorcery speed only" {
+  battlefield A: "Raccoon Rallier", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 begin_combat A: activate "Raccoon Rallier" targeting "Grizzly Bears"
+  run_to turn 1 end_combat
+  assert untapped "Raccoon Rallier"
+}
+
+scenario "Raccoon Rallier's haste lasts only until end of turn" {
+  battlefield A: "Raccoon Rallier", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Raccoon Rallier" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" haste
+  assert tapped "Raccoon Rallier"
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" haste
+}

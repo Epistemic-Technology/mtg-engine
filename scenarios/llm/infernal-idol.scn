@@ -1,0 +1,33 @@
+# Infernal Idol: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrifice idol to draw two and lose two" {
+  battlefield A: "Infernal Idol", 3 "Swamp"
+  turn 1 A: activate "Infernal Idol"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+  assert graveyard A contains "Infernal Idol"
+  assert battlefield A lacks "Infernal Idol"
+}
+
+scenario "idol taps for black mana" {
+  battlefield A: "Infernal Idol", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Infernal Idol"
+  assert battlefield A contains "Infernal Idol"
+  assert life A 20
+}
+
+scenario "idol cannot pay for its own draw ability" {
+  battlefield A: "Infernal Idol", 2 "Swamp"
+  illegal turn 1 A: activate "Infernal Idol"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert life A 20
+  assert battlefield A contains "Infernal Idol"
+}

@@ -1,0 +1,38 @@
+# Rakdos Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "locket taps for red to cast Lightning Bolt" {
+  battlefield A: "Rakdos Locket"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Rakdos Locket"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "sacrifice locket with four Swamps to draw two" {
+  battlefield A: "Rakdos Locket", 4 "Swamp"
+  library A: "Grizzly Bears", "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rakdos Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Rakdos Locket"
+  assert battlefield A lacks "Rakdos Locket"
+}
+
+scenario "hybrid cost paid with mixed Swamps and Mountains" {
+  battlefield A: "Rakdos Locket", 2 "Swamp", 2 "Mountain"
+  library A: "Serra Angel", "Wind Drake", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rakdos Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Serra Angel"
+  assert hand A contains "Wind Drake"
+  assert graveyard A contains "Rakdos Locket"
+}

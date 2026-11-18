@@ -1,0 +1,6 @@
+card "Chorus of Might" {
+  oracle_id 0765c18b-25a0-4f79-aa1e-7adba7f5c91e
+  cost {3}{G}
+  type Instant
+  spell: until end of turn, target creature gets +1/+1 count each creature you control and target 1 gains trample
+}

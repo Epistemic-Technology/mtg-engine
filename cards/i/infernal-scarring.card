@@ -1,0 +1,7 @@
+card "Infernal Scarring" {
+  oracle_id 3fc640dd-6292-4d36-82fb-bd366bc00bd3
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has ability { triggered when this dies: draw 1 cards }
+}

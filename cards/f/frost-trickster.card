@@ -1,0 +1,8 @@
+card "Frost Trickster" {
+  oracle_id 1663d54f-4f39-4a03-aac2-e2923cbb7de8
+  cost {2}{U}
+  type Creature — Bird Wizard
+  pt 2/2
+  keywords flying
+  triggered when this enters: tap target creature an opponent controls; that creature doesn't untap next untap step
+}

@@ -1,0 +1,6 @@
+card "Banishment Decree" {
+  oracle_id 567b676b-54f3-44c7-8654-4d2b0262ea12
+  cost {3}{W}{W}
+  type Instant
+  spell: put target artifact, creature, or enchantment on top of library
+}

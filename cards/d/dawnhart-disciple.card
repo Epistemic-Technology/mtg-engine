@@ -1,0 +1,7 @@
+card "Dawnhart Disciple" {
+  oracle_id e86279ba-cb22-4754-90f4-38354657b8fa
+  cost {1}{G}
+  type Creature — Human Warlock
+  pt 2/2
+  triggered whenever other Human you control enters: this gets +1/+1
+}

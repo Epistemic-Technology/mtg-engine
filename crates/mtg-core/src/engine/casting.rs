@@ -77,7 +77,9 @@ impl GameState {
                     continue;
                 }
             }
-            if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers) {
+            if self.castable(p, def, *id, sorcery_timing, &sources, &pool, &changers)
+                && self.undone_cast != Some((*id, self.version))
+            {
                 options.push(Choice::Cast(*id));
             }
         }
@@ -268,6 +270,11 @@ impl GameState {
                 .any(|m| self.targets_available(p, &m.targets, Some(id))),
             None => self.targets_available(p, def.cast_targets(), Some(id)),
         }
+    }
+
+    /// Whether some permanent may have abilities its definition lacks.
+    pub(super) fn grants_exist(&self) -> bool {
+        self.grant_sources > 0 || self.eot_grants > 0
     }
 
     /// Permanents with a static ability that changes what spells cost.
@@ -465,14 +472,15 @@ impl GameState {
         sources: &Sources,
         options: &mut Vec<Choice>,
     ) {
-        if self.activated_sources == 0 {
+        let grants = self.grants_exist();
+        if self.activated_sources == 0 && !grants {
             return;
         }
         let pool = self.player(p).mana_pool;
         let life = self.player(p).life;
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
-            if !self.flags_of(o).has_activated() {
+            if !grants && !self.flags_of(o).has_activated() {
                 continue;
             }
             let Some(c) = self.characteristics(id) else {
@@ -1796,6 +1804,18 @@ impl GameState {
                                 power: p,
                                 toughness: t
                             }],
+                        );
+                    }
+                }
+            }
+            Effect::GrantAbility { ability, to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.eot_grants += 1;
+                        self.effect_until_end_of_turn(
+                            ctx,
+                            id,
+                            smallvec::smallvec![Modification::AddAbility(*ability)],
                         );
                     }
                 }

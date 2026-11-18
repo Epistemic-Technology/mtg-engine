@@ -1,0 +1,6 @@
+card "Impact Tremors" {
+  oracle_id 9242cd3e-1a71-4700-8182-9c1005616033
+  cost {1}{R}
+  type Enchantment
+  triggered whenever creature you control enters: deal 1 damage to each opponent
+}

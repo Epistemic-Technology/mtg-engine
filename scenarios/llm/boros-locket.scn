@@ -1,0 +1,32 @@
+# Boros Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Boros Locket taps for red to cast Lightning Bolt" {
+  battlefield A: "Boros Locket"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Boros Locket"
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "Boros Locket sacrifices to draw two with mixed hybrid mana" {
+  battlefield A: "Boros Locket", 2 "Mountain", 2 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Boros Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Boros Locket"
+  assert battlefield A lacks "Boros Locket"
+}
+
+scenario "Boros Locket draw ability needs four red or white mana besides itself" {
+  battlefield A: "Boros Locket", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Boros Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains "Boros Locket"
+}

@@ -1,0 +1,37 @@
+# Merciless Resolve: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "sacrificing a creature draws two cards" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Merciless Resolve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Merciless Resolve" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Merciless Resolve"
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "sacrificing a land draws two cards" {
+  battlefield A: 3 "Swamp", "Plains"
+  hand A: "Merciless Resolve"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Merciless Resolve" sacrificing "Plains"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Plains"
+  assert battlefield A lacks "Plains"
+  assert battlefield A contains 3 "Swamp"
+  assert hand A count 2
+}
+
+scenario "cast at instant speed on the opponent's turn" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Merciless Resolve"
+  start turn 2 B precombat_main
+  turn 2 end A: cast "Merciless Resolve" sacrificing "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Merciless Resolve"
+  assert hand A count 2
+}

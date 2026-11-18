@@ -1,0 +1,7 @@
+card "Haazda Officer" {
+  oracle_id 35023c04-ae62-47bf-80a0-faa2d7a67788
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered when this enters: target creature you control gets +1/+1
+}

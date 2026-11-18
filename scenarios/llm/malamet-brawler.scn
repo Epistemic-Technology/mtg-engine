@@ -1,0 +1,43 @@
+# Malamet Brawler: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "attack trigger gives another attacker trample" {
+  battlefield A: "Malamet Brawler", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Malamet Brawler", "Hill Giant"
+  turn 1 declare_attackers A: trigger "Malamet Brawler" targeting "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Hill Giant" to "Grizzly Bears" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" trample
+  assert has not "Malamet Brawler" trample
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "brawler can target itself and trample over with Giant Growth" {
+  battlefield A: "Malamet Brawler", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Giant Growth"
+  turn 1 A: attack "Malamet Brawler"
+  turn 1 declare_attackers A: trigger "Malamet Brawler" targeting "Malamet Brawler"
+  turn 1 B: block "Malamet Brawler" with "Grizzly Bears"
+  turn 1 declare_blockers A: cast "Giant Growth" targeting "Malamet Brawler"
+  turn 1 combat_damage A: assign "Malamet Brawler" to "Grizzly Bears" 2, player B 3
+  run_to turn 1 postcombat_main
+  assert has "Malamet Brawler" trample
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Malamet Brawler"
+  assert life B 17
+}
+
+scenario "trample lasts only until end of turn" {
+  battlefield A: "Malamet Brawler"
+  turn 1 A: attack "Malamet Brawler"
+  turn 1 declare_attackers A: trigger "Malamet Brawler" targeting "Malamet Brawler"
+  run_to turn 1 postcombat_main
+  assert has "Malamet Brawler" trample
+  assert life B 18
+  run_to turn 2 precombat_main
+  assert has not "Malamet Brawler" trample
+}

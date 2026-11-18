@@ -1,0 +1,6 @@
+card "Spider Food" {
+  oracle_id 38eabfea-5ea5-4baa-8ad6-7a7cb00e1fed
+  cost {2}{G}
+  type Sorcery
+  spell: destroy up to one target artifact, enchantment, or creature with flying; create 1 "Food"
+}

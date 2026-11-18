@@ -1,0 +1,7 @@
+card "Firebrand Archer" {
+  oracle_id 2e9289d6-dbc6-456d-88cf-d1f534e731d6
+  cost {1}{R}
+  type Creature — Human Archer
+  pt 2/1
+  triggered whenever you cast a noncreature spell: deal 1 damage to each opponent
+}

@@ -1,0 +1,7 @@
+card "Volcanic Submersion" {
+  oracle_id 37985fef-696e-4c6b-9a60-29c5051b5a25
+  cost {4}{R}
+  type Sorcery
+  spell: destroy target artifact or land
+  cycling {2}
+}

@@ -1,0 +1,6 @@
+card "Shower of Arrows" {
+  oracle_id efcbca5a-743c-4b16-a7cf-b07335b31ced
+  cost {2}{G}
+  type Instant
+  spell: destroy target artifact, enchantment, or creature with flying; scry 1
+}

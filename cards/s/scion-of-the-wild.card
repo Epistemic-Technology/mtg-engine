@@ -1,0 +1,6 @@
+card "Scion of the Wild" {
+  oracle_id 8aaa2217-012e-4e34-ba44-4986d7ee9ece
+  cost {1}{G}{G}
+  type Creature — Avatar
+  static this: cda pt count creature you control
+}

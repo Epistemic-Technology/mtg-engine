@@ -1,0 +1,49 @@
+# Swift Justice: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "swift justice pumps and grants lifelink" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Swift Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Swift Justice" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" lifelink
+  assert graveyard A contains "Swift Justice"
+}
+
+scenario "lifelink gains life on unblocked attack" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Swift Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Swift Justice" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "first strike kills blocker before it deals damage" {
+  battlefield A: "Grizzly Bears", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Swift Justice"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Swift Justice" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 23
+}
+
+scenario "effect ends at end of turn" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Swift Justice"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Swift Justice" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" lifelink
+}

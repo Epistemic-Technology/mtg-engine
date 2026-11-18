@@ -1,0 +1,9 @@
+card "Mirrodin Avenged" {
+  oracle_id ec83f398-31af-484d-b6d2-8c7add142260
+  cost {B}
+  type Instant
+  spell {
+    destroy target creature that was dealt damage this turn
+    draw 1 cards
+  }
+}

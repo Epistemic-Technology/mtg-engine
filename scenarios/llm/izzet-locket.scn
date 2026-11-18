@@ -1,0 +1,41 @@
+# Izzet Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "locket taps for red to cast Shock" {
+  battlefield A: "Izzet Locket"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Izzet Locket"
+  assert graveyard A contains "Shock"
+}
+
+scenario "pay hybrid with mixed lands, sacrifice to draw two" {
+  battlefield A: "Izzet Locket", 2 "Island", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Izzet Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Izzet Locket"
+  assert battlefield A lacks "Izzet Locket"
+}
+
+scenario "off-color mana cannot pay the hybrid cost" {
+  battlefield A: "Izzet Locket", 4 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Izzet Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Izzet Locket"
+  assert hand A count 0
+}
+
+scenario "locket cannot tap for its own cost" {
+  battlefield A: "Izzet Locket", 3 "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Izzet Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Izzet Locket"
+  assert hand A count 0
+}

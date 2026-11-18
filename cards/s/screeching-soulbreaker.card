@@ -1,0 +1,8 @@
+card "Screeching Soulbreaker" {
+  oracle_id 47e33aa1-2f54-471c-a484-de13bcd2dceb
+  cost {2}{B}
+  type Creature — Siren Bard
+  pt 1/4
+  keywords flying
+  triggered whenever this attacks: deal 1 damage to each opponent and you gain 1 life
+}

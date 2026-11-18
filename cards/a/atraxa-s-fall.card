@@ -1,0 +1,6 @@
+card "Atraxa's Fall" {
+  oracle_id 22677153-bd87-4ff8-af92-ced4da2aac6c
+  cost {1}{G}
+  type Sorcery
+  spell: destroy target artifact, battle, enchantment, or creature with flying
+}

@@ -1,0 +1,7 @@
+card "Spitfire Lagac" {
+  oracle_id 7215ca87-bbff-4c14-a1f5-de5ddd97c875
+  cost {3}{R}
+  type Creature — Lizard
+  pt 3/4
+  label "Landfall" triggered whenever land you control enters: deal 1 damage to each opponent
+}

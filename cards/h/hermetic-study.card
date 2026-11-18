@@ -1,0 +1,7 @@
+card "Hermetic Study" {
+  oracle_id 792d7818-ee5c-4254-b969-7b50f475c629
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to any target }
+}

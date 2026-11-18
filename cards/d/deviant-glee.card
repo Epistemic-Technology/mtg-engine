@@ -1,0 +1,7 @@
+card "Deviant Glee" {
+  oracle_id 13aeccd5-cca2-4249-904d-d5516f977440
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+1, has ability { activated {R}: this gains trample }
+}

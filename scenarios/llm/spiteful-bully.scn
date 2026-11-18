@@ -1,0 +1,28 @@
+# Spiteful Bully: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Spiteful Bully must damage itself when it is your only creature" {
+  battlefield A: "Spiteful Bully"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Spiteful Bully"
+  assert battlefield A lacks "Spiteful Bully"
+}
+
+scenario "Spiteful Bully can target another creature you control" {
+  battlefield A: "Spiteful Bully", "Hill Giant"
+  start turn 1 A
+  turn 1 upkeep A: trigger "Spiteful Bully" targeting "Hill Giant"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Spiteful Bully"
+  assert damage "Spiteful Bully" 0
+}
+
+scenario "Spiteful Bully does not trigger on the opponent's upkeep" {
+  battlefield B: "Spiteful Bully"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert battlefield B contains "Spiteful Bully"
+  assert damage "Spiteful Bully" 0
+}

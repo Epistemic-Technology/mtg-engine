@@ -1,0 +1,7 @@
+card "Mummy Paramount" {
+  oracle_id 99cc909d-3cb2-499c-8231-41418745cd71
+  cost {1}{W}
+  type Creature — Zombie
+  pt 2/2
+  triggered whenever other Zombie you control enters: this gets +1/+1
+}

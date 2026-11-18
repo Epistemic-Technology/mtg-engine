@@ -1,0 +1,7 @@
+card "Skinbrand Goblin" {
+  oracle_id 2e1d5873-50e6-432a-b7a9-9f8d2632a0b9
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  label "Bloodrush" activated {R}, discard this: target attacking creature gets +2/+1
+}

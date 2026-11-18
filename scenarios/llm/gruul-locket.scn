@@ -1,0 +1,41 @@
+# Gruul Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Gruul Locket sacrifices to draw two with mixed red and green mana" {
+  battlefield A: "Gruul Locket", 2 "Mountain", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gruul Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Gruul Locket"
+  assert battlefield A lacks "Gruul Locket"
+}
+
+scenario "Gruul Locket taps for green to cast Giant Growth" {
+  battlefield A: "Gruul Locket", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert tapped "Gruul Locket"
+}
+
+scenario "Gruul Locket taps for red to cast Lightning Bolt" {
+  battlefield A: "Gruul Locket"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert tapped "Gruul Locket"
+}
+
+scenario "Gruul Locket cannot be sacrificed with only three lands" {
+  battlefield A: "Gruul Locket", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gruul Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Gruul Locket"
+  assert hand A count 0
+}

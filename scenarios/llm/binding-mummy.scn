@@ -1,0 +1,36 @@
+# Binding Mummy: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another Zombie entering lets you tap target creature" {
+  battlefield A: "Binding Mummy", 2 "Plains"
+  hand A: "Binding Mummy"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Binding Mummy"
+  turn 1 A: trigger "Binding Mummy" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Binding Mummy"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "declining the may leaves the target untapped" {
+  battlefield A: "Binding Mummy", 2 "Plains"
+  hand A: "Binding Mummy"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Binding Mummy"
+  turn 1 A: trigger "Binding Mummy" targeting B "Grizzly Bears"
+  turn 1 A: decline "Binding Mummy"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Binding Mummy"
+  assert untapped "Grizzly Bears"
+}
+
+scenario "a non-Zombie entering does not trigger" {
+  battlefield A: "Binding Mummy", "Plains", "Forest"
+  hand A: "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert stack count 0
+}

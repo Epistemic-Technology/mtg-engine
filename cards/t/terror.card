@@ -1,0 +1,6 @@
+card "Terror" {
+  oracle_id b81f041d-98db-4408-9472-c483e4a502bc
+  cost {1}{B}
+  type Instant
+  spell: destroy target nonartifact, nonblack creature without regeneration
+}

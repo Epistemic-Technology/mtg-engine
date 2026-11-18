@@ -1,0 +1,7 @@
+card "Slaughterhorn" {
+  oracle_id f1fca987-3484-4a76-86b6-d61ef0a2cf0f
+  cost {2}{G}
+  type Creature — Beast
+  pt 3/2
+  label "Bloodrush" activated {G}, discard this: target attacking creature gets +3/+2
+}

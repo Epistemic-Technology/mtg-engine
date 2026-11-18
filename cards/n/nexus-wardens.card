@@ -1,0 +1,8 @@
+card "Nexus Wardens" {
+  oracle_id a2652158-e63f-477b-b328-cae7ef2263bd
+  cost {2}{G}
+  type Creature — Satyr Archer
+  pt 1/4
+  keywords reach
+  label "Constellation" triggered whenever enchantment you control enters: you gain 2 life
+}

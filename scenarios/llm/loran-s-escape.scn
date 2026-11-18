@@ -1,0 +1,41 @@
+# Loran's Escape: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "Loran's Escape grants hexproof and indestructible" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Loran's Escape"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Loran's Escape" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" hexproof
+  assert has "Grizzly Bears" indestructible
+  assert graveyard A contains "Loran's Escape"
+}
+
+scenario "Loran's Escape in response makes Murder fizzle" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Loran's Escape"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Murder" targeting "Grizzly Bears"
+  turn 2 A: cast "Loran's Escape" targeting "Grizzly Bears" in response to "Murder"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Murder"
+  assert graveyard A contains "Loran's Escape"
+}
+
+scenario "Loran's Escape saves a creature from lethal combat damage" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Loran's Escape"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 declare_blockers A: cast "Loran's Escape" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 3
+  assert battlefield B contains "Hill Giant"
+}

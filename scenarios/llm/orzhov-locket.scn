@@ -1,0 +1,37 @@
+# Orzhov Locket: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "locket sacrifices to draw two cards with mixed hybrid mana" {
+  battlefield A: "Orzhov Locket", 2 "Plains", 2 "Swamp"
+  library A: "Island", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Orzhov Locket"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Island"
+  assert hand A contains "Forest"
+  assert graveyard A contains "Orzhov Locket"
+  assert tapped oldest "Plains"
+  assert tapped newest "Swamp"
+}
+
+scenario "locket cannot pay its own sacrifice cost" {
+  battlefield A: "Orzhov Locket", 3 "Plains"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Orzhov Locket"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Orzhov Locket"
+  assert hand A count 0
+}
+
+scenario "locket taps for black mana to help cast Murder" {
+  battlefield A: "Orzhov Locket", "Plains", "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Orzhov Locket"
+  assert battlefield A contains "Orzhov Locket"
+}

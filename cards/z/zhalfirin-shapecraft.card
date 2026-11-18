@@ -1,0 +1,9 @@
+card "Zhalfirin Shapecraft" {
+  oracle_id cf459f47-e565-4bbb-89e4-ed54da8adae1
+  cost {1}{U}
+  type Instant
+  spell {
+    target creature has base power and toughness 4/3
+    draw 1 card
+  }
+}

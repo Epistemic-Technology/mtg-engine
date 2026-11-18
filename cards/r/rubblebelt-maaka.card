@@ -1,0 +1,7 @@
+card "Rubblebelt Maaka" {
+  oracle_id 185db9c7-3936-473c-9220-ae255527aaf9
+  cost {3}{R}
+  type Creature — Cat
+  pt 3/3
+  label "Bloodrush" activated {R}, discard this: target attacking creature gets +3/+3
+}

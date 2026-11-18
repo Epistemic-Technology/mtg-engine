@@ -1,0 +1,8 @@
+card "Changeling Outcast" {
+  oracle_id a61ef0cc-1da9-49f9-b0dc-01cf9f6205be
+  cost {B}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  static this: has can't block, can't be blocked
+}

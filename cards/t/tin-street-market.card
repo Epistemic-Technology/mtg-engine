@@ -1,0 +1,7 @@
+card "Tin Street Market" {
+  oracle_id 5102b7c8-6886-4004-9992-416d22b4fce7
+  cost {4}{R}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: has ability { activated {T}, discard 1 card: draw 1 cards }
+}

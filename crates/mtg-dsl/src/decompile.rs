@@ -137,6 +137,7 @@ impl Decompiler<'_> {
             tapped: f.tapped,
             attacking: f.attacking,
             blocking: f.blocking,
+            damaged: f.damaged,
         }
     }
 
@@ -475,6 +476,10 @@ impl Decompiler<'_> {
                     })
                     .collect(),
             ),
+            CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {
+                ability: Box::new(self.ability(self.pool.ability(*ability))),
+                to: Self::recipient(*to),
+            },
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
             },
@@ -591,6 +596,9 @@ impl Decompiler<'_> {
 
     fn modification(&self, m: &Modification) -> Mod {
         match m {
+            Modification::AddAbility(a) => {
+                Mod::AddAbility(Box::new(self.ability(self.pool.ability(*a))))
+            }
             Modification::AddTypes(t) => Mod::AddTypes(types(*t)),
             Modification::AddLandType(c) => Mod::AddLandType(*c),
             Modification::SetLandType(c) => Mod::SetLandType(*c),

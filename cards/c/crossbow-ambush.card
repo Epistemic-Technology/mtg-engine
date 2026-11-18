@@ -1,0 +1,6 @@
+card "Crossbow Ambush" {
+  oracle_id c10fd7a6-360f-43d6-a4ef-d990c97cb2f6
+  cost {G}
+  type Instant
+  spell: all creature you control gain reach
+}

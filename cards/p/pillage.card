@@ -1,0 +1,6 @@
+card "Pillage" {
+  oracle_id 0b137853-7cb9-424b-8285-12938991eafb
+  cost {1}{R}{R}
+  type Sorcery
+  spell: destroy target artifact or land without regeneration
+}

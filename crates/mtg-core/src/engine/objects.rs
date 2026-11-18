@@ -324,6 +324,7 @@ impl GameState {
             self.activated_sources += d(flags.has_activated());
             self.life_cda_sources += d(flags.has_life_cda());
             self.cost_change_sources += d(flags.has_cost_change());
+            self.grant_sources += d(flags.grants_abilities());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -332,6 +333,7 @@ impl GameState {
             self.activated_sources -= d(flags.has_activated());
             self.life_cda_sources -= d(flags.has_life_cda());
             self.cost_change_sources -= d(flags.has_cost_change());
+            self.grant_sources -= d(flags.grants_abilities());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

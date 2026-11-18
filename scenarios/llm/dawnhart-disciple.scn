@@ -1,0 +1,32 @@
+# Dawnhart Disciple: card and scenarios authored by claude-opus-5-5 through `mtg-cards model-author`,
+# accepted by the round-trip gate and these scenarios.
+
+scenario "another Human entering pumps the disciple" {
+  battlefield A: "Dawnhart Disciple", 2 "Forest"
+  hand A: "Dawnhart Disciple"
+  turn 1 A: cast "Dawnhart Disciple"
+  run_to turn 1 postcombat_main
+  assert power oldest A "Dawnhart Disciple" 3
+  assert toughness oldest A "Dawnhart Disciple" 3
+  assert power newest A "Dawnhart Disciple" 2
+  assert toughness newest A "Dawnhart Disciple" 2
+}
+
+scenario "a non-Human creature entering does not pump" {
+  battlefield A: "Dawnhart Disciple", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Dawnhart Disciple" 2
+  assert toughness "Dawnhart Disciple" 2
+}
+
+scenario "the pump ends at end of turn" {
+  battlefield A: "Dawnhart Disciple", 2 "Forest"
+  hand A: "Dawnhart Disciple"
+  turn 1 A: cast "Dawnhart Disciple"
+  run_to turn 2 precombat_main
+  assert power oldest A "Dawnhart Disciple" 2
+  assert toughness oldest A "Dawnhart Disciple" 2
+}

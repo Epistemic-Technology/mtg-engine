@@ -1,0 +1,8 @@
+card "Talons of Falkenrath" {
+  oracle_id e79b1224-1baf-460f-bf12-92b51cd8071f
+  cost {1}{R}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has ability { activated {1}{R}: this gets +2/+0 }
+}

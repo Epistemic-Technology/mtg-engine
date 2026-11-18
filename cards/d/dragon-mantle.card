@@ -1,0 +1,8 @@
+card "Dragon Mantle" {
+  oracle_id 0cc5aaa1-07bf-4872-ac72-303cef9fb143
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has ability { activated {R}: this gets +1/+0 }
+}
