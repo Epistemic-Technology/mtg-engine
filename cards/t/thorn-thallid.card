@@ -1,0 +1,8 @@
+card "Thorn Thallid" {
+  oracle_id 1239d3bf-06e8-4732-b1e2-f6eb145e5894
+  cost {1}{G}{G}
+  type Creature — Fungus
+  pt 2/2
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: deal 1 damage to any target
+}

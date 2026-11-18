@@ -163,6 +163,9 @@ pub struct Cost {
     pub exile_self: bool,
     /// Crew's cost (from its expansion).
     pub crew: u32,
+    /// `remove 1 charge counter from this`: "Remove a charge counter from
+    /// this artifact".
+    pub remove_counters: Option<(CounterKind, u32)>,
     /// `return land you control` / `tap untapped creature you control`:
     /// what the `sacrifice` filter's chosen permanent pays.
     pub chosen: mtg_core::card::ChosenCost,
@@ -176,6 +179,7 @@ pub struct Cost {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
+    RemoveCounters,
     Exile,
     Mana,
     Tap,
@@ -431,6 +435,11 @@ pub enum Mechanic {
     /// with total power N or more: This Vehicle becomes an artifact
     /// creature until end of turn."
     Crew(u32),
+    /// CR 702.74: an alternative cost; sacrificed as it enters if evoked.
+    Evoke(ManaCost),
+    /// CR 702.54: enters with N +1/+1 counters if an opponent was dealt
+    /// damage this turn.
+    Bloodthirst(u32),
     /// CR 702.37: cast face down for {3}; turn face up for the cost.
     Morph(ManaCost),
     /// CR 702.37b: morph, and a +1/+1 counter as it turns face up.
@@ -495,6 +504,9 @@ pub enum StaticCond {
     AttackedThisTurn,
     /// `creature died this turn` (morbid).
     CreatureDiedThisTurn,
+    /// `opponent damaged this turn`: "an opponent was dealt damage this
+    /// turn".
+    OpponentDamagedThisTurn,
     /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
     /// less`: "you have no cards in hand".
     CardsInHand {
@@ -985,6 +997,12 @@ pub enum Effect {
     ClearEcho,
     /// `manifest`: "manifest the top card of your library" (CR 701.34).
     Manifest,
+    /// `adapt 2` (CR 701.46).
+    Adapt(u32),
+    /// `this connives` (CR 701.50).
+    Connive {
+        what: Recipient,
+    },
     /// `dig 4 take creature card may revealing rest bottom`: "Look at the
     /// top four cards of your library. You may reveal a creature card from
     /// among them and put it into your hand. Put the rest on the bottom of

@@ -1,0 +1,7 @@
+card "Red Room Recruit" {
+  oracle_id 4e60c38c-cbf5-4ff7-8fff-634f7e3086cc
+  cost {1}{B}
+  type Creature — Human Spy Villain
+  pt 1/2
+  triggered when this enters: this connives
+}

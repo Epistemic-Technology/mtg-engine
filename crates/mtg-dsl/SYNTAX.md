@@ -86,6 +86,7 @@ double-faced permanent to its other face (CR 701.27).
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
 | `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
+| `evoke {1}{U}{U}`, `bloodthirst 2` | Evoke (CR 702.74): cast for this cost instead, and the permanent is sacrificed as it enters (`if evoked` is the trigger condition). Bloodthirst (CR 702.54): enters with N +1/+1 counters if an opponent was dealt damage this turn (`opponent damaged this turn` is also a static condition). |
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). `triggered when this is turned face up: ...`. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. |
 | `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. |
@@ -163,6 +164,14 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`.
 
 ### Replacement events and outcomes
+
+Counter kinds: `+1/+1`, `-1/-1`, `loyalty`, `stun` (CR 122.1d: removed
+instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
+`ki`, `time`, `tide`, `shield`, `age`, `fade`, `ice`, `level`, `lore`,
+`page`, and the keyword counters `flying`, `first strike`, `trample`,
+`lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
+`indestructible` (CR 122.1b: the permanent has the keyword). A cost may
+`remove 1 charge counter from this`.
 
 Events: `damage to <affects>`, `combat damage to <affects>`,
 `damage from creature you control to <affects>`, `you gain life`,
@@ -267,7 +276,8 @@ print "that card" for "it"),
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
-stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `dig 4 take creature
+stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `adapt 2` (CR 701.46:
++1/+1 counters only if it has none), `<what> connives` (CR 701.50), `dig 4 take creature
 card may revealing rest bottom` ("Look at the top four cards of your
 library. You may reveal a creature card from among them and put it into
 your hand. Put the rest on the bottom of your library in any order."; `dig

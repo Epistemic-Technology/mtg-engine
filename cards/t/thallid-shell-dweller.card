@@ -1,0 +1,9 @@
+card "Thallid Shell-Dweller" {
+  oracle_id 481e3a30-fbe9-4ed3-a982-8a73f0dca33b
+  cost {1}{G}
+  type Creature — Fungus
+  pt 0/5
+  keywords defender
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+}

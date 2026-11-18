@@ -1,0 +1,8 @@
+card "Spike Worker" {
+  oracle_id d7fcf43a-191f-4f44-aade-0cf89079a0c5
+  cost {2}{G}
+  type Creature — Spike
+  pt 0/0
+  enters with 2 +1/+1 counters
+  activated {2}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on target creature
+}

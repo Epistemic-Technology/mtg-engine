@@ -1,0 +1,8 @@
+card "Revel Ruiner" {
+  oracle_id adfb28ca-2ba6-4104-b731-f8fd9367f7ec
+  cost {3}{B}
+  type Creature — Octopus Rogue
+  pt 3/1
+  keywords menace
+  triggered when this enters: this connives
+}

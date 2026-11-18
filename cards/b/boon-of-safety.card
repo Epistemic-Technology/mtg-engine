@@ -1,0 +1,9 @@
+card "Boon of Safety" {
+  oracle_id 34f0beae-a8e2-4474-9f7f-4735d3f26863
+  cost {W}
+  type Instant
+  spell {
+    put 1 shield counters on target creature
+    scry 1
+  }
+}

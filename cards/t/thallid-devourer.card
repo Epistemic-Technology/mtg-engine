@@ -1,0 +1,9 @@
+card "Thallid Devourer" {
+  oracle_id b7326fd9-7648-4db3-b506-61a7de8a4094
+  cost {1}{G}{G}
+  type Creature — Fungus
+  pt 2/2
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated sacrifice Saproling: this gets +1/+2
+}

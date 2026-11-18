@@ -1,0 +1,7 @@
+card "Bloodscale Prowler" {
+  oracle_id 655a584c-5280-4317-b707-101b7e31dcb1
+  cost {2}{R}
+  type Creature — Lizard Warrior
+  pt 3/1
+  bloodthirst 1
+}

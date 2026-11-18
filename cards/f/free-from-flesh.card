@@ -1,0 +1,6 @@
+card "Free from Flesh" {
+  oracle_id e4a96cc7-8a4f-4007-8477-e1f30720db7b
+  cost {R}
+  type Instant
+  spell: target creature gets +2/+2; put 2 oil counters on target 1
+}

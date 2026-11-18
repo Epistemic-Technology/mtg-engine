@@ -175,6 +175,7 @@ impl Decompiler<'_> {
             from_graveyard: false,
             exile_self: c.exile_self,
             crew: c.crew,
+            remove_counters: c.remove_counters,
             chosen: c.chosen,
             order: Vec::new(),
         }
@@ -212,6 +213,7 @@ impl Decompiler<'_> {
             StaticCondition::YouControlNone(f) => StaticCond::YouControlNone(unowned(f)),
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
+            StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -470,6 +472,10 @@ impl Decompiler<'_> {
             },
             CoreEffect::ClearEcho => Effect::ClearEcho,
             CoreEffect::Manifest => Effect::Manifest,
+            CoreEffect::Adapt(n) => Effect::Adapt(*n),
+            CoreEffect::Connive { what } => Effect::Connive {
+                what: Self::recipient(*what),
+            },
             CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
             CoreEffect::Dig {
                 count,
@@ -762,6 +768,10 @@ impl Decompiler<'_> {
                 replacement: mtg_core::card::Replacement::EnterTappedUnless(i),
                 ..
             }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
+            AbilityDef::Replacement(ReplacementAbility {
+                replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, .. },
+                ..
+            }) => Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n)),
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),
             AbilityDef::Static(s) => Ability::Static {
                 filter: self.filter(&s.affected),

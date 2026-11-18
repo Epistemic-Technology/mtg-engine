@@ -1,0 +1,8 @@
+card "Furnace Strider" {
+  oracle_id 85488433-3c23-4a29-b063-53dba71f26c4
+  cost {4}{R}
+  type Creature — Phyrexian Beast
+  pt 4/5
+  enters with 2 oil counters
+  activated remove 1 oil counters from this: target creature you control gains haste
+}

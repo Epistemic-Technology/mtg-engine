@@ -826,10 +826,13 @@ impl Runner {
                     sacrifice,
                     discard,
                     face_down,
+                    evoked,
                     ..
                 } => {
                     let choice = if *face_down {
                         Choice::CastFaceDown(self.in_hand(a.line, d.player, name)?)
+                    } else if *evoked {
+                        Choice::CastEvoke(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
                         Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
@@ -852,7 +855,8 @@ impl Runner {
             let (Choice::PlayLand(id)
             | Choice::Cast(id)
             | Choice::CastFace { card: id, .. }
-            | Choice::CastFaceDown(id)) = option
+            | Choice::CastFaceDown(id)
+            | Choice::CastEvoke(id)) = option
             else {
                 unreachable!()
             };
@@ -1851,6 +1855,7 @@ impl Runner {
                 format!("cast face {face} of {}", self.describe_ids(&[*card]))
             }
             Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
+            Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {
                 let card = self.state().objects[*id].card;
                 format!("turn {} face up", self.state().pool.get(card).name)

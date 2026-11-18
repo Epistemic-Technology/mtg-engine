@@ -2354,6 +2354,17 @@ chosen permanent ("Return a land you control to its owner's hand"),
 in scenarios/m5/slice15.scn, the rest with batch 6's cards), 1 skipped;
 fuzz 0 panics, 0 unfinished; throughput within 1% of the perf pass.
 
+Status 2026-11-18, slice 16 done: named counter kinds (stun, with its
+untap replacement; charge, oil, spore, time, and the rest; keyword
+counters granting their keyword in layer 6) and "Remove a charge
+counter from this artifact" costs; evoke (an alternative cost and a
+built-in "sacrifice it if evoked" trigger, kept on the permanent in its
+cast flags); bloodthirst (players dealt damage are tracked per turn);
+adapt; connive. Corpus 7,641 cards: 5,625 Pauper (51.7%), 5,749 Modern
+(25.3%); 1,985 scenarios pass (8 new in scenarios/m5/slice16.scn), 1
+skipped; fuzz 0 panics, 0 unfinished; throughput within 1% of the perf
+pass.
+
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional
 "enters tapped unless ..." (`Replacement::EnterTappedUnless`), "can't

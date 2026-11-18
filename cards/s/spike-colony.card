@@ -1,0 +1,8 @@
+card "Spike Colony" {
+  oracle_id 15902a15-090a-44e6-b8d2-59e0f26ed46f
+  cost {4}{G}
+  type Creature — Spike
+  pt 0/0
+  enters with 4 +1/+1 counters
+  activated {2}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on target creature
+}

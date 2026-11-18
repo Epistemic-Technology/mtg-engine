@@ -426,6 +426,7 @@ impl GameState {
             spells_this_turn: [0; 4],
             attacked_this_turn: 0,
             creatures_died_this_turn: 0,
+            damaged_this_turn: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
             starting_player,
@@ -1053,6 +1054,13 @@ impl GameState {
                 self.player_mut(player).lands_played_this_turn += 1;
                 self.emit(Event::LandPlayed { player, land: new });
             }
+            (Flow::Priority, Choice::CastEvoke(card)) => {
+                self.consecutive_passes = 0;
+                let spell = self.move_object(card, Zone::Stack, true);
+                self.objects[spell].controller = player;
+                self.objects[spell].cast.set_evoked(true);
+                self.flow = self.after_mode(spell);
+            }
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;
                 let ward = matches!(
@@ -1594,6 +1602,7 @@ impl GameState {
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.attacked_this_turn = 0;
             self.creatures_died_this_turn = 0;
+            self.damaged_this_turn = 0;
             self.eot_grants = 0;
             self.active_player = self.next_player_in_game(self.active_player);
             // "During your turn" static abilities (CR 611.3a) change with

@@ -1,0 +1,7 @@
+card "Skitter Eel" {
+  oracle_id 75132177-0881-4158-9d65-73f5ba9d4402
+  cost {3}{U}
+  type Creature — Fish Crab
+  pt 3/3
+  activated {2}{U}: adapt 2
+}

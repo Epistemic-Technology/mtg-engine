@@ -1,0 +1,6 @@
+card "Unstable Experiment" {
+  oracle_id 5b7bbc76-22cc-482e-8d65-34cff34c93c8
+  cost {1}{U}
+  type Instant
+  spell: target player draws 1 cards then up to one target creature you control connives
+}

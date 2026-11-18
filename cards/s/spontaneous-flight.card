@@ -1,0 +1,6 @@
+card "Spontaneous Flight" {
+  oracle_id 04da8c46-9703-47f2-974b-c144464ec380
+  cost {2}{W}
+  type Instant
+  spell: target creature gets +2/+2; put 1 flying counters on target 1
+}

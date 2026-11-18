@@ -1,0 +1,7 @@
+card "Gorehorn Minotaurs" {
+  oracle_id be8ad29c-2232-426d-bda9-a289dcc6c265
+  cost {2}{R}{R}
+  type Creature — Minotaur Warrior
+  pt 3/3
+  bloodthirst 2
+}

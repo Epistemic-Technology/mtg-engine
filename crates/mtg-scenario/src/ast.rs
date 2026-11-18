@@ -126,6 +126,8 @@ pub enum Action {
         respond_to: Option<String>,
         /// `face_down`: cast face down for {3} (morph, CR 702.37c).
         face_down: bool,
+        /// `evoked`: cast for the evoke cost (CR 702.74).
+        evoked: bool,
     },
     /// `unmorph "X"`: turn the face-down permanent that is card X face up.
     TurnFaceUp(String),

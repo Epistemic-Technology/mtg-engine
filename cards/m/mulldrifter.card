@@ -1,0 +1,9 @@
+card "Mulldrifter" {
+  oracle_id 24d0f5e7-0d9e-4b76-900e-a7274e80312d
+  cost {4}{U}
+  type Creature — Elemental
+  pt 2/2
+  keywords flying
+  triggered when this enters: draw 2 cards
+  evoke {2}{U}
+}

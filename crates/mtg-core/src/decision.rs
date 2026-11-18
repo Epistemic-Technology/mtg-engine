@@ -166,6 +166,8 @@ pub enum Choice {
         card: ObjId,
         face: u8,
     },
+    /// Cast a card for its evoke cost (CR 702.74a).
+    CastEvoke(ObjId),
     /// Cast a card with morph or disguise face down as a 2/2 for {3}
     /// (CR 702.37c, 702.168).
     CastFaceDown(ObjId),
@@ -252,6 +254,7 @@ impl Choice {
                 out
             }
             Choice::X(n) => format!("X = {n}"),
+            Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastFaceDown(id) => {
                 let card = state
                     .objects

@@ -1,0 +1,8 @@
+card "Ice Flan" {
+  oracle_id 3b7120a6-700b-4c61-bea4-a835f0cc0bcb
+  cost {4}{U}{U}
+  type Creature — Elemental Ooze
+  pt 5/4
+  triggered when this enters: tap target artifact or creature an opponent controls; put 1 stun counters on target 1
+  islandcycling {2}
+}

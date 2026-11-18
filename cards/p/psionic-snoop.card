@@ -1,0 +1,8 @@
+card "Psionic Snoop" {
+  oracle_id a4e8d2ad-cce2-45de-b9a2-7ba3b1546efb
+  cost {2}{U}
+  type Creature — Human Rogue
+  pt 0/3
+  keywords flash
+  triggered when this enters: this connives
+}

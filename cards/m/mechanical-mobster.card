@@ -1,0 +1,7 @@
+card "Mechanical Mobster" {
+  oracle_id b0672aa3-3207-4ff8-af8f-bdabacbb4d04
+  cost {3}
+  type Artifact Creature — Human Robot Villain
+  pt 2/1
+  triggered when this enters: exile up to one target card from a graveyard; target creature you control connives
+}

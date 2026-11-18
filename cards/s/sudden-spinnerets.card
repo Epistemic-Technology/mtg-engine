@@ -1,0 +1,6 @@
+card "Sudden Spinnerets" {
+  oracle_id 5b83fede-851c-4e9d-98ba-d88f6caffc1b
+  cost {G}
+  type Instant
+  spell: target creature gets +1/+3; put 1 reach counters on target 1; untap target 1
+}

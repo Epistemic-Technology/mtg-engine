@@ -613,6 +613,12 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(source).is_some_and(|o| o.echo_due),
+            Condition::Evoked => self
+                .objects
+                .get(source)
+                .map(|o| o.cast.evoked())
+                .or_else(|| self.lki.get(&source).map(|l| l.object.cast.evoked()))
+                .unwrap_or(false),
             Condition::Static(i) => {
                 let you = self
                     .objects
@@ -635,6 +641,7 @@ impl GameState {
             Condition::NoSpellsLastTurn => self.spells_last_turn.iter().all(|n| *n == 0),
             Condition::TwoSpellsLastTurn => self.spells_last_turn.iter().any(|n| *n >= 2),
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
+            Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) => {
                 self.condition_now(self.pool.condition(i), w.controller, w.source)
             }

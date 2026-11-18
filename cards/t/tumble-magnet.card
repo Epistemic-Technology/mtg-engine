@@ -1,0 +1,7 @@
+card "Tumble Magnet" {
+  oracle_id 0481adcd-b66d-432e-80ba-3a4718bb3a7d
+  cost {3}
+  type Artifact
+  enters with 3 charge counters
+  activated {T}, remove 1 charge counters from this: tap target artifact or creature
+}

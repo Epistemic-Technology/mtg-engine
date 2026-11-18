@@ -1,0 +1,8 @@
+card "Fractal Mascot" {
+  oracle_id cca3f3e8-15a7-4ad8-893a-d3570178a800
+  cost {4}{G}{U}
+  type Creature — Fractal Elk
+  pt 6/6
+  keywords trample
+  triggered when this enters: tap target creature an opponent controls; put 1 stun counters on target 1
+}

@@ -163,7 +163,21 @@ impl CastInfo {
     /// Cast with its buyback cost paid (CR 702.27): to its owner's hand as
     /// it resolves.
     const BUYBACK: u8 = 0x10;
-    const MODE: u8 = 0x0f;
+    /// Cast for its evoke cost (CR 702.74); kept by the permanent.
+    const EVOKED: u8 = 0x08;
+    const MODE: u8 = 0x07;
+
+    pub const fn evoked(self) -> bool {
+        self.0 & Self::EVOKED != 0
+    }
+
+    pub fn set_evoked(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::EVOKED
+        } else {
+            self.0 & !Self::EVOKED
+        };
+    }
 
     pub const fn bought_back(self) -> bool {
         self.0 & Self::BUYBACK != 0
@@ -224,7 +238,7 @@ impl CastInfo {
     /// What a permanent keeps of its spell's cast info (CR 702.33c).
     #[must_use]
     pub const fn kept_by_permanent(self) -> CastInfo {
-        CastInfo(self.0 & Self::KICKED)
+        CastInfo(self.0 & (Self::KICKED | Self::EVOKED))
     }
 }
 
@@ -718,6 +732,8 @@ pub struct GameState {
     /// Creatures put into a graveyard from the battlefield this turn
     /// (morbid).
     pub creatures_died_this_turn: u16,
+    /// Players dealt damage this turn (bloodthirst), one bit each.
+    pub damaged_this_turn: u8,
     pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -1302,6 +1318,9 @@ impl GameState {
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
+            C::OpponentDamagedThisTurn => self
+                .players_in_game()
+                .any(|p| p != you && self.damaged_this_turn & (1 << p.index().min(7)) != 0),
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

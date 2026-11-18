@@ -1,0 +1,8 @@
+card "Mournwhelk" {
+  oracle_id 10277cc5-f53b-4b33-bd68-edb0534a2040
+  cost {6}{B}
+  type Creature — Elemental
+  pt 3/3
+  triggered when this enters: target player discards 2 cards
+  evoke {3}{B}
+}

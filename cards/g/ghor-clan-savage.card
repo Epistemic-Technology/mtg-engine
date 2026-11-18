@@ -1,0 +1,7 @@
+card "Ghor-Clan Savage" {
+  oracle_id 28f35fa1-befa-40b4-95ab-30bb53d339ab
+  cost {3}{G}{G}
+  type Creature — Centaur Berserker
+  pt 2/3
+  bloodthirst 3
+}

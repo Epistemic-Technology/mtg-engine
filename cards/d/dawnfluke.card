@@ -1,0 +1,9 @@
+card "Dawnfluke" {
+  oracle_id 9ca9168f-54cb-4091-b80c-7c264773c1a2
+  cost {3}{W}
+  type Creature — Elemental
+  pt 0/3
+  keywords flash
+  triggered when this enters: prevent next 3 damage to any target this turn
+  evoke {W}
+}

@@ -474,6 +474,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let evoked = if line.peek_ident("evoked") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let face_down = if line.peek_ident("face_down") {
                 line.pos += 1;
                 true
@@ -538,6 +544,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                 Action::Cast {
                     name,
                     from_graveyard,
+                    evoked,
                     face_down,
                     kicked,
                     mode,

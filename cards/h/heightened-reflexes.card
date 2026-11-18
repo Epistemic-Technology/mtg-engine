@@ -1,0 +1,6 @@
+card "Heightened Reflexes" {
+  oracle_id 513fd896-ab78-44fb-b136-f7c93288dc63
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0; put 1 first strike counters on target 1
+}

@@ -484,6 +484,15 @@ impl GameState {
     }
 
     pub(super) fn untap(&mut self, id: ObjId) {
+        // CR 122.1d: a stun counter is removed instead.
+        if self
+            .objects
+            .get(id)
+            .is_some_and(|o| o.tapped && o.counters(CounterKind::Stun) > 0)
+        {
+            self.remove_counters(id, CounterKind::Stun, 1);
+            return;
+        }
         if let Some(o) = self.objects.get_mut(id)
             && o.tapped
         {
@@ -557,6 +566,7 @@ impl GameState {
             .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
         match target {
             Target::Player(p) => {
+                self.damaged_this_turn |= 1 << p.index().min(7);
                 self.emit(Event::Damage {
                     source,
                     target,

@@ -1,0 +1,7 @@
+card "Surge Node" {
+  oracle_id 3b30f043-aa79-4262-b13f-6cd794b1920b
+  cost {1}
+  type Artifact
+  enters with 6 charge counters
+  activated {1}, {T}, remove 1 charge counters from this: put 1 charge counters on target artifact
+}

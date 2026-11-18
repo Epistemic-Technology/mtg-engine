@@ -16,7 +16,7 @@ pub const STEPS: usize = 13;
 /// Decision kinds, one-hot (with room to grow without changing the layout).
 pub const DECISION_KINDS: usize = 24;
 /// Option kinds, one-hot (likewise).
-pub const CHOICE_KINDS: usize = 32;
+pub const CHOICE_KINDS: usize = 40;
 /// Features per card slot.
 pub const CARD_F: usize = 2 + 7 + 2 + 5 + 1 + 5 + Keyword::ALL.len();
 pub const HAND_SLOTS: usize = 10;
@@ -147,10 +147,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastFace { .. } => 29,
         Choice::CastFaceDown(_) => 30,
         Choice::TurnFaceUp(_) => 31,
+        Choice::CastEvoke(_) => 32,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 32] = [
+pub const CHOICE_KIND_NAMES: [&str; 33] = [
     "keep",
     "mulligan",
     "bottom",
@@ -183,6 +184,7 @@ pub const CHOICE_KIND_NAMES: [&str; 32] = [
     "cast_face",
     "cast_face_down",
     "turn_face_up",
+    "cast_evoke",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -327,7 +329,8 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::PlayLand(id)
             | Choice::AddAttacker(id)
             | Choice::Sacrifice(id)
-            | Choice::TurnFaceUp(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
+            | Choice::TurnFaceUp(id)
+            | Choice::CastEvoke(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),
             Choice::Cast(id) => {
                 let cost = state

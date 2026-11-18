@@ -1045,6 +1045,13 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }),
                 None => {}
             },
+            CostItem::RemoveCounters => {
+                if let Some((k, n)) = cost.remove_counters {
+                    let what = counters(Num::N(n), k);
+                    let src = ctx.source();
+                    parts.push(format!("Remove {what} from {src}"));
+                }
+            }
             CostItem::Exile => {
                 if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
@@ -1112,17 +1119,19 @@ impl Clause {
 const EOT: &str = "until end of turn";
 
 fn counter_name(k: CounterKind) -> &'static str {
-    match k {
-        CounterKind::PlusOnePlusOne => "+1/+1",
-        CounterKind::MinusOneMinusOne => "-1/-1",
-        CounterKind::Loyalty => "loyalty",
-    }
+    k.name()
 }
 
 fn counters(n: Num, k: CounterKind) -> String {
+    // "an oil counter", "a stun counter".
+    let a = if n == Num::N(1) && article(counter_name(k)) == "an" {
+        "an"
+    } else {
+        "a"
+    };
     format!(
         "{} {} {}",
-        count_words(n, "a"),
+        count_words(n, a),
         counter_name(k),
         plural(n, "counter")
     )
@@ -1441,6 +1450,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
+        Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
+        Effect::Connive { what } => {
+            let s = ctx.subj(*what);
+            Clause::with_subject(*what, s, "connives".to_string())
+        }
         Effect::LookAtTop(n) => Clause::imperative(format!(
             "look at the top {} cards of your library, then put them back in any order",
             count_words(*n, "one")
@@ -2355,6 +2369,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
             "if it came under your control since the beginning of your last upkeep".to_string()
         }
         Condition::Static(_) => unreachable!("an AST condition"),
+        Condition::Evoked => "if it was evoked".to_string(),
     }
 }
 
@@ -2839,6 +2854,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
+        StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
         StaticCond::CardsInHand { n, at_most } => match (n, at_most) {
             (0, true) => "you have no cards in hand".to_string(),
             (n, true) => format!(
@@ -3088,6 +3104,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Outlast(c) => format!("Outlast {c}"),
             crate::ast::Mechanic::Crew(n) => format!("Crew {n}"),
             crate::ast::Mechanic::Morph(c) => format!("Morph {c}"),
+            crate::ast::Mechanic::Evoke(c) => format!("Evoke {c}"),
+            crate::ast::Mechanic::Bloodthirst(n) => format!("Bloodthirst {n}"),
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
         },

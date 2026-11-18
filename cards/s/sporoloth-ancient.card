@@ -1,0 +1,8 @@
+card "Sporoloth Ancient" {
+  oracle_id 071e15b5-6d21-4695-9ad0-69f40eb8f4ef
+  cost {3}{G}{G}
+  type Creature — Fungus
+  pt 4/4
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  static creature you control: has ability { activated remove 2 spore counters from this: create 1 "1/1 green Saproling creature" }
+}

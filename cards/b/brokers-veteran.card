@@ -1,0 +1,7 @@
+card "Brokers Veteran" {
+  oracle_id feee1926-0b63-404f-9b01-df965de26b5f
+  cost {1}{U}
+  type Creature — Human Soldier
+  pt 2/1
+  triggered when this dies: put 1 shield counters on target creature you control
+}

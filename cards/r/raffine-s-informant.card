@@ -1,0 +1,7 @@
+card "Raffine's Informant" {
+  oracle_id 838c4831-7d5c-4025-92b3-46eee59d6b34
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/1
+  triggered when this enters: this connives
+}

@@ -82,6 +82,14 @@ impl GameState {
             {
                 options.push(Choice::Cast(*id));
             }
+            // CR 702.74a: cast for the evoke cost instead.
+            if let Some(ev) = &def.evoke
+                && sorcery_timing
+                && payment_plan_from(&sources, &pool, &ev.requirements(0), ps.life).is_some()
+                && self.targets_available(p, def.cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastEvoke(*id));
+            }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
@@ -578,6 +586,9 @@ impl GameState {
         let def = self.pool.get(o.def);
         let mut req = match (&def.flashback, o.cast.flashback()) {
             (Some(fb), true) => fb.mana.requirements(x),
+            (_, false) if o.cast.evoked() && def.evoke.is_some() => {
+                def.evoke.as_ref().expect("checked").requirements(x)
+            }
             // CR 702.37c: a face-down spell costs {3}.
             _ if self.pool.is_face_down(o.def) => crate::mana::ManaCost::parse("{3}")
                 .expect("a mana cost")
@@ -671,6 +682,11 @@ impl GameState {
                     continue;
                 }
                 if ab.cost.crew > 0 && self.crew_power(p, id) < ab.cost.crew {
+                    continue;
+                }
+                if let Some((k, n)) = ab.cost.remove_counters
+                    && o.counters(k) < n
+                {
                     continue;
                 }
                 if ab.cost.life > 0
@@ -1078,6 +1094,9 @@ impl GameState {
     ) {
         if cost.life > 0 {
             self.change_life(p, -i32::try_from(cost.life).unwrap_or(i32::MAX));
+        }
+        if let Some((k, n)) = cost.remove_counters {
+            self.remove_counters(this, k, n);
         }
         // CR 606.4: loyalty costs are counters put on or removed from the
         // planeswalker.
@@ -2457,6 +2476,41 @@ impl GameState {
             // Modes resolve through the chosen mode (`effects_of`); looking
             // at the top cards keeps their order.
             Effect::Modes(_) | Effect::LookAtTop { .. } => {}
+            Effect::Adapt(n) => {
+                if let Some(id) = self.current_object(ctx.source)
+                    && self.objects[id].zone == Zone::Battlefield
+                    && self.objects[id].counters(CounterKind::PlusOnePlusOne) == 0
+                {
+                    self.add_counters(id, CounterKind::PlusOnePlusOne, *n);
+                }
+            }
+            Effect::Connive { what } => {
+                for t in self.recipients(ctx, *what) {
+                    let Target::Object(id) = t else { continue };
+                    let p = self.objects[id].controller;
+                    self.draw(p);
+                    let options: Vec<Choice> = self
+                        .player(p)
+                        .hand
+                        .iter()
+                        .map(|c| Choice::Discard {
+                            card: *c,
+                            def: self.objects[*c].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
+                    if let Choice::Discard { card, def } = options[k] {
+                        let nonland = !self.pool.get(def).is_land();
+                        self.discard_card(p, card);
+                        if nonland && self.objects.contains_key(id) {
+                            self.add_counters(id, CounterKind::PlusOnePlusOne, 1);
+                        }
+                    }
+                }
+            }
             Effect::Dig {
                 count,
                 filter,
@@ -2567,8 +2621,8 @@ impl GameState {
                 .filter(|(k, n)| {
                     *n > 0
                         && match k {
-                            CounterKind::PlusOnePlusOne | CounterKind::Loyalty => mine,
-                            CounterKind::MinusOneMinusOne => !mine,
+                            CounterKind::MinusOneMinusOne | CounterKind::Stun => !mine,
+                            _ => mine,
                         }
                 })
                 .map(|(k, _)| *k)

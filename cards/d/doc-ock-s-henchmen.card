@@ -1,0 +1,8 @@
+card "Doc Ock's Henchmen" {
+  oracle_id ae91c16c-5267-4957-b36c-5aa787fa6b5e
+  cost {2}{U}
+  type Creature — Human Villain
+  pt 2/1
+  keywords flash
+  triggered whenever this attacks: this connives
+}

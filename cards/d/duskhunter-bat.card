@@ -1,0 +1,8 @@
+card "Duskhunter Bat" {
+  oracle_id 6082f84a-3af2-4007-ab88-7b4b59b5c154
+  cost {1}{B}
+  type Creature — Bat
+  pt 1/1
+  bloodthirst 1
+  keyword flying
+}

@@ -1,0 +1,8 @@
+card "Dapper Shieldmate" {
+  oracle_id 3cdd795b-13b8-4812-89ee-d248368f915b
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  enters with 1 shield counters
+  static during your turn, this: +2/+0
+}

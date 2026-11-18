@@ -258,6 +258,9 @@ pub enum Keyword {
     Convoke,
     /// CR 702.126: artifacts tapped while casting pay for {1}.
     Improvise,
+    /// Marks a card with evoke (CR 702.74): its "sacrifice it as it enters
+    /// if evoked" trigger. Printed as "Evoke {cost}", not as a keyword.
+    Evoke,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -315,7 +318,8 @@ impl KeywordSet {
         .with(Keyword::Exalted)
         .with(Keyword::Persist)
         .with(Keyword::Undying)
-        .with(Keyword::Flanking);
+        .with(Keyword::Flanking)
+        .with(Keyword::Evoke);
 
     /// The five protection-from-a-color keywords (CR 702.16).
     pub const PROTECTION: KeywordSet = KeywordSet::NONE
@@ -340,7 +344,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 49] = [
+    pub const ALL: [Keyword; 50] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -390,6 +394,7 @@ impl Keyword {
         Keyword::DoesntUntap,
         Keyword::Convoke,
         Keyword::Improvise,
+        Keyword::Evoke,
     ];
 
     /// The keyword as Oracle prints it.
@@ -444,6 +449,7 @@ impl Keyword {
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
+            Keyword::Evoke => "evoke",
         }
     }
 
@@ -1223,6 +1229,8 @@ pub enum StaticCondition {
     YouControlNone(ObjFilter),
     /// Raid: "you attacked this turn".
     AttackedThisTurn,
+    /// Bloodthirst: "an opponent was dealt damage this turn".
+    OpponentDamagedThisTurn,
     /// Morbid: "a creature died this turn".
     CreatureDiedThisTurn,
     /// Hellbent-style: "you have N or fewer cards in hand" (`at_most`) /
@@ -1240,6 +1248,99 @@ pub enum CounterKind {
     MinusOneMinusOne,
     /// Loyalty counters on a planeswalker (CR 306.5).
     Loyalty,
+    /// CR 122.1d: as the permanent would untap, a stun counter is removed
+    /// instead.
+    Stun,
+    /// Named counters with no rules of their own (CR 122.1): what cards
+    /// count and remove.
+    Charge,
+    Oil,
+    Spore,
+    Depletion,
+    Quest,
+    Ki,
+    Time,
+    Tide,
+    Shield,
+    Age,
+    Fade,
+    Ice,
+    Level,
+    Lore,
+    Page,
+    /// Keyword counters (CR 122.1b): the permanent has the keyword.
+    Flying,
+    FirstStrike,
+    Trample,
+    Lifelink,
+    Deathtouch,
+    Reach,
+    Menace,
+    Vigilance,
+    Hexproof,
+    Indestructible,
+}
+
+impl CounterKind {
+    /// Named kinds by their Oracle word ("stun", "first strike").
+    pub const NAMED: [(&'static str, CounterKind); 26] = [
+        ("stun", CounterKind::Stun),
+        ("charge", CounterKind::Charge),
+        ("oil", CounterKind::Oil),
+        ("spore", CounterKind::Spore),
+        ("depletion", CounterKind::Depletion),
+        ("quest", CounterKind::Quest),
+        ("ki", CounterKind::Ki),
+        ("time", CounterKind::Time),
+        ("tide", CounterKind::Tide),
+        ("shield", CounterKind::Shield),
+        ("age", CounterKind::Age),
+        ("fade", CounterKind::Fade),
+        ("ice", CounterKind::Ice),
+        ("level", CounterKind::Level),
+        ("lore", CounterKind::Lore),
+        ("page", CounterKind::Page),
+        ("flying", CounterKind::Flying),
+        ("first strike", CounterKind::FirstStrike),
+        ("trample", CounterKind::Trample),
+        ("lifelink", CounterKind::Lifelink),
+        ("deathtouch", CounterKind::Deathtouch),
+        ("reach", CounterKind::Reach),
+        ("menace", CounterKind::Menace),
+        ("vigilance", CounterKind::Vigilance),
+        ("hexproof", CounterKind::Hexproof),
+        ("indestructible", CounterKind::Indestructible),
+    ];
+
+    /// The Oracle word ("+1/+1", "stun").
+    pub fn name(self) -> &'static str {
+        match self {
+            CounterKind::PlusOnePlusOne => "+1/+1",
+            CounterKind::MinusOneMinusOne => "-1/-1",
+            CounterKind::Loyalty => "loyalty",
+            other => CounterKind::NAMED
+                .iter()
+                .find(|(_, k)| *k == other)
+                .map_or("?", |(n, _)| n),
+        }
+    }
+
+    /// The keyword a keyword counter grants (CR 122.1b).
+    pub const fn keyword(self) -> Option<Keyword> {
+        Some(match self {
+            CounterKind::Flying => Keyword::Flying,
+            CounterKind::FirstStrike => Keyword::FirstStrike,
+            CounterKind::Trample => Keyword::Trample,
+            CounterKind::Lifelink => Keyword::Lifelink,
+            CounterKind::Deathtouch => Keyword::Deathtouch,
+            CounterKind::Reach => Keyword::Reach,
+            CounterKind::Menace => Keyword::Menace,
+            CounterKind::Vigilance => Keyword::Vigilance,
+            CounterKind::Hexproof => Keyword::Hexproof,
+            CounterKind::Indestructible => Keyword::Indestructible,
+            _ => return None,
+        })
+    }
 }
 
 /// What a spell's target must be. One entry per "target" word in the text.
@@ -1752,6 +1853,14 @@ pub enum Effect {
     LookAtTop {
         count: Num,
     },
+    /// Adapt N (CR 701.46): if the source has no +1/+1 counters, it gets
+    /// N.
+    Adapt(u32),
+    /// The recipient creature connives (CR 701.50): its controller draws
+    /// and discards a card; a nonland discard puts a +1/+1 counter on it.
+    Connive {
+        what: Recipient,
+    },
     /// Manifest (CR 701.34): the top card of the controller's library
     /// onto the battlefield face down as a 2/2 creature.
     Manifest,
@@ -1808,6 +1917,7 @@ impl Effect {
                 | Effect::Explore { .. }
                 | Effect::PutFromHand { .. }
                 | Effect::Dig { .. }
+                | Effect::Connive { .. }
         )
     }
 }
@@ -1898,6 +2008,13 @@ pub enum Replacement {
     /// Enters tapped unless the pool's `n`th condition holds for its
     /// controller ("unless you control a planeswalker", CR 614.1d).
     EnterTappedUnless(u16),
+    /// Enters with counters if the pool's `cond`th condition holds
+    /// (bloodthirst, CR 702.54a).
+    EnterWithCountersIf {
+        cond: u16,
+        kind: CounterKind,
+        n: u32,
+    },
     /// Enters with counters.
     EnterWithCounters { kind: CounterKind, n: Num },
     /// CR 701.15a: instead of being destroyed, the permanent has all damage
@@ -2079,6 +2196,8 @@ pub enum Condition {
     /// The pool's `n`th static condition ("if you control an artifact",
     /// "if you have 5 or less life").
     Static(u16),
+    /// "if it was evoked" (CR 702.74a).
+    Evoked,
 }
 
 /// A triggered ability (CR 603).
@@ -2122,6 +2241,8 @@ pub struct Cost {
     /// Crew N (CR 702.122): tap any number of other untapped creatures you
     /// control with total power N or more.
     pub crew: u32,
+    /// "Remove a charge counter from this artifact" (CR 122.8).
+    pub remove_counters: Option<(CounterKind, u32)>,
     /// What a `SacCost::Filter` cost does to the chosen permanent:
     /// sacrifice it, return it to its owner's hand ("Return a land you
     /// control to its owner's hand"), or tap it ("Tap an untapped creature
@@ -2151,6 +2272,7 @@ impl Cost {
             discard_self: false,
             exile_self: false,
             crew: 0,
+            remove_counters: None,
             chosen: ChosenCost::Sacrifice,
             life: 0,
             discard: 0,
@@ -2491,6 +2613,9 @@ pub struct CardDef {
     /// Morph, megamorph, or disguise (CR 702.37, 702.168): cast face down
     /// for {3}, turned face up for this cost.
     pub morph: Option<(ManaCost, MorphKind)>,
+    /// Evoke (CR 702.74): an alternative cost; an evoked permanent is
+    /// sacrificed as it enters.
+    pub evoke: Option<ManaCost>,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
@@ -2890,6 +3015,7 @@ pub struct CardPool {
     persist: AbilityId,
     undying: AbilityId,
     flanking: AbilityId,
+    evoke: AbilityId,
     /// A face-down permanent's or spell's characteristics (CR 708.2a): a
     /// nameless, colorless 2/2 creature with no abilities; and the same
     /// with ward {2}, for disguise (CR 702.168b).
@@ -2922,6 +3048,7 @@ impl CardPool {
             persist: AbilityId(0),
             undying: AbilityId(0),
             flanking: AbilityId(0),
+            evoke: AbilityId(0),
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
         };
@@ -2973,6 +3100,16 @@ impl CardPool {
                 power: -1,
                 toughness: -1,
                 to: Recipient::TriggeringObject,
+            }],
+        }));
+        // CR 702.74a: "When this permanent enters, if its evoke cost was
+        // paid, its controller sacrifices it."
+        pool.evoke = pool.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::Enters(TriggerObj::This),
+            condition: Some(Condition::Evoked),
+            targets: Vec::new(),
+            effects: vec![Effect::Sacrifice {
+                what: Recipient::Source,
             }],
         }));
         // Named only for logs: a face-down permanent has no name.
@@ -3134,6 +3271,7 @@ impl CardPool {
             Keyword::Persist => Some(self.persist),
             Keyword::Undying => Some(self.undying),
             Keyword::Flanking => Some(self.flanking),
+            Keyword::Evoke => Some(self.evoke),
             _ => None,
         }
     }
@@ -3311,6 +3449,7 @@ impl Builder {
             self_cost: None,
             buyback: None,
             morph: None,
+            evoke: None,
             flashback: None,
             watch_mask: 0,
             except_watch_mask: 0,
@@ -3415,6 +3554,13 @@ impl Builder {
     #[must_use]
     pub fn morph(mut self, cost: ManaCost, kind: MorphKind) -> Self {
         self.0.morph = Some((cost, kind));
+        self
+    }
+
+    /// Evoke (CR 702.74).
+    #[must_use]
+    pub fn evoke(mut self, cost: ManaCost) -> Self {
+        self.0.evoke = Some(cost);
         self
     }
 

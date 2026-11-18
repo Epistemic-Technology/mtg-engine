@@ -1,0 +1,8 @@
+card "Heirloom Auntie" {
+  oracle_id cc9523da-f48e-49ab-9989-a4031dafb426
+  cost {2}{B}
+  type Creature — Goblin Warlock
+  pt 4/4
+  enters with 2 -1/-1 counters
+  triggered whenever other creature you control dies: surveil 1 then remove 1 -1/-1 counters from this
+}

@@ -1,0 +1,8 @@
+card "Ingot Chewer" {
+  oracle_id 127795e6-3f0e-4318-95ad-ccb1912580ac
+  cost {4}{R}
+  type Creature — Elemental
+  pt 3/3
+  triggered when this enters: destroy target artifact
+  evoke {R}
+}

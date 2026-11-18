@@ -1,0 +1,8 @@
+card "Predation Steward" {
+  oracle_id 5e3d2b03-4c44-49a3-ab11-871ca9c372f7
+  cost {1}{G}
+  type Creature — Phyrexian Elf Warrior
+  pt 2/2
+  enters with 2 oil counters
+  activated {2}{G}, {T}, remove 1 oil counters from this, sorcery: target creature gets +2/+2
+}

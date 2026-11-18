@@ -1,0 +1,9 @@
+card "Faultgrinder" {
+  oracle_id 4aa34391-d532-48e5-a125-2619d04f27ff
+  cost {6}{R}
+  type Creature — Elemental
+  pt 4/4
+  keywords trample
+  triggered when this enters: destroy target land
+  evoke {4}{R}
+}

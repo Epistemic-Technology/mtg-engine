@@ -1,0 +1,6 @@
+card "Wing It" {
+  oracle_id 7b0b05a0-0be4-498f-be54-8d68b818f90a
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; put 1 flying counters on target 1; scry 1
+}

@@ -1,0 +1,7 @@
+card "Mob Lookout" {
+  oracle_id 47654b36-b215-4333-aa70-d88d627447e3
+  cost {1}{U/B}
+  type Creature — Human Rogue Villain
+  pt 0/3
+  triggered when this enters: target creature you control connives
+}

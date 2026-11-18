@@ -1,0 +1,8 @@
+card "Aeromunculus" {
+  oracle_id a0cd19c1-9125-4627-83ba-d42c489b4e7d
+  cost {1}{G}{U}
+  type Creature — Homunculus Mutant
+  pt 2/3
+  keywords flying
+  activated {2}{G}{U}: adapt 1
+}

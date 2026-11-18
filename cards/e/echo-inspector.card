@@ -1,0 +1,8 @@
+card "Echo Inspector" {
+  oracle_id d7ae0009-3747-4f3a-a613-3e640b0219a0
+  cost {3}{U}
+  type Creature — Bird Rogue
+  pt 2/3
+  keywords flying
+  triggered when this enters: this connives
+}

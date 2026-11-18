@@ -1,0 +1,8 @@
+card "Spike Drone" {
+  oracle_id dd6d15c0-c294-42c9-a6cf-57b0b5d40823
+  cost {G}
+  type Creature — Spike Drone
+  pt 0/0
+  enters with 1 +1/+1 counters
+  activated {2}, remove 1 +1/+1 counters from this: put 1 +1/+1 counters on target creature
+}

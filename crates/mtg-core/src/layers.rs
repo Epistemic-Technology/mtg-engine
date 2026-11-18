@@ -348,6 +348,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }
         StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
+        StaticCondition::OpponentDamagedThisTurn => state
+            .players_in_game()
+            .any(|p| p != you && state.damaged_this_turn & (1 << p.index().min(7)) != 0),
         StaticCondition::CardsInHand { n, at_most } => {
             let h = state.player(you).hand.len();
             if *at_most {
@@ -672,8 +675,25 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
     let _ = id;
 }
 
-/// CR 613.4c: +1/+1 and -1/-1 counters apply in layer 7c.
+/// CR 613.4c: +1/+1 and -1/-1 counters apply in layer 7c; keyword
+/// counters (CR 122.1b) in layer 6.
 fn apply_counters(work: &mut Work<'_>, layer: Layer) {
+    if layer == Layer::L6Ability {
+        for (i, id) in work.ids.iter().enumerate() {
+            let o = &work.state.objects[*id];
+            if o.zone != Zone::Battlefield {
+                continue;
+            }
+            for (k, n) in &o.counters {
+                if *n > 0
+                    && let Some(kw) = k.keyword()
+                {
+                    work.chars[i].keywords = work.chars[i].keywords.with(kw);
+                }
+            }
+        }
+        return;
+    }
     if layer != Layer::L7cModifyPt {
         return;
     }

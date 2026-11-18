@@ -1,0 +1,8 @@
+card "Morselhoarder" {
+  oracle_id 8fe687aa-d134-4a29-9c93-64086c4a1977
+  cost {4}{R/G}{R/G}
+  type Creature — Elemental
+  pt 6/4
+  enters with 2 -1/-1 counters
+  activated remove 1 -1/-1 counters from this: add any
+}

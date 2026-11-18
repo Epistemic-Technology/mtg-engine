@@ -1,0 +1,8 @@
+card "Stingmoggie" {
+  oracle_id e868028f-4c6f-43d1-9cc6-6f3ce2df2ec3
+  cost {3}{R}
+  type Creature — Elemental
+  pt 0/0
+  enters with 2 +1/+1 counters
+  activated {3}{R}, remove 1 +1/+1 counters from this: destroy target artifact or land
+}

@@ -1,0 +1,8 @@
+card "Inner-Flame Acolyte" {
+  oracle_id 699812af-4dba-49dc-987d-67e472a68971
+  cost {1}{R}{R}
+  type Creature — Elemental Shaman
+  pt 2/2
+  triggered when this enters: target creature gets +2/+0 and gains haste
+  evoke {R}
+}

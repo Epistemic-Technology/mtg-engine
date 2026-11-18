@@ -1,0 +1,8 @@
+card "Blood Ogre" {
+  oracle_id 8bbe3f0d-41d0-4c58-ad65-6675a234cad3
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 2/2
+  bloodthirst 1
+  keyword first strike
+}

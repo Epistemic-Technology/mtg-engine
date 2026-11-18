@@ -1,0 +1,84 @@
+# M5 slice 16: named counters (stun, charge, keyword counters), evoke,
+# bloodthirst, adapt, and connive.
+
+scenario "evoke: Aethersnipe for its evoke cost bounces, then is sacrificed" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Aethersnipe"
+  turn 1 A: cast "Aethersnipe" evoked
+  turn 1 A: trigger "Aethersnipe" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Aethersnipe"
+}
+
+scenario "bloodthirst: counters only after an opponent was dealt damage" {
+  battlefield A: 4 "Mountain", "Swamp"
+  hand A: "Shock", "Bloodrage Vampire"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: cast "Bloodrage Vampire"
+  run_to turn 1 end
+  assert power "Bloodrage Vampire" 4
+}
+
+scenario "bloodthirst: no damage, no counter" {
+  battlefield A: 3 "Swamp"
+  hand A: "Bloodrage Vampire"
+  turn 1 A: cast "Bloodrage Vampire"
+  run_to turn 1 end
+  assert power "Bloodrage Vampire" 3
+}
+
+scenario "adapt: once, then not again while it has counters" {
+  battlefield A: "Skitter Eel", 6 "Island"
+  turn 1 A: activate "Skitter Eel"
+  turn 1 A: activate "Skitter Eel"
+  run_to turn 1 end
+  assert power "Skitter Eel" 5
+}
+
+scenario "connive: draw, discard a nonland, a +1/+1 counter" {
+  battlefield A: 4 "Island"
+  hand A: "Echo Inspector", "Grizzly Bears"
+  library A: "Island"
+  turn 1 A: cast "Echo Inspector"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 1
+}
+
+scenario "stun counter: Ice Flan's target stays tapped one untap step" {
+  battlefield A: 6 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Ice Flan"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Ice Flan"
+  turn 1 A: trigger "Ice Flan" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "charge counters: Necrogen Censer twice, then empty" {
+  battlefield A: 3 "Island"
+  hand A: "Necrogen Censer"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Necrogen Censer"
+  turn 1 postcombat_main A: activate "Necrogen Censer" targeting player B
+  run_to turn 3 precombat_main
+  turn 3 A: activate "Necrogen Censer" targeting player B
+  run_to turn 5 precombat_main
+  illegal turn 5 A: activate "Necrogen Censer" targeting player B
+  run_to turn 5 end
+  assert life B 16
+}
+
+scenario "keyword counter: a flying counter gives flying" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Spontaneous Flight"
+  turn 1 A: cast "Spontaneous Flight" targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert has "Grizzly Bears" flying
+}

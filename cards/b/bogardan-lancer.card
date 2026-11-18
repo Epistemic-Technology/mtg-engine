@@ -1,0 +1,8 @@
+card "Bogardan Lancer" {
+  oracle_id 67953edb-9681-4339-a5d2-917082925c24
+  cost {1}{R}
+  type Creature — Human Knight
+  pt 1/1
+  bloodthirst 1
+  keyword flanking
+}

@@ -155,7 +155,12 @@ impl Compiler<'_> {
             .iter()
             .any(|a| matches!(a, Ability::Protection(_)))
             .then_some(mtg_core::card::Keyword::ProtectionFromFilter);
-        let keywords = keywords.chain(protection);
+        let evoke = card
+            .abilities
+            .iter()
+            .any(|a| matches!(a, Ability::Mechanic(Mechanic::Evoke(_))))
+            .then_some(mtg_core::card::Keyword::Evoke);
+        let keywords = keywords.chain(protection).chain(evoke);
         let mut b = Builder::new(
             card.display_name.as_deref().unwrap_or(&card.name),
             &card.cost.to_string(),
@@ -183,6 +188,9 @@ impl Compiler<'_> {
                 }
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Evoke(cost)) => {
+                    b = b.evoke(cost.clone());
                 }
                 Ability::Mechanic(Mechanic::Morph(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Morph);
@@ -261,6 +269,7 @@ impl Compiler<'_> {
                     | Ability::Affinity(_)
                     | Ability::Mechanic(
                         Mechanic::Buyback(_)
+                            | Mechanic::Evoke(_)
                             | Mechanic::Morph(_)
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
@@ -383,6 +392,7 @@ impl Compiler<'_> {
             }
             StaticCond::AttackedThisTurn => StaticCondition::AttackedThisTurn,
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
+            StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -442,6 +452,7 @@ impl Compiler<'_> {
             discard_self: c.discard_self,
             exile_self: c.exile_self,
             crew: c.crew,
+            remove_counters: c.remove_counters,
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
@@ -779,6 +790,8 @@ impl Compiler<'_> {
             }
             Effect::ClearEcho => out.push(CoreEffect::ClearEcho),
             Effect::Manifest => out.push(CoreEffect::Manifest),
+            Effect::Adapt(n) => out.push(CoreEffect::Adapt(*n)),
+            Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
             Effect::Dig {
                 count,
@@ -1126,7 +1139,22 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
+                Mechanic::Bloodthirst(n) => {
+                    let cond = self
+                        .pool
+                        .intern_condition(StaticCondition::OpponentDamagedThisTurn);
+                    AbilityDef::Replacement(ReplacementAbility {
+                        replaces: mtg_core::card::Replaces::Enters,
+                        replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                            cond,
+                            kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                            n: *n,
+                        },
+                        then: Vec::new(),
+                    })
+                }
                 Mechanic::Buyback(_)
+                | Mechanic::Evoke(_)
                 | Mechanic::Morph(_)
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_) => {
@@ -1303,6 +1331,8 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
             cycling: false,
         },
         Mechanic::Toxic(_)
+        | Mechanic::Bloodthirst(_)
+        | Mechanic::Evoke(_)
         | Mechanic::Buyback(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)

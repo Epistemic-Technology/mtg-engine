@@ -1,0 +1,8 @@
+card "Glistener Seer" {
+  oracle_id bcbb318d-0ebc-48a2-afd7-69cf5351893d
+  cost {U}
+  type Creature — Phyrexian Advisor
+  pt 0/3
+  enters with 3 oil counters
+  activated {T}, remove 1 oil counters from this: scry 1
+}

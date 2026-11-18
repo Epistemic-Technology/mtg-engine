@@ -1,0 +1,7 @@
+card "Shriekhorn" {
+  oracle_id 571c1923-790f-48b7-86d2-70c3e79fdba3
+  cost {1}
+  type Artifact
+  enters with 3 charge counters
+  activated {T}, remove 1 charge counters from this: target player mills 2 cards
+}

@@ -1,0 +1,7 @@
+card "Keldon Warcaller" {
+  oracle_id b44d3fe8-b1e2-4abb-ab82-7a516a1db1e5
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this attacks: put 1 lore counters on target Saga you control
+}

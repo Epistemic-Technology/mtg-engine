@@ -1,0 +1,8 @@
+card "A.I.M. Scientists" {
+  oracle_id fa732888-5b7d-4087-a6e5-1db1c98fbd4c
+  cost {3}{U}
+  type Creature — Human Scientist Villain
+  pt 3/3
+  triggered when this enters: this connives
+  basic landcycling {2}
+}

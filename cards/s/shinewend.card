@@ -1,0 +1,9 @@
+card "Shinewend" {
+  oracle_id 8b3c4a6c-44ac-4718-ac1e-9d503523e89d
+  cost {1}{W}
+  type Creature — Elemental
+  pt 0/0
+  keywords flying
+  enters with 1 +1/+1 counters
+  activated {1}{W}, remove 1 +1/+1 counters from this: destroy target enchantment
+}

@@ -57,7 +57,7 @@ const KEYWORDS: [&str; 34] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 47] = [
+const TEMPLATED_TAGS: [&str; 51] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -106,6 +106,10 @@ const TEMPLATED_TAGS: [&str; 47] = [
     "Disguise",
     "Manifest",
     "Crew",
+    "Evoke",
+    "Bloodthirst",
+    "Adapt",
+    "Connive",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -885,6 +889,18 @@ impl Templates {
                 ))
             }),
             (r(r"^Proliferate$"), |_, _| Some("proliferate".to_string())),
+            (r(r"^Adapt (\d+)$"), |c, _| {
+                Some(format!("adapt {}", cap(c, 1)))
+            }),
+            (r(r"^(It|This creature|~) connives$"), |_, t| {
+                (*t == 0).then(|| "this connives".to_string())
+            }),
+            (r(r"^(.+) connives$"), |c, t| {
+                Some(format!(
+                    "{} connives",
+                    recipient(&lowercase_first(cap(c, 1)), t)?
+                ))
+            }),
             (
                 r(r"^Return an? ([a-z ]+? you control) to its owner's hand$"),
                 |c, _| Some(format!("return 1 {} chosen", cap(c, 1))),
@@ -1003,16 +1019,23 @@ impl Templates {
             (r(r"^Regenerate (.+)$"), |c, t| {
                 Some(format!("regenerate {}", recipient(cap(c, 1), t)?))
             }),
-            (r(r"^Put (\S+) ([+-]1/[+-]1) counters? on (.+)$"), |c, t| {
-                Some(format!(
-                    "put {} {} counters on {}",
-                    number(cap(c, 1))?,
-                    cap(c, 2),
-                    recipient(cap(c, 3), t)?
-                ))
-            }),
             (
-                r(r"^Remove (\S+) ([+-]1/[+-]1) counters? from (.+)$"),
+                r(
+                    r"^Put (\S+) ([+-]1/[+-]1|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? on (.+)$",
+                ),
+                |c, t| {
+                    Some(format!(
+                        "put {} {} counters on {}",
+                        number(cap(c, 1))?,
+                        cap(c, 2),
+                        recipient(cap(c, 3), t)?
+                    ))
+                },
+            ),
+            (
+                r(
+                    r"^Remove (\S+) ([+-]1/[+-]1|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page|flying|first strike|trample|lifelink|deathtouch|reach|menace|vigilance|hexproof|indestructible) counters? from (.+)$",
+                ),
                 |c, t| {
                     Some(format!(
                         "remove {} {} counters from {}",
@@ -1330,6 +1353,10 @@ fn split_sentences(text: &str) -> Vec<String> {
 
 /// A cost prefix of an activated ability as the DSL writes it.
 fn cost_text(s: &str) -> Option<String> {
+    let remove = Regex::new(
+        r"^Remove (an?|two|three|\w+) ([a-z+/1-]+(?: strike)?) counters? from this (?:artifact|creature|land|enchantment|permanent)$",
+    )
+    .unwrap();
     let symbols = Regex::new(r"^(\{[0-9XWUBRGCT]+\})+$").unwrap();
     let mut items = Vec::new();
     for part in s.split(", ") {
@@ -1357,6 +1384,13 @@ fn cost_text(s: &str) -> Option<String> {
             "discard 1 card".to_string()
         } else if part == "Discard this card" {
             "discard this".to_string()
+        } else if let Some(c) = remove.captures(part) {
+            let n = if matches!(cap(&c, 1), "a" | "an") {
+                "1".to_string()
+            } else {
+                number(cap(&c, 1))?
+            };
+            format!("remove {n} {} counters from this", cap(&c, 2))
         } else if part == "Exile this card from your graveyard" {
             "exile this from graveyard".to_string()
         } else if let Some(rest) = part
@@ -2021,7 +2055,7 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
-        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew) (\d+)$")
+        if let Some(c) = Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst) (\d+)$")
             .unwrap()
             .captures(line)
         {
@@ -2030,7 +2064,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -2084,14 +2118,14 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^This (?:creature|permanent|artifact) enters with (\S+) \+1/\+1 counters? on it\.$",
+            r"^This (?:creature|permanent|artifact|land|enchantment|Vehicle) enters with (\S+) (\+1/\+1|-1/-1|stun|charge|oil|spore|depletion|quest|ki|time|tide|shield|age|fade|ice|level|lore|page) counters? on it\.$",
         )
         .unwrap()
         .captures(line)
         {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
             self.statements
-                .push(format!("enters with {n} +1/+1 counters"));
+                .push(format!("enters with {n} {} counters", cap(&c, 2)));
             return Ok(());
         }
         // Statics on the attached or on a class of permanents.

@@ -1,0 +1,9 @@
+card "Vitaspore Thallid" {
+  oracle_id 8940f80b-9c8d-48c0-97c0-c18d77797911
+  cost {1}{G}
+  type Creature — Fungus
+  pt 1/1
+  triggered at beginning of your upkeep: put 1 spore counters on this
+  activated remove 3 spore counters from this: create 1 "1/1 green Saproling creature"
+  activated sacrifice Saproling: target creature gains haste
+}

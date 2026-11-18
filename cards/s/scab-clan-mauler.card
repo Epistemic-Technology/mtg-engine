@@ -1,0 +1,8 @@
+card "Scab-Clan Mauler" {
+  oracle_id db0b6e35-d7f2-435a-87d7-9e8c36426f4d
+  cost {R}{G}
+  type Creature — Human Berserker
+  pt 1/1
+  bloodthirst 2
+  keyword trample
+}

@@ -1,0 +1,7 @@
+card "Bloodrage Vampire" {
+  oracle_id b1b6a840-2dc6-4af3-869a-b3bfe64ff7c0
+  cost {2}{B}
+  type Creature — Vampire
+  pt 3/1
+  bloodthirst 1
+}

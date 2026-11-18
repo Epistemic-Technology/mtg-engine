@@ -1,0 +1,9 @@
+card "Sawblade Scamp" {
+  oracle_id 8cac286c-1a17-4ee1-9858-d7a2f8c09037
+  cost {R}
+  type Creature — Phyrexian Beast
+  pt 1/1
+  keywords haste
+  triggered whenever you cast a noncreature spell: put 1 oil counters on this
+  activated {T}, remove 1 oil counters from this: deal 1 damage to each opponent
+}

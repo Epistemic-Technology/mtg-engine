@@ -1,0 +1,7 @@
+card "Sauroform Hybrid" {
+  oracle_id 559c9949-faaf-41bc-9349-b6738b4763a2
+  cost {1}{G}
+  type Creature — Human Lizard Warrior
+  pt 2/2
+  activated {4}{G}{G}: adapt 4
+}

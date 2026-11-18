@@ -852,7 +852,7 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::HandSize { whose, delta })
             }
-            "bushido" | "soulshift" | "afflict" | "toxic" | "crew" => {
+            "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" => {
                 self.pos += 1;
                 let n = self.number()?;
                 self.end_stmt()?;
@@ -861,11 +861,12 @@ impl P {
                     "soulshift" => Mechanic::Soulshift(n),
                     "afflict" => Mechanic::Afflict(n),
                     "crew" => Mechanic::Crew(n),
+                    "bloodthirst" => Mechanic::Bloodthirst(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
-            | "disguise"
+            | "disguise" | "evoke"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -877,6 +878,7 @@ impl P {
                     "unearth" => Mechanic::Unearth(c),
                     "buyback" => Mechanic::Buyback(c),
                     "morph" => Mechanic::Morph(c),
+                    "evoke" => Mechanic::Evoke(c),
                     "megamorph" => Mechanic::Megamorph(c),
                     "disguise" => Mechanic::Disguise(c),
                     _ => Mechanic::Outlast(c),
@@ -1280,6 +1282,9 @@ impl P {
         }
         if self.eat_words(&["creature", "died", "this", "turn"]) {
             return Ok(StaticCond::CreatureDiedThisTurn);
+        }
+        if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
+            return Ok(StaticCond::OpponentDamagedThisTurn);
         }
         if self.eat_words(&["player", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
@@ -1833,6 +1838,7 @@ impl P {
                 })
             }
             "explores" => Ok(Effect::Explore { what: subject }),
+            "connives" => Ok(Effect::Connive { what: subject }),
             "doesn't" => {
                 self.expect_words(&["untap", "next", "untap", "step"])?;
                 Ok(Effect::SkipNextUntap { to: subject })
@@ -2059,6 +2065,7 @@ impl P {
                 Ok(Effect::Pay { mana, life })
             }
             "proliferate" => Ok(Effect::Proliferate),
+            "adapt" => Ok(Effect::Adapt(self.count()?)),
             "dig" => {
                 let count = self.num()?;
                 let reveal_top = self.eat_word("reveal");
@@ -2469,7 +2476,22 @@ impl P {
                 signed: true,
             }) => CounterKind::MinusOneMinusOne,
             Some(Tok::Word(w)) if w == "loyalty" => CounterKind::Loyalty,
-            _ => return self.fail("expected a counter kind (+1/+1, -1/-1, loyalty)"),
+            Some(Tok::Word(w)) => {
+                // "stun", "first strike": the named kinds.
+                let two = self.word_at(0).map(|n| format!("{w} {n}"));
+                if let Some((_, k)) = two
+                    .as_deref()
+                    .and_then(|t| CounterKind::NAMED.iter().find(|(n, _)| *n == t))
+                {
+                    self.pos += 1;
+                    *k
+                } else if let Some((_, k)) = CounterKind::NAMED.iter().find(|(n, _)| *n == w) {
+                    *k
+                } else {
+                    return self.fail(format!("unknown counter kind `{w}`"));
+                }
+            }
+            _ => return self.fail("expected a counter kind (+1/+1, -1/-1, loyalty, stun, ...)"),
         };
         if !(self.eat_word("counter") || self.eat_word("counters")) {
             return self.unexpected("`counter` or `counters`");
@@ -3235,6 +3257,9 @@ impl P {
         if self.eat_words(&["echo", "due"]) {
             return Ok(Condition::EchoDue);
         }
+        if self.eat_word("evoked") {
+            return Ok(Condition::Evoked);
+        }
         if self.eat_words(&["no", "spells", "were", "cast", "last", "turn"]) {
             return Ok(Condition::NoSpellsLastTurn);
         }
@@ -3293,6 +3318,19 @@ impl P {
                             cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         }
                         cost.order.push(CostItem::Sacrifice);
+                    }
+                    "remove"
+                        if (1..5).any(|k| {
+                            self.word_at(k).as_deref() == Some("from")
+                                && self.word_at(k + 1).as_deref() == Some("this")
+                        }) =>
+                    {
+                        self.pos += 1;
+                        let n = self.count()?;
+                        let k = self.counter_kind()?;
+                        self.expect_words(&["from", "this"])?;
+                        cost.remove_counters = Some((k, n));
+                        cost.order.push(CostItem::RemoveCounters);
                     }
                     "return" | "tap" if !matches!(self.peek_at(1), Some(Tok::Sym(_))) => {
                         cost.chosen = if w.eq_ignore_ascii_case("return") {

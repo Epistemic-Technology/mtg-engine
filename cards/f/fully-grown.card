@@ -1,0 +1,6 @@
+card "Fully Grown" {
+  oracle_id c98163f4-4a78-43f8-9855-4a23ebb9ceeb
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +3/+3; put 1 trample counters on target 1
+}

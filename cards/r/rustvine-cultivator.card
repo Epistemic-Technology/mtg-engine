@@ -1,0 +1,8 @@
+card "Rustvine Cultivator" {
+  oracle_id 7a49731b-bd95-4f0a-ac47-1aa318c12fec
+  cost {G}
+  type Creature — Phyrexian Elf Druid
+  pt 1/2
+  activated {T}: put 1 oil counters on this
+  activated {T}, remove 1 oil counters from this: untap target land
+}

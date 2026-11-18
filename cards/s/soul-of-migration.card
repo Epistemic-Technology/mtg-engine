@@ -1,0 +1,9 @@
+card "Soul of Migration" {
+  oracle_id f90ebf35-08f9-4277-92d9-75165f32a84e
+  cost {5}{W}{W}
+  type Creature — Elemental
+  pt 2/4
+  keywords flying
+  triggered when this enters: create 2 "1/1 white Bird creature with flying"
+  evoke {3}{W}
+}

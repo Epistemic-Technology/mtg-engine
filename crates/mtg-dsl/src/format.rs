@@ -312,6 +312,8 @@ impl Fmt {
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
             Effect::Manifest => "manifest".to_string(),
+            Effect::Adapt(n) => format!("adapt {n}"),
+            Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
             Effect::Dig {
                 count,
@@ -778,11 +780,7 @@ fn cards(n: Num) -> &'static str {
 }
 
 fn counter(k: CounterKind, n: Num) -> String {
-    let name = match k {
-        CounterKind::PlusOnePlusOne => "+1/+1",
-        CounterKind::MinusOneMinusOne => "-1/-1",
-        CounterKind::Loyalty => "loyalty",
-    };
+    let name = k.name();
     format!(
         "{name} {}",
         if n == Num::N(1) {
@@ -802,7 +800,9 @@ fn outcome(o: &Outcome) -> String {
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
-        Outcome::EnterTappedUnless(_) => unreachable!("an AST ability of its own"),
+        Outcome::EnterTappedUnless(_) | Outcome::EnterWithCountersIf { .. } => {
+            unreachable!("an AST ability of its own")
+        }
         Outcome::EnterTapped => "tapped".to_string(),
         Outcome::EnterWithCounters { kind, n } => {
             format!("with {} {}", num(*n), counter(*kind, *n))
@@ -1086,6 +1086,11 @@ fn cost_text(c: &Cost) -> String {
                 )),
                 None => {}
             },
+            CostItem::RemoveCounters => {
+                if let Some((k, n)) = c.remove_counters {
+                    parts.push(format!("remove {n} {} from this", counter(k, Num::N(n))));
+                }
+            }
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
@@ -1268,6 +1273,7 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
+        StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
@@ -1407,6 +1413,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     head.push_str(" if no creatures are on the battlefield");
                 }
                 Some(mtg_core::card::Condition::EchoDue) => head.push_str(" if echo due"),
+                Some(mtg_core::card::Condition::Evoked) => head.push_str(" if evoked"),
                 Some(mtg_core::card::Condition::Kicked) => head.push_str(" if kicked"),
                 Some(mtg_core::card::Condition::NoSpellsLastTurn) => {
                     head.push_str(" if no spells were cast last turn");
@@ -1551,6 +1558,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Outlast(c) => format!("outlast {c}"),
                 crate::ast::Mechanic::Crew(n) => format!("crew {n}"),
                 crate::ast::Mechanic::Morph(c) => format!("morph {c}"),
+                crate::ast::Mechanic::Evoke(c) => format!("evoke {c}"),
+                crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
             };
