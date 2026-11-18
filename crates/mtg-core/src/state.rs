@@ -439,6 +439,47 @@ pub struct Characteristics {
     pub abilities: AbilitySet,
 }
 
+/// `GameState::targets_of` for an object, from any handle on the pool (so
+/// a resolving spell can read its definition while the state changes).
+pub fn targets_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [TargetSpec] {
+    if let Some(a) = o.ability {
+        let ab = pool.ability(a.ability);
+        if let [crate::card::Effect::Modes(modes)] = ab.effects() {
+            return modes
+                .get(usize::from(o.cast.mode()))
+                .map_or(&[], |m| &m.targets);
+        }
+        return ab.targets();
+    }
+    let def = pool.get(o.def);
+    match def.modes() {
+        Some(modes) => modes
+            .get(usize::from(o.cast.mode()))
+            .map_or(&[], |m| &m.targets),
+        None => def.cast_targets(),
+    }
+}
+
+/// `GameState::effects_of` for an object, from any handle on the pool.
+pub fn effects_in<'p>(pool: &'p CardPool, o: &GameObject) -> &'p [crate::card::Effect] {
+    if let Some(a) = o.ability {
+        let ab = pool.ability(a.ability);
+        if let [crate::card::Effect::Modes(modes)] = ab.effects() {
+            return modes
+                .get(usize::from(o.cast.mode()))
+                .map_or(&[], |m| &m.effects);
+        }
+        return ab.effects();
+    }
+    let def = pool.get(o.def);
+    match def.modes() {
+        Some(modes) => modes
+            .get(usize::from(o.cast.mode()))
+            .map_or(&[], |m| &m.effects),
+        None => def.spell_ability().map_or(&[], |(_, e)| e),
+    }
+}
+
 /// Power or toughness into the stored range (saturating).
 #[inline]
 pub fn pt16(x: i32) -> i16 {
@@ -871,25 +912,9 @@ impl GameState {
     /// Targets a stack object needs: a spell's cast targets (of its chosen
     /// mode) or an ability's.
     pub fn targets_of(&self, id: ObjId) -> &[TargetSpec] {
-        let Some(o) = self.objects.get(id) else {
-            return &[];
-        };
-        if let Some(a) = o.ability {
-            let ab = self.pool.ability(a.ability);
-            if let [crate::card::Effect::Modes(modes)] = ab.effects() {
-                return modes
-                    .get(usize::from(o.cast.mode()))
-                    .map_or(&[], |m| &m.targets);
-            }
-            return ab.targets();
-        }
-        let def = self.pool.get(o.def);
-        match def.modes() {
-            Some(modes) => modes
-                .get(usize::from(o.cast.mode()))
-                .map_or(&[], |m| &m.targets),
-            None => def.cast_targets(),
-        }
+        self.objects
+            .get(id)
+            .map_or(&[], |o| targets_in(&self.pool, o))
     }
 
     /// The modes a stack object chooses among: a modal spell's, or a modal
@@ -915,25 +940,9 @@ impl GameState {
 
     /// Effects a stack object applies on resolution.
     pub fn effects_of(&self, id: ObjId) -> &[crate::card::Effect] {
-        let Some(o) = self.objects.get(id) else {
-            return &[];
-        };
-        if let Some(a) = o.ability {
-            let ab = self.pool.ability(a.ability);
-            if let [crate::card::Effect::Modes(modes)] = ab.effects() {
-                return modes
-                    .get(usize::from(o.cast.mode()))
-                    .map_or(&[], |m| &m.effects);
-            }
-            return ab.effects();
-        }
-        let def = self.pool.get(o.def);
-        match def.modes() {
-            Some(modes) => modes
-                .get(usize::from(o.cast.mode()))
-                .map_or(&[], |m| &m.effects),
-            None => def.spell_ability().map_or(&[], |(_, e)| e),
-        }
+        self.objects
+            .get(id)
+            .map_or(&[], |o| effects_in(&self.pool, o))
     }
 
     /// The precomputed flags of an object's definition, including what a

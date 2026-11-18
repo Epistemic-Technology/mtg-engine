@@ -794,7 +794,8 @@ impl GameState {
         let o = &self.objects[obj];
         let (controller, def) = (o.controller, o.def);
         let sa = o.ability.expect("ability object");
-        let AbilityDef::Activated(ab) = self.pool.ability(sa.ability).clone() else {
+        let pool = std::sync::Arc::clone(&self.pool);
+        let AbilityDef::Activated(ab) = pool.ability(sa.ability) else {
             unreachable!("checked by finish_ability_targets");
         };
         if ab.cost.tap {
@@ -1036,7 +1037,8 @@ impl GameState {
         let x = self.x_of(spell);
         let flashback = obj.cast.flashback();
         let targets: Vec<Target> = obj.targets.iter().copied().collect();
-        let def = self.pool.get(def_ref).clone();
+        let pool = std::sync::Arc::clone(&self.pool);
+        let def = pool.get(def_ref);
         let req = self.spell_requirements(spell, x);
         let sources = self.spell_sources(spell);
         self.pay_from(caster, &req, &sources);
@@ -1137,7 +1139,8 @@ impl GameState {
             self.resolve_ability(spell);
             return;
         }
-        let def = self.pool.get(obj.def).clone();
+        let pool = std::sync::Arc::clone(&self.pool);
+        let def = pool.get(obj.def);
         if let Some(spec) = def.enchant() {
             // CR 303.4f, 608.2b: an Aura spell whose target is illegal is
             // countered; otherwise it enters attached to the target.
@@ -1166,11 +1169,11 @@ impl GameState {
             self.cbump();
             return;
         }
-        let parts: Option<(Vec<TargetSpec>, Vec<Effect>)> =
+        let parts: Option<(&[TargetSpec], &[Effect])> =
             (def.spell_ability().is_some() || def.modes().is_some()).then(|| {
                 (
-                    self.targets_of(spell).to_vec(),
-                    self.effects_of(spell).to_vec(),
+                    crate::state::targets_in(&pool, &obj),
+                    crate::state::effects_in(&pool, &obj),
                 )
             });
         if let Some((specs, effects)) = parts {
@@ -1206,7 +1209,7 @@ impl GameState {
                 did: false,
             };
             let split = self.mode_split_of(spell);
-            self.apply_effects(&mut ctx, &effects, split);
+            self.apply_effects(&mut ctx, effects, split);
         } else {
             self.emit(Event::Resolve {
                 spell,

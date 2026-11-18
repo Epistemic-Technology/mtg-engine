@@ -2322,7 +2322,9 @@ first. Corpus 7,306 cards: 5,291 Pauper (48.6%), 5,472 Modern (24.1%);
 1,761 scenarios pass (5 new in scenarios/m5/slice13.scn), 1 skipped;
 fuzz 0 panics, 0 unfinished. Throughput: slice 12 within 1% of slice 11;
 slice 13 3% below slice 12, 5.6% below slice 8 (no new hot function in
-the profile; a perf pass is due).
+the profile; a perf pass is due). The pass found casting and resolution
+deep-copying card definitions; borrowing through a clone of the pool's
+`Arc` brought throughput back to slice 8's level (+4.7%).
 
 Status 2026-11-18, slice 11 (batch 4's reasons) done. A pool table of
 static conditions (`CardPool::intern_condition`) serves conditional

@@ -547,8 +547,9 @@ impl GameState {
             _ => unreachable!("only triggered and activated abilities use the stack"),
         };
         // A modal ability's targets and effects are its chosen mode's.
-        let targets = self.targets_of(id).to_vec();
-        let effects = self.effects_of(id).to_vec();
+        let pool = std::sync::Arc::clone(&self.pool);
+        let targets = crate::state::targets_in(&pool, &obj);
+        let effects = crate::state::effects_in(&pool, &obj);
         let split = self.mode_split_of(id);
         if let Some(cond) = condition
             && !self.condition_holds(cond, sa.source)
@@ -590,7 +591,7 @@ impl GameState {
             x: 0,
             did: false,
         };
-        self.apply_effects(&mut ctx, &effects, split);
+        self.apply_effects(&mut ctx, effects, split);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);
         }
