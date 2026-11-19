@@ -2596,3 +2596,17 @@ found by bisecting merges and gated on battlefield counts
 with before the waves. Fuzz found one bug (free casts ignored additional
 costs). Corpus 9,667 cards: 69.5% of Pauper, 32.4% of Modern; 3,900
 scenarios pass.
+
+Status 2026-11-19, later: two more waves of feature agents (graveyard
+counts and deaths this turn, other players' step triggers and untap
+restrictions, choose-a-source prevention and redirection, amounts from
+characteristics and damage dealt, Equipment variants and animation,
+impulse draw and library digs, removal variants and alternative costs,
+heroic / valiant and counter filters; then dice / coins / votes, type and
+colour changes, turn-history and cast-from conditions, triggered mana
+abilities and storage lands, a choice of additional costs and multi-tap /
+graveyard-exile costs, player-relative targets and punishers). Random
+outcomes use the seeded game RNG; `determinize` reseeds it so search can't
+see future rolls. Per-game cost by instruction count rose about 1.8% over
+the fourteen merges. Corpus 10,109 cards: 75.1% of Pauper, 34.5% of
+Modern; 4,367 scenarios pass.
