@@ -1,0 +1,6 @@
+card "Grapple with the Past" {
+  oracle_id d14c633d-977a-4f78-85c2-88582b3c3670
+  cost {1}{G}
+  type Instant
+  spell: mill 3 cards then you may return 1 creature or land card from your graveyard to hand chosen
+}

@@ -1,0 +1,7 @@
+card "Pothole Mole" {
+  oracle_id 8a8bc537-b69f-441d-a10e-d7f17f2f75bb
+  cost {2}{G}
+  type Creature — Mole
+  pt 2/3
+  triggered when this enters: mill 3 cards then you may return 1 land card from your graveyard to hand chosen
+}

@@ -433,7 +433,10 @@ impl Runner {
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
             DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
-            DecisionKind::ChooseColor | DecisionKind::ChooseType => self.choose_named(d, pos),
+            DecisionKind::ChooseColor
+            | DecisionKind::ChooseType
+            | DecisionKind::ChooseCard
+            | DecisionKind::ChooseOption { .. } => self.choose_named(d, pos),
             // `kicked` also pays buyback (an optional additional cost).
             DecisionKind::Kicker { .. } | DecisionKind::Buyback { .. } => Ok(self.choose_kicker(d)),
         }
@@ -582,10 +585,10 @@ impl Runner {
         let Action::Choose(want) = &a.action else {
             unreachable!()
         };
-        let found = d
-            .options
-            .iter()
-            .position(|c| self.describe_choice(c).eq_ignore_ascii_case(want));
+        let found = d.options.iter().position(|c| {
+            self.describe_choice(c).eq_ignore_ascii_case(want)
+                || self.choice_name(c).is_some_and(|n| n == want.as_str())
+        });
         // `illegal ... choose X`: X must not be offered; the engine's first
         // option is taken instead.
         if a.illegal {
@@ -604,6 +607,19 @@ impl Runner {
                 self.describe_options(d)
             ),
         })
+    }
+
+    /// What `choose` may name besides the option's description: the card
+    /// an effect acts on ("Grizzly Bears"), or an alternative's number
+    /// ("2" for `Mode(1)`).
+    fn choice_name(&self, c: &Choice) -> Option<String> {
+        let st = self.state();
+        match c {
+            Choice::Sacrifice(id) => Some(st.name_of(*id).to_string()),
+            Choice::Discard { def, .. } => Some(st.pool.get(*def).name.clone()),
+            Choice::Mode(i) => Some((i + 1).to_string()),
+            _ => None,
+        }
     }
 
     /// What to enter as a copy of: the first unfired scripted `copy`

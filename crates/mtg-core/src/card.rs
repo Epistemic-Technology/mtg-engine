@@ -1360,6 +1360,13 @@ pub enum CountExpr {
     /// N plus another count ("2 plus the number of cards named ~ in your
     /// graveyard").
     Plus(u32, Box<CountExpr>),
+    /// Objects the resolution moved `verb`'s way that match the filter
+    /// ("for each enchantment destroyed this way", "draw that many
+    /// cards" after a discard), judged as they last existed.
+    ThisWay(ThisWay, Option<ObjFilter>),
+    /// Life the resolution made players lose ("You gain life equal to the
+    /// life lost this way").
+    LifeLostThisWay,
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -2169,6 +2176,9 @@ pub enum Effect {
     DiscardChosen {
         who: Recipient,
         filter: Option<ObjFilter>,
+        /// "You may choose a nonland card from it": the controller may
+        /// choose none.
+        optional: bool,
     },
     /// "Transform this creature" (CR 701.27): a double-faced permanent
     /// turns to its other face; it stays the same object.
@@ -2503,6 +2513,42 @@ pub enum Effect {
         filter: ObjFilter,
         tapped: bool,
     },
+    /// "If a creature card was exiled this way, [these]" (CR 608.2c).
+    IfThisWay {
+        cond: ThisWayCond,
+        then: Vec<Effect>,
+    },
+    /// "you may tap two other untapped creatures you control", "return up
+    /// to two lands you control to their owner's hand": the controller
+    /// chooses `count` objects matching `filter` (up to `count` with
+    /// `up_to`) and `act`s on each. Without `up_to` it happens only if
+    /// they can choose all of them (CR 101.3 doesn't let a partial cost
+    /// count as done); "If you do" then sees whether it happened.
+    ChooseAct {
+        act: ChooseAct,
+        filter: ObjFilter,
+        count: Num,
+        up_to: bool,
+    },
+    /// "sacrifice an artifact or discard a card", "create a Food token or
+    /// a Treasure token", "gains your choice of lifelink or indestructible":
+    /// the controller chooses one of these it can do (CR 608.2d); with
+    /// none possible nothing happens and "If you do" sees that.
+    OneOf(Vec<Effect>),
+    /// "Then that player discards two cards unless they discard a land
+    /// card": the player discards one card matching `filter` or else
+    /// `count` cards (CR 608.2d: they choose as it resolves).
+    DiscardUnless {
+        who: Recipient,
+        count: Num,
+        filter: ObjFilter,
+    },
+    /// "Discard your hand", "discards all Trap cards": every card in the
+    /// player's hand, or every one matching `filter`.
+    DiscardAll {
+        who: Recipient,
+        filter: Option<ObjFilter>,
+    },
 }
 
 impl Effect {
@@ -2544,6 +2590,10 @@ impl Effect {
                 | Effect::TapOrUntap { .. }
                 | Effect::OfChoice { .. }
                 | Effect::Choose(_)
+                | Effect::IfThisWay { .. }
+                | Effect::ChooseAct { .. }
+                | Effect::OneOf(_)
+                | Effect::DiscardUnless { .. }
         )
     }
 }
@@ -2558,6 +2608,63 @@ pub enum EffectCond {
     /// "If it's a Human": the `n`th target, or as it last existed if it
     /// has left (CR 608.2h).
     Target { n: u8, filter: Box<ObjFilter> },
+    /// "If the sacrificed creature was legendary": what the spell or
+    /// ability did, or paid, this way.
+    ThisWay(ThisWayCond),
+}
+
+/// What a resolving spell or ability did to objects "this way" (CR
+/// 608.2c): each kind is a zone change the resolution, or the costs paid
+/// for it (CR 601.2h, 602.2b), made.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ThisWay {
+    /// Put into exile.
+    Exiled,
+    /// Sacrificed (CR 701.21): left the battlefield. Within one
+    /// resolution only the effect that says so moves permanents off it.
+    Sacrificed,
+    /// Destroyed (CR 701.7): likewise.
+    Destroyed,
+    /// Discarded (CR 701.9): from a hand.
+    Discarded,
+    /// Milled (CR 701.13): from a library to a graveyard.
+    Milled,
+    /// Put into a hand ("returned this way", "If you put an artifact card
+    /// into your hand this way").
+    PutInHand,
+}
+
+/// "If a creature card was exiled this way", "If you discarded a card this
+/// way", "If the discarded card wasn't a land card": some object the
+/// resolution moved `verb`'s way matches `filter` (judged as it last
+/// existed, CR 608.2h), or with `negated` some such object doesn't; with
+/// `by_you`, only cards the controller owned.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ThisWayCond {
+    pub verb: ThisWay,
+    pub filter: Option<Box<ObjFilter>>,
+    pub negated: bool,
+    pub by_you: bool,
+}
+
+/// What `Effect::ChooseAct` does to each object its controller chooses.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ChooseAct {
+    /// "tap another untapped Citizen you control" (permanents you control).
+    Tap,
+    /// "sacrifice a creature" (permanents you control).
+    Sacrifice,
+    /// "return up to two lands you control to their owner's hand".
+    Bounce,
+    /// "discard a creature card" (cards in your hand).
+    Discard,
+    /// "exile two creature cards from your graveyard".
+    ExileFromGraveyard,
+    /// "return a creature card from your graveyard to your hand".
+    ReturnFromGraveyard,
+    /// "put a permanent card from among the milled cards into your hand":
+    /// cards this resolution milled, still in the graveyard.
+    MilledToHand,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -3425,6 +3532,8 @@ impl AbilityDef {
             | Effect::IfYouDo(inner)
             | Effect::IfCondition(_, inner)
             | Effect::IfTarget { then: inner, .. }
+            | Effect::IfThisWay { then: inner, .. }
+            | Effect::OneOf(inner)
             | Effect::UnlessPays { effects: inner, .. } = e
             {
                 for i in inner {

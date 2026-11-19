@@ -373,6 +373,9 @@ impl Fmt {
         if let Some(l) = &s.label {
             let _ = write!(out, "label \"{l}\" ");
         }
+        if s.then_first {
+            out.push_str("then ");
+        }
         if s.eot_first {
             out.push_str("until end of turn, ");
         }
@@ -711,14 +714,23 @@ impl Fmt {
                 self.recipient(*who, t),
                 num(*count)
             ),
-            Effect::DiscardChosen { who, filter: f } => match f {
-                None => format!("{} reveals hand discarding card", self.recipient(*who, t)),
-                Some(f) => format!(
-                    "{} reveals hand discarding {} card",
-                    self.recipient(*who, t),
-                    filter(f)
-                ),
-            },
+            Effect::DiscardChosen {
+                who,
+                filter: f,
+                may,
+                look,
+            } => {
+                let lead = if *look {
+                    format!("look at hand of {}", self.recipient(*who, t))
+                } else {
+                    format!("{} reveals hand", self.recipient(*who, t))
+                };
+                let may = if *may { "may " } else { "" };
+                match f {
+                    None => format!("{lead} discarding {may}card"),
+                    Some(f) => format!("{lead} discarding {may}{} card", filter(f)),
+                }
+            }
             Effect::Transform { what } => format!("transform {}", self.recipient(*what, t)),
             Effect::AddMana(m) => format!("add {}", crate::render::mana_symbols(m, "any")),
             Effect::AddManaOneOf(m) => format!(
@@ -907,6 +919,91 @@ impl Fmt {
                 format!("if {}, {}", static_cond(c), self.line(inner, t))
             }
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::IfThisWay(c, inner) => {
+                format!("if {}, {}", this_way_cond(c), self.line(inner, t))
+            }
+            Effect::ChooseAct {
+                act,
+                count,
+                up_to,
+                filter: f,
+                among_them,
+            } => {
+                use mtg_core::card::ChooseAct;
+                let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
+                let f = filter(f);
+                let cs = cards(*count);
+                match act {
+                    ChooseAct::Tap => format!("tap {n} {f} chosen"),
+                    ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
+                    ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
+                    ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
+                    ChooseAct::ExileFromGraveyard => {
+                        format!("exile {n} {f} {cs} from your graveyard chosen")
+                    }
+                    ChooseAct::ReturnFromGraveyard => {
+                        format!("return {n} {f} {cs} from your graveyard to hand chosen")
+                    }
+                    ChooseAct::MilledToHand => format!(
+                        "put {n} {f} {cs} from among {} into hand chosen",
+                        if *among_them { "them" } else { "milled cards" }
+                    ),
+                }
+            }
+            Effect::OneOf(options) => options
+                .iter()
+                .map(|o| self.effect(o, t))
+                .collect::<Vec<_>>()
+                .join(" or "),
+            Effect::GrantChoice { to, keywords: ks } => {
+                let v = if matches!(to, Recipient::Group(_)) {
+                    "gain"
+                } else {
+                    "gains"
+                };
+                format!(
+                    "{} {v} choice of {}",
+                    self.recipient(*to, t),
+                    ks.iter()
+                        .map(|k| keyword_name(*k))
+                        .collect::<Vec<_>>()
+                        .join(" or ")
+                )
+            }
+            Effect::DiscardUnless {
+                who,
+                count,
+                filter: f,
+            } => match who {
+                None => format!(
+                    "discard {} {} unless you discard {} card",
+                    num(*count),
+                    cards(*count),
+                    filter(f)
+                ),
+                Some(w) => format!(
+                    "{} discards {} {} unless they discard {} card",
+                    self.recipient(*w, t),
+                    num(*count),
+                    cards(*count),
+                    filter(f)
+                ),
+            },
+            Effect::DiscardAll {
+                who,
+                filter: f,
+                all_cards,
+            } => {
+                let what = match (f, all_cards) {
+                    (Some(f), _) => format!("all {} card", filter(f)),
+                    (None, true) => "all cards in hand".to_string(),
+                    (None, false) => "hand".to_string(),
+                };
+                match who {
+                    None => format!("discard {what}"),
+                    Some(w) => format!("{} discards {what}", self.recipient(*w, t)),
+                }
+            }
             Effect::Instead {
                 cond,
                 wording,
@@ -922,6 +1019,7 @@ impl Fmt {
                         n + 1,
                         filter(f)
                     ),
+                    crate::ast::InsteadCond::ThisWay(c) => this_way_cond(c),
                 };
                 let body = self.line(effects, t);
                 let text = match wording {
@@ -1052,12 +1150,37 @@ fn num(n: Num) -> String {
     }
 }
 
+/// `creature card was exiled this way`, `you discarded card this way`,
+/// `the sacrificed creature was Human` (after `if`).
+fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
+    use crate::ast::ThisWayWording;
+    let verb = crate::ast::this_way_word(c.verb);
+    let what = match (&c.filter, c.card) {
+        (Some(f), true) => format!("{} card", filter(f)),
+        (Some(f), false) => filter(f),
+        (None, _) => "card".to_string(),
+    };
+    match &c.wording {
+        ThisWayWording::Was => format!("{what} was {verb} this way"),
+        ThisWayWording::Is => format!("{what} is {verb} this way"),
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
+            format!("you put {what} into hand this way")
+        }
+        ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::The(noun) => format!(
+            "the {verb} {noun} {} {what}",
+            if c.negated { "wasn't" } else { "was" }
+        ),
+    }
+}
+
 fn count_text(c: &crate::ast::Count) -> String {
     use crate::ast::CountStyle;
     let style = match c.style {
         CountStyle::Where => "where",
         CountStyle::Equal => "equal",
         CountStyle::Each => "each",
+        CountStyle::ThatMany => "that many",
     };
     format!("count {style} {}", count_expr_text(&c.expr))
 }
@@ -1104,6 +1227,14 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         }
         CountExpr::Permanents(f) if f.who.is_none() => format!("{} on battlefield", filter(f)),
         CountExpr::Permanents(f) => filter(f),
+        CountExpr::ThisWay { verb, filter: f } => {
+            let verb = crate::ast::this_way_word(*verb);
+            match f {
+                None => format!("{verb} this way"),
+                Some(f) => format!("{} {verb} this way", filter(f)),
+            }
+        }
+        CountExpr::LifeLostThisWay => "life lost this way".to_string(),
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),

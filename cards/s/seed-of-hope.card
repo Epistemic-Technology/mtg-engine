@@ -1,0 +1,6 @@
+card "Seed of Hope" {
+  oracle_id 863d6607-912b-4186-9874-87d5473ec481
+  cost {G}
+  type Instant
+  spell: mill 2 cards; you may put 1 permanent card from among milled cards into hand chosen; you gain 2 life
+}

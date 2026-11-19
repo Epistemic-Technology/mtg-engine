@@ -1,0 +1,7 @@
+card "Thrull Surgeon" {
+  oracle_id ead5a2bf-f48a-43a2-89bb-df3cc587c843
+  cost {1}{B}
+  type Creature — Thrull
+  pt 1/1
+  activated {1}{B}, sacrifice this, sorcery: look at hand of target player discarding card
+}

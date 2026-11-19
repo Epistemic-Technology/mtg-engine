@@ -1,0 +1,7 @@
+card "Thallid Omnivore" {
+  oracle_id b9bb1b0e-38ce-40f1-882b-85f6c95610ff
+  cost {3}{B}
+  type Creature — Fungus
+  pt 3/3
+  activated {1}, sacrifice other creature: this gets +2/+2; if Saproling was sacrificed this way, you gain 2 life
+}

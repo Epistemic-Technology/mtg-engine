@@ -820,7 +820,9 @@ impl GameState {
             did: true,
             chosen: Chosen::None,
         };
+        let outer = self.begin_this_way(id);
         self.apply_effects(&mut ctx, effects, split);
+        self.end_this_way(outer);
         if self.objects.contains_key(id) {
             self.remove_from_game(id);
         }

@@ -1,0 +1,8 @@
+card "Wall of Hope" {
+  oracle_id e43055c7-2245-4544-b0b4-ee30dc1ebf14
+  cost {W}
+  type Creature — Wall
+  pt 0/3
+  keywords defender
+  triggered whenever this is dealt damage: you gain that much life
+}

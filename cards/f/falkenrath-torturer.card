@@ -1,0 +1,7 @@
+card "Falkenrath Torturer" {
+  oracle_id f578a5e0-77e2-4c35-90b2-6628ed9b218e
+  cost {2}{B}
+  type Creature — Vampire
+  pt 2/1
+  activated sacrifice creature: this gains flying; if the sacrificed creature was Human, put 1 +1/+1 counter on this creature
+}

@@ -660,6 +660,42 @@ impl std::fmt::Debug for DerivedCache {
     }
 }
 
+/// A zone change made by a resolving spell or ability, or by paying its
+/// costs: the object's id before (its last known information, CR 608.2h)
+/// and after.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct Moved {
+    pub old: ObjId,
+    pub new: ObjId,
+    pub from: Zone,
+    pub to: Zone,
+    pub owner: PlayerId,
+}
+
+/// What a resolution did "this way" (CR 608.2c).
+#[derive(Clone, Debug, Default)]
+pub struct ThisWayLog {
+    pub moved: Vec<Moved>,
+    /// Life players lost.
+    pub life_lost: u32,
+}
+
+impl Moved {
+    /// Whether this zone change was `verb` ("exiled", "discarded").
+    pub fn is(&self, verb: crate::card::ThisWay) -> bool {
+        use crate::card::ThisWay;
+        match verb {
+            ThisWay::Exiled => self.to == Zone::Exile && self.from != Zone::Exile,
+            ThisWay::Sacrificed | ThisWay::Destroyed => {
+                self.from == Zone::Battlefield && self.to != Zone::Battlefield
+            }
+            ThisWay::Discarded => self.from == Zone::Hand && self.to != Zone::Hand,
+            ThisWay::Milled => self.from == Zone::Library && self.to == Zone::Graveyard,
+            ThisWay::PutInHand => self.to == Zone::Hand && self.from != Zone::Hand,
+        }
+    }
+}
+
 /// Last-known information about an object that left its zone (CR 113.7a).
 #[derive(Clone, Debug)]
 pub struct LastKnown {
@@ -902,6 +938,14 @@ pub struct GameState {
     pub eot_grants: u32,
     pub mid: MidDecision,
     pub lki: IdMap<LastKnown>,
+    /// What the resolving spell or ability has done so far, for "this
+    /// way" (`ThisWayCond`); `None` outside a resolution, so zone changes
+    /// then record nothing.
+    pub this_way: Option<ThisWayLog>,
+    /// The sacrifices and discards paid as costs of spells and abilities
+    /// on the stack (CR 601.2h, 602.2b), keyed by the stack object: what
+    /// "the sacrificed creature" refers to as it resolves.
+    pub paid_costs: Vec<(ObjId, Vec<Moved>)>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).

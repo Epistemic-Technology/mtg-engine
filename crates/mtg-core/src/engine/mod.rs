@@ -497,6 +497,8 @@ impl GameState {
             face_down_count: 0,
             mid: crate::state::MidDecision::default(),
             lki: std::collections::HashMap::default(),
+            this_way: None,
+            paid_costs: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
             trigger_sources: 0,
@@ -1823,6 +1825,8 @@ impl GameState {
             }
         } else {
             self.lki.clear();
+            // Costs of spells and abilities that never resolved.
+            self.paid_costs.clear();
             self.loyalty_activated.clear();
             self.activated_once.clear();
             self.attackers_this_turn.clear();

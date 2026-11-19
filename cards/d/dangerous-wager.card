@@ -1,0 +1,6 @@
+card "Dangerous Wager" {
+  oracle_id 7e0d60d7-cb27-4e45-80d4-c29aef5d56b6
+  cost {1}{R}
+  type Instant
+  spell: discard hand then draw 2 cards
+}

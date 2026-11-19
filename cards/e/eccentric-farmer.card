@@ -1,0 +1,7 @@
+card "Eccentric Farmer" {
+  oracle_id b51a852c-ccde-4d23-a3f3-a002f7eacdab
+  cost {2}{G}
+  type Creature — Human Peasant
+  pt 2/3
+  triggered when this enters: mill 3 cards then you may return 1 land card from your graveyard to hand chosen
+}

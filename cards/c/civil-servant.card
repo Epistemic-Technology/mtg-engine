@@ -1,0 +1,7 @@
+card "Civil Servant" {
+  oracle_id 232e16f4-32ae-4f42-a377-6bdebc9a06c7
+  cost {G}{W}
+  type Creature — Cat Citizen
+  pt 2/3
+  triggered whenever this attacks: you may tap 1 other untapped Citizen you control chosen; if you do, this creature gets +1/+0 and gains lifelink
+}

@@ -1,0 +1,7 @@
+card "K'un-Lun Warrior" {
+  oracle_id 0618a217-2a6e-4fa1-bfe6-89c6612a594d
+  cost {1}{R}
+  type Creature — Human Warrior Hero
+  pt 2/2
+  triggered when this enters: you may sacrifice 1 artifact chosen or discard 1 card; if you do, draw 1 card
+}

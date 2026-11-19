@@ -1,0 +1,8 @@
+card "Diregraf Scavenger" {
+  oracle_id 54731e3f-a84a-4fc9-8c02-2f769133c71c
+  cost {3}{B}
+  type Creature — Zombie Bear
+  pt 2/3
+  keywords deathtouch
+  triggered when this enters: exile up to 1 target card from a graveyard; if creature card was exiled this way, each opponent loses 2 life and you gain 2 life
+}

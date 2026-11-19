@@ -1,0 +1,7 @@
+card "Hissing Iguanar" {
+  oracle_id 7c4fc524-4734-4fb8-a5ca-ac2617242c3f
+  cost {2}{R}
+  type Creature — Lizard
+  pt 3/1
+  triggered whenever other creature dies: you may deal 1 damage to target player or planeswalker
+}

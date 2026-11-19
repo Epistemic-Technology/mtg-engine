@@ -1,0 +1,6 @@
+card "Blood Tithe" {
+  oracle_id c82665b7-d011-4bdc-b4a2-eca5861b16d2
+  cost {3}{B}
+  type Sorcery
+  spell: each opponent loses 3 life; you gain count equal life lost this way life
+}

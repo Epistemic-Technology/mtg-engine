@@ -287,6 +287,16 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
+        // "If a creature card was exiled this way" (CR 608.2c).
+        if let Some(log) = &mut self.this_way {
+            log.moved.push(crate::state::Moved {
+                old: id,
+                new,
+                from: old.zone,
+                to,
+                owner: old.owner,
+            });
+        }
         if old.zone == Zone::Battlefield {
             // CR 506.4: a permanent that leaves the battlefield leaves combat.
             self.remove_from_combat(id);
@@ -617,6 +627,11 @@ impl GameState {
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
         if delta == 0 {
             return;
+        }
+        if delta < 0
+            && let Some(log) = &mut self.this_way
+        {
+            log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
         }
         let ps = self.player_mut(p);
         ps.life += delta;

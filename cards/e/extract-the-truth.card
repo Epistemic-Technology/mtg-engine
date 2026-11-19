@@ -1,0 +1,9 @@
+card "Extract the Truth" {
+  oracle_id 18207fe8-41e4-418d-b5f9-e1239c527e67
+  cost {1}{B}
+  type Sorcery
+  choose one {
+    mode: target opponent reveals hand discarding may creature, enchantment, or planeswalker card
+    mode: target opponent sacrifices 1 enchantment
+  }
+}

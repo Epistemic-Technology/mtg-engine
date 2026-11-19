@@ -88,6 +88,16 @@ pub enum DecisionKind {
     /// How `spell` divides its damage or counters among its targets as it
     /// is cast (CR 601.2d): `Divide` options.
     Divide { spell: ObjId },
+    /// An object for an effect to act on as it resolves ("tap another
+    /// untapped creature you control", "return a creature card from your
+    /// graveyard to your hand"): `Sacrifice` options for permanents,
+    /// `Discard` options for cards, and `Done` to stop where the effect
+    /// says "up to".
+    ChooseCard,
+    /// Which of `def`'s alternatives to do as it resolves ("sacrifice an
+    /// artifact or discard a card", "your choice of lifelink or
+    /// indestructible"): `Mode` options.
+    ChooseOption { def: CardRef },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
