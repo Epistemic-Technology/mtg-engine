@@ -1,0 +1,8 @@
+card "Battlefield Medic" {
+  oracle_id a600af0b-ea04-4813-b700-f51820868c86
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  pt 1/1
+  activated {T}: prevent next count where Cleric on battlefield damage to target creature this turn
+}

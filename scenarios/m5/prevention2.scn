@@ -1,0 +1,239 @@
+# Damage prevention with a source of the controller's choice (CR 609.7a,
+# 615.7), "next time" shields, shields over a group of targets (divided as
+# the spell is cast, CR 601.2d), and redirection (CR 614.9): Circle of
+# Protection, Pilgrim of Justice, Pay No Heed, Healing Grace, Remedy,
+# Redeem, Soul Parry, Battlefield Medic, Prismatic Ward, Kor Chant, Nomads
+# en-Kor, Carom.
+
+scenario "prevention2: Circle of Protection: Red prevents the next damage from the chosen red source" {
+  battlefield A: "Hill Giant", "Raging Goblin"
+  battlefield B: "Circle of Protection: Red", "Plains"
+  turn 1 A: attack "Hill Giant", "Raging Goblin"
+  turn 1 declare_blockers B: activate "Circle of Protection: Red"
+  turn 1 declare_blockers B: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  # The Giant's 3 is prevented; the Goblin's 1 is not.
+  assert life B 19
+}
+
+scenario "prevention2: Circle of Protection: Red can't choose a green source" {
+  battlefield A: "Hill Giant", "Grizzly Bears"
+  battlefield B: "Circle of Protection: Red", "Plains"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  turn 1 declare_blockers B: activate "Circle of Protection: Red"
+  illegal turn 1 declare_blockers B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # The only red source, the Giant, is chosen.
+  assert life B 18
+}
+
+scenario "prevention2: a spell on the stack can be the chosen source, and the shield is used once" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Circle of Protection: Red", "Plains"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  # The Bolt is the only red source: chosen without a question.
+  turn 1 B: activate "Circle of Protection: Red"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "prevention2: Circle of Protection prevents only damage to its controller" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Circle of Protection: Red", "Plains", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: activate "Circle of Protection: Red"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "prevention2: Pilgrim of Justice's shield covers any recipient" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Pilgrim of Justice", "Plains", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: activate "Pilgrim of Justice"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pilgrim of Justice"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert damage "Hill Giant" 2
+}
+
+scenario "prevention2: Pay No Heed prevents all damage the chosen source deals this turn" {
+  battlefield A: "Prodigal Sorcerer", "Hill Giant"
+  battlefield B: "Plains"
+  hand B: "Pay No Heed"
+  turn 1 upkeep B: cast "Pay No Heed"
+  turn 1 upkeep B: choose "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_blockers A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 postcombat_main
+  # Only the Sorcerer's 1 gets through.
+  assert life B 19
+}
+
+scenario "prevention2: Healing Grace prevents 3 from the chosen source to its target" {
+  battlefield A: "Hill Giant", "Grizzly Bears"
+  battlefield B: "Plains"
+  hand B: "Healing Grace"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Healing Grace" targeting player B
+  turn 1 declare_blockers B: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  # 3 life gained; the Bears' 2 prevented; the Giant's 3 dealt.
+  assert life B 20
+}
+
+scenario "prevention2: Remedy's shield is divided among its targets as it is cast" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 2 "Plains", "Hill Giant"
+  hand A: "Lightning Bolt", "Shock"
+  hand B: "Remedy"
+  turn 1 upkeep B: cast "Remedy" targeting player B, "Hill Giant" dividing 2, 3
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "prevention2: Remedy's share for one target doesn't protect another" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 2 "Plains", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  hand B: "Remedy"
+  turn 1 upkeep B: cast "Remedy" targeting player B, "Grizzly Bears" dividing 4, 1
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "prevention2: Redeem protects up to two target creatures" {
+  battlefield A: "Mountain", "Mountain"
+  battlefield B: 2 "Plains", "Grizzly Bears", "Savannah Lions"
+  hand A: "Lightning Bolt", "Shock"
+  hand B: "Redeem"
+  turn 1 upkeep B: cast "Redeem" targeting "Grizzly Bears", "Savannah Lions"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Savannah Lions"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "prevention2: Soul Parry prevents the damage its targets would deal" {
+  battlefield A: "Hill Giant", "Grizzly Bears", "Raging Goblin"
+  battlefield B: 2 "Plains"
+  hand B: "Soul Parry"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears", "Raging Goblin"
+  turn 1 declare_attackers B: cast "Soul Parry" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "prevention2: Battlefield Medic prevents one damage per Cleric" {
+  battlefield A: "Mountain"
+  battlefield B: "Battlefield Medic", "Samite Pilgrim", "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 B: activate "Battlefield Medic" targeting "Hill Giant"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 1
+}
+
+scenario "prevention2: Prismatic Ward prevents damage from sources of the chosen color" {
+  battlefield A: "Mountain", "Prodigal Sorcerer"
+  battlefield B: 2 "Plains", "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  hand B: "Prismatic Ward"
+  turn 2 B: cast "Prismatic Ward" targeting "Grizzly Bears"
+  turn 2 B: choose red
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 2 A: wait
+  turn 2 A: activate "Prodigal Sorcerer" targeting "Grizzly Bears"
+  start turn 2 B
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "prevention2: Kor Chant sends the chosen source's damage to another creature" {
+  battlefield A: "Hill Giant", "Savannah Lions"
+  battlefield B: 3 "Plains", "Grizzly Bears"
+  hand B: "Kor Chant"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: cast "Kor Chant" targeting "Grizzly Bears", "Savannah Lions"
+  turn 1 declare_blockers B: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 0
+  assert graveyard A contains "Savannah Lions"
+  assert damage "Hill Giant" 2
+}
+
+scenario "prevention2: Nomads en-Kor redirects 1 damage per activation" {
+  battlefield A: "Mountain"
+  battlefield B: "Nomads en-Kor", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Nomads en-Kor"
+  turn 1 B: activate "Nomads en-Kor" targeting "Hill Giant"
+  run_to turn 1 end
+  # 1 goes to the Giant; the other 1 still kills the Nomads.
+  assert damage "Hill Giant" 1
+  assert graveyard B contains "Nomads en-Kor"
+}
+
+scenario "prevention2: two Nomads en-Kor activations redirect both damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Nomads en-Kor", "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Nomads en-Kor"
+  turn 1 B: activate "Nomads en-Kor" targeting "Hill Giant"
+  turn 1 B: activate "Nomads en-Kor" targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+  assert battlefield B contains "Nomads en-Kor"
+}
+
+scenario "prevention2: Nomads en-Kor can only redirect to a creature its controller controls" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Nomads en-Kor"
+  illegal turn 1 B: activate "Nomads en-Kor" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "prevention2: Carom redirects the next 1 damage and draws a card" {
+  battlefield A: "Mountain"
+  battlefield B: 2 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Shock"
+  hand B: "Carom"
+  library B: "Island"
+  turn 1 upkeep B: cast "Carom" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert damage "Grizzly Bears" 1
+  assert damage "Hill Giant" 1
+  assert hand B contains "Island"
+}
+
+scenario "prevention2: a redirection to a creature that has left does nothing" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 2 "Plains", "Grizzly Bears", "Savannah Lions"
+  hand A: "Shock", "Lightning Bolt"
+  hand B: "Carom"
+  turn 1 upkeep B: cast "Carom" targeting "Grizzly Bears", "Savannah Lions"
+  turn 1 A: cast "Lightning Bolt" targeting "Savannah Lions"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Savannah Lions"
+  assert graveyard B contains "Grizzly Bears"
+}

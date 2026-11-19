@@ -1036,7 +1036,10 @@ impl Decompiler<'_> {
             CoreAffects::Objects(f) => Affects::Objects(self.filter(f)),
             CoreAffects::YouAnd(f) => Affects::YouAnd(self.filter(f)),
             CoreAffects::Target(i) => Affects::Target(*i),
+            CoreAffects::Targets(a, u8::MAX) => Affects::Target(usize::from(*a)),
+            CoreAffects::Targets(a, n) => Affects::Targets(usize::from(*a), usize::from(*n)),
             CoreAffects::OtherThanTarget(f, i) => Affects::OtherThanTarget(self.filter(f), *i),
+            CoreAffects::Chosen(f) => Affects::Chosen(self.filter(f)),
         }
     }
 

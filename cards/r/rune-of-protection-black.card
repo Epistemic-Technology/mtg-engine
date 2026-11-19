@@ -1,0 +1,7 @@
+card "Rune of Protection: Black" {
+  oracle_id b027302f-80c2-441d-a9fd-bbe64bf5cf8a
+  cost {1}{W}
+  type Enchantment
+  activated {W}: this turn, replace damage from chosen black source to you: prevent next time
+  cycling {2}
+}

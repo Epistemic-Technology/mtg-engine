@@ -1,0 +1,6 @@
+card "Righteous Aura" {
+  oracle_id 5bf93d4f-be59-4aa7-83d5-7c35d1f07fae
+  cost {1}{W}
+  type Enchantment
+  activated {W}, pay 2 life: this turn, replace damage from chosen source to you: prevent next time
+}

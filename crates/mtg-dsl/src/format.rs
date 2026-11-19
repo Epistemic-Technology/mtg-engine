@@ -280,11 +280,23 @@ impl Fmt {
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
             Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
+            Affects::Targets(a, n) => self.recipient(Recipient::Targets(*a, *n), targets),
             Affects::OtherThanTarget(f, i) => format!(
                 "{} except {}",
                 filter(f),
                 self.recipient(Recipient::Target(*i), targets)
             ),
+            Affects::Chosen(f) => {
+                let f = filter(f);
+                if f == "permanent" {
+                    "chosen source".to_string()
+                } else {
+                    let f = f
+                        .strip_suffix(" permanent")
+                        .map_or(f.clone(), |p| format!("{p} source"));
+                    format!("chosen {f}")
+                }
+            }
         }
     }
 
@@ -308,6 +320,12 @@ impl Fmt {
                             let _ = write!(s, " to {}", self.affects(to, targets));
                         }
                         s.push_str(turn);
+                    }
+                    (_, DamageWording::TurnFirst) if !turn.is_empty() => {
+                        let _ = write!(s, "{turn} to {}", self.affects(to, targets));
+                        if let Some(f) = from {
+                            let _ = write!(s, " from {}", self.affects(f, targets));
+                        }
                     }
                     (Some(f), DamageWording::DealtLate) if !turn.is_empty() => {
                         if *to != Affects::Any {
@@ -1176,21 +1194,41 @@ impl Fmt {
                 }
                 (
                     Replaces::Damage {
-                        from: None,
+                        from,
                         to,
                         combat,
-                        ..
+                        wording,
                     },
                     Outcome::PreventNext(n),
                 ) => {
-                    let mut s = format!("prevent next {n} ");
+                    let mut s = format!("prevent next {} ", num(*n));
                     match combat {
                         Some(true) => s.push_str("combat "),
                         Some(false) => s.push_str("noncombat "),
                         None => {}
                     }
-                    let _ = write!(s, "damage to {} this turn", self.affects(to, t));
+                    if *wording == DamageWording::TurnFirst {
+                        let _ = write!(s, "damage this turn to {}", self.affects(to, t));
+                    } else {
+                        let _ = write!(s, "damage to {} this turn", self.affects(to, t));
+                    }
+                    if let Some(f) = from {
+                        let _ = write!(s, " from {}", self.affects(f, t));
+                    }
                     s
+                }
+                // A redirection to a target declares the target after the
+                // event's.
+                (_, Outcome::Redirect { to, next }) => {
+                    let event = self.replaces(&rep.event, t);
+                    let next = next.map_or(String::new(), |n| format!("next {n} "));
+                    let to = match to {
+                        mtg_core::card::RedirectTo::This => "this".to_string(),
+                        mtg_core::card::RedirectTo::Target(i) => {
+                            self.recipient(Recipient::Target(*i), t)
+                        }
+                    };
+                    format!("this turn, replace {event}: redirect {next}to {to}")
                 }
                 _ => format!(
                     "this turn, replace {}: {}",
@@ -1401,7 +1439,7 @@ fn counter(k: CounterKind, n: Num) -> String {
 fn outcome(o: &Outcome) -> String {
     match o {
         Outcome::Prevent => "prevent".to_string(),
-        Outcome::PreventNext(n) => format!("prevent next {n}"),
+        Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
@@ -1416,6 +1454,16 @@ fn outcome(o: &Outcome) -> String {
         }
         Outcome::Regenerate => "regenerate".to_string(),
         Outcome::RedirectToAttached => "redirect to attached".to_string(),
+        Outcome::PreventNextTime => "prevent next time".to_string(),
+        Outcome::Redirect { to, next } => {
+            let next = next.map_or(String::new(), |n| format!("next {n} "));
+            match to {
+                mtg_core::card::RedirectTo::This => format!("redirect {next}to this"),
+                mtg_core::card::RedirectTo::Target(i) => {
+                    format!("redirect {next}to target {}", i + 1)
+                }
+            }
+        }
     }
 }
 

@@ -1582,8 +1582,17 @@ impl Compiler<'_> {
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
             Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
+            // A variable group: its targets to the end of the list.
+            Affects::Target(i) if Some(*i) == self.many => {
+                CoreAffects::Targets(u8::try_from(*i).unwrap_or(u8::MAX), u8::MAX)
+            }
             Affects::Target(i) | Affects::ThatTarget(i) => CoreAffects::Target(*i),
+            Affects::Targets(a, n) => CoreAffects::Targets(
+                u8::try_from(*a).unwrap_or(u8::MAX),
+                u8::try_from(*n).unwrap_or(u8::MAX),
+            ),
             Affects::OtherThanTarget(f, i) => CoreAffects::OtherThanTarget(self.filter(f), *i),
+            Affects::Chosen(f) => CoreAffects::Chosen(self.filter(f)),
         }
     }
 

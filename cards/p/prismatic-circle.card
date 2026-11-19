@@ -1,0 +1,8 @@
+card "Prismatic Circle" {
+  oracle_id 022dae2e-7fc3-486e-9168-59652d9ab21c
+  cost {2}{W}
+  type Enchantment
+  cumulative upkeep {1}
+  as this enters choose color
+  activated {1}: this turn, replace damage from chosen permanent of chosen color to you: prevent next time
+}

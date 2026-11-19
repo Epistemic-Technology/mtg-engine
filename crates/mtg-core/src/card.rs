@@ -2915,6 +2915,14 @@ impl Effect {
                 | Effect::ChooseAct { .. }
                 | Effect::OneOf(_)
                 | Effect::DiscardUnless { .. }
+                // A source of the controller's choice (CR 609.7a).
+                | Effect::CreateReplacement(ReplacementAbility {
+                    replaces: Replaces::Damage {
+                        from: Some(Affects::Chosen(_)),
+                        ..
+                    },
+                    ..
+                })
         )
     }
 }
@@ -3035,10 +3043,30 @@ pub enum Affects {
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created (stored effects only).
     Target(usize),
+    /// The spell's chosen targets `first..first + count` ("up to two target
+    /// creatures"; a variable group, `count` `u8::MAX`, runs to the end of
+    /// the targets): one effect is stored per target, locked to it. A
+    /// shield over a variable group is divided as the spell is cast
+    /// (CR 601.2d, Remedy).
+    Targets(u8, u8),
     /// Objects matching a filter other than the spell's `n`th chosen
     /// target, locked in likewise ("creatures other than target creature",
     /// Terrifying Presence).
     OtherThanTarget(ObjFilter, usize),
+    /// A damage source matching a filter that the controller chooses as
+    /// the effect is created ("a red source of your choice", CR 609.7a;
+    /// stored effects only).
+    Chosen(ObjFilter),
+}
+
+/// Where a redirection effect sends the damage (CR 614.9).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum RedirectTo {
+    /// The ability's source ("is dealt to this creature instead").
+    This,
+    /// The spell's `n`th chosen target, locked in when the effect is
+    /// created.
+    Target(usize),
 }
 
 /// The event a replacement or prevention effect watches for (CR 614.1,
@@ -3085,8 +3113,10 @@ pub enum Replaces {
 pub enum Replacement {
     /// Prevent all of the damage, or the player gains no life.
     Prevent,
-    /// A shield: prevent the next N damage (CR 615.7).
-    PreventNext(u32),
+    /// A shield: prevent the next N damage (CR 615.7); N is evaluated as
+    /// the effect is created ("where X is the number of Clerics on the
+    /// battlefield").
+    PreventNext(Num),
     /// Double the damage or life.
     Double,
     /// That many plus one counters.
@@ -3117,6 +3147,15 @@ pub enum Replacement {
     /// Damage that would be dealt to the controller is dealt to the
     /// permanent this Aura is attached to instead (Pariah).
     RedirectToAttached,
+    /// "The next time ... would deal damage ..., prevent that damage": a
+    /// shield that prevents all of one damage event, then is used up
+    /// (CR 615.7). Stored effects only.
+    PreventNextTime,
+    /// The damage is dealt to `to` instead (CR 614.9): all of it, or the
+    /// next `next` damage ("The next 1 damage that would be dealt to this
+    /// creature this turn is dealt to target creature you control
+    /// instead"). Stored effects only.
+    Redirect { to: RedirectTo, next: Option<u32> },
 }
 
 /// A replacement or prevention effect (CR 614, 615), either a static
@@ -3134,7 +3173,7 @@ impl ReplacementAbility {
     pub fn is_prevention(&self) -> bool {
         matches!(
             self.replacement,
-            Replacement::Prevent | Replacement::PreventNext(_)
+            Replacement::Prevent | Replacement::PreventNext(_) | Replacement::PreventNextTime
         ) && matches!(
             self.replaces,
             Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }

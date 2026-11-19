@@ -1,0 +1,9 @@
+card "Spirit en-Kor" {
+  oracle_id f066174a-a959-4365-920f-c04506d94a5a
+  cost {3}{W}
+  type Creature — Kor Spirit
+  pt 2/2
+  pt 2/2
+  keywords flying
+  activated {0}: this turn, replace damage to this: redirect next 1 to target creature you control
+}

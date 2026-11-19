@@ -2004,6 +2004,10 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
         Effect::Scry(n) => vec![*n],
+        Effect::CreateReplacement(r) => match r.outcome {
+            mtg_core::card::Replacement::PreventNext(n) => vec![n],
+            _ => Vec::new(),
+        },
         _ => Vec::new(),
     }
 }
@@ -3783,7 +3787,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
         }
         Effect::CreateReplacement(r) => {
-            Clause::imperative(lowercase_first(&replacement_text(r, ctx, true)))
+            let text = replacement_text(r, ctx, true);
+            // The sentence ends after any ", where X is ..." tail.
+            let text = text.strip_suffix('.').unwrap_or(&text);
+            Clause::imperative(lowercase_first(text))
         }
         Effect::Rule(RuleKind::NoLifeGain) => {
             Clause::imperative("players can't gain life this turn".to_string())
@@ -4481,12 +4488,33 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
         Affects::YouAnd(f) => format!("you and {}", filter_phrase(f, ctx.card, true)),
         Affects::Target(i) => ctx.obj(Recipient::Target(*i)),
         Affects::ThatTarget(i) => ctx.obj(Recipient::ThatTarget(*i)),
+        Affects::Targets(a, n) => ctx.obj(Recipient::Targets(*a, *n)),
         Affects::OtherThanTarget(f, i) => format!(
             "{} other than {}",
             filter_phrase(f, ctx.card, true),
             ctx.obj(Recipient::Target(*i))
         ),
+        Affects::Chosen(f) => chosen_source(f, ctx.card),
     }
+}
+
+/// "a red source of your choice", "a creature of your choice with
+/// shadow", "a source of your choice of the chosen color" (CR 609.7a).
+fn chosen_source(f: &Filter, card: &Card) -> String {
+    let p = filter_phrase(f, card, false);
+    let p = if let Some(i) = p.find("permanent") {
+        format!(
+            "{}source of your choice{}",
+            &p[..i],
+            &p[i + "permanent".len()..]
+        )
+    } else if let Some(i) = p.find("creature") {
+        let j = i + "creature".len();
+        format!("{} of your choice{}", &p[..j], &p[j..])
+    } else {
+        format!("{p} of your choice")
+    };
+    with_article(&p)
 }
 
 /// What "Prevent all damage that would be dealt to ..." names: a group
@@ -4511,11 +4539,15 @@ fn damage_source(a: &Affects, ctx: &mut Ctx) -> String {
                 && f.subtypes.is_empty() =>
         {
             let p = filter_phrase(f, ctx.card, false);
-            let p = p.strip_suffix("permanent").unwrap_or(&p).trim_end();
-            if p.is_empty() {
-                "sources".to_string()
-            } else {
-                format!("{p} sources")
+            // "artifact sources", "sources of the chosen color".
+            match p.find("permanent") {
+                Some(i) => {
+                    let pre = &p[..i];
+                    let post = &p[i + "permanent".len()..];
+                    format!("{pre}sources{post}")
+                }
+                None if p.is_empty() => "sources".to_string(),
+                None => format!("{p} sources"),
             }
         }
         other => affects_all(other, ctx),
@@ -4544,15 +4576,32 @@ fn prevent_all_text(r: &Replaces, ctx: &mut Ctx, this_turn: bool) -> String {
         } => {
             let to_text = |ctx: &mut Ctx| match to {
                 Affects::Any => String::new(),
+                // "When you do, prevent all combat damage that would be
+                // dealt to it this turn" (Oketra's Avenger).
+                Affects::This if this_turn && ctx.source_mentioned => " to it".to_string(),
                 a => format!(" to {}", affects_all(a, ctx)),
             };
             match (from, wording) {
+                (_, DamageWording::TurnFirst) => {
+                    let to = match to {
+                        Affects::Any => String::new(),
+                        a => format!(" to {}", affects_all(a, ctx)),
+                    };
+                    let by = match from {
+                        Some(f) => format!(" by {}", damage_source(f, ctx)),
+                        None => String::new(),
+                    };
+                    format!("Prevent all {kind} that would be dealt{turn}{to}{by}.")
+                }
                 (None, _) => {
                     let to = to_text(ctx);
                     format!("Prevent all {kind} that would be dealt{to}{turn}.")
                 }
                 (Some(f), DamageWording::WouldDeal) => {
-                    let that = if matches!(f, Affects::Target(_) | Affects::ThatTarget(_)) {
+                    let that = if matches!(
+                        f,
+                        Affects::Target(_) | Affects::ThatTarget(_) | Affects::Chosen(_)
+                    ) {
                         ""
                     } else {
                         "that "
@@ -4590,7 +4639,19 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         {
             prevent_all_text(&r.event, ctx, this_turn)
         }
-        (Replaces::Damage { to, combat, .. }, Outcome::PreventNext(n)) => {
+        (
+            Replaces::Damage {
+                from,
+                to,
+                combat,
+                wording,
+            },
+            Outcome::PreventNext(n),
+        ) => {
+            let n = digits(*n);
+            // "... to any number of targets, divided as you choose"
+            // (CR 601.2d).
+            let divided = matches!(to, Affects::Target(i) if ctx.is_many(Recipient::Target(*i)));
             let kind = match combat {
                 Some(true) => "combat damage",
                 Some(false) => "noncombat damage",
@@ -4600,7 +4661,79 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 Affects::Objects(f) => format!("each {}", filter_phrase(f, ctx.card, false)),
                 other => affects_to(other, ctx),
             };
-            format!("Prevent the next {n} {kind} that would be dealt to {to} this turn.")
+            let by = match from {
+                Some(f) => format!(" by {}", damage_source(f, ctx)),
+                None => String::new(),
+            };
+            if *wording == DamageWording::TurnFirst {
+                let divided = if divided {
+                    ", divided as you choose"
+                } else {
+                    ""
+                };
+                format!(
+                    "Prevent the next {n} {kind} that would be dealt this turn to {to}{by}{divided}."
+                )
+            } else {
+                format!("Prevent the next {n} {kind} that would be dealt to {to} this turn{by}.")
+            }
+        }
+        // CR 615.7: "The next time a red source of your choice would deal
+        // damage to you this turn, prevent that damage."
+        (
+            Replaces::Damage {
+                from, to, combat, ..
+            },
+            Outcome::PreventNextTime,
+        ) => {
+            let kind = match combat {
+                Some(true) => "combat damage",
+                Some(false) => "noncombat damage",
+                None => "damage",
+            };
+            let by = match from {
+                Some(f) => affects_to(f, ctx),
+                None => "a source".to_string(),
+            };
+            let to = match to {
+                Affects::Any => String::new(),
+                a => format!(" to {}", affects_to(a, ctx)),
+            };
+            let turn = if this_turn { " this turn" } else { "" };
+            format!("The next time {by} would deal {kind}{to}{turn}, prevent that damage.")
+        }
+        // CR 614.9: "The next 1 damage that would be dealt to this creature
+        // this turn is dealt to target creature you control instead."
+        (
+            Replaces::Damage {
+                from, to, combat, ..
+            },
+            Outcome::Redirect { to: dest, next },
+        ) => {
+            let kind = match combat {
+                Some(true) => "combat damage",
+                Some(false) => "noncombat damage",
+                None => "damage",
+            };
+            let turn = if this_turn { " this turn" } else { "" };
+            let to = affects_to(to, ctx);
+            let mut s = match (next, from) {
+                (Some(n), _) => format!("The next {n} {kind} that would be dealt to {to}{turn}"),
+                (None, None) => format!("All {kind} that would be dealt to {to}{turn}"),
+                (None, Some(f)) => {
+                    let by = damage_source(f, ctx);
+                    format!("All {kind} that would be dealt{turn} to {to} by {by}")
+                }
+            };
+            let dest = match dest {
+                mtg_core::card::RedirectTo::This => {
+                    ctx.source_mentioned = true;
+                    this_ref(ctx.card)
+                }
+                mtg_core::card::RedirectTo::Target(i) => ctx.obj(Recipient::Target(*i)),
+            };
+            let _ = write!(s, " is dealt to {dest} instead.");
+            s
         }
         (
             Replaces::Damage {

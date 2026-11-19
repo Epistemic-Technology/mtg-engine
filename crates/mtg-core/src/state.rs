@@ -564,8 +564,15 @@ pub struct ReplacementEffect {
     pub ability: ReplacementAbility,
     /// The spell's chosen target this effect is locked to (CR 611.2c).
     pub target: Option<Target>,
-    /// Damage left on a shield (CR 615.7).
+    /// Damage left on a shield (CR 615.7); 1 for an unused "next time"
+    /// shield.
     pub remaining: u32,
+    /// The damage source the controller chose as the effect was created
+    /// (CR 609.7a).
+    pub chosen: Option<ObjId>,
+    /// Where a redirection effect sends the damage (CR 614.9), locked in
+    /// when the effect was created.
+    pub redirect: Option<Target>,
 }
 
 /// A "can't" effect from a resolved spell (CR 614.17), until end of turn.

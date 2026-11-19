@@ -1809,6 +1809,17 @@ impl GameState {
         let amount = self.effects_of(spell).iter().find_map(|e| match e {
             Effect::DealDamageDivided { amount, .. } => Some(*amount),
             Effect::DistributeCounters { count, .. } => Some(*count),
+            // "Prevent the next 4 damage that would be dealt this turn to
+            // any number of targets, divided as you choose" (Remedy).
+            Effect::CreateReplacement(crate::card::ReplacementAbility {
+                replaces:
+                    Replaces::Damage {
+                        to: Affects::Targets(_, u8::MAX),
+                        ..
+                    },
+                replacement: Replacement::PreventNext(n),
+                ..
+            }) => Some(*n),
             _ => None,
         })?;
         let o = &self.objects[spell];
@@ -5255,11 +5266,46 @@ impl GameState {
             },
             target: Some(Target::Object(id)),
             remaining: 1,
+            chosen: None,
+            redirect: None,
         });
         self.bump();
     }
 
     fn create_replacement(&mut self, ctx: &EffectCtx, r: &crate::card::ReplacementAbility) {
+        // A group of targets: one effect per still-legal target, locked to
+        // it, a divided shield holding that target's share (CR 601.2d).
+        if let Replaces::Damage {
+            to: Affects::Targets(first, count),
+            ..
+        }
+        | Replaces::Damage {
+            from: Some(Affects::Targets(first, count)),
+            ..
+        } = r.replaces
+        {
+            let first = usize::from(first);
+            let end = ctx
+                .targets
+                .len()
+                .min(first.saturating_add(usize::from(count)));
+            for i in first..end {
+                if !ctx.legal.get(i).copied().unwrap_or(false) {
+                    continue;
+                }
+                let share = if count == u8::MAX && !ctx.division.is_empty() {
+                    let n = ctx.division.get(i - first).copied().unwrap_or(0);
+                    if n == 0 {
+                        continue;
+                    }
+                    Some(n)
+                } else {
+                    None
+                };
+                self.store_replacement(ctx, r, Some(ctx.targets[i]), share);
+            }
+            return;
+        }
         // The one target the effect is locked to (CR 608.2b: an illegal
         // target means that part of the spell does nothing).
         let target = match &r.replaces {
@@ -5285,10 +5331,51 @@ impl GameState {
             }
             _ => None,
         };
+        self.store_replacement(ctx, r, target, None);
+    }
+
+    /// Store `r` until end of turn, locked to `target`; `share` is a
+    /// divided shield's part (CR 601.2d).
+    fn store_replacement(
+        &mut self,
+        ctx: &EffectCtx,
+        r: &crate::card::ReplacementAbility,
+        target: Option<Target>,
+        share: Option<u32>,
+    ) {
+        // CR 614.9 and 608.2b: a redirection to a target that became
+        // illegal does nothing.
+        let redirect = match r.replacement {
+            Replacement::Redirect {
+                to: crate::card::RedirectTo::Target(i),
+                ..
+            } => {
+                if !ctx.legal.get(i).copied().unwrap_or(false) {
+                    return;
+                }
+                ctx.targets.get(i).copied()
+            }
+            _ => None,
+        };
+        // CR 609.7a: a source of the controller's choice is chosen as the
+        // effect is created.
+        let chosen = match &r.replaces {
+            Replaces::Damage {
+                from: Some(Affects::Chosen(f)),
+                ..
+            } => match self.choose_damage_source(ctx, f) {
+                Some(id) => Some(id),
+                None => return,
+            },
+            _ => None,
+        };
         let remaining = match r.replacement {
-            Replacement::PreventNext(n) => n,
+            Replacement::PreventNext(n) => self.eval_num(n, ctx),
+            Replacement::Redirect { next: Some(n), .. } => n,
+            Replacement::PreventNextTime => 1,
             _ => 0,
         };
+        let remaining = share.unwrap_or(remaining);
         let def = self
             .objects
             .get(ctx.source)
@@ -5305,8 +5392,65 @@ impl GameState {
             ability: r.clone(),
             target,
             remaining,
+            chosen,
+            redirect,
         });
         self.bump();
+    }
+
+    /// CR 609.7a: the controller chooses a source of damage matching `f`:
+    /// a permanent or a spell on the stack. `None` if there is none.
+    fn choose_damage_source(
+        &mut self,
+        ctx: &EffectCtx,
+        f: &crate::card::ObjFilter,
+    ) -> Option<ObjId> {
+        let f = self.chosen_filter(f, ctx);
+        let spells = self
+            .stack
+            .iter()
+            .copied()
+            .filter(|id| self.objects.get(*id).is_some_and(|o| o.ability.is_none()));
+        let cands: Vec<ObjId> = self
+            .battlefield
+            .iter()
+            .copied()
+            .chain(spells)
+            .filter(|id| {
+                let Some(o) = self.objects.get(*id) else {
+                    return false;
+                };
+                self.characteristics(*id).is_some_and(|c| {
+                    f.matches(
+                        *id,
+                        o.controller,
+                        &c,
+                        Some(ctx.source),
+                        Some(ctx.controller),
+                    )
+                })
+            })
+            .collect();
+        match cands.len() {
+            0 => None,
+            1 => Some(cands[0]),
+            _ => {
+                // Offered like other objects an effect acts on as it
+                // resolves: a permanent, or a card (a spell on the stack).
+                let options: Vec<Choice> = cands
+                    .iter()
+                    .map(|id| match self.objects[*id].zone {
+                        Zone::Battlefield => Choice::Sacrifice(*id),
+                        _ => Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        },
+                    })
+                    .collect();
+                let k = self.choose_mid(ctx.controller, DecisionKind::ChooseCard, options);
+                cands.get(k).copied()
+            }
+        }
     }
 }
 

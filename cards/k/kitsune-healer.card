@@ -1,0 +1,9 @@
+card "Kitsune Healer" {
+  oracle_id 9c6bd752-e3c8-408c-96f4-16405a653161
+  cost {3}{W}
+  type Creature — Fox Cleric
+  pt 2/2
+  pt 2/2
+  activated {T}: prevent next 1 damage to any target this turn
+  activated {T}: prevent all damage to target legendary creature this turn
+}

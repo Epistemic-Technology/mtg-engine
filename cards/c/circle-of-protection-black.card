@@ -1,0 +1,6 @@
+card "Circle of Protection: Black" {
+  oracle_id 7a5a8414-4da4-4dd0-93ae-210d50f4d6f6
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen black source to you: prevent next time
+}

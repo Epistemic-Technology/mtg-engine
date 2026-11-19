@@ -1,0 +1,7 @@
+card "Rune of Protection: White" {
+  oracle_id 6f214a42-e38f-4923-8afc-832efdde7975
+  cost {1}{W}
+  type Enchantment
+  activated {W}: this turn, replace damage from chosen white source to you: prevent next time
+  cycling {2}
+}

@@ -385,10 +385,17 @@ creature": one effect, CR 615), `you gain life`,
 
 Affects: `any` (a permanent or player), `this`, `you`, `each opponent`,
 `each player`, `you and creature you control`, a filter, a target (`target
-creature`, `target 1`, or `that target 1` for "that creature"), or, as a
-damage source, `creature except target creature` ("creatures other than
-target creature"). A damage source (`from`) is an object: `this`, a
-filter, or a target. A filter that isn't of creatures prints as sources:
+creature`, `target 1`, or `that target 1` for "that creature"), a group
+of targets (`up to 2 target creature`, `1 to 2 target creature`, `any
+number of targets`: in an effect, one effect per target, locked to it),
+or, as a damage source, `creature except target creature` ("creatures
+other than target creature") and `chosen <filter> source` ("a red source
+of your choice", `chosen source`, `chosen creature with shadow` ("a
+creature of your choice with shadow"), `chosen permanent of chosen
+color` ("a source of your choice of the chosen color"): chosen as the
+effect is created, among permanents and spells on the stack, CR
+609.7a). A damage source (`from`) is an object: `this`, a filter, or a
+target. A filter that isn't of creatures prints as sources:
 `from artifact` is "by artifact sources". A static prevention with no
 effects after it prints "Prevent all damage that would be dealt to ...";
 with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
@@ -396,7 +403,17 @@ damage.".
 
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 `draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
-`redirect to attached`.
+`redirect to attached`; in a `this turn, replace` effect also `prevent
+next time` ("The next time a red source of your choice would deal damage
+to you this turn, prevent that damage.": a shield for one damage event,
+CR 615.7) and redirection (CR 614.9): `redirect to this`, `redirect to
+target creature` (a new target, declared after the event's), and
+`redirect next 1 to ...` ("The next 1 damage that would be dealt to this
+creature this turn is dealt to target creature you control instead."). A
+redirection with a source prints "All damage that would be dealt this
+turn to A by S is dealt to B instead." (Kor Chant). It does nothing if
+the new recipient has left the battlefield or is no longer a creature or
+planeswalker.
 
 ### Filters
 
@@ -706,7 +723,14 @@ from <source>` ("... dealt this turn by creatures with power 4 or less"),
 ("Prevent all combat damage target creature would deal this turn",
 "... that creatures would deal to players this turn"), `prevent all combat
 damage to and from target 1 this turn` ("dealt to and dealt by it"),
-`prevent next 4 damage to <affects> this turn`,
+`prevent all damage this turn to <affects> [from <source>]` ("Prevent
+all damage that would be dealt this turn to creatures you control"),
+`prevent next 4 damage to <affects> this turn [from <source>]` ("... to
+any target this turn by a source of your choice"), `prevent next 4 damage
+this turn to any number of targets` ("..., divided as you choose", divided
+as the spell is cast, CR 601.2d), `prevent next count where Cleric on
+battlefield damage to target creature this turn` ("Prevent the next X
+damage ..., where X is ...", counted as it resolves),
 `this turn, replace <event>: <outcome>` (`this turn, replace target 1
 dies: exile`: "If that creature would die this turn, exile it
 instead."), `players can't gain life this turn`,

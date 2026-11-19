@@ -1,0 +1,8 @@
+card "Zealous Inquisitor" {
+  oracle_id e85f6251-8801-414b-adc9-5488794e7456
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  pt 2/2
+  activated {1}{W}: this turn, replace damage to this: redirect next 1 to target creature
+}

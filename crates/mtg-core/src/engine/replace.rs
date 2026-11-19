@@ -27,7 +27,7 @@ use smallvec::{SmallVec, smallvec};
 
 use super::casting::EffectCtx;
 use crate::card::{
-    AbilityDef, AbilityId, Affects, CardRef, CounterKind, ObjFilter, Replacement,
+    AbilityDef, AbilityId, Affects, CardRef, CounterKind, ObjFilter, RedirectTo, Replacement,
     ReplacementAbility, Replaces, RuleKind, Who,
 };
 use crate::decision::{Choice, Decision, DecisionKind};
@@ -136,6 +136,15 @@ impl Proposed {
 enum Key {
     Ability { source: ObjId, ability: AbilityId },
     Stored(usize),
+}
+
+/// What a stored effect was locked to as it was created: the spell's
+/// target (CR 611.2c) and the damage source its controller chose
+/// (CR 609.7a). Static abilities have neither.
+#[derive(Copy, Clone, Default)]
+struct Lock {
+    target: Option<Target>,
+    chosen: Option<ObjId>,
 }
 
 /// A replacement effect that applies to the event under consideration.
@@ -251,7 +260,7 @@ impl GameState {
                     if applied.contains(&key) {
                         continue;
                     }
-                    if self.applies(r, ev, *id, o.controller, None) {
+                    if self.applies(r, ev, *id, o.controller, Lock::default()) {
                         out.push(Candidate {
                             key,
                             def: o.def,
@@ -307,16 +316,24 @@ impl GameState {
                 continue;
             }
             // An exhausted shield prevents nothing more (CR 615.7); a used
-            // regeneration shield is gone (CR 701.15a).
+            // regeneration shield is gone (CR 701.15a); so is a redirection
+            // of the next N damage once N have been redirected.
             if matches!(
                 e.ability.replacement,
-                Replacement::PreventNext(_) | Replacement::Regenerate
+                Replacement::PreventNext(_)
+                    | Replacement::PreventNextTime
+                    | Replacement::Regenerate
+                    | Replacement::Redirect { next: Some(_), .. }
             ) && e.remaining == 0
             {
                 continue;
             }
             let source = e.source.unwrap_or_default();
-            if self.applies(&e.ability, ev, source, e.controller, e.target) {
+            let lock = Lock {
+                target: e.target,
+                chosen: e.chosen,
+            };
+            if self.applies(&e.ability, ev, source, e.controller, lock) {
                 out.push(Candidate {
                     key,
                     def: e.def,
@@ -330,7 +347,7 @@ impl GameState {
     }
 
     /// Whether effect `r` of `source` (controlled by `controller`, locked to
-    /// `locked` if from a targeted spell) applies to `ev`.
+    /// `lock` if stored by a spell or ability) applies to `ev`.
     #[allow(clippy::too_many_lines)] // one arm per replaced event
     fn applies(
         &self,
@@ -338,7 +355,7 @@ impl GameState {
         ev: &Proposed,
         source: ObjId,
         controller: PlayerId,
-        locked: Option<Target>,
+        lock: Lock,
     ) -> bool {
         let whose_ok = |w: Who, p: PlayerId| match w {
             Who::Any => true,
@@ -358,8 +375,8 @@ impl GameState {
                 combat.is_none_or(|k| k == *c)
                     && from
                         .as_ref()
-                        .is_none_or(|f| self.source_is(f, *src, source, controller, locked))
-                    && self.affects(to, *target, source, controller, locked)
+                        .is_none_or(|f| self.source_is(f, *src, source, controller, lock))
+                    && self.affects(to, *target, source, controller, lock)
             }
             (
                 Replaces::DamageToAndBy { what, combat },
@@ -371,8 +388,8 @@ impl GameState {
                 },
             ) => {
                 combat.is_none_or(|k| k == *c)
-                    && (self.affects(what, *target, source, controller, locked)
-                        || self.source_is(what, *src, source, controller, locked))
+                    && (self.affects(what, *target, source, controller, lock)
+                        || self.source_is(what, *src, source, controller, lock))
             }
             (Replaces::GainLife { whose }, Proposed::GainLife { player, .. }) => {
                 whose_ok(*whose, *player)
@@ -440,7 +457,7 @@ impl GameState {
                     obj,
                     regenerate: true,
                 },
-            ) => self.affects(to, Target::Object(*obj), source, controller, locked),
+            ) => self.affects(to, Target::Object(*obj), source, controller, lock),
             (
                 Replaces::Dies { to },
                 Proposed::ZoneChange {
@@ -453,7 +470,7 @@ impl GameState {
                     .get(*obj)
                     .is_some_and(|o| o.zone == Zone::Battlefield)
                     && self.characteristics(*obj).is_some_and(|c| c.is_creature())
-                    && self.affects(to, Target::Object(*obj), source, controller, locked)
+                    && self.affects(to, Target::Object(*obj), source, controller, lock)
             }
             // `Enters` effects apply only from the entering permanent itself
             // (handled in `candidates`), never from the battlefield.
@@ -468,8 +485,9 @@ impl GameState {
         target: Target,
         source: ObjId,
         controller: PlayerId,
-        locked: Option<Target>,
+        lock: Lock,
     ) -> bool {
+        let locked = lock.target;
         let whose_ok = |w: Who, p: PlayerId| match w {
             Who::Any => true,
             Who::You => p == controller,
@@ -487,11 +505,13 @@ impl GameState {
                 target == Target::Player(controller)
                     || matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }
-            Affects::Target(_) => locked == Some(target),
+            Affects::Target(_) | Affects::Targets(..) => locked == Some(target),
             Affects::OtherThanTarget(f, _) => {
                 locked != Some(target)
                     && matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }
+            // A chosen source is never a recipient.
+            Affects::Chosen(_) => false,
         }
     }
 
@@ -503,8 +523,9 @@ impl GameState {
         src: ObjId,
         source: ObjId,
         controller: PlayerId,
-        locked: Option<Target>,
+        lock: Lock,
     ) -> bool {
+        let locked = lock.target;
         match from {
             Affects::Any => true,
             Affects::This => src == source,
@@ -512,11 +533,13 @@ impl GameState {
             Affects::Objects(f) | Affects::YouAnd(f) => {
                 self.source_matches(f, src, source, controller)
             }
-            Affects::Target(_) => locked == Some(Target::Object(src)),
+            Affects::Target(_) | Affects::Targets(..) => locked == Some(Target::Object(src)),
             Affects::OtherThanTarget(f, _) => {
                 locked != Some(Target::Object(src))
                     && self.source_matches(f, src, source, controller)
             }
+            // CR 609.7a: the source chosen as the effect was created.
+            Affects::Chosen(_) => lock.chosen == Some(src),
         }
     }
 
@@ -534,9 +557,29 @@ impl GameState {
         if o.zone != Zone::Battlefield || (f.enchanted && !self.enchants(source, id)) {
             return false;
         }
+        let f = &*self.with_source_chosen(f, source);
         self.characteristics(id)
             .is_some_and(|c| f.matches(id, o.controller, &c, Some(source), Some(controller)))
             && self.status_ok(f, id)
+    }
+
+    /// `f` with "of the chosen color" filled in from what `source` chose as
+    /// it entered (CR 607.2a: Prismatic Ward).
+    fn with_source_chosen<'f>(
+        &self,
+        f: &'f ObjFilter,
+        source: ObjId,
+    ) -> std::borrow::Cow<'f, ObjFilter> {
+        if !f.chosen {
+            return std::borrow::Cow::Borrowed(f);
+        }
+        let chosen = self
+            .objects
+            .get(source)
+            .map(|o| o.chosen)
+            .or_else(|| self.lki.get(&source).map(|l| l.object.chosen))
+            .unwrap_or_default();
+        std::borrow::Cow::Owned(f.with_chosen(chosen))
     }
 
     /// Whether `source` (or its last known information) is attached to
@@ -573,6 +616,7 @@ impl GameState {
         if f.enchanted && !self.enchants(source, src) {
             return false;
         }
+        let f = &*self.with_source_chosen(f, source);
         // State ("attacking", "unblocked") is judged while the source is on
         // the battlefield; one that has left has none.
         let on_battlefield = self
@@ -648,6 +692,91 @@ impl GameState {
                     amount: amount - prevented,
                     combat,
                 })
+            }
+            (
+                Replacement::PreventNextTime,
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    ..
+                },
+            ) => {
+                // CR 615.7: the shield applies to one damage event and is
+                // used up, even where nothing could be prevented
+                // (CR 615.12).
+                if let Key::Stored(i) = c.key {
+                    self.replacements[i].remaining = 0;
+                }
+                if unpreventable {
+                    Outcome::Event(ev)
+                } else {
+                    self.emit(Event::Prevented {
+                        source,
+                        target,
+                        amount,
+                        by: c.def,
+                    });
+                    Outcome::Nothing
+                }
+            }
+            (
+                Replacement::Redirect { to, next },
+                Proposed::Damage {
+                    source,
+                    target,
+                    amount,
+                    combat,
+                },
+            ) => {
+                let dest = match (to, c.key) {
+                    (RedirectTo::This, _) => Some(Target::Object(c.source)),
+                    (RedirectTo::Target(_), Key::Stored(i)) => self.replacements[i].redirect,
+                    (RedirectTo::Target(_), Key::Ability { .. }) => None,
+                };
+                // CR 614.9: the effect does nothing if the new recipient has
+                // left the battlefield, is no longer a creature or
+                // planeswalker, or is a player who has left the game.
+                match dest.filter(|d| self.can_be_redirected_to(*d)) {
+                    None => Outcome::Event(ev),
+                    Some(d) => {
+                        let moved = match (next, c.key) {
+                            (Some(_), Key::Stored(i)) => {
+                                let m = amount.min(self.replacements[i].remaining);
+                                self.replacements[i].remaining -= m;
+                                m
+                            }
+                            _ => amount,
+                        };
+                        self.emit(Event::Redirected {
+                            from: target,
+                            to: d,
+                            amount: moved,
+                            by: c.def,
+                        });
+                        let redirected = Proposed::Damage {
+                            source,
+                            target: d,
+                            amount: moved,
+                            combat,
+                        };
+                        if moved == amount {
+                            Outcome::Event(redirected)
+                        } else {
+                            // The rest is still dealt to the original
+                            // recipient.
+                            Outcome::Events(smallvec![
+                                redirected,
+                                Proposed::Damage {
+                                    source,
+                                    target,
+                                    amount: amount - moved,
+                                    combat,
+                                }
+                            ])
+                        }
+                    }
+                }
             }
             (Replacement::Regenerate, Proposed::Destroy { obj, .. }) => {
                 // CR 701.15a: remove all damage, tap, remove from combat.
@@ -913,6 +1042,22 @@ impl GameState {
             }
         }
         outcome
+    }
+
+    /// Whether damage can be redirected to `t` (CR 614.9): a creature or
+    /// planeswalker on the battlefield, or a player still in the game.
+    fn can_be_redirected_to(&self, t: Target) -> bool {
+        match t {
+            Target::Player(p) => self.player(p).lost.is_none(),
+            Target::Object(id) => {
+                self.objects
+                    .get(id)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+                    && self.characteristics(id).is_some_and(|c| {
+                        c.is_creature() || c.types.contains(crate::card::CardType::Planeswalker)
+                    })
+            }
+        }
     }
 
     // ----- decisions in the middle of an event ------------------------------------

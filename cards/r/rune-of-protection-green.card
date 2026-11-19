@@ -1,0 +1,7 @@
+card "Rune of Protection: Green" {
+  oracle_id c7fca3f3-b48e-4ac5-be31-ce7ae3c7432c
+  cost {1}{W}
+  type Enchantment
+  activated {W}: this turn, replace damage from chosen green source to you: prevent next time
+  cycling {2}
+}

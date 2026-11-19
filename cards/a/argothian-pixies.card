@@ -1,0 +1,9 @@
+card "Argothian Pixies" {
+  oracle_id bbf183bc-d502-4432-8202-f29f60c08396
+  cost {1}{G}
+  type Creature — Faerie
+  pt 2/1
+  pt 2/1
+  can't be blocked by artifact creature
+  replace damage from artifact creature to this: prevent
+}

@@ -1,0 +1,6 @@
+card "Lithomancer's Focus" {
+  oracle_id a8a27a87-fc4c-44b5-9ba8-505bbf42164e
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2 until end of turn; prevent all damage to that target 1 this turn from colorless
+}

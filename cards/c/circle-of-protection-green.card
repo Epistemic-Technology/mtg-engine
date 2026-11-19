@@ -1,0 +1,6 @@
+card "Circle of Protection: Green" {
+  oracle_id 41b0f347-1398-4778-bf3f-4007d8a77162
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen green source to you: prevent next time
+}

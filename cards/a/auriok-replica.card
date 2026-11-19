@@ -1,0 +1,8 @@
+card "Auriok Replica" {
+  oracle_id 783a62c0-3b06-4250-a1cb-5cf4042611aa
+  cost {3}
+  type Artifact Creature — Cleric
+  pt 2/2
+  pt 2/2
+  activated {W}, sacrifice this: prevent all damage chosen source would deal to you this turn
+}

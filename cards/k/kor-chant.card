@@ -1,0 +1,6 @@
+card "Kor Chant" {
+  oracle_id 5b3f6817-5d7a-4d83-ad1d-df75b4e1970b
+  cost {2}{W}
+  type Instant
+  spell: this turn, replace damage from chosen source to target creature you control: redirect to another target creature
+}

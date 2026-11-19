@@ -1,0 +1,7 @@
+card "Rune of Protection: Blue" {
+  oracle_id 092dd5be-da62-4198-b7fa-0813f075047c
+  cost {1}{W}
+  type Enchantment
+  activated {W}: this turn, replace damage from chosen blue source to you: prevent next time
+  cycling {2}
+}

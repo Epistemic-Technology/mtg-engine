@@ -1,0 +1,8 @@
+card "Samite Pilgrim" {
+  oracle_id 542c5eaf-8b03-4406-a794-30c56b61d637
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  pt 1/1
+  label "Domain" activated {T}: prevent next count where domain damage to target creature this turn
+}

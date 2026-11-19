@@ -1337,6 +1337,19 @@ impl Templates {
                     ))
                 },
             ),
+            // CR 615.7, 609.7a: Circle of Protection.
+            (
+                r(
+                    r"^The next time an? (white |blue |black |red |green )?source of your choice would deal damage( to you)? this turn, prevent that damage$",
+                ),
+                |c, _| {
+                    let to = if cap(c, 2).is_empty() { "" } else { " to you" };
+                    Some(format!(
+                        "this turn, replace damage from chosen {}source{to}: prevent next time",
+                        cap(c, 1)
+                    ))
+                },
+            ),
             (r(r"^Players can't gain life this turn$"), |_, _| {
                 Some("players can't gain life this turn".to_string())
             }),
