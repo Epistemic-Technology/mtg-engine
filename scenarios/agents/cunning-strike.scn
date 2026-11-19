@@ -1,0 +1,11 @@
+scenario "Cunning Strike hits a creature and a player and draws" {
+  battlefield A: 3 "Island", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Cunning Strike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cunning Strike" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+  assert hand A count 1
+}

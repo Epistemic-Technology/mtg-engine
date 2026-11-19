@@ -1,0 +1,12 @@
+scenario "Cycle of Renewal trades a land for two basics" {
+  battlefield A: 3 "Forest"
+  hand A: "Cycle of Renewal"
+  library A: "Island", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cycle of Renewal"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Forest"
+  assert graveyard A contains "Forest"
+  assert battlefield A contains 2 "Island"
+  assert tapped newest A "Island"
+}

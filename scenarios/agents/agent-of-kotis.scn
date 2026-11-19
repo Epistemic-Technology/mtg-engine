@@ -1,0 +1,9 @@
+scenario "Agent of Kotis renews from the graveyard" {
+  battlefield A: 4 "Island", "Grizzly Bears"
+  graveyard A: "Agent of Kotis"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Agent of Kotis" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 2
+  assert exile A contains "Agent of Kotis"
+}

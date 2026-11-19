@@ -1,0 +1,7 @@
+card "Cirith Ungol Patrol" {
+  oracle_id c9610d33-4cef-4171-bbf4-48d720492d55
+  cost {4}{B}
+  type Creature — Orc Soldier
+  pt 4/5
+  activated {1}, {T}, sacrifice another creature: draw 1 card then create 1 "Food"
+}

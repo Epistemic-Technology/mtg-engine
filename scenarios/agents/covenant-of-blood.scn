@@ -1,0 +1,9 @@
+scenario "Covenant of Blood drains with convoke" {
+  battlefield A: 4 "Swamp", 3 "Grizzly Bears"
+  hand A: "Covenant of Blood"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Covenant of Blood" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+}

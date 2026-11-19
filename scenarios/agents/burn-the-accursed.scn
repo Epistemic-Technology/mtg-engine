@@ -1,0 +1,11 @@
+scenario "Burn the Accursed exiles the creature and hits its controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burn the Accursed"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burn the Accursed" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+  assert life B 18
+}

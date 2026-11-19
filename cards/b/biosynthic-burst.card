@@ -1,0 +1,6 @@
+card "Biosynthic Burst" {
+  oracle_id 3abd2342-f783-4871-ac78-1a54b35722c2
+  cost {1}{G}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature you control; target 1 gains reach, trample, indestructible; untap target 1
+}

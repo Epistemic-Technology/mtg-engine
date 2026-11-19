@@ -1,0 +1,8 @@
+card "Conclave Phalanx" {
+  oracle_id 5a1bebe9-c940-4fac-8572-0833808eaa55
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  keywords convoke
+  triggered when this enters: you gain count each creature you control life
+}

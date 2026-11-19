@@ -1,0 +1,15 @@
+scenario "Bone Harvest stacks creature cards and draws next upkeep" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Bone Harvest"
+  library A: "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bone Harvest" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard A lacks "Hill Giant"
+  assert hand A count 0
+  run_to turn 2 draw
+  assert hand A count 1
+  assert library A count 3
+}

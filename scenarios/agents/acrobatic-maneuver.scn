@@ -1,0 +1,21 @@
+scenario "Acrobatic Maneuver blinks a creature and draws" {
+  battlefield A: 3 "Plains", "Grizzly Bears" with 2 +1/+1
+  hand A: "Acrobatic Maneuver"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Acrobatic Maneuver" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 0
+  assert power "Grizzly Bears" 2
+  assert hand A count 1
+}
+
+scenario "Acrobatic Maneuver can't target an opponent's creature" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Acrobatic Maneuver"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Acrobatic Maneuver" targeting B "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Acrobatic Maneuver"
+}

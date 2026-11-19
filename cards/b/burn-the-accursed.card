@@ -1,0 +1,6 @@
+card "Burn the Accursed" {
+  oracle_id b5aae42b-3fde-4f10-b85e-882c528badef
+  cost {4}{R}
+  type Instant
+  spell: deal 5 damage to target creature and deal 2 damage to controller of that target 1; this turn, replace target 1 dies: exile
+}

@@ -1,0 +1,21 @@
+scenario "Death Bomb destroys a nonblack creature and drains its controller" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Death Bomb"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Death Bomb" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "Death Bomb needs a creature to sacrifice" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Death Bomb"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Death Bomb" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}

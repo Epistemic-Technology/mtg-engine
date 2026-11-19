@@ -1,0 +1,8 @@
+card "Death's-Head Buzzard" {
+  oracle_id 0dd73855-6a7a-4eb4-80e0-1509f9397e5a
+  cost {1}{B}{B}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  triggered when this dies: each creature gets -1/-1
+}

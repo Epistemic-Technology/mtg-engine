@@ -1,0 +1,23 @@
+scenario "Center Soul gives protection from the chosen color" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Center Soul"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Center Soul" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Center Soul"
+}
+
+scenario "Center Soul rebounds at the next upkeep" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Center Soul"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Center Soul" targeting "Grizzly Bears"
+  turn 3 upkeep A: cast "Center Soul" targeting "Grizzly Bears"
+  run_to turn 3 draw
+  assert graveyard A contains "Center Soul"
+}

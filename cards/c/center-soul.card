@@ -1,0 +1,7 @@
+card "Center Soul" {
+  oracle_id 686b44ec-3446-4e1f-a15f-9d8557db6d70
+  cost {1}{W}
+  type Instant
+  keywords rebound
+  spell: target creature you control gains protection from color of choice
+}

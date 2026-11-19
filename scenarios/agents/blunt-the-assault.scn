@@ -1,0 +1,10 @@
+scenario "Blunt the Assault gains life per creature and fogs combat" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Blunt the Assault"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant", "Serra Angel"
+  turn 2 declare_attackers A: cast "Blunt the Assault"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}

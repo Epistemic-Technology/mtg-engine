@@ -1,0 +1,9 @@
+scenario "Conclave Phalanx convokes and gains life per creature" {
+  battlefield A: 3 "Plains", 2 "Grizzly Bears"
+  hand A: "Conclave Phalanx"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conclave Phalanx"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Conclave Phalanx"
+  assert life A 23
+}

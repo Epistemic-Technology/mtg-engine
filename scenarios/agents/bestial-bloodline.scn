@@ -1,0 +1,18 @@
+scenario "Bestial Bloodline pumps the enchanted creature" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Bestial Bloodline"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bestial Bloodline" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "Bestial Bloodline returns from the graveyard" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Bestial Bloodline"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bestial Bloodline"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Bestial Bloodline"
+}

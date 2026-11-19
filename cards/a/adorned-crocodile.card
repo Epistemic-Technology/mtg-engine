@@ -1,0 +1,8 @@
+card "Adorned Crocodile" {
+  oracle_id fb49c7d2-d750-4676-b90e-76e7fae70a25
+  cost {4}{B}
+  type Creature — Crocodile
+  pt 5/3
+  triggered when this dies: create 1 "2/2 black Zombie Druid creature"
+  label "Renew" activated {B}, exile this from graveyard, sorcery: put 1 +1/+1 counter on target creature
+}

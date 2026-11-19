@@ -1,0 +1,7 @@
+card "Bane's Invoker" {
+  oracle_id daa47749-7a20-4e64-b476-a44eaeb4d844
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  label "Wind Walk" activated {8}: up to 2 target creature gets +2/+2 and gains flying until end of turn
+}

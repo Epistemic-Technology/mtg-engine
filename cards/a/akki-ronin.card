@@ -1,0 +1,7 @@
+card "Akki Ronin" {
+  oracle_id 4b4c76e1-c480-4d10-93d4-483ef2debc4b
+  cost {1}{R}
+  type Creature — Goblin Samurai
+  pt 1/3
+  triggered whenever Samurai or Warrior you control attacks alone: you may discard 1 card; if you do, draw 1 card
+}

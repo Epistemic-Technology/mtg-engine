@@ -1,0 +1,8 @@
+card "Abzan Devotee" {
+  oracle_id 3d02ee2f-b7bd-40b0-b9be-2420991b2be0
+  cost {1}{B}
+  type Creature — Dog Cleric
+  pt 2/1
+  activated {1}, once: add {W} or {B} or {G}
+  activated {2}{B}, from graveyard: return this to hand
+}

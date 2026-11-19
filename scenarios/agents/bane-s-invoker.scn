@@ -1,0 +1,19 @@
+scenario "Bane's Invoker gives two creatures +2/+2 and flying" {
+  battlefield A: 8 "Plains", "Bane's Invoker", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bane's Invoker" targeting "Bane's Invoker", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Bane's Invoker" 4
+  assert has "Grizzly Bears" flying
+  assert has "Bane's Invoker" flying
+}
+
+scenario "Bane's Invoker's pump ends at end of turn" {
+  battlefield A: 8 "Plains", "Bane's Invoker", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bane's Invoker" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" flying
+}

@@ -1,0 +1,7 @@
+card "Covenant of Blood" {
+  oracle_id 20ca6a15-ba88-4efd-b5bd-da5938e9a43e
+  cost {6}{B}
+  type Sorcery
+  keywords convoke
+  spell: deal 4 damage to any target and you gain 4 life
+}

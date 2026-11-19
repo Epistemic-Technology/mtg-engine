@@ -1,0 +1,8 @@
+card "City Pigeon" {
+  oracle_id ac8cae63-270c-4f73-b29b-50f8f2395fd9
+  cost {W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this leaves the battlefield: create 1 "Food"
+}

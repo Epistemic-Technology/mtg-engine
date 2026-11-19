@@ -1,0 +1,7 @@
+card "Agent of Kotis" {
+  oracle_id 584fe1e4-029d-43fe-8c9e-6995dd392d65
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  label "Renew" activated {3}{U}, exile this from graveyard, sorcery: put 2 +1/+1 counters on target creature
+}

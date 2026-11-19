@@ -1,0 +1,8 @@
+card "Bestial Bloodline" {
+  oracle_id a3ae6694-6314-42e2-bc12-d0e32d49b347
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  activated {4}{G}, from graveyard: return this to hand
+}

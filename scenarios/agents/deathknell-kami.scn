@@ -1,0 +1,10 @@
+scenario "Deathknell Kami pumps and is sacrificed at end step" {
+  battlefield A: 2 "Swamp", "Deathknell Kami"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Deathknell Kami"
+  run_to turn 1 postcombat_main
+  assert power "Deathknell Kami" 1
+  assert toughness "Deathknell Kami" 2
+  run_to turn 1 cleanup
+  assert graveyard A contains "Deathknell Kami"
+}

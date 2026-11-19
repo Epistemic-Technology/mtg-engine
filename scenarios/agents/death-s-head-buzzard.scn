@@ -1,0 +1,11 @@
+scenario "Death's-Head Buzzard shrinks all creatures when it dies" {
+  battlefield A: "Death's-Head Buzzard", "Hill Giant"
+  battlefield B: "Mountain", "Grizzly Bears"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Death's-Head Buzzard"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Death's-Head Buzzard"
+  assert power "Hill Giant" 2
+  assert power "Grizzly Bears" 1
+}

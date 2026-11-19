@@ -1,0 +1,16 @@
+scenario "Circle of the Land Druid mills four and recovers a land" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Mountain"
+  hand A: "Circle of the Land Druid"
+  hand B: "Shock"
+  library A: "Island", "Plains", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Circle of the Land Druid"
+  turn 1 postcombat_main B: cast "Shock" targeting "Circle of the Land Druid"
+  turn 1 postcombat_main A: trigger "Circle of the Land Druid" targeting "Island"
+  run_to turn 1 end
+  assert graveyard A contains "Circle of the Land Druid"
+  assert hand A contains "Island"
+  assert graveyard A contains "Swamp"
+  assert library A count 1
+}

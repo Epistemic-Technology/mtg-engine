@@ -1,0 +1,14 @@
+scenario "Beamsaw Prospector leaves a Lander that fetches a land" {
+  battlefield A: "Beamsaw Prospector", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Beamsaw Prospector"
+  turn 1 postcombat_main A: activate "Lander"
+  run_to turn 1 end
+  assert graveyard A contains "Beamsaw Prospector"
+  assert battlefield A lacks "Lander"
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+}

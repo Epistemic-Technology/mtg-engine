@@ -1,0 +1,30 @@
+scenario "Abzan Devotee returns from the graveyard to hand" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Abzan Devotee"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abzan Devotee"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Abzan Devotee"
+  assert graveyard A lacks "Abzan Devotee"
+}
+
+scenario "Abzan Devotee filters mana into green" {
+  battlefield A: "Abzan Devotee", "Swamp", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Abzan Devotee"
+  turn 1 A: choose green
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert tapped "Swamp"
+}
+
+scenario "Abzan Devotee can't return without enough mana" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Abzan Devotee"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Abzan Devotee"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Abzan Devotee"
+}

@@ -1,0 +1,9 @@
+card "Cerebral Confiscation" {
+  oracle_id 1ea71ea2-65ca-4907-b857-dbd1ba8efacd
+  cost {2}{B}
+  type Sorcery
+  choose one {
+    mode: target opponent discards 2 cards
+    mode: target opponent reveals hand discarding nonland card
+  }
+}

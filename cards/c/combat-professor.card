@@ -1,0 +1,8 @@
+card "Combat Professor" {
+  oracle_id 1b59665f-23c7-4df9-8e71-f9b1a419063b
+  cost {3}{W}
+  type Creature — Bird Cleric
+  pt 2/3
+  keywords flying
+  triggered at beginning of your combat: target creature you control gets +1/+0 and gains vigilance until end of turn
+}

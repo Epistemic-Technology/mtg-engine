@@ -1,0 +1,21 @@
+scenario "Akki Ronin loots when it attacks alone" {
+  battlefield A: "Akki Ronin"
+  hand A: "Mountain"
+  library A: "Shock", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Akki Ronin"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Mountain"
+  assert hand A contains "Shock"
+}
+
+scenario "Akki Ronin doesn't trigger when attacking with another creature" {
+  battlefield A: "Akki Ronin", "Grizzly Bears"
+  hand A: "Mountain"
+  library A: "Shock", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Akki Ronin", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Mountain"
+  assert graveyard A lacks "Mountain"
+}

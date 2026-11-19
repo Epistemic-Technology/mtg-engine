@@ -1,0 +1,9 @@
+scenario "Combat Professor pumps and grants vigilance at combat" {
+  battlefield A: "Combat Professor", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Combat Professor" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert untapped "Grizzly Bears"
+}

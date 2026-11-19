@@ -1,0 +1,4 @@
+token "Lander" {
+  type Artifact — Lander
+  activated {2}, {T}, sacrifice this: search basic land card to battlefield tapped
+}

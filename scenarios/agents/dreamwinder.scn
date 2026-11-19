@@ -1,0 +1,19 @@
+scenario "Dreamwinder can't attack without a defending Island" {
+  battlefield A: "Dreamwinder"
+  battlefield B: "Mountain"
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "Dreamwinder"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}
+
+scenario "Dreamwinder makes a defending land an Island and attacks" {
+  battlefield A: 2 "Island", "Dreamwinder"
+  battlefield B: "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Dreamwinder" sacrificing "Island" targeting "Mountain"
+  turn 2 A: attack "Dreamwinder"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Island"
+  assert life B 16
+}

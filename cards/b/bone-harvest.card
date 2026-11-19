@@ -1,0 +1,9 @@
+card "Bone Harvest" {
+  oracle_id 0cc38d20-5ae8-413a-9f26-ff13cd92f24c
+  cost {2}{B}
+  type Instant
+  spell {
+    put any number of target creature card from your graveyard on top of library
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

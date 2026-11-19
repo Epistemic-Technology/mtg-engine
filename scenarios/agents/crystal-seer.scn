@@ -1,0 +1,18 @@
+scenario "Crystal Seer returns to its owner's hand" {
+  battlefield A: 5 "Island", "Crystal Seer"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Crystal Seer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Crystal Seer"
+}
+
+scenario "Crystal Seer looks at the top four when it enters" {
+  battlefield A: 5 "Island"
+  hand A: "Crystal Seer"
+  library A: "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Crystal Seer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Crystal Seer"
+  assert library A count 5
+}

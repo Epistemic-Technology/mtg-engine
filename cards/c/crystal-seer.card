@@ -1,0 +1,8 @@
+card "Crystal Seer" {
+  oracle_id 58838588-13d5-4948-babf-d09cc59d76a1
+  cost {4}{U}
+  type Creature — Vedalken Wizard
+  pt 2/2
+  triggered when this enters: look at top 4
+  activated {4}{U}: return this to hand
+}

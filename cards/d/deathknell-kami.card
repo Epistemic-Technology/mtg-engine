@@ -1,0 +1,9 @@
+card "Deathknell Kami" {
+  oracle_id 4d324f8c-2139-4910-b3c3-731a2e820d6b
+  cost {1}{B}
+  type Creature — Spirit
+  pt 0/1
+  keywords flying
+  activated {2}: this gets +1/+1 until end of turn; delayed this: sacrifice it at beginning of the next end step
+  soulshift 1
+}

@@ -1,0 +1,7 @@
+card "Death Bomb" {
+  oracle_id e323d468-def5-4090-af5b-19481289168f
+  cost {3}{B}
+  type Instant
+  additional cost sacrifice creature
+  spell: destroy target nonblack creature without regeneration; its controller loses 2 life
+}

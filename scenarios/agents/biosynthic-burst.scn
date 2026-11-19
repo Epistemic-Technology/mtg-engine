@@ -1,0 +1,12 @@
+scenario "Biosynthic Burst counters, grants keywords, and untaps" {
+  battlefield A: 2 "Forest", "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  hand A: "Biosynthic Burst"
+  turn 1 A: cast "Biosynthic Burst" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert untapped "Grizzly Bears"
+  assert has "Grizzly Bears" reach
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" indestructible
+}

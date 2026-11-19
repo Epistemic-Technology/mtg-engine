@@ -1,0 +1,20 @@
+scenario "Cerebral Confiscation makes an opponent discard two" {
+  battlefield A: 3 "Swamp"
+  hand A: "Cerebral Confiscation"
+  hand B: "Forest", "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cerebral Confiscation" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "Cerebral Confiscation takes a nonland card" {
+  battlefield A: 3 "Swamp"
+  hand A: "Cerebral Confiscation"
+  hand B: "Forest", "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cerebral Confiscation" mode 2 targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B contains "Forest"
+  assert graveyard B contains "Lightning Bolt"
+}

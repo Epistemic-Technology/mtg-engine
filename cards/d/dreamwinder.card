@@ -1,0 +1,8 @@
+card "Dreamwinder" {
+  oracle_id eb70d548-9769-4569-ae79-cddc0e623aef
+  cost {3}{U}
+  type Creature — Serpent
+  pt 4/3
+  can't attack unless defending player controls Island
+  activated {U}, sacrifice Island: target land becomes Island
+}

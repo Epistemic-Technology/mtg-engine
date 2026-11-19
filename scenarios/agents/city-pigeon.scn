@@ -1,0 +1,10 @@
+scenario "City Pigeon leaves a Food when it dies" {
+  battlefield A: "City Pigeon"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "City Pigeon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "City Pigeon"
+  assert battlefield A contains "Food"
+}

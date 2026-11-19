@@ -1,0 +1,7 @@
+card "Battle Plan" {
+  oracle_id 09b4fba6-d943-49e4-9f9e-a74fcbabe83f
+  cost {3}{R}
+  type Enchantment
+  triggered at beginning of your combat: target creature you control gets +2/+0 until end of turn
+  basic landcycling {1}{R}
+}

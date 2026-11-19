@@ -1,0 +1,7 @@
+card "Bagel and Schmear" {
+  oracle_id 1389c9fa-fec2-4212-a7aa-6dfb318dc202
+  cost {1}
+  type Artifact — Food
+  label "Share" activated {W}, {T}, sacrifice this, sorcery: put 1 +1/+1 counter on up to 1 target creature; draw 1 card
+  label "Nosh" activated {2}, {T}, sacrifice this: you gain 3 life and draw 1 card
+}

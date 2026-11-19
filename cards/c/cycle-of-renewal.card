@@ -1,0 +1,6 @@
+card "Cycle of Renewal" {
+  oracle_id 77eda626-5cef-496d-b291-cfa1ee6fc1fb
+  cost {2}{G}
+  type Instant — Lesson
+  spell: you sacrifices 1 land; search up to 2 basic land card to battlefield tapped
+}

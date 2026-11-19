@@ -1,0 +1,18 @@
+scenario "Blazing Blade Askari becomes colorless" {
+  battlefield A: 2 "Mountain", "Blazing Blade Askari"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blazing Blade Askari"
+  run_to turn 1 postcombat_main
+  assert is not "Blazing Blade Askari" red
+}
+
+scenario "Blazing Blade Askari's flanking shrinks a blocker" {
+  battlefield A: "Blazing Blade Askari"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Blazing Blade Askari"
+  turn 2 B: block "Blazing Blade Askari" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Blazing Blade Askari"
+}

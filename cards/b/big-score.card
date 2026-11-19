@@ -1,0 +1,7 @@
+card "Big Score" {
+  oracle_id a5cbd257-c836-493e-bb1a-76242619dea2
+  cost {3}{R}
+  type Instant
+  additional cost discard 1 card
+  spell: draw 2 cards and create 2 "Treasure"
+}

@@ -1,0 +1,6 @@
+card "Blunt the Assault" {
+  oracle_id dccd0533-fda0-41ff-b540-c4f1bb32fc95
+  cost {3}{G}
+  type Instant
+  spell: you gain count each creature on battlefield life; prevent all combat damage this turn
+}

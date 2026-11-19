@@ -1,0 +1,8 @@
+card "Armadillo Cloak" {
+  oracle_id 15397a59-70a8-441f-abf7-230405a1602b
+  cost {1}{G}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has trample
+  triggered whenever enchanted deals damage: you gain that much life
+}

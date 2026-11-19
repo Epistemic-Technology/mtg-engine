@@ -1,0 +1,8 @@
+card "Circle of the Land Druid" {
+  oracle_id b6cc351e-6afd-4427-998d-e06e430cd0e6
+  cost {1}{G}
+  type Creature — Gnome Druid
+  pt 1/1
+  triggered when this enters: you may mill 4 cards
+  label "Natural Recovery" triggered when this dies: return target land card from your graveyard to hand
+}

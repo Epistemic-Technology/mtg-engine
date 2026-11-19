@@ -1,0 +1,21 @@
+scenario "Basilica Stalker gains life and surveils on combat damage" {
+  battlefield A: "Basilica Stalker"
+  library A: "Plains", "Island"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Basilica Stalker"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 21
+  assert has "Basilica Stalker" flying
+}
+
+scenario "Basilica Stalker can be cast face down and turned up" {
+  battlefield A: 8 "Swamp"
+  hand A: "Basilica Stalker"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Basilica Stalker" face_down
+  turn 1 postcombat_main A: unmorph "Basilica Stalker"
+  run_to turn 1 end
+  assert battlefield A contains "Basilica Stalker"
+  assert power "Basilica Stalker" 3
+}

@@ -1,0 +1,12 @@
+scenario "Armadillo Cloak pumps and gains life on damage" {
+  battlefield A: 2 "Forest", "Plains", "Grizzly Bears"
+  hand A: "Armadillo Cloak"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Armadillo Cloak" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert life B 16
+  assert life A 24
+}

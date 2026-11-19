@@ -1,0 +1,8 @@
+card "Blazing Blade Askari" {
+  oracle_id a298b2aa-02e3-422a-8804-861fd6bb1068
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords flanking
+  activated {2}: this becomes colorless
+}

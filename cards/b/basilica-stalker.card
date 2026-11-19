@@ -1,0 +1,9 @@
+card "Basilica Stalker" {
+  oracle_id e335485a-80fc-40d4-8be6-7eabf2bab571
+  cost {5}{B}
+  type Creature — Vampire Detective
+  pt 3/4
+  keywords flying
+  triggered whenever this deals combat damage to a player: you gain 1 life and surveil 1
+  disguise {4}{B}
+}
