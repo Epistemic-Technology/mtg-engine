@@ -1,0 +1,9 @@
+card "Galvanic Blast" {
+  oracle_id d211c03a-03cd-40c5-b7c8-ada352fd01a6
+  cost {R}
+  type Instant
+  spell {
+    deal 2 damage to any target
+    label "Metalcraft" deal 4 damage instead if metalcraft
+  }
+}

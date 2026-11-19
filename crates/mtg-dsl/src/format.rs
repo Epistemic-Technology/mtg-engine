@@ -384,6 +384,9 @@ impl Fmt {
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, effect: &Effect, t: &[Target]) -> String {
         match effect {
+            Effect::DealDamage { amount, to } if to.is_empty() => {
+                format!("deal {} damage", num(*amount))
+            }
             Effect::DealDamage { amount, to } => {
                 format!("deal {} damage to {}", num(*amount), self.recipients(to, t))
             }
@@ -854,6 +857,33 @@ impl Fmt {
                 format!("if {}, {}", static_cond(c), self.line(inner, t))
             }
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::Instead {
+                cond,
+                wording,
+                label,
+                effects,
+            } => {
+                let cond = match cond {
+                    crate::ast::InsteadCond::Kicked => "kicked".to_string(),
+                    crate::ast::InsteadCond::Static(c) => static_cond(c),
+                    crate::ast::InsteadCond::Target { n, that, filter: f } => format!(
+                        "{}target {} is {}",
+                        if *that { "that " } else { "" },
+                        n + 1,
+                        filter(f)
+                    ),
+                };
+                let body = self.line(effects, t);
+                let text = match wording {
+                    crate::ast::InsteadWording::Lead => format!("if {cond}, instead {body}"),
+                    crate::ast::InsteadWording::Trail => format!("if {cond}, {body} instead"),
+                    crate::ast::InsteadWording::After => format!("{body} instead if {cond}"),
+                };
+                match label {
+                    Some(l) => format!("label \"{l}\" {text}"),
+                    None => text,
+                }
+            }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
             Effect::UnlessPays {
                 payer,
@@ -1737,6 +1767,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
+        StaticCond::Kicked => unreachable!("only in `kicked with`"),
+        StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
+        StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })
         }
@@ -2105,6 +2138,12 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     format!("escapes with {n} +1/+1 counters")
                 }
                 crate::ast::Mechanic::Bloodthirst(n) => format!("bloodthirst {n}"),
+                crate::ast::Mechanic::KickedWith(n, ks) if ks.is_empty() => {
+                    format!("kicked with {n} +1/+1 counters")
+                }
+                crate::ast::Mechanic::KickedWith(n, ks) => {
+                    format!("kicked with {n} +1/+1 counters and {}", keywords(ks))
+                }
                 crate::ast::Mechanic::Megamorph(c) => format!("megamorph {c}"),
                 crate::ast::Mechanic::Disguise(c) => format!("disguise {c}"),
             };

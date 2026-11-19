@@ -1,0 +1,7 @@
+card "Elder Cathar" {
+  oracle_id ba9ac0a9-735d-4bca-9d24-586aca963872
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered when this dies: put 1 +1/+1 counters on target creature you control; if that target 1 is Human, put 2 +1/+1 counters on target 1 instead
+}

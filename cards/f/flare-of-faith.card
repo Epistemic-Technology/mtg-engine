@@ -1,0 +1,6 @@
+card "Flare of Faith" {
+  oracle_id 13ebe447-1f8f-4b12-9e35-9d334a863c19
+  cost {1}{W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is Human, instead target 1 gets +3/+3 and gains indestructible
+}

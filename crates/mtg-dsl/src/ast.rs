@@ -582,6 +582,10 @@ pub enum Mechanic {
     Escape(ManaCost, u32),
     /// `escapes with 2 +1/+1 counters`.
     EscapesWith(u32),
+    /// `kicked with 2 +1/+1 counters [and first strike]`: "If this
+    /// creature was kicked, it enters with two +1/+1 counters on it [and
+    /// with first strike]." (CR 702.33c, 614.1c).
+    KickedWith(u32, Vec<Keyword>),
     /// CR 702.43: `modular 2`.
     Modular(u32),
     /// CR 702.24: `cumulative upkeep {1}`.
@@ -658,6 +662,14 @@ pub enum StaticCond {
     OpponentDamagedThisTurn,
     /// Cast with escape (internal: "escapes with").
     Escaped,
+    /// Cast with kicker (internal: `kicked with`).
+    Kicked,
+    /// `land entered this turn` (landfall): "you had a land enter the
+    /// battlefield under your control this turn".
+    LandEnteredThisTurn,
+    /// `drew 2 cards this turn`: "you've drawn two or more cards this
+    /// turn".
+    CardsDrawnThisTurn(u32),
     /// `hand 1 or less`: "you have one or fewer cards in hand"; `hand 0 or
     /// less`: "you have no cards in hand".
     CardsInHand {
@@ -670,6 +682,33 @@ pub enum StaticCond {
 pub struct Mode {
     pub targets: Vec<Target>,
     pub effects: Vec<Sentence>,
+}
+
+/// What an `instead` sentence checks.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum InsteadCond {
+    /// `kicked`: "this spell was kicked".
+    Kicked,
+    Static(StaticCond),
+    /// `target 1 is Human` ("it's a Human"), `that target 1 is Human`
+    /// ("that creature is a Human"): the target as it resolves.
+    Target {
+        n: usize,
+        that: bool,
+        filter: Filter,
+    },
+}
+
+/// Where "instead" and the condition print.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum InsteadWording {
+    /// `if kicked, instead ...`: "If this spell was kicked, instead ...".
+    Lead,
+    /// `if kicked, ... instead`: "If this spell was kicked, ... instead."
+    Trail,
+    /// `... instead if hand 0 or less`: "... instead if you have no cards
+    /// in hand."
+    After,
 }
 
 /// Effects that print as one sentence ("target player loses 1 life and you
@@ -1259,6 +1298,16 @@ pub enum Effect {
     /// `if you control Treefolk, draw 1 card`: a static condition,
     /// judged as it resolves.
     IfCondition(StaticCond, Vec<Sentence>),
+    /// `if kicked, deal 4 damage instead`: the sentence before it happens
+    /// unless the condition holds, and these effects happen instead
+    /// (CR 608.2c). Always a sentence of its own, after the one it
+    /// replaces; an ability word (`label "Hellbent"`) may precede it.
+    Instead {
+        cond: InsteadCond,
+        wording: InsteadWording,
+        label: Option<String>,
+        effects: Vec<Sentence>,
+    },
     /// `pay {2}`, `pay 2 life` (inside `you may`).
     Pay {
         mana: ManaCost,

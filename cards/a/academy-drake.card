@@ -1,0 +1,9 @@
+card "Academy Drake" {
+  oracle_id 65f3ebeb-1ca5-4923-b681-032579991c8a
+  cost {2}{U}
+  type Creature — Drake
+  pt 2/2
+  keywords flying
+  kicker {4}
+  kicked with 2 +1/+1 counters
+}

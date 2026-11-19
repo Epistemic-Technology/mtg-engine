@@ -1,0 +1,9 @@
+card "Stronghold Confessor" {
+  oracle_id e7c200a9-4793-44c8-ba8d-6298dc83bbac
+  cost {B}
+  type Creature — Human Cleric
+  pt 1/1
+  keywords menace
+  kicker {3}
+  kicked with 2 +1/+1 counters
+}

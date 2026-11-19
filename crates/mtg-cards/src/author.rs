@@ -2431,6 +2431,27 @@ impl Builder<'_> {
                 .push(format!("escapes with {n} +1/+1 counters"));
             return Ok(());
         }
+        // "If this creature was kicked, it enters with two +1/+1 counters
+        // on it [and with haste]." (CR 702.33c).
+        if let Some(c) = Regex::new(
+            r"^If this creature was kicked, it enters with (an?|\w+) \+1/\+1 counters? on it(?: and with ([a-z ]+))?\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let n = if matches!(cap(&c, 1), "a" | "an") {
+                "1".to_string()
+            } else {
+                number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?
+            };
+            let with = c
+                .get(2)
+                .map(|k| format!(" and {}", k.as_str()))
+                .unwrap_or_default();
+            self.statements
+                .push(format!("kicked with {n} +1/+1 counters{with}"));
+            return Ok(());
+        }
         if let Some(c) = Regex::new(r"^Suspend (\d+)\u{2014}((?:\{[0-9WUBRGCX/]+\})+)$")
             .unwrap()
             .captures(line)

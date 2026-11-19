@@ -1,0 +1,9 @@
+card "Tomb Hex" {
+  oracle_id 4b3bc59c-5439-4ec8-b25e-7493fa1cd3fd
+  cost {2}{B}
+  type Instant
+  spell {
+    target creature gets -2/-2
+    label "Landfall" if land entered this turn, that target 1 gets -4/-4 instead
+  }
+}

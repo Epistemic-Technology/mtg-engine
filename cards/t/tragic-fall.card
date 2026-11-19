@@ -1,0 +1,9 @@
+card "Tragic Fall" {
+  oracle_id 1b7e325d-24ee-42e3-b06f-6c91ec5280c3
+  cost {1}{B}
+  type Instant
+  spell {
+    target creature gets -3/-3
+    label "Hellbent" that target 1 gets -13/-13 instead if hand 0 or less
+  }
+}

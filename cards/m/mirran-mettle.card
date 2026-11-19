@@ -1,0 +1,9 @@
+card "Mirran Mettle" {
+  oracle_id 35506b6b-6476-4830-9baa-4051c18322f0
+  cost {G}
+  type Instant
+  spell {
+    target creature gets +2/+2
+    label "Metalcraft" that target 1 gets +4/+4 instead if metalcraft
+  }
+}

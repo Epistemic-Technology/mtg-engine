@@ -199,6 +199,7 @@ impl GameState {
         let characteristics = self
             .characteristics(id)
             .expect("moving an object that exists");
+        let characteristics_is_land = characteristics.is_land();
         self.remove_from_zone_list(id);
         let old = self.objects.remove(id).expect("object exists");
         if old.zone == Zone::Battlefield && self.pool.is_face_down(old.def) {
@@ -292,6 +293,11 @@ impl GameState {
             self.count_sources(old_flags, self.pool.get(old.def).is_legendary(), false);
         }
         if to == Zone::Battlefield {
+            if characteristics_is_land {
+                // Landfall: "you had a land enter the battlefield under
+                // your control this turn".
+                self.lands_entered_this_turn |= 1 << controller.index().min(7);
+            }
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
             if self.pool.is_face_down(def) {

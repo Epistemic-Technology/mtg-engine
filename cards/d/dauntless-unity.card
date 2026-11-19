@@ -1,0 +1,7 @@
+card "Dauntless Unity" {
+  oracle_id dc665ddc-4326-4860-94ba-c40ced8b0af6
+  cost {1}{W}
+  type Instant
+  kicker {1}{W}
+  spell: each creature you control gets +1/+1; if kicked, each creature you control gets +2/+1 instead
+}

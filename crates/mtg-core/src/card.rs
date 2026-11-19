@@ -1397,6 +1397,15 @@ pub enum StaticCondition {
         n: u32,
         at_most: bool,
     },
+    /// The entering or resolving object was kicked (CR 702.33c): "If this
+    /// creature was kicked, it enters with ..." and the abilities it then
+    /// has.
+    Kicked,
+    /// Landfall: "you had a land enter the battlefield under your control
+    /// this turn".
+    LandEnteredThisTurn,
+    /// "you've drawn two or more cards this turn".
+    CardsDrawnThisTurn(u32),
 }
 
 /// Kinds of counters (CR 122).
@@ -2060,6 +2069,14 @@ pub enum Effect {
     /// "If you control a Treefolk, [these]": the pool's `n`th static
     /// condition, judged for the controller as the effect resolves.
     IfCondition(u16, Vec<Effect>),
+    /// "[base]. If this spell was kicked, [alt] instead." (CR 608.2c:
+    /// later text modifies the earlier instruction; not a replacement
+    /// effect). Exactly one list happens, chosen as it resolves.
+    Instead {
+        cond: EffectCond,
+        base: Vec<Effect>,
+        alt: Vec<Effect>,
+    },
     /// "has base power and toughness N/N until end of turn" (layer 7b).
     SetBasePt {
         to: Recipient,
@@ -2220,6 +2237,7 @@ impl Effect {
                 | Effect::IfYouDo(_)
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
+                | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
@@ -2249,6 +2267,18 @@ impl Effect {
                 | Effect::Choose(_)
         )
     }
+}
+
+/// What an `Effect::Instead` checks as it resolves.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum EffectCond {
+    /// "If this spell was kicked" (CR 702.33c).
+    Kicked,
+    /// The pool's `n`th static condition, judged for the controller.
+    Static(u16),
+    /// "If it's a Human": the `n`th target, or as it last existed if it
+    /// has left (CR 608.2h).
+    Target { n: u8, filter: Box<ObjFilter> },
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -2998,6 +3028,11 @@ impl AbilityDef {
             | Effect::UnlessPays { effects: inner, .. } = e
             {
                 for i in inner {
+                    walk(i, out);
+                }
+            }
+            if let Effect::Instead { base, alt, .. } = e {
+                for i in base.iter().chain(alt) {
                     walk(i, out);
                 }
             }

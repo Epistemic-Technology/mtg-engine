@@ -1,0 +1,8 @@
+card "Duskwalker" {
+  oracle_id 689f8696-dd13-4e1e-bdbc-3794c524f423
+  cost {B}
+  type Creature — Human Minion
+  pt 1/1
+  kicker {3}{B}
+  kicked with 2 +1/+1 counters and fear
+}

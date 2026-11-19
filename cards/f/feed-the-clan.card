@@ -1,0 +1,9 @@
+card "Feed the Clan" {
+  oracle_id f70f1f2e-7277-4bc9-b0bb-b44a1da2c62f
+  cost {1}{G}
+  type Instant
+  spell {
+    you gain 5 life
+    label "Ferocious" you gain 10 life instead if you control creature with power 4 or greater
+  }
+}

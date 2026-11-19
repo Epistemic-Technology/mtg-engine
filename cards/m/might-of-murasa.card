@@ -1,0 +1,7 @@
+card "Might of Murasa" {
+  oracle_id 902eb71f-62b3-40cb-816b-f6b7e92e91e7
+  cost {1}{G}
+  type Instant
+  kicker {2}{G}
+  spell: target creature gets +3/+3; if kicked, that target 1 gets +5/+5 instead
+}

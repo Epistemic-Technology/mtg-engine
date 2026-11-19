@@ -1,0 +1,10 @@
+card "Viashino Branchrider" {
+  oracle_id 50fcb431-626c-4db5-aa2c-445f3b81e7fa
+  cost {R}
+  type Creature — Lizard Warrior
+  pt 1/1
+  keywords haste
+  kicker {2}{G}
+  kicked with 2 +1/+1 counters
+  activated {2}{R}: this gets +2/+0
+}

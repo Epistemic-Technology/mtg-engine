@@ -1,0 +1,9 @@
+card "Kavu Aggressor" {
+  oracle_id 84c00644-d0e2-418b-b931-4e972ecb3366
+  cost {2}{R}
+  type Creature — Kavu
+  pt 3/2
+  keywords can't block
+  kicker {4}
+  kicked with 1 +1/+1 counters
+}

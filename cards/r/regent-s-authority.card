@@ -1,0 +1,6 @@
+card "Regent's Authority" {
+  oracle_id 54402930-84ea-4c3e-9880-ca631e47485f
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is enchantment creature or legendary creature, instead put 1 +1/+1 counters on target 1 and target 1 gets +1/+1
+}

@@ -355,6 +355,14 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }
         StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
+        StaticCondition::LandEnteredThisTurn => {
+            state.lands_entered_this_turn & (1 << you.index().min(7)) != 0
+        }
+        // Fixed as the permanent enters (CR 702.33c), so no cache bump.
+        StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
+        StaticCondition::CardsDrawnThisTurn(n) => {
+            u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
+        }
         StaticCondition::OpponentDamagedThisTurn => state
             .players_in_game()
             .any(|p| p != you && state.damaged_this_turn & (1 << p.index().min(7)) != 0),

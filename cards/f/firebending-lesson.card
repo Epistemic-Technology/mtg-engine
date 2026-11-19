@@ -1,0 +1,7 @@
+card "Firebending Lesson" {
+  oracle_id a9282f91-638e-414b-8b3d-9a99e30aec96
+  cost {R}
+  type Instant — Lesson
+  kicker {4}
+  spell: deal 2 damage to target creature; if kicked, deal 5 damage to that target 1 instead
+}

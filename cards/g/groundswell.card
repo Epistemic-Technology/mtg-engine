@@ -1,0 +1,9 @@
+card "Groundswell" {
+  oracle_id ddbacb74-1f98-4607-a92e-d14973b9d0ef
+  cost {G}
+  type Instant
+  spell {
+    target creature gets +2/+2
+    label "Landfall" if land entered this turn, that target 1 gets +4/+4 instead
+  }
+}

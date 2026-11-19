@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
     CdaCount as CoreCdaCount, ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost,
-    Effect as CoreEffect, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
+    Effect as CoreEffect, EffectCond, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
     Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
     SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
     TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
@@ -16,8 +16,9 @@ use mtg_core::mana::{Color, ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Filter, Kind, Mechanic, Mod,
-    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Filter, InsteadCond, Kind,
+    Mechanic, Mod, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target,
+    Trigger, TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -333,6 +334,19 @@ impl Compiler<'_> {
             }
             let compiled = self.ability(a)?;
             b = b.ability(compiled);
+            // "... and with first strike": abilities the permanent has as
+            // long as it was kicked (fixed as it enters, CR 702.33c).
+            if let Ability::Mechanic(Mechanic::KickedWith(_, ks)) = a
+                && !ks.is_empty()
+            {
+                b = b.ability(AbilityDef::Static(StaticAbility {
+                    affected: mtg_core::card::ObjFilter::this(),
+                    parts: vec![Modification::AddKeywords(KeywordSet::of(
+                        ks.iter().copied(),
+                    ))],
+                    condition: Some(StaticCondition::Kicked),
+                }));
+            }
         }
         if let Some(x) = &card.except {
             let mut abilities = Vec::new();
@@ -457,6 +471,9 @@ impl Compiler<'_> {
             StaticCond::CreatureDiedThisTurn => StaticCondition::CreatureDiedThisTurn,
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
             StaticCond::Escaped => StaticCondition::Escaped,
+            StaticCond::Kicked => StaticCondition::Kicked,
+            StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
+            StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -583,10 +600,36 @@ impl Compiler<'_> {
 
     fn sentences(&mut self, ss: &[Sentence]) -> Result<Vec<CoreEffect>, CompileError> {
         let mut out = Vec::new();
+        // Where the previous sentence's effects start, and that sentence.
+        let mut prev: Option<(usize, &Sentence)> = None;
         for s in ss {
+            if let [Effect::Instead { cond, effects, .. }] = s.effects.as_slice() {
+                // CR 608.2c: the sentence before happens unless the
+                // condition holds; these happen instead.
+                let Some((start, before)) = prev.take() else {
+                    return self.err("an `instead` sentence needs a sentence before it");
+                };
+                let base = out.split_off(start);
+                let alt = self.sentences(&same_damage_recipients(effects, before))?;
+                let cond = match cond {
+                    InsteadCond::Kicked => EffectCond::Kicked,
+                    InsteadCond::Static(c) => {
+                        let c = self.static_cond(c);
+                        EffectCond::Static(self.pool.intern_condition(c))
+                    }
+                    InsteadCond::Target { n, filter, .. } => EffectCond::Target {
+                        n: u8::try_from(*n).unwrap_or(u8::MAX),
+                        filter: Box::new(self.filter(filter)),
+                    },
+                };
+                out.push(CoreEffect::Instead { cond, base, alt });
+                continue;
+            }
+            let start = out.len();
             for e in &s.effects {
                 self.effect(e, &mut out)?;
             }
+            prev = Some((start, s));
         }
         Ok(out)
     }
@@ -635,6 +678,9 @@ impl Compiler<'_> {
             Self::recipient(&groups, many, x)
         };
         match e {
+            Effect::DealDamage { to, .. } if to.is_empty() => {
+                return self.err("`deal N damage` without `to` only in an `instead` sentence");
+            }
             Effect::DealDamage { amount, to } => {
                 for t in to {
                     out.push(CoreEffect::DealDamage {
@@ -929,6 +975,9 @@ impl Compiler<'_> {
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
+            }
+            Effect::Instead { .. } => {
+                return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
             Effect::Pay { mana, life } => out.push(CoreEffect::Pay {
                 mana: mana.clone(),
@@ -1443,14 +1492,14 @@ impl Compiler<'_> {
             Ability::Protection(f) => AbilityDef::Protection(self.filter(f)),
             Ability::Mechanic(m) => match m {
                 Mechanic::Toxic(n) => AbilityDef::Toxic(*n),
-                Mechanic::Bloodthirst(n) | Mechanic::EscapesWith(n) => {
-                    let cond =
-                        self.pool
-                            .intern_condition(if matches!(m, Mechanic::EscapesWith(_)) {
-                                StaticCondition::Escaped
-                            } else {
-                                StaticCondition::OpponentDamagedThisTurn
-                            });
+                Mechanic::Bloodthirst(n)
+                | Mechanic::EscapesWith(n)
+                | Mechanic::KickedWith(n, _) => {
+                    let cond = self.pool.intern_condition(match m {
+                        Mechanic::EscapesWith(_) => StaticCondition::Escaped,
+                        Mechanic::KickedWith(..) => StaticCondition::Kicked,
+                        _ => StaticCondition::OpponentDamagedThisTurn,
+                    });
                     AbilityDef::Replacement(ReplacementAbility {
                         replaces: mtg_core::card::Replaces::Enters,
                         replacement: mtg_core::card::Replacement::EnterWithCountersIf {
@@ -1683,6 +1732,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
         | Mechanic::Entwine(_)
         | Mechanic::Escape(..)
         | Mechanic::EscapesWith(_)
+        | Mechanic::KickedWith(..)
         | Mechanic::Buyback(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)
@@ -1719,4 +1769,26 @@ impl From<Mana> for Ability {
     fn from(m: Mana) -> Self {
         Ability::Mana(vec![m])
     }
+}
+
+/// `deal 4 damage instead`: damage without a recipient goes where the
+/// sentence before dealt its damage ("it deals 4 damage instead").
+fn same_damage_recipients(effects: &[Sentence], before: &Sentence) -> Vec<Sentence> {
+    let earlier = before.effects.iter().find_map(|e| match e {
+        Effect::DealDamage { to, .. } => Some(to.clone()),
+        _ => None,
+    });
+    let mut out = effects.to_vec();
+    if let Some(earlier) = earlier {
+        for s in &mut out {
+            for e in &mut s.effects {
+                if let Effect::DealDamage { to, .. } = e
+                    && to.is_empty()
+                {
+                    to.clone_from(&earlier);
+                }
+            }
+        }
+    }
+    out
 }

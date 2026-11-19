@@ -1,0 +1,7 @@
+card "Field Research" {
+  oracle_id bb377cf8-29ee-489e-86a9-93f4dc2ae02e
+  cost {2}{U}
+  type Sorcery
+  kicker {2}{U}
+  spell: draw 2 cards; if kicked, draw 3 cards instead
+}
