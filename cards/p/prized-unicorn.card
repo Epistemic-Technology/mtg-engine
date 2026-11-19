@@ -1,0 +1,7 @@
+card "Prized Unicorn" {
+  oracle_id 766787ef-654a-4544-b5d7-d2f96949edf1
+  cost {3}{G}
+  type Creature — Unicorn
+  pt 2/2
+  keywords lure
+}

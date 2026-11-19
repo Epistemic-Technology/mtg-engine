@@ -1,0 +1,309 @@
+# Blocking requirements and allowances: lures, "must be blocked if able",
+# "blocks each combat if able" (CR 509.1c: a declaration must obey as many
+# requirements as possible without breaking a restriction), and creatures
+# that block several attackers (CR 509.1a) and divide their damage among
+# them (CR 510.1d).
+
+scenario "lure: Prized Unicorn's blocker can't block another attacker instead" {
+  battlefield A: "Prized Unicorn", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Prized Unicorn", "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Prized Unicorn"
+  assert battlefield A contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "lure: every creature able to block Taunting Elf blocks it" {
+  battlefield A: "Taunting Elf", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  turn 1 A: attack "Taunting Elf", "Grizzly Bears"
+  illegal turn 1 B: block "Taunting Elf" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Taunting Elf"
+  assert life B 18
+}
+
+scenario "lure: both blockers on Taunting Elf is legal" {
+  battlefield A: "Taunting Elf", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  turn 1 A: attack "Taunting Elf", "Grizzly Bears"
+  turn 1 B: block "Taunting Elf" with "Hill Giant"
+  turn 1 B: block "Taunting Elf" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Taunting Elf"
+  assert life B 18
+}
+
+scenario "lure: a tapped creature isn't able to block, so it isn't required to" {
+  battlefield A: "Prized Unicorn"
+  battlefield B: "Hill Giant", "Savannah Lions" tapped
+  turn 1 A: attack "Prized Unicorn"
+  turn 1 B: block "Prized Unicorn" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Prized Unicorn"
+  assert battlefield B contains "Savannah Lions"
+}
+
+scenario "lure: a creature that can't block the lure may block something else" {
+  battlefield A: "Wind Drake", "Savannah Lions", "Lure" on "Wind Drake"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Wind Drake", "Savannah Lions"
+  # Grizzly Bears can't block the flying lure.
+  turn 1 B: block "Savannah Lions" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Savannah Lions"
+}
+
+scenario "lure: Alluring Scent makes the target a lure this turn" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "Alluring Scent"
+  turn 1 A: cast "Alluring Scent" targeting "Savannah Lions"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Savannah Lions"
+  assert life B 18
+}
+
+scenario "lure: the Lure aura" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Lure" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  illegal turn 1 B: block "Savannah Lions" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "lure: Mortipede's ability" {
+  battlefield A: "Mortipede", "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Mortipede"
+  turn 1 A: attack "Mortipede", "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mortipede"
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "must be blocked: Gaea's Protector can't go unblocked when a creature could block it" {
+  battlefield A: "Gaea's Protector", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Gaea's Protector", "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "must be blocked: one blocker is enough; the other may block elsewhere" {
+  battlefield A: "Gaea's Protector", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  turn 1 A: attack "Gaea's Protector", "Grizzly Bears"
+  turn 1 B: block "Gaea's Protector" with "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "must be blocked: Compelled Duel" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "Compelled Duel"
+  turn 1 A: cast "Compelled Duel" targeting "Savannah Lions"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}
+
+scenario "must be blocked: Irresistible Prey draws a card" {
+  battlefield A: "Forest", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "Irresistible Prey"
+  turn 1 A: cast "Irresistible Prey" targeting "Savannah Lions"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Savannah Lions"
+  assert hand A count 1
+}
+
+scenario "blocks if able: Razorgrass Screen blocks unscripted" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Razorgrass Screen"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Razorgrass Screen"
+}
+
+scenario "blocks if able: not when it can't block the attacker" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Razorgrass Screen"
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield B contains "Razorgrass Screen"
+}
+
+scenario "blocks if able: Culling Mark makes an opponent's creature block" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Culling Mark"
+  turn 1 A: cast "Culling Mark" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "blocks if able: Provoke untaps the creature and it blocks" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Provoke"
+  turn 1 A: cast "Provoke" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "block several: a creature blocks only one attacker" {
+  battlefield A: "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Savannah Lions"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  illegal turn 1 B: block "Savannah Lions" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "block several: Palace Guard blocks two and divides its damage" {
+  battlefield A: "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Palace Guard"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin"
+  turn 1 B: block "Grizzly Bears" with "Palace Guard"
+  turn 1 B: block "Raging Goblin" with "Palace Guard"
+  turn 1 combat_damage B: assign "Palace Guard" to "Raging Goblin" 1
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Raging Goblin"
+  assert battlefield A contains "Grizzly Bears"
+  assert damage "Palace Guard" 3
+}
+
+scenario "block several: Night Market Guard blocks two but not three" {
+  battlefield A: "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  battlefield B: "Night Market Guard"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Night Market Guard"
+  turn 1 B: block "Raging Goblin" with "Night Market Guard"
+  illegal turn 1 B: block "Savannah Lions" with "Night Market Guard"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Night Market Guard"
+}
+
+scenario "block several: Night Market Guard blocking two" {
+  battlefield A: "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  battlefield B: "Night Market Guard"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Night Market Guard"
+  turn 1 B: block "Raging Goblin" with "Night Market Guard"
+  turn 1 combat_damage B: assign "Night Market Guard" to "Grizzly Bears" 2, "Raging Goblin" 1
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Raging Goblin"
+  assert graveyard B contains "Night Market Guard"
+}
+
+scenario "block several: Valor Made Real lets a creature block any number" {
+  battlefield A: "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  battlefield B: "Hill Giant", "Plains"
+  hand B: "Valor Made Real"
+  turn 1 begin_combat B: cast "Valor Made Real" targeting "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin", "Savannah Lions"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  turn 1 B: block "Raging Goblin" with "Hill Giant"
+  turn 1 B: block "Savannah Lions" with "Hill Giant"
+  turn 1 combat_damage B: assign "Hill Giant" to "Grizzly Bears" 2, "Raging Goblin" 1
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Raging Goblin"
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "block several: Coastline Chimera's ability" {
+  battlefield A: "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Coastline Chimera", 2 "Plains"
+  turn 1 begin_combat B: activate "Coastline Chimera"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin"
+  turn 1 B: block "Grizzly Bears" with "Coastline Chimera"
+  turn 1 B: block "Raging Goblin" with "Coastline Chimera"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Coastline Chimera" 3
+}
+
+scenario "block several: without Coastline Chimera's ability it blocks one" {
+  battlefield A: "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Coastline Chimera", 2 "Plains"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin"
+  turn 1 B: block "Grizzly Bears" with "Coastline Chimera"
+  illegal turn 1 B: block "Raging Goblin" with "Coastline Chimera"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "block several: a whenever-this-blocks trigger fires once (CR 509.3a)" {
+  battlefield A: "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Pride Guardian", "Echo Circlet" on "Pride Guardian"
+  turn 1 A: attack "Grizzly Bears", "Raging Goblin"
+  turn 1 B: block "Grizzly Bears" with "Pride Guardian"
+  turn 1 B: block "Raging Goblin" with "Pride Guardian"
+  run_to turn 1 postcombat_main
+  assert life B 23
+  assert graveyard B contains "Pride Guardian"
+}
+
+scenario "requirements: a lure and a creature that must block: blocking the lure obeys both" {
+  battlefield A: "Prized Unicorn", "Grizzly Bears"
+  battlefield B: "Razorgrass Screen"
+  turn 1 A: attack "Prized Unicorn", "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Razorgrass Screen"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Prized Unicorn"
+  assert life B 18
+}
+
+scenario "requirements: Palace Guard must block both lures" {
+  battlefield A: "Prized Unicorn", "Taunting Elf"
+  battlefield B: "Palace Guard"
+  turn 1 A: attack "Prized Unicorn", "Taunting Elf"
+  illegal turn 1 B: block "Prized Unicorn" with "Palace Guard"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert damage "Palace Guard" 2
+}
+
+scenario "requirements: with many blockers (declared one at a time) the lure still binds" {
+  battlefield A: "Grizzly Bears", "Prized Unicorn", "Savannah Lions"
+  battlefield B: 6 "Hill Giant"
+  turn 1 A: attack "Grizzly Bears", "Prized Unicorn", "Savannah Lions"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Prized Unicorn"
+  assert life B 16
+  assert battlefield B contains 6 "Hill Giant"
+}

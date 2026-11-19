@@ -1,0 +1,7 @@
+card "Wall of Glare" {
+  oracle_id a59897cb-7ead-494a-a1d0-c9baf79bf18b
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/5
+  keywords defender, can block any number of creatures
+}

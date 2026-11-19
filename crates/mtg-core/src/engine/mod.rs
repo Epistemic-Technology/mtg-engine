@@ -10,7 +10,7 @@ mod replace;
 mod sba;
 mod triggers;
 
-use combat::{block_assignments, subsets};
+use combat::{block_assignments, block_choices, subsets};
 
 use std::sync::Arc;
 
@@ -848,36 +848,60 @@ impl GameState {
                         .as_ref()
                         .map(|c| c.attackers.iter().map(|a| a.id).collect())
                         .unwrap_or_default();
-                    let blockers: Vec<ObjId> = self
-                        .eligible_blockers(player)
-                        .filter(|b| !chosen.iter().any(|(bl, _)| bl == b))
-                        .collect();
-                    // Per blocker, the attackers it may block.
+                    let all_blockers: Vec<ObjId> = self.eligible_blockers(player).collect();
+                    // CR 509.1c: requirements; usually none.
+                    let reqs = self.block_requirements(&attackers, &all_blockers);
+                    // Blockers that can still block another attacker, with
+                    // how many more (CR 509.1a).
+                    let mut blockers = Vec::new();
+                    let mut caps = Vec::new();
+                    for b in all_blockers {
+                        let used = chosen.iter().filter(|(bl, _)| *bl == b).count();
+                        let cap = self.block_capacity(b);
+                        if used < cap {
+                            blockers.push(b);
+                            caps.push(cap - used);
+                        }
+                    }
+                    // Per blocker, the attackers it may (still) block.
                     let can_block: Vec<Vec<ObjId>> = blockers
                         .iter()
                         .map(|b| {
                             attackers
                                 .iter()
                                 .copied()
-                                .filter(|a| self.can_block(*b, *a))
+                                .filter(|a| !chosen.contains(&(*b, *a)) && self.can_block(*b, *a))
                                 .collect()
                         })
                         .collect();
                     if incremental {
                         let mut options = Vec::new();
+                        // CR 509.1c, greedily: while some block obeys another
+                        // requirement, only such blocks are offered and the
+                        // declaration can't stop. (Exact for lures and
+                        // creatures that block if able; "must be blocked"
+                        // shared among blockers is left to the player.)
+                        let mut improving = Vec::new();
+                        let obeyed = (!reqs.is_empty()).then(|| reqs.obeyed(&chosen));
                         for (b, attackers_for_b) in blockers.iter().zip(&can_block) {
                             for a in attackers_for_b {
                                 let mut trial = chosen.clone();
                                 trial.push((*b, *a));
                                 if self.block_set_completable(&trial, &blockers, &can_block) {
-                                    options.push(Choice::AddBlock {
+                                    let choice = Choice::AddBlock {
                                         blocker: *b,
                                         attacker: *a,
-                                    });
+                                    };
+                                    if obeyed.is_some_and(|n| reqs.obeyed(&trial) > n) {
+                                        improving.push(choice.clone());
+                                    }
+                                    options.push(choice);
                                 }
                             }
                         }
-                        if self.block_set_legal(&chosen) {
+                        if !improving.is_empty() {
+                            options = improving;
+                        } else if self.block_set_legal(&chosen) {
                             options.push(Choice::Done);
                         }
                         if options.is_empty() {
@@ -901,9 +925,9 @@ impl GameState {
                     }
                     // Saturating: with many blockers the product overflows
                     // and would wrap to a small number.
-                    let combos: usize = can_block
-                        .iter()
-                        .fold(1usize, |n, v| n.saturating_mul(v.len() + 1));
+                    let combos: usize = can_block.iter().zip(&caps).fold(1usize, |n, (v, cap)| {
+                        n.saturating_mul(block_choices(v.len(), *cap))
+                    });
                     if combos > MAX_SET_OPTIONS {
                         self.flow = Flow::DeclareBlockers {
                             chosen,
@@ -911,15 +935,22 @@ impl GameState {
                         };
                         continue;
                     }
-                    let mut options = Vec::new();
-                    for assignment in block_assignments(&blockers, &can_block) {
-                        if self.block_set_legal(&assignment) {
-                            options.push(Choice::Blocks(assignment));
-                        }
+                    let mut sets: Vec<Vec<(ObjId, ObjId)>> =
+                        block_assignments(&blockers, &can_block, &caps)
+                            .into_iter()
+                            .filter(|s| self.block_set_legal(s))
+                            .collect();
+                    if !reqs.is_empty() {
+                        // CR 509.1c: only declarations obeying the most
+                        // requirements any restriction-abiding one can.
+                        sets.retain(|s| !self.blocks_alone_illegally(s));
+                        let best = sets.iter().map(|s| reqs.obeyed(s)).max().unwrap_or(0);
+                        sets.retain(|s| reqs.obeyed(s) == best);
                     }
-                    if options.is_empty() {
+                    if sets.is_empty() {
                         unreachable!("no legal block declaration");
                     }
+                    let options = sets.into_iter().map(Choice::Blocks).collect();
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::DeclareBlockers,

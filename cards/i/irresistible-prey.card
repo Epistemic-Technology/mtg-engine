@@ -1,0 +1,9 @@
+card "Irresistible Prey" {
+  oracle_id cb102767-f8d8-4477-9a24-07686870bda7
+  cost {G}
+  type Sorcery
+  spell {
+    target creature must be blocked if able
+    draw a card
+  }
+}

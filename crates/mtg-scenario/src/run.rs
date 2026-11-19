@@ -1308,7 +1308,11 @@ impl Runner {
                     unreachable!()
                 };
                 let used: Vec<ObjId> = legal.iter().chain(&illegal).map(|(b, _)| *b).collect();
-                let b = self.creature_of(a.line, d.player, blocker, &used)?;
+                // A distinct creature per line while there is one; then the
+                // same one again (a creature blocking several attackers).
+                let b = self
+                    .creature_of(a.line, d.player, blocker, &used)
+                    .or_else(|_| self.creature_of(a.line, d.player, blocker, &[]))?;
                 let at = self.attacker_named(a.line, attacker)?;
                 if a.illegal {
                     illegal.push((b, at));
@@ -1346,6 +1350,12 @@ impl Runner {
                 Choice::Blocks(set) => same_set(set, &queue),
                 _ => false,
             });
+            // Unscripted, declare no blockers; when a requirement forces a
+            // block (CR 509.1c) that is not offered, so take the first
+            // declaration.
+            if idx.is_none() && queue.is_empty() {
+                return Ok(0);
+            }
             return idx.map(idx_u32).ok_or_else(|| Failure {
                 line,
                 message: format!(
@@ -1357,7 +1367,9 @@ impl Runner {
         }
         let Some((blocker, attacker)) = queue.first().copied() else {
             self.block_queue = None;
-            return index_of(d, &Choice::Done).ok_or_else(|| self.unexpected(d, "no Done option"));
+            // No `Done` means a requirement forces another block (CR
+            // 509.1c): add the first offered.
+            return Ok(index_of(d, &Choice::Done).unwrap_or(0));
         };
         self.block_queue = Some(queue[1..].to_vec());
         index_of(d, &Choice::AddBlock { blocker, attacker }).ok_or_else(|| Failure {
@@ -1385,12 +1397,21 @@ impl Runner {
         let Action::Assign { parts, .. } = &a.action else {
             unreachable!()
         };
+        // The creatures it's dividing damage among: an attacker's blockers,
+        // or the attackers a blocker blocks (CR 510.1d).
         let blockers: Vec<ObjId> = self
             .state()
             .combat
             .as_ref()
-            .and_then(|c| c.attacker(attacker))
-            .map(|at| at.blockers.to_vec())
+            .map(|c| match c.attacker(attacker) {
+                Some(at) => at.blockers.to_vec(),
+                None => c
+                    .attackers
+                    .iter()
+                    .filter(|at| at.blockers.contains(&attacker))
+                    .map(|at| at.id)
+                    .collect(),
+            })
             .unwrap_or_default();
         let mut division: Vec<(Target, u32)> = Vec::new();
         for (tr, amount) in parts {
@@ -1404,7 +1425,7 @@ impl Runner {
                         .find(|b| self.state().name_of(*b) == r.name)
                         .ok_or_else(|| Failure {
                             line: a.line,
-                            message: format!("\"{}\" is not blocking \"{name}\"", r.name),
+                            message: format!("\"{}\" is not in combat with \"{name}\"", r.name),
                         })?;
                     Target::Object(id)
                 }

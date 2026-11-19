@@ -1,0 +1,7 @@
+card "Lure" {
+  oracle_id 7a7425ba-4478-4bc4-855f-abf947ea4fa2
+  cost {1}{G}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has lure
+}

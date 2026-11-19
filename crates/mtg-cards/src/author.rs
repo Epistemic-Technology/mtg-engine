@@ -188,7 +188,7 @@ const PHRASE_KEYWORDS: [&str; 7] = [
 
 /// Restrictions Oracle prints as sentences; the DSL keeps them with the
 /// keywords.
-const RESTRICTIONS: [&str; 7] = [
+const RESTRICTIONS: [&str; 11] = [
     "can't attack or block alone",
     "can't attack alone",
     "can't block alone",
@@ -196,6 +196,10 @@ const RESTRICTIONS: [&str; 7] = [
     "can't attack",
     "attacks each combat if able",
     "can't be blocked",
+    "blocks each combat if able",
+    "must be blocked if able",
+    "can block an additional creature each combat",
+    "can block any number of creatures",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1947,6 +1951,22 @@ impl Builder<'_> {
                 return Ok(());
             }
         }
+        // Lures (CR 509.1c): "All creatures able to block this creature do so."
+        if line == "All creatures able to block this creature do so." {
+            if self.statements.is_empty() {
+                self.keywords.push("lure".to_string());
+            } else {
+                self.statements.push("keyword lure".to_string());
+            }
+            return Ok(());
+        }
+        if line == "All creatures able to block enchanted creature do so."
+            || line == "All creatures able to block equipped creature do so."
+        {
+            self.statements
+                .push("static enchanted: has lure".to_string());
+            return Ok(());
+        }
         // "This creature can't block." and friends are keywords to the DSL.
         if let Some(rest) = line
             .strip_prefix("This creature ")
@@ -2100,7 +2120,7 @@ impl Builder<'_> {
             return Ok(());
         }
         if let Some(c) = Regex::new(
-            r"^(Enchanted creature|Equipped creature) (can't attack or block|can't block|can't attack|can't be blocked|attacks each combat if able)\.$",
+            r"^(Enchanted creature|Equipped creature) (can't attack or block|can't block|can't attack|can't be blocked|attacks each combat if able|blocks each combat if able|must be blocked if able|can block an additional creature each combat|can block any number of creatures)\.$",
         )
         .unwrap()
         .captures(line)

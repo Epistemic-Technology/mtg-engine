@@ -213,7 +213,39 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantAttackAlone
             | Keyword::CantBlockAlone
             | Keyword::DoesntUntap
+            | Keyword::MustBlock
+            | Keyword::MustBeBlocked
+            | Keyword::BlockAdditional
+            | Keyword::BlockAny
+            | Keyword::Lure
     )
+}
+
+/// Blocking requirements and allowances (CR 509.1a, 509.1c), whose
+/// one-turn form puts "this turn" inside the phrase.
+fn is_block_rule(k: Keyword) -> bool {
+    matches!(
+        k,
+        Keyword::MustBlock | Keyword::MustBeBlocked | Keyword::BlockAdditional | Keyword::BlockAny
+    )
+}
+
+/// A blocking requirement or allowance for this turn only ("blocks this
+/// turn if able").
+fn block_rule_this_turn(k: Keyword) -> &'static str {
+    match k {
+        Keyword::MustBlock => "blocks this turn if able",
+        Keyword::MustBeBlocked => "must be blocked this turn if able",
+        Keyword::BlockAdditional => "can block an additional creature this turn",
+        Keyword::BlockAny => "can block any number of creatures this turn",
+        k => keyword_name(k),
+    }
+}
+
+/// "All creatures able to block this creature do so." (a lure).
+fn lure_sentence(what: &str, this_turn: bool) -> String {
+    let turn = if this_turn { " this turn" } else { "" };
+    format!("all creatures able to block {what}{turn} do so")
 }
 
 /// "can't attack or block", "can't block", ...
@@ -241,7 +273,8 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
         if matches!(
             k,
             Keyword::MustAttack | Keyword::Unblockable | Keyword::DoesntUntap
-        ) {
+        ) || is_block_rule(*k)
+        {
             parts.push(keyword_name(*k).to_string());
         }
     }
@@ -256,6 +289,10 @@ fn keyword_line(card: &Card, k: Keyword) -> String {
             "This {} doesn't untap during your untap step.",
             self_noun(card)
         );
+    }
+    if k == Keyword::Lure {
+        let what = format!("this {}", self_noun(card));
+        return format!("{}.", capitalize(&lure_sentence(&what, false)));
     }
     if is_restriction(k) {
         format!("This {} {}.", self_noun(card), keyword_name(k))
@@ -1936,7 +1973,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("untap {o}"))
         }
         Effect::Grant { keywords, to } => {
+            if keywords.as_slice() == [Keyword::Lure] {
+                let o = ctx.obj(*to);
+                return Clause::imperative(lure_sentence(&o, true));
+            }
             let s = ctx.subj(*to);
+            if keywords.iter().any(|k| is_block_rule(*k))
+                && keywords.iter().all(|k| is_restriction(*k))
+            {
+                // "must be blocked this turn if able": the turn inside.
+                let parts: Vec<String> = keywords
+                    .iter()
+                    .map(|k| {
+                        if is_block_rule(*k) {
+                            block_rule_this_turn(*k).to_string()
+                        } else {
+                            format!("{} this turn", restriction_phrase(&[*k]))
+                        }
+                    })
+                    .collect();
+                return Clause::with_subject(*to, s, list(&parts));
+            }
             if keywords.iter().all(|k| is_restriction(*k)) {
                 let mut c = Clause::with_subject(*to, s, restriction_phrase(keywords));
                 c.suffix = Some("this turn");
@@ -3196,6 +3253,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             (capitalize(&p), true)
         }
     };
+    // "All creatures able to block enchanted creature do so."
+    if let [Mod::AddKeywords(ks)] = mods
+        && ks.as_slice() == [Keyword::Lure]
+    {
+        let what = lowercase_first(&subject);
+        return format!("{}.", capitalize(&lure_sentence(&what, false)));
+    }
     let parts: Vec<String> = mods
         .iter()
         .map(|m| {

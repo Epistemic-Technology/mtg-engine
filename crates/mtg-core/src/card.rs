@@ -273,6 +273,20 @@ pub enum Keyword {
     /// CR 702.66: each card exiled from the graveyard while casting pays
     /// for {1}.
     Delve,
+    /// "This creature blocks each combat if able." A blocking requirement
+    /// (CR 509.1c).
+    MustBlock,
+    /// "This creature must be blocked if able." A blocking requirement on
+    /// the defending player's creatures (CR 509.1c).
+    MustBeBlocked,
+    /// "All creatures able to block this creature do so." One requirement
+    /// per creature able to block it (CR 509.1c).
+    Lure,
+    /// "This creature can block an additional creature each combat."
+    /// (CR 509.1a; instances don't add up here.)
+    BlockAdditional,
+    /// "This creature can block any number of creatures."
+    BlockAny,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -388,7 +402,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 54] = [
+    pub const ALL: [Keyword; 59] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -443,6 +457,11 @@ impl Keyword {
         Keyword::Rebound,
         Keyword::Exploit,
         Keyword::Delve,
+        Keyword::MustBlock,
+        Keyword::MustBeBlocked,
+        Keyword::Lure,
+        Keyword::BlockAdditional,
+        Keyword::BlockAny,
     ];
 
     /// The keyword as Oracle prints it.
@@ -502,6 +521,11 @@ impl Keyword {
             Keyword::Rebound => "rebound",
             Keyword::Exploit => "exploit",
             Keyword::Delve => "delve",
+            Keyword::MustBlock => "blocks each combat if able",
+            Keyword::MustBeBlocked => "must be blocked if able",
+            Keyword::Lure => "lure",
+            Keyword::BlockAdditional => "can block an additional creature each combat",
+            Keyword::BlockAny => "can block any number of creatures",
         }
     }
 

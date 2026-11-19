@@ -1,0 +1,7 @@
+card "Razorgrass Screen" {
+  oracle_id 1818324c-2738-42e2-a78b-63abf325d8e9
+  cost {1}
+  type Artifact Creature — Wall
+  pt 2/1
+  keywords defender, blocks each combat if able
+}

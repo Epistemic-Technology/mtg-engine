@@ -1,0 +1,7 @@
+card "Mortipede" {
+  oracle_id a5122d52-cebc-435b-a077-cc64376d7a86
+  cost {3}{B}
+  type Creature — Insect
+  pt 4/1
+  activated {2}{G}: this gains lure
+}

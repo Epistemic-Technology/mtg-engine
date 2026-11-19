@@ -1,0 +1,7 @@
+card "Gaea's Protector" {
+  oracle_id d91d5d22-9f94-4a41-9970-0a8ddd2f7711
+  cost {3}{G}
+  type Creature — Elemental Warrior
+  pt 4/2
+  keywords must be blocked if able
+}

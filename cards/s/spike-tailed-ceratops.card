@@ -1,0 +1,7 @@
+card "Spike-Tailed Ceratops" {
+  oracle_id 399ea8a4-55f5-4f14-ad7a-7af306959496
+  cost {4}{G}
+  type Creature — Dinosaur
+  pt 4/4
+  keywords can block an additional creature each combat
+}
