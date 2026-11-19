@@ -1,0 +1,7 @@
+card "Brandywine Farmer" {
+  oracle_id 0fea3406-e5c7-4d5c-9890-6f1bc04a7cb8
+  cost {2}{G}
+  type Creature — Halfling Peasant
+  pt 1/1
+  triggered when this enters or leaves the battlefield: create 1 "Food"
+}

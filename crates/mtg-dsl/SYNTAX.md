@@ -194,6 +194,8 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this or Ally you control enters`, `whenever this or creature you control with power 4 or greater dies` | "Whenever this creature or another Ally you control enters"; the filter includes the source, and Oracle names the source again ("this creature") |
 | `whenever one or more artifact you control enter` | once for all the matching objects entering together (CR 603.2c), counted as `that much`; objects entering before the next time a player gets priority count as together |
 | `when this enters and whenever you cast ...`, `when you cycle this and when this dies` | one ability with two trigger events, joined with "and" |
+| `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
+| `whenever permanent is turned face up`, `whenever this or permanent is turned face up`, `whenever Detective you control is turned face up` | "Whenever a permanent is turned face up", "Whenever this creature or another permanent is turned face up": the permanent judged as it is face up (CR 708.8) |
 
 A trigger's subject prints its controller before its "with" qualities
 ("Whenever a creature you control with power 5 or greater enters").

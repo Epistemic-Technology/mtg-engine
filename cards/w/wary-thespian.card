@@ -1,0 +1,7 @@
+card "Wary Thespian" {
+  oracle_id 448cc829-1596-4aec-b180-c0c1e0566f6b
+  cost {1}{G}
+  type Creature — Cat Druid
+  pt 3/1
+  triggered when this enters or dies: surveil 1
+}

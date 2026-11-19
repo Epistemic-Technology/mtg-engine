@@ -1,0 +1,7 @@
+card "Benthic Criminologists" {
+  oracle_id 5539d78c-1acc-46dd-ba6d-cc0cdad6ff44
+  cost {4}{U}
+  type Creature — Merfolk Wizard
+  pt 4/5
+  triggered whenever this enters or attacks: you may sacrifice 1 artifact chosen; if you do, draw 1 card
+}

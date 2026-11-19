@@ -1,0 +1,154 @@
+# M5: compound trigger events: "When this creature enters or dies",
+# "Whenever this creature enters or attacks", "enters or leaves the
+# battlefield", "enters or is turned face up" (one ability, two events),
+# and "Whenever a permanent is turned face up" (CR 708.8).
+
+scenario "enters or dies: Mogg War Marshal makes a Goblin each time" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Mogg War Marshal"
+  hand B: "Shock"
+  turn 1 A: cast "Mogg War Marshal"
+  turn 2 B: cast "Shock" targeting "Mogg War Marshal"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Mogg War Marshal"
+  assert battlefield A contains 2 "Goblin"
+}
+
+scenario "enters or dies: leaving another way is not dying" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Island"
+  hand A: "Mogg War Marshal"
+  hand B: "Unsummon"
+  turn 1 A: cast "Mogg War Marshal"
+  turn 2 B: cast "Unsummon" targeting "Mogg War Marshal"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Mogg War Marshal"
+  assert battlefield A contains 1 "Goblin"
+}
+
+scenario "enters or leaves the battlefield: Brandywine Farmer bounced makes a second Food" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Island"
+  hand A: "Brandywine Farmer"
+  hand B: "Unsummon"
+  turn 1 A: cast "Brandywine Farmer"
+  turn 2 B: cast "Unsummon" targeting "Brandywine Farmer"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Brandywine Farmer"
+  assert battlefield A contains 2 "Food"
+}
+
+scenario "enters or is put into a graveyard from the battlefield: Ichor Wellspring draws twice" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Ichor Wellspring"
+  hand B: "Shatter"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Ichor Wellspring"
+  turn 2 B: cast "Shatter" targeting "Ichor Wellspring"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Ichor Wellspring"
+  assert hand A count 2
+}
+
+scenario "enters or attacks: Haazda Vigilante counters on entering and on attacking" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Haazda Vigilante"
+  turn 1 A: cast "Haazda Vigilante"
+  turn 1 A: trigger "Haazda Vigilante" targeting "Grizzly Bears"
+  turn 3 A: attack "Haazda Vigilante"
+  turn 3 A: trigger "Haazda Vigilante" targeting "Llanowar Elves"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 1
+  assert life B 16
+}
+
+scenario "enters or attacks: the target must be a creature you control with power 2 or less" {
+  battlefield A: 5 "Plains", "Hill Giant", "Grizzly Bears"
+  hand A: "Haazda Vigilante"
+  turn 1 A: cast "Haazda Vigilante"
+  illegal turn 1 A: trigger "Haazda Vigilante" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 0
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "enters or attacks: Stadium Tidalmage loots on attacking" {
+  battlefield A: 3 "Island", "Mountain"
+  hand A: "Stadium Tidalmage"
+  library A: "Forest", "Plains", "Swamp", "Mountain"
+  turn 1 A: cast "Stadium Tidalmage"
+  turn 3 A: attack "Stadium Tidalmage"
+  run_to turn 3 postcombat_main
+  # Two loots: each draws a card and discards one.
+  assert graveyard A count 2
+  assert library A count 1
+  assert life B 16
+}
+
+scenario "enters or is turned face up: cast normally, Ponyback Brigade makes three Goblins" {
+  battlefield A: 4 "Mountain", "Plains", "Swamp"
+  hand A: "Ponyback Brigade"
+  turn 1 A: cast "Ponyback Brigade"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "enters or is turned face up: face down it does nothing, turned up it makes Goblins" {
+  battlefield A: 4 "Mountain", 4 "Plains", 4 "Swamp"
+  hand A: "Ponyback Brigade"
+  turn 1 A: cast "Ponyback Brigade" face_down
+  run_to turn 1 combat_damage
+  assert battlefield A lacks "Goblin"
+  turn 1 postcombat_main A: unmorph "Ponyback Brigade"
+  run_to turn 1 end
+  assert battlefield A contains "Ponyback Brigade"
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "whenever a permanent is turned face up: Aven Farseer grows" {
+  battlefield A: 4 "Island", "Aven Farseer"
+  hand A: "Coral Trickster"
+  turn 1 A: cast "Coral Trickster" face_down
+  turn 1 postcombat_main A: unmorph "Coral Trickster"
+  run_to turn 1 end
+  assert counters "Aven Farseer" +1/+1 1
+}
+
+scenario "whenever a permanent is turned face up: an opponent's too, Bonethorn Valesk" {
+  battlefield A: "Bonethorn Valesk"
+  battlefield B: 4 "Island"
+  hand B: "Coral Trickster"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Coral Trickster" face_down
+  turn 2 postcombat_main B: unmorph "Coral Trickster"
+  turn 2 A: trigger "Bonethorn Valesk" targeting player B
+  run_to turn 2 end
+  assert battlefield B contains "Coral Trickster"
+  assert life B 19
+}
+
+scenario "a Detective you control is turned face up: Projektor Inspector loots" {
+  battlefield A: 5 "Plains", "Projektor Inspector"
+  hand A: "Granite Witness"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Granite Witness" face_down
+  turn 1 postcombat_main A: unmorph "Granite Witness"
+  run_to turn 1 end
+  # The Witness's own "you may tap or untap" also triggers; one loot.
+  assert library A count 2
+  assert graveyard A count 1
+}
+
+scenario "a Detective you control is turned face up: not a non-Detective" {
+  battlefield A: 4 "Island", "Projektor Inspector"
+  hand A: "Coral Trickster"
+  library A: "Forest", "Plains", "Swamp"
+  turn 1 A: cast "Coral Trickster" face_down
+  turn 1 postcombat_main A: unmorph "Coral Trickster"
+  run_to turn 1 end
+  assert library A count 3
+  assert graveyard A count 0
+}

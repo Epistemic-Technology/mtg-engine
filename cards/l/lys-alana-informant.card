@@ -1,0 +1,7 @@
+card "Lys Alana Informant" {
+  oracle_id b5058b5c-0359-42ec-ba9e-ae1371bb9c22
+  cost {1}{G}
+  type Creature — Elf Scout
+  pt 3/1
+  triggered when this enters or dies: surveil 1
+}

@@ -1,0 +1,6 @@
+card "Prized Statue" {
+  oracle_id 681fc668-cb26-4ba4-a915-48ddfa2b9520
+  cost {2}
+  type Artifact
+  triggered when this enters or dies: create 1 "Treasure"
+}

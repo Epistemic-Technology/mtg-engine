@@ -1,0 +1,7 @@
+card "Stadium Tidalmage" {
+  oracle_id 1c45e872-3af8-47a4-9dc7-a99c293338f8
+  cost {2}{U}{R}
+  type Creature — Djinn Sorcerer
+  pt 4/4
+  triggered whenever this enters or attacks: you may draw 1 card; if you do, discard 1 card
+}

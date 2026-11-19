@@ -1,0 +1,9 @@
+card "Rakish Scoundrel" {
+  oracle_id d69cb63f-98cc-4699-a03d-4f1beeeb7065
+  cost {2}{B}{G}
+  type Creature — Elf Rogue
+  pt 3/3
+  keywords deathtouch
+  triggered when this enters or is turned face up: target creature gains indestructible
+  disguise {4}{B/G}{B/G}
+}

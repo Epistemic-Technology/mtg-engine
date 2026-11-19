@@ -1,0 +1,8 @@
+card "Gadget Technician" {
+  oracle_id d7f777ae-6122-4af9-b962-7574bc8e2691
+  cost {2}{U}{R}
+  type Creature — Goblin Artificer
+  pt 3/2
+  triggered when this enters or is turned face up: create 1 "1/1 colorless Thopter artifact creature with flying"
+  disguise {U/R}{U/R}
+}

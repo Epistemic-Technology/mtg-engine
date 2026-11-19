@@ -1,0 +1,9 @@
+card "Aven Liberator" {
+  oracle_id 0f3fff7a-cc46-4c72-9edc-fdbddd3b51b5
+  cost {2}{W}{W}
+  type Creature — Bird Soldier
+  pt 2/3
+  keywords flying
+  morph {3}{W}
+  triggered when this is turned face up: target creature you control gains protection from color of choice
+}

@@ -1,0 +1,6 @@
+card "Mephitic Draught" {
+  oracle_id 05da6b06-fb5f-41e8-b0a2-d949646e36d9
+  cost {1}{B}
+  type Artifact
+  triggered when this enters or dies: you draw 1 card, and you lose 1 life
+}

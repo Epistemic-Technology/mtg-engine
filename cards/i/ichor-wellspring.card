@@ -1,0 +1,6 @@
+card "Ichor Wellspring" {
+  oracle_id 5b5ef43b-13fd-4461-8d2d-18be65e9a790
+  cost {2}
+  type Artifact
+  triggered when this enters or dies: draw 1 card
+}

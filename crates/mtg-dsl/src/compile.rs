@@ -1511,7 +1511,7 @@ impl Compiler<'_> {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))
             }
             Trigger::TargetedByOpponent => TriggerSpec::TargetedByOpponent,
-            Trigger::TurnedFaceUp => TriggerSpec::TurnedFaceUp,
+            Trigger::TurnedFaceUp(o) => TriggerSpec::TurnedFaceUp(self.trigger_obj(o)),
             Trigger::Exploits => TriggerSpec::Exploits,
             Trigger::DrawsNth { whose, n } => TriggerSpec::DrawsNth {
                 whose: *whose,
@@ -1543,6 +1543,9 @@ impl Compiler<'_> {
                 nth: *nth,
             },
             Trigger::EntersBatch(f) => TriggerSpec::EntersBatch(self.filter(f)),
+            Trigger::Or { first, second, .. } => {
+                TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
+            }
             Trigger::Either(a, b) => {
                 TriggerSpec::Either(Box::new((self.trigger(a), self.trigger(b))))
             }

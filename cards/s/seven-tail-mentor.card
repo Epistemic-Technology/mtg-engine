@@ -1,0 +1,7 @@
+card "Seven-Tail Mentor" {
+  oracle_id 301b8265-9e17-48c3-942d-b7243112b394
+  cost {3}{W}
+  type Creature — Fox Samurai
+  pt 2/3
+  triggered when this enters or dies: put 1 +1/+1 counter on target creature or Vehicle you control
+}

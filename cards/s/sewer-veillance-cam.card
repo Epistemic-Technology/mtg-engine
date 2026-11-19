@@ -1,0 +1,8 @@
+card "Sewer-veillance Cam" {
+  oracle_id 25c83d45-581f-48ba-b6bb-feb66e8a65c7
+  cost {U}
+  type Artifact
+  keywords flash
+  triggered when this enters or leaves the battlefield: you may tap or untap target creature
+  activated {3}{U}, sacrifice this: draw 2 cards
+}

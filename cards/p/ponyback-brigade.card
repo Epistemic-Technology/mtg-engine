@@ -1,0 +1,8 @@
+card "Ponyback Brigade" {
+  oracle_id 8cfb5181-8ab7-484b-8821-a62c561f762f
+  cost {3}{R}{W}{B}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered when this enters or is turned face up: create 3 "1/1 red Goblin creature"
+  morph {2}{R}{W}{B}
+}

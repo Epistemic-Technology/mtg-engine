@@ -1203,8 +1203,10 @@ pub enum Trigger {
     /// Ward's trigger: "becomes the target of a spell or ability an
     /// opponent controls".
     TargetedByOpponent,
-    /// `when this is turned face up` (CR 708.8).
-    TurnedFaceUp,
+    /// `when this is turned face up`, `whenever permanent is turned face
+    /// up`, `whenever this or Detective you control is turned face up`
+    /// (CR 708.8).
+    TurnedFaceUp(TriggerObj),
     /// `whenever this becomes targeted`: printed "Whenever" (most
     /// creatures) where `when ...` prints "When".
     BecomesTargetWhenever(TriggerObj),
@@ -1253,6 +1255,16 @@ pub enum Trigger {
     /// `when this enters and whenever you cast ...`: one ability, two
     /// trigger events.
     Either(Box<Trigger>, Box<Trigger>),
+    /// `when this enters or dies`, `whenever this enters or attacks`,
+    /// `when this enters or leaves the battlefield`, `when this enters or
+    /// is turned face up`: one ability, two events of the source, printed
+    /// with the subject once. `whenever` is the word written (Oracle
+    /// mostly says "When", "Whenever" with `attacks`).
+    Or {
+        first: Box<Trigger>,
+        second: Box<Trigger>,
+        whenever: bool,
+    },
     /// `whenever one or more artifact you control enter`: once for the
     /// objects entering together (CR 603.2c); `that much` is how many.
     EntersBatch(Filter),

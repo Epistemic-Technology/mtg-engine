@@ -1,0 +1,7 @@
+card "Cryogen Relic" {
+  oracle_id 106e9c0d-67a2-4db7-97d9-03e1ea1b40b5
+  cost {1}{U}
+  type Artifact
+  triggered when this enters or leaves the battlefield: draw 1 card
+  activated {1}{U}, sacrifice this: put 1 stun counters on up to one target tapped creature
+}

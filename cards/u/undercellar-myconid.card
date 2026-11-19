@@ -1,0 +1,8 @@
+card "Undercellar Myconid" {
+  oracle_id 127f5b7e-79bc-4fe0-b9d4-1a267a6a4d46
+  cost {2}{G}
+  type Creature — Fungus
+  pt 1/2
+  triggered whenever this enters or dies: create 1 "1/1 green Saproling creature"
+  activated {T}: add any
+}

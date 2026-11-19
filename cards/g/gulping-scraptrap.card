@@ -1,0 +1,7 @@
+card "Gulping Scraptrap" {
+  oracle_id d9e48750-d930-4095-abf0-dec2ac53be81
+  cost {4}{B}
+  type Creature — Phyrexian Horror
+  pt 4/4
+  triggered when this enters or dies: proliferate
+}

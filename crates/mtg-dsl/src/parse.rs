@@ -5674,6 +5674,32 @@ impl P {
             });
         }
         let obj = self.trigger_obj()?;
+        let first = self.trigger_verb(obj.clone(), whenever)?;
+        // "this enters or dies", "this enters or attacks": one ability,
+        // two events of the same object.
+        if first == Trigger::Enters(TriggerObj::This) && self.eat_word("or") {
+            let second = self.trigger_verb(obj, whenever)?;
+            if !matches!(
+                second,
+                Trigger::Dies(TriggerObj::This)
+                    | Trigger::Leaves(TriggerObj::This)
+                    | Trigger::Attacks(TriggerObj::This)
+                    | Trigger::TurnedFaceUp(TriggerObj::This)
+            ) {
+                return self.fail("`this enters or` takes `dies`, `leaves the battlefield`, `attacks`, or `is turned face up`");
+            }
+            return Ok(Trigger::Or {
+                first: Box::new(first),
+                second: Box::new(second),
+                whenever,
+            });
+        }
+        Ok(first)
+    }
+
+    /// The event after a trigger's subject: `enters`, `dies`, `attacks`, ...
+    #[allow(clippy::too_many_lines)] // one arm per trigger event
+    fn trigger_verb(&mut self, obj: TriggerObj, whenever: bool) -> R<Trigger> {
         let w = self.word()?;
         match w.as_str() {
             "enters" => Ok(Trigger::Enters(obj)),
@@ -5687,10 +5713,7 @@ impl P {
             }
             "is" if self.at_words(&["turned", "face", "up"]) => {
                 self.pos += 3;
-                if obj != TriggerObj::This {
-                    return self.fail("only `this` is turned face up");
-                }
-                Ok(Trigger::TurnedFaceUp)
+                Ok(Trigger::TurnedFaceUp(obj))
             }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;

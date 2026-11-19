@@ -1,0 +1,7 @@
+card "Thawbringer" {
+  oracle_id 0863c4bc-1e3e-4ff9-8877-88d4021c85e5
+  cost {2}{G}
+  type Creature — Insect Scout
+  pt 4/2
+  triggered when this enters or dies: surveil 1
+}

@@ -1,0 +1,8 @@
+card "Subterranean Shambler" {
+  oracle_id d06be0a6-0d45-4e95-b132-88ce80dd7cb6
+  cost {3}{R}
+  type Creature — Elemental
+  pt 2/3
+  echo {3}{R}
+  triggered when this enters or leaves the battlefield: this deals 1 damage to each creature without flying
+}

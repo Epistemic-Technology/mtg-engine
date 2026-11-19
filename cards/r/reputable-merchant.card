@@ -1,0 +1,7 @@
+card "Reputable Merchant" {
+  oracle_id 62f09a5b-d7fb-44f4-9fab-719185b735ab
+  cost {2/W}{2/B}{2/G}
+  type Creature — Human Citizen
+  pt 2/2
+  triggered when this enters or dies: put 1 +1/+1 counter on target creature you control
+}

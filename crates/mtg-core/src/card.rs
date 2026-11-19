@@ -3145,8 +3145,9 @@ pub enum TriggerSpec {
     /// "Whenever you cast an artifact spell", "a multicolored spell", "a
     /// Spirit or Arcane spell": the spell matches the filter.
     CastsFiltered { whose: Who, filter: ObjFilter },
-    /// "When this creature is turned face up" (CR 708.8).
-    TurnedFaceUp,
+    /// "When this creature is turned face up", "Whenever a permanent is
+    /// turned face up" (CR 708.8), the permanent judged face up.
+    TurnedFaceUp(TriggerObj),
     /// "Whenever you draw your second card each turn": the `n`th card a
     /// player draws in a turn.
     DrawsNth { whose: Who, n: u8 },
@@ -3255,7 +3256,7 @@ impl TriggerSpec {
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
-            TriggerSpec::TurnedFaceUp => WATCH_FACE_UP,
+            TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
             TriggerSpec::Exploits | TriggerSpec::Reflexive => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,

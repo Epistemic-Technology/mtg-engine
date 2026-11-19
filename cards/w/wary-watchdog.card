@@ -1,0 +1,7 @@
+card "Wary Watchdog" {
+  oracle_id 7e063f60-876a-48fe-8bc6-9888180176d1
+  cost {1}{G}
+  type Creature — Dog
+  pt 3/1
+  triggered when this enters or dies: surveil 1
+}

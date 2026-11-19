@@ -1,0 +1,8 @@
+card "Unblinking Bleb" {
+  oracle_id f6dec1e0-148a-4742-815f-56806305897d
+  cost {3}{U}
+  type Creature — Illusion
+  pt 1/3
+  morph {2}{U}
+  triggered whenever this or permanent is turned face up: you may scry 2
+}

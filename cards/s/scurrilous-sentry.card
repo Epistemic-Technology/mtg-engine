@@ -1,0 +1,8 @@
+card "Scurrilous Sentry" {
+  oracle_id 52bfcb09-007c-47d8-8038-692e7dd8f922
+  cost {3}{B}
+  type Creature — Human Knight Rogue
+  pt 2/3
+  keywords menace
+  triggered whenever this enters or attacks: this connives
+}

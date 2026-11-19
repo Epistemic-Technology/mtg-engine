@@ -1,0 +1,8 @@
+card "Coral Trickster" {
+  oracle_id 11a163cc-ade3-4b55-b50e-3b3bf7e1962c
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 2/1
+  morph {U}
+  triggered when this is turned face up: you may tap or untap target permanent
+}

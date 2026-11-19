@@ -1756,6 +1756,21 @@ fn trigger_text(head: &str) -> Option<String> {
         }
         "Whenever this creature becomes tapped" => "whenever this becomes tapped",
         "When this creature is turned face up" => "when this is turned face up",
+        "Whenever a permanent is turned face up" => "whenever permanent is turned face up",
+        "Whenever this creature or another permanent is turned face up" => {
+            "whenever this or permanent is turned face up"
+        }
+        "When this creature enters or dies"
+        | "When this artifact enters or is put into a graveyard from the battlefield" => {
+            "when this enters or dies"
+        }
+        "Whenever this creature enters or dies" => "whenever this enters or dies",
+        "Whenever this creature enters or attacks" => "whenever this enters or attacks",
+        "When this creature enters or leaves the battlefield"
+        | "When this artifact enters or leaves the battlefield" => {
+            "when this enters or leaves the battlefield"
+        }
+        "When this creature enters or is turned face up" => "when this enters or is turned face up",
         "When this creature exploits a creature" => "when this exploits a creature",
         "Whenever this creature becomes untapped" => "whenever this becomes untapped",
         "Whenever this creature is dealt damage" => "whenever this is dealt damage",

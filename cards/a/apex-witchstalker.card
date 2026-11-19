@@ -1,0 +1,9 @@
+card "Apex Witchstalker" {
+  oracle_id 253d0cf7-65d3-4f13-aaf2-aae5bb60ac46
+  cost {4}{B}{B}
+  type Creature — Wolf
+  pt 6/4
+  keywords menace
+  triggered when this enters or dies: you gain 2 life
+  basic landcycling {2}
+}

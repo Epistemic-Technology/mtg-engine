@@ -812,9 +812,16 @@ impl<'a> Ctx<'a> {
             Target::Filter(f) if f.relation == Relation::Other => {
                 let mut g = f.clone();
                 g.relation = Relation::Any;
-                format!("another target {}", filter_phrase(&g, self.card, false))
+                format!(
+                    "another target {}",
+                    controller_first(&g, filter_phrase(&g, self.card, false))
+                )
             }
-            Target::Filter(f) => format!("target {}", filter_phrase(f, self.card, false)),
+            // "target creature you control with power 2 or less".
+            Target::Filter(f) => format!(
+                "target {}",
+                controller_first(f, filter_phrase(f, self.card, false))
+            ),
             Target::Spell(f) => self.spell_target_phrase(f),
             Target::GraveyardCard { filter, who } => {
                 let whose = match who {
@@ -4008,6 +4015,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             let a = trigger_text(a, ctx, next);
             format!("{a} and {}", trigger_text(b, ctx, next))
         }
+        // "When this creature enters or dies", "Whenever this creature
+        // enters or attacks": the subject printed once.
+        Trigger::Or {
+            first,
+            second,
+            whenever,
+        } => {
+            let a = trigger_text(first, ctx, next);
+            let b = trigger_text(second, ctx, next);
+            let subject = format!("{} ", this_ref(ctx.card));
+            let a = a.split_once(&subject).map_or(a.as_str(), |(_, v)| v);
+            let b = b.split_once(&subject).map_or(b.as_str(), |(_, v)| v);
+            format!(
+                "{} {subject}{a} or {b}",
+                if *whenever { "whenever" } else { "when" }
+            )
+        }
         // CR 702.29d: the card is cycled from the hand, so it's "this card".
         Trigger::Cycles { this: true, .. } => {
             ctx.source_mentioned = true;
@@ -4227,7 +4251,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             };
             format!("whenever {who} {}", with_article(&spell_noun(&what)))
         }
-        Trigger::TurnedFaceUp => format!("when {} is turned face up", this(ctx)),
+        Trigger::TurnedFaceUp(TriggerObj::This) => format!("when {} is turned face up", this(ctx)),
+        Trigger::TurnedFaceUp(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} is turned face up", trigger_subject(o, ctx))
+        }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
         Trigger::DrawsNth { whose, n } => crate::format::draws_nth(*whose, *n),
         Trigger::TargetedByOpponent => format!(

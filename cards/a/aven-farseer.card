@@ -1,0 +1,8 @@
+card "Aven Farseer" {
+  oracle_id 4591e1e5-5cac-4812-80e0-67c1237862d3
+  cost {1}{W}
+  type Creature — Bird Soldier
+  pt 1/1
+  keywords flying
+  triggered whenever permanent is turned face up: put 1 +1/+1 counter on this
+}

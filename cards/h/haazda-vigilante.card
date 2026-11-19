@@ -1,0 +1,7 @@
+card "Haazda Vigilante" {
+  oracle_id 4b707ef4-2c17-41e7-8dac-583791a98055
+  cost {4}{W}
+  type Creature — Giant Soldier
+  pt 4/4
+  triggered whenever this enters or attacks: put 1 +1/+1 counter on target creature you control with power 2 or less
+}

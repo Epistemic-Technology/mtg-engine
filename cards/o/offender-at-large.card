@@ -1,0 +1,8 @@
+card "Offender at Large" {
+  oracle_id c8c42851-1b1b-49dd-a97c-7eda57dadb13
+  cost {4}{R}
+  type Creature — Giant Rogue
+  pt 5/4
+  disguise {4}{R}
+  triggered when this enters or is turned face up: up to one target creature gets +2/+0
+}

@@ -1,0 +1,9 @@
+card "Efreet Weaponmaster" {
+  oracle_id 882a9dc9-b1bb-4be8-850f-e28bad8f5840
+  cost {3}{U}{R}{W}
+  type Creature — Efreet Monk
+  pt 4/3
+  keywords first strike
+  triggered when this enters or is turned face up: another target creature you control gets +3/+0
+  morph {2}{U}{R}{W}
+}

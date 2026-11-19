@@ -1804,7 +1804,7 @@ pub fn natural_when(t: &Trigger) -> bool {
         Trigger::Enters(TriggerObj::This)
             | Trigger::Dies(TriggerObj::This)
             | Trigger::Leaves(TriggerObj::This)
-            | Trigger::TurnedFaceUp
+            | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
@@ -1812,6 +1812,13 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
+        || matches!(
+            t,
+            Trigger::Or {
+                whenever: false,
+                ..
+            }
+        )
 }
 
 /// "your second spell each turn" and kin, after "you cast" / "an opponent
@@ -1947,7 +1954,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
-        Trigger::TurnedFaceUp => "when this is turned face up".to_string(),
+        Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
         Trigger::DrawsNth { whose, n } => draws_nth(*whose, *n),
         Trigger::BecomesTargetWhenever(o) => {
@@ -1983,6 +1990,16 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         } => cycles_text(*this, *another, *or_discard),
         Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
         Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
+        Trigger::Or {
+            second, whenever, ..
+        } => {
+            let b = trigger_text(second, next);
+            let verb = b.split_once("this ").map_or(b.as_str(), |(_, v)| v);
+            format!(
+                "{} this enters or {verb}",
+                if *whenever { "whenever" } else { "when" }
+            )
+        }
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
     }
 }

@@ -1,0 +1,7 @@
+card "Patron of the Arts" {
+  oracle_id 47f8df80-abc9-4d46-8078-8fbc23430259
+  cost {2}{R}
+  type Creature — Dragon Noble
+  pt 3/1
+  triggered when this enters or dies: create 1 "Treasure"
+}

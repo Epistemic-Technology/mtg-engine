@@ -896,6 +896,7 @@ impl Decompiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per trigger kind
     fn trigger(&self, t: &TriggerSpec) -> Trigger {
         match t {
             TriggerSpec::Enters(o) => Trigger::Enters(self.trigger_obj(o)),
@@ -942,7 +943,7 @@ impl Decompiler<'_> {
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
-            TriggerSpec::TurnedFaceUp => Trigger::TurnedFaceUp,
+            TriggerSpec::TurnedFaceUp(o) => Trigger::TurnedFaceUp(self.trigger_obj(o)),
             TriggerSpec::Exploits => Trigger::Exploits,
             TriggerSpec::Reflexive => {
                 unreachable!("a reflexive trigger is decompiled with its effect")
@@ -980,6 +981,23 @@ impl Decompiler<'_> {
                 nth: *nth,
             },
             TriggerSpec::EntersBatch(f) => Trigger::EntersBatch(self.filter(f)),
+            // "When this creature enters or dies" and kin.
+            TriggerSpec::Either(pair)
+                if pair.0 == TriggerSpec::Enters(CoreTriggerObj::This)
+                    && matches!(
+                        pair.1,
+                        TriggerSpec::Dies(CoreTriggerObj::This)
+                            | TriggerSpec::Leaves(CoreTriggerObj::This)
+                            | TriggerSpec::Attacks(CoreTriggerObj::This)
+                            | TriggerSpec::TurnedFaceUp(CoreTriggerObj::This)
+                    ) =>
+            {
+                Trigger::Or {
+                    first: Box::new(self.trigger(&pair.0)),
+                    second: Box::new(self.trigger(&pair.1)),
+                    whenever: matches!(pair.1, TriggerSpec::Attacks(_)),
+                }
+            }
             TriggerSpec::Either(pair) => Trigger::Either(
                 Box::new(self.trigger(&pair.0)),
                 Box::new(self.trigger(&pair.1)),

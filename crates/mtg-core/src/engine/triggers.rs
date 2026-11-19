@@ -540,6 +540,8 @@ impl GameState {
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })
+            // CR 708.8: judged as the permanent is face up.
+            | (TriggerSpec::TurnedFaceUp(what), Event::TurnedFaceUp { obj })
             | (
                 TriggerSpec::DealtDamage(what),
                 Event::Damage {
@@ -610,9 +612,6 @@ impl GameState {
             (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
                 (whose_ok(*whose, *player) && self.drawn_this_turn[player.index().min(3)] == *n)
                     .then_some((None, Some(*player)))
-            }
-            (TriggerSpec::TurnedFaceUp, Event::TurnedFaceUp { obj }) => {
-                (*obj == w.source).then_some((Some(*obj), Some(w.controller)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;

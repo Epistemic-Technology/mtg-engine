@@ -1,0 +1,7 @@
+card "Projektor Inspector" {
+  oracle_id 58b27a79-ba63-45d4-84ee-423ce0d91f6b
+  cost {2}{U}
+  type Creature — Human Detective
+  pt 3/2
+  triggered whenever this or Detective you control enters and whenever Detective you control is turned face up: you may draw 1 card; if you do, discard 1 card
+}

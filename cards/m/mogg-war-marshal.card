@@ -1,0 +1,8 @@
+card "Mogg War Marshal" {
+  oracle_id 7b8f4879-578e-40e4-863a-41d0c32c6bdd
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  echo {1}{R}
+  triggered when this enters or dies: create 1 "1/1 red Goblin creature"
+}

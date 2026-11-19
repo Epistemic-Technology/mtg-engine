@@ -1,0 +1,6 @@
+card "Mycosynth Wellspring" {
+  oracle_id 9ec43ec6-b625-4be8-8f79-3679e6657dbc
+  cost {2}
+  type Artifact
+  triggered when this enters or dies: you may search basic land card reveal to hand
+}

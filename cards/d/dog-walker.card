@@ -1,0 +1,9 @@
+card "Dog Walker" {
+  oracle_id 10d24900-cd40-4c98-bb1e-b9e66113f703
+  cost {R}{W}
+  type Creature — Human Citizen
+  pt 3/1
+  keywords vigilance
+  disguise {R/W}{R/W}
+  triggered when this is turned face up: create 2 tapped "1/1 white Dog creature"
+}

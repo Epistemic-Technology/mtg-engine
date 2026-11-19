@@ -1,0 +1,9 @@
+card "Granite Witness" {
+  oracle_id 37f2ec12-d703-40cd-a155-053ae2e4ddcc
+  cost {2}{W}{U}
+  type Artifact Creature — Gargoyle Detective
+  pt 3/2
+  keywords flying, vigilance
+  disguise {W/U}{W/U}
+  triggered when this is turned face up: you may tap or untap target creature
+}
