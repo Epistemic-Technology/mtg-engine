@@ -2610,3 +2610,18 @@ outcomes use the seeded game RNG; `determinize` reseeds it so search can't
 see future rolls. Per-game cost by instruction count rose about 1.8% over
 the fourteen merges. Corpus 10,109 cards: 75.1% of Pauper, 34.5% of
 Modern; 4,367 scenarios pass.
+
+Status 2026-11-19, evening: two final waves (scaled P/T and CDAs,
+graveyard-zone triggers and library moves, combat triggers and
+restrictions, snow mana and "until this leaves" exile, clash and
+non-mana keyword costs, monarch / initiative / dungeons / the Ring /
+speed / day-night, Role and Spawn tokens, optional and "then if"
+follow-ups; then bestow and splice, cost reductions and multi-target
+damage, revealed-hand knowledge kept through determinization, counters on
+groups and sacrifice triggers, ability loss / protection / Slivers, and a
+sweep of one-off phrasings including cast triggers, strive and
+"Otherwise"). Fuzzing found two mid-event snapshot gaps (a mana-boost
+color choice inside any payment; a legendary token meeting the legend
+rule), both fixed with regression tests. Per-game cost rose about 2.6%
+over the two waves. Corpus 10,711 cards: 80.6% of Pauper, 36.7% of
+Modern; 4,982 scenarios pass.
