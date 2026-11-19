@@ -2563,3 +2563,21 @@ mandatory action, enchanted-creature triggers). A per-player mana source
 cache brought throughput back to the last perf pass (5.4% fewer cycles
 per game). Corpus 8,431 cards: 58.7% of Pauper, 28.1% of Modern; 2,908
 scenarios pass; fuzz 0 panics, 0 unfinished.
+
+Status 2026-11-18, night: a census of the uncovered Pauper backlog
+(bucketed by missing feature, with "sole blocker" counts) showed a flat
+tail: about 180 cards were already expressible, and no feature unlocks
+more than about 50 cards. Work since has been parallel feature agents in
+worktrees, each taking two to four census buckets: conditions and
+activation restrictions, same-name references, "instead" upgrades and
+kicker counters, counter kinds and predefined tokens, cycling / cast /
+batch enter triggers, boast / exhaust / power-up and named modes, and
+self-reference wording (legendary short names, clause lists). Card agents
+wrote the census's expressible cards (136 of 180 accepted). The engine
+fixes from their reports: a spell's "each other creature" excludes its
+targets, "if you do" after a failed condition, a sacrificed Equipment
+still finds its creature, "exile then return it", and target-dependent
+cost increases. A merge that scanned the battlefield on every step was
+gated on a battlefield count (`turn_static_sources`); per-game
+instructions are back below the pre-merge level. Pauper coverage 65.2%;
+3,546 scenarios pass; fuzz clean.
