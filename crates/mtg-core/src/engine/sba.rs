@@ -18,6 +18,11 @@ impl GameState {
     /// (`sba_dirty`); in debug builds the skipped check runs anyway and
     /// must find nothing, which catches a change that forgot to mark it.
     pub(super) fn sba_loop(&mut self) -> bool {
+        // CR 309.6 waits on a room ability leaving the stack, which marks
+        // nothing.
+        if !self.sba_dirty && self.desig.dungeon != [None; 4] && self.dungeon_at_bottom() {
+            self.sba_dirty = true;
+        }
         if !self.sba_dirty {
             #[cfg(debug_assertions)]
             {
@@ -201,6 +206,14 @@ impl GameState {
                 }
             }
             self.lookback = None;
+            // 702.131b, 702.179a: ascend and start your engines!.
+            if self.mark_sources > 0 && self.designation_sba() {
+                acted = true;
+            }
+            // 704.5t (CR 309.6): a dungeon whose marker is on its last room.
+            if self.desig.dungeon != [None; 4] && self.dungeon_sba() {
+                acted = true;
+            }
             if !acted {
                 break;
             }

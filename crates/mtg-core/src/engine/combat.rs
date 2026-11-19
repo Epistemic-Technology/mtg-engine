@@ -161,6 +161,11 @@ impl GameState {
         if !self.block_rules_allow(blocker, &b, attacker, &a) {
             return false;
         }
+        // CR 701.54c: "Your Ring-bearer ... can't be blocked by creatures
+        // with greater power."
+        if b.power > a.power && self.is_ring_bearer(attacker) {
+            return false;
+        }
         if a.keywords.intersects(crate::card::KeywordSet::EVASION) || b.has(Keyword::Shadow) {
             let artifact = b.types.contains(crate::card::CardType::Artifact);
             // CR 702.28b: shadow blocks and is blocked only by shadow.

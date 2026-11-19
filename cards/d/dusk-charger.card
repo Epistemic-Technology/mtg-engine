@@ -1,0 +1,8 @@
+card "Dusk Charger" {
+  oracle_id e0190e13-89f6-4b51-a277-bf3eb842963e
+  cost {3}{B}
+  type Creature — Horse
+  pt 3/3
+  ascend
+  static this: +2/+2 as long as city's blessing
+}

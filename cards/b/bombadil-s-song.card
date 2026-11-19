@@ -1,0 +1,6 @@
+card "Bombadil's Song" {
+  oracle_id 60092fb4-98db-4f2d-a5d7-24b5f11c8acc
+  cost {1}{G}
+  type Instant
+  spell: target creature you control gets +1/+1 and gains hexproof; the ring tempts you
+}

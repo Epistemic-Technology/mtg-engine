@@ -1,0 +1,9 @@
+card "Swiftwing Assailant" {
+  oracle_id 46b36d25-25bd-48c5-9a53-75230bb27dee
+  cost {3}{W}
+  type Creature — Bird Warrior
+  pt 3/3
+  keywords flying
+  start your engines
+  label "Max speed" static this: +0/+1, has vigilance
+}

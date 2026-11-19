@@ -1,0 +1,8 @@
+card "Ranger's Hawk" {
+  oracle_id 44924f1e-edc4-481b-93f3-78606d4fd691
+  cost {W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  activated {3}, {T}, tap untapped other creature you control, sorcery: venture
+}

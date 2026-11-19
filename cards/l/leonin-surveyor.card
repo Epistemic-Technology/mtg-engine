@@ -1,0 +1,9 @@
+card "Leonin Surveyor" {
+  oracle_id 97c29db0-b3e1-4704-afe8-5218250c044c
+  cost {1}{W}
+  type Creature — Cat Scout
+  pt 2/2
+  start your engines
+  static during your turn, this: has first strike
+  label "Max speed" activated {3}, exile this from graveyard: draw 1 card
+}

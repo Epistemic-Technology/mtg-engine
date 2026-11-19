@@ -1,0 +1,8 @@
+card "Walking Sarcophagus" {
+  oracle_id 791b8ac8-8db8-44b4-8c85-fcc9017c17ef
+  cost {2}
+  type Artifact Creature — Zombie Cat
+  pt 2/1
+  start your engines
+  label "Max speed" static this: +1/+2
+}

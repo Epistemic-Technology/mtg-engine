@@ -1,0 +1,7 @@
+card "Clattering Skeletons" {
+  oracle_id 9e107382-f683-44ed-ada1-775d3ac79dd0
+  cost {3}{B}
+  type Creature — Skeleton
+  pt 4/3
+  triggered when this dies: venture
+}

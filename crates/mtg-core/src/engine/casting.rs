@@ -4030,6 +4030,7 @@ impl GameState {
     }
 
     /// CR 608: resolve the top object of the stack.
+    #[allow(clippy::too_many_lines)]
     pub(super) fn resolve_top(&mut self) {
         let Some(spell) = self.stack.last().copied() else {
             return;
@@ -4111,6 +4112,10 @@ impl GameState {
             };
             let split = self.mode_split_of(spell);
             let outer = self.begin_this_way(spell);
+            // CR 702.131a: ascend on an instant or sorcery, first.
+            if def.marks.has(crate::card::Marks::ASCEND) {
+                self.ascend(obj.controller);
+            }
             self.apply_effects(&mut ctx, effects, split);
             self.end_this_way(outer);
         } else {
@@ -4751,6 +4756,167 @@ impl GameState {
             g = self.with_same_of(&g, of);
         }
         std::borrow::Cow::Owned(g)
+    }
+
+    /// "Each player loses 2 life unless they discard a card" / "... unless
+    /// they sacrifice a creature, artifact, or land of their choice": each
+    /// player in turn order, from the controller, chooses (CR 101.4).
+    fn punish_each(
+        &mut self,
+        ctx: &mut EffectCtx,
+        life: u32,
+        unless: Option<&crate::card::ObjFilter>,
+    ) {
+        let def = self
+            .objects
+            .get(ctx.source)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| &l.object))
+            .map(|o| o.def);
+        let n = self.num_players();
+        let first = ctx.controller.index();
+        let saved = ctx.controller;
+        for k in 0..n {
+            let p = PlayerId(u8::try_from((first + k) % n).unwrap_or(0));
+            if self.player(p).lost.is_some() {
+                continue;
+            }
+            let can = match unless {
+                None => !self.player(p).hand.is_empty(),
+                Some(f) => self.permanents_of(p).any(|id| {
+                    self.characteristics(id)
+                        .is_some_and(|c| f.matches_characteristics(&c))
+                }),
+            };
+            // `Mode(0)` avoids the life loss, `Mode(1)` takes it.
+            let avoid = can
+                && def.is_some_and(|def| {
+                    self.choose_mid(
+                        p,
+                        DecisionKind::ChooseOption { def },
+                        vec![Choice::Mode(0), Choice::Mode(1)],
+                    ) == 0
+                });
+            ctx.controller = p;
+            let e = match (avoid, unless) {
+                (true, None) => Effect::Discard {
+                    count: crate::card::Num::N(1),
+                    who: Recipient::You,
+                },
+                (true, Some(f)) => Effect::SacrificeChosen {
+                    who: Recipient::You,
+                    filter: f.clone(),
+                    count: crate::card::Num::N(1),
+                },
+                (false, _) => Effect::LoseLife {
+                    amount: crate::card::Num::N(life),
+                    who: Recipient::You,
+                },
+            };
+            self.apply_effect(ctx, &e);
+            ctx.controller = saved;
+        }
+    }
+
+    /// Mad Wizard's Lair: "Draw three cards and reveal them. You may cast
+    /// one of them without paying its mana cost."
+    fn draw_cast_one(&mut self, ctx: &mut EffectCtx, count: u32) {
+        let p = ctx.controller;
+        let before = self.player(p).hand.clone();
+        self.apply_effect(
+            ctx,
+            &Effect::DrawCards {
+                count: crate::card::Num::N(count),
+                who: Recipient::You,
+            },
+        );
+        let drawn: Vec<ObjId> = self
+            .player(p)
+            .hand
+            .iter()
+            .copied()
+            .filter(|id| !before.contains(id))
+            .collect();
+        for &id in &drawn {
+            let def = self.objects[id].def;
+            self.emit(Event::Revealed { obj: id, def });
+        }
+        let castable: Vec<ObjId> = drawn
+            .into_iter()
+            .filter(|id| self.exile_castable(p, *id, AltCast::Free))
+            .collect();
+        if castable.is_empty() {
+            return;
+        }
+        let mut options: Vec<Choice> = castable
+            .iter()
+            .map(|id| Choice::Discard {
+                card: *id,
+                def: self.objects[*id].def,
+            })
+            .collect();
+        options.push(Choice::Done);
+        let k = self.choose_mid(p, DecisionKind::ChooseCard, options);
+        if let Some(&card) = castable.get(k) {
+            self.exile_casts
+                .get_or_insert_with(Box::default)
+                .pending
+                .push((p, card, AltCast::Free));
+        }
+    }
+
+    /// Throne of the Dead Three: "Reveal the top ten cards of your
+    /// library. Put a creature card from among them onto the battlefield
+    /// with three +1/+1 counters on it. ... Then shuffle."
+    fn reveal_put_creature(&mut self, ctx: &mut EffectCtx, count: u32, counters: u32) {
+        let p = ctx.controller;
+        let top: Vec<ObjId> = self
+            .player(p)
+            .library
+            .iter()
+            .rev()
+            .take(count as usize)
+            .copied()
+            .collect();
+        for &id in &top {
+            let def = self.objects[id].def;
+            self.emit(Event::Revealed { obj: id, def });
+        }
+        let creatures: Vec<ObjId> = top
+            .into_iter()
+            .filter(|id| self.pool.get(self.objects[*id].def).is_creature())
+            .collect();
+        let pick = match creatures.len() {
+            0 => None,
+            1 => Some(creatures[0]),
+            _ => {
+                let options = creatures
+                    .iter()
+                    .map(|id| Choice::Discard {
+                        card: *id,
+                        def: self.objects[*id].def,
+                    })
+                    .collect();
+                Some(creatures[self.choose_mid(p, DecisionKind::ChooseCard, options)])
+            }
+        };
+        if let Some(id) = pick {
+            let new = self.put_onto_battlefield_with(
+                id,
+                p,
+                super::replace::Enter {
+                    tapped: false,
+                    counters: Some((CounterKind::PlusOnePlusOne, counters)),
+                },
+            );
+            if self
+                .objects
+                .get(new)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+            {
+                ctx.created = Some(new);
+            }
+        }
+        self.shuffle_library(p);
     }
 
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
@@ -6540,6 +6706,41 @@ impl GameState {
                 }
             }
             Effect::Proliferate => self.proliferate(ctx.controller),
+            Effect::BecomeMonarch { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.become_monarch(p);
+                    }
+                }
+            }
+            Effect::TakeInitiative { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        self.take_initiative(p);
+                    }
+                }
+            }
+            Effect::Venture { undercity } => self.venture(ctx.controller, *undercity),
+            Effect::RingTempts => self.ring_tempts(ctx.controller),
+            Effect::IncreaseSpeed => self.increase_speed(ctx.controller),
+            Effect::Ascend => {
+                self.ascend(ctx.controller);
+            }
+            Effect::UntilYourNextTurn { to, parts } => {
+                let parts: SmallVec<[Modification; 2]> = parts.iter().cloned().collect();
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    let d = Duration::UntilYourNextTurn(ctx.controller);
+                    self.effect_on(ctx, id, parts.clone(), d);
+                }
+            }
+            Effect::PunishEach { life, unless } => self.punish_each(ctx, *life, unless.as_ref()),
+            Effect::DrawCastOne { count } => self.draw_cast_one(ctx, *count),
+            Effect::RevealPutCreature { count, counters } => {
+                self.reveal_put_creature(ctx, *count, *counters);
+            }
             Effect::Explore { what } => {
                 for t in self.recipients(ctx, *what) {
                     if let Target::Object(id) = t {

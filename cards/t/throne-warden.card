@@ -1,0 +1,7 @@
+card "Throne Warden" {
+  oracle_id b50c1dd3-0495-427f-b5a9-9ac44a4554d1
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered at beginning of your end step if you are monarch: put 1 +1/+1 counter on this
+}

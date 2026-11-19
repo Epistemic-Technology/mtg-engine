@@ -1,0 +1,6 @@
+card "Dreadful as the Storm" {
+  oracle_id bd9f4f20-cdef-4a20-b4cb-4f25c137a786
+  cost {2}{U}
+  type Instant
+  spell: target creature has base power and toughness 5/5 until end of turn; the ring tempts you
+}

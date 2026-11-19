@@ -1,0 +1,9 @@
+card "Glitch Ghost Surveyor" {
+  oracle_id f0f83ab8-6185-4139-b41e-a11500036915
+  cost {2}{U}
+  type Creature — Spirit Scout
+  pt 2/2
+  keywords flying
+  start your engines
+  label "Max speed" activated {3}, exile this from graveyard: draw 1 card
+}

@@ -60,6 +60,8 @@ pub struct SetupSpec {
     pub poison: [u32; 2],
     /// `energy A: 3`: starting energy counters.
     pub energy: [u32; 2],
+    /// `speed A: 3`: starting speed (CR 702.179).
+    pub speed: [u8; 2],
     pub zones: Vec<ZoneSpec>,
     /// `start turn N P [step]`.
     pub start: Option<(u32, PlayerId, Step)>,
@@ -253,6 +255,17 @@ pub enum Assertion {
     Poison(PlayerId, u32),
     /// `assert energy A 2`.
     Energy(PlayerId, u32),
+    /// A designation (CR 309, 701.54, 702.131, 702.179, 725, 726, 731):
+    /// `assert monarch A`, `assert initiative none`, `assert daynight
+    /// night`, `assert speed A 2`, `assert tempted A 1`, `assert
+    /// ring_bearer A "Grizzly Bears"`, `assert blessing A yes`, `assert
+    /// dungeon A "Lost Mine of Phandelver" "Goblin Lair"` (or `none`),
+    /// `assert completed A 1`: the value as text.
+    Designation {
+        key: String,
+        player: Option<PlayerId>,
+        want: String,
+    },
     /// `zone P contains [N] "name"`: at least one, or exactly N.
     ZoneContains {
         zone: Zone,

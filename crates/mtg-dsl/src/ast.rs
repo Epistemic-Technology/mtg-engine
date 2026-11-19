@@ -1028,6 +1028,16 @@ pub enum Mechanic {
     /// CR 702.166: `bargain`: "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     Bargain,
+    /// CR 702.131: `ascend`: the city's blessing once you control ten or
+    /// more permanents (a permanent's static ability; an instant's or
+    /// sorcery's first effect).
+    Ascend,
+    /// CR 702.179: `start your engines`: "Start your engines!", a speed of
+    /// 1 for a player who has none.
+    StartYourEngines,
+    /// `becomes day as this enters`: "If it's neither day nor night, it
+    /// becomes day as this creature enters." (CR 731.1).
+    BecomesDay,
 }
 
 /// A blocking restriction on this creature.
@@ -1272,6 +1282,15 @@ pub enum StaticCond {
     OpponentPoison(u32),
     /// `you own card in exile`: "you own a card in exile".
     OwnCardInExile,
+    /// `you are monarch`: "you're the monarch" (CR 725).
+    Monarch,
+    /// `completed dungeon`: "you've completed a dungeon" (CR 309.7).
+    CompletedDungeon,
+    /// `city's blessing`: "you have the city's blessing" (CR 702.131c).
+    CityBlessing,
+    /// `max speed`: "you have max speed" (CR 702.179e). Usually written
+    /// as the ability word `label "Max speed"` instead.
+    MaxSpeed,
     /// `total power 8 or more` (formidable): "creatures you control have
     /// total power 8 or greater".
     TotalPower(u32),
@@ -1564,6 +1583,8 @@ pub enum Trigger {
     GainsLife {
         whose: Who,
     },
+    /// `whenever day becomes night or night becomes day` (CR 731.1a).
+    DayNight,
     /// `whenever you roll dice`: "Whenever you roll one or more dice".
     RollsDice {
         whose: Who,
@@ -2338,6 +2359,17 @@ pub enum Effect {
     Rule(RuleKind),
     /// `proliferate` (CR 701.27).
     Proliferate,
+    /// `the ring tempts you` (CR 701.54): "the Ring tempts you".
+    RingTempts,
+    /// `become monarch` (CR 725): "you become the monarch".
+    BecomeMonarch,
+    /// `take initiative` (CR 726): "you take the initiative".
+    TakeInitiative,
+    /// `venture` (CR 701.49): "venture into the dungeon"; `venture into
+    /// undercity`: "venture into Undercity".
+    Venture {
+        undercity: bool,
+    },
     /// `this explores` (CR 701.44).
     Explore {
         what: Recipient,

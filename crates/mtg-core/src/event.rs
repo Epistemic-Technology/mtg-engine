@@ -280,6 +280,45 @@ pub enum Event {
         amount: u32,
         by: CardRef,
     },
+    /// It became day or night (CR 731); `changed` if it was the other
+    /// (for "whenever day becomes night or night becomes day").
+    DayNight {
+        day: bool,
+        changed: bool,
+    },
+    /// A player became the monarch (CR 725).
+    BecameMonarch {
+        player: PlayerId,
+    },
+    /// A player took the initiative (CR 726).
+    TookInitiative {
+        player: PlayerId,
+    },
+    /// The Ring tempted a player (CR 701.54), who chose `bearer`.
+    RingTempted {
+        player: PlayerId,
+        bearer: Option<ObjId>,
+    },
+    /// A player's venture marker moved into a room of a dungeon (CR 309.5).
+    Ventured {
+        player: PlayerId,
+        dungeon: CardRef,
+        room: u8,
+    },
+    /// A player completed a dungeon (CR 309.7).
+    CompletedDungeon {
+        player: PlayerId,
+        dungeon: CardRef,
+    },
+    /// A player's speed changed (CR 702.179).
+    Speed {
+        player: PlayerId,
+        speed: u8,
+    },
+    /// A player got the city's blessing (CR 702.131).
+    CityBlessing {
+        player: PlayerId,
+    },
     GameOver {
         result: GameResult,
     },
@@ -292,7 +331,7 @@ impl Event {
     pub fn watch_bit(&self) -> u16 {
         use crate::card::{
             WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_CYCLE, WATCH_DAMAGE,
-            WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_ROLL,
+            WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_ROLL,
             WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
@@ -311,6 +350,7 @@ impl Event {
             Event::Discard { .. } => WATCH_DISCARD,
             Event::Attached { .. } => WATCH_ATTACH,
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
+            Event::DayNight { .. } => WATCH_DESIG,
             _ => 0,
         }
     }

@@ -5,6 +5,7 @@
 
 pub mod card;
 pub mod decision;
+pub mod dungeons;
 pub mod engine;
 pub mod event;
 pub mod event_text;

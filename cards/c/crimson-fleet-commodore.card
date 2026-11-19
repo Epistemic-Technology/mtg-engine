@@ -1,0 +1,8 @@
+card "Crimson Fleet Commodore" {
+  oracle_id d5ac319a-c870-4890-87c0-0e02f122f234
+  cost {3}{R}
+  type Creature — Ogre Pirate
+  pt 5/2
+  keywords trample
+  triggered when this enters: become monarch
+}

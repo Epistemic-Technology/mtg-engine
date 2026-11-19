@@ -1,0 +1,8 @@
+card "Loxodon Surveyor" {
+  oracle_id 970f26d4-c916-444a-a2d2-4c1f5bb5556b
+  cost {2}{G}
+  type Creature — Elephant Scout
+  pt 3/3
+  start your engines
+  label "Max speed" activated {3}, exile this from graveyard: draw 1 card
+}

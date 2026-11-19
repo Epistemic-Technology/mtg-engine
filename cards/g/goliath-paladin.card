@@ -1,0 +1,8 @@
+card "Goliath Paladin" {
+  oracle_id 269a02ca-1425-4b32-81f3-440e1caadb17
+  cost {4}{W}
+  type Creature — Giant Knight
+  pt 3/6
+  keywords vigilance
+  triggered when this enters: take initiative
+}

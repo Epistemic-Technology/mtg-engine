@@ -1,0 +1,8 @@
+card "Planar Ally" {
+  oracle_id 9ae30bd5-b638-4647-b59d-ffe08e77c182
+  cost {3}{W}{W}
+  type Creature — Angel
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: venture
+}

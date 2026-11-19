@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::mana::{Color, ColorSet, Mana, ManaCost};
 
 /// Index of a definition in a [`CardPool`].
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct CardRef(pub u32);
 
 /// Card types (CR 205.2a).
@@ -1728,6 +1728,9 @@ pub enum PlayUntil {
     /// "until your next end step": until the controller's next end step
     /// begins.
     YourNextEndStep,
+    /// "You may play them." with no duration (Runestone Caverns): for as
+    /// long as the card stays in exile.
+    Forever,
 }
 
 /// Where searched-for cards go.
@@ -1975,6 +1978,14 @@ pub enum StaticCondition {
     /// A part of the turn (CR 602.5b timing restrictions): "during your
     /// upkeep", "before attackers are declared".
     During(TurnTime),
+    /// "you're the monarch" (CR 725).
+    Monarch,
+    /// "you've completed a dungeon" (CR 309.7).
+    CompletedDungeon,
+    /// "you have the city's blessing" (CR 702.131c).
+    CityBlessing,
+    /// Max speed (CR 702.179e): "you have max speed", speed 4.
+    MaxSpeed,
     /// "If {B} was spent to cast this spell", "if at least three red mana
     /// was spent to cast it" (adamant), "if mana from a Treasure was spent
     /// to cast it": at least `at_least` of the mana paid to cast the
@@ -3088,6 +3099,57 @@ pub enum Effect {
     },
     /// "Pay {E}{E}", inside "you may": like `Pay`.
     PayEnergy(u32),
+    /// "You become the monarch" (CR 725): `You`, or for the monarch's own
+    /// combat-damage trigger `TriggeringController` (CR 725.2).
+    BecomeMonarch {
+        who: Recipient,
+    },
+    /// "You take the initiative" (CR 726): `You`, or for the initiative's
+    /// combat-damage trigger `TriggeringPlayer`. Taking it triggers a
+    /// venture into Undercity (CR 726.2), even for its holder (726.5).
+    TakeInitiative {
+        who: Recipient,
+    },
+    /// Venture into the dungeon (CR 701.49); `undercity`: venture into
+    /// Undercity (CR 701.49d, the initiative's).
+    Venture {
+        undercity: bool,
+    },
+    /// The Ring tempts you (CR 701.54).
+    RingTempts,
+    /// The speed trigger's effect (CR 702.179d): speed increases by 1, to
+    /// at most 4. Built-in only.
+    IncreaseSpeed,
+    /// Ascend on an instant or sorcery (CR 702.131a): the city's blessing
+    /// if the controller controls ten or more permanents.
+    Ascend,
+    /// "Target creature gets -4/-0 until your next turn", "can't attack
+    /// until your next turn", goad (CR 701.15): an effect on the recipient
+    /// that ends as the controller's next turn begins (CR 611.2b).
+    UntilYourNextTurn {
+        to: Recipient,
+        parts: Vec<Modification>,
+    },
+    /// "Each player loses 2 life unless they discard a card" (`unless`
+    /// `None`) / "... unless they sacrifice a creature, artifact, or land
+    /// of their choice": each player in turn order chooses (CR 101.4).
+    PunishEach {
+        life: u32,
+        unless: Option<ObjFilter>,
+    },
+    /// "Draw three cards and reveal them. You may cast one of them without
+    /// paying its mana cost." (Mad Wizard's Lair).
+    DrawCastOne {
+        count: u32,
+    },
+    /// "Reveal the top ten cards of your library. Put a creature card from
+    /// among them onto the battlefield with three +1/+1 counters on it.
+    /// ... Then shuffle." (Throne of the Dead Three): the creature is
+    /// `Recipient::CreatedObject` afterwards.
+    RevealPutCreature {
+        count: u32,
+        counters: u32,
+    },
     /// Proliferate (CR 701.27): the controller adds one of each kind of
     /// counter already there to the permanents and players they choose;
     /// the engine chooses their own permanents' and players' beneficial
@@ -3346,6 +3408,12 @@ impl Effect {
                 // Each clashing player puts their card on the top or
                 // bottom (CR 701.23a).
                 | Effect::Clash { .. }
+                // A Ring-bearer, a dungeon, or a room to choose.
+                | Effect::RingTempts
+                | Effect::Venture { .. }
+                | Effect::PunishEach { .. }
+                | Effect::DrawCastOne { .. }
+                | Effect::RevealPutCreature { .. }
         )
     }
 }
@@ -3650,6 +3718,8 @@ pub const WATCH_CYCLE: u16 = 2048;
 pub const WATCH_DISCARD: u16 = 4096;
 pub const WATCH_ATTACH: u16 = 8192;
 pub const WATCH_ROLL: u16 = 16384;
+/// Designation changes (day and night, CR 731).
+pub const WATCH_DESIG: u16 = 32768;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -3810,6 +3880,9 @@ pub enum TriggerSpec {
     /// before the next time a player would receive priority count as
     /// together.
     EntersBatch(ObjFilter),
+    /// "Whenever day becomes night or night becomes day" (CR 731.2): not
+    /// as it first becomes day.
+    DayNight,
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -3918,6 +3991,7 @@ impl TriggerSpec {
             } => WATCH_DISCARD,
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
+            TriggerSpec::DayNight => WATCH_DESIG,
         }
     }
 }
@@ -4603,6 +4677,14 @@ pub struct CardDef {
     pub emblem: bool,
     /// A planeswalker's printed loyalty (CR 306.5b).
     pub loyalty: u32,
+    /// A dungeon card's rooms (CR 309.4), topmost first; empty for any
+    /// other card.
+    #[serde(default)]
+    pub rooms: Vec<Room>,
+    /// Ascend, start your engines!, and becoming day as it enters
+    /// (`Marks`).
+    #[serde(default)]
+    pub marks: Marks,
     /// What this card's copy effects add to the copiable values of what
     /// they copy (CR 707.9b).
     pub copy_except: Option<CopyExcept>,
@@ -4731,6 +4813,41 @@ pub struct CardDef {
     pub spent: SpentUse,
 }
 
+/// A room of a dungeon card (CR 309.4): its name (flavor, CR 309.4b), the
+/// rooms its arrows lead to by index (none for the bottommost room), and
+/// its room ability, "When you move your venture marker into this room,
+/// <effect>" (CR 309.4c), a triggered ability the engine queues itself.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Room {
+    pub name: String,
+    pub next: Vec<u8>,
+    pub ability: AbilityDef,
+    /// Filled in by `CardPool::add`: `ability` registered.
+    #[serde(skip)]
+    pub id: AbilityId,
+}
+
+/// Abilities that act on a player's designations as the game goes:
+/// ascend (CR 702.131b), start your engines! (CR 702.179a), and "If it's
+/// neither day nor night, it becomes day as this creature enters."
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub struct Marks(pub u8);
+
+impl Marks {
+    pub const NONE: Marks = Marks(0);
+    pub const ASCEND: Marks = Marks(1);
+    pub const ENGINES: Marks = Marks(2);
+    pub const BECOMES_DAY: Marks = Marks(4);
+
+    pub const fn has(self, m: Marks) -> bool {
+        self.0 & m.0 != 0
+    }
+
+    pub const fn is_empty(self) -> bool {
+        self.0 == 0
+    }
+}
+
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
@@ -4791,6 +4908,9 @@ impl DefFlags {
     /// (`TriggeredAbility::from_graveyard`): cards with one are counted
     /// while there (`GameState::graveyard_trigger_cards`).
     const GRAVEYARD_TRIGGER: u32 = 2_097_152;
+    /// Ascend, start your engines!, or becoming day as it enters
+    /// (`CardDef::marks`): state-based actions and entering then look.
+    const MARKS: u32 = 4_194_304;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4887,6 +5007,10 @@ impl DefFlags {
 
     pub const fn has_graveyard_trigger(self) -> bool {
         self.has(DefFlags::GRAVEYARD_TRIGGER)
+    }
+
+    pub const fn has_marks(self) -> bool {
+        self.has(DefFlags::MARKS)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -5255,6 +5379,50 @@ pub struct CardPool {
     /// with ward {2}, for disguise (CR 702.168b).
     face_down: CardRef,
     face_down_ward: CardRef,
+    /// Dungeon cards (CR 309), in the order added.
+    dungeons: Vec<CardRef>,
+    /// The designations' built-in abilities and definitions.
+    desig: DesigBuiltins,
+}
+
+/// The inherent triggered abilities of the monarch (CR 725.2), the
+/// initiative (CR 726.2), speed (CR 702.179d), and The Ring emblem (CR
+/// 701.54c), queued by the engine, and the definitions naming their
+/// sources.
+#[derive(Copy, Clone, Debug, Default)]
+pub struct DesigBuiltins {
+    /// "At the beginning of the monarch's end step, that player draws a
+    /// card."
+    pub monarch_draw: AbilityId,
+    /// "Whenever a creature deals combat damage to the monarch, its
+    /// controller becomes the monarch."
+    pub monarch_steal: AbilityId,
+    /// "At the beginning of the upkeep of the player who has the
+    /// initiative, that player ventures into Undercity."
+    pub initiative_upkeep: AbilityId,
+    /// "Whenever one or more creatures a player controls deal combat
+    /// damage to the player who has the initiative, the controller of
+    /// those creatures takes the initiative."
+    pub initiative_steal: AbilityId,
+    /// "Whenever a player takes the initiative, that player ventures into
+    /// Undercity."
+    pub initiative_taken: AbilityId,
+    /// "Whenever one or more opponents lose life during your turn, if your
+    /// speed is less than 4, your speed increases by 1."
+    pub speed_up: AbilityId,
+    /// "Whenever your Ring-bearer attacks, draw a card, then discard a
+    /// card."
+    pub ring_loot: AbilityId,
+    /// "Whenever your Ring-bearer becomes blocked by a creature, the
+    /// blocking creature's controller sacrifices it at end of combat."
+    pub ring_block: AbilityId,
+    /// "Whenever your Ring-bearer deals combat damage to a player, each
+    /// opponent loses 3 life."
+    pub ring_damage: AbilityId,
+    pub monarch: CardRef,
+    pub initiative: CardRef,
+    pub speed: CardRef,
+    pub ring: CardRef,
 }
 
 impl Default for CardPool {
@@ -5288,6 +5456,8 @@ impl CardPool {
             builtins: [AbilityId(0); 5],
             face_down: CardRef(0),
             face_down_ward: CardRef(0),
+            dungeons: Vec::new(),
+            desig: DesigBuiltins::default(),
         };
         for c in Color::ALL {
             let id = pool.subtype(c.basic_land_type());
@@ -5401,6 +5571,7 @@ impl CardPool {
                     what: Recipient::SameObject,
                 }],
             }));
+        pool.add_designations();
         // Named only for logs: a face-down permanent has no name.
         pool.face_down = pool.add(
             Builder::new("face-down creature", "")
@@ -5667,6 +5838,85 @@ impl CardPool {
         self.builtins[b as usize]
     }
 
+    /// The designations' built-in abilities and source definitions.
+    pub const fn desig(&self) -> &DesigBuiltins {
+        &self.desig
+    }
+
+    /// Dungeon cards (CR 309), in the order added.
+    pub fn dungeons(&self) -> &[CardRef] {
+        &self.dungeons
+    }
+
+    /// Register the designations' inherent abilities (`DesigBuiltins`).
+    fn add_designations(&mut self) {
+        let trig = |effects: Vec<Effect>| {
+            AbilityDef::Triggered(TriggeredAbility {
+                trigger: TriggerSpec::Reflexive,
+                condition: None,
+                targets: Vec::new(),
+                effects,
+                from_graveyard: false,
+            })
+        };
+        let one = Num::N(1);
+        let mut d = DesigBuiltins {
+            monarch_draw: self.register(trig(vec![Effect::DrawCards {
+                count: one,
+                who: Recipient::You,
+            }])),
+            monarch_steal: self.register(trig(vec![Effect::BecomeMonarch {
+                who: Recipient::TriggeringController,
+            }])),
+            initiative_upkeep: self.register(trig(vec![Effect::Venture { undercity: true }])),
+            initiative_steal: self.register(trig(vec![Effect::TakeInitiative {
+                who: Recipient::TriggeringPlayer,
+            }])),
+            initiative_taken: self.register(trig(vec![Effect::Venture { undercity: true }])),
+            speed_up: self.register(trig(vec![Effect::IncreaseSpeed])),
+            ring_loot: self.register(trig(vec![
+                Effect::DrawCards {
+                    count: one,
+                    who: Recipient::You,
+                },
+                Effect::Discard {
+                    count: one,
+                    who: Recipient::You,
+                },
+            ])),
+            ring_block: AbilityId(0),
+            ring_damage: self.register(trig(vec![Effect::LoseLife {
+                amount: Num::N(3),
+                who: Recipient::EachOpponent,
+            }])),
+            ..DesigBuiltins::default()
+        };
+        // CR 603.7: "... sacrifices it at end of combat", a delayed
+        // trigger about the blocking creature.
+        let sac = self.register(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::BeginningOfStep {
+                step: crate::turn::Step::EndOfCombat,
+                whose: Who::Any,
+            },
+            condition: None,
+            targets: Vec::new(),
+            effects: vec![Effect::Sacrifice {
+                what: Recipient::SameObject,
+            }],
+            from_graveyard: false,
+        }));
+        d.ring_block = self.register(trig(vec![Effect::Delayed {
+            ability: sac,
+            about: Recipient::TriggeringObject,
+            this_turn: false,
+        }]));
+        d.monarch = self.add(Builder::new("The Monarch", "").emblem().build());
+        d.initiative = self.add(Builder::new("The Initiative", "").emblem().build());
+        d.speed = self.add(Builder::new("Speed", "").emblem().build());
+        d.ring = self.add(Builder::new("The Ring", "").emblem().build());
+        self.desig = d;
+    }
+
     /// Whether a definition is a face-down one.
     pub fn is_face_down(&self, def: CardRef) -> bool {
         def == self.face_down || def == self.face_down_ward
@@ -5702,6 +5952,12 @@ impl CardPool {
             .into_iter()
             .map(|a| self.register(a))
             .collect();
+        for i in 0..def.rooms.len() {
+            def.rooms[i].id = self.register(def.rooms[i].ability.clone());
+        }
+        if !def.rooms.is_empty() {
+            self.dungeons.push(r);
+        }
         if let Some(x) = def.copy_except.clone() {
             def.except_subtype_ids = x.subtypes.iter().map(|s| self.subtype(s)).collect();
             def.except_ability_ids = x.abilities.into_iter().map(|a| self.register(a)).collect();
@@ -5786,6 +6042,7 @@ impl CardPool {
         }) {
             flags.set(DefFlags::ATTACK_RULE, true);
         }
+        flags.set(DefFlags::MARKS, !def.marks.is_empty());
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
@@ -5896,6 +6153,8 @@ impl Builder {
             token: false,
             emblem: false,
             loyalty: 0,
+            rooms: Vec::new(),
+            marks: Marks::NONE,
             copy_except: None,
             subtype_ids: SubtypeSet::new(),
             ability_ids: AbilitySet::new(),
@@ -5964,6 +6223,19 @@ impl Builder {
     #[must_use]
     pub fn emblem(mut self) -> Self {
         self.0.emblem = true;
+        self
+    }
+
+    /// A dungeon card's next room (CR 309.4).
+    #[must_use]
+    pub fn room(mut self, room: Room) -> Self {
+        self.0.rooms.push(room);
+        self
+    }
+
+    #[must_use]
+    pub fn marks(mut self, m: Marks) -> Self {
+        self.0.marks = Marks(self.0.marks.0 | m.0);
         self
     }
 

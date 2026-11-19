@@ -1,0 +1,6 @@
+card "Claim the Precious" {
+  oracle_id 8b0a0991-2327-45ea-b47f-c31db367fa1d
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target creature; the ring tempts you
+}

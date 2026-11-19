@@ -1399,3 +1399,42 @@ The engine pays canonically and these riders are all bonuses, so for a
 card whose text asks, payment spends what it wants where it can: generic
 mana is paid with the named colors (as many colors as possible for
 converge), and Treasures go first ("mana from a Treasure").
+
+### Designations and progress tracks
+
+Player designations (CR 725 the monarch, 726 the initiative, 731 day and
+night, 702.131 the city's blessing, 702.179 speed, 701.54 the Ring) and
+dungeons (CR 309):
+
+- Effects: `become monarch` ("you become the monarch"), `take initiative`
+  ("you take the initiative"; the initiative's own trigger then ventures
+  into Undercity), `venture` ("venture into the dungeon"), `venture into
+  undercity`, `the ring tempts you` ("the Ring tempts you": the emblem
+  named The Ring, then a creature you control becomes your Ring-bearer,
+  legendary and unblockable by creatures with greater power; tempted
+  twice it loots as it attacks, three times a creature blocking it is
+  sacrificed at end of combat, four times its combat damage to a player
+  makes each opponent lose 3 life).
+- Conditions (static conditions anywhere they are accepted): `you are
+  monarch` ("you're the monarch"), `completed dungeon` ("you've completed
+  a dungeon"), `city's blessing` ("you have the city's blessing"), `max
+  speed` ("you have max speed").
+- Ability lines: `ascend` ("Ascend": on a permanent, the city's blessing
+  once its controller controls ten or more permanents; on an instant or
+  sorcery, checked first as it resolves), `start your engines` ("Start
+  your engines!": a speed of 1 for a controller with none; speed rises by
+  one, at most once each turn, when an opponent loses life during your
+  turn, to at most 4), `becomes day as this enters` ("If it's neither day
+  nor night, it becomes day as this creature enters.").
+- `label "Max speed" <static or activated ability>`: "Max speed — ..."
+  (CR 702.179e): the ability works only while its controller's speed is
+  4 (a static ability's condition, an activated ability's activation
+  condition, graveyard and mana abilities included).
+- Trigger: `whenever day becomes night or night becomes day` (CR 731.1a;
+  not the first time it becomes day).
+- `impulse 2 forever`: "Exile the top two cards of your library. You may
+  play them." with no time limit.
+
+The dungeons themselves (Lost Mine of Phandelver, Dungeon of the Mad
+Mage, Tomb of Annihilation, Undercity) are data in
+`mtg_core::dungeons`, added to the built-in pool after the corpus.

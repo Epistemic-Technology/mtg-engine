@@ -1,0 +1,7 @@
+card "Palace Sentinels" {
+  oracle_id d29d3b44-06dd-45dd-bbb2-506a6fce6a8d
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered when this enters: become monarch
+}

@@ -3039,6 +3039,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
         }
         Effect::Proliferate => Clause::imperative("proliferate".to_string()),
+        Effect::RingTempts => Clause::imperative("the Ring tempts you".to_string()),
+        Effect::BecomeMonarch => Clause::imperative("you become the monarch".to_string()),
+        Effect::TakeInitiative => Clause::imperative("you take the initiative".to_string()),
+        Effect::Venture { undercity: false } => {
+            Clause::imperative("venture into the dungeon".to_string())
+        }
+        Effect::Venture { undercity: true } => {
+            Clause::imperative("venture into Undercity".to_string())
+        }
         Effect::Manifest => Clause::imperative("manifest the top card of your library".to_string()),
         Effect::Adapt(n) => Clause::imperative(format!("adapt {n}")),
         Effect::Discover(n) => Clause::imperative(format!("discover {n}")),
@@ -3074,18 +3083,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (true, false) => "that card",
                 (false, _) => "those cards",
             };
-            let body = if *first {
+            let body = if *until == PlayUntil::Forever {
+                // "You may play them." (no duration).
+                format!("You may play {}", if one { "it" } else { "them" })
+            } else if *first {
                 let when = match until {
                     PlayUntil::ThisTurn => "Until end of turn",
                     PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
-                    PlayUntil::YourNextEndStep => "Until your next end step",
+                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "Until your next end step",
                 };
                 format!("{when}, you may play {what}")
             } else {
                 let when = match until {
                     PlayUntil::ThisTurn => "this turn",
                     PlayUntil::EndOfYourNextTurn => "until the end of your next turn",
-                    PlayUntil::YourNextEndStep => "until your next end step",
+                    PlayUntil::YourNextEndStep | PlayUntil::Forever => "until your next end step",
                 };
                 format!("You may play {what} {when}")
             };
@@ -5625,6 +5637,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             )
         }
         Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
+        Trigger::DayNight => "whenever day becomes night or night becomes day".to_string(),
         Trigger::RollsDice { whose } => match whose {
             Who::You => "whenever you roll one or more dice".to_string(),
             _ => "whenever a player rolls one or more dice".to_string(),
@@ -7234,6 +7247,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("an opponent has {} poison counters", or_more(*n))
         }
         StaticCond::OwnCardInExile => "you own a card in exile".to_string(),
+        StaticCond::Monarch => "you're the monarch".to_string(),
+        StaticCond::CompletedDungeon => "you've completed a dungeon".to_string(),
+        StaticCond::CityBlessing => "you have the city's blessing".to_string(),
+        StaticCond::MaxSpeed => "you have max speed".to_string(),
         StaticCond::TotalPower(n) => {
             format!("creatures you control have total power {n} or greater")
         }
@@ -7853,6 +7870,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
+            crate::ast::Mechanic::Ascend => "Ascend".to_string(),
+            crate::ast::Mechanic::StartYourEngines => "Start your engines!".to_string(),
+            crate::ast::Mechanic::BecomesDay => format!(
+                "If it's neither day nor night, it becomes day as {} enters.",
+                this_ref(card)
+            ),
         },
         Ability::EntersWithIf {
             n,

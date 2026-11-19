@@ -255,6 +255,62 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             obj(state, *o),
             state.pool.get(*of).name
         ),
+        Event::DayNight { day, .. } => {
+            format!("It becomes {}.", if *day { "day" } else { "night" })
+        }
+        Event::BecameMonarch { player } => {
+            format!(
+                "{} the monarch.",
+                verb(*player, viewer, "become", "becomes")
+            )
+        }
+        Event::TookInitiative { player } => {
+            format!("{} the initiative.", verb(*player, viewer, "take", "takes"))
+        }
+        Event::RingTempted { player, bearer } => {
+            let tempts = if *player == viewer {
+                "The Ring tempts you".to_string()
+            } else {
+                format!("The Ring tempts P{}", player.0 + 1)
+            };
+            match bearer {
+                Some(b) => format!("{tempts}; {} is the Ring-bearer.", obj(state, *b)),
+                None => format!("{tempts}."),
+            }
+        }
+        Event::Ventured {
+            player,
+            dungeon,
+            room,
+        } => {
+            let d = state.pool.get(*dungeon);
+            let name = d
+                .rooms
+                .get(usize::from(*room))
+                .map_or("?", |r| r.name.as_str());
+            format!(
+                "{} {name} ({}).",
+                verb(*player, viewer, "venture into", "ventures into"),
+                d.name
+            )
+        }
+        Event::CompletedDungeon { player, dungeon } => format!(
+            "{} {}.",
+            verb(*player, viewer, "complete", "completes"),
+            state.pool.get(*dungeon).name
+        ),
+        Event::Speed { player, speed } => {
+            let whose = if *player == viewer {
+                "Your".to_string()
+            } else {
+                format!("P{}'s", player.0 + 1)
+            };
+            format!("{whose} speed is {speed}.")
+        }
+        Event::CityBlessing { player } => format!(
+            "{} the city's blessing.",
+            verb(*player, viewer, "get", "gets")
+        ),
         Event::PlayerLost { player, reason } => {
             format!("{} ({reason:?}).", verb(*player, viewer, "lose", "loses"))
         }

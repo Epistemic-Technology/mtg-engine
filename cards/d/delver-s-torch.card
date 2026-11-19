@@ -1,0 +1,8 @@
+card "Delver's Torch" {
+  oracle_id a1c8b833-8c74-4f95-8a47-1dd41ef99361
+  cost {1}{W}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  triggered whenever equipped creature attacks: venture
+  equip {3}
+}

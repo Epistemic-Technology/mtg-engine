@@ -37,6 +37,8 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
     for c in cards {
         add_card(&mut pool, c, &by_name)?;
     }
+    // The dungeon cards (CR 309), after the tokens their rooms make.
+    mtg_core::dungeons::add_dungeons(&mut pool);
     Ok(pool)
 }
 
@@ -311,6 +313,15 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Bargain) => {
                     b = b.bargain();
                 }
+                Ability::Mechanic(Mechanic::Ascend) => {
+                    b = b.marks(mtg_core::card::Marks::ASCEND);
+                }
+                Ability::Mechanic(Mechanic::StartYourEngines) => {
+                    b = b.marks(mtg_core::card::Marks::ENGINES);
+                }
+                Ability::Mechanic(Mechanic::BecomesDay) => {
+                    b = b.marks(mtg_core::card::Marks::BECOMES_DAY);
+                }
                 Ability::Mechanic(Mechanic::Scavenge(_)) => {
                     // CR 702.97a: "equal to this card's power", as the card
                     // last existed in the graveyard.
@@ -455,6 +466,9 @@ impl Compiler<'_> {
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
                             | Mechanic::Bargain
+                            | Mechanic::Ascend
+                            | Mechanic::StartYourEngines
+                            | Mechanic::BecomesDay
                     )
             ) {
                 continue;
@@ -780,6 +794,10 @@ impl Compiler<'_> {
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
+            StaticCond::Monarch => StaticCondition::Monarch,
+            StaticCond::CompletedDungeon => StaticCondition::CompletedDungeon,
+            StaticCond::CityBlessing => StaticCondition::CityBlessing,
+            StaticCond::MaxSpeed => StaticCondition::MaxSpeed,
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
             StaticCond::During(t) => StaticCondition::During(*t),
@@ -1613,6 +1631,16 @@ impl Compiler<'_> {
             }
             Effect::Rule(k) => out.push(CoreEffect::Rule(*k)),
             Effect::Proliferate => out.push(CoreEffect::Proliferate),
+            Effect::RingTempts => out.push(CoreEffect::RingTempts),
+            Effect::BecomeMonarch => out.push(CoreEffect::BecomeMonarch {
+                who: CoreRecipient::You,
+            }),
+            Effect::TakeInitiative => out.push(CoreEffect::TakeInitiative {
+                who: CoreRecipient::You,
+            }),
+            Effect::Venture { undercity } => out.push(CoreEffect::Venture {
+                undercity: *undercity,
+            }),
             Effect::Explore { what } => out.push(CoreEffect::Explore { what: r(*what) }),
             Effect::Amass { kind, count } => {
                 // "Amass Zombies 2": a Zombie Army token.
@@ -1814,6 +1842,7 @@ impl Compiler<'_> {
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
+            Trigger::DayNight => TriggerSpec::DayNight,
             Trigger::WinsFlip { whose } => TriggerSpec::WinsFlip { whose: *whose },
             Trigger::CastsSpell {
                 whose,
@@ -2345,6 +2374,20 @@ impl Compiler<'_> {
                     negated: *negated,
                 }
             }
+            // CR 702.179e: "Max speed — [ability]" means "As long as you
+            // have max speed, this object has [ability]": the ability's
+            // own condition.
+            Ability::Labeled { label, ability } if label == "Max speed" => {
+                let mut a = self.ability(ability)?;
+                match &mut a {
+                    AbilityDef::Static(sa) if sa.condition.is_none() => {
+                        sa.condition = Some(StaticCondition::MaxSpeed);
+                    }
+                    AbilityDef::Activated(aa) => aa.conditions.push(StaticCondition::MaxSpeed),
+                    _ => return self.err("max speed applies to a static or activated ability"),
+                }
+                return Ok(a);
+            }
             Ability::Labeled { ability, .. } => return self.ability(ability),
             Ability::BlockRule(r) => AbilityDef::BlockRule(match r {
                 crate::ast::BlockRule::NotBy(f) => mtg_core::card::BlockRule::NotBy(self.filter(f)),
@@ -2409,7 +2452,10 @@ impl Compiler<'_> {
                 | Mechanic::Megamorph(_)
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
-                | Mechanic::Bargain => {
+                | Mechanic::Bargain
+                | Mechanic::Ascend
+                | Mechanic::StartYourEngines
+                | Mechanic::BecomesDay => {
                     return self.err("a cost of the card, not an ability");
                 }
                 // CR 702.175a: "When this permanent enters, if its
@@ -2779,6 +2825,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)
         | Mechanic::Bargain
+        | Mechanic::Ascend
+        | Mechanic::StartYourEngines
+        | Mechanic::BecomesDay
         | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
 }

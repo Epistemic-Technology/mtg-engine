@@ -1,0 +1,7 @@
+card "Garrulous Sycophant" {
+  oracle_id 8301de9f-3082-400f-92d4-553536f79f49
+  cost {2}{B}
+  type Creature — Human Advisor
+  pt 1/4
+  triggered at beginning of your end step if you are monarch: each opponent loses 1 life and you gain 1 life
+}

@@ -134,6 +134,7 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
     };
     let simple = state.effects.is_empty()
         && state.emblems.is_empty()
+        && state.desig.tempted == [0; 4]
         && state.battlefield.iter().all(plain)
         && entering.is_none_or(|(e, _)| plain(&e));
     if simple {
@@ -175,6 +176,19 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
                     let c = &mut work.chars[i];
                     c.keywords = c.keywords.difference(printed.keywords);
                     c.abilities.retain(|a| !printed.abilities.contains(a));
+                }
+            }
+        }
+        // CR 701.54c: "Your Ring-bearer is legendary", from The Ring
+        // emblem, which entered the game before any permanent it affects.
+        if layer == Layer::L4Type && state.desig.tempted != [0; 4] {
+            for p in state.players_in_game() {
+                if let Some(b) = state.ring_bearer(p)
+                    && let Some(&wi) = work.index.get(&b)
+                {
+                    work.chars[wi].supertypes = work.chars[wi]
+                        .supertypes
+                        .with(crate::card::Supertype::Legendary);
                 }
             }
         }

@@ -1,0 +1,7 @@
+card "Relentless Rohirrim" {
+  oracle_id 1212cc74-ff66-479e-8e1b-504446e1c6d9
+  cost {3}{R}
+  type Creature — Human Knight
+  pt 4/3
+  triggered when this enters: the ring tempts you
+}

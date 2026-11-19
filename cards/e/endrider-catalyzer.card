@@ -1,0 +1,8 @@
+card "Endrider Catalyzer" {
+  oracle_id b4d970ed-f332-440c-8c2f-8a8a0191410b
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 3/1
+  start your engines
+  label "Max speed" activated {T}: add {R}{R}
+}

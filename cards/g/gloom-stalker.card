@@ -1,0 +1,7 @@
+card "Gloom Stalker" {
+  oracle_id 16201410-86e9-40a7-88a6-c6c2fb2ea6bd
+  cost {2}{W}
+  type Creature — Dwarf Ranger
+  pt 2/3
+  static as long as completed dungeon, this: has double strike
+}

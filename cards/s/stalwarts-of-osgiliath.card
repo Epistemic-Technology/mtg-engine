@@ -1,0 +1,8 @@
+card "Stalwarts of Osgiliath" {
+  oracle_id d41b2a4f-e137-4e61-99eb-6261ab3edd03
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 4/3
+  triggered when this enters: the ring tempts you
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}

@@ -165,6 +165,7 @@ impl Runner {
             p.life = sc.setup.life[i].unwrap_or(20);
             p.poison = sc.setup.poison[i];
             p.energy = sc.setup.energy[i];
+            p.speed = sc.setup.speed[i];
         }
         for z in &sc.setup.zones {
             let ps = &mut players[z.player.index()];
@@ -1963,6 +1964,18 @@ impl Runner {
                 let have = st.player(*p).energy;
                 expect(line, format!("energy of {}", player_name(*p)), have, *want)
             }
+            Assertion::Designation { key, player, want } => {
+                let have = designation(st, key, *player);
+                let what = match player {
+                    Some(p) => format!("{key} of {}", player_name(*p)),
+                    None => key.clone(),
+                };
+                if have == *want {
+                    Ok(())
+                } else {
+                    fail(line, format!("{what} is {have:?}, expected {want:?}"))
+                }
+            }
             Assertion::ZoneContains {
                 zone,
                 player,
@@ -2428,6 +2441,35 @@ fn capitalize(s: &str) -> String {
     match c.next() {
         Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
         None => String::new(),
+    }
+}
+
+/// A designation's value as `Assertion::Designation` names it.
+fn designation(st: &GameState, key: &str, p: Option<PlayerId>) -> String {
+    let d = &st.desig;
+    let who = |q: Option<PlayerId>| q.map_or("none", player_name).to_string();
+    let p = p.unwrap_or(PlayerId(0));
+    match key {
+        "monarch" => who(d.monarch),
+        "initiative" => who(d.initiative),
+        "daynight" => match d.day_night {
+            mtg_core::state::DayNight::Neither => "neither",
+            mtg_core::state::DayNight::Day => "day",
+            mtg_core::state::DayNight::Night => "night",
+        }
+        .to_string(),
+        "speed" => d.speed(p).to_string(),
+        "tempted" => d.tempted(p).to_string(),
+        "ring_bearer" => st
+            .ring_bearer(p)
+            .map_or("none".to_string(), |b| st.name_of(b).to_string()),
+        "blessing" => if d.blessed(p) { "yes" } else { "no" }.to_string(),
+        "completed" => d.completed(p).to_string(),
+        "dungeon" => d.dungeon(p).map_or("none".to_string(), |m| {
+            let def = st.pool.get(st.objects[m.obj].def);
+            format!("{} / {}", def.name, def.rooms[usize::from(m.room)].name)
+        }),
+        _ => "?".to_string(),
     }
 }
 
