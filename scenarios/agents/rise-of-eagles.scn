@@ -1,0 +1,11 @@
+scenario "Rise of Eagles: two 2/2 flying Birds" {
+  battlefield A: 6 "Island"
+  hand A: "Rise of Eagles"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rise of Eagles"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Bird"
+  assert has oldest A "Bird" flying
+  assert power oldest A "Bird" 2
+  assert is oldest A "Bird" enchantment
+}

@@ -1,0 +1,16 @@
+scenario "Drey Keeper makes two Squirrels and pumps them" {
+  battlefield A: 3 "Swamp", 2 "Forest", 4 "Swamp", "Grizzly Bears"
+  hand A: "Drey Keeper"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Drey Keeper"
+  turn 1 A: wait
+  turn 1 A: activate "Drey Keeper"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Squirrel"
+  assert power oldest "Squirrel" 2
+  assert power newest "Squirrel" 2
+  assert has oldest "Squirrel" menace
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" menace
+  assert power "Drey Keeper" 2
+}

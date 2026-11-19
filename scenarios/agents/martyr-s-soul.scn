@@ -1,0 +1,21 @@
+scenario "Martyr's Soul convoked with no tapped lands gets two counters" {
+  battlefield A: "Serra Angel", 2 "Grizzly Bears"
+  hand A: "Martyr's Soul"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martyr's Soul"
+  run_to turn 1 postcombat_main
+  assert tapped "Serra Angel"
+  assert counters "Martyr's Soul" +1/+1 2
+  assert power "Martyr's Soul" 5
+}
+
+scenario "Martyr's Soul cast with lands gets no counters" {
+  battlefield A: 3 "Plains"
+  hand A: "Martyr's Soul"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Martyr's Soul"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Martyr's Soul"
+  assert counters "Martyr's Soul" +1/+1 0
+  assert power "Martyr's Soul" 3
+}

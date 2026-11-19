@@ -1,0 +1,7 @@
+card "Voltaic Whip" {
+  oracle_id c077f939-73a9-455f-8de5-385162121b94
+  cost {2}{B}
+  type Artifact — Equipment
+  static enchanted: +2/+0, has ability { triggered whenever this attacks alone: you draw 1 card and lose 1 life }
+  equip {2}
+}

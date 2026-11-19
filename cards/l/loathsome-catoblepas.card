@@ -1,0 +1,8 @@
+card "Loathsome Catoblepas" {
+  oracle_id c6f68e4b-af2b-43d5-8052-104defe7f3ec
+  cost {5}{B}
+  type Creature — Beast
+  pt 3/3
+  activated {2}{G}: this must be blocked if able
+  triggered when this dies: target creature an opponent controls gets -3/-3
+}

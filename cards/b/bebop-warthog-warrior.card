@@ -1,0 +1,9 @@
+card "Bebop, Warthog Warrior" {
+  oracle_id 39c813e1-0e26-440a-b9bd-e781f7576b8b
+  cost {4}{B}
+  type Legendary Creature — Boar Mutant Warrior
+  pt 5/4
+  keywords menace
+  static Rhino you control: has menace
+  swampcycling {2}
+}

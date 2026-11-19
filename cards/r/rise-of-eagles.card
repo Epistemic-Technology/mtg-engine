@@ -1,0 +1,6 @@
+card "Rise of Eagles" {
+  oracle_id 8fc154ff-f2a2-4089-a504-f483f545606e
+  cost {4}{U}{U}
+  type Sorcery
+  spell: create 2 "2/2 blue Bird enchantment creature with flying"; scry 1
+}

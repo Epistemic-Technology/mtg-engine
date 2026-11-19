@@ -1,0 +1,18 @@
+scenario "Bebop gives Rhinos you control menace" {
+  battlefield A: "Bebop, Warthog Warrior", "Stampeding Rhino", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Bebop, Warthog Warrior" menace
+  assert has "Stampeding Rhino" menace
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "Bebop swampcycles for a Swamp" {
+  battlefield A: "Swamp", "Swamp"
+  hand A: "Bebop, Warthog Warrior"
+  library A: "Island", "Swamp"
+  turn 1 A: activate "Bebop, Warthog Warrior"
+  run_to turn 1 end
+  assert graveyard A contains "Bebop, Warthog Warrior"
+  assert hand A contains "Swamp"
+}

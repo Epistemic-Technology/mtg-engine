@@ -1,0 +1,8 @@
+card "Martyr's Soul" {
+  oracle_id 886382dc-5284-4b84-ad8c-8d8463d42fa0
+  cost {2}{W}
+  type Creature — Spirit Soldier
+  pt 3/2
+  keywords convoke
+  triggered when this enters if you control no tapped land: put 2 +1/+1 counters on it
+}

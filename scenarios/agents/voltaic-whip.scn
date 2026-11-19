@@ -1,0 +1,24 @@
+scenario "Voltaic Whip: attacking alone draws and loses 1 life" {
+  battlefield A: "Grizzly Bears", "Voltaic Whip", 2 "Swamp"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voltaic Whip" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 16
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "Voltaic Whip: not alone, no draw" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Voltaic Whip", 2 "Swamp"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Voltaic Whip" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert hand A count 0
+  assert life B 13
+}

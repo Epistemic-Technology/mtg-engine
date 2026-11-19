@@ -1,0 +1,8 @@
+card "Wings of Hubris" {
+  oracle_id 8b56efee-bdc8-4516-9c0d-b28ca1b0a918
+  cost {2}
+  type Artifact — Equipment
+  static enchanted: has flying
+  activated sacrifice this: equipped creature can't be blocked; delayed equipped creature: sacrifice it at beginning of the next end step
+  equip {1}
+}

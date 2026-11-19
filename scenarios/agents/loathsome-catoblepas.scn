@@ -1,0 +1,22 @@
+scenario "Loathsome Catoblepas must be blocked" {
+  battlefield A: "Loathsome Catoblepas", 3 "Forest"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Loathsome Catoblepas"
+  turn 1 A: attack "Loathsome Catoblepas"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Loathsome Catoblepas dies and shrinks an opposing creature" {
+  battlefield A: "Loathsome Catoblepas"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Lightning Bolt" targeting "Loathsome Catoblepas"
+  turn 1 A: trigger "Loathsome Catoblepas" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Loathsome Catoblepas"
+  assert graveyard B contains "Hill Giant"
+}

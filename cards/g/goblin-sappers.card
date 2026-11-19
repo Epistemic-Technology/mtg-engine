@@ -1,0 +1,8 @@
+card "Goblin Sappers" {
+  oracle_id 9e095761-cdae-4ab2-b2d3-099b0b39600a
+  cost {1}{R}
+  type Creature — Goblin
+  pt 1/1
+  activated {R}{R}, {T}: target creature you control can't be blocked; delayed target 1: destroy it and this at end of combat
+  activated {R}{R}{R}{R}, {T}: target creature you control can't be blocked; delayed target 1: destroy it at end of combat
+}

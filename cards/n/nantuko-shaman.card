@@ -1,0 +1,8 @@
+card "Nantuko Shaman" {
+  oracle_id 3871cad2-e793-4c41-ac79-f84cbc2634a5
+  cost {2}{G}
+  type Creature — Insect Shaman
+  pt 3/2
+  triggered when this enters if you control no tapped land: draw 1 card
+  suspend 1 {2}{G}{G}
+}

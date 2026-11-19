@@ -1,0 +1,7 @@
+card "HYDRA Infiltration" {
+  oracle_id 27692079-a517-4d38-b452-7409980b5912
+  cost {3}{B}
+  type Enchantment
+  triggered when this enters: target opponent discards 2 cards
+  triggered whenever creature you control attacks alone: target opponent loses 1 life and you gain 1 life
+}

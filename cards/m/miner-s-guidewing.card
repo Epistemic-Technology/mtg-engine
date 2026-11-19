@@ -1,0 +1,8 @@
+card "Miner's Guidewing" {
+  oracle_id eb161d0b-e534-463c-b1d1-7210bfba5d28
+  cost {W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying, vigilance
+  triggered when this dies: target creature you control explores
+}

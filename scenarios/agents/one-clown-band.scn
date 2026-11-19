@@ -1,0 +1,15 @@
+scenario "One-Clown Band: pumps a Robot (itself)" {
+  battlefield A: "One-Clown Band", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "One-Clown Band" targeting "One-Clown Band"
+  run_to turn 1 postcombat_main
+  assert power "One-Clown Band" 3
+}
+
+scenario "One-Clown Band: a non-Robot can't be targeted" {
+  battlefield A: "One-Clown Band", "Grizzly Bears", 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "One-Clown Band" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

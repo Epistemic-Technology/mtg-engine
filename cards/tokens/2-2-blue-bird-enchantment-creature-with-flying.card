@@ -1,0 +1,7 @@
+token "2/2 blue Bird enchantment creature with flying" {
+  name "Bird"
+  type Enchantment Creature — Bird
+  pt 2/2
+  color blue
+  keywords flying
+}

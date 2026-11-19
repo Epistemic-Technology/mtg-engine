@@ -1,0 +1,29 @@
+scenario "HYDRA Infiltration makes the opponent discard two" {
+  battlefield A: 4 "Swamp"
+  hand A: "HYDRA Infiltration"
+  hand B: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "HYDRA Infiltration"
+  turn 1 A: trigger "HYDRA Infiltration" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 2
+}
+
+scenario "HYDRA Infiltration drains when a creature attacks alone" {
+  battlefield A: "HYDRA Infiltration", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 21
+}
+
+scenario "HYDRA Infiltration does nothing when two creatures attack" {
+  battlefield A: "HYDRA Infiltration", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+}

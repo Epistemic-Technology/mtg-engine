@@ -1,0 +1,26 @@
+scenario "Miner's Guidewing dies; a creature explores a land into hand" {
+  battlefield A: "Miner's Guidewing", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Miner's Guidewing"
+  turn 1 A: trigger "Miner's Guidewing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Miner's Guidewing"
+  assert hand A contains "Forest"
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Miner's Guidewing dies; a creature explores a nonland for a counter" {
+  battlefield A: "Miner's Guidewing", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  library A: "Hill Giant", "Plains"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Miner's Guidewing"
+  turn 1 A: trigger "Miner's Guidewing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}

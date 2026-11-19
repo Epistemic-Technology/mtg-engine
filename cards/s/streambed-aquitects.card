@@ -1,0 +1,8 @@
+card "Streambed Aquitects" {
+  oracle_id 61251125-1379-43e9-8fb1-ce03ca399083
+  cost {1}{U}{U}
+  type Creature — Merfolk Scout
+  pt 2/3
+  activated {T}: target Merfolk creature gets +1/+1 and gains islandwalk until end of turn
+  activated {T}: target land becomes Island until end of turn
+}

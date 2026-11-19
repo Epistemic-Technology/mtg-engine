@@ -1,0 +1,22 @@
+scenario "Nantuko Shaman: suspended, it enters with no tapped lands and draws" {
+  battlefield A: 4 "Forest"
+  hand A: "Nantuko Shaman"
+  library A: "Island", "Island", "Island"
+  library B: 3 "Island"
+  turn 1 A: suspend "Nantuko Shaman"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Nantuko Shaman"
+  # drew one for turn 3, one from the trigger
+  assert hand A count 2
+}
+
+scenario "Nantuko Shaman: cast with lands tapped, no card drawn" {
+  battlefield A: 3 "Forest"
+  hand A: "Nantuko Shaman"
+  library A: "Island", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Nantuko Shaman"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Nantuko Shaman"
+  assert hand A count 0
+}

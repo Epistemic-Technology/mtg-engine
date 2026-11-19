@@ -1,0 +1,24 @@
+scenario "Goblin Sappers: unblockable attacker, both destroyed at end of combat" {
+  battlefield A: "Goblin Sappers", "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Sappers" ability 1 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Goblin Sappers"
+}
+
+scenario "Goblin Sappers: second ability destroys only the attacker" {
+  battlefield A: "Goblin Sappers", "Grizzly Bears", 4 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Goblin Sappers" ability 2 targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Goblin Sappers"
+}

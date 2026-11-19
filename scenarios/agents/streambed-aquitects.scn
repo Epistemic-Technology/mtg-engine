@@ -1,0 +1,26 @@
+scenario "Streambed Aquitects: pumps a Merfolk (itself) with islandwalk" {
+  battlefield A: "Streambed Aquitects"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Streambed Aquitects" ability 1 targeting "Streambed Aquitects"
+  run_to turn 1 postcombat_main
+  assert power "Streambed Aquitects" 3
+  assert has "Streambed Aquitects" islandwalk
+}
+
+scenario "Streambed Aquitects: a land becomes an Island" {
+  battlefield A: "Streambed Aquitects"
+  battlefield B: "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Streambed Aquitects" ability 2 targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert is "Mountain" island
+  assert is not "Mountain" mountain
+}
+
+scenario "Streambed Aquitects: a non-Merfolk can't be pumped" {
+  battlefield A: "Streambed Aquitects", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Streambed Aquitects" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,7 @@
+scenario "Wings of Hubris: equipped creature flies" {
+  battlefield A: "Grizzly Bears", "Wings of Hubris", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Wings of Hubris" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+}
