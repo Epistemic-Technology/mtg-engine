@@ -1,0 +1,7 @@
+card "Battle-Scarred Goblin" {
+  oracle_id 3e765710-e567-4af0-b5f5-7c182649b757
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  triggered whenever this becomes blocked: this deals 1 damage to each creature blocking it
+}

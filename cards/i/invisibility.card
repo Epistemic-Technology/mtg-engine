@@ -1,0 +1,7 @@
+card "Invisibility" {
+  oracle_id de26b0c6-dfb7-45a8-9d7f-f8d45522d675
+  cost {U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { can't be blocked except by Wall }
+}

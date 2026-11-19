@@ -1,0 +1,7 @@
+card "Harvesttide Sentry" {
+  oracle_id 6cd6b56d-d69e-4144-a6c7-8c066629435b
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 3/1
+  label "Coven" triggered at beginning of your combat if 3 different powers: this gains ability { can't be blocked by creature with power 2 or less }
+}

@@ -1,0 +1,7 @@
+card "Warmind Infantry" {
+  oracle_id 9e32750a-8e5f-4d81-92a8-c3d4ea1477fd
+  cost {2}{R}
+  type Creature — Elemental Soldier
+  pt 2/3
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gets +2/+0
+}

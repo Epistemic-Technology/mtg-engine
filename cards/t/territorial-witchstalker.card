@@ -1,0 +1,8 @@
+card "Territorial Witchstalker" {
+  oracle_id 97b9e3f1-7569-45e0-aef9-0d8d2845dbf1
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/3
+  keywords defender
+  triggered at beginning of your combat if you control creature with power 4 or greater: this gets +1/+0 and can attack this turn as though it didn't have defender
+}

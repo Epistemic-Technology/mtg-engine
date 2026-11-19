@@ -1,0 +1,8 @@
+card "Bristlepack Sentry" {
+  oracle_id 05852d99-8f30-4318-913c-d0b1eaf8c222
+  cost {1}{G}
+  type Creature — Plant Wolf
+  pt 3/3
+  keywords defender
+  static as long as you control creature with power 4 or greater, this: has can attack as though it didn't have defender
+}

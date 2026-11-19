@@ -439,7 +439,9 @@ impl GameState {
             spells_this_turn: [0; 4],
             drawn_this_turn: [0; 4],
             attacked_this_turn: 0,
+            block_demands: Vec::new(),
             lands_entered_this_turn: 0,
+            artifacts_entered_this_turn: 0,
             creatures_died_this_turn: 0,
             damaged_this_turn: 0,
             discarded_this_turn: 0,
@@ -893,6 +895,7 @@ impl GameState {
                     let options: Vec<Choice> = subsets(&eligible)
                         .into_iter()
                         .filter(|set| must.iter().all(|m| set.contains(m)))
+                        .filter(|set| self.set_legal(set, false))
                         .map(Choice::Attackers)
                         .collect();
                     return StepResult::Decision(Decision {
@@ -1832,6 +1835,8 @@ impl GameState {
             self.drawn_this_turn = [0; 4];
             self.attacked_this_turn = 0;
             self.lands_entered_this_turn = 0;
+            self.block_demands.clear();
+            self.artifacts_entered_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.damaged_this_turn = 0;
             self.discarded_this_turn = 0;

@@ -1,0 +1,7 @@
+card "Wojek Halberdiers" {
+  oracle_id 96d6a400-f1bc-40f8-91ef-1d3cb96926f1
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gains first strike
+}

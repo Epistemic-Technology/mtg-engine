@@ -1,0 +1,7 @@
+card "Maraleaf Rider" {
+  oracle_id 66412a7a-4ec0-41f0-80ad-eb483213ff81
+  cost {1}{G}
+  type Creature — Elf Knight
+  pt 3/1
+  activated sacrifice Food: target creature blocks this if able
+}

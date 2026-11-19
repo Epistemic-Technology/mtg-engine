@@ -1,0 +1,8 @@
+card "Roving Keep" {
+  oracle_id 6a88784c-d3be-4076-83eb-895cc1b50947
+  cost {7}
+  type Artifact Creature — Wall
+  pt 5/7
+  keywords defender
+  activated {7}: this gets +2/+0 and gains trample; it can attack this turn as though it didn't have defender
+}

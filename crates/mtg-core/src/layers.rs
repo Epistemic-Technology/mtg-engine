@@ -358,13 +358,21 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }),
         // Judged as attackers are declared, or as a permanent enters; not
         // by a static ability.
-        StaticCondition::DefenderControls { .. } | StaticCondition::Escaped => false,
+        StaticCondition::DefenderControls { .. }
+        | StaticCondition::OnBattlefield { .. }
+        | StaticCondition::DefenderPoisoned
+        | StaticCondition::OthersInCombat { .. }
+        | StaticCondition::MoreCreaturesThanOpponent { .. }
+        | StaticCondition::Escaped => false,
         StaticCondition::AttackedThisTurn => {
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }
         StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
         StaticCondition::LandEnteredThisTurn => {
             state.lands_entered_this_turn & (1 << you.index().min(7)) != 0
+        }
+        StaticCondition::ArtifactEnteredThisTurn => {
+            state.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
         }
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
@@ -740,7 +748,7 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_mul(per_count(work, source, controller, inner));
         }
-        CountExpr::SourcePower | CountExpr::TargetStat { .. } => 0,
+        CountExpr::SourcePower | CountExpr::TargetStat { .. } | CountExpr::BlockingIt { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

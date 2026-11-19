@@ -1,0 +1,8 @@
+card "Krotiq Nestguard" {
+  oracle_id 33117d34-ea70-4566-92a3-5dec9bfe529a
+  cost {2}{G}
+  type Creature — Insect
+  pt 4/4
+  keywords defender
+  activated {2}{G}: this can attack this turn as though it didn't have defender
+}

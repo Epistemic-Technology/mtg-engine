@@ -1,0 +1,8 @@
+card "Swamp Mosquito" {
+  oracle_id 4bb4844c-2678-45c7-8f5e-9cf185fd484b
+  cost {1}{B}
+  type Creature — Insect
+  pt 0/1
+  keywords flying
+  triggered whenever this attacks and isn't blocked: defending player gets 1 poison counters
+}

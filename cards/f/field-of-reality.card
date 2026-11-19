@@ -1,0 +1,8 @@
+card "Field of Reality" {
+  oracle_id 4e16f537-8c36-4bd5-9ae6-0877ccfd983e
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { can't be blocked by Spirit }
+  activated {1}{U}: return this to hand
+}

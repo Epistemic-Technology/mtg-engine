@@ -1,0 +1,8 @@
+card "Tin Street Dodger" {
+  oracle_id fde3c8df-cc57-4e64-b78b-301e103d8487
+  cost {R}
+  type Creature — Goblin Rogue
+  pt 1/1
+  keywords haste
+  activated {R}: this gains ability { can't be blocked except by creature with defender }
+}

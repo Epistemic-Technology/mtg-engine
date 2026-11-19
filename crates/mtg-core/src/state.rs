@@ -820,9 +820,15 @@ pub struct GameState {
     pub drawn_this_turn: [u8; 4],
     /// Players who declared an attacker this turn (raid), one bit each.
     pub attacked_this_turn: u8,
+    /// "Target creature blocks this creature this turn if able": (blocker,
+    /// attacker) requirements for this turn (CR 509.1c).
+    pub block_demands: Vec<(ObjId, ObjId)>,
     /// Players who had a land enter under their control this turn
     /// (landfall), one bit each.
     pub lands_entered_this_turn: u8,
+    /// Players who had an artifact enter under their control this turn,
+    /// one bit each.
+    pub artifacts_entered_this_turn: u8,
     /// Creatures put into a graveyard from the battlefield this turn
     /// (morbid).
     pub creatures_died_this_turn: u16,
@@ -1469,12 +1475,28 @@ impl GameState {
                 }
                 types.len() >= *n
             }
-            C::YouControl { filter, at_least } => count(filter, you) >= *at_least as usize,
+            // "there are five or more Islands on the battlefield": the
+            // filter names no controller.
+            C::YouControl { filter, at_least } | C::OnBattlefield { filter, at_least } => {
+                count(filter, you) >= *at_least as usize
+            }
             C::YouControlNone(filter) => count(filter, you) == 0,
             C::DefenderControls { filter, at_least } => self
                 .players_in_game()
                 .filter(|p| *p != you)
                 .any(|p| count(filter, p) >= *at_least as usize),
+            // Judged on the whole declaration (`GameState::set_rules_allow`).
+            C::OthersInCombat { .. } => true,
+            C::DefenderPoisoned => self
+                .players_in_game()
+                .any(|p| p != you && self.player(p).poison > 0),
+            C::MoreCreaturesThanOpponent { .. } => {
+                let creatures = |p: PlayerId| self.creatures_of(p).count();
+                let mine = creatures(you);
+                self.players_in_game()
+                    .filter(|p| *p != you)
+                    .any(|p| mine > creatures(p))
+            }
             C::YourTurn => self.active_player == you,
             C::SourceAttacking => self
                 .combat
@@ -1511,6 +1533,9 @@ impl GameState {
             C::AttackedThisTurn => self.attacked_this_turn & (1 << you.index().min(7)) != 0,
             C::CreatureDiedThisTurn => self.creatures_died_this_turn > 0,
             C::LandEnteredThisTurn => self.lands_entered_this_turn & (1 << you.index().min(7)) != 0,
+            C::ArtifactEnteredThisTurn => {
+                self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
+            }
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
             C::CardsDrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
             C::Escaped => self

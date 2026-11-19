@@ -1,0 +1,7 @@
+card "Plague Wight" {
+  oracle_id b7639d86-4c7c-423f-8b13-fde3086d3cbb
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/1
+  triggered whenever this becomes blocked: each creature blocking it gets -1/-1
+}

@@ -16,6 +16,11 @@ pub enum Event {
     Blocked {
         attacker: ObjId,
     },
+    /// An attacking creature wasn't blocked as blockers were declared (CR
+    /// 509.1h): "attacks and isn't blocked".
+    Unblocked {
+        attacker: ObjId,
+    },
     /// A player revealed their hand (or another player looked at it).
     RevealedHand {
         player: PlayerId,
@@ -283,7 +288,7 @@ impl Event {
             Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
             Event::StepBegin { .. } => WATCH_STEP_BEGIN,
             Event::Attack { .. } => WATCH_ATTACK,
-            Event::Block { .. } | Event::Blocked { .. } => WATCH_BLOCK,
+            Event::Block { .. } | Event::Blocked { .. } | Event::Unblocked { .. } => WATCH_BLOCK,
             Event::Damage { .. } => WATCH_DAMAGE,
             Event::LifeChange { .. } => WATCH_LIFE_CHANGE,
             Event::Cast { .. } => WATCH_CAST,

@@ -1,0 +1,7 @@
+card "Rampaging Classmate" {
+  oracle_id bf3ff6ff-eb0e-4d0a-99cb-c377622ae640
+  cost {2}{R}
+  type Creature — Lizard Berserker
+  pt 3/2
+  triggered whenever this attacks: this gets +1/+0 count each other attacking creature
+}

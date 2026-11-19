@@ -1,0 +1,8 @@
+card "Mechan Shieldmate" {
+  oracle_id d0025d29-d652-4af8-b367-13142d5532df
+  cost {1}{U}
+  type Artifact Creature — Robot Soldier
+  pt 3/2
+  keywords defender
+  static as long as artifact entered this turn, this: has can attack as though it didn't have defender
+}

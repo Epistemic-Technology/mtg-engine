@@ -1,0 +1,8 @@
+card "Aurochs" {
+  oracle_id 3961ef7c-4eb4-482e-9cda-d49d6a29c5a9
+  cost {3}{G}
+  type Creature — Aurochs
+  pt 2/3
+  keywords trample
+  triggered whenever this attacks: this gets +1/+0 count each other attacking Aurochs
+}

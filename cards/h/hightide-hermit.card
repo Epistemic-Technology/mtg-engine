@@ -1,0 +1,9 @@
+card "Hightide Hermit" {
+  oracle_id 3689ef94-2573-4424-b52e-379656340345
+  cost {4}{U}
+  type Creature — Crab
+  pt 4/4
+  keywords defender
+  triggered when this enters: you get 4 energy
+  activated pay 2 energy: this can attack this turn as though it didn't have defender
+}

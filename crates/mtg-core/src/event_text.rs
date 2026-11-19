@@ -121,7 +121,8 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
         Event::Tapped { .. }
         | Event::Untapped { .. }
         | Event::Pass { .. }
-        | Event::Blocked { .. } => return None,
+        | Event::Blocked { .. }
+        | Event::Unblocked { .. } => return None,
         Event::Resolve { spell, .. } => format!("{} resolves.", obj(state, *spell)),
         Event::Fizzle { spell, .. } => {
             format!("{} fizzles (its targets are illegal).", obj(state, *spell))

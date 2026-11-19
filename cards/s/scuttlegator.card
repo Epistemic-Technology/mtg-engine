@@ -1,0 +1,9 @@
+card "Scuttlegator" {
+  oracle_id 9bc0ca04-26ab-4743-bc65-0b5f4115c8f7
+  cost {4}{G/U}{G/U}
+  type Creature — Crab Turtle Crocodile
+  pt 6/6
+  keywords defender
+  activated {6}{G/U}{G/U}: adapt 3
+  static as long as this has 1 or more +1/+1 counters, this: has can attack as though it didn't have defender
+}

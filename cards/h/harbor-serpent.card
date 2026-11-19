@@ -1,0 +1,8 @@
+card "Harbor Serpent" {
+  oracle_id 599fb8b1-8750-4832-869a-cddc3784087a
+  cost {4}{U}{U}
+  type Creature — Serpent
+  pt 5/5
+  keywords islandwalk
+  can't attack unless on battlefield 5 Island
+}

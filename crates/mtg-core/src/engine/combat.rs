@@ -12,14 +12,15 @@ impl GameState {
     // ----- combat -----------------------------------------------------------------------
 
     /// CR 508.1a: untapped creatures controlled since the turn began or with
-    /// haste, without defender (CR 702.3b).
+    /// haste, without defender unless they can attack as though they didn't
+    /// have it (CR 702.3b).
     pub(super) fn eligible_attackers(&self, p: PlayerId) -> impl Iterator<Item = ObjId> + '_ {
         self.creatures_of(p).filter(move |id| {
             let o = &self.objects[*id];
             let c = self.characteristics(*id).expect("creature exists");
             !o.tapped
                 && (o.controlled_since_turn_start || c.has(Keyword::Haste))
-                && !c.has(Keyword::Defender)
+                && (!c.has(Keyword::Defender) || c.has(Keyword::AttackDespiteDefender))
                 && !c.has(Keyword::CantAttack)
                 && self.unless_rules_allow(*id, &c, false)
         })
@@ -48,6 +49,73 @@ impl GameState {
             }
             _ => true,
         })
+    }
+
+    /// "Can't attack unless at least two other creatures attack" (CR
+    /// 508.1c, 509.1c): whether `id`'s declaration-wide conditions hold
+    /// with the other creatures of `set` attacking (or blocking).
+    fn set_rules_allow(&self, id: ObjId, set: &[ObjId], block: bool) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return true;
+        };
+        if !self.flags_of(o).has_attack_rule() {
+            return true;
+        }
+        let Some(c) = self.characteristics(id) else {
+            return true;
+        };
+        c.abilities.iter().all(|a| match self.pool.ability(*a) {
+            AbilityDef::AttackUnless {
+                condition,
+                attack: at,
+                block: bl,
+            } if (if block { *bl } else { *at }) => match self.pool.condition(*condition) {
+                crate::card::StaticCondition::OthersInCombat {
+                    filter, at_least, ..
+                } => {
+                    let n = set
+                        .iter()
+                        .filter(|x| **x != id)
+                        .filter(|x| {
+                            let Some(xo) = self.objects.get(**x) else {
+                                return false;
+                            };
+                            self.characteristics(**x).is_some_and(|xc| {
+                                filter.matches(
+                                    **x,
+                                    xo.controller,
+                                    &xc,
+                                    Some(id),
+                                    Some(o.controller),
+                                )
+                            }) && self.status_ok(filter, **x)
+                        })
+                        .count();
+                    n >= *at_least as usize
+                }
+                _ => true,
+            },
+            _ => true,
+        })
+    }
+
+    /// Whether every creature of an attack (or block) declaration's set
+    /// may take part with the others (`set_rules_allow`).
+    pub(super) fn set_legal(&self, set: &[ObjId], block: bool) -> bool {
+        set.iter().all(|id| self.set_rules_allow(*id, set, block))
+    }
+
+    /// The largest part of a declaration's set whose creatures' conditions
+    /// on the others hold: those that break one stay out, until none does.
+    pub(super) fn legal_part(&self, set: &[ObjId], block: bool) -> Vec<ObjId> {
+        let mut out = set.to_vec();
+        while let Some(i) = out
+            .iter()
+            .position(|id| !self.set_rules_allow(*id, &out, block))
+        {
+            out.remove(i);
+        }
+        out
     }
 
     /// CR 509.1a: untapped creatures of the defending player.
@@ -215,6 +283,12 @@ impl GameState {
                 }
             }
         }
+        // "Target creature blocks this creature this turn if able".
+        for (b, a) in &self.block_demands {
+            if blockers.contains(b) && attackers.contains(a) {
+                reqs.pairs.push((*b, *a));
+            }
+        }
         reqs
     }
 
@@ -250,10 +324,17 @@ impl GameState {
             .as_ref()
             .map(|c| c.attackers.iter().map(|a| a.id).collect())
             .unwrap_or_default();
-        attackers.iter().all(|a| {
-            let n = blocks.iter().filter(|(_, x)| x == a).count();
-            (!self.has_menace(*a) || n != 1) && (n <= 1 || !self.at_most_one_blocker(*a))
-        })
+        let mut blockers: SmallVec<[ObjId; 4]> = SmallVec::new();
+        for (b, _) in blocks {
+            if !blockers.contains(b) {
+                blockers.push(*b);
+            }
+        }
+        self.set_legal(&blockers, true)
+            && attackers.iter().all(|a| {
+                let n = blocks.iter().filter(|(_, x)| x == a).count();
+                (!self.has_menace(*a) || n != 1) && (n <= 1 || !self.at_most_one_blocker(*a))
+            })
     }
 
     /// An attacker that can't be blocked by more than one creature has
@@ -316,6 +397,11 @@ impl GameState {
                 .is_some_and(|c| c.has(Keyword::CantAttackAlone))
         {
             set.clear();
+        }
+        // "Can't attack unless at least two other creatures attack": a
+        // creature whose condition fails stays home.
+        if !self.set_legal(&set, false) {
+            set = self.legal_part(&set, false);
         }
         let defender = self.opponent(self.active_player);
         if !set.is_empty() && self.planeswalkers_of(defender).next().is_some() {
@@ -395,6 +481,17 @@ impl GameState {
         if self.blocks_alone_illegally(&blocks) {
             blocks.clear();
         }
+        // "Can't block unless at least two other creatures block".
+        let mut blockers: Vec<ObjId> = Vec::new();
+        for (b, _) in &blocks {
+            if !blockers.contains(b) {
+                blockers.push(*b);
+            }
+        }
+        if !self.set_legal(&blockers, true) {
+            let ok = self.legal_part(&blockers, true);
+            blocks.retain(|(b, _)| ok.contains(b));
+        }
         let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
         for (blocker, attacker) in &blocks {
             if let Some(a) = self.combat.as_mut().and_then(|c| c.attacker_mut(*attacker)) {
@@ -410,6 +507,22 @@ impl GameState {
         }
         for attacker in newly_blocked {
             self.emit(Event::Blocked { attacker });
+        }
+        // CR 509.1h: the attackers no creature blocks ("attacks and isn't
+        // blocked").
+        let unblocked: SmallVec<[ObjId; 4]> = self
+            .combat
+            .as_ref()
+            .map(|c| {
+                c.attackers
+                    .iter()
+                    .filter(|a| !a.blocked)
+                    .map(|a| a.id)
+                    .collect()
+            })
+            .unwrap_or_default();
+        for attacker in unblocked {
+            self.emit(Event::Unblocked { attacker });
         }
         self.combat_bump();
         self.give_priority(self.active_player);
@@ -754,11 +867,16 @@ pub(super) struct BlockRequirements {
     must_be_blocked: Vec<ObjId>,
     /// Attackers every creature able to block must block.
     lure: Vec<ObjId>,
+    /// (blocker, attacker): this creature blocks that one if able.
+    pairs: Vec<(ObjId, ObjId)>,
 }
 
 impl BlockRequirements {
     pub(super) fn is_empty(&self) -> bool {
-        self.must_block.is_empty() && self.must_be_blocked.is_empty() && self.lure.is_empty()
+        self.must_block.is_empty()
+            && self.must_be_blocked.is_empty()
+            && self.lure.is_empty()
+            && self.pairs.is_empty()
     }
 
     /// How many requirements `blocks` obeys. Each blocker that blocks if
@@ -777,6 +895,7 @@ impl BlockRequirements {
                 .filter(|m| blocks.iter().any(|(_, a)| a == *m))
                 .count()
             + blocks.iter().filter(|(_, a)| self.lure.contains(a)).count()
+            + self.pairs.iter().filter(|p| blocks.contains(p)).count()
     }
 }
 

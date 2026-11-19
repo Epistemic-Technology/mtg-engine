@@ -1,0 +1,7 @@
+card "Elvish Berserker" {
+  oracle_id c9046281-dedb-4246-8e5d-7786fe0c41c7
+  cost {G}
+  type Creature — Elf Berserker
+  pt 1/1
+  triggered whenever this becomes blocked: this gets +1/+1 count each creature blocking it
+}

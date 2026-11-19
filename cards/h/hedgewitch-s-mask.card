@@ -1,0 +1,8 @@
+card "Hedgewitch's Mask" {
+  oracle_id c74f6a83-a280-450e-969d-6b3fa28c8744
+  cost {W}
+  type Artifact — Equipment
+  static equipped: +1/+1
+  static equipped: has ability { can't be blocked by creature with power 4 or greater }
+  equip {2}
+}

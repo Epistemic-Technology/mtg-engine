@@ -1,0 +1,8 @@
+card "Chained Throatseeker" {
+  oracle_id f971a597-caa7-4289-ae8f-1efdc9abb593
+  cost {5}{U}
+  type Creature — Phyrexian Horror
+  pt 5/5
+  keywords infect
+  can't attack unless defending player poisoned
+}

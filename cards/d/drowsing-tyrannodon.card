@@ -1,0 +1,8 @@
+card "Drowsing Tyrannodon" {
+  oracle_id ee811356-ef6a-4972-b827-32c2d329b3c3
+  cost {1}{G}
+  type Creature — Dinosaur
+  pt 3/3
+  keywords defender
+  static as long as you control creature with power 4 or greater, this: has can attack as though it didn't have defender
+}

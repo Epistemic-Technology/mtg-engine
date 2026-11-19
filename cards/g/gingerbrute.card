@@ -1,0 +1,9 @@
+card "Gingerbrute" {
+  oracle_id 10b8d4c7-7553-4d76-b643-d98b80701e13
+  cost {1}
+  type Artifact Creature — Food Golem
+  pt 1/1
+  keywords haste
+  activated {1}: this gains ability { can't be blocked except by creature with haste }
+  activated {2}, {T}, sacrifice this: you gain 3 life
+}

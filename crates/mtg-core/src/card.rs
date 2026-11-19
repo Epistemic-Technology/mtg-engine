@@ -287,6 +287,9 @@ pub enum Keyword {
     BlockAdditional,
     /// "This creature can block any number of creatures."
     BlockAny,
+    /// "This creature can attack as though it didn't have defender." (CR
+    /// 702.3b): defender doesn't stop it attacking.
+    AttackDespiteDefender,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -402,7 +405,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 59] = [
+    pub const ALL: [Keyword; 60] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -462,6 +465,7 @@ impl Keyword {
         Keyword::Lure,
         Keyword::BlockAdditional,
         Keyword::BlockAny,
+        Keyword::AttackDespiteDefender,
     ];
 
     /// The keyword as Oracle prints it.
@@ -526,6 +530,7 @@ impl Keyword {
             Keyword::Lure => "lure",
             Keyword::BlockAdditional => "can block an additional creature each combat",
             Keyword::BlockAny => "can block any number of creatures",
+            Keyword::AttackDespiteDefender => "can attack as though it didn't have defender",
         }
     }
 
@@ -1360,6 +1365,9 @@ pub enum CountExpr {
     /// N plus another count ("2 plus the number of cards named ~ in your
     /// graveyard").
     Plus(u32, Box<CountExpr>),
+    /// Creatures blocking the triggering object, or else the source ("for
+    /// each creature blocking it"), less `beyond` ("beyond the first").
+    BlockingIt { beyond: u32 },
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -1459,6 +1467,30 @@ pub enum StaticCondition {
         filter: ObjFilter,
         at_least: u32,
     },
+    /// "there is a Mountain on the battlefield", "there are five or more
+    /// Islands on the battlefield": permanents of any controller.
+    OnBattlefield {
+        filter: ObjFilter,
+        at_least: u32,
+    },
+    /// "defending player is poisoned" (an opponent, judged as attackers
+    /// are declared).
+    DefenderPoisoned,
+    /// "at least two other creatures attack" (`at_least` 2), "a black or
+    /// green creature also attacks" (`also`), "... block" (`block`): of
+    /// "can't attack unless" / "can't block unless", judged on the whole
+    /// declaration (CR 508.1c, 509.1c).
+    OthersInCombat {
+        filter: ObjFilter,
+        at_least: u32,
+        also: bool,
+        block: bool,
+    },
+    /// "you control more creatures than defending player" (`attacking`
+    /// false) / "than attacking player": than an opponent.
+    MoreCreaturesThanOpponent {
+        attacking: bool,
+    },
     /// "you control no untapped lands": fewer than one.
     YouControlNone(ObjFilter),
     /// Raid: "you attacked this turn".
@@ -1482,6 +1514,8 @@ pub enum StaticCondition {
     /// Landfall: "you had a land enter the battlefield under your control
     /// this turn".
     LandEnteredThisTurn,
+    /// "an artifact entered the battlefield under your control this turn".
+    ArtifactEnteredThisTurn,
     /// "you've drawn two or more cards this turn".
     CardsDrawnThisTurn(u32),
     /// "there are two or more instant and/or sorcery cards in your
@@ -1961,6 +1995,9 @@ pub enum Recipient {
     /// What the source (an Aura or Equipment) is attached to ("enchanted
     /// creature", "equipped creature").
     Attached,
+    /// Each creature blocking the triggering object, or else the source
+    /// ("each creature blocking it").
+    BlockingIt,
     /// The `n`th target and every other battlefield object matching the
     /// pool's `g`th filter, whose `same` relation is to that target
     /// ("target creature and all other creatures with the same name as
@@ -2497,6 +2534,12 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
     },
+    /// "Target creature blocks this creature this turn if able" (CR
+    /// 509.1c): a blocking requirement on `blocker` for one attacker.
+    BlocksIfAble {
+        blocker: Recipient,
+        attacker: Recipient,
+    },
     /// "You may put a land card from your hand onto the battlefield": the
     /// controller chooses a matching card from their hand (or none).
     PutFromHand {
@@ -2759,6 +2802,16 @@ pub enum TriggerSpec {
     AttacksAlone(TriggerObj),
     /// "Whenever this creature becomes blocked" (once per combat).
     BecomesBlocked(TriggerObj),
+    /// "Whenever you attack" (`min` 1), "Whenever you attack with three or
+    /// more creatures" (`min` 3), and battalion's "Whenever this creature
+    /// and at least two other creatures attack" (`this`, `min` 3): once
+    /// per declaration of attackers by the controller (CR 508.1m), when
+    /// at least `min` creatures (with `this`, the source among them)
+    /// attack.
+    AttacksWith { this: bool, min: u8 },
+    /// "Whenever this creature attacks and isn't blocked" (CR 509.1h): as
+    /// blockers are declared, an attacking creature no creature blocks.
+    AttacksUnblocked(TriggerObj),
     /// "Whenever this creature blocks or becomes blocked".
     BlocksOrBlocked(TriggerObj),
     /// "Whenever this creature attacks or blocks".
@@ -2913,12 +2966,15 @@ impl TriggerSpec {
             | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
-            TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
+            TriggerSpec::Attacks(_)
+            | TriggerSpec::AttacksAlone(_)
+            | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
             | TriggerSpec::BlockedBy(_)
-            | TriggerSpec::BlockPair { .. } => WATCH_BLOCK,
+            | TriggerSpec::BlockPair { .. }
+            | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,

@@ -1,0 +1,8 @@
+card "Karsus Depthguard" {
+  oracle_id dc8c6803-dd87-4f00-8a92-9613dbe90549
+  cost {2}{R}
+  type Creature — Lizard Warrior
+  pt 4/3
+  keywords defender
+  static as long as this is with power 5 or greater, this: has can attack as though it didn't have defender
+}

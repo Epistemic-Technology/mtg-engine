@@ -1,0 +1,7 @@
+card "Silburlind Snapper" {
+  oracle_id eb2fe2f7-60f7-44d3-8d4a-4e102012435d
+  cost {5}{U}
+  type Creature — Turtle
+  pt 6/6
+  can't attack unless cast noncreature spell this turn
+}

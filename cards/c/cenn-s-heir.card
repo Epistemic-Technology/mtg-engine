@@ -1,0 +1,7 @@
+card "Cenn's Heir" {
+  oracle_id 42adcc63-cfb0-4b62-b8e1-dda01189652a
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 1/1
+  triggered whenever this attacks: this gets +1/+1 count each other attacking Kithkin
+}

@@ -1,0 +1,9 @@
+card "Boiling Blood" {
+  oracle_id cd55a003-da0d-4522-b08a-d0731b1050c6
+  cost {2}{R}
+  type Instant
+  spell {
+    target creature attacks if able
+    draw 1 card
+  }
+}

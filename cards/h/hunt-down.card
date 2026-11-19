@@ -1,0 +1,6 @@
+card "Hunt Down" {
+  oracle_id 29b0f3bd-d9bd-4c54-b4c3-9c2e01720e34
+  cost {G}
+  type Sorcery
+  spell: target creature blocks target creature if able
+}

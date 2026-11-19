@@ -1,0 +1,7 @@
+card "Rabid Elephant" {
+  oracle_id 9daed342-e773-43ec-a8e2-98126b505e8a
+  cost {4}{G}
+  type Creature — Elephant
+  pt 3/4
+  triggered whenever this becomes blocked: this gets +2/+2 count each creature blocking it
+}

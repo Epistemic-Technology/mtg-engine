@@ -1,0 +1,7 @@
+card "Skirk Shaman" {
+  oracle_id 78d5ce34-f160-4925-a4ce-25a3546d97c7
+  cost {1}{R}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  can't be blocked except by artifact creature or red creature
+}

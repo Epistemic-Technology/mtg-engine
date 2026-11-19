@@ -1,0 +1,7 @@
+card "Treetop Bracers" {
+  oracle_id ba71eb8a-f9f8-4608-88d8-963a1770d8d4
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has ability { can't be blocked except by creature with flying }
+}

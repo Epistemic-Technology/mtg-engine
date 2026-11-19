@@ -1,0 +1,8 @@
+card "Armasaur Guide" {
+  oracle_id 1d4e7422-2e26-49ce-beef-08f61583089a
+  cost {4}{W}
+  type Creature — Dinosaur
+  pt 4/4
+  keywords vigilance
+  triggered whenever you attack with 3 or more creatures: put 1 +1/+1 counter on target creature you control
+}

@@ -1,0 +1,7 @@
+card "Vorrac Battlehorns" {
+  oracle_id 89750d72-d1c0-4c8a-aa72-fdd48570aa92
+  cost {2}
+  type Artifact — Equipment
+  static equipped: has trample, has ability { can't be blocked by more than one creature }
+  equip {1}
+}

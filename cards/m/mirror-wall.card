@@ -1,0 +1,8 @@
+card "Mirror Wall" {
+  oracle_id c4ab446a-97e4-46a5-89a8-180a0bf3447c
+  cost {3}{U}
+  type Creature — Wall
+  pt 3/4
+  keywords defender
+  activated {W}: this can attack this turn as though it didn't have defender
+}

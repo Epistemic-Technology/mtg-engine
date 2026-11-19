@@ -1,0 +1,7 @@
+card "Jungle Wurm" {
+  oracle_id 457705c9-5b0c-4c3a-89dd-80286fac6a6c
+  cost {3}{G}{G}
+  type Creature — Wurm
+  pt 5/5
+  triggered whenever this becomes blocked: this gets -1/-1 count each creature blocking it beyond first
+}

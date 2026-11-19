@@ -118,8 +118,8 @@ fn plural(n: Num, word: &str) -> String {
 fn pluralize(word: &str) -> String {
     // Creature types with irregular or unchanged plurals.
     match word {
-        "Plains" | "Equipment" | "Kavu" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin" | "Merfolk"
-        | "Samurai" | "Kor" | "Vedalken" | "Aetherborn" | "Eldrazi" | "Treefolk" => {
+        "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
+        | "Merfolk" | "Samurai" | "Kor" | "Vedalken" | "Aetherborn" | "Eldrazi" | "Treefolk" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -220,6 +220,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::BlockAdditional
             | Keyword::BlockAny
             | Keyword::Lure
+            | Keyword::AttackDespiteDefender
     )
 }
 
@@ -228,7 +229,12 @@ pub fn is_restriction(k: Keyword) -> bool {
 fn is_block_rule(k: Keyword) -> bool {
     matches!(
         k,
-        Keyword::MustBlock | Keyword::MustBeBlocked | Keyword::BlockAdditional | Keyword::BlockAny
+        Keyword::MustAttack
+            | Keyword::MustBlock
+            | Keyword::MustBeBlocked
+            | Keyword::BlockAdditional
+            | Keyword::BlockAny
+            | Keyword::AttackDespiteDefender
     )
 }
 
@@ -236,10 +242,12 @@ fn is_block_rule(k: Keyword) -> bool {
 /// turn if able").
 fn block_rule_this_turn(k: Keyword) -> &'static str {
     match k {
+        Keyword::MustAttack => "attacks this turn if able",
         Keyword::MustBlock => "blocks this turn if able",
         Keyword::MustBeBlocked => "must be blocked this turn if able",
         Keyword::BlockAdditional => "can block an additional creature this turn",
         Keyword::BlockAny => "can block any number of creatures this turn",
+        Keyword::AttackDespiteDefender => "can attack this turn as though it didn't have defender",
         k => keyword_name(k),
     }
 }
@@ -843,6 +851,7 @@ impl<'a> Ctx<'a> {
                 format!("each {}", self.group_phrase(i, false))
             }
             Recipient::Attached => filter_phrase(&Filter::enchanted(), self.card, false),
+            Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
         }
     }
@@ -1805,7 +1814,9 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::Permanents(f) => {
-            let place = if f.who.is_none() {
+            // "for each other attacking creature": attacking and blocking
+            // creatures are on the battlefield without saying so.
+            let place = if f.who.is_none() && !f.attacking && !f.blocking {
                 " on the battlefield"
             } else {
                 ""
@@ -1880,6 +1891,17 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             return format!("{whose} {stat}");
         }
         CountExpr::Life => return "your life total".to_string(),
+        CountExpr::BlockingIt { beyond } => {
+            let rest = match beyond {
+                0 => String::new(),
+                1 => " beyond the first".to_string(),
+                n => format!(" beyond the {}", count_words(Num::N(*n), "one")),
+            };
+            (
+                format!("creature blocking it{rest}"),
+                format!("creatures blocking it{rest}"),
+            )
+        }
         CountExpr::Times(..) => unreachable!("unwrapped above"),
     };
     if each {
@@ -2140,6 +2162,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::GrantAbility { ability, to } => {
             let s = ctx.subj(*to);
+            // "Target creature can't be blocked this turn except by
+            // artifact creatures and/or red creatures."
+            if let Ability::BlockRule(r) = ability.as_ref() {
+                return Clause::with_subject(*to, s, block_rule_phrase(r, ctx.card, true));
+            }
             let q = quoted(ability, ctx.card, CardType::Creature, ctx.lookup);
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
@@ -2155,6 +2182,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 )
             };
             Clause::imperative(format!("return {what} to its owner's hand"))
+        }
+        Effect::BlocksIfAble { blocker, attacker } => {
+            let s = ctx.subj(*blocker);
+            let a = ctx.obj(*attacker);
+            Clause::with_subject(*blocker, s, format!("blocks {a} this turn if able"))
         }
         Effect::SkipNextUntap { to } => {
             let s = ctx.subj(*to);
@@ -2400,7 +2432,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let parts: Vec<String> = keywords
                     .iter()
                     .map(|k| {
-                        if is_block_rule(*k) {
+                        if *k == Keyword::MustAttack {
+                            // "Those creatures attack this turn if able."
+                            format!("{} this turn if able", ctx.verb(*to, "attacks", "attack"))
+                        } else if is_block_rule(*k) {
                             block_rule_this_turn(*k).to_string()
                         } else {
                             format!("{} this turn", restriction_phrase(&[*k]))
@@ -3427,6 +3462,25 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Attacks(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!("whenever {} attacks", trigger_subject(o, ctx))
         }
+        Trigger::AttacksWith {
+            this: false,
+            min: 1,
+        } => "whenever you attack".to_string(),
+        Trigger::AttacksWith { this: false, min } => format!(
+            "whenever you attack with {} or more creatures",
+            count_words(Num::N(u32::from(*min)), "one")
+        ),
+        Trigger::AttacksWith { this: true, min } => format!(
+            "whenever {} and at least {} other creatures attack",
+            this(ctx),
+            count_words(Num::N(u32::from(min.saturating_sub(1))), "one")
+        ),
+        Trigger::AttacksUnblocked(o) => {
+            format!(
+                "whenever {} attacks and isn't blocked",
+                trigger_subject(o, ctx)
+            )
+        }
         Trigger::AttacksAlone(TriggerObj::This) => {
             format!("whenever {} attacks alone", this(ctx))
         }
@@ -4005,8 +4059,27 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             if !real.is_empty() {
                 parts.push(format!("{} {}", v("has", "have"), keywords_list(&real)));
             }
-            if !restricted.is_empty() {
-                parts.push(restriction_phrase(&restricted));
+            if restricted.len() > 1 && restricted.contains(&Keyword::AttackDespiteDefender) {
+                // "can attack as though it didn't have defender and it
+                // can't be blocked" (Expedition Lookout).
+                let rest: Vec<Keyword> = restricted
+                    .iter()
+                    .copied()
+                    .filter(|k| *k != Keyword::AttackDespiteDefender)
+                    .collect();
+                let pronoun = if plural_form { "they" } else { "it" };
+                parts.push(format!(
+                    "can attack as though {pronoun} didn't have defender and {pronoun} {}",
+                    restriction_phrase(&rest)
+                ));
+            } else if !restricted.is_empty() {
+                let r = restriction_phrase(&restricted);
+                parts.push(if plural_form {
+                    // "can attack as though they didn't have defender".
+                    r.replace("though it didn't", "though they didn't")
+                } else {
+                    r
+                });
             }
             list(&parts)
         }
@@ -4160,6 +4233,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         .iter()
         .map(|m| {
             if let Mod::AddAbility(a) = m {
+                // "Enchanted creature can't be blocked except by Walls": a
+                // granted blocking restriction prints unquoted.
+                if let Ability::BlockRule(r) = a.as_ref() {
+                    return block_rule_phrase(r, card, false);
+                }
                 let noun = if filter.types == [CardType::Land]
                     || (filter.enchanted && enchanted_noun(card) == "land")
                 {
@@ -4188,6 +4266,36 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         body
     } else {
         format!("{body}.")
+    }
+}
+
+/// A blocking restriction without its subject: "can't be blocked except
+/// by artifact creatures and/or white creatures", with `this_turn` "can't
+/// be blocked this turn except by ...", "can't be blocked by Walls this
+/// turn".
+fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) -> String {
+    use crate::ast::BlockRule;
+    // Evasion lists its alternatives with "and/or" ("black and/or red
+    // creatures", "artifact creatures and/or white creatures").
+    let pl = |f: &Filter| {
+        let mut p = filter_phrase(f, card, true);
+        if let Some(cs) = &f.colors
+            && cs.len() > 1
+        {
+            let names: Vec<&str> = cs.iter().map(|c| color_name(*c)).collect();
+            p = p.replacen(&names.join(" or "), &names.join(" and/or "), 1);
+        } else if f.or.is_some() && f.or.as_ref().is_some_and(|o| o.or.is_none()) {
+            p = p.replacen(" and ", " and/or ", 1);
+        }
+        p
+    };
+    let turn = if this_turn { " this turn" } else { "" };
+    match r {
+        BlockRule::NotBy(f) => format!("can't be blocked by {}{turn}", pl(f)),
+        BlockRule::OnlyBy(f) => format!("can't be blocked{turn} except by {}", pl(f)),
+        BlockRule::AtMostOne => format!("can't be blocked by more than one creature{turn}"),
+        BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
+        BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
     }
 }
 
@@ -4232,7 +4340,15 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
         StaticCond::SourceCounters { kind, n, at_least } => {
-            if *at_least {
+            if *at_least && *n == 1 {
+                // "this creature has a +1/+1 counter on it".
+                let c = kind.name();
+                format!(
+                    "this {} has {} {c} counter on it",
+                    self_noun(card),
+                    article(c)
+                )
+            } else if *at_least {
                 format!(
                     "this {} has {} or more {} counters on it",
                     self_noun(card),
@@ -4267,6 +4383,42 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 )
             }
         }
+        StaticCond::OnBattlefield { filter, at_least } => {
+            if *at_least == 1 {
+                format!(
+                    "there is {} on the battlefield",
+                    with_article(&filter_phrase(filter, card, false))
+                )
+            } else {
+                format!(
+                    "there are {} {} on the battlefield",
+                    or_more(*at_least),
+                    filter_phrase(filter, card, true)
+                )
+            }
+        }
+        StaticCond::DefenderPoisoned => "defending player is poisoned".to_string(),
+        StaticCond::OthersInCombat {
+            filter,
+            also: true,
+            block,
+            ..
+        } => format!(
+            "{} also {}",
+            with_article(&filter_phrase(filter, card, false)),
+            if *block { "blocks" } else { "attacks" }
+        ),
+        StaticCond::OthersInCombat {
+            at_least, block, ..
+        } => format!(
+            "at least {} other creatures {}",
+            count_words(Num::N(*at_least), "one"),
+            if *block { "block" } else { "attack" }
+        ),
+        StaticCond::MoreCreaturesThanOpponent { attacking } => format!(
+            "you control more creatures than {} player",
+            if *attacking { "attacking" } else { "defending" }
+        ),
         StaticCond::YouControlNone(filter) => {
             let mut f = filter.clone();
             f.who = None;
@@ -4279,6 +4431,9 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Kicked => "it was kicked".to_string(),
         StaticCond::LandEnteredThisTurn => {
             "you had a land enter the battlefield under your control this turn".to_string()
+        }
+        StaticCond::ArtifactEnteredThisTurn => {
+            "an artifact entered the battlefield under your control this turn".to_string()
         }
         StaticCond::CardsDrawnThisTurn(n) => format!(
             "you've drawn {} or more cards this turn",
@@ -4341,6 +4496,17 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                     filter_phrase(&f, card, true)
                 )
             }
+        }
+        // "its power is 5 or greater".
+        StaticCond::Is(f)
+            if f.power.is_some()
+                && (Filter {
+                    power: None,
+                    ..f.clone()
+                }) == Filter::default() =>
+        {
+            let (cmp, n) = f.power.expect("checked");
+            format!("its power is {n}{}", cmp_words(cmp))
         }
         StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
         StaticCond::Modified => "it's modified".to_string(),
@@ -4534,6 +4700,8 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         } else if about_source(c) && body.starts_with(&this) {
             // "As long as this creature is equipped, it gets +1/+1."
             cond = cond.replace("it's", &format!("{} is", this_ref(card)));
+            // "As long as this creature's power is 5 or greater, ..."
+            cond = cond.replace("its power", &format!("{}'s power", this_ref(card)));
             format!("it {}", &body[this.len()..])
         } else if let StaticCond::AttachedIs(_) = c
             && let Some(rest) = body
@@ -4729,18 +4897,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::BlockRule(r) => {
             let me = capitalize(&this_ref(card));
-            let pl = |f: &Filter| filter_phrase(f, card, true);
-            match r {
-                crate::ast::BlockRule::NotBy(f) => format!("{me} can't be blocked by {}.", pl(f)),
-                crate::ast::BlockRule::OnlyBy(f) => {
-                    format!("{me} can't be blocked except by {}.", pl(f))
-                }
-                crate::ast::BlockRule::AtMostOne => {
-                    format!("{me} can't be blocked by more than one creature.")
-                }
-                crate::ast::BlockRule::BlocksOnly(f) => format!("{me} can block only {}.", pl(f)),
-                crate::ast::BlockRule::CantBlock(f) => format!("{me} can't block {}.", pl(f)),
-            }
+            format!("{me} {}.", block_rule_phrase(r, card, false))
         }
         Ability::Labeled { label, ability } => {
             format!("{label} — {}", ability_text(card, ability, lookup))
@@ -4847,10 +5004,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 (true, false) => "attack",
                 _ => "block",
             };
+            // "unless an opponent has been dealt damage this turn".
+            let cond = static_cond_text(cond, card).replace(" was dealt ", " has been dealt ");
             format!(
-                "{} can't {what} unless {}.",
-                capitalize(&this_ref(card)),
-                static_cond_text(cond, card)
+                "{} can't {what} unless {cond}.",
+                capitalize(&this_ref(card))
             )
         }
         Ability::DeckAnyNumber => {

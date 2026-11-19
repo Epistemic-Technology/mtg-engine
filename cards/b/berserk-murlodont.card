@@ -1,0 +1,7 @@
+card "Berserk Murlodont" {
+  oracle_id a762e8cb-9d33-41fc-b2e8-0c5ad4d7268e
+  cost {4}{G}
+  type Creature — Beast
+  pt 3/3
+  triggered whenever Beast becomes blocked: it gets +1/+1 count each creature blocking it
+}

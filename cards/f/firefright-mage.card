@@ -1,0 +1,7 @@
+card "Firefright Mage" {
+  oracle_id 9a0bb238-f832-4b37-97ae-520899798e7a
+  cost {R}
+  type Creature — Goblin Spellshaper
+  pt 1/1
+  activated {1}{R}, {T}, discard 1 card: target creature gains ability { can't be blocked except by artifact creature or red creature }
+}

@@ -277,12 +277,34 @@ impl Decompiler<'_> {
                 }
             }
             StaticCondition::YouControlNone(f) => StaticCond::YouControlNone(unowned(f)),
+            StaticCondition::OnBattlefield { filter, at_least } => StaticCond::OnBattlefield {
+                filter: self.filter(filter),
+                at_least: *at_least,
+            },
+            StaticCondition::DefenderPoisoned => StaticCond::DefenderPoisoned,
+            StaticCondition::OthersInCombat {
+                filter,
+                at_least,
+                also,
+                block,
+            } => StaticCond::OthersInCombat {
+                filter: self.filter(filter),
+                at_least: *at_least,
+                also: *also,
+                block: *block,
+            },
+            StaticCondition::MoreCreaturesThanOpponent { attacking } => {
+                StaticCond::MoreCreaturesThanOpponent {
+                    attacking: *attacking,
+                }
+            }
             StaticCondition::AttackedThisTurn => StaticCond::AttackedThisTurn,
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
+            StaticCondition::ArtifactEnteredThisTurn => StaticCond::ArtifactEnteredThisTurn,
             StaticCondition::CardsDrawnThisTurn(n) => StaticCond::CardsDrawnThisTurn(*n),
             StaticCondition::GraveyardCards { filter, at_least } => StaticCond::GraveyardCards {
                 filter: unowned(filter),
@@ -342,6 +364,7 @@ impl Decompiler<'_> {
             CoreRecipient::Group(i) => Recipient::Group(i),
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::Attached => Recipient::Attached,
+            CoreRecipient::BlockingIt => Recipient::BlockingIt,
         }
     }
 
@@ -715,6 +738,10 @@ impl Decompiler<'_> {
             CoreEffect::SkipNextUntap { to } => Effect::SkipNextUntap {
                 to: Self::recipient(*to),
             },
+            CoreEffect::BlocksIfAble { blocker, attacker } => Effect::BlocksIfAble {
+                blocker: Self::recipient(*blocker),
+                attacker: Self::recipient(*attacker),
+            },
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
             },
@@ -742,6 +769,11 @@ impl Decompiler<'_> {
             },
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
+            TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {
+                this: *this,
+                min: *min,
+            },
+            TriggerSpec::AttacksUnblocked(o) => Trigger::AttacksUnblocked(self.trigger_obj(o)),
             TriggerSpec::BecomesBlocked(o) => Trigger::BecomesBlocked(self.trigger_obj(o)),
             TriggerSpec::BlocksOrBlocked(o) => Trigger::BlocksOrBlocked(self.trigger_obj(o)),
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),

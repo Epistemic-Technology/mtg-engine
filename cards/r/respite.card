@@ -1,0 +1,6 @@
+card "Respite" {
+  oracle_id 46137f00-f7f5-430a-857c-ff2dbf2d2579
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage this turn; you gain count each attacking creature life
+}

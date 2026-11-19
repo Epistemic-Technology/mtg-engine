@@ -1,0 +1,8 @@
+card "Orcish Conscripts" {
+  oracle_id d99e1d08-32ca-49c5-97cc-e064d661202f
+  cost {R}
+  type Creature — Orc
+  pt 2/2
+  can't attack unless at least 2 other creatures attack
+  can't block unless at least 2 other creatures block
+}

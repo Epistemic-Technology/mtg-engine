@@ -1,0 +1,7 @@
+card "Nav Squad Commandos" {
+  oracle_id affdf41e-c851-4f5d-bd3a-7ca7ada4416a
+  cost {4}{W}
+  type Creature — Human Soldier
+  pt 3/5
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gets +1/+1; untap it
+}

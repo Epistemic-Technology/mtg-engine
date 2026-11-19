@@ -159,6 +159,11 @@ pub enum CountExpr {
         word: bool,
         inner: Box<CountExpr>,
     },
+    /// `creature blocking it [beyond first]`: "for each creature blocking
+    /// it [beyond the first]".
+    BlockingIt {
+        beyond: u32,
+    },
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -719,6 +724,28 @@ pub enum StaticCond {
         filter: Filter,
         at_least: u32,
     },
+    /// `on battlefield Mountain`, `on battlefield 5 Island`: "there is a
+    /// Mountain on the battlefield", "there are five or more Islands on the
+    /// battlefield".
+    OnBattlefield {
+        filter: Filter,
+        at_least: u32,
+    },
+    /// `defending player poisoned`: "defending player is poisoned".
+    DefenderPoisoned,
+    /// `at least 2 other creatures attack` ("... block"), `black or green
+    /// creature also attacks`: of "can't attack unless".
+    OthersInCombat {
+        filter: Filter,
+        at_least: u32,
+        also: bool,
+        block: bool,
+    },
+    /// `you control more creatures than defending player` (or `attacking
+    /// player`).
+    MoreCreaturesThanOpponent {
+        attacking: bool,
+    },
     /// `you control no untapped land`.
     YouControlNone(Filter),
     /// `attacked this turn` (raid): "you attacked this turn".
@@ -735,6 +762,9 @@ pub enum StaticCond {
     /// `land entered this turn` (landfall): "you had a land enter the
     /// battlefield under your control this turn".
     LandEnteredThisTurn,
+    /// `artifact entered this turn`: "an artifact entered the battlefield
+    /// under your control this turn".
+    ArtifactEnteredThisTurn,
     /// `drew 2 cards this turn`: "you've drawn two or more cards this
     /// turn".
     CardsDrawnThisTurn(u32),
@@ -990,6 +1020,15 @@ pub enum Trigger {
     Attacks(TriggerObj),
     /// "Whenever a creature you control attacks alone".
     AttacksAlone(TriggerObj),
+    /// `whenever you attack` (`min` 1), `whenever you attack with 3 or
+    /// more creatures`, `whenever this and at least 2 other creatures
+    /// attack` (battalion: `this`, `min` 3).
+    AttacksWith {
+        this: bool,
+        min: u8,
+    },
+    /// `whenever this attacks and isn't blocked`.
+    AttacksUnblocked(TriggerObj),
     /// `whenever this becomes blocked`.
     BecomesBlocked(TriggerObj),
     /// `whenever this blocks or becomes blocked`.
@@ -1155,6 +1194,9 @@ pub enum Recipient {
     /// The `n`th target (0-based), declared by its first mention; printed
     /// as "it" after that.
     Target(usize),
+    /// `each creature blocking it`: the creatures blocking the triggering
+    /// creature (or this one).
+    BlockingIt,
     /// Targets `first..first + count` as one subject ("up to two target
     /// creatures each get +1/+0").
     Targets(usize, usize),
@@ -1597,6 +1639,12 @@ pub enum Effect {
     /// its controller's next untap step."
     SkipNextUntap {
         to: Recipient,
+    },
+    /// `target creature blocks this if able`: "Target creature blocks this
+    /// creature this turn if able."
+    BlocksIfAble {
+        blocker: Recipient,
+        attacker: Recipient,
     },
     /// `<what> gains ability { <ability line> }`: "gains \"...\" until end of
     /// turn".
