@@ -24,7 +24,9 @@ pub enum DecisionKind {
     DeclareAttackers,
     /// Declare blockers (CR 509.1).
     DeclareBlockers,
-    /// Divide `attacker`'s combat damage among its blockers (CR 510.1c).
+    /// Divide `attacker`'s combat damage among its blockers (CR 510.1c),
+    /// or a blocker's among the attackers it blocks (`attacker` is then
+    /// the blocker, CR 510.1d).
     AssignCombatDamage { attacker: ObjId },
     /// Discard to maximum hand size (CR 514.1).
     Discard,

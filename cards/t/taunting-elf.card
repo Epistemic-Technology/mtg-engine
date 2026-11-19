@@ -1,0 +1,7 @@
+card "Taunting Elf" {
+  oracle_id aef07e62-ac7f-4a5b-9732-136052d88a06
+  cost {G}
+  type Creature — Elf
+  pt 0/1
+  keywords lure
+}

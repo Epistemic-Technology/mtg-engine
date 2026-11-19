@@ -1,0 +1,7 @@
+card "Night Market Guard" {
+  oracle_id 3a7a27fe-60f0-4a21-a1c1-5fef8a528391
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/1
+  keywords can block an additional creature each combat
+}

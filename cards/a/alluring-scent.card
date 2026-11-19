@@ -1,0 +1,6 @@
+card "Alluring Scent" {
+  oracle_id ad218276-a44b-4a61-8e42-26a27929bbbb
+  cost {1}{G}{G}
+  type Sorcery
+  spell: target creature gains lure
+}

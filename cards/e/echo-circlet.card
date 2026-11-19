@@ -1,0 +1,7 @@
+card "Echo Circlet" {
+  oracle_id 17134950-fdb3-48d0-b541-419db673f4c9
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: has can block an additional creature each combat
+  equip {1}
+}

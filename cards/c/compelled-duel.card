@@ -1,0 +1,6 @@
+card "Compelled Duel" {
+  oracle_id 256cc907-2a13-4f43-9d37-2e52034cdaf4
+  cost {1}{G}
+  type Sorcery
+  spell: target creature gets +3/+3 and must be blocked if able
+}

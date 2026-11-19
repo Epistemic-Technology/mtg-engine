@@ -1,0 +1,6 @@
+card "Valor Made Real" {
+  oracle_id 5bd1348c-51cc-4426-b995-8bb6d4a5bd2e
+  cost {W}
+  type Instant
+  spell: target creature can block any number of creatures
+}

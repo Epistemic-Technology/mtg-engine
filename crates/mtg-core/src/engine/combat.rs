@@ -178,6 +178,57 @@ impl GameState {
         })
     }
 
+    /// How many attackers `blocker` may block (CR 509.1a): one, two with
+    /// "can block an additional creature each combat", or any number.
+    pub(super) fn block_capacity(&self, blocker: ObjId) -> usize {
+        match self.characteristics(blocker) {
+            Some(c) if c.has(Keyword::BlockAny) => usize::MAX,
+            Some(c) if c.has(Keyword::BlockAdditional) => 2,
+            _ => 1,
+        }
+    }
+
+    /// The blocking requirements (CR 509.1c) on this declaration: creatures
+    /// that block if able, attackers that must be blocked if able, and
+    /// attackers all creatures able to block must block.
+    pub(super) fn block_requirements(
+        &self,
+        attackers: &[ObjId],
+        blockers: &[ObjId],
+    ) -> BlockRequirements {
+        let mut reqs = BlockRequirements::default();
+        for b in blockers {
+            if self
+                .characteristics(*b)
+                .is_some_and(|c| c.has(Keyword::MustBlock))
+            {
+                reqs.must_block.push(*b);
+            }
+        }
+        for a in attackers {
+            if let Some(c) = self.characteristics(*a) {
+                if c.has(Keyword::MustBeBlocked) {
+                    reqs.must_be_blocked.push(*a);
+                }
+                if c.has(Keyword::Lure) {
+                    reqs.lure.push(*a);
+                }
+            }
+        }
+        reqs
+    }
+
+    /// A lone blocker that can't block alone (CR 506.5): the declaration
+    /// breaks a restriction.
+    pub(super) fn blocks_alone_illegally(&self, blocks: &[(ObjId, ObjId)]) -> bool {
+        blocks.first().is_some_and(|(first, _)| {
+            blocks.iter().all(|(b, _)| b == first)
+                && self
+                    .characteristics(*first)
+                    .is_some_and(|c| c.has(Keyword::CantBlockAlone))
+        })
+    }
+
     /// Whether `p` controls a land with the basic land type of `c`.
     fn controls_basic_type(&self, p: PlayerId, c: crate::mana::Color) -> bool {
         self.permanents_of(p).any(|id| {
@@ -340,12 +391,7 @@ impl GameState {
 
     pub(super) fn finish_blocks(&mut self, mut blocks: Vec<(ObjId, ObjId)>) {
         // CR 506.5: "can't block alone".
-        if let Some((first, _)) = blocks.first().copied()
-            && blocks.iter().all(|(b, _)| *b == first)
-            && self
-                .characteristics(first)
-                .is_some_and(|c| c.has(Keyword::CantBlockAlone))
-        {
+        if self.blocks_alone_illegally(&blocks) {
             blocks.clear();
         }
         let mut newly_blocked: SmallVec<[ObjId; 4]> = SmallVec::new();
@@ -452,24 +498,34 @@ impl GameState {
                 queue.push(a.id);
             }
         }
-        // Blockers (CR 510.1d): each blocks exactly one creature in M1.
-        for a in &combat.attackers {
-            for b in &a.blockers {
-                if !self.is_creature_on_battlefield(*b)
-                    || !self.deals_damage_this_step(*b, first_strike_step)
-                {
-                    continue;
-                }
-                let power = self
-                    .characteristics(*b)
-                    .map_or(0, |c| u32::try_from(c.power).unwrap_or(0));
-                if power > 0 && self.is_creature_on_battlefield(a.id) {
-                    assigned.push(DamageAssignment {
-                        source: *b,
-                        target: Target::Object(a.id),
-                        amount: power,
-                    });
-                }
+        // Blockers (CR 510.1d): all to the one creature it blocks; a
+        // blocker blocking several divides its damage among them.
+        let mut seen: SmallVec<[ObjId; 8]> = SmallVec::new();
+        for b in combat.attackers.iter().flat_map(|a| a.blockers.iter()) {
+            if seen.contains(b) {
+                continue;
+            }
+            seen.push(*b);
+            if !self.is_creature_on_battlefield(*b)
+                || !self.deals_damage_this_step(*b, first_strike_step)
+            {
+                continue;
+            }
+            let power = self
+                .characteristics(*b)
+                .map_or(0, |c| u32::try_from(c.power).unwrap_or(0));
+            if power == 0 {
+                continue;
+            }
+            let blocked = self.live_blocked_by(&combat, *b);
+            match blocked.as_slice() {
+                [] => {}
+                [a] => assigned.push(DamageAssignment {
+                    source: *b,
+                    target: Target::Object(*a),
+                    amount: power,
+                }),
+                _ => queue.push(*b),
             }
         }
         self.flow = Flow::AssignDamage { queue, assigned };
@@ -490,14 +546,69 @@ impl GameState {
         t.saturating_sub(o.damage).max(1)
     }
 
-    /// All legal divisions of an attacker's damage (CR 510.1c, 702.19b).
+    /// The attackers still on the battlefield that `blocker` blocks.
+    fn live_blocked_by(&self, combat: &crate::state::CombatState, blocker: ObjId) -> Vec<ObjId> {
+        combat
+            .attackers
+            .iter()
+            .filter(|a| a.blockers.contains(&blocker) && self.is_creature_on_battlefield(a.id))
+            .map(|a| a.id)
+            .collect()
+    }
+
+    /// All divisions of a blocker's combat damage among the creatures it
+    /// blocks (CR 510.1d): any split, as its controller chooses.
+    fn blocker_divisions(&self, blocker: ObjId) -> Vec<Vec<(Target, u32)>> {
+        let combat = self.combat.as_ref().expect("in combat");
+        let attackers = self.live_blocked_by(combat, blocker);
+        let power = self
+            .characteristics(blocker)
+            .map_or(0, |c| u32::try_from(c.power).unwrap_or(0));
+        let n = attackers.len();
+        let mut out = Vec::new();
+        let mut current = vec![0u32; n];
+        compose(power, 0, &mut current, &mut |parts| {
+            out.push(parts.to_vec());
+            out.len() < MAX_DIVISION_OPTIONS
+        });
+        if out.len() >= MAX_DIVISION_OPTIONS {
+            // Too many: lethal damage to each in turn, the rest to the last.
+            out.clear();
+            let mut canonical = vec![0u32; n];
+            let mut left = power;
+            for (i, a) in attackers.iter().enumerate() {
+                let give = self.lethal_for(blocker, *a).min(left);
+                canonical[i] = give;
+                left -= give;
+            }
+            if n > 0 {
+                canonical[n - 1] += left;
+            }
+            out.push(canonical);
+        }
+        out.into_iter()
+            .map(|parts| {
+                attackers
+                    .iter()
+                    .map(|a| Target::Object(*a))
+                    .zip(parts)
+                    .filter(|(_, amt)| *amt > 0)
+                    .collect()
+            })
+            .collect()
+    }
+
+    /// All legal divisions of an attacker's damage (CR 510.1c, 702.19b),
+    /// or of a blocker's that blocks several attackers (CR 510.1d).
     pub(super) fn damage_divisions(&self, attacker: ObjId) -> Vec<Vec<(Target, u32)>> {
-        let a = self
+        let Some(a) = self
             .combat
             .as_ref()
             .and_then(|c| c.attacker(attacker))
             .cloned()
-            .expect("attacker in combat");
+        else {
+            return self.blocker_divisions(attacker);
+        };
         let c = self.characteristics(attacker).expect("attacker exists");
         let power = u32::try_from(c.power).unwrap_or(0);
         let trample = c.has(Keyword::Trample);
@@ -589,26 +700,83 @@ pub(super) fn subsets(items: &[ObjId]) -> Vec<Vec<ObjId>> {
     out
 }
 
-/// All block assignments: each blocker picks none or one of its allowed
-/// attackers.
+/// All block assignments: each blocker picks none, one, or (with a
+/// capacity above one, CR 509.1a) up to `caps[i]` of its allowed attackers.
 pub(super) fn block_assignments(
     blockers: &[ObjId],
     can_block: &[Vec<ObjId>],
+    caps: &[usize],
 ) -> Vec<Vec<(ObjId, ObjId)>> {
     let mut out = vec![Vec::new()];
-    for (b, allowed) in blockers.iter().zip(can_block) {
-        let mut next = Vec::with_capacity(out.len() * (allowed.len() + 1));
+    for ((b, allowed), cap) in blockers.iter().zip(can_block).zip(caps) {
+        let choices: Vec<Vec<ObjId>> = if *cap <= 1 {
+            std::iter::once(Vec::new())
+                .chain(allowed.iter().map(|a| vec![*a]))
+                .collect()
+        } else {
+            subsets(allowed)
+                .into_iter()
+                .filter(|s| s.len() <= *cap)
+                .collect()
+        };
+        let mut next = Vec::with_capacity(out.len() * choices.len());
         for partial in &out {
-            next.push(partial.clone());
-            for a in allowed {
+            for choice in &choices {
                 let mut p = partial.clone();
-                p.push((*b, *a));
+                p.extend(choice.iter().map(|a| (*b, *a)));
                 next.push(p);
             }
         }
         out = next;
     }
     out
+}
+
+/// How many choices `block_assignments` gives a blocker with `n` allowed
+/// attackers and capacity `cap`: the subsets of at most `cap` of them.
+pub(super) fn block_choices(n: usize, cap: usize) -> usize {
+    let mut total = 0usize;
+    let mut binom = 1usize; // C(n, k)
+    for k in 0..=n.min(cap) {
+        total = total.saturating_add(binom);
+        binom = binom.saturating_mul(n - k) / (k + 1);
+    }
+    total
+}
+
+/// The blocking requirements of one declaration (CR 509.1c).
+#[derive(Default)]
+pub(super) struct BlockRequirements {
+    /// Creatures that block if able.
+    must_block: Vec<ObjId>,
+    /// Attackers that must be blocked if able.
+    must_be_blocked: Vec<ObjId>,
+    /// Attackers every creature able to block must block.
+    lure: Vec<ObjId>,
+}
+
+impl BlockRequirements {
+    pub(super) fn is_empty(&self) -> bool {
+        self.must_block.is_empty() && self.must_be_blocked.is_empty() && self.lure.is_empty()
+    }
+
+    /// How many requirements `blocks` obeys. Each blocker that blocks if
+    /// able, each attacker that must be blocked, and each (blocker, lure
+    /// attacker) pair is one requirement; a blocker unable to block can't
+    /// obey its requirement, so counting only the obeyed ones is enough to
+    /// compare declarations.
+    pub(super) fn obeyed(&self, blocks: &[(ObjId, ObjId)]) -> usize {
+        self.must_block
+            .iter()
+            .filter(|m| blocks.iter().any(|(b, _)| b == *m))
+            .count()
+            + self
+                .must_be_blocked
+                .iter()
+                .filter(|m| blocks.iter().any(|(_, a)| a == *m))
+                .count()
+            + blocks.iter().filter(|(_, a)| self.lure.contains(a)).count()
+    }
 }
 
 /// Visit every way of writing `total` as an ordered sum of `parts.len()`
@@ -658,7 +826,13 @@ mod tests {
         assert_eq!(subs.len(), 8);
         assert_eq!(subs[0].len(), 0);
         assert_eq!(subs[7].len(), 3);
-        let blocks = block_assignments(&ids[..2], &[vec![ids[2]], vec![ids[2]]]);
+        let blocks = block_assignments(&ids[..2], &[vec![ids[2]], vec![ids[2]]], &[1, 1]);
         assert_eq!(blocks.len(), 4);
+        // A blocker that can block both of two attackers: none, either, both.
+        let blocks = block_assignments(&ids[..1], &[ids[1..].to_vec()], &[2]);
+        assert_eq!(blocks.len(), 4);
+        assert_eq!(block_choices(2, 2), 4);
+        assert_eq!(block_choices(2, 1), 3);
+        assert_eq!(block_choices(3, usize::MAX), 8);
     }
 }

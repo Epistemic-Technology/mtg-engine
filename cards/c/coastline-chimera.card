@@ -1,0 +1,8 @@
+card "Coastline Chimera" {
+  oracle_id da95382c-0536-49aa-a0db-3b52926bf559
+  cost {3}{U}
+  type Creature — Chimera
+  pt 1/5
+  keywords flying
+  activated {1}{W}: this can block an additional creature
+}

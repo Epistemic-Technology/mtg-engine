@@ -1,0 +1,7 @@
+card "Palace Guard" {
+  oracle_id 5c92f375-ae6a-4be5-a499-ab87d6bdc49b
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 1/4
+  keywords can block any number of creatures
+}

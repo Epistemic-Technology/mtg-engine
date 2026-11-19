@@ -62,6 +62,31 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         &["attacks", "each", "combat", "if", "able"],
         Keyword::MustAttack,
     ),
+    (
+        &["blocks", "each", "combat", "if", "able"],
+        Keyword::MustBlock,
+    ),
+    (
+        &["must", "be", "blocked", "if", "able"],
+        Keyword::MustBeBlocked,
+    ),
+    (
+        &[
+            "can",
+            "block",
+            "an",
+            "additional",
+            "creature",
+            "each",
+            "combat",
+        ],
+        Keyword::BlockAdditional,
+    ),
+    (
+        &["can", "block", "any", "number", "of", "creatures"],
+        Keyword::BlockAny,
+    ),
+    (&["lure"], Keyword::Lure),
     (&["can't", "be", "blocked"], Keyword::Unblockable),
     (&["can't", "attack", "alone"], Keyword::CantAttackAlone),
     (&["can't", "block", "alone"], Keyword::CantBlockAlone),
@@ -1634,6 +1659,9 @@ impl P {
                     | "discards"
                     | "fights"
                     | "can't"
+                    | "can"
+                    | "must"
+                    | "blocks"
                     | "sacrifices"
                     | "sacrifice"
                     | "reveals"
@@ -1915,6 +1943,36 @@ impl P {
                     to: subject,
                     power,
                     toughness,
+                })
+            }
+            // Blocking requirements and allowances (CR 509.1a, 509.1c):
+            // "blocks if able", "must be blocked if able", "can block an
+            // additional creature", "can block any number of creatures".
+            "blocks" | "block" | "must" | "can" => {
+                let keyword = match w.as_str() {
+                    "must" => {
+                        self.expect_words(&["be", "blocked"])?;
+                        Keyword::MustBeBlocked
+                    }
+                    "can" => {
+                        self.expect_word("block")?;
+                        if self.eat_words(&["an", "additional", "creature"]) {
+                            Keyword::BlockAdditional
+                        } else {
+                            self.expect_words(&["any", "number", "of", "creatures"])?;
+                            Keyword::BlockAny
+                        }
+                    }
+                    _ => Keyword::MustBlock,
+                };
+                let _ = self.eat_words(&["this", "turn"]) || self.eat_words(&["each", "combat"]);
+                if matches!(keyword, Keyword::MustBlock | Keyword::MustBeBlocked) {
+                    self.expect_words(&["if", "able"])?;
+                }
+                self.until_end_of_turn();
+                Ok(Effect::Grant {
+                    keywords: vec![keyword],
+                    to: subject,
                 })
             }
             "can't" => {

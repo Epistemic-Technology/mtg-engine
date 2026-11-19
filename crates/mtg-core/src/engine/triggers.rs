@@ -371,8 +371,18 @@ impl GameState {
                 TriggerSpec::Blocks(what)
                 | TriggerSpec::BlocksOrBlocked(what)
                 | TriggerSpec::AttacksOrBlocks(what),
-                Event::Block { blocker, .. },
+                Event::Block { blocker, attacker },
             ) => {
+                // CR 509.3a: "whenever ~ blocks" triggers once even if it
+                // blocks several creatures: on its first block.
+                if self
+                    .combat
+                    .as_ref()
+                    .and_then(|c| c.blocked_by(*blocker))
+                    .is_some_and(|first| first != *attacker)
+                {
+                    return None;
+                }
                 let p = on_battlefield(what, *blocker)?;
                 Some((Some(*blocker), Some(p)))
             }

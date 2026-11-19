@@ -1,0 +1,8 @@
+card "Goblin Fire Fiend" {
+  oracle_id 61f84dbb-e9bb-45b1-a30e-c631be6ad25c
+  cost {3}{R}
+  type Creature — Goblin Berserker
+  pt 1/1
+  keywords haste, must be blocked if able
+  activated {R}: this gets +1/+0
+}

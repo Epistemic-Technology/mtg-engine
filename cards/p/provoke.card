@@ -1,0 +1,9 @@
+card "Provoke" {
+  oracle_id 731821b1-89fd-4166-94b8-35a1364e4d9d
+  cost {1}{G}
+  type Instant
+  spell {
+    untap target creature you don't control; that target 1 blocks if able
+    draw a card
+  }
+}
