@@ -1,0 +1,6 @@
+card "Divine Offering" {
+  oracle_id 231f8edb-4ea1-44be-8794-b76a31462dfc
+  cost {1}{W}
+  type Instant
+  spell: destroy target artifact; you gain count equal mana value of target 1 life
+}

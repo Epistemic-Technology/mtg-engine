@@ -204,6 +204,7 @@ impl Fmt {
             }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
+            Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::Source => "this".to_string(),
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
@@ -218,6 +219,7 @@ impl Fmt {
                 "its controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
+            Recipient::TheControllerOf(i) => format!("controller of the target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::Attached => "attached".to_string(),
@@ -434,6 +436,8 @@ impl Fmt {
                 };
                 if to.is_empty() {
                     format!("{verb} {} damage", num(*amount))
+                } else if let Some(expr) = equal_before(*amount) {
+                    format!("{verb} damage equal {expr} to {}", self.recipients(to, t))
                 } else {
                     format!(
                         "{verb} {} damage to {}",
@@ -898,13 +902,14 @@ impl Fmt {
             Effect::Fight { a, b } => {
                 format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
             }
-            Effect::Bite { source, to } if source == to => {
+            Effect::Bite { source, to, .. } if source == to => {
                 format!("{} bites itself", self.recipient(*source, t))
             }
-            Effect::Bite { source, to } => {
+            Effect::Bite { source, to, twice } => {
                 format!(
-                    "{} bites {}",
+                    "{} bites {}{}",
                     self.recipient(*source, t),
+                    if *twice { "twice " } else { "" },
                     self.recipient(*to, t)
                 )
             }
@@ -1254,6 +1259,20 @@ fn num(n: Num) -> String {
     }
 }
 
+/// A count printed before the recipient (`deal damage equal <expr> to
+/// ...`), as its expression.
+fn equal_before(n: Num) -> Option<String> {
+    let Num::Count(i) = n else {
+        return None;
+    };
+    COUNTS.with(|c| {
+        c.borrow()
+            .get(usize::from(i))
+            .filter(|c| c.style == crate::ast::CountStyle::EqualBefore)
+            .map(|c| count_expr_text(&c.expr))
+    })
+}
+
 /// `creature card was exiled this way`, `you discarded card this way`,
 /// `the sacrificed creature was Human` (after `if`).
 fn this_way_cond(c: &crate::ast::ThisWayCond) -> String {
@@ -1285,10 +1304,13 @@ fn count_text(c: &crate::ast::Count) -> String {
         CountStyle::Equal => "equal",
         CountStyle::Each => "each",
         CountStyle::ThatMany => "that many",
+        // Printed by the damage clause: `deal damage equal <expr> to`.
+        CountStyle::EqualBefore => return count_expr_text(&c.expr),
     };
     format!("count {style} {}", count_expr_text(&c.expr))
 }
 
+#[allow(clippy::too_many_lines)] // one arm per count
 fn count_expr_text(e: &crate::ast::CountExpr) -> String {
     use crate::ast::CountExpr;
     match e {
@@ -1379,6 +1401,37 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::OpponentsAttacked => "opponents attacked".to_string(),
         CountExpr::AttackedWithThisTurn => "attacked with this turn".to_string(),
         CountExpr::AndOr(inner) => format!("andor {}", count_expr_text(inner)),
+        CountExpr::TriggerStat { stat, that } => format!(
+            "{} of {}",
+            stat_word(*stat),
+            if *that { "that creature" } else { "it" }
+        ),
+        CountExpr::MovedStat {
+            verb,
+            stat,
+            noun,
+            that,
+        } => format!(
+            "{} of {} {} {noun}",
+            stat_word(*stat),
+            if *that { "that" } else { "the" },
+            crate::ast::this_way_word(*verb)
+        ),
+        CountExpr::TargetHand(n) => format!("hand of target {}", n + 1),
+        CountExpr::GreatestToughness(f) => format!("greatest toughness {}", filter(f)),
+        CountExpr::Sum(a, b) => format!("{} plus {}", count_expr_text(a), count_expr_text(b)),
+        CountExpr::LifeLostThisTurn => "life you lost this turn".to_string(),
+        CountExpr::DamageThisWay { excess: false } => "damage dealt this way".to_string(),
+        CountExpr::DamageThisWay { excess: true } => "excess damage dealt this way".to_string(),
+    }
+}
+
+/// `power`, `toughness`, `mana value`.
+fn stat_word(s: mtg_core::card::Stat) -> &'static str {
+    match s {
+        mtg_core::card::Stat::Power => "power",
+        mtg_core::card::Stat::Toughness => "toughness",
+        mtg_core::card::Stat::ManaValue => "mana value",
     }
 }
 
@@ -2025,6 +2078,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_obj(o)),
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
+        Trigger::DealtCombatDamage(o) => {
+            format!("whenever {} is dealt combat damage", trigger_obj(o))
+        }
         Trigger::DealsDamage { obj, to, combat } => format!(
             "whenever {} deals {}damage{}",
             trigger_obj(obj),

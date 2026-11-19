@@ -1,0 +1,6 @@
+card "Cosmic Hunger" {
+  oracle_id fe84ce0b-cd25-41ee-82c1-8ab03df5791b
+  cost {1}{G}
+  type Instant
+  spell: target creature you control bites another target creature, planeswalker, or battle
+}

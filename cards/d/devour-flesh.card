@@ -1,0 +1,6 @@
+card "Devour Flesh" {
+  oracle_id 6c40f825-836e-4b76-8e43-267b4abf013b
+  cost {1}{B}
+  type Instant
+  spell: target player sacrifices 1 creature then gains count equal toughness of that sacrificed creature life
+}

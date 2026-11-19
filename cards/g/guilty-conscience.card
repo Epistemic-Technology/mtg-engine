@@ -1,0 +1,7 @@
+card "Guilty Conscience" {
+  oracle_id a1439ace-5880-4fb8-a321-ec8063e7ed0e
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage: deal that much damage to that creature
+}

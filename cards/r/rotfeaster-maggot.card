@@ -1,0 +1,7 @@
+card "Rotfeaster Maggot" {
+  oracle_id 67d0df0f-37d1-46da-b1c3-4fc9d1e3cc05
+  cost {4}{B}
+  type Creature — Insect
+  pt 3/5
+  triggered when this enters: exile target creature card from a graveyard; you gain count equal toughness of that target 1 life
+}

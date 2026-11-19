@@ -1,0 +1,6 @@
+card "Band Together" {
+  oracle_id a8631e87-bfc3-463b-bdd1-974ea1d79ae4
+  cost {2}{G}
+  type Instant
+  spell: up to two target creatures you control each bites another target creature
+}

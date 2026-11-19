@@ -1,0 +1,6 @@
+card "Feed the Swarm" {
+  oracle_id 5825997b-10d7-4a36-972c-a80ddd90b8ed
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target creature or enchantment an opponent controls; you lose count equal mana value of that target 1 life
+}

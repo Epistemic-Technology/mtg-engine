@@ -1,0 +1,6 @@
+card "Ambuscade" {
+  oracle_id 5e419975-e054-4c35-8845-a08589ebb08f
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +1/+0; target 1 bites target creature an opponent controls
+}

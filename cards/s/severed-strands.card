@@ -1,0 +1,7 @@
+card "Severed Strands" {
+  oracle_id 25f0527c-1340-4218-970f-9e4f84ef96e8
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: you gain count equal toughness of the sacrificed creature life; destroy target creature an opponent controls
+}

@@ -1,0 +1,6 @@
+card "Terashi's Grasp" {
+  oracle_id d4738552-3a5e-43c5-a975-8b77618bacaf
+  cost {2}{W}
+  type Sorcery — Arcane
+  spell: destroy target artifact or enchantment; you gain count equal mana value of target 1 life
+}

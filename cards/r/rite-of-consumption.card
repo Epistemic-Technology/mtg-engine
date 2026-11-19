@@ -1,0 +1,7 @@
+card "Rite of Consumption" {
+  oracle_id 327121a1-f193-44c6-a834-802095abec84
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  spell: deal damage equal power of the sacrificed creature to target player or planeswalker; you gain count equal damage dealt this way life
+}

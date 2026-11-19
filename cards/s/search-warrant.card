@@ -1,0 +1,6 @@
+card "Search Warrant" {
+  oracle_id 27744033-5cb6-4d26-ad76-f4b4f1c0466c
+  cost {W}{U}
+  type Sorcery
+  spell: target player reveals hand; you gain count equal hand of target 1 life
+}

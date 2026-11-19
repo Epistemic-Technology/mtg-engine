@@ -1,0 +1,7 @@
+card "Reckoner's Bargain" {
+  oracle_id 044ea111-ce87-49ab-98f7-ae8447f48ac5
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: you gain count equal mana value of the sacrificed permanent life; draw 2 cards
+}

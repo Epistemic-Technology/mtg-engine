@@ -471,8 +471,87 @@ impl GameState {
                     self.players_in_game().filter(|p| *p != you).collect();
                 self.graveyard_count(&players, f.as_deref(), you)
             }
+            CountExpr::TriggerStat(stat) => {
+                return ctx.trigger_obj.map_or(0, |id| self.stat_value(id, *stat));
+            }
+            // CR 608.2h: the moved object as it last existed.
+            CountExpr::MovedStat { verb, stat } => {
+                return self.this_way.as_ref().map_or(0, |log| {
+                    log.moved
+                        .iter()
+                        .find(|m| m.is(*verb))
+                        .map_or(0, |m| self.stat_value(m.old, *stat))
+                });
+            }
+            CountExpr::TargetHand(n) => match ctx.targets.get(*n) {
+                Some(Target::Player(p)) => self.player(*p).hand.len(),
+                _ => 0,
+            },
+            CountExpr::GreatestToughness(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let best = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then(|| c.toughness())
+                    })
+                    .max()
+                    .unwrap_or(0);
+                return u32::try_from(best.max(0)).unwrap_or(0);
+            }
+            CountExpr::Sum(a, b) => {
+                return self
+                    .eval_count(a, ctx)
+                    .saturating_add(self.eval_count(b, ctx));
+            }
+            CountExpr::LifeLostThisTurn => {
+                return self.life_lost_this_turn[you.index().min(3)];
+            }
+            CountExpr::DamageThisWay { excess } => {
+                return self
+                    .this_way
+                    .as_ref()
+                    .map_or(0, |log| if *excess { log.excess } else { log.damage });
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
+    /// An object's power, toughness, or mana value, as it last existed if
+    /// it has left its zone (CR 608.2h); a negative value counts as 0.
+    fn stat_value(&self, id: ObjId, stat: crate::card::Stat) -> u32 {
+        use crate::card::Stat;
+        match stat {
+            Stat::Power | Stat::Toughness => self.characteristics_or_lki(id).map_or(0, |c| {
+                let v = if stat == Stat::Power {
+                    c.power()
+                } else {
+                    c.toughness()
+                };
+                u32::try_from(v.max(0)).unwrap_or(0)
+            }),
+            Stat::ManaValue => {
+                let def = self
+                    .objects
+                    .get(id)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&id).map(|l| l.object.def));
+                // CR 202.3e: on the stack, X is its chosen value.
+                def.map_or(0, |d| {
+                    let cost = &self.pool.get(d).mana_cost;
+                    let xs = cost
+                        .symbols()
+                        .iter()
+                        .filter(|s| matches!(s, crate::mana::ManaSymbol::X))
+                        .count();
+                    cost.mana_value() + self.x_of(id) * u32::try_from(xs).unwrap_or(0)
+                })
+            }
+        }
     }
 
     /// What `Effect::ChooseAct` may act on, for its controller.
@@ -3862,19 +3941,22 @@ impl GameState {
                     self.deal_damage(y, Target::Object(x), u32::try_from(py).unwrap_or(0), false);
                 }
             }
-            Effect::Bite { source, to } => {
+            Effect::Bite { source, to, twice } => {
                 // CR 608.2b: an illegal target is unaffected. If the
                 // creature is no longer a legal target it deals no damage;
                 // if the recipient is illegal there is nothing to damage.
-                let x = self
+                let Some(y) = self.recipients(ctx, *to).first().copied() else {
+                    return;
+                };
+                let sources: SmallVec<[ObjId; 2]> = self
                     .recipients(ctx, *source)
-                    .first()
-                    .copied()
-                    .and_then(|t| on_battlefield(self, t));
-                let y = self.recipients(ctx, *to).first().copied();
-                if let (Some(x), Some(y)) = (x, y) {
+                    .into_iter()
+                    .filter_map(|t| on_battlefield(self, t))
+                    .collect();
+                for x in sources {
                     let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
-                    self.deal_damage(x, y, u32::try_from(p).unwrap_or(0), false);
+                    let p = u32::try_from(p).unwrap_or(0);
+                    self.deal_damage(x, y, if *twice { p.saturating_mul(2) } else { p }, false);
                 }
             }
             Effect::DamageFrom { source, amount, to } => {

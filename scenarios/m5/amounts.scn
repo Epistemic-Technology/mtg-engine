@@ -1,0 +1,368 @@
+# Amounts taken from an object's characteristics (the triggering object,
+# what a cost or the resolution sacrificed, a target, as it last existed:
+# CR 608.2h), from the damage a resolution dealt (CR 120.3) and its excess
+# (CR 120.4a), and from the life a player lost this turn; bites from
+# several creatures or for twice the power.
+
+scenario "Death Watch: its controller loses its power, you gain its toughness" {
+  battlefield A: "Mountain"
+  battlefield B: "Alpine Grizzly"
+  battlefield A: "Death Watch" on "Alpine Grizzly"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Alpine Grizzly"
+  run_to turn 1 end
+  assert graveyard B contains "Alpine Grizzly"
+  assert life B 16
+  assert life A 22
+}
+
+scenario "Death Watch: power and toughness as the creature last existed" {
+  battlefield A: 2 "Mountain", "Forest"
+  battlefield B: "Alpine Grizzly"
+  battlefield A: "Death Watch" on "Alpine Grizzly"
+  hand A: "Giant Growth", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Giant Growth" targeting "Alpine Grizzly"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Alpine Grizzly"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Alpine Grizzly"
+  run_to turn 1 end
+  assert graveyard B contains "Alpine Grizzly"
+  assert life B 13
+  assert life A 25
+}
+
+scenario "Banewasp Affliction: the dead creature's controller loses its toughness" {
+  battlefield A: "Mountain"
+  battlefield B: "Angelic Wall"
+  battlefield A: "Banewasp Affliction" on "Angelic Wall"
+  hand A: "Lightning Bolt", "Shock"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Lightning Bolt" targeting "Angelic Wall"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Angelic Wall"
+  run_to turn 1 end
+  assert graveyard B contains "Angelic Wall"
+  assert life B 16
+  assert life A 20
+}
+
+scenario "Bushmeat Poacher: life equal to the sacrificed creature's toughness" {
+  battlefield A: "Bushmeat Poacher", "Angelic Wall", "Plains"
+  turn 1 A: activate "Bushmeat Poacher" sacrificing "Angelic Wall"
+  run_to turn 1 end
+  assert graveyard A contains "Angelic Wall"
+  assert life A 24
+  assert hand A count 1
+}
+
+scenario "Bushmeat Poacher: it can't sacrifice itself" {
+  battlefield A: "Bushmeat Poacher", "Plains"
+  illegal turn 1 A: activate "Bushmeat Poacher" sacrificing "Bushmeat Poacher"
+  run_to turn 1 end
+  assert battlefield A contains "Bushmeat Poacher"
+  assert life A 20
+}
+
+scenario "Reckoner's Bargain: life equal to the sacrificed permanent's mana value" {
+  battlefield A: "Hill Giant", 2 "Swamp"
+  hand A: "Reckoner's Bargain"
+  turn 1 A: cast "Reckoner's Bargain" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert life A 24
+  assert hand A count 2
+}
+
+scenario "Devour Flesh: the player gains the sacrificed creature's toughness" {
+  battlefield A: "Swamp", "Swamp"
+  battlefield B: "Angelic Wall"
+  hand A: "Devour Flesh"
+  turn 1 A: cast "Devour Flesh" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Angelic Wall"
+  assert life B 24
+  assert life A 20
+}
+
+scenario "Devour Flesh: no creature, no life" {
+  battlefield A: "Swamp", "Swamp"
+  hand A: "Devour Flesh"
+  turn 1 A: cast "Devour Flesh" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Rite of Consumption: damage equal to the sacrificed creature's power, life equal to the damage" {
+  battlefield A: "Alpine Grizzly", 2 "Swamp"
+  hand A: "Rite of Consumption"
+  turn 1 A: cast "Rite of Consumption" sacrificing "Alpine Grizzly" targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert life A 24
+}
+
+scenario "Rotfeaster Maggot: life equal to the exiled card's toughness" {
+  battlefield A: 5 "Swamp"
+  graveyard B: "Angelic Wall"
+  hand A: "Rotfeaster Maggot"
+  turn 1 A: cast "Rotfeaster Maggot"
+  turn 1 A: trigger "Rotfeaster Maggot" targeting "Angelic Wall"
+  run_to turn 1 end
+  assert exile B contains "Angelic Wall"
+  assert life A 24
+}
+
+scenario "Sever Soul: life equal to the destroyed creature's toughness" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Angelic Wall"
+  hand A: "Sever Soul"
+  turn 1 A: cast "Sever Soul" targeting "Angelic Wall"
+  run_to turn 1 end
+  assert graveyard B contains "Angelic Wall"
+  assert life A 24
+}
+
+scenario "Sever Soul can't target a black creature" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Rotfeaster Maggot"
+  hand A: "Sever Soul"
+  illegal turn 1 A: cast "Sever Soul" targeting "Rotfeaster Maggot"
+  run_to turn 1 end
+  assert battlefield B contains "Rotfeaster Maggot"
+}
+
+scenario "Feed the Swarm: you lose life equal to its mana value" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Feed the Swarm"
+  turn 1 A: cast "Feed the Swarm" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 16
+}
+
+scenario "Flourishing Hunter: the greatest toughness among other creatures" {
+  battlefield A: "Angelic Wall", "Alpine Grizzly", 6 "Forest"
+  hand A: "Flourishing Hunter"
+  turn 1 A: cast "Flourishing Hunter"
+  run_to turn 1 end
+  assert life A 24
+}
+
+scenario "Flourishing Hunter: alone, no life" {
+  battlefield A: 6 "Forest"
+  hand A: "Flourishing Hunter"
+  turn 1 A: cast "Flourishing Hunter"
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "Search Warrant: life equal to the cards in that player's hand" {
+  battlefield A: "Plains", "Island"
+  hand A: "Search Warrant"
+  hand B: "Shock", "Shock", "Forest"
+  turn 1 A: cast "Search Warrant" targeting player B
+  run_to turn 1 end
+  assert life A 23
+}
+
+scenario "War Report: creatures plus artifacts" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant", "Ornithopter"
+  hand A: "War Report"
+  turn 1 A: cast "War Report"
+  run_to turn 1 end
+  assert life A 24
+}
+
+scenario "Children of Korlis: life lost this turn" {
+  battlefield A: "Children of Korlis"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 2 end A: activate "Children of Korlis"
+  run_to turn 3
+  assert life A 20
+}
+
+scenario "Children of Korlis: life lost last turn doesn't count" {
+  battlefield A: "Children of Korlis"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting player A
+  turn 3 A: activate "Children of Korlis"
+  run_to turn 3 end
+  assert life A 17
+  assert graveyard A contains "Children of Korlis"
+}
+
+scenario "Corrupt: you gain life equal to the damage dealt this way" {
+  battlefield A: 6 "Swamp"
+  hand A: "Corrupt"
+  turn 1 A: cast "Corrupt" targeting player B
+  run_to turn 1 end
+  assert life B 14
+  assert life A 26
+}
+
+scenario "Corrupt: damage to a creature counts in full" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Corrupt"
+  turn 1 A: cast "Corrupt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 26
+}
+
+scenario "Syphon Soul: each other player, life equal to the damage" {
+  battlefield A: 3 "Swamp"
+  hand A: "Syphon Soul"
+  turn 1 A: cast "Syphon Soul"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Creeping Bloodsucker: drains each upkeep" {
+  battlefield A: "Creeping Bloodsucker"
+  start turn 3 A
+  run_to turn 3 end
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Servant of Tymaret: life equal to the life lost this way" {
+  battlefield A: "Servant of Tymaret" tapped
+  start turn 3 A
+  run_to turn 3 end
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Razor Rings: life equal to the excess damage" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Razor Rings"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Razor Rings" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Razor Rings: damage already marked makes more of it excess" {
+  battlefield A: 2 "Plains", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Razor Rings", "Shock"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Shock" targeting "Hill Giant"
+  turn 2 declare_attackers A: wait
+  turn 2 declare_attackers A: cast "Razor Rings" targeting "Hill Giant"
+  run_to turn 2 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 23
+}
+
+scenario "Razor Rings: no excess, no life" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Angelic Wall"
+  hand A: "Razor Rings"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_blockers B: block "Grizzly Bears" with "Angelic Wall"
+  turn 1 declare_blockers A: cast "Razor Rings" targeting "Angelic Wall"
+  run_to turn 1 end
+  assert graveyard B contains "Angelic Wall"
+  assert life A 20
+}
+
+scenario "Razor Rings targets only an attacking or blocking creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Razor Rings"
+  illegal turn 1 A: cast "Razor Rings" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Pious Warrior: combat damage gains that much life" {
+  battlefield A: "Pious Warrior"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_blockers A: block "Grizzly Bears" with "Pious Warrior"
+  run_to turn 2 end
+  assert life A 22
+}
+
+scenario "Pious Warrior: noncombat damage gains nothing" {
+  battlefield A: "Pious Warrior"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Pious Warrior"
+  run_to turn 2 end
+  assert life A 20
+  assert damage "Pious Warrior" 2
+}
+
+scenario "Spiteful Shadows: the creature deals that much damage to its controller" {
+  battlefield A: "Mountain"
+  battlefield B: "Angelic Wall"
+  battlefield A: "Spiteful Shadows" on "Angelic Wall"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Angelic Wall"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Agonizing Demise kicked: damage equal to the creature's power to its controller" {
+  battlefield A: 4 "Swamp", 2 "Mountain"
+  battlefield B: "Alpine Grizzly"
+  hand A: "Agonizing Demise"
+  turn 1 A: cast "Agonizing Demise" kicked targeting "Alpine Grizzly"
+  run_to turn 1 end
+  assert graveyard B contains "Alpine Grizzly"
+  assert life B 16
+}
+
+scenario "Agonizing Demise unkicked: no damage" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Alpine Grizzly"
+  hand A: "Agonizing Demise"
+  turn 1 A: cast "Agonizing Demise" targeting "Alpine Grizzly"
+  run_to turn 1 end
+  assert graveyard B contains "Alpine Grizzly"
+  assert life B 20
+}
+
+scenario "Polliwallop: damage equal to twice its power" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Polliwallop"
+  turn 1 A: cast "Polliwallop" targeting "Grizzly Bears", "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Band Together: each creature deals its own damage" {
+  battlefield A: "Grizzly Bears", "Alpine Grizzly", 3 "Forest"
+  battlefield B: "Flourishing Hunter"
+  hand A: "Band Together"
+  turn 1 A: cast "Band Together" targeting "Grizzly Bears", "Alpine Grizzly", "Flourishing Hunter"
+  run_to turn 1 end
+  assert graveyard B contains "Flourishing Hunter"
+}
+
+scenario "Bite Down needs a creature you don't control as its second target" {
+  battlefield A: "Grizzly Bears", "Alpine Grizzly", 2 "Forest"
+  hand A: "Bite Down"
+  illegal turn 1 A: cast "Bite Down" targeting "Grizzly Bears", "Alpine Grizzly"
+  run_to turn 1 end
+  assert damage "Alpine Grizzly" 0
+}

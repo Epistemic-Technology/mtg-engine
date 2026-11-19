@@ -718,10 +718,12 @@ impl GameState {
         if delta == 0 {
             return;
         }
-        if delta < 0
-            && let Some(log) = &mut self.this_way
-        {
-            log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
+        if delta < 0 {
+            let lost = &mut self.life_lost_this_turn[p.index().min(3)];
+            *lost = lost.saturating_add(delta.unsigned_abs());
+            if let Some(log) = &mut self.this_way {
+                log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
+            }
         }
         let ps = self.player_mut(p);
         ps.life += delta;
@@ -770,6 +772,9 @@ impl GameState {
             .get(source)
             .map(|o| o.controller)
             .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
+        if let Some(log) = &mut self.this_way {
+            log.damage = log.damage.saturating_add(amount);
+        }
         match target {
             Target::Player(p) => {
                 self.damaged_this_turn |= 1 << p.index().min(7);
@@ -819,6 +824,17 @@ impl GameState {
                 {
                     return;
                 }
+                // CR 120.4a: damage beyond lethal damage (beyond its
+                // loyalty for a planeswalker) is excess, for "the excess
+                // damage dealt this way".
+                if let Some(lethal) = self
+                    .this_way
+                    .is_some()
+                    .then(|| self.lethal_left(id, &c, deathtouch))
+                    && let Some(log) = &mut self.this_way
+                {
+                    log.excess = log.excess.saturating_add(amount.saturating_sub(lethal));
+                }
                 // CR 120.3c: damage to a planeswalker removes loyalty;
                 // CR 120.3e: damage to a creature is marked on it.
                 if c.is_planeswalker() {
@@ -852,6 +868,25 @@ impl GameState {
         if lifelink && let Some(c) = controller {
             self.gain_life(c, amount);
         }
+    }
+
+    /// The damage a permanent can be dealt before any more is excess (CR
+    /// 120.4a): lethal damage to a creature, given the damage marked on it
+    /// (1 from a source with deathtouch, CR 702.2c), its loyalty to a
+    /// planeswalker; with both types the lesser, so the excess is the
+    /// greatest.
+    fn lethal_left(&self, id: ObjId, c: &crate::state::Characteristics, deathtouch: bool) -> u32 {
+        let o = &self.objects[id];
+        let mut left = u32::MAX;
+        if c.is_creature() {
+            let t = u32::try_from(c.toughness().max(0)).unwrap_or(0);
+            let lethal = t.saturating_sub(o.damage);
+            left = left.min(if deathtouch { lethal.min(1) } else { lethal });
+        }
+        if c.is_planeswalker() {
+            left = left.min(o.counters(CounterKind::Loyalty));
+        }
+        left
     }
 
     /// Remember that `source` dealt damage this turn ("creature that dealt

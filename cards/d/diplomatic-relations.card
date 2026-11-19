@@ -1,0 +1,6 @@
+card "Diplomatic Relations" {
+  oracle_id 57b75be4-9229-4a48-a59e-a0f812f38637
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +1/+0 and gains vigilance; target 1 bites target creature an opponent controls
+}

@@ -1,0 +1,8 @@
+card "Aerie Ouphes" {
+  oracle_id 70cdd24a-8dc5-47b5-8729-9ebf486f4821
+  cost {4}{G}
+  type Creature — Ouphe
+  pt 3/3
+  activated sacrifice this: this bites target creature with flying
+  keyword persist
+}

@@ -880,6 +880,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
+            Recipient::EachOtherPlayer => "each other player".to_string(),
             Recipient::Source => self.source(),
             Recipient::SourceNamed => {
                 self.source_mentioned = true;
@@ -906,6 +907,7 @@ impl<'a> Ctx<'a> {
                 "its controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
+            Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::DefendingPlayerWord => "defending player".to_string(),
@@ -992,6 +994,7 @@ impl<'a> Ctx<'a> {
                 t,
                 Trigger::Dies(TriggerObj::Filter(f))
                     | Trigger::DealtDamage(TriggerObj::Filter(f))
+                    | Trigger::DealtCombatDamage(TriggerObj::Filter(f))
                     | Trigger::Blocks(TriggerObj::Filter(f))
                     | Trigger::Attacks(TriggerObj::Filter(f))
                     | Trigger::BecomesTapped(TriggerObj::Filter(f))
@@ -1129,6 +1132,8 @@ impl<'a> Ctx<'a> {
             Target::Spec(TargetSpec::ArtifactCreatureOrLand) => {
                 "artifacts, creatures, and/or lands".to_string()
             }
+            // "creatures you control".
+            Target::Spec(TargetSpec::CreatureYouControl) => "creatures you control".to_string(),
             Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
@@ -2217,11 +2222,88 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::AndOr(inner) => {
             return count_phrase(inner, card, each).replacen(" and ", " and/or ", 1);
         }
+        CountExpr::TriggerStat { stat, that } => {
+            let whose = if *that { "that creature's" } else { "its" };
+            return format!("{whose} {}", stat_word(*stat));
+        }
+        // "the sacrificed creature's toughness", "that creature's
+        // toughness".
+        CountExpr::MovedStat {
+            verb,
+            stat,
+            noun,
+            that,
+        } => {
+            let whose = if *that {
+                format!("that {noun}'s")
+            } else {
+                format!("the {} {noun}'s", crate::ast::this_way_word(*verb))
+            };
+            return format!("{whose} {}", stat_word(*stat));
+        }
+        CountExpr::TargetHand(_) => (
+            "card in that player's hand".to_string(),
+            "cards in that player's hand".to_string(),
+        ),
+        CountExpr::GreatestToughness(f) => {
+            return format!(
+                "the greatest toughness among {}",
+                filter_phrase(f, card, true)
+            );
+        }
+        CountExpr::Sum(a, b) => {
+            return format!(
+                "{} plus {}",
+                count_phrase(a, card, false),
+                count_phrase(b, card, false)
+            );
+        }
+        CountExpr::LifeLostThisTurn => return "the life you've lost this turn".to_string(),
+        CountExpr::DamageThisWay { excess } => {
+            return if *excess {
+                "the excess damage dealt this way".to_string()
+            } else {
+                "the damage dealt this way".to_string()
+            };
+        }
     };
     if each {
         format!("for each {one}")
     } else {
         format!("the number of {many}")
+    }
+}
+
+/// The power, toughness, or mana value a count reads.
+fn stat_word(s: mtg_core::card::Stat) -> &'static str {
+    match s {
+        mtg_core::card::Stat::Power => "power",
+        mtg_core::card::Stat::Toughness => "toughness",
+        mtg_core::card::Stat::ManaValue => "mana value",
+    }
+}
+
+/// `count_phrase` with the clause's targets known: "that card's
+/// toughness" for a card targeted in a graveyard, "that permanent's mana
+/// value" for a target of several permanent types.
+fn count_phrase_in(c: &crate::ast::CountExpr, ctx: &Ctx, each: bool) -> String {
+    use crate::ast::CountExpr;
+    let phrase = count_phrase(c, ctx.card, each);
+    match c {
+        CountExpr::TargetStat { n, that: true, .. }
+        | CountExpr::TargetManaValue { n, that: true, .. }
+            if ctx
+                .target_noun
+                .get(*n)
+                .is_some_and(|t| t == "card" || t == "permanent") =>
+        {
+            phrase.replacen(
+                "that creature's",
+                &format!("that {}'s", ctx.target_noun[*n]),
+                1,
+            )
+        }
+        _ => phrase,
     }
 }
 
@@ -2234,11 +2316,18 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             continue;
         };
         match count.style {
+            // "deals damage equal to that creature's power to ...".
+            CountStyle::EqualBefore => {
+                let phrase = count_phrase_in(&count.expr, ctx, false);
+                c.text = c
+                    .text
+                    .replacen("X damage", &format!("damage equal to {phrase}"), 1);
+            }
             CountStyle::Where => {
                 let _ = write!(
                     c.tail,
                     ", where X is {}",
-                    count_phrase(&count.expr, ctx.card, false)
+                    count_phrase_in(&count.expr, ctx, false)
                 );
             }
             CountStyle::Equal => {
@@ -2252,7 +2341,7 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let _ = write!(
                     c.tail,
                     " equal to {}",
-                    count_phrase(&count.expr, ctx.card, false)
+                    count_phrase_in(&count.expr, ctx, false)
                 );
             }
             // "then draw that many cards".
@@ -3305,7 +3394,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*b);
             Clause::with_subject(*a, s, format!("fights {o}"))
         }
-        Effect::Bite { source, to } if source == to => {
+        Effect::Bite { source, to, .. } if source == to => {
             let s = ctx.subj(*source);
             Clause::with_subject(
                 *source,
@@ -3313,14 +3402,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "deals damage to itself equal to its power".to_string(),
             )
         }
-        Effect::Bite { source, to } => {
+        Effect::Bite { source, to, twice } => {
             let s = ctx.subj(*source);
             let o = ctx.obj(*to);
-            Clause::with_subject(
-                *source,
-                s,
-                format!("deals damage equal to its power to {o}"),
-            )
+            let twice = if *twice { "twice " } else { "" };
+            // "Up to two target creatures you control each deal damage
+            // equal to their power to ...".
+            let group = matches!(source, Recipient::Targets(..)) || ctx.is_many(*source);
+            let text = if group {
+                format!("each deal damage equal to {twice}their power to {o}")
+            } else {
+                format!("deals damage equal to {twice}its power to {o}")
+            };
+            Clause::with_subject(*source, s, text)
         }
         Effect::CreateEmblem { emblem } => {
             let text = ctx.lookup.get(emblem).map(|e| oracle_text(e, ctx.lookup));
@@ -4346,6 +4440,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_subject(o, ctx)),
+        Trigger::DealtCombatDamage(o) => {
+            format!(
+                "whenever {} is dealt combat damage",
+                trigger_subject(o, ctx)
+            )
+        }
         Trigger::DealsDamage { obj, to, combat } => format!(
             "whenever {} deals {}damage{}",
             trigger_subject(obj, ctx),

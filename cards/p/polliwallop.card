@@ -1,0 +1,7 @@
+card "Polliwallop" {
+  oracle_id efd2a4ca-1bd0-4762-a997-f099326b1746
+  cost {3}{G}
+  type Instant
+  affinity for Frog
+  spell: target creature you control bites twice target creature you don't control
+}

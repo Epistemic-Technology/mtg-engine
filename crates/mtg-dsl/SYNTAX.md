@@ -325,10 +325,18 @@ draws their second card each turn`).
 Steps: `at beginning of your combat` ("At the beginning of combat on your
 turn"), `your first main`, `your second main` ("... your second main
 phase"). Recipient `controller of that target 1` ("that artifact's
-controller").
+controller"; `controller of the target 1` is "the creature's controller"),
+and `each other player` ("each other player": the opponents).
 Cost item `2 times per turn`: "Activate no more than twice each turn."
 `that much` is the triggering event's amount ("Whenever this creature is
 dealt damage, you gain that much life": `you gain that much life`).
+Trigger `whenever this is dealt combat damage` (CR 510.2) counts only
+combat damage. In a triggered ability `toughness of it`, `power of it`,
+`mana value of it` ("its toughness") and `power of that creature` ("that
+creature's power") read the triggering object, as it last existed once it
+has left (CR 608.2h): `triggered when enchanted creature dies: its
+controller loses count equal power of it life and you gain count equal
+toughness of it life`.
 `count each creature blocking it` ("for each creature blocking it", the
 triggering creature or this one; `creature blocking it beyond first`:
 "beyond the first") and the recipient `each creature blocking it`
@@ -605,7 +613,13 @@ copy of <what> [with exceptions]`, `<what> bites <what>` ("deals damage
 equal to its power to"; the creature is the damage's source, so its
 deathtouch, lifelink, infect, and wither apply, and it deals none if
 either target is illegal as the spell resolves), `<what> bites itself`
-("deals damage to itself equal to its power").
+("deals damage to itself equal to its power"), `<what> bites twice <what>`
+("deals damage equal to twice its power to"); `up to two target creatures
+you control each bites <what>` prints "each deal damage equal to their
+power to", each creature dealing its own damage. `deal damage equal <expr>
+to <what>` puts the amount before the recipient ("deals damage equal to
+that creature's power to the creature's controller", where `deal count
+equal ... damage to <what>` prints "deals damage to <what> equal to ...").
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
@@ -917,7 +931,21 @@ sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
 each 2 enchantment destroyed this way` ("2 life for each enchantment
 destroyed this way"), `count equal life lost this way` ("life equal to the
 life lost this way"), `count that many discarded this way` ("draw that
-many cards").
+many cards"), `count equal damage dealt this way` ("life equal to the
+damage dealt this way", CR 120.3), `count equal excess damage dealt this
+way` (CR 120.4a: beyond lethal damage, given damage already marked, or
+beyond a planeswalker's loyalty). What the resolution or its costs moved,
+as it last existed: `toughness of the sacrificed creature` ("the
+sacrificed creature's toughness"), `mana value of the sacrificed
+permanent`, `toughness of that sacrificed creature` ("that creature's
+toughness", after "sacrifices a creature"). Other counts: `hand of target
+1` ("the number of cards in that player's hand"), `greatest toughness
+other creature you control` ("the greatest toughness among other
+creatures you control"), `life you lost this turn` ("the life you've lost
+this turn"), and `<expr> plus <expr>` ("the number of creatures on the
+battlefield plus the number of artifacts on the battlefield"). `toughness
+of that target 1` names a graveyard card target "that card's" and a
+target of several permanent types "that permanent's".
 
 Discards: `discard hand` ("Discard your hand"), `discard all cards in hand`
 ("Discard all the cards in your hand"), `<who> discards all Trap card`

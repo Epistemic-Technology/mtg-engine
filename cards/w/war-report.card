@@ -1,0 +1,6 @@
+card "War Report" {
+  oracle_id 45dfb358-cd16-468e-bc89-ff17c6e244c1
+  cost {3}{W}
+  type Instant
+  spell: you gain count equal creature on battlefield plus artifact on battlefield life
+}

@@ -1506,6 +1506,41 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// A characteristic of the triggering object ("When enchanted creature
+    /// dies, its controller loses life equal to its toughness"), as it
+    /// last existed once it has left (CR 608.2h).
+    TriggerStat(Stat),
+    /// A characteristic of the first object the resolution, or its costs,
+    /// moved `verb`'s way ("life equal to the sacrificed creature's
+    /// toughness", "sacrifices a creature, then gains life equal to that
+    /// creature's toughness"), as it last existed (CR 608.2h).
+    MovedStat { verb: ThisWay, stat: Stat },
+    /// Cards in the hand of the `n`th target player ("the number of cards
+    /// in that player's hand").
+    TargetHand(usize),
+    /// The greatest toughness among battlefield permanents matching the
+    /// filter; 0 with none.
+    GreatestToughness(ObjFilter),
+    /// One count plus another ("the number of creatures on the battlefield
+    /// plus the number of artifacts on the battlefield").
+    Sum(Box<CountExpr>, Box<CountExpr>),
+    /// The life you've lost this turn (CR 119.3; damage causes loss of
+    /// life).
+    LifeLostThisTurn,
+    /// The damage the resolution has dealt (CR 120.3), or of it the
+    /// excess (CR 120.4a: beyond lethal damage to a creature, beyond its
+    /// loyalty to a planeswalker): "You gain life equal to the damage
+    /// dealt this way", "the excess damage dealt this way".
+    DamageThisWay { excess: bool },
+}
+
+/// A characteristic a count reads from an object.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Stat {
+    Power,
+    Toughness,
+    /// CR 202.3: on the stack, X is its chosen value (CR 202.3e).
+    ManaValue,
 }
 
 /// Where a spell countered this way goes (CR 701.5a: its owner's
@@ -2506,10 +2541,14 @@ pub enum Effect {
     /// don't control"; with `to == source`, "deals damage to itself equal
     /// to its power"). The creature is the damage's source (CR 120.3), so
     /// its deathtouch, lifelink, infect, and wither apply. One-sided,
-    /// unlike fight (CR 701.12).
+    /// unlike fight (CR 701.12). With `twice`, "damage equal to twice its
+    /// power". Each object of `source` deals its own damage ("Up to two
+    /// target creatures you control each deal damage equal to their power
+    /// to another target creature").
     Bite {
         source: Recipient,
         to: Recipient,
+        twice: bool,
     },
     /// `source` (an object other than the ability's source) deals `amount`
     /// damage to `to` (CR 120.3): "Whenever equipped creature becomes
@@ -3246,6 +3285,8 @@ pub enum TriggerSpec {
     /// "Whenever this creature is dealt damage" (enrage); the damaged
     /// object is the triggering object.
     DealtDamage(TriggerObj),
+    /// "Whenever this creature is dealt combat damage" (CR 510.2).
+    DealtCombatDamage(TriggerObj),
     /// "Whenever this creature deals damage to a creature / an opponent /
     /// a player": the damaged creature (or player) is the triggering
     /// object (player); `combat` only for combat damage.
@@ -3366,6 +3407,7 @@ impl TriggerSpec {
             | TriggerSpec::AttacksUnblocked(_) => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
             | TriggerSpec::DealtDamage(_)
+            | TriggerSpec::DealtCombatDamage(_)
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,

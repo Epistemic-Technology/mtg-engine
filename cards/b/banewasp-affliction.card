@@ -1,0 +1,7 @@
+card "Banewasp Affliction" {
+  oracle_id c1cb870a-8c1f-435c-b678-e456c4d2d627
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: controller of that creature loses count equal toughness of it life
+}

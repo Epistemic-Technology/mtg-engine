@@ -1,0 +1,7 @@
+card "Flourishing Hunter" {
+  oracle_id d714dc46-2db2-439f-b558-2b69d5c36b46
+  cost {4}{G}{G}
+  type Creature — Wolf Spirit
+  pt 6/6
+  triggered when this enters: you gain count equal greatest toughness other creature you control life
+}

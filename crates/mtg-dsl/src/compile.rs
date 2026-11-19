@@ -724,6 +724,16 @@ impl Compiler<'_> {
             A::OpponentsAttacked => C::OpponentsAttacked,
             A::AttackedWithThisTurn => C::AttackedWithThisTurn,
             A::AndOr(inner) => self.count_expr(inner),
+            A::TriggerStat { stat, .. } => C::TriggerStat(*stat),
+            A::MovedStat { verb, stat, .. } => C::MovedStat {
+                verb: *verb,
+                stat: *stat,
+            },
+            A::TargetHand(n) => C::TargetHand(*n),
+            A::GreatestToughness(f) => C::GreatestToughness(self.filter(f)),
+            A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
+            A::LifeLostThisTurn => C::LifeLostThisTurn,
+            A::DamageThisWay { excess } => C::DamageThisWay { excess: *excess },
         }
     }
 
@@ -807,7 +817,7 @@ impl Compiler<'_> {
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
             Recipient::You => CoreRecipient::You,
-            Recipient::EachOpponent => CoreRecipient::EachOpponent,
+            Recipient::EachOpponent | Recipient::EachOtherPlayer => CoreRecipient::EachOpponent,
             Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
                 CoreRecipient::Source
             }
@@ -820,9 +830,9 @@ impl Compiler<'_> {
             Recipient::DefendingPlayer | Recipient::DefendingPlayerWord => {
                 CoreRecipient::DefendingPlayer
             }
-            Recipient::ControllerOf(i) | Recipient::ThatControllerOf(i) => {
-                CoreRecipient::ControllerOf(i)
-            }
+            Recipient::ControllerOf(i)
+            | Recipient::ThatControllerOf(i)
+            | Recipient::TheControllerOf(i) => CoreRecipient::ControllerOf(i),
             Recipient::OwnerOf(i) => CoreRecipient::OwnerOf(i),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
@@ -1185,9 +1195,10 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
             }),
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
-            Effect::Bite { source, to } => out.push(CoreEffect::Bite {
+            Effect::Bite { source, to, twice } => out.push(CoreEffect::Bite {
                 source: r(*source),
                 to: r(*to),
+                twice: *twice,
             }),
             Effect::CreateEmblem { emblem } => {
                 let Some(emblem_ref) = self.pool.lookup(emblem) else {
@@ -1542,6 +1553,7 @@ impl Compiler<'_> {
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
+            Trigger::DealtCombatDamage(o) => TriggerSpec::DealtCombatDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
                 what: self.trigger_obj(obj),
                 to: *to,

@@ -548,6 +548,14 @@ impl GameState {
                     target: Target::Object(obj),
                     ..
                 },
+            )
+            | (
+                TriggerSpec::DealtCombatDamage(what),
+                Event::Damage {
+                    target: Target::Object(obj),
+                    combat: true,
+                    ..
+                },
             ) => {
                 let p = on_battlefield(what, *obj)?;
                 Some((Some(*obj), Some(p)))

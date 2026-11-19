@@ -1,0 +1,6 @@
+card "Huatli's Final Strike" {
+  oracle_id 20acb8df-2ea0-48b0-8dcf-54dd0e1f8db8
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +1/+0; target 1 bites target creature an opponent controls
+}

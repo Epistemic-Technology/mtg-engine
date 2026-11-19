@@ -1,0 +1,7 @@
+card "Death Watch" {
+  oracle_id 6f5b6cba-3b57-4e6a-afa7-0cb62e5cc7d4
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: its controller loses count equal power of it life and you gain count equal toughness of it life
+}
