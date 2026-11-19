@@ -1,0 +1,8 @@
+card "Prismwake Merrow" {
+  oracle_id 7d5126a9-ab81-4de6-817d-3b4b84c7ca5f
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  keywords flash
+  triggered when this enters: target permanent becomes colors of choice
+}

@@ -1,0 +1,8 @@
+card "Steel of the Godhead" {
+  oracle_id 90d2e092-6eb8-4d13-bdad-19e7325a8b36
+  cost {2}{W/U}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is white, enchanted: +1/+1, has lifelink
+  static as long as attached is blue, enchanted: +1/+1, has can't be blocked
+}

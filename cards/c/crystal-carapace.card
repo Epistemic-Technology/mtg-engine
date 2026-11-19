@@ -1,0 +1,8 @@
+card "Crystal Carapace" {
+  oracle_id 06a6130f-f27b-4db0-915d-decd9a7d3c15
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3, has ward {2}
+  cycling {2}
+}

@@ -1,0 +1,9 @@
+card "Cloudchaser Kestrel" {
+  oracle_id 4771f50c-0844-4d3a-90ea-406d65ebccfa
+  cost {1}{W}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: destroy target enchantment
+  activated {W}: target permanent becomes white
+}

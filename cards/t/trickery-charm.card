@@ -1,0 +1,10 @@
+card "Trickery Charm" {
+  oracle_id bb97f7c6-6a75-4f4e-b74e-c57ce98a08fc
+  cost {U}
+  type Instant
+  choose one {
+    mode: target creature gains flying
+    mode: target creature becomes creature type of choice
+    mode: look at top 4
+  }
+}

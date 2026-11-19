@@ -1,0 +1,8 @@
+card "Helm of the Ghastlord" {
+  oracle_id 66fa528f-0e3a-450f-9035-1ba5a8a921e6
+  cost {3}{U/B}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is blue, enchanted: +1/+1, has ability { triggered whenever this deals damage to opponent: draw 1 card }
+  static as long as attached is black, enchanted: +1/+1, has ability { triggered whenever this deals damage to opponent: that player discards 1 card }
+}

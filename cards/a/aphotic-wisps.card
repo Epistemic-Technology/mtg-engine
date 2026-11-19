@@ -1,0 +1,9 @@
+card "Aphotic Wisps" {
+  oracle_id db951ec2-d751-479d-af1f-885d3cf50027
+  cost {B}
+  type Instant
+  spell {
+    target creature becomes black and gains fear
+    draw 1 card
+  }
+}

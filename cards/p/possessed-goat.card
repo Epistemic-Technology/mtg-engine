@@ -1,0 +1,7 @@
+card "Possessed Goat" {
+  oracle_id 821f4ff3-ebc7-4f47-ac35-d00093b6d35b
+  cost {W}
+  type Creature — Goat
+  pt 1/1
+  activated {3}, discard 1 card, once ever: put 3 +1/+1 counters on this and it becomes black Demon in addition indefinitely
+}

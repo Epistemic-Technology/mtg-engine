@@ -1,0 +1,8 @@
+card "Favor of the Overbeing" {
+  oracle_id 56568fc4-7133-40e2-833c-29ecc1f953d6
+  cost {1}{G/U}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is green, enchanted: +1/+1, has vigilance
+  static as long as attached is blue, enchanted: +1/+1, has flying
+}

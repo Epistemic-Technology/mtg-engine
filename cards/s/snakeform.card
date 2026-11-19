@@ -1,0 +1,9 @@
+card "Snakeform" {
+  oracle_id 76ae07ce-ca0c-4308-b8bd-d999eea0a65f
+  cost {2}{G/U}
+  type Instant
+  spell {
+    until end of turn, target creature loses all abilities and becomes green Snake base 1/1
+    draw 1 card
+  }
+}

@@ -1,0 +1,7 @@
+card "Dreadbringer Lampads" {
+  oracle_id e65fa865-3f60-41f2-8b14-b0333c897b93
+  cost {4}{B}
+  type Enchantment Creature — Nymph
+  pt 4/2
+  label "Constellation" triggered whenever this or enchantment you control enters: target creature gains intimidate
+}

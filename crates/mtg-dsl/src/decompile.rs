@@ -739,6 +739,8 @@ impl Decompiler<'_> {
                 colors: c,
                 keywords: kws,
                 indefinite,
+                loses_abilities,
+                in_addition,
             } => Effect::Animate {
                 to: r(*to),
                 types: types(*t),
@@ -751,6 +753,8 @@ impl Decompiler<'_> {
                 colors: c.map(colors).unwrap_or_default(),
                 keywords: keywords(*kws),
                 indefinite: *indefinite,
+                loses_abilities: *loses_abilities,
+                in_addition: *in_addition,
             },
             CoreEffect::BecomeColor { to, colors: c } => Effect::BecomeColor {
                 to: r(*to),

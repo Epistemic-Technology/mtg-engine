@@ -1,0 +1,448 @@
+# Type, color, and keyword changes (CR 613 layers 4-6): "becomes a blue
+# Serpent with base power and toughness 5/5", "loses all abilities and
+# becomes a green Snake", "become blue Illusions in addition to their other
+# colors and types", "is a black Zombie in addition to its other colors and
+# types", "becomes all colors", "Ghostfire is colorless" (a
+# color-defining ability, CR 604.3), "As long as enchanted creature is
+# blue, ...", and granting ward {N} and toxic N (CR 702.21, 702.164) with
+# "with toxic" / "has toxic" checks.
+
+# ---- becomes a creature of a type and color ----
+
+scenario "Serpentine Ambush: a blue Serpent with base 5/5, not a Bear" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Serpentine Ambush"
+  turn 1 A: cast "Serpentine Ambush" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+  assert is "Grizzly Bears" blue
+  assert is not "Grizzly Bears" green
+  assert is "Grizzly Bears" Serpent
+  assert is not "Grizzly Bears" Bear
+  assert is "Grizzly Bears" creature
+}
+
+scenario "Serpentine Ambush: it ends at end of turn" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Serpentine Ambush"
+  turn 1 A: cast "Serpentine Ambush" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+  assert is "Grizzly Bears" green
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Startling Development: counters still apply over the new base 4/4" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, 2 "Island"
+  hand A: "Startling Development"
+  turn 1 A: cast "Startling Development" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert is "Grizzly Bears" Serpent
+}
+
+scenario "Snakeform: loses flying and becomes a green 1/1 Snake, and draws" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Snakeform"
+  turn 1 A: cast "Snakeform" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+  assert power "Serra Angel" 1
+  assert toughness "Serra Angel" 1
+  assert is "Serra Angel" green
+  assert is not "Serra Angel" white
+  assert is "Serra Angel" Snake
+  assert is not "Serra Angel" Angel
+  assert hand A count 1
+}
+
+scenario "Phantasmal Form: two creatures become 3/3 blue Illusions with flying, keeping their types" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Island"
+  hand A: "Phantasmal Form"
+  turn 1 A: cast "Phantasmal Form" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Hill Giant" 3
+  assert has "Grizzly Bears" flying
+  assert has "Hill Giant" flying
+  assert is "Grizzly Bears" blue
+  assert is "Grizzly Bears" green
+  assert is "Grizzly Bears" Illusion
+  assert is "Grizzly Bears" Bear
+  assert is "Hill Giant" Giant
+  assert is "Hill Giant" red
+}
+
+scenario "Possessed Goat: three counters and a black Demon in addition, for good" {
+  battlefield A: "Possessed Goat", 3 "Plains"
+  hand A: "Forest"
+  turn 1 A: activate "Possessed Goat" discarding "Forest"
+  run_to turn 2 upkeep
+  assert counters "Possessed Goat" +1/+1 3
+  assert power "Possessed Goat" 4
+  assert is "Possessed Goat" black
+  assert is "Possessed Goat" white
+  assert is "Possessed Goat" Demon
+  assert is "Possessed Goat" Goat
+}
+
+scenario "Possessed Goat: only once" {
+  battlefield A: "Possessed Goat", 6 "Plains"
+  hand A: "Forest", "Island"
+  turn 1 A: activate "Possessed Goat" discarding "Forest"
+  illegal turn 1 postcombat_main A: activate "Possessed Goat" discarding "Island"
+  run_to turn 1 end
+  assert counters "Possessed Goat" +1/+1 3
+}
+
+scenario "Trickery Charm: the creature becomes the chosen type" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Trickery Charm"
+  turn 1 A: cast "Trickery Charm" mode 2 targeting "Grizzly Bears"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Elf
+  assert is not "Grizzly Bears" Bear
+}
+
+# ---- colors ----
+
+scenario "Ghoulflesh: -1/-1, black and green, a Zombie Bear" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  hand A: "Ghoulflesh"
+  turn 1 A: cast "Ghoulflesh" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 1
+  assert is "Grizzly Bears" black
+  assert is "Grizzly Bears" green
+  assert is "Grizzly Bears" Zombie
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Scrapbasket becomes all colors" {
+  battlefield A: "Scrapbasket", "Plains"
+  turn 1 A: activate "Scrapbasket"
+  run_to turn 1 postcombat_main
+  assert is "Scrapbasket" white
+  assert is "Scrapbasket" blue
+  assert is "Scrapbasket" black
+  assert is "Scrapbasket" red
+  assert is "Scrapbasket" green
+}
+
+scenario "Aphotic Wisps: black with fear, so a white creature can't block it" {
+  battlefield A: "Grizzly Bears", "Swamp"
+  battlefield B: "Elite Vanguard"
+  hand A: "Aphotic Wisps"
+  turn 1 A: cast "Aphotic Wisps" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" black
+  assert is not "Grizzly Bears" green
+  assert life B 18
+  assert hand A count 1
+}
+
+scenario "Ghostfire is colorless: it damages a creature with protection from red" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Galina's Knight"
+  hand A: "Ghostfire"
+  turn 1 A: cast "Ghostfire" targeting "Galina's Knight"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Galina's Knight"
+}
+
+scenario "a red spell can't target Galina's Knight (Ghostfire's control case)" {
+  battlefield A: "Mountain"
+  battlefield B: "Galina's Knight"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" targeting "Galina's Knight"
+  run_to turn 1 end
+  assert battlefield B contains "Galina's Knight"
+}
+
+# ---- "As long as enchanted creature is <color>" ----
+
+scenario "Clout of the Dominus on a blue creature: +1/+1 and shroud" {
+  battlefield A: "Wind Drake", "Island"
+  hand A: "Clout of the Dominus"
+  turn 1 A: cast "Clout of the Dominus" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert power "Wind Drake" 3
+  assert has "Wind Drake" shroud
+  assert has not "Wind Drake" haste
+}
+
+scenario "Clout of the Dominus on a green creature: nothing" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Clout of the Dominus"
+  turn 1 A: cast "Clout of the Dominus" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" shroud
+}
+
+scenario "Edge of the Divinity: white gets +1/+2" {
+  battlefield A: "Elite Vanguard", "Plains"
+  hand A: "Edge of the Divinity"
+  turn 1 A: cast "Edge of the Divinity" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 3
+  assert toughness "Elite Vanguard" 3
+}
+
+scenario "Edge of the Divinity follows a color change: black gets +2/+1" {
+  battlefield A: "Elite Vanguard", "Edge of the Divinity" on "Elite Vanguard", "Swamp"
+  hand A: "Aphotic Wisps"
+  turn 1 A: cast "Aphotic Wisps" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 4
+  assert toughness "Elite Vanguard" 2
+}
+
+scenario "Helm of the Ghastlord on a blue creature draws on damage to an opponent" {
+  battlefield A: "Wind Drake", "Helm of the Ghastlord" on "Wind Drake"
+  turn 1 A: attack "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A count 1
+}
+
+scenario "Gift of the Deity on a green creature: all creatures able to block it do so" {
+  battlefield A: "Grizzly Bears", "Gift of the Deity" on "Grizzly Bears"
+  battlefield B: "Elite Vanguard"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Elite Vanguard"
+  assert life B 20
+}
+
+# ---- ward and toxic granted ----
+
+scenario "Crystal Carapace: the enchanted creature has ward {2}" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Crystal Carapace" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lightning Bolt"
+  assert damage "Grizzly Bears" 0
+  assert power "Grizzly Bears" 5
+}
+
+scenario "Super Strength: trample and ward {1}, paid" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Super Strength" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 3
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Leather Armor: equipped creature gets +0/+1 and has ward {1}" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Leather Armor" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 0
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "a ward granted to your own creature doesn't counter your spells" {
+  battlefield A: "Grizzly Bears", "Crystal Carapace" on "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 8
+}
+
+scenario "Plague Nurse: another creature with toxic gains toxic 1 more" {
+  battlefield A: "Plague Nurse", "Crawling Chorus", 3 "Forest"
+  turn 1 A: activate "Plague Nurse"
+  turn 1 A: attack "Crawling Chorus"
+  run_to turn 1 postcombat_main
+  assert poison B 2
+}
+
+scenario "Plague Nurse: a creature without toxic gains nothing" {
+  battlefield A: "Plague Nurse", "Grizzly Bears", 3 "Forest"
+  turn 1 A: activate "Plague Nurse"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert poison B 0
+  assert life B 18
+}
+
+scenario "Plague Nurse: only once each turn" {
+  battlefield A: "Plague Nurse", "Crawling Chorus", 6 "Forest"
+  turn 1 A: activate "Plague Nurse"
+  illegal turn 1 postcombat_main A: activate "Plague Nurse"
+  run_to turn 1 end
+}
+
+scenario "Hexgold Slash deals 4 damage to a creature with toxic" {
+  battlefield A: "Mountain"
+  battlefield B: "Plague Nurse"
+  hand A: "Hexgold Slash"
+  turn 1 A: cast "Hexgold Slash" targeting "Plague Nurse"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Plague Nurse"
+}
+
+scenario "Hexgold Slash deals 2 damage to a creature without toxic" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Hexgold Slash"
+  turn 1 A: cast "Hexgold Slash" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Compleat Devotion draws for a creature with toxic" {
+  battlefield A: "Crawling Chorus", 2 "Plains"
+  hand A: "Compleat Devotion"
+  turn 1 A: cast "Compleat Devotion" targeting "Crawling Chorus"
+  run_to turn 1 postcombat_main
+  assert power "Crawling Chorus" 3
+  assert hand A count 1
+}
+
+scenario "Compleat Devotion: no toxic, no card" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Compleat Devotion"
+  turn 1 A: cast "Compleat Devotion" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert hand A count 0
+}
+
+scenario "Maze's Mantle: a creature with toxic gains hexproof" {
+  battlefield A: "Crawling Chorus", 3 "Forest"
+  hand A: "Maze's Mantle"
+  turn 1 A: cast "Maze's Mantle" targeting "Crawling Chorus"
+  run_to turn 1 postcombat_main
+  assert has "Crawling Chorus" hexproof
+  assert power "Crawling Chorus" 3
+}
+
+scenario "Maze's Mantle: no toxic, no hexproof" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  hand A: "Maze's Mantle"
+  turn 1 A: cast "Maze's Mantle" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has not "Grizzly Bears" hexproof
+  assert power "Grizzly Bears" 4
+}
+
+# ---- color changes with riders ----
+
+scenario "Viridescent Wisps: green and +1/+0, and draws" {
+  battlefield A: "Hill Giant", "Forest"
+  hand A: "Viridescent Wisps"
+  turn 1 A: cast "Viridescent Wisps" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert is "Hill Giant" green
+  assert is not "Hill Giant" red
+  assert power "Hill Giant" 4
+  assert hand A count 1
+}
+
+scenario "Cerulean Wisps: blue, and untapped" {
+  battlefield A: "Grizzly Bears" tapped, "Island"
+  hand A: "Cerulean Wisps"
+  turn 1 A: cast "Cerulean Wisps" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" blue
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Niveous Wisps: white, and tapped" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Niveous Wisps"
+  turn 1 A: cast "Niveous Wisps" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" white
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Crimson Wisps: red with haste" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Crimson Wisps"
+  turn 1 A: cast "Crimson Wisps" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" red
+  assert has "Grizzly Bears" haste
+}
+
+scenario "Incite: red until end of turn" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Incite"
+  turn 1 A: cast "Incite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" red
+}
+
+scenario "Aurora Griffin turns a permanent white" {
+  battlefield A: "Aurora Griffin", "Plains"
+  battlefield B: "Forest"
+  turn 1 A: activate "Aurora Griffin" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Forest" white
+}
+
+scenario "Disciple of Kangee: flying and blue" {
+  battlefield A: "Disciple of Kangee", "Grizzly Bears", "Island"
+  turn 1 A: activate "Disciple of Kangee" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert is "Grizzly Bears" blue
+}
+
+scenario "Hideous Visage: your creatures gain intimidate" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Elite Vanguard"
+  hand A: "Hideous Visage"
+  turn 1 A: cast "Hideous Visage"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Scuttlemutt: the color or colors of your choice" {
+  battlefield A: "Scuttlemutt"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Scuttlemutt" targeting "Grizzly Bears"
+  turn 1 A: choose blue
+  turn 1 A: choose red
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" blue
+  assert is "Grizzly Bears" red
+  assert is not "Grizzly Bears" green
+}
+
+scenario "Steel of the Godhead on a blue creature: can't be blocked" {
+  battlefield A: "Wind Drake", "Steel of the Godhead" on "Wind Drake"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Wind Drake"
+  illegal turn 1 B: block "Wind Drake" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Shield of the Oversoul on a green creature: indestructible, not flying" {
+  battlefield A: "Grizzly Bears", "Shield of the Oversoul" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" indestructible
+  assert has not "Grizzly Bears" flying
+  assert power "Grizzly Bears" 3
+}

@@ -1,0 +1,8 @@
+card "Scuttlemutt" {
+  oracle_id 564c785b-c2fb-4857-a5bf-a14ae2cf6c93
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/2
+  mana any
+  activated {T}: target creature becomes colors of choice
+}

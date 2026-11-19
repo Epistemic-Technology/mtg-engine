@@ -735,6 +735,9 @@ struct Ctx<'a> {
     /// "it" as an object ("tap enchanted creature and remove all counters
     /// from it"; "if enchanted creature is untapped, tap it").
     attached_mentioned: bool,
+    /// The attached object was named by a trigger condition ("if enchanted
+    /// creature has toxic"): as the next subject it is "that creature".
+    attached_by_cond: bool,
     /// An `amass` came before: `CreatedObject` is "the amassed Army".
     amassed: bool,
     /// Recipients of a pump already in the ability: another pump of the
@@ -764,6 +767,7 @@ impl<'a> Ctx<'a> {
             last_token: None,
             those_tokens: None,
             attached_mentioned: false,
+            attached_by_cond: false,
             amassed: false,
             pumped: Vec::new(),
             they_paid: false,
@@ -1125,6 +1129,12 @@ impl<'a> Ctx<'a> {
                 }
             }
             Recipient::Source => self.source(),
+            // "When this Aura enters, if enchanted creature has toxic, that
+            // creature gains hexproof" (Maze's Mantle).
+            Recipient::Attached if self.attached_by_cond => {
+                self.attached_by_cond = false;
+                "that creature".to_string()
+            }
             other => self.obj(other),
         }
     }
@@ -1133,7 +1143,7 @@ impl<'a> Ctx<'a> {
     /// time: "Each creature blocking this creature gets -1/-1".
     fn each_group(&self, r: Recipient) -> bool {
         matches!(r, Recipient::Group(i)
-            if self.card.groups.get(usize::from(i)).is_some_and(|f| f.combat_with.is_some()))
+            if self.card.groups.get(usize::from(i)).is_some_and(|f| f.combat_with.is_some() || f.each))
     }
 
     /// Objects of destruction and exile ("all creatures").
@@ -1682,6 +1692,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.no_abilities {
         s.push_str(" with no abilities");
+    }
+    // "each other creature you control with toxic" (CR 702.164).
+    if f.status.toxic {
+        s.push_str(" with toxic");
     }
     // "creature you control with a +1/+1 counter on it" (after the
     // controller, as Oracle prints it).
@@ -3048,7 +3062,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if let Ability::BlockRule(r) = ability.as_ref() {
                 return Clause::with_subject(*to, s, block_rule_phrase(r, ctx.card, true));
             }
-            let q = quoted(ability, ctx.card, CardType::Creature, ctx.lookup);
+            // "gains toxic 1 until end of turn": a keyword ability, bare.
+            let q = crate::format::granted_mechanic(ability)
+                .unwrap_or_else(|| quoted(ability, ctx.card, CardType::Creature, ctx.lookup));
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
         }
@@ -4138,8 +4154,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             colors,
             keywords,
             indefinite,
+            loses_abilities,
+            in_addition,
         } => {
             let s = ctx.subj(*to);
+            // "up to two target creatures each ... become blue Illusions".
+            let plural = ctx.verb(*to, "becomes", "become") == "become";
             let mut words = Vec::new();
             if let (Some((p, q)), false) = (pt, base) {
                 words.push(format!("{p}/{q}"));
@@ -4147,12 +4167,25 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
             words.extend(subtypes.iter().cloned());
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
-            let mut text = format!(
-                "{} {} {}",
-                ctx.verb(*to, "becomes", "become"),
-                article(&words[0]),
-                words.join(" ")
-            );
+            let mut text = if plural && *in_addition {
+                if let Some(last) = words.pop() {
+                    words.push(pluralize(&last));
+                }
+                format!("become {}", words.join(" "))
+            } else {
+                format!(
+                    "{} {} {}",
+                    ctx.verb(*to, "becomes", "become"),
+                    article(&words[0]),
+                    words.join(" ")
+                )
+            };
+            if *loses_abilities {
+                text = format!(
+                    "{} all abilities and {text}",
+                    ctx.verb(*to, "loses", "lose")
+                );
+            }
             // "a Shapeshifter artifact creature with base power and
             // toughness 5/5", "a 2/2 Gargoyle creature with flying".
             if let (Some((p, q)), true) = (pt, base) {
@@ -4160,6 +4193,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             if !keywords.is_empty() {
                 let _ = write!(text, " with {}", keywords_list(keywords));
+            }
+            if *in_addition {
+                let their = if plural { "their" } else { "its" };
+                let what = if colors.is_empty() {
+                    "types"
+                } else {
+                    "colors and types"
+                };
+                let _ = write!(text, " in addition to {their} other {what}");
             }
             let mut clause = Clause::with_subject(*to, s, text);
             if !*indefinite {
@@ -4178,6 +4220,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 .collect();
             let what = if c.is_empty() {
                 "colorless".to_string()
+            } else if c.len() == 5 {
+                // Scrapbasket: "becomes all colors" (CR 105.2).
+                "all colors".to_string()
             } else {
                 list(&c)
             };
@@ -4448,10 +4493,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     } else {
                         target_predicate(filter, ctx.card)
                     };
-                    if *that {
-                        format!("that {} is {what}", ctx.target_noun[*n])
-                    } else {
-                        format!("it's {what}")
+                    // "If that creature has toxic" (Hexgold Slash).
+                    match (what.strip_prefix("a permanent with "), *that) {
+                        (Some(k), true) => format!("that {} has {k}", ctx.target_noun[*n]),
+                        (Some(k), false) => format!("it has {k}"),
+                        (None, true) => format!("that {} is {what}", ctx.target_noun[*n]),
+                        (None, false) => format!("it's {what}"),
                     }
                 }
             };
@@ -4503,11 +4550,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             toughness,
         } => {
             let s = ctx.subj(*to);
+            // "up to two target creatures each have base power and
+            // toughness 3/3" (Phantasmal Form).
+            let each = if matches!(to, Recipient::Targets(..)) {
+                "each "
+            } else {
+                ""
+            };
             Clause::with_subject(
                 *to,
                 s,
                 format!(
-                    "{} base power and toughness {power}/{toughness}",
+                    "{each}{} base power and toughness {power}/{toughness}",
                     ctx.verb(*to, "has", "have")
                 ),
             )
@@ -5937,6 +5991,8 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
                 "is all colors".to_string()
+            } else if cs.is_empty() {
+                "is colorless".to_string()
             } else {
                 format!(
                     "is {}",
@@ -6129,6 +6185,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                 if let Ability::BlockRule(r) = a.as_ref() {
                     return block_rule_phrase(r, card, false);
                 }
+                // "has ward {2}" (CR 702.21): a keyword ability, bare.
+                if let Some(k) = crate::format::granted_mechanic(a) {
+                    return format!("{} {k}", if plural_form { "have" } else { "has" });
+                }
                 let noun = if filter.types == [CardType::Land]
                     || (filter.enchanted && enchanted_noun(card) == "land")
                 {
@@ -6142,6 +6202,13 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                 };
                 let have = if plural_form { "have" } else { "has" };
                 return format!("{have} {}", quoted(a, card, noun, &()));
+            }
+            // "gets +1/+1 and all creatures able to block it do so" (Gift
+            // of the Deity).
+            if let Mod::AddKeywords(ks) = m
+                && ks.as_slice() == [Keyword::Lure]
+            {
+                return lure_sentence("it", false);
             }
             let mut t = mod_text(m, plural_form);
             if let Mod::ModifyPtPer {
@@ -6173,10 +6240,28 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             t
         })
         .collect();
-    // "has menace and \"Whenever ...\"": one "has" for both.
+    // "has menace and \"Whenever ...\"", "has trample and ward {1}": one
+    // "has" for both.
     for i in 1..parts.len() {
-        if parts[i].starts_with("has \"") && parts[i - 1].starts_with("has ") {
-            parts[i] = parts[i]["has ".len()..].to_string();
+        let keyword_grant =
+            matches!(&mods[i], Mod::AddAbility(a) if crate::format::granted_mechanic(a).is_some());
+        if (parts[i].starts_with("has \"") || keyword_grant) && parts[i - 1].starts_with("has ") {
+            // A bare keyword joins the "has" before it as one part ("gets
+            // +4/+4 and has trample and ward {1}"), marked to merge below.
+            let mark = if keyword_grant { "\u{1}" } else { "" };
+            parts[i] = format!("{mark}{}", &parts[i]["has ".len()..]);
+        }
+    }
+    // "is a black Zombie in addition to its other colors and types": a
+    // color and a subtype added together are one phrase (the second part
+    // is dropped below).
+    for i in 0..mods.len().saturating_sub(1) {
+        if let (Mod::AddColors(cs), Mod::AddSubtype(sub)) = (&mods[i], &mods[i + 1]) {
+            let colors: Vec<String> = cs.iter().map(|c| color_name(*c).to_string()).collect();
+            let what = with_article(&format!("{} {sub}", list(&colors)));
+            let verb = if plural_form { "are" } else { "is" };
+            parts[i] = format!("{verb} {what} in addition to its other colors and types");
+            parts[i + 1] = "\u{2}".to_string();
         }
     }
     // "is a Treefolk with base power and toughness 0/4", "is a creature
@@ -6200,6 +6285,17 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         };
         parts[i] = joined;
         parts.remove(i + 1);
+    }
+    parts.retain(|p| p != "\u{2}");
+    let mut i = 1;
+    while i < parts.len() {
+        if let Some(rest) = parts[i].strip_prefix('\u{1}') {
+            let joined = format!("{} and {rest}", parts[i - 1]);
+            parts[i - 1] = joined;
+            parts.remove(i);
+        } else {
+            i += 1;
+        }
     }
     let mut body = format!("{subject} {}", list(&parts));
     if let Some(clause) = activation {
@@ -6561,15 +6657,19 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             };
             format!("{noun}'s power is {n}{}", cmp_words(cmp))
         }
-        StaticCond::AttachedIs(f) => format!(
-            "{} is {}",
-            if card.subtypes.iter().any(|s| s == "Equipment") {
+        StaticCond::AttachedIs(f) => {
+            let noun = if card.subtypes.iter().any(|s| s == "Equipment") {
                 "equipped creature".to_string()
             } else {
                 format!("enchanted {}", enchanted_noun(card))
-            },
-            is_predicate(f, card)
-        ),
+            };
+            let pred = is_predicate(f, card);
+            // "if enchanted creature has toxic" (Maze's Mantle).
+            match pred.strip_prefix("a permanent with ") {
+                Some(k) => format!("{noun} has {k}"),
+                None => format!("{noun} is {pred}"),
+            }
+        }
         StaticCond::DrawnThisTurn(n) => {
             format!("you've drawn {} cards this turn", or_more(*n))
         }
@@ -6966,6 +7066,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                             | StaticCond::ManaSpent { that: false, .. }
                     );
                     ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
+                    ctx.attached_by_cond = ctx.attached_mentioned;
                 }
                 None => {}
             }

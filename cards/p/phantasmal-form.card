@@ -1,0 +1,9 @@
+card "Phantasmal Form" {
+  oracle_id d21facb6-27c2-49cb-9f13-7d6079096eda
+  cost {2}{U}
+  type Instant
+  spell {
+    until end of turn, up to 2 target creature each has base power and toughness 3/3, gains flying, and becomes blue Illusion in addition
+    draw 1 card
+  }
+}

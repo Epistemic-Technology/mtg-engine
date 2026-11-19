@@ -1,0 +1,7 @@
+card "Scrapbasket" {
+  oracle_id 779269f9-78c1-4e65-bafe-b6dea40a2b24
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 3/2
+  activated {1}: this becomes all colors
+}

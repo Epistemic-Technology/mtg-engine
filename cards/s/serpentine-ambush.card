@@ -1,0 +1,6 @@
+card "Serpentine Ambush" {
+  oracle_id 822b6d56-939a-42b9-b50c-9a8ba50ec3ad
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature becomes blue Serpent base 5/5
+}

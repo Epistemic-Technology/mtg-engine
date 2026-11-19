@@ -275,6 +275,13 @@ impl Fmt {
             Recipient::Group(i) => {
                 let text = match self.groups.get(usize::from(i)) {
                     Some(f) if f.all => filter(f),
+                    Some(f) if f.each => format!(
+                        "each single {}",
+                        filter(&Filter {
+                            each: false,
+                            ..f.clone()
+                        })
+                    ),
                     Some(f) => format!("each {}", filter(f)),
                     None => "each permanent".to_string(),
                 };
@@ -622,11 +629,14 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
-            Effect::GrantAbility { ability, to } => format!(
-                "{} gains ability {{ {} }}",
-                self.recipient(*to, t),
-                nested(ability, &self.groups)
-            ),
+            Effect::GrantAbility { ability, to } => match granted_mechanic(ability) {
+                Some(m) => format!("{} gains {m}", self.recipient(*to, t)),
+                None => format!(
+                    "{} gains ability {{ {} }}",
+                    self.recipient(*to, t),
+                    nested(ability, &self.groups)
+                ),
+            },
             Effect::ReturnChosen { count, filter: f } => {
                 format!("return {} {} chosen", num(*count), filter(f))
             }
@@ -1118,6 +1128,8 @@ impl Fmt {
                 colors,
                 keywords: ks,
                 indefinite,
+                loses_abilities,
+                in_addition,
             } => {
                 let mut words: Vec<String> = Vec::new();
                 if let (Some((p, q)), false) = (pt, base) {
@@ -1132,10 +1144,22 @@ impl Fmt {
                 if !ks.is_empty() {
                     words.push(format!("with {}", keywords(ks)));
                 }
+                if *in_addition {
+                    words.push("in addition".to_string());
+                }
                 if *indefinite {
                     words.push("indefinitely".to_string());
                 }
-                format!("{} becomes {}", self.recipient(*to, t), words.join(" "))
+                format!(
+                    "{} {}becomes {}",
+                    self.recipient(*to, t),
+                    if *loses_abilities {
+                        "loses all abilities and "
+                    } else {
+                        ""
+                    },
+                    words.join(" ")
+                )
             }
             Effect::BecomeColor { to, colors } => {
                 let c: Vec<String> = colors
@@ -1147,6 +1171,8 @@ impl Fmt {
                     self.recipient(*to, t),
                     if c.is_empty() {
                         "colorless".to_string()
+                    } else if c.len() == 5 {
+                        "all colors".to_string()
                     } else {
                         c.join(" and ")
                     }
@@ -1920,6 +1946,9 @@ fn filter_one(f: &Filter) -> String {
     if f.status.modified {
         words.push("modified".to_string());
     }
+    if f.status.toxic {
+        words.push("with toxic".to_string());
+    }
     match f.status.counter {
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
@@ -2684,6 +2713,8 @@ fn modification(m: &Mod) -> String {
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
                 "cda color all".to_string()
+            } else if cs.is_empty() {
+                "cda color colorless".to_string()
             } else {
                 format!(
                     "cda color {}",
@@ -3172,7 +3203,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             let mods = mods
                 .iter()
                 .map(|m| match m {
-                    Mod::AddAbility(a) => format!("has ability {{ {} }}", nested(a, groups)),
+                    Mod::AddAbility(a) => match granted_mechanic(a) {
+                        Some(m) => format!("has {m}"),
+                        None => format!("has ability {{ {} }}", nested(a, groups)),
+                    },
                     other => modification(other),
                 })
                 .collect::<Vec<_>>()
@@ -3443,6 +3477,15 @@ fn spent_cond(kind: mtg_core::card::SpentKind, at_least: u8) -> String {
         SpentKind::Color(c) => format!("spent {at_least} {}", crate::render::color_name(c)),
         SpentKind::Treasure => "spent treasure".to_string(),
         SpentKind::Total => format!("spent {at_least} mana"),
+    }
+}
+
+/// A keyword ability with a parameter granted bare: `ward {2}`, `toxic 1`.
+pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
+    match a {
+        Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
+        Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        _ => None,
     }
 }
 

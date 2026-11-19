@@ -1661,6 +1661,16 @@ impl GameState {
         {
             return false;
         }
+        // "with toxic" (CR 702.164): a toxic ability among its current ones.
+        if q.toxic
+            && !self.characteristics(id).is_some_and(|c| {
+                c.abilities
+                    .iter()
+                    .any(|a| matches!(self.pool.ability(*a), crate::card::AbilityDef::Toxic(_)))
+            })
+        {
+            return false;
+        }
         // "with a +1/+1 counter on it" (CR 122.1).
         match q.counter {
             Some(crate::card::CounterQual::Any) if !o.counters.iter().any(|(_, n)| *n > 0) => {

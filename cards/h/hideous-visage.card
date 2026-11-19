@@ -1,0 +1,6 @@
+card "Hideous Visage" {
+  oracle_id bd9c5b53-9666-45ee-8f9d-ee1ae74111b6
+  cost {2}{B}
+  type Sorcery
+  spell: each creature you control gains intimidate
+}

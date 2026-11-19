@@ -1,0 +1,8 @@
+card "Gift of the Deity" {
+  oracle_id 3548489b-053e-4f81-a0be-07422cbe357d
+  cost {4}{B/G}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is black, enchanted: +1/+1, has deathtouch
+  static as long as attached is green, enchanted: +1/+1, has lure
+}

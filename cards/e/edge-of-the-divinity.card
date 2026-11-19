@@ -1,0 +1,8 @@
+card "Edge of the Divinity" {
+  oracle_id 16ef24ea-4d84-43e5-bd4f-b6efadc87616
+  cost {W/B}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is white, enchanted: +1/+2
+  static as long as attached is black, enchanted: +2/+1
+}

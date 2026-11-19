@@ -311,6 +311,20 @@ impl Compiler<'_> {
         }
         if let Some(colors) = &card.color_indicator {
             b = b.color_indicator(colors.iter().copied());
+        } else if let Some(colors) = card.abilities.iter().find_map(|a| match a {
+            Ability::Static { filter, mods, .. } if filter.relation == Relation::This => {
+                mods.iter().find_map(|m| match m {
+                    Mod::CdaColors(cs) => Some(cs),
+                    _ => None,
+                })
+            }
+            _ => None,
+        }) {
+            // CR 604.3: a color-defining ability functions in every zone
+            // ("Ghostfire is colorless." on the stack), so it is the
+            // object's color everywhere, as a color indicator would be
+            // (CR 204); on the battlefield its static applies too.
+            b = b.color_indicator(colors.iter().copied());
         }
         match card.kind {
             Kind::Token => b = b.token(),
@@ -1330,6 +1344,8 @@ impl Compiler<'_> {
                 colors,
                 keywords,
                 indefinite,
+                loses_abilities,
+                in_addition,
             } => {
                 let subtypes = self.subtypes(subtypes);
                 out.push(CoreEffect::Animate {
@@ -1340,6 +1356,8 @@ impl Compiler<'_> {
                     colors: (!colors.is_empty()).then(|| ColorSet::of(colors.iter().copied())),
                     keywords: KeywordSet::of(keywords.iter().copied()),
                     indefinite: *indefinite,
+                    loses_abilities: *loses_abilities,
+                    in_addition: *in_addition,
                 });
             }
             Effect::BecomeColor { to, colors } => out.push(CoreEffect::BecomeColor {
@@ -2527,6 +2545,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     colors: Vec::new(),
                     keywords: Vec::new(),
                     indefinite: false,
+                    loses_abilities: false,
+                    in_addition: false,
                 }),
                 equip: false,
                 cycling: false,

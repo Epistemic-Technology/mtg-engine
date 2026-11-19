@@ -1,0 +1,6 @@
+card "Incite" {
+  oracle_id 304da0e0-9852-4ba5-a896-3c6bd703a64c
+  cost {R}
+  type Instant
+  spell: target creature becomes red and attacks if able
+}

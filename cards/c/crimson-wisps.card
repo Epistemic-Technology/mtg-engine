@@ -1,0 +1,9 @@
+card "Crimson Wisps" {
+  oracle_id e699d140-eb13-4f15-aecb-85c76e8b1b14
+  cost {R}
+  type Instant
+  spell {
+    target creature becomes red and gains haste
+    draw 1 card
+  }
+}

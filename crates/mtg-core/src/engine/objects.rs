@@ -290,7 +290,17 @@ impl GameState {
             timestamp,
             targets: SmallVec::new(),
             counters,
-            attached_to: None,
+            // CR 303.4f: an Aura spell enters attached to its target, so its
+            // "When this Aura enters, if enchanted creature ..." sees what
+            // it enchants (CR 603.4).
+            attached_to: if old.zone == Zone::Stack && to == Zone::Battlefield {
+                match old.targets.first() {
+                    Some(Target::Object(t)) if self.pool.get(def).enchant().is_some() => Some(*t),
+                    _ => None,
+                }
+            } else {
+                None
+            },
             ability: None,
         });
         if let Some(l) = self.lki.get_mut(&id) {
