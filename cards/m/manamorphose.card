@@ -1,0 +1,9 @@
+card "Manamorphose" {
+  oracle_id 89c83a6d-f6c8-4984-a888-0db62dfb93b1
+  cost {1}{R/G}
+  type Instant
+  spell {
+    add 2 mana any combination
+    draw 1 card
+  }
+}

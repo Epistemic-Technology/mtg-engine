@@ -1,0 +1,161 @@
+# Mana with spending restrictions (CR 106.6), "spend only black mana on X"
+# (CR 107.3), and mana in combinations of colors (CR 106.1b).
+
+scenario "Vodalian Arcanist's mana pays for a sorcery" {
+  battlefield A: "Vodalian Arcanist", 2 "Island"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+  assert tapped "Vodalian Arcanist"
+}
+
+scenario "Vodalian Arcanist's mana can't pay for a creature spell" {
+  battlefield A: "Vodalian Arcanist", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert untapped "Vodalian Arcanist"
+}
+
+scenario "Vodalian Arcanist's mana can't pay for an ability" {
+  battlefield A: "Vodalian Arcanist", "Living Wall"
+  illegal turn 1 A: activate "Living Wall"
+  run_to turn 1 end
+  assert untapped "Vodalian Arcanist"
+}
+
+scenario "Humble Naturalist's mana pays for a creature spell as any color" {
+  battlefield A: "Humble Naturalist", "Island"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Humble Naturalist"
+}
+
+scenario "Humble Naturalist's mana can't pay for an instant" {
+  battlefield A: "Humble Naturalist"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Lightning Bolt"
+}
+
+scenario "a summoning-sick Humble Naturalist can't tap for mana" {
+  battlefield A: "Forest", "Forest"
+  hand A: "Humble Naturalist", "Grizzly Bears"
+  turn 1 A: cast "Humble Naturalist"
+  illegal turn 1 postcombat_main A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Automated Artificer's mana pays for an ability and an artifact spell" {
+  battlefield A: "Automated Artificer", "Living Wall", "Guidelight Optimizer"
+  hand A: "Steel Wall"
+  turn 1 A: cast "Steel Wall"
+  turn 1 postcombat_main A: activate "Living Wall"
+  run_to turn 1 end
+  assert battlefield A contains "Steel Wall"
+  assert tapped "Automated Artificer"
+  assert tapped "Guidelight Optimizer"
+}
+
+scenario "Automated Artificer's mana can't pay for a nonartifact spell" {
+  battlefield A: "Automated Artificer", 2 "Island"
+  hand A: "Divination"
+  illegal turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+}
+
+scenario "Hydraulic Helper's mana pays for an ability but not a nonartifact spell" {
+  battlefield A: "Hydraulic Helper", "Living Wall"
+  hand A: "Opt"
+  illegal turn 1 A: cast "Opt"
+  turn 1 postcombat_main A: activate "Living Wall"
+  run_to turn 1 end
+  assert hand A contains "Opt"
+  assert tapped "Hydraulic Helper"
+}
+
+scenario "Chandra's Embercat's mana pays for an Elemental spell only" {
+  battlefield A: "Chandra's Embercat", 3 "Mountain"
+  hand A: "Cinder Elemental", "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  turn 1 postcombat_main A: cast "Cinder Elemental"
+  run_to turn 1 end
+  assert battlefield A contains "Cinder Elemental"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Consume Spirit's X is paid with black mana" {
+  battlefield A: 3 "Swamp", "Mountain"
+  hand A: "Consume Spirit"
+  turn 1 A: cast "Consume Spirit" x 2 targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+# Generic mana would come from the Mountains, listed first; X takes the
+# second Swamp instead.
+scenario "Consume Spirit's X can't be paid with other mana" {
+  battlefield A: 2 "Mountain", 2 "Swamp"
+  hand A: "Consume Spirit"
+  turn 1 A: cast "Consume Spirit" x 1 targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert tapped oldest "Swamp"
+  assert tapped newest "Swamp"
+  assert untapped newest "Mountain"
+}
+
+scenario "Manamorphose adds two mana in any combination of colors" {
+  battlefield A: "Mountain", "Forest"
+  hand A: "Manamorphose", "Grizzly Bears"
+  turn 1 A: cast "Manamorphose"
+  turn 1 A: choose green
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Manamorphose"
+  assert hand A count 1
+}
+
+scenario "Firemind Vessel adds two mana of different colors" {
+  battlefield A: "Firemind Vessel"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Firemind Vessel"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Orcish Lumberjack adds three mana of red and/or green" {
+  battlefield A: "Orcish Lumberjack", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: activate "Orcish Lumberjack" sacrificing "Forest"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+}
+
+scenario "a land enchanted by Sheltered Aerie adds two mana of one color" {
+  battlefield A: "Island", "Forest", "Sheltered Aerie" on "Forest"
+  hand A: "Divination"
+  turn 1 A: activate "Forest"
+  turn 1 A: choose blue
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert tapped "Island"
+}

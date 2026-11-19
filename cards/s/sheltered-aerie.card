@@ -1,0 +1,7 @@
+card "Sheltered Aerie" {
+  oracle_id f2c408f6-3994-4a90-a9f5-f248eb976017
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted land: has ability { activated {T}: add any 2 }
+}

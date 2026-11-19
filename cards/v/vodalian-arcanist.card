@@ -1,0 +1,7 @@
+card "Vodalian Arcanist" {
+  oracle_id 1d07856b-d9ef-418c-bd06-3888dbcaddf4
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/3
+  mana {C} only to cast instant or sorcery spell
+}

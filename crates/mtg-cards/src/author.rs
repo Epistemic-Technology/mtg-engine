@@ -2132,6 +2132,40 @@ impl Builder<'_> {
             self.statements.push(format!("mana {}", cap(&c, 1)));
             return Ok(());
         }
+        // "{T}: Add {C}. Spend this mana only to cast an instant or
+        // sorcery spell." and the other restricted mana (CR 106.6).
+        if let Some(c) = Regex::new(
+            r"^\{T\}: Add (\{[WUBRGC]\}|one mana of any color)\. (Spend this mana only to (?:cast an? ([A-Za-z ]+?) spell(?:( or to| or) activate an ability)?|activate an ability(?: or cast an? ([A-Za-z ]+?) spell)?)|This mana can't be spent to cast an? ([A-Za-z]+) spell)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let mana = match cap(&c, 1) {
+                "one mana of any color" => "any",
+                m => m,
+            };
+            let rest = if !cap(&c, 6).is_empty() {
+                format!("not to cast {} spell", cap(&c, 6))
+            } else if !cap(&c, 3).is_empty() {
+                let tail = match cap(&c, 4) {
+                    " or to" => " or to activate",
+                    " or" => " or activate",
+                    _ => "",
+                };
+                format!("only to cast {} spell{tail}", cap(&c, 3))
+            } else if !cap(&c, 5).is_empty() {
+                format!("only to activate or cast {} spell", cap(&c, 5))
+            } else {
+                "only to activate".to_string()
+            };
+            self.statements.push(format!("mana {mana} {rest}"));
+            return Ok(());
+        }
+        if line == "Spend only black mana on X." {
+            self.statements
+                .push("spend only black mana on x".to_string());
+            return Ok(());
+        }
         // "{T}: Add {R}, {G}, or {W}."
         if let Some(c) = Regex::new(r"^\{T\}: Add ((?:\{[WUBRGC]\}, )+)or (\{[WUBRGC]\})\.$")
             .unwrap()

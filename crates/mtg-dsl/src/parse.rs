@@ -854,6 +854,66 @@ impl P {
 
     // ---- abilities ----
 
+    /// `only to cast instant or sorcery spell`, `only to cast artifact
+    /// spell or [to] activate`, `only to activate [or cast artifact
+    /// spell]`, `not to cast nonartifact spell` (CR 106.6).
+    fn mana_restriction(&mut self) -> R<crate::ast::ManaRestriction> {
+        use mtg_core::card::SpendWording;
+        if self.eat_word("not") {
+            self.expect_words(&["to", "cast"])?;
+            let f = self.filter()?;
+            self.expect_word("spell")?;
+            return Ok(crate::ast::ManaRestriction {
+                spells: Some(f),
+                abilities: true,
+                wording: SpendWording::CantCast,
+            });
+        }
+        self.expect_words(&["only", "to"])?;
+        if self.eat_word("activate") {
+            let spells = if self.eat_words(&["or", "cast"]) {
+                let f = self.filter()?;
+                self.expect_word("spell")?;
+                Some(f)
+            } else {
+                None
+            };
+            let wording = if spells.is_some() {
+                SpendWording::ActivateFirst
+            } else {
+                SpendWording::CastFirst
+            };
+            return Ok(crate::ast::ManaRestriction {
+                spells,
+                abilities: true,
+                wording,
+            });
+        }
+        self.expect_word("cast")?;
+        let mut f = self.filter()?;
+        self.expect_word("spell")?;
+        // "an Elemental spell or a Chandra planeswalker spell": each side
+        // whole.
+        if self.at_word("or") && !matches!(self.word_at(1).as_deref(), Some("to" | "activate")) {
+            self.pos += 1;
+            let alt = self.filter()?;
+            self.expect_word("spell")?;
+            f.or = Some(Box::new(alt));
+        }
+        let (abilities, wording) = if self.eat_words(&["or", "to", "activate"]) {
+            (true, SpendWording::CastFirstTo)
+        } else if self.eat_words(&["or", "activate"]) {
+            (true, SpendWording::CastFirst)
+        } else {
+            (false, SpendWording::CastFirst)
+        };
+        Ok(crate::ast::ManaRestriction {
+            spells: Some(f),
+            abilities,
+            wording,
+        })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
@@ -861,6 +921,16 @@ impl P {
         self.in_trigger = false;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
+            "spend" if self.word_at(1).as_deref() == Some("only") => {
+                self.pos += 2;
+                let w = self.word()?;
+                let Some(c) = color(&w) else {
+                    return self.fail(format!("expected a color, found `{w}`"));
+                };
+                self.expect_words(&["mana", "on", "x"])?;
+                self.end_stmt()?;
+                Ok(Ability::XManaColor(c))
+            }
             "spells" => {
                 self.pos += 1;
                 let filter = if self.at_word("you") || self.at_word("your") || self.at_word("cost")
@@ -1129,6 +1199,15 @@ impl P {
                     if !(self.eat_word("or") || self.eat_word("and")) {
                         break;
                     }
+                }
+                if self.at_word("only") || self.at_word("not") {
+                    let [one] = out.as_slice() else {
+                        return self.fail("a restricted mana ability makes one kind of mana");
+                    };
+                    let mana = *one;
+                    let restriction = self.mana_restriction()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::RestrictedMana { mana, restriction });
                 }
                 if self.peek() == Some(&Tok::Comma) {
                     self.next();
@@ -2588,7 +2667,43 @@ impl P {
             }
             "add" => {
                 if self.eat_word("any") {
+                    if matches!(self.peek(), Some(Tok::Num(_))) {
+                        return Ok(Effect::AddManaTimes {
+                            mana: Mana::Any,
+                            count: self.num()?,
+                        });
+                    }
                     return Ok(Effect::AddMana(vec![Mana::Any]));
+                }
+                if matches!(self.peek(), Some(Tok::Num(_))) {
+                    let count = self.number()?;
+                    self.expect_word("mana")?;
+                    if self.eat_words(&["different", "colors"]) {
+                        return Ok(Effect::AddManaCombination {
+                            count,
+                            colors: mtg_core::mana::ColorSet::ALL,
+                            different: true,
+                        });
+                    }
+                    self.expect_words(&["any", "combination"])?;
+                    let colors = if self.eat_word("of") {
+                        let cost = self.mana_cost()?;
+                        let mut set = mtg_core::mana::ColorSet::COLORLESS;
+                        for s in cost.symbols() {
+                            match s {
+                                mtg_core::mana::ManaSymbol::Colored(c) => set = set.with(*c),
+                                _ => return self.unexpected("colored mana symbols"),
+                            }
+                        }
+                        set
+                    } else {
+                        mtg_core::mana::ColorSet::ALL
+                    };
+                    return Ok(Effect::AddManaCombination {
+                        count,
+                        colors,
+                        different: false,
+                    });
                 }
                 let cost = self.mana_cost()?;
                 let mut out = Vec::new();

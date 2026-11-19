@@ -1,0 +1,8 @@
+card "Hydraulic Helper" {
+  oracle_id 503928cd-1abd-44cd-92c3-6dc19bb07f78
+  cost {1}{U}
+  type Artifact Creature — Robot
+  pt 2/3
+  keywords defender
+  mana {U} not to cast nonartifact spell
+}

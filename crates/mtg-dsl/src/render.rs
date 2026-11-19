@@ -344,6 +344,72 @@ fn capitalize(s: &str) -> String {
     }
 }
 
+/// "an instant or sorcery spell", "an artifact spell", "a Giant spell",
+/// "an Elemental spell or a Chandra planeswalker spell".
+fn a_spell(f: &Filter, card: &Card) -> String {
+    if let Some(alt) = &f.or {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        return format!("{} or {}", a_spell(&b, card), a_spell(&a, card));
+    }
+    if !f.any_types.is_empty() {
+        let types: Vec<String> = f
+            .any_types
+            .iter()
+            .map(|t| type_noun(*t).to_string())
+            .collect();
+        let mut g = f.clone();
+        g.any_types.clear();
+        let rest = card_filter_phrase(&g, card);
+        let types = or_list(&types);
+        let what = if rest.trim().is_empty() {
+            types
+        } else {
+            format!("{} {types}", rest.trim())
+        };
+        return format!("{} spell", with_article(&what));
+    }
+    let what = spells_subject(f, card);
+    let what = what.strip_suffix(" spells").unwrap_or(&what);
+    // "an artifact spell", but "a Giant spell".
+    let what = if f.subtypes.is_empty() {
+        lowercase_first(what)
+    } else {
+        what.to_string()
+    };
+    format!("{} spell", with_article(&what))
+}
+
+/// "{T}: Add {C}. Spend this mana only to cast an instant or sorcery
+/// spell." (CR 106.6).
+fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -> String {
+    use mtg_core::card::SpendWording;
+    let what = match m {
+        Mana::Colorless => "{C}".to_string(),
+        Mana::Colored(c) => format!("{{{}}}", c.letter()),
+        Mana::Any => "one mana of any color".to_string(),
+        Mana::Chosen => "one mana of the chosen color".to_string(),
+    };
+    let spells = r
+        .spells
+        .as_ref()
+        .map(|f| format!("cast {}", a_spell(f, card)));
+    let rule = match (r.wording, spells) {
+        (SpendWording::CantCast, Some(s)) => format!("This mana can't be spent to {s}."),
+        (SpendWording::ActivateFirst, Some(s)) => {
+            format!("Spend this mana only to activate an ability or {s}.")
+        }
+        (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
+            format!("Spend this mana only to {s} or to activate an ability.")
+        }
+        (_, Some(s)) if r.abilities => {
+            format!("Spend this mana only to {s} or activate an ability.")
+        }
+        (_, Some(s)) => format!("Spend this mana only to {s}."),
+        (_, None) => "Spend this mana only to activate an ability.".to_string(),
+    };
+    format!("{{T}}: Add {what}. {rule}")
+}
+
 /// "a" or "an".
 fn article(word: &str) -> &'static str {
     match word.chars().next() {
@@ -2227,10 +2293,38 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let syms: Vec<String> = m.iter().map(|x| mana_symbols(&[*x], "?")).collect();
             Clause::imperative(format!("add {}", or_list(&syms)))
         }
+        Effect::AddManaTimes {
+            mana: Mana::Any,
+            count: n @ Num::N(_),
+        } => Clause::imperative(format!(
+            "add {} mana of any one color",
+            count_words(*n, "one")
+        )),
         Effect::AddManaTimes { mana, .. } => Clause::imperative(format!(
             "add {}",
             mana_symbols(&[*mana], "X mana of any one color")
         )),
+        Effect::AddManaCombination {
+            count,
+            colors,
+            different,
+        } => {
+            let n = count_words(Num::N(*count), "one");
+            Clause::imperative(if *different {
+                format!("add {n} mana of different colors")
+            } else if colors.count() == 5 {
+                format!("add {n} mana in any combination of colors")
+            } else {
+                let syms: Vec<String> = colors
+                    .iter()
+                    .map(|c| format!("{{{}}}", c.letter()))
+                    .collect();
+                format!(
+                    "add {n} mana in any combination of {}",
+                    syms.join(" and/or ")
+                )
+            })
+        }
         Effect::Surveil(n) => Clause::imperative(format!("surveil {}", digits(*n))),
         Effect::Discard { count, who } => {
             let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
@@ -3529,6 +3623,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
         Ability::Keyword(k) => keyword_line(card, *k),
+        Ability::RestrictedMana { mana, restriction } => {
+            restricted_mana_text(card, *mana, restriction)
+        }
+        Ability::XManaColor(c) => format!("Spend only {} mana on X.", color_name(*c)),
         Ability::AsEntersChoose { kind, joined } => {
             let what = match kind {
                 ChoiceKind::Color { except: None } => "a color".to_string(),

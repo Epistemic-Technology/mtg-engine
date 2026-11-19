@@ -1,0 +1,7 @@
+card "Humble Naturalist" {
+  oracle_id ff3a69a7-a244-4958-9e8b-d153942c1ba6
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/3
+  mana any only to cast creature spell
+}

@@ -1,0 +1,7 @@
+card "Purple Dragon Punks" {
+  oracle_id d1edb950-a118-4b4d-a0ef-9a6683d74c9f
+  cost {1}{R}
+  type Creature — Human Rogue
+  pt 2/2
+  mana {R} only to cast artifact spell or to activate
+}

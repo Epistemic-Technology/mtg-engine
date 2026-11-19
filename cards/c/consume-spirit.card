@@ -1,0 +1,7 @@
+card "Consume Spirit" {
+  oracle_id 861fa80d-99e0-4332-a2b8-5aa959fd41a4
+  cost {X}{1}{B}
+  type Sorcery
+  spend only black mana on x
+  spell: deal X damage to any target and you gain X life
+}

@@ -372,6 +372,7 @@ impl GameState {
             self.life_cda_sources += d(flags.has_life_cda());
             self.tap_static_sources += d(flags.has_tap_static());
             self.cost_change_sources += d(flags.has_cost_change());
+            self.restricted_mana_sources += d(flags.has_restricted_mana());
             self.grant_sources += d(flags.grants_abilities());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
@@ -382,6 +383,7 @@ impl GameState {
             self.life_cda_sources -= d(flags.has_life_cda());
             self.tap_static_sources -= d(flags.has_tap_static());
             self.cost_change_sources -= d(flags.has_cost_change());
+            self.restricted_mana_sources -= d(flags.has_restricted_mana());
             self.grant_sources -= d(flags.grants_abilities());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
