@@ -1,0 +1,7 @@
+card "Clever Conjurer" {
+  oracle_id 628e59e2-3665-40dd-ba4f-11ab5824de22
+  cost {2}{U}
+  type Creature — Gnome Wizard
+  pt 2/3
+  label "Mage Hand" activated {T}, sorcery: untap target permanent not named this
+}

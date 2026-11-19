@@ -1,0 +1,8 @@
+card "Charmed Stray" {
+  oracle_id 6781166b-f6ab-4076-8e97-0cd9342f1b41
+  cost {W}
+  type Creature — Cat
+  pt 1/1
+  keywords lifelink
+  triggered when this enters: put 1 +1/+1 counter on each other creature you control named this
+}

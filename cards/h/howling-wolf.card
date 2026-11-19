@@ -1,0 +1,7 @@
+card "Howling Wolf" {
+  oracle_id d95d0b24-2e6f-4f61-8668-26effeaaf2fb
+  cost {2}{G}{G}
+  type Creature — Wolf
+  pt 2/2
+  triggered when this enters: you may search up to 3 card named this reveal to hand
+}

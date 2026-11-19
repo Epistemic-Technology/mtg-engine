@@ -411,8 +411,11 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 affected: None,
                 // "Creatures of the chosen type": the source's choice
                 // (CR 607.2a).
+                // "Other creatures named ~ get +1/+1": the source's name.
                 filter: Some(if sa.affected.chosen {
                     sa.affected.with_chosen(obj.chosen)
+                } else if sa.affected.same.is_some() {
+                    same_filled(work, &sa.affected, Some(*id)).into_owned()
                 } else {
                     sa.affected.clone()
                 }),
@@ -591,7 +594,9 @@ fn per_count(
         return 0;
     };
     let n = match count {
-        CountExpr::Permanents(f) => work.matching(f, source, Some(you)).len(),
+        CountExpr::Permanents(f) => work
+            .matching(&same_filled(work, f, source), source, Some(you))
+            .len(),
         CountExpr::Domain => {
             let mut seen = crate::mana::ColorSet::default();
             for id in &work.ids {
@@ -608,17 +613,29 @@ fn per_count(
             }
             seen.iter().count()
         }
-        CountExpr::CardsInGraveyard(f) => state
-            .player(you)
-            .graveyard
-            .iter()
-            .filter(|id| {
-                f.as_ref().is_none_or(|f| {
-                    let c = state.base_characteristics(&state.objects[**id]);
-                    f.matches(**id, you, &c, None, Some(you))
+        CountExpr::CardsInGraveyard(f) | CountExpr::CardsInAllGraveyards(f) => {
+            let f = f.as_ref().map(|f| same_filled(work, f, source));
+            let all = matches!(count, CountExpr::CardsInAllGraveyards(_));
+            state
+                .players
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| all || usize::from(you.0) == *i)
+                .flat_map(|(_, p)| p.graveyard.iter())
+                .filter(|id| {
+                    f.as_ref().is_none_or(|f| {
+                        let o = &state.objects[**id];
+                        let c = state.base_characteristics(o);
+                        f.matches(**id, o.owner, &c, None, Some(you))
+                    })
                 })
-            })
-            .count(),
+                .count()
+        }
+        CountExpr::Plus(k, inner) => {
+            return i32::try_from(*k)
+                .unwrap_or(0)
+                .saturating_add(per_count(work, source, controller, inner));
+        }
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
         CountExpr::Times(k, inner) => {
@@ -629,6 +646,24 @@ fn per_count(
         CountExpr::SourcePower | CountExpr::TargetStat { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
+}
+
+/// A static ability's filter with "named ~" filled in from its source as
+/// the layers have it so far (a copy effect, layer 1, gives the copy's
+/// name); other filters as they are.
+fn same_filled<'f>(
+    work: &Work<'_>,
+    f: &'f ObjFilter,
+    source: Option<ObjId>,
+) -> std::borrow::Cow<'f, ObjFilter> {
+    if f.same.is_none() {
+        return std::borrow::Cow::Borrowed(f);
+    }
+    let c = source.and_then(|s| work.index.get(&s).map(|wi| work.chars[*wi]));
+    let def = c.map(|c| c.def).filter(|d| {
+        *d != work.state.pool.face_down(false) && *d != work.state.pool.face_down(true)
+    });
+    std::borrow::Cow::Owned(f.with_same(def, c.map(|c| c.colors).unwrap_or_default()))
 }
 
 fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
@@ -657,7 +692,8 @@ fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
         .unwrap_or(u32::MAX),
         CdaCount::Permanents(filter) => {
             let controller = work.controller_of(source);
-            u32::try_from(work.matching(filter, Some(source), Some(controller)).len())
+            let filter = same_filled(work, filter, Some(source));
+            u32::try_from(work.matching(&filter, Some(source), Some(controller)).len())
                 .unwrap_or(u32::MAX)
         }
         CdaCount::ControllerLife => {

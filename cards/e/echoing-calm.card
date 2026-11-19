@@ -1,0 +1,6 @@
+card "Echoing Calm" {
+  oracle_id d0bc217b-1149-4a33-a4a1-29e07597dc41
+  cost {1}{W}
+  type Instant
+  spell: destroy target enchantment and all other enchantment with same name as target 1
+}

@@ -1,0 +1,7 @@
+card "Whisper Squad" {
+  oracle_id e6b27729-fea5-46c9-8624-07ba291791df
+  cost {B}
+  type Creature — Human Soldier
+  pt 1/1
+  activated {1}{B}: search card named this to battlefield tapped
+}

@@ -1,0 +1,6 @@
+card "Echoing Courage" {
+  oracle_id 359db1e6-bed9-412f-9e7c-f827ff6f2229
+  cost {1}{G}
+  type Instant
+  spell: target creature and all other creature with same name as target 1 gets +2/+2
+}

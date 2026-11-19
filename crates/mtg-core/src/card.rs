@@ -907,6 +907,44 @@ pub struct ObjFilter {
     /// (`with_chosen`) where the choice is known; unfilled, nothing
     /// matches.
     pub chosen: bool,
+    /// "named ~", "not named ~", "with the same name as that creature",
+    /// "that shares a color with it": a relation to the source or a target.
+    /// A placeholder the engine fills in (`with_same`) where the object is
+    /// known; unfilled, nothing matches.
+    pub same: Option<Same>,
+    /// "named ~" filled in: the object must (or, with `false`, must not)
+    /// have this definition's name. The pool holds one definition per card
+    /// name (CR 201.2), so the definition stands for the name; tokens of
+    /// different definitions that share a name are not recognized as such.
+    pub named: Option<(CardRef, bool)>,
+}
+
+/// What a filter's `same` relates the object to (CR 201.2: "named ~" is
+/// the object's name, CR 201.4b; CR 105.4: sharing a color).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct Same {
+    pub of: SameOf,
+    pub what: SameWhat,
+}
+
+/// The object a `Same` relation is about.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SameOf {
+    /// The source ("named ~").
+    Source,
+    /// The `n`th target ("with the same name as that creature").
+    Target(u8),
+}
+
+/// What a `Same` relation compares.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SameWhat {
+    /// Has the same name.
+    Name,
+    /// Doesn't have the same name ("not named ~").
+    NotName,
+    /// Shares a color ("that shares a color with it").
+    Color,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -1008,6 +1046,25 @@ impl ObjFilter {
         f
     }
 
+    /// The filter with its `same` relation filled in from the object it
+    /// relates to: that object's definition (`None` for an object with no
+    /// name, CR 708.2: nothing has the same name as it) and colors (sharing
+    /// a color with a colorless object is impossible, CR 105.2c).
+    #[must_use]
+    pub fn with_same(&self, def: Option<CardRef>, colors: ColorSet) -> Self {
+        let mut f = self.clone();
+        let Some(same) = f.same.take() else {
+            return f;
+        };
+        match same.what {
+            // No name: a definition no object has.
+            SameWhat::Name => f.named = Some((def.unwrap_or(CardRef(u32::MAX)), true)),
+            SameWhat::NotName => f.named = def.map(|d| (d, false)),
+            SameWhat::Color => f.colors = Some(colors),
+        }
+        f
+    }
+
     /// Whether an object with characteristics `c` controlled by
     /// `obj_controller` matches, judged for an effect or ability of `source`
     /// controlled by `controller`. The `enchanted` field needs game state and
@@ -1035,8 +1092,14 @@ impl ObjFilter {
         source: Option<crate::ids::ObjId>,
         controller: Option<crate::ids::PlayerId>,
     ) -> bool {
-        // An unfilled "of the chosen type" (`with_chosen`) matches nothing.
-        if self.chosen {
+        // An unfilled "of the chosen type" (`with_chosen`) or "named ~"
+        // (`with_same`) matches nothing.
+        if self.chosen || self.same.is_some() {
+            return false;
+        }
+        if let Some((def, named)) = self.named
+            && (c.def == def) != named
+        {
             return false;
         }
         let is_source = source == Some(obj);
@@ -1291,6 +1354,12 @@ pub enum CountExpr {
     Life,
     /// N times another count ("2 life for each creature you control").
     Times(u32, Box<CountExpr>),
+    /// Cards in all graveyards, all or matching the filter ("the number of
+    /// cards named ~ in all graveyards").
+    CardsInAllGraveyards(Option<ObjFilter>),
+    /// N plus another count ("2 plus the number of cards named ~ in your
+    /// graveyard").
+    Plus(u32, Box<CountExpr>),
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -1682,6 +1751,12 @@ pub enum Recipient {
     /// What the source (an Aura or Equipment) is attached to ("enchanted
     /// creature", "equipped creature").
     Attached,
+    /// The `n`th target and every other battlefield object matching the
+    /// pool's `g`th filter, whose `same` relation is to that target
+    /// ("target creature and all other creatures with the same name as
+    /// that creature", "target creature and each other creature that
+    /// shares a color with it").
+    TargetAndGroup(usize, u16),
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell

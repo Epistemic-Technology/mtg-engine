@@ -1424,6 +1424,7 @@ impl GameState {
     ) -> bool {
         use crate::card::StaticCondition as C;
         let count = |filter: &crate::card::ObjFilter, whose: PlayerId| {
+            let filter = &*self.source_filter(filter, Some(source));
             self.battlefield
                 .iter()
                 .filter(|id| {
@@ -1497,6 +1498,36 @@ impl GameState {
 
     /// Characteristics of an object that may have left the game, falling
     /// back to last-known information.
+    /// `f` with its `same` relation ("named ~", "that shares a color with
+    /// it") filled in from `of` as it is now, or as it last existed (CR
+    /// 608.2h). A face-down object has no name (CR 708.2).
+    pub fn with_same_of(
+        &self,
+        f: &crate::card::ObjFilter,
+        of: Option<ObjId>,
+    ) -> crate::card::ObjFilter {
+        let c = of.and_then(|id| self.characteristics_or_lki(id));
+        let def = c
+            .as_ref()
+            .map(|c| c.def)
+            .filter(|d| *d != self.pool.face_down(false) && *d != self.pool.face_down(true));
+        f.with_same(def, c.map(|c| c.colors).unwrap_or_default())
+    }
+
+    /// A filter with "named ~" filled in from the source ("target
+    /// permanent not named ~"); other filters as they are.
+    fn source_filter<'f>(
+        &self,
+        f: &'f crate::card::ObjFilter,
+        source: Option<ObjId>,
+    ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
+        if f.same.is_some() {
+            std::borrow::Cow::Owned(self.with_same_of(f, source))
+        } else {
+            std::borrow::Cow::Borrowed(f)
+        }
+    }
+
     pub fn characteristics_or_lki(&self, id: ObjId) -> Option<Characteristics> {
         self.characteristics(id)
             .or_else(|| self.lki.get(&id).map(|l| l.characteristics))
@@ -1577,13 +1608,11 @@ impl GameState {
                     // "another target card": the source's card after it
                     // moved to the graveyard is the source still.
                     let source = source.map(|s| self.current_object(s).unwrap_or(s));
+                    let f = self.source_filter(self.pool.filter(filter), source);
                     return obj.zone == Zone::Graveyard
                         && whose
-                        && self
-                            .pool
-                            .filter(filter)
-                            .matches(id, obj.owner, &c, source, None)
-                        && self.status_ok(self.pool.filter(filter), id);
+                        && f.matches(id, obj.owner, &c, source, None)
+                        && self.status_ok(&f, id);
                 }
                 if spec.is_spell() {
                     if obj.zone != Zone::Stack || obj.kind == ObjKind::Ability {
@@ -1668,10 +1697,9 @@ impl GameState {
                                 .is_some_and(|cb| cb.blocked_by(id).is_some())
                     }
                     TargetSpec::Filtered(f) => {
-                        self.pool
-                            .filter(f)
-                            .matches(id, obj.controller, &c, source, Some(caster))
-                            && self.status_ok(self.pool.filter(f), id)
+                        let f = self.source_filter(self.pool.filter(f), source);
+                        f.matches(id, obj.controller, &c, source, Some(caster))
+                            && self.status_ok(&f, id)
                     }
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }

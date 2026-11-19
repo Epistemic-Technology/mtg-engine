@@ -1,0 +1,7 @@
+card "Wretched Throng" {
+  oracle_id 7e484372-a052-4df6-a6b2-2c6accccabef
+  cost {1}{U}
+  type Creature — Zombie Horror
+  pt 2/1
+  triggered when this dies: you may search card named this reveal to hand
+}

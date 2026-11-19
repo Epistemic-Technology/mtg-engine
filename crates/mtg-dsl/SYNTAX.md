@@ -96,6 +96,7 @@ double-faced permanent to its other face (CR 701.27).
 | `crew 3` | Crew (CR 702.122): "Tap any number of other untapped creatures you control with total power 3 or more: this Vehicle becomes an artifact creature until end of turn." The engine taps the weakest creature strong enough alone, else the strongest until the power suffices. |
 | `morph {2}{U}`, `megamorph {G}`, `disguise {1}{W}` | Cast face down as a nameless colorless 2/2 creature for {3}, turned face up any time its controller has priority for the cost (a special action; CR 702.37, 708); megamorph adds a +1/+1 counter as it turns up, and a disguised permanent has ward {2} while face down (CR 702.168). `triggered when this is turned face up: ...`. `manifest` is an effect: the top card of your library onto the battlefield face down (CR 701.34); a manifested creature card turns face up for its mana cost. |
 | `bushido 2`, `soulshift 3`, `afflict 1`, `toxic 1`, `ward {2}`, `echo {2}{R}`, `unearth {B}`, `buyback {3}`, `outlast {1}{W}` | Keyword abilities with a number or cost (CR 702.45, .46, .130, .164, .21, .30, .84, .27, .107), printed as the keyword ("Bushido 2") in place and compiled to what they stand for: a blocks-or-blocked pump; a dies trigger that may return a Spirit card with that mana value or less; a becomes-blocked life loss; poison counters with combat damage to a player; a trigger countering an opponent's spell or ability that targets it unless they pay; an upkeep sacrifice unless paid, once after it comes under your control; an ability activated from the graveyard as a sorcery that returns it with haste and exiles it at the next end step; an optional additional cost that returns the spell to its owner's hand; and "{cost}, {T}: Put a +1/+1 counter on this creature. Activate only as a sorcery." `flanking` is a plain keyword. |
+| `deck any number` | "A deck can have any number of cards named ~." (CR 100.2a): a deck-building rule; nothing in a game. |
 | `hand size none`, `hand size +1`, `hand size opponents -1` | "You have no maximum hand size.", "Your maximum hand size is increased by one.", "Each opponent's maximum hand size is reduced by one." (CR 402.2) |
 | `except { ... }` | What this card's copy effects add (CR 707.9b): `subtypes Illusion`, `keywords haste`, and ability lines. |
 
@@ -314,7 +315,14 @@ A chosen color or type comes last: `creature you control of chosen color`
 as it entered, CR 607.2a), `creature of chosen type`, `permanent you
 control of that type` (chosen earlier as the effect resolved), `enchantment
 of color of choice`, `creature of creature type of choice` (chosen as the
-effect resolves). With nothing chosen, nothing matches. As an effect's
+effect resolves). With nothing chosen, nothing matches. `named this` is
+"named ~", the card's own name (CR 201.4b), printed after the controller
+(`creature you control named this`: "creature you control named Timberpack
+Wolf") unless written before it (`creature named this you control`); `not
+named this` is "not named ~" (`target permanent not named this`). Cards
+take the name after the noun: `search card named this ...`, `target card
+named this from your graveyard`, `graveyard named this` ("cards named ~ in
+your graveyard"). A face-down permanent has no name (CR 708.2). As an effect's
 recipient, `all permanent ...` prints "all permanents ... to their owners'
 hands" where `each` prints "each permanent ... to its owner's hand".
 
@@ -349,8 +357,14 @@ life").
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
 number of ..."), or `count each <expr>` ("... for each ..."), with
-`<expr>` a filter (`creature you control`, `Elf on battlefield`),
-`domain`, `hand`, `graveyard [<filter>]`, `power` (the source's), `power
+`<expr>` a filter (`creature you control`, `Elf on battlefield`,
+`creature named this on battlefield`: "creatures named ~ on the
+battlefield", `other creature on battlefield named this`: "other creature
+on the battlefield named ~"),
+`domain`, `hand`, `graveyard [<filter>]`, `all graveyards [<filter>]` /
+`each graveyard [<filter>]` ("cards named ~ in all graveyards", "for each
+card named ~ in each graveyard"), `plus 2 <expr>` ("2 plus the number of
+..."; `plus one <expr>` spells the number), `power` (the source's), `power
 of target 1` / `toughness of target 1` ("its power"; `power of that
 target 1` is "that creature's power"; read as the target last existed if
 it has left), or `life`; `this gets +1/+1 count each creature you
@@ -401,7 +415,9 @@ three mana in any combination of {R} and/or {G}.", "Add two mana of
 different colors."; each mana's color chosen as it is added), `search basic land card reveal to hand`, `search up to 2
 Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
-print "that card" for "it"),
+print "that card" for "it"; `search up to 3 card named this reveal to hand`,
+`search any number card named this reveal to hand`: "a card named ~",
+"up to three cards named ~", "any number of cards named ~"),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
@@ -466,7 +482,13 @@ Equipment is attached to),
 creature`, `each creature without flying`, `each white creature you
 control`; written singular, printed "all artifacts" after tap, destroy,
 and exile, "each creature without flying" after deal damage, and "White
-creatures you control get +2/+2" as a subject), and targets.
+creatures you control get +2/+2" as a subject), `target creature and all other creature with same name as
+target 1` ("Target creature and all other creatures with the same name as
+that creature": the target, if still legal, and every other permanent with
+its name as the effect resolves), `target enchantment and each other
+enchantment that shares color with target 1` ("... and each other
+enchantment that shares a color with it": none but the target if it is
+colorless, CR 105.2c), and targets.
 
 ### Targets
 

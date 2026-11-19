@@ -1,0 +1,8 @@
+card "Screaming Seahawk" {
+  oracle_id 02b5ea0b-c0a3-4213-9064-e688190fca5e
+  cost {4}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: you may search card named this reveal to hand
+}

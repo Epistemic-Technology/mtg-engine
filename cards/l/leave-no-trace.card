@@ -1,0 +1,6 @@
+card "Leave No Trace" {
+  oracle_id a9367efe-82f2-43e4-9692-205567be6a0c
+  cost {1}{W}
+  type Instant
+  label "Radiance" spell: destroy target enchantment and each other enchantment that shares color with target 1
+}

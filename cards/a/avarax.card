@@ -1,0 +1,9 @@
+card "Avarax" {
+  oracle_id 2e1deb7e-d40d-437e-b817-b66132d2d1d6
+  cost {3}{R}{R}
+  type Creature — Beast
+  pt 3/3
+  keywords haste
+  triggered when this enters: you may search card named this reveal to hand
+  activated {1}{R}: this gets +1/+0
+}

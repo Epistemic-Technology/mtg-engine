@@ -1,0 +1,6 @@
+card "Flame Burst" {
+  oracle_id 37e44e1c-481d-4f5d-b76b-036f40e9124e
+  cost {1}{R}
+  type Instant
+  spell: deal count where plus 2 all graveyards named this damage to any target
+}

@@ -1,0 +1,7 @@
+card "Groffskithur" {
+  oracle_id 32a8ca5f-0170-4f5d-97cd-63e2b74fd653
+  cost {5}{G}
+  type Creature — Beast
+  pt 3/3
+  triggered whenever this becomes blocked: you may return target card named this from your graveyard to hand
+}

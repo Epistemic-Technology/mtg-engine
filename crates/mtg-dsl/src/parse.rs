@@ -13,7 +13,7 @@ use thiserror::Error;
 use crate::ast::{
     Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
     Except, Filter, Join, Kind, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces,
-    SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -1013,6 +1013,11 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::Protection(filter))
+            }
+            "deck" if self.at_words(&["deck", "any", "number"]) => {
+                self.pos += 3;
+                self.end_stmt()?;
+                Ok(Ability::DeckAnyNumber)
             }
             "hand" if self.word_at(1).as_deref() == Some("size") => {
                 self.pos += 2;
@@ -2677,10 +2682,12 @@ impl P {
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.num()?
+                } else if self.eat_words(&["any", "number"]) {
+                    Num::N(crate::ast::ANY_NUMBER)
                 } else {
                     Num::N(1)
                 };
-                let filter = if self.eat_word("card") || self.eat_word("cards") {
+                let mut filter = if self.eat_word("card") || self.eat_word("cards") {
                     Filter::default()
                 } else {
                     let f = self.filter()?;
@@ -2689,6 +2696,10 @@ impl P {
                     }
                     f
                 };
+                // "a card named ~".
+                if self.eat_words(&["named", "this"]) {
+                    filter.same = Some(SameRef::NamedThis);
+                }
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
                 let to = if self.eat_word("hand") {
@@ -3042,19 +3053,60 @@ impl P {
             }
             return Ok(CountExpr::SourcePower);
         }
-        if self.eat_word("graveyard") {
+        // `plus 2 <expr>`: "2 plus the number of ...".
+        if self.eat_word("plus") {
+            let (n, word) = match self.next() {
+                Some(Tok::Num(n)) => (n, false),
+                Some(Tok::Word(w)) if NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str()) => {
+                    let i = NUMBER_WORDS
+                        .iter()
+                        .position(|x| x.eq_ignore_ascii_case(&w))
+                        .expect("number word");
+                    (u32::try_from(i + 1).expect("small"), true)
+                }
+                _ => return self.fail("expected a number after `plus`"),
+            };
+            let inner = self.count_expr()?;
+            return Ok(CountExpr::Plus {
+                n,
+                word,
+                inner: Box::new(inner),
+            });
+        }
+        let in_all = self.at_words(&["all", "graveyards"]);
+        let in_each = self.at_words(&["each", "graveyard"]);
+        if in_all || in_each || self.at_word("graveyard") {
+            self.pos += if self.at_word("graveyard") { 1 } else { 2 };
             let f = if self.at_stmt_end()
                 || !self.word_at(0).is_some_and(|w| {
-                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                    card_type(&w).is_some()
+                        || w.starts_with("non")
+                        || color(&w).is_some()
+                        || w == "named"
                 }) {
                 None
             } else {
                 Some(self.filter()?)
             };
-            return Ok(CountExpr::CardsInGraveyard(f));
+            return Ok(if in_all || in_each {
+                CountExpr::CardsInGraveyards {
+                    filter: f,
+                    each: in_each,
+                }
+            } else {
+                CountExpr::CardsInGraveyard(f)
+            });
         }
-        let f = self.filter()?;
-        self.eat_words(&["on", "battlefield"]);
+        let mut f = self.filter()?;
+        if self.eat_words(&["on", "battlefield"]) && f.who.is_none() {
+            if f.same.is_some() {
+                // "creatures named ~ on the battlefield".
+                f.named_first = true;
+            } else if self.eat_words(&["named", "this"]) {
+                // "creature on the battlefield named ~".
+                f.same = Some(SameRef::NamedThis);
+            }
+        }
         Ok(CountExpr::Permanents(f))
     }
 
@@ -3394,7 +3446,24 @@ impl P {
                 };
             }
             self.targets.push(spec);
-            return Ok(Recipient::Target(self.targets.len() - 1));
+            let t = self.targets.len() - 1;
+            // `target creature and all other creature with same name as
+            // target 1`: the target and a group related to it.
+            if self.at_words(&["and", "all", "other"]) || self.at_words(&["and", "each", "other"]) {
+                let save = (self.pos, self.groups.len());
+                self.pos += 1;
+                if let Ok(Recipient::Group(g)) = self.recipient()
+                    && matches!(
+                        self.groups[usize::from(g)].same,
+                        Some(SameRef::SameNameAs(n) | SameRef::SharesColorWith(n)) if n == t
+                    )
+                {
+                    return Ok(Recipient::TargetAnd(t, g));
+                }
+                self.pos = save.0;
+                self.groups.truncate(save.1);
+            }
+            return Ok(Recipient::Target(t));
         }
         if another {
             return self.unexpected("`target`");
@@ -3421,7 +3490,7 @@ impl P {
                 let continues = (ws[0] == "each" || ws[0] == "all")
                     && matches!(
                         self.word_at(ws.len()).as_deref(),
-                        Some("with" | "without" | "of")
+                        Some("with" | "without" | "of" | "named")
                     );
                 if !continues {
                     self.pos += ws.len();
@@ -3487,6 +3556,7 @@ impl P {
         Ok(Some(Box::new(t)))
     }
 
+    #[allow(clippy::too_many_lines)] // one check per target form
     fn target_spec(&mut self) -> R<Target> {
         for (ws, spec) in TARGETS {
             if self.at_words_plural(ws) {
@@ -3537,7 +3607,10 @@ impl P {
                     || (matches!(next.as_deref(), Some("spell" | "spells"))
                         && !ws.ends_with(&["spell"]))
                     || (matches!(next.as_deref(), Some("card" | "cards"))
-                        && after.as_deref() == Some("from"));
+                        && after.as_deref() == Some("from"))
+                    // "target permanent not named ~".
+                    || (matches!(next.as_deref(), Some("named" | "not"))
+                        && matches!(after.as_deref(), Some("named" | "this")));
                 if more {
                     break;
                 }
@@ -3565,18 +3638,23 @@ impl P {
             self.pos += 2;
             return Ok(Target::CreatureOfSubtype(sub));
         }
-        // "card from a graveyard" / "instant card from your graveyard".
-        let f = if self.at_word("card") {
+        // "card from a graveyard" / "instant card from your graveyard";
+        // "card named ~ from your graveyard".
+        let mut f = if self.at_word("card") {
             Filter::default()
         } else {
             self.filter()?
         };
         if self.eat_word("spell") || self.eat_word("spells") {
-            let mut f = f;
             f.targeting = self.spell_targeting()?;
             return Ok(Target::Spell(f));
         }
-        if self.at_words(&["card", "from"]) || self.at_words(&["cards", "from"]) {
+        let named = self.at_words(&["card", "named", "this", "from"]);
+        if named {
+            self.pos += 2;
+            f.same = Some(SameRef::NamedThis);
+        }
+        if named || self.at_words(&["card", "from"]) || self.at_words(&["cards", "from"]) {
             self.pos += 2;
             let who = if self.eat_word("your") {
                 Who::You
@@ -3599,6 +3677,7 @@ impl P {
         let mut f = Filter::default();
         let mut consumed = 0;
         let mut or_blocking = false;
+        let mut named_before_who = false;
         loop {
             // "nonartifact, nonblack creature"; "artifact, enchantment, or
             // land": a comma inside the filter.
@@ -3792,6 +3871,36 @@ impl P {
                     self.pos += words.len();
                     f.chosen = Some(c);
                 }
+                // "named ~", "not named ~": the card's own name.
+                "named" if self.at_words(&["named", "this"]) && f.same.is_none() => {
+                    f.same = Some(SameRef::NamedThis);
+                    named_before_who = f.who.is_none();
+                    self.pos += 2;
+                }
+                "not" if self.at_words(&["not", "named", "this"]) && f.same.is_none() => {
+                    f.same = Some(SameRef::NotNamedThis);
+                    named_before_who = f.who.is_none();
+                    self.pos += 3;
+                }
+                // "with the same name as that creature", "that shares a
+                // color with it".
+                "with"
+                    if self.at_words(&["with", "same", "name", "as", "target"])
+                        && f.same.is_none() =>
+                {
+                    self.pos += 5;
+                    let n = self.declared_target()?;
+                    f.same = Some(SameRef::SameNameAs(n));
+                }
+                "that"
+                    if (self.at_words(&["that", "shares", "color", "with", "target"])
+                        || self.at_words(&["that", "share", "color", "with", "target"]))
+                        && f.same.is_none() =>
+                {
+                    self.pos += 5;
+                    let n = self.declared_target()?;
+                    f.same = Some(SameRef::SharesColorWith(n));
+                }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;
                     self.pos += 6;
@@ -3919,7 +4028,18 @@ impl P {
             alt.blocking = true;
             f.or = Some(Box::new(alt));
         }
+        // "creature named ~ you control": the name before the controller.
+        f.named_first = named_before_who && f.who.is_some();
         Ok(f)
+    }
+
+    /// `<n>` after `target`: a target declared before, 0-based.
+    fn declared_target(&mut self) -> R<usize> {
+        let n = self.number()? as usize;
+        if n == 0 || n > self.targets.len() {
+            return self.fail(format!("target {n} has not been declared"));
+        }
+        Ok(n - 1)
     }
 
     fn affects(&mut self) -> R<Affects> {
@@ -4771,7 +4891,13 @@ impl P {
                             self.eat_word("total");
                             CdaCount::ControllerLife
                         } else if self.eat_word("count") {
-                            CdaCount::Permanents(self.filter()?)
+                            let f = self.filter()?;
+                            // "the number of creatures named ~ on the
+                            // battlefield".
+                            if f.who.is_none() {
+                                self.eat_words(&["on", "battlefield"]);
+                            }
+                            CdaCount::Permanents(f)
                         } else {
                             return self.unexpected("what to count");
                         };

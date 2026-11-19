@@ -1,0 +1,8 @@
+card "Magitek Infantry" {
+  oracle_id 563992ff-6fdf-45a0-afc2-7c73c2ec6f74
+  cost {W}
+  type Artifact Creature — Robot Soldier
+  pt 1/1
+  static this: +1/+0 as long as you control other artifact
+  activated {2}{W}: search card named this to battlefield tapped
+}

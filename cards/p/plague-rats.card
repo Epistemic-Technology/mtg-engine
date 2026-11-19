@@ -1,0 +1,6 @@
+card "Plague Rats" {
+  oracle_id 16cf1cf9-6900-406c-a5b4-0e5750f530e0
+  cost {2}{B}
+  type Creature — Rat
+  static this: cda pt count creature named this on battlefield
+}

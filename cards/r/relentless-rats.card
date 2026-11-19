@@ -1,0 +1,8 @@
+card "Relentless Rats" {
+  oracle_id 104ea189-14cd-420f-afdc-57b0f827ab8e
+  cost {1}{B}{B}
+  type Creature — Rat
+  pt 2/2
+  static this: +1/+1 count each other creature on battlefield named this
+  deck any number
+}

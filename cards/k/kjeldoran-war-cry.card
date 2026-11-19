@@ -1,0 +1,6 @@
+card "Kjeldoran War Cry" {
+  oracle_id e45a1626-d659-4eda-bc6b-bd8119ce7386
+  cost {1}{W}
+  type Instant
+  spell: each creature you control gets +1/+1 count where plus 1 all graveyards named this
+}

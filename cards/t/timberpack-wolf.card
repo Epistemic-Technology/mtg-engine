@@ -1,0 +1,7 @@
+card "Timberpack Wolf" {
+  oracle_id c9375dca-2b32-4185-b88a-4bd5dde9a5d6
+  cost {1}{G}
+  type Creature — Wolf
+  pt 2/2
+  static this: +1/+1 count each other creature you control named this
+}

@@ -1,0 +1,6 @@
+card "Echoing Decay" {
+  oracle_id a1e46cc7-47da-4165-8c6b-f1cd2aa79aa5
+  cost {1}{B}
+  type Instant
+  spell: target creature and all other creature with same name as target 1 gets -2/-2
+}

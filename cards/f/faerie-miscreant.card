@@ -1,0 +1,8 @@
+card "Faerie Miscreant" {
+  oracle_id dd2510cd-356c-4d5a-8e5d-e44872eba60b
+  cost {U}
+  type Creature — Faerie Rogue
+  pt 1/1
+  keywords flying
+  triggered when this enters if you control other creature named this: draw 1 card
+}

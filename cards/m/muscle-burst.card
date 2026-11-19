@@ -1,0 +1,6 @@
+card "Muscle Burst" {
+  oracle_id 97487ea5-2bbd-4ef6-a870-7e9f2db5e5e0
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +1/+1 count where plus 3 all graveyards named this
+}

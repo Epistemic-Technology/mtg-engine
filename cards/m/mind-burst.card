@@ -1,0 +1,6 @@
+card "Mind Burst" {
+  oracle_id efc32c4a-ad84-400d-b79f-5861a3e4fa2f
+  cost {1}{B}
+  type Sorcery
+  spell: target player discards count where plus one all graveyards named this cards
+}

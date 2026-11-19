@@ -146,7 +146,23 @@ pub enum CountExpr {
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
     Times(u32, Box<CountExpr>),
+    /// `all graveyards [<filter>]` / `each graveyard [<filter>]`: cards in
+    /// all graveyards, "in all graveyards" or "in each graveyard".
+    CardsInGraveyards {
+        filter: Option<Filter>,
+        each: bool,
+    },
+    /// `plus 2 <expr>`: "2 plus the number of ..."; `plus one <expr>`
+    /// spells the number ("one plus ...").
+    Plus {
+        n: u32,
+        word: bool,
+        inner: Box<CountExpr>,
+    },
 }
+
+/// A search's count meaning "any number of cards" (`search any number`).
+pub const ANY_NUMBER: u32 = u32::MAX;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub struct Except {
@@ -281,6 +297,26 @@ pub struct Filter {
     /// `of chosen type`, `of that type`, `of color of choice`: "of the
     /// chosen type" and kin (`ObjFilter::chosen`).
     pub chosen: Option<OfChosen>,
+    /// `named this`, `not named this`, `with same name as target 1`,
+    /// `that shares color with target 1` (`ObjFilter::same`).
+    pub same: Option<SameRef>,
+    /// `named this` written before the controller or place ("creatures
+    /// named ~ on the battlefield", "creature named ~ you control") rather
+    /// than after it ("creature you control named ~").
+    pub named_first: bool,
+}
+
+/// A filter's relation to the source or a target.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum SameRef {
+    /// `named this`: "named ~" (the card's own name, CR 201.4b).
+    NamedThis,
+    /// `not named this`: "not named ~".
+    NotNamedThis,
+    /// `with same name as target 1`: "with the same name as that creature".
+    SameNameAs(usize),
+    /// `that shares color with target 1`: "that shares a color with it".
+    SharesColorWith(usize),
 }
 
 /// How a filter refers to a chosen color or type, as printed after the
@@ -519,6 +555,9 @@ pub enum Ability {
         whose: Who,
         delta: Option<i32>,
     },
+    /// `deck any number`: "A deck can have any number of cards named ~."
+    /// (CR 100.2a). A deck-building rule with no meaning in a game.
+    DeckAnyNumber,
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
@@ -977,6 +1016,10 @@ pub enum Recipient {
     /// `enchanted creature`, `equipped creature`: what the source is
     /// attached to.
     Attached,
+    /// `target creature and all other creature with same name as target
+    /// 1`: the `n`th target and the `g`th group, whose filter relates to
+    /// that target.
+    TargetAnd(usize, u16),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -1,0 +1,8 @@
+card "Daru Cavalier" {
+  oracle_id ba0291ad-09ea-4fee-baa9-7778fbbb6ba7
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords first strike
+  triggered when this enters: you may search card named this reveal to hand
+}

@@ -1,0 +1,7 @@
+card "Cleric of the Forward Order" {
+  oracle_id 84a2a592-0e31-434f-b3b4-f2013d86f29d
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: you gain count each 2 creature you control named this life
+}

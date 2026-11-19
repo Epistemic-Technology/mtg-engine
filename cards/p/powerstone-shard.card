@@ -1,0 +1,6 @@
+card "Powerstone Shard" {
+  oracle_id 769c45ae-5d49-4815-944e-98790ad4efb0
+  cost {3}
+  type Artifact
+  activated {T}: add {C} count each artifact you control named this
+}

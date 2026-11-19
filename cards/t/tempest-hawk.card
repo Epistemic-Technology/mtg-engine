@@ -1,0 +1,9 @@
+card "Tempest Hawk" {
+  oracle_id 7423b3b9-56eb-4cf2-8ada-135918219c4b
+  cost {2}{W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered whenever this deals combat damage to a player: you may search card named this reveal to hand
+  deck any number
+}

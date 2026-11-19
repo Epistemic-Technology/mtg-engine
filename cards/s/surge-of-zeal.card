@@ -1,0 +1,6 @@
+card "Surge of Zeal" {
+  oracle_id 24dca209-9781-4bde-ad61-18c20e8ccbd8
+  cost {R}
+  type Instant
+  label "Radiance" spell: target creature and each other creature that shares color with target 1 gains haste
+}

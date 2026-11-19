@@ -1,0 +1,7 @@
+card "Llanowar Sentinel" {
+  oracle_id 272ab5d5-7edb-4457-8a09-cabe2325c881
+  cost {2}{G}
+  type Creature — Elf
+  pt 2/3
+  triggered when this enters: you may pay {1}{G}; if you do, search card named this to battlefield that card
+}

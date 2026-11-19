@@ -475,6 +475,25 @@ fn count_expr(s: &str) -> Option<String> {
         }
         _ => {}
     }
+    // "2 plus the number of cards named ~ in all graveyards".
+    if let Some((n, rest)) = s.split_once(" plus the number of ")
+        && !n.contains(' ')
+    {
+        number(n)?;
+        return Some(format!("plus {n} {}", count_expr(rest)?));
+    }
+    // "cards named ~ in all graveyards", "card named ~ in each graveyard".
+    for (suffix, place) in [
+        (" in your graveyard", "graveyard"),
+        (" in all graveyards", "all graveyards"),
+        (" in each graveyard", "each graveyard"),
+    ] {
+        if let Some(f) = s.strip_suffix(suffix)
+            && matches!(f, "cards named ~" | "card named ~")
+        {
+            return Some(format!("{place} named this"));
+        }
+    }
     if let Some(f) = s
         .strip_suffix(" cards in your graveyard")
         .or_else(|| s.strip_suffix(" card in your graveyard"))
@@ -748,6 +767,10 @@ impl Templates {
                     r"^(?:~|this|It|it|This creature|This artifact|This enchantment|This permanent|This land) deals (\S+) damage to (.+?)(?: and (.+))?$",
                 ),
                 |c, t| {
+                    // "deals X damage to ..., where X is ...": below.
+                    if cap(c, 2).contains(", where X is") {
+                        return None;
+                    }
                     let n = number(cap(c, 1))?;
                     let mut to = recipient(cap(c, 2), t)?;
                     if !cap(c, 3).is_empty() {
@@ -883,13 +906,14 @@ impl Templates {
             (r(r"^Investigate$"), |_, _| Some("investigate".to_string())),
             (
                 r(
-                    r"^(?:~|this|It|it|This creature) deals X damage to (.+?), where X is the number of (.+)$",
+                    r"^(?:~|this|It|it|This creature) deals X damage to (.+?), where X is ((?:\S+ plus )?the number of .+)$",
                 ),
                 |c, t| {
                     let to = recipient(cap(c, 1), t)?;
+                    let x = cap(c, 2);
                     Some(format!(
                         "deal count where {} damage to {to}",
-                        count_expr(cap(c, 2))?
+                        count_expr(x.strip_prefix("the number of ").unwrap_or(x))?
                     ))
                 },
             ),
