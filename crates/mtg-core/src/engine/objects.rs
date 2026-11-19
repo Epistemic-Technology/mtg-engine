@@ -911,6 +911,7 @@ impl GameState {
 
     /// The damage itself (CR 120.3). Lifelink applies to the damage dealt
     /// (CR 702.15); deathtouch is remembered for the next SBA check.
+    #[allow(clippy::too_many_lines)] // one branch per kind of recipient
     fn deal_damage_now(&mut self, source: ObjId, target: Target, amount: u32, combat: bool) {
         if amount == 0 {
             return;

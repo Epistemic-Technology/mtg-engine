@@ -475,6 +475,17 @@ impl Fmt {
                     Some(Join::Comma) => ", ",
                     _ => " and ",
                 });
+                // "gets +0/+1 and gains all creature types": the subject
+                // is implied (written again, a group naming "target
+                // player" would declare a second target).
+                if let Effect::CreatureTypes { to, all } = e
+                    && matches!(&s.effects[i - 1],
+                        Effect::Pump { to: p, .. } | Effect::SetBasePt { to: p, .. } if p == to)
+                {
+                    out.push_str(if *all { "gains" } else { "loses" });
+                    out.push_str(" all creature types");
+                    continue;
+                }
             }
             out.push_str(&self.effect(e, targets));
         }
@@ -2833,6 +2844,7 @@ fn nested(a: &Ability, groups: &[Filter]) -> String {
     s.trim().replace('\n', " ")
 }
 
+#[allow(clippy::too_many_lines)] // one arm per modification
 fn modification(m: &Mod) -> String {
     match m {
         Mod::AddAbility(_) => unreachable!("formatted with its groups"),

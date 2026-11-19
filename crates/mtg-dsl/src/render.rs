@@ -1765,12 +1765,11 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     match f.who {
         Some(Who::You) if !you_first => s.push_str(" you control"),
-        Some(Who::You) => {}
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
-        Some(Who::Any) | None => {}
+        Some(Who::You | Who::Any) | None => {}
     }
     match f.that_player {
         Some(mtg_core::card::ThatPlayer::Target(_)) if f.that_opponent => {
@@ -6516,7 +6515,6 @@ fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
     }
 }
 
-#[allow(clippy::too_many_lines)] // one case per kind of static
 /// `this: add subtype Cleric, add subtype Rogue, ...`: creature types the
 /// card itself has besides its printed ones, in every zone ("is also a
 /// Cleric, Rogue, Warrior, and Wizard").
@@ -6532,6 +6530,7 @@ pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>
         .collect()
 }
 
+#[allow(clippy::too_many_lines)] // one case per kind of static
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {

@@ -1874,7 +1874,9 @@ impl P {
         }
         if self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
             self.pos += 1;
-            return Ok(Some(Ability::Mechanic(Mechanic::Outlast(self.mana_cost()?))));
+            return Ok(Some(Ability::Mechanic(Mechanic::Outlast(
+                self.mana_cost()?,
+            ))));
         }
         if self.granted_protection_ahead() {
             self.pos += 2;
@@ -1892,7 +1894,9 @@ impl P {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
-            || (self.word_at(0).is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
+            || (self
+                .word_at(0)
+                .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
                 && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.at_word("provoke")
             || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))

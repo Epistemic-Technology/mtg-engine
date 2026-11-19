@@ -1061,7 +1061,10 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
             }
             // A granted protection from a quality (CR 702.16): the keyword
             // `protected_from` checks before looking for it.
-            if matches!(state.pool.ability(*a), crate::card::AbilityDef::Protection(_)) {
+            if matches!(
+                state.pool.ability(*a),
+                crate::card::AbilityDef::Protection(_)
+            ) {
                 c.keywords = c.keywords.with(crate::card::Keyword::ProtectionFromFilter);
             }
         }

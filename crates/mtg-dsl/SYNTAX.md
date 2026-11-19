@@ -106,7 +106,8 @@ double-faced permanent to its other face (CR 701.27).
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
-| `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything` | Protection from a quality other than a color (CR 702.16); colors are keywords. |
+| `protection from artifact`, `protection from Goblin`, `protection from multicolored`, `protection from everything`, `protection from creature your opponents control` | Protection from a quality other than a color (CR 702.16); colors are keywords. A controller in the quality is judged from the protected object's controller ("protection from creatures your opponents control": its own creatures still may block and target it). Consecutive protections print as one line, "Protection from Spirits and from Arcane" (the gate splits such a line into one protection each, CR 702.16g); in a list of granted keywords, "has protection from green and from blue". |
+| `poisonous 1`, `frenzy 1`, `absorb 1`, `provoke` | Poisonous (CR 702.70): combat damage to a player gives them N poison counters. Frenzy (CR 702.68): attacks and isn't blocked, +N/+0 until end of turn. Absorb (CR 702.64): prevent N of each damage dealt to it (a static `prevent next N` prevents N of every event, not a shield). Provoke (CR 702.39): attacks, you may have target creature defending player controls untap and block it if able. All four, and `outlast {2}`, may be granted bare: `static all Sliver creature: has poisonous 1` ("All Sliver creatures have poisonous 1."). |
 | `modular 2`, `cumulative upkeep {1}`, `exert: this gets +2/+2` | Modular (CR 702.43): enters with N +1/+1 counters; as it dies, they may move to target artifact creature. Cumulative upkeep (CR 702.24): each upkeep an age counter, then pay the cost per counter or sacrifice it. Exert (CR 701.43): as it attacks, its controller may exert it (it doesn't untap during their next untap step) for the effects. The keyword `delve` (CR 702.66) lets graveyard cards pay {1} each. |
 | `entwine {2}`, `escape {3}{B} exile 3`, `escapes with 2 +1/+1 counters` | Entwine (CR 702.42): a `choose one` spell may choose every mode for this cost on top. Escape (CR 702.138): cast from the graveyard for this cost, exiling N other cards from it (the oldest); a permanent cast this way keeps that, for `escapes with`. The keyword `exploit` (CR 702.110) sacrifices a creature as it enters, if its controller wants, and `triggered when this exploits a creature:` abilities follow. `discover 4` (CR 701.57) is an effect. |
 | `enters with 1 +1/+1 counter if attacked this turn`, `if spent 3 white, enters with 1 +1/+1 counter` | "This creature enters with a +1/+1 counter on it if you attacked this turn." (raid; any static condition: `opponent lost life this turn`, `permanent left this turn` (revolt: "a permanent left the battlefield under your control this turn"), `you control creature with power 4 or greater` (ferocious), `you control modified creature`), and with the condition first, "If at least three white mana was spent to cast this spell, this creature enters with a +1/+1 counter on it." (adamant). Judged as the permanent enters (CR 614.1c). |
@@ -676,7 +677,17 @@ equal to the number of Rats you control"; the toughness is printed, `pt
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
-it. `has ward {2}` and `has toxic 1` grant those keyword abilities bare
+it; "this permanent" when the group names only a subtype (`static all
+Sliver: has ability { activated {2}: regenerate this }` prints "All
+Slivers have \"{2}: Regenerate this permanent.\""). A replacement or
+prevention ability may be granted (absorb). `has protection from
+multicolored`, `has protection from artifact` grant protection from a
+quality (CR 702.16); as an effect, `target creature gains protection from
+artifact`, and `target permanent you control gains protection from
+artifact or from color of choice` ("... gains protection from artifacts or
+from the color of your choice until end of turn": the controller chooses
+one as it resolves, `choose "1"` or `choose "2"` in a scenario). `has
+ward {2}` and `has toxic 1` grant those keyword abilities bare
 ("Enchanted creature gets +4/+4 and has trample and ward {1}."; CR 702.21,
 702.164); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
 of turn"). Toxic values add up (CR 702.164c). `add color black, add
@@ -688,6 +699,24 @@ black, enchanted: ...` is "As long as enchanted creature is black, it
 ...".
 
 #### Auras and Equipment
+
+`loses all abilities, set color blue, set subtype Frog, set type
+creature, base 1/1` prints "loses all abilities and is a blue Frog
+creature with base power and toughness 1/1" (Frogify): `set type` replaces
+all its card types, land included, keeping its supertypes (layer 4);
+colors, a creature type, and card types set together are one noun
+phrase, with the base P/T after it. `add subtype every` is "is every
+creature type" and `add subtype all` "is all creature types" (layer 4,
+not changeling: it has no ability, and "loses all abilities" leaves it);
+`loses all creature types` removes them (a changeling's too). As effects,
+`target creature gains all creature types` and `target creature loses all
+creature types` (until end of turn). `this: add subtype Cleric, add
+subtype Rogue, ...` (two or more) prints "~ is also a Cleric, Rogue, ..."
+and the types are the card's in every zone. A group `creature you control
+with aura late` prints "creatures you control that are enchanted"
+(Magemarks; `with aura` prints "enchanted creatures"). "You control"
+prints before a group's qualities: "other creatures you control with
+defender", "creatures you control with power 5 or greater".
 
 `has defender, loses all abilities` prints "has defender, and loses all
 other abilities" (Deep Freeze): abilities a static ability grants before

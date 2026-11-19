@@ -2816,7 +2816,9 @@ impl GameState {
                 let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)
                     || !source
                         .and_then(|s| self.characteristics_or_lki(s))
-                        .is_some_and(|sc| c.protected_from(&sc, caster != obj.controller, &self.pool));
+                        .is_some_and(|sc| {
+                            c.protected_from(&sc, caster != obj.controller, &self.pool)
+                        });
                 type_ok && hexproof_ok && protection_ok
             }
         }

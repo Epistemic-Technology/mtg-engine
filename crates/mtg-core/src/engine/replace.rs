@@ -688,7 +688,9 @@ impl GameState {
                     }
                     // A static ability prevents N of each damage event, not
                     // a shield (absorb, CR 702.64a).
-                    (Key::Ability { .. }, Replacement::PreventNext(crate::card::Num::N(n))) if !unpreventable => {
+                    (Key::Ability { .. }, Replacement::PreventNext(crate::card::Num::N(n)))
+                        if !unpreventable =>
+                    {
                         amount.min(n)
                     }
                     _ => 0,
