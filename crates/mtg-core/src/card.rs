@@ -3617,6 +3617,10 @@ impl DefFlags {
     /// A mana ability whose mana is restricted (`AbilityDef::RestrictedMana`):
     /// payment then looks for such sources.
     const RESTRICTED_MANA: u16 = 16384;
+    /// A static ability that reads this turn's history or step
+    /// (`CardDef::hand_static`, `step_static`): casts and step changes then
+    /// look for such permanents.
+    const TURN_STATIC: u16 = 32768;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -3665,6 +3669,10 @@ impl DefFlags {
 
     pub const fn has_life_cda(self) -> bool {
         self.has(DefFlags::LIFE_CDA)
+    }
+
+    pub const fn has_turn_static(self) -> bool {
+        self.has(DefFlags::TURN_STATIC)
     }
 
     pub const fn has_tap_static(self) -> bool {
@@ -4408,6 +4416,7 @@ impl CardPool {
             DefFlags::EQUIPMENT,
             def.subtypes.iter().any(|s| s == "Equipment"),
         );
+        flags.set(DefFlags::TURN_STATIC, def.hand_static || def.step_static);
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,

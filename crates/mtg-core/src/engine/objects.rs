@@ -348,6 +348,7 @@ impl GameState {
         let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
         // A static counting cards in hand (Empyrial Armor) sees hand moves.
         let hand_static = (old.zone == Zone::Hand || to == Zone::Hand)
+            && self.turn_static_sources > 0
             && self
                 .battlefield
                 .iter()
@@ -382,6 +383,7 @@ impl GameState {
             self.tap_static_sources += d(flags.has_tap_static());
             self.cost_change_sources += d(flags.has_cost_change());
             self.restricted_mana_sources += d(flags.has_restricted_mana());
+            self.turn_static_sources += d(flags.has_turn_static());
             self.grant_sources += d(flags.grants_abilities());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
@@ -393,6 +395,7 @@ impl GameState {
             self.tap_static_sources -= d(flags.has_tap_static());
             self.cost_change_sources -= d(flags.has_cost_change());
             self.restricted_mana_sources -= d(flags.has_restricted_mana());
+            self.turn_static_sources -= d(flags.has_turn_static());
             self.grant_sources -= d(flags.grants_abilities());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).

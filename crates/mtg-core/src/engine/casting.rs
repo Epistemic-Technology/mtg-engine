@@ -1964,10 +1964,11 @@ impl GameState {
         // "As long as you've cast an instant or sorcery spell this turn":
         // the cast is recorded after the card left its zone, so a
         // hand-watching static is refreshed now.
-        if self
-            .battlefield
-            .iter()
-            .any(|b| self.pool.get(self.objects[*b].def).hand_static)
+        if self.turn_static_sources > 0
+            && self
+                .battlefield
+                .iter()
+                .any(|b| self.pool.get(self.objects[*b].def).hand_static)
         {
             self.cbump();
         }

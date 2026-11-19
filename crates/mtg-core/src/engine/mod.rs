@@ -236,6 +236,7 @@ impl Engine {
                 state.tap_static_sources += u32::from(def.flags().has_tap_static());
                 state.cost_change_sources += u32::from(def.flags().has_cost_change());
                 state.restricted_mana_sources += u32::from(def.flags().has_restricted_mana());
+                state.turn_static_sources += u32::from(def.flags().has_turn_static());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
@@ -489,6 +490,7 @@ impl GameState {
             tap_static_sources: 0,
             cost_change_sources: 0,
             restricted_mana_sources: 0,
+            turn_static_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
             undone_cast: None,
@@ -1811,10 +1813,11 @@ impl GameState {
             self.step = next;
             // A static ability conditioned on a part of the turn (CR
             // 611.3a) changes with the step.
-            if self
-                .battlefield
-                .iter()
-                .any(|id| self.pool.get(self.objects[*id].def).step_static)
+            if self.turn_static_sources > 0
+                && self
+                    .battlefield
+                    .iter()
+                    .any(|id| self.pool.get(self.objects[*id].def).step_static)
             {
                 self.cbump();
             }

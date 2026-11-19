@@ -886,6 +886,9 @@ pub struct GameState {
     /// Battlefield permanents with a restricted mana ability (CR 106.6),
     /// so payment looks for such sources only when one is in play.
     pub restricted_mana_sources: u32,
+    /// Battlefield permanents with a static ability reading this turn's
+    /// history or step (`DefFlags::TURN_STATIC`).
+    pub turn_static_sources: u32,
     /// Face-down permanents on the battlefield, so listing options skips
     /// the turn-face-up check without any.
     pub face_down_count: u32,
