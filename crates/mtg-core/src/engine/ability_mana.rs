@@ -1,0 +1,824 @@
+//! Mana abilities that payment activates for the player (CR 601.2g,
+//! 605.3a) when the plain sources (`mana_sources`: `{T}: Add one mana`
+//! and sacrifice-for-mana abilities) can't cover a cost: abilities that
+//! need no tap ("Sacrifice this creature: Add {C}", usable even by a
+//! summoning-sick creature, CR 302.6 being about {T} only), that cost mana
+//! (filters, "{2}, {T}, Sacrifice this artifact: Add two mana"), that are
+//! granted by another permanent ("Enchanted land has '{T}: Add two mana of
+//! any one color'"), or that make several mana or ask for a color.
+//!
+//! The planner is the slow path behind the canonical one: it runs only
+//! when the plain plan fails and some permanent has an activated ability
+//! (`activated_sources`; a separate count of mana abilities cost more in
+//! the hot path than it saved) or abilities may be granted, and it looks
+//! only at permanents flagged `DefFlags::has_mana_ability`. It tries
+//! activations cheapest first and, for each, matches the cost's symbols
+//! to mana (a bipartite matching, so multi-color sources are assigned
+//! exactly): the abilities' own mana costs from the pool and plain
+//! sources, the cost being paid from those and the abilities' mana.
+
+use smallvec::SmallVec;
+
+use crate::card::{AbilityDef, AbilityId, ActivatedAbility, Effect, Keyword, SacCost};
+use crate::ids::{ObjId, PlayerId};
+use crate::mana::{Color, ManaPool, ManaRequirement};
+use crate::mana::{ColorSet, Mana};
+use crate::state::{Chosen, GameState};
+
+use super::casting::{EffectCtx, Sources};
+
+/// The kinds of mana a unit may be, as bits: one per color in `Color`
+/// order, then colorless.
+type Kinds = u8;
+const COLORLESS: Kinds = 1 << 5;
+/// The kinds of each mana one activation adds.
+type Outs = SmallVec<[Kinds; 4]>;
+const ANY_COLOR: Kinds = 0b1_1111;
+
+/// Most activations of one ability the planner considers.
+const MAX_TIMES: u8 = 3;
+/// Most combinations of activations tried for one cost.
+const MAX_COMBOS: usize = 256;
+/// Most mana one activation is taken to make ("add {G} for each Elf").
+const MAX_OUT: u32 = 8;
+
+fn kinds_of(m: Mana) -> Kinds {
+    match m {
+        Mana::Colored(c) => 1 << (c as u8),
+        Mana::Colorless => COLORLESS,
+        Mana::Any => ANY_COLOR,
+        Mana::Chosen => 0,
+    }
+}
+
+fn color_kinds(cs: ColorSet) -> Kinds {
+    cs.iter().fold(0, |k, c| k | (1 << (c as u8)))
+}
+
+/// One mana of the lowest kind in `k` (a color before colorless).
+fn some_mana(k: Kinds) -> Mana {
+    match Color::ALL.into_iter().find(|c| k & (1 << (*c as u8)) != 0) {
+        Some(c) => Mana::Colored(c),
+        None => Mana::Colorless,
+    }
+}
+
+/// How the mana one activation adds relates.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+enum Tie {
+    /// Each mana's kind is its own ("Add {B}{R}", "Add one mana of any
+    /// color").
+    Free,
+    /// "Two mana of any one color": all the same color.
+    Same,
+    /// "Two mana of different colors".
+    Different,
+}
+
+/// An activated mana ability payment may activate.
+#[derive(Clone, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent costs and limits
+pub(super) struct AbilityMana {
+    pub id: ObjId,
+    pub ability: AbilityId,
+    /// Its mana cost (no hybrid, Phyrexian, or X symbols).
+    cost: ManaRequirement,
+    life: u32,
+    tap: bool,
+    sac: bool,
+    /// Recorded for "activate only once each turn" and friends.
+    per_turn: bool,
+    once_ever: bool,
+    /// How many times it may be activated now.
+    times: u8,
+    /// The kinds each mana it adds may be.
+    out: SmallVec<[Kinds; 4]>,
+    tie: Tie,
+    /// Preference: lower first. Tapping costs least, then sacrificing,
+    /// then paying mana or life.
+    weight: u32,
+}
+
+/// One activation in a plan.
+#[derive(Clone, Debug)]
+#[allow(clippy::struct_excessive_bools)] // independent costs and limits
+pub(super) struct Activation {
+    pub id: ObjId,
+    pub ability: AbilityId,
+    /// The mana spent from the pool on its cost.
+    pub spend: ManaPool,
+    pub life: u32,
+    pub tap: bool,
+    pub sac: bool,
+    pub per_turn: bool,
+    pub once_ever: bool,
+    /// The mana it adds, colors chosen (CR 106.1b).
+    pub mana: SmallVec<[Mana; 4]>,
+}
+
+/// A payment that activates mana abilities: tap `taps` (as in the plain
+/// plan), then activate `acts` in order, then pay `req` from the pool and
+/// `life` for Phyrexian symbols.
+#[derive(Clone, Debug)]
+pub(super) struct AbilityPlan {
+    pub taps: Sources,
+    pub acts: SmallVec<[Activation; 4]>,
+    pub req: ManaRequirement,
+    pub life: u32,
+}
+
+impl GameState {
+    /// Whether payment may need to look at activated mana abilities: some
+    /// permanent has a printed activated ability, or abilities may be
+    /// granted. One branch on the failure path of every payability check.
+    #[inline]
+    pub(super) fn ability_mana_possible(&self) -> bool {
+        (self.activated_sources | self.grant_sources | self.eot_grants) != 0
+    }
+
+    /// The activated mana abilities of `p`'s permanents (other than
+    /// `exclude`, the source of an ability being paid for) that payment
+    /// may activate now.
+    pub(super) fn ability_mana(&self, p: PlayerId, exclude: Option<ObjId>) -> Vec<AbilityMana> {
+        let grants = self.grants_exist();
+        let mut out = Vec::new();
+        for id in self.permanents_of(p) {
+            if Some(id) == exclude {
+                continue;
+            }
+            let o = &self.objects[id];
+            if !grants && !self.flags_of(o).has_mana_ability() {
+                continue;
+            }
+            let Some(c) = self.characteristics(id) else {
+                continue;
+            };
+            // CR 302.6: only a creature's {T} abilities need it to have
+            // been controlled since the turn began.
+            let sick = c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste);
+            for a in &c.abilities {
+                let AbilityDef::Activated(ab) = self.pool.ability(*a) else {
+                    continue;
+                };
+                if ab.cost.tap && (o.tapped || sick) {
+                    continue;
+                }
+                if let Some(m) = self.usable_mana_ability(p, id, *a, ab) {
+                    out.push(m);
+                }
+            }
+        }
+        out
+    }
+
+    /// `ab` as an `AbilityMana`, if it is a mana ability whose costs the
+    /// planner can pay (mana, {T}, sacrificing its source, life) and that
+    /// may be activated now.
+    fn usable_mana_ability(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+        a: AbilityId,
+        ab: &ActivatedAbility,
+    ) -> Option<AbilityMana> {
+        let cost = &ab.cost;
+        if !ab.is_mana_ability()
+            || ab.from_hand
+            || ab.from_graveyard
+            || ab.sorcery_speed
+            || ab.keyword.is_some()
+            || cost.discard_self
+            || cost.exile_self
+            || cost.crew > 0
+            || cost.remove_counters.is_some()
+            || cost.energy > 0
+            || cost.discard > 0
+            || cost.discard_x
+            || !matches!(cost.sacrifice, None | Some(SacCost::This))
+            || cost.mana.has_x()
+        {
+            return None;
+        }
+        let req = cost.mana.requirements(0);
+        if !req.is_plain() || !self.activation_allowed(ab, a, p, id) {
+            return None;
+        }
+        let used = if ab.per_turn > 0 {
+            let n = self
+                .activated_once
+                .iter()
+                .filter(|x| **x == (id, a))
+                .count();
+            if n >= usize::from(ab.per_turn) {
+                return None;
+            }
+            u8::try_from(usize::from(ab.per_turn) - n).unwrap_or(MAX_TIMES)
+        } else {
+            MAX_TIMES
+        };
+        let sac = cost.sacrifice.is_some();
+        let times = if cost.tap || sac || ab.once_ever {
+            1
+        } else {
+            used.min(MAX_TIMES)
+        };
+        let (out, tie) = self.mana_made(p, id, &ab.effects)?;
+        let weight = 1
+            + if sac { 4 } else { 0 }
+            + 3 * req.total()
+            + 2 * cost.life
+            + u32::from(!cost.tap && !sac && req.total() == 0);
+        Some(AbilityMana {
+            id,
+            ability: a,
+            cost: req,
+            life: cost.life,
+            tap: cost.tap,
+            sac,
+            per_turn: ab.per_turn > 0,
+            once_ever: ab.once_ever,
+            times,
+            out,
+            tie,
+            weight,
+        })
+    }
+
+    /// The mana these effects add, as `apply_effect` would (one entry per
+    /// mana, the kinds it may be), and how the entries relate; `None` if
+    /// it adds none or mixes ties.
+    fn mana_made(
+        &self,
+        p: PlayerId,
+        id: ObjId,
+        effects: &[Effect],
+    ) -> Option<(SmallVec<[Kinds; 4]>, Tie)> {
+        let chosen = self.chosen_color_of(id).map_or(0, |c| 1 << (c as u8));
+        let mut out = SmallVec::new();
+        let mut tie = Tie::Free;
+        let set_tie = |t: Tie, tie: &mut Tie| {
+            if t == Tie::Free || *tie == t {
+                return true;
+            }
+            let ok = *tie == Tie::Free;
+            *tie = t;
+            ok
+        };
+        for e in effects {
+            match e {
+                Effect::AddMana(mana) => {
+                    for m in mana {
+                        let k = if *m == Mana::Chosen {
+                            chosen
+                        } else {
+                            kinds_of(*m)
+                        };
+                        if k != 0 {
+                            out.push(k);
+                        }
+                    }
+                }
+                Effect::AddManaOneOf(mana) => {
+                    // As `apply_effect`: a choice among colors, else the
+                    // first.
+                    let colors: SmallVec<[Kinds; 4]> = mana
+                        .iter()
+                        .filter_map(|m| match m {
+                            Mana::Colored(c) => Some(1 << (*c as u8)),
+                            Mana::Chosen if chosen != 0 => Some(chosen),
+                            _ => None,
+                        })
+                        .collect();
+                    if colors.len() == mana.len() && !colors.is_empty() {
+                        out.push(colors.iter().fold(0, |a, b| a | b));
+                    } else {
+                        out.push(mana.first().map_or(COLORLESS, |m| kinds_of(*m)));
+                    }
+                }
+                Effect::AddManaTimes { mana, count } => {
+                    let ctx = EffectCtx {
+                        source: id,
+                        controller: p,
+                        targets: Vec::new(),
+                        division: Vec::new(),
+                        legal: Vec::new(),
+                        trigger_obj: None,
+                        trigger_player: None,
+                        trigger_amount: 0,
+                        created: None,
+                        x: 0,
+                        did: true,
+                        chosen: Chosen::None,
+                    };
+                    let n = self.eval_num(*count, &ctx).min(MAX_OUT);
+                    let k = match *mana {
+                        Mana::Chosen => chosen,
+                        m => kinds_of(m),
+                    };
+                    if n == 0 || k == 0 {
+                        continue;
+                    }
+                    if k == ANY_COLOR && n > 1 && !set_tie(Tie::Same, &mut tie) {
+                        return None;
+                    }
+                    for _ in 0..n {
+                        out.push(k);
+                    }
+                }
+                Effect::AddManaCombination {
+                    count,
+                    colors,
+                    different,
+                } => {
+                    let k = color_kinds(*colors);
+                    let n = if *different {
+                        (*count).min(colors.count())
+                    } else {
+                        *count
+                    };
+                    if *different && n > 1 && !set_tie(Tie::Different, &mut tie) {
+                        return None;
+                    }
+                    for _ in 0..n.min(MAX_OUT) {
+                        out.push(k);
+                    }
+                }
+                _ => return None,
+            }
+        }
+        if out.is_empty() {
+            return None;
+        }
+        Some((out, tie))
+    }
+
+    /// A payment of `req` from `sources`, `pool`, and `p`'s activated mana
+    /// abilities (all but `exclude`'s); see the module comment. `None`
+    /// when there are no such abilities, so that it never disagrees with
+    /// the plain plan on boards without them.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn ability_plan(
+        &self,
+        p: PlayerId,
+        sources: &[(ObjId, Mana)],
+        pool: &ManaPool,
+        req: &ManaRequirement,
+        life: i32,
+        exclude: Option<ObjId>,
+    ) -> Option<AbilityPlan> {
+        let abilities = self.ability_mana(p, exclude);
+        if abilities.is_empty() {
+            return None;
+        }
+        let base = self.mana_sources(p);
+        plan_with_abilities(sources, &base, pool, req, life, &abilities)
+    }
+}
+
+/// A unit of mana the matching may assign: from the pool, a plain
+/// source, or an activation's output.
+#[derive(Copy, Clone, Debug)]
+struct Unit {
+    kinds: Kinds,
+    /// The kinds it may be when spent on an ability's cost (plain
+    /// sources: only their own mana, not convoke or delve help; 0 for an
+    /// activation's output, which pays only the cost being paid).
+    cost_kinds: Kinds,
+    from: From,
+}
+
+#[derive(Copy, Clone, Debug)]
+enum From {
+    Pool,
+    /// Index into the plain units.
+    Plain(usize),
+    /// Activation, output index.
+    Out(usize, usize),
+}
+
+/// A symbol to pay: one kind (or any, for generic), for the cost being
+/// paid (`None`) or an activation's cost.
+#[derive(Copy, Clone, Debug)]
+struct Sym {
+    need: Option<Kinds>,
+    act: Option<usize>,
+}
+
+struct Plain {
+    id: ObjId,
+    kinds: Kinds,
+    cost_kinds: Kinds,
+    first: Mana,
+}
+
+/// Abilities of the same definition making the same mana, merged so that
+/// combinations count activations instead of choosing objects.
+struct Kind<'a> {
+    rep: &'a AbilityMana,
+    members: SmallVec<[&'a AbilityMana; 4]>,
+    cap: u8,
+}
+
+#[allow(clippy::too_many_lines)] // setup, bound, combinations, search
+fn plan_with_abilities(
+    sources: &[(ObjId, Mana)],
+    base: &[(ObjId, Mana)],
+    pool: &ManaPool,
+    req: &ManaRequirement,
+    life: i32,
+    abilities: &[AbilityMana],
+) -> Option<AbilityPlan> {
+    let mut plain: SmallVec<[Plain; 16]> = SmallVec::new();
+    for (id, m) in sources {
+        match plain.iter_mut().find(|u| u.id == *id) {
+            Some(u) => u.kinds |= kinds_of(*m),
+            None => plain.push(Plain {
+                id: *id,
+                kinds: kinds_of(*m),
+                cost_kinds: 0,
+                first: *m,
+            }),
+        }
+    }
+    for (id, m) in base {
+        if let Some(u) = plain.iter_mut().find(|u| u.id == *id) {
+            u.cost_kinds |= kinds_of(*m);
+        }
+    }
+    let mut kinds: Vec<Kind> = Vec::new();
+    for a in abilities {
+        match kinds.iter_mut().find(|k| {
+            k.rep.ability == a.ability
+                && k.rep.out == a.out
+                && k.rep.times == a.times
+                && k.rep.tap == a.tap
+        }) {
+            Some(k) => {
+                k.members.push(a);
+                k.cap = k.cap.saturating_add(a.times);
+            }
+            None => kinds.push(Kind {
+                rep: a,
+                members: smallvec::smallvec![a],
+                cap: a.times,
+            }),
+        }
+    }
+    kinds.sort_by_key(|k| k.rep.weight);
+    kinds.truncate(8);
+    for k in &mut kinds {
+        k.cap = k.cap.min(4);
+    }
+    // Not enough mana even with every activation's net gain.
+    let need = req.colored.iter().sum::<u32>()
+        + req.colorless
+        + req.generic
+        + req.hybrid.iter().map(|n| u32::from(*n)).sum::<u32>()
+        + req.two_hybrid.iter().map(|n| u32::from(*n)).sum::<u32>();
+    let gain: usize = kinds
+        .iter()
+        .map(|k| usize::from(k.cap) * k.rep.out.len().saturating_sub(k.rep.cost.total() as usize))
+        .sum();
+    if (pool.total() as usize) + plain.len() + gain < need as usize {
+        return None;
+    }
+    // Combinations of activation counts, cheapest first.
+    let mut product: usize = kinds.iter().map(|k| usize::from(k.cap) + 1).product();
+    while product > MAX_COMBOS {
+        let Some(k) = kinds.iter_mut().filter(|k| k.cap > 1).max_by_key(|k| k.cap) else {
+            break;
+        };
+        product = product / (usize::from(k.cap) + 1) * usize::from(k.cap);
+        k.cap -= 1;
+    }
+    let mut combos: Vec<SmallVec<[u8; 8]>> = vec![SmallVec::new()];
+    for k in &kinds {
+        let mut next = Vec::with_capacity(combos.len() * (usize::from(k.cap) + 1));
+        for c in &combos {
+            for n in 0..=k.cap {
+                let mut c = c.clone();
+                c.push(n);
+                next.push(c);
+            }
+        }
+        combos = next;
+        if combos.len() > MAX_COMBOS {
+            combos.truncate(MAX_COMBOS);
+        }
+    }
+    let weight = |c: &SmallVec<[u8; 8]>| -> (u32, u32) {
+        let w = c
+            .iter()
+            .zip(&kinds)
+            .map(|(n, k)| u32::from(*n) * k.rep.weight)
+            .sum();
+        (w, c.iter().map(|n| u32::from(*n)).sum())
+    };
+    combos.sort_by_key(weight);
+    let expansions = req.expansions();
+    for combo in &combos {
+        // The activations, each on an object.
+        let mut acts: SmallVec<[&AbilityMana; 4]> = SmallVec::new();
+        let mut on: SmallVec<[ObjId; 4]> = SmallVec::new();
+        for (n, k) in combo.iter().zip(&kinds) {
+            let mut left = *n;
+            for m in &k.members {
+                let t = left.min(m.times);
+                for _ in 0..t {
+                    acts.push(m);
+                    on.push(m.id);
+                }
+                left -= t;
+                if left == 0 {
+                    break;
+                }
+            }
+        }
+        if acts
+            .iter()
+            .any(|a| (a.tap || a.sac) && on.iter().filter(|id| **id == a.id).count() > 1)
+        {
+            continue;
+        }
+        let ability_life: u32 = acts.iter().map(|a| a.life).sum();
+        for (r, l) in &expansions {
+            if i64::from(*l) + i64::from(ability_life) > i64::from(life) {
+                continue;
+            }
+            if let Some(plan) = match_payment(&plain, pool, r, *l, &acts) {
+                return Some(plan);
+            }
+        }
+    }
+    None
+}
+
+/// Try the choices of color for the activations that tie their mana
+/// together, then match.
+fn match_payment(
+    plain: &[Plain],
+    pool: &ManaPool,
+    req: &ManaRequirement,
+    life: u32,
+    acts: &[&AbilityMana],
+) -> Option<AbilityPlan> {
+    // The colors the cost asks for, most wanted first.
+    let mut wanted: SmallVec<[Color; 5]> = Color::ALL
+        .into_iter()
+        .filter(|c| req.colored[*c as usize] > 0)
+        .collect();
+    wanted.sort_by_key(|c| std::cmp::Reverse(req.colored[*c as usize]));
+    // Per activation, the candidate assignments of its outputs.
+    let mut choices: SmallVec<[SmallVec<[Outs; 5]>; 4]> = SmallVec::new();
+    for a in acts {
+        let mut opts: SmallVec<[Outs; 5]> = SmallVec::new();
+        match a.tie {
+            Tie::Free => opts.push(a.out.clone()),
+            Tie::Same => {
+                let k = a.out.iter().fold(ANY_COLOR, |x, y| x & y);
+                for c in wanted.iter().filter(|c| k & (1 << (**c as u8)) != 0) {
+                    opts.push(a.out.iter().map(|_| 1 << (*c as u8)).collect());
+                }
+                if opts.is_empty() {
+                    // Only generic to pay: any of its colors will do.
+                    let one = k & k.wrapping_neg();
+                    opts.push(a.out.iter().map(|_| one).collect());
+                }
+            }
+            Tie::Different => {
+                let k = a.out.iter().fold(ANY_COLOR, |x, y| x & y);
+                let mut order: SmallVec<[Color; 5]> = wanted
+                    .iter()
+                    .copied()
+                    .filter(|c| k & (1 << (*c as u8)) != 0)
+                    .collect();
+                for c in Color::ALL {
+                    if k & (1 << (c as u8)) != 0 && !order.contains(&c) {
+                        order.push(c);
+                    }
+                }
+                opts.push(
+                    order
+                        .iter()
+                        .take(a.out.len())
+                        .map(|c| 1 << (*c as u8))
+                        .collect(),
+                );
+            }
+        }
+        choices.push(opts);
+    }
+    let mut pick: SmallVec<[usize; 4]> = smallvec::smallvec![0; acts.len()];
+    loop {
+        let outs: SmallVec<[&[Kinds]; 4]> = choices
+            .iter()
+            .zip(&pick)
+            .map(|(o, i)| o[*i].as_slice())
+            .collect();
+        if let Some(plan) = matching(plain, pool, req, life, acts, &outs) {
+            return Some(plan);
+        }
+        // Next assignment (odometer).
+        let mut i = 0;
+        loop {
+            if i == pick.len() {
+                return None;
+            }
+            pick[i] += 1;
+            if pick[i] < choices[i].len() {
+                break;
+            }
+            pick[i] = 0;
+            i += 1;
+        }
+    }
+}
+
+/// Match every symbol of `req` and of the activations' costs to a unit
+/// of mana (Kuhn's augmenting paths); build the plan if all are matched.
+#[allow(clippy::too_many_lines)] // units, symbols, matching, plan
+fn matching(
+    plain: &[Plain],
+    pool: &ManaPool,
+    req: &ManaRequirement,
+    life: u32,
+    acts: &[&AbilityMana],
+    outs: &[&[Kinds]],
+) -> Option<AbilityPlan> {
+    let mut consumed: SmallVec<[ObjId; 4]> = SmallVec::new();
+    for a in acts {
+        if a.tap || a.sac {
+            consumed.push(a.id);
+        }
+    }
+    // Units: activations' mana first (it is made anyway), then the pool,
+    // then plain sources in their canonical order.
+    let mut units: SmallVec<[Unit; 24]> = SmallVec::new();
+    for (ai, out) in outs.iter().enumerate() {
+        for (k, kinds) in out.iter().enumerate() {
+            units.push(Unit {
+                kinds: *kinds,
+                cost_kinds: 0,
+                from: From::Out(ai, k),
+            });
+        }
+    }
+    for c in Color::ALL {
+        for _ in 0..pool.colored[c as usize] {
+            let k = 1 << (c as u8);
+            units.push(Unit {
+                kinds: k,
+                cost_kinds: k,
+                from: From::Pool,
+            });
+        }
+    }
+    for _ in 0..pool.colorless {
+        units.push(Unit {
+            kinds: COLORLESS,
+            cost_kinds: COLORLESS,
+            from: From::Pool,
+        });
+    }
+    for (i, u) in plain.iter().enumerate() {
+        if consumed.contains(&u.id) {
+            continue;
+        }
+        units.push(Unit {
+            kinds: u.kinds,
+            cost_kinds: u.cost_kinds,
+            from: From::Plain(i),
+        });
+    }
+    // Symbols: the activations' costs, then the cost being paid; specific
+    // kinds before generic.
+    let mut syms: SmallVec<[Sym; 16]> = SmallVec::new();
+    let push = |r: &ManaRequirement, act: Option<usize>, syms: &mut SmallVec<[Sym; 16]>| {
+        for c in Color::ALL {
+            for _ in 0..r.colored[c as usize] {
+                syms.push(Sym {
+                    need: Some(1 << (c as u8)),
+                    act,
+                });
+            }
+        }
+        for _ in 0..r.colorless {
+            syms.push(Sym {
+                need: Some(COLORLESS),
+                act,
+            });
+        }
+    };
+    for (i, a) in acts.iter().enumerate() {
+        push(&a.cost, Some(i), &mut syms);
+    }
+    push(req, None, &mut syms);
+    for (i, a) in acts.iter().enumerate() {
+        for _ in 0..a.cost.generic {
+            syms.push(Sym {
+                need: None,
+                act: Some(i),
+            });
+        }
+    }
+    for _ in 0..req.generic {
+        syms.push(Sym {
+            need: None,
+            act: None,
+        });
+    }
+    if syms.len() > units.len() {
+        return None;
+    }
+    let fits = |s: &Sym, u: &Unit| -> bool {
+        let k = if s.act.is_some() {
+            u.cost_kinds
+        } else {
+            u.kinds
+        };
+        match s.need {
+            Some(n) => k & n != 0,
+            None => k != 0,
+        }
+    };
+    let mut owner: SmallVec<[Option<usize>; 24]> = smallvec::smallvec![None; units.len()];
+    for s in 0..syms.len() {
+        let mut seen: SmallVec<[bool; 24]> = smallvec::smallvec![false; units.len()];
+        if !augment(s, &syms, &units, &fits, &mut seen, &mut owner) {
+            return None;
+        }
+    }
+    // The mana each matched unit makes.
+    let made = |u: &Unit, s: &Sym| -> Mana {
+        match s.need {
+            Some(COLORLESS) => Mana::Colorless,
+            Some(n) => some_mana(n),
+            None => match u.from {
+                From::Plain(i) if plain[i].first == Mana::Any => Mana::Colorless,
+                From::Plain(i) => plain[i].first,
+                _ => some_mana(u.kinds),
+            },
+        }
+    };
+    let mut taps = Sources::new();
+    let mut plan_acts: SmallVec<[Activation; 4]> = acts
+        .iter()
+        .zip(outs)
+        .map(|(a, out)| Activation {
+            id: a.id,
+            ability: a.ability,
+            spend: ManaPool::default(),
+            life: a.life,
+            tap: a.tap,
+            sac: a.sac,
+            per_turn: a.per_turn,
+            once_ever: a.once_ever,
+            mana: out.iter().map(|k| some_mana(*k)).collect(),
+        })
+        .collect();
+    for (ui, u) in units.iter().enumerate() {
+        let Some(si) = owner[ui] else {
+            continue;
+        };
+        let s = &syms[si];
+        let m = made(u, s);
+        match u.from {
+            From::Plain(i) => taps.push((plain[i].id, m)),
+            From::Out(ai, k) => plan_acts[ai].mana[k] = m,
+            From::Pool => {}
+        }
+        if let Some(ai) = s.act {
+            plan_acts[ai].spend.add(m);
+        }
+    }
+    // Plain sources in their canonical order.
+    taps.sort_by_key(|(id, _)| plain.iter().position(|p| p.id == *id));
+    Some(AbilityPlan {
+        taps,
+        acts: plan_acts,
+        req: *req,
+        life,
+    })
+}
+
+fn augment(
+    s: usize,
+    syms: &[Sym],
+    units: &[Unit],
+    fits: &dyn Fn(&Sym, &Unit) -> bool,
+    seen: &mut [bool],
+    owner: &mut [Option<usize>],
+) -> bool {
+    for u in 0..units.len() {
+        if seen[u] || !fits(&syms[s], &units[u]) {
+            continue;
+        }
+        seen[u] = true;
+        if owner[u].is_none_or(|t| augment(t, syms, units, fits, seen, owner)) {
+            owner[u] = Some(s);
+            return true;
+        }
+    }
+    false
+}

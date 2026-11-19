@@ -3585,50 +3585,54 @@ pub struct CardDef {
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
 /// friends).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub struct DefFlags(u16);
+pub struct DefFlags(u32);
 
 impl DefFlags {
-    const TRIGGERS: u16 = 1;
-    const REPLACEMENTS: u16 = 2;
-    const MODIFIES_ENTERING: u16 = 4;
-    const ACTIVATED: u16 = 8;
-    const CONTROL_STATIC: u16 = 16;
-    const EQUIPMENT: u16 = 32;
-    const MID_CHOICE: u16 = 64;
+    const TRIGGERS: u32 = 1;
+    const REPLACEMENTS: u32 = 2;
+    const MODIFIES_ENTERING: u32 = 4;
+    const ACTIVATED: u32 = 8;
+    const CONTROL_STATIC: u32 = 16;
+    const EQUIPMENT: u32 = 32;
+    const MID_CHOICE: u32 = 64;
     /// A characteristic-defining ability that reads a life total (Ajani's
     /// Avatar): life changes must then invalidate the characteristics cache.
-    const LIFE_CDA: u16 = 128;
-    const CDA: u16 = 256;
+    const LIFE_CDA: u32 = 128;
+    const CDA: u32 = 256;
     /// A static ability that changes what spells cost (CR 601.2f).
-    const COST_CHANGE: u16 = 512;
+    const COST_CHANGE: u32 = 512;
     /// "Can't attack unless ..." (`AbilityDef::AttackUnless`).
-    const ATTACK_RULE: u16 = 1024;
+    const ATTACK_RULE: u32 = 1024;
     /// A static ability that grants an ability ("Enchanted creature has
     /// '{T}: ...'"), so other objects may have abilities their definitions
     /// lack.
-    const GRANTS: u16 = 2048;
+    const GRANTS: u32 = 2048;
     /// A static ability whose condition looks at tapped permanents ("as
     /// long as you control no untapped lands"): tapping must then
     /// invalidate the characteristics cache.
-    const TAP_STATIC: u16 = 4096;
+    const TAP_STATIC: u32 = 4096;
     /// "As this enters, choose ..." (`AbilityDef::AsEntersChoose`): a
     /// question as the permanent enters, however it does.
-    const ENTERS_CHOICE: u16 = 8192;
+    const ENTERS_CHOICE: u32 = 8192;
     /// A mana ability whose mana is restricted (`AbilityDef::RestrictedMana`):
     /// payment then looks for such sources.
-    const RESTRICTED_MANA: u16 = 16384;
+    const RESTRICTED_MANA: u32 = 16384;
     /// A static ability that reads this turn's history or step
     /// (`CardDef::hand_static`, `step_static`): casts and step changes then
     /// look for such permanents.
-    const TURN_STATIC: u16 = 32768;
+    const TURN_STATIC: u32 = 32768;
+    /// An activated mana ability (CR 605.1a) that payment may activate
+    /// (`AbilityDef::Activated` adding mana, not `TapForMana`): payment
+    /// then looks for such abilities when plain sources fall short.
+    const MANA_ABILITY: u32 = 65536;
     /// `MODIFIES_ENTERING`, for callers outside this module.
-    pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
+    pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
-    pub const fn has(self, f: u16) -> bool {
+    pub const fn has(self, f: u32) -> bool {
         self.0 & f != 0
     }
 
-    fn set(&mut self, f: u16, on: bool) {
+    fn set(&mut self, f: u32, on: bool) {
         if on {
             self.0 |= f;
         }
@@ -3693,6 +3697,10 @@ impl DefFlags {
 
     pub const fn has_restricted_mana(self) -> bool {
         self.has(DefFlags::RESTRICTED_MANA)
+    }
+
+    pub const fn has_mana_ability(self) -> bool {
+        self.has(DefFlags::MANA_ABILITY)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -3786,6 +3794,12 @@ impl DefFlags {
                     AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
                 ) || a.all_effects().iter().any(|e| e.asks())
             }),
+        );
+        flags.set(
+            DefFlags::MANA_ABILITY,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::Activated(ab) if ab.is_mana_ability())),
         );
         flags.set(
             DefFlags::RESTRICTED_MANA,

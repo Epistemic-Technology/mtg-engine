@@ -1,0 +1,161 @@
+# Paying costs with activated mana abilities (CR 601.2g, 605.3a): payment
+# activates them when the plain sources fall short, without the player
+# activating them by hand first.
+
+scenario "Sol Ring's two colorless mana pay for a spell" {
+  battlefield A: "Sol Ring", "Mountain", "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert tapped "Sol Ring"
+}
+
+scenario "Sol Ring's colorless mana can't pay for a colored symbol" {
+  battlefield A: "Sol Ring"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert untapped "Sol Ring"
+}
+
+scenario "lands are tapped before an ability is activated" {
+  battlefield A: "Sol Ring", "Mountain", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert untapped "Sol Ring"
+}
+
+scenario "an Eldrazi Spawn is sacrificed for mana" {
+  battlefield A: "Eldrazi Spawn"
+  hand A: "Sol Ring"
+  turn 1 A: cast "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Sol Ring"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+# CR 302.6 restricts only {T} abilities: a Spawn made this turn can be
+# sacrificed for mana at once.
+scenario "a summoning-sick Eldrazi Spawn is sacrificed for mana" {
+  battlefield A: 5 "Island"
+  hand A: "Unfathomable Truths", "Sol Ring"
+  turn 1 A: cast "Unfathomable Truths"
+  turn 1 postcombat_main A: cast "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Sol Ring"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "a summoning-sick Palladium Myr can't tap for mana" {
+  battlefield A: 3 "Island"
+  hand A: "Palladium Myr", "Sol Ring"
+  turn 1 A: cast "Palladium Myr"
+  illegal turn 1 postcombat_main A: cast "Sol Ring"
+  run_to turn 1 end
+  assert hand A contains "Sol Ring"
+}
+
+scenario "Manaforge Cinder filters a Mountain's mana into black" {
+  battlefield A: "Manaforge Cinder", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Duress"
+  turn 1 A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Duress"
+  assert tapped "Mountain"
+}
+
+scenario "Manaforge Cinder's ability needs mana of its own" {
+  battlefield A: "Manaforge Cinder"
+  hand A: "Duress"
+  illegal turn 1 A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert hand A contains "Duress"
+}
+
+scenario "Manaforge Cinder is activated no more than three times each turn" {
+  battlefield A: "Manaforge Cinder", 4 "Mountain"
+  hand A: 4 "Duress"
+  turn 1 A: cast "Duress" targeting player B
+  turn 1 A: cast "Duress" targeting player B
+  turn 1 A: cast "Duress" targeting player B
+  illegal turn 1 postcombat_main A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Abzan Devotee makes black once each turn" {
+  battlefield A: "Abzan Devotee", 2 "Mountain"
+  hand A: 2 "Duress"
+  turn 1 A: cast "Duress" targeting player B
+  illegal turn 1 postcombat_main A: cast "Duress" targeting player B
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Terrarion is sacrificed for two mana in any combination" {
+  battlefield A: "Terrarion", 2 "Mountain"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+  assert graveyard A contains "Terrarion"
+}
+
+scenario "Terrarion needs two other mana to activate" {
+  battlefield A: "Terrarion", "Mountain"
+  hand A: "Watchwolf"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Terrarion"
+}
+
+scenario "Guild Globe makes two mana of different colors" {
+  battlefield A: "Guild Globe", 2 "Mountain"
+  hand A: "Watchwolf"
+  turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert battlefield A contains "Watchwolf"
+  assert graveyard A contains "Guild Globe"
+}
+
+scenario "Guild Globe's two colors can't both be black" {
+  battlefield A: "Guild Globe", 2 "Mountain"
+  hand A: "Black Knight"
+  illegal turn 1 A: cast "Black Knight"
+  run_to turn 1 end
+  assert battlefield A contains "Guild Globe"
+}
+
+scenario "a land enchanted by New Horizons taps for two mana of one color" {
+  battlefield A: "Forest", "New Horizons" on "Forest", "Mountain"
+  hand A: "Divination"
+  turn 1 A: cast "Divination"
+  run_to turn 1 end
+  assert graveyard A contains "Divination"
+  assert tapped "Forest"
+  assert tapped "Mountain"
+}
+
+scenario "two mana of one color can't be two colors" {
+  battlefield A: "Forest", "New Horizons" on "Forest"
+  hand A: "Watchwolf"
+  illegal turn 1 A: cast "Watchwolf"
+  run_to turn 1 end
+  assert untapped "Forest"
+}
+
+scenario "Standing Stones costs mana and life" {
+  battlefield A: "Standing Stones", 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Llanowar Elves"
+  turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Llanowar Elves"
+  assert life A 19
+  assert tapped "Standing Stones"
+}
