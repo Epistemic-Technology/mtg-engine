@@ -888,6 +888,7 @@ impl Decompiler<'_> {
                 crate::ast::IfWording::Lead,
             ),
             CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
+            CoreEffect::Otherwise(inner) => Effect::Otherwise(self.sentences(inner)),
             CoreEffect::Reflexive(ability) => {
                 let AbilityDef::Triggered(t) = self.pool.ability(*ability) else {
                     panic!("reflexive ability is not triggered");
@@ -905,11 +906,13 @@ impl Decompiler<'_> {
                 payer,
                 mana,
                 life,
+                discard,
                 effects,
             } => Effect::UnlessPays {
                 payer: Self::recipient(*payer),
                 mana: mana.clone(),
                 life: *life,
+                discard: *discard,
                 effect: Box::new(
                     effects
                         .first()
@@ -1233,6 +1236,14 @@ impl Decompiler<'_> {
                 nth: *nth,
             },
             TriggerSpec::EntersBatch(f) => Trigger::EntersBatch(self.filter(f)),
+            TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
+            TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
+            // "When you cast or cycle ~".
+            TriggerSpec::Either(pair)
+                if pair.0 == TriggerSpec::CastThis && pair.1.cycles_this() =>
+            {
+                Trigger::CastThis { or_cycle: true }
+            }
             // "When this creature enters or dies" and kin.
             TriggerSpec::Either(pair)
                 if pair.0 == TriggerSpec::Enters(CoreTriggerObj::This)

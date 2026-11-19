@@ -1,0 +1,9 @@
+card "Warped Tusker" {
+  oracle_id 0a994401-d37c-4e30-9410-422e7ae5a715
+  cost {7}
+  type Creature — Eldrazi Boar Beast
+  pt 6/8
+  keywords reach
+  triggered when you cast or cycle this: create 1 "Eldrazi Spawn"
+  cycling {2}{G}
+}

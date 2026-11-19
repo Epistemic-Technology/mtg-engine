@@ -1,0 +1,191 @@
+# One-off phrasings: "When you cast this spell" (CR 603.2: it triggers
+# from the spell on the stack and resolves first, even if the spell is
+# countered), "When you cast or cycle ~", "Whenever you sacrifice another
+# Eldrazi" (CR 701.21a), discarding as the payment of ward and echo
+# ("Ward—Discard a card.", "Echo—Discard a card."), and "Otherwise, ..."
+# after a conditional sentence (CR 608.2c).
+
+scenario "when you cast this spell: Eldrazi Repurposer makes a Spawn before it resolves" {
+  battlefield A: 3 "Forest"
+  hand A: "Eldrazi Repurposer"
+  turn 1 A: cast "Eldrazi Repurposer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Eldrazi Repurposer"
+  assert battlefield A contains 1 "Eldrazi Spawn"
+}
+
+scenario "when you cast this spell: the trigger resolves though the spell is countered" {
+  battlefield A: 3 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Eldrazi Repurposer"
+  hand B: "Counterspell"
+  turn 1 A: cast "Eldrazi Repurposer"
+  turn 1 B: cast "Counterspell" targeting "Eldrazi Repurposer"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Eldrazi Repurposer"
+  assert battlefield A contains 1 "Eldrazi Spawn"
+}
+
+scenario "when you cast this spell and when this creature dies: Eldrazi Repurposer dies" {
+  battlefield A: "Eldrazi Repurposer", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Eldrazi Repurposer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Eldrazi Spawn"
+}
+
+scenario "a permanent's cast trigger doesn't see other spells" {
+  battlefield A: "Eldrazi Repurposer", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "when you cast or cycle: Warped Tusker cycled" {
+  battlefield A: 3 "Forest"
+  hand A: "Warped Tusker"
+  turn 1 A: activate "Warped Tusker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Eldrazi Spawn"
+  assert graveyard A contains "Warped Tusker"
+  assert hand A count 1
+}
+
+scenario "when you cast or cycle: Drownyard Lurker cast" {
+  battlefield A: 7 "Island"
+  hand A: "Drownyard Lurker"
+  turn 1 A: cast "Drownyard Lurker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Drownyard Lurker"
+  assert battlefield A contains 1 "Eldrazi Spawn"
+}
+
+scenario "when you cast this spell: Supernatural Rescue taps creatures you don't control" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Supernatural Rescue"
+  turn 1 A: cast "Supernatural Rescue" targeting "Grizzly Bears"
+  turn 1 A: trigger "Supernatural Rescue" targeting "Hill Giant", "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Serra Angel"
+  assert attached "Supernatural Rescue" to "Grizzly Bears"
+  assert toughness "Grizzly Bears" 4
+}
+
+scenario "when you cast this spell: Writhing Chrysalis makes two Spawns" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Writhing Chrysalis"
+  turn 1 A: cast "Writhing Chrysalis"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Eldrazi Spawn"
+}
+
+scenario "whenever you sacrifice another Eldrazi: Writhing Chrysalis grows" {
+  battlefield A: "Writhing Chrysalis", "Eldrazi Repurposer", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  turn 1 A: cast "Bone Splinters" sacrificing "Eldrazi Repurposer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Writhing Chrysalis" +1/+1 1
+}
+
+scenario "whenever you sacrifice another Eldrazi: not another creature" {
+  battlefield A: "Writhing Chrysalis", "Grizzly Bears", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Splinters"
+  turn 1 A: cast "Bone Splinters" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Writhing Chrysalis" +1/+1 0
+}
+
+scenario "echo—discard a card: paid by discarding" {
+  battlefield A: 3 "Swamp"
+  hand A: "Deepcavern Imp", "Island"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Deepcavern Imp"
+  run_to turn 3 precombat_main
+  assert battlefield A contains "Deepcavern Imp"
+  assert graveyard A contains "Island"
+  assert hand A count 1
+}
+
+scenario "echo—discard a card: declined, sacrificed" {
+  battlefield A: 3 "Swamp"
+  hand A: "Deepcavern Imp", "Island"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Deepcavern Imp"
+  turn 3 upkeep A: decline "Deepcavern Imp"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Deepcavern Imp"
+  assert hand A count 2
+}
+
+scenario "echo—discard a card: no card to discard, sacrificed" {
+  battlefield A: 3 "Swamp"
+  hand A: "Deepcavern Imp"
+  library A: "Forest", "Forest", "Forest"
+  turn 1 A: cast "Deepcavern Imp"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Deepcavern Imp"
+}
+
+scenario "ward—discard a card: the opponent discards to keep the spell" {
+  battlefield A: "Mountain"
+  battlefield B: "Spectral Snatcher"
+  hand A: "Lightning Bolt", "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting "Spectral Snatcher"
+  run_to turn 1 postcombat_main
+  assert damage "Spectral Snatcher" 3
+  assert graveyard A contains "Forest"
+}
+
+scenario "ward—discard a card: not paid, the spell is countered" {
+  battlefield A: "Mountain"
+  battlefield B: "Spectral Snatcher"
+  hand A: "Lightning Bolt", "Forest"
+  turn 1 A: cast "Lightning Bolt" targeting "Spectral Snatcher"
+  turn 1 A: decline "Spectral Snatcher"
+  run_to turn 1 postcombat_main
+  assert damage "Spectral Snatcher" 0
+  assert hand A contains "Forest"
+}
+
+scenario "otherwise: Brood Birthing with a Spawn makes three" {
+  battlefield A: 2 "Mountain", "Eldrazi Spawn"
+  hand A: "Brood Birthing"
+  turn 1 A: cast "Brood Birthing"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 4 "Eldrazi Spawn"
+}
+
+scenario "otherwise: Brood Birthing without a Spawn makes one" {
+  battlefield A: 2 "Mountain"
+  hand A: "Brood Birthing"
+  turn 1 A: cast "Brood Birthing"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 1 "Eldrazi Spawn"
+}
+
+scenario "otherwise: Pulling Teeth, clash won, two cards" {
+  battlefield A: 2 "Swamp"
+  hand A: "Pulling Teeth"
+  hand B: "Forest", "Forest", "Forest"
+  library A: "Serra Angel"
+  library B: "Forest"
+  turn 1 A: cast "Pulling Teeth" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+}
+
+scenario "otherwise: Pulling Teeth, clash lost, one card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Pulling Teeth"
+  hand B: "Forest", "Forest", "Forest"
+  library A: "Forest"
+  library B: "Serra Angel"
+  turn 1 A: cast "Pulling Teeth" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 2
+}

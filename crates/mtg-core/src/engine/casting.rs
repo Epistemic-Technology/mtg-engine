@@ -5809,7 +5809,9 @@ impl GameState {
                 }
             }
             Effect::Clash { won } => {
-                if self.clash(ctx.controller) {
+                // "Otherwise, ..." follows whether the clash was won.
+                ctx.did = self.clash(ctx.controller);
+                if ctx.did {
                     for e in won {
                         self.apply_effect(ctx, e);
                     }
@@ -6168,6 +6170,9 @@ impl GameState {
             Effect::IfCondition(cond, inner) => {
                 let c = self.pool.condition(*cond).clone();
                 if self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj) {
+                    // For an "Otherwise" after it; optional actions inside
+                    // set it again.
+                    ctx.did = true;
                     for e in inner {
                         self.apply_effect(ctx, e);
                     }
@@ -6376,6 +6381,13 @@ impl GameState {
                     ctx.did = false;
                 }
             }
+            Effect::Otherwise(inner) => {
+                if !ctx.did {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
             Effect::IfYouDo(inner) => {
                 if ctx.did {
                     for e in inner {
@@ -6412,6 +6424,7 @@ impl GameState {
                 payer,
                 mana,
                 life,
+                discard,
                 effects,
             } => {
                 let def = self
@@ -6459,7 +6472,10 @@ impl GameState {
                         if life_ok {
                             options.push(Choice::Mode(1));
                         }
-                    } else if (*life == 0 || life_ok) && self.can_pay(p, &req) {
+                    } else if (*life == 0 || life_ok)
+                        && self.can_pay(p, &req)
+                        && self.player(p).hand.len() >= *discard as usize
+                    {
                         options.push(Choice::Accept);
                     }
                     if options.is_empty() {
@@ -6480,6 +6496,10 @@ impl GameState {
                             self.pay(p, &req);
                             if *life > 0 {
                                 self.change_life(p, -life_n);
+                            }
+                            // CR 701.9: the payer chooses what to discard.
+                            if *discard > 0 {
+                                self.discard_n(p, *discard);
                             }
                         }
                         _ => continue,

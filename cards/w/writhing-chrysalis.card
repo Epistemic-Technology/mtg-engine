@@ -1,0 +1,10 @@
+card "Writhing Chrysalis" {
+  oracle_id d27bebc9-348d-4b8e-816a-a4da66fb5618
+  cost {2}{R}{G}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  triggered when you cast this: create 2 "Eldrazi Spawn"
+  keyword reach
+  triggered whenever you sacrifice other Eldrazi: put 1 +1/+1 counter on this
+}

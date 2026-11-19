@@ -950,6 +950,8 @@ pub enum Mechanic {
     /// CR 702.30: at your upkeep, if it came under your control since your
     /// last upkeep, sacrifice it unless you pay.
     Echo(ManaCost),
+    /// `echo discard 1 card`: "Echo—Discard a card." (CR 702.30a).
+    EchoCost(Cost),
     /// CR 702.84: from the graveyard as a sorcery: return it with haste,
     /// exile it at the next end step.
     Unearth(ManaCost),
@@ -1669,6 +1671,14 @@ pub enum Trigger {
         another: bool,
         or_discard: bool,
     },
+    /// `when you cast this` ("When you cast this spell", CR 603.2) and
+    /// `when you cast or cycle this` ("When you cast or cycle ~").
+    CastThis {
+        or_cycle: bool,
+    },
+    /// `whenever you sacrifice other Eldrazi` ("Whenever you sacrifice
+    /// another Eldrazi").
+    Sacrifices(Filter),
     /// `whenever you cast your second spell each turn`, `... your first
     /// spell each turn`, `... a spell other than your first spell each
     /// turn`, `... your first spell during each opponent's turn`.
@@ -2321,6 +2331,9 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `otherwise, ...`: only if the conditional sentence just before (`if
+    /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
+    Otherwise(Vec<Sentence>),
     /// `when you do, <sentence>`: a reflexive triggered ability (CR
     /// 603.12) with targets of its own, chosen as it triggers.
     WhenYouDo {
@@ -2333,6 +2346,9 @@ pub enum Effect {
         payer: Recipient,
         mana: ManaCost,
         life: u32,
+        /// `unless that player discards 1 card`: cards the payer
+        /// discards, of their choice, as the payment.
+        discard: u32,
         effect: Box<Effect>,
     },
     /// "<what> has base power and toughness 4/4 until end of turn".

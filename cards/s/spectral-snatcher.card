@@ -1,0 +1,8 @@
+card "Spectral Snatcher" {
+  oracle_id 371762f6-e07b-4c0e-a4ee-6c35a3809eb6
+  cost {4}{B}{B}
+  type Creature — Spirit
+  pt 6/5
+  ward discard 1 card
+  swampcycling {2}
+}

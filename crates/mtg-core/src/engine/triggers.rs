@@ -92,6 +92,9 @@ impl GameState {
         if matches!(event, Event::Cycled { .. }) {
             self.cycle_triggers(event, &mut fired);
         }
+        if matches!(event, Event::Cast { .. }) {
+            self.cast_this_triggers(event, &mut fired);
+        }
         // CR 702.62a: each suspended card of the active player's at their
         // upkeep.
         if let Event::StepBegin {
@@ -258,6 +261,41 @@ impl GameState {
         }
     }
 
+    /// "When you cast this spell" (CR 603.2): triggers from the spell
+    /// itself, on the stack, controlled by its caster.
+    #[cold]
+    #[inline(never)]
+    fn cast_this_triggers(&self, event: &Event, fired: &mut SmallVec<[PendingTrigger; 2]>) {
+        let Event::Cast {
+            player, spell, def, ..
+        } = *event
+        else {
+            return;
+        };
+        let d = self.pool.get(def);
+        if !d.may_watch(event) {
+            return;
+        }
+        for &ability in &d.ability_ids {
+            if let AbilityDef::Triggered(t) = self.pool.ability(ability)
+                && t.trigger.casts_this()
+            {
+                fired.push(PendingTrigger {
+                    controller: player,
+                    ability: StackAbility {
+                        ability,
+                        source: spell,
+                        def,
+                        trigger_obj: Some(spell),
+                        trigger_player: Some(player),
+                        trigger_amount: 0,
+                    },
+                    timestamp: 0,
+                });
+            }
+        }
+    }
+
     #[cold]
     #[inline(never)]
     fn suspend_triggers(&self, fired: &mut SmallVec<[PendingTrigger; 2]>) {
@@ -314,6 +352,7 @@ impl GameState {
         // trigger; a cycled card, a "when you cycle this card" trigger.
         matches!(event, Event::ZoneChange { def, .. } | Event::Cycled { def, .. }
             if self.pool.get(*def).has_triggers())
+            || matches!(event, Event::Cast { def, .. } if self.pool.get(*def).may_watch(event))
     }
 
     /// Permanents whose abilities see `event`, with the characteristics they
@@ -831,6 +870,18 @@ impl GameState {
             ) => {
                 let p = filter_on_battlefield(f, *new)?;
                 Some((None, Some(p)))
+            }
+            // CR 701.21a: the sacrificed permanent is still on the
+            // battlefield as the event is emitted.
+            (TriggerSpec::Sacrifices(f), Event::Sacrificed { obj, .. }) => {
+                let o = self.objects.get(*obj)?;
+                if o.controller != w.controller {
+                    return None;
+                }
+                let c = self.characteristics(*obj)?;
+                (f.matches(*obj, o.controller, &c, Some(w.source), Some(w.controller))
+                    && self.status_ok(f, *obj))
+                .then_some((Some(*obj), Some(o.controller)))
             }
             (TriggerSpec::Either(pair), _) => self
                 .fires(&pair.0, event, w)

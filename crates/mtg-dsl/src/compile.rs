@@ -1570,6 +1570,16 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
             }
+            Effect::Otherwise(inner) => {
+                if !matches!(
+                    out.last(),
+                    Some(CoreEffect::IfCondition(..) | CoreEffect::Clash { .. })
+                ) {
+                    return self.err("`otherwise` needs a conditional sentence before it");
+                }
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::Instead { .. } => {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
@@ -1581,6 +1591,7 @@ impl Compiler<'_> {
                 payer,
                 mana,
                 life,
+                discard,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -1589,6 +1600,7 @@ impl Compiler<'_> {
                     payer: r(*payer),
                     mana: mana.clone(),
                     life: *life,
+                    discard: *discard,
                     effects,
                 });
             }
@@ -1895,6 +1907,16 @@ impl Compiler<'_> {
                 another: *another,
                 or_discard: *or_discard,
             },
+            Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
+            Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
+            Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
+                TriggerSpec::CastThis,
+                TriggerSpec::Cycles {
+                    this: true,
+                    another: false,
+                    or_discard: false,
+                },
+            ))),
             Trigger::CastsNth { whose, nth } => TriggerSpec::CastsNth {
                 whose: *whose,
                 nth: *nth,
@@ -2679,13 +2701,19 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 payer: Recipient::TriggeringController { that: false },
                 mana: cost.mana.clone(),
                 life: cost.life,
+                discard: cost.discard,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
                 }),
             }),
         },
-        Mechanic::Echo(cost) => Ability::Triggered {
+        Mechanic::Echo(cost) => expand_mechanic(&Mechanic::EchoCost(crate::ast::Cost {
+            mana: cost.clone(),
+            ..Default::default()
+        })),
+        // CR 702.30a: "Echo—Discard a card."
+        Mechanic::EchoCost(cost) => Ability::Triggered {
             from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
@@ -2700,8 +2728,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     E::ClearEcho,
                     E::UnlessPays {
                         payer: Recipient::You,
-                        mana: cost.clone(),
-                        life: 0,
+                        mana: cost.mana.clone(),
+                        life: cost.life,
+                        discard: cost.discard,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),

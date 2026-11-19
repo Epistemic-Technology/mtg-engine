@@ -4655,6 +4655,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(&body).trim_end_matches('.')
             ))
         }
+        Effect::Otherwise(inner) => {
+            // "Otherwise, create one of those tokens.": the token the
+            // sentence before created.
+            let saved = ctx.those_tokens.take();
+            ctx.those_tokens = ctx
+                .last_token
+                .clone()
+                .filter(|t| token_description(t, Num::N(1), false, false, ctx).contains('/'));
+            let body = sentences(inner, ctx);
+            ctx.those_tokens = saved;
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("otherwise, {}", body.trim_end_matches('.')))
+        }
         Effect::IfYouDo(inner) => {
             // "Counter target spell unless its controller pays {2}. If they
             // do, ...".
@@ -4676,11 +4693,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             payer,
             mana,
             life,
+            discard,
             effect,
         } => {
             ctx.in_unless = true;
             let mut c = clause(effect, ctx);
             ctx.in_unless = false;
+            // "unless that player discards a card".
+            if *discard > 0 {
+                let what = if *discard == 1 {
+                    "a card".to_string()
+                } else {
+                    format!("{} cards", count_words(Num::N(*discard), "a"))
+                };
+                let who = match (payer, &c.subject) {
+                    (Recipient::You, _) => "you discard".to_string(),
+                    (p, Some((s, _))) if p == s => "they discard".to_string(),
+                    (p, _) => format!("{} discards", ctx.obj(*p)),
+                };
+                let _ = write!(c.tail, " unless {who} {what}");
+                return c;
+            }
             let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
                 format!("{mana} or {life} life")
             } else if *life > 0 {
@@ -5454,6 +5487,18 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             another,
             or_discard,
         } => crate::format::cycles_text(*this, *another, *or_discard),
+        // CR 603.2: the spell itself; "cast or cycle" names the card.
+        Trigger::Sacrifices(f) => {
+            format!("whenever you sacrifice {}", trigger_filter_a(f, ctx.card))
+        }
+        Trigger::CastThis { or_cycle: false } => {
+            ctx.source_mentioned = true;
+            "when you cast this spell".to_string()
+        }
+        Trigger::CastThis { or_cycle: true } => {
+            ctx.source_mentioned = true;
+            format!("when you cast or cycle {}", ctx.card.name)
+        }
         Trigger::CastsNth { whose, nth } => {
             format!("whenever {}", crate::format::spell_ordinal(*nth, *whose))
         }
@@ -7808,6 +7853,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::WardCost(c) => {
                 format!(
                     "Ward\u{2014}{}.",
+                    cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
+            crate::ast::Mechanic::EchoCost(c) => {
+                format!(
+                    "Echo\u{2014}{}.",
                     cost_text(c, &mut Ctx::new(card, lookup, &[]))
                 )
             }

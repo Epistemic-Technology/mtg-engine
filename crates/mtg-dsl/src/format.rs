@@ -1338,6 +1338,7 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
@@ -1484,7 +1485,22 @@ impl Fmt {
                 payer,
                 mana,
                 life,
+                discard,
                 effect,
+            } if *discard > 0 => {
+                let inner = self.effect(effect, t);
+                let n = if *discard == 1 { "card" } else { "cards" };
+                format!(
+                    "{inner} unless {} discards {discard} {n}",
+                    self.recipient(*payer, t)
+                )
+            }
+            Effect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effect,
+                ..
             } => {
                 let inner = self.effect(effect, t);
                 let who = if *payer == Recipient::You {
@@ -2421,6 +2437,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::State(_)
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
+            | Trigger::CastThis { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -2658,6 +2675,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             another,
             or_discard,
         } => cycles_text(*this, *another, *or_discard),
+        Trigger::CastThis { or_cycle: false } => "when you cast this".to_string(),
+        Trigger::Sacrifices(f) => format!("whenever you sacrifice {}", filter(f)),
+        Trigger::CastThis { or_cycle: true } => "when you cast or cycle this".to_string(),
         Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
         Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
         Trigger::Or {
@@ -3582,6 +3602,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
+                crate::ast::Mechanic::EchoCost(c) => format!("echo {}", cost_text(c)),
                 crate::ast::Mechanic::MorphCost(c) => format!("morph {}", cost_text(c)),
                 crate::ast::Mechanic::BuybackCost(c) => format!("buyback {}", cost_text(c)),
                 crate::ast::Mechanic::Echo(c) => format!("echo {c}"),

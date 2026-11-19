@@ -1,0 +1,8 @@
+card "Eldrazi Repurposer" {
+  oracle_id ae3e5c80-6a6a-4781-a7b9-4d63357ffa3b
+  cost {2}{G}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  keywords devoid
+  triggered when you cast this and when this dies: create 1 "Eldrazi Spawn"
+}

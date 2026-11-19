@@ -1301,13 +1301,16 @@ impl P {
             }
             // "Ward—Pay 3 life.", "Morph—Discard a card.", "Buyback—
             // Sacrifice a land.": a keyword whose cost isn't mana.
-            "ward" | "morph" | "buyback" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+            "ward" | "morph" | "buyback" | "echo"
+                if matches!(self.peek_at(1), Some(Tok::Word(_))) =>
+            {
                 self.pos += 1;
                 let c = self.cost()?;
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(match w.as_str() {
                     "ward" => Mechanic::WardCost(c),
                     "morph" => Mechanic::MorphCost(c),
+                    "echo" => Mechanic::EchoCost(c),
                     _ => Mechanic::BuybackCost(c),
                 }))
             }
@@ -2697,6 +2700,41 @@ impl P {
             return Ok(e);
         }
         self.pos += 1;
+        // "unless that player discards a card": discarding is the payment.
+        let discards = |p: &Self| {
+            p.at_words(&["they", "discard"])
+                || (p.pos + 1 < p.toks.len()
+                    && (2..6).any(|k| {
+                        matches!(p.peek_at(k), Some(Tok::Word(w)) if w == "discards")
+                            && !(1..k)
+                                .any(|j| matches!(p.peek_at(j), Some(Tok::Word(w)) if w == "pays"))
+                    }))
+        };
+        if discards(self) {
+            let payer = if self.eat_words(&["they", "discard"]) {
+                match self.subject {
+                    Some(s) => s,
+                    None => {
+                        return self.fail("`unless they discard` needs a clause with a subject");
+                    }
+                }
+            } else {
+                let r = self.recipient()?;
+                self.expect_word("discards")?;
+                r
+            };
+            let discard = self.number()?;
+            if !self.eat_word("cards") {
+                self.expect_word("card")?;
+            }
+            return Ok(Effect::UnlessPays {
+                payer,
+                mana: ManaCost::default(),
+                life: 0,
+                discard,
+                effect: Box::new(e),
+            });
+        }
         let payer = if self.eat_words(&["you", "pay"]) {
             Recipient::You
         } else if self.eat_words(&["they", "pay"]) {
@@ -2723,6 +2761,7 @@ impl P {
             payer,
             mana,
             life,
+            discard: 0,
             effect: Box::new(e),
         })
     }
@@ -3134,6 +3173,12 @@ impl P {
             let s = self.sentence()?;
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
+        }
+        // "Otherwise, ..." after a conditional sentence (CR 608.2c).
+        if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
+            self.pos += 2;
+            let s = self.sentence()?;
+            return Ok(Effect::Otherwise(vec![s]));
         }
         // "If you win the flip, ..." after "flip a coin" (CR 705.2).
         if self.at_words(&["if", "you", "win", "the", "flip"]) {
@@ -7252,6 +7297,18 @@ impl P {
             let f = self.filter()?;
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
+        }
+        // CR 603.2: "When you cast this spell", "When you cast or cycle ~".
+        if self.eat_words(&["you", "cast", "this"]) {
+            self.eat_word("spell");
+            return Ok(Trigger::CastThis { or_cycle: false });
+        }
+        if self.eat_words(&["you", "cast", "or", "cycle", "this"]) {
+            return Ok(Trigger::CastThis { or_cycle: true });
+        }
+        // CR 701.21: "Whenever you sacrifice another Eldrazi".
+        if self.eat_words(&["you", "sacrifice"]) {
+            return Ok(Trigger::Sacrifices(self.filter()?));
         }
         // CR 702.29: "you cycle this card", "you cycle or discard a card".
         if self.eat_words(&["you", "cycle"]) {

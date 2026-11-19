@@ -1,0 +1,8 @@
+card "Deepcavern Imp" {
+  oracle_id 1f295f2f-969a-4b82-98d1-7fe307ec83a7
+  cost {2}{B}
+  type Creature — Imp Rebel
+  pt 2/2
+  keywords flying, haste
+  echo discard 1 card
+}

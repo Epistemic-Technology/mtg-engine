@@ -1470,7 +1470,9 @@ impl GameState {
                 && matches!(event, Event::StepBegin { .. }))
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers())
             // "When you cycle this card": the card itself watches.
-            || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers());
+            || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers())
+            // "When you cast this spell": the spell itself watches.
+            || matches!(&event, Event::Cast { def, .. } if self.pool.get(*def).may_watch(&event));
         if may_trigger {
             self.detect_triggers(&event);
         }
