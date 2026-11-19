@@ -1,0 +1,9 @@
+card "Ascendant Dustspeaker" {
+  oracle_id 295f8b8d-102a-47af-93c2-f8182c5f11ca
+  cost {4}{W}
+  type Creature — Orc Cleric
+  pt 3/4
+  keywords flying
+  triggered when this enters: put 1 +1/+1 counter on another target creature you control
+  triggered at beginning of your combat: exile up to 1 target card from a graveyard
+}

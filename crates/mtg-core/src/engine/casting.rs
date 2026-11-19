@@ -471,6 +471,15 @@ impl GameState {
                     self.players_in_game().filter(|p| *p != you).collect();
                 self.graveyard_count(&players, f.as_deref(), you)
             }
+            // Judged on the creatures as they last existed (CR 700.4).
+            CountExpr::DiedThisTurn(f) => self
+                .died_this_turn
+                .iter()
+                .filter(|(id, controller, c)| f.matches(*id, *controller, c, None, Some(you)))
+                .count(),
+            CountExpr::GreatestPowerInGraveyard(f) => {
+                return u32::try_from(self.greatest_power_in_graveyard(you, f).max(0)).unwrap_or(0);
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
     }
@@ -670,6 +679,26 @@ impl GameState {
 
     /// Cards in `players`' graveyards matching `f` (all with none), judged
     /// for `you`.
+    /// The greatest power among `you`'s graveyard cards matching `f`
+    /// (printed power, CR 208.3), 0 with none.
+    pub(crate) fn greatest_power_in_graveyard(
+        &self,
+        you: PlayerId,
+        f: &crate::card::ObjFilter,
+    ) -> i32 {
+        self.player(you)
+            .graveyard
+            .iter()
+            .filter_map(|id| {
+                let o = &self.objects[*id];
+                let c = self.base_characteristics(o);
+                (f.matches(*id, o.owner, &c, None, Some(you)) && self.status_ok(f, *id))
+                    .then(|| c.power())
+            })
+            .max()
+            .unwrap_or(0)
+    }
+
     fn graveyard_count(
         &self,
         players: &[PlayerId],
@@ -3889,6 +3918,16 @@ impl GameState {
                 let n = self.eval_num(*amount, ctx);
                 for y in self.recipients(ctx, *to) {
                     self.deal_damage(x, y, n, false);
+                }
+            }
+            Effect::ExileGraveyard { who } => {
+                for t in self.recipients(ctx, *who) {
+                    if let Target::Player(p) = t {
+                        let cards = self.player(p).graveyard.clone();
+                        for id in cards {
+                            self.move_object(id, Zone::Exile, true);
+                        }
+                    }
                 }
             }
             Effect::ExileAllGraveyards => {

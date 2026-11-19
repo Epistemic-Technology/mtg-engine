@@ -1,0 +1,7 @@
+card "Ashen-Skin Zubera" {
+  oracle_id af9dc302-0345-402f-8e6b-e9706da14bca
+  cost {1}{B}
+  type Creature — Zubera Spirit
+  pt 1/2
+  triggered when this dies: target opponent discards count each Zubera died this turn cards
+}

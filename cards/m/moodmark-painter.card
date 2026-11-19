@@ -1,0 +1,7 @@
+card "Moodmark Painter" {
+  oracle_id f5068b54-b1f8-4751-9a09-fc1b554e8115
+  cost {2}{B}{B}
+  type Creature — Human Shaman
+  pt 2/3
+  label "Undergrowth" triggered when this enters: target creature gains menace and gets +1/+0 count where graveyard creature
+}

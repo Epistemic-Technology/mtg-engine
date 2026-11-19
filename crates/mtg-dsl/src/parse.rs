@@ -1516,6 +1516,13 @@ impl P {
             "enters" => {
                 self.pos += 1;
                 let outcome = self.enters_outcome()?;
+                if let Outcome::EnterWithCounters { kind, n: Num::N(n) } = outcome
+                    && self.eat_word("if")
+                {
+                    let cond = self.static_cond()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::EntersWithCountersIf { kind, n, cond });
+                }
                 self.end_stmt()?;
                 Ok(Ability::Replacement(Replacement {
                     event: Replaces::Enters,
@@ -3662,6 +3669,10 @@ impl P {
                 if self.eat_words(&["all", "graveyards"]) {
                     return Ok(Effect::ExileAllGraveyards);
                 }
+                if self.eat_words(&["graveyard", "of"]) {
+                    let who = self.recipient()?;
+                    return Ok(Effect::ExileGraveyard { who });
+                }
                 let what = self.recipients()?;
                 Ok(Effect::Exile { what })
             }
@@ -4280,6 +4291,9 @@ impl P {
         }
         // `greatest power creature you control`; bare `greatest power` is
         // among creatures you control.
+        if self.eat_words(&["greatest", "power", "graveyard"]) {
+            return Ok(CountExpr::GreatestPowerInGraveyard(self.filter()?));
+        }
         if self.eat_words(&["greatest", "power"]) {
             let f = if self.word_at(0).is_some_and(|w| card_type(&w).is_some()) {
                 self.filter()?
@@ -4422,12 +4436,18 @@ impl P {
                         || w.starts_with("non")
                         || color(&w).is_some()
                         || w == "named"
+                        || w == "permanent"
                 }) && !matches!(self.peek(), Some(Tok::Word(w))
                     if w.chars().next().is_some_and(char::is_uppercase))
             {
                 None
             } else {
-                Some(self.filter()?)
+                let f = self.filter()?;
+                // `graveyard permanent card` ("permanent card": CR 110.4a).
+                if f.not_types == [CardType::Instant, CardType::Sorcery] {
+                    self.eat_word("card");
+                }
+                Some(f)
             };
             return Ok(if in_all || in_each {
                 CountExpr::CardsInGraveyards {
@@ -4439,6 +4459,9 @@ impl P {
             });
         }
         let mut f = self.filter()?;
+        if self.eat_words(&["died", "this", "turn"]) {
+            return Ok(CountExpr::DiedThisTurn(f));
+        }
         if self.eat_words(&["on", "battlefield"]) && f.who.is_none() {
             if f.same.is_some() {
                 // "creatures named ~ on the battlefield".
@@ -4791,9 +4814,17 @@ impl P {
                         f.relation = Relation::Other;
                         Target::Filter(f)
                     }
-                    Target::GraveyardCard { mut filter, who } => {
+                    Target::GraveyardCard {
+                        mut filter,
+                        who,
+                        graveyards,
+                    } => {
                         filter.relation = Relation::Other;
-                        Target::GraveyardCard { filter, who }
+                        Target::GraveyardCard {
+                            filter,
+                            who,
+                            graveyards,
+                        }
                     }
                     Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
                         Target::GraveyardCard {
@@ -4803,6 +4834,7 @@ impl P {
                                 ..Default::default()
                             },
                             who: Who::You,
+                            graveyards: false,
                         }
                     }
                     other => other,
@@ -5082,6 +5114,14 @@ impl P {
             || self.at_words(&["cards", "from"])
         {
             self.pos += if mv_after { 1 } else { 2 };
+            // `from graveyards`: several targets from any graveyards.
+            if self.eat_word("graveyards") {
+                return Ok(Target::GraveyardCard {
+                    filter: f,
+                    who: Who::Any,
+                    graveyards: true,
+                });
+            }
             let who = if self.eat_word("your") {
                 Who::You
             } else if self.eat_words(&["an", "opponent's"]) {
@@ -5091,7 +5131,11 @@ impl P {
                 Who::Any
             };
             self.expect_word("graveyard")?;
-            return Ok(Target::GraveyardCard { filter: f, who });
+            return Ok(Target::GraveyardCard {
+                filter: f,
+                who,
+                graveyards: false,
+            });
         }
         Ok(Target::Filter(f))
     }
@@ -5264,6 +5308,10 @@ impl P {
                 {
                     f.status.blocked = Some(w == "blocked");
                     self.pos += 1;
+                }
+                "dealt" if self.at_words(&["dealt", "damage", "by", "this", "this", "turn"]) => {
+                    f.status.damaged_by_source = true;
+                    self.pos += 6;
                 }
                 "dealt" if self.at_words(&["dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;

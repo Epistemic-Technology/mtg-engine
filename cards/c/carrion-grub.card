@@ -1,0 +1,8 @@
+card "Carrion Grub" {
+  oracle_id c54b375d-a456-4886-96f2-8dc7a0024a5b
+  cost {3}{B}
+  type Creature — Insect
+  pt 0/5
+  static this: +1/+0 count where greatest power graveyard creature
+  triggered when this enters: mill 4 cards
+}

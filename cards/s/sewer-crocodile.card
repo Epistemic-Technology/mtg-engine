@@ -1,0 +1,7 @@
+card "Sewer Crocodile" {
+  oracle_id b01e9ff2-865a-401e-a839-568cd4a0451d
+  cost {5}{U}
+  type Creature — Crocodile
+  pt 4/6
+  activated {3}{U}, reduced {3} if 5 mana values in your graveyard: this can't be blocked
+}

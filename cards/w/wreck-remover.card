@@ -1,0 +1,8 @@
+card "Wreck Remover" {
+  oracle_id 89c89499-23a8-412d-9406-1a7ffc88c64d
+  cost {4}
+  type Artifact Creature — Construct
+  pt 3/4
+  triggered whenever this enters or attacks: exile up to 1 target card from a graveyard; you gain 1 life
+  cycling {2}
+}

@@ -1,0 +1,9 @@
+card "Fiery Impulse" {
+  oracle_id 27c84ad1-1491-459b-bf8a-0146062084dc
+  cost {R}
+  type Instant
+  spell {
+  deal 2 damage to target creature
+  label "Spell mastery" if 2 instant or sorcery cards in your graveyard, deal 3 damage instead
+  }
+}

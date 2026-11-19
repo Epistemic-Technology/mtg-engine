@@ -1,0 +1,9 @@
+card "Toxic Stench" {
+  oracle_id 9c3be33b-0be9-49ec-8160-898cbcab8814
+  cost {1}{B}
+  type Instant
+  spell {
+  target nonblack creature gets -1/-1
+  label "Threshold" if threshold, instead destroy that target 1 without regeneration
+  }
+}

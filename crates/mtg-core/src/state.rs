@@ -931,6 +931,10 @@ pub struct GameState {
     /// Sources that dealt damage this turn ("that dealt damage this
     /// turn"), each once.
     pub dealt_damage_this_turn: Vec<ObjId>,
+    /// (source, creature) pairs: the source dealt damage to the creature
+    /// this turn ("a creature dealt damage by this creature this turn"),
+    /// each once.
+    pub damaged_by_this_turn: Vec<(ObjId, ObjId)>,
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
@@ -972,6 +976,10 @@ pub struct GameState {
     /// Creatures put into a graveyard from the battlefield this turn
     /// (morbid).
     pub creatures_died_this_turn: u16,
+    /// Those creatures as they last existed (CR 700.4): the object they
+    /// were, their controller, and their characteristics, for "for each
+    /// Zubera that died this turn". Empty, unallocated, on most turns.
+    pub died_this_turn: Vec<(ObjId, PlayerId, Characteristics)>,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
     /// Players who discarded a card this turn, one bit each.
@@ -2179,7 +2187,7 @@ impl GameState {
                         && obj.owner == caster
                         && self.pool.get(obj.def).is_creature();
                 }
-                if let TargetSpec::GraveyardCard { filter, who } = spec {
+                if let TargetSpec::GraveyardCard { filter, who, .. } = spec {
                     let whose = match who {
                         crate::card::Who::Any => true,
                         crate::card::Who::You => obj.owner == caster,

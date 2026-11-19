@@ -1,0 +1,7 @@
+card "Caged Zombie" {
+  oracle_id 430b3e61-09a5-4390-b377-89830cacf66e
+  cost {2}{B}
+  type Creature — Zombie
+  pt 2/3
+  activated {1}{B}, {T}, if creature died this turn: each opponent loses 2 life
+}

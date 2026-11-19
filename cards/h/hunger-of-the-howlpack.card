@@ -1,0 +1,9 @@
+card "Hunger of the Howlpack" {
+  oracle_id 296dee6b-6ec1-4ea4-8dc3-23080dd37646
+  cost {G}
+  type Instant
+  spell {
+  put 1 +1/+1 counter on target creature
+  label "Morbid" put 3 +1/+1 counters on that target 1 instead if creature died this turn
+  }
+}

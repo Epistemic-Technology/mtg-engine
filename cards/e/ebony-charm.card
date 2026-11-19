@@ -1,0 +1,10 @@
+card "Ebony Charm" {
+  oracle_id 2f3237fe-9e07-4aad-8bc8-7ef4b510dd36
+  cost {B}
+  type Instant
+  choose one {
+    mode: target opponent loses 1 life and you gain 1 life
+    mode: exile up to 3 target card from a graveyard
+    mode: target creature gains fear
+  }
+}

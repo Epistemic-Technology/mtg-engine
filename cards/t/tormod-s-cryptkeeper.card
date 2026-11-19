@@ -1,0 +1,8 @@
+card "Tormod's Cryptkeeper" {
+  oracle_id 8c846841-1b44-4bc5-b803-76baaa217548
+  cost {3}
+  type Artifact Creature — Golem
+  pt 3/2
+  keywords vigilance
+  activated {T}, sacrifice this: exile graveyard of target player
+}

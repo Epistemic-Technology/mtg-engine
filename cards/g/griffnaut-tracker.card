@@ -1,0 +1,8 @@
+card "Griffnaut Tracker" {
+  oracle_id 6eff5e17-946b-4433-9f48-88f103844c42
+  cost {3}{W}
+  type Creature — Human Detective
+  pt 3/2
+  keywords flying
+  triggered when this enters: exile up to 2 target card from a graveyard
+}

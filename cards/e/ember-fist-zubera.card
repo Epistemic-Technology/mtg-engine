@@ -1,0 +1,7 @@
+card "Ember-Fist Zubera" {
+  oracle_id 52a98d1c-602b-4893-870c-190317294181
+  cost {1}{R}
+  type Creature — Zubera Spirit
+  pt 1/2
+  triggered when this dies: deal count equal Zubera died this turn damage to any target
+}

@@ -1,0 +1,8 @@
+card "Gran Pulse Ochu" {
+  oracle_id 09b71c95-7b5d-4cee-a505-e0dda72715b7
+  cost {G}
+  type Creature — Plant Beast
+  pt 1/1
+  keywords deathtouch
+  activated {8}: until end of turn, this gets +1/+1 count each graveyard permanent card
+}

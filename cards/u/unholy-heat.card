@@ -1,0 +1,9 @@
+card "Unholy Heat" {
+  oracle_id b23cba46-6ed2-442d-bc39-7c4933f6b083
+  cost {R}
+  type Instant
+  spell {
+  deal 2 damage to target creature or planeswalker
+  label "Delirium" deal 6 damage instead if delirium
+  }
+}

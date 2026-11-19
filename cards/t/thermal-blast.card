@@ -1,0 +1,9 @@
+card "Thermal Blast" {
+  oracle_id 52ad1a31-3ad8-4ead-ba77-675cad7e4a14
+  cost {4}{R}
+  type Instant
+  spell {
+  deal 3 damage to target creature
+  label "Threshold" deal 5 damage instead if threshold
+  }
+}

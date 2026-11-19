@@ -1,0 +1,9 @@
+card "Kamahl's Sledge" {
+  oracle_id defa9b92-4b54-4b00-852e-6c5ec4015643
+  cost {5}{R}{R}
+  type Sorcery
+  spell {
+  deal 4 damage to target creature
+  label "Threshold" if threshold, instead deal 4 damage to that target 1 and deal 4 damage to controller of that target 1
+  }
+}

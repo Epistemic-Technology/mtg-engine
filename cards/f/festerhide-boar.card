@@ -1,0 +1,8 @@
+card "Festerhide Boar" {
+  oracle_id be1fc2cf-00b8-424f-b683-3743fba285c9
+  cost {3}{G}
+  type Creature — Boar
+  pt 3/3
+  keywords trample
+  label "Morbid" enters with 2 +1/+1 counters if creature died this turn
+}

@@ -988,6 +988,11 @@ pub struct StatusQuals {
     /// "that blocked this turn": it was declared as a blocker this turn
     /// (CR 509.1).
     pub blocked_this_turn: bool,
+    /// "dealt damage by this creature this turn": the source dealt damage
+    /// to it this turn (`GameState::damaged_by_this_turn`). Judged only by
+    /// dies triggers ("Whenever a creature dealt damage by this creature
+    /// this turn dies", looking back, CR 603.10a).
+    pub damaged_by_source: bool,
     /// "with mana value X": `ObjFilter::mana_value`'s number is the X of
     /// the spell (CR 107.3, 601.2b: X is announced before targets are
     /// chosen), filled in by the engine where X is known; elsewhere the
@@ -1003,6 +1008,7 @@ impl StatusQuals {
             || self.entered_this_turn
             || self.dealt_damage
             || self.blocked_this_turn
+            || self.damaged_by_source
             || self.mana_value_x
     }
 }
@@ -1506,6 +1512,14 @@ pub enum CountExpr {
     /// The mana from Treasures spent to cast the source ("for each mana
     /// from a Treasure spent to cast it").
     SpentTreasure,
+    /// Creatures put into a graveyard from the battlefield this turn that
+    /// matched the filter as they last existed ("for each Zubera that
+    /// died this turn"; CR 700.4).
+    DiedThisTurn(ObjFilter),
+    /// The greatest power among cards in your graveyard matching the
+    /// filter ("the greatest power among creature cards in your
+    /// graveyard"); 0 with none.
+    GreatestPowerInGraveyard(ObjFilter),
 }
 
 /// Where a spell countered this way goes (CR 701.5a: its owner's
@@ -2122,10 +2136,14 @@ pub enum TargetSpec {
     SpellFiltered(u16),
     /// A card in a graveyard matching the filter ("target card from a
     /// graveyard", "target instant card from your graveyard"); `who` is
-    /// whose graveyard, judged from the caster.
+    /// whose graveyard, judged from the caster. Several such targets of
+    /// one ability with `who` `Any` come from a single graveyard ("up to
+    /// two target cards from a single graveyard") unless `graveyards`
+    /// ("up to two target cards from graveyards").
     GraveyardCard {
         filter: u16,
         who: Who,
+        graveyards: bool,
     },
     /// "up to two target creatures" (CR 601.2c, 115.1d): the pool's `n`th
     /// optional spec (`CardPool::up_to`). The caster may stop choosing at
@@ -2521,6 +2539,11 @@ pub enum Effect {
     },
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
+    /// Exile every card in the recipient players' graveyards ("Exile target
+    /// player's graveyard", "Exile each opponent's graveyard").
+    ExileGraveyard {
+        who: Recipient,
+    },
     /// Create a replacement or prevention effect that lasts until end of
     /// turn (CR 614.3, 615.3): "Prevent all combat damage that would be
     /// dealt this turn", "Prevent the next 4 damage that would be dealt to

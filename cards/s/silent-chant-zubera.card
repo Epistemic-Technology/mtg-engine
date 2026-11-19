@@ -1,0 +1,7 @@
+card "Silent-Chant Zubera" {
+  oracle_id 8d5a8513-0728-46ff-be72-3aefa07c7658
+  cost {1}{W}
+  type Creature — Zubera Spirit
+  pt 1/2
+  triggered when this dies: you gain count each 2 Zubera died this turn life
+}

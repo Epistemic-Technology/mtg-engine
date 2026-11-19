@@ -210,6 +210,8 @@ impl GameState {
         }
         if old.zone == Zone::Battlefield && to == Zone::Graveyard && characteristics.is_creature() {
             self.creatures_died_this_turn = self.creatures_died_this_turn.saturating_add(1);
+            self.died_this_turn
+                .push((id, old.controller, characteristics));
         }
         let old_flags = self.flags_of(&old);
         self.lki.insert(
@@ -831,6 +833,9 @@ impl GameState {
                     }
                     if deathtouch {
                         o.deathtouch_damage = true;
+                    }
+                    if !self.damaged_by_this_turn.contains(&(source, id)) {
+                        self.damaged_by_this_turn.push((source, id));
                     }
                 }
                 self.bump();

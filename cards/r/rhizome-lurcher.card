@@ -1,0 +1,7 @@
+card "Rhizome Lurcher" {
+  oracle_id 85e18895-d1d2-46c7-afd0-31da410c0438
+  cost {2}{B}{G}
+  type Creature — Fungus Zombie
+  pt 2/2
+  label "Undergrowth" enters with count equal graveyard creature +1/+1 counters
+}

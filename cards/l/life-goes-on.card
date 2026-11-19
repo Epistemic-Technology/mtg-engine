@@ -1,0 +1,6 @@
+card "Life Goes On" {
+  oracle_id 15d2176b-ab3d-4738-bcbc-bcebf891d16e
+  cost {G}
+  type Instant
+  spell: you gain 4 life; if creature died this turn, you gain 8 life instead
+}

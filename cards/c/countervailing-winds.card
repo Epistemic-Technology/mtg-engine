@@ -1,0 +1,7 @@
+card "Countervailing Winds" {
+  oracle_id 2c51e20b-07b2-4c96-8d73-87379aafbc7c
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each graveyard
+  cycling {2}
+}

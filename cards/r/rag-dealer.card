@@ -1,0 +1,7 @@
+card "Rag Dealer" {
+  oracle_id 493acba2-92b0-43a4-9f4b-d49a91ca77f5
+  cost {B}
+  type Creature — Human Rogue
+  pt 1/1
+  activated {2}{B}, {T}: exile up to 3 target card from a graveyard
+}

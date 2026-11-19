@@ -1,0 +1,7 @@
+card "Moldgraf Millipede" {
+  oracle_id 48edac92-0dd8-4274-bf1b-122243770540
+  cost {4}{G}
+  type Creature — Insect Horror
+  pt 2/2
+  triggered when this enters: mill 3 cards then put count each graveyard creature +1/+1 counters on this creature
+}

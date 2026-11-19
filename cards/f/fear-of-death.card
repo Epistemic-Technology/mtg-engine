@@ -1,0 +1,8 @@
+card "Fear of Death" {
+  oracle_id 5187c0b2-1996-42ea-bd77-3031b3add596
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: mill 2 cards
+  static enchanted: -1/-0 count where graveyard
+}
