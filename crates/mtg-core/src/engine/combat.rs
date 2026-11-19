@@ -154,7 +154,11 @@ impl GameState {
             return false;
         }
         // CR 702.16e: can't be blocked by creatures with the quality.
-        if a.protected_from(&b, &self.pool) {
+        if a.protected_from(
+            &b,
+            self.objects[blocker].controller != self.objects[attacker].controller,
+            &self.pool,
+        ) {
             return false;
         }
         // CR 509.1b: blocking restrictions of the attacker and the blocker.

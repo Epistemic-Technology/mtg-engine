@@ -1,0 +1,8 @@
+card "Guardian's Magemark" {
+  oracle_id 95348ba4-038d-4f86-8be0-eb1a68a1f231
+  cost {2}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static creature you control with aura late: +1/+1
+}

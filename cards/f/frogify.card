@@ -1,0 +1,7 @@
+card "Frogify" {
+  oracle_id 32249228-e300-4865-b977-5e1f285d02f2
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: loses all abilities, set color blue, set subtype Frog, set type creature, base 1/1
+}

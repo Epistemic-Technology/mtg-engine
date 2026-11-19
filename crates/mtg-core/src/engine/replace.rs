@@ -244,9 +244,12 @@ impl GameState {
     fn candidates(&self, ev: &Proposed, applied: &Applied) -> Vec<Candidate> {
         let mut out = Vec::new();
         if self.replacement_sources > 0 {
+            // A permanent may have a replacement ability granted to it
+            // (absorb from Lymph Sliver).
+            let granted = self.grant_sources > 0;
             for id in &self.battlefield {
                 let o = &self.objects[*id];
-                if !self.flags_of(o).has_replacements() {
+                if !granted && !self.flags_of(o).has_replacements() {
                     continue;
                 }
                 let Some(c) = self.characteristics(*id) else {
@@ -677,11 +680,18 @@ impl GameState {
                     combat,
                 },
             ) => {
-                let prevented = match c.key {
-                    Key::Stored(i) if !unpreventable => {
+                let prevented = match (c.key, c.ability.replacement) {
+                    (Key::Stored(i), _) if !unpreventable => {
                         let p = amount.min(self.replacements[i].remaining);
                         self.replacements[i].remaining -= p;
                         p
+                    }
+                    // A static ability prevents N of each damage event, not
+                    // a shield (absorb, CR 702.64a).
+                    (Key::Ability { .. }, Replacement::PreventNext(crate::card::Num::N(n)))
+                        if !unpreventable =>
+                    {
+                        amount.min(n)
                     }
                     _ => 0,
                 };

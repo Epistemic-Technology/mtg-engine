@@ -1,0 +1,7 @@
+card "Poultice Sliver" {
+  oracle_id 6be3cf35-f774-4afb-8c1f-5c9b616a2b3f
+  cost {2}{W}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver: has ability { activated {2}, {T}: regenerate target Sliver }
+}

@@ -1,0 +1,7 @@
+card "Nameless Inversion" {
+  oracle_id d6911456-42cb-4b23-a560-dc98784530f5
+  cost {1}{B}
+  type Kindred Instant — Shapeshifter
+  keywords changeling
+  spell: target creature gets +3/-3 and loses all creature types
+}

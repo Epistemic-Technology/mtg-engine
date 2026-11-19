@@ -1,0 +1,7 @@
+card "Hunter Sliver" {
+  oracle_id f28b2ebe-49ef-4585-9bf2-7340abf3f0d3
+  cost {1}{R}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has provoke
+}

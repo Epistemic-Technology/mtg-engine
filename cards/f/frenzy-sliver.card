@@ -1,0 +1,7 @@
+card "Frenzy Sliver" {
+  oracle_id d512d4ae-5db3-4fe5-8017-6a942004712d
+  cost {1}{B}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has frenzy 1
+}

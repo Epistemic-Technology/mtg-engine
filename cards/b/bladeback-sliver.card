@@ -1,0 +1,7 @@
+card "Bladeback Sliver" {
+  oracle_id a64656b2-0f0c-4239-9dfe-a9ddc7ada733
+  cost {1}{R}
+  type Creature — Sliver
+  pt 2/2
+  label "Hellbent" static as long as hand 0 or less, Sliver creature you control: has ability { activated {T}: deal 1 damage to target player or planeswalker }
+}

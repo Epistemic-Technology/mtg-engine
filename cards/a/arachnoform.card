@@ -1,0 +1,7 @@
+card "Arachnoform" {
+  oracle_id 2e41ae94-db31-4060-881b-a2f6d834c1ee
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has reach, add subtype every
+}

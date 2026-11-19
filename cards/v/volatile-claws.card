@@ -1,0 +1,6 @@
+card "Volatile Claws" {
+  oracle_id 0a064c10-5bd1-41ec-b2b5-d0eb33c73c9b
+  cost {2}{R}
+  type Instant
+  spell: until end of turn, each creature you control gets +2/+0 and gains all creature types
+}

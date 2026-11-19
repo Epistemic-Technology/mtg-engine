@@ -1,0 +1,6 @@
+card "Crypsis" {
+  oracle_id 6077e650-32f9-4954-8286-9c8a3f3227ae
+  cost {1}{U}
+  type Instant
+  spell: target creature you control gains protection from creature your opponents control; untap target 1
+}

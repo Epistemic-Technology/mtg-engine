@@ -1,0 +1,6 @@
+card "Quick Draw" {
+  oracle_id ae0d17f6-859c-4b41-8b66-b68abb837bbb
+  cost {R}
+  type Instant
+  spell: target creature you control gets +1/+1 and gains first strike; each creature target opponent controls loses first strike, double strike
+}

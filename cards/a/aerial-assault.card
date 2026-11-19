@@ -1,0 +1,6 @@
+card "Aerial Assault" {
+  oracle_id a4eb06ca-16d8-41c2-8fc6-22e73872b5b0
+  cost {2}{W}
+  type Sorcery
+  spell: destroy target tapped creature; you gain count each creature you control with flying life
+}

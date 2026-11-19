@@ -1,0 +1,6 @@
+card "Angelic Intervention" {
+  oracle_id 3d036f68-5f3a-4182-88f0-cdd685817dd0
+  cost {1}{W}
+  type Instant
+  spell: target creature or planeswalker you control gains protection from colorless or from color of choice; if target 1 is creature, put 1 +1/+1 counter on target 1
+}

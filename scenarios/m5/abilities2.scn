@@ -1,0 +1,514 @@
+# Abilities granted, lost, and protected against (CR 613.1f, layer 6;
+# CR 702.16 protection): protection from a quality other than a color
+# granted by an Aura or a spell, "protection from black and from red",
+# Sliver lords granting quoted abilities ("this permanent") and keyword
+# abilities (poisonous, frenzy, absorb, provoke, outlast) to every Sliver,
+# "loses all abilities and is a blue Frog creature" (layers 4-7b), "is
+# every creature type" / "gains all creature types" / "loses all creature
+# types" (layer 4), groups qualified after the controller ("creatures you
+# control that are enchanted", "with defender", "with power 5 or
+# greater").
+
+# ---- protection ----
+
+scenario "Guildscorn Ward: a multicolored spell can't target it, a monocolored one can" {
+  battlefield A: "Grizzly Bears", "Guildscorn Ward" on "Grizzly Bears"
+  battlefield B: 3 "Swamp", 3 "Mountain"
+  hand B: "Auger Spree", "Shock"
+  start turn 1 B precombat_main
+  illegal turn 1 B: cast "Auger Spree" targeting "Grizzly Bears"
+  turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Tel-Jilad Defiance: protection from artifacts stops Rod of Ruin, and draws" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  hand A: "Tel-Jilad Defiance"
+  turn 1 A: cast "Tel-Jilad Defiance" targeting "Grizzly Bears"
+  illegal turn 1 end B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert hand A count 1
+}
+
+scenario "Tel-Jilad Defiance: without it, Rod of Ruin can target the creature" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  start turn 1 B precombat_main
+  turn 1 B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Kitsune Riftwalker: protection from Arcane stops an Arcane spell" {
+  battlefield A: "Kitsune Riftwalker", "Holy Strength" on "Kitsune Riftwalker"
+  battlefield B: "Island"
+  hand B: "Cut the Earthly Bond"
+  start turn 1 B precombat_main
+  illegal turn 1 B: cast "Cut the Earthly Bond" targeting "Kitsune Riftwalker"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Kitsune Riftwalker: protection from Spirits, so a Spirit can't block it" {
+  battlefield A: "Kitsune Riftwalker"
+  battlefield B: "Accursed Spirit"
+  turn 1 A: attack "Kitsune Riftwalker"
+  illegal turn 1 B: block "Kitsune Riftwalker" with "Accursed Spirit"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Shield of Duty and Reason: protection from green and from blue" {
+  battlefield A: "Hill Giant", "Shield of Duty and Reason" on "Hill Giant"
+  battlefield B: "Forest", "Mountain"
+  hand B: "Giant Growth", "Shock"
+  start turn 1 B precombat_main
+  illegal turn 1 B: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 B: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Mask of Law and Grace: protection from red stops Shock" {
+  battlefield A: "Grizzly Bears", "Mask of Law and Grace" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  illegal turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+# ---- Slivers ----
+
+scenario "Mnemonic Sliver: every Sliver, the opponent's too, can sacrifice itself to draw" {
+  battlefield A: "Mnemonic Sliver", 2 "Island"
+  battlefield B: "Clot Sliver", 2 "Swamp"
+  start turn 1 B precombat_main
+  turn 1 B: activate "Clot Sliver" ability 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Clot Sliver"
+  assert hand B count 1
+}
+
+scenario "Clot Sliver: a Sliver regenerates" {
+  battlefield A: "Clot Sliver", "Mindlash Sliver", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 B precombat_main
+  turn 1 A: activate "Mindlash Sliver" ability 1
+  turn 1 B: cast "Shock" targeting "Mindlash Sliver"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Mindlash Sliver"
+  assert tapped "Mindlash Sliver"
+}
+
+scenario "Mindlash Sliver: each player discards" {
+  battlefield A: "Mindlash Sliver", "Swamp"
+  hand A: "Shock"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Mindlash Sliver"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mindlash Sliver"
+  assert graveyard A contains "Shock"
+  assert graveyard B contains "Lightning Bolt"
+}
+
+scenario "Poultice Sliver: only a Sliver can be the target" {
+  battlefield A: "Poultice Sliver", "Grizzly Bears", 2 "Plains"
+  illegal turn 1 A: activate "Poultice Sliver" targeting "Grizzly Bears"
+  turn 1 A: activate "Poultice Sliver" targeting "Poultice Sliver"
+  run_to turn 1 postcombat_main
+  assert tapped "Poultice Sliver"
+}
+
+scenario "Virulent Sliver: combat damage to a player gives a poison counter" {
+  battlefield A: "Virulent Sliver", "Frenzy Sliver"
+  turn 1 A: attack "Virulent Sliver"
+  run_to turn 1 postcombat_main
+  assert poison B 1
+  assert life B 18
+}
+
+scenario "Frenzy Sliver: unblocked, +1/+0" {
+  battlefield A: "Frenzy Sliver"
+  turn 1 A: attack "Frenzy Sliver"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Frenzy Sliver: blocked, no bonus" {
+  battlefield A: "Frenzy Sliver"
+  battlefield B: "Wall of Wood"
+  turn 1 A: attack "Frenzy Sliver"
+  turn 1 B: block "Frenzy Sliver" with "Wall of Wood"
+  run_to turn 1 postcombat_main
+  assert damage "Wall of Wood" 1
+}
+
+scenario "Lymph Sliver: absorb 1 prevents 1 of each damage, again and again" {
+  battlefield A: "Lymph Sliver"
+  battlefield B: 2 "Mountain"
+  hand B: "Shock", "Shock"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Shock" targeting "Lymph Sliver"
+  turn 1 B: wait
+  turn 1 B: cast "Shock" targeting "Lymph Sliver"
+  run_to turn 1 end
+  assert battlefield A contains "Lymph Sliver"
+  assert damage "Lymph Sliver" 2
+}
+
+scenario "Hunter Sliver: provoke untaps the creature and makes it block" {
+  battlefield A: "Hunter Sliver"
+  battlefield B: "Grizzly Bears" tapped
+  turn 1 A: attack "Hunter Sliver"
+  turn 1 A: trigger "Hunter Sliver" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Hunter Sliver"
+}
+
+scenario "Enduring Sliver: another Sliver has outlast {2}" {
+  battlefield A: "Enduring Sliver", "Frenzy Sliver", 2 "Plains"
+  turn 1 A: activate "Frenzy Sliver"
+  run_to turn 1 postcombat_main
+  assert counters "Frenzy Sliver" +1/+1 1
+  assert tapped "Frenzy Sliver"
+}
+
+scenario "Bladeback Sliver: hellbent, a Sliver pings" {
+  battlefield A: "Bladeback Sliver", "Frenzy Sliver"
+  turn 1 A: activate "Frenzy Sliver" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Bladeback Sliver: with a card in hand, no ping" {
+  battlefield A: "Bladeback Sliver", "Frenzy Sliver"
+  hand A: "Shock"
+  illegal turn 1 A: activate "Frenzy Sliver" targeting player B
+  run_to turn 1 postcombat_main
+}
+
+# ---- losing abilities and types ----
+
+scenario "Frogify: a 1/1 blue Frog creature with no abilities, not an artifact" {
+  battlefield A: "Ornithopter", "Frogify" on "Ornithopter"
+  run_to turn 1 precombat_main
+  assert power "Ornithopter" 1
+  assert toughness "Ornithopter" 1
+  assert has not "Ornithopter" flying
+  assert is "Ornithopter" Frog
+  assert is "Ornithopter" blue
+  assert is "Ornithopter" creature
+  assert is not "Ornithopter" artifact
+}
+
+scenario "Reprobation: a 0/1 Coward that stays legendary" {
+  battlefield A: "Aang, Air Nomad", "Reprobation" on "Aang, Air Nomad"
+  run_to turn 1 precombat_main
+  assert power "Aang, Air Nomad" 0
+  assert toughness "Aang, Air Nomad" 1
+  assert is "Aang, Air Nomad" Coward
+  assert is not "Aang, Air Nomad" Avatar
+  assert is "Aang, Air Nomad" legendary
+  assert no_abilities "Aang, Air Nomad"
+}
+
+scenario "Ichthyomorphosis: a 0/1 blue Fish" {
+  battlefield A: "Serra Angel", "Ichthyomorphosis" on "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 0
+  assert is "Serra Angel" Fish
+  assert is not "Serra Angel" Angel
+  assert is not "Serra Angel" white
+  assert has not "Serra Angel" flying
+}
+
+scenario "Quick Draw: the opponent's creatures lose first strike" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Youthful Knight"
+  hand A: "Quick Draw"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Youthful Knight"
+  turn 1 declare_blockers A: cast "Quick Draw" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Youthful Knight"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Whiteout: all creatures lose flying" {
+  battlefield A: "Forest", "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Whiteout"
+  turn 1 A: cast "Whiteout"
+  run_to turn 1 postcombat_main
+  assert has not "Serra Angel" flying
+  assert has "Serra Angel" vigilance
+}
+
+scenario "Wishful Merfolk: loses defender and becomes a Human, so it can attack" {
+  battlefield A: "Wishful Merfolk", 2 "Island"
+  turn 1 A: activate "Wishful Merfolk"
+  turn 1 A: attack "Wishful Merfolk"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert is "Wishful Merfolk" Human
+  assert is not "Wishful Merfolk" Merfolk
+}
+
+scenario "Wishful Merfolk: a defender can't attack" {
+  battlefield A: "Wishful Merfolk"
+  illegal turn 1 A: attack "Wishful Merfolk"
+  run_to turn 1 postcombat_main
+}
+
+# ---- creature types ----
+
+scenario "Runed Stalactite: the equipped creature is every creature type" {
+  battlefield A: "Grizzly Bears", "Runed Stalactite" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert is "Grizzly Bears" Goblin
+  assert is "Grizzly Bears" Bear
+  assert has not "Grizzly Bears" changeling
+}
+
+scenario "Nameless Inversion: loses all creature types, a changeling's too" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Amoeboid Changeling"
+  hand A: "Nameless Inversion"
+  turn 1 A: cast "Nameless Inversion" targeting "Amoeboid Changeling"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Amoeboid Changeling"
+}
+
+scenario "Amoeboid Changeling: gains all creature types until end of turn" {
+  battlefield A: "Amoeboid Changeling", "Grizzly Bears"
+  turn 1 A: activate "Amoeboid Changeling" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Elf
+  assert is "Grizzly Bears" Bear
+  run_to turn 2 upkeep
+  assert is not "Grizzly Bears" Elf
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Amoeboid Changeling: loses all creature types until end of turn" {
+  battlefield A: "Amoeboid Changeling", "Grizzly Bears"
+  turn 1 A: activate "Amoeboid Changeling" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is not "Grizzly Bears" Bear
+  assert is "Grizzly Bears" creature
+  run_to turn 2 upkeep
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Undercover Skrull: two creature cards in the graveyard, a 3/3 of every type" {
+  battlefield A: "Undercover Skrull"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  run_to turn 1 precombat_main
+  assert power "Undercover Skrull" 3
+  assert is "Undercover Skrull" Goblin
+}
+
+scenario "Undercover Skrull: one creature card, still a 1/1" {
+  battlefield A: "Undercover Skrull"
+  graveyard A: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Undercover Skrull" 1
+  assert is not "Undercover Skrull" Goblin
+}
+
+scenario "Volatile Claws: creatures you control get +2/+0 and gain all creature types" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Volatile Claws"
+  turn 1 A: cast "Volatile Claws"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert is "Grizzly Bears" Wizard
+  assert is not "Hill Giant" Wizard
+}
+
+scenario "Wings of Velis Vel: a 4/4 flier of every creature type" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Wings of Velis Vel"
+  turn 1 A: cast "Wings of Velis Vel" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+  assert is "Grizzly Bears" Merfolk
+}
+
+# ---- groups ----
+
+scenario "Fencer's Magemark: your enchanted creatures get +1/+1 and first strike" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Fencer's Magemark" on "Grizzly Bears", "Holy Strength" on "Hill Giant"
+  battlefield B: "Llanowar Elves", "Pacifism" on "Llanowar Elves"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" first_strike
+  assert power "Hill Giant" 5
+  assert has "Hill Giant" first_strike
+  assert power "Llanowar Elves" 1
+  assert has not "Llanowar Elves" first_strike
+}
+
+scenario "Fencer's Magemark: a creature that isn't enchanted gets nothing" {
+  battlefield A: "Grizzly Bears", "Raging Goblin", "Fencer's Magemark" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Raging Goblin" 1
+  assert has not "Raging Goblin" first_strike
+}
+
+scenario "Stalwart Shield-Bearers: other creatures you control with defender get +0/+2" {
+  battlefield A: "Stalwart Shield-Bearers", "Wall of Wood", "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert toughness "Wall of Wood" 5
+  assert toughness "Stalwart Shield-Bearers" 3
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Gustrider Exuberant: only creatures with power 5 or greater gain flying" {
+  battlefield A: "Gustrider Exuberant", "Hill Giant", "Grizzly Bears", "Forest"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: activate "Gustrider Exuberant"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" flying
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "Inspiring Paladin: during your turn, creatures with +1/+1 counters have first strike" {
+  battlefield A: "Inspiring Paladin", "Grizzly Bears" with 1 +1/+1, "Raging Goblin"
+  run_to turn 1 precombat_main
+  assert has "Grizzly Bears" first_strike
+  assert has "Inspiring Paladin" first_strike
+  assert has not "Raging Goblin" first_strike
+  run_to turn 2 precombat_main
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "Vent Sentinel: damage equal to the creatures you control with defender" {
+  battlefield A: "Vent Sentinel", "Wall of Wood", "Grizzly Bears", 2 "Mountain"
+  turn 1 A: activate "Vent Sentinel" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Aerial Assault: destroy a tapped creature, 1 life per flier you control" {
+  battlefield A: "Serra Angel", "Ornithopter", "Grizzly Bears", 3 "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Aerial Assault"
+  turn 1 A: cast "Aerial Assault" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "Jaded Analyst: the second card drawn makes it lose defender" {
+  battlefield A: "Jaded Analyst", 3 "Island"
+  hand A: "Divination"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Divination"
+  turn 2 A: wait
+  turn 2 A: attack "Jaded Analyst"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert untapped "Jaded Analyst"
+}
+
+# ---- protection of your choice, protection from what opponents control ----
+
+scenario "Razor Barrier: protection from artifacts, chosen over a color" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  hand A: "Razor Barrier"
+  hand B: "Shock"
+  turn 1 A: cast "Razor Barrier" targeting "Grizzly Bears"
+  turn 1 A: choose "1"
+  illegal turn 1 end B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Razor Barrier: protection from the color of your choice" {
+  battlefield A: "Raging Goblin", 2 "Plains"
+  battlefield B: "Rod of Ruin", 4 "Mountain"
+  hand A: "Razor Barrier"
+  hand B: "Shock"
+  turn 1 A: cast "Razor Barrier" targeting "Raging Goblin"
+  turn 1 A: choose "2"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Raging Goblin"
+  turn 1 end B: activate "Rod of Ruin" targeting "Raging Goblin"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Angelic Intervention: protection from colorless and a +1/+1 counter on a creature" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  hand A: "Angelic Intervention"
+  turn 1 A: cast "Angelic Intervention" targeting "Grizzly Bears"
+  turn 1 A: choose "1"
+  illegal turn 1 end B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Crypsis: the opponent's creatures can't block it; it untaps" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Crypsis"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Crypsis" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Crypsis: a spell the opponent controls is not a creature, so it can still target" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Crypsis"
+  hand B: "Shock"
+  turn 1 A: cast "Crypsis" targeting "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Crypsis: a creature its controller controls can still target it" {
+  battlefield A: "Raging Goblin", "Prodigal Sorcerer", 2 "Island"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Crypsis"
+  turn 1 A: cast "Crypsis" targeting "Raging Goblin"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting "Raging Goblin"
+  turn 1 end A: activate "Prodigal Sorcerer" targeting "Raging Goblin"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Mistform Sliver: a Sliver becomes a chosen type in addition to its others" {
+  battlefield A: "Mistform Sliver", "Island"
+  turn 1 A: activate "Mistform Sliver"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert is "Mistform Sliver" Elf
+  assert is "Mistform Sliver" Sliver
+  assert is "Mistform Sliver" Illusion
+}
+
+scenario "Stonework Packbeast: also a Cleric, Rogue, Warrior, and Wizard" {
+  battlefield A: "Stonework Packbeast"
+  run_to turn 1 precombat_main
+  assert is "Stonework Packbeast" Cleric
+  assert is "Stonework Packbeast" Wizard
+  assert is "Stonework Packbeast" Beast
+}

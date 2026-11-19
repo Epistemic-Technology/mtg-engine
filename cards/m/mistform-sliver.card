@@ -1,0 +1,7 @@
+card "Mistform Sliver" {
+  oracle_id d29f59a4-b956-40e0-acd4-c2560e538baf
+  cost {1}{U}
+  type Creature — Illusion Sliver
+  pt 1/1
+  static all Sliver: has ability { activated {1}: this becomes creature type of choice in addition }
+}

@@ -1,0 +1,6 @@
+card "Apostle's Blessing" {
+  oracle_id ea393815-0202-4edc-aa1e-6885fe9b20ab
+  cost {1}{W/P}
+  type Instant
+  spell: target artifact or creature you control gains protection from artifact or from color of choice
+}

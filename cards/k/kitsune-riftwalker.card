@@ -1,0 +1,8 @@
+card "Kitsune Riftwalker" {
+  oracle_id 87e44296-6c79-4065-aa54-33e508293a79
+  cost {1}{W}{W}
+  type Creature — Fox Wizard
+  pt 2/1
+  protection from Spirit
+  protection from Arcane
+}

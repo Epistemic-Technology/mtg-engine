@@ -1,0 +1,8 @@
+card "Stalwart Shield-Bearers" {
+  oracle_id 55aafc25-76c5-4621-941b-754bd8f13e64
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 0/3
+  keywords defender
+  static other creature you control with defender: +0/+2
+}

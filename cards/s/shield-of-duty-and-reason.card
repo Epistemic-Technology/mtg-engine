@@ -1,0 +1,7 @@
+card "Shield of Duty and Reason" {
+  oracle_id 1c64ab87-1da1-4b07-a3f2-73631ae3d501
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has protection from green, protection from blue
+}

@@ -1,0 +1,7 @@
+card "Fencer's Magemark" {
+  oracle_id 5f08f79e-bbbe-4af0-ade6-9ad006a5a0d3
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static creature you control with aura late: +1/+1, has first strike
+}

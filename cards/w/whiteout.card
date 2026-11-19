@@ -1,0 +1,7 @@
+card "Whiteout" {
+  oracle_id 9e8de3e1-1159-460f-99b7-1043e5814597
+  cost {1}{G}
+  type Instant
+  spell: each creature loses flying
+  activated sacrifice snow land, from graveyard: return this to hand
+}

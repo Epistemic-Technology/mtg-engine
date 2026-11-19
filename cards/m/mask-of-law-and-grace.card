@@ -1,0 +1,7 @@
+card "Mask of Law and Grace" {
+  oracle_id 21474195-5d91-466d-8874-4818c900dea7
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has protection from black, protection from red
+}

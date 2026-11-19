@@ -1279,8 +1279,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Escape(c, n)))
             }
+            "provoke" => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Provoke))
+            }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
-            | "saddle"
+            | "saddle" | "poisonous" | "frenzy" | "absorb"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1294,6 +1299,9 @@ impl P {
                     "bloodthirst" => Mechanic::Bloodthirst(n),
                     "backup" => Mechanic::Backup(n),
                     "saddle" => Mechanic::Saddle(n),
+                    "poisonous" => Mechanic::Poisonous(n),
+                    "frenzy" => Mechanic::Frenzy(n),
+                    "absorb" => Mechanic::Absorb(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -1884,12 +1892,62 @@ impl P {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Toxic(self.number()?))));
         }
+        // "All Sliver creatures have poisonous 1", "... have provoke",
+        // "... have outlast {2}".
+        if let Some(w) = self.word_at(0)
+            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb")
+            && matches!(self.peek_at(1), Some(Tok::Num(_)))
+        {
+            self.pos += 1;
+            let n = self.number()?;
+            return Ok(Some(Ability::Mechanic(match w.as_str() {
+                "poisonous" => Mechanic::Poisonous(n),
+                "frenzy" => Mechanic::Frenzy(n),
+                _ => Mechanic::Absorb(n),
+            })));
+        }
+        if self.eat_word("provoke") {
+            return Ok(Some(Ability::Mechanic(Mechanic::Provoke)));
+        }
+        if self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            self.pos += 1;
+            return Ok(Some(Ability::Mechanic(Mechanic::Outlast(
+                self.mana_cost()?,
+            ))));
+        }
+        if self.granted_protection_ahead() {
+            self.pos += 2;
+            let filter = if self.eat_word("everything") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            return Ok(Some(Ability::Protection(filter)));
+        }
         Ok(None)
     }
 
     fn granted_mechanic_ahead(&self) -> bool {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || self.granted_protection_ahead()
+            || (self
+                .word_at(0)
+                .is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
+                && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || self.at_word("provoke")
+            || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
+    }
+
+    /// `protection from artifact` granted (CR 702.16): from a quality
+    /// other than a color (colors are keywords) or a choice.
+    fn granted_protection_ahead(&self) -> bool {
+        self.at_word("protection")
+            && self.word_at(1).as_deref() == Some("from")
+            && self
+                .word_at(2)
+                .as_deref()
+                .is_some_and(|w| color(w).is_none() && !matches!(w, "chosen" | "color" | "colors"))
     }
 
     fn nested_ability(&mut self) -> R<Ability> {
@@ -3462,6 +3520,15 @@ impl P {
             }
             "gain" | "gains" if self.at_word("ability") || self.granted_mechanic_ahead() => {
                 let ability = Box::new(if let Some(a) = self.granted_mechanic()? {
+                    if let Ability::Protection(filter) = &a
+                        && self.eat_words(&["or", "from", "color", "of", "choice"])
+                    {
+                        self.until_end_of_turn();
+                        return Ok(Effect::ProtectionOr {
+                            to: subject,
+                            filter: filter.clone(),
+                        });
+                    }
                     a
                 } else {
                     self.pos += 1;
@@ -3498,6 +3565,13 @@ impl P {
                         keywords,
                     });
                 }
+                if self.eat_words(&["all", "creature", "types"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::CreatureTypes {
+                        to: subject,
+                        all: true,
+                    });
+                }
                 if self.eat_words(&["protection", "from", "chosen", "color"]) {
                     self.until_end_of_turn();
                     return Ok(Effect::ProtectionFromChosen { to: subject });
@@ -3508,6 +3582,7 @@ impl P {
                         to: subject,
                         kind: ChoiceKind::Color { except: None },
                         protection: true,
+                        in_addition: false,
                     });
                 }
                 if let Some(k) = self.keyword() {
@@ -3660,6 +3735,13 @@ impl P {
             }
             // "loses all abilities and becomes a green Snake with base
             // power and toughness 1/1" (Snakeform): one effect.
+            "lose" | "loses" if self.eat_words(&["all", "creature", "types"]) => {
+                self.until_end_of_turn();
+                Ok(Effect::CreatureTypes {
+                    to: subject,
+                    all: false,
+                })
+            }
             "lose" | "loses" if self.at_words(&["all", "abilities", "and"]) => {
                 self.pos += 3;
                 // "loses all abilities and has base power and toughness
@@ -4064,11 +4146,13 @@ impl P {
                     || self.at_words(&["creature", "type", "of", "choice"])
                 {
                     let kind = self.choice_kind(true)?;
+                    let in_addition = self.eat_words(&["in", "addition"]);
                     self.until_end_of_turn();
                     return Ok(Effect::OfChoice {
                         to: subject,
                         kind,
                         protection: false,
+                        in_addition,
                     });
                 }
                 // "becomes all colors" (Scrapbasket).
@@ -4132,6 +4216,7 @@ impl P {
                             to: subject,
                             kind: ChoiceKind::LandType(lands),
                             protection: false,
+                            in_addition: false,
                         });
                     }
                     self.until_end_of_turn();
@@ -6950,6 +7035,9 @@ impl P {
                 {
                     f.status.enchanted = Some(w == "with");
                     self.pos += 2;
+                    if w == "with" && self.eat_word("late") {
+                        f.enchanted_late = true;
+                    }
                 }
                 // "an equipped creature" (`creature with Equipment`).
                 "with" if self.word_at(1).as_deref() == Some("equipment") && !f.status.equipped => {
@@ -8371,6 +8459,8 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            // "return it to its owner's hand instead".
+            "hand" => Outcome::Instead(Zone::Hand),
             "plus" => {
                 self.expect_word("one")?;
                 Outcome::PlusOne
@@ -8486,6 +8576,9 @@ impl P {
             "loses" | "lose" if self.keyword_ahead() => {
                 Ok(Mod::LosesKeywords(self.keyword_list()?))
             }
+            "loses" | "lose" if self.eat_words(&["all", "creature", "types"]) => {
+                Ok(Mod::NoCreatureTypes)
+            }
             "loses" | "lose" => {
                 self.expect_words(&["all", "abilities"])?;
                 Ok(Mod::RemoveAllAbilities)
@@ -8510,10 +8603,14 @@ impl P {
                             types.push(t);
                             self.pos += 1;
                         }
-                        if types.is_empty() || set {
+                        if types.is_empty() {
                             return self.fail("expected `add type <types>`");
                         }
-                        Ok(Mod::AddTypes(types))
+                        Ok(if set {
+                            Mod::SetTypes(types)
+                        } else {
+                            Mod::AddTypes(types)
+                        })
                     }
                     "land" if set && self.eat_word("chosen") => Ok(Mod::ChosenLandType),
                     "land" if !set && self.eat_word("all") => Ok(Mod::AddAllLandTypes),
@@ -8540,6 +8637,12 @@ impl P {
                         })
                     }
                     "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
+                    "subtype" if !set && self.eat_word("every") => {
+                        Ok(Mod::AllCreatureTypes { every: true })
+                    }
+                    "subtype" if !set && self.eat_word("all") => {
+                        Ok(Mod::AllCreatureTypes { every: false })
+                    }
                     "subtype" => {
                         let s = self.word()?;
                         Ok(if set {

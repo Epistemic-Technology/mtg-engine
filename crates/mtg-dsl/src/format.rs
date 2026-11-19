@@ -476,6 +476,17 @@ impl Fmt {
                     Some(Join::Comma) => ", ",
                     _ => " and ",
                 });
+                // "gets +0/+1 and gains all creature types": the subject
+                // is implied (written again, a group naming "target
+                // player" would declare a second target).
+                if let Effect::CreatureTypes { to, all } = e
+                    && matches!(&s.effects[i - 1],
+                        Effect::Pump { to: p, .. } | Effect::SetBasePt { to: p, .. } if p == to)
+                {
+                    out.push_str(if *all { "gains" } else { "loses" });
+                    out.push_str(" all creature types");
+                    continue;
+                }
             }
             out.push_str(&self.effect(e, targets));
         }
@@ -646,6 +657,16 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::ProtectionOr { to, filter: f } => format!(
+                "{} gains protection from {} or from color of choice",
+                self.recipient(*to, t),
+                filter(f)
+            ),
+            Effect::CreatureTypes { to, all } => format!(
+                "{} {} all creature types",
+                self.recipient(*to, t),
+                if *all { "gains" } else { "loses" }
+            ),
             Effect::GrantAbility { ability, to } => match granted_mechanic(ability) {
                 Some(m) => format!("{} gains {m}", self.recipient(*to, t)),
                 None => format!(
@@ -1318,6 +1339,7 @@ impl Fmt {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let verb = if *protection {
                     "gains protection from"
@@ -1325,9 +1347,10 @@ impl Fmt {
                     "becomes"
                 };
                 format!(
-                    "{} {verb} {}",
+                    "{} {verb} {}{}",
                     self.recipient(*to, t),
-                    choice_kind(kind, true)
+                    choice_kind(kind, true),
+                    if *in_addition { " in addition" } else { "" }
                 )
             }
             Effect::BecomeLandType {
@@ -1938,6 +1961,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
+        Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),
@@ -2156,7 +2180,14 @@ fn filter_one(f: &Filter) -> String {
         }
     }
     if let Some(e) = f.status.enchanted {
-        words.push(if e { "with aura" } else { "without aura" }.to_string());
+        words.push(
+            match (e, f.enchanted_late) {
+                (true, true) => "with aura late",
+                (true, false) => "with aura",
+                (false, _) => "without aura",
+            }
+            .to_string(),
+        );
     }
     if f.status.equipped {
         words.push("with Equipment".to_string());
@@ -2941,11 +2972,19 @@ fn nested(a: &Ability, groups: &[Filter]) -> String {
     s.trim().replace('\n', " ")
 }
 
+#[allow(clippy::too_many_lines)] // one arm per modification
 fn modification(m: &Mod) -> String {
     match m {
         Mod::AddAbility(_) => unreachable!("formatted with its groups"),
         Mod::AddTypes(ts) => format!(
             "add type {}",
+            ts.iter()
+                .map(|t| format!("{t:?}").to_lowercase())
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        Mod::SetTypes(ts) => format!(
+            "set type {}",
             ts.iter()
                 .map(|t| format!("{t:?}").to_lowercase())
                 .collect::<Vec<_>>()
@@ -2983,6 +3022,9 @@ fn modification(m: &Mod) -> String {
         Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
         Mod::LosesKeywords(ks) => format!("loses {}", keywords(ks)),
         Mod::RemoveAllAbilities => "loses all abilities".to_string(),
+        Mod::AllCreatureTypes { every: true } => "add subtype every".to_string(),
+        Mod::AllCreatureTypes { every: false } => "add subtype all".to_string(),
+        Mod::NoCreatureTypes => "loses all creature types".to_string(),
         Mod::SetPt {
             power: PtValue::Fixed(p),
             toughness: PtValue::Fixed(t),
@@ -3729,6 +3771,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bushido(n) => format!("bushido {n}"),
                 crate::ast::Mechanic::Soulshift(n) => format!("soulshift {n}"),
                 crate::ast::Mechanic::Afflict(n) => format!("afflict {n}"),
+                crate::ast::Mechanic::Poisonous(n) => format!("poisonous {n}"),
+                crate::ast::Mechanic::Frenzy(n) => format!("frenzy {n}"),
+                crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),
+                crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
@@ -3905,6 +3951,15 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
     match a {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
+        Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),
+        Ability::Protection(f) if *f == Filter::default() => {
+            Some("protection from everything".to_string())
+        }
+        Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
         _ => None,
     }
 }

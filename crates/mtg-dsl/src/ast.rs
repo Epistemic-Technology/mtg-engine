@@ -575,6 +575,9 @@ pub struct Filter {
     /// named ~ on the battlefield", "creature named ~ you control") rather
     /// than after it ("creature you control named ~").
     pub named_first: bool,
+    /// `with aura late`: "creatures you control that are enchanted"
+    /// (`status.enchanted`, printed after the controller).
+    pub enchanted_late: bool,
     /// `attached to this`, `attached to attached`, `attached to target 1`
     /// (`ObjFilter::attached_to`).
     pub attached_to: Option<AttachedRef>,
@@ -971,6 +974,16 @@ pub enum Mechanic {
     Soulshift(u32),
     /// CR 702.130: becomes blocked, defending player loses N life.
     Afflict(u32),
+    /// CR 702.70: combat damage to a player gives that player N poison
+    /// counters.
+    Poisonous(u32),
+    /// CR 702.68: attacks and isn't blocked, +N/+0 until end of turn.
+    Frenzy(u32),
+    /// CR 702.64: prevent N of each damage dealt to it.
+    Absorb(u32),
+    /// CR 702.39: attacks, you may have target creature defending player
+    /// controls untap and block it if able.
+    Provoke,
     /// CR 702.164: combat damage to a player also gives N poison counters.
     Toxic(u32),
     /// CR 702.21: becomes the target of an opponent's spell or ability,
@@ -1799,6 +1812,9 @@ pub enum TriggerObj {
 #[allow(clippy::large_enum_variant)]
 pub enum Mod {
     AddTypes(Vec<CardType>),
+    /// `set type creature`: "is a creature" (its other card types go,
+    /// layer 4).
+    SetTypes(Vec<CardType>),
     AddLandType(Color),
     SetLandType(Color),
     /// `set land Mountain Forest Plains`: "is a Mountain, Forest, and
@@ -1827,6 +1843,13 @@ pub enum Mod {
     /// `loses flying`.
     LosesKeywords(Vec<Keyword>),
     RemoveAllAbilities,
+    /// `add subtype every`: "is every creature type"; `add subtype all`:
+    /// "is all creature types" (`every` false). Layer 4.
+    AllCreatureTypes {
+        every: bool,
+    },
+    /// `loses all creature types` (layer 4).
+    NoCreatureTypes,
     SetPt {
         power: PtValue,
         toughness: PtValue,
@@ -2425,6 +2448,9 @@ pub enum Effect {
         to: Recipient,
         kind: ChoiceKind,
         protection: bool,
+        /// `becomes creature type of choice in addition`: "... in addition
+        /// to its other types".
+        in_addition: bool,
     },
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
@@ -2633,6 +2659,20 @@ pub enum Effect {
     /// and toughness until end of turn."
     SwitchPt {
         to: Recipient,
+    },
+    /// `target permanent you control gains protection from artifact or
+    /// from color of choice`: "gains protection from artifacts or from the
+    /// color of your choice until end of turn" (CR 702.16): the controller
+    /// chooses one as it resolves.
+    ProtectionOr {
+        to: Recipient,
+        filter: Filter,
+    },
+    /// `target creature gains all creature types` (`all`), `target
+    /// creature loses all creature types`, until end of turn (layer 4).
+    CreatureTypes {
+        to: Recipient,
+        all: bool,
     },
     /// `put land card from hand onto battlefield [tapped]`.
     PutFromHand {

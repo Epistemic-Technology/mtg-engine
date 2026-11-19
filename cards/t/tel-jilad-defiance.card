@@ -1,0 +1,9 @@
+card "Tel-Jilad Defiance" {
+  oracle_id 73c7d938-5cec-4f96-b649-3f67bef29407
+  cost {1}{G}
+  type Instant
+  spell {
+  target creature gains protection from artifact
+  draw 1 card
+  }
+}

@@ -1,0 +1,7 @@
+card "Mnemonic Sliver" {
+  oracle_id 101a5c2d-b0b4-45a7-b236-df474ac47356
+  cost {2}{U}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver: has ability { activated {2}, sacrifice this: draw 1 card }
+}

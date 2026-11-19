@@ -1,0 +1,8 @@
+card "Stonework Packbeast" {
+  oracle_id 782c47c5-b108-415c-9b70-a033ac52956f
+  cost {2}
+  type Artifact Creature — Beast
+  pt 2/1
+  static this: add subtype Cleric, add subtype Rogue, add subtype Warrior, add subtype Wizard
+  activated {2}: add any
+}

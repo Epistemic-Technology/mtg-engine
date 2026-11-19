@@ -220,13 +220,35 @@ impl Compiler<'_> {
             .any(|a| matches!(a, Ability::Mechanic(Mechanic::Evoke(_))))
             .then_some(mtg_core::card::Keyword::Evoke);
         let keywords = keywords.chain(protection).chain(evoke);
+        // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and
+        // Wizard.": the types apply in every zone, so they are the card's
+        // own (its static ability adds them again on the battlefield).
+        let mut subtypes: Vec<&str> = card.subtypes.iter().map(String::as_str).collect();
+        for a in &card.abilities {
+            if let Ability::Static {
+                filter,
+                mods,
+                condition: None,
+                ..
+            } = a
+                && render::also_subtypes(filter, mods).is_some()
+            {
+                for m in mods {
+                    if let Mod::AddSubtype(x) = m
+                        && !subtypes.contains(&x.as_str())
+                    {
+                        subtypes.push(x);
+                    }
+                }
+            }
+        }
         let mut b = Builder::new(
             card.display_name.as_deref().unwrap_or(&card.name),
             &card.cost.to_string(),
         )
         .supertypes(card.supertypes.iter().copied())
         .types(card.types.iter().copied())
-        .subtypes(&card.subtypes.iter().map(String::as_str).collect::<Vec<_>>())
+        .subtypes(&subtypes)
         .keywords(keywords)
         .text(&render::oracle_text(card, self.lookup));
         if let Some((p, t)) = card.pt {
@@ -1620,12 +1642,14 @@ impl Compiler<'_> {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let kind = self.choice_kind(kind);
                 out.push(CoreEffect::OfChoice {
                     to: r(*to),
                     kind,
                     protection: *protection,
+                    in_addition: *in_addition,
                 });
             }
             Effect::YouMay(inner) => {
@@ -1811,6 +1835,28 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
+            // One or the other, chosen as it resolves (CR 608.2d).
+            Effect::ProtectionOr { to, filter } => {
+                let mut list = Vec::new();
+                self.effect(
+                    &Effect::GrantAbility {
+                        ability: Box::new(Ability::Protection(filter.clone())),
+                        to: *to,
+                    },
+                    &mut list,
+                )?;
+                list.push(CoreEffect::OfChoice {
+                    to: r(*to),
+                    kind: mtg_core::card::ChoiceKind::Color { except: None },
+                    protection: true,
+                    in_addition: false,
+                });
+                out.push(CoreEffect::OneOf(list));
+            }
+            Effect::CreatureTypes { to, all } => out.push(CoreEffect::CreatureTypes {
+                to: r(*to),
+                all: *all,
+            }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
@@ -2171,6 +2217,9 @@ impl Compiler<'_> {
                 Modification::RemoveKeywords(KeywordSet::of(k.iter().copied()))
             }
             Mod::RemoveAllAbilities => Modification::RemoveAllAbilities,
+            Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
+            Mod::NoCreatureTypes => Modification::NoCreatureTypes,
+            Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),
             Mod::SetPt { power, toughness } => Modification::SetPt {
                 power: *power,
                 toughness: *toughness,
@@ -2742,6 +2791,67 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 toughness: i32::try_from(*n).unwrap_or(0),
                 to: Recipient::Source,
             }),
+        },
+        // CR 702.70a: "Whenever this creature deals combat damage to a
+        // player, that player gets N poison counters."
+        Mechanic::Poisonous(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::DealsCombatDamageToPlayer(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::AddPoison {
+                count: Num::N(*n),
+                who: Recipient::TriggeringPlayer,
+            }),
+        },
+        // CR 702.68a: "Whenever this creature attacks and isn't blocked,
+        // it gets +N/+0 until end of turn."
+        Mechanic::Frenzy(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::AttacksUnblocked(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::Pump {
+                power: i32::try_from(*n).unwrap_or(0),
+                toughness: 0,
+                to: Recipient::Source,
+            }),
+        },
+        // CR 702.64a: "If a source would deal damage to this creature,
+        // prevent N of that damage." A static `prevent next N` prevents N
+        // of each event (see `Replacement::PreventNext`).
+        Mechanic::Absorb(n) => Ability::Replacement(crate::ast::Replacement {
+            event: crate::ast::Replaces::Damage {
+                from: None,
+                to: crate::ast::Affects::This,
+                combat: None,
+                wording: crate::ast::DamageWording::default(),
+            },
+            outcome: mtg_core::card::Replacement::PreventNext(Num::N(*n)),
+            then: Vec::new(),
+        }),
+        // CR 702.39a: "Whenever this creature attacks, you may have target
+        // creature defending player controls untap and block this creature
+        // this turn if able."
+        Mechanic::Provoke => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                who: Some(Who::Opponents),
+                defending: true,
+                ..Filter::default()
+            })],
+            effects: one(E::YouMay(vec![Sentence::new(vec![
+                E::Untap {
+                    to: vec![Recipient::Target(0)],
+                },
+                E::BlocksIfAble {
+                    blocker: Recipient::Target(0),
+                    attacker: Recipient::Source,
+                },
+            ])])),
         },
         Mechanic::Afflict(n) => Ability::Triggered {
             from_graveyard: false,

@@ -88,6 +88,18 @@ impl Work<'_> {
                 .into_iter()
                 .collect();
         }
+        // "Creatures you control that are enchanted" (CR 303.4), "equipped
+        // creatures": judged with the Auras' and Equipment's working
+        // characteristics (`status_ok` would ask the cache being built).
+        let attached = filter.status.enchanted.is_some() || filter.status.equipped;
+        let rest = if attached {
+            let mut g = filter.clone();
+            g.status.enchanted = None;
+            g.status.equipped = false;
+            std::borrow::Cow::Owned(g)
+        } else {
+            std::borrow::Cow::Borrowed(filter)
+        };
         self.ids
             .iter()
             .copied()
@@ -97,9 +109,27 @@ impl Work<'_> {
                 let c = &self.chars[self.index[id]];
                 affectable
                     && filter.matches(*id, self.controller_of(*id), c, source, controller)
-                    && self.state.status_ok(filter, *id)
+                    && self.state.status_ok(&rest, *id)
+                    && (!attached || self.attached_ok(filter, *id))
             })
             .collect()
+    }
+
+    /// `status.enchanted` and `status.equipped` for `id`, from the working
+    /// characteristics of what is attached to it.
+    fn attached_ok(&self, filter: &ObjFilter, id: ObjId) -> bool {
+        let has = |sub: Subtype| {
+            self.ids.iter().any(|a| {
+                self.on_battlefield(*a)
+                    && self.state.objects[*a].attached_to == Some(id)
+                    && self.chars[self.index[a]].has_subtype(sub)
+            })
+        };
+        filter
+            .status
+            .enchanted
+            .is_none_or(|e| has(Subtype::AURA) == e)
+            && (!filter.status.equipped || has(Subtype::EQUIPMENT))
     }
 }
 
@@ -972,6 +1002,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 c.types = c.types.union(TypeSet::of([CardType::Land]));
             }
         }
+        Modification::SetTypes(t) => c.types = *t,
         Modification::AddLandType(color) => {
             let s = Subtype::basic(*color);
             if !c.subtypes.contains(&s) {
@@ -997,6 +1028,17 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 crate::card::Keyword::Changeling,
             ]));
         }
+        // "is every creature type": one entry stands for all of them.
+        Modification::AllCreatureTypes => {
+            c.subtypes.retain(|x| !x.is_creature_type());
+            c.subtypes.push(Subtype::ALL_CREATURE_TYPES);
+        }
+        Modification::NoCreatureTypes => {
+            c.subtypes.retain(|x| !x.is_creature_type());
+            c.keywords = c.keywords.difference(crate::card::KeywordSet::of([
+                crate::card::Keyword::Changeling,
+            ]));
+        }
         // Control is not a characteristic; `GameState::sync_control`
         // applies layer 2 to `GameObject::controller`. A P/T-defining
         // ability needs the working characteristics of other objects;
@@ -1017,6 +1059,14 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::AddAbility(a) => {
             if !c.abilities.contains(a) && c.abilities.len() < 8 {
                 c.abilities.push(*a);
+            }
+            // A granted protection from a quality (CR 702.16): the keyword
+            // `protected_from` checks before looking for it.
+            if matches!(
+                state.pool.ability(*a),
+                crate::card::AbilityDef::Protection(_)
+            ) {
+                c.keywords = c.keywords.with(crate::card::Keyword::ProtectionFromFilter);
             }
         }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),

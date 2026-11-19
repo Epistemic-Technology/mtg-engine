@@ -198,6 +198,7 @@ impl Decompiler<'_> {
                 }
             }),
             named_first: false,
+            enchanted_late: false,
             attached_to: f.attached_to.map(|a| {
                 use crate::ast::AttachedRef;
                 use mtg_core::card::AttachedTo;
@@ -916,10 +917,12 @@ impl Decompiler<'_> {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => Effect::OfChoice {
                 to: r(*to),
                 kind: self.choice_kind(*kind),
                 protection: *protection,
+                in_addition: *in_addition,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
@@ -1115,6 +1118,10 @@ impl Decompiler<'_> {
             },
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
+            },
+            CoreEffect::CreatureTypes { to, all } => Effect::CreatureTypes {
+                to: Self::recipient(*to),
+                all: *all,
             },
             CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
                 filter: self.filter(filter),
@@ -1420,6 +1427,9 @@ impl Decompiler<'_> {
             Modification::AddKeywords(k) => Mod::AddKeywords(keywords(*k)),
             Modification::RemoveKeywords(k) => Mod::LosesKeywords(keywords(*k)),
             Modification::RemoveAllAbilities => Mod::RemoveAllAbilities,
+            Modification::AllCreatureTypes => Mod::AllCreatureTypes { every: true },
+            Modification::NoCreatureTypes => Mod::NoCreatureTypes,
+            Modification::SetTypes(t) => Mod::SetTypes(types(*t)),
             Modification::SetPt { power, toughness } => Mod::SetPt {
                 power: *power,
                 toughness: *toughness,

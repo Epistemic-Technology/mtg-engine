@@ -1,0 +1,8 @@
+card "Inspiring Paladin" {
+  oracle_id 95efbb81-2418-42ed-ae34-5759efff8253
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 3/3
+  static during your turn, this: has first strike
+  static during your turn, creature you control with +1/+1 counter: has first strike
+}

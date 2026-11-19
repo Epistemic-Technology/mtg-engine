@@ -5928,6 +5928,18 @@ impl GameState {
                     }
                 }
             }
+            Effect::CreatureTypes { to, all } => {
+                let part = if *all {
+                    Modification::AllCreatureTypes
+                } else {
+                    Modification::NoCreatureTypes
+                };
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
             Effect::SwitchPt { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
@@ -6500,6 +6512,7 @@ impl GameState {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let recipients = self.recipients(ctx, *to);
                 // CR 608.2b: with no legal recipient left, nothing to choose.
@@ -6557,6 +6570,7 @@ impl GameState {
                         Some(c) if matches!(kind, ChoiceKind::LandType(_)) => {
                             Modification::SetLandType(c)
                         }
+                        _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
                     (Chosen::None | Chosen::Votes(_), _) => return,

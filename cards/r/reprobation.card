@@ -1,0 +1,7 @@
+card "Reprobation" {
+  oracle_id 445dfef5-358e-49b1-880c-b30fc45f0a9a
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: loses all abilities, set subtype Coward, set type creature, base 0/1
+}

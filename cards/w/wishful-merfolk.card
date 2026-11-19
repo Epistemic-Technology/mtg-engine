@@ -1,0 +1,8 @@
+card "Wishful Merfolk" {
+  oracle_id 19ff1424-6505-4702-86ad-2d7518b584f6
+  cost {1}{U}
+  type Creature — Merfolk
+  pt 3/2
+  keywords defender
+  activated {1}{U}: this loses defender and becomes Human
+}

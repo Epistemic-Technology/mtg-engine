@@ -1,0 +1,7 @@
+card "Clot Sliver" {
+  oracle_id 2a885729-0618-4a25-b18d-b0587f14718d
+  cost {1}{B}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver: has ability { activated {2}: regenerate this }
+}

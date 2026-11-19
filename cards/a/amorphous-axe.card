@@ -1,0 +1,7 @@
+card "Amorphous Axe" {
+  oracle_id fe340efa-6b69-4ccc-a13c-3688f1c44c29
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +3/+0, add subtype every
+  equip {3}
+}

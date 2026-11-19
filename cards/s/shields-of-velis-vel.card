@@ -1,0 +1,7 @@
+card "Shields of Velis Vel" {
+  oracle_id 7ad6be4e-5c3c-4633-a641-beb06e4129b9
+  cost {W}
+  type Kindred Instant — Shapeshifter
+  keywords changeling
+  spell: each creature target player controls gets +0/+1 and gains all creature types
+}
