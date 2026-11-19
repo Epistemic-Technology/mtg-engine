@@ -684,6 +684,29 @@ impl Templates {
                     Some(s)
                 },
             ),
+            // Chosen as the effect resolves.
+            (
+                r(
+                    r"^(.+?) (becomes?|gains? protection from) the (color|basic land type|creature type) of your choice until end of turn$",
+                ),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    let what = match cap(c, 3) {
+                        "color" => "color",
+                        "basic land type" => "land type",
+                        _ => "creature type",
+                    };
+                    let verb = if cap(c, 2).starts_with("gain") {
+                        if what != "color" {
+                            return None;
+                        }
+                        "gains protection from"
+                    } else {
+                        "becomes"
+                    };
+                    Some(format!("{who} {verb} {what} of choice"))
+                },
+            ),
             (
                 r(r"^(.+?) gains? ([a-z ,]+?)(?: until end of turn)?$"),
                 |c, t| {
@@ -1984,6 +2007,39 @@ impl Builder<'_> {
             || line == "{T}, Sacrifice this creature: Add one mana of any color."
         {
             self.statements.push("mana any, sacrifice this".to_string());
+            return Ok(());
+        }
+        if line == "{T}: Add one mana of the chosen color." {
+            self.statements.push("mana chosen".to_string());
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^\{T\}: Add \{([WUBRG])\} or one mana of the chosen color\.$")
+            .unwrap()
+            .captures(line)
+        {
+            self.statements
+                .push(format!("mana {{{}}} or chosen", cap(&c, 1)));
+            return Ok(());
+        }
+        // "As this land enters, choose a color." (CR 614.12), alone or after
+        // "This land enters tapped." on the same line.
+        if let Some(c) = Regex::new(
+            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent)) enters, choose a (color|creature type)(?: other than (white|blue|black|red|green))?\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let who = if cap(&c, 1).is_empty() {
+                "this"
+            } else {
+                self.statements.push("enters tapped".to_string());
+                "it"
+            };
+            let mut stmt = format!("as {who} enters choose {}", cap(&c, 2));
+            if !cap(&c, 3).is_empty() {
+                let _ = write!(stmt, " except {}", cap(&c, 3));
+            }
+            self.statements.push(stmt);
             return Ok(());
         }
         if line == "{T}: Add one mana of any color." {

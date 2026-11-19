@@ -1,0 +1,8 @@
+card "Pristine Skywise" {
+  oracle_id de80c742-4da0-4d67-9711-2b4e6452e2d0
+  cost {4}{W}{U}
+  type Creature — Dragon
+  pt 6/4
+  keywords flying
+  triggered whenever you cast a noncreature spell: untap this; this gains protection from color of choice
+}

@@ -410,7 +410,24 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 timestamp,
                 affected: None,
                 filter: Some(sa.affected.clone()),
-                parts: sa.parts.iter().cloned().collect(),
+                // "the chosen color" is the source's (CR 607.2a); with none
+                // chosen, that part does nothing.
+                parts: sa
+                    .parts
+                    .iter()
+                    .filter_map(|p| match p {
+                        Modification::ChosenColor => obj
+                            .chosen
+                            .color()
+                            .map(|c| Modification::SetColors(crate::mana::ColorSet::of([c]))),
+                        Modification::ProtectionFromChosen => obj.chosen.color().map(|c| {
+                            Modification::AddKeywords(crate::card::KeywordSet::of([
+                                crate::card::Keyword::protection_from(c),
+                            ]))
+                        }),
+                        p => Some(p.clone()),
+                    })
+                    .collect(),
                 started: false,
                 dead: false,
             });
@@ -650,12 +667,28 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 c.subtypes.push(*s);
             }
         }
+        // CR 205.1b: the new creature type replaces the old ones; a
+        // changeling's every-type (CR 702.73a, applied earlier in layer 4)
+        // goes too.
+        Modification::SetCreatureType(s) => {
+            c.subtypes.retain(|x| !x.is_creature_type());
+            c.subtypes.push(*s);
+            c.keywords = c.keywords.difference(crate::card::KeywordSet::of([
+                crate::card::Keyword::Changeling,
+            ]));
+        }
         // Control is not a characteristic; `GameState::sync_control`
         // applies layer 2 to `GameObject::controller`. A P/T-defining
         // ability needs the working characteristics of other objects;
         // `apply` handles it, and a dependency probe never reaches layer
-        // 7a (it has no filter-relevant parts).
-        Modification::Control | Modification::CdaPt { .. } | Modification::ModifyPtPer { .. } => {}
+        // 7a (it has no filter-relevant parts). "The chosen color" is
+        // resolved against the source as the static ability goes live
+        // (`gather_statics`).
+        Modification::Control
+        | Modification::CdaPt { .. }
+        | Modification::ModifyPtPer { .. }
+        | Modification::ChosenColor
+        | Modification::ProtectionFromChosen => {}
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),

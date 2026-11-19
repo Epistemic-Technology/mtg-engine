@@ -1,0 +1,7 @@
+card "Shifting Sky" {
+  oracle_id 4634fd4e-5b38-4cfb-ab73-bf3b14b3bdee
+  cost {2}{U}
+  type Enchantment
+  as this enters choose color
+  static all nonland permanent: set color chosen
+}

@@ -11,8 +11,8 @@ use mtg_core::mana::Mana;
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
-    Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, Effect, Filter, Join, Kind, Mod,
+    Recipient, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
@@ -697,6 +697,22 @@ impl Fmt {
                     } else {
                         c.join(" and ")
                     }
+                )
+            }
+            Effect::OfChoice {
+                to,
+                kind,
+                protection,
+            } => {
+                let verb = if *protection {
+                    "gains protection from"
+                } else {
+                    "becomes"
+                };
+                format!(
+                    "{} {verb} {}",
+                    self.recipient(*to, t),
+                    choice_kind(kind, true)
                 )
             }
             Effect::BecomeLandType { to, land } => format!(
@@ -1415,6 +1431,8 @@ fn modification(m: &Mod) -> String {
             count,
         } => format!("{power:+}/{toughness:+} {}", num(*count)),
         Mod::SwitchPt => "switch pt".to_string(),
+        Mod::ChosenColor => "set color chosen".to_string(),
+        Mod::ProtectionFromChosen => "has protection from chosen color".to_string(),
         Mod::CdaColors(cs) => {
             if cs.len() == 5 {
                 "cda color all".to_string()
@@ -1536,6 +1554,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     Mana::Colorless => "{C}".to_string(),
                     Mana::Colored(c) => format!("{{{}}}", c.letter()),
                     Mana::Any => "any".to_string(),
+                    Mana::Chosen => "chosen".to_string(),
                 })
                 .collect();
             let _ = writeln!(out, "{indent}mana {}", syms.join(" or "));
@@ -1545,6 +1564,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Mana::Colorless => "{C}".to_string(),
                 Mana::Colored(c) => format!("{{{}}}", c.letter()),
                 Mana::Any => "any".to_string(),
+                Mana::Chosen => "chosen".to_string(),
             };
             let _ = writeln!(out, "{indent}mana {sym}, sacrifice this");
         }
@@ -1751,6 +1771,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         Ability::EntersAsCopy(f) => {
             let _ = writeln!(out, "{indent}enters as copy of {}", filter(f));
         }
+        Ability::AsEntersChoose { kind, joined } => {
+            let who = if *joined { "it" } else { "this" };
+            let _ = writeln!(
+                out,
+                "{indent}as {who} enters choose {}",
+                choice_kind(kind, false)
+            );
+        }
         Ability::CostChange {
             filter: f,
             whose,
@@ -1887,5 +1915,27 @@ mod tests {
             };
             assert_eq!(targets, &[Target::Spec(*spec)], "{}", target_phrase(*spec));
         }
+    }
+}
+
+/// `color of choice except blue`, `creature type of choice`, `land type
+/// of choice`, `Plains or Island` (`of choice` only with `of_choice`).
+fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
+    let of = if of_choice { " of choice" } else { "" };
+    match k {
+        ChoiceKind::Color { except } => match except {
+            Some(c) => format!("color{of} except {}", format!("{c:?}").to_lowercase()),
+            None => format!("color{of}"),
+        },
+        ChoiceKind::CreatureType { except } => match except {
+            Some(t) => format!("creature type{of} except {t}"),
+            None => format!("creature type{of}"),
+        },
+        ChoiceKind::LandType(lands) if lands.len() == 5 || !of_choice => format!("land type{of}"),
+        ChoiceKind::LandType(lands) => lands
+            .iter()
+            .map(|c| crate::render::basic_land_name(*c))
+            .collect::<Vec<_>>()
+            .join(" or "),
     }
 }

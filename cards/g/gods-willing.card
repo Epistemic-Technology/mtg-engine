@@ -1,0 +1,9 @@
+card "Gods Willing" {
+  oracle_id 48e603a2-b965-4fbc-ad57-4388bce5ac8b
+  cost {W}
+  type Instant
+  spell {
+    target creature you control gains protection from color of choice
+    scry 1
+  }
+}

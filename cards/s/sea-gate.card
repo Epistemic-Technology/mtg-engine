@@ -1,0 +1,7 @@
+card "Sea Gate" {
+  oracle_id b574c540-9f8a-4fd4-8809-d02c9b099ddc
+  type Land — Gate
+  enters tapped
+  as this enters choose color except blue
+  mana {U} or chosen
+}

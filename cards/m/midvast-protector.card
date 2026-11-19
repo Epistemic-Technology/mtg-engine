@@ -1,0 +1,7 @@
+card "Midvast Protector" {
+  oracle_id 33a5ad42-cd81-4724-9f68-7f32a1c8a047
+  cost {3}{W}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered when this enters: target creature you control gains protection from color of choice
+}

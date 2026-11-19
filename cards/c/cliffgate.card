@@ -1,0 +1,7 @@
+card "Cliffgate" {
+  oracle_id 1999b5ac-21fb-4d99-ad72-58bf507f9a59
+  type Land — Gate
+  enters tapped
+  as this enters choose color except red
+  mana {R} or chosen
+}

@@ -321,6 +321,21 @@ impl Target {
     }
 }
 
+/// What a player chooses: `color [except blue]`, `creature type [except
+/// Wall]`, `land type` (all five basic land types) or `Plains or Island`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum ChoiceKind {
+    Color {
+        except: Option<Color>,
+    },
+    CreatureType {
+        except: Option<String>,
+    },
+    /// Basic land types, by the color they make; all five for "the basic
+    /// land type of your choice".
+    LandType(Vec<Color>),
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Ability {
     /// A keyword printed among the abilities rather than first (a bridge
@@ -367,6 +382,14 @@ pub enum Ability {
         cond_first: bool,
     },
     EntersAsCopy(Filter),
+    /// `as this enters choose color`: "As this land enters, choose a
+    /// color." (CR 614.12). `as it enters choose color except blue` is
+    /// printed on the line before: "This land enters tapped. As it
+    /// enters, choose a color other than blue."
+    AsEntersChoose {
+        kind: ChoiceKind,
+        joined: bool,
+    },
     /// `can't be blocked by Wall`, `can't be blocked except by creature
     /// with flying`, `can't be blocked by more than one creature`, `can
     /// block only creature with flying`, `can't block creature with
@@ -768,6 +791,11 @@ pub enum Mod {
     },
     SwitchPt,
     CdaColors(Vec<Color>),
+    /// `set color chosen`: "is the chosen color" (chosen as the source
+    /// entered).
+    ChosenColor,
+    /// `has protection from chosen color`.
+    ProtectionFromChosen,
     CdaPt {
         count: CdaCount,
         plus_toughness: i32,
@@ -1035,6 +1063,16 @@ pub enum Effect {
     BecomeLandType {
         to: Recipient,
         land: Color,
+    },
+    /// `target creature becomes color of choice`, `... gains protection
+    /// from color of choice`, `target land becomes land type of choice`,
+    /// `target land becomes Plains or Island`, `enchanted creature becomes
+    /// creature type of choice [except Wall]` (until end of turn): chosen
+    /// as the effect resolves.
+    OfChoice {
+        to: Recipient,
+        kind: ChoiceKind,
+        protection: bool,
     },
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).

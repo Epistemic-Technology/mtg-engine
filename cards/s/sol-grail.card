@@ -1,0 +1,7 @@
+card "Sol Grail" {
+  oracle_id 0396ef40-3774-4684-9971-160aaccf6ac6
+  cost {3}
+  type Artifact
+  as this enters choose color
+  mana chosen
+}

@@ -1,0 +1,7 @@
+card "Reef Shaman" {
+  oracle_id 4ad870b2-133c-4229-84a8-f91e4c62fcd0
+  cost {U}
+  type Creature — Merfolk Shaman
+  pt 0/2
+  activated {T}: target land becomes land type of choice
+}

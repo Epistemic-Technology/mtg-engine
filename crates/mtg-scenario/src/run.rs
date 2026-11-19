@@ -379,7 +379,6 @@ impl Runner {
             DecisionKind::Bottom
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
-            | DecisionKind::ChooseColor
             | DecisionKind::Edict
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
@@ -419,6 +418,7 @@ impl Runner {
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
             DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
+            DecisionKind::ChooseColor | DecisionKind::ChooseType => self.choose_named(d, pos),
             // `kicked` also pays buyback (an optional additional cost).
             DecisionKind::Kicker { .. } | DecisionKind::Buyback { .. } => Ok(self.choose_kicker(d)),
         }
@@ -536,6 +536,42 @@ impl Runner {
             return index_of(d, &want).unwrap_or(0);
         }
         0
+    }
+
+    /// A color or type: the first unfired scripted `choose` decides;
+    /// otherwise the engine's first option.
+    fn choose_named(&mut self, d: &Decision, pos: Position) -> Res<ChoiceId> {
+        let idxs = self.matching(d.player, pos, true, |a| matches!(a, Action::Choose(_)));
+        let Some(&i) = idxs.first() else {
+            return Ok(0);
+        };
+        self.fired[i] = true;
+        let a = self.actions[i].clone();
+        let Action::Choose(want) = &a.action else {
+            unreachable!()
+        };
+        let found = d
+            .options
+            .iter()
+            .position(|c| self.describe_choice(c).eq_ignore_ascii_case(want));
+        // `illegal ... choose X`: X must not be offered; the engine's first
+        // option is taken instead.
+        if a.illegal {
+            return match found {
+                None => Ok(0),
+                Some(_) => Err(Failure {
+                    line: a.line,
+                    message: format!("\"{want}\" can be chosen here"),
+                }),
+            };
+        }
+        found.map(idx_u32).ok_or_else(|| Failure {
+            line: a.line,
+            message: format!(
+                "\"{want}\" cannot be chosen here; options: {}",
+                self.describe_options(d)
+            ),
+        })
     }
 
     /// What to enter as a copy of: the first unfired scripted `copy`
@@ -2012,6 +2048,7 @@ impl Runner {
             }
             Choice::Done => "done".into(),
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
+            Choice::Subtype(s) => self.state().pool.subtype_name(*s).to_string(),
             Choice::Division(div) => format!("assign {}", self.describe_division(div)),
             Choice::Discard { def, .. } => {
                 format!("discard {}", self.state().pool.get(*def).name)

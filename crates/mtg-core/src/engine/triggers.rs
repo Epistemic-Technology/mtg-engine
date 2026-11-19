@@ -14,8 +14,8 @@ use crate::card::{AbilityDef, AbilityId, Condition, TriggerObj, TriggerSpec, Who
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
-    CastInfo, Characteristics, Flow, GameObject, GameState, ObjKind, PendingTrigger, StackAbility,
-    Target, Zone,
+    CastInfo, Characteristics, Chosen, Flow, GameObject, GameState, ObjKind, PendingTrigger,
+    StackAbility, Target, Zone,
 };
 
 use super::casting::EffectCtx;
@@ -589,6 +589,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            chosen: Chosen::None,
             alt: crate::state::AltCast::None,
             timestamp,
             targets: SmallVec::new(),

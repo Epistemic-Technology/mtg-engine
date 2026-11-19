@@ -57,8 +57,14 @@ pub enum DecisionKind {
     Scry { count: u32 },
     /// Surveil: which of the top cards go to the graveyard (CR 701.42).
     Surveil { count: u32 },
-    /// The color of one mana of any color an ability adds.
+    /// A color: of one mana of any color an ability adds, or a color
+    /// chosen as a permanent enters or an effect resolves ("the color of
+    /// your choice").
     ChooseColor,
+    /// A creature type or basic land type, chosen as a permanent enters or
+    /// an effect resolves ("the creature type of your choice"):
+    /// `Subtype` options.
+    ChooseType,
     /// A permanent to sacrifice for an edict ("sacrifices a creature of
     /// their choice"): `Sacrifice` options.
     Edict,
@@ -161,8 +167,10 @@ pub enum Choice {
     ScryBottom(Vec<ObjId>),
     /// Surveil: put these cards into the graveyard.
     SurveilGraveyard(Vec<ObjId>),
-    /// A color of mana to add (CR 106.4).
+    /// A color of mana to add (CR 106.4), or a chosen color.
     Color(crate::mana::Color),
+    /// A chosen creature type or basic land type.
+    Subtype(crate::card::Subtype),
     /// Cast one of a card's other faces: an adventurer's spell (CR 715.3)
     /// or a split card's half (CR 709.3), `face` indexing `CardDef::faces`.
     CastFace {
@@ -279,6 +287,7 @@ impl Choice {
                 format!("turn {card} face up")
             }
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
+            Choice::Subtype(s) => state.pool.subtype_name(*s).to_string(),
             Choice::CastFace { card, face } => {
                 let name = state
                     .objects

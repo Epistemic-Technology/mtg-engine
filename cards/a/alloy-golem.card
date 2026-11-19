@@ -1,0 +1,8 @@
+card "Alloy Golem" {
+  oracle_id 410b7faf-365c-4b73-a64d-bddbe49cfded
+  cost {6}
+  type Artifact Creature — Golem
+  pt 4/4
+  as this enters choose color
+  static this: set color chosen
+}

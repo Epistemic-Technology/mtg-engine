@@ -242,6 +242,7 @@ impl GreedyAgent {
             | DecisionKind::Scry { .. }
             | DecisionKind::Surveil { .. }
             | DecisionKind::ChooseColor
+            | DecisionKind::ChooseType
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
             | DecisionKind::Kicker { .. }

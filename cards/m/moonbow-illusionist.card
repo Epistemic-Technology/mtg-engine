@@ -1,0 +1,8 @@
+card "Moonbow Illusionist" {
+  oracle_id 411137a5-7054-42bc-a731-88a15e5e6b9d
+  cost {2}{U}
+  type Creature — Moonfolk Wizard
+  pt 2/1
+  keywords flying
+  activated {2}, return land you control: target land becomes land type of choice
+}

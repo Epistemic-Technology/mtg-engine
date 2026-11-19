@@ -14,8 +14,8 @@ use mtg_core::mana::{Color, Mana};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, CostItem, Effect, Filter, Join, Kind, Mod, Recipient,
-    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, Effect, Filter, Join, Kind, Mod,
+    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -166,7 +166,7 @@ pub fn mana_symbols(m: &[Mana], any: &str) -> String {
         .map(|m| match m {
             Mana::Colorless => "{C}".to_string(),
             Mana::Colored(c) => format!("{{{}}}", c.letter()),
-            Mana::Any => "{?}".to_string(),
+            Mana::Any | Mana::Chosen => "{?}".to_string(),
         })
         .collect()
 }
@@ -2236,6 +2236,46 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             )
             .until_eot()
         }
+        Effect::OfChoice {
+            to,
+            kind,
+            protection,
+        } => {
+            let s = ctx.subj(*to);
+            let what = match kind {
+                ChoiceKind::Color { .. } => "the color of your choice".to_string(),
+                ChoiceKind::LandType(lands) if lands.len() == 5 => {
+                    "the basic land type of your choice".to_string()
+                }
+                ChoiceKind::LandType(lands) => or_list(
+                    &lands
+                        .iter()
+                        .map(|c| {
+                            let name = basic_land_name(*c);
+                            format!("{} {name}", article(name))
+                        })
+                        .collect::<Vec<_>>(),
+                ),
+                ChoiceKind::CreatureType { except: None } => {
+                    "the creature type of your choice".to_string()
+                }
+                // Imagecrafter: "Choose a creature type other than Wall.
+                // Target creature becomes that type until end of turn."
+                ChoiceKind::CreatureType { except: Some(t) } => {
+                    return Clause::imperative(format!(
+                        "choose a creature type other than {t}. {} {} that type {EOT}",
+                        capitalize(&s),
+                        ctx.verb(*to, "becomes", "become")
+                    ));
+                }
+            };
+            let verb = if *protection {
+                format!("{} protection from", ctx.verb(*to, "gains", "gain"))
+            } else {
+                ctx.verb(*to, "becomes", "become").to_string()
+            };
+            Clause::with_subject(*to, s, format!("{verb} {what}")).until_eot()
+        }
         Effect::BecomeLandType { to, land } => {
             let s = ctx.subj(*to);
             let name = basic_land_name(*land);
@@ -3032,6 +3072,10 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             }
         }
         Mod::CdaPt { .. } => String::new(),
+        Mod::ChosenColor => format!("{} the chosen color", v("is", "are")),
+        Mod::ProtectionFromChosen => {
+            format!("{} protection from the chosen color", v("has", "have"))
+        }
     }
 }
 
@@ -3290,6 +3334,24 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
     let no_targets: &[Target] = &[];
     match a {
         Ability::Keyword(k) => keyword_line(card, *k),
+        Ability::AsEntersChoose { kind, joined } => {
+            let what = match kind {
+                ChoiceKind::Color { except: None } => "a color".to_string(),
+                ChoiceKind::Color { except: Some(c) } => {
+                    format!("a color other than {}", format!("{c:?}").to_lowercase())
+                }
+                ChoiceKind::CreatureType { except: None } => "a creature type".to_string(),
+                ChoiceKind::CreatureType { except: Some(t) } => {
+                    format!("a creature type other than {t}")
+                }
+                ChoiceKind::LandType(_) => "a basic land type".to_string(),
+            };
+            if *joined {
+                format!("As it enters, choose {what}.")
+            } else {
+                format!("As this {} enters, choose {what}.", self_noun(card))
+            }
+        }
         Ability::Mana(m) => {
             let syms: Vec<String> = m
                 .iter()
@@ -3297,6 +3359,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     Mana::Colorless => "{C}".to_string(),
                     Mana::Colored(c) => format!("{{{}}}", c.letter()),
                     Mana::Any => "one mana of any color".to_string(),
+                    Mana::Chosen => "one mana of the chosen color".to_string(),
                 })
                 .collect();
             format!("{{T}}: Add {}.", or_list(&syms))
@@ -3306,6 +3369,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Mana::Colorless => "{C}".to_string(),
                 Mana::Colored(c) => format!("{{{}}}", c.letter()),
                 Mana::Any => "one mana of any color".to_string(),
+                Mana::Chosen => "one mana of the chosen color".to_string(),
             };
             format!("{{T}}, Sacrifice this {}: Add {what}.", self_noun(card))
         }
@@ -3637,7 +3701,16 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             lines.push(ability_text(card, &Ability::Mana(all), lookup));
             continue;
         }
-        lines.push(ability_text(card, &card.abilities[i], lookup));
+        let text = ability_text(card, &card.abilities[i], lookup);
+        // "This land enters tapped. As it enters, choose a color." is one
+        // line.
+        match (&card.abilities[i], lines.last_mut()) {
+            (Ability::AsEntersChoose { joined: true, .. }, Some(last)) => {
+                last.push(' ');
+                last.push_str(&text);
+            }
+            _ => lines.push(text),
+        }
         i += 1;
     }
     if let Some(fb) = &card.flashback {

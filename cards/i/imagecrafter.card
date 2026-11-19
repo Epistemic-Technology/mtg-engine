@@ -1,0 +1,7 @@
+card "Imagecrafter" {
+  oracle_id 9a0c6b4d-b16a-4849-9106-047b009a99b3
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: target creature becomes creature type of choice except Wall
+}

@@ -62,7 +62,7 @@ double-faced permanent to its other face (CR 701.27).
 
 | Line | Meaning |
 |---|---|
-| `mana {G}` / `mana {W} or {U}` / `mana any` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color". Basic land types grant theirs intrinsically. |
+| `mana {G}` / `mana {W} or {U}` / `mana any` / `mana {U} or chosen` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color", `chosen` "one mana of the chosen color" (the color chosen as the permanent entered; none chosen, no mana). Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
@@ -82,6 +82,7 @@ double-faced permanent to its other face (CR 701.27).
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
+| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen` and `has protection from chosen color`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
@@ -178,7 +179,15 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes), `target creature becomes blue`, `this becomes colorless`,
-`target land becomes Island` (all until end of turn).
+`target land becomes Island` (all until end of turn). Chosen as the
+effect resolves (CR 608.2d), once for all its recipients: `target creature
+becomes color of choice`, `target creature gains protection from color of
+choice`, `target land becomes land type of choice` ("the basic land type of
+your choice"), `target land becomes Plains or Island` (one of those),
+`enchanted creature becomes creature type of choice` (it loses its other
+creature types, CR 205.1b) and `target creature becomes creature type of
+choice except Wall` ("Choose a creature type other than Wall. Target
+creature becomes that type until end of turn."), all until end of turn.
 `this spell costs {3} less if it targets tapped creature` (or `more`):
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when
@@ -259,7 +268,9 @@ Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
 `base mv` (base power and toughness each equal to its mana value),
 `has flying, trample`, `loses all abilities`, `add type creature`,
 `loses flying`, `set land Mountain`, `add land Swamp`, `add subtype Saproling`, `control`
-(you control it), `add color white`, `set color blue`, `switch pt`,
+(you control it), `add color white`, `set color blue`, `set color chosen`
+and `has protection from chosen color` (the color the source chose as it
+entered), `switch pt`,
 `cda color all`, `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
 `cda pt your life`, and `has ability { <ability line> }`: a quoted ability

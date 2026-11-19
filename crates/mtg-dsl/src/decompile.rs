@@ -4,16 +4,16 @@
 
 use mtg_core::card::{
     AbilityDef, Affects as CoreAffects, CardDef, CardPool, CardType, CdaCount as CoreCdaCount,
-    Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification, ObjFilter,
-    Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
+    ChoiceKind as CoreChoiceKind, Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification,
+    ObjFilter, Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
     SacCost as CoreSacCost, StaticCondition, Supertype, SupertypeSet, TargetSpec,
     TriggerObj as CoreTriggerObj, TriggerSpec, TypeSet,
 };
 use mtg_core::mana::{Color, ColorSet};
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Except, Filter, Kind, Mod, Mode, Recipient,
-    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Except, Filter, Kind, Mod, Mode,
+    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 const ALL_TYPES: [CardType; 9] = [
@@ -438,6 +438,15 @@ impl Decompiler<'_> {
                 to: r(*to),
                 land: *land,
             },
+            CoreEffect::OfChoice {
+                to,
+                kind,
+                protection,
+            } => Effect::OfChoice {
+                to: r(*to),
+                kind: self.choice_kind(*kind),
+                protection: *protection,
+            },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
@@ -686,10 +695,16 @@ impl Decompiler<'_> {
             Modification::AddTypes(t) => Mod::AddTypes(types(*t)),
             Modification::AddLandType(c) => Mod::AddLandType(*c),
             Modification::SetLandType(c) => Mod::SetLandType(*c),
-            Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
+            // No static ability sets a creature type (only `OfChoice`
+            // effects do); the nearest the syntax has.
+            Modification::AddSubtype(s) | Modification::SetCreatureType(s) => {
+                Mod::AddSubtype(self.pool.subtype_name(*s).to_string())
+            }
             Modification::Control => Mod::Control,
             Modification::AddColors(c) => Mod::AddColors(colors(*c)),
             Modification::SetColors(c) => Mod::SetColors(colors(*c)),
+            Modification::ChosenColor => Mod::ChosenColor,
+            Modification::ProtectionFromChosen => Mod::ProtectionFromChosen,
             Modification::AddKeywords(k) => Mod::AddKeywords(keywords(*k)),
             Modification::RemoveKeywords(k) => Mod::LosesKeywords(keywords(*k)),
             Modification::RemoveAllAbilities => Mod::RemoveAllAbilities,
@@ -831,6 +846,20 @@ impl Decompiler<'_> {
                 cond_first: false,
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
+            AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {
+                kind: self.choice_kind(*k),
+                joined: false,
+            },
+        }
+    }
+
+    fn choice_kind(&self, k: CoreChoiceKind) -> ChoiceKind {
+        match k {
+            CoreChoiceKind::Color { except } => ChoiceKind::Color { except },
+            CoreChoiceKind::CreatureType { except } => ChoiceKind::CreatureType {
+                except: except.map(|s| self.pool.subtype_name(s).to_string()),
+            },
+            CoreChoiceKind::LandType(set) => ChoiceKind::LandType(colors(set)),
         }
     }
 }

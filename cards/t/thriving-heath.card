@@ -1,0 +1,7 @@
+card "Thriving Heath" {
+  oracle_id d1946630-e224-40db-8f0d-388b09622288
+  type Land
+  enters tapped
+  as it enters choose color except white
+  mana {W} or chosen
+}

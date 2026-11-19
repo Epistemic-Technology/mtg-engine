@@ -1,0 +1,8 @@
+card "Dream Thrush" {
+  oracle_id 111f3f1c-4387-4e61-8bff-6ebe3b7b9d9f
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  activated {T}: target land becomes land type of choice
+}

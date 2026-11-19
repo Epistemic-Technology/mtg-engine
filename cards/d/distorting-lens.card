@@ -1,0 +1,6 @@
+card "Distorting Lens" {
+  oracle_id 9c9579c5-7edf-41ca-8595-713ca9245576
+  cost {2}
+  type Artifact
+  activated {T}: target permanent becomes color of choice
+}

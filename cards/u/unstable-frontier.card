@@ -1,0 +1,6 @@
+card "Unstable Frontier" {
+  oracle_id 495214b5-2eab-4fe4-8879-a30a57a67163
+  type Land
+  mana {C}
+  activated {T}: target land you control becomes land type of choice
+}

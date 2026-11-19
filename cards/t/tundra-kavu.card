@@ -1,0 +1,7 @@
+card "Tundra Kavu" {
+  oracle_id b0b7d88b-694b-4bbe-888d-05245e7d1c3e
+  cost {2}{R}
+  type Creature — Kavu
+  pt 2/2
+  activated {T}: target land becomes Plains or Island
+}

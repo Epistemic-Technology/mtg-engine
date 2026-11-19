@@ -1,0 +1,8 @@
+card "Alseid of Life's Bounty" {
+  oracle_id d371031e-78be-4964-b521-b1eaa22a5480
+  cost {W}
+  type Enchantment Creature — Nymph
+  pt 1/1
+  keywords lifelink
+  activated {1}, sacrifice this: target creature or enchantment you control gains protection from color of choice
+}

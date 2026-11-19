@@ -1,0 +1,8 @@
+card "Resilient Wanderer" {
+  oracle_id cb1e5b14-e440-4ca9-b3f4-e770e158bf69
+  cost {2}{W}{W}
+  type Creature — Human Nomad
+  pt 2/3
+  keywords first strike
+  activated discard 1 card: this gains protection from color of choice
+}

@@ -1,0 +1,7 @@
+card "Manor Gate" {
+  oracle_id dd6e67c0-66a1-49b7-8a86-3cf4b209fd07
+  type Land — Gate
+  enters tapped
+  as this enters choose color except green
+  mana {G} or chosen
+}

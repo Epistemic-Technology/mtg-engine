@@ -71,6 +71,7 @@ passes when the action is legal but one of the scripted targets is not
 | `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
 | `wait` | `precombat_main` | Pass priority until the stack is empty before any later action of this player at the same point fires (so a second spell is cast after the first resolves rather than in response to it). |
 | `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
+| `choose red`, `choose Island`, `choose Merfolk` (or quoted) | any step | A color or type chosen as a permanent enters ("As this land enters, choose a color") or as an effect resolves ("the color of your choice"); also the color of mana of any color. `illegal ... choose Wall` checks that it is not offered. Unscripted, the engine's first option (white; the first type). |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 `begin_combat`, `declare_attackers`, `declare_blockers`,
@@ -81,7 +82,8 @@ Unscripted decisions: keep the hand, pass priority, declare no attackers or
 blockers, take the first option otherwise (including trigger order, trigger
 targets, the order of replacement effects, the legend rule, where the
 first option keeps the oldest permanent, modes, "you may" clauses, what
-to copy, and what to sacrifice or discard for a cost; X is 0).
+to copy, colors and types chosen, and what to sacrifice or discard for a
+cost; X is 0).
 
 Names resolve against the current state when the action fires. A copy is
 named after what it copies (a Clone copying Serra Angel is `"Serra Angel"`

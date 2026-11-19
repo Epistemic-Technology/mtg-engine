@@ -138,6 +138,10 @@ pub struct GameObject {
     /// Skips its controller's next untap step ("doesn't untap during its
     /// controller's next untap step").
     pub skip_untap: bool,
+    /// What its controller chose as it entered ("As this land enters,
+    /// choose a color", CR 614.12), for the abilities that refer to it
+    /// (CR 607.2a). A new object has none (CR 400.7).
+    pub chosen: Chosen,
     /// How the spell was cast, or what an exiled card is waiting for
     /// (madness, foretell, suspend, rebound).
     pub alt: AltCast,
@@ -150,6 +154,26 @@ pub struct GameObject {
     pub attached_to: Option<ObjId>,
     /// For `ObjKind::Ability` objects.
     pub ability: Option<StackAbility>,
+}
+
+/// A choice an object remembers (`GameObject::chosen`): small, so the
+/// object stays small.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum Chosen {
+    #[default]
+    None,
+    Color(crate::mana::Color),
+    /// A creature type or basic land type.
+    Subtype(crate::card::Subtype),
+}
+
+impl Chosen {
+    pub const fn color(self) -> Option<crate::mana::Color> {
+        match self {
+            Chosen::Color(c) => Some(c),
+            _ => None,
+        }
+    }
 }
 
 /// Cards waiting to be cast from exile, and foretold ones.
@@ -786,6 +810,9 @@ pub struct GameState {
     pub exile_casts: Option<Box<ExileCasts>>,
     /// Suspended cards in exile, so upkeeps skip the scan without any.
     pub suspended_count: u32,
+    /// Cards in the game with an "As this enters, choose ..." ability:
+    /// with any, every way onto the battlefield may ask a question.
+    pub enters_choice_cards: u32,
     pub spells_last_turn: [u8; 4],
     pub active_player: PlayerId,
     pub starting_player: PlayerId,
@@ -1058,6 +1085,7 @@ impl GameState {
                 let d = self.pool.get(o.def);
                 (self.legendary_count >= 1 && d.is_legendary())
                     || (replacers >= 1 && d.modifies_entering())
+                    || d.flags().has_enters_choice()
             }),
             // A mana ability resolves as it is activated and may ask for a
             // color (CR 605.3).
@@ -1083,16 +1111,22 @@ impl GameState {
                 // `has_mid_choice` covers. An ability is judged by itself:
                 // a copy's exceptions can add one its definition does not
                 // have.
+                // With a card that chooses as it enters ("As this land
+                // enters, choose a color", CR 614.12) in the game, so may
+                // anything that puts a permanent onto the battlefield.
+                let choosers = self.enters_choice_cards > 0;
                 match o.ability {
                     Some(a) => {
                         self.pool.ability_asks(a.ability)
-                            || ((replacers >= 1 || self.legendary_count >= 1)
+                            || ((replacers >= 1 || self.legendary_count >= 1 || choosers)
                                 && self.pool.ability_enters(a.ability))
                     }
                     None => {
                         d.has_mid_choice()
                             || (self.legendary_count == 1 && d.is_legendary())
                             || (replacers >= 1 && d.modifies_entering())
+                            || (choosers
+                                && d.ability_ids.iter().any(|a| self.pool.ability_enters(*a)))
                     }
                 }
             })

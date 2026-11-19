@@ -1,0 +1,7 @@
+card "Crossroads Village" {
+  oracle_id b26cfeb0-7bbe-4d93-8eed-e832f175a80c
+  type Land — Town
+  enters tapped
+  as it enters choose color
+  mana chosen
+}

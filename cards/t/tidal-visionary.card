@@ -1,0 +1,7 @@
+card "Tidal Visionary" {
+  oracle_id 8fc72080-8d4d-427d-ae30-065bc8ee9a28
+  cost {U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  activated {T}: target creature becomes color of choice
+}

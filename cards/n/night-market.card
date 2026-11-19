@@ -1,0 +1,8 @@
+card "Night Market" {
+  oracle_id 4cdb9f80-d08f-4986-99c8-573166d66082
+  type Land
+  enters tapped
+  as it enters choose color
+  mana chosen
+  cycling {3}
+}

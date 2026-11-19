@@ -12,7 +12,7 @@ use crate::card::{CardRef, DefFlags, Keyword, RuleKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
 use crate::state::{
-    Affected, AltCast, CastInfo, GameObject, GameState, LastKnown, ObjKind, Target, Zone,
+    Affected, AltCast, CastInfo, Chosen, GameObject, GameState, LastKnown, ObjKind, Target, Zone,
 };
 
 impl GameState {
@@ -64,6 +64,9 @@ impl GameState {
         if zone == Zone::Graveyard && self.pool.get(def).graveyard_active() {
             self.player_mut(owner).flashback_in_graveyard += 1;
         }
+        if self.pool.get(def).flags().has_enters_choice() {
+            self.enters_choice_cards += 1;
+        }
         self.objects.insert(GameObject {
             def,
             card: def,
@@ -79,6 +82,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            chosen: Chosen::None,
             alt: AltCast::None,
             timestamp,
             targets: SmallVec::new(),
@@ -228,6 +232,16 @@ impl GameState {
             (old.card, None)
         };
         let counters = self.entering_counters(def, to, enter);
+        // CR 614.12: "As this enters, choose ..." is chosen before it
+        // enters, by the player it enters under.
+        let chosen = if to == Zone::Battlefield {
+            self.pool
+                .get(def)
+                .enters_choice()
+                .map_or(Chosen::None, |k| self.choose_kind(controller, k))
+        } else {
+            Chosen::None
+        };
         let new = self.objects.insert(GameObject {
             def,
             card: old.card,
@@ -246,6 +260,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: to == Zone::Battlefield,
             skip_untap: false,
+            chosen,
             // CR 702.62a: a creature cast by suspend has haste.
             alt: if old.zone == Zone::Stack
                 && to == Zone::Battlefield
