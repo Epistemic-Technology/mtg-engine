@@ -1,0 +1,7 @@
+card "Glory Bearers" {
+  oracle_id 8f446660-f72a-454f-bc96-3b6dd8633228
+  cost {3}{W}
+  type Enchantment Creature — Human Cleric
+  pt 3/4
+  triggered whenever another creature you control attacks: it gets +0/+1
+}

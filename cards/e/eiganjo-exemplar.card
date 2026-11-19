@@ -1,0 +1,7 @@
+card "Eiganjo Exemplar" {
+  oracle_id 8e0f4e22-0677-4246-a4c5-6fcc74cb54a3
+  cost {1}{W}
+  type Enchantment Creature — Human Samurai
+  pt 2/1
+  triggered whenever Samurai or Warrior you control attacks alone: it gets +1/+1
+}

@@ -198,7 +198,7 @@ impl Fmt {
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
-            Recipient::SameObject => "it".to_string(),
+            Recipient::SameObject | Recipient::TriggeringIt => "it".to_string(),
             Recipient::CreatedObject => "that token".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.

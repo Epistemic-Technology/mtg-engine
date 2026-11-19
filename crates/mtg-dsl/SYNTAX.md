@@ -195,6 +195,9 @@ turn." (printed first, before keywords).
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
+In a triggered ability, `it` is the triggering object printed "it"
+("Whenever another creature you control attacks, it gets +0/+1 until end
+of turn."); `that creature` prints "that creature".
 `if target 1 was <filter>, <sentence>`: "If that creature was a Human,
 ...", "If that creature was green or white, ...", "If that land was
 nonbasic, ..." (the target as it last existed).

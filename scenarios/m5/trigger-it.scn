@@ -1,0 +1,17 @@
+# `it` in a triggered ability is the triggering object.
+
+scenario "Eiganjo Exemplar: the Samurai attacking alone gets +1/+1" {
+  battlefield A: "Eiganjo Exemplar"
+  turn 1 A: attack "Eiganjo Exemplar"
+  run_to turn 1 combat_damage
+  assert power "Eiganjo Exemplar" 3
+  assert toughness "Eiganjo Exemplar" 2
+}
+
+scenario "Glory Bearers: another attacking creature gets +0/+1, not Glory Bearers" {
+  battlefield A: "Glory Bearers", "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears", "Glory Bearers"
+  run_to turn 1 combat_damage
+  assert toughness "Grizzly Bears" 3
+  assert toughness "Glory Bearers" 4
+}

@@ -689,7 +689,9 @@ impl<'a> Ctx<'a> {
                 self.groups_mentioned.insert(r);
                 "each permanent you control".to_string()
             }
-            Recipient::SameObject | Recipient::CreatedObject => "it".to_string(),
+            Recipient::SameObject | Recipient::CreatedObject | Recipient::TriggeringIt => {
+                "it".to_string()
+            }
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 format!("each {}", self.group_phrase(i, false))

@@ -3031,6 +3031,9 @@ impl P {
             if self.in_delayed {
                 return Ok(Recipient::SameObject);
             }
+            if self.in_trigger {
+                return Ok(Recipient::TriggeringIt);
+            }
             return self.fail(
                 "`it` is only meaningful inside a delayed trigger; name the target (`target 1`)",
             );

@@ -849,6 +849,9 @@ pub enum Recipient {
     EachOpponent,
     Source,
     TriggeringObject,
+    /// The triggering object written `it` in a triggered ability ("Whenever
+    /// another creature you control attacks, it gets +0/+1").
+    TriggeringIt,
     TriggeringPlayer,
     DefendingPlayer,
     EachCreature,
