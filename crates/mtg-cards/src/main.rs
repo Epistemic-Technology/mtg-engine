@@ -628,12 +628,21 @@ fn run() -> Result<ExitCode> {
         }
         Command::Gate { diff, names } => {
             let cards = mtg_dsl::builtin_cards()?;
+            // A card that compiles against nothing (an unknown token) would
+            // break every game and scenario: report it here.
+            if let Err(e) = mtg_dsl::try_builtin_pool() {
+                println!("ERROR    {e}");
+            }
             let cards: Vec<_> = if names.is_empty() {
                 cards
             } else {
+                // Tokens and emblems stay: cards that create them render
+                // their descriptions from them.
                 cards
                     .into_iter()
-                    .filter(|c| names.iter().any(|n| n == &c.name))
+                    .filter(|c| {
+                        c.kind != mtg_dsl::ast::Kind::Card || names.iter().any(|n| n == &c.name)
+                    })
                     .collect()
             };
             let rows = gate::run(&data, &cards)?;
