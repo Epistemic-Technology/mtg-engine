@@ -2547,3 +2547,19 @@ reports drive engine fixes, after which the unsupported cards are
 retried: new batches accept about 10%, retries about 45%. Four waves:
 the corpus is 8,229 cards, 57.0% of Pauper; scenarios written by agents
 are in scenarios/agents/.
+
+Status 2026-11-18, later: feature agents in their own worktrees add
+whole features (core, DSL, render, cards, scenarios) that are merged
+into main: bite ("deals damage equal to its power to"), blocking
+requirements and allowances (lure, must be blocked, blocks if able,
+blocking several attackers with divided damage), and choices made as a
+permanent enters or an effect resolves (chosen-color mana, "of your
+choice" effects). Smaller additions: conditional and target-dependent
+self cost reductions, "that much", activation limits, leaves-the-
+battlefield / attacks-or-blocks / second-card-drawn triggers, main-phase
+steps, "If <condition>, ..." clauses, and fixes the agents found ("that
+creature" in spells, tapped-land conditions, "if you do" after a
+mandatory action, enchanted-creature triggers). A per-player mana source
+cache brought throughput back to the last perf pass (5.4% fewer cycles
+per game). Corpus 8,431 cards: 58.7% of Pauper, 28.1% of Modern; 2,908
+scenarios pass; fuzz 0 panics, 0 unfinished.
