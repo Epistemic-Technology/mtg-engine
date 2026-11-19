@@ -1,0 +1,6 @@
+card "Rhystic Shield" {
+  oracle_id a905dafa-1818-471a-a485-d84be447263b
+  cost {1}{W}
+  type Instant
+  spell: each creature you control gets +0/+1; each creature you control gets +0/+2 unless any player pays {2}
+}

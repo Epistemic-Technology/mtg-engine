@@ -1,0 +1,7 @@
+card "Erosion" {
+  oracle_id 155ee24f-a458-4df4-86d5-5eb7396ebf45
+  cost {U}{U}{U}
+  type Enchantment — Aura
+  enchant land
+  triggered at beginning of enchanted controller's upkeep: destroy that creature unless that player pays {1} or 1 life
+}

@@ -1,0 +1,7 @@
+card "Barbarian Outcast" {
+  oracle_id 49d44e89-b94e-43f7-a996-f50651df9264
+  cost {1}{R}
+  type Creature — Human Barbarian Beast
+  pt 2/2
+  triggered when you control no Swamp: sacrifice this
+}

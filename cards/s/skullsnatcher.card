@@ -1,0 +1,8 @@
+card "Skullsnatcher" {
+  oracle_id 5326381e-e5e7-4c3e-9565-4837b3ffaec0
+  cost {1}{B}
+  type Creature — Rat Ninja
+  pt 2/1
+  ninjutsu {B}
+  triggered whenever this deals combat damage to a player: exile up to 2 target card from that player's graveyard
+}

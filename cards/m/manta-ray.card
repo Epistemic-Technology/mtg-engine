@@ -1,0 +1,9 @@
+card "Manta Ray" {
+  oracle_id d5129531-e4b6-454e-9c67-dae925c8f2ee
+  cost {1}{U}{U}
+  type Creature — Fish
+  pt 3/3
+  can't attack unless defending player controls Island
+  can't be blocked except by blue creature
+  triggered when you control no Island: sacrifice this
+}

@@ -1,0 +1,8 @@
+card "Gorilla Pack" {
+  oracle_id f2c8814b-581b-483b-a7ae-d3d7b962aec1
+  cost {2}{G}
+  type Creature — Ape
+  pt 3/3
+  can't attack unless defending player controls Forest
+  triggered when you control no Forest: sacrifice this
+}

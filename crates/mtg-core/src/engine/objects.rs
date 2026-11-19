@@ -429,6 +429,7 @@ impl GameState {
             self.attack_rule_sources += d(flags.has_attack_rule());
             self.grant_sources += d(flags.grants_abilities());
             self.spent_watchers += d(flags.watches_spent());
+            self.state_trigger_sources += d(flags.has_state_trigger());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -443,6 +444,7 @@ impl GameState {
             self.attack_rule_sources -= d(flags.has_attack_rule());
             self.grant_sources -= d(flags.grants_abilities());
             self.spent_watchers -= d(flags.watches_spent());
+            self.state_trigger_sources -= d(flags.has_state_trigger());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

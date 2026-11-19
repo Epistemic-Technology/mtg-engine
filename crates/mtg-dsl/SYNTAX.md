@@ -173,7 +173,8 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `at beginning of every upkeep` | "At the beginning of each upkeep" (werewolves' wording) |
 | `at beginning of enchanted controller's upkeep`, `at beginning of enchanted controller's end step` | "At the beginning of the upkeep of enchanted creature's controller" (the noun from the Aura's enchant restriction): the step of whoever controls what the source is attached to, judged as the step begins; that permanent is `that creature`, its controller `that player` |
 | `whenever this attacks`, `whenever creature you control attacks`, `whenever this blocks` | attacks or blocks |
-| `whenever this deals combat damage to a player` | |
+| `whenever this deals combat damage to a player`, `whenever enchanted creature deals combat damage to defending player` | the damaged player is "that player" (`target creature that player controls`); `defending player` is wording only (combat damage to a player is dealt to the defending player, CR 510.1) |
+| `when you control no Island`, `when you control no other creature` | a state trigger (CR 603.8): "When you control no Islands, sacrifice this creature." Checked whenever a player would receive priority; it doesn't trigger again while its ability waits to go on the stack or is on it. A face-down permanent has no abilities, so no state trigger |
 | `whenever you gain life` | |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever you attack`, `whenever you attack with 3 or more creatures`, `label "Battalion" triggered whenever this and at least 2 other creatures attack` | once as the controller declares attackers (CR 508.1m), if at least that many attack (battalion: this creature among them); "Whenever this creature and at least two other creatures attack" |
@@ -327,7 +328,10 @@ draws their second card each turn`).
 Steps: `at beginning of your combat` ("At the beginning of combat on your
 turn"), `your first main`, `your second main` ("... your second main
 phase"). Recipient `controller of that target 1` ("that artifact's
-controller").
+controller"); `controller of enchanted` ("enchanted creature's
+controller": `controller of enchanted sacrifices attached` prints
+"enchanted creature's controller sacrifices it"). `you create 1 "..."`
+after `and` or `if they do,` prints "and you create a ... token".
 Cost item `2 times per turn`: "Activate no more than twice each turn."
 `that much` is the triggering event's amount ("Whenever this creature is
 dealt damage, you gain that much life": `you gain that much life`).
@@ -675,7 +679,14 @@ stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
 target`; `you may you sacrifice a creature` prints "you may sacrifice a
 creature", and an empty choice is no action), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
-stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `adapt 2` (CR 701.46:
+stop it), `unless any player pays {2}` / `{X}` (each player in turn from the
+active player may pay, until one does; the effect's own controller is
+asked too, with declining offered first; a second pump of the same
+recipient there prints "gets an additional +4/+4", and of creatures you
+control "They get an additional ..."), `unless that player pays {1} or 1
+life` (either, the payer's choice), `counter target spell unless its
+controller pays {2}; if they do, you create 1 "Lander"` ("If they do":
+whether it was paid), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `adapt 2` (CR 701.46:
 +1/+1 counters only if it has none), `<what> connives` (CR 701.50), `dig 4 take creature
 card may revealing rest bottom` ("Look at the top four cards of your
 library. You may reveal a creature card from among them and put it into
@@ -811,10 +822,23 @@ Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `another creature`, `another permanent`, `creature card from your graveyard`,
 `spell`, `creature spell`, `noncreature spell`, `<filter> spell`
 ("target instant or sorcery spell"), `card from a graveyard`, `<filter>
-card from your graveyard` / `from an opponent's graveyard`, `opponent`,
+card from your graveyard` / `from an opponent's graveyard` / `from that
+player's graveyard` (the triggering player's), `opponent`,
 `artifact or creature`, `attacking or blocking creature`, `attacking
 creature`, `blocking creature`, `<Subtype> creature` ("target Assembly-Worker creature"), and any filter
 ("target nonblack creature", "target creature an opponent controls").
+Targets relative to a player: `target creature that player controls` (the
+triggering player: "Whenever this creature deals combat damage to a
+player, ... target creature that player controls"), `another target
+creature controller of target 1 controls` ("Target creature an opponent
+controls deals damage equal to its power to another target creature that
+player controls": the first target's controller; a first target is offered
+only if it leaves a second, and the spell can be cast only if some pair
+exists), both checked as targets are chosen and again on resolution (CR
+608.2b); a triggered ability with no target that player controls is
+removed (CR 603.3d). `target creature other than enchanted` ("target
+creature other than enchanted creature"): not what the source is attached
+to.
 
 ## Example
 

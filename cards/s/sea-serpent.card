@@ -1,0 +1,8 @@
+card "Sea Serpent" {
+  oracle_id c16495fc-784d-4bac-9a68-ed437008df73
+  cost {5}{U}
+  type Creature — Serpent
+  pt 5/5
+  can't attack unless defending player controls Island
+  triggered when you control no Island: sacrifice this
+}

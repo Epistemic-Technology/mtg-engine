@@ -494,6 +494,8 @@ impl Compiler<'_> {
                     CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
                 }
             }),
+            that_player: f.that_player,
+            not_attached: f.not_attached,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
@@ -831,6 +833,7 @@ impl Compiler<'_> {
             Recipient::SameObject | Recipient::SameThat => CoreRecipient::SameObject,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
+            Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
         }
     }
@@ -1071,6 +1074,7 @@ impl Compiler<'_> {
                 token,
                 count,
                 tapped,
+                ..
             } => {
                 let Some(token_ref) = self.pool.lookup(token) else {
                     return self.err(format!("unknown token \"{token}\""));
@@ -1485,6 +1489,10 @@ impl Compiler<'_> {
     fn trigger(&mut self, t: &Trigger) -> TriggerSpec {
         match t {
             Trigger::When(inner) => self.trigger(inner),
+            Trigger::State(c) => {
+                let c = self.static_cond(c);
+                TriggerSpec::State(self.pool.intern_condition(c))
+            }
             Trigger::Enters(o) => TriggerSpec::Enters(self.trigger_obj(o)),
             Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
@@ -1519,7 +1527,7 @@ impl Compiler<'_> {
                 blocks: *blocks,
                 blocked: *blocked,
             },
-            Trigger::DealsCombatDamageToPlayer(o) => {
+            Trigger::DealsCombatDamageToPlayer(o) | Trigger::DealsCombatDamageToDefending(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },

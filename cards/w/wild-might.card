@@ -1,0 +1,6 @@
+card "Wild Might" {
+  oracle_id 3f8fa982-73ee-410a-8873-0afc8a6f11fc
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +1/+1; that target 1 gets +4/+4 unless any player pays {2}
+}

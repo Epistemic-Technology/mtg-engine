@@ -959,6 +959,27 @@ pub struct ObjFilter {
     /// elsewhere, or once the source has left the battlefield (its last
     /// known information, CR 113.7a), it doesn't restrict.
     pub combat_with: Option<CombatWith>,
+    /// "target creature that player controls", "target card from that
+    /// player's graveyard": a target controlled (in a graveyard, owned) by
+    /// the triggering player or by an earlier target's controller.
+    /// Judged with the stack object's targets (`GameState::that_player_ok`);
+    /// elsewhere it doesn't restrict.
+    pub that_player: Option<ThatPlayer>,
+    /// "target creature other than enchanted creature": not what the source
+    /// is attached to. Judged for targets of an ability of the source.
+    pub not_attached: bool,
+}
+
+/// The player a filter's `that_player` means.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ThatPlayer {
+    /// The triggering player ("Whenever this creature deals combat damage
+    /// to a player, ... target creature that player controls").
+    Triggering,
+    /// The controller of the `n`th target ("Target creature an opponent
+    /// controls deals damage ... to another target creature that player
+    /// controls").
+    ControllerOf(u8),
 }
 
 /// How an object a filter matches must be in combat with the source.
@@ -2244,6 +2265,9 @@ pub enum Recipient {
     /// What the source (an Aura or Equipment) is attached to ("enchanted
     /// creature", "equipped creature").
     Attached,
+    /// The controller of what the source is attached to ("enchanted
+    /// creature's controller").
+    AttachedController,
     /// Each creature blocking the triggering object, or else the source
     /// ("each creature blocking it").
     BlockingIt,
@@ -3296,6 +3320,11 @@ pub enum TriggerSpec {
     /// cycle this card and when this creature dies": one ability with two
     /// trigger events.
     Either(Box<(TriggerSpec, TriggerSpec)>),
+    /// "When you control no Islands" (a state trigger, CR 603.8): the
+    /// pool's `n`th static condition, judged for the controller whenever a
+    /// player would receive priority. It doesn't trigger again while the
+    /// ability is waiting or on the stack.
+    State(u16),
     /// "Whenever one or more artifacts you control enter": once for all
     /// the matching objects that enter together (CR 603.2c), the number
     /// of them being the trigger's amount ("that much"). Objects entering
@@ -3384,7 +3413,7 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
-            TriggerSpec::Exploits | TriggerSpec::Reflexive => 0,
+            TriggerSpec::Exploits | TriggerSpec::Reflexive | TriggerSpec::State(_) => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
@@ -4144,6 +4173,9 @@ impl DefFlags {
     /// ability (`StaticCondition::ManaSpent` with `that`): casts then
     /// record what was spent.
     const SPENT_WATCH: u32 = 131_072;
+    /// A state trigger (`TriggerSpec::State`, CR 603.8): priority then
+    /// checks its condition.
+    const STATE_TRIGGER: u32 = 262_144;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4226,6 +4258,10 @@ impl DefFlags {
         self.has(DefFlags::SPENT_WATCH)
     }
 
+    pub const fn has_state_trigger(self) -> bool {
+        self.has(DefFlags::STATE_TRIGGER)
+    }
+
     /// Flags describing a list of abilities (and trigger keywords).
     #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
@@ -4287,6 +4323,12 @@ impl DefFlags {
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m, Modification::AddAbility(_))))
             }),
+        );
+        flags.set(
+            DefFlags::STATE_TRIGGER,
+            abilities.iter().any(
+                |a| matches!(a, AbilityDef::Triggered(t) if matches!(t.trigger, TriggerSpec::State(_))),
+            ),
         );
         flags.set(
             DefFlags::ATTACK_RULE,

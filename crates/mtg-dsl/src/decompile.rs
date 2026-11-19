@@ -175,6 +175,8 @@ impl Decompiler<'_> {
                     CombatWith::BlockingOrBlockedBy => CombatRef::BlockingOrBlockedByThis,
                 }
             }),
+            that_player: f.that_player,
+            not_attached: f.not_attached,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
@@ -400,6 +402,7 @@ impl Decompiler<'_> {
             CoreRecipient::Group(i) => Recipient::Group(i),
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::Attached => Recipient::Attached,
+            CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
         }
     }
@@ -538,6 +541,7 @@ impl Decompiler<'_> {
                 token: self.pool.get(*token).name.clone(),
                 count: *count,
                 tapped: *tapped,
+                you: false,
             },
             CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
                 of: r(*of),
@@ -928,6 +932,7 @@ impl Decompiler<'_> {
                 whose: *whose,
             },
             TriggerSpec::AttachedControllersStep(step) => Trigger::AttachedStep(*step),
+            TriggerSpec::State(i) => Trigger::State(self.static_cond(self.pool.condition(*i))),
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {

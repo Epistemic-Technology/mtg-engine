@@ -1,0 +1,6 @@
+card "Mutiny" {
+  oracle_id 647b4cb4-569d-4938-b56c-31a70e68ee41
+  cost {R}
+  type Sorcery
+  spell: target creature an opponent controls bites another target creature controller of target 1 controls
+}

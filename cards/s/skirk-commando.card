@@ -1,0 +1,8 @@
+card "Skirk Commando" {
+  oracle_id c92f1d40-0441-4ede-9363-78821ff15f88
+  cost {1}{R}{R}
+  type Creature — Goblin
+  pt 2/1
+  triggered whenever this deals combat damage to a player: you may deal 2 damage to target creature that player controls
+  morph {2}{R}
+}

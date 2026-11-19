@@ -2292,12 +2292,21 @@ impl P {
                 Some(s) => s,
                 None => return self.fail("`unless they pay` needs a clause with a subject"),
             }
+        } else if self.eat_words(&["any", "player", "pays"]) {
+            // "unless any player pays {2}": each player may.
+            Recipient::EachPlayer
         } else {
             let r = self.recipient()?;
             self.expect_word("pays")?;
             r
         };
-        let (mana, life) = self.pay_amount()?;
+        let (mana, mut life) = self.pay_amount()?;
+        // "unless that player pays {1} or 1 life": either.
+        if life == 0 && self.at_word("or") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            life = self.number()?;
+            self.expect_word("life")?;
+        }
         Ok(Effect::UnlessPays {
             payer,
             mana,
@@ -2356,6 +2365,7 @@ impl P {
         }
         if self.at_words(&["triggering", "card"])
             || self.at_words(&["controller", "of", "that", "creature"])
+            || self.at_words(&["controller", "of", "enchanted"])
         {
             return true;
         }
@@ -2676,7 +2686,8 @@ impl P {
             return self.when_you_do();
         }
         // "if you do, ...": after an optional action.
-        if self.at_words(&["if", "you", "do"]) {
+        // `if they do`: the same, after "unless its controller pays".
+        if self.at_words(&["if", "you", "do"]) || self.at_words(&["if", "they", "do"]) {
             self.pos += 3;
             if self.peek() == Some(&Tok::Comma) {
                 self.pos += 1;
@@ -2897,7 +2908,10 @@ impl P {
                 })
             }
             "sacrifices" | "sacrifice"
-                if self.at_word("that") || self.at_word("it") || self.at_word("this") =>
+                if self.at_word("that")
+                    || self.at_word("it")
+                    || self.at_word("this")
+                    || self.at_word("attached") =>
             {
                 let what = self.recipient()?;
                 Ok(Effect::SacrificeBy { who: subject, what })
@@ -3257,6 +3271,24 @@ impl P {
                     toughness,
                     colors,
                 })
+            }
+            // "and you create a 1/1 ... token".
+            "create" if subject == Recipient::You => {
+                self.pos -= 1;
+                match self.verb_first()? {
+                    Effect::CreateToken {
+                        token,
+                        count,
+                        tapped,
+                        ..
+                    } => Ok(Effect::CreateToken {
+                        token,
+                        count,
+                        tapped,
+                        you: true,
+                    }),
+                    _ => self.fail("expected a token after `you create`"),
+                }
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
         }
@@ -3961,6 +3993,7 @@ impl P {
                     token,
                     count,
                     tapped,
+                    you: false,
                 })
             }
             "attach" => {
@@ -4725,6 +4758,10 @@ impl P {
         if self.eat_words(&["triggering", "card"]) {
             return Ok(Recipient::TriggeringCard);
         }
+        // `controller of enchanted`: "enchanted creature's controller".
+        if self.eat_words(&["controller", "of", "enchanted"]) {
+            return Ok(Recipient::AttachedController);
+        }
         // In a triggered ability with no targets, `its controller` is the
         // triggering object's; `controller of that creature` names it.
         if self.in_trigger && self.targets.is_empty() && self.eat_words(&["its", "controller"]) {
@@ -5009,7 +5046,9 @@ impl P {
                     (Some("you"), Some("don't" | "control"))
                         | (Some("an"), Some("opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
-                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked"))
+                        | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player"))
+                        | (Some("other"), Some("than"))
+                        | (Some("controller"), Some("of"))
                         | (Some("with" | "without"), Some("aura"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "or"))
@@ -5096,6 +5135,10 @@ impl P {
                 Who::You
             } else if self.eat_words(&["an", "opponent's"]) {
                 Who::Opponents
+            } else if self.eat_words(&["that", "player's"]) {
+                // "from that player's graveyard": the triggering player's.
+                f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
+                Who::Any
             } else {
                 self.expect_word("a")?;
                 Who::Any
@@ -5200,9 +5243,29 @@ impl P {
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,
+                // "other than enchanted creature": not the source's host.
+                "other" if self.at_words(&["other", "than", "enchanted"]) => {
+                    f.not_attached = true;
+                    self.pos += 3;
+                }
                 "other" | "another" => {
                     f.relation = Relation::Other;
                     self.pos += 1;
+                }
+                // "that player controls": the triggering player.
+                "that" if self.at_words(&["that", "player", "controls"]) => {
+                    f.that_player = Some(mtg_core::card::ThatPlayer::Triggering);
+                    self.pos += 3;
+                }
+                // `controller of target 1 controls`: "that player controls",
+                // the 1st target's controller.
+                "controller" if self.at_words(&["controller", "of", "target"]) => {
+                    self.pos += 3;
+                    let n = self.declared_target()?;
+                    self.expect_word("controls")?;
+                    f.that_player = Some(mtg_core::card::ThatPlayer::ControllerOf(
+                        u8::try_from(n).unwrap_or(u8::MAX),
+                    ));
                 }
                 "this" if self.word_at(1).as_deref() != Some("turn") => {
                     f.relation = Relation::This;
@@ -5780,6 +5843,10 @@ impl P {
         if !(self.eat_word("when") || self.eat_word("whenever")) {
             return self.unexpected("`when`, `whenever`, or `at`");
         }
+        // "When you control no Islands": a state trigger (CR 603.8).
+        if !whenever && self.at_words(&["you", "control", "no"]) {
+            return Ok(Trigger::State(self.static_cond()?));
+        }
         if self.at_words(&["you", "gain", "life"]) {
             self.pos += 3;
             return Ok(Trigger::GainsLife { whose: Who::You });
@@ -5985,6 +6052,10 @@ impl P {
                 if self.at_words(&["combat", "damage", "to", "a", "player"]) {
                     self.pos += 5;
                     return Ok(Trigger::DealsCombatDamageToPlayer(obj));
+                }
+                if self.at_words(&["combat", "damage", "to", "defending", "player"]) {
+                    self.pos += 5;
+                    return Ok(Trigger::DealsCombatDamageToDefending(obj));
                 }
                 let combat = self.eat_word("combat");
                 self.expect_word("damage")?;

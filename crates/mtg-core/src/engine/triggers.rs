@@ -752,6 +752,59 @@ impl GameState {
         false
     }
 
+    /// CR 603.8: state triggers whose conditions hold trigger as a player
+    /// would receive priority, each only once until its ability has left
+    /// the stack (or, never put there, is no longer waiting).
+    pub(super) fn check_state_triggers(&mut self) {
+        let mut fired: SmallVec<[PendingTrigger; 1]> = SmallVec::new();
+        for &id in &self.battlefield {
+            let o = &self.objects[id];
+            if !self.pool.get(o.def).flags().has_state_trigger() {
+                continue;
+            }
+            let Some(chars) = self.characteristics(id) else {
+                continue;
+            };
+            for &ability in &chars.abilities {
+                let AbilityDef::Triggered(t) = self.pool.ability(ability) else {
+                    continue;
+                };
+                let TriggerSpec::State(cond) = t.trigger else {
+                    continue;
+                };
+                let waiting = self
+                    .pending_triggers
+                    .iter()
+                    .any(|p| p.ability.ability == ability && p.ability.source == id)
+                    || self.stack.iter().any(|s| {
+                        self.objects[*s]
+                            .ability
+                            .is_some_and(|a| a.ability == ability && a.source == id)
+                    });
+                if waiting || !self.condition_for(self.pool.condition(cond), o.controller, id, None)
+                {
+                    continue;
+                }
+                fired.push(PendingTrigger {
+                    controller: o.controller,
+                    ability: StackAbility {
+                        ability,
+                        source: id,
+                        def: chars.def,
+                        trigger_obj: None,
+                        trigger_player: None,
+                        trigger_amount: 0,
+                    },
+                    timestamp: 0,
+                });
+            }
+        }
+        for mut t in fired {
+            t.timestamp = self.tick();
+            self.pending_triggers.push(t);
+        }
+    }
+
     /// Indices into `pending_triggers` controlled by `p`.
     pub(super) fn triggers_of(&self, p: PlayerId) -> Vec<usize> {
         self.pending_triggers
@@ -779,7 +832,12 @@ impl GameState {
                 _ => None,
             };
         if modal == Some(false)
-            || !self.targets_available(t.controller, &specs, Some(t.ability.source))
+            || !self.targets_available_for(
+                t.controller,
+                &specs,
+                Some(t.ability.source),
+                t.ability.trigger_player,
+            )
         {
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
@@ -862,7 +920,13 @@ impl GameState {
             self.remove_from_game(id);
             return;
         }
-        let legal = self.targets_legal(obj.controller, targets, &obj.targets, Some(sa.source));
+        let legal = self.targets_legal(
+            obj.controller,
+            targets,
+            &obj.targets,
+            Some(sa.source),
+            sa.trigger_player,
+        );
         if !legal.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
                 spell: id,

@@ -1,0 +1,9 @@
+card "Slipstream Serpent" {
+  oracle_id aa1152cb-255f-43fa-81f5-430304ce4d98
+  cost {7}{U}
+  type Creature — Serpent
+  pt 6/6
+  can't attack unless defending player controls Island
+  triggered when you control no Island: sacrifice this
+  morph {5}{U}
+}

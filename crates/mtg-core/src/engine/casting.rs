@@ -1902,6 +1902,124 @@ impl GameState {
         specs: &[TargetSpec],
         source: Option<ObjId>,
     ) -> bool {
+        self.targets_available_for(p, specs, source, None)
+    }
+
+    /// `targets_available` for a triggered ability whose triggering player
+    /// is `trigger_player` ("target creature that player controls").
+    pub(super) fn targets_available_for(
+        &self,
+        p: PlayerId,
+        specs: &[TargetSpec],
+        source: Option<ObjId>,
+        trigger_player: Option<PlayerId>,
+    ) -> bool {
+        if !self.plain_targets_available(p, specs, source) {
+            return false;
+        }
+        // "that player": some choice of the targets it relates to leaves
+        // one for it.
+        specs
+            .iter()
+            .enumerate()
+            .all(|(i, s)| match self.that_player_of(*s) {
+                None => true,
+                Some(crate::card::ThatPlayer::Triggering) => {
+                    matches!(s, TargetSpec::UpTo(_))
+                        || self
+                            .legal_targets(p, *s, source)
+                            .into_iter()
+                            .any(|t| self.that_player_ok(*s, t, trigger_player, &[]))
+                }
+                Some(crate::card::ThatPlayer::ControllerOf(n)) => {
+                    let Some(first) = specs.get(usize::from(n)) else {
+                        return true;
+                    };
+                    self.legal_targets(p, *first, source)
+                        .into_iter()
+                        .any(|t0| self.related_target_exists(p, specs, i, t0, n, source))
+                }
+            })
+    }
+
+    /// Whether spec `i`, relating to target `n` chosen as `t0`, has a legal
+    /// target controlled by `t0`'s controller other than `t0` (CR 115.3).
+    pub(super) fn related_target_exists(
+        &self,
+        p: PlayerId,
+        specs: &[TargetSpec],
+        i: usize,
+        t0: Target,
+        n: u8,
+        source: Option<ObjId>,
+    ) -> bool {
+        let mut chosen = vec![Target::Player(p); usize::from(n) + 1];
+        chosen[usize::from(n)] = t0;
+        self.legal_targets(p, specs[i], source)
+            .into_iter()
+            .any(|t| t != t0 && self.that_player_ok(specs[i], t, None, &chosen))
+    }
+
+    /// Target options for `spec` of stack object `spell` held to "that
+    /// player" (`ObjFilter::that_player`): a target controlled by the
+    /// triggering player or an earlier target's controller, and a target a
+    /// later one relates to only if it leaves that one a choice ("Target
+    /// creature an opponent controls deals damage ... to another target
+    /// creature that player controls", CR 601.2c).
+    pub(super) fn retain_that_player(
+        &self,
+        spell: ObjId,
+        specs: &[TargetSpec],
+        spec: TargetSpec,
+        options: &mut Vec<Choice>,
+    ) {
+        let o = &self.objects[spell];
+        let index = o.targets.len();
+        if self.that_player_of(spec).is_some() {
+            let trigger_player = o.ability.and_then(|a| a.trigger_player);
+            options.retain(|c| match c {
+                Choice::Target(t) => self.that_player_ok(spec, *t, trigger_player, &o.targets),
+                _ => true,
+            });
+        }
+        let related: SmallVec<[usize; 2]> = (index + 1..specs.len())
+            .filter(|i| {
+                matches!(
+                    self.that_player_of(specs[*i]),
+                    Some(crate::card::ThatPlayer::ControllerOf(n)) if usize::from(n) == index
+                )
+            })
+            .collect();
+        if related.is_empty() {
+            return;
+        }
+        let source = Some(o.ability.map_or(spell, |a| a.source));
+        let n = u8::try_from(index).unwrap_or(u8::MAX);
+        options.retain(|c| match c {
+            Choice::Target(t) => related.iter().all(|i| {
+                matches!(specs[*i], TargetSpec::UpTo(_))
+                    || self.related_target_exists(o.controller, specs, *i, *t, n, source)
+            }),
+            _ => true,
+        });
+    }
+
+    /// The "that player" relation of a target spec's filter, if any.
+    pub(super) fn that_player_of(&self, spec: TargetSpec) -> Option<crate::card::ThatPlayer> {
+        match self.pool.base_spec(spec) {
+            TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } => {
+                self.pool.filter(f).that_player
+            }
+            _ => None,
+        }
+    }
+
+    fn plain_targets_available(
+        &self,
+        p: PlayerId,
+        specs: &[TargetSpec],
+        source: Option<ObjId>,
+    ) -> bool {
         // CR 115.3: "two target lands" needs two different lands.
         specs.iter().all(|s| match s {
             TargetSpec::UpTo(_) => true,
@@ -2900,7 +3018,7 @@ impl GameState {
         if let Some((specs, effects)) = parts {
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
-            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell));
+            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
             // A spell whose optional targets were all declined has none.
             if !legal.is_empty() && legal.iter().all(|l| !l) {
                 self.emit(Event::Fizzle {
@@ -3115,13 +3233,16 @@ impl GameState {
         specs: &[TargetSpec],
         targets: &[Target],
         source: Option<ObjId>,
+        trigger_player: Option<PlayerId>,
     ) -> Vec<bool> {
         targets
             .iter()
             .enumerate()
             .map_while(|(i, t)| {
-                crate::card::spec_for(specs, i)
-                    .map(|spec| self.is_legal_target_for(controller, spec, *t, source))
+                crate::card::spec_for(specs, i).map(|spec| {
+                    self.is_legal_target_for(controller, spec, *t, source)
+                        && self.that_player_ok(spec, *t, trigger_player, targets)
+                })
             })
             .collect()
     }
@@ -3311,6 +3432,19 @@ impl GameState {
                 };
                 if let Some(t) = attached.filter(|t| self.objects.contains_key(*t)) {
                     out.push(Target::Object(t));
+                }
+            }
+            Recipient::AttachedController => {
+                let attached = match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => o.attached_to,
+                    _ => self.lki.get(&ctx.source).and_then(|l| l.object.attached_to),
+                };
+                let p = attached.and_then(|t| match self.objects.get(t) {
+                    Some(o) if o.zone == Zone::Battlefield => Some(o.controller),
+                    _ => self.lki.get(&t).map(|l| l.object.controller),
+                });
+                if let Some(p) = p {
+                    out.push(Target::Player(p));
                 }
             }
             Recipient::Group(f) => self.group_into(ctx, f, &mut out),
@@ -3643,6 +3777,8 @@ impl GameState {
                             DecisionKind::PayOrCounter { def },
                             vec![Choice::Accept, Choice::Decline],
                         ) == 0;
+                    // "If they do, ..." sees the payment.
+                    ctx.did = pays;
                     if pays {
                         self.pay(ctl, &req);
                     } else {
@@ -4632,31 +4768,74 @@ impl GameState {
                     .map(|o| o.def)
                     .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
                     .expect("a resolving spell or its last known information exists");
-                let payer = self
-                    .recipients(ctx, *payer)
-                    .into_iter()
-                    .find_map(|t| match t {
-                        Target::Player(p) => Some(p),
-                        Target::Object(_) => None,
-                    });
-                let req = mana.requirements(0);
-                let pays = payer.is_some_and(|p| {
-                    let life_ok = *life == 0
-                        || self.player(p).life >= i32::try_from(*life).unwrap_or(i32::MAX);
-                    life_ok
-                        && self.can_pay(p, &req)
-                        && self.choose_mid(
-                            p,
-                            DecisionKind::PayOrCounter { def },
-                            vec![Choice::Accept, Choice::Decline],
-                        ) == 0
-                });
-                if pays && let Some(p) = payer {
-                    self.pay(p, &req);
-                    if *life > 0 {
-                        self.change_life(p, -i32::try_from(*life).unwrap_or(i32::MAX));
+                // "unless any player pays {2}": each player in turn, from
+                // the active player (CR 101.4), may pay, until one does.
+                let payers: SmallVec<[PlayerId; 2]> = if *payer == Recipient::EachPlayer {
+                    let mut p = self.active_player;
+                    let mut out = SmallVec::new();
+                    for _ in 0..self.num_players() {
+                        if self.player(p).lost.is_none() {
+                            out.push(p);
+                        }
+                        p = self.next_player(p);
                     }
+                    out
                 } else {
+                    self.recipients(ctx, *payer)
+                        .into_iter()
+                        .find_map(|t| match t {
+                            Target::Player(p) => Some(p),
+                            Target::Object(_) => None,
+                        })
+                        .into_iter()
+                        .collect()
+                };
+                // "unless any player pays {X}": X of the spell (CR 107.3).
+                let req = mana.requirements(ctx.x);
+                let life_n = i32::try_from(*life).unwrap_or(i32::MAX);
+                // "pays {1} or 1 life": either, the payer's choice.
+                let either = *life > 0 && *mana != crate::mana::ManaCost::default();
+                let mut paid = false;
+                for p in payers {
+                    let mana_ok = (either || *life == 0) && self.can_pay(p, &req);
+                    let life_ok = *life > 0 && self.player(p).life >= life_n;
+                    let mut options = Vec::new();
+                    if either {
+                        if mana_ok {
+                            options.push(Choice::Mode(0));
+                        }
+                        if life_ok {
+                            options.push(Choice::Mode(1));
+                        }
+                    } else if (*life == 0 || life_ok) && self.can_pay(p, &req) {
+                        options.push(Choice::Accept);
+                    }
+                    if options.is_empty() {
+                        continue;
+                    }
+                    // The effect's own controller is asked too ("any
+                    // player"), but declining is listed first for them.
+                    if *payer == Recipient::EachPlayer && p == ctx.controller {
+                        options.insert(0, Choice::Decline);
+                    } else {
+                        options.push(Choice::Decline);
+                    }
+                    let i = self.choose_mid(p, DecisionKind::PayOrCounter { def }, options.clone());
+                    match options.get(i) {
+                        Some(Choice::Mode(0)) => self.pay(p, &req),
+                        Some(Choice::Mode(_)) => self.change_life(p, -life_n),
+                        Some(Choice::Accept) => {
+                            self.pay(p, &req);
+                            if *life > 0 {
+                                self.change_life(p, -life_n);
+                            }
+                        }
+                        _ => continue,
+                    }
+                    paid = true;
+                    break;
+                }
+                if !paid {
                     for e in effects {
                         self.apply_effect(ctx, e);
                     }

@@ -1,0 +1,6 @@
+card "Divert Disaster" {
+  oracle_id 76fdbc2c-d2b1-466f-9230-06e187bcc9e6
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {2}; if they do, you create 1 "Lander"
+}
