@@ -1,0 +1,7 @@
+card "Spiteful Shadows" {
+  oracle_id bc1c2203-4cc6-4131-9d3c-6f3da88b97ce
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature is dealt damage: it deals that much damage to its controller
+}

@@ -1,0 +1,8 @@
+card "Ragged Veins" {
+  oracle_id c111703f-e37a-4eaf-b6e1-708a448e61aa
+  cost {1}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered whenever enchanted creature is dealt damage: its controller loses that much life
+}

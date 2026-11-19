@@ -1,0 +1,7 @@
+card "Creeping Bloodsucker" {
+  oracle_id 0bdddaf9-579a-4588-b5b3-faa189d4bdcc
+  cost {1}{B}
+  type Creature — Vampire
+  pt 1/2
+  triggered at beginning of your upkeep: this deals 1 damage to each opponent; you gain count equal damage dealt this way life
+}

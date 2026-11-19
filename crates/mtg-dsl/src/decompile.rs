@@ -654,9 +654,10 @@ impl Decompiler<'_> {
                     other => r(*other),
                 },
             },
-            CoreEffect::Bite { source, to } => Effect::Bite {
+            CoreEffect::Bite { source, to, twice } => Effect::Bite {
                 source: r(*source),
                 to: r(*to),
+                twice: *twice,
             },
             CoreEffect::Animate {
                 to,
@@ -984,6 +985,7 @@ impl Decompiler<'_> {
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
+            TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
             TriggerSpec::DealsDamage { what, to, combat } => Trigger::DealsDamage {
                 obj: self.trigger_obj(what),
                 to: *to,

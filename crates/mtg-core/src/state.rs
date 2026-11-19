@@ -756,6 +756,9 @@ pub struct ThisWayLog {
     pub moved: Vec<Moved>,
     /// Life players lost.
     pub life_lost: u32,
+    /// Damage dealt (CR 120.3), and of it the excess (CR 120.4a).
+    pub damage: u32,
+    pub excess: u32,
 }
 
 impl Moved {
@@ -962,6 +965,9 @@ pub struct GameState {
     pub spells_this_turn: [u8; 4],
     /// Cards each player drew this turn ("your second card each turn").
     pub drawn_this_turn: [u8; 4],
+    /// Life each player has lost this turn ("the life you've lost this
+    /// turn"; CR 119.3).
+    pub life_lost_this_turn: [u32; 4],
     /// Players who declared an attacker this turn (raid), one bit each.
     pub attacked_this_turn: u8,
     /// "Target creature blocks this creature this turn if able": (blocker,

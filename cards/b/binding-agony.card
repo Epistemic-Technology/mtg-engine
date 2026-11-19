@@ -1,0 +1,7 @@
+card "Binding Agony" {
+  oracle_id dcd41ed1-4a12-416b-8ba0-51a9c0927ddb
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature is dealt damage: deal that much damage to controller of that creature
+}

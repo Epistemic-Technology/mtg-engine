@@ -784,6 +784,10 @@ fn per_count(
                 })
                 .count()
         }
+        CountExpr::Sum(a, b) => {
+            return per_count(work, source, controller, a)
+                .saturating_add(per_count(work, source, controller, b));
+        }
         CountExpr::Plus(k, inner) => {
             return i32::try_from(*k)
                 .unwrap_or(0)
@@ -818,6 +822,12 @@ fn per_count(
         | CountExpr::SpentColors
         | CountExpr::SpentTreasure
         | CountExpr::DiedThisTurn(_)
+        | CountExpr::TriggerStat(_)
+        | CountExpr::MovedStat { .. }
+        | CountExpr::TargetHand(_)
+        | CountExpr::GreatestToughness(_)
+        | CountExpr::LifeLostThisTurn
+        | CountExpr::DamageThisWay { .. }
         | CountExpr::ColorsAmongPermanents => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)

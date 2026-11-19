@@ -1,0 +1,6 @@
+card "Invigorating Falls" {
+  oracle_id c5c98759-e009-4340-9326-9f5ff70a86bc
+  cost {2}{G}{G}
+  type Sorcery
+  spell: you gain count equal all graveyards creature life
+}

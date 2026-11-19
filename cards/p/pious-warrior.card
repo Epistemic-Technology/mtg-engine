@@ -1,0 +1,7 @@
+card "Pious Warrior" {
+  oracle_id 163e5482-700c-4d91-b70c-9170cc8f1ad2
+  cost {3}{W}
+  type Creature — Human Rebel Warrior
+  pt 2/3
+  triggered whenever this is dealt combat damage: you gain that much life
+}

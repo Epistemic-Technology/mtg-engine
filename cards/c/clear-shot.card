@@ -1,0 +1,6 @@
+card "Clear Shot" {
+  oracle_id 0b8defd2-8530-47d7-a0c6-27aa5162dff6
+  cost {2}{G}
+  type Instant
+  spell: target creature you control gets +1/+1; target 1 bites target creature you don't control
+}

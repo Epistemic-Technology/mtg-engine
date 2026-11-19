@@ -1,0 +1,6 @@
+card "Vendetta" {
+  oracle_id 50a16634-ebf7-477f-ad6f-23332599f838
+  cost {B}
+  type Instant
+  spell: destroy target nonblack creature without regeneration; you lose count equal toughness of that target 1 life
+}

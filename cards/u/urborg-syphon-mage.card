@@ -1,0 +1,7 @@
+card "Urborg Syphon-Mage" {
+  oracle_id d6608efe-b014-4b4d-a995-0be5047567c5
+  cost {2}{B}
+  type Creature — Human Spellshaper
+  pt 2/2
+  activated {2}{B}, {T}, discard 1 card: each other player loses 2 life; you gain count equal life lost this way life
+}

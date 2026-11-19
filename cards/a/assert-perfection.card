@@ -1,0 +1,6 @@
+card "Assert Perfection" {
+  oracle_id ecf574a5-6410-466d-a726-732134f904b2
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control gets +1/+0; target 1 bites up to 1 target creature an opponent controls
+}

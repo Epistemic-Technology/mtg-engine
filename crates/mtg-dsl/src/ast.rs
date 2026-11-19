@@ -163,6 +163,9 @@ pub enum CountStyle {
     Each,
     /// `count that many ...`: "draw that many cards".
     ThatMany,
+    /// `deal damage equal <expr> to <what>`: "deals damage equal to ... to
+    /// <what>", the amount before the recipient.
+    EqualBefore,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -255,6 +258,38 @@ pub enum CountExpr {
     /// `greatest power graveyard creature`: "the greatest power among
     /// creature cards in your graveyard".
     GreatestPowerInGraveyard(Filter),
+    /// `toughness of it` ("its toughness"), `power of that creature`
+    /// ("that creature's power"): the triggering object's, as it last
+    /// existed.
+    TriggerStat {
+        stat: mtg_core::card::Stat,
+        that: bool,
+    },
+    /// `toughness of the sacrificed creature` ("the sacrificed creature's
+    /// toughness"), `mana value of the sacrificed permanent`, `toughness
+    /// of that sacrificed creature` ("that creature's toughness" after
+    /// "sacrifices a creature"): the object moved this way, `noun` its
+    /// printed noun.
+    MovedStat {
+        verb: mtg_core::card::ThisWay,
+        stat: mtg_core::card::Stat,
+        noun: String,
+        that: bool,
+    },
+    /// `hand of target 1`: "the number of cards in that player's hand".
+    TargetHand(usize),
+    /// `greatest toughness other creature you control`: "the greatest
+    /// toughness among other creatures you control".
+    GreatestToughness(Filter),
+    /// `<expr> plus <expr>`: "the number of creatures on the battlefield
+    /// plus the number of artifacts on the battlefield".
+    Sum(Box<CountExpr>, Box<CountExpr>),
+    /// `life you lost this turn`: "the life you've lost this turn".
+    LifeLostThisTurn,
+    /// `damage dealt this way`, `excess damage dealt this way`.
+    DamageThisWay {
+        excess: bool,
+    },
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -1284,6 +1319,8 @@ pub enum Trigger {
     BecomesUntapped(TriggerObj),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
+    /// `whenever this is dealt combat damage`.
+    DealtCombatDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
     /// opponent`, `... deals combat damage to creature`.
     DealsDamage {
@@ -1432,6 +1469,8 @@ pub enum Recipient {
     Targets(usize, usize),
     /// `controller of that target 1`: "that creature's controller".
     ThatControllerOf(usize),
+    /// `controller of the target 1`: "the creature's controller".
+    TheControllerOf(usize),
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),
@@ -1442,6 +1481,9 @@ pub enum Recipient {
     OwnerOf(usize),
     You,
     EachOpponent,
+    /// `each other player`: "each other player", the same players as
+    /// each opponent.
+    EachOtherPlayer,
     /// `this`: the source, "this creature" (a spell's or a legendary
     /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,
@@ -1759,10 +1801,12 @@ pub enum Effect {
         b: Recipient,
     },
     /// `<what> bites <what>`: "deals damage equal to its power to"; `bites
-    /// itself` when `to == source`.
+    /// itself` when `to == source`; `bites twice <what>` is "deals damage
+    /// equal to twice its power to".
     Bite {
         source: Recipient,
         to: Recipient,
+        twice: bool,
     },
     Animate {
         to: Recipient,

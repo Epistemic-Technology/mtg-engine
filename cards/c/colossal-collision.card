@@ -1,0 +1,7 @@
+card "Colossal Collision" {
+  oracle_id c2f7f39b-0569-4c32-bdbf-7fb0a0efd5cf
+  cost {3}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control; then that target 1 bites target creature an opponent controls
+  basic landcycling {2}
+}

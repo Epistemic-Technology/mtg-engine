@@ -1,0 +1,7 @@
+card "Bushmeat Poacher" {
+  oracle_id 0287d541-3f73-4c8b-9a77-87f99898758d
+  cost {3}{B}
+  type Creature — Human Soldier
+  pt 2/4
+  activated {1}, {T}, sacrifice other creature: you gain count equal toughness of the sacrificed creature life; draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Kheru Dreadmaw" {
+  oracle_id 8c8c9f16-a3d0-49f2-a95b-dfef756de0b3
+  cost {4}{B}
+  type Creature — Zombie Crocodile
+  pt 4/4
+  keywords defender
+  activated {1}{G}, sacrifice other creature: you gain count equal toughness of the sacrificed creature life
+}

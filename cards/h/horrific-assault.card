@@ -1,0 +1,6 @@
+card "Horrific Assault" {
+  oracle_id 4c7e091e-e3c1-446d-a442-4aacb3cdd575
+  cost {G}
+  type Sorcery
+  spell: target creature you control bites target creature or planeswalker you don't control; if you control Eldrazi, you gain 3 life
+}

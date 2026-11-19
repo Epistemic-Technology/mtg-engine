@@ -1,0 +1,7 @@
+card "Children of Korlis" {
+  oracle_id d44a8f89-b9c0-4e8a-9179-baa0c448a3c9
+  cost {W}
+  type Creature — Human Rebel Cleric
+  pt 1/1
+  activated sacrifice this: you gain count equal life you lost this turn life
+}

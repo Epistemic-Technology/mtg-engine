@@ -1,0 +1,6 @@
+card "Sever Soul" {
+  oracle_id 577d027a-96c3-46fe-880b-f8b5dd3f3a3d
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target nonblack creature without regeneration; you gain count equal toughness of target 1 life
+}

@@ -1,0 +1,6 @@
+card "Crumble" {
+  oracle_id 8d6e39b0-a190-40a0-a8e1-ee82f477376f
+  cost {G}
+  type Instant
+  spell: destroy target artifact without regeneration; controller of that target 1 gains count equal mana value of target 1 life
+}

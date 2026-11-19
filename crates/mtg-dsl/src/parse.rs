@@ -310,6 +310,7 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
         Recipient::EachPermanentYouControl,
     ),
     (&["each", "opponent"], Recipient::EachOpponent),
+    (&["each", "other", "player"], Recipient::EachOtherPlayer),
     (&["each", "player"], Recipient::EachPlayer),
     (&["each", "creature"], Recipient::EachCreature),
     (&["all", "creatures"], Recipient::EachCreature),
@@ -2984,7 +2985,8 @@ impl P {
                 Ok(Effect::Fight { a: subject, b })
             }
             "bites" => {
-                let to = if self.eat_word("itself") {
+                let twice = self.eat_word("twice");
+                let to = if !twice && self.eat_word("itself") {
                     subject
                 } else {
                     self.recipient()?
@@ -2992,6 +2994,7 @@ impl P {
                 Ok(Effect::Bite {
                     source: subject,
                     to,
+                    twice,
                 })
             }
             "has" | "have" => {
@@ -3481,6 +3484,23 @@ impl P {
                 ) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
+            }
+            // `deal damage equal <expr> to <what>`: "deals damage equal to
+            // ... to <what>".
+            "deal" | "deals" if self.at_words(&["damage", "equal"]) => {
+                self.pos += 2;
+                let expr = self.count_expr()?;
+                let amount = self.push_count(crate::ast::Count {
+                    expr,
+                    style: crate::ast::CountStyle::EqualBefore,
+                })?;
+                self.expect_word("to")?;
+                let to = self.recipients()?;
+                Ok(Effect::DealDamage {
+                    amount,
+                    to,
+                    by: Recipient::Source,
+                })
             }
             "deal" | "deals" => {
                 let amount = self.num()?;
@@ -4204,17 +4224,7 @@ impl P {
                 _ => crate::ast::CountStyle::Each,
             };
             let expr = self.count_expr()?;
-            let c = crate::ast::Count { expr, style };
-            let i = if let Some(i) = self.counts.iter().position(|x| *x == c) {
-                i
-            } else {
-                self.counts.push(c);
-                self.counts.len() - 1
-            };
-            return Ok(Num::Count(u8::try_from(i).map_err(|_| ParseError {
-                line: self.line(),
-                message: "too many counts".to_string(),
-            })?));
+            return self.push_count(crate::ast::Count { expr, style });
         }
         match self.peek() {
             Some(Tok::Num(n)) => {
@@ -4240,6 +4250,20 @@ impl P {
             }
             _ => self.unexpected("a number"),
         }
+    }
+
+    /// The card's count for `c`, shared with an equal one already parsed.
+    fn push_count(&mut self, c: crate::ast::Count) -> R<Num> {
+        let i = if let Some(i) = self.counts.iter().position(|x| *x == c) {
+            i
+        } else {
+            self.counts.push(c);
+            self.counts.len() - 1
+        };
+        Ok(Num::Count(u8::try_from(i).map_err(|_| ParseError {
+            line: self.line(),
+            message: "too many counts".to_string(),
+        })?))
     }
 
     fn count(&mut self) -> R<u32> {
@@ -4287,9 +4311,94 @@ impl P {
     /// `domain`, `hand`, `graveyard [<filter>]`, `power`, `power of target
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
-    #[allow(clippy::too_many_lines)] // one branch per count
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
+        let first = self.count_expr_one()?;
+        // `<expr> plus <expr>`; `plus 2 <expr>` is the prefix form.
+        if self.at_word("plus")
+            && !matches!(self.peek_at(1), Some(Tok::Num(_)))
+            && !self
+                .word_at(1)
+                .is_some_and(|w| NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str()))
+        {
+            self.pos += 1;
+            let second = self.count_expr_one()?;
+            return Ok(crate::ast::CountExpr::Sum(
+                Box::new(first),
+                Box::new(second),
+            ));
+        }
+        Ok(first)
+    }
+
+    /// `power of it`, `toughness of that creature` (the triggering
+    /// object), `toughness of the sacrificed creature`, `mana value of that
+    /// sacrificed creature` (what the resolution moved); `None`, nothing
+    /// consumed, otherwise.
+    fn stat_of(&mut self) -> Option<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
+        use mtg_core::card::Stat;
+        let (stat, len) = if self.at_words(&["power", "of"]) {
+            (Stat::Power, 2)
+        } else if self.at_words(&["toughness", "of"]) {
+            (Stat::Toughness, 2)
+        } else if self.at_words(&["mana", "value", "of"]) {
+            (Stat::ManaValue, 3)
+        } else {
+            return None;
+        };
+        let at = |k: usize| self.word_at(len + k);
+        if self.in_trigger && at(0).as_deref() == Some("it") {
+            self.pos += len + 1;
+            return Some(CountExpr::TriggerStat { stat, that: false });
+        }
+        if self.in_trigger
+            && at(0).as_deref() == Some("that")
+            && at(1).as_deref() == Some("creature")
+        {
+            self.pos += len + 2;
+            return Some(CountExpr::TriggerStat { stat, that: true });
+        }
+        let that = match at(0).as_deref() {
+            Some("the") => false,
+            Some("that") => true,
+            _ => return None,
+        };
+        let verb = at(1).and_then(|w| crate::ast::this_way_verb(&w))?;
+        let noun = at(2).filter(|n| n.chars().all(|c| c.is_ascii_lowercase()))?;
+        self.pos += len + 3;
+        Some(CountExpr::MovedStat {
+            verb,
+            stat,
+            noun,
+            that,
+        })
+    }
+
+    #[allow(clippy::too_many_lines)] // one branch per count
+    fn count_expr_one(&mut self) -> R<crate::ast::CountExpr> {
+        use crate::ast::CountExpr;
+        if let Some(c) = self.stat_of() {
+            return Ok(c);
+        }
+        if self.eat_words(&["life", "you", "lost", "this", "turn"]) {
+            return Ok(CountExpr::LifeLostThisTurn);
+        }
+        if self.eat_words(&["damage", "dealt", "this", "way"]) {
+            return Ok(CountExpr::DamageThisWay { excess: false });
+        }
+        if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
+            return Ok(CountExpr::DamageThisWay { excess: true });
+        }
+        if self.eat_words(&["greatest", "toughness"]) {
+            return Ok(CountExpr::GreatestToughness(self.filter()?));
+        }
+        if self.eat_words(&["hand", "of", "target"]) {
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetHand(n - 1));
+        }
         if let Some(Tok::Num(n)) = self.peek() {
             let n = *n;
             self.pos += 1;
@@ -4685,14 +4794,22 @@ impl P {
                 _ => self.fail("expected targets"),
             };
         }
-        // `controller of that target 1`: "that creature's controller".
-        if self.at_words(&["controller", "of", "that", "target"]) {
+        // `controller of that target 1`: "that creature's controller";
+        // `controller of the target 1`: "the creature's controller".
+        if self.at_words(&["controller", "of", "that", "target"])
+            || self.at_words(&["controller", "of", "the", "target"])
+        {
+            let the = self.word_at(2).as_deref() == Some("the");
             self.pos += 4;
             let n = self.number()? as usize;
             if n == 0 || n > self.targets.len() {
                 return self.fail(format!("target {n} has not been declared"));
             }
-            return Ok(Recipient::ThatControllerOf(n - 1));
+            return Ok(if the {
+                Recipient::TheControllerOf(n - 1)
+            } else {
+                Recipient::ThatControllerOf(n - 1)
+            });
         }
         // `targets 1 to 2`: a declared group again.
         if self.at_word("targets") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
@@ -5984,6 +6101,10 @@ impl P {
             "is" if self.at_words(&["turned", "face", "up"]) => {
                 self.pos += 3;
                 Ok(Trigger::TurnedFaceUp(obj))
+            }
+            "is" if self.at_words(&["dealt", "combat", "damage"]) => {
+                self.pos += 3;
+                Ok(Trigger::DealtCombatDamage(obj))
             }
             "is" if self.at_words(&["dealt", "damage"]) => {
                 self.pos += 2;

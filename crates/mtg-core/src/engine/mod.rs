@@ -448,6 +448,7 @@ impl GameState {
             turn_number: 0,
             spells_this_turn: [0; 4],
             drawn_this_turn: [0; 4],
+            life_lost_this_turn: [0; 4],
             attacked_this_turn: 0,
             block_demands: Vec::new(),
             lands_entered_this_turn: 0,
@@ -1959,6 +1960,7 @@ impl GameState {
             self.turn_number += 1;
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.drawn_this_turn = [0; 4];
+            self.life_lost_this_turn = [0; 4];
             self.attacked_this_turn = 0;
             self.lands_entered_this_turn = 0;
             self.block_demands.clear();

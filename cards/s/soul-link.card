@@ -1,0 +1,8 @@
+card "Soul Link" {
+  oracle_id bb81aa50-49db-4743-85fc-6b4d9ed29bc6
+  cost {1}{W}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage: you gain that much life
+  triggered whenever enchanted creature is dealt damage: you gain that much life
+}

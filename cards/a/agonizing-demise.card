@@ -1,0 +1,7 @@
+card "Agonizing Demise" {
+  oracle_id 41681a1f-0777-4b96-8c7e-d6a5d1b1c8fc
+  cost {3}{B}
+  type Instant
+  kicker {1}{R}
+  spell: destroy target nonblack creature without regeneration; if kicked, deal damage equal power of that target 1 to controller of the target 1
+}
