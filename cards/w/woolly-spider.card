@@ -1,0 +1,8 @@
+card "Woolly Spider" {
+  oracle_id 811c6f52-03cb-49a9-a3c7-7f4ae40e7155
+  cost {1}{G}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach
+  triggered whenever this blocks a creature with flying: this gets +0/+2 until end of turn
+}

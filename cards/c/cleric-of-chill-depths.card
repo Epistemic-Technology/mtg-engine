@@ -1,0 +1,7 @@
+card "Cleric of Chill Depths" {
+  oracle_id 99c13f8d-7f18-48ce-86da-c74ddb6c1205
+  cost {1}{U}
+  type Creature — Merfolk Cleric
+  pt 1/3
+  triggered whenever this blocks a creature: that creature doesn't untap next untap step
+}

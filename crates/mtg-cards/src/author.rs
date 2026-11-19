@@ -1613,6 +1613,15 @@ fn trigger_text(head: &str) -> Option<String> {
             "whenever this deals combat damage to creature"
         }
         _ => {
+            // "Whenever this creature blocks a creature with flying",
+            // "... becomes blocked by a creature".
+            let pair = Regex::new(
+                r"^Whenever this creature (blocks|becomes blocked by|blocks or becomes blocked by) (a creature|a creature with flying|a nonblack creature)$",
+            )
+            .unwrap();
+            if let Some(c) = pair.captures(head) {
+                return Some(format!("whenever this {} {}", cap(&c, 1), cap(&c, 2)));
+            }
             // "Whenever you cast an artifact spell", "Whenever a player
             // casts a multicolored spell".
             let re = Regex::new(

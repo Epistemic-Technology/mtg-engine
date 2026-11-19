@@ -1,0 +1,7 @@
+card "Cave Tiger" {
+  oracle_id d3bac8b8-0b2a-4c67-b087-7a0bf1359468
+  cost {2}{G}
+  type Creature — Cat
+  pt 2/2
+  triggered whenever this becomes blocked by a creature: this gets +1/+1 until end of turn
+}

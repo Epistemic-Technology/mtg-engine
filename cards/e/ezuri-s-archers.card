@@ -1,0 +1,8 @@
+card "Ezuri's Archers" {
+  oracle_id bcaf3f32-c4e5-4d39-be98-bfc00327021b
+  cost {G}
+  type Creature — Elf Archer
+  pt 1/2
+  keywords reach
+  triggered whenever this blocks a creature with flying: this gets +3/+0 until end of turn
+}

@@ -1,0 +1,8 @@
+card "Netcaster Spider" {
+  oracle_id 0ddb3fa0-447c-40c5-928a-541f3d543014
+  cost {2}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach
+  triggered whenever this blocks a creature with flying: this gets +2/+0 until end of turn
+}

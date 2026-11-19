@@ -1,0 +1,8 @@
+card "Quicksilver Behemoth" {
+  oracle_id 799f31fc-3b6f-419a-8e70-b41c8e97f000
+  cost {6}{U}
+  type Creature — Beast
+  pt 4/5
+  affinity for artifact
+  triggered when this attacks or blocks: delayed this: return it to hand at end of combat
+}

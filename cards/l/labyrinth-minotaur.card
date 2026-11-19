@@ -1,0 +1,7 @@
+card "Labyrinth Minotaur" {
+  oracle_id 1e7b075b-1c0f-4c44-a597-5c167a786cb1
+  cost {3}{U}
+  type Creature — Minotaur
+  pt 1/4
+  triggered whenever this blocks a creature: that creature doesn't untap next untap step
+}

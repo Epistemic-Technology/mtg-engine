@@ -1,0 +1,8 @@
+card "Skystinger" {
+  oracle_id 6bb7419b-e085-4616-8e5c-4ed08cb2b4c1
+  cost {2}{G}
+  type Creature — Insect Warrior
+  pt 3/3
+  keywords reach
+  triggered whenever this blocks a creature with flying: this gets +5/+0 until end of turn
+}

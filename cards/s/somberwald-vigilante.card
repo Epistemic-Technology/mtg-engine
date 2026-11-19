@@ -1,0 +1,7 @@
+card "Somberwald Vigilante" {
+  oracle_id 31c77036-8627-476a-996b-2a6b005c9e12
+  cost {R}
+  type Creature — Human Warrior
+  pt 1/1
+  triggered whenever this becomes blocked by a creature: deal 1 damage to that creature
+}

@@ -1,0 +1,7 @@
+card "Ceremonial Guard" {
+  oracle_id 3d8aae86-266f-4bfd-a058-0fe12b5ea354
+  cost {2}{R}
+  type Creature — Human Soldier
+  pt 3/4
+  triggered when this attacks or blocks: delayed this: destroy it at end of combat
+}

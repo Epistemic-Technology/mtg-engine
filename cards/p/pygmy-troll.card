@@ -1,0 +1,8 @@
+card "Pygmy Troll" {
+  oracle_id 6f18f41e-df8d-4b59-87cc-ea167823fbda
+  cost {1}{G}
+  type Creature — Troll
+  pt 1/1
+  triggered whenever this becomes blocked by a creature: this gets +1/+1 until end of turn
+  activated {G}: regenerate this
+}

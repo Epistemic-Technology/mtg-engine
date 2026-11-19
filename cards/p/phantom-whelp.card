@@ -1,0 +1,7 @@
+card "Phantom Whelp" {
+  oracle_id 9b020aeb-7b27-43f2-9767-d93dae3d102a
+  cost {1}{U}
+  type Creature — Illusion Dog
+  pt 2/2
+  triggered when this attacks or blocks: delayed this: return it to hand at end of combat
+}

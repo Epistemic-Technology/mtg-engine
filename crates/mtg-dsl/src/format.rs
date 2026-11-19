@@ -1256,6 +1256,31 @@ fn step_name(s: Step) -> &'static str {
     }
 }
 
+/// "blocks", "becomes blocked by", or "blocks or becomes blocked by" (a
+/// creature), in the DSL and in Oracle text alike.
+pub fn block_pair_verb(blocks: bool, blocked: bool) -> &'static str {
+    match (blocks, blocked) {
+        (true, true) => "blocks or becomes blocked by",
+        (false, _) => "becomes blocked by",
+        (true, false) => "blocks",
+    }
+}
+
+/// `whenever this blocks a creature with flying`.
+fn block_pair_text(obj: &TriggerObj, other: &Filter, blocks: bool, blocked: bool) -> String {
+    let f = filter(other);
+    let a = if f.starts_with(['a', 'e', 'i', 'o', 'u']) {
+        "an"
+    } else {
+        "a"
+    };
+    format!(
+        "whenever {} {} {a} {f}",
+        trigger_obj(obj),
+        block_pair_verb(blocks, blocked)
+    )
+}
+
 /// "whenever you draw your second card each turn".
 pub fn draws_nth(whose: Who, n: u8) -> String {
     let nth = match n {
@@ -1292,6 +1317,7 @@ pub fn trigger_text(t: &Trigger, next: bool) -> String {
     trigger_text_one(t, next)
 }
 
+#[allow(clippy::too_many_lines)] // one arm per trigger kind
 fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
@@ -1307,6 +1333,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             };
             format!("at beginning of every {w}")
         }
+        Trigger::BeginningOfStep {
+            step: Step::EndOfCombat,
+            ..
+        } => "at end of combat".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             let whose = match whose {
                 Who::You => "your",
@@ -1328,6 +1358,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} blocks or becomes blocked", trigger_obj(o))
         }
         Trigger::Blocks(o) => format!("whenever {} blocks", trigger_obj(o)),
+        Trigger::BlockPair {
+            obj,
+            other,
+            blocks,
+            blocked,
+        } => block_pair_text(obj, other, *blocks, *blocked),
         Trigger::AttacksOrBlocks(o) => format!("whenever {} attacks or blocks", trigger_obj(o)),
         Trigger::Leaves(o) => format!("whenever {} leaves the battlefield", trigger_obj(o)),
         Trigger::DealsCombatDamageToPlayer(o) => {

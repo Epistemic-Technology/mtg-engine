@@ -1,0 +1,8 @@
+card "Venomous Dragonfly" {
+  oracle_id 8e3e5264-d472-41ce-ad65-a53f8b24fc40
+  cost {3}{G}
+  type Creature — Insect
+  pt 1/1
+  keywords flying
+  triggered whenever this blocks or becomes blocked by a creature: delayed that creature: destroy that creature at end of combat
+}

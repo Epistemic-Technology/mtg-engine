@@ -482,6 +482,31 @@ impl GameState {
                 let by_ctl = self.objects.get(*by)?.controller;
                 (*target == w.source && by_ctl != w.controller).then_some((Some(*by), Some(by_ctl)))
             }
+            (
+                TriggerSpec::BlockPair {
+                    what,
+                    other,
+                    blocks,
+                    blocked,
+                },
+                Event::Block { blocker, attacker },
+            ) => {
+                // CR 509.3b, 509.3d: once per blocking pair (a blocker that
+                // blocks several attackers makes one event per attacker);
+                // the other creature is judged as it is now (CR 509.3f).
+                let that = if *blocks && on_battlefield(what, *blocker).is_some() {
+                    *attacker
+                } else if *blocked && on_battlefield(what, *attacker).is_some() {
+                    *blocker
+                } else {
+                    return None;
+                };
+                let o = self.objects.get(that)?;
+                let c = self.characteristics(that)?;
+                (other.matches(that, o.controller, &c, Some(w.source), Some(w.controller))
+                    && self.status_ok(other, that))
+                .then_some((Some(that), Some(o.controller)))
+            }
             (TriggerSpec::BlockedBy(f), Event::Block { blocker, attacker }) => {
                 if *attacker != w.source {
                     return None;

@@ -1,0 +1,7 @@
+card "Loyal Sentry" {
+  oracle_id 54b1a496-1f8e-4581-8260-bad57b25c6e3
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  triggered when this blocks a creature: destroy that creature and this
+}

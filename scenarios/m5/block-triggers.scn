@@ -1,0 +1,239 @@
+# Combat triggers that name the other creature of a block, and delayed
+# "at end of combat" triggers. "Whenever this creature blocks a creature"
+# triggers once for each attacker it blocks (CR 509.3b) and "becomes
+# blocked by a creature" once for each blocker (CR 509.3d), "that creature"
+# being the other one. "At end of combat" triggers as the end of combat
+# step begins (CR 511.2); a delayed trigger affects only the same object
+# (CR 603.7c).
+
+scenario "becomes blocked by a creature: Kolaghan Aspirant pings each blocker" {
+  battlefield A: "Kolaghan Aspirant"
+  battlefield B: "Raging Goblin", "Savannah Lions"
+  turn 1 A: attack "Kolaghan Aspirant"
+  turn 1 B: block "Kolaghan Aspirant" with "Raging Goblin"
+  turn 1 B: block "Kolaghan Aspirant" with "Savannah Lions"
+  run_to turn 1 postcombat_main
+  # The Goblin dies to the trigger before damage; the Lions to 1 + 2.
+  assert graveyard B contains "Raging Goblin"
+  assert graveyard B contains "Savannah Lions"
+}
+
+scenario "becomes blocked by a creature: an unblocked Kolaghan Aspirant does nothing" {
+  battlefield A: "Kolaghan Aspirant"
+  battlefield B: "Raging Goblin"
+  turn 1 A: attack "Kolaghan Aspirant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Raging Goblin"
+  assert life B 18
+}
+
+scenario "becomes blocked by a creature: Cave Tiger gets +1/+1 for each blocker" {
+  battlefield A: "Cave Tiger"
+  battlefield B: "Raging Goblin", "Savannah Lions"
+  turn 1 A: attack "Cave Tiger"
+  turn 1 B: block "Cave Tiger" with "Raging Goblin"
+  turn 1 B: block "Cave Tiger" with "Savannah Lions"
+  run_to turn 1 combat_damage
+  assert power "Cave Tiger" 4
+  assert toughness "Cave Tiger" 4
+}
+
+scenario "becomes blocked by a creature: one trigger per attacker a Palace Guard blocks" {
+  battlefield A: "Somberwald Vigilante", "Kolaghan Aspirant"
+  battlefield B: "Palace Guard"
+  turn 1 A: attack "Somberwald Vigilante", "Kolaghan Aspirant"
+  turn 1 B: block "Somberwald Vigilante" with "Palace Guard"
+  turn 1 B: block "Kolaghan Aspirant" with "Palace Guard"
+  run_to turn 1 postcombat_main
+  # 1 + 1 from the triggers and 1 + 2 combat damage: 5 on a 1/4.
+  assert graveyard B contains "Palace Guard"
+}
+
+scenario "becomes blocked by a creature: a single trigger leaves Palace Guard alive" {
+  battlefield A: "Somberwald Vigilante"
+  battlefield B: "Palace Guard"
+  turn 1 A: attack "Somberwald Vigilante"
+  turn 1 B: block "Somberwald Vigilante" with "Palace Guard"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Palace Guard"
+  assert damage "Palace Guard" 2
+}
+
+scenario "blocks a creature: Ornery Goblin with Echo Circlet pings both attackers it blocks" {
+  battlefield A: "Raging Goblin", "Savannah Lions"
+  battlefield B: "Ornery Goblin", "Echo Circlet" on "Ornery Goblin"
+  turn 1 A: attack "Raging Goblin", "Savannah Lions"
+  turn 1 B: block "Raging Goblin" with "Ornery Goblin"
+  turn 1 B: block "Savannah Lions" with "Ornery Goblin"
+  run_to turn 1 postcombat_main
+  # Both attackers die before combat damage, so the 2/1 survives.
+  assert graveyard A contains "Raging Goblin"
+  assert graveyard A contains "Savannah Lions"
+  assert battlefield B contains "Ornery Goblin"
+  assert life B 20
+}
+
+scenario "blocks or becomes blocked by: Ornery Goblin attacking pings its blocker" {
+  battlefield A: "Ornery Goblin"
+  battlefield B: "Raging Goblin"
+  turn 1 A: attack "Ornery Goblin"
+  turn 1 B: block "Ornery Goblin" with "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Raging Goblin"
+  assert battlefield A contains "Ornery Goblin"
+}
+
+scenario "blocks a creature with flying: Snarespinner gets +2/+0" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Snarespinner"
+  turn 1 A: attack "Wind Drake"
+  turn 1 B: block "Wind Drake" with "Snarespinner"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Wind Drake"
+  assert power "Snarespinner" 3
+}
+
+scenario "blocks a creature with flying: not for a creature without flying" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Snarespinner"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Snarespinner"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Snarespinner" 1
+}
+
+scenario "blocks a creature: Loyal Sentry destroys the attacker and itself" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Loyal Sentry"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Loyal Sentry"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Loyal Sentry"
+}
+
+scenario "blocks a creature: Labyrinth Minotaur keeps the attacker tapped" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Labyrinth Minotaur"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Labyrinth Minotaur"
+  run_to turn 3 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "at end of combat: Tangle Asp's blocker survives combat damage, then is destroyed" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Tangle Asp"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Tangle Asp"
+  run_to turn 1 end_combat
+  assert battlefield A contains "Hill Giant"
+  assert graveyard B contains "Tangle Asp"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "at end of combat: Gorgon Recluse ignores a black creature" {
+  battlefield A: "Zombie Goliath"
+  battlefield B: "Gorgon Recluse"
+  turn 1 A: attack "Zombie Goliath"
+  turn 1 B: block "Zombie Goliath" with "Gorgon Recluse"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zombie Goliath"
+}
+
+scenario "at end of combat: Gorgon Recluse destroys a nonblack creature" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Gorgon Recluse"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Gorgon Recluse"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Gorgon Recluse"
+}
+
+scenario "at end of combat: Sawtooth Ogre deals its damage after combat damage" {
+  battlefield A: "Sawtooth Ogre"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Sawtooth Ogre"
+  turn 1 B: block "Sawtooth Ogre" with "Grizzly Bears"
+  run_to turn 1 combat_damage
+  assert damage "Sawtooth Ogre" 2
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "at end of combat: Lowland Basilisk destroys what it damaged" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Lowland Basilisk", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Lowland Basilisk"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 combat_damage A: assign "Hill Giant" to "Grizzly Bears" 3
+  run_to turn 1 combat_damage
+  assert battlefield A contains "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Lowland Basilisk"
+}
+
+scenario "at end of combat: Cinder Wall is destroyed after it blocks" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Cinder Wall"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Cinder Wall"
+  run_to turn 1 end_combat
+  assert battlefield B contains "Cinder Wall"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Cinder Wall"
+}
+
+scenario "at end of combat: Cinder Wall stays when it doesn't block" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Cinder Wall"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Cinder Wall"
+  assert life B 18
+}
+
+scenario "at end of combat: Frostweb Spider gets its counter after damage" {
+  battlefield A: "Wind Drake"
+  battlefield B: "Frostweb Spider"
+  turn 1 A: attack "Wind Drake"
+  turn 1 B: block "Wind Drake" with "Frostweb Spider"
+  run_to turn 1 combat_damage
+  assert counters "Frostweb Spider" +1/+1 0
+  run_to turn 1 postcombat_main
+  assert counters "Frostweb Spider" +1/+1 1
+}
+
+scenario "at end of combat: Clockwork Beetle loses a counter after attacking" {
+  battlefield A: "Clockwork Beetle" with 2 +1/+1
+  turn 1 A: attack "Clockwork Beetle"
+  run_to turn 1 postcombat_main
+  assert counters "Clockwork Beetle" +1/+1 1
+  assert life B 18
+}
+
+scenario "at end of combat: Phantom Whelp returns to its owner's hand" {
+  battlefield A: "Phantom Whelp"
+  turn 1 A: attack "Phantom Whelp"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Phantom Whelp"
+  assert life B 18
+}
+
+scenario "at end of combat: the delayed trigger ignores a new object" {
+  battlefield A: "Hill Giant", 3 "Island"
+  battlefield B: "Tangle Asp"
+  hand A: "Blur"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Tangle Asp"
+  turn 1 combat_damage A: cast "Blur" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  # The Giant that came back is a new object (CR 400.7).
+  assert battlefield A contains "Hill Giant"
+}

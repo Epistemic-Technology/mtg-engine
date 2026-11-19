@@ -137,6 +137,8 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever you gain life` | |
 | `whenever creature you control attacks alone` | attacks alone (CR 506.5) |
 | `whenever this becomes blocked`, `whenever this blocks or becomes blocked` | |
+| `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature" |
+| `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell` | |
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
@@ -418,8 +420,11 @@ instead."), `players can't gain life this turn`,
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the
 effects, to print it that way); `at beginning of the next turn's upkeep`
-also works ("Draw a card at the beginning of the next turn's upkeep"). Inside a delayed ability `it` is the object
-the ability is about.
+also works ("Draw a card at the beginning of the next turn's upkeep"), and
+`at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
+the ability is about; in one about `that creature` (the triggering object),
+`that creature` is that object too, only while it is the same object
+(CR 603.7c), and prints "that creature".
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),

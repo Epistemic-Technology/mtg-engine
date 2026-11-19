@@ -1,0 +1,8 @@
+card "High-Rise Sawjack" {
+  oracle_id 0049438b-e37e-4c57-820e-f2ddf3322170
+  cost {2}{G}
+  type Creature — Elf Citizen
+  pt 2/3
+  keywords reach
+  triggered whenever this blocks a creature with flying: this gets +2/+0 until end of turn
+}
