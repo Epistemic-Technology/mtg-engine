@@ -2894,6 +2894,16 @@ impl P {
                         filter.relation = Relation::Other;
                         Target::GraveyardCard { filter, who }
                     }
+                    Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
+                        Target::GraveyardCard {
+                            filter: Filter {
+                                types: vec![CardType::Creature],
+                                relation: Relation::Other,
+                                ..Default::default()
+                            },
+                            who: Who::You,
+                        }
+                    }
                     other => other,
                 };
             }

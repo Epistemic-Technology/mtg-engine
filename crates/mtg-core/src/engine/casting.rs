@@ -909,6 +909,7 @@ impl GameState {
     /// CR 602: activated abilities of permanents `p` controls whose costs
     /// can be paid and whose targets exist. An ability with a "sacrifice a
     /// Goblin" cost is offered once per permanent that could be sacrificed.
+    #[allow(clippy::too_many_lines)] // one check per cost kind
     fn activation_options(
         &self,
         p: PlayerId,
@@ -2865,12 +2866,14 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     // A permanent, or a card in a graveyard ("exile target
                     // card from a graveyard").
+                    // "Exile Flood of Recollection.": the resolving spell
+                    // itself, instead of its graveyard.
                     let id = on_battlefield(self, t).or_else(|| match t {
                         Target::Object(id)
-                            if self
-                                .objects
-                                .get(id)
-                                .is_some_and(|o| o.zone == Zone::Graveyard) =>
+                            if self.objects.get(id).is_some_and(|o| {
+                                o.zone == Zone::Graveyard
+                                    || (o.zone == Zone::Stack && id == ctx.source)
+                            }) =>
                         {
                             Some(id)
                         }

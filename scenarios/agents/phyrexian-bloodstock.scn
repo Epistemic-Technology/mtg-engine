@@ -1,0 +1,23 @@
+scenario "Phyrexian Bloodstock leaving destroys a white creature" {
+  battlefield A: "Phyrexian Bloodstock", 3 "Swamp"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Phyrexian Bloodstock"
+  turn 1 A: trigger "Phyrexian Bloodstock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Phyrexian Bloodstock"
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+
+scenario "Phyrexian Bloodstock: not a nonwhite creature" {
+  battlefield A: "Phyrexian Bloodstock", 3 "Swamp"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Phyrexian Bloodstock"
+  illegal turn 1 A: trigger "Phyrexian Bloodstock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}

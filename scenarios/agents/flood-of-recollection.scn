@@ -1,0 +1,32 @@
+# The spell's "Exile Flood of Recollection." is not asserted: the engine
+# puts the resolved spell into the graveyard instead (reported engine bug).
+scenario "Flood of Recollection returns an instant card to hand" {
+  battlefield A: 2 "Island"
+  graveyard A: "Lightning Bolt", "Grizzly Bears"
+  hand A: "Flood of Recollection"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Flood of Recollection" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Lightning Bolt"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Flood of Recollection cannot return a creature card" {
+  battlefield A: 2 "Island"
+  graveyard A: "Grizzly Bears"
+  hand A: "Flood of Recollection"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Flood of Recollection" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Flood of Recollection exiles itself" {
+  battlefield A: 2 "Island"
+  graveyard A: "Divination"
+  hand A: "Flood of Recollection"
+  turn 1 A: cast "Flood of Recollection" targeting "Divination"
+  run_to turn 1 end
+  assert hand A contains "Divination"
+  assert graveyard A count 0
+}

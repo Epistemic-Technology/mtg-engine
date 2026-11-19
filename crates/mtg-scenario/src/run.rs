@@ -123,6 +123,9 @@ struct Runner {
     decisions: u32,
     /// Targets still to be chosen for the spell being cast.
     pending_targets: Option<Vec<TargetRef>>,
+    /// The `trigger` line supplying `pending_targets` is `illegal`: its
+    /// target must be refused.
+    pending_illegal: bool,
     /// The scripted mode of the modal spell being cast (1-based).
     pending_mode: Option<usize>,
     /// The scripted X, sacrifice, and discard of the spell being cast.
@@ -227,6 +230,7 @@ impl Runner {
             actions,
             decisions: 0,
             pending_targets: None,
+            pending_illegal: false,
             pending_mode: None,
             pending_x: None,
             pending_sacrifice: None,
@@ -692,6 +696,7 @@ impl Runner {
                     );
                 }
                 self.pending_targets = Some(targets.clone());
+                self.pending_illegal = self.actions[i].illegal;
             } else {
                 return Ok(0);
             }
@@ -723,6 +728,21 @@ impl Runner {
             // All chosen: a trigger that fires while the costs are paid
             // (a sacrifice, CR 601.2h) must not inherit them.
             self.pending_targets = None;
+        }
+        // `illegal trigger ... targeting X`: X must be refused; the first
+        // legal target is taken instead.
+        if self.pending_illegal {
+            self.pending_illegal = false;
+            return match index_of(d, &Choice::Target(t)) {
+                Some(_) => fail(
+                    line,
+                    format!(
+                        "{} was a legal target but the scenario says it must not be",
+                        self.describe_target(t)
+                    ),
+                ),
+                None => Ok(0),
+            };
         }
         index_of(d, &Choice::Target(t)).ok_or_else(|| Failure {
             line,
