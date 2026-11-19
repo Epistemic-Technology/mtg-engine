@@ -1,5 +1,3 @@
-# The destroy half ("If you do, destroy that creature") is not asserted:
-# a mandatory sacrifice (reported as an engine bug).
 scenario "Grave Peril is sacrificed when a nonblack creature enters" {
   battlefield A: "Grave Peril"
   battlefield B: 2 "Forest"
