@@ -1,0 +1,7 @@
+card "Sage of Days" {
+  oracle_id 656fc672-efa5-484a-b5e8-eac262331439
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  triggered whenever this enters: dig 3 take card may top rest graveyard
+}

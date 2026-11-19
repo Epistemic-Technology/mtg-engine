@@ -1,0 +1,9 @@
+card "Might of the Old Ways" {
+  oracle_id 266d3f06-c982-4427-b421-7520e5da5c2e
+  cost {1}{G}
+  type Instant
+  spell {
+    target creature gets +2/+2
+    label "Coven" then if 3 different powers, draw 1 card
+  }
+}

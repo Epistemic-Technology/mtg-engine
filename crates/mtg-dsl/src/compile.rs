@@ -458,6 +458,17 @@ impl Compiler<'_> {
     }
 
     fn filter(&mut self, f: &Filter) -> ObjFilter {
+        // "an outlaw" (CR 700.12): one alternative per creature type.
+        if let Some(i) = f.subtypes.iter().position(|s| s == crate::ast::OUTLAW) {
+            let mut chain = f.or.clone();
+            for t in crate::ast::OUTLAW_TYPES.iter().rev() {
+                let mut alt = f.clone();
+                alt.subtypes[i] = (*t).to_string();
+                alt.or = chain;
+                chain = Some(Box::new(alt));
+            }
+            return self.filter(&chain.expect("five alternatives"));
+        }
         ObjFilter {
             who: f.who,
             types: TypeSet::of(f.types.iter().copied()),
@@ -615,6 +626,8 @@ impl Compiler<'_> {
             StaticCond::Enchanted => StaticCondition::SourceEnchanted,
             StaticCond::Equipped => StaticCondition::SourceEquipped,
             StaticCond::OpponentLifeAtMost(n) => StaticCondition::OpponentLifeAtMost(*n),
+            StaticCond::MoreLifeThanOpponent => StaticCondition::MoreLifeThanOpponent,
+            StaticCond::BasicLandTypes(n) => StaticCondition::BasicLandTypes(*n),
             StaticCond::YourLife { n, at_least } => StaticCondition::YourLife {
                 n: *n,
                 at_least: *at_least,
@@ -653,7 +666,7 @@ impl Compiler<'_> {
                     attacking: *attacking,
                 }
             }
-            StaticCond::YouControlNone(filter) => {
+            StaticCond::YouControlNone(filter) | StaticCond::YouDontControl(filter) => {
                 StaticCondition::YouControlNone(self.filter(filter).who(Who::You))
             }
             StaticCond::YouControlEach(filters) => StaticCondition::YouControlEach(
@@ -1554,6 +1567,7 @@ impl Compiler<'_> {
                 take,
                 also,
                 random,
+                top,
                 ..
             } => out.push(CoreEffect::Dig {
                 count: *count,
@@ -1564,6 +1578,7 @@ impl Compiler<'_> {
                 take: *take,
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,
+                top: *top,
             }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;
@@ -1792,6 +1807,7 @@ impl Compiler<'_> {
             ),
             Affects::OtherThanTarget(f, i) => CoreAffects::OtherThanTarget(self.filter(f), *i),
             Affects::Chosen(f) => CoreAffects::Chosen(self.filter(f)),
+            Affects::DamagedThisWay => CoreAffects::DamagedThisWay,
         }
     }
 

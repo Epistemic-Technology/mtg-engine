@@ -1,0 +1,6 @@
+card "Sweep Away" {
+  oracle_id c6901a89-ac7d-4797-a027-97bb1cf42e60
+  cost {2}{U}
+  type Instant
+  spell: return target creature to hand; if that target 1 is attacking, you may put target 1 on top of library instead
+}

@@ -930,6 +930,9 @@ impl GameState {
                     && let Some(log) = &mut self.this_way
                 {
                     log.excess = log.excess.saturating_add(amount.saturating_sub(lethal));
+                    if !log.damaged.contains(&id) {
+                        log.damaged.push(id);
+                    }
                 }
                 // CR 120.3c: damage to a planeswalker removes loyalty;
                 // CR 120.3e: damage to a creature is marked on it.

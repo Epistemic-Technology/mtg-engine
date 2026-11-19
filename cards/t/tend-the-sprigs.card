@@ -1,0 +1,6 @@
+card "Tend the Sprigs" {
+  oracle_id 91363d71-eef0-48e8-9a68-8f363ff2790e
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped; then if you control 7 land or Treefolk, create 1 "3/4 green Treefolk creature with reach"
+}

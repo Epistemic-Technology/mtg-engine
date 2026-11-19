@@ -1,0 +1,7 @@
+card "Gurmag Nightwatch" {
+  oracle_id fde50a0d-9bc6-45f4-873e-3de81a513fac
+  cost {2/B}{2/G}{2/U}
+  type Creature — Human Ranger
+  pt 3/3
+  triggered whenever this enters: dig 3 take card may top rest graveyard
+}

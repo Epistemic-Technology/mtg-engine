@@ -1,0 +1,302 @@
+# Optional actions and conditional follow-ups (CR 608.2c, 608.2d): "If a
+# creature dealt damage this way would die this turn, exile it instead",
+# "Then if ...", "<effect> instead if ...", "this way" conditions, and
+# "you may put one of those cards back on top".
+
+scenario "dealt damage this way: a creature that dies is exiled" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pillar of Flame"
+  turn 1 A: cast "Pillar of Flame" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "dealt damage this way: it dies later this turn, still exiled" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Pillar of Flame", "Shock"
+  turn 1 A: cast "Pillar of Flame" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard B lacks "Hill Giant"
+}
+
+scenario "dealt damage this way: a creature not dealt damage dies normally" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Savannah Lions"
+  hand A: "Pillar of Flame", "Shock"
+  turn 1 A: cast "Pillar of Flame" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "dealt damage this way: the effect ends with the turn" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Pillar of Flame", "Lightning Bolt"
+  turn 1 A: cast "Pillar of Flame" targeting "Hill Giant"
+  turn 3 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "dealt damage this way: each creature a sweeper damaged" {
+  battlefield A: 2 "Mountain", "Llanowar Elves"
+  battlefield B: "Savannah Lions", "Grizzly Bears"
+  hand A: "Yamabushi's Storm"
+  turn 1 A: cast "Yamabushi's Storm"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Llanowar Elves"
+  assert exile B contains "Savannah Lions"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "back on top: the chosen card stays on top, the rest are milled" {
+  battlefield A: 3 "Island"
+  hand A: "Sage of Days"
+  library A: "Shock", "Hill Giant", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Sage of Days"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Shock"
+  assert library A count 2
+  run_to turn 3 precombat_main
+  assert hand A contains "Shock"
+}
+
+scenario "back on top: raid, after attacking" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  hand A: "Gutless Plunderer"
+  library A: "Shock", "Hill Giant", "Grizzly Bears", "Forest"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 postcombat_main A: cast "Gutless Plunderer"
+  run_to turn 2 end
+  assert graveyard A count 2
+}
+
+scenario "back on top: raid, no attack, no trigger" {
+  battlefield A: 3 "Swamp"
+  hand A: "Gutless Plunderer"
+  library A: "Shock", "Hill Giant", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Gutless Plunderer"
+  run_to turn 1 postcombat_main
+  assert graveyard A count 0
+}
+
+scenario "then if: more life than an opponent, draw" {
+  battlefield A: 3 "Plains"
+  hand A: "Survival Cache"
+  turn 1 A: cast "Survival Cache"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 1
+  assert exile A contains "Survival Cache"
+}
+
+scenario "then if: not more life than an opponent, no draw" {
+  battlefield A: 3 "Plains"
+  life B 30
+  hand A: "Survival Cache"
+  turn 1 A: cast "Survival Cache"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 0
+}
+
+scenario "then if: you don't control a legendary creature, a card goes to the bottom" {
+  battlefield A: 3 "Plains"
+  hand A: "Errand-Rider of Gondor", "Shock"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Errand-Rider of Gondor"
+  turn 1 A: choose "Shock"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Hill Giant"
+  assert library A count 2
+}
+
+scenario "then if: with a legendary creature, nothing goes to the bottom" {
+  battlefield A: 3 "Plains", "Isamaru, Hound of Konda"
+  hand A: "Errand-Rider of Gondor", "Shock"
+  library A: "Hill Giant", "Forest"
+  turn 1 A: cast "Errand-Rider of Gondor"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert library A count 1
+}
+
+scenario "then if: a permanent with an oil counter" {
+  battlefield A: 5 "Forest", "Ornithopter" with 1 oil
+  hand A: "Oil-Gorger Troll"
+  turn 1 A: cast "Oil-Gorger Troll"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 1
+}
+
+scenario "then if: no oil counter, no draw" {
+  battlefield A: 5 "Forest", "Ornithopter"
+  hand A: "Oil-Gorger Troll"
+  turn 1 A: cast "Oil-Gorger Troll"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert hand A count 0
+}
+
+scenario "then if: that creature's power is 0 or less, destroy it" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Depressurize"
+  turn 1 A: cast "Depressurize" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "then if: power still above 0, it survives" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Depressurize"
+  turn 1 A: cast "Depressurize" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert power "Serra Angel" 1
+}
+
+scenario "then if: an Elf card milled into the graveyard" {
+  battlefield A: 4 "Swamp"
+  hand A: "Dawnhand Eulogist"
+  library A: "Forest", "Llanowar Elves", "Forest", "Forest"
+  turn 1 A: cast "Dawnhand Eulogist"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 18
+}
+
+scenario "then if: no Elf card, no drain" {
+  battlefield A: 4 "Swamp"
+  hand A: "Dawnhand Eulogist"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  turn 1 A: cast "Dawnhand Eulogist"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 20
+}
+
+scenario "then if: seven lands and/or Treefolk, counting both" {
+  battlefield A: 5 "Forest", "Argothian Treefolk"
+  hand A: "Tend the Sprigs"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Tend the Sprigs"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Forest"
+  assert battlefield A contains "Treefolk"
+}
+
+scenario "then if: six, no token" {
+  battlefield A: 5 "Forest"
+  hand A: "Tend the Sprigs"
+  library A: "Forest", "Forest"
+  turn 1 A: cast "Tend the Sprigs"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 6 "Forest"
+  assert battlefield A lacks "Treefolk"
+}
+
+scenario "instead if: you control an outlaw" {
+  battlefield A: "Island", "Blood Burglar"
+  battlefield B: "Serra Angel"
+  hand A: "Take the Fall"
+  turn 1 A: cast "Take the Fall" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 0
+  assert hand A count 1
+}
+
+scenario "instead if: no outlaw, the smaller effect" {
+  battlefield A: "Island", "Grizzly Bears"
+  battlefield B: "Serra Angel"
+  hand A: "Take the Fall"
+  turn 1 A: cast "Take the Fall" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 3
+}
+
+scenario "this way: an outlaw sacrificed for the cost makes a Treasure" {
+  battlefield A: 2 "Swamp", "Boneyard Desecrator", "Blood Burglar"
+  turn 1 A: activate "Boneyard Desecrator" sacrificing "Blood Burglar"
+  run_to turn 1 postcombat_main
+  assert counters "Boneyard Desecrator" +1/+1 1
+  assert battlefield A contains "Treasure"
+}
+
+scenario "this way: a non-outlaw sacrificed, no Treasure" {
+  battlefield A: 2 "Swamp", "Boneyard Desecrator", "Grizzly Bears"
+  turn 1 A: activate "Boneyard Desecrator" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Boneyard Desecrator" +1/+1 1
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "instead if: an attacking creature may go on top of its library" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sweep Away"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Sweep Away" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand B lacks "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert library B count 40
+}
+
+scenario "instead if: declined, it returns to the hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sweep Away"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Sweep Away" targeting "Grizzly Bears"
+  turn 2 declare_attackers A: decline "Sweep Away"
+  run_to turn 2 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "instead if: not attacking, it returns to the hand" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Sweep Away"
+  turn 1 A: cast "Sweep Away" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "a card with a keyword from the graveyard" {
+  battlefield A: 4 "Swamp"
+  hand A: "Corpse Cur"
+  graveyard A: "Glistener Elf", "Grizzly Bears"
+  turn 1 A: cast "Corpse Cur"
+  turn 1 A: trigger "Corpse Cur" targeting "Glistener Elf"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Glistener Elf"
+}
+
+scenario "a card without the keyword is not a legal target" {
+  battlefield A: 4 "Swamp"
+  hand A: "Corpse Cur"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Corpse Cur"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}

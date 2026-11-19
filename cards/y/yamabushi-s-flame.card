@@ -1,0 +1,6 @@
+card "Yamabushi's Flame" {
+  oracle_id 0462e985-c99e-4404-b212-e9d8baecce72
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target; this turn, replace creature dealt damage this way dies: exile
+}

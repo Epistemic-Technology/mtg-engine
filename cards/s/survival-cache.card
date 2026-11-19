@@ -1,0 +1,7 @@
+card "Survival Cache" {
+  oracle_id 5fb8be5a-3666-4680-84e2-341cb269df07
+  cost {2}{W}
+  type Sorcery
+  spell: you gain 2 life; then if your life more than opponent, draw 1 card
+  keywords rebound
+}

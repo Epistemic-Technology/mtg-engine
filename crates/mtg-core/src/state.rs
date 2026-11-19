@@ -834,6 +834,9 @@ pub struct ThisWayLog {
     /// Damage dealt (CR 120.3), and of it the excess (CR 120.4a).
     pub damage: u32,
     pub excess: u32,
+    /// The permanents dealt damage, in order ("a creature dealt damage
+    /// this way").
+    pub damaged: Vec<ObjId>,
 }
 
 impl Moved {
@@ -1884,6 +1887,24 @@ impl GameState {
         self.condition_now(cond, you, source)
     }
 
+    /// The number of basic land types among lands `p` controls (domain, CR
+    /// 305.6).
+    pub fn basic_land_types(&self, p: PlayerId) -> usize {
+        let mut seen = crate::mana::ColorSet::default();
+        for id in self.permanents_of(p) {
+            if let Some(c) = self.characteristics(id)
+                && c.is_land()
+            {
+                for s in &c.subtypes {
+                    if let Some(col) = s.basic_color() {
+                        seen = seen.with(col);
+                    }
+                }
+            }
+        }
+        seen.iter().count()
+    }
+
     /// Whether a condition holds now for `you`, about `source` (which may
     /// be entering, not yet on the battlefield): conditional "enters
     /// tapped", attack restrictions, and intervening "if" clauses.
@@ -1965,6 +1986,12 @@ impl GameState {
                 if *at_least { l >= *n } else { l <= *n }
             }
             C::AnyPlayerLifeAtMost(n) => self.players_in_game().any(|p| self.player(p).life <= *n),
+            C::MoreLifeThanOpponent => {
+                let l = self.player(you).life;
+                self.players_in_game()
+                    .any(|p| p != you && self.player(p).life < l)
+            }
+            C::BasicLandTypes(n) => self.basic_land_types(you) >= *n as usize,
             C::SourceCounters { kind, n, at_least } => {
                 let have = self.objects.get(source).map_or(0, |o| o.counters(*kind));
                 if *at_least { have >= *n } else { have <= *n }

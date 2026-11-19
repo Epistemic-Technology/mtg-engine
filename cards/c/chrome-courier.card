@@ -1,0 +1,8 @@
+card "Chrome Courier" {
+  oracle_id a07ceaca-9964-4c24-937e-090b6643b327
+  cost {1}{W}{U}
+  type Artifact Creature — Thopter
+  pt 1/1
+  keywords flying
+  triggered whenever this enters: dig 2 reveal take card rest graveyard; if you put artifact card into hand this way, you gain 3 life
+}

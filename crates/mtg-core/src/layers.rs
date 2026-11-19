@@ -339,6 +339,26 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::AnyPlayerLifeAtMost(n) => {
             state.players_in_game().any(|p| state.player(p).life <= *n)
         }
+        StaticCondition::MoreLifeThanOpponent => {
+            let l = state.player(you).life;
+            state
+                .players_in_game()
+                .any(|p| p != you && state.player(p).life < l)
+        }
+        StaticCondition::BasicLandTypes(n) => {
+            let mut seen = crate::mana::ColorSet::default();
+            for id in &work.ids {
+                let c = &work.chars[work.index[id]];
+                if work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_land() {
+                    for s in &c.subtypes {
+                        if let Some(col) = s.basic_color() {
+                            seen = seen.with(col);
+                        }
+                    }
+                }
+            }
+            seen.iter().count() >= *n as usize
+        }
         StaticCondition::SourceCounters { kind, n, at_least } => {
             let have = state.objects.get(source).map_or(0, |o| o.counters(*kind));
             if *at_least { have >= *n } else { have <= *n }

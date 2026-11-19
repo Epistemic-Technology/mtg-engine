@@ -364,21 +364,7 @@ impl GameState {
                 self.spent_on(ctx.source)
                     .count(crate::card::SpentKind::Treasure) as usize
             }
-            CountExpr::Domain => {
-                let mut seen = crate::mana::ColorSet::default();
-                for id in self.permanents_of(you) {
-                    if let Some(c) = self.characteristics(id)
-                        && c.is_land()
-                    {
-                        for s in &c.subtypes {
-                            if let Some(col) = s.basic_color() {
-                                seen = seen.with(col);
-                            }
-                        }
-                    }
-                }
-                seen.iter().count()
-            }
+            CountExpr::Domain => self.basic_land_types(you),
             CountExpr::CardsInHand => self.player(you).hand.len(),
             CountExpr::Plus(k, inner) => return k.saturating_add(self.eval_count(inner, ctx)),
             CountExpr::CardsInGraveyard(f) => {
@@ -685,7 +671,7 @@ impl GameState {
                         && self.status_ok(filter, *id)
                 })
                 .collect(),
-            ChooseAct::Discard => self
+            ChooseAct::Discard | ChooseAct::HandToBottom => self
                 .player(p)
                 .hand
                 .iter()
@@ -829,6 +815,9 @@ impl GameState {
                 ChooseAct::Tap => self.tap(id),
                 ChooseAct::Sacrifice => self.sacrifice(id),
                 ChooseAct::Discard => self.discard_card(p, id),
+                ChooseAct::HandToBottom => {
+                    self.move_object(id, Zone::Library, false);
+                }
                 ChooseAct::ExileFromGraveyard => {
                     ctx.created = Some(self.move_object(id, Zone::Exile, false));
                 }
@@ -5780,8 +5769,19 @@ impl GameState {
                     EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
                     EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
                 };
-                for e in if holds { alt } else { base } {
-                    self.apply_effect(ctx, e);
+                // "you may put it on top of its owner's library instead":
+                // declined, the earlier instruction happens.
+                if holds && let [Effect::YouMay(_)] = alt.as_slice() {
+                    self.apply_effect(ctx, &alt[0]);
+                    if !ctx.did {
+                        for e in base {
+                            self.apply_effect(ctx, e);
+                        }
+                    }
+                } else {
+                    for e in if holds { alt } else { base } {
+                        self.apply_effect(ctx, e);
+                    }
                 }
             }
             Effect::IfKicked(inner) => {
@@ -6258,6 +6258,7 @@ impl GameState {
                 take,
                 also,
                 random,
+                top: back_on_top,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
@@ -6309,8 +6310,12 @@ impl GameState {
                         }
                     }
                 }
-                for id in &taken {
-                    self.move_object(*id, Zone::Hand, false);
+                // "back on top of your library": the taken cards stay where
+                // they are, on top once the rest have gone.
+                if !*back_on_top {
+                    for id in &taken {
+                        self.move_object(*id, Zone::Hand, false);
+                    }
                 }
                 let mut top = top;
                 if *random && !*rest_graveyard {
@@ -6542,7 +6547,14 @@ impl GameState {
                     || c.abilities.iter().any(|a| {
                         matches!(self.pool.ability(*a), crate::card::AbilityDef::Toxic(_))
                     }))
-        })
+        }) && (!(filter.attacking || filter.blocking || filter.tapped.is_some())
+            // "If that creature is attacking": its state while it is still
+            // on the battlefield.
+            || (self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+                && self.status_ok(filter, id)))
     }
 
     /// Apply a resolving object's effects in order. For a "both" mode
@@ -6645,6 +6657,21 @@ impl GameState {
                     None
                 };
                 self.store_replacement(ctx, r, Some(ctx.targets[i]), share);
+            }
+            return;
+        }
+        // "If a creature dealt damage this way would die this turn" (CR
+        // 608.2c): one effect locked to each permanent dealt damage so far.
+        if let Replaces::Dies {
+            to: Affects::DamagedThisWay,
+        } = r.replaces
+        {
+            let damaged = self
+                .this_way
+                .as_ref()
+                .map_or_else(Vec::new, |log| log.damaged.clone());
+            for id in damaged {
+                self.store_replacement(ctx, r, Some(Target::Object(id)), None);
             }
             return;
         }

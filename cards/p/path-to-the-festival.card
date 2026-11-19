@@ -1,0 +1,7 @@
+card "Path to the Festival" {
+  oracle_id e54d4ecf-ebcc-4374-98e7-c682f83c82a9
+  cost {2}{G}
+  type Sorcery
+  spell: search basic land card to battlefield tapped that card; then if 3 basic land types, scry 1
+  flashback {4}{G}
+}

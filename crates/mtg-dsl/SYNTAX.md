@@ -426,7 +426,26 @@ and `also` goes after its subject ("If you control an Equipment,
 Misthios's Fury also deals 2 damage ...", "that creature also gains
 trample"). `if you controlled target 1, draw 1 card`: "If you controlled
 that permanent, draw a card.", its controller as it last existed (CR
-608.2h). A sentence may
+608.2h). `then if <cond>, <clause>` prints "Then if ...". Conditions
+also include `your life more than opponent` ("you have more life than an
+opponent"), `3 basic land types` ("there are three or more basic land
+types among lands you control"), `you don't control legendary creature`
+("you don't control a legendary creature"), `1 Elf cards in your
+graveyard` ("there is an Elf card in your graveyard"), `you control
+permanent with oil counter` (any named counter kind), and `you control
+7 land or Treefolk` ("seven or more lands and/or Treefolk"). The filter
+word `outlaw` is an Assassin, Mercenary, Pirate, Rogue, or Warlock (CR
+700.12): `that target 1 gets -4/-0 instead if you control outlaw`, `if
+outlaw was sacrificed this way, ...`. `put 1 card from hand on bottom of
+library chosen`: "put a card from your hand on the bottom of your
+library". A graveyard target may name a keyword after the noun: `target
+creature card with infect from your graveyard`. A target check may be
+its combat state or its power: `if that target 1 is attacking, ...`
+("If that creature is attacking"), `then if that target 1 is creature
+with power 0 or less, destroy target 1` ("Then if that creature's power
+is 0 or less, destroy it"). An "instead" that is optional (`if that
+target 1 is attacking, you may put target 1 on top of library instead`)
+does the earlier instruction when declined. A sentence may
 start with an ability word: `label "Spell mastery" if 2 instant or sorcery
 cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
@@ -906,7 +925,9 @@ your hand"; `take creature card and land card may`: "a creature card
 and/or a land card" (one of each); `rest bottom random`: "in a random
 order"; `dig 3 then take card rest graveyard`: "look at the top three
 cards of your library, then put one of them into your hand and the rest
-into your graveyard"), `look at top 3` ("look at
+into your graveyard"; `dig 3 take card may top rest graveyard`: "You may
+put one of those cards back on top of your library. Put the rest into
+your graveyard.", the card kept stays on top), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order"),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
@@ -947,7 +968,10 @@ battlefield damage to target creature this turn` ("Prevent the next X
 damage ..., where X is ...", counted as it resolves),
 `this turn, replace <event>: <outcome>` (`this turn, replace target 1
 dies: exile`: "If that creature would die this turn, exile it
-instead."), `players can't gain life this turn`,
+instead."; `this turn, replace creature dealt damage this way dies:
+exile`: "If a creature dealt damage this way would die this turn, exile
+it instead.", one effect locked to each permanent the resolution has
+dealt damage to so far, CR 608.2c), `players can't gain life this turn`,
 `damage can't be prevented this turn`, and
 `delayed <what>: <effects> at beginning of the next end step` (a delayed
 triggered ability, CR 603.7; write the trigger first, then a comma, then the

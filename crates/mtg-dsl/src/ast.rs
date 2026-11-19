@@ -454,6 +454,13 @@ pub struct Targeting {
     pub filter: Option<Filter>,
 }
 
+/// The subtype a filter names for "outlaw" (CR 700.12): it compiles to
+/// "Assassin, Mercenary, Pirate, Rogue, or Warlock".
+pub const OUTLAW: &str = "outlaw";
+
+/// The creature types "outlaw" stands for (CR 700.12).
+pub const OUTLAW_TYPES: [&str; 5] = ["Assassin", "Mercenary", "Pirate", "Rogue", "Warlock"];
+
 /// Which objects something applies to; see `mtg_core::card::ObjFilter`.
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
 #[allow(clippy::struct_excessive_bools)] // each is one printed qualifier
@@ -1053,6 +1060,15 @@ pub enum StaticCond {
     },
     /// `defending player poisoned`: "defending player is poisoned".
     DefenderPoisoned,
+    /// `your life more than opponent`: "you have more life than an
+    /// opponent".
+    MoreLifeThanOpponent,
+    /// `3 basic land types`: "there are three or more basic land types
+    /// among lands you control" (domain, CR 305.6).
+    BasicLandTypes(u32),
+    /// `you don't control legendary creature`: "you don't control a
+    /// legendary creature" (`YouControlNone` worded so).
+    YouDontControl(Filter),
     /// `at least 2 other creatures attack` ("... block"), `black or green
     /// creature also attacks`: of "can't attack unless".
     OthersInCombat {
@@ -1420,6 +1436,9 @@ pub enum Affects {
     /// `chosen red source`: "a red source of your choice", a damage source
     /// chosen as the effect is created (CR 609.7a).
     Chosen(Filter),
+    /// `creature dealt damage this way`: "a creature dealt damage this
+    /// way", each permanent the resolution dealt damage to (CR 608.2c).
+    DamagedThisWay,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2268,6 +2287,9 @@ pub enum Effect {
         /// cards of your library, then put one of them into your hand and
         /// the rest into your graveyard" (one sentence).
         then: bool,
+        /// `take card may top`: "You may put one of those cards back on
+        /// top of your library" (it stays there; the rest go).
+        top: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order".

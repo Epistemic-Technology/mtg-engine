@@ -1750,6 +1750,11 @@ pub enum StaticCondition {
     },
     /// "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
+    /// "you have more life than an opponent".
+    MoreLifeThanOpponent,
+    /// "there are three or more basic land types among lands you control"
+    /// (domain, CR 305.6).
+    BasicLandTypes(u32),
     /// "an opponent has three or more poison counters" (corrupted).
     OpponentPoisonAtLeast(u32),
     /// "this creature has four or more oil counters on it" (`at_least`);
@@ -3016,7 +3021,10 @@ pub enum Effect {
     /// `take` is how many may be taken (`u32::MAX`: any number: "You may
     /// reveal any number of creature cards"); `also` takes one more
     /// matching it ("a creature card and/or a land card"); `random` puts
-    /// the rest on the bottom in a random order.
+    /// the rest on the bottom in a random order. With `top` the card taken
+    /// stays on top of the library instead of going to the hand ("You may
+    /// put one of those cards back on top of your library. Put the rest
+    /// into your graveyard.").
     Dig {
         count: Num,
         filter: Option<ObjFilter>,
@@ -3026,6 +3034,7 @@ pub enum Effect {
         take: u32,
         also: Option<ObjFilter>,
         random: bool,
+        top: bool,
     },
     /// "Exile the top two cards of your library. Until the end of your next
     /// turn, you may play those cards." (impulse draw): the controller may
@@ -3310,6 +3319,9 @@ pub enum ChooseAct {
     /// "you may attach an Equipment you control to it" (permanents you
     /// control): attached to the `n`th target (CR 701.3).
     AttachToTarget(u8),
+    /// "put a card from your hand on the bottom of your library" (cards in
+    /// your hand).
+    HandToBottom,
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -3373,6 +3385,10 @@ pub enum Affects {
     /// the effect is created ("a red source of your choice", CR 609.7a;
     /// stored effects only).
     Chosen(ObjFilter),
+    /// "a creature dealt damage this way" (CR 608.2c): each permanent the
+    /// resolution has dealt damage to so far, one effect locked to each
+    /// as it is created (stored effects only).
+    DamagedThisWay,
 }
 
 /// Where a redirection effect sends the damage (CR 614.9).
@@ -4779,6 +4795,7 @@ impl DefFlags {
                 )) || matches!(s.condition, Some(
                     StaticCondition::OpponentLifeAtMost(_)
                         | StaticCondition::YourLife { .. }
+                        | StaticCondition::MoreLifeThanOpponent
                         | StaticCondition::AnyPlayerLifeAtMost(_)
                         | StaticCondition::OpponentPoison(_)
                 )))

@@ -508,7 +508,9 @@ impl GameState {
                 target == Target::Player(controller)
                     || matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }
-            Affects::Target(_) | Affects::Targets(..) => locked == Some(target),
+            Affects::Target(_) | Affects::Targets(..) | Affects::DamagedThisWay => {
+                locked == Some(target)
+            }
             Affects::OtherThanTarget(f, _) => {
                 locked != Some(target)
                     && matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
@@ -536,7 +538,9 @@ impl GameState {
             Affects::Objects(f) | Affects::YouAnd(f) => {
                 self.source_matches(f, src, source, controller)
             }
-            Affects::Target(_) | Affects::Targets(..) => locked == Some(Target::Object(src)),
+            Affects::Target(_) | Affects::Targets(..) | Affects::DamagedThisWay => {
+                locked == Some(Target::Object(src))
+            }
             Affects::OtherThanTarget(f, _) => {
                 locked != Some(Target::Object(src))
                     && self.source_matches(f, src, source, controller)

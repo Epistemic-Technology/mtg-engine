@@ -1,0 +1,6 @@
+card "Depressurize" {
+  oracle_id abcb5321-c295-4abf-8622-7de79679d27a
+  cost {1}{B}
+  type Instant
+  spell: target creature gets -3/-0; then if that target 1 is creature with power 0 or less, destroy target 1
+}
