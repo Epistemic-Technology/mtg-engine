@@ -1,0 +1,7 @@
+card "Swarm Surge" {
+  oracle_id 77b98632-e103-44fa-a940-2c3b2897b60f
+  cost {2}{B}
+  type Sorcery
+  keywords devoid
+  spell: each creature you control gets +2/+0; each colorless creature you control gains first strike
+}

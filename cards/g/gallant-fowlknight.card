@@ -1,0 +1,7 @@
+card "Gallant Fowlknight" {
+  oracle_id 4e0ba9d5-4bd6-49a0-ae00-70818738d0ba
+  cost {3}{W}
+  type Creature — Kithkin Knight
+  pt 3/4
+  triggered when this enters: each creature you control gets +1/+0; each Kithkin creature you control gains first strike
+}

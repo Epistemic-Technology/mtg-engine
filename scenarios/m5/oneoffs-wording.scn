@@ -1,0 +1,76 @@
+# Wordings: "target creature you control without flying" (the
+# controller before "without"), "White creatures you control also gain
+# first strike" after a pump of creatures you control, and "It doesn't
+# untap during your next untap step" for the source or a target you
+# control.
+
+scenario "target creature you control without flying: Seedpod Squire" {
+  battlefield A: "Seedpod Squire", "Grizzly Bears"
+  turn 1 A: attack "Seedpod Squire"
+  turn 1 A: trigger "Seedpod Squire" targeting "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+}
+
+scenario "target creature you control without flying: not one with flying" {
+  battlefield A: 5 "Plains", "Serra Angel", "Grizzly Bears"
+  hand A: "Pileated Provisioner"
+  turn 1 A: cast "Pileated Provisioner"
+  turn 1 A: trigger "Pileated Provisioner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Serra Angel" +1/+1 0
+}
+
+scenario "also gain: only white creatures you control get first strike" {
+  battlefield A: 5 "Plains", "Savannah Lions", "Grizzly Bears"
+  hand A: "Sanctified Charge"
+  turn 1 A: cast "Sanctified Charge"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Savannah Lions" first_strike
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "also gain: Gallant Fowlknight's Kithkin" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Gallant Fowlknight"
+  turn 1 A: cast "Gallant Fowlknight"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert power "Gallant Fowlknight" 4
+  assert has "Gallant Fowlknight" first_strike
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "your next untap step: Homarid Warrior stays tapped" {
+  battlefield A: "Homarid Warrior", "Island"
+  turn 1 A: activate "Homarid Warrior"
+  run_to turn 3 upkeep
+  assert tapped "Homarid Warrior"
+  run_to turn 5 upkeep
+  assert untapped "Homarid Warrior"
+}
+
+scenario "your next untap step: Samite Alchemist prevents and taps" {
+  battlefield A: "Samite Alchemist", 2 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 A: activate "Samite Alchemist" targeting "Grizzly Bears"
+  turn 1 main2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Queen of Ice: the creature it damaged doesn't untap, not the Queen" {
+  battlefield A: "Queen of Ice // Rage of Winter"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Queen of Ice"
+  run_to turn 4 upkeep
+  assert tapped "Hill Giant"
+}

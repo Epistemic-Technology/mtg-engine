@@ -4,7 +4,7 @@ card "Queen of Ice // Rage of Winter" {
   cost {2}{U}
   type Creature — Human Noble Wizard
   pt 2/3
-  triggered whenever this deals combat damage to creature: tap that creature; this doesn't untap next untap step
+  triggered whenever this deals combat damage to creature: tap that creature; it doesn't untap next untap step
   face "Rage of Winter" {
     cost {1}{U}
     type Sorcery — Adventure

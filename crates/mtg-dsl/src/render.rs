@@ -3307,7 +3307,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let plural =
                 !s.starts_with("each ") && (Ctx::is_plural(*to) || ctx.is_many(*to) || s == "they");
-            let text = if plural {
+            // "It doesn't untap during your next untap step": the source,
+            // or a target you control.
+            let yours = match *to {
+                Recipient::Source => true,
+                Recipient::Target(n) | Recipient::ThatTarget(n) => {
+                    match ctx.targets.get(n).map(Target::base) {
+                        Some(Target::Filter(f)) => f.who == Some(Who::You) && f.or.is_none(),
+                        Some(Target::Spec(s)) => matches!(
+                            s,
+                            TargetSpec::CreatureYouControl
+                                | TargetSpec::NonlegendaryCreatureYouControl
+                        ),
+                        _ => false,
+                    }
+                }
+                _ => false,
+            };
+            let text = if yours && !plural {
+                "doesn't untap during your next untap step"
+            } else if plural {
                 "don't untap during their controller's next untap step"
             } else {
                 "doesn't untap during its controller's next untap step"
@@ -3628,11 +3647,21 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 c.suffix = Some("this turn");
                 return c;
             }
+            // "Creatures you control get +2/+1 until end of turn. White
+            // creatures you control also gain first strike ...": some of
+            // the creatures just pumped.
+            let also = if ctx.pumped.contains(&Recipient::EachCreatureYouControl)
+                && narrower_creatures_you_control(*to, ctx.card)
+            {
+                "also "
+            } else {
+                ""
+            };
             Clause::with_subject(
                 *to,
                 s,
                 format!(
-                    "{} {}",
+                    "{also}{} {}",
                     ctx.verb(*to, "gains", "gain"),
                     keywords_list(keywords)
                 ),
@@ -5859,6 +5888,21 @@ fn trigger_filter_a(f: &Filter, card: &Card) -> String {
 
 /// A rendered filter with its "you control" moved before its "with ..."
 /// qualities.
+/// A group of some of the creatures you control: "White creatures you
+/// control", "Kithkin creatures you control", "Colorless creatures you
+/// control".
+fn narrower_creatures_you_control(r: Recipient, card: &Card) -> bool {
+    let Recipient::Group(i) = r else {
+        return false;
+    };
+    card.groups.get(usize::from(i)).is_some_and(|f| {
+        f.who == Some(Who::You)
+            && f.or.is_none()
+            && f.types.as_slice() == [mtg_core::card::CardType::Creature]
+            && (f.colors.is_some() || !f.subtypes.is_empty() || f.color_count.is_some())
+    })
+}
+
 fn controller_first(f: &Filter, s: String) -> String {
     let ctl = match f.who {
         Some(Who::You) => " you control",
@@ -5870,7 +5914,12 @@ fn controller_first(f: &Filter, s: String) -> String {
     if f.or.is_some() {
         return s;
     }
-    match (s.strip_suffix(ctl), s.find(" with ")) {
+    // "target creature you control without flying" too.
+    let quality = match (s.find(" with "), s.find(" without ")) {
+        (Some(a), Some(b)) => Some(a.min(b)),
+        (a, b) => a.or(b),
+    };
+    match (s.strip_suffix(ctl), quality) {
         (Some(rest), Some(i)) if i < rest.len() => {
             format!("{}{ctl}{}", &rest[..i], &rest[i..])
         }
