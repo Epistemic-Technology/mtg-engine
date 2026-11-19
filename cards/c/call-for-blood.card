@@ -1,0 +1,7 @@
+card "Call for Blood" {
+  oracle_id f2782c21-ed99-4821-8938-cc539e783ec7
+  cost {4}{B}
+  type Instant — Arcane
+  additional cost sacrifice creature
+  spell: target creature gets -1/-1 count where power of the sacrificed creature
+}

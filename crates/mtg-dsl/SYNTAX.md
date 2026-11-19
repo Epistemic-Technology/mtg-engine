@@ -62,7 +62,7 @@ double-faced permanent to its other face (CR 701.27).
 | `oracle_id 2b93787d-...` | The Scryfall `oracle_id` the card was authored against. Required for cards. |
 | `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, and Phyrexian `{R/P}` symbols are accepted (CR 107.4e–f); the engine pays them in a canonical order and pays 2 life for a Phyrexian symbol only when mana can't. Snow `{S}` (CR 107.4h, in any cost) is paid by tapping a different snow permanent for each symbol (the rest of the cost from the other sources and the pool); mana already floating in the pool pays no `{S}`, since the pool doesn't remember where its mana came from. `protection from snow` prints "Protection from snow". |
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
-| `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
+| `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). When it sets one of them, write the other and `*` for it: `pt */1` with `cda power ...`, `pt 2/*` with `cda toughness ...` (`*` is 0 outside the battlefield, CR 208.2a). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
@@ -341,7 +341,9 @@ colors` (CR 105.2). Colors before a creature type make an animation:
 becomes a blue Serpent with base power and toughness 5/5"; the color and
 creature type replace its others, layers 4, 5, and 7b), `loses all
 abilities and becomes green Snake base 1/1` ("loses all abilities and
-becomes a green Snake ...", layer 6 too), and `in addition` adds instead of
+becomes a green Snake ...", layer 6 too), `target creature loses all
+abilities and has base power and toughness 0/1` (Humble: one effect,
+layers 6 and 7b), and `in addition` adds instead of
 replacing: `it becomes black Demon in addition indefinitely` ("it becomes
 a black Demon in addition to its other colors and types"), `up to 2
 target creature each has base power and toughness 3/3, gains flying, and
@@ -568,7 +570,8 @@ fits is offered; on a card, the mana value prints after the noun: `target
 creature card with mana value X or less from your graveyard`), `with +1/+1
 counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
-them"; printed after the controller), and `modified` ("a modified
+them"; printed after the controller; any kind: `permanent you control with
+oil counter`, "permanents you control with oil counters on them"), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
 Aura its controller controls), and `with toxic` ("each other creature you
 control with toxic", CR 702.164: one of its abilities is toxic N, printed
@@ -619,7 +622,12 @@ entered), `switch pt`,
 color-defining ability, CR 604.3, so the card is colorless in every zone,
 the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
-`cda pt your life`, and `has ability { <ability line> }`: a quoted ability
+`cda pt your life`, `cda pt domain` (a power/toughness-defining ability,
+layer 7a, counting any count a static ability can: "~'s power and
+toughness are each equal to ..."; the count is judged from its controller
+as the layer applies), `cda power count Rat you control` ("~'s power is
+equal to the number of Rats you control"; the toughness is printed, `pt
+*/1`), `cda toughness domain` ("~'s toughness is equal to ..."), and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
@@ -636,6 +644,9 @@ black, enchanted: ...` is "As long as enchanted creature is black, it
 
 #### Auras and Equipment
 
+`has defender, loses all abilities` prints "has defender, and loses all
+other abilities" (Deep Freeze): abilities a static ability grants before
+`loses all abilities` are kept (the loss applies first in layer 6).
 `has can't activate` ("its activated abilities can't be activated", CR
 602.5: mana abilities too) and `has can't activate except mana` ("...
 unless they're mana abilities") are restrictions like `can't attack`;
@@ -729,7 +740,16 @@ turn"), `Zubera died this turn` ("for each Zubera that died this turn",
 from the battlefield this turn, matched as they last existed, CR 700.4),
 `greatest power graveyard creature` ("the greatest power among creature
 cards in your graveyard"; 0 with none), `graveyard permanent card` ("for
-each permanent card in your graveyard", CR 110.4a), or `andor <expr>` (the same count, printed "artifact and/or
+each permanent card in your graveyard", CR 110.4a), `card types in
+graveyards` ("card types among cards in all graveyards"), `+1/+1 counters
+on this` ("the number of +1/+1 counters on this creature", "for each
+scream counter on this Aura"; once the source has left the battlefield,
+the counters it had there, CR 608.2h) and `age counters on it` ("... on
+it"), `attached controller graveyard [<filter>]` ("the number of creature
+cards in its controller's graveyard": the controller of what the source
+is attached to), `creature target player controls` ("for each creature
+target player controls": declares the target there; `target opponent
+controls` likewise), or `andor <expr>` (the same count, printed "artifact and/or
 creature card"); two clauses of one sentence with the same `count where`
 share one X ("deals X damage to any target and you gain X life, where X
 is ..."); in a static ability `-1/-1 count where hand` prints "gets -X/-X,
@@ -1089,7 +1109,12 @@ exists), both checked as targets are chosen and again on resolution (CR
 608.2b); a triggered ability with no target that player controls is
 removed (CR 603.3d). `target creature other than enchanted` ("target
 creature other than enchanted creature"): not what the source is attached
-to.
+to. A group or count of what a target player controls declares that
+target in its filter: `each creature target player controls gets -2/-2`
+("Creatures target player controls get -2/-2 until end of turn"), `you
+gain count each 2 creature target player controls life`; `target opponent
+controls` targets an opponent. Nothing matches if that target is illegal
+as the effect happens (CR 608.2b).
 
 ## Example
 

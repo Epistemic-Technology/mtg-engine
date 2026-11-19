@@ -1,0 +1,8 @@
+card "Kjeldoran Javelineer" {
+  oracle_id 95921d1e-0487-4274-b797-8652e94fc4bc
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/2
+  cumulative upkeep {1}
+  activated {T}: deal damage equal age counters on it to target attacking or blocking creature
+}

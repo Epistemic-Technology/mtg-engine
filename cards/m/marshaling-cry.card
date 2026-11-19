@@ -1,0 +1,8 @@
+card "Marshaling Cry" {
+  oracle_id 0dc30c06-3900-44e8-9e63-c232e42c1b5c
+  cost {1}{W}{W}
+  type Sorcery
+  spell: each creature you control gets +1/+1 and gains vigilance
+  cycling {2}
+  flashback {3}{W}
+}

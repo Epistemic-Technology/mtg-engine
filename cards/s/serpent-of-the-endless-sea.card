@@ -1,0 +1,7 @@
+card "Serpent of the Endless Sea" {
+  oracle_id 3b954d5f-3a93-4dd9-9d60-6097594d449c
+  cost {4}{U}
+  type Creature — Serpent
+  static this: cda pt count Island you control
+  can't attack unless defending player controls Island
+}

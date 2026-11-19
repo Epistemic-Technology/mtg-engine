@@ -1,0 +1,7 @@
+card "Freedom Fighter Recruit" {
+  oracle_id 33e66662-aea6-480c-b69b-1907d987b69e
+  cost {1}{R}
+  type Creature — Human Rebel Ally
+  pt */2
+  static this: cda power count creature you control
+}

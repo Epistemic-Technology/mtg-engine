@@ -11,8 +11,7 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, CdaCount, Layer, Modification, ObjFilter, PtValue, StaticCondition,
-    Subtype,
+    AbilityDef, AbilityId, Layer, Modification, ObjFilter, PtValue, StaticCondition, Subtype,
 };
 use crate::ids::{IdMap, ObjId, PlayerId, Timestamp};
 use crate::state::{Affected, Characteristics, Derived, GameState, Zone, pt16};
@@ -710,21 +709,25 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
     let id = work.ids[wi];
     if let Modification::CdaPt {
         count,
+        sets,
         plus_toughness,
     } = part
     {
         // CR 604.3: evaluated against the characteristics as they are
-        // after layer 6 (this is layer 7a).
-        let n = cda_count(work, id, count);
+        // after layer 6 (this is layer 7a), from the source's controller.
+        let n = per_count(work, Some(id), None, count);
         let c = &mut work.chars[wi];
-        c.power = pt16(n);
-        c.toughness = pt16(n + plus_toughness);
+        if sets.power() {
+            c.power = pt16(n);
+        }
+        if sets.toughness() {
+            c.toughness = pt16(n.saturating_add(*plus_toughness));
+        }
         return;
     }
     apply_to(&mut work.chars[wi], part, work.state, id);
 }
 
-/// What a power/toughness-defining ability of `source` counts right now.
 /// A "for each" count for a static ability of `source`.
 #[allow(clippy::too_many_lines)] // one arm per count
 fn per_count(
@@ -792,12 +795,15 @@ fn per_count(
             let f = f.as_ref().map(|f| same_filled(work, f, source));
             let all = matches!(count, CountExpr::CardsInAllGraveyards(_));
             let theirs = matches!(count, CountExpr::CardsInOpponentsGraveyards(_));
+            // Tokens in a graveyard (gone at the next state-based check,
+            // CR 704.5d) are not cards.
             state
                 .players
                 .iter()
                 .enumerate()
                 .filter(|(i, _)| all || (usize::from(you.0) == *i) != theirs)
                 .flat_map(|(_, p)| p.graveyard.iter())
+                .filter(|id| state.objects[**id].kind != crate::state::ObjKind::Token)
                 .filter(|id| {
                     f.as_ref().is_none_or(|f| {
                         let o = &state.objects[**id];
@@ -807,6 +813,46 @@ fn per_count(
                 })
                 .count()
         }
+        // "for each scream counter on this Aura": a counter put on or
+        // removed from a permanent invalidates the characteristics.
+        CountExpr::SourceCounters(kind) => source
+            .and_then(|s| state.objects.get(s))
+            .map_or(0, |o| o.counters(*kind) as usize),
+        CountExpr::HostGraveyard(f) => {
+            // Unattached, or attached to what has left (an Aura waiting on
+            // the state-based check, CR 704.5m): nothing.
+            let Some(host) = source
+                .and_then(|s| state.objects.get(s)?.attached_to)
+                .filter(|h| state.objects.contains_key(*h))
+            else {
+                return 0;
+            };
+            let owner = work.controller_of(host);
+            let f = f.as_ref().map(|f| same_filled(work, f, source));
+            state
+                .player(owner)
+                .graveyard
+                .iter()
+                .filter(|id| state.objects[**id].kind != crate::state::ObjKind::Token)
+                .filter(|id| {
+                    f.as_ref().is_none_or(|f| {
+                        let o = &state.objects[**id];
+                        let c = state.base_characteristics(o);
+                        f.matches(**id, o.owner, &c, None, Some(you))
+                    })
+                })
+                .count()
+        }
+        CountExpr::CardTypesInAllGraveyards => state
+            .players
+            .iter()
+            .flat_map(|p| p.graveyard.iter())
+            .map(|id| &state.objects[*id])
+            .filter(|o| o.kind != crate::state::ObjKind::Token)
+            .fold(crate::card::TypeSet::default(), |acc, o| {
+                acc.union(state.pool.get(o.def).types)
+            })
+            .len() as usize,
         CountExpr::Sum(a, b) => {
             return per_count(work, source, controller, a)
                 .saturating_add(per_count(work, source, controller, b));
@@ -874,43 +920,6 @@ fn same_filled<'f>(
         *d != work.state.pool.face_down(false) && *d != work.state.pool.face_down(true)
     });
     std::borrow::Cow::Owned(f.with_same(def, c.map(|c| c.colors).unwrap_or_default()))
-}
-
-fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
-    let state = work.state;
-    // Tokens in a graveyard (gone at the next state-based check, CR
-    // 704.5d) are not cards.
-    let cards = || {
-        state
-            .players
-            .iter()
-            .flat_map(|p| p.graveyard.iter())
-            .map(|id| &state.objects[*id])
-            .filter(|o| o.kind != crate::state::ObjKind::Token)
-    };
-    let n = match count {
-        CdaCount::CardTypesInGraveyards => cards()
-            .fold(crate::card::TypeSet::default(), |acc, o| {
-                acc.union(state.pool.get(o.def).types)
-            })
-            .len(),
-        CdaCount::CreatureCardsInGraveyards => u32::try_from(
-            cards()
-                .filter(|o| state.pool.get(o.def).is_creature())
-                .count(),
-        )
-        .unwrap_or(u32::MAX),
-        CdaCount::Permanents(filter) => {
-            let controller = work.controller_of(source);
-            let filter = same_filled(work, filter, Some(source));
-            u32::try_from(work.matching(&filter, Some(source), Some(controller)).len())
-                .unwrap_or(u32::MAX)
-        }
-        CdaCount::ControllerLife => {
-            u32::try_from(state.player(work.controller_of(source)).life).unwrap_or(0)
-        }
-    };
-    i32::try_from(n).unwrap_or(i32::MAX)
 }
 
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {

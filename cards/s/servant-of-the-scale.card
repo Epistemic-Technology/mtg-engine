@@ -1,0 +1,8 @@
+card "Servant of the Scale" {
+  oracle_id 7d404420-e3de-47a8-a159-2f634a73f2c9
+  cost {G}
+  type Creature — Human Soldier
+  pt 0/0
+  enters with 1 +1/+1 counter
+  triggered when this dies: put count where +1/+1 counters on this +1/+1 counters on target creature you control
+}

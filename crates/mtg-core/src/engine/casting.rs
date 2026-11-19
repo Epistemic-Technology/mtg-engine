@@ -347,11 +347,16 @@ impl GameState {
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
                 let host = f.attached_to.map(|a| self.attached_host(ctx, a));
+                // "for each creature target player controls".
+                let Some(that) = self.that_player_in(f, ctx) else {
+                    return 0;
+                };
                 self.battlefield
                     .iter()
                     .filter(|id| {
                         let o = &self.objects[**id];
-                        host.is_none_or(|h| h.is_some() && o.attached_to == h)
+                        that.is_none_or(|p| o.controller == p)
+                            && host.is_none_or(|h| h.is_some() && o.attached_to == h)
                             && self.characteristics(**id).is_some_and(|c| {
                                 f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
                             })
@@ -613,6 +618,42 @@ impl GameState {
             }
             CountExpr::LifeLostThisTurn => {
                 return self.life_lost_this_turn[you.index().min(3)];
+            }
+            // CR 608.2h: once the source has left the battlefield, the
+            // counters it had there.
+            CountExpr::SourceCounters(kind) => {
+                return match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => o.counters(*kind),
+                    o => self
+                        .lki
+                        .get(&ctx.source)
+                        .map(|l| l.object.counters(*kind))
+                        .or_else(|| o.map(|o| o.counters(*kind)))
+                        .unwrap_or(0),
+                };
+            }
+            CountExpr::HostGraveyard(f) => {
+                let host = self
+                    .objects
+                    .get(ctx.source)
+                    .and_then(|o| o.attached_to)
+                    .and_then(|h| self.objects.get(h));
+                let Some(owner) = host.map(|h| h.controller) else {
+                    return 0;
+                };
+                let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
+                self.graveyard_count(std::slice::from_ref(&owner), f.as_deref(), you)
+            }
+            CountExpr::CardTypesInAllGraveyards => {
+                return self
+                    .players_in_game()
+                    .flat_map(|p| self.player(p).graveyard.iter())
+                    .map(|id| &self.objects[*id])
+                    .filter(|o| o.kind != crate::state::ObjKind::Token)
+                    .fold(crate::card::TypeSet::default(), |acc, o| {
+                        acc.union(self.pool.get(o.def).types)
+                    })
+                    .len();
             }
             CountExpr::DamageThisWay { excess } => {
                 return self
@@ -2583,7 +2624,9 @@ impl GameState {
             .iter()
             .enumerate()
             .all(|(i, s)| match self.that_player_of(*s) {
-                None => true,
+                // A target player relation restricts groups and counts, not
+                // targets.
+                None | Some(crate::card::ThatPlayer::Target(_)) => true,
                 Some(crate::card::ThatPlayer::Triggering) => {
                     matches!(s, TargetSpec::UpTo(_))
                         || self
@@ -4535,6 +4578,9 @@ impl GameState {
         if host == Some(None) {
             return;
         }
+        let Some(that) = self.that_player_in(filter, ctx) else {
+            return;
+        };
         let source = self.current_object(ctx.source);
         // "Target creature you control gets +3/+3 and each other creature
         // you control gets +1/+1": a spell's "other" is other than its
@@ -4550,6 +4596,7 @@ impl GameState {
                 .copied()
                 .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
                 .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
+                .filter(|id| that.is_none_or(|p| self.objects[*id].controller == p))
                 .filter(|id| {
                     let o = &self.objects[*id];
                     self.characteristics(*id).is_some_and(|c| {
@@ -4559,6 +4606,45 @@ impl GameState {
                 })
                 .map(Target::Object),
         );
+    }
+
+    /// The player a group's or count's filter is held to
+    /// (`ObjFilter::that_player`, "creatures target player controls"):
+    /// `Some(None)` for no such relation, `None` if that player is not to
+    /// be had (an illegal target, CR 608.2b), so nothing matches.
+    #[allow(clippy::option_option)] // "no relation" differs from "no player"
+    pub(super) fn that_player_in(
+        &self,
+        f: &crate::card::ObjFilter,
+        ctx: &EffectCtx,
+    ) -> Option<Option<PlayerId>> {
+        use crate::card::ThatPlayer;
+        let Some(rel) = f.that_player else {
+            return Some(None);
+        };
+        let target = |n: u8| {
+            let n = usize::from(n);
+            ctx.targets
+                .get(n)
+                .copied()
+                .filter(|_| ctx.legal.get(n).copied().unwrap_or(true))
+        };
+        match rel {
+            ThatPlayer::Triggering => ctx.trigger_player.map(Some),
+            ThatPlayer::Target(n) => match target(n)? {
+                Target::Player(p) => Some(Some(p)),
+                Target::Object(_) => None,
+            },
+            ThatPlayer::ControllerOf(n) => match target(n)? {
+                Target::Object(id) => self
+                    .objects
+                    .get(id)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&id).map(|l| l.object.controller))
+                    .map(Some),
+                Target::Player(_) => None,
+            },
+        }
     }
 
     /// What "the chosen color" or "that type" refers to as `ctx`'s effects

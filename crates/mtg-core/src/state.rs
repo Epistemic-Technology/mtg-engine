@@ -2422,6 +2422,10 @@ impl GameState {
                     .or_else(|| self.lki.get(id).map(|l| l.object.controller)),
                 _ => None,
             },
+            ThatPlayer::Target(n) => match targets.get(usize::from(n)) {
+                Some(Target::Player(p)) => Some(*p),
+                _ => None,
+            },
         };
         let Some(player) = player else {
             return true;

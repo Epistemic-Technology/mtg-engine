@@ -1,0 +1,9 @@
+card "Disturbing Conversion" {
+  oracle_id adde6737-516c-4d6f-9363-388ad37d4114
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters: each player mills 2 cards
+  static enchanted: -1/-0 count where attached controller graveyard
+}

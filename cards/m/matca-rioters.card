@@ -1,0 +1,6 @@
+card "Matca Rioters" {
+  oracle_id b46294cb-9971-415e-90d1-a02c44cd1391
+  cost {2}{G}
+  type Creature — Human Warrior
+  label "Domain" static this: cda pt domain
+}

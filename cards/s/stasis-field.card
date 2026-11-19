@@ -1,0 +1,7 @@
+card "Stasis Field" {
+  oracle_id 83633ea1-a8d5-4351-9047-625d6905386d
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: base 0/2, has defender, loses all abilities
+}

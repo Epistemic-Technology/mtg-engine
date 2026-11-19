@@ -6,20 +6,19 @@ use std::collections::HashMap;
 
 use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
-    CdaCount as CoreCdaCount, ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost,
-    Effect as CoreEffect, EffectCond, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
-    Recipient as CoreRecipient, Relation, ReplacementAbility, Replaces as CoreReplaces,
-    SacCost as CoreSacCost, Same, SameOf, SameWhat, StaticAbility, StaticCondition, SubtypeSet,
-    SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
-    Who,
+    ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost, Effect as CoreEffect, EffectCond,
+    KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter, Recipient as CoreRecipient,
+    Relation, ReplacementAbility, Replaces as CoreReplaces, SacCost as CoreSacCost, Same, SameOf,
+    SameWhat, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
+    TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
 };
 use mtg_core::mana::{Color, ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Filter, InsteadCond, Kind,
-    Mechanic, Mod, Recipient, Replacement, Replaces, SacCost, SameRef, Sentence, StaticCond,
-    Target, Trigger, TriggerObj,
+    Ability, Affects, Card, ChoiceKind, Cost, Effect, Filter, InsteadCond, Kind, Mechanic, Mod,
+    Recipient, Replacement, Replaces, SacCost, SameRef, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -819,6 +818,9 @@ impl Compiler<'_> {
             A::Sum(a, b) => C::Sum(Box::new(self.count_expr(a)), Box::new(self.count_expr(b))),
             A::LifeLostThisTurn => C::LifeLostThisTurn,
             A::DamageThisWay { excess } => C::DamageThisWay { excess: *excess },
+            A::CardTypesInGraveyards => C::CardTypesInAllGraveyards,
+            A::SourceCounters { kind, .. } => C::SourceCounters(*kind),
+            A::HostGraveyard(f) => C::HostGraveyard(f.as_ref().map(|f| self.filter(f))),
         }
     }
 
@@ -1936,14 +1938,11 @@ impl Compiler<'_> {
             Mod::ProtectionFromChosen => Modification::ProtectionFromChosen,
             Mod::CdaPt {
                 count,
+                sets,
                 plus_toughness,
             } => Modification::CdaPt {
-                count: match count {
-                    CdaCount::CardTypesInGraveyards => CoreCdaCount::CardTypesInGraveyards,
-                    CdaCount::CreatureCardsInGraveyards => CoreCdaCount::CreatureCardsInGraveyards,
-                    CdaCount::Permanents(f) => CoreCdaCount::Permanents(self.filter(f)),
-                    CdaCount::ControllerLife => CoreCdaCount::ControllerLife,
-                },
+                count: self.count_expr(count),
+                sets: *sets,
                 plus_toughness: *plus_toughness,
             },
         }
@@ -2201,6 +2200,13 @@ impl Compiler<'_> {
                                     Modification::AddLandType(*c)
                                 });
                             }
+                            continue;
+                        }
+                        // "has defender, and loses all other abilities": the
+                        // loss applies before what it gains in layer 6 (CR
+                        // 613.1f: the effect's parts in order).
+                        if *m == Mod::RemoveAllAbilities {
+                            parts.insert(0, Modification::RemoveAllAbilities);
                             continue;
                         }
                         parts.push(self.modification_or_grant(m)?);

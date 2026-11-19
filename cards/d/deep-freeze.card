@@ -1,0 +1,7 @@
+card "Deep Freeze" {
+  oracle_id 648aead4-dc0b-47bc-911c-8dcd2cfd32d3
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: base 0/4, has defender, loses all abilities, add color blue, add subtype Wall
+}

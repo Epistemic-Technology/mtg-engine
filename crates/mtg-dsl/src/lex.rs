@@ -80,7 +80,9 @@ fn is_sym_char(c: char) -> bool {
 }
 
 /// Try to read a `[+-]?N/[+-]?N` power/toughness at the start of `s`;
-/// returns the token and the number of bytes consumed.
+/// returns the token and the number of bytes consumed. A printed `*` half
+/// (`pt */1`, defined by a characteristic-defining ability, CR 604.3) is
+/// 0, as it is outside the battlefield (CR 208.2a).
 fn lex_pt(text: &str) -> Option<(Tok, usize)> {
     let b = text.as_bytes();
     let mut i = 0;
@@ -97,7 +99,13 @@ fn lex_pt(text: &str) -> Option<(Tok, usize)> {
             _ => None,
         }
     };
-    let digits = |b: &[u8], i: &mut usize| -> Option<i32> {
+    let mut star_halves = 0;
+    let mut digits = |b: &[u8], i: &mut usize| -> Option<i32> {
+        if b.get(*i) == Some(&b'*') {
+            *i += 1;
+            star_halves += 1;
+            return Some(0);
+        }
         let start = *i;
         while b.get(*i).is_some_and(u8::is_ascii_digit) {
             *i += 1;
@@ -120,6 +128,9 @@ fn lex_pt(text: &str) -> Option<(Tok, usize)> {
     }
     let signed = power_sign.is_some() || toughness_sign.is_some();
     if signed && (power_sign.is_none() || toughness_sign.is_none()) {
+        return None;
+    }
+    if star_halves > 1 || (star_halves == 1 && signed) {
         return None;
     }
     Some((

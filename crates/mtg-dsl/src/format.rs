@@ -11,9 +11,8 @@ use mtg_core::mana::Mana;
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, Recipient, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger,
-    TriggerObj,
+    Ability, Affects, Card, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter, Join, Kind,
+    Mod, Recipient, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
@@ -1158,6 +1157,20 @@ impl Fmt {
                 loses_abilities,
                 in_addition,
             } => {
+                // `loses all abilities and has base power and toughness 0/1`.
+                if let (Some((p, q)), true, true) = (pt, base, *loses_abilities)
+                    && types.is_empty()
+                    && subtypes.is_empty()
+                    && colors.is_empty()
+                    && ks.is_empty()
+                    && !*in_addition
+                    && !*indefinite
+                {
+                    return format!(
+                        "{} loses all abilities and has base power and toughness {p}/{q}",
+                        self.recipient(*to, t)
+                    );
+                }
                 let mut words: Vec<String> = Vec::new();
                 if let (Some((p, q)), false) = (pt, base) {
                     words.push(format!("{p}/{q}"));
@@ -1665,7 +1678,9 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             g.named_first = false;
             format!("{} on battlefield", filter(&g))
         }
-        CountExpr::Permanents(f) if f.who.is_none() => format!("{} on battlefield", filter(f)),
+        CountExpr::Permanents(f) if f.who.is_none() && f.that_player.is_none() => {
+            format!("{} on battlefield", filter(f))
+        }
         CountExpr::Permanents(f) => filter(f),
         CountExpr::ThisWay { verb, filter: f } => {
             let verb = crate::ast::this_way_word(*verb);
@@ -1679,6 +1694,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
+        CountExpr::HostGraveyard(None) => "attached controller graveyard".to_string(),
+        CountExpr::HostGraveyard(Some(f)) => {
+            format!("attached controller graveyard {}", card_filter(f))
+        }
         CountExpr::CardsInGraveyard(Some(f)) => format!("graveyard {}", card_filter(f)),
         CountExpr::SourcePower => "power".to_string(),
         CountExpr::TargetStat { n, toughness, that } => format!(
@@ -1744,6 +1763,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::LifeLostThisTurn => "life you lost this turn".to_string(),
         CountExpr::DamageThisWay { excess: false } => "damage dealt this way".to_string(),
         CountExpr::DamageThisWay { excess: true } => "excess damage dealt this way".to_string(),
+        CountExpr::CardTypesInGraveyards => "card types in graveyards".to_string(),
+        CountExpr::SourceCounters { kind, it } => format!(
+            "{} counters on {}",
+            kind.name(),
+            if *it { "it" } else { "this" }
+        ),
     }
 }
 
@@ -2032,6 +2057,14 @@ fn filter_one(f: &Filter) -> String {
         Some(mtg_core::card::ThatPlayer::ControllerOf(n)) => {
             words.push(format!("controller of target {} controls", n + 1));
         }
+        Some(mtg_core::card::ThatPlayer::Target(_)) => words.push(
+            if f.that_opponent {
+                "target opponent controls"
+            } else {
+                "target player controls"
+            }
+            .to_string(),
+        ),
         None => {}
     }
     if f.not_attached {
@@ -2775,21 +2808,27 @@ fn modification(m: &Mod) -> String {
         }
         Mod::CdaPt {
             count,
+            sets,
             plus_toughness,
         } => {
+            use crate::ast::CountExpr;
             let c = match count {
-                CdaCount::CardTypesInGraveyards => "card types in graveyards".to_string(),
-                CdaCount::CreatureCardsInGraveyards => "creature cards in graveyards".to_string(),
-                CdaCount::Permanents(f) if f.who.is_none() => {
+                CountExpr::Permanents(f) if f.who.is_none() => {
                     format!("count {} on battlefield", filter(f))
                 }
-                CdaCount::Permanents(f) => format!("count {}", filter(f)),
-                CdaCount::ControllerLife => "your life".to_string(),
+                CountExpr::Permanents(f) => format!("count {}", filter(f)),
+                CountExpr::Life => "your life".to_string(),
+                other => count_expr_text(other),
+            };
+            let what = match sets {
+                mtg_core::card::CdaSets::Both => "pt",
+                mtg_core::card::CdaSets::Power => "power",
+                mtg_core::card::CdaSets::Toughness => "toughness",
             };
             if *plus_toughness == 0 {
-                format!("cda pt {c}")
+                format!("cda {what} {c}")
             } else {
-                format!("cda pt {c} {plus_toughness:+}")
+                format!("cda {what} {c} {plus_toughness:+}")
             }
         }
     }

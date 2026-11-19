@@ -1,0 +1,7 @@
+card "Divine Congregation" {
+  oracle_id a2fc892b-3840-45a0-bb1c-0d2cf7d14f2f
+  cost {3}{W}
+  type Sorcery
+  spell: you gain count each 2 creature target player controls life
+  suspend 5 {1}{W}
+}

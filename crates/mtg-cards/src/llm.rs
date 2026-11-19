@@ -128,9 +128,10 @@ pub fn header(s: &ScryCard) -> String {
     }
     let _ = writeln!(text, "  type {}", s.type_line.as_deref().unwrap_or(""));
     if let (Some(p), Some(t)) = (&s.power, &s.toughness)
-        && !p.contains('*')
-        && !t.contains('*')
+        && ((!p.contains('*') && !t.contains('*'))
+            || ((p == "*") != (t == "*") && !(p.contains('+') || t.contains('+'))))
     {
+        // `pt */1`: one half defined by the card's ability (CR 604.3).
         let _ = writeln!(text, "  pt {p}/{t}");
     }
     if let Some(l) = &s.loyalty {
