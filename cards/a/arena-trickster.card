@@ -1,0 +1,7 @@
+card "Arena Trickster" {
+  oracle_id 69c27223-d676-4916-899b-297dc4ed2d59
+  cost {3}{R}
+  type Creature — Human Shaman
+  pt 3/3
+  triggered whenever you cast your first spell during each opponent's turn: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Flaring Cinder" {
+  oracle_id f70d65bf-5f1c-4aee-9bd1-f5ee6974b058
+  cost {1}{U/R}{U/R}
+  type Creature — Elemental Sorcerer
+  pt 3/2
+  triggered when this enters and whenever you cast with mana value 4 or greater spell: you may discard 1 card; if you do, draw 1 card
+}

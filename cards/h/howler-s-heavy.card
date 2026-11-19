@@ -1,0 +1,8 @@
+card "Howler's Heavy" {
+  oracle_id 8abeaa77-d455-47e7-bf60-aefb94ab83fb
+  cost {3}{U}
+  type Creature — Seal Pirate
+  pt 3/4
+  cycling {1}{U}
+  triggered when you cycle this: target creature or Vehicle an opponent controls gets -3/-0
+}

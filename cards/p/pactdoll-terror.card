@@ -1,0 +1,7 @@
+card "Pactdoll Terror" {
+  oracle_id e02fff6b-9ee4-474f-97fc-d70d4bc8001b
+  cost {3}{B}
+  type Artifact Creature — Toy
+  pt 3/4
+  triggered whenever this or artifact you control enters: each opponent loses 1 life and you gain 1 life
+}

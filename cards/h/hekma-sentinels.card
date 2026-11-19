@@ -1,0 +1,7 @@
+card "Hekma Sentinels" {
+  oracle_id 90ea758d-3783-47a5-bb18-9ff9377113fb
+  cost {2}{U}
+  type Creature — Human Cleric
+  pt 2/3
+  triggered whenever you cycle or discard a card: this gets +1/+1
+}

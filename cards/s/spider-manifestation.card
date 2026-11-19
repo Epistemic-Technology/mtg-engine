@@ -1,0 +1,9 @@
+card "Spider Manifestation" {
+  oracle_id 8281f2b9-e81b-48da-812a-8713b2adf8ab
+  cost {1}{R/G}
+  type Creature — Spider Avatar
+  pt 2/2
+  keywords reach
+  mana {R} or {G}
+  triggered whenever you cast with mana value 4 or greater spell: untap this
+}

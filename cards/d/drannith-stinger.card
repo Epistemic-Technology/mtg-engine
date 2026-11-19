@@ -1,0 +1,8 @@
+card "Drannith Stinger" {
+  oracle_id edd1727e-3a6e-4d0e-b7ae-fae2108d2147
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered whenever you cycle another card: deal 1 damage to each opponent
+  cycling {1}
+}

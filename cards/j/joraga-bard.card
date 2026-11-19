@@ -1,0 +1,7 @@
+card "Joraga Bard" {
+  oracle_id a7eef84a-0b56-41d5-a298-dc3cf199e125
+  cost {3}{G}
+  type Creature — Elf Rogue Bard Ally
+  pt 1/4
+  triggered whenever this or Ally you control enters: you may each Ally creature you control gains vigilance
+}

@@ -1,0 +1,7 @@
+card "Thassa's Devourer" {
+  oracle_id b9794b16-3ef4-424a-b1ee-e2077f53873d
+  cost {4}{U}
+  type Enchantment Creature — Elemental
+  pt 2/6
+  label "Constellation" triggered whenever this or enchantment you control enters: target player mills 2 cards
+}

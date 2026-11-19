@@ -1,0 +1,7 @@
+card "Eye of Malcator" {
+  oracle_id 7270b5b6-a571-4e6d-91de-03f7cc035b3c
+  cost {2}{U}
+  type Artifact
+  triggered when this enters: scry 2
+  triggered whenever other artifact you control enters: this becomes 4/4 Phyrexian Eye artifact creature
+}

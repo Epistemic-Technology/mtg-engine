@@ -1,0 +1,8 @@
+card "Gempalm Polluter" {
+  oracle_id bd532f8d-789f-4ee1-a2f3-ae30e8282c76
+  cost {5}{B}
+  type Creature — Zombie
+  pt 4/3
+  cycling {B}{B}
+  triggered when you cycle this: you may target player loses count equal Zombie on battlefield life
+}

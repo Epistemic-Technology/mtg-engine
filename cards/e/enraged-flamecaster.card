@@ -1,0 +1,8 @@
+card "Enraged Flamecaster" {
+  oracle_id e35d7886-8c03-471c-b598-118d7eceddb4
+  cost {2}{R}
+  type Creature — Elemental Sorcerer
+  pt 3/2
+  keywords reach
+  triggered whenever you cast with mana value 4 or greater spell: deal 2 damage to each opponent
+}

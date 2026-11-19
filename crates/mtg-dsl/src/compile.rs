@@ -1060,7 +1060,7 @@ impl Compiler<'_> {
     fn trigger_obj(&mut self, t: &TriggerObj) -> CoreTriggerObj {
         match t {
             TriggerObj::This => CoreTriggerObj::This,
-            TriggerObj::Filter(f) => CoreTriggerObj::Filter(self.filter(f)),
+            TriggerObj::Filter(f) | TriggerObj::ThisOr(f) => CoreTriggerObj::Filter(self.filter(f)),
         }
     }
 
@@ -1130,6 +1130,23 @@ impl Compiler<'_> {
                 whose: *whose,
                 filter: self.filter(filter),
             },
+            Trigger::Cycles {
+                this,
+                another,
+                or_discard,
+            } => TriggerSpec::Cycles {
+                this: *this,
+                another: *another,
+                or_discard: *or_discard,
+            },
+            Trigger::CastsNth { whose, nth } => TriggerSpec::CastsNth {
+                whose: *whose,
+                nth: *nth,
+            },
+            Trigger::EntersBatch(f) => TriggerSpec::EntersBatch(self.filter(f)),
+            Trigger::Either(a, b) => {
+                TriggerSpec::Either(Box::new((self.trigger(a), self.trigger(b))))
+            }
         }
     }
 
@@ -1326,6 +1343,7 @@ impl Compiler<'_> {
                 sorcery_speed: cost.sorcery,
                 per_turn: cost.per_turn,
                 from_hand: *cycling || cost.discard_self,
+                cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 text: render::ability_text(self.card, a, self.lookup),
             }),

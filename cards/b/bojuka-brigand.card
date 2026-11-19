@@ -1,0 +1,8 @@
+card "Bojuka Brigand" {
+  oracle_id a1d82070-3198-4ead-9431-d90661e29741
+  cost {1}{B}
+  type Creature — Human Warrior Ally
+  pt 1/1
+  static this: has can't block
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

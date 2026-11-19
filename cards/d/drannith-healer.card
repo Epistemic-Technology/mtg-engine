@@ -1,0 +1,8 @@
+card "Drannith Healer" {
+  oracle_id 13e2a2c3-5ab5-4de4-96ca-5f9c72137000
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered whenever you cycle another card: you gain 1 life
+  cycling {1}
+}

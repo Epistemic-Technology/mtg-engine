@@ -1,0 +1,7 @@
+card "Rodeo Pyromancers" {
+  oracle_id 82debe1c-31cb-411f-a353-98a952180666
+  cost {3}{R}
+  type Creature — Human Mercenary
+  pt 3/4
+  triggered whenever you cast your first spell each turn: add {R}{R}
+}

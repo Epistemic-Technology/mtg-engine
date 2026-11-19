@@ -1,0 +1,8 @@
+card "Primal Boost" {
+  oracle_id 902e7d4b-7ab4-40b5-b3a5-c83ef604989a
+  cost {2}{G}
+  type Instant
+  spell: target creature gets +4/+4
+  cycling {2}{G}
+  triggered when you cycle this: you may target creature gets +1/+1
+}

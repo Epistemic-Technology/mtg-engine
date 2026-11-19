@@ -1,0 +1,6 @@
+card "Thoughtbind" {
+  oracle_id f31bb2b4-061c-4ba6-9f91-374f40fe6b05
+  cost {2}{U}
+  type Instant
+  spell: counter target with mana value 4 or less spell
+}

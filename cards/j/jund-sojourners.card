@@ -1,0 +1,8 @@
+card "Jund Sojourners" {
+  oracle_id 84a3ebc2-5c38-40ef-b5f4-62a92cbca493
+  cost {B}{R}{G}
+  type Creature — Lizard Shaman
+  pt 3/2
+  triggered when you cycle this and when this dies: you may deal 1 damage to any target
+  cycling {2}{R}
+}

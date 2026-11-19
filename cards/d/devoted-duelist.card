@@ -1,0 +1,8 @@
+card "Devoted Duelist" {
+  oracle_id f7620c46-b3d8-4694-ac7c-a43933c86c22
+  cost {1}{R}
+  type Creature — Goblin Monk
+  pt 2/1
+  keywords haste
+  label "Flurry" triggered whenever you cast your second spell each turn: deal 1 damage to each opponent
+}

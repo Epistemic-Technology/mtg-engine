@@ -1,0 +1,8 @@
+card "Graypelt Hunter" {
+  oracle_id b0553bf6-ecc1-4d08-9777-19827658355b
+  cost {3}{G}
+  type Creature — Human Warrior Ally
+  pt 2/2
+  keywords trample
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

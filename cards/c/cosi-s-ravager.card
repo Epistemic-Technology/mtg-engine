@@ -1,0 +1,7 @@
+card "Cosi's Ravager" {
+  oracle_id 1253de62-6218-401c-9d98-a5ec8617e0d8
+  cost {3}{R}
+  type Creature — Elemental
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: you may deal 1 damage to target player or planeswalker
+}

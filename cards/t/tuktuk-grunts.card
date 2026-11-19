@@ -1,0 +1,8 @@
+card "Tuktuk Grunts" {
+  oracle_id 200ce414-8583-4bbd-88a6-ca30babb613d
+  cost {4}{R}
+  type Creature — Goblin Warrior Ally
+  pt 2/2
+  keywords haste
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

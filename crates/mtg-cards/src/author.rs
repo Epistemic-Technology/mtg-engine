@@ -1648,6 +1648,7 @@ fn cost_text(s: &str) -> Option<String> {
     Some(items.join(", "))
 }
 
+#[allow(clippy::too_many_lines)] // one arm per trigger phrase
 fn trigger_text(head: &str) -> Option<String> {
     // A Vehicle or Equipment names itself so; the DSL's `this` prints the
     // noun.
@@ -1724,7 +1725,40 @@ fn trigger_text(head: &str) -> Option<String> {
         "Whenever this creature deals combat damage to a creature" => {
             "whenever this deals combat damage to creature"
         }
+        "When you cycle this card" => "when you cycle this",
+        "Whenever you cycle a card"
+        | "Whenever you cycle another card"
+        | "Whenever you cycle or discard a card"
+        | "Whenever you cycle or discard another card"
+        | "Whenever you cast your first spell each turn"
+        | "Whenever you cast your second spell each turn"
+        | "Whenever you cast a spell other than your first spell each turn"
+        | "Whenever you cast your first spell during each opponent's turn" => {
+            return Some(lowercase_first(head));
+        }
         _ => {
+            // "Whenever you cast a spell with mana value 4 or greater".
+            let mv =
+                Regex::new(r"^Whenever you cast a spell with mana value (\d+) or (greater|less)$")
+                    .unwrap();
+            if let Some(c) = mv.captures(head) {
+                return Some(format!(
+                    "whenever you cast with mana value {} or {} spell",
+                    cap(&c, 1),
+                    cap(&c, 2)
+                ));
+            }
+            // "Whenever this creature or another Ally you control enters".
+            let this_or = Regex::new(
+                r"^Whenever this creature or another (creature|Ally|artifact|enchantment) you control enters$",
+            )
+            .unwrap();
+            if let Some(c) = this_or.captures(head) {
+                return Some(format!(
+                    "whenever this or {} you control enters",
+                    cap(&c, 1)
+                ));
+            }
             // "Whenever this creature blocks a creature with flying",
             // "... becomes blocked by a creature".
             let pair = Regex::new(

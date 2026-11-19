@@ -1,0 +1,8 @@
+card "Bant Sojourners" {
+  oracle_id 67ceffa4-2fdb-499c-88cd-49fb5eb9be59
+  cost {1}{G}{W}{U}
+  type Creature — Human Soldier
+  pt 2/4
+  triggered when you cycle this and when this dies: you may create 1 "1/1 white Soldier creature"
+  cycling {2}{W}
+}

@@ -1,0 +1,8 @@
+card "Snarling Gorehound" {
+  oracle_id d2b1c5eb-06f0-4ec4-9446-791faac099a7
+  cost {B}
+  type Creature — Dog
+  pt 1/1
+  keywords menace
+  triggered whenever other creature you control with power 2 or less enters: surveil 1
+}

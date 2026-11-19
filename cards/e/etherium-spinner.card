@@ -1,0 +1,7 @@
+card "Etherium Spinner" {
+  oracle_id b501128b-2797-401b-8aec-923050081cae
+  cost {2}{U}
+  type Artifact Creature — Human Wizard
+  pt 2/1
+  triggered whenever you cast with mana value 4 or greater spell: create 1 "1/1 colorless Thopter artifact creature with flying"
+}

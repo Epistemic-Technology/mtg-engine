@@ -1,0 +1,7 @@
+card "Bogwater Lumaret" {
+  oracle_id 0109432d-5a2a-456f-ad39-b75cb4c73420
+  cost {B}{G}
+  type Creature — Spirit Frog
+  pt 2/2
+  triggered whenever this or creature you control enters: you gain 1 life
+}

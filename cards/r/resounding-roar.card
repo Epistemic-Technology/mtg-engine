@@ -1,0 +1,8 @@
+card "Resounding Roar" {
+  oracle_id 40ad5a52-37ad-4524-be06-9e263a907d31
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +3/+3
+  cycling {5}{R}{G}{W}
+  triggered when you cycle this: target creature gets +6/+6
+}

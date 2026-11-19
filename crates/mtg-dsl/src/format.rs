@@ -1306,6 +1306,7 @@ fn trigger_obj(o: &TriggerObj) -> String {
     match o {
         TriggerObj::This => "this".to_string(),
         TriggerObj::Filter(f) => filter(f),
+        TriggerObj::ThisOr(f) => format!("this or {}", filter(f)),
     }
 }
 
@@ -1372,6 +1373,40 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
             | Trigger::EveryStep(_)
+            | Trigger::Cycles { this: true, .. }
+    ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
+}
+
+/// "your second spell each turn" and kin, after "you cast" / "an opponent
+/// casts": the same in the DSL and in Oracle text.
+pub fn spell_ordinal(nth: mtg_core::card::SpellOrdinal, whose: Who) -> String {
+    use mtg_core::card::SpellOrdinal;
+    let (who, their) = match whose {
+        Who::You => ("you cast", "your"),
+        Who::Opponents => ("an opponent casts", "their"),
+        Who::Any => ("a player casts", "their"),
+    };
+    match nth {
+        SpellOrdinal::First => format!("{who} {their} first spell each turn"),
+        SpellOrdinal::Second => format!("{who} {their} second spell each turn"),
+        SpellOrdinal::NotFirst => {
+            format!("{who} a spell other than {their} first spell each turn")
+        }
+        SpellOrdinal::FirstOnOpponentsTurn => {
+            format!("{who} {their} first spell during each opponent's turn")
+        }
+    }
+}
+
+/// "you cycle this card", "you cycle or discard another card".
+pub fn cycles_text(this: bool, another: bool, or_discard: bool) -> String {
+    if this {
+        return "when you cycle this card".to_string();
+    }
+    format!(
+        "whenever you cycle {}{}",
+        if or_discard { "or discard " } else { "" },
+        if another { "another card" } else { "a card" }
     )
 }
 
@@ -1490,6 +1525,14 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             },
             filter(f)
         ),
+        Trigger::Cycles {
+            this,
+            another,
+            or_discard,
+        } => cycles_text(*this, *another, *or_discard),
+        Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
+        Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
+        Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
     }
 }
 

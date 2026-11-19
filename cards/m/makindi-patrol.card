@@ -1,0 +1,7 @@
+card "Makindi Patrol" {
+  oracle_id d3f58efb-ba75-4caf-9e33-74236c707b83
+  cost {2}{W}
+  type Creature — Human Knight Ally
+  pt 2/3
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains vigilance
+}

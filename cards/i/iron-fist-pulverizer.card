@@ -1,0 +1,8 @@
+card "Iron-Fist Pulverizer" {
+  oracle_id e5cea282-9e61-47da-8c5d-f5fca6a508a4
+  cost {4}{R}
+  type Creature — Giant Warrior
+  pt 4/5
+  keywords reach
+  triggered whenever you cast your second spell each turn: deal 2 damage to target opponent; scry 1
+}

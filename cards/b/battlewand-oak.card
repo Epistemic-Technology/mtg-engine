@@ -1,0 +1,8 @@
+card "Battlewand Oak" {
+  oracle_id 98d3d1f1-ac72-4b1e-87da-b4c1e4f03d08
+  cost {2}{G}
+  type Creature — Treefolk Warrior
+  pt 1/3
+  triggered whenever Forest you control enters: this gets +2/+2
+  triggered whenever you cast Treefolk spell: this gets +2/+2
+}

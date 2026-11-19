@@ -1,0 +1,7 @@
+card "Nimana Sell-Sword" {
+  oracle_id 5093df46-92cb-4f79-a5cf-4351c1fcf36d
+  cost {3}{B}
+  type Creature — Human Warrior Ally
+  pt 2/2
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

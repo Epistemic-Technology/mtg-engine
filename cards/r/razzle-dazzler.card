@@ -1,0 +1,7 @@
+card "Razzle-Dazzler" {
+  oracle_id a1ac6d5c-b2d0-4ca4-8af8-16fd3dd3b3b5
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/2
+  triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this; this can't be blocked
+}

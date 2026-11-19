@@ -1,0 +1,7 @@
+card "Godtracker of Jund" {
+  oracle_id 9be3e610-f6bf-4e79-87ca-79dde27945d0
+  cost {1}{R}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  triggered whenever creature you control with power 5 or greater enters: you may put 1 +1/+1 counters on this
+}

@@ -1,0 +1,7 @@
+card "Ondu Champion" {
+  oracle_id b638407b-4749-41fa-8054-f9db57b849ea
+  cost {2}{R}{R}
+  type Creature — Minotaur Warrior Ally
+  pt 4/3
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gains trample
+}

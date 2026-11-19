@@ -1,0 +1,8 @@
+card "Lurking Lizards" {
+  oracle_id 616312a9-83c8-4fb7-87ce-079ccd3231fa
+  cost {1}{G}
+  type Creature — Lizard Villain
+  pt 1/3
+  keywords trample
+  triggered whenever you cast with mana value 4 or greater spell: put 1 +1/+1 counters on this
+}

@@ -1,0 +1,8 @@
+card "Naya Sojourners" {
+  oracle_id 703215df-dee2-4b82-9f32-256e1410543c
+  cost {2}{R}{G}{W}
+  type Creature — Elf Shaman
+  pt 5/3
+  triggered when you cycle this and when this dies: you may put 1 +1/+1 counters on target creature
+  cycling {2}{G}
+}

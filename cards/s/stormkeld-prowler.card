@@ -1,0 +1,7 @@
+card "Stormkeld Prowler" {
+  oracle_id d9c0e089-92ca-4fbd-9ddd-1802ac3553c9
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 2/1
+  triggered whenever you cast with mana value 5 or greater spell: put 2 +1/+1 counters on this
+}

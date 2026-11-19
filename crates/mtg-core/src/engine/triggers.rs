@@ -63,6 +63,11 @@ impl GameState {
                 {
                     continue;
                 }
+                // CR 603.2c: "one or more ... enter", once per batch.
+                let batch = matches!(t.trigger, TriggerSpec::EntersBatch(_));
+                if batch && self.join_batch(&mut fired, ability, w.source) {
+                    continue;
+                }
                 fired.push(PendingTrigger {
                     controller: w.controller,
                     ability: StackAbility {
@@ -71,11 +76,14 @@ impl GameState {
                         def: w.chars.def,
                         trigger_obj,
                         trigger_player,
-                        trigger_amount: event_amount,
+                        trigger_amount: if batch { 1 } else { event_amount },
                     },
                     timestamp: 0,
                 });
             }
+        }
+        if matches!(event, Event::Cycled { .. }) {
+            self.cycle_triggers(event, &mut fired);
         }
         // CR 702.62a: each suspended card of the active player's at their
         // upkeep.
@@ -90,35 +98,7 @@ impl GameState {
         if let Event::StepBegin { step } = event
             && !self.delayed_triggers.is_empty()
         {
-            let active = self.active_player;
-            let mut i = 0;
-            while i < self.delayed_triggers.len() {
-                let dt = self.delayed_triggers[i];
-                let at = match self.pool.ability(dt.ability.ability) {
-                    AbilityDef::Triggered(t) => match &t.trigger {
-                        TriggerSpec::BeginningOfStep { step: s, whose } => {
-                            s == step
-                                && match whose {
-                                    Who::Any => true,
-                                    Who::You => active == dt.controller,
-                                    Who::Opponents => active != dt.controller,
-                                }
-                        }
-                        _ => false,
-                    },
-                    _ => false,
-                };
-                if at {
-                    self.delayed_triggers.remove(i);
-                    fired.push(PendingTrigger {
-                        controller: dt.controller,
-                        ability: dt.ability,
-                        timestamp: 0,
-                    });
-                } else {
-                    i += 1;
-                }
-            }
+            self.delayed_step_triggers(*step, &mut fired);
         }
         for mut t in fired {
             t.timestamp = self.tick();
@@ -130,6 +110,98 @@ impl GameState {
                 });
             }
             self.pending_triggers.push(t);
+        }
+    }
+
+    /// Delayed triggered abilities waiting for the beginning of `step`
+    /// (CR 603.7), each removed as it triggers.
+    fn delayed_step_triggers(
+        &mut self,
+        step: crate::turn::Step,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+    ) {
+        let active = self.active_player;
+        let mut i = 0;
+        while i < self.delayed_triggers.len() {
+            let dt = self.delayed_triggers[i];
+            let at = match self.pool.ability(dt.ability.ability) {
+                AbilityDef::Triggered(t) => match &t.trigger {
+                    TriggerSpec::BeginningOfStep { step: s, whose } => {
+                        *s == step
+                            && match whose {
+                                Who::Any => true,
+                                Who::You => active == dt.controller,
+                                Who::Opponents => active != dt.controller,
+                            }
+                    }
+                    _ => false,
+                },
+                _ => false,
+            };
+            if at {
+                self.delayed_triggers.remove(i);
+                fired.push(PendingTrigger {
+                    controller: dt.controller,
+                    ability: dt.ability,
+                    timestamp: 0,
+                });
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    /// Counts one more object into a waiting "one or more" trigger of
+    /// this ability and source, if there is one (CR 603.2c: it triggers
+    /// once for the objects entering together).
+    #[cold]
+    fn join_batch(
+        &mut self,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+        ability: AbilityId,
+        source: ObjId,
+    ) -> bool {
+        match fired
+            .iter_mut()
+            .chain(self.pending_triggers.iter_mut())
+            .find(|p| p.ability.ability == ability && p.ability.source == source)
+        {
+            Some(p) => {
+                p.ability.trigger_amount += 1;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// CR 702.29d: "When you cycle this card" triggers from the card
+    /// itself, now in the graveyard.
+    #[cold]
+    #[inline(never)]
+    fn cycle_triggers(&self, event: &Event, fired: &mut SmallVec<[PendingTrigger; 2]>) {
+        let Event::Cycled { player, card, def } = *event else {
+            return;
+        };
+        if !self.pool.get(def).may_watch(event) {
+            return;
+        }
+        for &ability in &self.pool.get(def).ability_ids {
+            if let AbilityDef::Triggered(t) = self.pool.ability(ability)
+                && t.trigger.cycles_this()
+            {
+                fired.push(PendingTrigger {
+                    controller: player,
+                    ability: StackAbility {
+                        ability,
+                        source: card,
+                        def,
+                        trigger_obj: Some(card),
+                        trigger_player: Some(player),
+                        trigger_amount: 0,
+                    },
+                    timestamp: 0,
+                });
+            }
         }
     }
 
@@ -185,8 +257,9 @@ impl GameState {
             return true;
         }
         // The object that left may itself have a leaves-the-battlefield
-        // trigger.
-        matches!(event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers())
+        // trigger; a cycled card, a "when you cycle this card" trigger.
+        matches!(event, Event::ZoneChange { def, .. } | Event::Cycled { def, .. }
+            if self.pool.get(*def).has_triggers())
     }
 
     /// Permanents whose abilities see `event`, with the characteristics they
@@ -272,18 +345,21 @@ impl GameState {
                 == Some(obj)
         };
         // Does `obj` (currently on the battlefield) match?
-        let on_battlefield = |what: &TriggerObj, obj: ObjId| -> Option<PlayerId> {
+        let filter_on_battlefield = |f: &crate::card::ObjFilter, obj: ObjId| -> Option<PlayerId> {
             let o = self.objects.get(obj)?;
-            let ok = match what {
-                TriggerObj::This => obj == w.source,
-                TriggerObj::Filter(f) => {
-                    let c = self.characteristics(obj)?;
-                    f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
-                        && self.status_ok(f, obj)
-                        && (!f.enchanted || enchants(obj))
-                }
-            };
-            ok.then_some(o.controller)
+            let c = self.characteristics(obj)?;
+            (f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
+                && self.status_ok(f, obj)
+                && (!f.enchanted || enchants(obj)))
+            .then_some(o.controller)
+        };
+        let on_battlefield = |what: &TriggerObj, obj: ObjId| -> Option<PlayerId> {
+            match what {
+                TriggerObj::This => (obj == w.source)
+                    .then(|| self.objects.get(obj).map(|o| o.controller))
+                    .flatten(),
+                TriggerObj::Filter(f) => filter_on_battlefield(f, obj),
+            }
         };
         match (spec, event) {
             (
@@ -538,6 +614,43 @@ impl GameState {
                     && (!*instant_or_sorcery || d.is_instant() || d.is_sorcery());
                 ok.then_some((Some(*spell), Some(*player)))
             }
+            (TriggerSpec::CastsNth { whose, nth }, Event::Cast { player, spell, .. }) => {
+                let n = self.spells_this_turn[player.index().min(3)];
+                (whose_ok(*whose, *player) && nth.holds(n, self.active_player == *player))
+                    .then_some((Some(*spell), Some(*player)))
+            }
+            // CR 702.29a: cycling is discarding; a card cycled from the
+            // hand is never one of the watching permanents.
+            (
+                TriggerSpec::Cycles {
+                    this: false,
+                    or_discard: false,
+                    ..
+                },
+                Event::Cycled { player, card, .. },
+            )
+            | (
+                TriggerSpec::Cycles {
+                    this: false,
+                    or_discard: true,
+                    ..
+                },
+                Event::Discard { player, card },
+            ) => (*player == w.controller).then_some((Some(*card), Some(*player))),
+            (
+                TriggerSpec::EntersBatch(f),
+                Event::ZoneChange {
+                    new,
+                    to: Zone::Battlefield,
+                    ..
+                },
+            ) => {
+                let p = filter_on_battlefield(f, *new)?;
+                Some((None, Some(p)))
+            }
+            (TriggerSpec::Either(pair), _) => self
+                .fires(&pair.0, event, w)
+                .or_else(|| self.fires(&pair.1, event, w)),
             _ => None,
         }
     }

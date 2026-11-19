@@ -1,0 +1,8 @@
+card "Kronch Wrangler" {
+  oracle_id 635dda8c-3761-4c87-8723-8cd09878516b
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/1
+  keywords trample
+  triggered whenever creature you control with power 4 or greater enters: put 1 +1/+1 counters on this
+}
