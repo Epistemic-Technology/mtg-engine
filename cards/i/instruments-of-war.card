@@ -1,0 +1,8 @@
+card "Instruments of War" {
+  oracle_id 8be46af9-1b70-4da9-b16d-869c3831dc99
+  cost {4}
+  type Artifact
+  keywords flash
+  as this enters choose creature type
+  static creature you control of chosen type: +1/+1
+}

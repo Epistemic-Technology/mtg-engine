@@ -1,0 +1,7 @@
+card "Xenograft" {
+  oracle_id 76642e7a-3c8f-45b8-9cd7-dac8086bea87
+  cost {4}{U}
+  type Enchantment
+  as this enters choose creature type
+  static creature you control: add chosen type
+}

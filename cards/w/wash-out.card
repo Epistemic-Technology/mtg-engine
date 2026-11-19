@@ -1,0 +1,6 @@
+card "Wash Out" {
+  oracle_id 54748cb1-d92a-4212-ad76-417ee79b5ef1
+  cost {3}{U}
+  type Sorcery
+  spell: return all permanent of color of choice to hand
+}

@@ -12,7 +12,7 @@ use mtg_core::card::{
     SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
     TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
 };
-use mtg_core::mana::{ColorSet, Mana};
+use mtg_core::mana::{Color, ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
@@ -71,6 +71,8 @@ pub fn add_card(
             card: f,
             lookup: by_name,
             groups: Vec::new(),
+            implied: Vec::new(),
+            implied_used: std::rc::Rc::default(),
         };
         let def = c.card()?;
         let r = pool.add(def);
@@ -84,6 +86,8 @@ pub fn add_card(
         card,
         lookup: by_name,
         groups: Vec::new(),
+        implied: Vec::new(),
+        implied_used: std::rc::Rc::default(),
     };
     let mut def = c.card()?;
     if !faces.is_empty() {
@@ -129,6 +133,11 @@ struct Compiler<'a> {
     lookup: &'a dyn Lookup,
     /// The pool's filter id of each of the card's groups.
     groups: Vec<u16>,
+    /// Per group, the choice its filter implies ("of the color of your
+    /// choice"), made as the effect using it resolves.
+    implied: Vec<Option<CoreChoiceKind>>,
+    /// Set as an effect's recipient uses such a group.
+    implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
 }
 
 impl Compiler<'_> {
@@ -268,10 +277,16 @@ impl Compiler<'_> {
             b = b.flashback(self.cost(fb));
         }
         self.groups = Vec::new();
+        self.implied = Vec::new();
         for g in &card.groups {
             let f = self.filter(g);
             let id = self.pool.intern_filter(f);
             self.groups.push(id);
+            let implied = g
+                .chosen
+                .and_then(crate::ast::OfChosen::implied)
+                .map(|k| self.choice_kind(&k));
+            self.implied.push(implied);
         }
         let spells = card
             .abilities
@@ -357,6 +372,7 @@ impl Compiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            chosen: f.chosen.is_some(),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
@@ -553,6 +569,7 @@ impl Compiler<'_> {
     fn choice_kind(&mut self, k: &ChoiceKind) -> CoreChoiceKind {
         match k {
             ChoiceKind::Color { except } => CoreChoiceKind::Color { except: *except },
+            ChoiceKind::Colors => CoreChoiceKind::Colors,
             ChoiceKind::CreatureType { except } => CoreChoiceKind::CreatureType {
                 except: except.as_ref().map(|s| self.pool.subtype(s)),
             },
@@ -562,10 +579,35 @@ impl Compiler<'_> {
         }
     }
 
-    #[allow(clippy::too_many_lines)]
+    /// An effect; one on "all enchantments of the color of your choice"
+    /// asks first (CR 608.2d), unless the resolution already chose.
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
+        let start = out.len();
+        self.implied_used.set(None);
+        self.effect_inner(e, out)?;
+        if let Some(k) = self.implied_used.take()
+            && !out[..start]
+                .iter()
+                .any(|e| matches!(e, CoreEffect::Choose(_)))
+        {
+            out.insert(start, CoreEffect::Choose(k));
+        }
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn effect_inner(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
         let groups = self.groups.clone();
-        let r = |x: Recipient| Self::recipient(&groups, x);
+        let implied = self.implied.clone();
+        let used = std::rc::Rc::clone(&self.implied_used);
+        let r = |x: Recipient| {
+            if let Recipient::Group(i) = x
+                && let Some(Some(k)) = implied.get(usize::from(i))
+            {
+                used.set(Some(*k));
+            }
+            Self::recipient(&groups, x)
+        };
         match e {
             Effect::DealDamage { amount, to } => {
                 for t in to {
@@ -785,10 +827,23 @@ impl Compiler<'_> {
                 to: r(*to),
                 colors: ColorSet::of(colors.iter().copied()),
             }),
-            Effect::BecomeLandType { to, land } => out.push(CoreEffect::BecomeLandType {
+            Effect::BecomeLandType {
+                to,
+                land,
+                indefinite,
+            } => out.push(CoreEffect::BecomeLandType {
                 to: r(*to),
                 land: *land,
+                indefinite: *indefinite,
             }),
+            Effect::Choose(kind) => {
+                let kind = self.choice_kind(kind);
+                out.push(CoreEffect::Choose(kind));
+            }
+            Effect::BecomeChosen { to } => out.push(CoreEffect::BecomeChosen { to: r(*to) }),
+            Effect::ProtectionFromChosen { to } => {
+                out.push(CoreEffect::ProtectionFromChosen { to: r(*to) });
+            }
             Effect::OfChoice {
                 to,
                 kind,
@@ -1103,6 +1158,12 @@ impl Compiler<'_> {
             Mod::AddTypes(t) => Modification::AddTypes(TypeSet::of(t.iter().copied())),
             Mod::AddLandType(c) => Modification::AddLandType(*c),
             Mod::SetLandType(c) => Modification::SetLandType(*c),
+            // A static ability compiles the rest (`Ability::Static`).
+            Mod::SetLandTypes(lands) => {
+                Modification::SetLandType(lands.first().copied().unwrap_or(Color::Green))
+            }
+            Mod::ChosenLandType => Modification::ChosenLandType,
+            Mod::AddChosenType => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
             Mod::Control => Modification::Control,
             Mod::AddColors(c) => Modification::AddColors(ColorSet::of(c.iter().copied())),
@@ -1226,10 +1287,25 @@ impl Compiler<'_> {
                 ..
             } => AbilityDef::Static(StaticAbility {
                 affected: self.filter(filter),
-                parts: mods
-                    .iter()
-                    .map(|m| self.modification_or_grant(m))
-                    .collect::<Result<_, _>>()?,
+                parts: {
+                    let mut parts = Vec::new();
+                    for m in mods {
+                        // "is a Mountain, Forest, and Plains": the first
+                        // replaces its land types, the rest add to it.
+                        if let Mod::SetLandTypes(lands) = m {
+                            for (i, c) in lands.iter().enumerate() {
+                                parts.push(if i == 0 {
+                                    Modification::SetLandType(*c)
+                                } else {
+                                    Modification::AddLandType(*c)
+                                });
+                            }
+                            continue;
+                        }
+                        parts.push(self.modification_or_grant(m)?);
+                    }
+                    parts
+                },
                 condition: condition.as_ref().map(|c| self.static_cond(c)),
             }),
             Ability::EntersTappedUnless(c) => {

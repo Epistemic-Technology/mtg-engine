@@ -1,0 +1,6 @@
+card "Defensive Maneuvers" {
+  oracle_id 812701c3-c9b7-4877-bf2e-c37e0f551c45
+  cost {3}{W}
+  type Instant
+  spell: each creature of creature type of choice gets +0/+4
+}

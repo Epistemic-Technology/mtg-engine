@@ -1,0 +1,8 @@
+card "Phantasmal Terrain" {
+  oracle_id 7dcbce46-2973-4a9f-93df-95ac41ce668a
+  cost {U}{U}
+  type Enchantment — Aura
+  enchant land
+  as this enters choose land type
+  static enchanted: set land chosen
+}

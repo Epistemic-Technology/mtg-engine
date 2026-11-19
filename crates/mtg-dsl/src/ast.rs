@@ -263,6 +263,40 @@ pub struct Filter {
     pub or: Option<Box<Filter>>,
     /// `that targets you or a permanent you control` (spells).
     pub targeting: Option<Box<Targeting>>,
+    /// `of chosen type`, `of that type`, `of color of choice`: "of the
+    /// chosen type" and kin (`ObjFilter::chosen`).
+    pub chosen: Option<OfChosen>,
+}
+
+/// How a filter refers to a chosen color or type, as printed after the
+/// rest of the filter.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum OfChosen {
+    /// `of chosen color`: "of the chosen color".
+    ChosenColor,
+    /// `of chosen type`: "of the chosen type".
+    ChosenType,
+    /// `of that type`: "of that type" (after "Choose a creature type.").
+    ThatType,
+    /// `of that color`: "of that color".
+    ThatColor,
+    /// `of color of choice`: "of the color of your choice", chosen as the
+    /// effect resolves.
+    ColorOfChoice,
+    /// `of creature type of choice`: "of the creature type of your
+    /// choice".
+    CreatureTypeOfChoice,
+}
+
+impl OfChosen {
+    /// What an implied choice ("of the color of your choice") asks for.
+    pub fn implied(self) -> Option<ChoiceKind> {
+        match self {
+            OfChosen::ColorOfChoice => Some(ChoiceKind::Color { except: None }),
+            OfChosen::CreatureTypeOfChoice => Some(ChoiceKind::CreatureType { except: None }),
+            _ => None,
+        }
+    }
 }
 
 impl Filter {
@@ -328,6 +362,8 @@ pub enum ChoiceKind {
     Color {
         except: Option<Color>,
     },
+    /// `colors of choice`: "the color or colors of your choice".
+    Colors,
     CreatureType {
         except: Option<String>,
     },
@@ -773,6 +809,15 @@ pub enum Mod {
     AddTypes(Vec<CardType>),
     AddLandType(Color),
     SetLandType(Color),
+    /// `set land Mountain Forest Plains`: "is a Mountain, Forest, and
+    /// Plains" (it has all of them and no others).
+    SetLandTypes(Vec<Color>),
+    /// `set land chosen`: "is the chosen type" (the basic land type the
+    /// source chose as it entered).
+    ChosenLandType,
+    /// `add chosen type`: "is the chosen type in addition to its other
+    /// types".
+    AddChosenType,
     AddSubtype(String),
     Control,
     AddColors(Vec<Color>),
@@ -1077,10 +1122,26 @@ pub enum Effect {
         to: Recipient,
         colors: Vec<Color>,
     },
-    /// `target land becomes Island` (until end of turn).
+    /// `target land becomes Island` (until end of turn); `target land
+    /// becomes Forest indefinitely`, with no duration.
     BecomeLandType {
         to: Recipient,
         land: Color,
+        indefinite: bool,
+    },
+    /// `choose creature type`, `choose color`, `choose land type`, `choose
+    /// creature type except Wall`: "Choose a creature type." as the effect
+    /// resolves, for `of that type` and `becomes that type` after it.
+    Choose(ChoiceKind),
+    /// `each land you control becomes that type`: the type chosen earlier
+    /// (until end of turn).
+    BecomeChosen {
+        to: Recipient,
+    },
+    /// `each creature you control gains protection from chosen color`
+    /// (until end of turn).
+    ProtectionFromChosen {
+        to: Recipient,
     },
     /// `target creature becomes color of choice`, `... gains protection
     /// from color of choice`, `target land becomes land type of choice`,

@@ -1,0 +1,7 @@
+card "Steely Resolve" {
+  oracle_id 48c127f0-2857-4c36-97bc-1291b6fe4a82
+  cost {1}{G}
+  type Enchantment
+  as this enters choose creature type
+  static creature of chosen type: has shroud
+}

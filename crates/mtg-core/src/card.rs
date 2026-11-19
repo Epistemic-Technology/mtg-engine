@@ -901,6 +901,12 @@ pub struct ObjFilter {
     /// A spell "that targets ..." (judged with the spell's targets, where a
     /// spell is targeted).
     pub targeting: Option<Box<SpellTargets>>,
+    /// "of the chosen color", "of the chosen type", "of that type": of the
+    /// color or type chosen as the source entered (CR 607.2a) or as the
+    /// effect resolves (CR 608.2d). A placeholder the engine fills in
+    /// (`with_chosen`) where the choice is known; unfilled, nothing
+    /// matches.
+    pub chosen: bool,
 }
 
 /// What a spell must target ("that targets a creature", "that targets you
@@ -988,6 +994,20 @@ impl ObjFilter {
         self
     }
 
+    /// The filter with "the chosen color/type" filled in: that color or
+    /// that subtype; with nothing chosen, a filter nothing matches.
+    #[must_use]
+    pub fn with_chosen(&self, chosen: crate::state::Chosen) -> Self {
+        let mut f = self.clone();
+        f.chosen = false;
+        match chosen {
+            crate::state::Chosen::Color(c) => f.colors = Some(ColorSet::of([c])),
+            crate::state::Chosen::Subtype(s) => f.subtypes.push(s),
+            crate::state::Chosen::None => f.colors = Some(ColorSet::default()),
+        }
+        f
+    }
+
     /// Whether an object with characteristics `c` controlled by
     /// `obj_controller` matches, judged for an effect or ability of `source`
     /// controlled by `controller`. The `enchanted` field needs game state and
@@ -1015,6 +1035,10 @@ impl ObjFilter {
         source: Option<crate::ids::ObjId>,
         controller: Option<crate::ids::PlayerId>,
     ) -> bool {
+        // An unfilled "of the chosen type" (`with_chosen`) matches nothing.
+        if self.chosen {
+            return false;
+        }
         let is_source = source == Some(obj);
         let relation_ok = match self.relation {
             Relation::Any => true,
@@ -1140,6 +1164,12 @@ pub enum Modification {
     /// "becomes a Merfolk" (layer 4): the creature type replaces its
     /// others (CR 205.1b), changeling's included.
     SetCreatureType(Subtype),
+    /// "Enchanted land is the chosen type" (layer 4): `SetLandType` of the
+    /// basic land type the source chose as it entered (CR 607.2a).
+    ChosenLandType,
+    /// "is the chosen type in addition to its other types" (layer 4): the
+    /// creature or basic land type the source chose as it entered.
+    AddChosenType,
     /// "is the chosen color" (layer 5): the color the static ability's
     /// source chose as it entered (CR 607.2a).
     ChosenColor,
@@ -1211,7 +1241,9 @@ impl Modification {
             | Modification::AddLandType(_)
             | Modification::SetLandType(_)
             | Modification::AddSubtype(_)
-            | Modification::SetCreatureType(_) => Layer::L4Type,
+            | Modification::SetCreatureType(_)
+            | Modification::ChosenLandType
+            | Modification::AddChosenType => Layer::L4Type,
             Modification::AddColors(_)
             | Modification::SetColors(_)
             | Modification::CdaColors(_)
@@ -1913,10 +1945,28 @@ pub enum Effect {
         to: Recipient,
         colors: ColorSet,
     },
-    /// "Target land becomes an Island until end of turn" (layer 4).
+    /// "Target land becomes an Island until end of turn" (layer 4);
+    /// `indefinite`, with no duration ("Target land becomes a Forest. (This
+    /// effect lasts indefinitely.)").
     BecomeLandType {
         to: Recipient,
         land: Color,
+        indefinite: bool,
+    },
+    /// "Choose a creature type." (CR 608.2d): the controller chooses as
+    /// the effect resolves, for the rest of the resolution's "of that
+    /// type", "of the chosen color" filters and "becomes that type".
+    Choose(ChoiceKind),
+    /// "Each land you control becomes that type until end of turn": the
+    /// color, creature type, or basic land type chosen earlier in the
+    /// resolution (`Choose`).
+    BecomeChosen {
+        to: Recipient,
+    },
+    /// "Creatures you control gain protection from the chosen color until
+    /// end of turn": the color chosen earlier in the resolution.
+    ProtectionFromChosen {
+        to: Recipient,
     },
     /// "becomes the color of your choice", "gains protection from the
     /// color of your choice", "becomes the basic land type of your
@@ -2137,6 +2187,7 @@ impl Effect {
                 | Effect::CumulativeUpkeep(_)
                 | Effect::TapOrUntap { .. }
                 | Effect::OfChoice { .. }
+                | Effect::Choose(_)
         )
     }
 }
@@ -2148,6 +2199,9 @@ impl Effect {
 pub enum ChoiceKind {
     /// A color ("choose a color other than white").
     Color { except: Option<Color> },
+    /// One or more colors ("the color or colors of your choice"): only
+    /// `Effect::OfChoice` asks this, a color at a time.
+    Colors,
     /// A creature type ("choose a creature type other than Wall").
     CreatureType { except: Option<Subtype> },
     /// One of these basic land types: all five for "the basic land type

@@ -1,0 +1,8 @@
+card "Heraldic Banner" {
+  oracle_id 3525e263-e29a-49bf-a29f-fb3ce43bbd33
+  cost {3}
+  type Artifact
+  as this enters choose color
+  static creature you control of chosen color: +1/+0
+  mana chosen
+}

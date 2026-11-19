@@ -1,0 +1,7 @@
+card "Cover of Darkness" {
+  oracle_id d78654fc-7d90-40ce-9c36-a211424d1a88
+  cost {1}{B}
+  type Enchantment
+  as this enters choose creature type
+  static creature of chosen type: has fear
+}

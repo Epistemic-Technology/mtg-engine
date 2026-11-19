@@ -1,0 +1,8 @@
+card "Patchwork Banner" {
+  oracle_id 4fb00dbe-1f82-4ba6-b18c-97e816d10d3a
+  cost {3}
+  type Artifact
+  as this enters choose creature type
+  static creature you control of chosen type: +1/+1
+  mana any
+}

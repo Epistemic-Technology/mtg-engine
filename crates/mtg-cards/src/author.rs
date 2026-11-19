@@ -487,7 +487,31 @@ fn count_expr(s: &str) -> Option<String> {
     if s.ends_with(" you control") {
         return Some(singular(s));
     }
+    // "permanent you control of that type".
+    if let Some((base, of)) = chosen_suffix(s)
+        && base.ends_with(" you control")
+    {
+        return Some(format!("{} {of}", singular(base)));
+    }
     None
+}
+
+/// A noun phrase ending in a chosen color or type, split before it: the
+/// rest and the DSL's qualifier ("of the chosen type" → `of chosen type`).
+fn chosen_suffix(s: &str) -> Option<(&str, &'static str)> {
+    [
+        (" of the chosen color", "of chosen color"),
+        (" of the chosen type", "of chosen type"),
+        (" of that type", "of that type"),
+        (" of that color", "of that color"),
+        (" of the color of your choice", "of color of choice"),
+        (
+            " of the creature type of your choice",
+            "of creature type of choice",
+        ),
+    ]
+    .into_iter()
+    .find_map(|(suffix, of)| s.strip_suffix(suffix).map(|b| (b, of)))
 }
 
 /// Recipient phrases the DSL accepts as written.
@@ -592,6 +616,15 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         *targets += 1;
         return Some(s.to_string());
     }
+    // "creatures of the creature type of your choice", "permanents you
+    // control of that type": a group with a chosen color or type.
+    if let Some((base, of)) = chosen_suffix(s) {
+        let base = base
+            .strip_prefix("all ")
+            .or_else(|| base.strip_prefix("each "))
+            .unwrap_or(base);
+        return Some(format!("each {} {of}", singular(&lowercase_first(base))));
+    }
     // Groups: "all artifacts", "each creature without flying", "white
     // creatures you control" (a plural subject). The DSL writes them
     // singular after `each`; the render check decides the rest.
@@ -686,6 +719,34 @@ impl Templates {
                         let _ = write!(s, " and gains {}", keyword_list(cap(c, 3))?);
                     }
                     Some(s)
+                },
+            ),
+            // "Choose a creature type." as the effect resolves, for "of
+            // that type" and "becomes that type" after it.
+            (
+                r(
+                    r"^Choose an? (color|creature type|basic land type)(?: other than ([A-Z]?[a-z]+))?$",
+                ),
+                |c, _| {
+                    let what = cap(c, 1).strip_prefix("basic ").unwrap_or(cap(c, 1));
+                    Some(if cap(c, 2).is_empty() {
+                        format!("choose {what}")
+                    } else {
+                        format!("choose {what} except {}", cap(c, 2))
+                    })
+                },
+            ),
+            (
+                r(
+                    r"^(.+?) (becomes? that type|gains? protection from the chosen color) until end of turn$",
+                ),
+                |c, t| {
+                    let who = recipient(&lowercase_first(&subject(cap(c, 1))), t)?;
+                    Some(if cap(c, 2).ends_with("type") {
+                        format!("{who} becomes that type")
+                    } else {
+                        format!("{who} gains protection from chosen color")
+                    })
                 },
             ),
             // Chosen as the effect resolves.
@@ -2072,7 +2133,7 @@ impl Builder<'_> {
         // "As this land enters, choose a color." (CR 614.12), alone or after
         // "This land enters tapped." on the same line.
         if let Some(c) = Regex::new(
-            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent)) enters, choose a (color|creature type)(?: other than (white|blue|black|red|green))?\.$",
+            r"^(This (?:land|artifact|creature|permanent) enters tapped\. )?As (?:it|this (?:land|artifact|creature|enchantment|permanent|Aura)) enters, choose a (color|creature type|basic land type)(?: other than (white|blue|black|red|green))?\.$",
         )
         .unwrap()
         .captures(line)
@@ -2083,7 +2144,8 @@ impl Builder<'_> {
                 self.statements.push("enters tapped".to_string());
                 "it"
             };
-            let mut stmt = format!("as {who} enters choose {}", cap(&c, 2));
+            let what = cap(&c, 2).strip_prefix("basic ").unwrap_or(cap(&c, 2));
+            let mut stmt = format!("as {who} enters choose {what}");
             if !cap(&c, 3).is_empty() {
                 let _ = write!(stmt, " except {}", cap(&c, 3));
             }
@@ -2352,6 +2414,44 @@ impl Builder<'_> {
             let n = number(cap(&c, 1)).ok_or_else(|| Skip::Sentence(line.to_string()))?;
             self.statements
                 .push(format!("enters with {n} {} counters", cap(&c, 2)));
+            return Ok(());
+        }
+        // "Creatures you control of the chosen color get +1/+0.", "All
+        // creatures of the chosen type get -1/-1."
+        if let Some(c) = Regex::new(
+            r"^(All creatures|Creatures|Creatures you control|Other creatures you control) of the chosen (color|type) (.+)\.$",
+        )
+        .unwrap()
+        .captures(line)
+        {
+            let filter = match cap(&c, 1) {
+                "All creatures" => "all creature",
+                "Creatures" => "creature",
+                "Creatures you control" => "creature you control",
+                _ => "other creature you control",
+            };
+            let gets = Regex::new(r"^get ([+-]\d+/[+-]\d+)$").unwrap();
+            let mut mods = Vec::new();
+            for part in cap(&c, 3).split(" and ") {
+                if let Some(c2) = gets.captures(part) {
+                    mods.push(cap(&c2, 1).to_string());
+                } else if let Some(rest) = part.strip_prefix("have ") {
+                    let ks = keyword_list(rest).ok_or_else(|| Skip::Sentence(line.to_string()))?;
+                    mods.push(format!("has {ks}"));
+                } else {
+                    return Err(Skip::Sentence(line.to_string()));
+                }
+            }
+            self.statements.push(format!(
+                "static {filter} of chosen {}: {}",
+                cap(&c, 2),
+                mods.join(", ")
+            ));
+            return Ok(());
+        }
+        if line == "Enchanted land is the chosen type." {
+            self.statements
+                .push("static enchanted: set land chosen".to_string());
             return Ok(());
         }
         // Statics on the attached or on a class of permanents.

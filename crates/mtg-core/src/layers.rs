@@ -409,7 +409,13 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                 controller: Some(work.controller_of(*id)),
                 timestamp,
                 affected: None,
-                filter: Some(sa.affected.clone()),
+                // "Creatures of the chosen type": the source's choice
+                // (CR 607.2a).
+                filter: Some(if sa.affected.chosen {
+                    sa.affected.with_chosen(obj.chosen)
+                } else {
+                    sa.affected.clone()
+                }),
                 // "the chosen color" is the source's (CR 607.2a); with none
                 // chosen, that part does nothing.
                 parts: sa
@@ -425,6 +431,18 @@ fn gather_statics(work: &Work<'_>, live: &mut Vec<Live>, layer: Layer) {
                                 crate::card::Keyword::protection_from(c),
                             ]))
                         }),
+                        // "Enchanted land is the chosen type."
+                        Modification::ChosenLandType => match obj.chosen {
+                            crate::state::Chosen::Subtype(s) => {
+                                s.basic_color().map(Modification::SetLandType)
+                            }
+                            _ => None,
+                        },
+                        // "is the chosen type in addition to its other types".
+                        Modification::AddChosenType => match obj.chosen {
+                            crate::state::Chosen::Subtype(s) => Some(Modification::AddSubtype(s)),
+                            _ => None,
+                        },
                         p => Some(p.clone()),
                     })
                     .collect(),
@@ -688,7 +706,9 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         | Modification::CdaPt { .. }
         | Modification::ModifyPtPer { .. }
         | Modification::ChosenColor
-        | Modification::ProtectionFromChosen => {}
+        | Modification::ProtectionFromChosen
+        | Modification::ChosenLandType
+        | Modification::AddChosenType => {}
         Modification::AddColors(cs) => c.colors = c.colors.union(*cs),
         Modification::SetColors(cs) | Modification::CdaColors(cs) => c.colors = *cs,
         Modification::AddKeywords(k) => c.keywords = c.keywords.union(*k),

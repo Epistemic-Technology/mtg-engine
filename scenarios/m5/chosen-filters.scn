@@ -1,0 +1,358 @@
+# Using a choice afterwards: filters that read the color or type the
+# source chose as it entered (CR 607.2a) or that the effect chose as it
+# resolved (CR 608.2d), and land types set by an Aura's choice.
+
+scenario "Heraldic Banner pumps only your creatures of the chosen color" {
+  battlefield A: 3 "Mountain", "Raging Goblin", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Heraldic Banner"
+  turn 1 A: cast "Heraldic Banner"
+  turn 1 A: choose red
+  run_to turn 1 end
+  assert power "Raging Goblin" 2
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}
+
+scenario "Heraldic Banner: another color, another creature" {
+  battlefield A: 3 "Mountain", "Raging Goblin", "Grizzly Bears"
+  hand A: "Heraldic Banner"
+  turn 1 A: cast "Heraldic Banner"
+  turn 1 A: choose green
+  run_to turn 1 end
+  assert power "Raging Goblin" 1
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Engineered Plague shrinks every creature of the chosen type" {
+  battlefield A: 3 "Swamp", "Raging Goblin", "Grizzly Bears"
+  battlefield B: "Goblin Piker"
+  hand A: "Engineered Plague"
+  turn 1 A: cast "Engineered Plague"
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert graveyard A contains "Raging Goblin"
+  assert graveyard B contains "Goblin Piker"
+  assert battlefield A contains "Grizzly Bears"
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Shared Triumph pumps both players' creatures of the chosen type" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Shared Triumph"
+  turn 1 A: cast "Shared Triumph"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert power A "Grizzly Bears" 3
+  assert power B "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+}
+
+scenario "Shared Triumph stops when it leaves" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: 2 "Plains"
+  hand A: "Shared Triumph"
+  hand B: "Disenchant"
+  turn 1 A: cast "Shared Triumph"
+  turn 1 A: choose Bear
+  turn 2 B: cast "Disenchant" targeting "Shared Triumph"
+  run_to turn 2 end
+  assert graveyard A contains "Shared Triumph"
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Cover of Darkness gives fear to the chosen type only" {
+  battlefield A: 2 "Swamp", "Grizzly Bears", "Hill Giant"
+  hand A: "Cover of Darkness"
+  turn 1 A: cast "Cover of Darkness"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert has "Grizzly Bears" fear
+  assert has not "Hill Giant" fear
+}
+
+scenario "Adaptive Automaton is the chosen type and pumps the others" {
+  battlefield A: 3 "Plains", "Llanowar Elves"
+  battlefield B: "Elvish Mystic"
+  hand A: "Adaptive Automaton"
+  turn 1 A: cast "Adaptive Automaton"
+  turn 1 A: choose Elf
+  run_to turn 1 end
+  assert is "Adaptive Automaton" Elf
+  assert is "Adaptive Automaton" Construct
+  assert power "Adaptive Automaton" 2
+  assert power "Llanowar Elves" 2
+  assert power "Elvish Mystic" 1
+}
+
+scenario "Xenograft adds the chosen type to your creatures" {
+  battlefield A: 5 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Xenograft"
+  turn 1 A: cast "Xenograft"
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert is "Grizzly Bears" Goblin
+  assert is "Grizzly Bears" Bear
+  assert is not "Hill Giant" Goblin
+}
+
+scenario "Phantasmal Terrain: the enchanted land is the chosen type" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Phantasmal Terrain"
+  turn 1 A: cast "Phantasmal Terrain" targeting "Mountain"
+  turn 1 A: choose Swamp
+  run_to turn 2 end
+  assert is "Mountain" swamp
+  assert is not "Mountain" mountain
+}
+
+scenario "Phantasmal Terrain: the land is no longer what it was" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Phantasmal Terrain"
+  hand B: "Shock"
+  turn 1 A: cast "Phantasmal Terrain" targeting "Mountain"
+  turn 1 A: choose Island
+  illegal turn 2 B: cast "Shock" targeting player A
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "Lush Growth: the land is a Mountain, Forest, and Plains" {
+  battlefield A: "Forest", "Island"
+  hand A: "Lush Growth"
+  turn 1 A: cast "Lush Growth" targeting "Island"
+  run_to turn 1 end
+  assert is "Island" mountain
+  assert is "Island" forest
+  assert is "Island" plains
+  assert is not "Island" island
+}
+
+scenario "Defensive Maneuvers: creatures of the type chosen on resolution" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Defensive Maneuvers"
+  turn 1 A: cast "Defensive Maneuvers"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert toughness A "Grizzly Bears" 6
+  assert toughness B "Grizzly Bears" 6
+  assert toughness "Hill Giant" 3
+  run_to turn 2 upkeep
+  assert toughness A "Grizzly Bears" 2
+}
+
+scenario "Witch's Vengeance kills only the chosen type" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Raging Goblin", "Goblin Piker"
+  hand A: "Witch's Vengeance"
+  turn 1 A: cast "Witch's Vengeance"
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert graveyard B contains "Raging Goblin"
+  assert graveyard B contains "Goblin Piker"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Distant Melody draws for each permanent you control of that type" {
+  battlefield A: 4 "Island", 2 "Llanowar Elves", "Grizzly Bears"
+  battlefield B: "Elvish Mystic"
+  hand A: "Distant Melody"
+  turn 1 A: cast "Distant Melody"
+  turn 1 A: choose Elf
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Luminescent Rain: 2 life for each permanent you control of that type" {
+  battlefield A: 3 "Forest", 2 "Llanowar Elves", "Grizzly Bears"
+  hand A: "Luminescent Rain"
+  turn 1 A: cast "Luminescent Rain"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert life A 22
+}
+
+scenario "Roar of the Crowd counts the chosen type" {
+  battlefield A: 4 "Mountain", 3 "Raging Goblin"
+  hand A: "Roar of the Crowd"
+  turn 1 A: cast "Roar of the Crowd" targeting player B
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Root Greevil destroys the enchantments of the chosen color after leaving" {
+  battlefield A: 3 "Forest", "Root Greevil", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  battlefield B: "Hill Giant", "Pacifism" on "Hill Giant", "Cover of Darkness"
+  turn 1 A: activate "Root Greevil"
+  turn 1 A: choose white
+  run_to turn 1 end
+  assert graveyard A contains "Root Greevil"
+  assert graveyard A contains "Holy Strength"
+  assert graveyard B contains "Pacifism"
+  assert battlefield B contains "Cover of Darkness"
+}
+
+scenario "Wash Out returns every permanent of the chosen color" {
+  battlefield A: 4 "Island", "Grizzly Bears", "Raging Goblin"
+  battlefield B: "Llanowar Elves", "Forest"
+  hand A: "Wash Out"
+  turn 1 A: cast "Wash Out"
+  turn 1 A: choose green
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Llanowar Elves"
+  assert battlefield A contains "Raging Goblin"
+  assert battlefield B contains "Forest"
+}
+
+scenario "Sudden Demise damages each creature of the chosen color" {
+  battlefield A: 3 "Mountain", "Raging Goblin"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Sudden Demise"
+  turn 1 A: cast "Sudden Demise" x 2
+  turn 1 A: choose green
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Raging Goblin"
+}
+
+scenario "Terraformer: each land you control becomes the chosen type until end of turn" {
+  battlefield A: "Terraformer", "Mountain", "Forest"
+  battlefield B: "Plains"
+  turn 1 A: activate "Terraformer"
+  turn 1 A: choose Swamp
+  run_to turn 1 end
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+  assert is not "Plains" swamp
+  run_to turn 2 upkeep
+  assert is "Forest" forest
+  assert is not "Forest" swamp
+}
+
+scenario "Standardize can't choose Wall" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Standardize"
+  turn 1 A: cast "Standardize"
+  illegal turn 1 A: choose Wall
+  run_to turn 1 end
+  assert is not "Grizzly Bears" Bear
+}
+
+scenario "Standardize: each creature becomes the chosen type" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Standardize"
+  turn 1 A: cast "Standardize"
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert is "Grizzly Bears" Goblin
+  assert is not "Grizzly Bears" Bear
+  assert is "Hill Giant" Goblin
+  assert is not "Hill Giant" Giant
+}
+
+scenario "Thelonite Monk: the land stays a Forest" {
+  battlefield A: "Thelonite Monk", "Grizzly Bears"
+  battlefield B: "Mountain"
+  turn 1 A: activate "Thelonite Monk" sacrificing "Grizzly Bears" targeting "Mountain"
+  run_to turn 3 end
+  assert is "Mountain" forest
+  assert is not "Mountain" mountain
+}
+
+scenario "And They Shall Know No Fear: only your creatures of the chosen type" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "And They Shall Know No Fear"
+  turn 1 A: cast "And They Shall Know No Fear"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert power A "Grizzly Bears" 3
+  assert has A "Grizzly Bears" indestructible
+  assert power B "Grizzly Bears" 2
+  assert has not B "Grizzly Bears" indestructible
+  assert has not "Hill Giant" indestructible
+}
+
+scenario "Mistform Wakecaster: each creature you control becomes the chosen type" {
+  battlefield A: 2 "Island", 2 "Mountain", "Mistform Wakecaster", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Mistform Wakecaster" ability 2
+  turn 1 A: choose Elf
+  run_to turn 1 end
+  assert is "Grizzly Bears" Elf
+  assert is not "Grizzly Bears" Bear
+  assert is "Mistform Wakecaster" Elf
+  assert is "Hill Giant" Giant
+}
+
+scenario "Quickchange: the color or colors of your choice" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Quickchange"
+  turn 1 A: cast "Quickchange" targeting "Grizzly Bears"
+  turn 1 A: choose blue
+  turn 1 A: choose red
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert is "Grizzly Bears" blue
+  assert is "Grizzly Bears" red
+  assert is not "Grizzly Bears" green
+  assert hand A count 1
+}
+
+scenario "Quickchange: at least one color (colorless is not offered)" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Quickchange"
+  turn 1 A: cast "Quickchange" targeting "Grizzly Bears"
+  illegal turn 1 A: choose done
+  run_to turn 1 end
+  assert is "Grizzly Bears" white
+  assert is not "Grizzly Bears" green
+}
+
+scenario "Quickchange: one color is enough" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Quickchange"
+  turn 1 A: cast "Quickchange" targeting "Grizzly Bears"
+  turn 1 A: choose black
+  turn 1 A: choose done
+  run_to turn 1 end
+  assert is "Grizzly Bears" black
+  assert is not "Grizzly Bears" green
+  assert is not "Grizzly Bears" white
+}
+
+scenario "Brave the Elements: white creatures you control gain protection from the chosen color" {
+  battlefield A: "Plains", "Savannah Lions", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Brave the Elements"
+  hand B: 2 "Shock"
+  turn 1 A: cast "Brave the Elements"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Savannah Lions"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Savannah Lions"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Akroma's Blessing: protection from the chosen color, not another" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Akroma's Blessing"
+  hand B: "Shock"
+  turn 1 A: cast "Akroma's Blessing"
+  turn 1 A: choose black
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
