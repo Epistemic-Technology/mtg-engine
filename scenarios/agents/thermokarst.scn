@@ -1,0 +1,19 @@
+scenario "Thermokarst: destroying a snow land gains 1 life" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Snow-Covered Swamp"
+  hand A: "Thermokarst"
+  turn 1 A: cast "Thermokarst" targeting "Snow-Covered Swamp"
+  run_to turn 1 end
+  assert graveyard B contains "Snow-Covered Swamp"
+  assert life A 21
+}
+
+scenario "Thermokarst: no life for a non-snow land" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Swamp"
+  hand A: "Thermokarst"
+  turn 1 A: cast "Thermokarst" targeting "Swamp"
+  run_to turn 1 end
+  assert graveyard B contains "Swamp"
+  assert life A 20
+}

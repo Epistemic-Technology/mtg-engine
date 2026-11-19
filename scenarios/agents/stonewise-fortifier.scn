@@ -1,0 +1,23 @@
+scenario "Stonewise Fortifier: prevents damage from the target creature" {
+  battlefield A: "Stonewise Fortifier", 5 "Plains"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 declare_attackers A: activate "Stonewise Fortifier" targeting "Hill Giant"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Stonewise Fortifier"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Stonewise Fortifier"
+  assert damage "Stonewise Fortifier" 0
+  assert damage "Hill Giant" 2
+}
+
+scenario "Stonewise Fortifier: unprotected from other creatures" {
+  battlefield A: "Stonewise Fortifier", 5 "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 declare_attackers A: activate "Stonewise Fortifier" targeting "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Stonewise Fortifier"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Stonewise Fortifier"
+}

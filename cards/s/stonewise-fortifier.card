@@ -1,0 +1,7 @@
+card "Stonewise Fortifier" {
+  oracle_id ecfa6791-938a-4159-92bf-ff2b0ce69523
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {4}{W}: prevent all damage to this from target creature this turn
+}

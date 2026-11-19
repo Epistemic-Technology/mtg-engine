@@ -1,0 +1,7 @@
+card "Keldon Berserker" {
+  oracle_id 7e0b9e67-3103-4299-934b-46d8fe96f553
+  cost {3}{R}
+  type Creature — Human Soldier Berserker
+  pt 2/3
+  triggered whenever this attacks if you control no untapped land: it gets +3/+0
+}

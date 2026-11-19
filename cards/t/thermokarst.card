@@ -1,0 +1,6 @@
+card "Thermokarst" {
+  oracle_id f3b071a1-7501-4424-979a-780fa90eecb8
+  cost {1}{G}{G}
+  type Sorcery
+  spell: destroy target land; if target 1 was snow land, you gain 1 life
+}
