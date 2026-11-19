@@ -587,6 +587,33 @@ impl Compiler<'_> {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
+            A::Party => {
+                // CR 700.8: "up to one each of Cleric, Rogue, Warrior, and
+                // Wizard".
+                let role = |c: &mut Self, name: &str| {
+                    mtg_core::card::ObjFilter::creatures()
+                        .who(Who::You)
+                        .subtype(c.pool.subtype(name))
+                };
+                C::Party(Box::new([
+                    role(self, "Cleric"),
+                    role(self, "Rogue"),
+                    role(self, "Warrior"),
+                    role(self, "Wizard"),
+                ]))
+            }
+            A::GreatestPower => C::GreatestPower,
+            A::GreatestManaValue => C::GreatestManaValue,
+            A::CardsDrawnThisTurn => C::CardsDrawnThisTurn,
+            A::SourceToughness => C::SourceToughness,
+            A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
+            A::ColorsAmongPermanents => C::ColorsAmongPermanents,
+            A::CardsInOpponentsGraveyards(f) => {
+                C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
+            }
+            A::OpponentsAttacked => C::OpponentsAttacked,
+            A::AttackedWithThisTurn => C::AttackedWithThisTurn,
+            A::AndOr(inner) => self.count_expr(inner),
         }
     }
 
@@ -687,7 +714,7 @@ impl Compiler<'_> {
             Recipient::EachPlayer => CoreRecipient::EachPlayer,
             Recipient::EachCreatureYouControl => CoreRecipient::EachCreatureYouControl,
             Recipient::EachPermanentYouControl => CoreRecipient::EachPermanentYouControl,
-            Recipient::SameObject => CoreRecipient::SameObject,
+            Recipient::SameObject | Recipient::SameThat => CoreRecipient::SameObject,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
         }
@@ -1084,6 +1111,19 @@ impl Compiler<'_> {
                 let i = self.pool.intern_condition(c);
                 out.push(CoreEffect::IfCondition(i, effects));
             }
+            Effect::WhenYouDo { targets, effects } => {
+                let effects = self.sentences(effects)?;
+                let targets = self.targets(targets);
+                let id = self
+                    .pool
+                    .register_ability(AbilityDef::Triggered(TriggeredAbility {
+                        trigger: TriggerSpec::Reflexive,
+                        condition: None,
+                        targets,
+                        effects,
+                    }));
+                out.push(CoreEffect::Reflexive(id));
+            }
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
@@ -1123,6 +1163,7 @@ impl Compiler<'_> {
                 about,
                 trigger,
                 effects,
+                this_turn,
                 ..
             } => {
                 let effects = self.sentences(effects)?;
@@ -1138,6 +1179,7 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Delayed {
                     ability: id,
                     about: r(*about),
+                    this_turn: *this_turn,
                 });
             }
             Effect::CreateReplacement(rep) => {
@@ -1520,6 +1562,19 @@ impl Compiler<'_> {
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 keyword: cost.keyword,
                 text: render::ability_text(self.card, a, self.lookup),
+                reduction: cost.reduce.as_deref().map(|(by, how)| {
+                    Box::new(mtg_core::card::ActivationReduction {
+                        by: by.clone(),
+                        each: match how {
+                            crate::ast::ReduceBy::Each(e) => Some(self.count_expr(e)),
+                            crate::ast::ReduceBy::If(_) => None,
+                        },
+                        condition: match how {
+                            crate::ast::ReduceBy::If(c) => Some(self.static_cond(c)),
+                            crate::ast::ReduceBy::Each(_) => None,
+                        },
+                    })
+                }),
             }),
             Ability::Triggered {
                 trigger,
@@ -1819,6 +1874,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                             what: vec![Recipient::SameObject],
                         }),
                         trigger_first: false,
+                        this_turn: false,
                     },
                 ],
                 label: None,

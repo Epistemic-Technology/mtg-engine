@@ -1,0 +1,8 @@
+card "Fireblade Artist" {
+  oracle_id 52630eaf-995e-4d08-be99-888a38b598b2
+  cost {B}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  keywords haste
+  triggered at beginning of your upkeep: you may you sacrifice a creature; when you do, this deals 2 damage to target opponent or planeswalker
+}

@@ -1,0 +1,6 @@
+card "Leyline Invocation" {
+  oracle_id 9f2e713f-c7d5-4c91-9934-9e36888244fd
+  cost {5}{G}
+  type Sorcery
+  spell: create 1 "0/0 green and blue Fractal creature"; put count where land you control +1/+1 counters on it
+}

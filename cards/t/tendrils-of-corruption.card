@@ -1,0 +1,6 @@
+card "Tendrils of Corruption" {
+  oracle_id 84ee0da2-d886-4603-9aaa-bc5326a424d7
+  cost {3}{B}
+  type Instant
+  spell: this deals count where Swamp you control damage to target creature and you gain count where Swamp you control life
+}

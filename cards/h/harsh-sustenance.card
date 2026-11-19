@@ -1,0 +1,6 @@
+card "Harsh Sustenance" {
+  oracle_id f5cf471f-032c-4ebb-823c-8841de209216
+  cost {1}{W}{B}
+  type Instant
+  spell: this deals count where creature you control damage to any target and you gain count where creature you control life
+}

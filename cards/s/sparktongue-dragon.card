@@ -1,0 +1,8 @@
+card "Sparktongue Dragon" {
+  oracle_id 1817acd5-5ed0-47b8-8e56-4715a488867e
+  cost {3}{R}{R}
+  type Creature — Dragon
+  pt 3/3
+  keywords flying
+  triggered when this enters: you may pay {2}{R}; when you do, this deals 3 damage to any target
+}

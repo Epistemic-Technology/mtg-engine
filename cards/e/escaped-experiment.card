@@ -1,0 +1,7 @@
+card "Escaped Experiment" {
+  oracle_id d1faaa3e-8e99-48e9-bb04-98bd46b7217c
+  cost {1}{U}
+  type Artifact Creature — Phyrexian Beast
+  pt 2/1
+  triggered whenever this attacks: target creature an opponent controls gets -1/-0 count where artifact you control
+}

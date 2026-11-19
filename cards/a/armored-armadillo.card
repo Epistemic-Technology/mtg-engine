@@ -1,0 +1,8 @@
+card "Armored Armadillo" {
+  oracle_id dca25245-523a-4587-a059-a14ee2ef908d
+  cost {W}
+  type Creature — Armadillo
+  pt 0/4
+  ward {1}
+  activated {3}{W}: this gets +1/+0 count where toughness
+}

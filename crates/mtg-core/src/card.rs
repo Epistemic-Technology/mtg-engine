@@ -1360,6 +1360,31 @@ pub enum CountExpr {
     /// N plus another count ("2 plus the number of cards named ~ in your
     /// graveyard").
     Plus(u32, Box<CountExpr>),
+    /// The number of creatures in your party (CR 700.8): up to one each
+    /// matching these four filters (Cleric, Rogue, Warrior, Wizard
+    /// creatures you control), as many as can be assigned.
+    Party(Box<[ObjFilter; 4]>),
+    /// The greatest power among creatures you control (0 with none).
+    GreatestPower,
+    /// The greatest mana value among permanents you control.
+    GreatestManaValue,
+    /// Cards you've drawn this turn.
+    CardsDrawnThisTurn,
+    /// The source's toughness ("where X is its toughness").
+    SourceToughness,
+    /// The `n`th target's mana value (last known information once it has
+    /// left: CR 608.2h).
+    TargetManaValue(usize),
+    /// Colors among permanents you control (vivid).
+    ColorsAmongPermanents,
+    /// Cards in your opponents' graveyards, all or matching the filter.
+    CardsInOpponentsGraveyards(Option<ObjFilter>),
+    /// Opponents you're attacking: those a creature you control is
+    /// attacking (CR 506.2).
+    OpponentsAttacked,
+    /// Creatures you attacked with this turn (declared as attackers, CR
+    /// 508.1).
+    AttackedWithThisTurn,
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -2328,6 +2353,11 @@ pub enum Effect {
     /// "If you do, [these]": only if the optional action before happened
     /// (CR 608.2c).
     IfYouDo(Vec<Effect>),
+    /// "When you do, [this]": a reflexive triggered ability (CR 603.12),
+    /// registered in the pool (`CardPool::register_ability`, trigger
+    /// `TriggerSpec::Reflexive`), that triggers if the optional action
+    /// before happened; its targets are chosen as it is put on the stack.
+    Reflexive(AbilityId),
     /// "[these] unless [payer] pays {2}": the payer may pay; if they
     /// don't, the effects happen.
     UnlessPays {
@@ -2365,10 +2395,14 @@ pub enum Effect {
     /// Create a delayed triggered ability (CR 603.7) about the recipient:
     /// `ability` is a registered triggered ability (see
     /// `CardPool::register_ability`) whose effects see the recipient as
-    /// `Recipient::SameObject`.
+    /// `Recipient::SameObject`. A delayed trigger on an event rather than
+    /// a step ("When that creature dies this turn, ...") watches for the
+    /// recipient leaving the battlefield and, if `this_turn`, ends with the
+    /// turn (CR 603.7b, 603.7c).
     Delayed {
         ability: AbilityId,
         about: Recipient,
+        this_turn: bool,
     },
     /// Exile a permanent.
     Exile {
@@ -2743,6 +2777,9 @@ pub const WATCH_DISCARD: u16 = 4096;
 pub enum TriggerSpec {
     /// "When ~ enters" / "Whenever another creature enters".
     Enters(TriggerObj),
+    /// A reflexive trigger's (CR 603.12, `Effect::Reflexive`): created by
+    /// the effect itself, never by an event.
+    Reflexive,
     /// "When ~ dies" / "Whenever a creature you control dies" (CR 700.4);
     /// also "is put into a graveyard from the battlefield" for
     /// noncreature permanents. A leaves-the-battlefield trigger: it looks
@@ -2925,7 +2962,7 @@ impl TriggerSpec {
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
-            TriggerSpec::Exploits => 0,
+            TriggerSpec::Exploits | TriggerSpec::Reflexive => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
@@ -3184,6 +3221,21 @@ pub struct ActivatedAbility {
     pub keyword: Option<ActivatedKeyword>,
     /// The ability's text, for naming the choice.
     pub text: String,
+    /// "This ability costs {1} less to activate for each Town you
+    /// control" (CR 601.2f, by way of 602.2b).
+    #[serde(default)]
+    pub reduction: Option<Box<ActivationReduction>>,
+}
+
+/// What an activated ability's own text takes off its cost: `by` once for
+/// each of `each`, or once if `condition` holds ("This ability costs
+/// {4}{B} less to activate if you've drawn three or more cards this
+/// turn"), judged from the activating player.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ActivationReduction {
+    pub by: ManaCost,
+    pub each: Option<CountExpr>,
+    pub condition: Option<StaticCondition>,
 }
 
 /// A keyword that adds rules to the activated ability after it.

@@ -1,0 +1,8 @@
+card "Tolarian Terror" {
+  oracle_id b9d0f2e1-62c2-44fd-ad38-471daf17bb0a
+  cost {6}{U}
+  type Creature — Serpent
+  pt 5/5
+  this spell costs {1} less count each graveyard instant or sorcery
+  ward {2}
+}

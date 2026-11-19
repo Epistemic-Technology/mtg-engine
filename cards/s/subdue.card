@@ -1,0 +1,6 @@
+card "Subdue" {
+  oracle_id 81bac4b8-277b-415a-9064-a80a68fd7051
+  cost {G}
+  type Instant
+  spell: prevent all combat damage from target creature this turn; that creature gets +0/+1 count where mana value of target 1
+}

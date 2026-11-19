@@ -1,0 +1,7 @@
+card "Gastal Blockbuster" {
+  oracle_id 3b601721-90ca-45d3-9a3a-19c719799bfa
+  cost {2}{R}
+  type Creature — Human Berserker
+  pt 3/2
+  triggered when this enters: you may you sacrifice a creature or Vehicle; when you do, destroy target artifact an opponent controls
+}

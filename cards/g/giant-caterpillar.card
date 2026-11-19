@@ -1,0 +1,7 @@
+card "Giant Caterpillar" {
+  oracle_id 43a515f2-b53a-4bb4-bb6e-0d79c9162359
+  cost {3}{G}
+  type Creature — Insect
+  pt 3/3
+  activated {G}, sacrifice this: delayed this: create 1 "1/1 green Insect creature with flying named Butterfly" at beginning of the next end step
+}

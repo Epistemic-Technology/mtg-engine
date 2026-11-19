@@ -1,0 +1,7 @@
+card "Treeguard Duo" {
+  oracle_id d7dfb4d5-8510-4904-abb7-834ec65d9bf3
+  cost {3}{G}
+  type Creature — Frog Rabbit
+  pt 3/4
+  triggered when this enters: until end of turn, target creature you control gains vigilance and gets +1/+1 count where creature you control
+}

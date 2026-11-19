@@ -1,0 +1,7 @@
+card "Silvergill Douser" {
+  oracle_id b24f2917-b96c-4348-b033-4926df3bd4b0
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  activated {T}: target creature gets -1/-0 count where andor Merfolk or Faerie you control
+}

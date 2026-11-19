@@ -1521,6 +1521,24 @@ impl P {
     /// `7 cards in your graveyard`, `4 card types in your graveyard`,
     /// `you control [3] <filter>`, `your turn`, or the ability words
     /// `threshold`, `delirium`, `metalcraft`.
+    /// `when you do, <sentence>` (CR 603.12): a reflexive trigger, with
+    /// targets of its own.
+    fn when_you_do(&mut self) -> R<Effect> {
+        self.pos += 3;
+        if self.peek() == Some(&Tok::Comma) {
+            self.pos += 1;
+        }
+        let outer = std::mem::take(&mut self.targets);
+        let saved = self.subject.take();
+        let s = self.sentence();
+        self.subject = saved;
+        let targets = std::mem::replace(&mut self.targets, outer);
+        Ok(Effect::WhenYouDo {
+            targets,
+            effects: vec![s?],
+        })
+    }
+
     /// `{ <ability line> }`: an ability granted by another ("has \"...\""),
     /// parsed with targets of its own.
     fn nested_ability(&mut self) -> R<Ability> {
@@ -2254,6 +2272,11 @@ impl P {
             self.pos += 2;
             return Ok(Effect::Modes(self.modes_block()?));
         }
+        // "when you do, ...": a reflexive trigger (CR 603.12) after an
+        // optional action, with targets of its own.
+        if self.at_words(&["when", "you", "do"]) {
+            return self.when_you_do();
+        }
         // "if you do, ...": after an optional action.
         if self.at_words(&["if", "you", "do"]) {
             self.pos += 3;
@@ -2392,9 +2415,16 @@ impl P {
                         if self.peek() == Some(&Tok::Comma) {
                             self.pos += 1;
                         }
-                        if self.eat_word("and") && self.keyword_ahead() {
-                            keywords.push(self.keyword().expect("keyword ahead"));
-                            continue;
+                        // "gains vigilance and gets +X/+X": the `and` joins
+                        // the next clause instead.
+                        if self.at_word("and") {
+                            self.pos += 1;
+                            if self.keyword_ahead() {
+                                keywords.push(self.keyword().expect("keyword ahead"));
+                                continue;
+                            }
+                            self.pos -= 1;
+                            break;
                         }
                         if let Some(k) = self.keyword() {
                             keywords.push(k);
@@ -2854,9 +2884,15 @@ impl P {
             }
             "put"
                 if !matches!(self.peek(), Some(Tok::Num(_)))
-                    && !self
-                        .word_at(0)
-                        .is_some_and(|w| NUMBER_WORDS.contains(&w.as_str()) || w == "x") =>
+                    && !self.word_at(0).is_some_and(|w| {
+                        NUMBER_WORDS.contains(&w.as_str())
+                            || w == "x"
+                            || (w == "count"
+                                && matches!(
+                                    self.word_at(1).as_deref(),
+                                    Some("where" | "equal" | "each")
+                                ))
+                    }) =>
             {
                 let what = self.recipient()?;
                 self.expect_word("on")?;
@@ -3239,19 +3275,43 @@ impl P {
                 let was = (self.in_delayed, self.delayed_that);
                 self.in_delayed = true;
                 self.delayed_that = about == Recipient::TriggeringObject;
-                let (trigger, effects, trigger_first) =
-                    if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
-                        let t = self.trigger()?;
-                        if self.peek() == Some(&Tok::Comma) {
-                            self.pos += 1;
-                        }
-                        let e = self.sentences_inline()?;
-                        (t, e, true)
+                // "When that creature dies this turn, ..." (CR 603.7c).
+                let this_turn =
+                    if self.at_words(&["when", "that", "creature", "dies", "this", "turn"]) {
+                        self.pos += 6;
+                        Some(Trigger::Dies(TriggerObj::This))
+                    } else if self.at_words(&[
+                        "when",
+                        "that",
+                        "creature",
+                        "leaves",
+                        "the",
+                        "battlefield",
+                        "this",
+                        "turn",
+                    ]) {
+                        self.pos += 8;
+                        Some(Trigger::Leaves(TriggerObj::This))
                     } else {
-                        let e = self.delayed_effects()?;
-                        let t = self.trigger()?;
-                        (t, e, false)
+                        None
                     };
+                let (trigger, effects, trigger_first) = if let Some(t) = this_turn.clone() {
+                    if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                    }
+                    (t, self.sentences_inline()?, true)
+                } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
+                    let t = self.trigger()?;
+                    if self.peek() == Some(&Tok::Comma) {
+                        self.pos += 1;
+                    }
+                    let e = self.sentences_inline()?;
+                    (t, e, true)
+                } else {
+                    let e = self.delayed_effects()?;
+                    let t = self.trigger()?;
+                    (t, e, false)
+                };
                 (self.in_delayed, self.delayed_that) = was;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
@@ -3259,6 +3319,7 @@ impl P {
                     trigger,
                     effects,
                     trigger_first,
+                    this_turn: this_turn.is_some(),
                 })
             }
             "prevent" => {
@@ -3417,6 +3478,7 @@ impl P {
     /// `domain`, `hand`, `graveyard [<filter>]`, `power`, `power of target
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
+    #[allow(clippy::too_many_lines)] // one arm per count
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
         if let Some(Tok::Num(n)) = self.peek() {
@@ -3433,6 +3495,54 @@ impl P {
         }
         if self.eat_word("life") {
             return Ok(CountExpr::Life);
+        }
+        if self.eat_word("party") {
+            return Ok(CountExpr::Party);
+        }
+        if self.eat_words(&["greatest", "power"]) {
+            return Ok(CountExpr::GreatestPower);
+        }
+        if self.eat_words(&["greatest", "mana", "value"]) {
+            return Ok(CountExpr::GreatestManaValue);
+        }
+        if self.eat_words(&["drawn", "this", "turn"]) {
+            return Ok(CountExpr::CardsDrawnThisTurn);
+        }
+        if self.eat_words(&["opponents", "attacked"]) {
+            return Ok(CountExpr::OpponentsAttacked);
+        }
+        if self.eat_words(&["attacked", "with", "this", "turn"]) {
+            return Ok(CountExpr::AttackedWithThisTurn);
+        }
+        if self.eat_words(&["colors", "among", "permanents"]) {
+            return Ok(CountExpr::ColorsAmongPermanents);
+        }
+        if self.eat_word("andor") {
+            return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
+        }
+        if self.eat_words(&["mana", "value", "of"]) {
+            let that = self.eat_word("that");
+            self.expect_word("target")?;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetManaValue { n: n - 1, that });
+        }
+        if self.at_word("toughness") && !self.at_words(&["toughness", "of"]) {
+            self.pos += 1;
+            return Ok(CountExpr::SourceToughness);
+        }
+        if self.eat_words(&["opponents", "graveyards"]) {
+            let f = if self.at_stmt_end()
+                || !self.word_at(0).is_some_and(|w| {
+                    card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some()
+                }) {
+                None
+            } else {
+                Some(self.filter()?)
+            };
+            return Ok(CountExpr::CardsInOpponentsGraveyards(f));
         }
         let stat = self.word_at(0);
         let toughness = stat.as_deref() == Some("toughness");
@@ -3886,6 +3996,13 @@ impl P {
         if self.delayed_that && self.at_words(&["that", "creature"]) {
             self.pos += 2;
             return Ok(Recipient::SameObject);
+        }
+        // "If this spell was kicked, sacrifice that creature at the
+        // beginning of the next end step": the target the delayed trigger
+        // is about; its own ability has no targets.
+        if self.in_delayed && self.at_words(&["that", "creature"]) {
+            self.pos += 2;
+            return Ok(Recipient::SameThat);
         }
         // In a spell or an activated ability there is no triggering object:
         // "that creature" is the target named before.
@@ -5050,6 +5167,29 @@ impl P {
                         self.pos += 1;
                         cost.sorcery = true;
                         cost.restrict.push(Restrict::Sorcery);
+                    }
+                    // `reduced {1} each Town you control`, `reduced {4}{B}
+                    // if drew 3 cards this turn`.
+                    "reduced" => {
+                        self.pos += 1;
+                        let mut by = String::new();
+                        while let Some(Tok::Sym(s)) = self.peek() {
+                            by.push('{');
+                            by.push_str(s);
+                            by.push('}');
+                            self.pos += 1;
+                        }
+                        let by = ManaCost::parse(&by).map_err(|e| ParseError {
+                            line: self.line(),
+                            message: e.to_string(),
+                        })?;
+                        let how = if self.eat_word("each") {
+                            crate::ast::ReduceBy::Each(self.count_expr()?)
+                        } else {
+                            self.expect_word("if")?;
+                            crate::ast::ReduceBy::If(self.static_cond()?)
+                        };
+                        cost.reduce = Some(Box::new((by, how)));
                     }
                     "none" => self.pos += 1,
                     _ => return self.unexpected("a cost"),

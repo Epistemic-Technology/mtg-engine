@@ -1,0 +1,8 @@
+card "Molten Monstrosity" {
+  oracle_id ea55886c-48a1-4339-81fd-03dbaa116c28
+  cost {7}{R}
+  type Creature — Hellion
+  pt 5/5
+  this spell costs {1} less count where greatest power
+  keywords trample
+}

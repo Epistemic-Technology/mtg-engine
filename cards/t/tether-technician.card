@@ -1,0 +1,8 @@
+card "Tether Technician" {
+  oracle_id a9d0657f-2c5e-4b6f-b8ae-d657cc0f7aef
+  cost {4}{R}
+  type Creature — Minotaur Artificer
+  pt 4/5
+  keywords reach
+  triggered when this enters: you may discard 1 card; when you do, this creature deals 2 damage to any target
+}

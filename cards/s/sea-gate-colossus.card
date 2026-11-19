@@ -1,0 +1,7 @@
+card "Sea Gate Colossus" {
+  oracle_id ef7f6766-e878-40c6-aa9a-da7415cc757a
+  cost {7}
+  type Artifact Creature — Golem Warrior
+  pt 7/5
+  this spell costs {1} less count each party
+}

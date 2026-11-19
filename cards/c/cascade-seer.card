@@ -1,0 +1,7 @@
+card "Cascade Seer" {
+  oracle_id 08992e72-49b5-4d40-8b44-cb5abfe5ce0d
+  cost {3}{U}
+  type Creature — Merfolk Wizard
+  pt 3/3
+  triggered when this enters: scry count where party
+}

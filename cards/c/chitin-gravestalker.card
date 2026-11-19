@@ -1,0 +1,8 @@
+card "Chitin Gravestalker" {
+  oracle_id acac15c8-877d-49d4-9b42-90181c05a684
+  cost {5}{B}
+  type Creature — Insect Warrior
+  pt 5/4
+  this spell costs {1} less count each andor graveyard artifact or creature
+  cycling {2}
+}

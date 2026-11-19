@@ -710,14 +710,17 @@ fn per_count(
             }
             seen.iter().count()
         }
-        CountExpr::CardsInGraveyard(f) | CountExpr::CardsInAllGraveyards(f) => {
+        CountExpr::CardsInGraveyard(f)
+        | CountExpr::CardsInAllGraveyards(f)
+        | CountExpr::CardsInOpponentsGraveyards(f) => {
             let f = f.as_ref().map(|f| same_filled(work, f, source));
             let all = matches!(count, CountExpr::CardsInAllGraveyards(_));
+            let theirs = matches!(count, CountExpr::CardsInOpponentsGraveyards(_));
             state
                 .players
                 .iter()
                 .enumerate()
-                .filter(|(i, _)| all || usize::from(you.0) == *i)
+                .filter(|(i, _)| all || (usize::from(you.0) == *i) != theirs)
                 .flat_map(|(_, p)| p.graveyard.iter())
                 .filter(|id| {
                     f.as_ref().is_none_or(|f| {
@@ -740,7 +743,19 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_mul(per_count(work, source, controller, inner));
         }
-        CountExpr::SourcePower | CountExpr::TargetStat { .. } => 0,
+        // Counts no static ability uses: they would read the
+        // characteristics being computed, or a resolving spell's targets.
+        CountExpr::SourcePower
+        | CountExpr::TargetStat { .. }
+        | CountExpr::Party(_)
+        | CountExpr::GreatestPower
+        | CountExpr::GreatestManaValue
+        | CountExpr::SourceToughness
+        | CountExpr::TargetManaValue(_)
+        | CountExpr::CardsDrawnThisTurn
+        | CountExpr::OpponentsAttacked
+        | CountExpr::AttackedWithThisTurn
+        | CountExpr::ColorsAmongPermanents => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

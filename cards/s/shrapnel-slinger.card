@@ -1,0 +1,7 @@
+card "Shrapnel Slinger" {
+  oracle_id b400536c-ea8b-4237-90da-1d3ac139881d
+  cost {1}{R}
+  type Artifact Creature — Phyrexian Beast
+  pt 2/2
+  triggered when this enters: you may you sacrifice a creature; when you do, destroy target artifact an opponent controls
+}

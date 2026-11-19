@@ -1,0 +1,8 @@
+card "Search Party Captain" {
+  oracle_id 8721b0a6-52ff-4749-92db-82bb36f5a73e
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  this spell costs {1} less count each attacked with this turn
+  triggered when this enters: draw 1 card
+}

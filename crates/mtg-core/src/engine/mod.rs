@@ -1766,6 +1766,10 @@ impl GameState {
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
         self.rules
             .retain(|e| e.duration != Duration::UntilEndOfTurn);
+        // CR 603.7c: "when that creature dies this turn" ends unfired.
+        if !self.delayed_triggers.is_empty() {
+            self.delayed_triggers.retain(|d| !d.this_turn);
+        }
         for affected in ended {
             self.emit(Event::EffectEnded { affected });
         }

@@ -1,0 +1,7 @@
+card "Drana's Silencer" {
+  oracle_id 8e993c7a-606d-47f0-bdea-6ad197a59426
+  cost {5}{B}
+  type Creature — Vampire Rogue
+  pt 3/2
+  triggered when this enters: target creature an opponent controls gets -1/-1 count where party
+}

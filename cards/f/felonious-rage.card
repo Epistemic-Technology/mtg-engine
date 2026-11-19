@@ -1,0 +1,6 @@
+card "Felonious Rage" {
+  oracle_id e1905321-180b-41d2-b7ef-0974ab90f188
+  cost {R}
+  type Instant
+  spell: target creature you control gets +2/+0 and gains haste; delayed target 1: when that creature dies this turn, create 1 "2/2 white and blue Detective creature"
+}

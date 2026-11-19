@@ -1,0 +1,7 @@
+card "Malakir Blood-Priest" {
+  oracle_id 3a3cb6fe-24ef-4c09-8ff8-f303fc472a8b
+  cost {1}{B}
+  type Creature — Vampire Cleric
+  pt 2/1
+  triggered when this enters: each opponent loses count where party life and you gain count where party life
+}

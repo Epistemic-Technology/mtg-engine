@@ -1,0 +1,7 @@
+card "Cryptic Serpent" {
+  oracle_id 0f26c04a-9bf7-4cbd-a95f-73ee4a3b1af1
+  cost {5}{U}{U}
+  type Creature — Serpent
+  pt 6/5
+  this spell costs {1} less count each graveyard instant or sorcery
+}

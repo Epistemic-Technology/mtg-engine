@@ -1,0 +1,8 @@
+card "Anointer of Valor" {
+  oracle_id e4f880f5-0639-4acb-a099-e48f5707f0db
+  cost {5}{W}
+  type Creature — Angel
+  pt 3/5
+  keywords flying
+  triggered whenever creature attacks: you may pay {3}; when you do, put 1 +1/+1 counter on that creature
+}

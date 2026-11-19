@@ -237,6 +237,7 @@ impl GameState {
     }
 
     /// A count's value as an effect happens, judged from its controller.
+    #[allow(clippy::too_many_lines)] // one arm per count
     fn eval_count(&self, expr: &crate::card::CountExpr, ctx: &EffectCtx) -> u32 {
         use crate::card::CountExpr;
         let you = ctx.controller;
@@ -295,6 +296,113 @@ impl GameState {
                 };
             }
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+            CountExpr::Party(roles) => {
+                // CR 700.8: the largest set of creatures you control
+                // filling distinct roles. With four roles, the reachable
+                // sets of filled roles fit in sixteen bits.
+                let mut reachable: u16 = 1; // bit `s`: the role set `s`
+                for id in self.permanents_of(you) {
+                    let Some(c) = self.characteristics(id) else {
+                        continue;
+                    };
+                    let mut mask = 0u8;
+                    for (r, f) in roles.iter().enumerate() {
+                        if f.matches(id, you, &c, Some(ctx.source), Some(you)) {
+                            mask |= 1 << r;
+                        }
+                    }
+                    if mask == 0 {
+                        continue;
+                    }
+                    let mut next = reachable;
+                    for s in 0..16u16 {
+                        if reachable & (1 << s) != 0 {
+                            for r in 0..4u16 {
+                                if mask & (1 << r) != 0 && s & (1 << r) == 0 {
+                                    next |= 1 << (s | (1 << r));
+                                }
+                            }
+                        }
+                    }
+                    reachable = next;
+                }
+                return (0..16u16)
+                    .filter(|s| reachable & (1 << s) != 0)
+                    .map(u16::count_ones)
+                    .max()
+                    .unwrap_or(0);
+            }
+            CountExpr::GreatestPower => {
+                return self
+                    .permanents_of(you)
+                    .filter_map(|id| self.characteristics(id))
+                    .filter(crate::state::Characteristics::is_creature)
+                    .map(|c| u32::try_from(c.power().max(0)).unwrap_or(0))
+                    .max()
+                    .unwrap_or(0);
+            }
+            CountExpr::GreatestManaValue => {
+                return self
+                    .permanents_of(you)
+                    .filter_map(|id| self.characteristics(id))
+                    .map(|c| self.pool.get(c.def).mana_cost.mana_value())
+                    .max()
+                    .unwrap_or(0);
+            }
+            CountExpr::CardsDrawnThisTurn => {
+                return u32::from(self.drawn_this_turn[you.index().min(3)]);
+            }
+            CountExpr::SourceToughness => {
+                return self
+                    .characteristics_or_lki(ctx.source)
+                    .map_or(0, |c| u32::try_from(c.toughness().max(0)).unwrap_or(0));
+            }
+            CountExpr::TargetManaValue(n) => {
+                return match ctx.targets.get(*n) {
+                    Some(Target::Object(id)) => self
+                        .characteristics_or_lki(*id)
+                        .map_or(0, |c| self.pool.get(c.def).mana_cost.mana_value()),
+                    _ => 0,
+                };
+            }
+            CountExpr::ColorsAmongPermanents => {
+                let mut seen = crate::mana::ColorSet::default();
+                for id in self.permanents_of(you) {
+                    if let Some(c) = self.characteristics(id) {
+                        for col in c.colors.iter() {
+                            seen = seen.with(col);
+                        }
+                    }
+                }
+                seen.iter().count()
+            }
+            CountExpr::OpponentsAttacked => {
+                let Some(combat) = &self.combat else {
+                    return 0;
+                };
+                let mut seen: SmallVec<[PlayerId; 4]> = SmallVec::new();
+                for a in &combat.attackers {
+                    if let Target::Player(p) = a.attacking
+                        && p != you
+                        && self.objects.get(a.id).is_some_and(|o| o.controller == you)
+                        && !seen.contains(&p)
+                    {
+                        seen.push(p);
+                    }
+                }
+                seen.len()
+            }
+            // Only the active player declares attackers (CR 508.1).
+            CountExpr::AttackedWithThisTurn if self.active_player == you => {
+                self.attackers_this_turn.len()
+            }
+            CountExpr::AttackedWithThisTurn => 0,
+            CountExpr::CardsInOpponentsGraveyards(f) => {
+                let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
+                let players: SmallVec<[PlayerId; 4]> =
+                    self.players_in_game().filter(|p| *p != you).collect();
+                self.graveyard_count(&players, f.as_deref(), you)
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
     }
@@ -1161,7 +1269,50 @@ impl GameState {
         {
             req.reduce_by(&self.pool.get(o.def).mana_cost);
         }
+        if let Some(r) = &ab.reduction {
+            self.reduce_activation(source, r, &mut req);
+        }
         req
+    }
+
+    /// CR 601.2f (by way of 602.2b): "This ability costs {1} less to
+    /// activate for each Town you control", "... if you've drawn three or
+    /// more cards this turn".
+    #[cold]
+    fn reduce_activation(
+        &self,
+        source: ObjId,
+        r: &crate::card::ActivationReduction,
+        req: &mut ManaRequirement,
+    ) {
+        let Some(p) = self.objects.get(source).map(|o| o.controller) else {
+            return;
+        };
+        let times = match (&r.each, &r.condition) {
+            (Some(count), _) => {
+                let ctx = EffectCtx {
+                    source,
+                    controller: p,
+                    targets: Vec::new(),
+                    division: Vec::new(),
+                    legal: Vec::new(),
+                    trigger_obj: None,
+                    trigger_player: None,
+                    trigger_amount: 0,
+                    created: None,
+                    x: 0,
+                    did: true,
+                    chosen: Chosen::None,
+                };
+                self.eval_count(count, &ctx)
+            }
+            (None, Some(c)) => u32::from(self.condition_now(c, p, source)),
+            (None, None) => 0,
+        };
+        // Past the ability's whole cost, more reductions change nothing.
+        for _ in 0..times.min(32) {
+            req.reduce_by(&r.by);
+        }
     }
 
     /// CR 602.2a: announce an activated ability; it goes on the stack and
@@ -2184,6 +2335,7 @@ impl GameState {
                 trigger_player: None,
                 trigger_amount: 0,
             },
+            this_turn: false,
         });
     }
 
@@ -3219,6 +3371,9 @@ impl GameState {
                             .map(Choice::Sacrifice)
                             .collect();
                         if options.is_empty() {
+                            // "You may sacrifice a creature. When you do,
+                            // ...": nothing was sacrificed.
+                            ctx.did = false;
                             break;
                         }
                         let k = self.choose_mid(p, DecisionKind::Edict, options.clone());
@@ -3588,6 +3743,31 @@ impl GameState {
                     }
                 }
             }
+            // CR 603.12: the reflexive ability triggers now and goes on the
+            // stack the next time a player would receive priority.
+            Effect::Reflexive(ability) => {
+                if ctx.did {
+                    let def = self
+                        .objects
+                        .get(ctx.source)
+                        .map(|o| o.def)
+                        .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                        .expect("a resolving spell or its last known information exists");
+                    let timestamp = self.tick();
+                    self.pending_triggers.push(crate::state::PendingTrigger {
+                        controller: ctx.controller,
+                        ability: StackAbility {
+                            ability: *ability,
+                            source: ctx.source,
+                            def,
+                            trigger_obj: ctx.trigger_obj,
+                            trigger_player: ctx.trigger_player,
+                            trigger_amount: ctx.trigger_amount,
+                        },
+                        timestamp,
+                    });
+                }
+            }
             Effect::UnlessPays {
                 payer,
                 mana,
@@ -3630,7 +3810,11 @@ impl GameState {
                     }
                 }
             }
-            Effect::Delayed { ability, about } => {
+            Effect::Delayed {
+                ability,
+                about,
+                this_turn,
+            } => {
                 let def = self
                     .objects
                     .get(ctx.source)
@@ -3656,6 +3840,7 @@ impl GameState {
                             trigger_player: None,
                             trigger_amount: 0,
                         },
+                        this_turn: *this_turn,
                     });
                     self.emit(Event::DelayedTriggerCreated {
                         source: ctx.source,

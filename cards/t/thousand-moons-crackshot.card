@@ -1,0 +1,7 @@
+card "Thousand Moons Crackshot" {
+  oracle_id b1ce2971-fffa-40b3-9bfd-29afdb929e74
+  cost {1}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever this attacks: you may pay {2}{W}; when you do, tap target creature
+}

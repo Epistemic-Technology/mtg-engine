@@ -1,0 +1,6 @@
+card "Otherworldly Outburst" {
+  oracle_id 43feb61f-5de0-41b6-b678-9785c476dc08
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0; delayed target 1: when that creature dies this turn, create 1 "3/2 colorless Eldrazi Horror creature"
+}
