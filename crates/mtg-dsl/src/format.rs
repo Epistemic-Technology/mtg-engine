@@ -669,10 +669,18 @@ impl Fmt {
                 s
             }
             Effect::CreateEmblem { emblem } => format!("emblem \"{emblem}\""),
-            Effect::Counter { to } => format!("counter {}", self.recipient(*to, t)),
-            Effect::CounterUnlessPays { to, mana } => format!(
-                "counter {} unless its controller pays {mana}",
-                self.recipient(*to, t)
+            Effect::Counter { to, dest } => {
+                format!("counter {}{}", self.recipient(*to, t), countered_to(*dest))
+            }
+            Effect::CounterUnlessPays { to, mana, x, dest } => format!(
+                "counter {} unless its controller pays {mana}{}{}",
+                self.recipient(*to, t),
+                if *x == Num::X {
+                    String::new()
+                } else {
+                    format!(" {}", num(*x))
+                },
+                countered_to(*dest)
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate => "investigate".to_string(),
@@ -686,11 +694,33 @@ impl Fmt {
                 self.recipient(*to, t),
                 num(*times)
             ),
-            Effect::PutInLibrary { what, top } => format!(
-                "put {} on {} of library",
-                self.recipient(*what, t),
-                if *top { "top" } else { "bottom" }
-            ),
+            Effect::PutInLibrary {
+                what,
+                place,
+                wording,
+            } => {
+                use crate::ast::{LibraryPlace as P, LibraryWording as W};
+                let what = self.recipient(*what, t);
+                let shuffle = *place == P::Shuffle;
+                let place = match place {
+                    P::Top => "on top of library".to_string(),
+                    P::Bottom => "on bottom of library".to_string(),
+                    P::TopOrBottom => "on top or bottom of library".to_string(),
+                    P::FromTop(n) => format!("into library {n} from top"),
+                    P::FromTopOrBottom(n) => format!("into library {n} from top or bottom"),
+                    P::Shuffle => "into library".to_string(),
+                };
+                let (put, puts) = if shuffle {
+                    ("shuffle", "shuffles")
+                } else {
+                    ("put", "puts")
+                };
+                match wording {
+                    W::Put => format!("{put} {what} {place}"),
+                    W::Owner => format!("owner {puts} {what} {place}"),
+                    W::OwnerOf => format!("owner of {what} {puts} it {place}"),
+                }
+            }
             Effect::SacrificeChosen {
                 who,
                 count,
@@ -897,12 +927,21 @@ impl Fmt {
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
-            Effect::IfTarget(n, f, inner) => format!(
-                "if target {} was {}, {}",
-                n + 1,
-                filter(f),
-                self.line(inner, t)
-            ),
+            Effect::IfTarget(n, f, inner, check) => {
+                use crate::ast::TargetTense;
+                let (that, verb) = match check.tense {
+                    TargetTense::Was => ("", "was"),
+                    TargetTense::Is => ("", "is"),
+                    TargetTense::ThatIs => ("that ", "is"),
+                };
+                format!(
+                    "if {that}target {} {verb} {}, {}{}",
+                    n + 1,
+                    filter(f),
+                    if check.also { "also " } else { "" },
+                    self.line(inner, t)
+                )
+            }
             Effect::IfCondition(c, inner) => {
                 format!("if {}, {}", static_cond(c), self.line(inner, t))
             }
@@ -1039,6 +1078,16 @@ fn many_prefix(min: Num, max: Option<Num>) -> String {
     }
 }
 
+/// ` to exile`, ` to library top`, or nothing for the graveyard.
+fn countered_to(d: crate::ast::CounteredTo) -> &'static str {
+    use crate::ast::CounteredTo;
+    match d {
+        CounteredTo::Graveyard => "",
+        CounteredTo::Exile => " to exile",
+        CounteredTo::LibraryTop => " to library top",
+    }
+}
+
 fn num(n: Num) -> String {
     match n {
         Num::N(n) => n.to_string(),
@@ -1116,6 +1165,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             n + 1
         ),
         CountExpr::Life => "life".to_string(),
+        CountExpr::TargetManaValue(n) => format!("mana value of target {}", n + 1),
+        CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
     }
 }
 
@@ -1382,6 +1433,11 @@ pub fn targeting(t: &crate::ast::Targeting, phrase: impl Fn(&Filter) -> String) 
     }
     if let Some(f) = &t.filter {
         let p = phrase(f);
+        // "that targets this creature": no article.
+        if f.relation == Relation::This {
+            parts.push(p);
+            return parts.join(" or ");
+        }
         let a = if p.starts_with(['a', 'e', 'i', 'o', 'u']) {
             "an"
         } else {

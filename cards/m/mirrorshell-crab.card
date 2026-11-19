@@ -1,0 +1,8 @@
+card "Mirrorshell Crab" {
+  oracle_id cd727e02-5064-4b89-9398-e3cc4463ba56
+  cost {5}{U}{U}
+  type Artifact Creature — Crab
+  pt 5/7
+  ward {3}
+  label "Channel" activated {2}{U}, discard this: counter target spell or ability unless its controller pays {3}
+}

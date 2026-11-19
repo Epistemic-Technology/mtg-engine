@@ -1,0 +1,7 @@
+card "Wedding Invitation" {
+  oracle_id d9e752f2-d552-4d72-babd-29eca3508820
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card
+  activated {T}, sacrifice this: target creature can't be blocked this turn; if target 1 is Vampire, also target 1 gains lifelink
+}

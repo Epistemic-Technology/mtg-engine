@@ -1360,6 +1360,44 @@ pub enum CountExpr {
     /// N plus another count ("2 plus the number of cards named ~ in your
     /// graveyard").
     Plus(u32, Box<CountExpr>),
+    /// The `n`th target's mana value ("where X is its mana value"), last
+    /// known information once it has left (CR 608.2h).
+    TargetManaValue(usize),
+    /// The greatest power among battlefield permanents matching the
+    /// filter ("the greatest power among creatures you control"); 0 with
+    /// none.
+    GreatestPower(ObjFilter),
+}
+
+/// Where a spell countered this way goes (CR 701.5a: its owner's
+/// graveyard unless the effect says otherwise).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum CounteredTo {
+    #[default]
+    Graveyard,
+    /// "exile it instead of putting it into its owner's graveyard".
+    Exile,
+    /// "put it on top of its owner's library instead of into that
+    /// player's graveyard".
+    LibraryTop,
+}
+
+/// Where in its owner's library an object is put.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum LibraryPlace {
+    Top,
+    Bottom,
+    /// "second from the top" is `FromTop(2)` (CR 401.7 for a library
+    /// with fewer cards: it goes on the bottom).
+    FromTop(u8),
+    /// "on their choice of the top or bottom of their library": the
+    /// owner chooses.
+    TopOrBottom,
+    /// "into their library second from the top or on the bottom": the
+    /// owner chooses.
+    FromTopOrBottom(u8),
+    /// "shuffles it into their library" (CR 701.24).
+    Shuffle,
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
@@ -1835,6 +1873,17 @@ pub enum TargetSpec {
     CreatureSpell,
     /// "target noncreature spell".
     NoncreatureSpell,
+    /// An object on the stack (CR 115.1): "target spell or ability",
+    /// "target activated or triggered ability", "target activated ability
+    /// from an artifact source" (`source`: the ability's source has that
+    /// card type, as it last existed if it has left). Mana abilities never
+    /// use the stack, so are never targeted (CR 605.3b).
+    OnStack {
+        spells: bool,
+        activated: bool,
+        triggered: bool,
+        source: Option<CardType>,
+    },
     /// "target opponent".
     Opponent,
     /// "target opponent or planeswalker".
@@ -1900,6 +1949,7 @@ impl TargetSpec {
                 | TargetSpec::CreatureSpell
                 | TargetSpec::NoncreatureSpell
                 | TargetSpec::SpellFiltered(_)
+                | TargetSpec::OnStack { .. }
         )
     }
 
@@ -2101,15 +2151,23 @@ pub enum Effect {
     CreateEmblem {
         emblem: CardRef,
     },
-    /// Counter a spell (CR 701.5): it goes to its owner's graveyard.
+    /// Counter a spell or ability (CR 701.5): a spell goes to its owner's
+    /// graveyard, or where `dest` says ("If that spell is countered this
+    /// way, exile it instead of putting it into its owner's graveyard"); an
+    /// ability just leaves the stack (CR 701.5a).
     Counter {
         to: Recipient,
+        dest: CounteredTo,
     },
     /// "Counter target spell unless its controller pays {N}" (CR 701.5?):
-    /// the controller may pay; if they do not, it is countered.
+    /// the controller may pay; if they do not, it is countered. An {X} in
+    /// `mana` is `x` as the effect resolves ("unless its controller pays
+    /// {1} for each card in your hand", "{X}, where X is its mana value").
     CounterUnlessPays {
         to: Recipient,
         mana: ManaCost,
+        x: Num,
+        dest: CounteredTo,
     },
     /// Scry N (CR 701.18): the controller puts any of the top N cards of
     /// their library on the bottom, the rest back on top.
@@ -2129,11 +2187,13 @@ pub enum Effect {
         count: Num,
         to: SearchTo,
     },
-    /// "Put target creature on top of its owner's library" / "on the
-    /// bottom".
+    /// "Put target creature on top of its owner's library", "on the
+    /// bottom", "second from the top", "Its owner puts it on their choice
+    /// of the top or bottom of their library", "shuffles it into their
+    /// library" (the owner makes any choice).
     PutInLibrary {
         what: Recipient,
-        top: bool,
+        place: LibraryPlace,
     },
     /// "Each opponent sacrifices a creature of their choice" (an edict):
     /// each player chooses `count` permanents matching the filter.
@@ -2538,6 +2598,10 @@ impl Effect {
                 | Effect::CastExiled(_)
                 | Effect::SuspendTick
                 | Effect::Cascade
+                | Effect::PutInLibrary {
+                    place: LibraryPlace::TopOrBottom | LibraryPlace::FromTopOrBottom(_),
+                    ..
+                }
                 | Effect::Discover(_)
                 | Effect::Exploit
                 | Effect::CumulativeUpkeep(_)
@@ -4169,6 +4233,8 @@ impl CardPool {
             effects: vec![Effect::CounterUnlessPays {
                 to: Recipient::TriggeringObject,
                 mana: ManaCost::parse("{2}").expect("a mana cost"),
+                x: Num::N(0),
+                dest: CounteredTo::Graveyard,
             }],
         });
         pool.face_down_ward = pool.add(

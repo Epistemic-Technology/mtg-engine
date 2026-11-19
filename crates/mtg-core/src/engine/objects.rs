@@ -525,6 +525,60 @@ impl GameState {
         self.move_object(id, Zone::Graveyard, true);
     }
 
+    /// Put `id` into its owner's library at `place`. Where the owner has a
+    /// choice ("on their choice of the top or bottom", "second from the
+    /// top or on the bottom"), they make it as the object moves.
+    pub(super) fn put_in_library(&mut self, id: ObjId, place: crate::card::LibraryPlace) {
+        use crate::card::LibraryPlace;
+        let Some(o) = self.objects.get(id) else {
+            return;
+        };
+        let (owner, def) = (o.owner, o.def);
+        let choose = |s: &mut Self| {
+            s.choose_mid(
+                owner,
+                crate::decision::DecisionKind::TopOrBottom { def },
+                vec![
+                    crate::decision::Choice::Accept,
+                    crate::decision::Choice::Decline,
+                ],
+            ) == 0
+        };
+        // `n`th from the top, or `None` for the bottom.
+        let depth = match place {
+            LibraryPlace::Top | LibraryPlace::Shuffle => Some(1),
+            LibraryPlace::Bottom => None,
+            LibraryPlace::FromTop(n) => Some(n),
+            LibraryPlace::TopOrBottom => choose(self).then_some(1),
+            LibraryPlace::FromTopOrBottom(n) => choose(self).then_some(n),
+        };
+        let new = self.move_object(id, Zone::Library, depth.is_some());
+        if !self
+            .objects
+            .get(new)
+            .is_some_and(|o| o.zone == Zone::Library)
+        {
+            return;
+        }
+        if place == LibraryPlace::Shuffle {
+            self.shuffle_library(owner);
+            return;
+        }
+        // CR 401.7: "Nth from the top" of a library with fewer than N-1
+        // other cards is the bottom.
+        if let Some(n) = depth
+            && n > 1
+        {
+            let lib = &mut self.player_mut(owner).library;
+            if let Some(pos) = lib.iter().rposition(|x| *x == new) {
+                let card = lib.remove(pos);
+                let at = lib.len().saturating_sub(usize::from(n) - 1);
+                lib.insert(at, card);
+                self.bump();
+            }
+        }
+    }
+
     pub(super) fn shuffle_library(&mut self, p: PlayerId) {
         let mut lib = std::mem::take(&mut self.player_mut(p).library);
         lib.shuffle(&mut self.rng);

@@ -1,0 +1,6 @@
+card "Faerie Trickery" {
+  oracle_id bbe370ba-412b-4052-89d9-2d0ae4928118
+  cost {1}{U}{U}
+  type Kindred Instant — Faerie
+  spell: counter target non-Faerie spell to exile
+}

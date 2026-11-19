@@ -1,0 +1,6 @@
+card "Eye Gouge" {
+  oracle_id 89661ef9-cb42-401a-ae45-b57bb8dac033
+  cost {B}
+  type Instant
+  spell: target creature gets -1/-1; if target 1 is Cyclops, destroy target 1
+}

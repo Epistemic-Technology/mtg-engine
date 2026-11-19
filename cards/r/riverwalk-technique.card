@@ -1,0 +1,9 @@
+card "Riverwalk Technique" {
+  oracle_id a123aab8-3f3a-4187-abcb-21a99dcf13bb
+  cost {3}{U}
+  type Instant
+  choose one {
+  mode: owner of target nonland permanent puts it on top or bottom of library
+  mode: counter target noncreature spell
+  }
+}

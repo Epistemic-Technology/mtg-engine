@@ -587,6 +587,8 @@ impl Compiler<'_> {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
+            A::TargetManaValue(n) => C::TargetManaValue(*n),
+            A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
         }
     }
 
@@ -914,11 +916,18 @@ impl Compiler<'_> {
                 of: r(*of),
                 except: *except,
             }),
-            Effect::Counter { to } => out.push(CoreEffect::Counter { to: r(*to) }),
-            Effect::CounterUnlessPays { to, mana } => out.push(CoreEffect::CounterUnlessPays {
+            Effect::Counter { to, dest } => out.push(CoreEffect::Counter {
                 to: r(*to),
-                mana: mana.clone(),
+                dest: *dest,
             }),
+            Effect::CounterUnlessPays { to, mana, x, dest } => {
+                out.push(CoreEffect::CounterUnlessPays {
+                    to: r(*to),
+                    mana: mana.clone(),
+                    x: *x,
+                    dest: *dest,
+                });
+            }
             Effect::Scry(n) => out.push(CoreEffect::Scry { count: *n }),
             Effect::AddMana(m) => out.push(CoreEffect::AddMana(m.clone())),
             Effect::AddManaOneOf(m) => out.push(CoreEffect::AddManaOneOf(m.clone())),
@@ -946,9 +955,9 @@ impl Compiler<'_> {
                 times: *times,
                 to: r(*to),
             }),
-            Effect::PutInLibrary { what, top } => out.push(CoreEffect::PutInLibrary {
+            Effect::PutInLibrary { what, place, .. } => out.push(CoreEffect::PutInLibrary {
                 what: r(*what),
-                top: *top,
+                place: *place,
             }),
             Effect::SacrificeChosen { who, count, filter } => {
                 let filter = self.filter(filter);
@@ -1066,7 +1075,7 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
             }
-            Effect::IfTarget(n, f, inner) => {
+            Effect::IfTarget(n, f, inner, _) => {
                 let then = self.sentences(inner)?;
                 out.push(CoreEffect::IfTarget {
                     n: u8::try_from(*n).unwrap_or(u8::MAX),
@@ -1762,6 +1771,8 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
             effects: one(E::CounterUnlessPays {
                 to: Recipient::TriggeringObject,
                 mana: cost.clone(),
+                x: Num::N(0),
+                dest: crate::ast::CounteredTo::Graveyard,
             }),
         },
         Mechanic::Echo(cost) => Ability::Triggered {

@@ -1,0 +1,6 @@
+card "Desynchronize" {
+  oracle_id dae81b1b-28dd-4f7f-9bcb-65e72eaa37e2
+  cost {4}{U}
+  type Instant
+  spell: owner puts target nonland permanent on top or bottom of library; scry 2
+}

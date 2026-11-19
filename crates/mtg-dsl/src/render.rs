@@ -737,8 +737,13 @@ impl<'a> Ctx<'a> {
         let mut out = format!("target {}", spell_noun(&base));
         if let Some(what) = targeting {
             out.push_str(" that targets ");
+            // "that targets this creature".
             out.push_str(&crate::format::targeting(&what, |g| {
-                filter_phrase(g, self.card, false)
+                if g.relation == Relation::This {
+                    this_ref(self.card)
+                } else {
+                    filter_phrase(g, self.card, false)
+                }
             }));
         }
         out
@@ -1110,7 +1115,9 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::Spell
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
-            | TargetSpec::SpellFiltered(_) => "spell".to_string(),
+            | TargetSpec::SpellFiltered(_)
+            | TargetSpec::OnStack { spells: true, .. } => "spell".to_string(),
+            TargetSpec::OnStack { .. } => "ability".to_string(),
         },
         Target::Filter(f) => {
             if f.types.contains(&CardType::Creature) {
@@ -1125,7 +1132,30 @@ fn target_noun(t: &Target) -> String {
 }
 
 pub fn target_phrase(s: TargetSpec) -> String {
+    // "target spell or ability", "target activated or triggered ability",
+    // "target activated ability from an artifact source".
+    if let TargetSpec::OnStack {
+        spells,
+        activated,
+        triggered,
+        source,
+    } = s
+    {
+        let kinds = match (activated, triggered) {
+            (true, true) if spells => "spell or ability",
+            (true, true) => "activated or triggered ability",
+            (true, false) => "activated ability",
+            (false, true) => "triggered ability",
+            (false, false) => "spell",
+        };
+        let from = source.map_or_else(String::new, |t| {
+            let t = format!("{t:?}").to_lowercase();
+            format!(" from {}", with_article(&format!("{t} source")))
+        });
+        return format!("target {kinds}{from}");
+    }
     match s {
+        TargetSpec::OnStack { .. } => unreachable!("above"),
         TargetSpec::Any => "any target",
         TargetSpec::Creature | TargetSpec::CreatureWithSubtype(_) => "target creature",
         TargetSpec::PlayerOrPlaneswalker => "target player or planeswalker",
@@ -1772,6 +1802,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddManaTimes { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
+        Effect::CounterUnlessPays { x, .. } => vec![*x],
         _ => Vec::new(),
     }
 }
@@ -1785,6 +1816,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         return count_phrase(inner, card, each);
     }
     let (one, many) = match c {
+        CountExpr::TargetManaValue(_) => return "its mana value".to_string(),
+        // "the greatest power among creatures you control".
+        CountExpr::GreatestPower(f) => {
+            return format!("the greatest power among {}", filter_phrase(f, card, true));
+        }
         // "creatures named ~ on the battlefield" (`named_first`), "other
         // creature on the battlefield named ~".
         CountExpr::Permanents(f) if f.who.is_none() && f.same.is_some() && !f.named_first => {
@@ -1919,6 +1955,20 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     count_phrase(&count.expr, ctx.card, false)
                 );
             }
+            // "unless its controller pays {2} for each Wizard on the
+            // battlefield", "{2} plus an additional {1} for each Faerie you
+            // control".
+            CountStyle::Each if matches!(e, Effect::CounterUnlessPays { .. }) => {
+                let (pays, inner) = match &count.expr {
+                    crate::ast::CountExpr::Times(n, inner) => (format!("{{{n}}}"), &**inner),
+                    crate::ast::CountExpr::Plus { n, inner, .. } => {
+                        (format!("{{{n}}} plus an additional {{1}}"), &**inner)
+                    }
+                    other => ("{1}".to_string(), other),
+                };
+                c.text = c.text.replacen("{X}", &pays, 1);
+                let _ = write!(c.tail, " {}", count_phrase(inner, ctx.card, true));
+            }
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".
                 let per = match &count.expr {
@@ -1938,6 +1988,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
             }
         }
+    }
+    if let Effect::Counter { dest, .. } | Effect::CounterUnlessPays { dest, .. } = e {
+        c.tail.push_str(match dest {
+            crate::ast::CounteredTo::Graveyard => "",
+            crate::ast::CounteredTo::Exile => {
+                ". If that spell is countered this way, exile it instead of putting it into its owner's graveyard"
+            }
+            crate::ast::CounteredTo::LibraryTop => {
+                ". If that spell is countered this way, put it on top of its owner's library instead of into that player's graveyard"
+            }
+        });
     }
     c
 }
@@ -2474,30 +2535,69 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::with_subject(Recipient::Source, s, text)
         }
-        Effect::Counter { to } => {
+        // Where a countered spell goes is added in `clause`, after a count.
+        Effect::Counter { to, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o}"))
         }
-        Effect::CounterUnlessPays { to, mana } => {
+        Effect::CounterUnlessPays { to, mana, .. } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::Investigate => Clause::imperative("investigate".to_string()),
-        Effect::PutInLibrary { what, top } => {
+        Effect::PutInLibrary {
+            what,
+            place,
+            wording,
+        } => {
+            use crate::ast::{LibraryPlace as P, LibraryWording as W};
             // A card from your own graveyard goes to "your library".
             let yours = matches!(*what, Recipient::Target(i)
                 if matches!(ctx.targets.get(i).map(Target::base),
                     Some(Target::GraveyardCard { who: Who::You, .. }
                         | Target::Spec(TargetSpec::CreatureCardInYourGraveyard))));
-            let o = ctx.obj(*what);
-            let place = if *top {
-                "on top of"
-            } else {
-                "on the bottom of"
+            let ordinal = |n: u8| match n {
+                2 => "second".to_string(),
+                3 => "third".to_string(),
+                n => format!("{n}th"),
             };
-            let whose = if yours { "your" } else { "its owner's" };
-            Clause::imperative(format!("put {o} {place} {whose} library"))
+            if *wording == W::Put {
+                let o = ctx.obj(*what);
+                let whose = if yours { "your" } else { "its owner's" };
+                return Clause::imperative(match place {
+                    P::Top => format!("put {o} on top of {whose} library"),
+                    P::FromTop(n) => {
+                        format!("put {o} into {whose} library {} from the top", ordinal(*n))
+                    }
+                    P::Shuffle => format!("shuffle {o} into {whose} library"),
+                    _ => format!("put {o} on the bottom of {whose} library"),
+                });
+            }
+            // "Target creature's owner puts it ...", "The owner of target
+            // nonland permanent puts it ...": the owner makes any choice.
+            let owner = if *wording == W::OwnerOf {
+                format!("the owner of {}", ctx.obj(*what))
+            } else {
+                match ctx.subj(*what).as_str() {
+                    "it" => "its owner".to_string(),
+                    s => format!("{s}'s owner"),
+                }
+            };
+            let rest = match place {
+                P::Top => "puts it on top of their library".to_string(),
+                P::Bottom => "puts it on the bottom of their library".to_string(),
+                P::TopOrBottom => {
+                    "puts it on their choice of the top or bottom of their library".to_string()
+                }
+                P::FromTop(n) => format!("puts it into their library {} from the top", ordinal(*n)),
+                P::FromTopOrBottom(n) => format!(
+                    "puts it into their library {} from the top or on the bottom",
+                    ordinal(*n)
+                ),
+                P::Shuffle => "shuffles it into their library".to_string(),
+            };
+            Clause::imperative(format!("{owner} {rest}"))
         }
         Effect::SacrificeChosen { who, count, filter } => {
             let s = ctx.subj(*who);
@@ -2906,19 +3006,55 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
-        Effect::IfTarget(n, f, inner) => {
+        Effect::IfTarget(n, f, inner, check) => {
+            use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
+            if check.tense != TargetTense::Was {
+                ctx.target_mentioned[*n] = true;
+                // "If that creature is an enchantment, Starfall deals 3
+                // damage ...": a spell names itself again.
+                if is_spell(ctx.card) {
+                    ctx.source_mentioned = false;
+                }
+            }
             let body = sentences(inner, ctx);
-            let body = if starts_with_name(&body, ctx.card) {
+            let mut body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
                 lowercase_first(&body)
             };
-            Clause::imperative(format!(
-                "if that {noun} was {}, {}",
-                target_predicate(f, ctx.card),
-                body.trim_end_matches('.')
-            ))
+            // "it also gains lifelink", "that creature also gets +3/+0".
+            if check.also {
+                let that = format!("that {noun} ");
+                let subject = ["it ", "they ", that.as_str()]
+                    .into_iter()
+                    .find(|s| body.starts_with(s))
+                    .map_or(0, str::len);
+                body.insert_str(subject, "also ");
+            }
+            let mut pred = target_predicate(f, ctx.card);
+            // "If it's a Zombie card": a card in a graveyard.
+            if matches!(
+                ctx.targets.get(*n).map(Target::base),
+                Some(
+                    Target::GraveyardCard { .. }
+                        | Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                )
+            ) && f.types.is_empty()
+                && !f.subtypes.is_empty()
+            {
+                pred.push_str(" card");
+            }
+            // "If that creature has infect".
+            let has = pred.strip_prefix("a permanent with ").map(str::to_string);
+            let cond = match (check.tense, has) {
+                (TargetTense::Was, _) => format!("that {noun} was {pred}"),
+                (TargetTense::Is, Some(k)) => format!("it has {k}"),
+                (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
+                (TargetTense::Is, None) => format!("it's {pred}"),
+                (TargetTense::ThatIs, None) => format!("that {noun} is {pred}"),
+            };
+            Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::Instead {
             cond,
@@ -3130,7 +3266,36 @@ fn target_predicate(f: &Filter, card: &Card) -> String {
         return "nonbasic".to_string();
     }
     if f.types.iter().all(|t| *t == CardType::Creature) && f.subtypes.len() == 1 {
-        return with_article(&f.subtypes[0]);
+        // "a Goblin or Orc".
+        if let Some(g) = &f.or
+            && g.types.iter().all(|t| *t == CardType::Creature)
+            && g.subtypes.len() == 1
+            && g.or.is_none()
+        {
+            return format!("{} or {}", with_article(&f.subtypes[0]), g.subtypes[0]);
+        }
+        if f.or.is_none() {
+            return with_article(&f.subtypes[0]);
+        }
+    }
+    // "If it's legendary".
+    if f.types.is_empty()
+        && f.subtypes.is_empty()
+        && f.colors.is_none()
+        && f.or.is_none()
+        && !f.supertypes.is_empty()
+        && *f
+            == (Filter {
+                supertypes: f.supertypes.clone(),
+                ..Filter::default()
+            })
+    {
+        let words: Vec<String> = f
+            .supertypes
+            .iter()
+            .map(|s| format!("{s:?}").to_lowercase())
+            .collect();
+        return words.join(" ");
     }
     with_article(&filter_phrase(f, card, false))
 }

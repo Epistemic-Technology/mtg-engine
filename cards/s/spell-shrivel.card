@@ -1,0 +1,7 @@
+card "Spell Shrivel" {
+  oracle_id bfaf376f-90f9-45d9-bfbe-dd84a2a4688b
+  cost {2}{U}
+  type Instant
+  keywords devoid
+  spell: counter target spell unless its controller pays {4} to exile
+}

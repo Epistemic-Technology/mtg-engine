@@ -1,0 +1,6 @@
+card "Spell Rupture" {
+  oracle_id 934c50aa-7d2e-4c9e-b91b-1e8c4055e1c6
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count where greatest power creature you control
+}

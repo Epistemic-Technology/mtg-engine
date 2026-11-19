@@ -1,0 +1,9 @@
+card "Run Ashore" {
+  oracle_id 9b3bcd57-bf3f-4d72-810a-fdb5c8ea1551
+  cost {4}{U}{U}
+  type Instant
+  choose one or both {
+  mode: owner of target nonland permanent puts it on top or bottom of library
+  mode: return target nonland permanent to hand
+  }
+}

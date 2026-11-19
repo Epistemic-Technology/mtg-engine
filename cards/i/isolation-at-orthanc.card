@@ -1,0 +1,6 @@
+card "Isolation at Orthanc" {
+  oracle_id 6dc6536f-455a-4d7b-beed-a78ec63c0030
+  cost {3}{U}
+  type Instant
+  spell: put target creature into library 2 from top
+}

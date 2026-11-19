@@ -1,0 +1,7 @@
+card "Run Behind" {
+  oracle_id 7578a192-82e5-43ff-8dee-225f313c484a
+  cost {3}{U}
+  type Instant
+  this spell costs {1} less if it targets attacking creature
+  spell: owner puts target creature on top or bottom of library
+}

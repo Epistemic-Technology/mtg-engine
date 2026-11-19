@@ -1,0 +1,6 @@
+card "Misleading Motes" {
+  oracle_id 09eec5a2-7835-4b24-9dd1-594612ee9152
+  cost {3}{U}
+  type Instant
+  spell: owner puts target creature on top or bottom of library
+}

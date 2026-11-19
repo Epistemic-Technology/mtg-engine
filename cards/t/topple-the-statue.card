@@ -1,0 +1,9 @@
+card "Topple the Statue" {
+  oracle_id 3883f5de-92bf-4692-80e5-f03365bf7112
+  cost {2}{W}
+  type Instant
+  spell {
+  tap target permanent; if target 1 is artifact, destroy target 1
+  draw 1 card
+  }
+}

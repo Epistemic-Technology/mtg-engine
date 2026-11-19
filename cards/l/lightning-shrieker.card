@@ -1,0 +1,8 @@
+card "Lightning Shrieker" {
+  oracle_id a5196310-f449-4d5e-8ea8-901a83bad6ff
+  cost {4}{R}
+  type Creature — Dragon
+  pt 5/5
+  keywords flying, trample, haste
+  triggered at beginning of each end step: owner shuffles this into library
+}

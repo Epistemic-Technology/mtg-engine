@@ -75,6 +75,9 @@ pub enum DecisionKind {
     SearchLibrary,
     /// "Counter target spell unless its controller pays ...": pay or not.
     PayOrCounter { def: CardRef },
+    /// Whether the owner puts `def` on top of their library (or Nth from
+    /// the top): `Accept`; or on the bottom: `Decline`.
+    TopOrBottom { def: CardRef },
     /// Whether to pay `spell`'s kicker (CR 702.33): `Accept` kicks.
     Kicker { spell: ObjId },
     /// Whether to pay a spell's buyback cost (CR 702.27).

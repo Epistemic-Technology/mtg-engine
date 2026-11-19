@@ -481,10 +481,15 @@ impl Decompiler<'_> {
             CoreEffect::CreateEmblem { emblem } => Effect::CreateEmblem {
                 emblem: self.pool.get(*emblem).name.clone(),
             },
-            CoreEffect::Counter { to } => Effect::Counter { to: r(*to) },
-            CoreEffect::CounterUnlessPays { to, mana } => Effect::CounterUnlessPays {
+            CoreEffect::Counter { to, dest } => Effect::Counter {
+                to: r(*to),
+                dest: *dest,
+            },
+            CoreEffect::CounterUnlessPays { to, mana, x, dest } => Effect::CounterUnlessPays {
                 to: r(*to),
                 mana: mana.clone(),
+                x: *x,
+                dest: *dest,
             },
             CoreEffect::Scry { count } => Effect::Scry(*count),
             CoreEffect::AddMana(m) => Effect::AddMana(m.clone()),
@@ -513,9 +518,19 @@ impl Decompiler<'_> {
                 times: *times,
                 to: r(*to),
             },
-            CoreEffect::PutInLibrary { what, top } => Effect::PutInLibrary {
+            CoreEffect::PutInLibrary { what, place } => Effect::PutInLibrary {
                 what: r(*what),
-                top: *top,
+                place: *place,
+                // A choice is the owner's to make, so it names them.
+                wording: if matches!(
+                    place,
+                    mtg_core::card::LibraryPlace::TopOrBottom
+                        | mtg_core::card::LibraryPlace::FromTopOrBottom(_)
+                ) {
+                    crate::ast::LibraryWording::Owner
+                } else {
+                    crate::ast::LibraryWording::Put
+                },
             },
             CoreEffect::SacrificeChosen { who, filter, count } => Effect::SacrificeChosen {
                 who: r(*who),
@@ -600,9 +615,12 @@ impl Decompiler<'_> {
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
             CoreEffect::Instead { .. } => unreachable!("a sentence pair, in `sentences`"),
-            CoreEffect::IfTarget { n, filter, then } => {
-                Effect::IfTarget(usize::from(*n), self.filter(filter), self.sentences(then))
-            }
+            CoreEffect::IfTarget { n, filter, then } => Effect::IfTarget(
+                usize::from(*n),
+                self.filter(filter),
+                self.sentences(then),
+                crate::ast::TargetCheck::default(),
+            ),
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),
                 self.sentences(inner),

@@ -1,0 +1,6 @@
+card "Oppressive Will" {
+  oracle_id 983a2a50-3634-4783-8576-30916c3d0818
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each hand
+}

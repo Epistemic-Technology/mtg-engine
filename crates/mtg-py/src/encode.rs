@@ -79,6 +79,7 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::CastFromExile { .. } => 27,
         DecisionKind::ChooseType => 28,
         DecisionKind::Divide { .. } => 29,
+        DecisionKind::TopOrBottom { .. } => 30,
     }
 }
 

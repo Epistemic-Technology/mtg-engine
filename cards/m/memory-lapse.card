@@ -1,0 +1,6 @@
+card "Memory Lapse" {
+  oracle_id bbfb3e4a-b389-4391-8141-13b68c0ef2e0
+  cost {1}{U}
+  type Instant
+  spell: counter target spell to library top
+}

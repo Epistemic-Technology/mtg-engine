@@ -1,0 +1,7 @@
+card "Mistfolk" {
+  oracle_id d57409dc-22fa-40c1-a043-cab94d5f3b5f
+  cost {U}{U}
+  type Creature — Illusion
+  pt 1/2
+  activated {U}: counter target spell that targets this
+}

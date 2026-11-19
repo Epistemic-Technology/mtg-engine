@@ -1,0 +1,7 @@
+card "Temporal Cleansing" {
+  oracle_id 5f67698a-28db-43cd-aaf1-52371b0b47eb
+  cost {3}{U}
+  type Sorcery
+  keywords convoke
+  spell: owner of target nonland permanent puts it into library 2 from top or bottom
+}

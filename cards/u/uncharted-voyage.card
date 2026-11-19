@@ -1,0 +1,9 @@
+card "Uncharted Voyage" {
+  oracle_id 1d6796ce-9316-430a-8126-8b0414cf181c
+  cost {3}{U}
+  type Instant
+  spell {
+  owner puts target creature on top or bottom of library
+  surveil 1
+  }
+}

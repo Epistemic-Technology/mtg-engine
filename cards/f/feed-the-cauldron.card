@@ -1,0 +1,6 @@
+card "Feed the Cauldron" {
+  oracle_id 21153db6-552a-4956-a53a-a9dfb6968629
+  cost {2}{B}
+  type Instant
+  spell: destroy target creature with mana value 3 or less; if your turn, create 1 "Food"
+}

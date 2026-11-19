@@ -1,0 +1,8 @@
+card "Budding Insurgent" {
+  oracle_id 723669e0-4a04-45ec-8c76-b1a369aa6892
+  cost {2}{G}
+  type Creature — Dryad Scout
+  pt 3/3
+  keywords vigilance
+  activated sacrifice this, sorcery: destroy target artifact or enchantment; if target 1 was legendary enchantment, draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Burn the Impure" {
+  oracle_id 9503c801-eb6f-4f34-9062-c56105509b7b
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; if that target 1 is with infect, deal 3 damage to controller of that target 1
+}

@@ -1,0 +1,6 @@
+card "Starfall" {
+  oracle_id b2c840a7-24b4-4ae3-a13f-ed524e18d488
+  cost {4}{R}
+  type Instant
+  spell: deal 3 damage to target creature; if that target 1 is enchantment, deal 3 damage to controller of that target 1
+}

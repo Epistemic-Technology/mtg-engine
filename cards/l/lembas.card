@@ -1,0 +1,8 @@
+card "Lembas" {
+  oracle_id f71fcdc3-5e96-416e-a49d-37019806e2e2
+  cost {2}
+  type Artifact — Food
+  triggered when this enters: scry 1 then draw 1 cards
+  activated {2}, {T}, sacrifice this: you gain 3 life
+  triggered when this dies: owner shuffles it into library
+}

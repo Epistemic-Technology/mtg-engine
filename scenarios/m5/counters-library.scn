@@ -1,0 +1,604 @@
+# Counterspell variants (CR 701.5): where a spell countered "this way"
+# goes, ransoms counted as the counterspell resolves; putting permanents
+# into their owners' libraries (top, bottom, Nth from the top, the
+# owner's choice, shuffled in, CR 401); and checks of a target as it
+# resolves ("If it's a Vampire, it also gains lifelink").
+
+# ---- where a countered spell goes ------------------------------------------------------
+
+scenario "memory lapse: the countered spell goes on top of its owner's library" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Memory Lapse"
+  library A: "Mountain", "Swamp"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Memory Lapse" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A lacks "Grizzly Bears"
+  assert library A contains "Grizzly Bears"
+  assert library A count 3
+  # A's next draw is the countered card.
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A lacks "Mountain"
+}
+
+scenario "deny existence: the countered creature spell is exiled" {
+  battlefield A: 2 "Forest"
+  battlefield B: 3 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Deny Existence"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Deny Existence" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile A contains "Grizzly Bears"
+  assert graveyard A lacks "Grizzly Bears"
+  assert graveyard B contains "Deny Existence"
+}
+
+scenario "deny existence: only a creature spell" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Deny Existence"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  illegal turn 1 B: cast "Deny Existence" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 begin_combat
+  assert life B 17
+}
+
+scenario "syncopate: unpaid, the spell is exiled" {
+  battlefield A: 2 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Syncopate"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Syncopate" x 1 targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "syncopate: the controller pays X and the spell resolves" {
+  battlefield A: 3 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Syncopate"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Syncopate" x 1 targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A lacks "Grizzly Bears"
+}
+
+scenario "reject: three is paid" {
+  battlefield A: 5 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Reject"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Reject" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "reject: two is not enough, and the spell is exiled" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Reject"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Reject" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert exile A contains "Grizzly Bears"
+}
+
+# ---- ransoms counted as the counterspell resolves ------------------------------------------
+
+scenario "oppressive will: {1} for each card in the caster's hand" {
+  battlefield A: 3 "Forest"
+  battlefield B: 3 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Oppressive Will", "Island", "Island"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Oppressive Will" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  # Two cards left in B's hand: {2}, and A has one land left.
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "oppressive will: an empty hand asks nothing" {
+  battlefield A: 2 "Forest"
+  battlefield B: 3 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Oppressive Will"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Oppressive Will" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "ixidor's will: {2} for each Wizard on the battlefield" {
+  battlefield A: 5 "Forest"
+  battlefield B: 3 "Island", 2 "Aether Adept"
+  hand A: "Grizzly Bears"
+  hand B: "Ixidor's Will"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Ixidor's Will" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  # Two Wizards: {4}; A has three lands left.
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "ixidor's will: one Wizard, {2}, paid" {
+  battlefield A: 5 "Forest"
+  battlefield B: 3 "Island", "Aether Adept"
+  hand A: "Grizzly Bears"
+  hand B: "Ixidor's Will"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Ixidor's Will" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "rethink: {X} is the spell's mana value" {
+  battlefield A: 7 "Mountain"
+  battlefield B: 3 "Island"
+  hand A: "Hill Giant"
+  hand B: "Rethink"
+  turn 1 A: cast "Hill Giant"
+  turn 1 B: cast "Rethink" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 1 begin_combat
+  # Four to pay, three left.
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "rethink: a cheap spell's ransom is paid" {
+  battlefield A: 4 "Forest"
+  battlefield B: 3 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Rethink"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Rethink" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "spell rupture: X is the greatest power among the caster's creatures" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island", "Hill Giant", "Grizzly Bears"
+  hand A: "Grizzly Bears"
+  hand B: "Spell Rupture"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Spell Rupture" targeting A "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  # Hill Giant's 3, and A has two lands left.
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "spell stutter: {2} with no Faeries" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Spell Stutter"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Spell Stutter" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "dazzling denial: {2} without a Bird" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Dazzling Denial"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Dazzling Denial" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "dazzling denial: {4} instead with a Bird" {
+  battlefield A: 4 "Forest"
+  battlefield B: 2 "Island", "Augury Raven"
+  hand A: "Grizzly Bears"
+  hand B: "Dazzling Denial"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Dazzling Denial" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+# ---- into a library ---------------------------------------------------------------------
+
+scenario "misleading motes: the owner chooses the top" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Swamp"
+  hand A: "Misleading Motes"
+  turn 1 A: cast "Misleading Motes" targeting "Hill Giant"
+  turn 1 B: accept "Hill Giant"
+  run_to turn 2 precombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "misleading motes: the owner chooses the bottom" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Swamp"
+  hand A: "Misleading Motes"
+  turn 1 A: cast "Misleading Motes" targeting "Hill Giant"
+  turn 1 B: decline "Hill Giant"
+  run_to turn 2 precombat_main
+  assert hand B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+  assert library B count 2
+}
+
+scenario "isolation at orthanc: second from the top" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Forest", "Mountain"
+  hand A: "Isolation at Orthanc"
+  turn 1 A: cast "Isolation at Orthanc" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert hand B contains "Swamp"
+  assert hand B lacks "Hill Giant"
+  run_to turn 4 precombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B lacks "Forest"
+}
+
+scenario "isolation at orthanc: a library of none goes to the bottom, its only card" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B:
+  hand A: "Isolation at Orthanc"
+  turn 1 A: cast "Isolation at Orthanc" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert library B count 1
+  assert library B contains "Hill Giant"
+}
+
+scenario "temporal cleansing: second from the top or the bottom, the owner's choice" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Forest", "Mountain"
+  hand A: "Temporal Cleansing"
+  turn 1 A: cast "Temporal Cleansing" targeting "Hill Giant"
+  turn 1 B: decline "Hill Giant"
+  run_to turn 4 precombat_main
+  assert hand B lacks "Hill Giant"
+  assert hand B contains "Forest"
+  assert library B contains "Hill Giant"
+}
+
+scenario "temporal cleansing: only a nonland permanent" {
+  battlefield A: 4 "Island"
+  battlefield B: "Swamp"
+  hand A: "Temporal Cleansing"
+  illegal turn 1 A: cast "Temporal Cleansing" targeting "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Swamp"
+}
+
+scenario "dramatic accusation: shuffle enchanted creature into its owner's library" {
+  battlefield A: 5 "Island", "Dramatic Accusation" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  library B: "Swamp"
+  turn 1 A: activate "Dramatic Accusation"
+  run_to turn 1 postcombat_main
+  assert battlefield B lacks "Hill Giant"
+  assert library B contains "Hill Giant"
+  assert library B count 2
+  assert graveyard A contains "Dramatic Accusation"
+}
+
+scenario "lightning shrieker: its owner shuffles it in at the end step" {
+  battlefield A: "Lightning Shrieker"
+  library A: "Swamp"
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Lightning Shrieker"
+  assert library A contains "Lightning Shrieker"
+}
+
+scenario "lembas: put into a graveyard from the battlefield, its owner shuffles it in" {
+  battlefield A: 2 "Plains", "Lembas"
+  library A: "Swamp"
+  life A 10
+  turn 1 A: activate "Lembas"
+  run_to turn 1 postcombat_main
+  assert life A 13
+  assert graveyard A lacks "Lembas"
+  assert library A contains "Lembas"
+}
+
+scenario "shattered ego: third from the top" {
+  battlefield A: 5 "Island", "Shattered Ego" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  library B: "Swamp", "Forest", "Mountain", "Plains"
+  turn 1 A: activate "Shattered Ego"
+  run_to turn 4 precombat_main
+  assert hand B contains "Swamp"
+  assert hand B contains "Forest"
+  assert hand B lacks "Hill Giant"
+  run_to turn 6 precombat_main
+  assert hand B contains "Hill Giant"
+}
+
+# ---- the target as it resolves ----------------------------------------------------------
+
+scenario "vampire's zeal: a Vampire gains first strike" {
+  battlefield A: "Plains", "Anointed Deacon"
+  hand A: "Vampire's Zeal"
+  turn 1 A: cast "Vampire's Zeal" targeting "Anointed Deacon"
+  run_to turn 1 begin_combat
+  assert power "Anointed Deacon" 5
+  assert has "Anointed Deacon" first_strike
+}
+
+scenario "vampire's zeal: another creature only gets +2/+2" {
+  battlefield A: "Plains", "Grizzly Bears"
+  hand A: "Vampire's Zeal"
+  turn 1 A: cast "Vampire's Zeal" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 4
+  assert has not "Grizzly Bears" first_strike
+}
+
+scenario "blessing of belzenlok: a legendary creature also gains lifelink" {
+  battlefield A: "Swamp", "Isamaru, Hound of Konda"
+  hand A: "Blessing of Belzenlok"
+  turn 1 A: cast "Blessing of Belzenlok" targeting "Isamaru, Hound of Konda"
+  run_to turn 1 begin_combat
+  assert power "Isamaru, Hound of Konda" 4
+  assert has "Isamaru, Hound of Konda" lifelink
+}
+
+scenario "blessing of belzenlok: a nonlegendary creature does not" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Blessing of Belzenlok"
+  turn 1 A: cast "Blessing of Belzenlok" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has not "Grizzly Bears" lifelink
+}
+
+scenario "eye gouge: a Cyclops is destroyed" {
+  battlefield A: "Swamp"
+  battlefield B: "Cyclops Tyrant"
+  hand A: "Eye Gouge"
+  turn 1 A: cast "Eye Gouge" targeting "Cyclops Tyrant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Cyclops Tyrant"
+}
+
+scenario "topple the statue: an artifact is destroyed, a creature only tapped" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Aeolipile", "Grizzly Bears"
+  hand A: 2 "Topple the Statue"
+  turn 1 A: cast "Topple the Statue" targeting "Aeolipile"
+  turn 1 A: wait
+  turn 1 A: cast "Topple the Statue" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Aeolipile"
+  assert battlefield B contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "cemetery recruitment: a Zombie card draws a card" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Bog Raiders"
+  hand A: "Cemetery Recruitment"
+  turn 1 A: cast "Cemetery Recruitment" targeting "Bog Raiders"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Bog Raiders"
+  assert hand A count 2
+}
+
+scenario "cemetery recruitment: another creature card draws nothing" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Cemetery Recruitment"
+  turn 1 A: cast "Cemetery Recruitment" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "starfall: an enchantment creature's controller is dealt damage too" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Bamboo Grove Archer"
+  hand A: "Starfall"
+  turn 1 A: cast "Starfall" targeting "Bamboo Grove Archer"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Bamboo Grove Archer"
+  assert life B 17
+}
+
+scenario "starfall: no enchantment, no extra damage" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Starfall"
+  turn 1 A: cast "Starfall" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "burn the impure: a creature with infect" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Blighted Agent"
+  hand A: "Burn the Impure"
+  turn 1 A: cast "Burn the Impure" targeting "Blighted Agent"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "rush the room: an Orc also gains haste" {
+  battlefield A: "Mountain"
+  hand A: "Rush the Room", "Brassclaw Orcs"
+  battlefield A: 3 "Mountain"
+  turn 1 A: cast "Brassclaw Orcs"
+  turn 1 A: wait
+  turn 1 A: cast "Rush the Room" targeting "Brassclaw Orcs"
+  turn 1 A: attack "Brassclaw Orcs"
+  run_to turn 1 end_combat
+  assert life B 16
+}
+
+scenario "little bear: a Bear also gets a counter" {
+  battlefield A: 3 "Forest", "Grizzly Bears" tapped
+  hand A: "Little Bear"
+  turn 1 A: cast "Little Bear"
+  turn 1 A: trigger "Little Bear" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "little bear: a non-Bear is only untapped" {
+  battlefield A: 3 "Forest", "Hill Giant" tapped
+  hand A: "Little Bear"
+  turn 1 A: cast "Little Bear"
+  turn 1 A: trigger "Little Bear" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "spell stutter: {2} with no Faeries, unpaid" {
+  battlefield A: 3 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Grizzly Bears"
+  hand B: "Spell Stutter"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 B: cast "Spell Stutter" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "mistfolk: counter target spell that targets this creature" {
+  battlefield A: "Island", "Mistfolk"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Mistfolk"
+  turn 2 A: activate "Mistfolk" targeting "Shock"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Shock"
+  assert battlefield A contains "Mistfolk"
+  assert damage "Mistfolk" 0
+}
+
+scenario "mistfolk: not a spell that targets something else" {
+  battlefield A: "Island", "Mistfolk"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  illegal turn 2 A: activate "Mistfolk" targeting "Shock"
+  run_to turn 2 begin_combat
+  assert life A 18
+}
+
+scenario "budding insurgent: a legendary enchantment destroyed draws a card" {
+  battlefield A: "Budding Insurgent"
+  battlefield B: "Honden of Seeing Winds"
+  turn 1 A: activate "Budding Insurgent" targeting "Honden of Seeing Winds"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Honden of Seeing Winds"
+  assert hand A count 1
+}
+
+scenario "budding insurgent: an artifact destroyed draws nothing" {
+  battlefield A: "Budding Insurgent"
+  battlefield B: "Aeolipile"
+  turn 1 A: activate "Budding Insurgent" targeting "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Aeolipile"
+  assert hand A count 0
+}
+
+# ---- countering abilities (CR 701.5a: removed from the stack) -----------------------------
+
+scenario "rust: counter an activated ability from an artifact source" {
+  battlefield A: "Plains", "Aeolipile"
+  battlefield B: "Forest"
+  hand B: "Rust"
+  turn 1 A: activate "Aeolipile" targeting player B
+  turn 1 B: cast "Rust" targeting "Aeolipile" in response to "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Aeolipile"
+  assert graveyard B contains "Rust"
+}
+
+scenario "rust: not an ability of a creature" {
+  battlefield A: "Prodigal Sorcerer"
+  battlefield B: "Forest"
+  hand B: "Rust"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  illegal turn 1 B: cast "Rust" targeting "Prodigal Sorcerer" in response to "Prodigal Sorcerer"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "rust: no ability on the stack, nothing to cast it on" {
+  battlefield A: "Aeolipile"
+  battlefield B: "Forest"
+  hand B: "Rust"
+  illegal turn 1 B: cast "Rust" targeting "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Rust"
+}
+
+scenario "brown ouphe: counter an artifact's activated ability" {
+  battlefield A: "Plains", "Aeolipile"
+  battlefield B: 2 "Forest", "Brown Ouphe"
+  turn 1 A: activate "Aeolipile" targeting player B
+  turn 1 B: activate "Brown Ouphe" targeting "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert tapped "Brown Ouphe"
+}
+
+scenario "mirrorshell crab: channel counters an ability unless its controller pays {3}" {
+  battlefield A: "Plains", "Aeolipile"
+  battlefield B: 3 "Island"
+  hand B: "Mirrorshell Crab"
+  turn 1 A: activate "Aeolipile" targeting player B
+  turn 1 B: activate "Mirrorshell Crab" targeting "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Mirrorshell Crab"
+}
+
+scenario "mirrorshell crab: the ransom paid, the ability resolves" {
+  battlefield A: 4 "Plains", "Aeolipile"
+  battlefield B: 3 "Island"
+  hand B: "Mirrorshell Crab"
+  turn 1 A: activate "Aeolipile" targeting player B
+  turn 1 B: activate "Mirrorshell Crab" targeting "Aeolipile"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "mirrorshell crab: channel counters a spell too" {
+  battlefield A: "Mountain"
+  battlefield B: 3 "Island"
+  hand A: "Lightning Bolt"
+  hand B: "Mirrorshell Crab"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: activate "Mirrorshell Crab" targeting "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+}
+
+scenario "ward counters an ability that targets it" {
+  battlefield A: "Plains", "Aeolipile"
+  battlefield B: "Mirrorshell Crab"
+  turn 1 A: activate "Aeolipile" targeting "Mirrorshell Crab"
+  run_to turn 1 postcombat_main
+  assert damage "Mirrorshell Crab" 0
+}

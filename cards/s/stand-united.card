@@ -1,0 +1,6 @@
+card "Stand United" {
+  oracle_id 5a05ee6e-1812-4792-ad00-6df8fa4fd85f
+  cost {1}{G/W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is Ally, scry 2
+}

@@ -740,7 +740,11 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_mul(per_count(work, source, controller, inner));
         }
-        CountExpr::SourcePower | CountExpr::TargetStat { .. } => 0,
+        // Resolution-time counts only.
+        CountExpr::SourcePower
+        | CountExpr::TargetStat { .. }
+        | CountExpr::TargetManaValue(_)
+        | CountExpr::GreatestPower(_) => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

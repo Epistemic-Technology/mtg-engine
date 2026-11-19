@@ -7,6 +7,39 @@ use mtg_core::card::{
     CardType, Condition, CounterKind, Keyword, Num, PtValue, Relation, Replacement as Outcome,
     RuleKind, Supertype, TargetSpec, Who,
 };
+pub use mtg_core::card::{CounteredTo, LibraryPlace};
+
+/// How `Effect::IfTarget` words its check.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub struct TargetCheck {
+    pub tense: TargetTense,
+    /// `also` after the comma: "it also gains lifelink".
+    pub also: bool,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum TargetTense {
+    /// `if target 1 was`: "If that creature was ...".
+    #[default]
+    Was,
+    /// `if target 1 is`: "If it's ...".
+    Is,
+    /// `if that target 1 is`: "If that creature is ...".
+    ThatIs,
+}
+
+/// How a library placement is worded (`Effect::PutInLibrary`).
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum LibraryWording {
+    /// `put ...`: "Put target creature on top of its owner's library",
+    /// "Shuffle enchanted creature into its owner's library".
+    Put,
+    /// `owner puts ...`: "Target creature's owner puts it ...".
+    Owner,
+    /// `owner of ... puts it ...`: "The owner of target nonland permanent
+    /// puts it ...".
+    OwnerOf,
+}
 use mtg_core::mana::{Color, Mana, ManaCost};
 use mtg_core::turn::Step;
 
@@ -159,6 +192,11 @@ pub enum CountExpr {
         word: bool,
         inner: Box<CountExpr>,
     },
+    /// `mana value of target 1`: "its mana value".
+    TargetManaValue(usize),
+    /// `greatest power creature you control`: "the greatest power among
+    /// creatures you control".
+    GreatestPower(Filter),
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -1336,20 +1374,31 @@ pub enum Effect {
     CreateEmblem {
         emblem: String,
     },
+    /// `counter target spell [to exile | to library top]`.
     Counter {
         to: Recipient,
+        dest: CounteredTo,
     },
+    /// `counter target spell unless its controller pays {X} [count ...]
+    /// [to exile]`: an {X} is `x` (the spell's X when no count is given).
     CounterUnlessPays {
         to: Recipient,
         mana: ManaCost,
+        x: Num,
+        dest: CounteredTo,
     },
     Scry(Num),
     /// "Investigate" (CR 701.16): create a Clue token.
     Investigate,
-    /// `put target creature on top of library` / `on bottom of library`.
+    /// `put target creature on top of library`, `on bottom of library`,
+    /// `into library 2 from top`; `owner puts target creature on top or
+    /// bottom of library` ("Target creature's owner puts it on their
+    /// choice ..."); `owner of target creature puts it into library 2
+    /// from top or bottom`; `shuffle enchanted creature into library`.
     PutInLibrary {
         what: Recipient,
-        top: bool,
+        place: LibraryPlace,
+        wording: LibraryWording,
     },
     /// `each opponent sacrifices 1 creature`: "Each opponent sacrifices a
     /// creature of their choice."
@@ -1491,8 +1540,10 @@ pub enum Effect {
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
-    /// `if target 1 was Human, ...`: "If that creature was a Human, ...".
-    IfTarget(usize, Filter, Vec<Sentence>),
+    /// `if target 1 was Human, ...`: "If that creature was a Human, ...";
+    /// `if target 1 is Vampire, also ...`: "If it's a Vampire, it also
+    /// ..." (the target as it resolves).
+    IfTarget(usize, Filter, Vec<Sentence>, TargetCheck),
     /// `if you control Treefolk, draw 1 card`: a static condition,
     /// judged as it resolves.
     IfCondition(StaticCond, Vec<Sentence>),

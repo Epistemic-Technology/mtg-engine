@@ -757,11 +757,13 @@ impl GameState {
                         .legal_targets(caster, spec, source)
                         .into_iter()
                         .filter(|t| {
-                            !chosen.iter().enumerate().any(|(i, c)| {
-                                c == t
-                                    && crate::card::spec_for(&specs, i)
-                                        .is_some_and(|s| s == spec || another)
-                            })
+                            // CR 115.5: an ability can't target itself.
+                            *t != Target::Object(spell)
+                                && !chosen.iter().enumerate().any(|(i, c)| {
+                                    c == t
+                                        && crate::card::spec_for(&specs, i)
+                                            .is_some_and(|s| s == spec || another)
+                                })
                         })
                         .map(Choice::Target)
                         .collect();
