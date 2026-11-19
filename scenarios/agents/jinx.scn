@@ -1,0 +1,16 @@
+scenario "Jinx turns a land into a Swamp and draws next upkeep" {
+  battlefield A: 2 "Island"
+  battlefield B: "Forest"
+  hand A: "Jinx"
+  library A: 3 "Plains"
+  library B: 3 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Jinx" targeting "Forest"
+  turn 1 A: choose Swamp
+  run_to turn 1 end
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+  assert hand A count 0
+  run_to turn 2 draw
+  assert hand A count 1
+}

@@ -1,0 +1,19 @@
+scenario "Justiciar's Portal blinks a creature, which gains first strike" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Justiciar's Portal"
+  turn 1 A: cast "Justiciar's Portal" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Holy Strength"
+  assert has "Grizzly Bears" first_strike
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Justiciar's Portal can't target an opponent's creature" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Justiciar's Portal"
+  illegal turn 1 A: cast "Justiciar's Portal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Justiciar's Portal"
+}

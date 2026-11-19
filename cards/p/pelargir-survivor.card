@@ -1,0 +1,8 @@
+card "Pelargir Survivor" {
+  oracle_id ce0b3c22-3f77-4a6c-a126-9ed3c06b4482
+  cost {1}{U}
+  type Creature — Human Peasant
+  pt 1/3
+  mana any only to cast instant or sorcery spell
+  activated {5}{U}, {T}: target player mills 3 cards
+}

@@ -1,0 +1,7 @@
+card "Sage of Epityr" {
+  oracle_id ef893585-246c-4028-bd2b-14ac51ce29be
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  triggered when this enters: look at top 4
+}

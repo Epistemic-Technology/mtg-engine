@@ -1,0 +1,7 @@
+card "Folk Medicine" {
+  oracle_id 135eb851-3f2d-45c5-bfb9-49d1e6c98344
+  cost {2}{G}
+  type Instant
+  spell: you gain count each creature you control life
+  flashback {1}{W}
+}

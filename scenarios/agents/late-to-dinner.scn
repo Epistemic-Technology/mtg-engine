@@ -1,0 +1,10 @@
+scenario "Late to Dinner returns a creature and makes a Food" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Hill Giant"
+  hand A: "Late to Dinner"
+  turn 1 A: cast "Late to Dinner" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert battlefield A contains "Food"
+  assert graveyard A contains "Late to Dinner"
+}

@@ -1,0 +1,13 @@
+scenario "Moonlit Strider gives protection from the chosen color" {
+  battlefield A: "Moonlit Strider", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Moonlit Strider" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Moonlit Strider"
+  assert hand B contains "Lightning Bolt"
+  assert battlefield A contains "Grizzly Bears"
+}

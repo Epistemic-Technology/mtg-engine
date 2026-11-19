@@ -1,0 +1,12 @@
+scenario "Metalspinner's Puzzleknot draws on entering and on sacrifice" {
+  battlefield A: 5 "Swamp"
+  hand A: "Metalspinner's Puzzleknot"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Metalspinner's Puzzleknot"
+  turn 1 A: wait
+  turn 1 A: activate "Metalspinner's Puzzleknot"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert hand A count 2
+  assert graveyard A contains "Metalspinner's Puzzleknot"
+}

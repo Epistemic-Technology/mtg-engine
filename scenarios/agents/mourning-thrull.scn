@@ -1,0 +1,8 @@
+scenario "Mourning Thrull gains life equal to its damage" {
+  battlefield A: "Mourning Thrull"
+  start turn 1 A
+  turn 1 A: attack "Mourning Thrull"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}

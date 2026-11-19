@@ -1,0 +1,10 @@
+scenario "Folk Medicine: gain 1 life per creature, then flashback" {
+  battlefield A: 3 "Forest", 2 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Folk Medicine"
+  turn 1 A: cast "Folk Medicine"
+  turn 1 A: wait
+  turn 1 A: cast "Folk Medicine" from graveyard
+  run_to turn 1 postcombat_main
+  assert life A 24
+  assert exile A contains "Folk Medicine"
+}

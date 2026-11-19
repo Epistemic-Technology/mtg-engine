@@ -1,0 +1,11 @@
+scenario "Mordor Muster draws, drains you, and amasses Orcs 1" {
+  battlefield A: 2 "Swamp"
+  hand A: "Mordor Muster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mordor Muster"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+  assert counters "Orc Army" +1/+1 1
+  assert power "Orc Army" 1
+}

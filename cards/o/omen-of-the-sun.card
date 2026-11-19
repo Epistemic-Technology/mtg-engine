@@ -1,0 +1,8 @@
+card "Omen of the Sun" {
+  oracle_id 08740dda-0629-4b6f-bbcc-c8088105b5e7
+  cost {2}{W}
+  type Enchantment
+  keywords flash
+  triggered when this enters: create 2 "1/1 white Human Soldier creature" and you gain 2 life
+  activated {2}{W}, sacrifice this: scry 2
+}

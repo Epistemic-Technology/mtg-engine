@@ -1,0 +1,9 @@
+card "Glacial Grasp" {
+  oracle_id c3006be3-a796-4238-95dd-1e8e47c063b5
+  cost {2}{U}
+  type Instant
+  spell {
+    tap target creature; its controller mills 2 cards; that target 1 doesn't untap next untap step
+    draw 1 card
+  }
+}

@@ -1,0 +1,12 @@
+scenario "Rally the Peasants pumps, then flashes back" {
+  battlefield A: 3 "Plains", 3 "Mountain", "Grizzly Bears"
+  hand A: "Rally the Peasants"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rally the Peasants"
+  turn 1 A: wait
+  turn 1 A: cast "Rally the Peasants" from graveyard
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 2
+  assert exile A contains "Rally the Peasants"
+}

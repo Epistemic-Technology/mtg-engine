@@ -1,0 +1,12 @@
+scenario "Galactic Wayfarer leaves a Lander that fetches a land" {
+  battlefield A: 5 "Forest"
+  hand A: "Galactic Wayfarer"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Galactic Wayfarer"
+  turn 1 postcombat_main A: activate "Lander"
+  run_to turn 1 end
+  assert battlefield A contains "Galactic Wayfarer"
+  assert battlefield A lacks "Lander"
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+}

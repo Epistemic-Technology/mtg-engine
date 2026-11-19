@@ -1,0 +1,21 @@
+scenario "Resourceful Return returns a creature and draws with an artifact" {
+  battlefield A: 2 "Swamp", "Ornithopter"
+  graveyard A: "Hill Giant"
+  hand A: "Resourceful Return"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Resourceful Return" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 2
+}
+
+scenario "Resourceful Return draws nothing without an artifact" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Resourceful Return"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Resourceful Return" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+}

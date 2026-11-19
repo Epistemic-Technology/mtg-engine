@@ -1,0 +1,8 @@
+card "Dwindle" {
+  oracle_id 48a8fce6-b493-4b1d-8ac8-2a4f4b4781b5
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -6/+0
+  triggered when enchanted creature blocks: destroy it
+}

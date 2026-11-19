@@ -1,0 +1,21 @@
+scenario "Pelargir Survivor mills a player" {
+  battlefield A: "Pelargir Survivor", 6 "Island"
+  library B: "Forest", "Island", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pelargir Survivor" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B count 3
+  assert library B count 1
+  assert tapped "Pelargir Survivor"
+}
+
+scenario "Pelargir Survivor's mana pays for an instant but not a creature" {
+  battlefield A: "Pelargir Survivor"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock", "Llanowar Elves"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Llanowar Elves"
+  turn 1 postcombat_main A: cast "Shock" targeting B "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}

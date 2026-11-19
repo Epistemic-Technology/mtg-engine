@@ -1,0 +1,6 @@
+card "Feat of Resistance" {
+  oracle_id 2038f505-7b03-4c63-bc44-c5139729dd05
+  cost {1}{W}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature you control; target 1 gains protection from color of choice
+}

@@ -1,0 +1,11 @@
+scenario "Scouring Sands deals 1 damage to each creature your opponents control" {
+  battlefield A: 2 "Mountain", "Llanowar Elves"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Scouring Sands"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scouring Sands"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}

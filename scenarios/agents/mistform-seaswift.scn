@@ -1,0 +1,10 @@
+scenario "Mistform Seaswift becomes the chosen creature type" {
+  battlefield A: "Mistform Seaswift", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mistform Seaswift"
+  turn 1 A: choose Goblin
+  run_to turn 1 postcombat_main
+  assert is "Mistform Seaswift" Goblin
+  assert is not "Mistform Seaswift" Illusion
+  assert has "Mistform Seaswift" flying
+}

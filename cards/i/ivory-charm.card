@@ -1,0 +1,10 @@
+card "Ivory Charm" {
+  oracle_id dded2874-e80f-401a-b700-52c54dd6da60
+  cost {W}
+  type Instant
+  choose one {
+    mode: each creature gets -2/-0
+    mode: tap target creature
+    mode: prevent next 1 damage to any target this turn
+  }
+}

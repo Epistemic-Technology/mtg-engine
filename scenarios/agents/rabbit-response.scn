@@ -1,0 +1,14 @@
+scenario "Rabbit Response pumps your creatures and scries with a Rabbit" {
+  battlefield A: 4 "Plains", "Zodiac Rabbit", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Rabbit Response"
+  library A: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rabbit Response"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Zodiac Rabbit" 3
+  assert power "Hill Giant" 3
+  assert library A count 3
+}

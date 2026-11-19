@@ -1,0 +1,10 @@
+card "Phantom Nomad" {
+  oracle_id bf65a7a7-a590-41eb-9844-184e5d63e32a
+  cost {1}{W}
+  type Creature — Spirit Nomad
+  pt 0/0
+  enters with 2 +1/+1 counters
+  replace damage to this: prevent {
+    remove 1 +1/+1 counter from this
+  }
+}

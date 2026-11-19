@@ -1,0 +1,8 @@
+card "Scavenged Blade" {
+  oracle_id 2e7b4df3-7c36-469f-8db8-b3081a2c5691
+  cost {1}{R}
+  type Artifact — Equipment
+  triggered when this enters: attach to target creature you control
+  static equipped creature: +2/+0
+  equip {2}{R}
+}

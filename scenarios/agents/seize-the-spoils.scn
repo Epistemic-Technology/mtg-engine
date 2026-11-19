@@ -1,0 +1,10 @@
+scenario "Seize the Spoils discards, draws two, and makes a Treasure" {
+  battlefield A: 3 "Mountain"
+  hand A: "Seize the Spoils", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Seize the Spoils" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A count 2
+  assert battlefield A contains 1 "Treasure"
+}

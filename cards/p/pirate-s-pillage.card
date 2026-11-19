@@ -1,0 +1,7 @@
+card "Pirate's Pillage" {
+  oracle_id 7a2e866b-9642-495e-b47f-5b13a24373cc
+  cost {3}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards and create 2 "Treasure"
+}

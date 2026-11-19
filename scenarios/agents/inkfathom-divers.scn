@@ -1,0 +1,19 @@
+scenario "Inkfathom Divers looks at the top four" {
+  battlefield A: 5 "Island"
+  hand A: "Inkfathom Divers"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Wind Drake", "Forest"
+  turn 1 A: cast "Inkfathom Divers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Inkfathom Divers"
+  assert hand A count 0
+  assert library A count 5
+}
+
+scenario "Inkfathom Divers islandwalks" {
+  battlefield A: "Inkfathom Divers"
+  battlefield B: "Island", "Hill Giant"
+  turn 1 A: attack "Inkfathom Divers"
+  illegal turn 1 B: block "Inkfathom Divers" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

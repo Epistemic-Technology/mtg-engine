@@ -1,0 +1,29 @@
+scenario "Gloomwidow's Feast on a blue flyer makes a Spider" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Gloomwidow's Feast"
+  turn 1 A: cast "Gloomwidow's Feast" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert battlefield A contains "Spider"
+  assert has "Spider" reach
+}
+
+scenario "Gloomwidow's Feast on a white flyer makes no Spider" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Gloomwidow's Feast"
+  turn 1 A: cast "Gloomwidow's Feast" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert battlefield A lacks "Spider"
+}
+
+scenario "Gloomwidow's Feast can't target a creature without flying" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Gloomwidow's Feast"
+  illegal turn 1 A: cast "Gloomwidow's Feast" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

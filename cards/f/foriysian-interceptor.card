@@ -1,0 +1,7 @@
+card "Foriysian Interceptor" {
+  oracle_id 52989a30-773d-4daf-aea3-8dbee2a947fa
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 0/5
+  keywords flash, defender, can block an additional creature each combat
+}

@@ -1,0 +1,9 @@
+card "Mephitic Vapors" {
+  oracle_id 5731ecb5-6ddc-4452-990c-b69986367f25
+  cost {2}{B}
+  type Sorcery
+  spell {
+    each creature gets -1/-1
+    surveil 2
+  }
+}

@@ -1,0 +1,8 @@
+card "Leonin Lightbringer" {
+  oracle_id 1f874f7f-b959-4de5-a5db-e65a90ac2f9d
+  cost {2}{W}
+  type Creature — Cat Rebel
+  pt 3/2
+  ward {2}
+  static as long as equipped, this: +1/+1
+}

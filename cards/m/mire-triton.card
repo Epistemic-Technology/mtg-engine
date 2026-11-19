@@ -1,0 +1,8 @@
+card "Mire Triton" {
+  oracle_id 4fe6f784-0290-4d4a-85ae-0b66522d31e9
+  cost {1}{B}
+  type Creature — Zombie Merfolk
+  pt 2/1
+  keywords deathtouch
+  triggered when this enters: mill 2 cards and you gain 2 life
+}

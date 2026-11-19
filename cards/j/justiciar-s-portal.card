@@ -1,0 +1,6 @@
+card "Justiciar's Portal" {
+  oracle_id 0214805d-d207-42da-a25f-2a8e1990904e
+  cost {1}{W}
+  type Instant
+  spell: exile target creature you control then return that card to battlefield; target 1 gains first strike
+}

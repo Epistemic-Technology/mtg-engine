@@ -1,0 +1,31 @@
+scenario "Eviscerator's Insight: sacrifice a creature, draw two" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Eviscerator's Insight"
+  library A: 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eviscerator's Insight" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Eviscerator's Insight"
+  assert hand A count 2
+}
+
+scenario "Eviscerator's Insight: flashback from the graveyard" {
+  battlefield A: 5 "Swamp", "Hill Giant"
+  graveyard A: "Eviscerator's Insight"
+  library A: 5 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Eviscerator's Insight" from graveyard sacrificing "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert exile A contains "Eviscerator's Insight"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Eviscerator's Insight: nothing to sacrifice, can't cast" {
+  battlefield A: 2 "Swamp"
+  hand A: "Eviscerator's Insight"
+  illegal turn 1 A: cast "Eviscerator's Insight"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Eviscerator's Insight"
+}

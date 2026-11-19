@@ -1,0 +1,22 @@
+scenario "Kicked Phyrexian Warhorse makes a Soldier" {
+  battlefield A: 3 "Swamp", 2 "Plains"
+  hand A: "Phyrexian Warhorse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phyrexian Warhorse" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soldier"
+}
+
+scenario "Unkicked Phyrexian Warhorse makes no Soldier; sacrifice pumps it" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  hand A: "Phyrexian Warhorse"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phyrexian Warhorse"
+  turn 1 A: wait
+  turn 1 A: activate "Phyrexian Warhorse" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Soldier"
+  assert graveyard A contains "Grizzly Bears"
+  assert power "Phyrexian Warhorse" 5
+  assert toughness "Phyrexian Warhorse" 4
+}

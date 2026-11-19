@@ -1,0 +1,22 @@
+scenario "Phantom Nomad enters with two counters and survives a Bolt" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Phantom Nomad"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phantom Nomad"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Phantom Nomad"
+  run_to turn 1 end
+  assert counters "Phantom Nomad" +1/+1 1
+  assert toughness "Phantom Nomad" 1
+}
+
+scenario "Phantom Nomad dies after losing its last counter" {
+  battlefield A: "Phantom Nomad" with 1 +1/+1
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 1 A precombat_main
+  turn 1 B: cast "Shock" targeting "Phantom Nomad"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Phantom Nomad"
+}

@@ -1,0 +1,21 @@
+scenario "Floodchaser enters with six counters and can't attack without an Island" {
+  battlefield A: 6 "Island"
+  hand A: "Floodchaser"
+  battlefield B: "Plains"
+  turn 1 A: cast "Floodchaser"
+  illegal turn 3 A: attack "Floodchaser"
+  run_to turn 3 postcombat_main
+  assert power "Floodchaser" 6
+  assert life B 20
+}
+
+scenario "Floodchaser turns a land into an Island, then attacks" {
+  battlefield A: "Floodchaser" with 6 +1/+1, "Island"
+  battlefield B: "Plains"
+  turn 1 A: activate "Floodchaser" targeting "Plains"
+  turn 1 A: attack "Floodchaser"
+  run_to turn 1 postcombat_main
+  assert counters "Floodchaser" +1/+1 5
+  assert is "Plains" Island
+  assert life B 15
+}

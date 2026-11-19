@@ -1,0 +1,15 @@
+scenario "Dwindle shrinks and destroys the blocker" {
+  battlefield A: "Hill Giant", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Dwindle"
+  turn 1 A: cast "Dwindle" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" -4
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Dwindle"
+  assert battlefield A contains "Hill Giant"
+  assert life B 20
+}

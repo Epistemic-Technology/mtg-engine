@@ -1,0 +1,20 @@
+scenario "Scavenged Blade attaches as it enters" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  hand A: "Scavenged Blade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Scavenged Blade"
+  turn 1 A: trigger "Scavenged Blade" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Scavenged Blade" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Scavenged Blade equips for {2}{R}" {
+  battlefield A: 3 "Mountain", "Grizzly Bears", "Scavenged Blade"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Scavenged Blade" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Scavenged Blade" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+}

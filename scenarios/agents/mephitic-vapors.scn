@@ -1,0 +1,13 @@
+scenario "Mephitic Vapors shrinks all creatures" {
+  battlefield A: 3 "Swamp", "Llanowar Elves"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Mephitic Vapors"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mephitic Vapors"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Llanowar Elves"
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  assert graveyard A contains "Mephitic Vapors"
+}

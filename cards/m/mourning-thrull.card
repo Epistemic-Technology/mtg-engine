@@ -1,0 +1,8 @@
+card "Mourning Thrull" {
+  oracle_id 0406a534-c69c-40bb-801f-228a662ac1a2
+  cost {1}{W/B}
+  type Creature — Thrull
+  pt 1/1
+  keywords flying
+  triggered whenever this deals damage: you gain that much life
+}

@@ -1,0 +1,21 @@
+scenario "Leonin Lightbringer gets +1/+1 while equipped" {
+  battlefield A: "Leonin Lightbringer", "Bonesplitter", "Plains"
+  run_to turn 1 precombat_main
+  assert power "Leonin Lightbringer" 3
+  turn 1 A: activate "Bonesplitter" targeting "Leonin Lightbringer"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Leonin Lightbringer"
+  assert power "Leonin Lightbringer" 6
+  assert toughness "Leonin Lightbringer" 3
+}
+
+scenario "Leonin Lightbringer has ward 2" {
+  battlefield A: "Leonin Lightbringer"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Shock" targeting "Leonin Lightbringer"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Leonin Lightbringer"
+  assert graveyard B contains "Shock"
+}

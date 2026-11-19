@@ -1,0 +1,9 @@
+card "Henchfiend of Ukor" {
+  oracle_id 91b5688d-4dd6-477b-998f-bdc7612de37a
+  cost {3}{R}
+  type Creature — Ogre
+  pt 3/2
+  keywords haste
+  echo {1}{B}
+  activated {B/R}: this gets +1/+0
+}

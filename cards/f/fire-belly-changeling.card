@@ -1,0 +1,8 @@
+card "Fire-Belly Changeling" {
+  oracle_id 65c1cac7-87d1-4687-86ba-f7c63c4f8549
+  cost {1}{R}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  activated {R}, 2 times per turn: this gets +1/+0
+}

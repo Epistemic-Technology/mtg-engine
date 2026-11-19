@@ -1,0 +1,7 @@
+card "Pestilent Souleater" {
+  oracle_id c4779671-2a01-4eef-847c-ede36091fc4a
+  cost {5}
+  type Artifact Creature — Phyrexian Insect
+  pt 3/3
+  activated {B/P}: this gains infect
+}

@@ -1,0 +1,7 @@
+card "Sewer Rats" {
+  oracle_id bf526a0d-65cc-445f-b2b8-19a2cfdd836b
+  cost {B}
+  type Creature — Rat
+  pt 1/1
+  activated {B}, pay 1 life, 3 times per turn: this gets +1/+0
+}

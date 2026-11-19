@@ -1,0 +1,9 @@
+card "Mordor Muster" {
+  oracle_id 492108b7-f831-4739-925f-c3a419859c52
+  cost {1}{B}
+  type Sorcery
+  spell {
+    you draw 1 card, and you lose 1 life
+    amass Orcs 1
+  }
+}

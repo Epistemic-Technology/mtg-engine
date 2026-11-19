@@ -1,0 +1,6 @@
+card "Rabbit Response" {
+  oracle_id 9f7abd7d-1087-495c-8a52-2a2368cc1032
+  cost {2}{W}{W}
+  type Instant
+  spell: each creature you control gets +2/+1; if you control Rabbit, scry 2
+}

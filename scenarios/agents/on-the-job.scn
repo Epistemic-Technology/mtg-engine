@@ -1,0 +1,12 @@
+scenario "On the Job pumps your creatures and investigates" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "On the Job"
+  start turn 1 A precombat_main
+  turn 1 A: cast "On the Job"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+  assert battlefield A contains "Clue"
+}

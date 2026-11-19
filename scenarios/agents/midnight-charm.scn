@@ -1,0 +1,21 @@
+scenario "Midnight Charm mode 1 pings a creature and gains life" {
+  battlefield A: "Swamp"
+  battlefield B: "Llanowar Elves"
+  hand A: "Midnight Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Charm" mode 1 targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life A 21
+}
+
+scenario "Midnight Charm mode 3 taps a creature" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Midnight Charm"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Midnight Charm" mode 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life A 20
+}

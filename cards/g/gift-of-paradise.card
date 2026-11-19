@@ -1,0 +1,8 @@
+card "Gift of Paradise" {
+  oracle_id 43a86d36-9653-4498-a533-8b30b919cdbf
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: you gain 3 life
+  static enchanted: has ability { activated {T}: add any 2 }
+}

@@ -1,0 +1,13 @@
+scenario "Glimmerlight makes a Glimmer and equips it" {
+  battlefield A: 3 "Plains"
+  hand A: "Glimmerlight"
+  turn 1 A: cast "Glimmerlight"
+  turn 1 A: wait
+  turn 1 A: activate "Glimmerlight" targeting "Glimmer"
+  run_to turn 1 end
+  assert battlefield A contains "Glimmer"
+  assert is "Glimmer" enchantment
+  assert attached "Glimmerlight" to "Glimmer"
+  assert power "Glimmer" 2
+  assert toughness "Glimmer" 2
+}

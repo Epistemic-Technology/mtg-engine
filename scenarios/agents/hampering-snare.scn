@@ -1,0 +1,23 @@
+scenario "Hampering Snare shrinks opposing attackers" {
+  battlefield A: 2 "Island", "Wind Drake"
+  battlefield B: "Hill Giant"
+  hand A: "Hampering Snare"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Hampering Snare"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert power "Hill Giant" 1
+  assert power "Wind Drake" 2
+}
+
+scenario "Hampering Snare cycles" {
+  battlefield A: 2 "Island"
+  hand A: "Hampering Snare"
+  library A: "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Hampering Snare"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hampering Snare"
+  assert hand A contains "Forest"
+}

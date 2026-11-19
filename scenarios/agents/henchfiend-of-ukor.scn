@@ -1,0 +1,21 @@
+scenario "Henchfiend of Ukor: haste and firebreathing" {
+  battlefield A: 4 "Mountain", 2 "Swamp"
+  hand A: "Henchfiend of Ukor"
+  turn 1 A: cast "Henchfiend of Ukor"
+  turn 1 A: wait
+  turn 1 A: activate "Henchfiend of Ukor"
+  turn 1 A: wait
+  turn 1 A: activate "Henchfiend of Ukor"
+  turn 1 A: attack "Henchfiend of Ukor"
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "Henchfiend of Ukor: echo unpaid, sacrificed" {
+  battlefield A: 4 "Mountain"
+  hand A: "Henchfiend of Ukor"
+  library A: 3 "Mountain"
+  turn 1 A: cast "Henchfiend of Ukor"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Henchfiend of Ukor"
+}

@@ -1,0 +1,8 @@
+card "Mounted Archers" {
+  oracle_id 22517690-3ec1-49c9-951f-93eb3114423a
+  cost {3}{W}
+  type Creature — Human Soldier Archer
+  pt 2/3
+  keywords reach
+  activated {W}: this can block an additional creature
+}

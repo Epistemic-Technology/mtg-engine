@@ -1,0 +1,7 @@
+card "Inescapable Brute" {
+  oracle_id cb69e07c-c831-4992-8089-3a3a1278c45b
+  cost {5}{R}
+  type Creature — Giant Warrior
+  pt 3/3
+  keywords wither, must be blocked if able
+}

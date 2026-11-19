@@ -1,0 +1,13 @@
+scenario "Mire Triton mills two and gains 2 life" {
+  battlefield A: 2 "Swamp"
+  hand A: "Mire Triton"
+  library A: "Forest", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mire Triton"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert library A contains "Plains"
+  assert has "Mire Triton" deathtouch
+}

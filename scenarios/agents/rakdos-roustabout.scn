@@ -1,0 +1,18 @@
+scenario "Rakdos Roustabout pings the defending player when blocked" {
+  battlefield A: "Rakdos Roustabout"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Rakdos Roustabout"
+  turn 1 B: block "Rakdos Roustabout" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Rakdos Roustabout"
+}
+
+scenario "Unblocked Rakdos Roustabout deals only combat damage" {
+  battlefield A: "Rakdos Roustabout"
+  start turn 1 A
+  turn 1 A: attack "Rakdos Roustabout"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

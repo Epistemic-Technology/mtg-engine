@@ -1,0 +1,26 @@
+scenario "Recumbent Bliss gains life in your upkeep" {
+  battlefield A: "Recumbent Bliss" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert life A 21
+}
+
+scenario "Enchanted creature can't attack" {
+  battlefield A: "Recumbent Bliss" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "Enchanted creature can't block" {
+  battlefield A: "Grizzly Bears", "Recumbent Bliss" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

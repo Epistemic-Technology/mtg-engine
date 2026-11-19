@@ -1,0 +1,8 @@
+card "Haradrim Spearmaster" {
+  oracle_id 4da49285-e577-487f-9997-ba49f2b5753e
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/3
+  keywords reach
+  triggered at beginning of your combat: another target creature you control gets +1/+0
+}

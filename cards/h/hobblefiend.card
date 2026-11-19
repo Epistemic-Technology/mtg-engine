@@ -1,0 +1,8 @@
+card "Hobblefiend" {
+  oracle_id f2b284cd-fa12-4ba1-b297-80105bb48fde
+  cost {1}{R}
+  type Creature — Devil
+  pt 2/1
+  keywords trample
+  activated {1}, sacrifice other creature: put 1 +1/+1 counter on this
+}

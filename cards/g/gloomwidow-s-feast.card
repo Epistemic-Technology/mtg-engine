@@ -1,0 +1,6 @@
+card "Gloomwidow's Feast" {
+  oracle_id 3ceae65e-938d-4e76-b3f6-7be70232549e
+  cost {3}{G}
+  type Instant
+  spell: destroy target creature with flying; if target 1 was blue or black, create 1 "1/2 green Spider creature with reach"
+}

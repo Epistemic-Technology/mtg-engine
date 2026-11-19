@@ -1,0 +1,9 @@
+card "Jinx" {
+  oracle_id e6e1b51c-ba4b-4997-968a-751b4cba110f
+  cost {1}{U}
+  type Instant
+  spell {
+    target land becomes land type of choice
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

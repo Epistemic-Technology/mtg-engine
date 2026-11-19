@@ -1,0 +1,11 @@
+scenario "Sage Aven looks at the top four cards" {
+  battlefield A: 4 "Island"
+  hand A: "Sage Aven"
+  library A: "Forest", "Island", "Plains", "Swamp", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sage Aven"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sage Aven"
+  assert has "Sage Aven" flying
+  assert library A count 5
+}

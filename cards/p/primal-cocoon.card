@@ -1,0 +1,8 @@
+card "Primal Cocoon" {
+  oracle_id 79f575b3-ebd7-4d6a-acb9-27c16bcc7a39
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of your upkeep: put 1 +1/+1 counter on enchanted creature
+  triggered when enchanted creature attacks or blocks: sacrifice this
+}

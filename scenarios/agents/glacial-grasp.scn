@@ -1,0 +1,15 @@
+scenario "Glacial Grasp taps, mills, freezes, and draws" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Glacial Grasp"
+  library A: 3 "Island"
+  library B: 5 "Mountain"
+  start turn 2 B upkeep
+  turn 2 A: cast "Glacial Grasp" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert graveyard B count 2
+  assert hand A count 1
+  run_to turn 4 precombat_main
+  assert tapped "Hill Giant"
+}

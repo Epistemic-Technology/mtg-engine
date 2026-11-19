@@ -1,0 +1,15 @@
+scenario "Sewer Rats pumps at most three times a turn" {
+  battlefield A: "Sewer Rats", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sewer Rats"
+  turn 1 A: wait
+  turn 1 A: activate "Sewer Rats"
+  turn 1 A: wait
+  turn 1 A: activate "Sewer Rats"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Sewer Rats"
+  run_to turn 1 postcombat_main
+  assert power "Sewer Rats" 4
+  assert toughness "Sewer Rats" 1
+  assert life A 17
+}

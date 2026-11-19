@@ -1,0 +1,8 @@
+card "Recumbent Bliss" {
+  oracle_id aaea9b83-3db5-4cdb-8e45-5c00a102c3ba
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  triggered at beginning of your upkeep: you may you gain 1 life
+}

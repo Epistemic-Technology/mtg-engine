@@ -1,0 +1,6 @@
+card "Sami's Curiosity" {
+  oracle_id 5f532b7f-cb76-4be7-b361-0106c561dcb2
+  cost {G}
+  type Sorcery
+  spell: you gain 2 life; create 1 "Lander"
+}

@@ -1,0 +1,13 @@
+scenario "Gift of Paradise: gain 3 life, land taps for two mana" {
+  battlefield A: 3 "Forest", "Plains"
+  hand A: "Gift of Paradise", "Grizzly Bears"
+  turn 1 A: cast "Gift of Paradise" targeting "Plains"
+  turn 1 A: wait
+  turn 1 A: activate "Plains"
+  turn 1 A: choose green
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert attached "Gift of Paradise" to "Plains"
+  assert battlefield A contains "Grizzly Bears"
+}

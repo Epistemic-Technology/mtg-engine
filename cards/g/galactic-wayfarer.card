@@ -1,0 +1,7 @@
+card "Galactic Wayfarer" {
+  oracle_id 86746a84-3e8a-44b4-8494-60cbee9816b5
+  cost {2}{G}
+  type Creature — Human Scout
+  pt 3/3
+  triggered when this enters: create 1 "Lander"
+}

@@ -1,0 +1,12 @@
+scenario "Fire-Belly Changeling pumps at most twice a turn" {
+  battlefield A: "Fire-Belly Changeling", 3 "Mountain"
+  turn 1 A: activate "Fire-Belly Changeling"
+  turn 1 A: wait
+  turn 1 begin_combat A: activate "Fire-Belly Changeling"
+  illegal turn 1 postcombat_main A: activate "Fire-Belly Changeling"
+  run_to turn 1 end
+  assert power "Fire-Belly Changeling" 3
+  assert toughness "Fire-Belly Changeling" 1
+  assert is "Fire-Belly Changeling" Goblin
+  assert untapped newest A "Mountain"
+}

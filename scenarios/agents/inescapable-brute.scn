@@ -1,0 +1,9 @@
+scenario "Inescapable Brute must be blocked, and withers its blocker" {
+  battlefield A: "Inescapable Brute"
+  battlefield B: "Serra Angel"
+  turn 1 A: attack "Inescapable Brute"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert counters "Serra Angel" -1/-1 3
+  assert toughness "Serra Angel" 1
+}

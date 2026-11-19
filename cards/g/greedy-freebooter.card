@@ -1,0 +1,7 @@
+card "Greedy Freebooter" {
+  oracle_id d4a9d63a-5a8a-4f51-9e49-43d6dc3234b1
+  cost {B}
+  type Creature — Human Pirate
+  pt 1/1
+  triggered when this dies: scry 1 and create 1 "Treasure"
+}

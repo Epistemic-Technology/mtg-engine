@@ -1,0 +1,7 @@
+card "Rally the Peasants" {
+  oracle_id 3f0a0a15-613a-4864-9309-a340dc4cf94d
+  cost {2}{W}
+  type Instant
+  spell: each creature you control gets +2/+0
+  flashback {2}{R}
+}

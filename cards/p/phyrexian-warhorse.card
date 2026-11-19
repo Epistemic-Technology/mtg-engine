@@ -1,0 +1,9 @@
+card "Phyrexian Warhorse" {
+  oracle_id 05075332-6856-4147-a22d-3a5bd1e96b7b
+  cost {3}{B}
+  type Creature — Phyrexian Horse
+  pt 3/3
+  kicker {W}
+  triggered when this enters if kicked: create 1 "1/1 white Soldier creature"
+  activated {1}, sacrifice other creature: this gets +2/+1
+}

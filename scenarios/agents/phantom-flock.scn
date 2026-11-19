@@ -1,0 +1,14 @@
+scenario "Phantom Flock prevents damage and loses a counter" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Phantom Flock"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Phantom Flock"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Phantom Flock"
+  run_to turn 1 end
+  assert counters "Phantom Flock" +1/+1 2
+  assert damage "Phantom Flock" 0
+  assert power "Phantom Flock" 2
+  assert has "Phantom Flock" flying
+}

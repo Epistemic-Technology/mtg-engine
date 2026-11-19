@@ -1,0 +1,11 @@
+scenario "Rage into the Valley draws, drains you, and amasses Goblins 2" {
+  battlefield A: 3 "Swamp"
+  hand A: "Rage into the Valley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rage into the Valley"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 19
+  assert counters "Goblin Army" +1/+1 2
+  assert power "Goblin Army" 2
+}

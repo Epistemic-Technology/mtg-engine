@@ -1,0 +1,13 @@
+scenario "Grixis Slavedriver leaves: a Zombie; unearthed, it leaves again" {
+  battlefield A: "Grixis Slavedriver", 4 "Swamp"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 1 B: cast "Murder" targeting "Grixis Slavedriver"
+  turn 1 postcombat_main A: activate "Grixis Slavedriver"
+  run_to turn 1 end
+  assert battlefield A contains "Zombie"
+  assert battlefield A contains "Grixis Slavedriver"
+  run_to turn 2 upkeep
+  assert exile A contains "Grixis Slavedriver"
+  assert battlefield A contains 2 "Zombie"
+}

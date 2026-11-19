@@ -1,0 +1,8 @@
+card "Scrapwork Rager" {
+  oracle_id 552867ec-5741-4e34-813f-4aaf185661f7
+  cost {4}
+  type Artifact Creature — Phyrexian Horror
+  pt 2/2
+  triggered when this enters: you draw 1 card, and you lose 1 life
+  unearth {3}{B}
+}

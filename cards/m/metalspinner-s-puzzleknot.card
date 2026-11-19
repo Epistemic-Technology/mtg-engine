@@ -1,0 +1,7 @@
+card "Metalspinner's Puzzleknot" {
+  oracle_id c19d2f54-2c3a-4cbe-8328-061d4b51f574
+  cost {2}
+  type Artifact
+  triggered when this enters: you draw 1 card, and you lose 1 life
+  activated {2}{B}, sacrifice this: you draw 1 card, and you lose 1 life
+}

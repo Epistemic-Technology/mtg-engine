@@ -1,0 +1,9 @@
+scenario "Greedy Freebooter dies: scry and a Treasure" {
+  battlefield A: "Greedy Freebooter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting "Greedy Freebooter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Greedy Freebooter"
+  assert battlefield A contains "Treasure"
+}

@@ -1,0 +1,7 @@
+card "Hampering Snare" {
+  oracle_id 4fd3dafe-e6a4-49d5-950a-e2fcc77eda98
+  cost {1}{U}
+  type Instant
+  spell: all creature your opponents control gets -2/-0
+  cycling {2}
+}

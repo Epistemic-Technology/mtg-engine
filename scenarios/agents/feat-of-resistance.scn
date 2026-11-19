@@ -1,0 +1,12 @@
+scenario "Feat of Resistance: counter and protection from red" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Feat of Resistance"
+  hand B: "Shock"
+  turn 1 A: cast "Feat of Resistance" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+}

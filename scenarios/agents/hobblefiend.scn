@@ -1,0 +1,15 @@
+scenario "Hobblefiend sacrifices another creature for a counter" {
+  battlefield A: "Hobblefiend", "Grizzly Bears", "Mountain"
+  turn 1 A: activate "Hobblefiend" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Hobblefiend" +1/+1 1
+  assert power "Hobblefiend" 3
+}
+
+scenario "Hobblefiend can't sacrifice itself" {
+  battlefield A: "Hobblefiend", "Mountain"
+  illegal turn 1 A: activate "Hobblefiend"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hobblefiend"
+}

@@ -1,0 +1,8 @@
+card "Inkfathom Divers" {
+  oracle_id dbdf3c82-b0fc-479c-acce-f7e60be3a2b1
+  cost {3}{U}{U}
+  type Creature — Merfolk Soldier
+  pt 3/3
+  keywords islandwalk
+  triggered when this enters: look at top 4
+}

@@ -1,0 +1,16 @@
+scenario "Haradrim Spearmaster pumps another creature at the beginning of combat" {
+  battlefield A: "Haradrim Spearmaster", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Haradrim Spearmaster" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert life B 17
+  assert power "Haradrim Spearmaster" 2
+}
+
+scenario "Haradrim Spearmaster can't target itself" {
+  battlefield A: "Haradrim Spearmaster", "Grizzly Bears"
+  illegal turn 1 begin_combat A: trigger "Haradrim Spearmaster" targeting "Haradrim Spearmaster"
+  run_to turn 1 postcombat_main
+  assert power "Haradrim Spearmaster" 2
+}

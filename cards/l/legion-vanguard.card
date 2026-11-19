@@ -1,0 +1,7 @@
+card "Legion Vanguard" {
+  oracle_id 9f2c8398-1606-400b-a593-2635656e8c4b
+  cost {1}{B}
+  type Creature — Vampire Soldier
+  pt 2/2
+  activated {1}, sacrifice other creature: this explores
+}

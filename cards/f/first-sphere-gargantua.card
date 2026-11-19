@@ -1,0 +1,8 @@
+card "First-Sphere Gargantua" {
+  oracle_id e101edcd-34d8-4bcd-8ba6-d5941584f9fa
+  cost {4}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 5/4
+  triggered when this enters: you draw 1 card, and you lose 1 life
+  unearth {2}{B}
+}

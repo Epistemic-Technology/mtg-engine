@@ -1,0 +1,8 @@
+card "Reckless Lackey" {
+  oracle_id 73733fa5-d292-40ec-8f17-05ba5feb40ab
+  cost {R}
+  type Creature — Goblin Pirate
+  pt 1/2
+  keywords first strike, haste
+  activated {2}{R}, sacrifice this: draw 1 card and create 1 "Treasure"
+}

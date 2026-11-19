@@ -1,0 +1,24 @@
+scenario "First-Sphere Gargantua: enters, draw a card and lose 1 life" {
+  battlefield A: 6 "Swamp"
+  hand A: "First-Sphere Gargantua"
+  library A: 3 "Island"
+  turn 1 A: cast "First-Sphere Gargantua"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "First-Sphere Gargantua"
+  assert life A 19
+  assert hand A count 1
+}
+
+scenario "First-Sphere Gargantua: unearth, attack, draw, exiled at end of turn" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "First-Sphere Gargantua"
+  library A: 3 "Island"
+  turn 1 A: activate "First-Sphere Gargantua"
+  turn 1 A: attack "First-Sphere Gargantua"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 19
+  assert hand A count 1
+  run_to turn 2 upkeep
+  assert exile A contains "First-Sphere Gargantua"
+}

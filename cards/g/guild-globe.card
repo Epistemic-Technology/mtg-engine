@@ -1,0 +1,7 @@
+card "Guild Globe" {
+  oracle_id a7e7cacf-cc2f-45ce-abb1-7b66d1e2fabc
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card
+  activated {2}, {T}, sacrifice this: add 2 mana different colors
+}

@@ -1,0 +1,8 @@
+card "Sage Aven" {
+  oracle_id f57c6bfb-8dd4-429d-8ced-65145e2f7adb
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 1/3
+  keywords flying
+  triggered when this enters: look at top 4
+}

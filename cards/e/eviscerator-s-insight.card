@@ -1,0 +1,8 @@
+card "Eviscerator's Insight" {
+  oracle_id 81a398ee-e534-43b7-88fe-45155d6aba3a
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: draw 2 cards
+  flashback {4}{B}
+}

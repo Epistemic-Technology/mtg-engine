@@ -1,0 +1,29 @@
+scenario "Emerge Unscathed: protection from red stops Shock, then rebounds" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Emerge Unscathed"
+  hand B: "Shock"
+  library A: 3 "Island"
+  library B: 3 "Island"
+  turn 1 A: cast "Emerge Unscathed" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert exile A contains "Emerge Unscathed"
+  turn 3 upkeep A: cast "Emerge Unscathed" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Emerge Unscathed"
+}
+
+scenario "Emerge Unscathed: another color does not stop Shock" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Emerge Unscathed"
+  hand B: "Shock"
+  turn 1 A: cast "Emerge Unscathed" targeting "Grizzly Bears"
+  turn 1 A: choose black
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}

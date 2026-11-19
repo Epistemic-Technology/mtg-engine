@@ -1,0 +1,7 @@
+card "Seize the Spoils" {
+  oracle_id 58f83528-9110-4895-b5ea-51b90af30a8d
+  cost {2}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards and create 1 "Treasure"
+}

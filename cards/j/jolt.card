@@ -1,0 +1,9 @@
+card "Jolt" {
+  oracle_id 13f69c70-dc93-4983-b649-d91b22633eb9
+  cost {2}{U}
+  type Instant
+  spell {
+    you may tap or untap target artifact, creature, or land
+    delayed this: draw 1 cards at beginning of the next turn's upkeep
+  }
+}

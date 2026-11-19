@@ -1,0 +1,19 @@
+scenario "Reckless Lackey sacrifices for a card and a Treasure" {
+  battlefield A: "Reckless Lackey", 3 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Reckless Lackey"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Reckless Lackey"
+  assert hand A count 1
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Reckless Lackey attacks the turn it arrives" {
+  battlefield A: "Mountain"
+  hand A: "Reckless Lackey"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Reckless Lackey"
+  turn 1 A: attack "Reckless Lackey"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

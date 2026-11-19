@@ -1,0 +1,21 @@
+scenario "Omen of the Sun makes two Soldiers, gains life, and scries" {
+  battlefield A: 6 "Plains"
+  hand A: "Omen of the Sun"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Omen of the Sun"
+  turn 1 A: wait
+  turn 1 A: activate "Omen of the Sun"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Human Soldier"
+  assert life A 22
+  assert graveyard A contains "Omen of the Sun"
+}
+
+scenario "Omen of the Sun has flash" {
+  battlefield A: 3 "Plains"
+  hand A: "Omen of the Sun"
+  start turn 2 B
+  turn 2 end A: cast "Omen of the Sun"
+  run_to turn 2 cleanup
+  assert battlefield A contains "Omen of the Sun"
+}

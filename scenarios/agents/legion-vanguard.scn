@@ -1,0 +1,20 @@
+scenario "Legion Vanguard explores a land into hand" {
+  battlefield A: "Legion Vanguard", "Grizzly Bears", "Swamp"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Legion Vanguard" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert power "Legion Vanguard" 2
+}
+
+scenario "Legion Vanguard explores a nonland: +1/+1 counter" {
+  battlefield A: "Legion Vanguard", "Grizzly Bears", "Swamp"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Legion Vanguard" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Legion Vanguard" +1/+1 1
+  assert hand A lacks "Hill Giant"
+}

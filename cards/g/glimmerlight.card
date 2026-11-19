@@ -1,0 +1,8 @@
+card "Glimmerlight" {
+  oracle_id 8fd88b98-9899-4bc0-a4b7-7ef6fba36dfd
+  cost {2}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 white Glimmer enchantment creature"
+  static equipped: +1/+1
+  equip {1}
+}

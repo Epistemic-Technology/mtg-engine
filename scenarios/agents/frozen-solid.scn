@@ -1,0 +1,12 @@
+scenario "Frozen Solid keeps the creature tapped and destroys it when damaged" {
+  battlefield A: 3 "Island", "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Frozen Solid", "Shock"
+  turn 1 A: cast "Frozen Solid" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  turn 2 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Frozen Solid"
+}

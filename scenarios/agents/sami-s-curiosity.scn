@@ -1,0 +1,14 @@
+scenario "Sami's Curiosity gains life and makes a Lander that fetches a land" {
+  battlefield A: 3 "Forest"
+  hand A: "Sami's Curiosity"
+  library A: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sami's Curiosity"
+  turn 1 A: wait
+  turn 1 A: activate "Lander"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A lacks "Lander"
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+}

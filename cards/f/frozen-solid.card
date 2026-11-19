@@ -1,0 +1,8 @@
+card "Frozen Solid" {
+  oracle_id 7101f0ab-89ce-4b13-a5a8-4cabd6c8670d
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has doesn't untap
+  triggered when enchanted creature is dealt damage: destroy that creature
+}

@@ -1,0 +1,9 @@
+card "Rage into the Valley" {
+  oracle_id 8c7641b6-3a6c-4441-a98c-3b5d61d91f76
+  cost {2}{B}
+  type Sorcery
+  spell {
+    you draw 1 card and lose 1 life
+    amass Goblins 2
+  }
+}

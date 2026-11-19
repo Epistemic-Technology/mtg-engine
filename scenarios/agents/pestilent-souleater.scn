@@ -1,0 +1,10 @@
+scenario "Pestilent Souleater gains infect for 2 life" {
+  battlefield A: "Pestilent Souleater"
+  start turn 1 A
+  turn 1 precombat_main A: activate "Pestilent Souleater"
+  turn 1 A: attack "Pestilent Souleater"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 20
+  assert poison B 3
+}

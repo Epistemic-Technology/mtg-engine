@@ -1,0 +1,9 @@
+card "Mistform Seaswift" {
+  oracle_id 268f423e-b368-4561-ae24-db0f7ca775f4
+  cost {3}{U}
+  type Creature — Illusion
+  pt 3/1
+  keywords flying
+  activated {1}: this becomes creature type of choice
+  morph {1}{U}
+}

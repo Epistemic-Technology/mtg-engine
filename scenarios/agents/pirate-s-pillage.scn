@@ -1,0 +1,19 @@
+scenario "Pirate's Pillage discards, draws two, and makes two Treasures" {
+  battlefield A: 4 "Mountain"
+  hand A: "Pirate's Pillage", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pirate's Pillage" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A count 2
+  assert battlefield A contains 2 "Treasure"
+}
+
+scenario "Pirate's Pillage needs a card to discard" {
+  battlefield A: 4 "Mountain"
+  hand A: "Pirate's Pillage"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Pirate's Pillage"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Pirate's Pillage"
+}

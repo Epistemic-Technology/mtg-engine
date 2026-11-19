@@ -1,0 +1,17 @@
+scenario "Foriysian Interceptor blocks two attackers" {
+  battlefield A: "Grizzly Bears", "Elite Vanguard"
+  battlefield B: "Foriysian Interceptor"
+  turn 1 A: attack "Grizzly Bears", "Elite Vanguard"
+  turn 1 B: block "Grizzly Bears" with "Foriysian Interceptor"
+  turn 1 B: block "Elite Vanguard" with "Foriysian Interceptor"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield B contains "Foriysian Interceptor"
+}
+
+scenario "Foriysian Interceptor has defender" {
+  battlefield A: "Foriysian Interceptor"
+  illegal turn 1 A: attack "Foriysian Interceptor"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

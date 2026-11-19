@@ -1,0 +1,7 @@
+card "Emerge Unscathed" {
+  oracle_id 894015d5-ee78-45df-8d37-53df963c59a6
+  cost {W}
+  type Instant
+  keywords rebound
+  spell: target creature you control gains protection from color of choice
+}

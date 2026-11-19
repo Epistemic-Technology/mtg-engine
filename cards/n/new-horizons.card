@@ -1,0 +1,8 @@
+card "New Horizons" {
+  oracle_id 8834d3c9-cdb5-423b-bc78-94a94add5e74
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: put 1 +1/+1 counter on target creature you control
+  static enchanted land: has ability { activated {T}: add any 2 }
+}
