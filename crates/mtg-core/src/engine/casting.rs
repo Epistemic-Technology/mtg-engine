@@ -330,6 +330,19 @@ impl GameState {
         {
             adjust_generic(&mut req, tc.0);
         }
+        // Dearer with a fitting target: castable for the base cost only if
+        // some legal target doesn't fit (Vanish into Eternity with only
+        // creatures to target costs {3} more).
+        if let Some(tc) = &def.target_cost
+            && tc.0 > 0
+            && def.cast_targets().first().is_some_and(|spec| {
+                self.legal_targets(p, *spec, Some(id))
+                    .iter()
+                    .all(|t| self.target_fits(&tc.1, *t, p, id))
+            })
+        {
+            adjust_generic(&mut req, tc.0);
+        }
         let helped = Keyword::helps_pay(def.keywords);
         let restricted = match (self.restricted_mana_sources, &def.printed) {
             (0, _) | (_, None) => None,

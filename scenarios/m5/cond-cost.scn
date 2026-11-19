@@ -17,3 +17,31 @@ scenario "Bone Picker costs full price otherwise" {
   run_to turn 1 end
   assert hand A contains "Bone Picker"
 }
+
+scenario "Vanish into Eternity: no casting for {2}{W} with only creatures to target" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vanish into Eternity"
+  illegal turn 1 A: cast "Vanish into Eternity" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Vanish into Eternity: {2}{W} for a noncreature permanent" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Vanish into Eternity"
+  turn 1 A: cast "Vanish into Eternity" targeting "Pacifism"
+  run_to turn 1 end
+  assert graveyard A contains "Vanish into Eternity"
+  assert battlefield B lacks "Pacifism"
+}
+
+scenario "Vanish into Eternity: {5}{W} exiles a creature" {
+  battlefield A: 6 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Vanish into Eternity"
+  turn 1 A: cast "Vanish into Eternity" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B lacks "Grizzly Bears"
+}

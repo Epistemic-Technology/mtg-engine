@@ -777,7 +777,9 @@ impl GameState {
                     // A cost that depends on the first target: only targets
                     // the caster can pay for (CR 601.2f comes after 601.2c,
                     // but an unpayable choice would be illegal to finish).
-                    if next_target == 0 && !is_ability && self.pool.get(def).target_cost.is_some() {
+                    let cost_checked =
+                        next_target == 0 && !is_ability && self.pool.get(def).target_cost.is_some();
+                    if cost_checked {
                         options.retain(|c| {
                             let Choice::Target(t) = c else { return true };
                             self.target_payable(spell, *t)
@@ -809,7 +811,7 @@ impl GameState {
                         }
                         options.push(Choice::Done);
                     }
-                    if options.is_empty() && many.is_none() {
+                    if options.is_empty() && many.is_none() && !cost_checked {
                         // Checked when offered (`targets_available`); keep
                         // going rather than stall if that ever falls short.
                         options = self
