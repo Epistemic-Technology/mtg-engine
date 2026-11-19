@@ -1708,6 +1708,9 @@ pub enum TriggerObj {
 #[allow(clippy::large_enum_variant)]
 pub enum Mod {
     AddTypes(Vec<CardType>),
+    /// `set type creature`: "is a creature" (its other card types go,
+    /// layer 4).
+    SetTypes(Vec<CardType>),
     AddLandType(Color),
     SetLandType(Color),
     /// `set land Mountain Forest Plains`: "is a Mountain, Forest, and
@@ -1736,6 +1739,13 @@ pub enum Mod {
     /// `loses flying`.
     LosesKeywords(Vec<Keyword>),
     RemoveAllAbilities,
+    /// `add subtype every`: "is every creature type"; `add subtype all`:
+    /// "is all creature types" (`every` false). Layer 4.
+    AllCreatureTypes {
+        every: bool,
+    },
+    /// `loses all creature types` (layer 4).
+    NoCreatureTypes,
     SetPt {
         power: PtValue,
         toughness: PtValue,
@@ -2484,6 +2494,12 @@ pub enum Effect {
     /// and toughness until end of turn."
     SwitchPt {
         to: Recipient,
+    },
+    /// `target creature gains all creature types` (`all`), `target
+    /// creature loses all creature types`, until end of turn (layer 4).
+    CreatureTypes {
+        to: Recipient,
+        all: bool,
     },
     /// `put land card from hand onto battlefield [tapped]`.
     PutFromHand {

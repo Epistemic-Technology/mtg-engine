@@ -1847,12 +1847,33 @@ impl P {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Toxic(self.number()?))));
         }
+        if self.granted_protection_ahead() {
+            self.pos += 2;
+            let filter = if self.eat_word("everything") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
+            return Ok(Some(Ability::Protection(filter)));
+        }
         Ok(None)
     }
 
     fn granted_mechanic_ahead(&self) -> bool {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || self.granted_protection_ahead()
+    }
+
+    /// `protection from artifact` granted (CR 702.16): from a quality
+    /// other than a color (colors are keywords) or a choice.
+    fn granted_protection_ahead(&self) -> bool {
+        self.at_word("protection")
+            && self.word_at(1).as_deref() == Some("from")
+            && self
+                .word_at(2)
+                .as_deref()
+                .is_some_and(|w| color(w).is_none() && !matches!(w, "chosen" | "color" | "colors"))
     }
 
     fn nested_ability(&mut self) -> R<Ability> {
@@ -3316,6 +3337,13 @@ impl P {
                         keywords,
                     });
                 }
+                if self.eat_words(&["all", "creature", "types"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::CreatureTypes {
+                        to: subject,
+                        all: true,
+                    });
+                }
                 if self.eat_words(&["protection", "from", "chosen", "color"]) {
                     self.until_end_of_turn();
                     return Ok(Effect::ProtectionFromChosen { to: subject });
@@ -3464,6 +3492,13 @@ impl P {
             }
             // "loses all abilities and becomes a green Snake with base
             // power and toughness 1/1" (Snakeform): one effect.
+            "lose" | "loses" if self.eat_words(&["all", "creature", "types"]) => {
+                self.until_end_of_turn();
+                Ok(Effect::CreatureTypes {
+                    to: subject,
+                    all: false,
+                })
+            }
             "lose" | "loses" if self.at_words(&["all", "abilities", "and"]) => {
                 self.pos += 3;
                 // "loses all abilities and has base power and toughness
@@ -8099,6 +8134,9 @@ impl P {
             "loses" | "lose" if self.keyword_ahead() => {
                 Ok(Mod::LosesKeywords(self.keyword_list()?))
             }
+            "loses" | "lose" if self.eat_words(&["all", "creature", "types"]) => {
+                Ok(Mod::NoCreatureTypes)
+            }
             "loses" | "lose" => {
                 self.expect_words(&["all", "abilities"])?;
                 Ok(Mod::RemoveAllAbilities)
@@ -8123,10 +8161,14 @@ impl P {
                             types.push(t);
                             self.pos += 1;
                         }
-                        if types.is_empty() || set {
+                        if types.is_empty() {
                             return self.fail("expected `add type <types>`");
                         }
-                        Ok(Mod::AddTypes(types))
+                        Ok(if set {
+                            Mod::SetTypes(types)
+                        } else {
+                            Mod::AddTypes(types)
+                        })
                     }
                     "land" if set && self.eat_word("chosen") => Ok(Mod::ChosenLandType),
                     "land" if !set && self.eat_word("all") => Ok(Mod::AddAllLandTypes),
@@ -8153,6 +8195,12 @@ impl P {
                         })
                     }
                     "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
+                    "subtype" if !set && self.eat_word("every") => {
+                        Ok(Mod::AllCreatureTypes { every: true })
+                    }
+                    "subtype" if !set && self.eat_word("all") => {
+                        Ok(Mod::AllCreatureTypes { every: false })
+                    }
                     "subtype" => {
                         let s = self.word()?;
                         Ok(if set {

@@ -1694,6 +1694,10 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
+            Effect::CreatureTypes { to, all } => out.push(CoreEffect::CreatureTypes {
+                to: r(*to),
+                all: *all,
+            }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
             Effect::CantBeRegenerated { to } => {
                 out.push(CoreEffect::CantBeRegenerated { to: r(*to) });
@@ -2036,6 +2040,9 @@ impl Compiler<'_> {
                 Modification::RemoveKeywords(KeywordSet::of(k.iter().copied()))
             }
             Mod::RemoveAllAbilities => Modification::RemoveAllAbilities,
+            Mod::AllCreatureTypes { .. } => Modification::AllCreatureTypes,
+            Mod::NoCreatureTypes => Modification::NoCreatureTypes,
+            Mod::SetTypes(t) => Modification::SetTypes(TypeSet::of(t.iter().copied())),
             Mod::SetPt { power, toughness } => Modification::SetPt {
                 power: *power,
                 toughness: *toughness,

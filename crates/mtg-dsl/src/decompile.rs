@@ -1054,6 +1054,10 @@ impl Decompiler<'_> {
             CoreEffect::SwitchPt { to } => Effect::SwitchPt {
                 to: Self::recipient(*to),
             },
+            CoreEffect::CreatureTypes { to, all } => Effect::CreatureTypes {
+                to: Self::recipient(*to),
+                all: *all,
+            },
             CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
                 filter: self.filter(filter),
                 tapped: *tapped,
@@ -1342,6 +1346,9 @@ impl Decompiler<'_> {
             Modification::AddKeywords(k) => Mod::AddKeywords(keywords(*k)),
             Modification::RemoveKeywords(k) => Mod::LosesKeywords(keywords(*k)),
             Modification::RemoveAllAbilities => Mod::RemoveAllAbilities,
+            Modification::AllCreatureTypes => Mod::AllCreatureTypes { every: true },
+            Modification::NoCreatureTypes => Mod::NoCreatureTypes,
+            Modification::SetTypes(t) => Mod::SetTypes(types(*t)),
             Modification::SetPt { power, toughness } => Mod::SetPt {
                 power: *power,
                 toughness: *toughness,

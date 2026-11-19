@@ -971,6 +971,7 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 c.types = c.types.union(TypeSet::of([CardType::Land]));
             }
         }
+        Modification::SetTypes(t) => c.types = *t,
         Modification::AddLandType(color) => {
             let s = Subtype::basic(*color);
             if !c.subtypes.contains(&s) {
@@ -996,6 +997,17 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
                 crate::card::Keyword::Changeling,
             ]));
         }
+        // "is every creature type": one entry stands for all of them.
+        Modification::AllCreatureTypes => {
+            c.subtypes.retain(|x| !x.is_creature_type());
+            c.subtypes.push(Subtype::ALL_CREATURE_TYPES);
+        }
+        Modification::NoCreatureTypes => {
+            c.subtypes.retain(|x| !x.is_creature_type());
+            c.keywords = c.keywords.difference(crate::card::KeywordSet::of([
+                crate::card::Keyword::Changeling,
+            ]));
+        }
         // Control is not a characteristic; `GameState::sync_control`
         // applies layer 2 to `GameObject::controller`. A P/T-defining
         // ability needs the working characteristics of other objects;
@@ -1016,6 +1028,11 @@ fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id:
         Modification::AddAbility(a) => {
             if !c.abilities.contains(a) && c.abilities.len() < 8 {
                 c.abilities.push(*a);
+            }
+            // A granted protection from a quality (CR 702.16): the keyword
+            // `protected_from` checks before looking for it.
+            if matches!(state.pool.ability(*a), crate::card::AbilityDef::Protection(_)) {
+                c.keywords = c.keywords.with(crate::card::Keyword::ProtectionFromFilter);
             }
         }
         Modification::RemoveKeywords(k) => c.keywords = c.keywords.difference(*k),

@@ -645,6 +645,11 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::CreatureTypes { to, all } => format!(
+                "{} {} all creature types",
+                self.recipient(*to, t),
+                if *all { "gains" } else { "loses" }
+            ),
             Effect::GrantAbility { ability, to } => match granted_mechanic(ability) {
                 Some(m) => format!("{} gains {m}", self.recipient(*to, t)),
                 None => format!(
@@ -2826,6 +2831,13 @@ fn modification(m: &Mod) -> String {
                 .collect::<Vec<_>>()
                 .join(" ")
         ),
+        Mod::SetTypes(ts) => format!(
+            "set type {}",
+            ts.iter()
+                .map(|t| format!("{t:?}").to_lowercase())
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
         Mod::AddLandType(c) => format!("add land {}", basic_land_name(*c)),
         Mod::SetLandType(c) => format!("set land {}", basic_land_name(*c)),
         Mod::SetLandTypes(cs) => format!(
@@ -2858,6 +2870,9 @@ fn modification(m: &Mod) -> String {
         Mod::AddKeywords(ks) => format!("has {}", keywords(ks)),
         Mod::LosesKeywords(ks) => format!("loses {}", keywords(ks)),
         Mod::RemoveAllAbilities => "loses all abilities".to_string(),
+        Mod::AllCreatureTypes { every: true } => "add subtype every".to_string(),
+        Mod::AllCreatureTypes { every: false } => "add subtype all".to_string(),
+        Mod::NoCreatureTypes => "loses all creature types".to_string(),
         Mod::SetPt {
             power: PtValue::Fixed(p),
             toughness: PtValue::Fixed(t),
@@ -3744,6 +3759,10 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
     match a {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        Ability::Protection(f) if *f == Filter::default() => {
+            Some("protection from everything".to_string())
+        }
+        Ability::Protection(f) => Some(format!("protection from {}", filter(f))),
         _ => None,
     }
 }

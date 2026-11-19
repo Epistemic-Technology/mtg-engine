@@ -120,7 +120,7 @@ fn pluralize(word: &str) -> String {
     match word {
         "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
         | "Merfolk" | "Samurai" | "Kor" | "Zubera" | "Vedalken" | "Aetherborn" | "Eldrazi"
-        | "Treefolk" => {
+        | "Treefolk" | "Arcane" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -1735,6 +1735,13 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     words.extend(noun);
     let mut s = words.join(" ");
+    // "creatures you control with defender": Oracle names your control
+    // before the qualities (but "creatures with flying your opponents
+    // control").
+    let you_first = f.who == Some(Who::You) && f.or.is_none() && !f.named_first;
+    if you_first {
+        s.push_str(" you control");
+    }
     for (name, v) in [("power", f.power), ("toughness", f.toughness)] {
         if let Some((cmp, n)) = v {
             let _ = write!(s, " with {name} {n}{}", cmp_words(cmp));
@@ -1757,7 +1764,8 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         s.push_str(&same_phrase(f, card, plural_form));
     }
     match f.who {
-        Some(Who::You) => s.push_str(" you control"),
+        Some(Who::You) if !you_first => s.push_str(" you control"),
+        Some(Who::You) => {}
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
@@ -2219,12 +2227,29 @@ fn counters(n: Num, k: CounterKind) -> String {
 }
 
 fn keywords_list(ks: &[Keyword]) -> String {
-    list(
-        &ks.iter()
+    list(&merge_protections(
+        ks.iter()
             .filter(|k| !is_restriction(**k))
             .map(|k| keyword_name(*k).to_string())
-            .collect::<Vec<_>>(),
-    )
+            .collect(),
+    ))
+}
+
+/// "protection from green and from blue": consecutive protections in a
+/// list share one "protection".
+fn merge_protections(items: Vec<String>) -> Vec<String> {
+    let mut out: Vec<String> = Vec::with_capacity(items.len());
+    for it in items {
+        if let Some(q) = it.strip_prefix("protection from ")
+            && let Some(last) = out.last_mut()
+            && last.starts_with("protection from ")
+        {
+            let _ = write!(last, " and from {q}");
+            continue;
+        }
+        out.push(it);
+    }
+    out
 }
 
 #[allow(clippy::too_many_lines)] // one part of the description after another
@@ -3254,7 +3279,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 return Clause::with_subject(*to, s, block_rule_phrase(r, ctx.card, true));
             }
             // "gains toxic 1 until end of turn": a keyword ability, bare.
-            let q = crate::format::granted_mechanic(ability)
+            let q = granted_keyword(ability, ctx.card)
                 .unwrap_or_else(|| quoted(ability, ctx.card, CardType::Creature, ctx.lookup));
             Clause::with_subject(*to, s, format!("{} {q}", ctx.verb(*to, "gains", "gain")))
                 .until_eot()
@@ -3307,6 +3332,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 "doesn't untap during its controller's next untap step"
             };
             Clause::with_subject(*to, s, text.to_string())
+        }
+        Effect::CreatureTypes { to, all } => {
+            let s = ctx.subj(*to);
+            let verb = if *all {
+                ctx.verb(*to, "gains", "gain")
+            } else {
+                ctx.verb(*to, "loses", "lose")
+            };
+            Clause::with_subject(*to, s, format!("{verb} all creature types")).until_eot()
         }
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
@@ -6307,6 +6341,17 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                     .join(" ")
             )
         ),
+        Mod::SetTypes(types) => format!(
+            "{} {}",
+            v("is", "are"),
+            with_article(
+                &types
+                    .iter()
+                    .map(|t| type_noun(*t))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        ),
         Mod::AddLandType(c) => format!(
             "{} {} in addition to its other land types",
             v("is", "are"),
@@ -6396,6 +6441,9 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             list(&parts)
         }
         Mod::RemoveAllAbilities => format!("{} all abilities", v("loses", "lose")),
+        Mod::AllCreatureTypes { every: true } => format!("{} every creature type", v("is", "are")),
+        Mod::AllCreatureTypes { every: false } => format!("{} all creature types", v("is", "are")),
+        Mod::NoCreatureTypes => format!("{} all creature types", v("loses", "lose")),
         Mod::LosesKeywords(ks) => format!("{} {}", v("loses", "lose"), keywords_list(ks)),
         Mod::SetPt {
             power: PtValue::Fixed(p),
@@ -6615,7 +6663,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                     return "can only attack alone".to_string();
                 }
                 // "has ward {2}" (CR 702.21): a keyword ability, bare.
-                if let Some(k) = crate::format::granted_mechanic(a) {
+                if let Some(k) = granted_keyword(a, card) {
                     return format!("{} {k}", if plural_form { "have" } else { "has" });
                 }
                 let noun = if filter.types == [CardType::Land]
@@ -6626,6 +6674,18 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                     // "Other enchantments have 'At the beginning of your
                     // upkeep, sacrifice this enchantment ...'".
                     CardType::Enchantment
+                } else if filter.types.is_empty()
+                    && !filter.enchanted
+                    && !filter.subtypes.is_empty()
+                    && filter.who.is_none()
+                {
+                    // "All Slivers have \"{2}: Regenerate this permanent.\""
+                    // (any permanent with the subtype).
+                    return format!(
+                        "{} {}",
+                        if plural_form { "have" } else { "has" },
+                        quoted_as(a, card, &[], &())
+                    );
                 } else {
                     CardType::Creature
                 };
@@ -6684,7 +6744,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     // "has" for both.
     for i in 1..parts.len() {
         let keyword_grant =
-            matches!(&mods[i], Mod::AddAbility(a) if crate::format::granted_mechanic(a).is_some());
+            matches!(&mods[i], Mod::AddAbility(a) if granted_keyword(a, card).is_some());
         if (parts[i].starts_with("has \"") || keyword_grant) && parts[i - 1].starts_with("has ") {
             // A bare keyword joins the "has" before it as one part ("gets
             // +4/+4 and has trample and ward {1}"), marked to merge below.
@@ -6704,11 +6764,52 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             parts[i + 1] = "\u{2}".to_string();
         }
     }
+    // "is a blue Frog creature": colors, a creature type, and card types
+    // that replace the others are one noun phrase (in the last one's
+    // place).
+    let mut i = 0;
+    while i < mods.len() {
+        let colors = match &mods[i] {
+            Mod::SetColors(cs) => Some(cs),
+            _ => None,
+        };
+        let j = i + usize::from(colors.is_some());
+        let Some(Mod::SetSubtype(sub)) = mods.get(j) else {
+            i += 1;
+            continue;
+        };
+        let types = match mods.get(j + 1) {
+            Some(Mod::SetTypes(ts)) => Some(ts),
+            _ => None,
+        };
+        if colors.is_none() && types.is_none() {
+            i += 1;
+            continue;
+        }
+        let mut words: Vec<String> = Vec::new();
+        if let Some(cs) = colors {
+            let names: Vec<String> = cs.iter().map(|c| color_name(*c).to_string()).collect();
+            words.push(list(&names));
+        }
+        words.push(sub.clone());
+        if let Some(ts) = types {
+            words.extend(ts.iter().map(|t| type_noun(*t).to_string()));
+        }
+        let last = j + usize::from(types.is_some());
+        let verb = if plural_form { "are" } else { "is" };
+        for p in &mut parts[i..last] {
+            *p = "\u{2}".to_string();
+        }
+        parts[last] = format!("{verb} {}", with_article(&words.join(" ")));
+        i = last + 1;
+    }
     // "is a Treefolk with base power and toughness 0/4", "is a creature
     // with base power and toughness 4/4 in addition to its other types":
     // a type and the base P/T that follows it are one phrase.
     for i in (0..mods.len().saturating_sub(1)).rev() {
-        let (Mod::SetSubtype(_) | Mod::AddTypes(_) | Mod::AddSubtype(_)) = &mods[i] else {
+        let (Mod::SetSubtype(_) | Mod::AddTypes(_) | Mod::AddSubtype(_) | Mod::SetTypes(_)) =
+            &mods[i]
+        else {
             continue;
         };
         let Mod::SetPt {
@@ -6801,10 +6902,59 @@ fn only_attacks_alone(a: &Ability) -> bool {
 
 /// An ability another grants, in quotes, about the object that has it
 /// ("\"{T}: This creature deals 1 damage to any target.\"").
+/// "Protection from multicolored", "Protection from artifacts" (CR
+/// 702.16): a protection ability from a quality other than a color.
+fn protection_text(f: &Filter, card: &Card) -> String {
+    if *f == Filter::default() {
+        "Protection from everything".to_string()
+    } else if f.types.is_empty()
+        && f.subtypes.is_empty()
+        && f.any_types.is_empty()
+        && let Some(cc) = f.color_count
+    {
+        format!(
+            "Protection from {}",
+            match cc {
+                mtg_core::card::ColorCount::Multicolored => "multicolored",
+                mtg_core::card::ColorCount::Monocolored => "monocolored",
+                mtg_core::card::ColorCount::Colorless => "colorless",
+            }
+        )
+    } else if *f
+        == (Filter {
+            supertypes: vec![Supertype::Snow],
+            ..Filter::default()
+        })
+    {
+        // "Protection from snow" (Ronom Hulk): from snow sources.
+        "Protection from snow".to_string()
+    } else {
+        format!("Protection from {}", filter_phrase(f, card, true))
+    }
+}
+
+/// A keyword ability granted bare rather than quoted: "ward {2}", "toxic
+/// 1", "protection from artifacts".
+fn granted_keyword(a: &Ability, card: &Card) -> Option<String> {
+    match a {
+        Ability::Protection(f) => {
+            let t = protection_text(f, card);
+            Some(format!("p{}", &t[1..]))
+        }
+        _ => crate::format::granted_mechanic(a),
+    }
+}
+
 fn quoted(a: &Ability, card: &Card, noun: CardType, lookup: &dyn Lookup) -> String {
+    quoted_as(a, card, &[noun], lookup)
+}
+
+/// A quoted ability whose holder has these card types ("this permanent"
+/// with none).
+fn quoted_as(a: &Ability, card: &Card, types: &[CardType], lookup: &dyn Lookup) -> String {
     let mut holder = card.blank();
     holder.name.clone_from(&card.name);
-    holder.types = vec![noun];
+    holder.types = types.to_vec();
     holder.groups.clone_from(&card.groups);
     holder.counts.clone_from(&card.counts);
     format!("\"{}\"", ability_text(&holder, a, lookup))
@@ -7949,34 +8099,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 ),
             }
         }
-        Ability::Protection(f) => {
-            if *f == Filter::default() {
-                "Protection from everything".to_string()
-            } else if f.types.is_empty()
-                && f.subtypes.is_empty()
-                && f.any_types.is_empty()
-                && let Some(cc) = f.color_count
-            {
-                format!(
-                    "Protection from {}",
-                    match cc {
-                        mtg_core::card::ColorCount::Multicolored => "multicolored",
-                        mtg_core::card::ColorCount::Monocolored => "monocolored",
-                        mtg_core::card::ColorCount::Colorless => "colorless",
-                    }
-                )
-            } else if *f
-                == (Filter {
-                    supertypes: vec![Supertype::Snow],
-                    ..Filter::default()
-                })
-            {
-                // "Protection from snow" (Ronom Hulk): from snow sources.
-                "Protection from snow".to_string()
-            } else {
-                format!("Protection from {}", filter_phrase(f, card, true))
-            }
-        }
+        Ability::Protection(f) => protection_text(f, card),
         Ability::Affinity(f) => {
             let mut g = f.clone();
             g.who = None;
@@ -8154,11 +8277,28 @@ pub fn normalize(text: &str) -> String {
             Keyword::ALL
                 .iter()
                 .any(|k| keyword_name(*k).eq_ignore_ascii_case(p))
-                || (p.to_ascii_lowercase().starts_with("protection from ") && !p.contains(" and "))
+                || p.to_ascii_lowercase().starts_with("protection from ")
         });
-        if parts.len() > 1 && all_keywords {
+        // "Protection from Spirits and from Arcane": one protection
+        // ability per quality (CR 702.16g), so one line each.
+        let protections = |p: &str| -> Option<Vec<String>> {
+            let rest = p
+                .strip_prefix("Protection from ")
+                .or_else(|| p.strip_prefix("protection from "))?;
+            let qs: Vec<&str> = rest.split(" and from ").collect();
+            (qs.len() > 1 && qs.iter().all(|q| !q.contains(' ')))
+                .then(|| qs.iter().map(|q| format!("Protection from {q}")).collect())
+        };
+        if parts.len() == 1
+            && let Some(ps) = protections(parts[0])
+        {
+            out.extend(ps);
+        } else if parts.len() > 1 && all_keywords {
             for p in parts {
-                out.push(capitalize(p));
+                match protections(p) {
+                    Some(ps) => out.extend(ps),
+                    None => out.push(capitalize(p)),
+                }
             }
         } else {
             out.push(line);

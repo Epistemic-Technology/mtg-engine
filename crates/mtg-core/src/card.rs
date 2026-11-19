@@ -626,6 +626,11 @@ impl Subtype {
     pub const AURA: Subtype = Subtype(5 + 30);
     pub const ROLE: Subtype = Subtype(5 + 36);
     pub const TREASURE: Subtype = Subtype(5 + 27);
+    /// Not interned: "is every creature type" (layer 4), held among an
+    /// object's subtypes in place of its creature types; `has_subtype`
+    /// treats it as each of them, like changeling (CR 702.73a) but as a
+    /// type-changing effect, not an ability.
+    pub const ALL_CREATURE_TYPES: Subtype = Subtype(u16::MAX);
 
     /// The color a basic land type produces (CR 305.6), if this is one.
     pub fn basic_color(self) -> Option<Color> {
@@ -1318,7 +1323,7 @@ impl ObjFilter {
         }
         if c.subtypes.iter().any(|s| self.not_subtypes.contains(s))
             || self.subtypes.iter().any(|s| !c.has_subtype(*s))
-            || (c.has(Keyword::Changeling)
+            || ((c.has(Keyword::Changeling) || c.subtypes.contains(&Subtype::ALL_CREATURE_TYPES))
                 && self.not_subtypes.iter().any(|s| s.is_creature_type()))
         {
             return false;
@@ -1395,6 +1400,10 @@ pub enum Modification {
     /// its others (CR 205.1a), except land ("It's still a land", CR
     /// 205.1b; see `Effect::Animate`).
     BecomeTypes(TypeSet),
+    /// "Enchanted creature ... is a blue Frog creature" (layer 4): these
+    /// card types replace all its others, land included ("It loses all
+    /// other card types"); supertypes stay (CR 205.1a).
+    SetTypes(TypeSet),
     /// "is a Swamp in addition to its other land types" (layer 4; CR 305.7
     /// does not apply).
     AddLandType(Color),
@@ -1433,6 +1442,12 @@ pub enum Modification {
     RemoveKeywords(KeywordSet),
     /// "loses all abilities" (layer 6).
     RemoveAllAbilities,
+    /// "is every creature type", "gains all creature types" (layer 4):
+    /// its creature types become all of them (`Subtype::ALL_CREATURE_TYPES`).
+    AllCreatureTypes,
+    /// "loses all creature types" (layer 4): no creature types, a
+    /// changeling's included (as for `SetCreatureType`).
+    NoCreatureTypes,
     /// "has base power and toughness 1/1" (layer 7b).
     SetPt { power: PtValue, toughness: PtValue },
     /// "+1/+1" (layer 7c).
@@ -1490,12 +1505,15 @@ impl Modification {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
             | Modification::BecomeTypes(_)
+            | Modification::SetTypes(_)
             | Modification::AddLandType(_)
             | Modification::SetLandType(_)
             | Modification::AddSubtype(_)
             | Modification::SetCreatureType(_)
             | Modification::ChosenLandType
-            | Modification::AddChosenType => Layer::L4Type,
+            | Modification::AddChosenType
+            | Modification::AllCreatureTypes
+            | Modification::NoCreatureTypes => Layer::L4Type,
             Modification::AddColors(_)
             | Modification::SetColors(_)
             | Modification::CdaColors(_)
@@ -3258,6 +3276,12 @@ pub enum Effect {
     /// (layer 7d).
     SwitchPt {
         to: Recipient,
+    },
+    /// "gains all creature types until end of turn" (`all`), "loses all
+    /// creature types until end of turn" (layer 4).
+    CreatureTypes {
+        to: Recipient,
+        all: bool,
     },
     /// "It doesn't untap during its controller's next untap step".
     SkipNextUntap {
@@ -6102,6 +6126,9 @@ impl CardPool {
     }
 
     pub fn subtype_name(&self, s: Subtype) -> &str {
+        if s == Subtype::ALL_CREATURE_TYPES {
+            return "(every creature type)";
+        }
         self.subtypes.get(s.0 as usize).map_or("?", String::as_str)
     }
 

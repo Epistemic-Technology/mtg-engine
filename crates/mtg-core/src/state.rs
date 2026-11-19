@@ -761,7 +761,12 @@ impl Characteristics {
 
     /// Has this subtype; a changeling has every creature type (CR 702.73a).
     pub fn has_subtype(&self, s: crate::card::Subtype) -> bool {
-        self.subtypes.contains(&s) || (s.is_creature_type() && self.has(Keyword::Changeling))
+        self.subtypes.contains(&s)
+            || (s.is_creature_type()
+                && (self.has(Keyword::Changeling)
+                    || self
+                        .subtypes
+                        .contains(&crate::card::Subtype::ALL_CREATURE_TYPES)))
     }
 
     /// Whether this object has protection from something with `source`'s

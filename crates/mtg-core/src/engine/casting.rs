@@ -5632,6 +5632,18 @@ impl GameState {
                     }
                 }
             }
+            Effect::CreatureTypes { to, all } => {
+                let part = if *all {
+                    Modification::AllCreatureTypes
+                } else {
+                    Modification::NoCreatureTypes
+                };
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
             Effect::SwitchPt { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
