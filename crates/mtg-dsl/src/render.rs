@@ -7867,6 +7867,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
             crate::ast::Mechanic::Bestow(c) => format!("Bestow {c}"),
             crate::ast::Mechanic::Splice(c) => format!("Splice onto Arcane {c}"),
+            crate::ast::Mechanic::SpliceCost(c) => {
+                format!(
+                    "Splice onto Arcane\u{2014}{}.",
+                    cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
             crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),

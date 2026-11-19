@@ -1,0 +1,7 @@
+card "Hundred-Talon Strike" {
+  oracle_id fbfaf009-8276-4687-a3db-5a71dc13f174
+  cost {W}
+  type Instant — Arcane
+  spell: target creature gets +1/+0 and gains first strike
+  splice tap untapped white creature you control
+}

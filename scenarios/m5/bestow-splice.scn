@@ -165,3 +165,45 @@ scenario "splice: the spell resolves if some of its targets are still legal" {
   assert graveyard A contains "Grizzly Bears"
   assert life B 18
 }
+
+scenario "splice: a cost other than mana, sacrificing two Mountains" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Glacial Ray", "Torrent of Stone"
+  turn 1 A: cast "Glacial Ray" splicing "Torrent of Stone" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains 2 "Mountain"
+  assert graveyard A contains 2 "Mountain"
+  assert hand A contains "Torrent of Stone"
+}
+
+scenario "splice: tapping an untapped white creature" {
+  battlefield A: "Grizzly Bears", "Savannah Lions", "Forest", "Plains"
+  hand A: "Kodama's Might", "Hundred-Talon Strike"
+  turn 1 A: cast "Kodama's Might" splicing "Hundred-Talon Strike" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Savannah Lions"
+  assert power "Grizzly Bears" 5
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "splice: not without an untapped white creature to tap" {
+  battlefield A: "Grizzly Bears", "Savannah Lions" tapped, "Forest", "Plains"
+  start turn 1 A precombat_main
+  hand A: "Kodama's Might", "Hundred-Talon Strike"
+  illegal turn 1 A: cast "Kodama's Might" splicing "Hundred-Talon Strike" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "splice: returning a blue creature, not the one the spell targets" {
+  battlefield A: "Wind Drake", "Grizzly Bears", 3 "Island"
+  hand A: "Lifted by Clouds", "Veil of Secrecy"
+  turn 1 A: cast "Lifted by Clouds" splicing "Veil of Secrecy" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wind Drake"
+  assert has "Grizzly Bears" flying
+  assert has "Grizzly Bears" shroud
+}

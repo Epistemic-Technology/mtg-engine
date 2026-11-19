@@ -4752,9 +4752,11 @@ pub struct CardDef {
     pub bestow_face: Option<CardRef>,
     /// Splice onto Arcane (CR 702.47): revealed from hand as an Arcane
     /// spell is cast, this cost paid on top, the card's effects (and
-    /// targets) are added to that spell.
+    /// targets) are added to that spell. Mana, or mana and a permanent
+    /// chosen (sacrificed, returned, tapped) or cards exiled from the
+    /// graveyard ("Splice onto Arcane—Sacrifice two Mountains.").
     #[serde(default)]
-    pub splice: Option<Box<ManaCost>>,
+    pub splice: Option<Box<Cost>>,
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost." (CR 118.9): an alternative cost the card itself offers.
     pub alt_cost: Option<Box<AltCost>>,
@@ -6389,7 +6391,7 @@ impl Builder {
 
     /// Splice onto Arcane (CR 702.47).
     #[must_use]
-    pub fn splice(mut self, cost: ManaCost) -> Self {
+    pub fn splice(mut self, cost: Cost) -> Self {
         self.0.splice = Some(Box::new(cost));
         self
     }

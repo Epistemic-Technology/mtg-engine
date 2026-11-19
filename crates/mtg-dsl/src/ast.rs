@@ -1015,6 +1015,9 @@ pub enum Mechanic {
     /// CR 702.47: `splice {1}{R}`: splice onto Arcane; revealed from hand
     /// as an Arcane spell is cast, this paid too, its effects added.
     Splice(ManaCost),
+    /// `splice sacrifice 2 Mountain`: splice onto Arcane with a cost
+    /// other than mana ("Splice onto Arcane—Sacrifice two Mountains.").
+    SpliceCost(Cost),
     /// CR 702.128: `embalm {W}`: exile it from your graveyard as a
     /// sorcery; a token copy that's a white Zombie with no mana cost.
     Embalm(ManaCost),

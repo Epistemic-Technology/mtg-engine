@@ -959,7 +959,9 @@ impl GameState {
                         _ => false,
                     };
                     // CR 115.3: one "target" word names different objects
-                    // ("two target lands").
+                    // ("two target lands"); a spliced card's targets are
+                    // its own words (CR 702.47a).
+                    let seg = self.splice_segment(spell, next_target);
                     let mut options: Vec<Choice> = self
                         .legal_targets(caster, spec, source)
                         .into_iter()
@@ -967,7 +969,8 @@ impl GameState {
                             // CR 115.5: an ability can't target itself.
                             *t != Target::Object(spell)
                                 && !chosen.iter().enumerate().any(|(i, c)| {
-                                    c == t
+                                    i >= seg
+                                        && c == t
                                         && crate::card::spec_for(&specs, i)
                                             .is_some_and(|s| s == spec || another)
                                 })
@@ -983,7 +986,7 @@ impl GameState {
                     let first_of_group = match many {
                         Some((have, ..)) if have > 0 => Some(next_target),
                         Some(_) => None,
-                        None => (0..next_target).find(|&i| specs[i] == spec),
+                        None => (seg..next_target).find(|&i| specs[i] == spec),
                     };
                     if let Some(first) = first_of_group
                         && matches!(
@@ -1939,11 +1942,33 @@ impl GameState {
                     return false;
                 }
                 let mut req = base;
-                req.add(&cost.requirements(0));
+                req.add(&cost.mana.requirements(0));
                 self.spell_payable(p, spell, &req)
+                    && self.additional_payable(p, cost, spell)
                     && self.targets_available(p, def.cast_targets(), Some(spell))
             })
             .collect()
+    }
+
+    /// Where the part of `spell`'s targets that target `index` belongs to
+    /// begins: the spell's own (0), or a spliced card's (CR 702.47a).
+    fn splice_segment(&self, spell: ObjId, index: usize) -> usize {
+        if self.splices.is_empty() {
+            return 0;
+        }
+        let Some(sp) = self.splices.iter().find(|s| s.spell == spell) else {
+            return 0;
+        };
+        let mut start = crate::state::targets_in(&self.pool, &self.objects[spell]).len();
+        let mut seg = 0;
+        for (_, d) in &sp.cards {
+            if index < start {
+                break;
+            }
+            seg = start;
+            start += self.pool.get(*d).cast_targets().len();
+        }
+        seg
     }
 
     fn after_splice(&self, spell: ObjId) -> Flow {

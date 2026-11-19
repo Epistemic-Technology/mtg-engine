@@ -1515,7 +1515,7 @@ impl GameState {
     /// life (CR 119.4), other cards to discard, something to sacrifice,
     /// cards to exile from the graveyard. The spell's own card is never one
     /// of them, wherever it is cast from.
-    fn additional_payable(&self, p: PlayerId, add: &Cost, spell: ObjId) -> bool {
+    pub(super) fn additional_payable(&self, p: PlayerId, add: &Cost, spell: ObjId) -> bool {
         let ps = self.player(p);
         if add.life > 0 && ps.life < i32::try_from(add.life).unwrap_or(i32::MAX) {
             return false;
@@ -1892,7 +1892,7 @@ impl GameState {
         {
             for (_, d) in &sp.cards {
                 if let Some(c) = &self.pool.get(*d).splice {
-                    req.add(&c.requirements(0));
+                    req.add(&c.mana.requirements(0));
                 }
             }
         }
@@ -3869,6 +3869,13 @@ impl GameState {
             };
             self.pay_other_costs(caster, fb, spell, pick, None);
         }
+        // CR 702.47a: splice costs other than mana ("Sacrifice two
+        // Mountains", "Return a blue creature you control to its owner's
+        // hand"), the engine choosing what pays them, sparing the spell's
+        // targets where it can.
+        if !self.splices.is_empty() {
+            self.pay_splice_costs(spell, caster);
+        }
         // CR 702.138a: exile the other cards escape asks for (the oldest).
         if self.objects[spell].alt == AltCast::Escape
             && let Some(&(_, n)) = def.escape.as_deref()
@@ -4214,6 +4221,33 @@ impl GameState {
             } else {
                 self.leave_stack(spell);
             }
+        }
+    }
+
+    /// The parts of `spell`'s splice costs other than mana (CR 702.47a).
+    #[cold]
+    #[inline(never)]
+    fn pay_splice_costs(&mut self, spell: ObjId, caster: PlayerId) {
+        let Some(sp) = self.splices.iter().find(|s| s.spell == spell) else {
+            return;
+        };
+        let pool = std::sync::Arc::clone(&self.pool);
+        let costs: Vec<&Cost> = sp
+            .cards
+            .iter()
+            .filter_map(|(_, d)| pool.get(*d).splice.as_deref())
+            .collect();
+        for cost in costs {
+            let pick = match &cost.sacrifice {
+                Some(SacCost::Filter(f)) => {
+                    let mut cands = self.sacrifice_candidates(caster, f, spell);
+                    let targets = &self.objects[spell].targets;
+                    cands.sort_by_key(|c| targets.contains(&Target::Object(*c)));
+                    cands.first().copied()
+                }
+                _ => None,
+            };
+            self.pay_other_costs(caster, cost, spell, pick, None);
         }
     }
 
