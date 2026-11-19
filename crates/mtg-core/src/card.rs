@@ -5847,10 +5847,11 @@ impl CardPool {
         self.enters.push(effects.iter().any(|e| {
             match e {
                 Effect::ReturnToBattlefield { .. } | Effect::CreateTokenCopy { .. } => true,
+                // A legendary token can meet its namesake (CR 704.5j).
                 Effect::CreateToken { token, .. } => self
                     .defs
                     .get(token.0 as usize)
-                    .is_none_or(CardDef::modifies_entering),
+                    .is_none_or(|d| d.modifies_entering() || d.is_legendary()),
                 _ => false,
             }
         }));
@@ -6341,6 +6342,11 @@ impl CardPool {
             return "(every creature type)";
         }
         self.subtypes.get(s.0 as usize).map_or("?", String::as_str)
+    }
+
+    /// Every registered ability's id.
+    pub fn ability_ids(&self) -> impl Iterator<Item = AbilityId> + '_ {
+        (0..self.abilities.len()).map(|i| AbilityId(u32::try_from(i).expect("few abilities")))
     }
 
     pub fn ability(&self, id: AbilityId) -> &AbilityDef {

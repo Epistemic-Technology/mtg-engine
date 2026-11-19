@@ -374,3 +374,33 @@ pub fn add_dungeons(pool: &mut CardPool) {
     }
     pool.add(b.build());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Creating The Atropal, a legendary token, can meet the legend rule
+    /// (CR 704.5j), so the room's ability must count as one that puts a
+    /// permanent onto the battlefield (the mid-event snapshot gate). Found
+    /// by random-deck fuzzing: a second Atropal asked which to keep with
+    /// no snapshot.
+    #[test]
+    fn legendary_token_rooms_count_as_entering() {
+        let mut pool = CardPool::new();
+        add_dungeons(&mut pool);
+        let atropal = pool.lookup("The Atropal").expect("The Atropal token");
+        let mut found = false;
+        for id in pool.ability_ids() {
+            if pool
+                .ability(id)
+                .all_effects()
+                .iter()
+                .any(|e| matches!(e, Effect::CreateToken { token, .. } if *token == atropal))
+            {
+                found = true;
+                assert!(pool.ability_enters(id), "The Atropal's room ability");
+            }
+        }
+        assert!(found, "no ability creates The Atropal");
+    }
+}
