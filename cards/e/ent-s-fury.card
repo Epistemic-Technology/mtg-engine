@@ -1,0 +1,6 @@
+card "Ent's Fury" {
+  oracle_id 6bc3c7fd-e371-467f-973c-4c9f0d1ba0bc
+  cost {1}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control if target 1 is with power 4 or greater; then that target 1 gets +1/+1 and fights target creature you don't control
+}

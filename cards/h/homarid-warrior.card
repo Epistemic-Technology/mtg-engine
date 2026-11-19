@@ -1,0 +1,7 @@
+card "Homarid Warrior" {
+  oracle_id 6facb0f6-fa49-4ce6-9f95-15bb3ce4bcf2
+  cost {4}{U}
+  type Creature — Homarid Warrior
+  pt 3/3
+  activated {U}: this gains shroud and this doesn't untap next untap step; tap this
+}

@@ -1,0 +1,7 @@
+card "Vengeful Townsfolk" {
+  oracle_id c649d5ae-2f38-4737-8123-8069a2ba0bde
+  cost {2}{W}
+  type Creature — Human Citizen
+  pt 3/3
+  triggered whenever one or more other creature you control die: put 1 +1/+1 counter on this
+}

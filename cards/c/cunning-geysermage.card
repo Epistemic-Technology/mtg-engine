@@ -1,0 +1,8 @@
+card "Cunning Geysermage" {
+  oracle_id 746768bc-9abc-495f-ad00-4b58497dce0d
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  kicker {2}{U}
+  triggered when this enters if kicked: return up to 1 another target creature to hand
+}

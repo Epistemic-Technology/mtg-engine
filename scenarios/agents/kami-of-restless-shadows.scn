@@ -1,0 +1,11 @@
+scenario "Kami of Restless Shadows returns a Rogue card to hand" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Ali Baba", "Grizzly Bears"
+  hand A: "Kami of Restless Shadows"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kami of Restless Shadows"
+  turn 1 A: trigger "Kami of Restless Shadows" targeting "Ali Baba"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ali Baba"
+  assert graveyard A contains "Grizzly Bears"
+}

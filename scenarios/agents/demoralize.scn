@@ -1,0 +1,24 @@
+scenario "Demoralize gives all creatures menace" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Demoralize"
+  turn 1 A: cast "Demoralize"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" menace
+  assert has "Hill Giant" menace
+  assert life B 18
+}
+
+scenario "Demoralize with threshold: creatures can't block" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Savannah Lions"
+  graveyard A: 7 "Forest"
+  hand A: "Demoralize"
+  turn 1 A: cast "Demoralize"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

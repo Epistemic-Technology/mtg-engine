@@ -1,0 +1,8 @@
+card "Cavalry Pegasus" {
+  oracle_id 1f6fd5d9-d123-4986-a18b-206cc2dfb3f1
+  cost {1}{W}
+  type Creature — Pegasus
+  pt 1/1
+  keywords flying
+  triggered whenever this attacks: each single attacking Human gains flying
+}

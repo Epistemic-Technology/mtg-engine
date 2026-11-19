@@ -1,0 +1,32 @@
+# "Whenever one or more other creatures you control die", "Whenever one
+# or more permanents you control leave the battlefield": once for the
+# objects leaving together (CR 603.2c), judged as they last existed (CR
+# 603.10a).
+
+scenario "one or more die: two creatures dying together trigger once" {
+  battlefield A: "Vengeful Townsfolk", 2 "Grizzly Bears", 2 "Mountain"
+  hand A: "Pyroclasm"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains 2 "Grizzly Bears"
+  assert counters "Vengeful Townsfolk" +1/+1 1
+}
+
+scenario "one or more die: separate deaths trigger separately" {
+  battlefield A: "Vengeful Townsfolk", 2 "Grizzly Bears", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting oldest "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Vengeful Townsfolk" +1/+1 2
+}
+
+scenario "one or more die: not creatures you don't control" {
+  battlefield A: "Vengeful Townsfolk", 2 "Mountain"
+  battlefield B: 2 "Grizzly Bears"
+  hand A: "Pyroclasm"
+  turn 1 A: cast "Pyroclasm"
+  run_to turn 1 postcombat_main
+  assert counters "Vengeful Townsfolk" +1/+1 0
+}

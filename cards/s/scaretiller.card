@@ -1,0 +1,10 @@
+card "Scaretiller" {
+  oracle_id e4b32e47-5484-4ee9-bac3-4ba37558a56a
+  cost {4}
+  type Artifact Creature — Scarecrow
+  pt 1/4
+  triggered whenever this becomes tapped: choose one {
+    mode: you may put land card from hand onto battlefield tapped
+    mode: return target land card from your graveyard to battlefield tapped
+  }
+}

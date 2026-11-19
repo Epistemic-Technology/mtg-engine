@@ -1,0 +1,7 @@
+card "Cruel Feeding" {
+  oracle_id ef60bb5b-7cf5-4b4d-a725-4531fc0c852a
+  cost {B}
+  type Instant
+  strive {2}{B}
+  spell: any number of target creature gets +1/+0 and gains lifelink
+}

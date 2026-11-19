@@ -1,0 +1,7 @@
+card "Rouse the Mob" {
+  oracle_id bc8b2b89-7118-4662-beda-9108cd08491b
+  cost {R}
+  type Instant
+  strive {2}{R}
+  spell: any number of target creature gets +2/+0 and gains trample
+}

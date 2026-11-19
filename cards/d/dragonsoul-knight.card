@@ -1,0 +1,8 @@
+card "Dragonsoul Knight" {
+  oracle_id f8fb5a40-4e32-4817-bf56-484add976475
+  cost {2}{R}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  activated {W}{U}{B}{R}{G}: until end of turn, this becomes Dragon, gets +5/+3 and gains flying and trample
+}

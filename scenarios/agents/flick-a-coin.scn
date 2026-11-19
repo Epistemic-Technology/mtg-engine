@@ -1,0 +1,23 @@
+scenario "flick a coin pings, makes a Treasure, and draws" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Flick a Coin"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Flick a Coin" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield A contains "Treasure"
+  assert hand A contains "Island"
+  assert graveyard A contains "Flick a Coin"
+}
+
+scenario "flick a coin can hit a player" {
+  battlefield A: 3 "Mountain"
+  hand A: "Flick a Coin"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Flick a Coin" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert battlefield A contains "Treasure"
+}

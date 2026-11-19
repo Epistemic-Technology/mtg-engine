@@ -1,0 +1,8 @@
+card "Famished Foragers" {
+  oracle_id e95f22dd-b89a-4836-86ad-5a9a1627af38
+  cost {3}{R}
+  type Creature — Vampire
+  pt 4/3
+  triggered when this enters if opponent lost life this turn: add {R}{R}{R}
+  activated {2}{R}, discard 1 card: draw 1 card
+}

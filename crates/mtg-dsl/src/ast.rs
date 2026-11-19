@@ -15,6 +15,9 @@ pub struct TargetCheck {
     pub tense: TargetTense,
     /// `also` after the comma: "it also gains lifelink".
     pub also: bool,
+    /// Written after the sentence: `put 1 +1/+1 counter on target creature
+    /// you control if target 1 is legendary` ("... if it's legendary").
+    pub after: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
@@ -26,6 +29,9 @@ pub enum TargetTense {
     Is,
     /// `if that target 1 is`: "If that creature is ...".
     ThatIs,
+    /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
+    /// or less", as it last existed, like `Was`.
+    Had,
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -926,6 +932,9 @@ pub enum Ability {
     ExtraVote {
         optional: bool,
     },
+    /// `protection doesn't remove this`: "This effect doesn't remove this
+    /// Aura.", printed after the static ability before it.
+    AuraStays,
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
@@ -973,6 +982,11 @@ pub enum Mechanic {
     /// CR 702.30: at your upkeep, if it came under your control since your
     /// last upkeep, sacrifice it unless you pay.
     Echo(ManaCost),
+    /// `strive {2}{W}`: "Strive — This spell costs {2}{W} more to cast for
+    /// each target beyond the first."
+    Strive(ManaCost),
+    /// `echo discard 1 card`: "Echo—Discard a card." (CR 702.30a).
+    EchoCost(Cost),
     /// CR 702.84: from the graveyard as a sorcery: return it with haste,
     /// exile it at the next end step.
     Unearth(ManaCost),
@@ -1731,6 +1745,14 @@ pub enum Trigger {
         another: bool,
         or_discard: bool,
     },
+    /// `when you cast this` ("When you cast this spell", CR 603.2) and
+    /// `when you cast or cycle this` ("When you cast or cycle ~").
+    CastThis {
+        or_cycle: bool,
+    },
+    /// `whenever you sacrifice other Eldrazi` ("Whenever you sacrifice
+    /// another Eldrazi").
+    Sacrifices(Filter),
     /// `whenever you cast your second spell each turn`, `... your first
     /// spell each turn`, `... a spell other than your first spell each
     /// turn`, `... your first spell during each opponent's turn`.
@@ -1754,6 +1776,13 @@ pub enum Trigger {
     /// `whenever one or more artifact you control enter`: once for the
     /// objects entering together (CR 603.2c); `that much` is how many.
     EntersBatch(Filter),
+    /// `whenever one or more other creature you control die`, `whenever
+    /// one or more permanent you control leave the battlefield` (CR
+    /// 603.2c, 603.10a).
+    LeavesBatch {
+        filter: Filter,
+        dies: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2428,6 +2457,9 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `otherwise, ...`: only if the conditional sentence just before (`if
+    /// <condition>, ...`, `if you win, ...`) didn't happen (CR 608.2c).
+    Otherwise(Vec<Sentence>),
     /// `when you do, <sentence>`: a reflexive triggered ability (CR
     /// 603.12) with targets of its own, chosen as it triggers.
     WhenYouDo {
@@ -2440,6 +2472,9 @@ pub enum Effect {
         payer: Recipient,
         mana: ManaCost,
         life: u32,
+        /// `unless that player discards 1 card`: cards the payer
+        /// discards, of their choice, as the payment.
+        discard: u32,
         effect: Box<Effect>,
     },
     /// `<clause> unless you <clause>`: "sacrifice it unless you discard

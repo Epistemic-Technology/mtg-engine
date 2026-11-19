@@ -1,0 +1,7 @@
+card "Nobody" {
+  oracle_id eddab60f-2eac-4f20-934c-3d9307f885c3
+  cost {1}{U/R}{U/R}
+  type Artifact Creature — Human Hero
+  pt 3/2
+  triggered when this enters: return up to 1 another target artifact you control to hand; scry 1
+}

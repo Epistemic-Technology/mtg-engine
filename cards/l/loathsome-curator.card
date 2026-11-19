@@ -1,0 +1,8 @@
+card "Loathsome Curator" {
+  oracle_id 8a20707f-9764-4236-9aa9-858a2419f012
+  cost {4}{B}
+  type Creature — Gorgon Wizard
+  pt 5/4
+  keywords exploit, menace
+  triggered when this exploits a creature: destroy target creature you don't control with mana value 3 or less
+}

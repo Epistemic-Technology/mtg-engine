@@ -1,0 +1,29 @@
+scenario "so shiny taps the creature if you control a token and keeps it tapped" {
+  battlefield A: 3 "Island", 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Raise the Alarm", "So Shiny"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Raise the Alarm"
+  turn 2 A: wait
+  turn 2 A: cast "So Shiny" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert attached "So Shiny" to "Hill Giant"
+  run_to turn 3 precombat_main
+  assert tapped "Hill Giant"
+}
+
+scenario "so shiny without a token doesn't tap, but the creature still doesn't untap" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "So Shiny"
+  start turn 2 A precombat_main
+  turn 2 A: cast "So Shiny" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert untapped "Hill Giant"
+  run_to turn 3 begin_combat
+  turn 3 B: attack "Hill Giant"
+  run_to turn 4 precombat_main
+  assert tapped "Hill Giant"
+  assert life A 17
+}

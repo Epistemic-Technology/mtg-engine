@@ -1,0 +1,13 @@
+scenario "Unexpected Fangs gives a +1/+1 counter and lifelink" {
+  battlefield A: "Grizzly Bears", 2 "Swamp"
+  hand A: "Unexpected Fangs"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Unexpected Fangs" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Grizzly Bears" lifelink 1
+  assert has "Grizzly Bears" lifelink
+  assert life B 17
+  assert life A 23
+}

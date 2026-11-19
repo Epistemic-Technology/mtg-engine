@@ -1,0 +1,28 @@
+scenario "finch formation: target creature you control gains flying" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Finch Formation"
+  turn 1 A: cast "Finch Formation"
+  turn 1 A: trigger "Finch Formation" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert has "Grizzly Bears" flying
+  assert has "Finch Formation" flying
+}
+
+scenario "finch formation: the flying lasts until end of turn" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  hand A: "Finch Formation"
+  turn 1 A: cast "Finch Formation"
+  turn 1 A: trigger "Finch Formation" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "finch formation: offspring makes a 1/1 token copy" {
+  battlefield A: 6 "Island"
+  hand A: "Finch Formation"
+  turn 1 A: cast "Finch Formation" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Finch Formation"
+  assert power newest A "Finch Formation" 1
+  assert toughness newest A "Finch Formation" 1
+}

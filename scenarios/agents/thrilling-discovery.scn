@@ -1,0 +1,20 @@
+scenario "Thrilling Discovery gains 2, discards two to draw three" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Thrilling Discovery", "Forest", "Island"
+  turn 1 A: cast "Thrilling Discovery"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert hand A count 3
+}
+
+scenario "Thrilling Discovery declined: no discard, no draw" {
+  battlefield A: "Mountain", "Plains"
+  hand A: "Thrilling Discovery", "Forest", "Island"
+  turn 1 A: decline "Thrilling Discovery"
+  turn 1 A: cast "Thrilling Discovery"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A count 2
+}

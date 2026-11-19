@@ -1,0 +1,6 @@
+card "King Harald's Revenge" {
+  oracle_id bc781549-7b2b-440b-93ae-69677acdfdad
+  cost {2}{G}
+  type Sorcery
+  spell: until end of turn, target creature gets +1/+1 count each creature you control and gains trample; target 1 must be blocked if able
+}

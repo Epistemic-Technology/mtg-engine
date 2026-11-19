@@ -1,0 +1,31 @@
+# "If its mana value was 3 or less, ...", "If it had mana value 3 or
+# less, ...": the target as it last existed (CR 608.2h).
+
+scenario "if its mana value was 3 or less: Extinguish the Light gains life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Extinguish the Light"
+  turn 1 A: cast "Extinguish the Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 23
+}
+
+scenario "if its mana value was 3 or less: not for a bigger creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Extinguish the Light"
+  turn 1 A: cast "Extinguish the Light" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "if it had mana value 3 or less: Consuming Ashes exiles" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Consuming Ashes"
+  turn 1 A: cast "Consuming Ashes" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+}

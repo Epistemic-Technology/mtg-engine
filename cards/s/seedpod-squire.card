@@ -1,0 +1,8 @@
+card "Seedpod Squire" {
+  oracle_id e2f57e48-ff5b-4a42-9b7c-1bd23b0d78ed
+  cost {3}{W/U}
+  type Creature — Bird Scout
+  pt 3/3
+  keywords flying
+  triggered whenever this attacks: target creature you control without flying gets +1/+1
+}

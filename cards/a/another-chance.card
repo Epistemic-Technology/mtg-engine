@@ -1,0 +1,6 @@
+card "Another Chance" {
+  oracle_id df9cdc11-cb92-46ce-a83d-eb26e3cd004a
+  cost {2}{B}
+  type Instant
+  spell: you may mill 2 cards; then return up to 2 creature card from your graveyard to hand chosen
+}

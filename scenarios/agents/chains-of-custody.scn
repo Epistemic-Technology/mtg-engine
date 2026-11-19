@@ -1,0 +1,36 @@
+scenario "Chains of Custody exiles an opponent's permanent and grants ward" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Chains of Custody"
+  turn 1 A: cast "Chains of Custody" targeting "Grizzly Bears"
+  turn 1 A: trigger "Chains of Custody" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert attached "Chains of Custody" to "Grizzly Bears"
+}
+
+scenario "Chains of Custody returns the card when it leaves" {
+  battlefield A: 3 "Plains", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Chains of Custody", "Shock"
+  turn 1 A: cast "Chains of Custody" targeting "Grizzly Bears"
+  turn 1 A: trigger "Chains of Custody" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Chains of Custody"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Chains of Custody: ward {2} counters an opponent's spell" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Chains of Custody"
+  hand B: "Shock"
+  turn 1 A: cast "Chains of Custody" targeting "Grizzly Bears"
+  turn 1 A: trigger "Chains of Custody" targeting "Hill Giant"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+}

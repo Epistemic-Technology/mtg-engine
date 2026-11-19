@@ -1,0 +1,6 @@
+card "Lost Days" {
+  oracle_id 3bc47eae-cf6f-4b5e-96e1-94a4f307f474
+  cost {4}{U}
+  type Instant — Lesson
+  spell: owner of target creature or enchantment puts it into library 2 from top or bottom; you create 1 "Clue"
+}

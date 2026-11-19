@@ -107,7 +107,9 @@ impl GameState {
                 // graveyard.
                 if let Some(spec) = self.pool.get(o.def).enchant()
                     && !o.attached_to.is_some_and(|t| {
-                        self.is_legal_attachment(spec, t) && !self.protected_attachment(id, t)
+                        self.is_legal_attachment(spec, t)
+                            && (self.pool.get(o.def).aura_stays
+                                || !self.protected_attachment(id, t))
                     })
                 {
                     // CR 702.103f: a bestowed Aura not attached (or

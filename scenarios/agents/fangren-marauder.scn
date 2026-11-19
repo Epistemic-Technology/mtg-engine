@@ -1,0 +1,23 @@
+scenario "Fangren Marauder gains 5 life when an opponent's artifact is destroyed" {
+  battlefield A: "Fangren Marauder", 2 "Mountain"
+  battlefield B: "Sol Ring"
+  hand A: "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shatter" targeting "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert life A 25
+  assert life B 20
+}
+
+scenario "Fangren Marauder's life gain is optional" {
+  battlefield A: "Fangren Marauder", 2 "Mountain"
+  battlefield B: "Sol Ring"
+  hand A: "Shatter"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shatter" targeting "Sol Ring"
+  turn 1 A: decline "Fangren Marauder"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert life A 20
+}

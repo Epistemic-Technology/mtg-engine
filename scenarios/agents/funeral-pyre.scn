@@ -1,0 +1,11 @@
+scenario "Funeral Pyre exiles a card and its owner gets a Spirit" {
+  battlefield A: "Plains"
+  graveyard B: "Grizzly Bears"
+  hand A: "Funeral Pyre"
+  turn 1 A: cast "Funeral Pyre" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B contains "Spirit"
+  assert battlefield A lacks "Spirit"
+  assert has "Spirit" flying
+}

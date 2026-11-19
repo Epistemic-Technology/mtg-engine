@@ -1,0 +1,19 @@
+scenario "Air-Cult Elemental returns another creature to its owner's hand" {
+  battlefield A: 6 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Air-Cult Elemental"
+  turn 1 A: cast "Air-Cult Elemental"
+  turn 1 A: trigger "Air-Cult Elemental" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert battlefield A contains "Air-Cult Elemental"
+  assert has "Air-Cult Elemental" flying
+}
+
+scenario "Air-Cult Elemental may return nothing" {
+  battlefield A: 6 "Island"
+  hand A: "Air-Cult Elemental"
+  turn 1 A: cast "Air-Cult Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Air-Cult Elemental"
+}

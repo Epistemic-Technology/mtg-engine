@@ -1,0 +1,8 @@
+card "So Shiny" {
+  oracle_id 4bc34109-2050-4736-8247-ba06f0a9114a
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters if you control token: tap enchanted creature, then scry 2
+  static enchanted: has doesn't untap
+}

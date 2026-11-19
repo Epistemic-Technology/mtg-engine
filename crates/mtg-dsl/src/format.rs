@@ -1360,10 +1360,17 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
+            Effect::IfTarget(n, f, inner, check) if check.after => format!(
+                "{} if target {} is {}",
+                self.line(inner, t),
+                n + 1,
+                filter(f)
+            ),
             Effect::IfTarget(n, f, inner, check) => {
                 use crate::ast::TargetTense;
                 let (that, verb) = match check.tense {
                     TargetTense::Was => ("", "was"),
+                    TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
                 };
@@ -1389,6 +1396,7 @@ impl Fmt {
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
+            Effect::Otherwise(inner) => format!("otherwise, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
             }
@@ -1409,6 +1417,7 @@ impl Fmt {
                     ChooseAct::Tap => format!("tap {n} {f} chosen"),
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
+                    ChooseAct::Discard if unfiltered => format!("discard {n} {cs} chosen"),
                     ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
                     // "put a card from your hand": no filter, no word for it.
                     ChooseAct::HandToBottom if unfiltered => {
@@ -1540,7 +1549,22 @@ impl Fmt {
                 payer,
                 mana,
                 life,
+                discard,
                 effect,
+            } if *discard > 0 => {
+                let inner = self.effect(effect, t);
+                let n = if *discard == 1 { "card" } else { "cards" };
+                format!(
+                    "{inner} unless {} discards {discard} {n}",
+                    self.recipient(*payer, t)
+                )
+            }
+            Effect::UnlessPays {
+                payer,
+                mana,
+                life,
+                effect,
+                ..
             } => {
                 let inner = self.effect(effect, t);
                 let who = if *payer == Recipient::You {
@@ -2143,6 +2167,11 @@ fn filter_one(f: &Filter) -> String {
     if f.status.toxic {
         words.push("with toxic".to_string());
     }
+    match f.status.on {
+        Some(mtg_core::card::OnHost::Creature) => words.push("attached to creature".to_string()),
+        Some(mtg_core::card::OnHost::Land) => words.push("attached to land".to_string()),
+        None => {}
+    }
     match f.status.counter {
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
@@ -2500,6 +2529,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::State(_)
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
+            | Trigger::CastThis { .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
         || matches!(
             t,
@@ -2740,6 +2770,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             another,
             or_discard,
         } => cycles_text(*this, *another, *or_discard),
+        Trigger::CastThis { or_cycle: false } => "when you cast this".to_string(),
+        Trigger::Sacrifices(f) => format!("whenever you sacrifice {}", filter(f)),
+        Trigger::CastThis { or_cycle: true } => "when you cast or cycle this".to_string(),
         Trigger::CastsNth { whose, nth } => format!("whenever {}", spell_ordinal(*nth, *whose)),
         Trigger::Either(a, b) => format!("{} and {}", trigger_text(a, next), trigger_text(b, next)),
         Trigger::Or {
@@ -2753,6 +2786,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
+        Trigger::LeavesBatch { filter: f, dies } => format!(
+            "whenever one or more {} {}",
+            filter(f),
+            if *dies {
+                "die"
+            } else {
+                "leave the battlefield"
+            }
+        ),
     }
 }
 
@@ -3690,6 +3732,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
+                crate::ast::Mechanic::EchoCost(c) => format!("echo {}", cost_text(c)),
                 crate::ast::Mechanic::MorphCost(c) => format!("morph {}", cost_text(c)),
                 crate::ast::Mechanic::BuybackCost(c) => format!("buyback {}", cost_text(c)),
                 crate::ast::Mechanic::Echo(c) => format!("echo {c}"),
@@ -3728,6 +3771,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Eternalize(c) => format!("eternalize {c}"),
                 crate::ast::Mechanic::Backup(n) => format!("backup {n}"),
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
+                crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
@@ -3775,6 +3819,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Uncounterable => {
             let _ = writeln!(out, "{indent}this spell can't be countered");
+        }
+        Ability::AuraStays => {
+            let _ = writeln!(out, "{indent}protection doesn't remove this");
         }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(

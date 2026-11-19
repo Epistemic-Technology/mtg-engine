@@ -1,0 +1,7 @@
+card "Samite Alchemist" {
+  oracle_id 120b565a-e22b-4d5d-9841-b11750b4ee49
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 0/2
+  activated {W}{W}, {T}: prevent next 4 damage this turn to target creature you control; tap that target 1; target 1 doesn't untap next untap step
+}

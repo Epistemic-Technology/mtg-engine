@@ -328,15 +328,14 @@ impl Event {
     /// Which `TriggerSpec::watch_mask` bit this event sets; 0 for events no
     /// trigger watches.
     #[inline]
-    pub fn watch_bit(&self) -> u16 {
+    pub fn watch_bit(&self) -> u32 {
         use crate::card::{
             WATCH_ATTACH, WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_CYCLE, WATCH_DAMAGE,
             WATCH_DESIG, WATCH_DISCARD, WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_ROLL,
-            WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
+            WATCH_SACRIFICE, WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
-            // A sacrifice is the start of a zone change (CR 701.21a).
-            Event::ZoneChange { .. } | Event::Sacrificed { .. } => WATCH_ZONE_CHANGE,
+            Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
             Event::StepBegin { .. } => WATCH_STEP_BEGIN,
             Event::Attack { .. } => WATCH_ATTACK,
             Event::Block { .. } | Event::Blocked { .. } | Event::Unblocked { .. } => WATCH_BLOCK,
@@ -352,6 +351,7 @@ impl Event {
             Event::Attached { .. } => WATCH_ATTACH,
             Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
             Event::DayNight { .. } => WATCH_DESIG,
+            Event::Sacrificed { .. } => WATCH_SACRIFICE,
             _ => 0,
         }
     }

@@ -1,0 +1,17 @@
+scenario "ashnod's transmogrant: counter and artifact type" {
+  battlefield A: "Ashnod's Transmogrant", "Grizzly Bears"
+  turn 1 A: activate "Ashnod's Transmogrant" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard A contains "Ashnod's Transmogrant"
+  assert counters "Grizzly Bears" +1/+1 1
+  assert power "Grizzly Bears" 3
+  assert is "Grizzly Bears" artifact
+  assert is "Grizzly Bears" creature
+}
+
+scenario "ashnod's transmogrant: can't target an artifact creature" {
+  battlefield A: "Ashnod's Transmogrant", "Ornithopter"
+  illegal turn 1 A: activate "Ashnod's Transmogrant" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ashnod's Transmogrant"
+}

@@ -1,0 +1,7 @@
+card "Daru Spiritualist" {
+  oracle_id e58a5631-dd00-4b1b-a2aa-2558bb0ff62f
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  triggered whenever Cleric creature you control becomes targeted: it gets +0/+2
+}

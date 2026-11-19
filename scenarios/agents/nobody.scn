@@ -1,0 +1,19 @@
+scenario "nobody: returns another artifact you control to hand" {
+  battlefield A: 3 "Island", "Ornithopter"
+  hand A: "Nobody"
+  turn 1 A: cast "Nobody"
+  turn 1 A: trigger "Nobody" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Ornithopter"
+  assert battlefield A contains "Nobody"
+}
+
+scenario "nobody: can't return an opponent's artifact" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Nobody"
+  turn 1 A: cast "Nobody"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+  assert battlefield A contains "Nobody"
+}

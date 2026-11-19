@@ -1,0 +1,6 @@
+card "Choking Sands" {
+  oracle_id 3bcb7436-f7d9-4bb0-81be-7a3db9d8329f
+  cost {1}{B}{B}
+  type Sorcery
+  spell: destroy target non-Swamp land; if target 1 was nonbasic, deal 2 damage to controller of the target 1
+}

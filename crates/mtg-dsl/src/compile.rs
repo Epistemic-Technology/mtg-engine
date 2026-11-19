@@ -336,8 +336,14 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Offspring(cost)) => {
                     b = b.offspring(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Strive(cost)) => {
+                    b = b.strive(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Bargain) => {
                     b = b.bargain();
+                }
+                Ability::AuraStays => {
+                    b = b.aura_stays();
                 }
                 Ability::Mechanic(Mechanic::Ascend) => {
                     b = b.marks(mtg_core::card::Marks::ASCEND);
@@ -474,6 +480,7 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
                     | Ability::Uncounterable
+                    | Ability::AuraStays
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
                     | Ability::CondCost { .. }
@@ -496,6 +503,7 @@ impl Compiler<'_> {
                             | Mechanic::Splice(_)
                             | Mechanic::SpliceCost(_)
                             | Mechanic::Bargain
+                            | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
@@ -1660,6 +1668,16 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));
             }
+            Effect::Otherwise(inner) => {
+                if !matches!(
+                    out.last(),
+                    Some(CoreEffect::IfCondition(..) | CoreEffect::Clash { .. })
+                ) {
+                    return self.err("`otherwise` needs a conditional sentence before it");
+                }
+                let effects = self.sentences(inner)?;
+                out.push(CoreEffect::Otherwise(effects));
+            }
             Effect::Instead { .. } => {
                 return self.err("`instead` is a sentence of its own, after the one it replaces");
             }
@@ -1678,6 +1696,7 @@ impl Compiler<'_> {
                 payer,
                 mana,
                 life,
+                discard,
                 effect,
             } => {
                 let mut effects = Vec::new();
@@ -1686,6 +1705,7 @@ impl Compiler<'_> {
                     payer: r(*payer),
                     mana: mana.clone(),
                     life: *life,
+                    discard: *discard,
                     effects,
                 });
             }
@@ -1996,11 +2016,25 @@ impl Compiler<'_> {
                 another: *another,
                 or_discard: *or_discard,
             },
+            Trigger::CastThis { or_cycle: false } => TriggerSpec::CastThis,
+            Trigger::Sacrifices(f) => TriggerSpec::Sacrifices(self.filter(f)),
+            Trigger::CastThis { or_cycle: true } => TriggerSpec::Either(Box::new((
+                TriggerSpec::CastThis,
+                TriggerSpec::Cycles {
+                    this: true,
+                    another: false,
+                    or_discard: false,
+                },
+            ))),
             Trigger::CastsNth { whose, nth } => TriggerSpec::CastsNth {
                 whose: *whose,
                 nth: *nth,
             },
             Trigger::EntersBatch(f) => TriggerSpec::EntersBatch(self.filter(f)),
+            Trigger::LeavesBatch { filter, dies } => TriggerSpec::LeavesBatch {
+                filter: self.filter(filter),
+                dies: *dies,
+            },
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }
@@ -2256,6 +2290,9 @@ impl Compiler<'_> {
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
             Ability::Uncounterable => {
                 return self.err("\"can't be countered\" is a property of the spell");
+            }
+            Ability::AuraStays => {
+                return self.err("`protection doesn't remove this` is not an ability");
             }
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
@@ -2560,6 +2597,7 @@ impl Compiler<'_> {
                 | Mechanic::Splice(_)
                 | Mechanic::SpliceCost(_)
                 | Mechanic::Bargain
+                | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
                 | Mechanic::BecomesDay => {
@@ -2786,13 +2824,19 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 payer: Recipient::TriggeringController { that: false },
                 mana: cost.mana.clone(),
                 life: cost.life,
+                discard: cost.discard,
                 effect: Box::new(E::Counter {
                     to: Recipient::TriggeringObject,
                     dest: crate::ast::CounteredTo::Graveyard,
                 }),
             }),
         },
-        Mechanic::Echo(cost) => Ability::Triggered {
+        Mechanic::Echo(cost) => expand_mechanic(&Mechanic::EchoCost(crate::ast::Cost {
+            mana: cost.clone(),
+            ..Default::default()
+        })),
+        // CR 702.30a: "Echo—Discard a card."
+        Mechanic::EchoCost(cost) => Ability::Triggered {
             from_graveyard: false,
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
@@ -2807,8 +2851,9 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                     E::ClearEcho,
                     E::UnlessPays {
                         payer: Recipient::You,
-                        mana: cost.clone(),
-                        life: 0,
+                        mana: cost.mana.clone(),
+                        life: cost.life,
+                        discard: cost.discard,
                         effect: Box::new(E::Sacrifice {
                             what: Recipient::Source,
                         }),
@@ -2934,6 +2979,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)
+        | Mechanic::Strive(_)
         | Mechanic::Bargain
         | Mechanic::Ascend
         | Mechanic::StartYourEngines

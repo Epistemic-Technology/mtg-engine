@@ -1,0 +1,9 @@
+card "Drownyard Lurker" {
+  oracle_id 7cf5c3dd-5c07-4eaf-8227-6f4e7f9b134d
+  cost {7}
+  type Creature — Eldrazi Trilobite
+  pt 7/7
+  keywords vigilance
+  triggered when you cast or cycle this: create 1 "Eldrazi Spawn"
+  cycling {2}{U}
+}

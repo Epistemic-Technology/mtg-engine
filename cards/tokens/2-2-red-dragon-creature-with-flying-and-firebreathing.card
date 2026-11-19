@@ -1,0 +1,8 @@
+token "2/2 red Dragon creature with flying and firebreathing" {
+  name "Dragon"
+  type Creature — Dragon
+  pt 2/2
+  color red
+  keywords flying
+  activated {R}: this gets +1/+0
+}

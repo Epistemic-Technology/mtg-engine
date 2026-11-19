@@ -1,0 +1,26 @@
+scenario "Rust-Shield Rampager can't be blocked by power 2 or less" {
+  battlefield A: "Rust-Shield Rampager"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  turn 1 A: attack "Rust-Shield Rampager"
+  illegal turn 1 B: block "Rust-Shield Rampager" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}
+
+scenario "Rust-Shield Rampager can be blocked by power 3" {
+  battlefield A: "Rust-Shield Rampager"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Rust-Shield Rampager"
+  turn 1 B: block "Rust-Shield Rampager" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Rust-Shield Rampager offspring makes a token copy" {
+  battlefield A: 6 "Forest"
+  hand A: "Rust-Shield Rampager"
+  turn 1 A: cast "Rust-Shield Rampager" kicked
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Rust-Shield Rampager"
+}

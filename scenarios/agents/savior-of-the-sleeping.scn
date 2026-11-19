@@ -1,0 +1,25 @@
+scenario "Savior of the Sleeping grows when your enchantment is destroyed" {
+  battlefield A: "Savior of the Sleeping"
+  battlefield B: "Grizzly Bears", "Plains", "Plains"
+  battlefield A: "Pacifism" on "Grizzly Bears"
+  hand B: "Disenchant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Disenchant" targeting "Pacifism"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Pacifism"
+  assert counters "Savior of the Sleeping" +1/+1 1
+  assert power "Savior of the Sleeping" 3
+}
+
+scenario "Savior of the Sleeping ignores opponents' enchantments" {
+  battlefield A: "Savior of the Sleeping", "Plains", "Plains"
+  battlefield B: "Grizzly Bears"
+  battlefield B: "Pacifism" on "Grizzly Bears"
+  hand A: "Disenchant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Disenchant" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Pacifism"
+  assert counters "Savior of the Sleeping" +1/+1 0
+  assert has "Savior of the Sleeping" vigilance
+}

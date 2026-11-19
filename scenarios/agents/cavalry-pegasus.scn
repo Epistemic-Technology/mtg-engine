@@ -1,0 +1,14 @@
+scenario "cavalry pegasus: attacking Humans gain flying" {
+  battlefield A: "Cavalry Pegasus", "Elite Vanguard", "Grizzly Bears"
+  turn 1 A: attack "Cavalry Pegasus", "Elite Vanguard", "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert has "Elite Vanguard" flying
+  assert has not "Grizzly Bears" flying
+}
+
+scenario "cavalry pegasus: a Human that doesn't attack doesn't gain flying" {
+  battlefield A: "Cavalry Pegasus", "Elite Vanguard"
+  turn 1 A: attack "Cavalry Pegasus"
+  run_to turn 1 declare_blockers
+  assert has not "Elite Vanguard" flying
+}

@@ -1,0 +1,7 @@
+card "Ill-Gotten Inheritance" {
+  oracle_id 84e8ca5e-730e-468b-943c-7c6358ade95c
+  cost {3}{B}
+  type Enchantment
+  triggered at beginning of your upkeep: deal 1 damage to each opponent and you gain 1 life
+  activated {5}{B}, sacrifice this: it deals 4 damage to target opponent and you gain 4 life
+}

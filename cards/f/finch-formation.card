@@ -1,0 +1,9 @@
+card "Finch Formation" {
+  oracle_id 76c2e0b4-d4fa-4e98-b363-0a76eb481304
+  cost {2}{U}
+  type Creature — Bird Scout
+  pt 2/2
+  offspring {3}
+  keywords flying
+  triggered when this enters: target creature you control gains flying
+}

@@ -1,0 +1,7 @@
+card "Kithkin Zealot" {
+  oracle_id 7445122d-a943-493c-b7b6-3699cc07db0e
+  cost {1}{W}
+  type Creature — Kithkin Cleric
+  pt 1/3
+  triggered when this enters: you gain count each andor black or red permanent target opponent controls life
+}

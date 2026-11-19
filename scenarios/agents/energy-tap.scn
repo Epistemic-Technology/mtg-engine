@@ -1,0 +1,20 @@
+scenario "energy tap: tap a creature for colorless mana equal to its mana value" {
+  battlefield A: "Island", "Mountain", "Hill Giant"
+  hand A: "Energy Tap", "Hill Giant"
+  turn 1 A: cast "Energy Tap" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Hill Giant"
+  assert tapped oldest "Hill Giant"
+  assert graveyard A contains "Energy Tap"
+}
+
+scenario "energy tap: can't target a tapped creature" {
+  battlefield A: "Island", "Hill Giant" tapped
+  start turn 1 A precombat_main
+  hand A: "Energy Tap"
+  illegal turn 1 A: cast "Energy Tap" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Energy Tap"
+}

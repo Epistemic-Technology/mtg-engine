@@ -1,0 +1,25 @@
+scenario "Spirit Flare taps a creature to damage an attacker" {
+  battlefield A: 4 "Plains", "Serra Angel"
+  battlefield B: "Hill Giant"
+  hand A: "Spirit Flare"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Spirit Flare" targeting "Serra Angel", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert tapped "Serra Angel"
+  assert life A 20
+}
+
+scenario "Spirit Flare flashback costs 3 life" {
+  battlefield A: 2 "Plains", "Serra Angel"
+  battlefield B: "Hill Giant"
+  graveyard A: "Spirit Flare"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Spirit Flare" from graveyard targeting "Serra Angel", "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 17
+  assert exile A contains "Spirit Flare"
+}

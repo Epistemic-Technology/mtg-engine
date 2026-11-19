@@ -1200,6 +1200,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::ExtraVote { optional })
             }
+            "protection" if self.at_words(&["protection", "doesn't", "remove", "this"]) => {
+                self.pos += 4;
+                self.end_stmt()?;
+                Ok(Ability::AuraStays)
+            }
             "deck" if self.at_words(&["deck", "any", "number"]) => {
                 self.pos += 3;
                 self.end_stmt()?;
@@ -1295,6 +1300,7 @@ impl P {
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
             | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "bestow" | "splice"
+            | "strive"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1320,12 +1326,13 @@ impl P {
                     "embalm" => Mechanic::Embalm(c),
                     "eternalize" => Mechanic::Eternalize(c),
                     "offspring" => Mechanic::Offspring(c),
+                    "strive" => Mechanic::Strive(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
             // "Ward—Pay 3 life.", "Morph—Discard a card.", "Buyback—
             // Sacrifice a land.": a keyword whose cost isn't mana.
-            "ward" | "morph" | "buyback" | "splice"
+            "ward" | "morph" | "buyback" | "splice" | "echo"
                 if matches!(self.peek_at(1), Some(Tok::Word(_))) =>
             {
                 self.pos += 1;
@@ -1335,6 +1342,7 @@ impl P {
                     "ward" => Mechanic::WardCost(c),
                     "morph" => Mechanic::MorphCost(c),
                     "splice" => Mechanic::SpliceCost(c),
+                    "echo" => Mechanic::EchoCost(c),
                     _ => Mechanic::BuybackCost(c),
                 }))
             }
@@ -2755,6 +2763,29 @@ impl P {
                 effects: vec![s],
             }]));
         }
+        // `<sentence> if target 1 is <filter>`: "Put a +1/+1 counter on
+        // target creature you control if it's legendary." (the target as
+        // the sentence resolves).
+        if self.at_words(&["if", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect_word("is")?;
+            let filter = self.filter()?;
+            let check = crate::ast::TargetCheck {
+                tense: crate::ast::TargetTense::Is,
+                also: false,
+                after: true,
+            };
+            return Ok(Sentence::new(vec![Effect::IfTarget(
+                n - 1,
+                filter,
+                vec![s],
+                check,
+            )]));
+        }
         // `<sentence> if <cond>`: "Draw a card if you control ...".
         if self.at_word("if") {
             self.pos += 1;
@@ -2786,6 +2817,41 @@ impl P {
             });
         }
         self.pos += 1;
+        // "unless that player discards a card": discarding is the payment.
+        let discards = |p: &Self| {
+            p.at_words(&["they", "discard"])
+                || (p.pos + 1 < p.toks.len()
+                    && (2..6).any(|k| {
+                        matches!(p.peek_at(k), Some(Tok::Word(w)) if w == "discards")
+                            && !(1..k)
+                                .any(|j| matches!(p.peek_at(j), Some(Tok::Word(w)) if w == "pays"))
+                    }))
+        };
+        if discards(self) {
+            let payer = if self.eat_words(&["they", "discard"]) {
+                match self.subject {
+                    Some(s) => s,
+                    None => {
+                        return self.fail("`unless they discard` needs a clause with a subject");
+                    }
+                }
+            } else {
+                let r = self.recipient()?;
+                self.expect_word("discards")?;
+                r
+            };
+            let discard = self.number()?;
+            if !self.eat_word("cards") {
+                self.expect_word("card")?;
+            }
+            return Ok(Effect::UnlessPays {
+                payer,
+                mana: ManaCost::default(),
+                life: 0,
+                discard,
+                effect: Box::new(e),
+            });
+        }
         let payer = if self.eat_words(&["you", "pay"]) {
             Recipient::You
         } else if self.eat_words(&["they", "pay"]) {
@@ -2812,6 +2878,7 @@ impl P {
             payer,
             mana,
             life,
+            discard: 0,
             effect: Box::new(e),
         })
     }
@@ -2945,7 +3012,11 @@ impl P {
                 let saved = self.subject.take();
                 let s = self.sentence()?;
                 self.subject = saved;
-                let check = crate::ast::TargetCheck { tense, also: true };
+                let check = crate::ast::TargetCheck {
+                    tense,
+                    also: true,
+                    after: false,
+                };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
             let cond = InsteadCond::Target {
@@ -2956,7 +3027,11 @@ impl P {
             return match self.instead_body(cond)? {
                 Ok(e) => Ok(e),
                 Err(s) => {
-                    let check = crate::ast::TargetCheck { tense, also: false };
+                    let check = crate::ast::TargetCheck {
+                        tense,
+                        also: false,
+                        after: false,
+                    };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
             };
@@ -2964,7 +3039,12 @@ impl P {
         if that {
             return self.fail("`if that target 1` needs `is`");
         }
-        self.expect_words(&["was"])?;
+        let tense = if self.eat_word("had") {
+            crate::ast::TargetTense::Had
+        } else {
+            self.expect_words(&["was"])?;
+            crate::ast::TargetTense::Was
+        };
         let f = self.filter()?;
         self.expect(&Tok::Comma)?;
         let saved = self.subject.take();
@@ -2974,7 +3054,11 @@ impl P {
             n - 1,
             f,
             vec![s],
-            crate::ast::TargetCheck::default(),
+            crate::ast::TargetCheck {
+                tense,
+                also: false,
+                after: false,
+            },
         ))
     }
 
@@ -3226,6 +3310,12 @@ impl P {
             let s = self.sentence()?;
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
+        }
+        // "Otherwise, ..." after a conditional sentence (CR 608.2c).
+        if self.at_word("otherwise") && self.peek_at(1) == Some(&Tok::Comma) {
+            self.pos += 2;
+            let s = self.sentence()?;
+            return Ok(Effect::Otherwise(vec![s]));
         }
         // "If you win the flip, ..." after "flip a coin" (CR 705.2).
         if self.at_words(&["if", "you", "win", "the", "flip"]) {
@@ -7029,6 +7119,20 @@ impl P {
                 }
                 // `attached to this`, `attached to attached`, `attached to
                 // target creature`, `attached to that target 1`.
+                // `Aura attached to creature`: "an Aura attached to a
+                // creature" (any creature, CR 303.4).
+                "attached"
+                    if (self.at_words(&["attached", "to", "creature"])
+                        || self.at_words(&["attached", "to", "land"]))
+                        && f.status.on.is_none() =>
+                {
+                    f.status.on = Some(if self.word_at(2).as_deref() == Some("land") {
+                        mtg_core::card::OnHost::Land
+                    } else {
+                        mtg_core::card::OnHost::Creature
+                    });
+                    self.pos += 3;
+                }
                 "attached" if self.at_words(&["attached", "to"]) && f.attached_to.is_none() => {
                     self.pos += 2;
                     f.attached_to = Some(if self.eat_word("this") {
@@ -7502,8 +7606,34 @@ impl P {
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {
             let f = self.filter()?;
+            // "one or more other creatures die", "... leave the
+            // battlefield" (CR 603.10a).
+            if self.eat_word("die") {
+                return Ok(Trigger::LeavesBatch {
+                    filter: f,
+                    dies: true,
+                });
+            }
+            if self.eat_words(&["leave", "the", "battlefield"]) {
+                return Ok(Trigger::LeavesBatch {
+                    filter: f,
+                    dies: false,
+                });
+            }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
+        }
+        // CR 603.2: "When you cast this spell", "When you cast or cycle ~".
+        if self.eat_words(&["you", "cast", "this"]) {
+            self.eat_word("spell");
+            return Ok(Trigger::CastThis { or_cycle: false });
+        }
+        if self.eat_words(&["you", "cast", "or", "cycle", "this"]) {
+            return Ok(Trigger::CastThis { or_cycle: true });
+        }
+        // CR 701.21: "Whenever you sacrifice another Eldrazi".
+        if self.eat_words(&["you", "sacrifice"]) {
+            return Ok(Trigger::Sacrifices(self.filter()?));
         }
         // CR 702.29: "you cycle this card", "you cycle or discard a card".
         if self.eat_words(&["you", "cycle"]) {

@@ -1,0 +1,22 @@
+scenario "wall of kelp makes a 0/1 Kelp token with defender" {
+  battlefield A: "Wall of Kelp", 2 "Island"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Wall of Kelp"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Kelp"
+  assert power "Kelp" 0
+  assert toughness "Kelp" 1
+  assert has "Kelp" defender
+  assert is "Kelp" Plant
+  assert is "Kelp" Wall
+  assert is "Kelp" blue
+  assert tapped "Wall of Kelp"
+}
+
+scenario "wall of kelp can't attack" {
+  battlefield A: "Wall of Kelp"
+  start turn 2 A
+  illegal turn 2 A: attack "Wall of Kelp"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

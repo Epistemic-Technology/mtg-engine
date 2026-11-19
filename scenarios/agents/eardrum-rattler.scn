@@ -1,0 +1,17 @@
+scenario "Eardrum Rattler makes a small creature unblockable" {
+  battlefield A: "Eardrum Rattler", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Eardrum Rattler" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Eardrum Rattler"
+}
+
+scenario "Eardrum Rattler can't target a creature with power 3 or more" {
+  battlefield A: "Eardrum Rattler", "Serra Angel", "Mountain"
+  illegal turn 1 A: activate "Eardrum Rattler" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert untapped "Eardrum Rattler"
+}

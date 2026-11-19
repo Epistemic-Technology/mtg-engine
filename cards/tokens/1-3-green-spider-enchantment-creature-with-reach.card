@@ -1,0 +1,7 @@
+token "1/3 green Spider enchantment creature with reach" {
+  name "Spider"
+  type Enchantment Creature — Spider
+  pt 1/3
+  color green
+  keywords reach
+}

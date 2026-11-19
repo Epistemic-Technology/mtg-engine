@@ -1050,6 +1050,17 @@ pub struct StatusQuals {
     /// "with toxic", "if that creature has toxic" (CR 702.164): one of its
     /// abilities is toxic N, printed or granted.
     pub toxic: bool,
+    /// "Aura attached to a creature", "Aura attached to a land": what it
+    /// is attached to (CR 303.4) is of that kind.
+    pub on: Option<OnHost>,
+}
+
+/// The kind of permanent `StatusQuals::on` asks the object to be attached
+/// to.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum OnHost {
+    Creature,
+    Land,
 }
 
 /// The counters `StatusQuals::counter` asks for.
@@ -1076,6 +1087,7 @@ impl StatusQuals {
             || self.counter.is_some()
             || self.modified
             || self.toxic
+            || self.on.is_some()
     }
 }
 
@@ -3072,17 +3084,25 @@ pub enum Effect {
     /// "If you do, [these]": only if the optional action before happened
     /// (CR 608.2c).
     IfYouDo(Vec<Effect>),
+    /// "Otherwise, [these]" (CR 608.2c): only if the conditional sentence
+    /// just before ("If you control an Eldrazi Spawn, ...", "If you win,
+    /// ...") didn't happen. Those set the resolution's `did` to whether
+    /// they did.
+    Otherwise(Vec<Effect>),
     /// "When you do, [this]": a reflexive triggered ability (CR 603.12),
     /// registered in the pool (`CardPool::register_ability`, trigger
     /// `TriggerSpec::Reflexive`), that triggers if the optional action
     /// before happened; its targets are chosen as it is put on the stack.
     Reflexive(AbilityId),
     /// "[these] unless [payer] pays {2}": the payer may pay; if they
-    /// don't, the effects happen.
+    /// don't, the effects happen. `discard` cards of the payer's choice
+    /// are part of the payment ("unless that player discards a card",
+    /// ward's and echo's "—Discard a card.").
     UnlessPays {
         payer: Recipient,
         mana: ManaCost,
         life: u32,
+        discard: u32,
         effects: Vec<Effect>,
     },
     /// "Sacrifice it unless you discard a card at random", "... unless you
@@ -3442,6 +3462,7 @@ impl Effect {
             Effect::YouMay(_)
                 | Effect::IfKicked(_)
                 | Effect::IfYouDo(_)
+                | Effect::Otherwise(_)
                 | Effect::IfCondition(..)
                 | Effect::IfTarget { .. }
                 | Effect::Instead { .. }
@@ -3795,23 +3816,25 @@ pub enum TriggerObj {
 }
 
 /// Event classes a trigger can watch (`TriggerSpec::watch_mask`, `Event::watch_bit`).
-pub const WATCH_ZONE_CHANGE: u16 = 1;
-pub const WATCH_STEP_BEGIN: u16 = 2;
-pub const WATCH_ATTACK: u16 = 4;
-pub const WATCH_BLOCK: u16 = 8;
-pub const WATCH_DAMAGE: u16 = 16;
-pub const WATCH_LIFE_CHANGE: u16 = 32;
-pub const WATCH_CAST: u16 = 64;
-pub const WATCH_TARGETED: u16 = 128;
-pub const WATCH_TAP: u16 = 256;
-pub const WATCH_FACE_UP: u16 = 512;
-pub const WATCH_DRAW: u16 = 1024;
-pub const WATCH_CYCLE: u16 = 2048;
-pub const WATCH_DISCARD: u16 = 4096;
-pub const WATCH_ATTACH: u16 = 8192;
-pub const WATCH_ROLL: u16 = 16384;
+pub const WATCH_ZONE_CHANGE: u32 = 1;
+pub const WATCH_STEP_BEGIN: u32 = 2;
+pub const WATCH_ATTACK: u32 = 4;
+pub const WATCH_BLOCK: u32 = 8;
+pub const WATCH_DAMAGE: u32 = 16;
+pub const WATCH_LIFE_CHANGE: u32 = 32;
+pub const WATCH_CAST: u32 = 64;
+pub const WATCH_TARGETED: u32 = 128;
+pub const WATCH_TAP: u32 = 256;
+pub const WATCH_FACE_UP: u32 = 512;
+pub const WATCH_DRAW: u32 = 1024;
+pub const WATCH_CYCLE: u32 = 2048;
+pub const WATCH_DISCARD: u32 = 4096;
+pub const WATCH_ATTACH: u32 = 8192;
+pub const WATCH_ROLL: u32 = 16384;
 /// Designation changes (day and night, CR 731).
-pub const WATCH_DESIG: u16 = 32768;
+pub const WATCH_DESIG: u32 = 32768;
+/// Sacrifices (CR 701.21).
+pub const WATCH_SACRIFICE: u32 = 65536;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -3954,6 +3977,15 @@ pub enum TriggerSpec {
         another: bool,
         or_discard: bool,
     },
+    /// "When you cast this spell" (CR 603.2, 601.2i): triggers from the
+    /// spell itself as it becomes cast, so it goes on the stack above the
+    /// spell and resolves first; countering the spell doesn't stop it.
+    /// "When you cast or cycle ~" is this and `Cycles { this }`.
+    CastThis,
+    /// "Whenever you sacrifice another Eldrazi" (CR 701.21a: only a
+    /// permanent's controller sacrifices it): the sacrificed permanent,
+    /// matching the filter as it is sacrificed, is the triggering object.
+    Sacrifices(ObjFilter),
     /// "Whenever you cast your second spell each turn" and kin: the
     /// spell's place among the spells its caster cast this turn.
     CastsNth { whose: Who, nth: SpellOrdinal },
@@ -3972,6 +4004,12 @@ pub enum TriggerSpec {
     /// before the next time a player would receive priority count as
     /// together.
     EntersBatch(ObjFilter),
+    /// "Whenever one or more other creatures you control die" (`dies`),
+    /// "Whenever one or more permanents you control leave the
+    /// battlefield": once for the matching objects leaving together (CR
+    /// 603.2c), judged as they last existed (CR 603.10a); their number is
+    /// the trigger's amount.
+    LeavesBatch { filter: ObjFilter, dies: bool },
     /// "Whenever day becomes night or night becomes day" (CR 731.2): not
     /// as it first becomes day.
     DayNight,
@@ -4037,6 +4075,15 @@ impl TriggerSpec {
         }
     }
 
+    /// "When you cast this spell", alone or as one of two events.
+    pub fn casts_this(&self) -> bool {
+        match self {
+            TriggerSpec::CastThis => true,
+            TriggerSpec::Either(pair) => pair.0.casts_this() || pair.1.casts_this(),
+            _ => false,
+        }
+    }
+
     /// Whether this kind of trigger can see `event` at all, judged from the
     /// event's kind alone. A cheap filter before the full check.
     pub fn watches(&self, event: &crate::event::Event) -> bool {
@@ -4047,13 +4094,13 @@ impl TriggerSpec {
     /// `Event::watch_bit`. A definition's mask is the union over its
     /// triggers, so "could anything here care about this event" is one
     /// `&` instead of a walk over abilities.
-    pub fn watch_mask(&self) -> u16 {
+    pub fn watch_mask(&self) -> u32 {
         match self {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
-            | TriggerSpec::Sacrificed { .. }
-            | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
+            | TriggerSpec::EntersBatch(_)
+            | TriggerSpec::LeavesBatch { .. } => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
                 WATCH_STEP_BEGIN
@@ -4080,7 +4127,8 @@ impl TriggerSpec {
             TriggerSpec::RollsDice { .. } | TriggerSpec::WinsFlip { .. } => WATCH_ROLL,
             TriggerSpec::CastsSpell { .. }
             | TriggerSpec::CastsFiltered { .. }
-            | TriggerSpec::CastsNth { .. } => WATCH_CAST,
+            | TriggerSpec::CastsNth { .. }
+            | TriggerSpec::CastThis => WATCH_CAST,
             TriggerSpec::BecomesTarget(_)
             | TriggerSpec::TargetedByOpponent
             | TriggerSpec::TargetedByYouFirstTime => WATCH_TARGETED,
@@ -4091,6 +4139,7 @@ impl TriggerSpec {
             TriggerSpec::Cycles { .. } => WATCH_CYCLE,
             TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
             TriggerSpec::DayNight => WATCH_DESIG,
+            TriggerSpec::Sacrifices(_) | TriggerSpec::Sacrificed { .. } => WATCH_SACRIFICE,
         }
     }
 }
@@ -4699,6 +4748,7 @@ impl AbilityDef {
             if let Effect::YouMay(inner)
             | Effect::IfKicked(inner)
             | Effect::IfYouDo(inner)
+            | Effect::Otherwise(inner)
             | Effect::IfCondition(_, inner)
             | Effect::IfTarget { then: inner, .. }
             | Effect::IfThisWay { then: inner, .. }
@@ -4882,6 +4932,14 @@ pub struct CardDef {
     /// Bargain (CR 702.166): "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     pub bargain: bool,
+    /// "This effect doesn't remove this Aura.": protection the Aura grants
+    /// doesn't make it fall off (CR 702.16; the state-based check of CR
+    /// 704.5m ignores protection for this Aura).
+    pub aura_stays: bool,
+    /// Strive (CR 207.2c): "This spell costs {2}{W} more to cast for each
+    /// target beyond the first." Added as the total cost is determined
+    /// (CR 601.2f), after the targets.
+    pub strive: Option<Box<ManaCost>>,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
     pub madness: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
@@ -4903,9 +4961,9 @@ pub struct CardDef {
     pub flashback: Option<Box<Cost>>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
-    watch_mask: u16,
+    watch_mask: u32,
     /// The same for the abilities a copy exception adds.
-    except_watch_mask: u16,
+    except_watch_mask: u32,
     /// Filled in by `CardPool::add`: the printed characteristics, ready to
     /// clone (CR 109.3 before any effect).
     #[serde(skip)]
@@ -6105,13 +6163,13 @@ impl CardPool {
             );
         }
         let mask = |abilities: &[AbilityDef]| {
-            abilities.iter().fold(0u16, |m, a| match a {
+            abilities.iter().fold(0u32, |m, a| match a {
                 AbilityDef::Triggered(t) => m | t.trigger.watch_mask(),
                 _ => m,
             })
         };
         def.watch_mask = mask(&def.abilities)
-            | def.keywords.iter().fold(0u16, |m, k| {
+            | def.keywords.iter().fold(0u32, |m, k| {
                 m | self
                     .keyword_trigger(k)
                     .map_or(0, |id| match self.ability(id) {
@@ -6337,6 +6395,8 @@ impl Builder {
             flash_if: None,
             offspring: None,
             bargain: false,
+            aura_stays: false,
+            strive: None,
             target_cost: None,
             uncounterable: false,
             cond_cost: None,
@@ -6536,6 +6596,18 @@ impl Builder {
     }
 
     /// Bargain (CR 702.166).
+    #[must_use]
+    pub fn strive(mut self, cost: ManaCost) -> Self {
+        self.0.strive = Some(Box::new(cost));
+        self
+    }
+
+    #[must_use]
+    pub fn aura_stays(mut self) -> Self {
+        self.0.aura_stays = true;
+        self
+    }
+
     #[must_use]
     pub fn bargain(mut self) -> Self {
         self.0.bargain = true;

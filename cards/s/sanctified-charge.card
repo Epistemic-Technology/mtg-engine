@@ -1,0 +1,6 @@
+card "Sanctified Charge" {
+  oracle_id e89b3133-4cd6-44fb-ae86-a01b86bb970c
+  cost {4}{W}
+  type Instant
+  spell: each creature you control gets +2/+1; each white creature you control gains first strike
+}

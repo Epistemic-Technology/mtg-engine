@@ -1,0 +1,23 @@
+scenario "kithkin zealot counts black and/or red permanents of the target opponent" {
+  life A 10
+  battlefield A: 2 "Plains", "Goblin Piker"
+  battlefield B: "Scathe Zombies", "Goblin Piker", "Fireblade Artist", "Grizzly Bears", "Swamp"
+  hand A: "Kithkin Zealot"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Kithkin Zealot"
+  turn 2 A: trigger "Kithkin Zealot" targeting player B
+  run_to turn 2 postcombat_main
+  assert life A 13
+  assert battlefield A contains "Kithkin Zealot"
+}
+
+scenario "kithkin zealot gains nothing against no black or red permanents" {
+  life A 10
+  battlefield A: 2 "Plains"
+  battlefield B: "Grizzly Bears", "Swamp"
+  hand A: "Kithkin Zealot"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Kithkin Zealot"
+  run_to turn 2 postcombat_main
+  assert life A 10
+}

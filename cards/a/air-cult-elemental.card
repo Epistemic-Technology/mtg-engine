@@ -1,0 +1,8 @@
+card "Air-Cult Elemental" {
+  oracle_id 6ec2d957-c6d9-469f-8190-8b621c490238
+  cost {4}{U}{U}
+  type Creature — Elemental
+  pt 2/5
+  keywords flying
+  label "Whirlwind" triggered when this enters: return up to 1 another target creature to hand
+}

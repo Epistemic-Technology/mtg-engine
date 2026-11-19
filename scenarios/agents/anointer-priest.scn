@@ -1,0 +1,26 @@
+scenario "anointer priest: each creature token entering gains 1 life" {
+  battlefield A: "Anointer Priest", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  run_to turn 1 postcombat_main
+  assert life A 22
+}
+
+scenario "anointer priest: a nontoken creature doesn't trigger it" {
+  battlefield A: "Anointer Priest", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "anointer priest: the embalmed token triggers its own ability" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Anointer Priest"
+  turn 1 A: activate "Anointer Priest"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Anointer Priest"
+  assert battlefield A contains "Anointer Priest"
+  assert is "Anointer Priest" Zombie
+  assert life A 21
+}

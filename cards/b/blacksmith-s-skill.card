@@ -1,0 +1,6 @@
+card "Blacksmith's Skill" {
+  oracle_id 5c5b308c-07d5-422a-8b45-b8b19cb967ca
+  cost {W}
+  type Instant
+  spell: target permanent gains hexproof and indestructible; if target 1 is artifact creature, target 1 gets +2/+2
+}

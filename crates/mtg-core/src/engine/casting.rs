@@ -1945,6 +1945,12 @@ impl GameState {
                 }
             }
         }
+        // Strive: the cost once for each target beyond the first.
+        if let Some(s) = &def.strive {
+            for _ in 1..o.targets.len() {
+                req.add(&s.requirements(0));
+            }
+        }
         // CR 702.42a: every mode, for the entwine cost on top.
         if let Some(e) = &def.entwine
             && self.mode_split_of(spell).is_some()
@@ -3064,6 +3070,20 @@ impl GameState {
             }
         }
         self.give_priority(controller);
+    }
+
+    /// Strive: whether `spell` could still be paid for with one more
+    /// target.
+    pub(super) fn strive_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let Some(s) = &self.pool.get(o.def).strive else {
+            return true;
+        };
+        let mut req = self.spell_requirements(spell, self.x_of(spell));
+        req.add(&s.requirements(0));
+        let sources = self.spell_sources(spell);
+        let ps = self.player(o.controller);
+        self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, None)
     }
 
     /// Whether `spell` could be paid for with `t` as its first target.
@@ -6184,7 +6204,9 @@ impl GameState {
                 }
             }
             Effect::Clash { won } => {
-                if self.clash(ctx.controller) {
+                // "Otherwise, ..." follows whether the clash was won.
+                ctx.did = self.clash(ctx.controller);
+                if ctx.did {
                     for e in won {
                         self.apply_effect(ctx, e);
                     }
@@ -6548,6 +6570,9 @@ impl GameState {
             Effect::IfCondition(cond, inner) => {
                 let c = self.pool.condition(*cond).clone();
                 if self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj) {
+                    // For an "Otherwise" after it; optional actions inside
+                    // set it again.
+                    ctx.did = true;
                     for e in inner {
                         self.apply_effect(ctx, e);
                     }
@@ -6771,6 +6796,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::Otherwise(inner) => {
+                if !ctx.did {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
             Effect::IfYouDo(inner) => {
                 if ctx.did {
                     for e in inner {
@@ -6807,6 +6839,7 @@ impl GameState {
                 payer,
                 mana,
                 life,
+                discard,
                 effects,
             } => {
                 let def = self
@@ -6854,7 +6887,10 @@ impl GameState {
                         if life_ok {
                             options.push(Choice::Mode(1));
                         }
-                    } else if (*life == 0 || life_ok) && self.can_pay(p, &req) {
+                    } else if (*life == 0 || life_ok)
+                        && self.can_pay(p, &req)
+                        && self.player(p).hand.len() >= *discard as usize
+                    {
                         options.push(Choice::Accept);
                     }
                     if options.is_empty() {
@@ -6875,6 +6911,10 @@ impl GameState {
                             self.pay(p, &req);
                             if *life > 0 {
                                 self.change_life(p, -life_n);
+                            }
+                            // CR 701.9: the payer chooses what to discard.
+                            if *discard > 0 {
+                                self.discard_n(p, *discard);
                             }
                         }
                         _ => continue,
@@ -7630,6 +7670,23 @@ impl GameState {
                 self.lki.get(&id).is_some_and(|l| damaged(&l.object))
             };
             if !was {
+                return false;
+            }
+        }
+        // "If its mana value was 3 or less": as it last existed (CR
+        // 608.2h). A copy's or a face-down permanent's isn't tracked; the
+        // card's own is used.
+        if let Some((cmp, k)) = filter.mana_value
+            && !filter.status.mana_value_x
+        {
+            let def = match self.objects.get(id) {
+                Some(o) if o.zone == Zone::Battlefield => Some(o.def),
+                _ => self.lki.get(&id).map(|l| l.object.def),
+            };
+            let Some(def) = def else {
+                return false;
+            };
+            if !cmp.holds(self.pool.get(def).mana_cost.mana_value(), u32::from(k)) {
                 return false;
             }
         }

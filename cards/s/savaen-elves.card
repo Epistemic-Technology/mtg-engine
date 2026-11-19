@@ -1,0 +1,7 @@
+card "Savaen Elves" {
+  oracle_id 330e109c-1885-4946-9edc-895408519b3d
+  cost {G}
+  type Creature — Elf
+  pt 1/1
+  activated {G}{G}, {T}: destroy target Aura attached to land
+}

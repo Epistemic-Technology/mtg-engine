@@ -1,0 +1,8 @@
+card "Steampath Charger" {
+  oracle_id 75237b2c-232b-479a-ab3a-e1566c8a9fe7
+  cost {1}{R}
+  type Creature — Lizard Warlock
+  pt 2/1
+  offspring {2}
+  triggered when this dies: deal 1 damage to target player
+}

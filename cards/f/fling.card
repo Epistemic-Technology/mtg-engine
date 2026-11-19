@@ -1,0 +1,7 @@
+card "Fling" {
+  oracle_id 24227761-b50e-4b9e-93a2-e82d053b3e3d
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice creature
+  spell: deal damage equal power of the sacrificed creature to any target
+}

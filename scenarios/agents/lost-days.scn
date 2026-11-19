@@ -1,0 +1,36 @@
+scenario "lost days tucks a creature into its owner's library and makes a Clue" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lost Days"
+  library B: "Forest", "Forest", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lost Days" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+  assert battlefield A contains "Clue"
+}
+
+scenario "lost days does not put the card on top" {
+  battlefield A: 5 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lost Days"
+  library B: "Forest", "Mountain", "Swamp"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lost Days" targeting "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert hand B contains "Forest"
+  assert hand B lacks "Grizzly Bears"
+  assert library B contains "Grizzly Bears"
+}
+
+scenario "lost days can hit an enchantment" {
+  battlefield A: 5 "Island"
+  battlefield B: "Hill Giant", "Contempt" on "Hill Giant"
+  hand A: "Lost Days"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lost Days" targeting "Contempt"
+  run_to turn 2 postcombat_main
+  assert library B contains "Contempt"
+  assert battlefield B contains "Hill Giant"
+}

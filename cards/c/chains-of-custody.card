@@ -1,0 +1,8 @@
+card "Chains of Custody" {
+  oracle_id 5acff7a3-bc84-4251-bd37-80231396ac38
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature you control
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  static enchanted: has ward {2}
+}

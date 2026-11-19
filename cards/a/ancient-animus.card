@@ -1,0 +1,6 @@
+card "Ancient Animus" {
+  oracle_id 4c9a38f8-8fcb-45f9-8b70-e54298c7b485
+  cost {1}{G}
+  type Instant
+  spell: put 1 +1/+1 counter on target creature you control if target 1 is legendary; then target 1 fights target creature an opponent controls
+}

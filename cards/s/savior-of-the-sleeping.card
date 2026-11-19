@@ -1,0 +1,8 @@
+card "Savior of the Sleeping" {
+  oracle_id 412eb5ec-bf13-45fb-94b3-c41e62b19d1d
+  cost {2}{W}
+  type Creature — Human Knight
+  pt 2/3
+  keywords vigilance
+  triggered whenever enchantment you control dies: put 1 +1/+1 counter on this
+}

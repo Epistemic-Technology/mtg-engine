@@ -1510,7 +1510,9 @@ impl GameState {
                 && matches!(event, Event::StepBegin { .. }))
             || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers())
             // "When you cycle this card": the card itself watches.
-            || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers());
+            || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers())
+            // "When you cast this spell": the spell itself watches.
+            || matches!(&event, Event::Cast { def, .. } if self.pool.get(*def).may_watch(&event));
         if may_trigger {
             self.detect_triggers(&event);
         }
@@ -1913,6 +1915,19 @@ impl GameState {
             )
         {
             return false;
+        }
+        // "Aura attached to a creature" (CR 303.4): what it is attached
+        // to, as it is now.
+        if let Some(on) = q.on {
+            let ok = o.attached_to.is_some_and(|h| {
+                self.characteristics(h).is_some_and(|c| match on {
+                    crate::card::OnHost::Creature => c.is_creature(),
+                    crate::card::OnHost::Land => c.is_land(),
+                })
+            });
+            if !ok {
+                return false;
+            }
         }
         // "with toxic" (CR 702.164): a toxic ability among its current ones.
         if q.toxic

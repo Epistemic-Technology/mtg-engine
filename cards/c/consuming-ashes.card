@@ -1,0 +1,6 @@
+card "Consuming Ashes" {
+  oracle_id 9ef676f0-53c5-4efe-9341-e960d00dbc69
+  cost {2}{B}{B}
+  type Instant
+  spell: exile target creature; if target 1 had with mana value 3 or less, surveil 2
+}

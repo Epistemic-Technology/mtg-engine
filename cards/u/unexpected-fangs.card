@@ -1,0 +1,6 @@
+card "Unexpected Fangs" {
+  oracle_id dfa8415d-2474-46ca-b92f-6e12e3268cf5
+  cost {1}{B}
+  type Instant
+  spell: put 1 +1/+1 counter and 1 lifelink counter on target creature
+}

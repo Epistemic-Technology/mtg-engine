@@ -1,0 +1,10 @@
+card "Kami of Restless Shadows" {
+  oracle_id 7e770c08-910e-4394-88c5-79c874750b6a
+  cost {4}{B}
+  type Creature — Spirit
+  pt 3/3
+  triggered when this enters: choose one {
+    mode: return up to 1 target Ninja or Rogue creature card from your graveyard to hand
+    mode: put target creature card from your graveyard on top of library
+  }
+}

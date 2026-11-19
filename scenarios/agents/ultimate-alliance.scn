@@ -1,0 +1,18 @@
+scenario "ultimate alliance: damage equal to creatures you control" {
+  battlefield A: "Plains", "Grizzly Bears", "Elite Vanguard", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Ultimate Alliance"
+  turn 1 A: cast "Ultimate Alliance" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "ultimate alliance: two creatures deal 2" {
+  battlefield A: "Plains", "Grizzly Bears", "Elite Vanguard"
+  battlefield B: "Hill Giant"
+  hand A: "Ultimate Alliance"
+  turn 1 A: cast "Ultimate Alliance" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}

@@ -1,0 +1,36 @@
+scenario "Corpse Lunge deals damage equal to the exiled card's power" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Hill Giant"
+  hand A: "Corpse Lunge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corpse Lunge" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Corpse Lunge"
+}
+
+scenario "Corpse Lunge with a 2-power card deals 2" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Corpse Lunge"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Corpse Lunge" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Corpse Lunge needs a creature card to exile" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  graveyard A: "Swamp"
+  hand A: "Corpse Lunge"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Corpse Lunge" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}

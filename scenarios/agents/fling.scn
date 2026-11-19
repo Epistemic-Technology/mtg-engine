@@ -1,0 +1,30 @@
+scenario "Fling deals the sacrificed creature's power to a player" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 2 "Mountain"
+  hand A: "Fling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fling" sacrificing "Hill Giant" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard A contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Fling with a 2-power creature at a creature" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Fling"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fling" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Fling needs a creature to sacrifice" {
+  battlefield A: 2 "Mountain"
+  hand A: "Fling"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Fling" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

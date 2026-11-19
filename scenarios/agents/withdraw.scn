@@ -1,0 +1,24 @@
+scenario "Withdraw bounces both when the controller doesn't pay" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Forest"
+  hand A: "Withdraw"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Withdraw" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 B: decline "Withdraw"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Withdraw: paying {1} keeps the second creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Forest"
+  hand A: "Withdraw"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Withdraw" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 B: accept "Withdraw"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert tapped "Forest"
+}

@@ -1,0 +1,7 @@
+card "Fangren Marauder" {
+  oracle_id e154e612-4041-4fb7-903f-917588dbe58e
+  cost {5}{G}
+  type Creature — Beast
+  pt 5/5
+  triggered whenever artifact dies: you may you gain 5 life
+}

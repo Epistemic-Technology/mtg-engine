@@ -1,0 +1,69 @@
+# "Destroy target Aura attached to a creature" / "... to a land": what
+# the Aura is attached to (CR 303.4) as targets are chosen.
+# "This effect doesn't remove this Aura.": the Aura's own protection
+# doesn't put it into the graveyard (CR 704.5m).
+
+scenario "Aura attached to a creature: Devout Harpist destroys Pacifism" {
+  battlefield A: "Devout Harpist", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  turn 1 A: activate "Devout Harpist" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pacifism"
+}
+
+scenario "Aura attached to a creature: not an Aura on a land" {
+  battlefield A: "Devout Harpist", "Forest", "Abundant Growth" on "Forest"
+  illegal turn 1 A: activate "Devout Harpist" targeting "Abundant Growth"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Abundant Growth"
+}
+
+scenario "Aura attached to a land: Savaen Elves destroys Abundant Growth" {
+  battlefield A: "Savaen Elves", "Forest", "Forest", "Island", "Abundant Growth" on "Island"
+  turn 1 A: activate "Savaen Elves" targeting "Abundant Growth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Abundant Growth"
+}
+
+scenario "Aura attached to a land: not an Aura on a creature" {
+  battlefield A: "Savaen Elves", 2 "Forest", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  illegal turn 1 A: activate "Savaen Elves" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pacifism"
+}
+
+scenario "Piety Charm destroys an Aura attached to a creature" {
+  battlefield A: "Plains", "Grizzly Bears", "Pacifism" on "Grizzly Bears"
+  hand A: "Piety Charm"
+  turn 1 A: cast "Piety Charm" mode 1 targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pacifism"
+}
+
+scenario "this effect doesn't remove this Aura: Cho-Manno's Blessing stays" {
+  battlefield A: 2 "Plains", "Grizzly Bears"
+  hand A: "Cho-Manno's Blessing"
+  turn 1 A: cast "Cho-Manno's Blessing" targeting "Grizzly Bears"
+  turn 1 A: choose white
+  run_to turn 1 postcombat_main
+  assert attached "Cho-Manno's Blessing" to "Grizzly Bears"
+}
+
+scenario "this effect doesn't remove this Aura: the protection still works" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Mountain"
+  hand A: "Cho-Manno's Blessing", "Lightning Bolt"
+  turn 1 A: cast "Cho-Manno's Blessing" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 postcombat_main A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Cho-Manno's Blessing" to "Grizzly Bears"
+}
+
+scenario "Pentarch Ward draws a card and stays on a creature of the chosen color" {
+  battlefield A: 3 "Plains", "Savannah Lions"
+  hand A: "Pentarch Ward"
+  turn 1 A: cast "Pentarch Ward" targeting "Savannah Lions"
+  turn 1 A: choose white
+  run_to turn 1 postcombat_main
+  assert attached "Pentarch Ward" to "Savannah Lions"
+  assert hand A count 1
+}

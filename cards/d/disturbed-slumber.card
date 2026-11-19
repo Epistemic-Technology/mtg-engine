@@ -1,0 +1,6 @@
+card "Disturbed Slumber" {
+  oracle_id 6a381297-ebce-403c-b1dc-b7405fa6902c
+  cost {1}{G}
+  type Instant
+  spell: until end of turn, target land you control becomes 4/4 Dinosaur creature with reach, haste; target 1 must be blocked if able
+}

@@ -1,0 +1,17 @@
+scenario "Barge In pumps the target and gives non-Human attackers trample" {
+  battlefield A: "Grizzly Bears", "Elite Vanguard", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Barge In"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears", "Elite Vanguard"
+  turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  turn 2 declare_blockers A: cast "Barge In" targeting "Grizzly Bears"
+  turn 2 combat_damage A: assign "Grizzly Bears" to "Hill Giant" 3, player B 1
+  run_to turn 2 combat_damage
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert has not "Elite Vanguard" trample
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+}

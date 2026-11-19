@@ -1,0 +1,6 @@
+card "Withdraw" {
+  oracle_id 626882c5-15a8-43ea-ab08-33a7e949c88c
+  cost {U}{U}
+  type Instant
+  spell: return target creature to hand; then return another target creature to hand unless its controller pays {1}
+}

@@ -1,0 +1,13 @@
+scenario "King Harald's Revenge pumps per creature, gives trample, and forces a block" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "King Harald's Revenge"
+  turn 1 A: cast "King Harald's Revenge" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: assign "Grizzly Bears" to "Hill Giant" 3, player B 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 19
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+}

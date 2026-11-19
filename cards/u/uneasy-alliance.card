@@ -1,0 +1,8 @@
+card "Uneasy Alliance" {
+  oracle_id 989b93fe-cad0-4890-a228-8a20ca666f10
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {5}, sacrifice this, sorcery: exile enchanted creature; you create 1 "1/1 black Ninja creature"
+}

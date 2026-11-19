@@ -1,0 +1,24 @@
+scenario "Ursine Champion becomes a 5/5 Bear Berserker" {
+  battlefield A: "Ursine Champion", 12 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ursine Champion"
+  run_to turn 1 postcombat_main
+  assert power "Ursine Champion" 5
+  assert toughness "Ursine Champion" 5
+  assert is "Ursine Champion" Bear
+  assert is "Ursine Champion" Berserker
+  assert is not "Ursine Champion" Human
+  run_to turn 2 upkeep
+  assert power "Ursine Champion" 2
+  assert is "Ursine Champion" Human
+}
+
+scenario "Ursine Champion activates only once each turn" {
+  battlefield A: "Ursine Champion", 12 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Ursine Champion"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Ursine Champion"
+  run_to turn 1 postcombat_main
+  assert power "Ursine Champion" 5
+}

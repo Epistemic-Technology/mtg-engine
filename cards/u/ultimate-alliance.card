@@ -1,0 +1,6 @@
+card "Ultimate Alliance" {
+  oracle_id e59c07ab-08fd-4d5b-978e-1594604ba410
+  cost {W}
+  type Instant
+  spell: deal damage equal creature you control to target creature
+}

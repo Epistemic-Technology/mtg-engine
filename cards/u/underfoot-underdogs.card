@@ -1,0 +1,8 @@
+card "Underfoot Underdogs" {
+  oracle_id 3740b86d-b0e6-4837-b408-e7f62b95c787
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 1/2
+  triggered when this enters: create 1 "1/1 red Goblin creature"
+  activated {1}, {T}: target creature you control with power 2 or less can't be blocked
+}

@@ -1,0 +1,30 @@
+scenario "uneasy alliance stops the creature attacking" {
+  battlefield B: "Hill Giant", "Uneasy Alliance" on "Hill Giant"
+  start turn 2 B
+  illegal turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "uneasy alliance stops the creature blocking" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Hill Giant", "Uneasy Alliance" on "Hill Giant"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}
+
+scenario "uneasy alliance sacrifices to exile the creature and make a Ninja" {
+  battlefield A: 5 "Plains", "Uneasy Alliance" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Uneasy Alliance"
+  run_to turn 2 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert graveyard A contains "Uneasy Alliance"
+  assert battlefield A contains "Ninja"
+  assert power "Ninja" 1
+  assert is "Ninja" black
+}

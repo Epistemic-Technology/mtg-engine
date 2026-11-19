@@ -1,0 +1,8 @@
+card "Anointer Priest" {
+  oracle_id 4e0b9273-6614-41a8-9738-959349c0717b
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered whenever creature token you control enters: you gain 1 life
+  embalm {3}{W}
+}
