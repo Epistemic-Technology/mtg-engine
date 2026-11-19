@@ -1,0 +1,7 @@
+card "Celestial Enforcer" {
+  oracle_id 81f5c70f-fbb1-4b3a-a048-1f4602adfa0e
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  activated {1}{W}, {T}, if you control creature with flying: tap target creature
+}

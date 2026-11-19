@@ -1,0 +1,8 @@
+card "Thunderhead Gunner" {
+  oracle_id d9b6656d-d71f-4359-bf6f-b76089741e29
+  cost {4}{R}
+  type Creature — Shark Pirate
+  pt 4/5
+  keywords reach
+  activated discard 1 card, sorcery, once: draw 1 card
+}

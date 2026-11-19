@@ -1,0 +1,7 @@
+card "Kitsune Bonesetter" {
+  oracle_id a64684bc-61b2-4261-8749-fc8cae9e2fd5
+  cost {2}{W}
+  type Creature — Fox Cleric
+  pt 0/1
+  activated {T}, if more cards in hand than each opponent: prevent next 3 damage to target creature this turn
+}

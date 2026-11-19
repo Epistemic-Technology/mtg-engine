@@ -1,0 +1,7 @@
+card "Llanowar Augur" {
+  oracle_id b3052531-f7cf-44a7-9492-eb155d75268c
+  cost {G}
+  type Creature — Elf Shaman
+  pt 0/3
+  activated sacrifice this, during your upkeep: target creature gets +3/+3 and gains trample
+}

@@ -1,0 +1,8 @@
+card "Seton's Desire" {
+  oracle_id 76fe7cfa-c3db-4122-b262-f7c5c90fcdd7
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  label "Threshold" static as long as threshold, enchanted: has lure
+}

@@ -1,0 +1,8 @@
+card "Snooping Newsie" {
+  oracle_id 347a5faa-5656-4a36-af44-ab5a3ed267f4
+  cost {U}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  triggered when this enters: mill 2 cards
+  static as long as 5 mana values in your graveyard, this: +1/+1, has lifelink
+}

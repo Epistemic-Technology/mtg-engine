@@ -1,0 +1,7 @@
+card "Potioner's Trove" {
+  oracle_id d604c75e-9d81-49de-80bc-08f4ef3ee975
+  cost {3}
+  type Artifact
+  mana any
+  activated {T}, if cast instant or sorcery spell this turn: you gain 2 life
+}

@@ -1475,6 +1475,112 @@ pub enum StaticCondition {
     LandEnteredThisTurn,
     /// "you've drawn two or more cards this turn".
     CardsDrawnThisTurn(u32),
+    /// "there are two or more instant and/or sorcery cards in your
+    /// graveyard" (spell mastery), "three or more creature cards".
+    GraveyardCards {
+        filter: ObjFilter,
+        at_least: u32,
+    },
+    /// "an opponent has eight or more cards in their graveyard".
+    OpponentGraveyard(u32),
+    /// "there are five or more mana values among cards in your graveyard".
+    ManaValuesInGraveyard(u32),
+    /// "an opponent controls a Human" (judged now, unlike
+    /// `DefenderControls`).
+    OpponentControls {
+        filter: ObjFilter,
+        at_least: u32,
+    },
+    /// "it's untapped", "it's a Wall", "this permanent is a creature": the
+    /// source matches (characteristics and status).
+    SourceIs(ObjFilter),
+    /// "it's modified" (CR 700.9): it has a counter, is equipped, or is
+    /// enchanted by an Aura its controller controls.
+    SourceModified,
+    /// "it's attacking alone" (CR 506.5).
+    SourceAttackingAlone,
+    /// "this creature is blocked" (CR 509.1h).
+    SourceBlocked,
+    /// "at least one creature is blocking this creature": blocked, by a
+    /// creature still blocking it.
+    SourceBeingBlocked,
+    /// "equipped creature is legendary": the permanent the source is
+    /// attached to matches.
+    AttachedIs(ObjFilter),
+    /// "you've drawn two or more cards this turn".
+    DrawnThisTurn(u32),
+    /// "you've cast an instant or sorcery spell this turn", judged on the
+    /// spells' characteristics as they were cast.
+    CastThisTurn(ObjFilter),
+    /// "you've discarded a card this turn".
+    DiscardedThisTurn,
+    /// "you have more cards in hand than each opponent".
+    MoreCardsInHand,
+    /// "an opponent is poisoned" (1), "an opponent has three or more poison
+    /// counters".
+    OpponentPoison(u32),
+    /// "you own a card in exile".
+    OwnCardInExile,
+    /// Formidable: "creatures you control have total power 8 or greater".
+    TotalPower(u32),
+    /// Coven: "you control three or more creatures with different powers".
+    DifferentPowers(u32),
+    /// A part of the turn (CR 602.5b timing restrictions): "during your
+    /// upkeep", "before attackers are declared".
+    During(TurnTime),
+}
+
+/// A part of the turn an activation restriction names (CR 602.5b).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum TurnTime {
+    /// "during your upkeep".
+    YourUpkeep,
+    /// "during an opponent's upkeep".
+    OpponentUpkeep,
+    /// "during combat" (CR 506.1: the combat phase's steps).
+    Combat,
+    /// "before attackers are declared": before the declare attackers step
+    /// (of the turn's first combat).
+    BeforeAttackers,
+    /// "during your turn, before attackers are declared".
+    YourTurnBeforeAttackers,
+    /// "during the declare blockers step".
+    DeclareBlockers,
+    /// "during the end of combat step".
+    EndOfCombat,
+}
+
+impl TurnTime {
+    /// Whether it is that part of the turn, for `you`.
+    pub fn now(
+        self,
+        step: crate::turn::Step,
+        active: crate::ids::PlayerId,
+        you: crate::ids::PlayerId,
+    ) -> bool {
+        use crate::turn::Step;
+        let before = matches!(
+            step,
+            Step::Untap | Step::Upkeep | Step::Draw | Step::PrecombatMain | Step::BeginningOfCombat
+        );
+        match self {
+            TurnTime::YourUpkeep => step == Step::Upkeep && active == you,
+            TurnTime::OpponentUpkeep => step == Step::Upkeep && active != you,
+            TurnTime::Combat => matches!(
+                step,
+                Step::BeginningOfCombat
+                    | Step::DeclareAttackers
+                    | Step::DeclareBlockers
+                    | Step::FirstStrikeDamage
+                    | Step::CombatDamage
+                    | Step::EndOfCombat
+            ),
+            TurnTime::BeforeAttackers => before,
+            TurnTime::YourTurnBeforeAttackers => before && active == you,
+            TurnTime::DeclareBlockers => step == Step::DeclareBlockers,
+            TurnTime::EndOfCombat => step == Step::EndOfCombat,
+        }
+    }
 }
 
 /// Kinds of counters (CR 122).
@@ -2951,10 +3057,17 @@ pub struct ActivatedAbility {
     pub effects: Vec<Effect>,
     /// "Activate only as a sorcery" (CR 602.5a; equip, CR 702.6a).
     pub sorcery_speed: bool,
-    /// "Activate only once each turn."
     /// "Activate only once each turn" (1), "no more than twice" (2); 0
     /// is no limit.
     pub per_turn: u8,
+    /// "Activate only if ..." / "Activate only during your upkeep" (CR
+    /// 602.5b): each must hold, judged from the activating player.
+    #[serde(default)]
+    pub conditions: Vec<StaticCondition>,
+    /// "Activate only once": once for as long as the source stays the same
+    /// object (CR 400.7), not once each turn.
+    #[serde(default)]
+    pub once_ever: bool,
     /// Activated from the hand rather than the battlefield (cycling, CR
     /// 702.29).
     pub from_hand: bool,
@@ -3324,6 +3437,10 @@ pub struct CardDef {
     /// (Empyrial Armor), so hand changes refresh the cache.
     #[serde(skip)]
     pub hand_static: bool,
+    /// Filled in by `CardPool::add`: a static whose condition names a part
+    /// of the turn, so step changes refresh the cache.
+    #[serde(skip)]
+    pub step_static: bool,
 }
 
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
@@ -3432,6 +3549,7 @@ impl DefFlags {
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
+    #[allow(clippy::too_many_lines)] // one flag per hot-path fact
     fn of(abilities: &[AbilityDef], keywords: KeywordSet) -> DefFlags {
         let mut flags = DefFlags::default();
         flags.set(
@@ -3482,6 +3600,7 @@ impl DefFlags {
                     StaticCondition::OpponentLifeAtMost(_)
                         | StaticCondition::YourLife { .. }
                         | StaticCondition::AnyPlayerLifeAtMost(_)
+                        | StaticCondition::OpponentPoison(_)
                 )))
             }),
         );
@@ -3501,7 +3620,9 @@ impl DefFlags {
             DefFlags::TAP_STATIC,
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if matches!(&s.condition,
-                    Some(StaticCondition::YouControlNone(f)) if f.tapped.is_some()))
+                    Some(StaticCondition::YouControlNone(f)
+                        | StaticCondition::SourceIs(f)
+                        | StaticCondition::AttachedIs(f)) if f.tapped.is_some()))
             }),
         );
         flags.set(
@@ -4116,14 +4237,28 @@ impl CardPool {
         def.except_watch_mask = def.copy_except.as_ref().map_or(0, |x| mask(&x.abilities));
         def.combat_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if sa.affected.attacking
-                || sa.affected.blocking
-                || sa.condition == Some(StaticCondition::SourceAttacking))
+            || sa.affected.blocking
+            || matches!(sa.condition, Some(
+                StaticCondition::SourceAttacking
+                    | StaticCondition::SourceAttackingAlone
+                    | StaticCondition::SourceBlocked
+                    | StaticCondition::SourceBeingBlocked
+            )))
         });
         def.hand_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count: CountExpr::CardsInHand, .. }
-            )) || matches!(sa.condition, Some(StaticCondition::CardsInHand { .. })))
+            )) || matches!(sa.condition, Some(
+                StaticCondition::CardsInHand { .. }
+                    | StaticCondition::MoreCardsInHand
+                    | StaticCondition::DrawnThisTurn(_)
+                    | StaticCondition::CastThisTurn(_)
+                    | StaticCondition::DiscardedThisTurn
+            )))
+        });
+        def.step_static = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
         });
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
@@ -4223,6 +4358,7 @@ impl Builder {
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
             hand_static: false,
+            step_static: false,
             counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,

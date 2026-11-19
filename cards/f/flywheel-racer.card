@@ -1,0 +1,9 @@
+card "Flywheel Racer" {
+  oracle_id 0399b932-2a59-471c-828e-2b16614e0dae
+  cost {2}
+  type Artifact — Vehicle
+  pt 3/2
+  keywords vigilance
+  activated {T}, if this is creature: add any
+  crew 1
+}

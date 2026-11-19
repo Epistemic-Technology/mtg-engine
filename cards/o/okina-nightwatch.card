@@ -1,0 +1,7 @@
+card "Okina Nightwatch" {
+  oracle_id d1c222fe-0ca7-415b-a28a-3b704df53d66
+  cost {4}{G}
+  type Creature — Human Monk
+  pt 4/3
+  static as long as more cards in hand than each opponent, this: +3/+3
+}

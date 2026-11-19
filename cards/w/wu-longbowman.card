@@ -1,0 +1,7 @@
+card "Wu Longbowman" {
+  oracle_id 68fc55b9-55cc-4caf-a052-b44ddc0b346f
+  cost {2}{U}
+  type Creature — Human Soldier Archer
+  pt 1/1
+  activated {T}, during your turn before attackers: deal 1 damage to any target
+}

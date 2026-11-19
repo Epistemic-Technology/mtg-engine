@@ -1,0 +1,7 @@
+card "Spinehorn Minotaur" {
+  oracle_id db46b8f4-22bb-4042-abe8-dd83b2426142
+  cost {2}{R}
+  type Creature — Minotaur Berserker
+  pt 2/3
+  static as long as drew 2 this turn, this: has double strike
+}

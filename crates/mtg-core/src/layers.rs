@@ -279,6 +279,7 @@ fn stored_effects(state: &GameState) -> Vec<Live> {
 /// Whether a conditional static ability's condition holds (CR 611.3a),
 /// judged from its source's controller with the characteristics worked
 /// out so far.
+#[allow(clippy::too_many_lines)] // one arm per condition
 fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId) -> bool {
     let state = work.state;
     let you = work.controller_of(source);
@@ -374,6 +375,87 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                 h >= *n as usize
             }
         }
+        StaticCondition::OpponentControls { filter, at_least } => {
+            state.players_in_game().filter(|p| *p != you).any(|p| {
+                work.ids
+                    .iter()
+                    .filter(|id| {
+                        work.on_battlefield(**id)
+                            && work.controller_of(**id) == p
+                            && filter.matches(
+                                **id,
+                                p,
+                                &work.chars[work.index[*id]],
+                                Some(source),
+                                Some(p),
+                            )
+                            && filter
+                                .tapped
+                                .is_none_or(|t| state.objects[**id].tapped == t)
+                    })
+                    .count()
+                    >= *at_least as usize
+            })
+        }
+        StaticCondition::SourceIs(filter) => work.index.get(&source).is_some_and(|i| {
+            filter.matches(
+                source,
+                work.controller_of(source),
+                &work.chars[*i],
+                Some(source),
+                Some(you),
+            ) && filter
+                .tapped
+                .is_none_or(|t| state.objects[source].tapped == t)
+        }),
+        StaticCondition::AttachedIs(filter) => state.objects[source]
+            .attached_to
+            .and_then(|host| work.index.get(&host).map(|i| (host, *i)))
+            .is_some_and(|(host, i)| {
+                work.on_battlefield(host)
+                    && filter.matches(
+                        host,
+                        work.controller_of(host),
+                        &work.chars[i],
+                        Some(source),
+                        Some(you),
+                    )
+                    && filter
+                        .tapped
+                        .is_none_or(|t| state.objects[host].tapped == t)
+            }),
+        StaticCondition::SourceModified => {
+            let has = |id: ObjId, sub: crate::card::Subtype| {
+                work.index
+                    .get(&id)
+                    .is_some_and(|i| work.chars[*i].has_subtype(sub))
+            };
+            state.modified(
+                source,
+                |id| has(id, crate::card::Subtype::EQUIPMENT),
+                |id| has(id, crate::card::Subtype::AURA),
+            )
+        }
+        StaticCondition::TotalPower(_) | StaticCondition::DifferentPowers(_) => {
+            let powers = work.ids.iter().filter_map(|id| {
+                let c = &work.chars[work.index[id]];
+                (work.on_battlefield(*id) && work.controller_of(*id) == you && c.is_creature())
+                    .then(|| c.power())
+            });
+            match cond {
+                StaticCondition::TotalPower(n) => {
+                    powers.map(|p| p.max(0)).sum::<i32>() >= i32::try_from(*n).unwrap_or(i32::MAX)
+                }
+                StaticCondition::DifferentPowers(n) => {
+                    let mut v: Vec<i32> = powers.collect();
+                    v.sort_unstable();
+                    v.dedup();
+                    v.len() >= *n as usize
+                }
+                _ => unreachable!(),
+            }
+        }
+        _ => state.condition_history(cond, you, source),
     }
 }
 

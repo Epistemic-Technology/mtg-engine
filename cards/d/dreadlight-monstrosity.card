@@ -1,0 +1,8 @@
+card "Dreadlight Monstrosity" {
+  oracle_id 068b9586-53e3-4791-a26c-a6b38d038f66
+  cost {4}{U}{U}
+  type Creature — Crab Horror
+  pt 5/5
+  ward {2}
+  activated {3}{U}{U}, if you own card in exile: this can't be blocked this turn
+}

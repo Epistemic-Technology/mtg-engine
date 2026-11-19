@@ -1,0 +1,7 @@
+card "Giant Tortoise" {
+  oracle_id 2dd50d7f-941f-4deb-a15c-ee2357844c35
+  cost {1}{U}
+  type Creature — Turtle
+  pt 1/1
+  static this: +0/+3 as long as this is untapped
+}

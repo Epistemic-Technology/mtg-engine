@@ -1,0 +1,7 @@
+card "Elvish Eulogist" {
+  oracle_id 21017dc0-9b79-48b8-8eae-561abfad31d5
+  cost {G}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated sacrifice this: you gain count each graveyard Elf life
+}

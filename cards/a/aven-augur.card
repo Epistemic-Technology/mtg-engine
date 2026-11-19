@@ -1,0 +1,8 @@
+card "Aven Augur" {
+  oracle_id e68d1b86-3996-4bbf-9086-a76a7f9ce2a4
+  cost {3}{U}
+  type Creature — Bird Wizard
+  pt 2/2
+  keywords flying
+  activated sacrifice this, during your upkeep: return up to two target creatures to hand
+}

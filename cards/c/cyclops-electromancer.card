@@ -1,0 +1,7 @@
+card "Cyclops Electromancer" {
+  oracle_id 638ecc20-a275-4810-9669-89a0730c5362
+  cost {4}{R}
+  type Creature — Cyclops Wizard
+  pt 4/2
+  triggered when this enters: deal count where graveyard instant or sorcery damage to target creature an opponent controls
+}

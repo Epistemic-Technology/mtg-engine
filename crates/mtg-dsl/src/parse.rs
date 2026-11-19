@@ -13,8 +13,8 @@ use thiserror::Error;
 use crate::ast::{
     Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
     Except, Filter, InsteadCond, InsteadWording, Join, Kind, Mechanic, Mod, Mode, OfChosen,
-    Recipient, Replacement, Replaces, SacCost, SameRef, Sentence, StaticCond, Target, Trigger,
-    TriggerObj,
+    Recipient, Replacement, Replaces, Restrict, SacCost, SameRef, Sentence, StaticCond, Target,
+    Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -1549,6 +1549,91 @@ impl P {
         if self.eat_words(&["your", "turn"]) {
             return Ok(StaticCond::YourTurn);
         }
+        if let Some(t) = self.turn_time() {
+            return Ok(t);
+        }
+        if self.eat_words(&["this", "is"]) {
+            return Ok(StaticCond::Is(self.filter()?));
+        }
+        if self.eat_words(&["attached", "is"]) {
+            return Ok(StaticCond::AttachedIs(self.filter()?));
+        }
+        if self.eat_word("modified") {
+            return Ok(StaticCond::Modified);
+        }
+        if self.eat_words(&["attacking", "alone"]) {
+            return Ok(StaticCond::AttackingAlone);
+        }
+        if self.eat_word("blocked") {
+            return Ok(StaticCond::Blocked);
+        }
+        if self.eat_words(&["being", "blocked"]) {
+            return Ok(StaticCond::BeingBlocked);
+        }
+        if self.eat_word("drew") {
+            let n = self.number()?;
+            // `drew 2 cards this turn` (the "instead" form) and `drew 2 this
+            // turn` (statics) read the same count.
+            let cards = self.eat_word("cards");
+            self.expect_words(&["this", "turn"])?;
+            return Ok(if cards {
+                StaticCond::CardsDrawnThisTurn(n)
+            } else {
+                StaticCond::DrawnThisTurn(n)
+            });
+        }
+        if self.eat_word("cast") {
+            let f = self.filter()?;
+            self.eat_word("spell");
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::CastThisTurn(f));
+        }
+        if self.eat_words(&["discarded", "this", "turn"]) {
+            return Ok(StaticCond::DiscardedThisTurn);
+        }
+        if self.eat_words(&["more", "cards", "in", "hand", "than", "each", "opponent"]) {
+            return Ok(StaticCond::MoreCardsInHand);
+        }
+        if self.eat_words(&["opponent", "poisoned"]) {
+            return Ok(StaticCond::OpponentPoison(1));
+        }
+        if self.eat_words(&["opponent", "poison"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::OpponentPoison(n));
+        }
+        if self.eat_words(&["opponent", "graveyard"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::OpponentGraveyard(n));
+        }
+        if self.eat_words(&["opponent", "controls"]) {
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let filter = self.filter()?;
+            return Ok(StaticCond::OpponentControls { filter, at_least });
+        }
+        if self.eat_words(&["you", "own", "card", "in", "exile"]) {
+            return Ok(StaticCond::OwnCardInExile);
+        }
+        if self.eat_words(&["you", "have"]) {
+            let at_least = self.number()?;
+            let filter = self.filter()?;
+            self.graveyard_cards_tail()?;
+            return Ok(StaticCond::GraveyardCards {
+                filter,
+                at_least,
+                have: true,
+            });
+        }
+        if self.eat_words(&["total", "power"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            return Ok(StaticCond::TotalPower(n));
+        }
         if self.eat_word("attacking") {
             return Ok(StaticCond::Attacking);
         }
@@ -1563,11 +1648,6 @@ impl P {
         }
         if self.eat_words(&["land", "entered", "this", "turn"]) {
             return Ok(StaticCond::LandEnteredThisTurn);
-        }
-        if self.eat_word("drew") {
-            let n = self.number()?;
-            self.expect_words(&["cards", "this", "turn"])?;
-            return Ok(StaticCond::CardsDrawnThisTurn(n));
         }
         if self.eat_words(&["player", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
@@ -1635,7 +1715,69 @@ impl P {
         if self.eat_words(&["card", "types", "in", "your", "graveyard"]) {
             return Ok(StaticCond::CardTypesInGraveyard(n));
         }
+        if self.eat_words(&["mana", "values", "in", "your", "graveyard"]) {
+            return Ok(StaticCond::ManaValuesInGraveyard(n));
+        }
+        if self.eat_words(&["different", "powers"]) {
+            return Ok(StaticCond::DifferentPowers(n));
+        }
+        if self
+            .word_at(0)
+            .is_some_and(|w| card_type(&w).is_some() || w.starts_with("non") || color(&w).is_some())
+            || matches!(self.peek(), Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase))
+        {
+            let filter = self.filter()?;
+            self.graveyard_cards_tail()?;
+            return Ok(StaticCond::GraveyardCards {
+                filter,
+                at_least: n,
+                have: false,
+            });
+        }
         self.unexpected("a condition (threshold, 7 cards in your graveyard, you control 3 artifact, your turn, ...)")
+    }
+
+    /// `cards in your graveyard` after a filter (`card` is the filter's).
+    fn graveyard_cards_tail(&mut self) -> R<()> {
+        if !self.eat_word("cards") {
+            self.eat_word("card");
+        }
+        self.expect_words(&["in", "your", "graveyard"])
+    }
+
+    /// A part of the turn (CR 602.5b): `during your upkeep`, `during
+    /// opponent upkeep`, `during combat`, `before attackers`, `during your
+    /// turn before attackers`, `during your turn`, `during declare
+    /// blockers`, `during end of combat`.
+    fn turn_time(&mut self) -> Option<StaticCond> {
+        use mtg_core::card::TurnTime as T;
+        if self.eat_words(&["before", "attackers"]) {
+            return Some(StaticCond::During(T::BeforeAttackers));
+        }
+        if !self.at_word("during") {
+            return None;
+        }
+        let save = self.pos;
+        self.pos += 1;
+        let t = if self.eat_words(&["your", "upkeep"]) {
+            StaticCond::During(T::YourUpkeep)
+        } else if self.eat_words(&["opponent", "upkeep"]) {
+            StaticCond::During(T::OpponentUpkeep)
+        } else if self.eat_word("combat") {
+            StaticCond::During(T::Combat)
+        } else if self.eat_words(&["declare", "blockers"]) {
+            StaticCond::During(T::DeclareBlockers)
+        } else if self.eat_words(&["end", "of", "combat"]) {
+            StaticCond::During(T::EndOfCombat)
+        } else if self.eat_words(&["your", "turn", "before", "attackers"]) {
+            StaticCond::During(T::YourTurnBeforeAttackers)
+        } else if self.eat_words(&["your", "turn"]) && !matches!(self.peek(), Some(Tok::Comma)) {
+            StaticCond::DuringYourTurn
+        } else {
+            self.pos = save;
+            return None;
+        };
+        Some(t)
     }
 
     fn enters_outcome(&mut self) -> R<Outcome> {
@@ -1713,10 +1855,22 @@ impl P {
                     *label = Some(l);
                     Ok(s)
                 }
-                _ => self.fail("`label` in effects goes before an `instead` sentence"),
+                // Any other sentence: printed "Spell mastery — If ...".
+                _ if s.label.is_none() => {
+                    s.label = Some(l);
+                    Ok(s)
+                }
+                _ => self.fail("two `label`s on one sentence"),
             };
         }
         self.subject = None;
+        // `label "Spell mastery" ...`: an ability word before the sentence.
+        let label = if self.at_word("label") && matches!(self.peek_at(1), Some(Tok::Str(_))) {
+            self.pos += 1;
+            Some(self.string()?)
+        } else {
+            None
+        };
         // "until end of turn, <clauses>": the duration printed first.
         let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
         if eot_first && self.peek() == Some(&Tok::Comma) {
@@ -1749,6 +1903,7 @@ impl P {
         }
         let s = Sentence {
             effects: clauses,
+            label,
             para: false,
             eot_first,
             joins,
@@ -3206,7 +3361,9 @@ impl P {
                         || w.starts_with("non")
                         || color(&w).is_some()
                         || w == "named"
-                }) {
+                }) && !matches!(self.peek(), Some(Tok::Word(w))
+                    if w.chars().next().is_some_and(char::is_uppercase))
+            {
                 None
             } else {
                 Some(self.filter()?)
@@ -4693,11 +4850,31 @@ impl P {
                         }
                         cost.order.push(CostItem::Discard);
                     }
+                    "once" if self.word_at(1).as_deref() == Some("ever") => {
+                        self.pos += 2;
+                        cost.once_ever = true;
+                        cost.restrict.push(Restrict::OnceEver);
+                    }
                     "once" => {
                         self.pos += 1;
                         self.eat_words(&["per", "turn"]);
                         self.eat_words(&["each", "turn"]);
                         cost.per_turn = 1;
+                        cost.restrict.push(Restrict::Once);
+                    }
+                    // CR 602.5b: `if <condition>`, `during your upkeep`.
+                    "if" | "during" | "before" => {
+                        let c = if w.eq_ignore_ascii_case("if") {
+                            self.pos += 1;
+                            self.static_cond()?
+                        } else {
+                            match self.turn_time() {
+                                Some(c) => c,
+                                None => return self.unexpected("a part of the turn"),
+                            }
+                        };
+                        cost.restrict.push(Restrict::Cond(cost.conditions.len()));
+                        cost.conditions.push(c);
                     }
 
                     "pay" => {
@@ -4715,6 +4892,7 @@ impl P {
                     "sorcery" => {
                         self.pos += 1;
                         cost.sorcery = true;
+                        cost.restrict.push(Restrict::Sorcery);
                     }
                     "none" => self.pos += 1,
                     _ => return self.unexpected("a cost"),

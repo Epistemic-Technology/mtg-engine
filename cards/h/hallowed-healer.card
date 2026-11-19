@@ -1,0 +1,8 @@
+card "Hallowed Healer" {
+  oracle_id b92f6adb-64c6-4692-af9d-af4241203722
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: prevent next 2 damage to any target this turn
+  label "Threshold" activated {T}, if threshold: prevent next 4 damage to any target this turn
+}

@@ -508,6 +508,35 @@ impl Compiler<'_> {
                 n: *n,
                 at_most: *at_most,
             },
+            StaticCond::GraveyardCards {
+                filter, at_least, ..
+            } => StaticCondition::GraveyardCards {
+                filter: self.filter(filter),
+                at_least: *at_least,
+            },
+            StaticCond::OpponentGraveyard(n) => StaticCondition::OpponentGraveyard(*n),
+            StaticCond::ManaValuesInGraveyard(n) => StaticCondition::ManaValuesInGraveyard(*n),
+            StaticCond::OpponentControls { filter, at_least } => {
+                StaticCondition::OpponentControls {
+                    filter: self.filter(filter),
+                    at_least: *at_least,
+                }
+            }
+            StaticCond::Is(filter) => StaticCondition::SourceIs(self.filter(filter)),
+            StaticCond::Modified => StaticCondition::SourceModified,
+            StaticCond::AttackingAlone => StaticCondition::SourceAttackingAlone,
+            StaticCond::Blocked => StaticCondition::SourceBlocked,
+            StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
+            StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
+            StaticCond::DrawnThisTurn(n) => StaticCondition::DrawnThisTurn(*n),
+            StaticCond::CastThisTurn(filter) => StaticCondition::CastThisTurn(self.filter(filter)),
+            StaticCond::DiscardedThisTurn => StaticCondition::DiscardedThisTurn,
+            StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
+            StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
+            StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
+            StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
+            StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
+            StaticCond::During(t) => StaticCondition::During(*t),
         }
     }
 
@@ -1427,6 +1456,12 @@ impl Compiler<'_> {
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
                 per_turn: cost.per_turn,
+                conditions: cost
+                    .conditions
+                    .iter()
+                    .map(|c| self.static_cond(c))
+                    .collect(),
+                once_ever: cost.once_ever,
                 from_hand: *cycling || cost.discard_self,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
@@ -1696,6 +1731,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                         }),
                     },
                 ],
+                label: None,
                 para: false,
                 eot_first: false,
                 joins: vec![Join::Then],
@@ -1731,6 +1767,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                         trigger_first: false,
                     },
                 ],
+                label: None,
                 para: false,
                 eot_first: false,
                 joins: vec![Join::And, Join::And],

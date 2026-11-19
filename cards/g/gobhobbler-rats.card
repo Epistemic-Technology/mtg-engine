@@ -1,0 +1,7 @@
+card "Gobhobbler Rats" {
+  oracle_id aa254e74-583d-4681-8169-5ac0dbdb10e5
+  cost {B}{R}
+  type Creature — Rat
+  pt 2/2
+  label "Hellbent" static as long as hand 0 or less, this: +1/+0, has ability { activated {B}: regenerate this }
+}

@@ -207,6 +207,16 @@ pub struct Cost {
     pub chosen: mtg_core::card::ChosenCost,
     /// "Activate only once each turn."
     pub per_turn: u8,
+    /// `if <condition>`, `during your upkeep`: "Activate only if ..."
+    /// (CR 602.5b).
+    pub conditions: Vec<StaticCond>,
+    /// `once ever`: "Activate only once." (for as long as the source is the
+    /// same object).
+    pub once_ever: bool,
+    /// The restrictions (`sorcery`, `once`, conditions) in the order
+    /// written; printed as one sentence in that order. Empty: sorcery,
+    /// then once.
+    pub restrict: Vec<Restrict>,
     /// The order the parts were written in, which is the order printed
     /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
     /// discard, life.
@@ -715,6 +725,76 @@ pub enum StaticCond {
         n: u32,
         at_most: bool,
     },
+    /// `2 instant or sorcery cards in your graveyard`: "there are two or
+    /// more instant and/or sorcery cards in your graveyard"; `you have 4
+    /// creature cards in your graveyard`: "you have four or more creature
+    /// cards in your graveyard".
+    GraveyardCards {
+        filter: Filter,
+        at_least: u32,
+        have: bool,
+    },
+    /// `opponent graveyard 8 or more`: "an opponent has eight or more
+    /// cards in their graveyard".
+    OpponentGraveyard(u32),
+    /// `5 mana values in your graveyard`: "there are five or more mana
+    /// values among cards in your graveyard".
+    ManaValuesInGraveyard(u32),
+    /// `opponent controls Human`: "an opponent controls a Human".
+    OpponentControls {
+        filter: Filter,
+        at_least: u32,
+    },
+    /// `this is untapped`, `this is Wall`, `this is creature`: "it's
+    /// untapped", "it's a Wall", "this permanent is a creature".
+    Is(Filter),
+    /// `modified`: "it's modified" (CR 700.9).
+    Modified,
+    /// `attacking alone`: "it's attacking alone".
+    AttackingAlone,
+    /// `blocked`: "this creature is blocked".
+    Blocked,
+    /// `being blocked`: "at least one creature is blocking this creature".
+    BeingBlocked,
+    /// `attached is legendary`: "equipped creature is legendary" (or
+    /// "enchanted creature").
+    AttachedIs(Filter),
+    /// `drew 2 this turn`: "you've drawn two or more cards this turn".
+    DrawnThisTurn(u32),
+    /// `cast instant or sorcery spell this turn`: "you've cast an instant
+    /// or sorcery spell this turn".
+    CastThisTurn(Filter),
+    /// `discarded this turn`: "you've discarded a card this turn".
+    DiscardedThisTurn,
+    /// `more cards in hand than each opponent`.
+    MoreCardsInHand,
+    /// `opponent poisoned` ("an opponent is poisoned"), `opponent poison 3
+    /// or more` ("an opponent has three or more poison counters").
+    OpponentPoison(u32),
+    /// `you own card in exile`: "you own a card in exile".
+    OwnCardInExile,
+    /// `total power 8 or more` (formidable): "creatures you control have
+    /// total power 8 or greater".
+    TotalPower(u32),
+    /// `3 different powers` (coven): "you control three or more creatures
+    /// with different powers".
+    DifferentPowers(u32),
+    /// `during your upkeep`, `during opponent upkeep`, `during combat`,
+    /// `before attackers`, `during your turn before attackers`, `during
+    /// declare blockers`, `during end of combat` (CR 602.5b).
+    During(mtg_core::card::TurnTime),
+}
+
+/// An activation restriction, in the order written and printed ("Activate
+/// only if ... and only as a sorcery").
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum Restrict {
+    Sorcery,
+    Once,
+    /// `once ever`: "only once" (not each turn).
+    OnceEver,
+    /// `Cost::conditions[i]`.
+    Cond(usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -755,6 +835,9 @@ pub enum InsteadWording {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Sentence {
     pub effects: Vec<Effect>,
+    /// `label "Spell mastery"`: an ability word printed before the
+    /// sentence ("Spell mastery — If ...", CR 207.2c).
+    pub label: Option<String>,
     /// Starts a new paragraph (a new line of Oracle text).
     pub para: bool,
     /// Printed "Until end of turn, ..." with the duration first (Water
@@ -780,6 +863,7 @@ impl Sentence {
         let joins = vec![Join::And; effects.len().saturating_sub(1)];
         Sentence {
             effects,
+            label: None,
             para: false,
             eot_first: false,
             joins,

@@ -1,0 +1,8 @@
+card "Nomad Decoy" {
+  oracle_id 73c40477-7061-47db-af8f-2a5cf6c22c9b
+  cost {2}{W}
+  type Creature — Human Nomad
+  pt 1/2
+  activated {W}, {T}: tap target creature
+  label "Threshold" activated {W}{W}, {T}, if threshold: tap two target creatures
+}

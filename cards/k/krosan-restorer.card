@@ -1,0 +1,8 @@
+card "Krosan Restorer" {
+  oracle_id ea845951-0158-4646-acd9-3b0b28da40b1
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 1/2
+  activated {T}: untap target land
+  label "Threshold" activated {T}, if threshold: untap up to three target lands
+}

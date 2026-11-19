@@ -1,0 +1,8 @@
+card "Taste for Mayhem" {
+  oracle_id 60e7517f-7cc5-4073-9f2c-3e6acb891128
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0
+  label "Hellbent" static enchanted: +2/+0 as long as hand 0 or less
+}

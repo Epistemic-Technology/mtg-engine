@@ -1,0 +1,8 @@
+card "Heron-Blessed Geist" {
+  oracle_id 9c5897cd-f209-4e51-adc2-d791e5671029
+  cost {4}{W}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  activated {3}{W}, exile this from graveyard, if you control enchantment, sorcery: create 2 "1/1 white Spirit creature with flying"
+}

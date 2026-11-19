@@ -794,6 +794,9 @@ pub struct GameState {
     pub loyalty_activated: Vec<ObjId>,
     /// "Activate only once each turn" abilities used this turn.
     pub activated_once: Vec<(ObjId, crate::card::AbilityId)>,
+    /// "Activate only once" abilities used, for the rest of the game (a
+    /// permanent that changes zones is a new object, CR 400.7).
+    pub activated_ever: Vec<(ObjId, crate::card::AbilityId)>,
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
@@ -817,6 +820,11 @@ pub struct GameState {
     pub creatures_died_this_turn: u16,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
+    /// Players who discarded a card this turn, one bit each.
+    pub discarded_this_turn: u8,
+    /// The spells cast this turn, by caster ("if you've cast a noncreature
+    /// spell this turn"); inline, so copying the state rarely allocates.
+    pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
     /// Casting from exile's bookkeeping, boxed: most games never need it,
     /// and the state is copied for every mid-event snapshot.
     pub exile_casts: Option<Box<ExileCasts>>,
@@ -1421,6 +1429,7 @@ impl GameState {
     /// Whether a condition holds now for `you`, about `source` (which may
     /// be entering, not yet on the battlefield): conditional "enters
     /// tapped", attack restrictions, and intervening "if" clauses.
+    #[allow(clippy::too_many_lines)] // one arm per condition
     pub fn condition_now(
         &self,
         cond: &crate::card::StaticCondition,
@@ -1501,7 +1510,157 @@ impl GameState {
                     h >= *n as usize
                 }
             }
+            C::OpponentControls { filter, at_least } => self
+                .players_in_game()
+                .filter(|p| *p != you)
+                .any(|p| count(filter, p) >= *at_least as usize),
+            C::SourceIs(filter) => self.objects.get(source).is_some_and(|o| {
+                self.characteristics_or_lki(source).is_some_and(|c| {
+                    filter.matches(source, o.controller, &c, Some(source), Some(you))
+                }) && self.status_ok(filter, source)
+            }),
+            C::AttachedIs(filter) => self
+                .objects
+                .get(source)
+                .and_then(|o| o.attached_to)
+                .is_some_and(|host| {
+                    self.characteristics(host).is_some_and(|c| {
+                        filter.matches(
+                            host,
+                            self.objects[host].controller,
+                            &c,
+                            Some(source),
+                            Some(you),
+                        )
+                    }) && self.status_ok(filter, host)
+                }),
+            C::SourceModified => self.modified(
+                source,
+                |id| {
+                    self.characteristics(id)
+                        .is_some_and(|c| c.has_subtype(crate::card::Subtype::EQUIPMENT))
+                },
+                |id| {
+                    self.characteristics(id)
+                        .is_some_and(|c| c.has_subtype(crate::card::Subtype::AURA))
+                },
+            ),
+            C::TotalPower(n) => {
+                let total: i32 = self
+                    .battlefield
+                    .iter()
+                    .filter(|id| self.objects[**id].controller == you)
+                    .filter_map(|id| self.characteristics(*id))
+                    .filter(Characteristics::is_creature)
+                    .map(|c| c.power().max(0))
+                    .sum();
+                total >= i32::try_from(*n).unwrap_or(i32::MAX)
+            }
+            C::DifferentPowers(n) => {
+                let mut powers: Vec<i32> = self
+                    .battlefield
+                    .iter()
+                    .filter(|id| self.objects[**id].controller == you)
+                    .filter_map(|id| self.characteristics(*id))
+                    .filter(Characteristics::is_creature)
+                    .map(|c| c.power())
+                    .collect();
+                powers.sort_unstable();
+                powers.dedup();
+                powers.len() >= *n as usize
+            }
+            _ => self.condition_history(cond, you, source),
         }
+    }
+
+    /// The conditions that need no characteristics of permanents (zones,
+    /// counts, what happened this turn, the step), shared by
+    /// `condition_now` and the layer system; `false` for the rest.
+    pub fn condition_history(
+        &self,
+        cond: &crate::card::StaticCondition,
+        you: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        use crate::card::StaticCondition as C;
+        match cond {
+            C::GraveyardCards { filter, at_least } => {
+                let n = self
+                    .player(you)
+                    .graveyard
+                    .iter()
+                    .filter(|id| {
+                        let c = self.base_characteristics(&self.objects[**id]);
+                        filter.matches(**id, you, &c, None, Some(you))
+                    })
+                    .count();
+                n >= *at_least as usize
+            }
+            C::OpponentGraveyard(n) => self
+                .players_in_game()
+                .any(|p| p != you && self.player(p).graveyard.len() >= *n as usize),
+            C::ManaValuesInGraveyard(n) => {
+                let mut seen = 0u64;
+                for g in &self.player(you).graveyard {
+                    let mv = self.pool.get(self.objects[*g].def).mana_cost.mana_value();
+                    seen |= 1 << mv.min(63);
+                }
+                seen.count_ones() >= *n
+            }
+            C::SourceAttackingAlone => self
+                .combat
+                .as_ref()
+                .is_some_and(|c| c.attackers.len() == 1 && c.attackers[0].id == source),
+            C::SourceBlocked => self
+                .combat
+                .as_ref()
+                .and_then(|c| c.attacker(source))
+                .is_some_and(|a| a.blocked),
+            C::SourceBeingBlocked => self
+                .combat
+                .as_ref()
+                .and_then(|c| c.attacker(source))
+                .is_some_and(|a| !a.blockers.is_empty()),
+            C::DrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
+            C::CastThisTurn(filter) => self
+                .cast_this_turn
+                .iter()
+                .any(|(p, def)| *p == you && filter.matches_characteristics(&self.printed(*def))),
+            C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
+            C::MoreCardsInHand => {
+                let mine = self.player(you).hand.len();
+                self.players_in_game()
+                    .all(|p| p == you || self.player(p).hand.len() < mine)
+            }
+            C::OpponentPoison(n) => self
+                .players_in_game()
+                .any(|p| p != you && self.player(p).poison >= *n),
+            C::OwnCardInExile => !self.player(you).exile.is_empty(),
+            C::During(t) => t.now(self.step, self.active_player, you),
+            _ => false,
+        }
+    }
+
+    /// CR 700.9: a permanent is modified if it has a counter, is equipped,
+    /// or is enchanted by an Aura its controller controls; `equipment` and
+    /// `aura` say what an attached object is.
+    pub fn modified(
+        &self,
+        id: ObjId,
+        equipment: impl Fn(ObjId) -> bool,
+        aura: impl Fn(ObjId) -> bool,
+    ) -> bool {
+        let Some(o) = self.objects.get(id) else {
+            return false;
+        };
+        if o.counters.iter().any(|(_, n)| *n > 0) {
+            return true;
+        }
+        self.battlefield.iter().any(|a| {
+            let att = &self.objects[*a];
+            att.attached_to == Some(id)
+                && (equipment(*a) || (att.controller == o.controller && aura(*a)))
+        })
     }
 
     /// Characteristics of an object that may have left the game, falling

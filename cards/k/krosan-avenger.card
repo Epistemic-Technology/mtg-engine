@@ -1,0 +1,8 @@
+card "Krosan Avenger" {
+  oracle_id 8991b367-6fc1-4de7-a1ee-4edb57c44fc2
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 3/1
+  keywords trample
+  label "Threshold" activated {1}{G}, if threshold: regenerate this
+}

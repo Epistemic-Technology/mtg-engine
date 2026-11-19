@@ -1,0 +1,7 @@
+card "Ghitu Lavarunner" {
+  oracle_id 8e3f4987-6f31-4bc5-8bcd-6adb0440ee7c
+  cost {R}
+  type Creature — Human Wizard
+  pt 1/2
+  static as long as 2 instant or sorcery cards in your graveyard, this: +1/+0, has haste
+}

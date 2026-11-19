@@ -1,0 +1,7 @@
+card "Emberwilde Augur" {
+  oracle_id 39bf60b2-eeee-48f3-b7b0-6cc2e038afb1
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 2/1
+  activated sacrifice this, during your upkeep: deal 3 damage to target player or planeswalker
+}

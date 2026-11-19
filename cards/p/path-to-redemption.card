@@ -1,0 +1,8 @@
+card "Path to Redemption" {
+  oracle_id ac94860b-70b8-4624-9758-4bb024a56f60
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {5}, sacrifice this, during your turn: exile enchanted creature; create 1 "1/1 white Ally creature"
+}

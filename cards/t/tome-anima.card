@@ -1,0 +1,7 @@
+card "Tome Anima" {
+  oracle_id e4a68bb3-5a79-4764-8223-acddd16fb660
+  cost {3}{U}
+  type Creature — Spirit
+  pt 3/3
+  static this: has can't be blocked as long as drew 2 this turn
+}

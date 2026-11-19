@@ -1,0 +1,7 @@
+card "Gnaw to the Bone" {
+  oracle_id 7b92ac54-3883-48cf-b01e-be9797dc1649
+  cost {2}{G}
+  type Instant
+  spell: you gain count each 2 graveyard creature life
+  flashback {2}{G}
+}

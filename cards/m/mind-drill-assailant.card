@@ -1,0 +1,8 @@
+card "Mind Drill Assailant" {
+  oracle_id 3b10ab39-3050-475c-af8b-f293794d498c
+  cost {2}{U/B}{U/B}
+  type Creature — Rat Warlock
+  pt 2/5
+  label "Threshold" static as long as threshold, this: +3/+0
+  activated {2}{U/B}: surveil 1
+}

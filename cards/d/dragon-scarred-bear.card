@@ -1,0 +1,7 @@
+card "Dragon-Scarred Bear" {
+  oracle_id 2f6f49a4-f2ea-4147-a6d3-69cf875c302e
+  cost {2}{G}
+  type Creature — Bear
+  pt 3/2
+  label "Formidable" activated {1}{G}, if total power 8 or more: regenerate this
+}

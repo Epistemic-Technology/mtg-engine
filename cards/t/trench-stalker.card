@@ -1,0 +1,7 @@
+card "Trench Stalker" {
+  oracle_id 5a0c215a-2164-4cb8-89ff-2558b6b42dca
+  cost {4}{B}
+  type Creature — Beast Horror
+  pt 4/5
+  static as long as drew 2 this turn, this: has deathtouch, lifelink
+}

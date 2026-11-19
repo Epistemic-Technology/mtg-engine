@@ -1,0 +1,9 @@
+card "Candletrap" {
+  oracle_id 089788ce-d06c-4a85-915c-82e2cb5b0103
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has defender
+  replace combat damage from enchanted to any: prevent
+  label "Coven" activated {2}{W}, sacrifice this, if 3 different powers: exile enchanted creature
+}

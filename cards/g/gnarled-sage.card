@@ -1,0 +1,8 @@
+card "Gnarled Sage" {
+  oracle_id c36d7c2b-204f-432e-b8e2-ffb3ffb49231
+  cost {3}{G}{G}
+  type Creature — Treefolk Druid
+  pt 4/4
+  keywords reach
+  static as long as drew 2 this turn, this: +0/+2, has vigilance
+}

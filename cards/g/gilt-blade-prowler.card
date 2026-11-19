@@ -1,0 +1,7 @@
+card "Gilt-Blade Prowler" {
+  oracle_id 63e86054-5e9c-48fe-92a1-b71aeb6ee57f
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/3
+  activated {1}, {T}, pay 1 life, if discarded this turn: draw 1 card
+}

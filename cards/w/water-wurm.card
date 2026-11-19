@@ -1,0 +1,7 @@
+card "Water Wurm" {
+  oracle_id cfa373c4-6e42-4cf3-94a4-841f2824603e
+  cost {U}
+  type Creature — Wurm
+  pt 1/1
+  static this: +0/+1 as long as opponent controls Island
+}

@@ -1,0 +1,7 @@
+card "Grizzled Wolverine" {
+  oracle_id da4ed552-a85a-47e1-ab67-5c93a9a20048
+  cost {1}{R}{R}
+  type Creature — Wolverine
+  pt 2/2
+  activated {R}, during declare blockers, if being blocked, once: this gets +2/+0
+}

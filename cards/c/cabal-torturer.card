@@ -1,0 +1,8 @@
+card "Cabal Torturer" {
+  oracle_id fbd295ee-545a-4eab-b000-c0b228dd412d
+  cost {1}{B}{B}
+  type Creature — Human Minion
+  pt 1/1
+  activated {B}, {T}: target creature gets -1/-1
+  label "Threshold" activated {3}{B}{B}, {T}, if threshold: target creature gets -2/-2
+}
