@@ -225,6 +225,48 @@ pub enum AltCast {
     Dash,
 }
 
+/// The mana spent to cast a spell (CR 601.2h), as much as cards ask
+/// about: how much of each color, colorless, and how much came from
+/// Treasures.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub struct SpentMana {
+    /// Indexed by `Color as usize`.
+    pub colored: [u8; 5],
+    pub colorless: u8,
+    pub treasure: u8,
+}
+
+impl SpentMana {
+    /// How much of the spent mana was of this kind.
+    pub fn count(&self, kind: crate::card::SpentKind) -> u32 {
+        use crate::card::SpentKind;
+        match kind {
+            SpentKind::Color(c) => u32::from(self.colored[c as usize]),
+            SpentKind::Treasure => u32::from(self.treasure),
+            SpentKind::Total => {
+                self.colored.iter().map(|n| u32::from(*n)).sum::<u32>() + u32::from(self.colorless)
+            }
+        }
+    }
+
+    /// The number of colors among the spent mana (converge).
+    pub fn colors(&self) -> u32 {
+        u32::try_from(self.colored.iter().filter(|n| **n > 0).count()).unwrap_or(0)
+    }
+
+    /// Add what a payment took from the pool: `before` less `after`.
+    pub fn add_paid(&mut self, before: &crate::mana::ManaPool, after: &crate::mana::ManaPool) {
+        for (i, slot) in self.colored.iter_mut().enumerate() {
+            let n = before.colored[i].saturating_sub(after.colored[i]);
+            *slot = slot.saturating_add(u8::try_from(n).unwrap_or(u8::MAX));
+        }
+        let n = before.colorless.saturating_sub(after.colorless);
+        self.colorless = self
+            .colorless
+            .saturating_add(u8::try_from(n).unwrap_or(u8::MAX));
+    }
+}
+
 /// A spell's chosen mode (CR 700.2, the low six bits) and cast flags:
 /// kicked (CR 702.33c; kept by the permanent it becomes, for "if it was
 /// kicked") and cast with flashback (CR 702.34a; exiled as it leaves the
@@ -1011,6 +1053,18 @@ pub struct GameState {
     /// on the stack (CR 601.2h, 602.2b), keyed by the stack object: what
     /// "the sacrificed creature" refers to as it resolves.
     pub paid_costs: Vec<(ObjId, Vec<Moved>)>,
+    /// The mana spent to cast spells whose text asks about it (CR
+    /// 601.2h; `CardDef::spent`), keyed by the spell and then by the
+    /// permanent it became ("if {B} was spent to cast it"). Kept until the
+    /// turn ends, for intervening "if"s that resolve after the permanent
+    /// left.
+    pub spent_mana: Vec<(ObjId, SpentMana)>,
+    /// While a payment is being recorded, what it has spent so far.
+    pub spending: Option<SpentMana>,
+    /// Battlefield permanents with a condition on the mana spent to cast
+    /// the spell that triggers them (`DefFlags::watches_spent`): while
+    /// nonzero, every cast records what was spent.
+    pub spent_watchers: u32,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).
@@ -1566,6 +1620,40 @@ impl GameState {
             .collect()
     }
 
+    /// The mana spent to cast `id` (or the spell it was), none if it
+    /// wasn't cast or its text doesn't ask (CR 601.2h).
+    pub fn spent_on(&self, id: ObjId) -> SpentMana {
+        if self.spent_mana.is_empty() {
+            return SpentMana::default();
+        }
+        self.spent_mana
+            .iter()
+            .find(|(o, _)| *o == id)
+            .map(|(_, s)| *s)
+            .unwrap_or_default()
+    }
+
+    /// `condition_now` for an ability that `trigger_obj` triggered: "that
+    /// spell" in a condition is that object (CR 603.4).
+    pub fn condition_for(
+        &self,
+        cond: &crate::card::StaticCondition,
+        you: PlayerId,
+        source: ObjId,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
+        if let crate::card::StaticCondition::ManaSpent {
+            kind,
+            at_least,
+            that: true,
+        } = cond
+        {
+            return trigger_obj
+                .is_some_and(|t| self.spent_on(t).count(*kind) >= u32::from(*at_least));
+        }
+        self.condition_now(cond, you, source)
+    }
+
     /// Whether a condition holds now for `you`, about `source` (which may
     /// be entering, not yet on the battlefield): conditional "enters
     /// tapped", attack restrictions, and intervening "if" clauses.
@@ -1660,6 +1748,13 @@ impl GameState {
                 self.artifacts_entered_this_turn & (1 << you.index().min(7)) != 0
             }
             C::Kicked => self.objects.get(source).is_some_and(|o| o.cast.kicked()),
+            C::ManaSpent {
+                kind,
+                at_least,
+                that: false,
+            } => self.spent_on(source).count(*kind) >= u32::from(*at_least),
+            // Judged by `condition_for`, which knows the triggering spell.
+            C::ManaSpent { that: true, .. } => false,
             C::Bargained => match self.objects.get(source) {
                 Some(o) if o.zone == Zone::Hand => !self.bargain_candidates(you).is_empty(),
                 Some(o) => o.cast.bargained(),

@@ -1,0 +1,9 @@
+card "Foreboding Fruit" {
+  oracle_id 33a162f3-e781-494f-ab8f-12a84801a694
+  cost {2}{B}
+  type Sorcery
+  spell {
+  target player draws 2 cards and loses 2 life
+  label "Adamant" if spent 3 black, create 1 "Food"
+  }
+}

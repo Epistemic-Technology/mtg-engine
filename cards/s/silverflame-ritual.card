@@ -1,0 +1,9 @@
+card "Silverflame Ritual" {
+  oracle_id d511573b-35c7-4934-aa46-906e14101664
+  cost {3}{W}
+  type Sorcery
+  spell {
+  put 1 +1/+1 counter on each creature you control
+  label "Adamant" if spent 3 white, all creature you control gain vigilance
+  }
+}

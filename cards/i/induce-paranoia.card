@@ -1,0 +1,6 @@
+card "Induce Paranoia" {
+  oracle_id ec9475f8-235a-4c85-9b96-9c2085a9b732
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; if spent {B}, controller of that target 1 mills count where mana value of the spell target 1 cards
+}

@@ -1,0 +1,7 @@
+card "Ogre Savant" {
+  oracle_id 2ce12817-a7b5-475a-87d0-718d77349a6d
+  cost {4}{R}
+  type Creature — Ogre Wizard
+  pt 3/2
+  triggered when this enters if spent {U}: return target creature to hand
+}

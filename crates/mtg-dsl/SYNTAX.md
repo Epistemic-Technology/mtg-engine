@@ -74,6 +74,7 @@ double-faced permanent to its other face (CR 701.27).
 | `mana {G}` / `mana {W} or {U}` / `mana any` / `mana {U} or chosen` | "{T}: Add {G}." A mana ability (CR 605); `any` is "one mana of any color", `chosen` "one mana of the chosen color" (the color chosen as the permanent entered; none chosen, no mana). Basic land types grant theirs intrinsically. |
 | `mana any, sacrifice this` | "{T}, Sacrifice this artifact: Add one mana of any color." (Treasure, Lotus Petal). Payment uses such sources after all others. |
 | `mana {C} only to cast instant or sorcery spell`, `mana any only to cast creature spell`, `mana {U} only to cast artifact spell or activate`, `mana {R} only to cast artifact spell or to activate`, `mana {C} only to activate or cast artifact spell`, `mana {R} only to cast Elemental spell or Chandra planeswalker spell`, `mana {U} not to cast nonartifact spell` | "{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.", "... only to cast an artifact spell or activate an ability.", "... or to activate an ability.", "... only to activate an ability or cast an artifact spell.", "This mana can't be spent to cast a nonartifact spell." Restricted mana (CR 106.6): one kind of mana; the engine taps the source only to pay for what the restriction allows (any activated ability for `activate`; for `not to cast`, other spells and any activated ability, though not costs an effect asks for), so its mana is spent at once and never sits in the pool. |
+| `mana {U} only to cast artifact spell or activate of artifact`, `mana {U} only to foretell or cast instant or sorcery spell` | "Spend this mana only to cast an artifact spell or activate an ability of an artifact source." (`of <filter>` after `activate`: only abilities of matching sources, cards in hand and graveyard included); "Spend this mana only to foretell a card from your hand or cast an instant or sorcery spell." (the foretell special action's {2}, CR 702.143a). |
 | `spend only black mana on x` | "Spend only black mana on X." (CR 107.3): the X in the spell's cost is paid with that color only. |
 | `cycling {2}` | Cycling (CR 702.29): "{2}, Discard this card: Draw a card.", activated from the hand. |
 | `plainscycling {2}`, `basic landcycling {1}{G}`, `landcycling {2}` | Typecycling (CR 702.29e): discard to search for a card of that type. |
@@ -527,7 +528,8 @@ card named ~ in each graveyard"), `plus 2 <expr>` ("2 plus the number of
 of target 1` / `toughness of target 1` ("its power"; `power of that
 target 1` is "that creature's power"; read as the target last existed if
 it has left), `mana value of target 1` ("its mana value", X included on
-the stack), `greatest power creature you control` ("the greatest power
+the stack; `mana value of the spell target 1` is "the spell's mana
+value"), `greatest power creature you control` ("the greatest power
 among creatures you control"), or `life`; `this gets +1/+1 count each creature you
 it has left), `mana value of target 1` ("its mana value"), `toughness`
 (the source's), `life`, `party` ("creatures in your party", CR 700.8: one
@@ -535,7 +537,9 @@ each of Cleric, Rogue, Warrior, and Wizard at most), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
 drawn this turn"), `colors among permanents` ("colors among permanents
-you control"), `opponents graveyards [<filter>]` ("creature cards in your
+you control"), `colors spent` (converge: "the number of colors of mana
+spent to cast this spell"), `treasure spent` ("for each mana from a
+Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
 opponents' graveyards"), `opponents attacked` ("opponents you're
 attacking"), `attacked with this turn` ("creatures you attacked with this
 turn"), or `andor <expr>` (the same count, printed "artifact and/or
@@ -894,3 +898,28 @@ hand. You may choose ..."), `look at hand of target player discarding card`
 ("Look at target player's hand and choose a card from it."). A sentence
 may start `then` ("Then discard two cards unless ..."). `return this to its
 owner's hand` in a spell returns the resolving spell from the stack.
+
+### The mana spent to cast a spell
+
+The static conditions `spent {B}` ("{B} was spent to cast this spell" for
+an instant or sorcery, "... to cast it" otherwise), `spent {R}{R}`, `spent
+3 red` ("at least three red mana was spent ...", adamant with `label
+"Adamant"`) and `spent treasure` ("mana from a Treasure was spent ...")
+read what paid for the card itself (CR 601.2h): `triggered when this enters
+if spent {U}: return target creature to hand`, `if spent {W}, untap all
+creature you control` in a spell. The permanent a spell becomes remembers
+it; a card put onto the battlefield or a copy had nothing spent. `that
+spell spent 4 mana` reads the spell that triggered the ability: after a
+trigger it prints "if at least four mana was spent to cast it" (`triggered
+whenever you cast a noncreature spell if that spell spent 4 mana: ...`),
+in an effect "If five or more mana was spent to cast that spell" (`if that
+spell spent 5 mana, put 2 +1/+1 counters on this creature instead`). After
+the comma, `also` prints "also" after the subject (`if that spell spent 5
+mana, also this creature gains double strike`: "this creature also gains
+double strike"). A spell names itself again after such a condition
+("Adamant — If ..., Searing Barrage deals 3 damage ..."); a permanent's
+trigger says "it" ("if {R} was spent to cast it, it gains haste").
+The engine pays canonically and these riders are all bonuses, so for a
+card whose text asks, payment spends what it wants where it can: generic
+mana is paid with the named colors (as many colors as possible for
+converge), and Treasures go first ("mana from a Treasure").

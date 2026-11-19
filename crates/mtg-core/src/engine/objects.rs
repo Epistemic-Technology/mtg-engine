@@ -290,6 +290,15 @@ impl GameState {
         if let Some(l) = self.lki.get_mut(&id) {
             l.moved_to = Some(new);
         }
+        // CR 601.2h: the permanent a spell becomes remembers the mana
+        // spent to cast it ("if {B} was spent to cast it").
+        if !self.spent_mana.is_empty()
+            && old.zone == Zone::Stack
+            && to == Zone::Battlefield
+            && let Some(i) = self.spent_mana.iter().position(|(o, _)| *o == id)
+        {
+            self.spent_mana[i].0 = new;
+        }
         // "If a creature card was exiled this way" (CR 608.2c).
         if let Some(log) = &mut self.this_way {
             log.moved.push(crate::state::Moved {
@@ -419,6 +428,7 @@ impl GameState {
             self.turn_static_sources += d(flags.has_turn_static());
             self.attack_rule_sources += d(flags.has_attack_rule());
             self.grant_sources += d(flags.grants_abilities());
+            self.spent_watchers += d(flags.watches_spent());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -432,6 +442,7 @@ impl GameState {
             self.turn_static_sources -= d(flags.has_turn_static());
             self.attack_rule_sources -= d(flags.has_attack_rule());
             self.grant_sources -= d(flags.grants_abilities());
+            self.spent_watchers -= d(flags.watches_spent());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

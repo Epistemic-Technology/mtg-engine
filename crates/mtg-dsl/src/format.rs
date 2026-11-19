@@ -994,9 +994,12 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
-            Effect::IfCondition(c, inner) => {
-                format!("if {}, {}", static_cond(c), self.line(inner, t))
-            }
+            Effect::IfCondition(c, inner, also) => format!(
+                "if {}, {}{}",
+                static_cond(c),
+                if *also { "also " } else { "" },
+                self.line(inner, t)
+            ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
             Effect::IfThisWay(c, inner) => {
                 format!("if {}, {}", this_way_cond(c), self.line(inner, t))
@@ -1355,12 +1358,20 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::GreatestManaValue => "greatest mana value".to_string(),
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
         CountExpr::SourceToughness => "toughness".to_string(),
-        CountExpr::TargetManaValue { n, that } => format!(
+        CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
-            if *that { "that " } else { "" },
+            if *the_spell {
+                "the spell "
+            } else if *that {
+                "that "
+            } else {
+                ""
+            },
             n + 1
         ),
         CountExpr::ColorsAmongPermanents => "colors among permanents".to_string(),
+        CountExpr::SpentColors => "colors spent".to_string(),
+        CountExpr::SpentTreasure => "treasure spent".to_string(),
         CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
         CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
             format!("opponents graveyards {}", card_filter(f))
@@ -2331,6 +2342,15 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => unreachable!("only in `kicked with`"),
         StaticCond::Bargained => "bargained".to_string(),
+        StaticCond::ManaSpent {
+            kind,
+            at_least,
+            that,
+        } => format!(
+            "{}{}",
+            if *that { "that spell " } else { "" },
+            spent_cond(*kind, *at_least)
+        ),
         StaticCond::Saddled => "saddled".to_string(),
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
         StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
@@ -2412,15 +2432,27 @@ fn restricted_mana(m: Mana, r: &crate::ast::ManaRestriction) -> String {
         }
         None => format!("cast {} spell", filter(f)),
     });
+    let of = r
+        .ability_source
+        .as_ref()
+        .map(|f| format!(" of {}", filter(f)))
+        .unwrap_or_default();
+    let spells = spells.map(|s| {
+        if r.foretell {
+            format!("foretell or {s}")
+        } else {
+            s
+        }
+    });
     let rest = match (r.wording, spells) {
         (SpendWording::CantCast, Some(s)) => format!("not to {s}"),
-        (SpendWording::ActivateFirst, Some(s)) => format!("only to activate or {s}"),
+        (SpendWording::ActivateFirst, Some(s)) => format!("only to activate{of} or {s}"),
         (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
-            format!("only to {s} or to activate")
+            format!("only to {s} or to activate{of}")
         }
-        (_, Some(s)) if r.abilities => format!("only to {s} or activate"),
+        (_, Some(s)) if r.abilities => format!("only to {s} or activate{of}"),
         (_, Some(s)) => format!("only to {s}"),
-        (_, None) => "only to activate".to_string(),
+        (_, None) => format!("only to activate{of}"),
     };
     format!("{sym} {rest}")
 }
@@ -2848,6 +2880,22 @@ pub(crate) fn this_turn_trigger(t: &Trigger) -> &'static str {
     match t {
         Trigger::Leaves(_) => "when that creature leaves the battlefield this turn",
         _ => "when that creature dies this turn",
+    }
+}
+
+/// `spent {B}`, `spent {R}{R}`, `spent 3 red`, `spent treasure`.
+fn spent_cond(kind: mtg_core::card::SpentKind, at_least: u8) -> String {
+    use mtg_core::card::SpentKind;
+    match kind {
+        SpentKind::Color(c) if at_least <= 2 => {
+            format!(
+                "spent {}",
+                format!("{{{}}}", c.letter()).repeat(at_least as usize)
+            )
+        }
+        SpentKind::Color(c) => format!("spent {at_least} {}", crate::render::color_name(c)),
+        SpentKind::Treasure => "spent treasure".to_string(),
+        SpentKind::Total => format!("spent {at_least} mana"),
     }
 }
 

@@ -41,7 +41,7 @@ impl GameState {
                             p,
                             &sources,
                             &ab.cost.mana.requirements(0),
-                            Spend::Ability,
+                            Spend::Ability(self.characteristics(*id).as_ref()),
                         )
                         && self.targets_available(p, &ab.targets, Some(*id))
                     {
@@ -182,7 +182,7 @@ impl GameState {
                                 p,
                                 &sources,
                                 &ab.cost.mana.requirements(0),
-                                Spend::Ability,
+                                Spend::Ability(self.characteristics(*id).as_ref()),
                             )
                             && self.targets_available(p, &ab.targets, Some(*id))
                         {
@@ -283,6 +283,11 @@ impl GameState {
                             && self.status_ok(f, **id)
                     })
                     .count()
+            }
+            CountExpr::SpentColors => self.spent_on(ctx.source).colors() as usize,
+            CountExpr::SpentTreasure => {
+                self.spent_on(ctx.source)
+                    .count(crate::card::SpentKind::Treasure) as usize
             }
             CountExpr::Domain => {
                 let mut seen = crate::mana::ColorSet::default();
@@ -824,15 +829,13 @@ impl GameState {
         }
         if def.foretell.is_some()
             && p == self.active_player
-            && self.payable(
+            && self.payable_for(
                 p,
                 sources,
-                &ps.mana_pool,
                 &crate::mana::ManaCost::parse("{2}")
                     .expect("a mana cost")
                     .requirements(0),
-                ps.life,
-                None,
+                Spend::Foretell,
             )
         {
             options.push(Choice::Foretell(id));
@@ -1403,8 +1406,7 @@ impl GameState {
         }
         let pool = self.player(p).mana_pool;
         let life = self.player(p).life;
-        let restricted = self.with_restricted(p, sources, Spend::Ability);
-        let sources = restricted.as_ref().unwrap_or(sources);
+        let all_sources = sources;
         for id in self.permanents_of(p) {
             let o = &self.objects[id];
             if !grants && !self.flags_of(o).has_activated() {
@@ -1413,6 +1415,10 @@ impl GameState {
             let Some(c) = self.characteristics(id) else {
                 continue;
             };
+            // Restricted mana that may be spent on this source's abilities
+            // first (CR 106.6).
+            let restricted = self.with_restricted(p, all_sources, Spend::Ability(Some(&c)));
+            let sources = restricted.as_ref().unwrap_or(all_sources);
             let sick = c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste);
             // CR 602.5: "its activated abilities can't be activated"
             // (Arrest), or all but its mana abilities (CR 605.1a).
@@ -1939,7 +1945,7 @@ impl GameState {
         if ab.cost.tap {
             self.tap(sa.source);
         }
-        let sources = self.ability_sources(controller);
+        let sources = self.ability_sources(controller, sa.source);
         let req = self.activation_mana(sa.source, ab);
         self.pay_from(controller, &req, &sources, Some(sa.source));
         if ab.cost.crew > 0 {
@@ -2253,7 +2259,8 @@ impl GameState {
                 };
                 let allowed = match spend {
                     Spend::Spell(sc) => restriction.allows_spell(sc),
-                    Spend::Ability => restriction.allows_abilities(),
+                    Spend::Ability(src) => restriction.allows_abilities(src),
+                    Spend::Foretell => restriction.foretell,
                 };
                 if !allowed {
                     continue;
@@ -2322,9 +2329,21 @@ impl GameState {
 
     /// The sources `p` may tap to activate an ability: restricted mana that
     /// allows it first (CR 106.6).
-    fn ability_sources(&self, p: PlayerId) -> Sources {
+    fn ability_sources(&self, p: PlayerId, source: ObjId) -> Sources {
         let sources = self.mana_sources(p);
-        self.with_restricted(p, &sources, Spend::Ability)
+        if self.restricted_mana_sources == 0 {
+            return sources;
+        }
+        let c = self.characteristics(source);
+        self.with_restricted(p, &sources, Spend::Ability(c.as_ref()))
+            .unwrap_or(sources)
+    }
+
+    /// The sources `p` may tap to foretell a card (CR 702.143a): restricted
+    /// mana that allows it first.
+    pub(super) fn foretell_sources(&self, p: PlayerId) -> Sources {
+        let sources = self.mana_sources(p);
+        self.with_restricted(p, &sources, Spend::Foretell)
             .unwrap_or(sources)
     }
 
@@ -2437,7 +2456,7 @@ impl GameState {
     /// none is left in the pool to be spent on something else.
     /// `exclude` is the source of an ability being paid for, whose own
     /// mana abilities are not activated (see `payable`).
-    fn pay_from(
+    pub(super) fn pay_from(
         &mut self,
         p: PlayerId,
         req: &ManaRequirement,
@@ -2454,6 +2473,78 @@ impl GameState {
         };
         self.tap_for_plan(p, &plan);
         self.finish_payment(p, &req, life);
+    }
+
+    /// Whether `id` is a Treasure (CR 111.10a), for "mana from a Treasure".
+    #[cold]
+    fn is_treasure(&self, id: ObjId) -> bool {
+        self.characteristics(id)
+            .is_some_and(|c| c.has_subtype(crate::card::Subtype::TREASURE))
+    }
+
+    /// Pay for `spell`, whose text asks about the mana spent to cast it,
+    /// and record what was spent (CR 601.2h). The payment is the canonical
+    /// one, except that it spends what the text wants where it can: mana
+    /// of the colors a condition names (generic mana paid with them), as
+    /// many colors as it can for converge, Treasures first for "mana from
+    /// a Treasure". Every rider of this kind is a bonus, so the player
+    /// would choose that payment.
+    #[cold]
+    #[inline(never)]
+    fn pay_recorded(
+        &mut self,
+        spell: ObjId,
+        p: PlayerId,
+        req: &ManaRequirement,
+        sources: &Sources,
+        want: crate::card::SpentUse,
+    ) {
+        let outer = self.spending.replace(crate::state::SpentMana::default());
+        let ps = self.player(p);
+        let (pool, life) = (ps.mana_pool, ps.life);
+        let mut sources = sources.clone();
+        if want.treasure > 0 {
+            // Treasures first, so generic mana is paid with them.
+            let mut first: Sources = sources
+                .iter()
+                .copied()
+                .filter(|(id, _)| self.is_treasure(*id))
+                .collect();
+            if want.treasure == 1 {
+                first.truncate(1);
+            }
+            sources.retain(|e| !first.contains(e));
+            first.extend_from_slice(&sources);
+            sources = first;
+        }
+        // Turn generic mana into the wanted colors, one at a time, while
+        // the cost stays payable.
+        let mut r = *req;
+        let fits = |r: &ManaRequirement| resolve_payment(&sources, &pool, r, life).is_some();
+        if fits(&r) {
+            let wants: SmallVec<[(usize, u32); 5]> = if want.converge {
+                (0..5).map(|i| (i, 1)).collect()
+            } else {
+                (0..5)
+                    .filter(|i| want.colors[*i] > 0)
+                    .map(|i| (i, u32::from(want.colors[i])))
+                    .collect()
+            };
+            for (ci, n) in wants {
+                while r.colored[ci] < n && r.generic > 0 {
+                    let mut next = r;
+                    next.generic -= 1;
+                    next.colored[ci] += 1;
+                    if !fits(&next) {
+                        break;
+                    }
+                    r = next;
+                }
+            }
+        }
+        self.pay_from(p, &r, &sources, None);
+        let spent = std::mem::replace(&mut self.spending, outer).unwrap_or_default();
+        self.spent_mana.push((spell, spent));
     }
 
     /// Tap (or, for delve, exile) the sources of a plan, adding their mana.
@@ -2474,6 +2565,12 @@ impl GameState {
             self.tap(id);
             self.player_mut(p).mana_pool.add(mana);
             if self.sacrifices_for_mana(id) {
+                if self.spending.is_some()
+                    && self.is_treasure(id)
+                    && let Some(s) = &mut self.spending
+                {
+                    s.treasure = s.treasure.saturating_add(1);
+                }
                 self.sacrifice(id);
             }
         }
@@ -2525,6 +2622,9 @@ impl GameState {
         let left = pool
             .payment_plan(&req)
             .expect("pool covers the cost after activating mana abilities");
+        if let Some(s) = &mut self.spending {
+            s.add_paid(&pool, &left);
+        }
         self.player_mut(p).mana_pool = left;
         // CR 107.4f: Phyrexian symbols the mana could not cover cost 2 life.
         if life > 0 {
@@ -2549,7 +2649,11 @@ impl GameState {
         let def = pool.get(def_ref);
         let req = self.spell_requirements(spell, x);
         let sources = self.spell_sources(spell);
-        self.pay_from(caster, &req, &sources, None);
+        if def.spent.record || self.spent_watchers > 0 {
+            self.pay_recorded(spell, caster, &req, &sources, def.spent);
+        } else {
+            self.pay_from(caster, &req, &sources, None);
+        }
         if let (Some(fb), true) = (&def.flashback, flashback) {
             self.pay_other_costs(caster, fb, spell, None, None);
         }
@@ -4251,7 +4355,7 @@ impl GameState {
             }
             Effect::IfCondition(cond, inner) => {
                 let c = self.pool.condition(*cond).clone();
-                if self.condition_now(&c, ctx.controller, ctx.source) {
+                if self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj) {
                     for e in inner {
                         self.apply_effect(ctx, e);
                     }
@@ -4381,7 +4485,7 @@ impl GameState {
                     EffectCond::Kicked => self.was_kicked(ctx.source),
                     EffectCond::Static(i) => {
                         let c = self.pool.condition(*i).clone();
-                        self.condition_now(&c, ctx.controller, ctx.source)
+                        self.condition_for(&c, ctx.controller, ctx.source, ctx.trigger_obj)
                     }
                     EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
                     EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
@@ -5255,8 +5359,11 @@ pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
 enum Spend<'a> {
     /// Casting a spell with these characteristics.
     Spell(&'a crate::state::Characteristics),
-    /// Activating an ability.
-    Ability,
+    /// Activating an ability of a source with these characteristics
+    /// (`None`: not known).
+    Ability(Option<&'a crate::state::Characteristics>),
+    /// Foretelling a card (CR 702.143a).
+    Foretell,
 }
 
 /// {3}: what a face-down spell costs (CR 702.37c).

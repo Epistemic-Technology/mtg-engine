@@ -1,0 +1,7 @@
+card "Gruul Scrapper" {
+  oracle_id 878e8980-a2cc-4335-aafe-f5166ef48f79
+  cost {3}{G}
+  type Creature — Human Berserker
+  pt 3/2
+  triggered when this enters if spent {R}: this gains haste
+}

@@ -1,0 +1,6 @@
+card "Brilliant Spectrum" {
+  oracle_id 88ed66fc-7068-44a7-b00f-3be22fb500cb
+  cost {3}{U}
+  type Sorcery
+  label "Converge" spell: draw count where colors spent cards; then discard 2 cards
+}

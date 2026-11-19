@@ -1,0 +1,6 @@
+card "Dryad's Caress" {
+  oracle_id 7df07d16-e5cf-4c58-980a-632909aa1357
+  cost {4}{G}{G}
+  type Instant
+  spell: you gain count each creature on battlefield life; if spent {W}, untap all creature you control
+}

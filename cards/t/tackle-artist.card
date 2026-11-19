@@ -1,0 +1,8 @@
+card "Tackle Artist" {
+  oracle_id 2e80d632-cf84-4562-8c93-5850cceb5bec
+  cost {3}{R}
+  type Creature — Orc Sorcerer
+  pt 4/3
+  keywords trample
+  label "Opus" triggered whenever you cast an instant or sorcery spell: put 1 +1/+1 counter on this; if that spell spent 5 mana, put 2 +1/+1 counters on this creature instead
+}

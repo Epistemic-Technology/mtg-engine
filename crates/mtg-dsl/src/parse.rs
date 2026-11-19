@@ -957,11 +957,14 @@ impl P {
             return Ok(crate::ast::ManaRestriction {
                 spells: Some(f),
                 abilities: true,
+                ability_source: None,
+                foretell: false,
                 wording: SpendWording::CantCast,
             });
         }
         self.expect_words(&["only", "to"])?;
         if self.eat_word("activate") {
+            let ability_source = self.activate_of()?;
             let spells = if self.eat_words(&["or", "cast"]) {
                 let f = self.filter()?;
                 self.expect_word("spell")?;
@@ -977,9 +980,14 @@ impl P {
             return Ok(crate::ast::ManaRestriction {
                 spells,
                 abilities: true,
+                ability_source,
+                foretell: false,
                 wording,
             });
         }
+        // "foretell a card from your hand or cast an instant or sorcery
+        // spell" (CR 702.143a).
+        let foretell = self.eat_words(&["foretell", "or"]);
         self.expect_word("cast")?;
         let mut f = self.filter()?;
         self.expect_word("spell")?;
@@ -998,11 +1006,24 @@ impl P {
         } else {
             (false, SpendWording::CastFirst)
         };
+        let ability_source = if abilities { self.activate_of()? } else { None };
         Ok(crate::ast::ManaRestriction {
             spells: Some(f),
             abilities,
+            ability_source,
+            foretell,
             wording,
         })
+    }
+
+    /// After `activate`: `of artifact` ("an ability of an artifact
+    /// source"), or nothing for any source.
+    fn activate_of(&mut self) -> R<Option<Filter>> {
+        if self.eat_word("of") {
+            Ok(Some(self.filter()?))
+        } else {
+            Ok(None)
+        }
     }
 
     #[allow(clippy::too_many_lines)]
@@ -1688,6 +1709,60 @@ impl P {
         })
     }
 
+    /// After `spent`: `{B}`, `{R}{R}`, `3 red`, `4 mana`, `treasure`.
+    fn spent_cond(&mut self) -> R<StaticCond> {
+        use mtg_core::card::SpentKind;
+        if self.eat_word("treasure") {
+            return Ok(StaticCond::ManaSpent {
+                kind: SpentKind::Treasure,
+                at_least: 1,
+                that: false,
+            });
+        }
+        if matches!(self.peek(), Some(Tok::Sym(_))) {
+            let cost = self.mana_cost()?;
+            let colors = cost.colors();
+            let mut it = colors.iter();
+            let (Some(c), None) = (it.next(), it.next()) else {
+                return self.fail("`spent` names mana of one color");
+            };
+            let n = u8::try_from(cost.mana_value()).unwrap_or(0);
+            if n == 0
+                || cost
+                    .symbols()
+                    .iter()
+                    .any(|s| *s != mtg_core::mana::ManaSymbol::Colored(c))
+            {
+                return self.fail("`spent` names colored symbols only");
+            }
+            return Ok(StaticCond::ManaSpent {
+                kind: SpentKind::Color(c),
+                at_least: n,
+                that: false,
+            });
+        }
+        let n = u8::try_from(self.number()?).unwrap_or(u8::MAX);
+        if self.eat_word("mana") {
+            return Ok(StaticCond::ManaSpent {
+                kind: SpentKind::Total,
+                at_least: n,
+                that: false,
+            });
+        }
+        let Some(Tok::Word(w)) = self.peek() else {
+            return self.fail("expected a color after `spent N`");
+        };
+        let Some(c) = color(w) else {
+            return self.fail("expected a color after `spent N`");
+        };
+        self.pos += 1;
+        Ok(StaticCond::ManaSpent {
+            kind: SpentKind::Color(c),
+            at_least: n,
+            that: false,
+        })
+    }
+
     #[allow(clippy::too_many_lines)] // one branch per condition
     fn static_cond(&mut self) -> R<StaticCond> {
         if self.eat_word("threshold") {
@@ -1801,6 +1876,16 @@ impl P {
         }
         if self.eat_word("bargained") {
             return Ok(StaticCond::Bargained);
+        }
+        if self.eat_word("spent") {
+            return self.spent_cond();
+        }
+        if self.eat_words(&["that", "spell", "spent"]) {
+            let mut c = self.spent_cond()?;
+            if let StaticCond::ManaSpent { that, .. } = &mut c {
+                *that = true;
+            }
+            return Ok(c);
         }
         if self.eat_word("saddled") {
             return Ok(StaticCond::Saddled);
@@ -2544,15 +2629,18 @@ impl P {
             && self.peek() == Some(&Tok::Comma)
         {
             self.pos += 1;
+            let also = self.eat_word("also");
             let inner = if self.peek() == Some(&Tok::LBrace) {
                 self.effects_body()?
+            } else if also {
+                vec![self.sentence()?]
             } else {
                 match self.instead_body(InsteadCond::Static(cond.clone()))? {
                     Ok(e) => return Ok(Some(e)),
                     Err(s) => vec![s],
                 }
             };
-            return Ok(Some(Effect::IfCondition(cond, inner)));
+            return Ok(Some(Effect::IfCondition(cond, inner, also)));
         }
         self.pos = save;
         Ok(None)
@@ -4244,17 +4332,28 @@ impl P {
         if self.eat_words(&["colors", "among", "permanents"]) {
             return Ok(CountExpr::ColorsAmongPermanents);
         }
+        if self.eat_words(&["colors", "spent"]) {
+            return Ok(CountExpr::SpentColors);
+        }
+        if self.eat_words(&["treasure", "spent"]) {
+            return Ok(CountExpr::SpentTreasure);
+        }
         if self.eat_word("andor") {
             return Ok(CountExpr::AndOr(Box::new(self.count_expr()?)));
         }
         if self.eat_words(&["mana", "value", "of"]) {
-            let that = self.eat_word("that");
+            let the_spell = self.eat_words(&["the", "spell"]);
+            let that = !the_spell && self.eat_word("that");
             self.expect_word("target")?;
             let n = self.number()? as usize;
             if n == 0 || n > self.targets.len() {
                 return self.fail(format!("target {n} has not been declared"));
             }
-            return Ok(CountExpr::TargetManaValue { n: n - 1, that });
+            return Ok(CountExpr::TargetManaValue {
+                n: n - 1,
+                that,
+                the_spell,
+            });
         }
         if self.at_word("toughness") && !self.at_words(&["toughness", "of"]) {
             self.pos += 1;

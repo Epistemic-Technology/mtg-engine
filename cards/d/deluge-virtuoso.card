@@ -1,0 +1,8 @@
+card "Deluge Virtuoso" {
+  oracle_id 416c70ab-f136-43e0-b5d5-9af8d4211c01
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counter on target 1
+  label "Opus" triggered whenever you cast an instant or sorcery spell: this gets +1/+1; if that spell spent 5 mana, this creature gets +2/+2 instead
+}

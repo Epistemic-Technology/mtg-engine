@@ -59,6 +59,11 @@ pub enum Kind {
 pub struct ManaRestriction {
     pub spells: Option<Filter>,
     pub abilities: bool,
+    /// `activate of artifact`: "activate an ability of an artifact
+    /// source".
+    pub ability_source: Option<Filter>,
+    /// `only to foretell or cast ...`: "foretell a card from your hand".
+    pub foretell: bool,
     pub wording: mtg_core::card::SpendWording,
 }
 
@@ -220,13 +225,20 @@ pub enum CountExpr {
     /// `toughness`: the source's, "its toughness".
     SourceToughness,
     /// `mana value of target 1` ("its mana value"), `mana value of that
-    /// target 1` ("that creature's mana value").
+    /// target 1` ("that creature's mana value"), `mana value of the
+    /// spell target 1` ("the spell's mana value").
     TargetManaValue {
         n: usize,
         that: bool,
+        the_spell: bool,
     },
     /// `colors among permanents`: "colors among permanents you control".
     ColorsAmongPermanents,
+    /// `colors spent` (converge): "colors of mana spent to cast this
+    /// spell" (CR 601.2h).
+    SpentColors,
+    /// `treasure spent`: "mana from a Treasure spent to cast it".
+    SpentTreasure,
     /// `opponents graveyards [<filter>]`: "cards in your opponents'
     /// graveyards".
     CardsInOpponentsGraveyards(Option<Filter>),
@@ -967,6 +979,18 @@ pub enum StaticCond {
     /// `before attackers`, `during your turn before attackers`, `during
     /// declare blockers`, `during end of combat` (CR 602.5b).
     During(mtg_core::card::TurnTime),
+    /// `spent {B}`: "{B} was spent to cast this spell" (an instant or
+    /// sorcery) or "... to cast it"; `spent {R}{R}`; `spent 3 red`: "at
+    /// least three red mana was spent ..." (adamant); `spent treasure`:
+    /// "mana from a Treasure was spent ..." (CR 601.2h). `that spell
+    /// spent 5 mana`: the spell that triggered the ability, "five or more
+    /// mana was spent to cast that spell" (as a trigger's condition, "at
+    /// least five mana was spent to cast it").
+    ManaSpent {
+        kind: mtg_core::card::SpentKind,
+        at_least: u8,
+        that: bool,
+    },
 }
 
 /// An activation restriction, in the order written and printed ("Activate
@@ -1735,8 +1759,10 @@ pub enum Effect {
     /// ..." (the target as it resolves).
     IfTarget(usize, Filter, Vec<Sentence>, TargetCheck),
     /// `if you control Treefolk, draw 1 card`: a static condition,
-    /// judged as it resolves.
-    IfCondition(StaticCond, Vec<Sentence>),
+    /// judged as it resolves. With `also` after the comma (`if that spell
+    /// spent 5 mana, also this gains double strike`), "this creature also
+    /// gains double strike".
+    IfCondition(StaticCond, Vec<Sentence>, bool),
     /// `if kicked, deal 4 damage instead`: the sentence before it happens
     /// unless the condition holds, and these effects happen instead
     /// (CR 608.2c). Always a sentence of its own, after the one it

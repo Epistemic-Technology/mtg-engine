@@ -1,0 +1,7 @@
+card "Expressive Firedancer" {
+  oracle_id f1812d69-c016-4bc3-b899-ed47f5e893e5
+  cost {1}{R}
+  type Creature — Human Sorcerer
+  pt 2/2
+  label "Opus" triggered whenever you cast an instant or sorcery spell: this gets +1/+1; if that spell spent 5 mana, also this creature gains double strike
+}

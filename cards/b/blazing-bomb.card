@@ -1,0 +1,8 @@
+card "Blazing Bomb" {
+  oracle_id 088acd15-029b-4091-960a-d5060a364ca9
+  cost {R}
+  type Creature — Elemental
+  pt 1/1
+  triggered whenever you cast a noncreature spell if that spell spent 4 mana: put 1 +1/+1 counter on this
+  label "Blow Up" activated {T}, sacrifice this, sorcery: this bites target creature
+}

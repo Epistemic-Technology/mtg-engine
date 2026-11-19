@@ -699,6 +699,7 @@ fn apply(work: &mut Work<'_>, wi: usize, part: &Modification) {
 
 /// What a power/toughness-defining ability of `source` counts right now.
 /// A "for each" count for a static ability of `source`.
+#[allow(clippy::too_many_lines)] // one arm per count
 fn per_count(
     work: &Work<'_>,
     source: Option<ObjId>,
@@ -807,6 +808,8 @@ fn per_count(
         | CountExpr::CardsDrawnThisTurn
         | CountExpr::OpponentsAttacked
         | CountExpr::AttackedWithThisTurn
+        | CountExpr::SpentColors
+        | CountExpr::SpentTreasure
         | CountExpr::ColorsAmongPermanents => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
