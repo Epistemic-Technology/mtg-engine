@@ -182,6 +182,9 @@ pub struct Cost {
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
     RemoveCounters,
+    /// `from graveyard`: activated from the graveyard (printed nowhere;
+    /// the effect says "this card from your graveyard").
+    FromGraveyard,
     Energy,
     Exile,
     Mana,
@@ -229,6 +232,8 @@ pub struct Filter {
     pub no_abilities: bool,
     /// `who` is `Opponents`, written and printed "you don't control".
     pub dont_control: bool,
+    /// `who` is `Opponents`, written and printed "your opponents control".
+    pub your_opponents: bool,
     /// Written `all ...`; a static ability's subject then prints "All
     /// Sliver creatures" rather than "Sliver creatures".
     pub all: bool,
@@ -578,6 +583,9 @@ pub struct Sentence {
 pub enum Join {
     And,
     Then,
+    /// `, and`: "and" with the subject printed again ("you draw a card and
+    /// you lose 1 life").
+    AndRepeat,
 }
 
 impl Sentence {

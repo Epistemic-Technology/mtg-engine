@@ -2829,6 +2829,10 @@ impl DefFlags {
     /// '{T}: ...'"), so other objects may have abilities their definitions
     /// lack.
     const GRANTS: u16 = 2048;
+    /// A static ability whose condition looks at tapped permanents ("as
+    /// long as you control no untapped lands"): tapping must then
+    /// invalidate the characteristics cache.
+    const TAP_STATIC: u16 = 4096;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -2873,6 +2877,10 @@ impl DefFlags {
 
     pub const fn has_life_cda(self) -> bool {
         self.has(DefFlags::LIFE_CDA)
+    }
+
+    pub const fn has_tap_static(self) -> bool {
+        self.has(DefFlags::TAP_STATIC)
     }
 
     pub const fn has_cost_change(self) -> bool {
@@ -2952,6 +2960,13 @@ impl DefFlags {
             abilities
                 .iter()
                 .any(|a| matches!(a, AbilityDef::AttackUnless { .. })),
+        );
+        flags.set(
+            DefFlags::TAP_STATIC,
+            abilities.iter().any(|a| {
+                matches!(a, AbilityDef::Static(s) if matches!(&s.condition,
+                    Some(StaticCondition::YouControlNone(f)) if f.tapped.is_some()))
+            }),
         );
         flags.set(
             DefFlags::COST_CHANGE,

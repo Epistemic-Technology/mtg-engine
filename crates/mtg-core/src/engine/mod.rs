@@ -233,6 +233,7 @@ impl Engine {
                 state.legendary_count += u32::from(def.is_legendary());
                 state.activated_sources += u32::from(def.has_activated());
                 state.life_cda_sources += u32::from(def.flags().has_life_cda());
+                state.tap_static_sources += u32::from(def.flags().has_tap_static());
                 state.cost_change_sources += u32::from(def.flags().has_cost_change());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
                 if let Some(name) = &perm.attached_to {
@@ -472,6 +473,7 @@ impl GameState {
             legendary_count: 0,
             activated_sources: 0,
             life_cda_sources: 0,
+            tap_static_sources: 0,
             cost_change_sources: 0,
             grant_sources: 0,
             eot_grants: 0,

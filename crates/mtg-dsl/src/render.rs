@@ -917,6 +917,16 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             filter_phrase_one(&rest, card, plural_form)
         );
     }
+    // "creatures with flying or reach".
+    if let Some(k) = crate::format::keyword_alternative(&base, alt) {
+        let one = filter_phrase_one(&base, card, plural_form);
+        let kw = keyword_name(base.keywords[0]);
+        return one.replacen(
+            &format!("with {kw}"),
+            &format!("with {kw} or {}", keyword_name(k)),
+            1,
+        );
+    }
     // A chain of three or more prints as a list: "Bear, Spider, or Wolf".
     let mut sides = Vec::new();
     let mut cur = f.clone();
@@ -1048,6 +1058,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     match f.who {
         Some(Who::You) => s.push_str(" you control"),
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
+        Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::Any) | None => {}
     }
@@ -1138,6 +1149,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Remove {what} from {src}"));
                 }
             }
+            CostItem::FromGraveyard => {}
             CostItem::Exile => {
                 if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
@@ -1780,6 +1792,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.obj_list(what, false)
             };
+            // Activated from the graveyard: "Return this card from your
+            // graveyard to your hand."
+            let from_graveyard = what.as_slice() == [Recipient::Source]
+                && matches!(ctx.current, Some(Ability::Activated { cost, .. }) if cost.from_graveyard);
+            if from_graveyard {
+                return Clause::imperative(
+                    "return this card from your graveyard to your hand".to_string(),
+                );
+            }
             let hand = match (yours, plural) {
                 (true, _) => "your hand",
                 (false, false) => "its owner's hand",
@@ -2252,9 +2273,10 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
                 _ => " and ",
             });
         }
+        let repeat = i > 0 && s.joins.get(i - 1) == Some(&Join::AndRepeat);
         match &c.subject {
             Some((r, text)) => {
-                if prev_subject != Some(*r) {
+                if prev_subject != Some(*r) || repeat {
                     out.push_str(text);
                     out.push(' ');
                 }

@@ -129,6 +129,7 @@ impl Decompiler<'_> {
             enchanted: f.enchanted,
             no_abilities: f.no_abilities,
             dont_control: false,
+            your_opponents: false,
             any_types: types(f.any_types),
             power: f.power,
             toughness: f.toughness,

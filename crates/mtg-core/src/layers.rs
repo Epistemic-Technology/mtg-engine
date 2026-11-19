@@ -337,6 +337,9 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         StaticCondition::YouControlNone(filter) => !work.ids.iter().any(|id| {
             work.on_battlefield(*id)
+                && filter
+                    .tapped
+                    .is_none_or(|t| work.state.objects[*id].tapped == t)
                 && filter.matches(
                     *id,
                     work.controller_of(*id),

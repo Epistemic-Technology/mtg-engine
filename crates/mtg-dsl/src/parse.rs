@@ -172,6 +172,10 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
     (&["creature", "spell"], TargetSpec::CreatureSpell),
     (&["spell"], TargetSpec::Spell),
+    (
+        &["opponent", "or", "planeswalker"],
+        TargetSpec::OpponentOrPlaneswalker,
+    ),
     (&["opponent"], TargetSpec::Opponent),
     (
         &["player", "or", "planeswalker"],
@@ -1487,6 +1491,10 @@ impl P {
             if self.at_word("and") {
                 self.pos += 1;
                 joins.push(Join::And);
+            } else if self.peek() == Some(&Tok::Comma) && self.word_at(1).as_deref() == Some("and")
+            {
+                self.pos += 2;
+                joins.push(Join::AndRepeat);
             } else if self.at_word("then")
                 || (self.peek() == Some(&Tok::Comma) && self.word_at(1).as_deref() == Some("then"))
             {
@@ -2911,7 +2919,7 @@ impl P {
                             .is_some_and(|w| card_type(&w).is_some() || w == "or"));
                 let more = matches!(
                     (next.as_deref(), after.as_deref()),
-                    (Some("you"), Some("don't"))
+                    (Some("you"), Some("don't" | "control"))
                         | (Some("an"), Some("opponent"))
                         | (Some("that"), Some("was"))
                 ) || comma_type
@@ -3089,6 +3097,11 @@ impl P {
                     f.who = Some(Who::You);
                     self.pos += 2;
                 }
+                "your" if self.at_words(&["your", "opponents", "control"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.your_opponents = true;
+                    self.pos += 3;
+                }
                 "you" if self.at_words(&["you", "don't", "control"]) => {
                     f.who = Some(Who::Opponents);
                     f.dont_control = true;
@@ -3209,6 +3222,19 @@ impl P {
                             return self.unexpected("a keyword after `and`");
                         };
                         f.keywords.push(k);
+                    }
+                    // "creatures with flying or reach": the same filter
+                    // with the other keyword, as an alternative.
+                    if self.at_word("or") && f.or.is_none() {
+                        let save = self.pos;
+                        self.pos += 1;
+                        if let Some(k2) = self.keyword() {
+                            let mut alt = f.clone();
+                            alt.keywords = vec![k2];
+                            f.or = Some(Box::new(alt));
+                        } else {
+                            self.pos = save;
+                        }
                     }
                 }
                 _ => {
@@ -3588,6 +3614,11 @@ impl P {
                         self.pos += 1;
                         cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         cost.order.push(CostItem::Sacrifice);
+                    }
+                    "from" if self.at_words(&["from", "graveyard"]) => {
+                        self.pos += 2;
+                        cost.from_graveyard = true;
+                        cost.order.push(CostItem::FromGraveyard);
                     }
                     "exile" if self.at_words(&["exile", "this", "from", "graveyard"]) => {
                         self.pos += 4;

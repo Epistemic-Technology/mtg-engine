@@ -355,6 +355,7 @@ impl GameState {
             self.legendary_count += d(legendary);
             self.activated_sources += d(flags.has_activated());
             self.life_cda_sources += d(flags.has_life_cda());
+            self.tap_static_sources += d(flags.has_tap_static());
             self.cost_change_sources += d(flags.has_cost_change());
             self.grant_sources += d(flags.grants_abilities());
         } else {
@@ -364,6 +365,7 @@ impl GameState {
             self.legendary_count -= d(legendary);
             self.activated_sources -= d(flags.has_activated());
             self.life_cda_sources -= d(flags.has_life_cda());
+            self.tap_static_sources -= d(flags.has_tap_static());
             self.cost_change_sources -= d(flags.has_cost_change());
             self.grant_sources -= d(flags.grants_abilities());
             // Whatever it controlled goes back (CR 611.2c does not apply to
@@ -508,6 +510,9 @@ impl GameState {
         {
             o.tapped = true;
             self.bump();
+            if self.tap_static_sources > 0 {
+                self.cbump();
+            }
             self.emit(Event::Tapped { obj: id });
         }
     }
@@ -527,6 +532,9 @@ impl GameState {
         {
             o.tapped = false;
             self.bump();
+            if self.tap_static_sources > 0 {
+                self.cbump();
+            }
             self.emit(Event::Untapped { obj: id });
         }
     }

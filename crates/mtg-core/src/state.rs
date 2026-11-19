@@ -821,6 +821,9 @@ pub struct GameState {
     /// Battlefield objects whose definition has a life-dependent CDA, so
     /// that life changes bump `cversion` only when one is in play.
     pub life_cda_sources: u32,
+    /// Battlefield permanents with a static ability whose condition looks
+    /// at tapped permanents (see `DefFlags::TAP_STATIC`).
+    pub tap_static_sources: u32,
     /// Battlefield permanents with a static ability changing spell costs.
     pub cost_change_sources: u32,
     /// Face-down permanents on the battlefield, so listing options skips

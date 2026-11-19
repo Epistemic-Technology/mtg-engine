@@ -295,6 +295,7 @@ impl Fmt {
             if i > 0 {
                 out.push_str(match s.joins.get(i - 1) {
                     Some(Join::Then) => " then ",
+                    Some(Join::AndRepeat) => ", and ",
                     _ => " and ",
                 });
             }
@@ -885,6 +886,9 @@ pub fn filter(f: &Filter) -> String {
         if let Some(rest) = attacking_or_blocking(&base, alt) {
             return format!("attacking or blocking {}", filter(&rest));
         }
+        if let Some(k) = keyword_alternative(&base, alt) {
+            return format!("{} or {}", filter_one(&base), keyword_name(k));
+        }
         let (b, a) = factor_qualifiers(&base, alt);
         return format!("{} or {}", filter_one(&b), filter(&a));
     }
@@ -981,6 +985,9 @@ fn filter_one(f: &Filter) -> String {
     match f.who {
         Some(Who::You) => words.push("you control".to_string()),
         Some(Who::Opponents) if f.dont_control => words.push("you don't control".to_string()),
+        Some(Who::Opponents) if f.your_opponents => {
+            words.push("your opponents control".to_string());
+        }
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
         Some(Who::Any) | None => {}
     }
@@ -1067,6 +1074,17 @@ pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
         a.relation = Relation::Any;
     }
     (b, a)
+}
+
+/// "creatures with flying or reach": the two sides differ only in one
+/// keyword each; the base and the alternative keyword.
+pub fn keyword_alternative(base: &Filter, alt: &Filter) -> Option<Keyword> {
+    let (&[_], &[k]) = (base.keywords.as_slice(), alt.keywords.as_slice()) else {
+        return None;
+    };
+    let mut a = alt.clone();
+    a.keywords.clone_from(&base.keywords);
+    (a == *base && a.or.is_none()).then_some(k)
 }
 
 /// "attacking or blocking creature": the two sides differ only there; the
@@ -1268,6 +1286,7 @@ fn cost_text(c: &Cost) -> String {
                     parts.push("exile this from graveyard".to_string());
                 }
             }
+            CostItem::FromGraveyard => parts.push("from graveyard".to_string()),
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());
