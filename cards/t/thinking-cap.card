@@ -1,0 +1,8 @@
+card "Thinking Cap" {
+  oracle_id a54fb3de-0581-461e-be33-dc4f4d16a33e
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+2
+  equip Detective {1}
+  equip {3}
+}

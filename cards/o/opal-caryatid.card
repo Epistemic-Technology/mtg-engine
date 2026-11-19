@@ -1,0 +1,6 @@
+card "Opal Caryatid" {
+  oracle_id eabcb1bd-5317-4e01-8f18-94f01c12c852
+  cost {W}
+  type Enchantment
+  triggered when an opponent casts creature spell if this is enchantment: this becomes 2/2 Soldier creature indefinitely
+}

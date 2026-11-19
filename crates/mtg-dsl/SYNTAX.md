@@ -87,7 +87,7 @@ double-faced permanent to its other face (CR 701.27).
 | `activated <cost>: <effects>` | An activated ability (CR 602). |
 | `boast {1}{W}: <effects>`, `exhaust {3}: <effects>`, `power-up {5}{R}: <effects>` | An activated ability after a keyword, printed "Boast — {1}{W}: ..." (the keyword's rules are reminder text). Boast (CR 702.142): only if this creature was declared as an attacker this turn, and only once each turn. Exhaust (CR 702.177) and power-up (CR 702.193): only once for the object (a new object after a zone change may again, CR 400.7); a power-up ability of a permanent that entered this turn costs its mana cost less (colored mana reduces that color, any excess generic; CR 118.7). |
 | `loyalty +1: <effects>` | A loyalty ability (CR 606); `-6` likewise. |
-| `equip {1}` | Equip (CR 702.6). |
+| `equip {1}`, `equip Knight {1}`, `equip {0}, once` | Equip (CR 702.6): "Equip {1}"; with a creature type, only onto a creature of that type you control ("Equip Knight {1}", CR 702.6c); `once` prints "Equip {0}. Activate only once each turn." |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). |
@@ -190,6 +190,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
+| `whenever Aura becomes attached to this` | "Whenever an Aura becomes attached to this creature" (CR 701.3a; an Aura entering attached too); the object attached is the triggering object |
 | `whenever this is dealt damage` | (enrage) |
 | `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player" |
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
@@ -282,7 +283,16 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `remove 1 charge counter from this`.
 
 `this becomes 4/4 green Bear artifact creature` (colors before
-subtypes), `target creature becomes blue`, `this becomes colorless`,
+subtypes; the card types replace the permanent's others except land, CR
+205.1a-b, and a creature type replaces its creature types: "becomes a
+Dragon ... (It loses all other creature types.)"), `this becomes
+Shapeshifter artifact creature base 5/5` ("... with base power and
+toughness 5/5"), `this becomes artifact creature` (no new P/T), `this
+becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
+`with`; `indefinitely`: no duration, Opal Caryatid), `until end of turn,
+target creature becomes Dragon base 4/4 and target 1 gains flying`;
+a trigger condition `if this is enchantment` prints "if this permanent is
+an enchantment" and the source is "it" after it, `target creature becomes blue`, `this becomes colorless`,
 `target land becomes Island` (all until end of turn). Chosen as the
 effect resolves (CR 608.2d), once for all its recipients: `target creature
 becomes color of choice`, `target creature gains protection from color of
@@ -550,7 +560,10 @@ land type in addition to its other types". A type followed by a base P/T
 is one phrase: `set subtype Treefolk, base 0/4, loses all abilities`
 ("is a Treefolk with base power and toughness 0/4 and loses all
 abilities"), `add type creature, base 4/4` ("is a creature with base power
-and toughness 4/4 in addition to its other types"). `as long as attached
+and toughness 4/4 in addition to its other types"); `this: base 5/5, add
+subtype Golem, add type artifact creature as long as metalcraft` is one
+noun phrase ("This artifact is a 5/5 Golem artifact creature as long as
+..."). `as long as attached
 is creature, enchanted: +2/+1` prints "As long as enchanted permanent is a
 creature, it gets +2/+1." (the noun is what the Aura enchants); `attached
 is Human or Angel` is "a Human or an Angel"; in a trigger condition
@@ -694,7 +707,14 @@ loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random`,
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
-`gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
+`gain control of <what>`, `attach to <what>` (this: "attach this Equipment to ..."),
+`attach <what> to <what>` ("Attach target Equipment you control to target
+creature you control": an Aura only where its enchant ability allows, an
+Equipment only onto a creature and not while it is a creature, nothing if
+already attached there, CR 701.3, 301.5c), `unattach all Equipment attached to
+target creature` ("Unattach all Equipment from target creature", CR
+701.3d), `amass Goblins 1 then attach to amassed Army` ("then attach this
+Equipment to the amassed Army"), `create 2 "Soldier"`,
 `create 1 tapped "Powerstone"` ("Create a tapped Powerstone token"),
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
@@ -999,6 +1019,8 @@ do` then sees:
 - `sacrifice 1 creature chosen` ("sacrifice a creature")
 - `discard 1 creature card chosen` ("discard a creature card")
 - `exile 2 creature card from your graveyard chosen`
+- `attach 1 Equipment you control to target 1 chosen` ("attach an Equipment
+  you control to it": permanents you control, attached to that target)
 - `return 1 creature or land card from your graveyard to hand chosen`
   ("return a creature or land card from your graveyard to your hand"),
   `return up to 2 creature card from your graveyard to hand chosen`

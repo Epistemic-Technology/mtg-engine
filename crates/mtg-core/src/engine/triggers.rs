@@ -549,6 +549,13 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            (TriggerSpec::BecomesAttachedTo(f), Event::Attached { obj, to }) => {
+                if *to != w.source {
+                    return None;
+                }
+                let p = filter_on_battlefield(f, *obj)?;
+                Some((Some(*obj), Some(p)))
+            }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })

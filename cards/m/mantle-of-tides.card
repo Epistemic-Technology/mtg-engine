@@ -1,0 +1,8 @@
+card "Mantle of Tides" {
+  oracle_id 56a80bd3-b81b-428d-96e1-f03ab6199cf3
+  cost {U}
+  type Artifact — Equipment
+  static equipped: +1/+2
+  triggered whenever you draw your second card each turn: attach to target creature you control
+  equip {3}
+}

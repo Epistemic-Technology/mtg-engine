@@ -1,0 +1,8 @@
+card "Firdoch Core" {
+  oracle_id 126c75c0-414b-4e55-8747-2b5566ce716f
+  cost {3}
+  type Kindred Artifact — Shapeshifter
+  keywords changeling
+  mana any
+  activated {4}: this becomes 4/4 artifact creature until end of turn
+}

@@ -1,0 +1,8 @@
+card "Pirate Hat" {
+  oracle_id b9080653-87cb-4443-a4a3-36637d5ad165
+  cost {1}{U}
+  type Artifact — Equipment
+  static equipped: +1/+1, has ability { triggered whenever this attacks: draw 1 card then discard 1 card }
+  equip Pirate {1}
+  equip {2}
+}

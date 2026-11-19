@@ -1,0 +1,8 @@
+card "Capenna Express" {
+  oracle_id 568432d1-c7fb-4da6-922a-22d4fa26284e
+  cost {3}{G}
+  type Artifact — Vehicle
+  pt 6/6
+  activated sacrifice Treasure: this becomes artifact creature until end of turn
+  crew 3
+}

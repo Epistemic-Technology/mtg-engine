@@ -1,0 +1,9 @@
+card "Aura Finesse" {
+  oracle_id 445c46d1-b571-4fe9-92cc-2873242d748f
+  cost {U}
+  type Instant
+  spell {
+    attach target Aura you control to target creature
+    draw 1 card
+  }
+}

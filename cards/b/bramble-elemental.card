@@ -1,0 +1,7 @@
+card "Bramble Elemental" {
+  oracle_id ac5c0078-e2f1-4ac1-8748-575d69e09cf8
+  cost {3}{G}{G}
+  type Creature — Elemental
+  pt 4/4
+  triggered whenever Aura becomes attached to this: create 2 "1/1 green Saproling creature"
+}

@@ -1,0 +1,8 @@
+card "Bestial Fury" {
+  oracle_id dfc08963-132f-4ebf-9384-15d17d1098f7
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: delayed this: draw 1 card at beginning of the next turn's upkeep
+  triggered whenever enchanted creature becomes blocked: it gets +4/+0 and gains trample
+}

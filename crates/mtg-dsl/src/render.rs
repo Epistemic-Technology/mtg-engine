@@ -141,6 +141,16 @@ fn pluralize(word: &str) -> String {
     }
 }
 
+/// The creature type an equip ability is limited to ("Equip Knight {1}",
+/// CR 702.6c), if any.
+pub(crate) fn equip_subtype(targets: &[Target]) -> Option<&str> {
+    match targets {
+        [Target::Filter(f)] if f.subtypes.len() == 1 => Some(f.subtypes[0].as_str()),
+        [Target::CreatureOfSubtype(s)] => Some(s.as_str()),
+        _ => None,
+    }
+}
+
 /// The type a typecycling ability searches for, as its keyword prints
 /// it ("Plains", "Basic land", "Land"), if `effects` are one search.
 fn typecycling_word(effects: &[Sentence]) -> Option<String> {
@@ -725,6 +735,8 @@ struct Ctx<'a> {
     /// "it" as an object ("tap enchanted creature and remove all counters
     /// from it"; "if enchanted creature is untapped, tap it").
     attached_mentioned: bool,
+    /// An `amass` came before: `CreatedObject` is "the amassed Army".
+    amassed: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -744,6 +756,7 @@ impl<'a> Ctx<'a> {
             last_token: None,
             those_tokens: None,
             attached_mentioned: false,
+            amassed: false,
         }
     }
 
@@ -2917,6 +2930,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(*what, s, "explores".to_string())
         }
         Effect::Amass { kind, count } => {
+            ctx.amassed = true;
             Clause::imperative(format!("amass {kind} {}", digits(*count)))
         }
         Effect::ClearEcho => Clause::imperative(String::new()),
@@ -3200,7 +3214,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*of);
             Clause::imperative(format!("gain control of {o}")).until_eot()
         }
-        Effect::Attach { to } => {
+        Effect::Attach { what, to } if *what != Recipient::Source => {
+            let w = ctx.obj(*what);
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("attach {w} to {o}"))
+        }
+        // "Unattach all Equipment from target creature" (the group's filter
+        // names what they're attached to).
+        Effect::Unattach { what } => {
+            let w = ctx.obj(*what).replacen(" attached to ", " from ", 1);
+            let w = w
+                .strip_prefix("each ")
+                .map_or_else(|| w.clone(), |r| format!("all {r}"));
+            Clause::imperative(format!("unattach {w}"))
+        }
+        Effect::Attach {
+            to: Recipient::CreatedObject,
+            ..
+        } if ctx.amassed => {
+            Clause::imperative(format!("attach {} to the amassed Army", this_ref(ctx.card)))
+        }
+        Effect::Attach { to, .. } => {
             let o = ctx.obj(*to);
             // After creating a token, "it" is the token: Oracle names the
             // source again ("attach this Equipment to it").
@@ -3497,6 +3531,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
+                }
+                ChooseAct::AttachToTarget(i) => {
+                    let host = ctx.obj(Recipient::Target(usize::from(*i)));
+                    format!("attach {} to {host}", permanents())
                 }
                 ChooseAct::MilledToHand => format!(
                     "put {} from among {} into your hand",
@@ -3810,25 +3848,42 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             types,
             subtypes,
-            power,
-            toughness,
+            pt,
+            base,
             colors,
+            keywords,
+            indefinite,
         } => {
             let s = ctx.subj(*to);
-            let mut words = vec![format!("{power}/{toughness}")];
+            let mut words = Vec::new();
+            if let (Some((p, q)), false) = (pt, base) {
+                words.push(format!("{p}/{q}"));
+            }
             words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
             words.extend(subtypes.iter().cloned());
             words.extend(types.iter().map(|t| type_noun(*t).to_string()));
             let mut text = format!(
-                "{} {} {} {EOT}",
+                "{} {} {}",
                 ctx.verb(*to, "becomes", "become"),
                 article(&words[0]),
                 words.join(" ")
             );
-            if ctx.card.types.contains(&CardType::Land) && !types.contains(&CardType::Land) {
-                text.push_str(". It's still a land");
+            // "a Shapeshifter artifact creature with base power and
+            // toughness 5/5", "a 2/2 Gargoyle creature with flying".
+            if let (Some((p, q)), true) = (pt, base) {
+                let _ = write!(text, " with base power and toughness {p}/{q}");
             }
-            Clause::with_subject(*to, s, text)
+            if !keywords.is_empty() {
+                let _ = write!(text, " with {}", keywords_list(keywords));
+            }
+            let mut clause = Clause::with_subject(*to, s, text);
+            if !*indefinite {
+                clause = clause.until_eot();
+            }
+            if ctx.card.types.contains(&CardType::Land) && !types.contains(&CardType::Land) {
+                clause.tail.push_str(". It's still a land");
+            }
+            clause
         }
         Effect::BecomeColor { to, colors } => {
             let s = ctx.subj(*to);
@@ -4844,6 +4899,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this(ctx)
         ),
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_subject(o, ctx)),
+        Trigger::BecomesAttachedTo(f) => format!(
+            "whenever {} becomes attached to {}",
+            trigger_filter_a(f, ctx.card),
+            this_ref(ctx.card)
+        ),
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
@@ -5683,6 +5743,27 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             (capitalize(&p), true)
         }
     };
+    // "This artifact is a 5/5 Golem artifact creature" (Rusted Relic):
+    // base P/T, subtypes, and types as one noun phrase.
+    if let [
+        Mod::SetPt {
+            power: PtValue::Fixed(p),
+            toughness: PtValue::Fixed(t),
+        },
+        subs @ ..,
+        Mod::AddTypes(types),
+    ] = mods
+        && !plural_form
+        && subs.iter().all(|m| matches!(m, Mod::AddSubtype(_)))
+    {
+        let mut words = vec![format!("{p}/{t}")];
+        words.extend(subs.iter().filter_map(|m| match m {
+            Mod::AddSubtype(s) => Some(s.clone()),
+            _ => None,
+        }));
+        words.extend(types.iter().map(|t| type_noun(*t).to_string()));
+        return format!("{subject} is a {}.", words.join(" "));
+    }
     // "All creatures able to block enchanted creature do so."
     if let [Mod::AddKeywords(ks)] = mods
         && ks.as_slice() == [Keyword::Lure]
@@ -6452,7 +6533,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             cycling,
         } => {
             if *equip {
-                return format!("Equip {}", cost.mana);
+                let sub = equip_subtype(targets)
+                    .map(|s| format!("{s} "))
+                    .unwrap_or_default();
+                let once = if cost.per_turn == 1 {
+                    ". Activate only once each turn."
+                } else {
+                    ""
+                };
+                return format!("Equip {sub}{}{once}", cost.mana);
             }
             if *cycling {
                 if let Some(word) = typecycling_word(effects) {
@@ -6519,6 +6608,20 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         ", if at least {} mana was spent to cast it",
                         count_words(Num::N(u32::from(*at_least)), "one")
                     );
+                }
+                // "When an opponent casts a creature spell, if this
+                // permanent is an enchantment, it becomes ...": a card type
+                // the source may lose is asked of the permanent.
+                Some(crate::ast::TrigCond::Static(c @ StaticCond::Is(f)))
+                    if !f.types.is_empty() =>
+                {
+                    out.push_str(", if ");
+                    out.push_str(&static_cond_text(c, card).replacen(
+                        "it's",
+                        "this permanent is",
+                        1,
+                    ));
+                    ctx.source_mentioned = true;
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");

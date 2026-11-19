@@ -1,0 +1,6 @@
+token "2/2 colorless Robot artifact creature" {
+  name "Robot"
+  type Artifact Creature — Robot
+  pt 2/2
+  color
+}

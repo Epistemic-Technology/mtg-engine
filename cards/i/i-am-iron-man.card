@@ -1,0 +1,9 @@
+card "I Am Iron Man" {
+  oracle_id deb16a9a-2fa9-4ad3-bb20-7c16066e3d14
+  cost {2}{U}
+  type Instant
+  spell {
+    until end of turn, target artifact or creature becomes artifact creature base 4/4 and target 1 gains flying
+    draw 1 card
+  }
+}

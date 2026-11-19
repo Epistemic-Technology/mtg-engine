@@ -1,0 +1,9 @@
+card "Majestic Metamorphosis" {
+  oracle_id 5779d9b2-4de1-4aa4-a56d-0da05146743a
+  cost {2}{U}
+  type Instant
+  spell {
+    until end of turn, target artifact or creature becomes 4/4 Angel artifact creature and target 1 gains flying
+    draw 1 card
+  }
+}

@@ -1,0 +1,6 @@
+card "Rusted Relic" {
+  oracle_id 57b22bc3-23e8-4632-b10a-495fac5c77c7
+  cost {4}
+  type Artifact
+  label "Metalcraft" static this: base 5/5, add subtype Golem, add type artifact creature as long as metalcraft
+}

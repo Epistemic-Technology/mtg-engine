@@ -1,0 +1,8 @@
+card "Dire Mimic" {
+  oracle_id b657b3df-9287-44cf-a1cd-a80ead71a553
+  cost {2}
+  type Artifact — Treasure
+  keywords flash
+  mana any, sacrifice this
+  activated {3}: this becomes Shapeshifter artifact creature base 5/5 until end of turn
+}

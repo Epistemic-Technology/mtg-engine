@@ -1,0 +1,6 @@
+card "Resolute Strike" {
+  oracle_id 563e9574-3f60-4558-88cb-aaf97caa7515
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is Warrior, you may attach 1 Equipment you control to target 1 chosen
+}

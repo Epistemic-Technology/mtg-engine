@@ -1,0 +1,8 @@
+card "Ancestral Katana" {
+  oracle_id 13a9b9fd-20fa-4734-9d95-3ab41ab9c7a0
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered whenever Samurai or Warrior you control attacks alone: you may pay {1}; when you do, attach this to it
+  static equipped: +2/+1
+  equip {3}
+}

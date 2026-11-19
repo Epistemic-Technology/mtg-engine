@@ -897,6 +897,14 @@ fn cda_count(work: &Work<'_>, source: ObjId, count: &CdaCount) -> i32 {
 fn apply_to(c: &mut Characteristics, part: &Modification, state: &GameState, id: ObjId) {
     match part {
         Modification::AddTypes(t) => c.types = c.types.union(*t),
+        Modification::BecomeTypes(t) => {
+            use crate::card::{CardType, TypeSet};
+            let land = c.types.contains(CardType::Land);
+            c.types = *t;
+            if land {
+                c.types = c.types.union(TypeSet::of([CardType::Land]));
+            }
+        }
         Modification::AddLandType(color) => {
             let s = Subtype::basic(*color);
             if !c.subtypes.contains(&s) {

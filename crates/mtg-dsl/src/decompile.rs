@@ -549,7 +549,11 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::GainControl { of } => Effect::GainControl { of: r(*of) },
-            CoreEffect::Attach { to } => Effect::Attach { to: r(*to) },
+            CoreEffect::Attach { what, to } => Effect::Attach {
+                what: r(*what),
+                to: r(*to),
+            },
+            CoreEffect::Unattach { what } => Effect::Unattach { what: r(*what) },
             CoreEffect::CreateToken {
                 token,
                 count,
@@ -684,9 +688,10 @@ impl Decompiler<'_> {
                 to,
                 types: t,
                 subtypes,
-                power,
-                toughness,
+                pt,
                 colors: c,
+                keywords: kws,
+                indefinite,
             } => Effect::Animate {
                 to: r(*to),
                 types: types(*t),
@@ -694,9 +699,11 @@ impl Decompiler<'_> {
                     .iter()
                     .map(|s| self.pool.subtype_name(*s).to_string())
                     .collect(),
-                power: *power,
-                toughness: *toughness,
+                pt: *pt,
+                base: false,
                 colors: c.map(colors).unwrap_or_default(),
+                keywords: keywords(*kws),
+                indefinite: *indefinite,
             },
             CoreEffect::BecomeColor { to, colors: c } => Effect::BecomeColor {
                 to: r(*to),
@@ -1019,6 +1026,7 @@ impl Decompiler<'_> {
                 n: *n,
             },
             TriggerSpec::BecomesTapped(o) => Trigger::BecomesTapped(self.trigger_obj(o)),
+            TriggerSpec::BecomesAttachedTo(f) => Trigger::BecomesAttachedTo(self.filter(f)),
             TriggerSpec::BecomesUntapped(o) => Trigger::BecomesUntapped(self.trigger_obj(o)),
             TriggerSpec::DealtDamage(o) => Trigger::DealtDamage(self.trigger_obj(o)),
             TriggerSpec::DealtCombatDamage(o) => Trigger::DealtCombatDamage(self.trigger_obj(o)),
@@ -1137,7 +1145,9 @@ impl Decompiler<'_> {
             Modification::AddAbility(a) => {
                 Mod::AddAbility(Box::new(self.ability(self.pool.ability(*a))))
             }
-            Modification::AddTypes(t) => Mod::AddTypes(types(*t)),
+            // `BecomeTypes`: only `Effect::Animate` makes it, never a static
+            // ability.
+            Modification::BecomeTypes(t) | Modification::AddTypes(t) => Mod::AddTypes(types(*t)),
             Modification::AddLandType(c) => Mod::AddLandType(*c),
             Modification::SetLandType(c) => Mod::SetLandType(*c),
             Modification::ChosenLandType => Mod::ChosenLandType,
@@ -1268,10 +1278,23 @@ impl Decompiler<'_> {
                 }
             }
             AbilityDef::Activated(act) => {
+                // "Equip Knight {1}": a filter of creatures of one type you
+                // control.
+                let equip_target = match act.targets.as_slice() {
+                    [TargetSpec::CreatureYouControl] => true,
+                    [TargetSpec::Filtered(f)] => {
+                        let f = self.pool.filter(*f);
+                        f.who == Some(mtg_core::card::Who::You)
+                            && f.types == TypeSet::of([mtg_core::card::CardType::Creature])
+                            && f.subtypes.len() == 1
+                    }
+                    _ => false,
+                };
                 let equip = act.sorcery_speed
-                    && act.targets == [TargetSpec::CreatureYouControl]
+                    && equip_target
                     && act.effects
                         == [CoreEffect::Attach {
+                            what: CoreRecipient::Source,
                             to: CoreRecipient::Target(0),
                         }]
                     && !act.cost.tap

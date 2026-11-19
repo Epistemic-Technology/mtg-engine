@@ -1,0 +1,9 @@
+card "Mind Transfer Protocol" {
+  oracle_id 0d80d0f7-a436-431c-a54e-e7dd7dbba8de
+  cost {2}{U}
+  type Instant
+  spell {
+    until end of turn, target artifact or creature becomes artifact creature base 4/5
+    draw 1 card
+  }
+}
