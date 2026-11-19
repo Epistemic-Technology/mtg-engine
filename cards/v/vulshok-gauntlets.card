@@ -1,0 +1,7 @@
+card "Vulshok Gauntlets" {
+  oracle_id e8b1672c-e5b1-41e7-9f34-c822f1587369
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +4/+2, has doesn't untap
+  equip {3}
+}

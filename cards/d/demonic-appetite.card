@@ -1,0 +1,8 @@
+card "Demonic Appetite" {
+  oracle_id 52d34007-38c0-4858-8ec8-c622da916277
+  cost {B}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: +3/+3
+  triggered at beginning of your upkeep: you sacrifices 1 creature
+}

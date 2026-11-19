@@ -1,0 +1,8 @@
+card "Leaden Fists" {
+  oracle_id d4bcbce9-9739-4828-9980-e21490b44346
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +3/+3, has doesn't untap
+}

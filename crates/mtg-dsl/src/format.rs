@@ -668,6 +668,11 @@ impl Fmt {
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
+            Effect::SacrificeBy { who, what } => format!(
+                "{} sacrifices {}",
+                self.recipient(*who, t),
+                self.recipient(*what, t)
+            ),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
             Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
@@ -1871,6 +1876,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::BecomesTarget(TriggerObj::This)
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
+            | Trigger::AttachedStep(_)
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
@@ -1955,7 +1961,20 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                     }
                 }
             };
-            format!("at beginning of {whose} {} step", step_name(*step))
+            // `your second main`: a phase, not a step.
+            let tail = if matches!(step, Step::PrecombatMain | Step::PostcombatMain) {
+                ""
+            } else {
+                " step"
+            };
+            format!("at beginning of {whose} {}{tail}", step_name(*step))
+        }
+        Trigger::AttachedStep(step) => {
+            let tail = if *step == Step::End { " step" } else { "" };
+            format!(
+                "at beginning of enchanted controller's {}{tail}",
+                step_name(*step)
+            )
         }
         Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
         Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
@@ -2654,6 +2673,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(mtg_core::card::Condition::Static(_)) => unreachable!("an AST condition"),
                 Some(mtg_core::card::Condition::SourceUntapped) => {
                     head.push_str(" if this is untapped");
+                }
+                Some(mtg_core::card::Condition::SourceTapped) => {
+                    head.push_str(" if this is tapped");
                 }
                 Some(mtg_core::card::Condition::NoCreatures) => {
                     head.push_str(" if no creatures are on the battlefield");

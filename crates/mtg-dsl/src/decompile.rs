@@ -927,6 +927,7 @@ impl Decompiler<'_> {
                 step: *step,
                 whose: *whose,
             },
+            TriggerSpec::AttachedControllersStep(step) => Trigger::AttachedStep(*step),
             TriggerSpec::Attacks(o) => Trigger::Attacks(self.trigger_obj(o)),
             TriggerSpec::AttacksAlone(o) => Trigger::AttacksAlone(self.trigger_obj(o)),
             TriggerSpec::AttacksWith { this, min } => Trigger::AttacksWith {

@@ -1,0 +1,8 @@
+card "Frozen in Ice" {
+  oracle_id 82fa14d8-5019-4e1b-a86c-923d9292b87a
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: loses all abilities, has can't become untapped
+}

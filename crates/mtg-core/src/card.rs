@@ -253,6 +253,10 @@ pub enum Keyword {
     /// "Doesn't untap during its controller's untap step" (CR 502.3): a
     /// restriction kept with the keywords.
     DoesntUntap,
+    /// "Can't become untapped": no effect or rule untaps it (the untap
+    /// step included), so a stun counter on it stays (CR 122.1d needs it
+    /// to be about to become untapped).
+    CantBecomeUntapped,
     /// CR 702.51: creatures tapped while casting pay for {1} or one mana of
     /// their color.
     Convoke,
@@ -416,7 +420,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 62] = [
+    pub const ALL: [Keyword; 63] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -479,6 +483,7 @@ impl Keyword {
         Keyword::AttackDespiteDefender,
         Keyword::CantActivate,
         Keyword::CantActivateNonMana,
+        Keyword::CantBecomeUntapped,
     ];
 
     /// The keyword as Oracle prints it.
@@ -531,6 +536,7 @@ impl Keyword {
             Keyword::CantBlockAlone => "can't block alone",
             Keyword::Flanking => "flanking",
             Keyword::DoesntUntap => "doesn't untap during its controller's untap step",
+            Keyword::CantBecomeUntapped => "can't become untapped",
             Keyword::Convoke => "convoke",
             Keyword::Improvise => "improvise",
             Keyword::Evoke => "evoke",
@@ -3181,6 +3187,12 @@ pub enum TriggerSpec {
     Dies(TriggerObj),
     /// "At the beginning of [whose] <step>".
     BeginningOfStep { step: crate::turn::Step, whose: Who },
+    /// "At the beginning of the upkeep of enchanted creature's controller"
+    /// (Curses and their kin): the step of the turn of whoever controls
+    /// what the source is attached to, judged as the step begins. That
+    /// permanent is the triggering object ("that creature"), its
+    /// controller the triggering player ("that player").
+    AttachedControllersStep(crate::turn::Step),
     /// "Whenever ~ attacks" / "Whenever a creature you control attacks".
     Attacks(TriggerObj),
     /// "Whenever ~ blocks".
@@ -3354,7 +3366,9 @@ impl TriggerSpec {
             | TriggerSpec::Leaves(_)
             | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
-            TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
+            TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
+                WATCH_STEP_BEGIN
+            }
             TriggerSpec::Attacks(_)
             | TriggerSpec::AttacksAlone(_)
             | TriggerSpec::AttacksWith { .. } => WATCH_ATTACK,
@@ -3390,6 +3404,8 @@ impl TriggerSpec {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Condition {
     SourceUntapped,
+    /// "if this creature is tapped" (survival).
+    SourceTapped,
     /// "if no creatures are on the battlefield" (Pestilence).
     NoCreatures,
     /// "if it was kicked" (CR 702.33c): the source was cast with its kicker

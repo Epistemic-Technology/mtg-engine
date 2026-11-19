@@ -1,0 +1,7 @@
+card "Stensia Innkeeper" {
+  oracle_id 8a7f446b-557a-41cc-b9ef-369e220a0eeb
+  cost {3}{R}
+  type Creature — Vampire
+  pt 3/3
+  triggered when this enters: tap target land an opponent controls; that target 1 doesn't untap next untap step
+}

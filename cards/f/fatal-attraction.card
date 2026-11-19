@@ -1,0 +1,8 @@
+card "Fatal Attraction" {
+  oracle_id e5d896f0-78ed-4374-bca0-9b1a70cab86c
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: this deals 2 damage to enchanted creature
+  triggered at beginning of your upkeep: this deals 4 damage to enchanted creature
+}

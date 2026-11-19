@@ -1,0 +1,8 @@
+card "Matsu-Tribe Sniper" {
+  oracle_id c20728ac-c01c-470f-a43b-de6104836645
+  cost {1}{G}
+  type Creature — Snake Warrior Archer
+  pt 1/1
+  activated {T}: this deals 1 damage to target creature with flying
+  triggered whenever this deals damage to creature: tap that creature, and it doesn't untap next untap step
+}

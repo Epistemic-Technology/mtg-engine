@@ -1,0 +1,7 @@
+card "Narcolepsy" {
+  oracle_id 3da1412e-a72c-4da1-8848-37145ca6614a
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of every upkeep if attached is untapped: tap enchanted creature
+}

@@ -1047,7 +1047,9 @@ impl Compiler<'_> {
                 }
             }
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
-            Effect::Sacrifice { what } => out.push(CoreEffect::Sacrifice { what: r(*what) }),
+            Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
+                out.push(CoreEffect::Sacrifice { what: r(*what) });
+            }
             Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::Tap { to } => {
                 for t in to {
@@ -1493,6 +1495,7 @@ impl Compiler<'_> {
                 step: *step,
                 whose: *whose,
             },
+            Trigger::AttachedStep(step) => TriggerSpec::AttachedControllersStep(*step),
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
             Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {

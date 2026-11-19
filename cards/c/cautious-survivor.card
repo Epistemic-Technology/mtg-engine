@@ -1,0 +1,7 @@
+card "Cautious Survivor" {
+  oracle_id 28eb696f-a42c-4444-8139-dfd62029e020
+  cost {3}{G}
+  type Creature — Elf Survivor
+  pt 4/4
+  label "Survival" triggered at beginning of your second main if this is tapped: you gain 2 life
+}

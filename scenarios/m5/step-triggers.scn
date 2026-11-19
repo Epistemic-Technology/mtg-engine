@@ -1,0 +1,229 @@
+# Step triggers of the enchanted permanent's controller, and untap
+# restrictions: "doesn't untap during its controller's next untap step"
+# for groups and targets, and "can't become untapped".
+
+# "At the beginning of the upkeep of enchanted creature's controller":
+# only that player's upkeep, and that player loses the life.
+scenario "soul bleed triggers on its host's controller's upkeep" {
+  battlefield A: "Soul Bleed" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert life B 19
+  assert life A 20
+  run_to turn 3 precombat_main
+  assert life A 20
+  assert life B 19
+  run_to turn 4 precombat_main
+  assert life B 18
+}
+
+scenario "soul bleed on your own creature drains you" {
+  battlefield A: "Soul Bleed" on "Grizzly Bears", "Grizzly Bears"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert life A 19
+  run_to turn 2 precombat_main
+  assert life A 19
+  assert life B 20
+}
+
+# A change of control moves the trigger with the creature.
+scenario "stab wound: its host's controller loses 2 life" {
+  battlefield A: "Stab Wound" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert life B 18
+  assert toughness "Hill Giant" 1
+}
+
+scenario "wanderlust damages that player" {
+  battlefield A: "Wanderlust" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert life B 19
+  assert life A 20
+}
+
+scenario "unstable mutation puts a counter on that creature" {
+  battlefield A: "Unstable Mutation" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert counters "Grizzly Bears" -1/-1 1
+  assert power "Grizzly Bears" 4
+}
+
+scenario "lingering death waits for its host's controller's end step" {
+  battlefield A: "Lingering Death" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+  run_to turn 3 upkeep
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "slow motion: sacrificed unless they pay, and the aura comes back" {
+  battlefield A: "Slow Motion" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "Slow Motion"
+}
+
+scenario "slow motion: paying keeps the creature" {
+  battlefield A: "Slow Motion" on "Hill Giant"
+  battlefield B: "Hill Giant", 2 "Island"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Hill Giant"
+  assert tapped B "Island"
+  assert battlefield A contains "Slow Motion"
+}
+
+scenario "numbing dose: the host doesn't untap and its controller loses life" {
+  battlefield A: "Numbing Dose" on "Hill Giant"
+  battlefield B: "Hill Giant" tapped
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert tapped "Hill Giant"
+  assert life B 19
+}
+
+# "At the beginning of each upkeep, if enchanted creature is untapped,
+# tap it."
+scenario "narcolepsy taps the creature at each upkeep" {
+  battlefield A: "Narcolepsy" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B untap
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+}
+
+scenario "narcolepsy leaves other creatures alone" {
+  battlefield A: "Narcolepsy" on "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert tapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+# "Tap up to two target creatures. Those creatures don't untap during
+# their controller's next untap step."
+scenario "frost breath keeps both creatures tapped through one untap step" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Frost Breath"
+  turn 1 A: cast "Frost Breath" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 2 precombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  run_to turn 4 precombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+}
+
+scenario "frost breath takes at most two targets" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  hand A: "Frost Breath"
+  illegal turn 1 A: cast "Frost Breath" targeting "Grizzly Bears", "Hill Giant", "Serra Angel"
+  run_to turn 1 end
+  assert hand A contains "Frost Breath"
+}
+
+# "Each attacking creature doesn't untap during its controller's next
+# untap step."
+scenario "tangle: attackers stay tapped, and deal no combat damage" {
+  battlefield A: "Hill Giant", "Grizzly Bears"
+  battlefield B: 2 "Forest"
+  hand B: "Tangle"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_blockers B: cast "Tangle"
+  run_to turn 2 precombat_main
+  assert life B 20
+  run_to turn 3 precombat_main
+  assert tapped "Hill Giant"
+  assert untapped "Grizzly Bears"
+  run_to turn 5 precombat_main
+  assert untapped "Hill Giant"
+}
+
+# "tap that creature and it doesn't untap during its controller's next
+# untap step": the creature dealt damage.
+scenario "orochi ranger pins the creature it damaged" {
+  battlefield A: "Orochi Ranger"
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Orochi Ranger"
+  run_to turn 4 precombat_main
+  assert tapped "Hill Giant"
+  run_to turn 6 precombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "stensia innkeeper: that land doesn't untap" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest", "Island"
+  hand A: "Stensia Innkeeper"
+  turn 1 A: cast "Stensia Innkeeper"
+  turn 1 A: trigger "Stensia Innkeeper" targeting "Forest"
+  run_to turn 2 precombat_main
+  assert tapped "Forest"
+  assert untapped "Island"
+}
+
+# "can't become untapped": not in the untap step, not by an effect, and
+# the restriction survives the "loses all abilities" of the same Aura.
+scenario "frozen in ice: the creature never untaps" {
+  battlefield A: 3 "Island", "Forest", "Seeker of Skybreak"
+  battlefield B: "Serra Angel"
+  hand A: "Frozen in Ice"
+  turn 1 A: cast "Frozen in Ice" targeting "Serra Angel"
+  turn 1 postcombat_main A: activate "Seeker of Skybreak" targeting "Serra Angel"
+  run_to turn 1 end
+  assert tapped "Serra Angel"
+  run_to turn 2 precombat_main
+  assert tapped "Serra Angel"
+  assert has not "Serra Angel" flying
+}
+
+scenario "without frozen in ice the untap effect works" {
+  battlefield A: "Seeker of Skybreak"
+  battlefield B: "Hill Giant" tapped
+  turn 1 A: activate "Seeker of Skybreak" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}
+
+scenario "stop cold: loses all abilities and doesn't untap" {
+  battlefield A: 4 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Stop Cold"
+  turn 1 A: cast "Stop Cold" targeting "Serra Angel"
+  run_to turn 2 precombat_main
+  assert tapped "Serra Angel"
+  assert has not "Serra Angel" flying
+}
+
+# Survival — "At the beginning of your second main phase, if this
+# creature is tapped, you gain 2 life."
+scenario "cautious survivor: tapped from attacking" {
+  battlefield A: "Cautious Survivor"
+  turn 1 A: attack "Cautious Survivor"
+  run_to turn 1 end
+  assert life A 22
+  assert life B 16
+}
+
+scenario "cautious survivor: untapped, no life" {
+  battlefield A: "Cautious Survivor"
+  run_to turn 1 end
+  assert life A 20
+}

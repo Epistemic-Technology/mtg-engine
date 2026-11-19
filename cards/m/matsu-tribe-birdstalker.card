@@ -1,0 +1,8 @@
+card "Matsu-Tribe Birdstalker" {
+  oracle_id 4c90ca5c-551c-4da5-9482-62521b1ae17c
+  cost {2}{G}{G}
+  type Creature — Snake Warrior Archer
+  pt 2/2
+  triggered whenever this deals combat damage to creature: tap that creature, and it doesn't untap next untap step
+  activated {G}: this gains reach
+}

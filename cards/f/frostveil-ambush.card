@@ -1,0 +1,7 @@
+card "Frostveil Ambush" {
+  oracle_id 5cf069cf-3a10-4427-a02b-5405429b5652
+  cost {3}{U}{U}
+  type Instant
+  spell: tap up to 2 target creature; targets 1 to 2 doesn't untap next untap step
+  cycling {1}
+}

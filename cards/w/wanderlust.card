@@ -1,0 +1,7 @@
+card "Wanderlust" {
+  oracle_id 73bddfdb-d1fb-4038-b676-201f6b82beb0
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of enchanted controller's upkeep: this deals 1 damage to that player
+}

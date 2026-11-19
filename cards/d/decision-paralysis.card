@@ -1,0 +1,6 @@
+card "Decision Paralysis" {
+  oracle_id 6e09ceaf-9005-4b06-ac5a-5e2250d4b663
+  cost {3}{U}
+  type Instant
+  spell: tap up to 2 target creature; targets 1 to 2 doesn't untap next untap step
+}

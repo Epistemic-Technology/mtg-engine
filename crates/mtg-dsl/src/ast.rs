@@ -1209,6 +1209,9 @@ pub enum Trigger {
         step: Step,
         whose: Who,
     },
+    /// `at beginning of enchanted controller's upkeep`: "At the beginning
+    /// of the upkeep of enchanted creature's controller".
+    AttachedStep(Step),
     Attacks(TriggerObj),
     /// "Whenever a creature you control attacks alone".
     AttacksAlone(TriggerObj),
@@ -1570,6 +1573,13 @@ pub enum Effect {
     },
     ExileAllGraveyards,
     Sacrifice {
+        what: Recipient,
+    },
+    /// `that player sacrifices that creature`: a sacrifice of one named
+    /// permanent, worded with its controller as the subject (the same
+    /// effect, CR 701.21a: only its controller can sacrifice it).
+    SacrificeBy {
+        who: Recipient,
         what: Recipient,
     },
     Tap {

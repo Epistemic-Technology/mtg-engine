@@ -1,0 +1,7 @@
+card "Soul Bleed" {
+  oracle_id e4f1acd6-b883-470b-88c2-3989011869d7
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of enchanted controller's upkeep: that player loses 1 life
+}

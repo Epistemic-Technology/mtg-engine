@@ -1,0 +1,7 @@
+card "Will of the Naga" {
+  oracle_id 520b6637-0a9f-4dc4-846e-f1cd2b868263
+  cost {4}{U}{U}
+  type Instant
+  keywords delve
+  spell: tap up to 2 target creature; targets 1 to 2 doesn't untap next untap step
+}

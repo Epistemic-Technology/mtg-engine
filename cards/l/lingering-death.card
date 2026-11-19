@@ -1,0 +1,7 @@
+card "Lingering Death" {
+  oracle_id 53463d3d-fa97-46fb-a73b-35bb0e0dac72
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of enchanted controller's end step: that player sacrifices that creature
+}

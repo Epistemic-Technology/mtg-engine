@@ -1,0 +1,6 @@
+card "Frost Breath" {
+  oracle_id 382097b3-f753-493c-bde4-101c0538feb4
+  cost {2}{U}
+  type Instant
+  spell: tap up to 2 target creature; targets 1 to 2 doesn't untap next untap step
+}

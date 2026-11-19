@@ -1,0 +1,8 @@
+card "Numbing Dose" {
+  oracle_id e42d087e-c999-4f9a-bdc5-4327e8ce94b6
+  cost {3}{U}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has doesn't untap
+  triggered at beginning of enchanted controller's upkeep: that player loses 1 life
+}

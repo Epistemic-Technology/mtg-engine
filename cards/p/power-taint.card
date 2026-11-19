@@ -1,0 +1,8 @@
+card "Power Taint" {
+  oracle_id 585a1c82-8a6c-4770-be9c-3a4916b74a9f
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant enchantment
+  triggered at beginning of enchanted controller's upkeep: that player loses 2 life unless they pay {2}
+  cycling {2}
+}

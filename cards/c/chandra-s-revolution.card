@@ -1,0 +1,6 @@
+card "Chandra's Revolution" {
+  oracle_id f72d2074-2f32-4b56-a172-947bf6104fae
+  cost {3}{R}
+  type Sorcery
+  spell: this deals 4 damage to target creature; tap target land; that target 2 doesn't untap next untap step
+}

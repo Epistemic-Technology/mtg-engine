@@ -232,6 +232,7 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::CantAttackAlone
             | Keyword::CantBlockAlone
             | Keyword::DoesntUntap
+            | Keyword::CantBecomeUntapped
             | Keyword::MustBlock
             | Keyword::MustBeBlocked
             | Keyword::BlockAdditional
@@ -301,7 +302,10 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
     for k in ks {
         if matches!(
             k,
-            Keyword::MustAttack | Keyword::Unblockable | Keyword::DoesntUntap
+            Keyword::MustAttack
+                | Keyword::Unblockable
+                | Keyword::DoesntUntap
+                | Keyword::CantBecomeUntapped
         ) || is_block_rule(*k)
         {
             parts.push(keyword_name(*k).to_string());
@@ -692,6 +696,7 @@ fn is_equipment(card: &Card) -> bool {
 }
 
 /// Rendering state for one ability's text.
+#[allow(clippy::struct_excessive_bools)] // independent mention flags
 struct Ctx<'a> {
     card: &'a Card,
     lookup: &'a dyn Lookup,
@@ -716,6 +721,10 @@ struct Ctx<'a> {
     /// instead").
     last_token: Option<String>,
     those_tokens: Option<String>,
+    /// What this is attached to has been named in the ability, so it is
+    /// "it" as an object ("tap enchanted creature and remove all counters
+    /// from it"; "if enchanted creature is untapped, tap it").
+    attached_mentioned: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -734,6 +743,7 @@ impl<'a> Ctx<'a> {
             trigger: None,
             last_token: None,
             those_tokens: None,
+            attached_mentioned: false,
         }
     }
 
@@ -927,7 +937,11 @@ impl<'a> Ctx<'a> {
                 self.groups_mentioned.insert(r);
                 format!("each {}", self.group_phrase(i, false))
             }
-            Recipient::Attached => filter_phrase(&Filter::enchanted(), self.card, false),
+            Recipient::Attached if self.attached_mentioned => "it".to_string(),
+            Recipient::Attached => {
+                self.attached_mentioned = true;
+                filter_phrase(&Filter::enchanted(), self.card, false)
+            }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
         }
@@ -2531,12 +2545,27 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(*blocker, s, format!("blocks {a} this turn if able"))
         }
         Effect::SkipNextUntap { to } => {
-            let s = ctx.subj(*to);
-            Clause::with_subject(
-                *to,
-                s,
-                "doesn't untap during its controller's next untap step".to_string(),
-            )
+            let s = match *to {
+                // "Tap up to two target creatures. Those creatures don't
+                // untap ...".
+                Recipient::Targets(a, _) if ctx.target_mentioned[a] => {
+                    format!("those {}", ctx.plural_target_noun(a))
+                }
+                // "Each attacking creature doesn't untap ..." (Tangle).
+                Recipient::Group(i) if !ctx.groups_mentioned.contains(to) => {
+                    ctx.groups_mentioned.insert(*to);
+                    format!("each {}", ctx.group_phrase(i, false))
+                }
+                r => ctx.subj(r),
+            };
+            let plural =
+                !s.starts_with("each ") && (Ctx::is_plural(*to) || ctx.is_many(*to) || s == "they");
+            let text = if plural {
+                "don't untap during their controller's next untap step"
+            } else {
+                "doesn't untap during its controller's next untap step"
+            };
+            Clause::with_subject(*to, s, text.to_string())
         }
         Effect::SwitchPt { to } => {
             let o = ctx.obj(*to);
@@ -2756,6 +2785,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Sacrifice { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("sacrifice {o}"))
+        }
+        Effect::SacrificeBy { who, what } => {
+            let s = ctx.subj(*who);
+            let o = ctx.obj(*what);
+            let v = ctx.verb(*who, "sacrifices", "sacrifice");
+            Clause::with_subject(*who, s, format!("{v} {o}"))
         }
         Effect::TapOrUntap { to } => {
             let o = ctx.obj(*to);
@@ -4217,6 +4252,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             step: Step::EndOfCombat,
             ..
         } => "at end of combat".to_string(),
+        // "At the beginning of the upkeep of enchanted creature's
+        // controller", "... the end step of enchanted artifact's controller".
+        Trigger::AttachedStep(step) => format!(
+            "at the beginning of the {} of enchanted {}'s controller",
+            step_name(*step, Who::You).trim_start_matches("your "),
+            enchanted_noun(ctx.card)
+        ),
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()
@@ -4452,6 +4494,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::SourceUntapped => {
             format!("if {} is untapped", this_ref(ctx.card))
         }
+        Condition::SourceTapped => format!("if {} is tapped", this_ref(ctx.card)),
         Condition::NoCreatures => "if no creatures are on the battlefield".to_string(),
         Condition::Kicked => "if it was kicked".to_string(),
         Condition::HadNoCounters(k) => format!("if it had no {} counters on it", counter_name(k)),
@@ -5847,6 +5890,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         StaticCond::SourceCounters { .. }
                             | StaticCond::ManaSpent { that: false, .. }
                     );
+                    ctx.attached_mentioned = matches!(c, StaticCond::AttachedIs(_));
                 }
                 None => {}
             }

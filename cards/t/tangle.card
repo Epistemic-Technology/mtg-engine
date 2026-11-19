@@ -1,0 +1,9 @@
+card "Tangle" {
+  oracle_id f627e125-15af-4e53-b34e-82b60e4ec87b
+  cost {1}{G}
+  type Instant
+  spell {
+  prevent all combat damage this turn
+  each attacking creature doesn't untap next untap step
+  }
+}

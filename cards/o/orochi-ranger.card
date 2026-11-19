@@ -1,0 +1,7 @@
+card "Orochi Ranger" {
+  oracle_id 6119fe8e-e7e2-4cc1-a44d-fe95a230db80
+  cost {1}{G}
+  type Creature — Snake Warrior Ranger
+  pt 2/1
+  triggered whenever this deals combat damage to creature: tap that creature, and it doesn't untap next untap step
+}

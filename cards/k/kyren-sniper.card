@@ -1,0 +1,7 @@
+card "Kyren Sniper" {
+  oracle_id 7661dda6-4e7b-42d0-8374-0a1fe65b83e4
+  cost {2}{R}
+  type Creature — Goblin
+  pt 1/1
+  triggered at beginning of your upkeep: you may deal 1 damage to target player or planeswalker
+}

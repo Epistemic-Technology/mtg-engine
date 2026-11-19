@@ -668,6 +668,16 @@ impl GameState {
     }
 
     pub(super) fn untap(&mut self, id: ObjId) {
+        // "Can't become untapped": nothing happens, and a stun counter
+        // stays (it is removed only as the permanent would untap). Only a
+        // tapped permanent pays for the lookup.
+        if self.objects.get(id).is_some_and(|o| o.tapped)
+            && self
+                .characteristics(id)
+                .is_some_and(|c| c.has(Keyword::CantBecomeUntapped))
+        {
+            return;
+        }
         // CR 122.1d: a stun counter is removed instead.
         if self
             .objects

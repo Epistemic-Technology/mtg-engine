@@ -101,6 +101,10 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::CantActivateNonMana,
     ),
     (&["can't", "activate"], Keyword::CantActivate),
+    (
+        &["can't", "become", "untapped"],
+        Keyword::CantBecomeUntapped,
+    ),
     (&["can't", "be", "blocked"], Keyword::Unblockable),
     (&["can't", "attack", "alone"], Keyword::CantAttackAlone),
     (&["can't", "block", "alone"], Keyword::CantBlockAlone),
@@ -2891,6 +2895,12 @@ impl P {
                     keywords,
                     to: subject,
                 })
+            }
+            "sacrifices" | "sacrifice"
+                if self.at_word("that") || self.at_word("it") || self.at_word("this") =>
+            {
+                let what = self.recipient()?;
+                Ok(Effect::SacrificeBy { who: subject, what })
             }
             "sacrifices" | "sacrifice" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
@@ -5731,6 +5741,14 @@ impl P {
                 self.eat_word("main");
                 return Ok(Trigger::EveryStep(step));
             }
+            if self.eat_words(&["enchanted", "controller's"]) {
+                let w = self.word()?;
+                let Some(step) = step_by_name(&w) else {
+                    return self.fail(format!("unknown step `{w}`"));
+                };
+                self.eat_word("step");
+                return Ok(Trigger::AttachedStep(step));
+            }
             let whose = if self.eat_word("your") {
                 Who::You
             } else if self.eat_words(&["each", "player's"])
@@ -6020,6 +6038,9 @@ impl P {
     fn condition(&mut self) -> R<Condition> {
         if self.eat_words(&["this", "is", "untapped"]) {
             return Ok(Condition::SourceUntapped);
+        }
+        if self.eat_words(&["this", "is", "tapped"]) {
+            return Ok(Condition::SourceTapped);
         }
         if self.eat_words(&["no", "creatures", "are", "on", "the", "battlefield"]) {
             return Ok(Condition::NoCreatures);

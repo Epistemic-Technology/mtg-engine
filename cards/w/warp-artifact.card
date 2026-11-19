@@ -1,0 +1,7 @@
+card "Warp Artifact" {
+  oracle_id f4b18451-1f40-48bd-8ca9-eec784ad5dd7
+  cost {B}{B}
+  type Enchantment — Aura
+  enchant artifact
+  triggered at beginning of enchanted controller's upkeep: this deals 1 damage to that player
+}

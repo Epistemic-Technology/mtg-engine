@@ -448,6 +448,16 @@ impl GameState {
                 (s == step && whose_ok(*whose, self.active_player))
                     .then_some((None, Some(self.active_player)))
             }
+            // "the upkeep of enchanted creature's controller": the active
+            // player controls what the source is attached to.
+            (TriggerSpec::AttachedControllersStep(step), Event::StepBegin { step: s }) => {
+                if s != step {
+                    return None;
+                }
+                let host = self.objects.get(w.source)?.attached_to?;
+                (self.objects.get(host)?.controller == self.active_player)
+                    .then_some((Some(host), Some(self.active_player)))
+            }
             (
                 TriggerSpec::Leaves(what),
                 Event::ZoneChange {
@@ -894,6 +904,10 @@ impl GameState {
                 .objects
                 .get(source)
                 .is_some_and(|o| o.zone == Zone::Battlefield && !o.tapped),
+            Condition::SourceTapped => self
+                .objects
+                .get(source)
+                .is_some_and(|o| o.zone == Zone::Battlefield && o.tapped),
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(source),
             Condition::HadNoCounters(k) => self.had_no_counters(source, k),
@@ -929,6 +943,7 @@ impl GameState {
     ) -> bool {
         match cond {
             Condition::SourceUntapped => !w.tapped,
+            Condition::SourceTapped => w.tapped,
             Condition::NoCreatures => self.no_creatures(),
             Condition::Kicked => self.was_kicked(w.source),
             Condition::HadNoCounters(k) => self.had_no_counters(w.source, k),
