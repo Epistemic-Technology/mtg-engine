@@ -1,0 +1,6 @@
+card "Foul-Tongue Shriek" {
+  oracle_id a4dc1fea-427c-424c-99c8-af2e6d3ad2a9
+  cost {B}
+  type Instant
+  spell: target opponent loses count each attacking creature you control life; you gain that much life
+}

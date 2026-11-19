@@ -1,0 +1,21 @@
+# "that much" after a life loss, "that many" with a counted noun.
+
+scenario "Towering-Wave Mystic mills as much as it dealt" {
+  battlefield A: "Towering-Wave Mystic"
+  library B: "Island", "Island", "Island", "Island"
+  turn 1 A: attack "Towering-Wave Mystic"
+  turn 1 A: trigger "Towering-Wave Mystic" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard B count 2
+}
+
+scenario "Foul-Tongue Shriek drains one per attacker" {
+  battlefield A: "Swamp", "Grizzly Bears", "Hill Giant"
+  hand A: "Foul-Tongue Shriek"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 declare_blockers A: cast "Foul-Tongue Shriek" targeting player B
+  run_to turn 1 end
+  assert life A 22
+  assert life B 13
+}

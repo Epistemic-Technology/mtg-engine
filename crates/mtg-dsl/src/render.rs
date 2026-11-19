@@ -88,7 +88,8 @@ const NUMBER_WORDS: [&str; 20] = [
 /// A count in words ("a", "two", "X").
 fn count_words(n: Num, article: &str) -> String {
     match n {
-        Num::ThatMuch => "that much".to_string(),
+        // "Mill that many cards" (a counted noun); "that much life".
+        Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
@@ -2401,12 +2402,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfCondition(c, inner) => {
             let cond = static_cond_text(c, ctx.card);
             let body = sentences(inner, ctx);
-            let body = lowercase_first(&body);
+            // "If that land was nonbasic, Molten Rain deals 2 damage": the
+            // card's name keeps its capital.
+            let body = if body.starts_with(&ctx.card.name) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
-            let body = lowercase_first(&body);
+            let body = if body.starts_with(&ctx.card.name) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
             Clause::imperative(format!(
                 "if this spell was kicked, {}",
                 body.trim_end_matches('.')

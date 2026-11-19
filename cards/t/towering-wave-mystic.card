@@ -1,0 +1,7 @@
+card "Towering-Wave Mystic" {
+  oracle_id 121a1efa-03f2-4b5f-8e72-539de028457e
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 2/1
+  triggered whenever this deals damage: target player mills that much cards
+}

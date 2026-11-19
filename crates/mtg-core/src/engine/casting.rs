@@ -2137,14 +2137,17 @@ impl GameState {
                 }
             }
             Effect::LoseLife { amount, who } => {
+                let mut lost = 0u32;
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.change_life(
-                            p,
-                            -i32::try_from(self.eval_num(*amount, ctx)).unwrap_or(i32::MAX),
-                        );
+                        let n = self.eval_num(*amount, ctx);
+                        lost = lost.saturating_add(n);
+                        self.change_life(p, -i32::try_from(n).unwrap_or(i32::MAX));
                     }
                 }
+                // "Target opponent loses 1 life for each attacking creature
+                // you control. You gain that much life."
+                ctx.trigger_amount = lost;
             }
             Effect::DrawCards { count, who } => {
                 for t in self.recipients(ctx, *who) {
