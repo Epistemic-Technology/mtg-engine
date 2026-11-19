@@ -3674,6 +3674,13 @@ impl P {
                         cost.order.push(CostItem::Mana);
                     }
                 }
+                // `2 times per turn`: "Activate no more than twice each
+                // turn."
+                Some(Tok::Num(n)) if self.word_at(1).as_deref() == Some("times") => {
+                    cost.per_turn = u8::try_from(*n).unwrap_or(u8::MAX);
+                    self.pos += 2;
+                    self.eat_words(&["per", "turn"]);
+                }
                 Some(Tok::Signed(n)) => {
                     cost.loyalty = Some(*n);
                     cost.sorcery = true;
@@ -3744,8 +3751,9 @@ impl P {
                         self.pos += 1;
                         self.eat_words(&["per", "turn"]);
                         self.eat_words(&["each", "turn"]);
-                        cost.once = true;
+                        cost.per_turn = 1;
                     }
+
                     "pay" => {
                         self.pos += 1;
                         let n = self.count()?;

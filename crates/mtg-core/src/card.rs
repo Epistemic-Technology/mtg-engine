@@ -2507,7 +2507,9 @@ pub struct ActivatedAbility {
     /// "Activate only as a sorcery" (CR 602.5a; equip, CR 702.6a).
     pub sorcery_speed: bool,
     /// "Activate only once each turn."
-    pub once_per_turn: bool,
+    /// "Activate only once each turn" (1), "no more than twice" (2); 0
+    /// is no limit.
+    pub per_turn: u8,
     /// Activated from the hand rather than the battlefield (cycling, CR
     /// 702.29).
     pub from_hand: bool,

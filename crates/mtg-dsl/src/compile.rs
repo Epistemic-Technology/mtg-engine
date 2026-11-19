@@ -1137,7 +1137,7 @@ impl Compiler<'_> {
                 targets: self.targets(targets),
                 effects: self.sentences(effects)?,
                 sorcery_speed: cost.sorcery,
-                once_per_turn: cost.once,
+                per_turn: cost.per_turn,
                 from_hand: *cycling || cost.discard_self,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
                 text: render::ability_text(self.card, a, self.lookup),

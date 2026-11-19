@@ -183,6 +183,7 @@ subtypes), `target creature becomes blue`, `this becomes colorless`,
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
+Cost item `2 times per turn`: "Activate no more than twice each turn."
 `that much` is the triggering event's amount ("Whenever this creature is
 dealt damage, you gain that much life": `you gain that much life`).
 `count each 2 creature you control` ("2 life for each creature you

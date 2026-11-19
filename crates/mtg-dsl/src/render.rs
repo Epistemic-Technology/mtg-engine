@@ -3370,8 +3370,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if cost.sorcery && cost.loyalty.is_none() {
                 text.push_str(" Activate only as a sorcery.");
             }
-            if cost.once {
+            if cost.per_turn == 1 {
                 text.push_str(" Activate only once each turn.");
+            } else if cost.per_turn > 1 {
+                let n = match cost.per_turn {
+                    2 => "twice".to_string(),
+                    3 => "three times".to_string(),
+                    n => format!("{n} times"),
+                };
+                let _ = write!(text, " Activate no more than {n} each turn.");
             }
             text
         }

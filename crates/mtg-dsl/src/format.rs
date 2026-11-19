@@ -1353,8 +1353,10 @@ fn cost_text(c: &Cost) -> String {
     if c.sorcery && c.loyalty.is_none() {
         parts.push("sorcery".to_string());
     }
-    if c.once {
+    if c.per_turn == 1 {
         parts.push("once".to_string());
+    } else if c.per_turn > 1 {
+        parts.push(format!("{} times per turn", c.per_turn));
     }
     if parts.is_empty() {
         "none".to_string()

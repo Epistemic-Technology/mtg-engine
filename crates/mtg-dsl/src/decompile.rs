@@ -171,7 +171,7 @@ impl Decompiler<'_> {
         Cost {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
-            once: false,
+            per_turn: 0,
             tap: c.tap,
             life: c.life,
             discard: c.discard,
@@ -791,7 +791,7 @@ impl Decompiler<'_> {
                     && act.cost.sacrifice.is_none();
                 let mut cost = self.cost(&act.cost);
                 cost.sorcery = act.sorcery_speed;
-                cost.once = act.once_per_turn;
+                cost.per_turn = act.per_turn;
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),

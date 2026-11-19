@@ -175,7 +175,7 @@ pub struct Cost {
     /// what the `sacrifice` filter's chosen permanent pays.
     pub chosen: mtg_core::card::ChosenCost,
     /// "Activate only once each turn."
-    pub once: bool,
+    pub per_turn: u8,
     /// The order the parts were written in, which is the order printed
     /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
     /// discard, life.

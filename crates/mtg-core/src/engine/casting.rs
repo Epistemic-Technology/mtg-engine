@@ -940,7 +940,13 @@ impl GameState {
                 }
                 if ab.from_hand
                     || ab.from_graveyard
-                    || (ab.once_per_turn && self.activated_once.contains(&(id, *a)))
+                    || (ab.per_turn > 0
+                        && self
+                            .activated_once
+                            .iter()
+                            .filter(|x| **x == (id, *a))
+                            .count()
+                            >= usize::from(ab.per_turn))
                 {
                     continue;
                 }
@@ -1040,7 +1046,7 @@ impl GameState {
             if a.cost.loyalty != 0 {
                 self.loyalty_activated.push(source);
             }
-            if a.once_per_turn {
+            if a.per_turn > 0 {
                 self.activated_once.push((source, ability));
             }
         }
