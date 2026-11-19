@@ -631,6 +631,8 @@ impl<'a> Ctx<'a> {
                     }
                 }
             }
+            // "When enchanted creature is dealt damage, destroy it."
+            Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::ControllerOf(_) => "its controller".to_string(),
@@ -664,6 +666,24 @@ impl<'a> Ctx<'a> {
     }
 
     /// A recipient as the subject of a sentence.
+    fn trigger_is_enchanted(&self) -> bool {
+        self.trigger.is_some_and(|t| {
+            let t = match t {
+                Trigger::When(inner) => inner,
+                t => t,
+            };
+            matches!(
+                t,
+                Trigger::Dies(TriggerObj::Filter(f))
+                    | Trigger::DealtDamage(TriggerObj::Filter(f))
+                    | Trigger::Blocks(TriggerObj::Filter(f))
+                    | Trigger::Attacks(TriggerObj::Filter(f))
+                    | Trigger::BecomesTapped(TriggerObj::Filter(f))
+                    if f.enchanted
+            )
+        })
+    }
+
     fn subj(&mut self, r: Recipient) -> String {
         match r {
             // As a subject Oracle keeps "defending player" ("defending
@@ -1118,6 +1138,10 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
 /// A filter with an article: "a creature you control", "another creature".
 fn filter_a(f: &Filter, card: &Card) -> String {
     let p = filter_phrase(f, card, false);
+    // "When enchanted creature dies": the one it's attached to, no article.
+    if f.enchanted && f.or.is_none() {
+        return p;
+    }
     if f.relation == Relation::Other {
         return format!("another {}", p.trim_start_matches("other "));
     }

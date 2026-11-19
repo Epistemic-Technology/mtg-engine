@@ -1,0 +1,21 @@
+# Triggers on the enchanted creature: only it, as "it".
+
+scenario "mortal wound" {
+  battlefield A: 2 "Forest", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Mortal Wound", "Shock"
+  turn 1 A: cast "Mortal Wound" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "mortal wound ignores other creatures" {
+  battlefield A: 2 "Forest", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mortal Wound", "Shock"
+  turn 1 A: cast "Mortal Wound" targeting "Hill Giant"
+  turn 1 postcombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}

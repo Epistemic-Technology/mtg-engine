@@ -1,0 +1,7 @@
+card "Mortal Wound" {
+  oracle_id f7b70077-5518-45f9-9833-01a4f8afac71
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature is dealt damage: destroy that creature
+}

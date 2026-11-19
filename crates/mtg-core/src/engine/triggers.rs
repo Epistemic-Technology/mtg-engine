@@ -255,6 +255,16 @@ impl GameState {
             Who::You => p == w.controller,
             Who::Opponents => p != w.controller,
         };
+        // "enchanted creature": only what the source (an Aura) is attached
+        // to, as it last was.
+        let enchants = |obj: ObjId| {
+            self.objects
+                .get(w.source)
+                .map(|a| a.attached_to)
+                .or_else(|| self.lki.get(&w.source).map(|l| l.object.attached_to))
+                .flatten()
+                == Some(obj)
+        };
         // Does `obj` (currently on the battlefield) match?
         let on_battlefield = |what: &TriggerObj, obj: ObjId| -> Option<PlayerId> {
             let o = self.objects.get(obj)?;
@@ -264,6 +274,7 @@ impl GameState {
                     let c = self.characteristics(obj)?;
                     f.matches(obj, o.controller, &c, Some(w.source), Some(w.controller))
                         && self.status_ok(f, obj)
+                        && (!f.enchanted || enchants(obj))
                 }
             };
             ok.then_some(o.controller)
@@ -293,13 +304,15 @@ impl GameState {
                 let l = self.lki.get(old)?;
                 let ok = match what {
                     TriggerObj::This => *old == w.source,
-                    TriggerObj::Filter(f) => f.matches(
-                        *old,
-                        l.object.controller,
-                        &l.characteristics,
-                        Some(w.source),
-                        Some(w.controller),
-                    ),
+                    TriggerObj::Filter(f) => {
+                        f.matches(
+                            *old,
+                            l.object.controller,
+                            &l.characteristics,
+                            Some(w.source),
+                            Some(w.controller),
+                        ) && (!f.enchanted || enchants(*old))
+                    }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))
             }
