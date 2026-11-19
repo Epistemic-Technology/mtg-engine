@@ -2351,10 +2351,21 @@ impl GameState {
             Recipient::Group(f) => {
                 let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
                 let source = self.current_object(ctx.source);
+                // "Target creature you control gets +3/+3 and each other
+                // creature you control gets +1/+1": a spell's "other" is
+                // other than its targets.
+                let other_than_targets = filter.relation == crate::card::Relation::Other
+                    && self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Stack);
                 out.extend(
                     self.battlefield
                         .iter()
                         .copied()
+                        .filter(|id| {
+                            !other_than_targets || !ctx.targets.contains(&Target::Object(*id))
+                        })
                         .filter(|id| {
                             let o = &self.objects[*id];
                             self.characteristics(*id).is_some_and(|c| {
@@ -3321,6 +3332,10 @@ impl GameState {
                     for e in inner {
                         self.apply_effect(ctx, e);
                     }
+                } else {
+                    // "If you control a Raccoon, you may discard a card. If
+                    // you do, draw a card.": nothing was done.
+                    ctx.did = false;
                 }
             }
             Effect::IfTarget { n, filter, then } => {

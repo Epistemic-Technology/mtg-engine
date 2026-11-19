@@ -1,0 +1,22 @@
+# A spell's "each other creature you control" is other than its target;
+# "if you do" after a condition that failed does nothing.
+
+scenario "Sigil Blessing: the target gets +3/+3 only" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Forest", "Plains"
+  hand A: "Sigil Blessing"
+  turn 1 A: cast "Sigil Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert power "Hill Giant" 4
+}
+
+scenario "Take Out the Trash: no Raccoon, no rummage" {
+  battlefield A: "Mountain", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Take Out the Trash", "Forest"
+  library A: "Island", "Island"
+  turn 1 A: cast "Take Out the Trash" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert hand A count 1
+}

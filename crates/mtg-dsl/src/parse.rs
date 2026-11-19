@@ -3896,7 +3896,16 @@ impl P {
                         // Plural subtypes are singular in a filter; a few
                         // end in "s" in the singular (Plains, Elves are
                         // "Elf" though).
-                        let keep = matches!(raw.as_str(), "Plains" | "Locus" | "Homunculus");
+                        let keep = matches!(
+                            raw.as_str(),
+                            "Plains"
+                                | "Locus"
+                                | "Homunculus"
+                                | "Fungus"
+                                | "Octopus"
+                                | "Platypus"
+                                | "Walrus"
+                        );
                         f.subtypes.push(if keep {
                             raw.clone()
                         } else {
