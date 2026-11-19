@@ -2605,6 +2605,67 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 to: Recipient::Source,
             }),
         },
+        // CR 702.70a: "Whenever this creature deals combat damage to a
+        // player, that player gets N poison counters."
+        Mechanic::Poisonous(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::DealsCombatDamageToPlayer(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::AddPoison {
+                count: Num::N(*n),
+                who: Recipient::TriggeringPlayer,
+            }),
+        },
+        // CR 702.68a: "Whenever this creature attacks and isn't blocked,
+        // it gets +N/+0 until end of turn."
+        Mechanic::Frenzy(n) => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::AttacksUnblocked(TriggerObj::This),
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::Pump {
+                power: i32::try_from(*n).unwrap_or(0),
+                toughness: 0,
+                to: Recipient::Source,
+            }),
+        },
+        // CR 702.64a: "If a source would deal damage to this creature,
+        // prevent N of that damage." A static `prevent next N` prevents N
+        // of each event (see `Replacement::PreventNext`).
+        Mechanic::Absorb(n) => Ability::Replacement(crate::ast::Replacement {
+            event: crate::ast::Replaces::Damage {
+                from: None,
+                to: crate::ast::Affects::This,
+                combat: None,
+                wording: crate::ast::DamageWording::default(),
+            },
+            outcome: mtg_core::card::Replacement::PreventNext(Num::N(*n)),
+            then: Vec::new(),
+        }),
+        // CR 702.39a: "Whenever this creature attacks, you may have target
+        // creature defending player controls untap and block this creature
+        // this turn if able."
+        Mechanic::Provoke => Ability::Triggered {
+            from_graveyard: false,
+            trigger: Trigger::Attacks(TriggerObj::This),
+            condition: None,
+            targets: vec![Target::Filter(Filter {
+                types: vec![mtg_core::card::CardType::Creature],
+                who: Some(Who::Opponents),
+                defending: true,
+                ..Filter::default()
+            })],
+            effects: one(E::YouMay(vec![Sentence::new(vec![
+                E::Untap {
+                    to: vec![Recipient::Target(0)],
+                },
+                E::BlocksIfAble {
+                    blocker: Recipient::Target(0),
+                    attacker: Recipient::Source,
+                },
+            ])])),
+        },
         Mechanic::Afflict(n) => Ability::Triggered {
             from_graveyard: false,
             trigger: Trigger::BecomesBlocked(TriggerObj::This),

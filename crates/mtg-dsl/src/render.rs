@@ -7951,6 +7951,10 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Bushido(n) => format!("Bushido {n}"),
             crate::ast::Mechanic::Soulshift(n) => format!("Soulshift {n}"),
             crate::ast::Mechanic::Afflict(n) => format!("Afflict {n}"),
+            crate::ast::Mechanic::Poisonous(n) => format!("Poisonous {n}"),
+            crate::ast::Mechanic::Frenzy(n) => format!("Frenzy {n}"),
+            crate::ast::Mechanic::Absorb(n) => format!("Absorb {n}"),
+            crate::ast::Mechanic::Provoke => "Provoke".to_string(),
             crate::ast::Mechanic::Toxic(n) => format!("Toxic {n}"),
             crate::ast::Mechanic::Ward(c) => format!("Ward {c}"),
             // CR 702.21a, 702.37a, 702.27a: a cost other than mana prints

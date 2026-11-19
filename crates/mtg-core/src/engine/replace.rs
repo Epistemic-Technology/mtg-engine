@@ -677,11 +677,16 @@ impl GameState {
                     combat,
                 },
             ) => {
-                let prevented = match c.key {
-                    Key::Stored(i) if !unpreventable => {
+                let prevented = match (c.key, c.ability.replacement) {
+                    (Key::Stored(i), _) if !unpreventable => {
                         let p = amount.min(self.replacements[i].remaining);
                         self.replacements[i].remaining -= p;
                         p
+                    }
+                    // A static ability prevents N of each damage event, not
+                    // a shield (absorb, CR 702.64a).
+                    (Key::Ability { .. }, Replacement::PreventNext(crate::card::Num::N(n))) if !unpreventable => {
+                        amount.min(n)
                     }
                     _ => 0,
                 };

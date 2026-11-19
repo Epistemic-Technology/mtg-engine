@@ -1252,8 +1252,13 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Escape(c, n)))
             }
+            "provoke" => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Provoke))
+            }
             "bushido" | "soulshift" | "afflict" | "toxic" | "crew" | "bloodthirst" | "backup"
-            | "saddle"
+            | "saddle" | "poisonous" | "frenzy" | "absorb"
                 if matches!(self.peek_at(1), Some(Tok::Num(_))) =>
             {
                 self.pos += 1;
@@ -1267,6 +1272,9 @@ impl P {
                     "bloodthirst" => Mechanic::Bloodthirst(n),
                     "backup" => Mechanic::Backup(n),
                     "saddle" => Mechanic::Saddle(n),
+                    "poisonous" => Mechanic::Poisonous(n),
+                    "frenzy" => Mechanic::Frenzy(n),
+                    "absorb" => Mechanic::Absorb(n),
                     _ => Mechanic::Toxic(n),
                 }))
             }
@@ -1847,6 +1855,27 @@ impl P {
             self.pos += 1;
             return Ok(Some(Ability::Mechanic(Mechanic::Toxic(self.number()?))));
         }
+        // "All Sliver creatures have poisonous 1", "... have provoke",
+        // "... have outlast {2}".
+        if let Some(w) = self.word_at(0)
+            && matches!(w.as_str(), "poisonous" | "frenzy" | "absorb")
+            && matches!(self.peek_at(1), Some(Tok::Num(_)))
+        {
+            self.pos += 1;
+            let n = self.number()?;
+            return Ok(Some(Ability::Mechanic(match w.as_str() {
+                "poisonous" => Mechanic::Poisonous(n),
+                "frenzy" => Mechanic::Frenzy(n),
+                _ => Mechanic::Absorb(n),
+            })));
+        }
+        if self.eat_word("provoke") {
+            return Ok(Some(Ability::Mechanic(Mechanic::Provoke)));
+        }
+        if self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            self.pos += 1;
+            return Ok(Some(Ability::Mechanic(Mechanic::Outlast(self.mana_cost()?))));
+        }
         if self.granted_protection_ahead() {
             self.pos += 2;
             let filter = if self.eat_word("everything") {
@@ -1863,6 +1892,10 @@ impl P {
         (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
             || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
             || self.granted_protection_ahead()
+            || (self.word_at(0).is_some_and(|w| matches!(w.as_str(), "poisonous" | "frenzy" | "absorb"))
+                && matches!(self.peek_at(1), Some(Tok::Num(_))))
+            || self.at_word("provoke")
+            || (self.at_word("outlast") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
     }
 
     /// `protection from artifact` granted (CR 702.16): from a quality

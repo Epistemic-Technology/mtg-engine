@@ -3594,6 +3594,10 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Bushido(n) => format!("bushido {n}"),
                 crate::ast::Mechanic::Soulshift(n) => format!("soulshift {n}"),
                 crate::ast::Mechanic::Afflict(n) => format!("afflict {n}"),
+                crate::ast::Mechanic::Poisonous(n) => format!("poisonous {n}"),
+                crate::ast::Mechanic::Frenzy(n) => format!("frenzy {n}"),
+                crate::ast::Mechanic::Absorb(n) => format!("absorb {n}"),
+                crate::ast::Mechanic::Provoke => "provoke".to_string(),
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
                 crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
@@ -3759,6 +3763,11 @@ pub(crate) fn granted_mechanic(a: &Ability) -> Option<String> {
     match a {
         Ability::Mechanic(crate::ast::Mechanic::Ward(c)) => Some(format!("ward {c}")),
         Ability::Mechanic(crate::ast::Mechanic::Toxic(n)) => Some(format!("toxic {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Poisonous(n)) => Some(format!("poisonous {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Frenzy(n)) => Some(format!("frenzy {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Absorb(n)) => Some(format!("absorb {n}")),
+        Ability::Mechanic(crate::ast::Mechanic::Provoke) => Some("provoke".to_string()),
+        Ability::Mechanic(crate::ast::Mechanic::Outlast(c)) => Some(format!("outlast {c}")),
         Ability::Protection(f) if *f == Filter::default() => {
             Some("protection from everything".to_string())
         }

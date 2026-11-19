@@ -939,6 +939,16 @@ pub enum Mechanic {
     Soulshift(u32),
     /// CR 702.130: becomes blocked, defending player loses N life.
     Afflict(u32),
+    /// CR 702.70: combat damage to a player gives that player N poison
+    /// counters.
+    Poisonous(u32),
+    /// CR 702.68: attacks and isn't blocked, +N/+0 until end of turn.
+    Frenzy(u32),
+    /// CR 702.64: prevent N of each damage dealt to it.
+    Absorb(u32),
+    /// CR 702.39: attacks, you may have target creature defending player
+    /// controls untap and block it if able.
+    Provoke,
     /// CR 702.164: combat damage to a player also gives N poison counters.
     Toxic(u32),
     /// CR 702.21: becomes the target of an opponent's spell or ability,
