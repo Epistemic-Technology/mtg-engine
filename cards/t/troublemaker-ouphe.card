@@ -1,0 +1,8 @@
+card "Troublemaker Ouphe" {
+  oracle_id 16cdba97-73cf-44ba-9d64-f27009b829f8
+  cost {1}{G}
+  type Creature — Ouphe
+  pt 2/2
+  bargain
+  triggered when this enters if bargained: exile target artifact or enchantment an opponent controls
+}

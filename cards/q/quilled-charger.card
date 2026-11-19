@@ -1,0 +1,8 @@
+card "Quilled Charger" {
+  oracle_id 6498e3e9-1a7b-4b47-9e7c-cdbd8928c9c8
+  cost {3}{R}
+  type Creature — Porcupine Mount
+  pt 4/3
+  triggered whenever this attacks while saddled: this gets +1/+2 and gains menace
+  saddle 2
+}

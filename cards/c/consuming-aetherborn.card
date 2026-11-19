@@ -1,0 +1,8 @@
+card "Consuming Aetherborn" {
+  oracle_id 4d472308-5bc7-4a3c-81b5-0a757f00d9e2
+  cost {3}{B}
+  type Creature — Aetherborn Vampire
+  pt 2/2
+  backup 1
+  keyword lifelink
+}

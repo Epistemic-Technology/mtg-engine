@@ -1,0 +1,8 @@
+card "Sprinting Warbrute" {
+  oracle_id e680f3e9-5c76-41e6-a4a5-662ee05ac3af
+  cost {4}{R}
+  type Creature — Ogre Berserker
+  pt 5/4
+  keywords attacks each combat if able
+  dash {3}{R}
+}

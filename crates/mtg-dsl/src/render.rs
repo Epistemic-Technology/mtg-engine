@@ -4673,6 +4673,18 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
         StaticCond::Escaped => "it escaped".to_string(),
         StaticCond::Kicked => "it was kicked".to_string(),
+        StaticCond::Bargained
+            if card.types.iter().any(|t| {
+                matches!(
+                    t,
+                    mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+                )
+            }) =>
+        {
+            "this spell was bargained".to_string()
+        }
+        StaticCond::Bargained => "it was bargained".to_string(),
+        StaticCond::Saddled => "it's saddled".to_string(),
         StaticCond::LandEnteredThisTurn => {
             "you had a land enter the battlefield under your control this turn".to_string()
         }
@@ -5091,6 +5103,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     out.push_str(", ");
                     out.push_str(&condition_text(*c, &mut ctx));
                 }
+                Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
+                    out.push_str(" while saddled");
+                }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");
                     out.push_str(&static_cond_text(c, card));
@@ -5168,7 +5183,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             "This spell costs {{{}}} {} to cast if {}.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
-            static_cond_text(cond, card)
+            if *cond == StaticCond::Bargained {
+                "it's bargained".to_string()
+            } else {
+                static_cond_text(cond, card)
+            }
         ),
         Ability::TargetCost { delta, filter } => format!(
             "This spell costs {{{}}} {} to cast if it targets {}.",
@@ -5232,6 +5251,15 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             crate::ast::Mechanic::Megamorph(c) => format!("Megamorph {c}"),
             crate::ast::Mechanic::Disguise(c) => format!("Disguise {c}"),
+            crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
+            crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
+            crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
+            crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
+            crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
+            crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),
+            crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),
+            crate::ast::Mechanic::Bargain => "Bargain".to_string(),
+            crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
         },
         Ability::EntersTappedUnless(c) => format!(
             "{} enters tapped unless {}.",
@@ -5330,11 +5358,20 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
-    // "This spell costs {3} less to cast if ..." comes first, before
-    // keywords.
-    let cost_line =
-        |a: &Ability| matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. });
-    for a in card.abilities.iter().filter(|a| cost_line(a)) {
+    // "Bargain", then "This spell costs {3} less to cast if ..." come
+    // first, before keywords.
+    let bargain = |a: &Ability| matches!(a, Ability::Mechanic(crate::ast::Mechanic::Bargain));
+    if card.abilities.iter().any(bargain) {
+        lines.push("Bargain".to_string());
+    }
+    let cost_line = |a: &Ability| {
+        matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. }) || bargain(a)
+    };
+    for a in card
+        .abilities
+        .iter()
+        .filter(|a| cost_line(a) && !bargain(a))
+    {
         lines.push(ability_text(card, a, lookup));
     }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").

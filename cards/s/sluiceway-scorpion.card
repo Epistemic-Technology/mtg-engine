@@ -1,0 +1,8 @@
+card "Sluiceway Scorpion" {
+  oracle_id bb5ea7c7-741a-4edd-9696-b9881b70afe0
+  cost {2}{B}{G}
+  type Creature — Scorpion
+  pt 2/2
+  keywords deathtouch
+  scavenge {1}{B}{G}
+}

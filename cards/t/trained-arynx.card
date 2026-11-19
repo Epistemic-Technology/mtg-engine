@@ -1,0 +1,8 @@
+card "Trained Arynx" {
+  oracle_id bc875500-f6df-4365-b2d6-7cf425daea97
+  cost {1}{W}
+  type Creature — Cat Beast Mount
+  pt 3/1
+  triggered whenever this attacks while saddled: this gains first strike; scry 1
+  saddle 2
+}

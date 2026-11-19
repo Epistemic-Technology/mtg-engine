@@ -1,0 +1,7 @@
+card "Drudge Beetle" {
+  oracle_id f5126c01-f765-44f4-9ced-0fc157f8b897
+  cost {1}{G}
+  type Creature — Insect
+  pt 2/2
+  scavenge {5}{G}
+}

@@ -1,0 +1,8 @@
+card "Korozda Monitor" {
+  oracle_id 55195474-c7ea-4c0a-b504-af15e64ec7e9
+  cost {2}{G}{G}
+  type Creature — Lizard
+  pt 3/3
+  keywords trample
+  scavenge {5}{G}{G}
+}

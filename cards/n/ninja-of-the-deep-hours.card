@@ -1,0 +1,8 @@
+card "Ninja of the Deep Hours" {
+  oracle_id 1f3c2b00-0000-4ae1-9650-9553accac52e
+  cost {3}{U}
+  type Creature — Human Ninja
+  pt 2/2
+  ninjutsu {1}{U}
+  triggered whenever this deals combat damage to a player: you may draw 1 cards
+}

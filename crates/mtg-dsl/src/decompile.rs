@@ -303,6 +303,9 @@ impl Decompiler<'_> {
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
             StaticCondition::Kicked => StaticCond::Kicked,
+            StaticCondition::Bargained => StaticCond::Bargained,
+            StaticCondition::OffspringPaid => unreachable!("only offspring's trigger"),
+            StaticCondition::Saddled => StaticCond::Saddled,
             StaticCondition::LandEnteredThisTurn => StaticCond::LandEnteredThisTurn,
             StaticCondition::ArtifactEnteredThisTurn => StaticCond::ArtifactEnteredThisTurn,
             StaticCondition::CardsDrawnThisTurn(n) => StaticCond::CardsDrawnThisTurn(*n),
@@ -703,7 +706,9 @@ impl Decompiler<'_> {
             CoreEffect::CastExiled(_)
             | CoreEffect::SuspendTick
             | CoreEffect::Cascade
-            | CoreEffect::Exploit => {
+            | CoreEffect::Exploit
+            | CoreEffect::EnterAttacking
+            | CoreEffect::BecomeSaddled => {
                 unreachable!("built-in abilities only")
             }
             CoreEffect::Adapt(n) => Effect::Adapt(*n),

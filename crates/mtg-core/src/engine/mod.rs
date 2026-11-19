@@ -433,8 +433,11 @@ impl GameState {
             activated_once: Vec::new(),
             activated_ever: Vec::new(),
             attackers_this_turn: Vec::new(),
+            saddled: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
+            ninjutsu: Vec::new(),
+            bargains: Vec::new(),
             divisions: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
@@ -633,6 +636,40 @@ impl GameState {
                         player,
                         kind: DecisionKind::Buyback { spell },
                         options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
+                Flow::ChoosingOffspring { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Offspring { spell },
+                        options: vec![Choice::Accept, Choice::Decline],
+                    });
+                }
+                Flow::ChoosingBargain { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let mut options: Vec<Choice> = self
+                        .bargain_candidates(player)
+                        .into_iter()
+                        .map(Choice::Sacrifice)
+                        .collect();
+                    // Not bargaining may cost more ("costs {2} less to
+                    // cast if it's bargained"): only if still payable.
+                    if self.spell_payable(player, spell, &self.spell_requirements(spell, 0)) {
+                        options.push(Choice::Decline);
+                    }
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Bargain { spell },
+                        options,
                     });
                 }
                 Flow::ChoosingX { spell } => {
@@ -1226,6 +1263,9 @@ impl GameState {
                 self.objects[spell].cast.set_evoked(true);
                 self.flow = self.after_mode(spell);
             }
+            (Flow::Priority, Choice::CastDash(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::Dash);
+            }
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;
                 let ward = matches!(
@@ -1345,6 +1385,24 @@ impl GameState {
             }
             (Flow::ChoosingBuyback { spell }, Choice::Decline) => {
                 self.flow = self.after_buyback(spell);
+            }
+            (Flow::ChoosingOffspring { spell }, Choice::Accept) => {
+                self.objects[spell].cast.set_offspring(true);
+                self.flow = self.after_offspring(spell);
+            }
+            (Flow::ChoosingOffspring { spell }, Choice::Decline) => {
+                self.flow = self.after_offspring(spell);
+            }
+            // CR 702.166a: the sacrifice is an additional cost, paid with
+            // the others; the spell is bargained from here on, for its
+            // cost and text (CR 601.2f).
+            (Flow::ChoosingBargain { spell }, Choice::Sacrifice(s)) => {
+                self.objects[spell].cast.set_bargained(true);
+                self.bargains.push((spell, s));
+                self.flow = self.after_bargain(spell);
+            }
+            (Flow::ChoosingBargain { spell }, Choice::Decline) => {
+                self.flow = self.after_bargain(spell);
             }
             (
                 Flow::Priority,
@@ -1556,6 +1614,26 @@ impl GameState {
     }
 
     fn after_buyback(&self, spell: ObjId) -> Flow {
+        if self.offspring_payable(spell) {
+            Flow::ChoosingOffspring { spell }
+        } else {
+            self.after_offspring(spell)
+        }
+    }
+
+    fn after_offspring(&self, spell: ObjId) -> Flow {
+        let o = &self.objects[spell];
+        if self.pool.get(o.def).bargain
+            && !o.cast.flashback()
+            && !self.bargain_candidates(o.controller).is_empty()
+        {
+            Flow::ChoosingBargain { spell }
+        } else {
+            self.after_bargain(spell)
+        }
+    }
+
+    fn after_bargain(&self, spell: ObjId) -> Flow {
         let def = self.pool.get(self.objects[spell].def);
         if def.mana_cost.has_x() || def.additional.discard_x {
             Flow::ChoosingX { spell }
@@ -1711,6 +1789,7 @@ impl GameState {
             };
             self.x_values.retain(|(id, _)| *id != spell);
             self.divisions.retain(|(id, _)| *id != spell);
+            self.bargains.retain(|(id, _)| *id != spell);
             let card = self.move_object(spell, back, false);
             self.give_priority(controller);
             self.undone_cast = Some((card, self.version));
@@ -1834,6 +1913,7 @@ impl GameState {
             self.loyalty_activated.clear();
             self.activated_once.clear();
             self.attackers_this_turn.clear();
+            self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);

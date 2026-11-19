@@ -1,0 +1,9 @@
+card "Venomsac Lagac" {
+  oracle_id 2fac62be-dcbe-409f-a362-f0e519ec14a9
+  cost {1}{G}
+  type Creature — Lizard Mount
+  pt 2/1
+  keywords deathtouch
+  triggered whenever this attacks while saddled: this gets +0/+3
+  saddle 2
+}

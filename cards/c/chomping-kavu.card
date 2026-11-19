@@ -1,0 +1,8 @@
+card "Chomping Kavu" {
+  oracle_id 20a362c3-d278-437f-881c-e7d9fe78fc2d
+  cost {3}{G}
+  type Creature — Kavu
+  pt 3/3
+  backup 1
+  can't be blocked by creature with power 2 or less
+}

@@ -671,6 +671,34 @@ pub enum Mechanic {
     Megamorph(ManaCost),
     /// CR 702.168: morph with ward {2} while face down.
     Disguise(ManaCost),
+    /// CR 702.49: `ninjutsu {1}{U}`: from the hand, return an unblocked
+    /// attacker you control; this card enters tapped and attacking.
+    Ninjutsu(ManaCost),
+    /// CR 702.97: `scavenge {5}{G}`: exile it from your graveyard as a
+    /// sorcery; +1/+1 counters equal to its power on target creature.
+    Scavenge(ManaCost),
+    /// CR 702.109: `dash {2}{R}`: an alternative cost; haste, and back to
+    /// its owner's hand at the next end step.
+    Dash(ManaCost),
+    /// CR 702.128: `embalm {W}`: exile it from your graveyard as a
+    /// sorcery; a token copy that's a white Zombie with no mana cost.
+    Embalm(ManaCost),
+    /// CR 702.129: `eternalize {4}{U}{U}`: the same, a 4/4 black Zombie.
+    Eternalize(ManaCost),
+    /// CR 702.165: `backup 1`: as it enters, N +1/+1 counters on target
+    /// creature; another creature also gains the abilities written after
+    /// this line until end of turn.
+    Backup(u32),
+    /// CR 702.175: `offspring {1}`: an optional additional cost; if paid,
+    /// a 1/1 token copy as it enters.
+    Offspring(ManaCost),
+    /// CR 702.171: `saddle 2`: "Tap any number of other creatures you
+    /// control with total power N or more: This Mount becomes saddled until
+    /// end of turn. Saddle only as a sorcery."
+    Saddle(u32),
+    /// CR 702.166: `bargain`: "You may sacrifice an artifact, enchantment,
+    /// or token as you cast this spell."
+    Bargain,
 }
 
 /// A blocking restriction on this creature.
@@ -769,6 +797,12 @@ pub enum StaticCond {
     Escaped,
     /// Cast with kicker (internal: `kicked with`).
     Kicked,
+    /// `bargained`: "this spell was bargained" (an instant or sorcery),
+    /// "it was bargained", "it's bargained" (a cost) (CR 702.166b).
+    Bargained,
+    /// `saddled`: "it's saddled"; after a trigger, `while saddled`
+    /// ("Whenever this creature attacks while saddled, ...", CR 702.171b).
+    Saddled,
     /// `land entered this turn` (landfall): "you had a land enter the
     /// battlefield under your control this turn".
     LandEnteredThisTurn,

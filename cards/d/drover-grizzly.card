@@ -1,0 +1,8 @@
+card "Drover Grizzly" {
+  oracle_id 290fe09e-04ab-48d1-a60e-db47ea8c4d00
+  cost {2}{G}
+  type Creature — Bear Mount
+  pt 4/2
+  triggered whenever this attacks while saddled: each creature you control gains trample
+  saddle 1
+}

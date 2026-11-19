@@ -1,0 +1,7 @@
+card "Dokuchi Shadow-Walker" {
+  oracle_id 1e79b7bf-8a2d-4585-81d0-755dce78a4ea
+  cost {4}{B}{B}
+  type Creature — Ogre Ninja
+  pt 5/5
+  ninjutsu {3}{B}
+}

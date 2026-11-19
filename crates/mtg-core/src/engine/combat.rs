@@ -476,6 +476,25 @@ impl GameState {
         self.give_priority(self.active_player);
     }
 
+    /// A creature put onto the battlefield attacking (CR 506.3a): it was
+    /// never declared as an attacker, so "whenever ... attacks" doesn't
+    /// see it (CR 508.4); after blockers are declared it is unblocked.
+    pub(super) fn enter_attacking(&mut self, id: ObjId, target: Target) {
+        let Some(c) = self.combat.as_mut() else {
+            return;
+        };
+        if !self.objects.contains_key(id) {
+            return;
+        }
+        c.attackers.push(Attacker {
+            id,
+            attacking: target,
+            blockers: SmallVec::new(),
+            blocked: false,
+        });
+        self.combat_bump();
+    }
+
     pub(super) fn finish_blocks(&mut self, mut blocks: Vec<(ObjId, ObjId)>) {
         // CR 506.5: "can't block alone".
         if self.blocks_alone_illegally(&blocks) {

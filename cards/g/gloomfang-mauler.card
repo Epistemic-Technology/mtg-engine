@@ -1,0 +1,9 @@
+card "Gloomfang Mauler" {
+  oracle_id 5437f560-7f61-4326-be8e-15d74bf4e6ec
+  cost {5}{B}{B}
+  type Creature — Nightmare
+  pt 5/5
+  swampcycling {2}
+  backup 2
+  keyword menace
+}

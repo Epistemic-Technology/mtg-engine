@@ -268,7 +268,7 @@ impl GameState {
             // CR 702.62a: a creature cast by suspend has haste.
             alt: if old.zone == Zone::Stack
                 && to == Zone::Battlefield
-                && matches!(old.alt, AltCast::Suspend | AltCast::Escape)
+                && matches!(old.alt, AltCast::Suspend | AltCast::Escape | AltCast::Dash)
             {
                 old.alt
             } else {
@@ -298,6 +298,22 @@ impl GameState {
                 from: old.zone,
                 to,
                 owner: old.owner,
+            });
+        }
+        // CR 702.109a: a dashed permanent returns to its owner's hand at
+        // the beginning of the next end step.
+        if to == Zone::Battlefield && old.zone == Zone::Stack && old.alt == AltCast::Dash {
+            let ability = self.pool.builtin(crate::card::Builtin::DashReturn);
+            self.delayed_triggers.push(crate::state::DelayedTrigger {
+                controller,
+                ability: crate::state::StackAbility {
+                    ability,
+                    source: new,
+                    def,
+                    trigger_obj: Some(new),
+                    trigger_player: None,
+                    trigger_amount: 0,
+                },
             });
         }
         if old.zone == Zone::Battlefield {

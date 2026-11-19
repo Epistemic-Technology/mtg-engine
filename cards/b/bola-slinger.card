@@ -1,0 +1,8 @@
+card "Bola Slinger" {
+  oracle_id 6ff995f9-080d-4316-8fbe-39bf195db91b
+  cost {3}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  backup 1
+  triggered whenever this attacks: tap target artifact or creature an opponent controls
+}

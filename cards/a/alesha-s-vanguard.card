@@ -1,0 +1,7 @@
+card "Alesha's Vanguard" {
+  oracle_id be662217-41c2-4caa-89da-ae7f6f817c34
+  cost {3}{B}
+  type Creature — Orc Warrior
+  pt 3/3
+  dash {2}{B}
+}

@@ -45,6 +45,19 @@ impl GameState {
                         )
                         && self.targets_available(p, &ab.targets, Some(*id))
                     {
+                        // CR 702.49a: one option per unblocked attacker
+                        // that could be returned.
+                        if ab.keyword == Some(ActivatedKeyword::Ninjutsu) {
+                            for c in self.unblocked_attackers(p) {
+                                options.push(Choice::Activate {
+                                    source: *id,
+                                    ability: *a,
+                                    sacrifice: Some(c),
+                                    discard: None,
+                                });
+                            }
+                            continue;
+                        }
                         options.push(Choice::Activate {
                             source: *id,
                             ability: *a,
@@ -95,6 +108,19 @@ impl GameState {
                 && self.targets_available(p, def.cast_targets(), Some(*id))
             {
                 options.push(Choice::CastEvoke(*id));
+            }
+            // CR 702.109a: cast for the dash cost instead.
+            if let Some(dash) = &def.dash
+                && (sorcery_timing || def.keywords.contains(Keyword::Flash))
+                && self.payable_for(
+                    p,
+                    &sources,
+                    &dash.requirements(0),
+                    Spend::Spell(&self.printed(self.objects[*id].def)),
+                )
+                && self.targets_available(p, def.cast_targets(), Some(*id))
+            {
+                options.push(Choice::CastDash(*id));
             }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
@@ -956,6 +982,19 @@ impl GameState {
         self.spell_payable(o.controller, spell, &req)
     }
 
+    /// Whether `spell` (being cast) has an offspring cost its caster could
+    /// pay on top of its cost (CR 702.175a).
+    pub(super) fn offspring_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let Some(c) = &def.offspring else {
+            return false;
+        };
+        let mut req = self.spell_requirements(spell, 0);
+        req.add(&c.requirements(0));
+        self.spell_payable(o.controller, spell, &req)
+    }
+
     /// The mana a spell being cast costs with X fixed: its mana cost (or
     /// its flashback cost, CR 702.34a) plus its kicker if kicked.
     pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
@@ -973,6 +1012,9 @@ impl GameState {
             }
             (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
                 def.escape.as_ref().expect("checked").0.requirements(x)
+            }
+            (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
+                def.dash.as_ref().expect("checked").requirements(x)
             }
             (_, false) if o.cast.evoked() && def.evoke.is_some() => {
                 def.evoke.as_ref().expect("checked").requirements(x)
@@ -1005,6 +1047,11 @@ impl GameState {
         }
         if o.cast.bought_back()
             && let Some(b) = &def.buyback
+        {
+            req.add(&b.requirements(0));
+        }
+        if o.cast.offspring()
+            && let Some(b) = &def.offspring
         {
             req.add(&b.requirements(0));
         }
@@ -1341,6 +1388,28 @@ impl GameState {
                     }
                 }
             }
+        }
+    }
+
+    /// CR 509.1h: `p`'s unblocked attacking creatures; none until
+    /// blockers are declared (before then, attackers are neither blocked
+    /// nor unblocked).
+    pub(super) fn unblocked_attackers(&self, p: PlayerId) -> SmallVec<[ObjId; 4]> {
+        let declared = matches!(
+            self.step,
+            crate::turn::Step::DeclareBlockers
+                | crate::turn::Step::FirstStrikeDamage
+                | crate::turn::Step::CombatDamage
+                | crate::turn::Step::EndOfCombat
+        );
+        match &self.combat {
+            Some(cb) if declared => cb
+                .attackers
+                .iter()
+                .filter(|a| !a.blocked && self.objects.get(a.id).is_some_and(|o| o.controller == p))
+                .map(|a| a.id)
+                .collect(),
+            _ => SmallVec::new(),
         }
     }
 
@@ -1698,6 +1767,21 @@ impl GameState {
                 self.tap(c);
             }
         }
+        // CR 702.49a, c: return the unblocked attacker; the Ninja will
+        // attack what it was attacking.
+        if ab.keyword == Some(ActivatedKeyword::Ninjutsu)
+            && let Some(s) = sacrifice
+        {
+            // An earlier activation that never resolved (countered) left
+            // its entry behind.
+            self.ninjutsu.retain(|(c, _)| *c != sa.source);
+            if let Some(at) = self.combat.as_ref().and_then(|cb| cb.attacker(s)) {
+                self.ninjutsu.push((sa.source, at.attacking));
+            }
+            if self.objects.contains_key(s) {
+                self.move_object(s, Zone::Hand, false);
+            }
+        }
         if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
             self.move_object(sa.source, Zone::Exile, false);
         }
@@ -2037,7 +2121,7 @@ impl GameState {
 
     /// Whether `p` could pay `req` to cast `card` (its current
     /// characteristics), restricted mana included.
-    fn spell_payable(&self, p: PlayerId, card: ObjId, req: &ManaRequirement) -> bool {
+    pub(super) fn spell_payable(&self, p: PlayerId, card: ObjId, req: &ManaRequirement) -> bool {
         if self.restricted_mana_sources == 0 {
             return self.can_pay(p, req);
         }
@@ -2305,6 +2389,19 @@ impl GameState {
                 s.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
             }
         });
+        // CR 702.166a: bargain's sacrifice.
+        if !self.bargains.is_empty()
+            && let Some(i) = self.bargains.iter().position(|(s, _)| *s == spell)
+        {
+            let (_, s) = self.bargains.remove(i);
+            if self
+                .objects
+                .get(s)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+            {
+                self.sacrifice(s);
+            }
+        }
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
         self.cast_this_turn.push((caster, def_ref));
@@ -4473,6 +4570,46 @@ impl GameState {
                 {
                     o.echo_due = false;
                 }
+            }
+            Effect::BecomeSaddled => {
+                if let Some(id) = self.current_object(ctx.source)
+                    && self.objects[id].zone == Zone::Battlefield
+                    && !self.saddled.contains(&id)
+                {
+                    self.saddled.push(id);
+                    self.bump();
+                }
+            }
+            Effect::EnterAttacking => {
+                let at = self
+                    .ninjutsu
+                    .iter()
+                    .position(|(s, _)| *s == ctx.source)
+                    .map(|i| self.ninjutsu.remove(i).1);
+                // CR 702.49: the card enters only if it's still in the hand.
+                let Some(o) = self.objects.get(ctx.source) else {
+                    return;
+                };
+                if o.zone != Zone::Hand {
+                    return;
+                }
+                let new = self.put_onto_battlefield_with(
+                    ctx.source,
+                    ctx.controller,
+                    super::replace::Enter {
+                        tapped: true,
+                        counters: None,
+                    },
+                );
+                ctx.created = Some(new);
+                let defender = at.unwrap_or_else(|| {
+                    Target::Player(
+                        self.players_in_game()
+                            .find(|q| *q != ctx.controller)
+                            .unwrap_or(ctx.controller),
+                    )
+                });
+                self.enter_attacking(new, defender);
             }
             Effect::CreateTokenCopy { of, except } => {
                 let x = except.then(|| {

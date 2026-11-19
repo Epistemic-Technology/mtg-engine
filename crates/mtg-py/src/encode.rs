@@ -14,7 +14,7 @@ use mtg_core::turn::Step;
 /// Steps of a turn (CR 500.1), one-hot.
 pub const STEPS: usize = 13;
 /// Decision kinds, one-hot (with room to grow without changing the layout).
-pub const DECISION_KINDS: usize = 32;
+pub const DECISION_KINDS: usize = 40;
 /// Option kinds, one-hot (likewise).
 pub const CHOICE_KINDS: usize = 40;
 /// Features per card slot.
@@ -81,10 +81,12 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Divide { .. } => 29,
         DecisionKind::ChooseCard => 30,
         DecisionKind::ChooseOption { .. } => 31,
+        DecisionKind::Offspring { .. } => 32,
+        DecisionKind::Bargain { .. } => 33,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 32] = [
+pub const DECISION_KIND_NAMES: [&str; 34] = [
     "mulligan",
     "bottom",
     "priority",
@@ -117,6 +119,8 @@ pub const DECISION_KIND_NAMES: [&str; 32] = [
     "divide",
     "choose_card",
     "choose_option",
+    "offspring",
+    "bargain",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -162,10 +166,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Foretell(_) => 34,
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
+        Choice::CastDash(_) => 37,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 37] = [
+pub const CHOICE_KIND_NAMES: [&str; 38] = [
     "keep",
     "mulligan",
     "bottom",
@@ -203,6 +208,7 @@ pub const CHOICE_KIND_NAMES: [&str; 37] = [
     "foretell",
     "subtype",
     "divide",
+    "cast_dash",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -349,6 +355,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::Sacrifice(id)
             | Choice::TurnFaceUp(id)
             | Choice::CastEvoke(id)
+            | Choice::CastDash(id)
             | Choice::Suspend(id)
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),

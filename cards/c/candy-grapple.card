@@ -1,0 +1,7 @@
+card "Candy Grapple" {
+  oracle_id 9588a7fd-bbe5-4a81-9a7e-d8e8f6c0537d
+  cost {1}{B}
+  type Instant
+  bargain
+  spell: target creature gets -3/-3; if bargained, that target 1 gets -5/-5 instead
+}

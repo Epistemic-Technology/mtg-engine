@@ -76,6 +76,8 @@ pub fn add_card(
             many: None,
             implied: Vec::new(),
             implied_used: std::rc::Rc::default(),
+            scavenge: None,
+            token: None,
         };
         let def = c.card()?;
         let r = pool.add(def);
@@ -84,6 +86,28 @@ pub fn add_card(
         }
         faces.push(r);
     }
+    // The token a keyword makes of the card (embalm, eternalize,
+    // offspring): its own definition, under a key, named like the card.
+    let token = match derived_token(card) {
+        Some(t) => {
+            let mut c = Compiler {
+                pool,
+                card: &t,
+                lookup: by_name,
+                groups: Vec::new(),
+                many: None,
+                implied: Vec::new(),
+                implied_used: std::rc::Rc::default(),
+                scavenge: None,
+                token: None,
+            };
+            let def = c.card()?;
+            let r = pool.add(def);
+            pool.alias(&t.name, r);
+            Some(r)
+        }
+        None => None,
+    };
     let mut c = Compiler {
         pool,
         card,
@@ -92,6 +116,8 @@ pub fn add_card(
         many: None,
         implied: Vec::new(),
         implied_used: std::rc::Rc::default(),
+        scavenge: None,
+        token,
     };
     let mut def = c.card()?;
     if !faces.is_empty() {
@@ -145,6 +171,11 @@ struct Compiler<'a> {
     implied: Vec<Option<CoreChoiceKind>>,
     /// Set as an effect's recipient uses such a group.
     implied_used: std::rc::Rc<std::cell::Cell<Option<CoreChoiceKind>>>,
+    /// Scavenge's count (the card's power), once added to the counts.
+    scavenge: Option<u8>,
+    /// The token embalm, eternalize, or offspring creates, compiled
+    /// before the card (`derived_token`).
+    token: Option<CardRef>,
 }
 
 impl Compiler<'_> {
@@ -244,6 +275,21 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Disguise(cost)) => {
                     b = b.morph(cost.clone(), mtg_core::card::MorphKind::Disguise);
                 }
+                Ability::Mechanic(Mechanic::Dash(cost)) => {
+                    b = b.dash(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Offspring(cost)) => {
+                    b = b.offspring(cost.clone());
+                }
+                Ability::Mechanic(Mechanic::Bargain) => {
+                    b = b.bargain();
+                }
+                Ability::Mechanic(Mechanic::Scavenge(_)) => {
+                    // CR 702.97a: "equal to this card's power", as the card
+                    // last existed in the graveyard.
+                    counts.push(mtg_core::card::CountExpr::SourcePower);
+                    self.scavenge = u8::try_from(counts.len() - 1).ok();
+                }
                 Ability::Affinity(f) => {
                     let mut f = self.filter(f);
                     f.who = Some(mtg_core::card::Who::You);
@@ -333,6 +379,8 @@ impl Compiler<'_> {
                             | Mechanic::Morph(_)
                             | Mechanic::Megamorph(_)
                             | Mechanic::Disguise(_)
+                            | Mechanic::Dash(_)
+                            | Mechanic::Bargain
                     )
             ) {
                 continue;
@@ -551,6 +599,8 @@ impl Compiler<'_> {
             StaticCond::OpponentDamagedThisTurn => StaticCondition::OpponentDamagedThisTurn,
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
+            StaticCond::Bargained => StaticCondition::Bargained,
+            StaticCond::Saddled => StaticCondition::Saddled,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
             StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
             StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
@@ -1554,6 +1604,91 @@ impl Compiler<'_> {
         }
     }
 
+    /// CR 702.165a: "When this creature enters, put N +1/+1 counters on
+    /// target creature. If that's another creature, it gains the following
+    /// abilities until end of turn." The following abilities are those
+    /// written after the `backup` line (CR 702.165b: printed below it).
+    fn backup(&mut self, a: &Ability, n: u32) -> Result<AbilityDef, CompileError> {
+        let card = self.card;
+        let at = card
+            .abilities
+            .iter()
+            .position(|x| std::ptr::eq(x, a))
+            .map_or(card.abilities.len(), |i| i + 1);
+        let mut keywords = KeywordSet::NONE;
+        let mut grants = Vec::new();
+        for x in &card.abilities[at..] {
+            match x {
+                Ability::Keyword(k) => keywords = keywords.with(*k),
+                other => {
+                    let def = self.ability(other)?;
+                    let id = self.pool.register_ability(def);
+                    grants.push(CoreEffect::GrantAbility {
+                        ability: id,
+                        to: CoreRecipient::Target(0),
+                    });
+                }
+            }
+        }
+        if keywords != KeywordSet::NONE {
+            grants.insert(
+                0,
+                CoreEffect::Grant {
+                    keywords,
+                    to: CoreRecipient::Target(0),
+                },
+            );
+        }
+        let mut effects = vec![CoreEffect::AddCounters {
+            kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+            count: Num::N(n),
+            to: CoreRecipient::Target(0),
+        }];
+        if !grants.is_empty() {
+            effects.push(CoreEffect::IfTarget {
+                n: 0,
+                filter: Box::new(ObjFilter {
+                    relation: Relation::Other,
+                    ..ObjFilter::default()
+                }),
+                then: grants,
+            });
+        }
+        Ok(AbilityDef::Triggered(TriggeredAbility {
+            trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+            condition: None,
+            targets: vec![TargetSpec::Creature],
+            effects,
+        }))
+    }
+
+    /// A keyword's activated ability, compiled directly (ninjutsu from the
+    /// hand; scavenge, embalm, eternalize from the graveyard as a sorcery).
+    fn keyword_ability(
+        &mut self,
+        a: &Ability,
+        cost: CoreCost,
+        targets: Vec<TargetSpec>,
+        effects: Vec<CoreEffect>,
+        keyword: Option<mtg_core::card::ActivatedKeyword>,
+    ) -> AbilityDef {
+        let from_hand = keyword.is_some();
+        AbilityDef::Activated(ActivatedAbility {
+            from_graveyard: cost.exile_self,
+            sorcery_speed: cost.exile_self,
+            cost,
+            targets,
+            effects,
+            per_turn: 0,
+            conditions: Vec::new(),
+            once_ever: false,
+            from_hand,
+            cycling: false,
+            keyword,
+            text: render::ability_text(self.card, a, self.lookup),
+        })
+    }
+
     #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
         self.many = None;
@@ -1764,8 +1899,106 @@ impl Compiler<'_> {
                 | Mechanic::Escape(..)
                 | Mechanic::Morph(_)
                 | Mechanic::Megamorph(_)
-                | Mechanic::Disguise(_) => {
+                | Mechanic::Disguise(_)
+                | Mechanic::Dash(_)
+                | Mechanic::Bargain => {
                     return self.err("a cost of the card, not an ability");
+                }
+                // CR 702.175a: "When this permanent enters, if its
+                // offspring cost was paid, create a token that's a copy of
+                // it, except it's 1/1."
+                Mechanic::Offspring(_) => {
+                    let Some(token) = self.token else {
+                        return self.err("the token is missing");
+                    };
+                    let cond = self.pool.intern_condition(StaticCondition::OffspringPaid);
+                    AbilityDef::Triggered(TriggeredAbility {
+                        trigger: TriggerSpec::Enters(CoreTriggerObj::This),
+                        condition: Some(mtg_core::card::Condition::Static(cond)),
+                        targets: Vec::new(),
+                        effects: vec![CoreEffect::CreateToken {
+                            token,
+                            count: Num::N(1),
+                            who: CoreRecipient::You,
+                            tapped: false,
+                        }],
+                    })
+                }
+                Mechanic::Ninjutsu(cost) => self.keyword_ability(
+                    a,
+                    CoreCost {
+                        mana: cost.clone(),
+                        ..CoreCost::default()
+                    },
+                    Vec::new(),
+                    vec![CoreEffect::EnterAttacking],
+                    Some(mtg_core::card::ActivatedKeyword::Ninjutsu),
+                ),
+                // CR 702.97a: "[Cost], Exile this card from your graveyard:
+                // Put a number of +1/+1 counters equal to the power of the
+                // card you exiled on target creature. Activate only as a
+                // sorcery."
+                Mechanic::Scavenge(cost) => {
+                    let Some(i) = self.scavenge else {
+                        return self.err("scavenge's count is missing");
+                    };
+                    self.keyword_ability(
+                        a,
+                        CoreCost {
+                            mana: cost.clone(),
+                            exile_self: true,
+                            ..CoreCost::default()
+                        },
+                        vec![TargetSpec::Creature],
+                        vec![CoreEffect::AddCounters {
+                            kind: mtg_core::card::CounterKind::PlusOnePlusOne,
+                            count: Num::Count(i),
+                            to: CoreRecipient::Target(0),
+                        }],
+                        None,
+                    )
+                }
+                Mechanic::Backup(n) => self.backup(a, *n)?,
+                Mechanic::Saddle(n) => AbilityDef::Activated(ActivatedAbility {
+                    cost: CoreCost {
+                        crew: *n,
+                        ..CoreCost::default()
+                    },
+                    targets: Vec::new(),
+                    effects: vec![CoreEffect::BecomeSaddled],
+                    sorcery_speed: true,
+                    per_turn: 0,
+                    conditions: Vec::new(),
+                    once_ever: false,
+                    from_hand: false,
+                    cycling: false,
+                    from_graveyard: false,
+                    keyword: None,
+                    text: render::ability_text(self.card, a, self.lookup),
+                }),
+                // CR 702.128a, 702.129a: "[Cost], Exile this card from your
+                // graveyard: Create a token that's a copy of it, except
+                // ... Activate only as a sorcery."
+                Mechanic::Embalm(cost) | Mechanic::Eternalize(cost) => {
+                    let Some(token) = self.token else {
+                        return self.err("the token is missing");
+                    };
+                    self.keyword_ability(
+                        a,
+                        CoreCost {
+                            mana: cost.clone(),
+                            exile_self: true,
+                            ..CoreCost::default()
+                        },
+                        Vec::new(),
+                        vec![CoreEffect::CreateToken {
+                            token,
+                            count: Num::N(1),
+                            who: CoreRecipient::You,
+                            tapped: false,
+                        }],
+                        None,
+                    )
                 }
                 other => {
                     let expanded = expand_mechanic(other, self.card.pt);
@@ -1985,8 +2218,57 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
         | Mechanic::Buyback(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)
-        | Mechanic::Disguise(_) => unreachable!("not an expansion"),
+        | Mechanic::Disguise(_)
+        | Mechanic::Ninjutsu(_)
+        | Mechanic::Scavenge(_)
+        | Mechanic::Dash(_)
+        | Mechanic::Embalm(_)
+        | Mechanic::Eternalize(_)
+        | Mechanic::Backup(_)
+        | Mechanic::Offspring(_)
+        | Mechanic::Bargain
+        | Mechanic::Saddle(_) => unreachable!("not an expansion"),
     }
+}
+
+/// The token embalm or eternalize (CR 702.128a, 702.129a) makes of the
+/// card: a copy of it, except a white (black) Zombie with no mana cost
+/// (eternalize: 4/4). The token's copiable values are these (CR 707.9b),
+/// so it is a definition of its own, keyed `"<name> (token)"`.
+fn derived_token(card: &Card) -> Option<Card> {
+    let (color, pt) = card.abilities.iter().find_map(|a| match a {
+        Ability::Mechanic(Mechanic::Embalm(_)) => Some((Some(Color::White), None)),
+        Ability::Mechanic(Mechanic::Eternalize(_)) => Some((Some(Color::Black), Some((4, 4)))),
+        Ability::Mechanic(Mechanic::Offspring(_)) => Some((None, Some((1, 1)))),
+        _ => None,
+    })?;
+    let mut t = card.clone();
+    t.kind = Kind::Token;
+    t.display_name = Some(card.name.clone());
+    t.name = format!("{} (token)", card.name);
+    t.oracle_id = None;
+    if let Some(color) = color {
+        t.cost = mtg_core::mana::ManaCost::default();
+        t.color_indicator = Some(vec![color]);
+        if !t.subtypes.iter().any(|s| s == "Zombie") {
+            t.subtypes.insert(0, "Zombie".to_string());
+        }
+    }
+    if pt.is_some() {
+        t.pt = pt;
+    }
+    // A token in a graveyard ceases to exist (CR 704.5d), and a token copy
+    // was never cast with offspring: the keyword that made it does nothing
+    // on it.
+    t.abilities.retain(|a| {
+        !matches!(
+            a,
+            Ability::Mechanic(
+                Mechanic::Embalm(_) | Mechanic::Eternalize(_) | Mechanic::Offspring(_)
+            )
+        )
+    });
+    Some(t)
 }
 
 /// An ability without its ability word.

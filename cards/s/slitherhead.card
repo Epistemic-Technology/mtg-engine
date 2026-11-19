@@ -1,0 +1,7 @@
+card "Slitherhead" {
+  oracle_id 4b6966f6-052f-4d1d-a3bf-1d3cc91c71d4
+  cost {B/G}
+  type Creature — Plant Zombie
+  pt 1/1
+  scavenge {0}
+}

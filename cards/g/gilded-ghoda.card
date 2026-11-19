@@ -1,0 +1,8 @@
+card "Gilded Ghoda" {
+  oracle_id 5f4939dc-6e87-47fa-8287-9da60d4b5db2
+  cost {1}{R}
+  type Creature — Horse Mount
+  pt 2/2
+  triggered whenever this attacks while saddled: create 1 "Treasure"
+  saddle 1
+}

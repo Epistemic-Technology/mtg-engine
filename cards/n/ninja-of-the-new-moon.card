@@ -1,0 +1,7 @@
+card "Ninja of the New Moon" {
+  oracle_id bf44b9b7-180c-4d8c-a410-9561e4c8fb9b
+  cost {3}{B}{B}
+  type Creature — Spirit Ninja
+  pt 6/3
+  ninjutsu {3}{B}
+}

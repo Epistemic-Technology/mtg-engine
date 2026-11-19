@@ -1,0 +1,8 @@
+card "Hangar Scrounger" {
+  oracle_id d1b74fb9-8ef3-40be-bc79-45ffb4c597eb
+  cost {2}{R}
+  type Creature — Dwarf Pilot
+  pt 2/1
+  backup 1
+  triggered whenever this becomes tapped: you may discard 1 cards; if you do, draw 1 cards
+}

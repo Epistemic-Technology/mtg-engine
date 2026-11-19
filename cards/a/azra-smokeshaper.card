@@ -1,0 +1,8 @@
+card "Azra Smokeshaper" {
+  oracle_id 6f6e0abb-18d0-4a15-9b21-0a72542998ac
+  cost {3}{B}
+  type Creature — Azra Ninja
+  pt 3/3
+  ninjutsu {1}{B}
+  triggered when this enters: target creature you control gains indestructible
+}

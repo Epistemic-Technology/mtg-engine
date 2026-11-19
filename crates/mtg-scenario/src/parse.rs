@@ -495,6 +495,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let dashed = if line.peek_ident("dashed") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let face_down = if line.peek_ident("face_down") {
                 line.pos += 1;
                 true
@@ -572,6 +578,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     name,
                     from_graveyard,
                     evoked,
+                    dashed,
                     face_down,
                     kicked,
                     mode,

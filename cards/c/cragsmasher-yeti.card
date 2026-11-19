@@ -1,0 +1,9 @@
+card "Cragsmasher Yeti" {
+  oracle_id 57120486-0316-4591-abca-438ab8283d3f
+  cost {4}{R}{R}
+  type Creature — Yeti
+  pt 4/2
+  mountaincycling {2}
+  backup 2
+  keyword trample
+}

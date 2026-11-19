@@ -1,0 +1,8 @@
+card "Moonblade Shinobi" {
+  oracle_id 046e25ee-c96d-4cff-93be-f7e3379d713c
+  cost {3}{U}
+  type Creature — Human Ninja
+  pt 3/2
+  ninjutsu {2}{U}
+  triggered whenever this deals combat damage to a player: create 1 "1/1 blue Illusion creature with flying"
+}

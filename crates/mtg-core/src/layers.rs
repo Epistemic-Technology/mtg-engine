@@ -127,7 +127,10 @@ fn compute(state: &GameState, entering: Option<(ObjId, PlayerId)>) -> Derived {
         let o = &state.objects[*id];
         o.counters.is_empty()
             && o.except.is_none()
-            && o.alt != crate::state::AltCast::Suspend
+            && !matches!(
+                o.alt,
+                crate::state::AltCast::Suspend | crate::state::AltCast::Dash
+            )
             && !state.pool.get(o.def).has_static()
     };
     let simple = state.effects.is_empty()
@@ -376,6 +379,15 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         }
         // Fixed as the permanent enters (CR 702.33c), so no cache bump.
         StaticCondition::Kicked => state.objects.get(source).is_some_and(|o| o.cast.kicked()),
+        StaticCondition::Bargained => state
+            .objects
+            .get(source)
+            .is_some_and(|o| o.cast.bargained()),
+        StaticCondition::Saddled => state.saddled.contains(&source),
+        StaticCondition::OffspringPaid => state
+            .objects
+            .get(source)
+            .is_some_and(|o| o.cast.offspring()),
         StaticCondition::CardsDrawnThisTurn(n) => {
             u32::from(state.drawn_this_turn[you.index().min(3)]) >= *n
         }
@@ -902,8 +914,12 @@ fn apply_counters(work: &mut Work<'_>, layer: Layer) {
                     work.chars[i].keywords = work.chars[i].keywords.with(kw);
                 }
             }
-            // CR 702.62a: a creature cast by suspend has haste.
-            if o.alt == crate::state::AltCast::Suspend {
+            // CR 702.62a: a creature cast by suspend has haste; CR
+            // 702.109a: so does a dashed one.
+            if matches!(
+                o.alt,
+                crate::state::AltCast::Suspend | crate::state::AltCast::Dash
+            ) {
                 work.chars[i].keywords = work.chars[i].keywords.with(crate::card::Keyword::Haste);
             }
         }

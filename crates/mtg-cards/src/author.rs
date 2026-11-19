@@ -61,7 +61,7 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 67] = [
+const TEMPLATED_TAGS: [&str; 76] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -130,6 +130,15 @@ const TEMPLATED_TAGS: [&str; 67] = [
     "Boast",
     "Exhaust",
     "Power-up",
+    "Ninjutsu",
+    "Scavenge",
+    "Dash",
+    "Embalm",
+    "Eternalize",
+    "Backup",
+    "Offspring",
+    "Bargain",
+    "Saddle",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -1834,6 +1843,9 @@ fn static_condition(s: &str) -> Option<String> {
         "it's attacking" | "this creature is attacking" => return Some("attacking".to_string()),
         "it's enchanted" | "this creature is enchanted" => return Some("enchanted".to_string()),
         "it's equipped" | "this creature is equipped" => return Some("equipped".to_string()),
+        "it's bargained" | "it was bargained" | "this spell was bargained" => {
+            return Some("bargained".to_string());
+        }
         _ => {}
     }
     if let Some(c) = Regex::new(r"^a player has (\d+) or less life$")
@@ -2457,17 +2469,18 @@ impl Builder<'_> {
             self.statements.push(format!("hand size{who} {sign}{n}"));
             return Ok(());
         }
-        if let Some(c) =
-            Regex::new(r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular) (\d+)$")
-                .unwrap()
-                .captures(line)
+        if let Some(c) = Regex::new(
+            r"^(Bushido|Soulshift|Afflict|Toxic|Crew|Bloodthirst|Modular|Backup|Saddle) (\d+)$",
+        )
+        .unwrap()
+        .captures(line)
         {
             self.statements
                 .push(format!("{} {}", cap(&c, 1).to_lowercase(), cap(&c, 2)));
             return Ok(());
         }
         if let Some(c) =
-            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine) ((?:\{[0-9WUBRGCX/]+\})+)$")
+            Regex::new(r"^(Ward|Echo|Unearth|Buyback|Outlast|Morph|Megamorph|Disguise|Evoke|Madness|Foretell|Entwine|Ninjutsu|Scavenge|Dash|Embalm|Eternalize|Offspring) ((?:\{[0-9WUBRGCX/]+\})+)$")
                 .unwrap()
                 .captures(line)
         {
@@ -2528,6 +2541,10 @@ impl Builder<'_> {
         {
             self.statements
                 .push(format!("suspend {} {}", cap(&c, 1), cap(&c, 2)));
+            return Ok(());
+        }
+        if line == "Bargain" {
+            self.statements.push("bargain".to_string());
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
@@ -2777,9 +2794,17 @@ impl Builder<'_> {
             let Some((head, rest)) = line.split_once(", ") else {
                 return Err(Skip::Sentence(line.to_string()));
             };
-            let Some(trigger) = trigger_text(head) else {
+            // "Whenever this creature attacks while saddled" (CR 702.171b).
+            let (head, saddled) = match head.strip_suffix(" while saddled") {
+                Some(h) => (h, true),
+                None => (head, false),
+            };
+            let Some(mut trigger) = trigger_text(head) else {
                 return Err(Skip::Sentence(line.to_string()));
             };
+            if saddled {
+                trigger.push_str(" while saddled");
+            }
             let (condition, rest) = if let Some(r) = rest
                 .strip_prefix("if this creature is untapped, ")
                 .or_else(|| rest.strip_prefix("if this artifact is untapped, "))

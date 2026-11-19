@@ -1,0 +1,7 @@
+card "Mardu Scout" {
+  oracle_id c18ab011-c5e0-4174-b623-d89e4d745ce6
+  cost {R}{R}
+  type Creature — Goblin Scout
+  pt 3/1
+  dash {1}{R}
+}

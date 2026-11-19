@@ -1,0 +1,8 @@
+card "Brightfield Mustang" {
+  oracle_id 1b05e355-38a5-4307-9d8b-e99ec30f8ed3
+  cost {3}{W}
+  type Creature — Horse Mount
+  pt 3/3
+  triggered whenever this attacks while saddled: untap this and put 1 +1/+1 counter on this
+  saddle 1
+}
