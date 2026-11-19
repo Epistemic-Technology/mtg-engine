@@ -60,8 +60,15 @@ pub fn random_deck(pool: &CardPool, seed: u64) -> Vec<CardRef> {
         b += 1;
     }
     let colors = [Color::ALL[a], Color::ALL[b]];
+    // A card's other faces (an adventure's spell, a bestow card's Aura
+    // version) are parts of a card, not cards.
+    let faces: std::collections::HashSet<CardRef> = pool
+        .iter()
+        .flat_map(|(_, d)| d.faces.iter().copied().chain(d.bestow_face))
+        .collect();
     let castable: Vec<CardRef> = pool
         .iter()
+        .filter(|(r, _)| !faces.contains(r))
         .filter(|(_, d)| {
             let basic = d.is_land() && d.supertypes.contains(mtg_core::card::Supertype::Basic);
             !(d.token || d.emblem || !d.rooms.is_empty() || basic)
