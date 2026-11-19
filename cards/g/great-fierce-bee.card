@@ -1,0 +1,8 @@
+card "Great Fierce Bee" {
+  oracle_id 37f82ad8-4f0b-4b17-abcc-03f43d4fdf1c
+  cost {2}{B}
+  type Creature — Insect
+  pt 2/2
+  keywords flying
+  triggered whenever one or more other creature die: scry 1
+}

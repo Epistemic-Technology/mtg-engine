@@ -3912,6 +3912,12 @@ pub enum TriggerSpec {
     /// before the next time a player would receive priority count as
     /// together.
     EntersBatch(ObjFilter),
+    /// "Whenever one or more other creatures you control die" (`dies`),
+    /// "Whenever one or more permanents you control leave the
+    /// battlefield": once for the matching objects leaving together (CR
+    /// 603.2c), judged as they last existed (CR 603.10a); their number is
+    /// the trigger's amount.
+    LeavesBatch { filter: ObjFilter, dies: bool },
     /// "Whenever day becomes night or night becomes day" (CR 731.2): not
     /// as it first becomes day.
     DayNight,
@@ -3995,7 +4001,8 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
-            | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
+            | TriggerSpec::EntersBatch(_)
+            | TriggerSpec::LeavesBatch { .. } => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
                 WATCH_STEP_BEGIN

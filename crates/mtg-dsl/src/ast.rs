@@ -15,6 +15,9 @@ pub struct TargetCheck {
     pub tense: TargetTense,
     /// `also` after the comma: "it also gains lifelink".
     pub also: bool,
+    /// Written after the sentence: `put 1 +1/+1 counter on target creature
+    /// you control if target 1 is legendary` ("... if it's legendary").
+    pub after: bool,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
@@ -26,6 +29,9 @@ pub enum TargetTense {
     Is,
     /// `if that target 1 is`: "If that creature is ...".
     ThatIs,
+    /// `if target 1 had with mana value 3 or less`: "If it had mana value 3
+    /// or less", as it last existed, like `Was`.
+    Had,
 }
 
 /// How a library placement is worded (`Effect::PutInLibrary`).
@@ -1708,6 +1714,13 @@ pub enum Trigger {
     /// `whenever one or more artifact you control enter`: once for the
     /// objects entering together (CR 603.2c); `that much` is how many.
     EntersBatch(Filter),
+    /// `whenever one or more other creature you control die`, `whenever
+    /// one or more permanent you control leave the battlefield` (CR
+    /// 603.2c, 603.10a).
+    LeavesBatch {
+        filter: Filter,
+        dies: bool,
+    },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

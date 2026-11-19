@@ -1309,10 +1309,17 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
+            Effect::IfTarget(n, f, inner, check) if check.after => format!(
+                "{} if target {} is {}",
+                self.line(inner, t),
+                n + 1,
+                filter(f)
+            ),
             Effect::IfTarget(n, f, inner, check) => {
                 use crate::ast::TargetTense;
                 let (that, verb) = match check.tense {
                     TargetTense::Was => ("", "was"),
+                    TargetTense::Had => ("", "had"),
                     TargetTense::Is => ("", "is"),
                     TargetTense::ThatIs => ("that ", "is"),
                 };
@@ -2696,6 +2703,15 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::EntersBatch(f) => format!("whenever one or more {} enter", filter(f)),
+        Trigger::LeavesBatch { filter: f, dies } => format!(
+            "whenever one or more {} {}",
+            filter(f),
+            if *dies {
+                "die"
+            } else {
+                "leave the battlefield"
+            }
+        ),
     }
 }
 

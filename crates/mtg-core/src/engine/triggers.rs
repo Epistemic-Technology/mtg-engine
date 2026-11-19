@@ -71,7 +71,10 @@ impl GameState {
                     continue;
                 }
                 // CR 603.2c: "one or more ... enter", once per batch.
-                let batch = matches!(t.trigger, TriggerSpec::EntersBatch(_));
+                let batch = matches!(
+                    t.trigger,
+                    TriggerSpec::EntersBatch(_) | TriggerSpec::LeavesBatch { .. }
+                );
                 if batch && self.join_batch(&mut fired, ability, w.source) {
                     continue;
                 }
@@ -549,6 +552,29 @@ impl GameState {
                 let host = self.objects.get(w.source)?.attached_to?;
                 (self.objects.get(host)?.controller == self.active_player)
                     .then_some((Some(host), Some(self.active_player)))
+            }
+            (
+                TriggerSpec::LeavesBatch { filter, dies },
+                Event::ZoneChange {
+                    old,
+                    from: Zone::Battlefield,
+                    to,
+                    ..
+                },
+            ) => {
+                if *dies && *to != Zone::Graveyard {
+                    return None;
+                }
+                let l = self.lki.get(old)?;
+                filter
+                    .matches(
+                        *old,
+                        l.object.controller,
+                        &l.characteristics,
+                        Some(w.source),
+                        Some(w.controller),
+                    )
+                    .then_some((None, Some(l.object.controller)))
             }
             (
                 TriggerSpec::Leaves(what),

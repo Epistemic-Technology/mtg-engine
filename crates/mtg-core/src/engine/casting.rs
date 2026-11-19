@@ -7272,6 +7272,23 @@ impl GameState {
                 return false;
             }
         }
+        // "If its mana value was 3 or less": as it last existed (CR
+        // 608.2h). A copy's or a face-down permanent's isn't tracked; the
+        // card's own is used.
+        if let Some((cmp, k)) = filter.mana_value
+            && !filter.status.mana_value_x
+        {
+            let def = match self.objects.get(id) {
+                Some(o) if o.zone == Zone::Battlefield => Some(o.def),
+                _ => self.lki.get(&id).map(|l| l.object.def),
+            };
+            let Some(def) = def else {
+                return false;
+            };
+            if !cmp.holds(self.pool.get(def).mana_cost.mana_value(), u32::from(k)) {
+                return false;
+            }
+        }
         self.characteristics_or_lki(id).is_some_and(|c| {
             filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
                 // "If that creature has toxic" (CR 702.164), as it last

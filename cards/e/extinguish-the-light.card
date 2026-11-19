@@ -1,0 +1,6 @@
+card "Extinguish the Light" {
+  oracle_id 6dbef43d-40d3-4894-86a5-d31a5026604e
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target creature or planeswalker; if target 1 was with mana value 3 or less, you gain 3 life
+}

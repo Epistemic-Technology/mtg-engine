@@ -1236,6 +1236,10 @@ impl Decompiler<'_> {
                 nth: *nth,
             },
             TriggerSpec::EntersBatch(f) => Trigger::EntersBatch(self.filter(f)),
+            TriggerSpec::LeavesBatch { filter, dies } => Trigger::LeavesBatch {
+                filter: self.filter(filter),
+                dies: *dies,
+            },
             TriggerSpec::CastThis => Trigger::CastThis { or_cycle: false },
             TriggerSpec::Sacrifices(f) => Trigger::Sacrifices(self.filter(f)),
             // "When you cast or cycle ~".

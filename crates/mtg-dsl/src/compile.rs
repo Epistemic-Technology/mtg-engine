@@ -1930,6 +1930,10 @@ impl Compiler<'_> {
                 nth: *nth,
             },
             Trigger::EntersBatch(f) => TriggerSpec::EntersBatch(self.filter(f)),
+            Trigger::LeavesBatch { filter, dies } => TriggerSpec::LeavesBatch {
+                filter: self.filter(filter),
+                dies: *dies,
+            },
             Trigger::Or { first, second, .. } => {
                 TriggerSpec::Either(Box::new((self.trigger(first), self.trigger(second))))
             }

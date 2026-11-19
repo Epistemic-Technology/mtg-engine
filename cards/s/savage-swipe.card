@@ -1,0 +1,6 @@
+card "Savage Swipe" {
+  oracle_id c74c87f7-3120-4fd7-8735-1d7a7a429643
+  cost {G}
+  type Sorcery
+  spell: target creature you control gets +2/+2 if target 1 is with power 2; then target 1 fights target creature you don't control
+}

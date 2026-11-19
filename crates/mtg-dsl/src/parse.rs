@@ -2686,6 +2686,29 @@ impl P {
                 effects: vec![s],
             }]));
         }
+        // `<sentence> if target 1 is <filter>`: "Put a +1/+1 counter on
+        // target creature you control if it's legendary." (the target as
+        // the sentence resolves).
+        if self.at_words(&["if", "target"]) && matches!(self.peek_at(2), Some(Tok::Num(_))) {
+            self.pos += 2;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect_word("is")?;
+            let filter = self.filter()?;
+            let check = crate::ast::TargetCheck {
+                tense: crate::ast::TargetTense::Is,
+                also: false,
+                after: true,
+            };
+            return Ok(Sentence::new(vec![Effect::IfTarget(
+                n - 1,
+                filter,
+                vec![s],
+                check,
+            )]));
+        }
         // `<sentence> if <cond>`: "Draw a card if you control ...".
         if self.at_word("if") {
             self.pos += 1;
@@ -2898,7 +2921,11 @@ impl P {
                 let saved = self.subject.take();
                 let s = self.sentence()?;
                 self.subject = saved;
-                let check = crate::ast::TargetCheck { tense, also: true };
+                let check = crate::ast::TargetCheck {
+                    tense,
+                    also: true,
+                    after: false,
+                };
                 return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
             }
             let cond = InsteadCond::Target {
@@ -2909,7 +2936,11 @@ impl P {
             return match self.instead_body(cond)? {
                 Ok(e) => Ok(e),
                 Err(s) => {
-                    let check = crate::ast::TargetCheck { tense, also: false };
+                    let check = crate::ast::TargetCheck {
+                        tense,
+                        also: false,
+                        after: false,
+                    };
                     Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
                 }
             };
@@ -2917,7 +2948,12 @@ impl P {
         if that {
             return self.fail("`if that target 1` needs `is`");
         }
-        self.expect_words(&["was"])?;
+        let tense = if self.eat_word("had") {
+            crate::ast::TargetTense::Had
+        } else {
+            self.expect_words(&["was"])?;
+            crate::ast::TargetTense::Was
+        };
         let f = self.filter()?;
         self.expect(&Tok::Comma)?;
         let saved = self.subject.take();
@@ -2927,7 +2963,11 @@ impl P {
             n - 1,
             f,
             vec![s],
-            crate::ast::TargetCheck::default(),
+            crate::ast::TargetCheck {
+                tense,
+                also: false,
+                after: false,
+            },
         ))
     }
 
@@ -7315,6 +7355,20 @@ impl P {
         // CR 603.2c: "one or more artifacts you control enter".
         if self.eat_words(&["one", "or", "more"]) {
             let f = self.filter()?;
+            // "one or more other creatures die", "... leave the
+            // battlefield" (CR 603.10a).
+            if self.eat_word("die") {
+                return Ok(Trigger::LeavesBatch {
+                    filter: f,
+                    dies: true,
+                });
+            }
+            if self.eat_words(&["leave", "the", "battlefield"]) {
+                return Ok(Trigger::LeavesBatch {
+                    filter: f,
+                    dies: false,
+                });
+            }
             self.expect_word("enter")?;
             return Ok(Trigger::EntersBatch(f));
         }

@@ -1,0 +1,8 @@
+card "Nefarious Imp" {
+  oracle_id c412191f-46d7-4520-a76c-1f70a2e92ab6
+  cost {2}{B}
+  type Creature — Imp
+  pt 2/1
+  keywords flying
+  triggered whenever one or more permanent you control leave the battlefield: scry 1
+}

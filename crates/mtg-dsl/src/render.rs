@@ -4821,7 +4821,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::IfTarget(n, f, inner, check) => {
             use crate::ast::TargetTense;
             let noun = ctx.target_noun[*n].clone();
-            if check.tense != TargetTense::Was {
+            if !matches!(check.tense, TargetTense::Was | TargetTense::Had) && !check.after {
                 ctx.target_mentioned[*n] = true;
                 // "If that creature is an enchantment, Starfall deals 3
                 // damage ...": a spell names itself again.
@@ -4887,8 +4887,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }) == Filter::default()
                     && f.types.iter().all(|t| *t == CardType::Creature)
             });
+            // "If its mana value was 3 or less", "If it had mana value 3
+            // or less" (CR 608.2h: as it last existed).
+            let mana_value_only = f.mana_value.filter(|_| {
+                (Filter {
+                    mana_value: None,
+                    ..f.clone()
+                }) == Filter::default()
+            });
             let cond = match (check.tense, has) {
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
+                (TargetTense::Was, _) if let Some((cmp, n)) = mana_value_only => {
+                    format!("its mana value was {n}{}", cmp_words(cmp))
+                }
+                (TargetTense::Had, _) if let Some((cmp, n)) = mana_value_only => {
+                    format!("it had mana value {n}{}", cmp_words(cmp))
+                }
+                (TargetTense::Is, _) if let Some((cmp, n)) = mana_value_only => {
+                    format!("it has mana value {n}{}", cmp_words(cmp))
+                }
+                (TargetTense::Had, _) => format!("that {noun} had {pred}"),
                 (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
                     format!("its power is {n}{}", cmp_words(cmp))
                 }
@@ -4904,6 +4922,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 (TargetTense::Is, None) => format!("it's {pred}"),
                 (TargetTense::ThatIs, None) => format!("that {noun} is {pred}"),
             };
+            if check.after {
+                ctx.target_mentioned[*n] = true;
+                let body = body.trim_end_matches('.');
+                return Clause::imperative(format!("{body} if {cond}"));
+            }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::Instead {
@@ -5540,6 +5563,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::EntersBatch(f) => format!(
             "whenever one or more {} enter",
             controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
+        Trigger::LeavesBatch { filter: f, dies } => format!(
+            "whenever one or more {} {}",
+            controller_first(f, filter_phrase(f, ctx.card, true)),
+            if *dies {
+                "die"
+            } else {
+                "leave the battlefield"
+            }
         ),
         Trigger::Dies(o @ TriggerObj::ThisOr(_)) => {
             format!("whenever {} dies", trigger_subject(o, ctx))
