@@ -828,13 +828,19 @@ fn num(n: Num) -> String {
 }
 
 fn count_text(c: &crate::ast::Count) -> String {
-    use crate::ast::{CountExpr, CountStyle};
+    use crate::ast::CountStyle;
     let style = match c.style {
         CountStyle::Where => "where",
         CountStyle::Equal => "equal",
         CountStyle::Each => "each",
     };
-    let expr = match &c.expr {
+    format!("count {style} {}", count_expr_text(&c.expr))
+}
+
+fn count_expr_text(e: &crate::ast::CountExpr) -> String {
+    use crate::ast::CountExpr;
+    match e {
+        CountExpr::Times(n, inner) => format!("{n} {}", count_expr_text(inner)),
         CountExpr::Permanents(f) if f.who.is_none() => format!("{} on battlefield", filter(f)),
         CountExpr::Permanents(f) => filter(f),
         CountExpr::Domain => "domain".to_string(),
@@ -844,8 +850,7 @@ fn count_text(c: &crate::ast::Count) -> String {
         CountExpr::SourcePower => "power".to_string(),
         CountExpr::TargetPower(i) => format!("power of target {}", i + 1),
         CountExpr::Life => "life".to_string(),
-    };
-    format!("count {style} {expr}")
+    }
 }
 
 fn cards(n: Num) -> &'static str {
@@ -1016,6 +1021,9 @@ fn filter_one(f: &Filter) -> String {
         Some(Who::Opponents) if f.dont_control => words.push("you don't control".to_string()),
         Some(Who::Opponents) if f.your_opponents => {
             words.push("your opponents control".to_string());
+        }
+        Some(Who::Opponents) if f.defending => {
+            words.push("defending player controls".to_string());
         }
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
         Some(Who::Any) | None => {}

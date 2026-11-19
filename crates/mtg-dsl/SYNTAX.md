@@ -179,6 +179,9 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes), `target creature becomes blue`, `this becomes colorless`,
 `target land becomes Island` (all until end of turn).
+`count each 2 creature you control` ("2 life for each creature you
+control"); filter `defending player controls` (two players: the
+attacker's opponent).
 `if you control Treefolk, draw 1 card`: a static condition judged as the
 effect resolves ("If you control a Treefolk, draw a card."). `that target
 1` prints "that creature" even after the first mention.

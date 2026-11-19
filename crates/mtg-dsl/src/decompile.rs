@@ -130,6 +130,7 @@ impl Decompiler<'_> {
             no_abilities: f.no_abilities,
             dont_control: false,
             your_opponents: false,
+            defending: false,
             any_types: types(f.any_types),
             power: f.power,
             toughness: f.toughness,

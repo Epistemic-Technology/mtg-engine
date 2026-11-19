@@ -443,6 +443,7 @@ impl Compiler<'_> {
             A::SourcePower => C::SourcePower,
             A::TargetPower(i) => C::TargetPower(*i),
             A::Life => C::Life,
+            A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
         }
     }
 

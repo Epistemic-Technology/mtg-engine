@@ -1114,6 +1114,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::You) => s.push_str(" you control"),
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
         Some(Who::Opponents) if f.your_opponents => s.push_str(" your opponents control"),
+        Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::Any) | None => {}
     }
@@ -1433,6 +1434,9 @@ fn nums_of(e: &Effect) -> Vec<Num> {
 /// control" with `each`).
 fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
     use crate::ast::CountExpr;
+    if let CountExpr::Times(_, inner) = c {
+        return count_phrase(inner, card, each);
+    }
     let (one, many) = match c {
         CountExpr::Permanents(f) => {
             let place = if f.who.is_none() {
@@ -1474,6 +1478,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             };
         }
         CountExpr::Life => return "your life total".to_string(),
+        CountExpr::Times(..) => unreachable!("unwrapped above"),
     };
     if each {
         format!("for each {one}")
@@ -1508,10 +1513,14 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".
+                let per = match &count.expr {
+                    crate::ast::CountExpr::Times(n, _) => *n,
+                    _ => 1,
+                };
                 c.text = c
                     .text
-                    .replacen("X life", "1 life", 1)
-                    .replacen("X damage", "1 damage", 1)
+                    .replacen("X life", &format!("{per} life"), 1)
+                    .replacen("X damage", &format!("{per} damage"), 1)
                     .replacen("X ", "a ", 1)
                     .replacen("a cards", "a card", 1);
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));

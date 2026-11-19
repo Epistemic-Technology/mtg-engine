@@ -128,6 +128,9 @@ pub enum CountExpr {
     SourcePower,
     TargetPower(usize),
     Life,
+    /// `count each 2 creature you control`: "2 life for each creature
+    /// you control".
+    Times(u32, Box<CountExpr>),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
@@ -234,6 +237,9 @@ pub struct Filter {
     pub dont_control: bool,
     /// `who` is `Opponents`, written and printed "your opponents control".
     pub your_opponents: bool,
+    /// `who` is `Opponents`, written and printed "defending player
+    /// controls" (two players: the attacker's opponent).
+    pub defending: bool,
     /// Written `all ...`; a static ability's subject then prints "All
     /// Sliver creatures" rather than "Sliver creatures".
     pub all: bool,

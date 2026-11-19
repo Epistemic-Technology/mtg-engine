@@ -2591,6 +2591,12 @@ impl P {
     /// battlefield`).
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
+        if let Some(Tok::Num(n)) = self.peek() {
+            let n = *n;
+            self.pos += 1;
+            let inner = self.count_expr()?;
+            return Ok(CountExpr::Times(n, Box::new(inner)));
+        }
         if self.eat_word("domain") {
             return Ok(CountExpr::Domain);
         }
@@ -2976,6 +2982,7 @@ impl P {
                     (next.as_deref(), after.as_deref()),
                     (Some("you"), Some("don't" | "control"))
                         | (Some("an"), Some("opponent"))
+                        | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (Some("that"), Some("was"))
                 ) || comma_type
                     || (next.as_deref() == Some("or")
@@ -3151,6 +3158,11 @@ impl P {
                 "you" if self.at_words(&["you", "control"]) => {
                     f.who = Some(Who::You);
                     self.pos += 2;
+                }
+                "defending" if self.at_words(&["defending", "player", "controls"]) => {
+                    f.who = Some(Who::Opponents);
+                    f.defending = true;
+                    self.pos += 3;
                 }
                 "your" if self.at_words(&["your", "opponents", "control"]) => {
                     f.who = Some(Who::Opponents);

@@ -586,6 +586,11 @@ fn per_count(
             .count(),
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
+        CountExpr::Times(k, inner) => {
+            return i32::try_from(*k)
+                .unwrap_or(0)
+                .saturating_mul(per_count(work, source, controller, inner));
+        }
         CountExpr::SourcePower | CountExpr::TargetPower(_) => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)

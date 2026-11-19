@@ -207,7 +207,7 @@ impl GameState {
     /// one of the source card's counts (CR 107.3 for X; "the number of
     /// ..." judged from the effect's controller).
     pub(super) fn eval_num(&self, n: crate::card::Num, ctx: &EffectCtx) -> u32 {
-        use crate::card::{CountExpr, Num};
+        use crate::card::Num;
         let i = match n {
             Num::Count(i) => i as usize,
             other => return other.eval(ctx.x),
@@ -217,11 +217,19 @@ impl GameState {
             .get(ctx.source)
             .map(|o| o.def)
             .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def));
-        let Some(expr) = def.and_then(|d| self.pool.get(d).counts.get(i)) else {
+        let pool = std::sync::Arc::clone(&self.pool);
+        let Some(expr) = def.and_then(|d| pool.get(d).counts.get(i)) else {
             return 0;
         };
+        self.eval_count(expr, ctx)
+    }
+
+    /// A count's value as an effect happens, judged from its controller.
+    fn eval_count(&self, expr: &crate::card::CountExpr, ctx: &EffectCtx) -> u32 {
+        use crate::card::CountExpr;
         let you = ctx.controller;
         let n = match expr {
+            CountExpr::Times(k, inner) => return k.saturating_mul(self.eval_count(inner, ctx)),
             CountExpr::Permanents(f) => self
                 .battlefield
                 .iter()

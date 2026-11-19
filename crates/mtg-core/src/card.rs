@@ -1221,6 +1221,8 @@ pub enum CountExpr {
     TargetPower(usize),
     /// Your life total.
     Life,
+    /// N times another count ("2 life for each creature you control").
+    Times(u32, Box<CountExpr>),
 }
 
 /// A card's physical layout (CR 709 split, 712 double-faced, 715
