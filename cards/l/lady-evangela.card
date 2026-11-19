@@ -1,0 +1,7 @@
+card "Lady Evangela" {
+  oracle_id 8800d672-424b-4a7b-886f-7eb9d7a56cfe
+  cost {W}{U}{B}
+  type Legendary Creature — Human Cleric
+  pt 1/2
+  activated {W}{B}, {T}: prevent all combat damage from target creature this turn
+}

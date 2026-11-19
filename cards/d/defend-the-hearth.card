@@ -1,0 +1,6 @@
+card "Defend the Hearth" {
+  oracle_id 1dd64972-5713-4c25-b7a5-a35a56886ef4
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage to each player this turn
+}

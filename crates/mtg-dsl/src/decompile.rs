@@ -653,6 +653,7 @@ impl Decompiler<'_> {
             CoreAffects::Objects(f) => Affects::Objects(self.filter(f)),
             CoreAffects::YouAnd(f) => Affects::YouAnd(self.filter(f)),
             CoreAffects::Target(i) => Affects::Target(*i),
+            CoreAffects::OtherThanTarget(f, i) => Affects::OtherThanTarget(self.filter(f), *i),
         }
     }
 
@@ -660,8 +661,13 @@ impl Decompiler<'_> {
         Replacement {
             event: match &r.replaces {
                 CoreReplaces::Damage { from, to, combat } => Replaces::Damage {
-                    from: from.as_ref().map(|f| self.filter(f)),
+                    from: from.as_ref().map(|f| self.affects(f)),
                     to: self.affects(to),
+                    combat: *combat,
+                    wording: crate::ast::DamageWording::Dealt,
+                },
+                CoreReplaces::DamageToAndBy { what, combat } => Replaces::DamageToAndBy {
+                    what: self.affects(what),
                     combat: *combat,
                 },
                 CoreReplaces::GainLife { whose } => Replaces::GainLife { whose: *whose },

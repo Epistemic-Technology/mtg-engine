@@ -1,0 +1,7 @@
+card "Muzzle" {
+  oracle_id bdf497b5-166f-46a7-8e18-ae0b8f97768c
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  replace damage from enchanted to any: prevent
+}

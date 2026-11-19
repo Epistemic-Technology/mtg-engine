@@ -1,0 +1,6 @@
+card "Chameleon Blur" {
+  oracle_id 6ac8ac31-02ce-48e0-98b9-1c5858e1f593
+  cost {3}{G}
+  type Instant
+  spell: prevent all damage creature would deal to each player this turn
+}

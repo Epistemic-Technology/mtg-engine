@@ -11,8 +11,9 @@ use mtg_core::mana::Mana;
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, Effect, Filter, Join, Kind, Mod,
-    Recipient, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
+    Join, Kind, Mod, Recipient, Replaces, SacCost, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
@@ -226,24 +227,76 @@ impl Fmt {
             Affects::Objects(f) => filter(f),
             Affects::YouAnd(f) => format!("you and {}", filter(f)),
             Affects::Target(i) => self.recipient(Recipient::Target(*i), targets),
+            Affects::ThatTarget(i) => self.recipient(Recipient::ThatTarget(*i), targets),
+            Affects::OtherThanTarget(f, i) => format!(
+                "{} except {}",
+                filter(f),
+                self.recipient(Recipient::Target(*i), targets)
+            ),
+        }
+    }
+
+    /// A damage event after `damage` (see `Parser::damage_event`); `turn`
+    /// is " this turn" for an effect's `prevent all`, where it also places
+    /// a late source.
+    fn damage_event(&mut self, r: &Replaces, targets: &[Target], turn: &str) -> String {
+        match r {
+            Replaces::DamageToAndBy { what, .. } => {
+                format!(" to and from {}{turn}", self.affects(what, targets))
+            }
+            Replaces::Damage {
+                from, to, wording, ..
+            } => {
+                let mut s = String::new();
+                let to_any_written = turn.is_empty();
+                match (from, wording) {
+                    (Some(f), DamageWording::WouldDeal) => {
+                        let _ = write!(s, " {} would deal", self.affects(f, targets));
+                        if *to != Affects::Any {
+                            let _ = write!(s, " to {}", self.affects(to, targets));
+                        }
+                        s.push_str(turn);
+                    }
+                    (Some(f), DamageWording::DealtLate) if !turn.is_empty() => {
+                        if *to != Affects::Any {
+                            let _ = write!(s, " to {}", self.affects(to, targets));
+                        }
+                        let _ = write!(s, "{turn} from {}", self.affects(f, targets));
+                    }
+                    _ => {
+                        if let Some(f) = from {
+                            let _ = write!(s, " from {}", self.affects(f, targets));
+                        }
+                        if *to != Affects::Any || to_any_written {
+                            let _ = write!(s, " to {}", self.affects(to, targets));
+                        }
+                        s.push_str(turn);
+                    }
+                }
+                s
+            }
+            _ => unreachable!("a damage event"),
+        }
+    }
+
+    fn damage_kind(r: &Replaces) -> &'static str {
+        match r {
+            Replaces::Damage { combat, .. } | Replaces::DamageToAndBy { combat, .. } => {
+                match combat {
+                    Some(true) => "combat damage",
+                    Some(false) => "noncombat damage",
+                    None => "damage",
+                }
+            }
+            _ => unreachable!("a damage event"),
         }
     }
 
     fn replaces(&mut self, r: &Replaces, targets: &[Target]) -> String {
         match r {
-            Replaces::Damage { from, to, combat } => {
-                let mut s = String::new();
-                match combat {
-                    Some(true) => s.push_str("combat "),
-                    Some(false) => s.push_str("noncombat "),
-                    None => {}
-                }
-                s.push_str("damage");
-                if let Some(f) = from {
-                    let _ = write!(s, " from {}", filter(f));
-                }
-                let _ = write!(s, " to {}", self.affects(to, targets));
-                s
+            Replaces::Damage { .. } | Replaces::DamageToAndBy { .. } => {
+                let kind = Self::damage_kind(r);
+                format!("{kind}{}", self.damage_event(r, targets, ""))
             }
             Replaces::GainLife { whose } => match whose {
                 Who::You => "you gain life",
@@ -776,32 +829,21 @@ impl Fmt {
                 }
             }
             Effect::CreateReplacement(rep) => match (&rep.event, &rep.outcome) {
-                (
-                    Replaces::Damage {
-                        from: None,
-                        to,
-                        combat,
-                    },
-                    Outcome::Prevent,
-                ) => {
-                    let mut s = "prevent all ".to_string();
-                    match combat {
-                        Some(true) => s.push_str("combat "),
-                        Some(false) => s.push_str("noncombat "),
-                        None => {}
-                    }
-                    s.push_str("damage");
-                    if *to != Affects::Any {
-                        let _ = write!(s, " to {}", self.affects(to, t));
-                    }
-                    s.push_str(" this turn");
-                    s
+                (Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }, Outcome::Prevent)
+                    if rep.then.is_empty() =>
+                {
+                    let kind = Self::damage_kind(&rep.event);
+                    format!(
+                        "prevent all {kind}{}",
+                        self.damage_event(&rep.event, t, " this turn")
+                    )
                 }
                 (
                     Replaces::Damage {
                         from: None,
                         to,
                         combat,
+                        ..
                     },
                     Outcome::PreventNext(n),
                 ) => {

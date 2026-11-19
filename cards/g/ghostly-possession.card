@@ -1,0 +1,8 @@
+card "Ghostly Possession" {
+  oracle_id 8104a51d-f07b-45d6-aaa7-c6386d6de8bf
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  replace combat damage to and from enchanted: prevent
+}

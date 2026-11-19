@@ -1,0 +1,7 @@
+card "Indentured Oaf" {
+  oracle_id d82bde29-1576-4736-a755-df9c37765202
+  cost {3}{R}
+  type Creature — Ogre Warrior
+  pt 4/3
+  replace damage this would deal to red creature: prevent
+}

@@ -1151,12 +1151,23 @@ impl Templates {
                     let to = match cap(c, 2) {
                         "" => String::new(),
                         "you" => " to you".to_string(),
+                        "players" => " to each player".to_string(),
                         "you and creatures you control" => {
                             " to you and creature you control".to_string()
                         }
                         _ => return None,
                     };
                     Some(format!("prevent all {kind}damage{to} this turn"))
+                },
+            ),
+            (
+                r(r"^Prevent all (combat )?damage that would be dealt by (target .+?) this turn$"),
+                |c, t| {
+                    let kind = if cap(c, 1).is_empty() { "" } else { "combat " };
+                    Some(format!(
+                        "prevent all {kind}damage from {} this turn",
+                        recipient(cap(c, 2), t)?
+                    ))
                 },
             ),
             (

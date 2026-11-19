@@ -1,0 +1,7 @@
+card "Argothian Treefolk" {
+  oracle_id f3aaef18-dc32-40d6-b48c-f957aa31247f
+  cost {3}{G}{G}
+  type Creature — Treefolk
+  pt 3/5
+  replace damage from artifact to this: prevent
+}

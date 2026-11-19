@@ -2185,6 +2185,10 @@ pub enum Affects {
     /// The spell's `n`th chosen target, locked in when the effect is
     /// created (stored effects only).
     Target(usize),
+    /// Objects matching a filter other than the spell's `n`th chosen
+    /// target, locked in likewise ("creatures other than target creature",
+    /// Terrifying Presence).
+    OtherThanTarget(ObjFilter, usize),
 }
 
 /// The event a replacement or prevention effect watches for (CR 614.1,
@@ -2192,12 +2196,19 @@ pub enum Affects {
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Replaces {
     /// Damage a source matching `from` (any source if `None`) would deal to
-    /// `to`; `combat` restricts to combat or noncombat damage.
+    /// `to`; `combat` restricts to combat or noncombat damage. `from` is
+    /// judged as an object: `This`, `Objects`, `Target`, `OtherThanTarget`
+    /// (CR 609.7: the source of the damage).
     Damage {
-        from: Option<ObjFilter>,
+        from: Option<Affects>,
         to: Affects,
         combat: Option<bool>,
     },
+    /// Damage that would be dealt to `what` or dealt by it ("Prevent all
+    /// combat damage that would be dealt to and dealt by enchanted
+    /// creature", Gaseous Form). One effect: it applies once to damage a
+    /// creature would deal to itself (CR 614.5).
+    DamageToAndBy { what: Affects, combat: Option<bool> },
     /// A player would gain life.
     GainLife { whose: Who },
     /// A player would draw a card; `library_empty` requires an empty
@@ -2274,7 +2285,10 @@ impl ReplacementAbility {
         matches!(
             self.replacement,
             Replacement::Prevent | Replacement::PreventNext(_)
-        ) && matches!(self.replaces, Replaces::Damage { .. })
+        ) && matches!(
+            self.replaces,
+            Replaces::Damage { .. } | Replaces::DamageToAndBy { .. }
+        )
     }
 }
 

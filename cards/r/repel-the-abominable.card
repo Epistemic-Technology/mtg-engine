@@ -1,0 +1,6 @@
+card "Repel the Abominable" {
+  oracle_id ed198c68-c219-469f-b133-737b060cfbfc
+  cost {1}{W}
+  type Instant
+  spell: prevent all damage this turn from non-Human
+}

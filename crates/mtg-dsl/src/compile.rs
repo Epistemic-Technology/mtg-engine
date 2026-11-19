@@ -1019,15 +1019,22 @@ impl Compiler<'_> {
             Affects::Players(w) => CoreAffects::Players(*w),
             Affects::Objects(f) => CoreAffects::Objects(self.filter(f)),
             Affects::YouAnd(f) => CoreAffects::YouAnd(self.filter(f)),
-            Affects::Target(i) => CoreAffects::Target(*i),
+            Affects::Target(i) | Affects::ThatTarget(i) => CoreAffects::Target(*i),
+            Affects::OtherThanTarget(f, i) => CoreAffects::OtherThanTarget(self.filter(f), *i),
         }
     }
 
     fn replacement(&mut self, r: &Replacement) -> Result<ReplacementAbility, CompileError> {
         let replaces = match &r.event {
-            Replaces::Damage { from, to, combat } => CoreReplaces::Damage {
-                from: from.as_ref().map(|f| self.filter(f)),
+            Replaces::Damage {
+                from, to, combat, ..
+            } => CoreReplaces::Damage {
+                from: from.as_ref().map(|f| self.affects(f)),
                 to: self.affects(to),
+                combat: *combat,
+            },
+            Replaces::DamageToAndBy { what, combat } => CoreReplaces::DamageToAndBy {
+                what: self.affects(what),
                 combat: *combat,
             },
             Replaces::GainLife { whose } => CoreReplaces::GainLife { whose: *whose },

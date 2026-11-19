@@ -650,9 +650,19 @@ pub struct Replacement {
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)]
 pub enum Replaces {
+    /// `damage [from <source>] to <affects>`; `from` is an object (`this`,
+    /// a filter, a target, `creature other than target creature`).
     Damage {
-        from: Option<Filter>,
+        from: Option<Affects>,
         to: Affects,
+        combat: Option<bool>,
+        /// How "Prevent all ..." names the source (rendering only).
+        wording: DamageWording,
+    },
+    /// `damage to and from <affects>`: "dealt to and dealt by enchanted
+    /// creature".
+    DamageToAndBy {
+        what: Affects,
         combat: Option<bool>,
     },
     GainLife {
@@ -679,6 +689,21 @@ pub enum Replaces {
     Enters,
 }
 
+/// Where "Prevent all damage" names a damage source (CR 609.7).
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum DamageWording {
+    /// `damage from S to A this turn`: "that would be dealt to A by S this
+    /// turn".
+    #[default]
+    Dealt,
+    /// `damage to A this turn from S`: "that would be dealt to A this turn
+    /// by S" (Vine Snare).
+    DealtLate,
+    /// `damage S would deal to A this turn`: "[that] S would deal to A this
+    /// turn" (Goblin Furrier; no "that" after a target).
+    WouldDeal,
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Affects {
     Any,
@@ -688,6 +713,11 @@ pub enum Affects {
     Objects(Filter),
     YouAnd(Filter),
     Target(usize),
+    /// `that target 1`: the same target named again, "that creature".
+    ThatTarget(usize),
+    /// `creature except target creature`: "creatures other than target
+    /// creature" (Terrifying Presence).
+    OtherThanTarget(Filter, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

@@ -1,0 +1,9 @@
+card "Restrain" {
+  oracle_id 5aa66cb0-86b9-4e85-9a17-df78416d682d
+  cost {2}{W}
+  type Instant
+  spell {
+    prevent all combat damage from target attacking creature this turn
+    draw 1 card
+  }
+}

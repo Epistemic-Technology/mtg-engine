@@ -1,0 +1,6 @@
+card "Terrifying Presence" {
+  oracle_id ca8f6e19-6ef3-4d77-8312-867767ffeda6
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage from creature except target creature this turn
+}

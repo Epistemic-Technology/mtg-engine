@@ -1,0 +1,7 @@
+card "Sandskin" {
+  oracle_id 13628636-7fc1-426e-abac-07fc35caf81b
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  replace combat damage to and from enchanted: prevent
+}

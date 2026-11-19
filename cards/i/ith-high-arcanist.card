@@ -1,0 +1,9 @@
+card "Ith, High Arcanist" {
+  oracle_id eb933723-b879-44c8-bbc8-d8c84ce5ab12
+  cost {5}{W}{U}
+  type Legendary Creature — Human Wizard
+  pt 3/5
+  keywords vigilance
+  activated {T}: untap target attacking creature; prevent all combat damage to and from that target 1 this turn
+  suspend 4 {W}{U}
+}

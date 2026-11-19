@@ -1,0 +1,6 @@
+card "Safeguard" {
+  oracle_id e310c3ab-a729-404d-944f-9b477258495c
+  cost {3}{W}{W}
+  type Enchantment
+  activated {2}{W}: prevent all combat damage from target creature this turn
+}

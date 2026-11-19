@@ -1,0 +1,7 @@
+card "Gaseous Form" {
+  oracle_id 896af9a9-12a2-4dd6-957c-e52150b5f3a2
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  replace combat damage to and from enchanted: prevent
+}

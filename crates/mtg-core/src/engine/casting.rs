@@ -3482,9 +3482,19 @@ impl GameState {
     }
 
     fn create_replacement(&mut self, ctx: &EffectCtx, r: &crate::card::ReplacementAbility) {
+        // The one target the effect is locked to (CR 608.2b: an illegal
+        // target means that part of the spell does nothing).
         let target = match &r.replaces {
             Replaces::Damage {
                 to: Affects::Target(i),
+                ..
+            }
+            | Replaces::Damage {
+                from: Some(Affects::Target(i) | Affects::OtherThanTarget(_, i)),
+                ..
+            }
+            | Replaces::DamageToAndBy {
+                what: Affects::Target(i),
                 ..
             }
             | Replaces::Dies {

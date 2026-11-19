@@ -1,0 +1,9 @@
+card "Azorius Ploy" {
+  oracle_id b9b58c3a-5a76-4b6a-884b-74f54f0ca53c
+  cost {1}{W}{W}{U}
+  type Instant
+  spell {
+    prevent all combat damage target creature would deal this turn
+    prevent all combat damage to target creature this turn
+  }
+}

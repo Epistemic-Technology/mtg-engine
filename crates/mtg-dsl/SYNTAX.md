@@ -238,14 +238,27 @@ targets can be one subject: `up to 2 target creature gets +2/+0`
 (`Elf or Soldier creature`) apply to both sides.
 
 Events: `damage to <affects>`, `combat damage to <affects>`,
-`damage from creature you control to <affects>`, `you gain life`,
+`damage from creature you control to <affects>` (without `to`, any
+recipient: `damage from enchanted`, "Prevent all damage that would be
+dealt by enchanted creature"), `damage this would deal to snow creature`
+("Prevent all damage that this creature would deal to snow creatures"),
+`combat damage to and from enchanted` ("dealt to and dealt by enchanted
+creature": one effect, CR 615), `you gain life`,
 `a player gains life`, `you draw`, `you draw with empty library`,
 `card put into a graveyard`, `card put into an opponent's graveyard`,
 `... from the battlefield`, `+1/+1 counters put on creature you control`,
 `destroy <affects>`, `enters`.
 
 Affects: `any` (a permanent or player), `this`, `you`, `each opponent`,
-`each player`, `you and creature you control`, a filter, or a target.
+`each player`, `you and creature you control`, a filter, a target (`target
+creature`, `target 1`, or `that target 1` for "that creature"), or, as a
+damage source, `creature except target creature` ("creatures other than
+target creature"). A damage source (`from`) is an object: `this`, a
+filter, or a target. A filter that isn't of creatures prints as sources:
+`from artifact` is "by artifact sources". A static prevention with no
+effects after it prints "Prevent all damage that would be dealt to ...";
+with them (Phantom Tiger), "If damage would be dealt to ..., prevent that
+damage.".
 
 Outcomes: `prevent`, `prevent next 4`, `double`, `plus one`, `exile`,
 `draw two`, `win`, `tapped`, `with 2 +1/+1 counters`, `regenerate`,
@@ -375,7 +388,15 @@ explores` (CR 701.44), `amass Zombies 2` (CR 701.47; needs the token
 count each Elf on battlefield` ("Add {G} for each Elf on the
 battlefield."), `if kicked, <clause>` ("If this spell was kicked, ..."
 for a spell with `kicker`), `prevent all [combat] damage
-[to <affects>] this turn`, `prevent next 4 damage to <affects> this turn`,
+[from <source>] [to <affects>] this turn` ("Prevent all combat damage that
+would be dealt by target attacking creature this turn"; `to each player`
+prints "to players"), `prevent all [combat] damage [to <affects>] this turn
+from <source>` ("... dealt this turn by creatures with power 4 or less"),
+`prevent all [combat] damage <source> would deal [to <affects>] this turn`
+("Prevent all combat damage target creature would deal this turn",
+"... that creatures would deal to players this turn"), `prevent all combat
+damage to and from target 1 this turn` ("dealt to and dealt by it"),
+`prevent next 4 damage to <affects> this turn`,
 `this turn, replace <event>: <outcome>` (`this turn, replace target 1
 dies: exile`: "If that creature would die this turn, exile it
 instead."), `players can't gain life this turn`,

@@ -1,0 +1,6 @@
+card "Horn of Deafening" {
+  oracle_id 50a1c14a-003f-424b-bb8e-2e2d51465a90
+  cost {4}
+  type Artifact
+  activated {2}, {T}: prevent all combat damage from target creature this turn
+}

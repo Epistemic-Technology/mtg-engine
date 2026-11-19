@@ -1,0 +1,7 @@
+card "Goblin Furrier" {
+  oracle_id 3f086b72-6e7c-40d4-b995-d5f94c494462
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  replace damage this would deal to snow creature: prevent
+}

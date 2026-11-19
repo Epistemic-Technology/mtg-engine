@@ -1,0 +1,6 @@
+card "Kor Haven" {
+  oracle_id 276cece9-f9f2-46e6-ae76-daddaa2fb9ab
+  type Legendary Land
+  activated {T}: add {C}
+  activated {1}{W}, {T}: prevent all combat damage from target attacking creature this turn
+}

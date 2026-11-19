@@ -1,0 +1,6 @@
+card "Fog of War" {
+  oracle_id 103ca069-0bfe-4976-bee1-75406273875d
+  cost {2}{G}
+  type Instant
+  spell: you gain count each creature on battlefield life; prevent all combat damage this turn from creature with power 3 or less
+}
