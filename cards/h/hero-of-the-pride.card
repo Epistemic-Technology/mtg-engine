@@ -1,0 +1,7 @@
+card "Hero of the Pride" {
+  oracle_id f3a2d80c-de6f-4b0e-aeb1-78639d55a6e6
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  triggered whenever you cast a spell that targets this: each creature you control gets +1/+0 until end of turn
+}

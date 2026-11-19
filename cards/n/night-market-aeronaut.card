@@ -1,0 +1,8 @@
+card "Night Market Aeronaut" {
+  oracle_id e08157e6-a5a3-4b1e-80e0-32702288d8ed
+  cost {3}{B}
+  type Creature — Aetherborn Warrior
+  pt 2/2
+  keywords flying
+  label "Revolt" enters with 1 +1/+1 counter if permanent left this turn
+}

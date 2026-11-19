@@ -394,6 +394,12 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::OpponentDamagedThisTurn => state
             .players_in_game()
             .any(|p| p != you && state.damaged_this_turn & (1 << p.index().min(7)) != 0),
+        StaticCondition::OpponentLostLifeThisTurn => state
+            .players_in_game()
+            .any(|p| p != you && state.lost_life_this_turn & (1 << p.index().min(7)) != 0),
+        StaticCondition::PermanentLeftThisTurn => {
+            state.left_this_turn & (1 << you.index().min(7)) != 0
+        }
         StaticCondition::CardsInHand { n, at_most } => {
             let h = state.player(you).hand.len();
             if *at_most {

@@ -1,0 +1,7 @@
+card "Veteran Guardmouse" {
+  oracle_id 2313a3f9-3eac-4684-a25e-6a6ae445a723
+  cost {3}{R/W}
+  type Creature — Mouse Soldier
+  pt 3/4
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: this gets +1/+0 and this gains first strike until end of turn; scry 1
+}

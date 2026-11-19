@@ -1,0 +1,8 @@
+card "Garenbrig Paladin" {
+  oracle_id 33fdbff6-0e89-4f02-b429-9b17869134cd
+  cost {4}{G}
+  type Creature — Giant Knight
+  pt 4/4
+  label "Adamant" if spent 3 green, enters with 1 +1/+1 counter
+  can't be blocked by creature with power 2 or less
+}

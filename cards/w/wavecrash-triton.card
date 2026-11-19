@@ -1,0 +1,7 @@
+card "Wavecrash Triton" {
+  oracle_id 2a7e68ed-156c-4680-851b-ae8de4a808a5
+  cost {2}{U}
+  type Creature — Merfolk Wizard
+  pt 1/4
+  label "Heroic" triggered whenever you cast a spell that targets this: tap target creature an opponent controls; that target 1 doesn't untap next untap step
+}

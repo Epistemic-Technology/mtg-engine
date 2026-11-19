@@ -1,0 +1,7 @@
+card "Setessan Oathsworn" {
+  oracle_id 78d5f882-5d17-4228-b9b5-d460ab2bef08
+  cost {1}{G}{G}
+  type Creature — Satyr Warrior
+  pt 1/1
+  label "Heroic" triggered whenever you cast a spell that targets this: put 2 +1/+1 counters on this
+}

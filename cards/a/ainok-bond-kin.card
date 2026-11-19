@@ -1,0 +1,8 @@
+card "Ainok Bond-Kin" {
+  oracle_id 8a4028cd-6004-4fb0-a044-0bee662a78e1
+  cost {1}{W}
+  type Creature — Dog Soldier
+  pt 2/1
+  outlast {1}{W}
+  static each creature you control with +1/+1 counter: has first strike
+}

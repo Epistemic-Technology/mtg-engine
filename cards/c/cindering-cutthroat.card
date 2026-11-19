@@ -1,0 +1,8 @@
+card "Cindering Cutthroat" {
+  oracle_id 46e8bec0-1a09-4e6e-b78a-7ba161686ca9
+  cost {2}{B/R}
+  type Creature — Lizard Assassin
+  pt 3/2
+  enters with 1 +1/+1 counter if opponent lost life this turn
+  activated {1}{B/R}: this gains menace until end of turn
+}

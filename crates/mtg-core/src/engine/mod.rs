@@ -241,6 +241,7 @@ impl Engine {
                 state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
+                state.valiant_watchers += u32::from(def.flags().has_valiant());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -453,6 +454,8 @@ impl GameState {
             artifacts_entered_this_turn: 0,
             creatures_died_this_turn: 0,
             damaged_this_turn: 0,
+            lost_life_this_turn: 0,
+            left_this_turn: 0,
             discarded_this_turn: 0,
             cast_this_turn: smallvec::SmallVec::new(),
             exile_casts: None,
@@ -514,6 +517,8 @@ impl GameState {
             spent_mana: Vec::new(),
             spending: None,
             spent_watchers: 0,
+            valiant_watchers: 0,
+            targeted_by_controller: Vec::new(),
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
             trigger_sources: 0,
@@ -1942,6 +1947,7 @@ impl GameState {
             self.activated_once.clear();
             self.attackers_this_turn.clear();
             self.blockers_this_turn.clear();
+            self.targeted_by_controller.clear();
             self.dealt_damage_this_turn.clear();
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
@@ -1954,6 +1960,8 @@ impl GameState {
             self.artifacts_entered_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.damaged_this_turn = 0;
+            self.lost_life_this_turn = 0;
+            self.left_this_turn = 0;
             self.discarded_this_turn = 0;
             self.cast_this_turn.clear();
             if let Some(e) = &mut self.exile_casts {

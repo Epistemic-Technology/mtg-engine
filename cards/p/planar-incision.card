@@ -1,0 +1,6 @@
+card "Planar Incision" {
+  oracle_id a959a91a-3e1d-4bd4-9e14-5ee977540146
+  cost {1}{U}
+  type Instant
+  spell: exile target artifact or creature then return target 1 to battlefield under its owner's control with 1 +1/+1 counter
+}

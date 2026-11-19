@@ -1,0 +1,9 @@
+card "Cactarantula" {
+  oracle_id 18a5fe34-0c97-486c-b09a-80535a99e982
+  cost {4}{G}{G}
+  type Creature — Plant Spider
+  pt 6/5
+  this spell costs {1} less if you control Desert
+  keywords reach
+  triggered whenever this becomes targeted by opponent: you may draw 1 card
+}

@@ -605,13 +605,31 @@ impl GameState {
                 let c = self
                     .characteristics(*spell)
                     .or_else(|| self.pool.get(*def).printed)?;
-                (filter.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
+                // Heroic (CR 207.2c): "a spell that targets this creature",
+                // judged with the targets chosen as it was cast (CR 601.2c).
+                let targets_ok = filter.targeting.as_ref().is_none_or(|t| {
+                    self.objects
+                        .get(*spell)
+                        .is_some_and(|o| self.spell_targets(o, t, w.controller, Some(w.source)))
+                });
+                (targets_ok
+                    && filter.matches(*spell, *player, &c, Some(w.source), Some(w.controller))
                     && self.status_ok(filter, *spell))
                 .then_some((Some(*spell), Some(*player)))
             }
             (TriggerSpec::DrawsNth { whose, n }, Event::Draw { player, .. }) => {
                 (whose_ok(*whose, *player) && self.drawn_this_turn[player.index().min(3)] == *n)
                     .then_some((None, Some(*player)))
+            }
+            // Valiant: by a spell or ability its controller controls, the
+            // first time this turn (`targeted_by_controller`, recorded just
+            // after this event).
+            (TriggerSpec::TargetedByYouFirstTime, Event::Targeted { target, by }) => {
+                let by_ctl = self.objects.get(*by)?.controller;
+                (*target == w.source
+                    && by_ctl == w.controller
+                    && !self.targeted_by_controller.contains(target))
+                .then_some((Some(*by), Some(by_ctl)))
             }
             (TriggerSpec::TargetedByOpponent, Event::Targeted { target, by }) => {
                 let by_ctl = self.objects.get(*by)?.controller;

@@ -1,0 +1,7 @@
+card "Ardenvale Paladin" {
+  oracle_id 30393cb0-f461-4899-8aae-609bc8378f36
+  cost {3}{W}
+  type Creature — Human Knight
+  pt 2/5
+  label "Adamant" if spent 3 white, enters with 1 +1/+1 counter
+}

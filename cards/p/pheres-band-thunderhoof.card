@@ -1,0 +1,7 @@
+card "Pheres-Band Thunderhoof" {
+  oracle_id 651a1f3d-d6f0-4a38-a776-bceba698127b
+  cost {4}{G}
+  type Creature — Centaur Warrior
+  pt 3/4
+  label "Heroic" triggered whenever you cast a spell that targets this: put 2 +1/+1 counters on this
+}

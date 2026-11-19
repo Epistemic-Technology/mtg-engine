@@ -1,0 +1,7 @@
+card "Satyr Hoplite" {
+  oracle_id ee7dc820-10ee-429a-a1ef-ecd6a11f5608
+  cost {R}
+  type Creature — Satyr Soldier
+  pt 1/1
+  label "Heroic" triggered whenever you cast a spell that targets this: put 1 +1/+1 counter on this
+}

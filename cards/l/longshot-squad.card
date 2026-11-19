@@ -1,0 +1,8 @@
+card "Longshot Squad" {
+  oracle_id c153e202-1d93-4044-b457-b8ebd5b36ec3
+  cost {3}{G}
+  type Creature — Dog Archer
+  pt 3/3
+  outlast {1}{G}
+  static each creature you control with +1/+1 counter: has reach
+}

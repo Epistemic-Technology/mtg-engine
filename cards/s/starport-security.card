@@ -1,0 +1,7 @@
+card "Starport Security" {
+  oracle_id 5454dddf-c6e5-4b0d-b96d-4904c13606dc
+  cost {W}
+  type Artifact Creature — Robot Soldier
+  pt 1/1
+  activated {3}{W}, {T}, reduced {2} if you control creature with +1/+1 counter: tap another target creature
+}

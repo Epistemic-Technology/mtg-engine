@@ -974,6 +974,12 @@ pub struct GameState {
     pub creatures_died_this_turn: u16,
     /// Players dealt damage this turn (bloodthirst), one bit each.
     pub damaged_this_turn: u8,
+    /// Players who lost life this turn ("if an opponent lost life this
+    /// turn"), one bit each.
+    pub lost_life_this_turn: u8,
+    /// Players a permanent left the battlefield under the control of this
+    /// turn (revolt), one bit each.
+    pub left_this_turn: u8,
     /// Players who discarded a card this turn, one bit each.
     pub discarded_this_turn: u8,
     /// The spells cast this turn, by caster ("if you've cast a noncreature
@@ -1071,6 +1077,13 @@ pub struct GameState {
     /// the spell that triggers them (`DefFlags::watches_spent`): while
     /// nonzero, every cast records what was spent.
     pub spent_watchers: u32,
+    /// Battlefield permanents with valiant (`DefFlags::has_valiant`):
+    /// while nonzero, targeting records `targeted_by_controller`.
+    pub valiant_watchers: u32,
+    /// Permanents that became the target of a spell or ability their
+    /// controller controlled this turn (valiant's "for the first time
+    /// each turn"), recorded only while `valiant_watchers` is nonzero.
+    pub targeted_by_controller: Vec<ObjId>,
     /// Triggered abilities waiting to be put on the stack (CR 603.3).
     pub pending_triggers: Vec<PendingTrigger>,
     /// Delayed triggered abilities waiting for their event (CR 603.7).
@@ -1566,12 +1579,35 @@ impl GameState {
         if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
             return false;
         }
+        if q.modified
+            && !self.modified(
+                id,
+                |a| {
+                    self.characteristics(a)
+                        .is_some_and(|c| c.has_subtype(crate::card::Subtype::EQUIPMENT))
+                },
+                |a| {
+                    self.characteristics(a)
+                        .is_some_and(|c| c.has_subtype(crate::card::Subtype::AURA))
+                },
+            )
+        {
+            return false;
+        }
+        // "with a +1/+1 counter on it" (CR 122.1).
+        match q.counter {
+            Some(crate::card::CounterQual::Any) if !o.counters.iter().any(|(_, n)| *n > 0) => {
+                return false;
+            }
+            Some(crate::card::CounterQual::Kind(k)) if o.counters(k) == 0 => return false,
+            _ => {}
+        }
         true
     }
 
     /// Whether the spell `obj` targets what `t` asks for, judged by
     /// `you`.
-    fn spell_targets(
+    pub(crate) fn spell_targets(
         &self,
         obj: &GameObject,
         t: &crate::card::SpellTargets,
@@ -1836,6 +1872,10 @@ impl GameState {
             C::OpponentDamagedThisTurn => self
                 .players_in_game()
                 .any(|p| p != you && self.damaged_this_turn & (1 << p.index().min(7)) != 0),
+            C::OpponentLostLifeThisTurn => self
+                .players_in_game()
+                .any(|p| p != you && self.lost_life_this_turn & (1 << p.index().min(7)) != 0),
+            C::PermanentLeftThisTurn => self.left_this_turn & (1 << you.index().min(7)) != 0,
             C::CardsInHand { n, at_most } => {
                 let h = self.player(you).hand.len();
                 if *at_most {

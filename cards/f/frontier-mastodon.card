@@ -1,0 +1,7 @@
+card "Frontier Mastodon" {
+  oracle_id ae81040b-572d-4906-bacc-e7bae16e1130
+  cost {2}{G}
+  type Creature — Elephant
+  pt 3/2
+  label "Ferocious" enters with 1 +1/+1 counter if you control creature with power 4 or greater
+}

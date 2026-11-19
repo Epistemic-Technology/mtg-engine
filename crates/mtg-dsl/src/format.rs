@@ -1500,6 +1500,9 @@ fn filter_one(f: &Filter) -> String {
     if f.all {
         words.push("all".to_string());
     }
+    if f.each {
+        words.push("each".to_string());
+    }
     match f.relation {
         Relation::Other => words.push("other".to_string()),
         Relation::This => words.push("this".to_string()),
@@ -1585,6 +1588,16 @@ fn filter_one(f: &Filter) -> String {
     }
     if let Some(e) = f.status.enchanted {
         words.push(if e { "with aura" } else { "without aura" }.to_string());
+    }
+    if f.status.modified {
+        words.push("modified".to_string());
+    }
+    match f.status.counter {
+        Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
+        Some(mtg_core::card::CounterQual::Kind(k)) => {
+            words.push(format!("with {} counter", k.name()));
+        }
+        None => {}
     }
     if !f.keywords.is_empty() {
         words.push(format!("with {}", keywords(&f.keywords)));
@@ -2003,7 +2016,8 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         } => {
             let who = match whose {
                 Who::You => "you cast",
-                _ => "an opponent casts",
+                Who::Opponents => "an opponent casts",
+                Who::Any => "a player casts",
             };
             let what = if *noncreature {
                 "a noncreature spell"
@@ -2016,6 +2030,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::BecomesTarget(o) => format!("when {} becomes targeted", trigger_obj(o)),
         Trigger::TargetedByOpponent => "whenever this becomes targeted by opponent".to_string(),
+        Trigger::TargetedByYouFirstTime => {
+            "whenever this becomes targeted by you first time each turn".to_string()
+        }
         Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
         Trigger::DrawsNth { whose, n } => draws_nth(*whose, *n),
@@ -2036,15 +2053,25 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 mtg_core::card::DamageTo::Opponent => " to opponent",
             }
         ),
-        Trigger::CastsFiltered { whose, filter: f } => format!(
-            "whenever {} {} spell",
-            match whose {
-                Who::You => "you cast",
-                Who::Opponents => "an opponent casts",
-                Who::Any => "a player casts",
-            },
-            filter(f)
-        ),
+        Trigger::CastsFiltered { whose, filter: f } => {
+            let mut g = f.clone();
+            let t = g.targeting.take();
+            let base = filter(&g);
+            let mut s = format!(
+                "whenever {} {} spell",
+                match whose {
+                    Who::You => "you cast",
+                    Who::Opponents => "an opponent casts",
+                    Who::Any => "a player casts",
+                },
+                if base.is_empty() { "a" } else { &base }
+            );
+            if let Some(t) = t {
+                s.push_str(" that targets ");
+                s.push_str(&targeting(&t, filter));
+            }
+            s
+        }
         Trigger::Cycles {
             this,
             another,
@@ -2390,6 +2417,8 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
+        StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
+        StaticCond::PermanentLeftThisTurn => "permanent left this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => unreachable!("only in `kicked with`"),
         StaticCond::Bargained => "bargained".to_string(),
@@ -2864,6 +2893,23 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
+        }
+        Ability::EntersWithIf {
+            n,
+            kind,
+            cond,
+            first,
+        } => {
+            let what = format!(
+                "{n} {} {}",
+                kind.name(),
+                if *n == 1 { "counter" } else { "counters" }
+            );
+            if *first {
+                let _ = writeln!(out, "{indent}if {}, enters with {what}", static_cond(cond));
+            } else {
+                let _ = writeln!(out, "{indent}enters with {what} if {}", static_cond(cond));
+            }
         }
         Ability::AttackUnless {
             cond,

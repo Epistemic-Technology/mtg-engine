@@ -1,0 +1,7 @@
+card "Swaggering Corsair" {
+  oracle_id 48fa47c0-544e-4374-a0a6-ef8f65cdf0dd
+  cost {2}{R}
+  type Creature — Human Pirate
+  pt 2/2
+  label "Raid" enters with 1 +1/+1 counter if attacked this turn
+}

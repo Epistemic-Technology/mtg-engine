@@ -1,0 +1,8 @@
+card "Mounted Dreadknight" {
+  oracle_id b5e42be3-6bfc-4905-9237-cb8d53e2349e
+  cost {4}{R}
+  type Creature — Vampire Knight
+  pt 5/4
+  keywords trample
+  enters with 1 +1/+1 counter if opponent lost life this turn
+}

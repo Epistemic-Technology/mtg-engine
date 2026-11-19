@@ -872,8 +872,30 @@ impl GameState {
                     enter,
                 },
             ) => {
-                // X of the entering spell (Endless One, CR 107.3).
-                let n = n.eval(self.x_of(obj));
+                // X of the entering spell (Endless One, CR 107.3); a count
+                // ("for each other creature you control", converge's "for
+                // each color of mana spent to cast it") judged for the
+                // entering object as it enters.
+                let n = match n {
+                    crate::card::Num::Count(_) => {
+                        let ctx = EffectCtx {
+                            source: obj,
+                            controller,
+                            targets: Vec::new(),
+                            division: Vec::new(),
+                            legal: Vec::new(),
+                            trigger_obj: None,
+                            trigger_player: None,
+                            trigger_amount: 0,
+                            created: None,
+                            x: self.x_of(obj),
+                            did: true,
+                            chosen: Chosen::None,
+                        };
+                        self.eval_num(n, &ctx)
+                    }
+                    n => n.eval(self.x_of(obj)),
+                };
                 let counters = match enter.counters {
                     Some((k, m)) if k == kind => Some((k, m + n)),
                     Some(other) => Some(other),

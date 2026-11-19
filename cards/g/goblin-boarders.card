@@ -1,0 +1,7 @@
+card "Goblin Boarders" {
+  oracle_id 4c64feae-95d7-426d-9e42-d3b0841d2054
+  cost {2}{R}
+  type Creature — Goblin Pirate
+  pt 3/2
+  label "Raid" enters with 1 +1/+1 counter if attacked this turn
+}

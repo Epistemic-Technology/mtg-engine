@@ -1,0 +1,8 @@
+card "Tenth District Legionnaire" {
+  oracle_id 32fad8d3-5351-49ce-a453-53dee403b5ff
+  cost {R}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords haste
+  triggered whenever you cast a spell that targets this: put 1 +1/+1 counter on this then scry 1
+}

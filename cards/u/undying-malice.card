@@ -1,0 +1,6 @@
+card "Undying Malice" {
+  oracle_id 8b061702-1bc3-45aa-a758-446b25034801
+  cost {B}
+  type Instant
+  spell: until end of turn, target creature gains ability { triggered when this dies: return this to battlefield tapped under its owner's control with 1 +1/+1 counter }
+}

@@ -46,6 +46,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         in_delayed: false,
         delayed_that: false,
         in_trigger: false,
+        it_source: false,
         subject: None,
     };
     let mut cards = Vec::new();
@@ -423,6 +424,7 @@ fn step_by_name(w: &str) -> Option<Step> {
     })
 }
 
+#[allow(clippy::struct_excessive_bools)] // independent context flags
 struct P {
     toks: Vec<Spanned>,
     pos: usize,
@@ -441,6 +443,10 @@ struct P {
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
+    /// Inside a trigger on casting "a spell that targets this creature"
+    /// (heroic): `it` is the source, as Oracle has it ("put a +1/+1
+    /// counter on it").
+    it_source: bool,
     /// The subject of the previous clause of the sentence being parsed.
     subject: Option<Recipient>,
 }
@@ -1031,6 +1037,7 @@ impl P {
         self.targets.clear();
         self.subject = None;
         self.in_trigger = false;
+        self.it_source = false;
         let w = self.word_at(0).unwrap_or_default();
         match w.as_str() {
             "spend" if self.word_at(1).as_deref() == Some("only") => {
@@ -1461,6 +1468,9 @@ impl P {
                 self.in_trigger = true;
                 let when = self.at_word("when");
                 let mut trigger = self.trigger()?;
+                self.it_source = matches!(&trigger, Trigger::CastsFiltered { filter, .. }
+                    if filter.targeting.as_ref().and_then(|t| t.filter.as_ref())
+                        .is_some_and(|f| f.relation == Relation::This));
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
@@ -1512,6 +1522,42 @@ impl P {
                 let c = self.static_cond()?;
                 self.end_stmt()?;
                 Ok(Ability::EntersTappedUnless(c))
+            }
+            // Adamant: "If at least three white mana was spent to cast this
+            // spell, this creature enters with a +1/+1 counter on it."
+            "if" => {
+                self.pos += 1;
+                let cond = self.static_cond()?;
+                self.expect(&Tok::Comma)?;
+                self.expect_word("enters")?;
+                self.expect_word("with")?;
+                let n = self.number()?;
+                let kind = self.counter_kind()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersWithIf {
+                    n,
+                    kind,
+                    cond,
+                    first: true,
+                })
+            }
+            "enters"
+                if self.word_at(1).as_deref() == Some("with")
+                    && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                    && self.counter_then_if() =>
+            {
+                self.pos += 2;
+                let n = self.number()?;
+                let kind = self.counter_kind()?;
+                self.expect_word("if")?;
+                let cond = self.static_cond()?;
+                self.end_stmt()?;
+                Ok(Ability::EntersWithIf {
+                    n,
+                    kind,
+                    cond,
+                    first: false,
+                })
             }
             "enters" => {
                 self.pos += 1;
@@ -1589,7 +1635,9 @@ impl P {
                     cond_first = true;
                     self.expect(&Tok::Comma)?;
                 }
-                let filter = self.filter()?;
+                let each = self.at_word("each");
+                let mut filter = self.filter()?;
+                filter.each = each;
                 self.expect(&Tok::Colon)?;
                 let mut mods = Vec::new();
                 loop {
@@ -1895,6 +1943,12 @@ impl P {
         }
         if self.eat_words(&["opponent", "damaged", "this", "turn"]) {
             return Ok(StaticCond::OpponentDamagedThisTurn);
+        }
+        if self.eat_words(&["opponent", "lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::OpponentLostLifeThisTurn);
+        }
+        if self.eat_words(&["permanent", "left", "this", "turn"]) {
+            return Ok(StaticCond::PermanentLeftThisTurn);
         }
         if self.eat_words(&["land", "entered", "this", "turn"]) {
             return Ok(StaticCond::LandEnteredThisTurn);
@@ -4451,6 +4505,33 @@ impl P {
         Ok(CountExpr::Permanents(f))
     }
 
+    /// At `enters with N <kind> counter[s] if`: the counters are
+    /// conditional (`Ability::EntersWithIf`).
+    fn counter_then_if(&self) -> bool {
+        let mut i = 3;
+        while let Some(t) = self.peek_at(i) {
+            match t {
+                Tok::Word(w) if w == "if" => return true,
+                Tok::Word(w) if w == "counter" || w == "counters" => {
+                    return self.word_at(i + 1).as_deref() == Some("if");
+                }
+                _ => i += 1,
+            }
+            if i > 6 {
+                return false;
+            }
+        }
+        false
+    }
+
+    /// At `with counter` or `with +1/+1 counter` (a filter's counters).
+    fn at_counter_qual(&self) -> bool {
+        self.word_at(0).as_deref() == Some("with")
+            && (self.word_at(1).as_deref() == Some("counter")
+                || (matches!(self.peek_at(1), Some(Tok::Pt { signed: true, .. }))
+                    && self.word_at(2).as_deref() == Some("counter")))
+    }
+
     fn counter_kind(&mut self) -> R<CounterKind> {
         let kind = match self.next() {
             // "+1/+1", "-0/-1": power/toughness counters (CR 122.1a).
@@ -4526,6 +4607,7 @@ impl P {
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
             in_trigger: self.in_trigger,
+            it_source: self.it_source,
             subject: None,
         };
         if !probe.at_recipient() {
@@ -4676,7 +4758,7 @@ impl P {
             if self.in_delayed {
                 return Ok(Recipient::SameObject);
             }
-            if self.in_trigger {
+            if self.in_trigger && !self.it_source {
                 return Ok(Recipient::TriggeringIt);
             }
             // In a spell or an activated ability, `it` is the source,
@@ -4980,6 +5062,7 @@ impl P {
                         in_delayed: false,
                         delayed_that: false,
                         in_trigger: false,
+                        it_source: false,
                         subject: None,
                     };
                     probe.keyword().is_some()
@@ -5001,6 +5084,7 @@ impl P {
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (Some("that"), Some("was" | "entered" | "dealt" | "blocked"))
                         | (Some("with" | "without"), Some("aura"))
+                        | (Some("with"), Some("counter"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "or"))
                 ) || comma_type
@@ -5010,6 +5094,8 @@ impl P {
                             Some("ability" | "abilities" | "player" | "players")
                         ))
                     || keyword_after
+                    || (matches!(next.as_deref(), Some("with"))
+                        && matches!(self.peek_at(ws.len() + 1), Some(Tok::Pt { signed: true, .. })))
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
                     || next.as_deref().and_then(card_type).is_some()
@@ -5252,6 +5338,15 @@ impl P {
                     f.mana_value = Some((cmp, 0));
                     f.status.mana_value_x = true;
                 }
+                // "with a +1/+1 counter on it", "with a counter on it".
+                "with" if f.status.counter.is_none() && self.at_counter_qual() => {
+                    self.pos += 1;
+                    f.status.counter = Some(if self.eat_word("counter") {
+                        mtg_core::card::CounterQual::Any
+                    } else {
+                        mtg_core::card::CounterQual::Kind(self.counter_kind()?)
+                    });
+                }
                 "with" | "without"
                     if self.word_at(1).as_deref() == Some("aura")
                         && f.status.enchanted.is_none() =>
@@ -5309,6 +5404,10 @@ impl P {
                 }
                 "tapped" | "untapped" => {
                     f.tapped = Some(w == "tapped");
+                    self.pos += 1;
+                }
+                "modified" if !f.status.modified => {
+                    f.status.modified = true;
                     self.pos += 1;
                 }
                 // "blocking this creature", "this creature is blocking",
@@ -5837,12 +5936,23 @@ impl P {
             }
             self.eat_word("a");
             self.eat_word("an");
+            // Heroic: "a spell that targets this creature" (a filter of
+            // the spell's targets).
+            if self.at_words(&["spell", "that", "targets"]) {
+                self.pos += 1;
+                let filter = Filter {
+                    targeting: self.spell_targeting()?,
+                    ..Filter::default()
+                };
+                return Ok(Trigger::CastsFiltered { whose, filter });
+            }
             let simple = self.at_word("spell")
                 || self.at_words(&["noncreature", "spell"])
                 || self.at_words(&["instant", "or", "sorcery", "spell"]);
-            if !simple || whose == Who::Any {
-                let filter = self.filter()?;
+            if !simple {
+                let mut filter = self.filter()?;
                 self.expect_word("spell")?;
+                filter.targeting = self.spell_targeting()?;
                 return Ok(Trigger::CastsFiltered { whose, filter });
             }
             let noncreature = self.eat_word("noncreature");
@@ -6007,6 +6117,11 @@ impl P {
                 }
                 if obj == TriggerObj::This && self.eat_words(&["by", "opponent"]) {
                     return Ok(Trigger::TargetedByOpponent);
+                }
+                if obj == TriggerObj::This
+                    && self.eat_words(&["by", "you", "first", "time", "each", "turn"])
+                {
+                    return Ok(Trigger::TargetedByYouFirstTime);
                 }
                 if whenever {
                     return Ok(Trigger::BecomesTargetWhenever(obj));

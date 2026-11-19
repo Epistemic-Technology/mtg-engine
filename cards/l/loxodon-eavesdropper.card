@@ -1,0 +1,8 @@
+card "Loxodon Eavesdropper" {
+  oracle_id 141a2757-8f20-4e10-9866-bb5d612ed62d
+  cost {3}{G}
+  type Creature — Elephant Detective
+  pt 3/3
+  triggered when this enters: investigate
+  triggered whenever you draw your second card each turn: this gets +1/+1 and this gains vigilance until end of turn
+}

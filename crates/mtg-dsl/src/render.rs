@@ -1422,6 +1422,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
+    if f.status.modified {
+        words.push("modified".to_string());
+    }
     if let Some(b) = f.status.blocked {
         words.push(if b { "blocked" } else { "unblocked" }.to_string());
     }
@@ -1528,6 +1531,20 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.no_abilities {
         s.push_str(" with no abilities");
+    }
+    // "creature you control with a +1/+1 counter on it" (after the
+    // controller, as Oracle prints it).
+    if let Some(q) = f.status.counter {
+        let kind = match q {
+            mtg_core::card::CounterQual::Any => String::new(),
+            mtg_core::card::CounterQual::Kind(k) => format!("{} ", counter_name(k)),
+        };
+        if plural_form {
+            let _ = write!(s, " with {kind}counters on them");
+        } else {
+            let a = if article(&kind) == "an" { "an" } else { "a" };
+            let _ = write!(s, " with {a} {kind}counter on it");
+        }
     }
     if f.damaged_short {
         s.push_str(" dealt damage this turn");
@@ -2214,8 +2231,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             }
         }
         // "for each artifact and/or creature card in your graveyard".
+        // "for each other creature and/or artifact you control".
         CountExpr::AndOr(inner) => {
-            return count_phrase(inner, card, each).replacen(" and ", " and/or ", 1);
+            let p = count_phrase(inner, card, each);
+            let sep = if p.contains(" and ") { " and " } else { " or " };
+            return p.replacen(sep, " and/or ", 1);
         }
     };
     if each {
@@ -4326,7 +4346,8 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         } => {
             let who = match whose {
                 Who::You => "you cast",
-                _ => "an opponent casts",
+                Who::Opponents => "an opponent casts",
+                Who::Any => "a player casts",
             };
             let what = if *noncreature {
                 "a noncreature spell"
@@ -4363,15 +4384,33 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 Who::Opponents => "an opponent casts",
                 Who::Any => "a player casts",
             };
-            let what = spells_subject(filter, ctx.card);
+            let mut base = filter.clone();
+            let targeting = base.targeting.take();
+            // Heroic: "a spell that targets this creature".
+            let that = targeting.map_or(String::new(), |t| {
+                format!(
+                    " that targets {}",
+                    crate::format::targeting(&t, |g| {
+                        if g.relation == Relation::This {
+                            this_ref(ctx.card)
+                        } else {
+                            filter_phrase(g, ctx.card, false)
+                        }
+                    })
+                )
+            });
+            if base == Filter::default() {
+                return format!("whenever {who} a spell{that}");
+            }
+            let what = spells_subject(&base, ctx.card);
             let what = what.strip_suffix(" spells").unwrap_or(&what);
             // "an artifact spell", but "a Giant spell".
-            let what = if filter.subtypes.is_empty() {
+            let what = if base.subtypes.is_empty() {
                 lowercase_first(what)
             } else {
                 what.to_string()
             };
-            format!("whenever {who} {}", with_article(&spell_noun(&what)))
+            format!("whenever {who} {}{that}", with_article(&spell_noun(&what)))
         }
         Trigger::TurnedFaceUp(TriggerObj::This) => format!("when {} is turned face up", this(ctx)),
         Trigger::TurnedFaceUp(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
@@ -4379,6 +4418,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
         Trigger::DrawsNth { whose, n } => crate::format::draws_nth(*whose, *n),
+        Trigger::TargetedByYouFirstTime => format!(
+            "whenever {} becomes the target of a spell or ability you control for the first time each turn",
+            this(ctx)
+        ),
         Trigger::TargetedByOpponent => format!(
             "whenever {} becomes the target of a spell or ability an opponent controls",
             this(ctx)
@@ -4719,6 +4762,31 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         (Replaces::Enters, Outcome::EnterTapped) => {
             format!("{} enters tapped.", capitalize(&this_ref(ctx.card)))
         }
+        // "enters with a +1/+1 counter on it for each other creature you
+        // control", "a number of +1/+1 counters on it equal to ...".
+        (
+            Replaces::Enters,
+            Outcome::EnterWithCounters {
+                kind,
+                n: Num::Count(i),
+            },
+        ) if ctx.card.counts.get(usize::from(*i)).is_some() => {
+            let count = &ctx.card.counts[usize::from(*i)];
+            let this = capitalize(&this_ref(ctx.card));
+            if count.style == crate::ast::CountStyle::Each {
+                format!(
+                    "{this} enters with {} on it {}.",
+                    counters(Num::N(1), *kind),
+                    count_phrase(&count.expr, ctx.card, true)
+                )
+            } else {
+                format!(
+                    "{this} enters with a number of {} counters on it equal to {}.",
+                    counter_name(*kind),
+                    count_phrase(&count.expr, ctx.card, false)
+                )
+            }
+        }
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
             "{} enters with {} on it.",
             capitalize(&this_ref(ctx.card)),
@@ -4972,7 +5040,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         (capitalize(&this_ref(card)), false)
     } else if filter.enchanted {
         (capitalize(&filter_phrase(filter, card, false)), false)
-    } else if each {
+    } else if each || filter.each {
         (
             format!("Each {}", filter_phrase(filter, card, false)),
             false,
@@ -5295,6 +5363,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
+        StaticCond::OpponentLostLifeThisTurn => "an opponent lost life this turn".to_string(),
+        StaticCond::PermanentLeftThisTurn => {
+            "a permanent left the battlefield under your control this turn".to_string()
+        }
         StaticCond::Escaped => "it escaped".to_string(),
         StaticCond::Kicked => "it was kicked".to_string(),
         StaticCond::Bargained
@@ -6004,6 +6076,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
         },
+        Ability::EntersWithIf {
+            n,
+            kind,
+            cond,
+            first,
+        } => {
+            let this = this_ref(card);
+            let what = counters(Num::N(*n), *kind);
+            let mut cond = static_cond_text(cond, card);
+            if *first {
+                // Adamant names the permanent spell: "spent to cast this
+                // spell".
+                if let Some(c) = cond.strip_suffix(" to cast it") {
+                    cond = format!("{c} to cast this spell");
+                }
+                format!("If {cond}, {this} enters with {what} on it.")
+            } else {
+                format!("{} enters with {what} on it if {cond}.", capitalize(&this))
+            }
+        }
         Ability::EntersTappedUnless(c) => format!(
             "{} enters tapped unless {}.",
             capitalize(&this_ref(card)),

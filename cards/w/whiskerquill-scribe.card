@@ -1,0 +1,7 @@
+card "Whiskerquill Scribe" {
+  oracle_id cb1e1acc-3805-418b-bed1-65838ddb1d62
+  cost {1}{R}
+  type Creature — Mouse Citizen
+  pt 2/2
+  label "Valiant" triggered whenever this becomes targeted by you first time each turn: you may discard 1 card; if you do, draw 1 card
+}

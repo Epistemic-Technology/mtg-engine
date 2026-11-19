@@ -1,0 +1,8 @@
+card "Rancorous Archaic" {
+  oracle_id 6a68fcaf-b1e8-451d-8e1c-b47db55c83cc
+  cost {5}
+  type Creature — Avatar
+  pt 2/2
+  keywords reach, trample
+  label "Converge" enters with count each colors spent +1/+1 counters
+}
