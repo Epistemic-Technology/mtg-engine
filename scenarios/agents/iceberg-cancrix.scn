@@ -1,0 +1,21 @@
+scenario "Iceberg Cancrix: snow permanent entering mills target player two" {
+  battlefield A: "Iceberg Cancrix"
+  hand A: "Snow-Covered Island"
+  library B: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Snow-Covered Island"
+  turn 1 A: trigger "Iceberg Cancrix" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 2 "Plains"
+  assert library B count 1
+}
+
+scenario "Iceberg Cancrix: a non-snow land does not trigger" {
+  battlefield A: "Iceberg Cancrix"
+  hand A: "Island"
+  library B: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: play "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+}

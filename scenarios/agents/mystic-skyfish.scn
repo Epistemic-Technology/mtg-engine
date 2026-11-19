@@ -1,0 +1,18 @@
+scenario "Mystic Skyfish: second card drawn gives flying this turn" {
+  battlefield A: "Mystic Skyfish", 3 "Island"
+  hand A: "Divination"
+  start turn 3 A
+  turn 3 A: cast "Divination"
+  run_to turn 3 postcombat_main
+  assert hand A count 3
+  assert has "Mystic Skyfish" flying
+  run_to turn 4 upkeep
+  assert has not "Mystic Skyfish" flying
+}
+
+scenario "Mystic Skyfish: a single draw does not trigger" {
+  battlefield A: "Mystic Skyfish"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert has not "Mystic Skyfish" flying
+}

@@ -1,0 +1,17 @@
+scenario "Knights of Dol Amroth: second card drawn in a turn adds a counter, only once" {
+  battlefield A: "Knights of Dol Amroth", 3 "Island"
+  hand A: "Divination"
+  start turn 3 A
+  turn 3 A: cast "Divination"
+  run_to turn 3 postcombat_main
+  assert hand A count 3
+  assert counters "Knights of Dol Amroth" +1/+1 1
+}
+
+scenario "Knights of Dol Amroth: a single draw does not trigger" {
+  battlefield A: "Knights of Dol Amroth", 3 "Island"
+  start turn 3 A
+  run_to turn 3 postcombat_main
+  assert hand A count 1
+  assert counters "Knights of Dol Amroth" +1/+1 0
+}

@@ -1,0 +1,23 @@
+scenario "Goblin Arsonist: dies and deals 1 damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Goblin Arsonist"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Goblin Arsonist"
+  turn 1 B: trigger "Goblin Arsonist" targeting player A
+  run_to turn 1 end
+  assert graveyard B contains "Goblin Arsonist"
+  assert life A 19
+}
+
+scenario "Goblin Arsonist: may decline" {
+  battlefield A: "Mountain"
+  battlefield B: "Goblin Arsonist"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Goblin Arsonist"
+  turn 1 B: trigger "Goblin Arsonist" targeting player A
+  turn 1 B: decline "Goblin Arsonist"
+  run_to turn 1 end
+  assert life A 20
+}

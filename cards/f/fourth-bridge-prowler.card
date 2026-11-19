@@ -1,0 +1,7 @@
+card "Fourth Bridge Prowler" {
+  oracle_id da18d97c-85f3-4395-9af5-bca72e33ebfc
+  cost {B}
+  type Creature — Human Rogue
+  pt 1/1
+  triggered when this enters: you may target creature gets -1/-1
+}

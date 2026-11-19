@@ -1,0 +1,7 @@
+card "Lat-Nam Adept" {
+  oracle_id 0d5a1870-6d26-47e7-a86c-f3ff15cb0707
+  cost {3}{U}
+  type Creature — Human Wizard
+  pt 3/3
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}

@@ -1,0 +1,22 @@
+scenario "Kinscaer Harpoonist: attacking makes target creature lose flying" {
+  battlefield A: "Kinscaer Harpoonist"
+  battlefield B: "Wind Drake"
+  start turn 2 A
+  turn 2 A: attack "Kinscaer Harpoonist"
+  turn 2 A: trigger "Kinscaer Harpoonist" targeting "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert has not "Wind Drake" flying
+  run_to turn 3 upkeep
+  assert has "Wind Drake" flying
+}
+
+scenario "Kinscaer Harpoonist: a creature without flying can't block it" {
+  battlefield A: "Kinscaer Harpoonist"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Kinscaer Harpoonist"
+  turn 2 A: trigger "Kinscaer Harpoonist" targeting "Grizzly Bears"
+  illegal turn 2 B: block "Kinscaer Harpoonist" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 18
+}

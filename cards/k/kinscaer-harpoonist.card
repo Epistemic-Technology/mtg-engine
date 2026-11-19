@@ -1,0 +1,8 @@
+card "Kinscaer Harpoonist" {
+  oracle_id 8ee98d6a-6a7e-411d-818c-816d84cfb7cd
+  cost {3}{U}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords flying
+  triggered whenever this attacks: you may target creature loses flying
+}

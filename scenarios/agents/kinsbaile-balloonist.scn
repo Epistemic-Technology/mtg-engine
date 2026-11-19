@@ -1,0 +1,11 @@
+scenario "Kinsbaile Balloonist: attacking gives target creature flying" {
+  battlefield A: "Kinsbaile Balloonist", "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Kinsbaile Balloonist"
+  turn 2 A: trigger "Kinsbaile Balloonist" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert has "Grizzly Bears" flying
+  assert life B 18
+  run_to turn 3 upkeep
+  assert has not "Grizzly Bears" flying
+}

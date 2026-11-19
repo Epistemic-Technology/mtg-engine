@@ -1,0 +1,8 @@
+card "Lakeshore Apothecary" {
+  oracle_id 80bcb154-b4be-4bbd-bbc1-b116a59045b7
+  cost {1}{U}
+  type Creature — Human Cleric
+  pt 1/2
+  keywords vigilance
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}

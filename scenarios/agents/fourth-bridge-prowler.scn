@@ -1,0 +1,25 @@
+scenario "Fourth Bridge Prowler: may give target creature -1/-1" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Fourth Bridge Prowler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fourth Bridge Prowler"
+  turn 1 A: trigger "Fourth Bridge Prowler" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Fourth Bridge Prowler: declining leaves the creature alone" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Fourth Bridge Prowler"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fourth Bridge Prowler"
+  turn 1 A: trigger "Fourth Bridge Prowler" targeting "Grizzly Bears"
+  turn 1 A: decline "Fourth Bridge Prowler"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 2
+}

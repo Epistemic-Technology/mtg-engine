@@ -1,0 +1,7 @@
+card "Iceberg Cancrix" {
+  oracle_id 9e00188a-0743-4a39-9229-977a0a115659
+  cost {1}{U}
+  type Snow Creature — Crab
+  pt 0/4
+  triggered whenever other snow permanent you control enters: you may target player mills 2 cards
+}

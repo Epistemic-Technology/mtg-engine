@@ -1,0 +1,7 @@
+card "Karplusan Wolverine" {
+  oracle_id ce690da4-6d22-4013-aef3-596d331813e4
+  cost {R}
+  type Snow Creature — Wolverine Beast
+  pt 1/1
+  triggered whenever this becomes blocked: you may deal 1 damage to any target
+}

@@ -1,0 +1,7 @@
+card "Goblin Arsonist" {
+  oracle_id c1177f22-a1cf-4da3-a68d-ff954e878403
+  cost {R}
+  type Creature — Goblin Shaman
+  pt 1/1
+  triggered when this dies: you may deal 1 damage to any target
+}

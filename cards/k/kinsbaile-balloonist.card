@@ -1,0 +1,8 @@
+card "Kinsbaile Balloonist" {
+  oracle_id 4ca5d2c7-621b-4d5e-9bf4-ff3ae271ba44
+  cost {3}{W}
+  type Creature — Kithkin Soldier
+  pt 2/2
+  keywords flying
+  triggered whenever this attacks: you may target creature gains flying
+}

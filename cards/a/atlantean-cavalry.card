@@ -1,0 +1,8 @@
+card "Atlantean Cavalry" {
+  oracle_id e929b730-9aa2-49e1-9a65-50afc0fbe3e0
+  cost {2}{U}
+  type Creature — Merfolk Soldier
+  pt 3/2
+  keywords vigilance
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}

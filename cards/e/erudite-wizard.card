@@ -1,0 +1,7 @@
+card "Erudite Wizard" {
+  oracle_id 7d4b6613-9000-4f53-9737-fe0338f3f629
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/3
+  triggered whenever you draw your second card each turn: put 1 +1/+1 counter on this
+}
