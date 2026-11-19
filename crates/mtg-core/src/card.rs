@@ -2053,6 +2053,7 @@ impl Effect {
             Effect::YouMay(_)
                 | Effect::IfKicked(_)
                 | Effect::IfYouDo(_)
+                | Effect::IfCondition(..)
                 | Effect::UnlessPays { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }

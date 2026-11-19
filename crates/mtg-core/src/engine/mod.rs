@@ -699,12 +699,26 @@ impl GameState {
                     let spec = specs[next_target];
                     let optional = matches!(spec, TargetSpec::UpTo(_));
                     let chosen = &self.objects[spell].targets;
+                    // "another target permanent": also not one chosen
+                    // before.
+                    let another = match spec {
+                        TargetSpec::OtherCreature | TargetSpec::OtherPermanent => true,
+                        TargetSpec::Filtered(f) => {
+                            self.pool.filter(f).relation == crate::card::Relation::Other
+                        }
+                        _ => false,
+                    };
                     // CR 115.3: one "target" word names different objects
                     // ("two target lands").
                     let mut options: Vec<Choice> = self
                         .legal_targets(caster, spec, source)
                         .into_iter()
-                        .filter(|t| !chosen.iter().zip(&specs).any(|(c, s)| c == t && *s == spec))
+                        .filter(|t| {
+                            !chosen
+                                .iter()
+                                .zip(&specs)
+                                .any(|(c, s)| c == t && (*s == spec || another))
+                        })
                         .map(Choice::Target)
                         .collect();
                     if optional {

@@ -541,7 +541,7 @@ impl GameState {
                 trigger_player: None,
                 created: None,
                 x: 0,
-                did: false,
+                did: true,
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -1667,7 +1667,7 @@ impl GameState {
                 trigger_player: None,
                 created: None,
                 x: self.x_of(spell),
-                did: false,
+                did: true,
             };
             let split = self.mode_split_of(spell);
             self.apply_effects(&mut ctx, effects, split);
@@ -3330,7 +3330,9 @@ pub(super) struct EffectCtx {
     /// X of the resolving spell (CR 107.3); 0 for abilities.
     pub x: u32,
     /// Whether the last optional action ("you may pay {1}") happened, for
-    /// "If you do".
+    /// "If you do"; true until one is declined, so "if you do" after a
+    /// mandatory action ("Sacrifice this creature. If you do, ...")
+    /// follows it.
     pub did: bool,
 }
 

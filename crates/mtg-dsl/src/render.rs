@@ -2360,6 +2360,69 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
 }
 
 fn lowercase_first(s: &str) -> String {
+    // "Goblin creatures you control get +1/+1": a subtype keeps its
+    // capital.
+    let mut words = s.split(' ');
+    if let (Some(first), Some(second)) = (words.next(), words.next())
+        && first.chars().next().is_some_and(char::is_uppercase)
+        && matches!(
+            second,
+            "creature" | "creatures" | "spell" | "spells" | "permanents" | "cards" | "tokens"
+        )
+        && !matches!(
+            first,
+            "Target"
+                | "This"
+                | "That"
+                | "These"
+                | "A"
+                | "An"
+                | "Up"
+                | "Two"
+                | "Three"
+                | "Four"
+                | "Each"
+                | "Nonartifact"
+                | "Nonblack"
+                | "Nonwhite"
+                | "Nonblue"
+                | "Nonred"
+                | "Nongreen"
+                | "All"
+                | "Other"
+                | "Another"
+                | "Attacking"
+                | "Blocking"
+                | "Tapped"
+                | "Untapped"
+                | "Legendary"
+                | "Nonland"
+                | "Noncreature"
+                | "Nontoken"
+                | "Token"
+                | "Artifact"
+                | "Enchantment"
+                | "Land"
+                | "Creature"
+                | "White"
+                | "Blue"
+                | "Black"
+                | "Red"
+                | "Green"
+                | "Colorless"
+                | "Multicolored"
+                | "Monocolored"
+                | "Instant"
+                | "Sorcery"
+                | "Your"
+                | "Those"
+                | "Their"
+                | "Enchanted"
+                | "Equipped"
+        )
+    {
+        return s.to_string();
+    }
     let mut c = s.chars();
     match c.next() {
         Some(f) => f.to_lowercase().collect::<String>() + c.as_str(),
@@ -2489,7 +2552,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
         }
         Trigger::Dies(TriggerObj::Filter(f)) => {
-            if f.relation == Relation::Other {
+            // "When enchanted creature dies", "Whenever a creature dies" on
+            // an Aura: the filter can't be the card itself.
+            let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t));
+            if f.relation == Relation::Other || f.enchanted || !can_be_self {
                 format!("whenever {} dies", filter_a(f, ctx.card))
             } else {
                 let t = this(ctx);

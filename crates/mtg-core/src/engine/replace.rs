@@ -839,7 +839,7 @@ impl GameState {
                 trigger_player: None,
                 created: None,
                 x: 0,
-                did: false,
+                did: true,
             };
             for effect in &c.ability.then {
                 self.apply_effect(&mut ctx, effect);

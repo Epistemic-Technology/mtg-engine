@@ -3015,6 +3015,11 @@ impl P {
         if let (Some(Tok::Word(sub)), Some(Tok::Word(c))) = (self.peek_at(0), self.peek_at(1))
             && sub.chars().next().is_some_and(char::is_uppercase)
             && c == "creature"
+            // "Beast creature you control" goes on as a filter.
+            && !matches!(
+                self.word_at(2).as_deref(),
+                Some("you" | "an" | "your" | "defending" | "with" | "without" | "or" | "that")
+            )
         {
             let sub = sub.clone();
             self.pos += 2;

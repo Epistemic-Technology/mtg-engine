@@ -947,7 +947,11 @@ impl Runner {
                                 ),
                             );
                         }
-                        self.pending_targets = Some(targets);
+                        // An untargeted spell leaves the script free for
+                        // the triggers its cast causes.
+                        if !targets.is_empty() {
+                            self.pending_targets = Some(targets);
+                        }
                     }
                     return Ok(idx);
                 }

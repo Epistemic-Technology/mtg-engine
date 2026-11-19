@@ -642,7 +642,7 @@ impl GameState {
             trigger_player: sa.trigger_player,
             created: None,
             x: 0,
-            did: false,
+            did: true,
         };
         self.apply_effects(&mut ctx, effects, split);
         if self.objects.contains_key(id) {
