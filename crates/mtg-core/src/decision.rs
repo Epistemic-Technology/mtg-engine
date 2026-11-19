@@ -110,6 +110,9 @@ pub enum DecisionKind {
     /// artifact or discard a card", "your choice of lifelink or
     /// indestructible"): `Mode` options.
     ChooseOption { def: CardRef },
+    /// A card in hand with splice onto Arcane to splice onto `spell` as it
+    /// is cast (CR 702.47a): `Discard` options naming the cards, or `Done`.
+    Splice { spell: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -212,6 +215,8 @@ pub enum Choice {
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost."
     CastAlt(ObjId),
+    /// Cast a card for its bestow cost, as an Aura spell (CR 702.103a).
+    CastBestow(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -317,6 +322,7 @@ impl Choice {
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
             Choice::CastAlt(id) => format!("cast {} for its alternative cost", name(id)),
+            Choice::CastBestow(id) => format!("cast {} for its bestow cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {

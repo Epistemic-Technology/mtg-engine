@@ -1,0 +1,167 @@
+# Bestow (CR 702.103) and splice onto Arcane (CR 702.47).
+
+scenario "bestow: an Aura on the creature it enchants, not a creature itself" {
+  battlefield A: "Grizzly Bears", 5 "Island"
+  hand A: "Nimbus Naiad"
+  turn 1 A: cast "Nimbus Naiad" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Nimbus Naiad" to "Grizzly Bears"
+  assert is not "Nimbus Naiad" creature
+  assert is "Nimbus Naiad" enchantment
+  assert is "Nimbus Naiad" "Aura"
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+
+scenario "bestow: cast for its mana cost, it is an enchantment creature" {
+  battlefield A: "Grizzly Bears", 3 "Island"
+  hand A: "Nimbus Naiad"
+  turn 1 A: cast "Nimbus Naiad"
+  run_to turn 1 postcombat_main
+  assert is "Nimbus Naiad" creature
+  assert is "Nimbus Naiad" "Nymph"
+  assert power "Nimbus Naiad" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "bestow: not without a creature to enchant" {
+  battlefield A: 5 "Island"
+  hand A: "Nimbus Naiad"
+  illegal turn 1 A: cast "Nimbus Naiad" bestowed
+  run_to turn 1 postcombat_main
+  assert hand A contains "Nimbus Naiad"
+}
+
+scenario "bestow: the bestow cost must be paid" {
+  battlefield A: "Grizzly Bears", 4 "Island"
+  hand A: "Nimbus Naiad"
+  illegal turn 1 A: cast "Nimbus Naiad" bestowed targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+}
+
+scenario "bestow: when the enchanted creature dies, the Aura becomes a creature and stays" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Hopeful Eidolon"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Hopeful Eidolon" bestowed targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  # Lifelink from the Aura: 3 damage, 3 life.
+  assert life B 17
+  assert life A 23
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hopeful Eidolon"
+  assert is "Hopeful Eidolon" creature
+  assert is "Hopeful Eidolon" "Spirit"
+  assert is not "Hopeful Eidolon" "Aura"
+  assert power "Hopeful Eidolon" 1
+  assert has "Hopeful Eidolon" lifelink
+}
+
+scenario "bestow: an unattached bestowed creature controlled since the turn began can attack" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Hopeful Eidolon"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Hopeful Eidolon" bestowed targeting "Grizzly Bears"
+  turn 3 upkeep B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 3 A: attack "Hopeful Eidolon"
+  run_to turn 3 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "bestow: its target gone, it resolves as an enchantment creature" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Hopeful Eidolon"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Hopeful Eidolon" bestowed targeting "Grizzly Bears"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Hopeful Eidolon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Hopeful Eidolon"
+  assert is "Hopeful Eidolon" creature
+  assert is not "Hopeful Eidolon" "Aura"
+}
+
+scenario "bestow: its host bounced, the Aura stays as a creature" {
+  battlefield A: "Grizzly Bears", 4 "Island", 2 "Forest"
+  hand A: "Leafcrown Dryad", "Consuming Vortex"
+  turn 1 A: cast "Leafcrown Dryad" bestowed targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Consuming Vortex" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Leafcrown Dryad"
+  assert is "Leafcrown Dryad" creature
+  assert has "Leafcrown Dryad" reach
+}
+
+scenario "splice: the spliced card's effect and target are added; the card stays in hand" {
+  battlefield A: "Grizzly Bears", "Forest", 2 "Mountain"
+  hand A: "Kodama's Might", "Glacial Ray"
+  turn 1 A: cast "Kodama's Might" splicing "Glacial Ray" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 18
+  assert hand A contains "Glacial Ray"
+  assert graveyard A contains "Kodama's Might"
+  assert tapped "Forest"
+}
+
+scenario "splice: several cards, in order, each with its own targets" {
+  battlefield A: 2 "Forest", 2 "Mountain", "Plains"
+  hand A: "Vital Surge", "Glacial Ray", "Spiritual Visit"
+  turn 1 A: cast "Vital Surge" splicing "Glacial Ray", "Spiritual Visit" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert life B 18
+  assert battlefield A contains "Spirit"
+  assert hand A contains "Glacial Ray"
+  assert hand A contains "Spiritual Visit"
+}
+
+scenario "splice: a second copy of the same card can be spliced onto it" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: 2 "Desperate Ritual", "Lava Axe"
+  turn 1 A: cast "Desperate Ritual" splicing "Desperate Ritual"
+  turn 1 A: cast "Lava Axe" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert hand A contains "Desperate Ritual"
+}
+
+scenario "splice: not onto a spell that isn't Arcane" {
+  battlefield A: 3 "Mountain"
+  hand A: "Lightning Bolt", "Glacial Ray"
+  illegal turn 1 A: cast "Lightning Bolt" splicing "Glacial Ray" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert hand A contains "Glacial Ray"
+}
+
+scenario "splice: not without the mana for its splice cost" {
+  battlefield A: "Grizzly Bears", "Forest", "Mountain"
+  hand A: "Kodama's Might", "Glacial Ray"
+  illegal turn 1 A: cast "Kodama's Might" splicing "Glacial Ray" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 20
+}
+
+scenario "splice: the spell resolves if some of its targets are still legal" {
+  battlefield A: "Grizzly Bears", "Forest", 2 "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Kodama's Might", "Glacial Ray"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Kodama's Might" splicing "Glacial Ray" targeting "Grizzly Bears", player B
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Kodama's Might"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 18
+}

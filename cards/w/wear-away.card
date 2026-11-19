@@ -1,0 +1,7 @@
+card "Wear Away" {
+  oracle_id be7cd599-12b6-43b6-a22a-8a8f7dd1ecd2
+  cost {G}{G}
+  type Instant — Arcane
+  spell: destroy target artifact or enchantment
+  splice {3}{G}
+}

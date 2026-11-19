@@ -1,0 +1,7 @@
+card "Blessed Breath" {
+  oracle_id e83e1f99-1f9b-49fc-bdc7-5f6335e401e4
+  cost {W}
+  type Instant — Arcane
+  spell: target creature you control gains protection from color of choice
+  splice {W}
+}

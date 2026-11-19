@@ -1,0 +1,8 @@
+card "Nyxborn Wolf" {
+  oracle_id 3fa11a6a-a760-45db-8341-f83a0f69c17f
+  cost {2}{G}
+  type Enchantment Creature — Wolf
+  pt 3/1
+  bestow {4}{G}
+  static enchanted: +3/+1
+}

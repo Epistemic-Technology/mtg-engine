@@ -242,6 +242,8 @@ pub enum AltCast {
     /// Cast for the alternative cost its own text offers (CR 118.9, "rather
     /// than pay this spell's mana cost").
     AltCost,
+    /// Cast for its bestow cost (CR 702.103a): an Aura spell.
+    Bestow,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -979,6 +981,11 @@ pub enum Flow {
     ChoosingBargain {
         spell: ObjId,
     },
+    /// Choosing cards to splice onto an Arcane spell (CR 702.47a), one at
+    /// a time, after bargain and before X.
+    ChoosingSplice {
+        spell: ObjId,
+    },
     /// Attackers declared; each chooses the player or planeswalker it
     /// attacks (CR 508.1a) when the defender controls a planeswalker.
     AttackTargets {
@@ -1100,6 +1107,17 @@ impl Designations {
     }
 }
 
+/// An Arcane spell with cards spliced onto it (CR 702.47a): the cards
+/// revealed from hand (and their definitions, whose effects the spell
+/// has even if the cards leave the hand, CR 702.47b), and all the
+/// spell's targets, its own first, then each spliced card's in order.
+#[derive(Clone, Debug)]
+pub struct Spliced {
+    pub spell: ObjId,
+    pub cards: SmallVec<[(ObjId, crate::card::CardRef); 2]>,
+    pub targets: Vec<crate::card::TargetSpec>,
+}
+
 #[derive(Clone)]
 // Independent dirty flags and switches, not a state machine.
 #[allow(clippy::struct_excessive_bools)]
@@ -1169,6 +1187,9 @@ pub struct GameState {
     /// among their targets (CR 601.2d), in target order from the variable
     /// group's first target; kept off `GameObject` like `x_values`.
     pub divisions: Vec<(ObjId, Vec<u32>)>,
+    /// Spells with cards spliced onto them (CR 702.47a), kept off
+    /// `GameObject` like `x_values`.
+    pub splices: Vec<Spliced>,
     pub turn_number: u32,
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
@@ -1509,6 +1530,12 @@ impl GameState {
     /// Targets a stack object needs: a spell's cast targets (of its chosen
     /// mode) or an ability's.
     pub fn targets_of(&self, id: ObjId) -> &[TargetSpec] {
+        // CR 702.47a: a spliced spell has the spliced cards' targets too.
+        if !self.splices.is_empty()
+            && let Some(s) = self.splices.iter().find(|s| s.spell == id)
+        {
+            return &s.targets;
+        }
         self.objects
             .get(id)
             .map_or(&[], |o| targets_in(&self.pool, o))

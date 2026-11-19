@@ -1,0 +1,8 @@
+card "Nyxborn Rollicker" {
+  oracle_id ebf2974a-963e-425a-8f8c-55f0a36984c3
+  cost {R}
+  type Enchantment Creature — Satyr
+  pt 1/1
+  bestow {1}{R}
+  static enchanted: +1/+1
+}

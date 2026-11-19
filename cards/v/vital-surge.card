@@ -1,0 +1,7 @@
+card "Vital Surge" {
+  oracle_id e19c0205-67e3-4e44-995b-751e18fdaafd
+  cost {1}{G}
+  type Instant — Arcane
+  spell: you gains 3 life
+  splice {1}{G}
+}

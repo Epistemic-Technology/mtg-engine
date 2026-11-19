@@ -1,0 +1,9 @@
+card "Nimbus Naiad" {
+  oracle_id 1b3b14b9-088d-48df-8d21-54ee68989ac0
+  cost {2}{U}
+  type Enchantment Creature — Nymph
+  pt 2/2
+  bestow {4}{U}
+  keyword flying
+  static enchanted: +2/+2, has flying
+}

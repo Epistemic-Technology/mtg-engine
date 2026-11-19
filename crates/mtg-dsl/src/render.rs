@@ -7865,6 +7865,8 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Ninjutsu(c) => format!("Ninjutsu {c}"),
             crate::ast::Mechanic::Scavenge(c) => format!("Scavenge {c}"),
             crate::ast::Mechanic::Dash(c) => format!("Dash {c}"),
+            crate::ast::Mechanic::Bestow(c) => format!("Bestow {c}"),
+            crate::ast::Mechanic::Splice(c) => format!("Splice onto Arcane {c}"),
             crate::ast::Mechanic::Embalm(c) => format!("Embalm {c}"),
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),

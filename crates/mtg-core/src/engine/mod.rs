@@ -458,6 +458,7 @@ impl GameState {
             ninjutsu: Vec::new(),
             bargains: Vec::new(),
             divisions: Vec::new(),
+            splices: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
             drawn_this_turn: [0; 4],
@@ -791,6 +792,31 @@ impl GameState {
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::Bargain { spell },
+                        options,
+                    });
+                }
+                Flow::ChoosingSplice { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let mut options: Vec<Choice> = self
+                        .splice_candidates(spell)
+                        .into_iter()
+                        .map(|id| Choice::Discard {
+                            card: id,
+                            def: self.objects[id].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        self.flow = self.after_splice(spell);
+                        continue;
+                    }
+                    options.push(Choice::Done);
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind: DecisionKind::Splice { spell },
                         options,
                     });
                 }
@@ -1417,6 +1443,12 @@ impl GameState {
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
             }
+            (Flow::Priority, Choice::CastBestow(card)) => {
+                // CR 702.103b: on the stack it is the Aura, enchant
+                // creature, from the start.
+                let face = self.pool.get(self.objects[card].def).bestow_face;
+                self.begin_cast_as(player, card, crate::state::AltCast::Bestow, face);
+            }
             (Flow::Priority, Choice::CastAlt(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }
@@ -1575,6 +1607,30 @@ impl GameState {
             }
             (Flow::ChoosingBargain { spell }, Choice::Decline) => {
                 self.flow = self.after_bargain(spell);
+            }
+            // CR 702.47a: the card is revealed and stays in hand; the spell
+            // has its effects and targets, its splice cost paid with the
+            // spell's (CR 601.2f).
+            (Flow::ChoosingSplice { spell }, Choice::Discard { card, def }) => {
+                let i = if let Some(i) = self.splices.iter().position(|s| s.spell == spell) {
+                    i
+                } else {
+                    let targets = self.targets_of(spell).to_vec();
+                    self.splices.push(crate::state::Spliced {
+                        spell,
+                        cards: smallvec::SmallVec::new(),
+                        targets,
+                    });
+                    self.splices.len() - 1
+                };
+                let added = self.pool.get(def).cast_targets().to_vec();
+                let s = &mut self.splices[i];
+                s.cards.push((card, def));
+                s.targets.extend(added);
+                self.emit(Event::Revealed { obj: card, def });
+            }
+            (Flow::ChoosingSplice { spell }, Choice::Done) => {
+                self.flow = self.after_splice(spell);
             }
             (
                 Flow::Priority,
@@ -1752,11 +1808,27 @@ impl GameState {
     /// CR 601.2a: the card moves to the stack, cast `alt`'s way; modes come
     /// before X, X before targets (CR 601.2b).
     fn begin_cast(&mut self, player: PlayerId, card: ObjId, alt: crate::state::AltCast) -> ObjId {
+        self.begin_cast_as(player, card, alt, None)
+    }
+
+    /// `begin_cast`, the spell having the characteristics of `def` if
+    /// given (a bestowed Aura, CR 702.103b).
+    fn begin_cast_as(
+        &mut self,
+        player: PlayerId,
+        card: ObjId,
+        alt: crate::state::AltCast,
+        def: Option<crate::card::CardRef>,
+    ) -> ObjId {
         self.consecutive_passes = 0;
         let from = self.objects[card].zone;
         let spell = self.move_object(card, Zone::Stack, true);
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
+        if let Some(d) = def {
+            self.objects[spell].def = d;
+            self.cbump();
+        }
         // CR 601.2a: "if you cast it from your hand".
         self.objects[spell].cast.set_cast_from(from);
         let def = self.pool.get(self.objects[spell].def);
@@ -1831,6 +1903,50 @@ impl GameState {
     }
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
+        // CR 702.47a: cards to splice onto an Arcane spell, revealed as
+        // costs are announced.
+        if !self.splice_candidates(spell).is_empty() {
+            return Flow::ChoosingSplice { spell };
+        }
+        self.after_splice(spell)
+    }
+
+    /// Cards in the caster's hand that could be spliced onto `spell` now
+    /// (CR 702.47a): with splice onto Arcane, onto an Arcane spell, not
+    /// spliced onto it already (CR 702.47c), their cost payable on top of
+    /// the spell's and their targets available.
+    fn splice_candidates(&self, spell: ObjId) -> Vec<ObjId> {
+        let o = &self.objects[spell];
+        let p = o.controller;
+        if !self
+            .characteristics(spell)
+            .is_some_and(|c| c.has_subtype(crate::card::Subtype::ARCANE))
+        {
+            return Vec::new();
+        }
+        let done = self.splices.iter().find(|s| s.spell == spell);
+        let base = self.spell_requirements(spell, 0);
+        self.player(p)
+            .hand
+            .iter()
+            .copied()
+            .filter(|id| {
+                let def = self.pool.get(self.objects[*id].def);
+                let Some(cost) = &def.splice else {
+                    return false;
+                };
+                if done.is_some_and(|s| s.cards.iter().any(|(c, _)| c == id)) {
+                    return false;
+                }
+                let mut req = base;
+                req.add(&cost.requirements(0));
+                self.spell_payable(p, spell, &req)
+                    && self.targets_available(p, def.cast_targets(), Some(spell))
+            })
+            .collect()
+    }
+
+    fn after_splice(&self, spell: ObjId) -> Flow {
         let def = self.pool.get(self.objects[spell].def);
         let add = self.additional_of(spell);
         if def.mana_cost.has_x() || add.discard_x || add.exile_cards.as_ref().is_some_and(|g| g.x) {
@@ -1992,6 +2108,7 @@ impl GameState {
             self.x_values.retain(|(id, _)| *id != spell);
             self.divisions.retain(|(id, _)| *id != spell);
             self.bargains.retain(|(id, _)| *id != spell);
+            self.splices.retain(|s| s.spell != spell);
             let card = self.move_object(spell, back, false);
             self.give_priority(controller);
             self.undone_cast = Some((card, self.version));

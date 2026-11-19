@@ -129,6 +129,12 @@ impl GameState {
             {
                 options.push(Choice::CastDash(*id));
             }
+            // CR 702.103a: cast for the bestow cost, as an Aura spell.
+            if let Some(face) = def.bestow_face
+                && self.bestow_castable(p, def, face, *id, sorcery_timing, &sources, &changers)
+            {
+                options.push(Choice::CastBestow(*id));
+            }
             // CR 702.37c: face down as a 2/2 creature spell for {3}.
             if def.morph.is_some() && sorcery_timing {
                 self.face_down_option(p, *id, &sources, &mut options);
@@ -1037,6 +1043,36 @@ impl GameState {
             .count()
     }
 
+    /// CR 702.103a: whether `p` could cast the card `id` for its bestow
+    /// cost, as the Aura `face` targeting a creature.
+    #[cold]
+    #[inline(never)]
+    #[allow(clippy::too_many_arguments)] // the parts precomputed once per listing
+    fn bestow_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        face_ref: crate::card::CardRef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+        changers: &[ObjId],
+    ) -> bool {
+        let Some(cost) = &def.bestow else {
+            return false;
+        };
+        if !(sorcery_timing || self.has_flash(p, def, id)) {
+            return false;
+        }
+        let face = self.pool.get(face_ref);
+        let mut req = cost.requirements(0);
+        if !changers.is_empty() {
+            adjust_generic(&mut req, self.cost_delta(p, face, id, changers));
+        }
+        self.payable_for(p, sources, &req, Spend::Spell(&self.printed(face_ref)))
+            && self.targets_available(p, face.cast_targets(), Some(id))
+    }
+
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
     /// now: timing, mana, additional costs, and targets (CR 601.2).
     #[inline]
@@ -1798,6 +1834,9 @@ impl GameState {
             (_, false) if o.alt == AltCast::Escape && def.escape.is_some() => {
                 def.escape.as_ref().expect("checked").0.requirements(x)
             }
+            (_, false) if o.alt == AltCast::Bestow && def.bestow.is_some() => {
+                def.bestow.as_ref().expect("checked").requirements(x)
+            }
             (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
                 def.dash.as_ref().expect("checked").requirements(x)
             }
@@ -1846,6 +1885,16 @@ impl GameState {
             && let Some(b) = &def.offspring
         {
             req.add(&b.requirements(0));
+        }
+        // CR 702.47a, 601.2f: the splice costs of the cards spliced on.
+        if !self.splices.is_empty()
+            && let Some(sp) = self.splices.iter().find(|s| s.spell == spell)
+        {
+            for (_, d) in &sp.cards {
+                if let Some(c) = &self.pool.get(*d).splice {
+                    req.add(&c.requirements(0));
+                }
+            }
         }
         // CR 702.42a: every mode, for the entwine cost on top.
         if let Some(e) = &def.entwine
@@ -4048,6 +4097,20 @@ impl GameState {
             let target = obj.targets.first().copied();
             let legal = target
                 .is_some_and(|t| self.is_legal_target_for(obj.controller, spec, t, Some(spell)));
+            if !legal && self.pool.get(obj.card).bestow_face == Some(obj.def) {
+                // CR 702.103e (608.3b): a bestowed Aura spell with an
+                // illegal target stops being bestowed and resolves as the
+                // enchantment creature spell it is.
+                self.objects[spell].def = obj.card;
+                self.cbump();
+                self.emit(Event::Resolve {
+                    spell,
+                    def: obj.card,
+                });
+                self.choose_copy_on_entering(spell);
+                self.put_onto_battlefield(spell, obj.controller);
+                return;
+            }
             if !legal {
                 self.emit(Event::Fizzle {
                     spell,
@@ -4079,7 +4142,15 @@ impl GameState {
                     crate::state::effects_in(&pool, &obj),
                 )
             });
+        // CR 702.47a: the spliced cards' effects (and targets) follow the
+        // spell's own.
+        let spliced = if self.splices.is_empty() {
+            None
+        } else {
+            self.splices.iter().find(|s| s.spell == spell).cloned()
+        };
         if let Some((specs, effects)) = parts {
+            let specs = spliced.as_ref().map_or(specs, |s| s.targets.as_slice());
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
             let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell), None);
@@ -4117,6 +4188,9 @@ impl GameState {
                 self.ascend(obj.controller);
             }
             self.apply_effects(&mut ctx, effects, split);
+            if let Some(sp) = &spliced {
+                self.apply_spliced(&ctx, sp, crate::state::targets_in(&pool, &obj).len());
+            }
             self.end_this_way(outer);
         } else {
             self.emit(Event::Resolve {
@@ -4140,6 +4214,36 @@ impl GameState {
             } else {
                 self.leave_stack(spell);
             }
+        }
+    }
+
+    /// CR 702.47a: a spliced card's effects, as part of the resolving
+    /// spell, each card with its own slice of the spell's targets (from
+    /// `start`, after the spell's own).
+    fn apply_spliced(&mut self, ctx: &EffectCtx, sp: &crate::state::Spliced, mut start: usize) {
+        let pool = std::sync::Arc::clone(&self.pool);
+        for (_, d) in &sp.cards {
+            let def = pool.get(*d);
+            let n = def.cast_targets().len();
+            let end = (start + n).min(ctx.targets.len());
+            let from = start.min(end);
+            let mut part = EffectCtx {
+                source: ctx.source,
+                controller: ctx.controller,
+                targets: ctx.targets[from..end].to_vec(),
+                division: Vec::new(),
+                legal: ctx.legal.get(from..end).unwrap_or(&[]).to_vec(),
+                trigger_obj: None,
+                trigger_player: None,
+                trigger_amount: 0,
+                created: None,
+                x: 0,
+                did: true,
+                chosen: Chosen::None,
+            };
+            start += n;
+            let effects = def.spell_ability().map_or(&[][..], |(_, e)| e);
+            self.apply_effects(&mut part, effects, None);
         }
     }
 

@@ -1,0 +1,9 @@
+card "Cavern Lampad" {
+  oracle_id 6ead91e1-4062-4080-bbc7-a4b62f8c6111
+  cost {3}{B}
+  type Enchantment Creature — Nymph
+  pt 2/2
+  bestow {5}{B}
+  keyword intimidate
+  static enchanted: +2/+2, has intimidate
+}

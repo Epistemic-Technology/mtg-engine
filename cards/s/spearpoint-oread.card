@@ -1,0 +1,9 @@
+card "Spearpoint Oread" {
+  oracle_id 2fa7bb26-18eb-4ff0-8558-f6f3981a84ce
+  cost {2}{R}
+  type Enchantment Creature — Nymph
+  pt 2/2
+  bestow {5}{R}
+  keyword first strike
+  static enchanted: +2/+2, has first strike
+}

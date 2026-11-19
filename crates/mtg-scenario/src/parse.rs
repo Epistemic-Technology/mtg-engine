@@ -514,6 +514,12 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 false
             };
+            let bestowed = if line.peek_ident("bestowed") {
+                line.pos += 1;
+                true
+            } else {
+                false
+            };
             let other_cost = if line.peek_ident("other_cost") {
                 line.pos += 1;
                 true
@@ -560,6 +566,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             } else {
                 None
             };
+            let mut splice = Vec::new();
+            if line.peek_ident("splicing") {
+                line.pos += 1;
+                loop {
+                    splice.push(line.string()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
             let mut targets = Vec::new();
             if line.peek_ident("targeting") {
                 line.pos += 1;
@@ -599,6 +617,8 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     evoked,
                     dashed,
                     alternative,
+                    bestowed,
+                    splice,
                     other_cost,
                     face_down,
                     kicked,

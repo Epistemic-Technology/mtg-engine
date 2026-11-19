@@ -1,0 +1,7 @@
+card "Spiritual Visit" {
+  oracle_id 40759025-91e1-4755-a8cf-0b68c8e9220f
+  cost {W}
+  type Instant — Arcane
+  spell: create 1 "1/1 colorless Spirit creature"
+  splice {W}
+}

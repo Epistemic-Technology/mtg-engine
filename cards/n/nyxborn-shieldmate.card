@@ -1,0 +1,8 @@
+card "Nyxborn Shieldmate" {
+  oracle_id a1012f33-7ebd-47c6-b670-1b0dc046fbce
+  cost {W}
+  type Enchantment Creature — Human Soldier
+  pt 1/2
+  bestow {2}{W}
+  static enchanted: +1/+2
+}

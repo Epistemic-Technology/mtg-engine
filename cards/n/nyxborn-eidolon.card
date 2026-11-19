@@ -1,0 +1,8 @@
+card "Nyxborn Eidolon" {
+  oracle_id bd7fd82f-154a-4001-bb8f-7fb50ac77b6b
+  cost {1}{B}
+  type Enchantment Creature — Spirit
+  pt 2/1
+  bestow {4}{B}
+  static enchanted: +2/+1
+}
