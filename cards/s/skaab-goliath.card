@@ -1,0 +1,8 @@
+card "Skaab Goliath" {
+  oracle_id 498707db-258f-423a-9ff6-9e294fce84d6
+  cost {5}{U}
+  type Creature — Zombie Giant
+  pt 6/9
+  additional cost exile 2 creature cards from graveyard
+  keywords trample
+}

@@ -1,0 +1,8 @@
+card "Eaten Alive" {
+  oracle_id d437ecc2-2fd3-4ad3-b23e-217f55e58dae
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  additional cost or {3}{B}
+  spell: exile target creature or planeswalker
+}

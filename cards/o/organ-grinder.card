@@ -1,0 +1,7 @@
+card "Organ Grinder" {
+  oracle_id a9f279a5-c35f-4703-a583-050f2dffb28e
+  cost {2}{B}
+  type Creature — Zombie
+  pt 3/1
+  activated {T}, exile 3 cards from graveyard: target player loses 3 life
+}

@@ -309,6 +309,7 @@ impl GreedyAgent {
             | DecisionKind::ChooseOption { .. }
             | DecisionKind::Offspring { .. }
             | DecisionKind::Bargain { .. }
+            | DecisionKind::ChooseAdditionalCost { .. }
             | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.

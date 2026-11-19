@@ -1,0 +1,8 @@
+card "Lightning Axe" {
+  oracle_id 81b90905-fbc0-426a-a084-c3300533abb4
+  cost {R}
+  type Instant
+  additional cost discard 1 card
+  additional cost or {5}
+  spell: deal 5 damage to target creature
+}

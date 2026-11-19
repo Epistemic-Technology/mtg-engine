@@ -156,6 +156,11 @@ pub enum ManaCostParseError {
 }
 
 impl ManaCost {
+    /// No symbols at all (not even {0}).
+    pub fn is_empty(&self) -> bool {
+        self.symbols.is_empty()
+    }
+
     /// Parse Scryfall-style text such as `{1}{R}` or `{X}{G}{G}`.
     pub fn parse(text: &str) -> Result<ManaCost, ManaCostParseError> {
         let mut symbols = SmallVec::new();

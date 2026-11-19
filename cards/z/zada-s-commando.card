@@ -1,0 +1,8 @@
+card "Zada's Commando" {
+  oracle_id d57d1988-5962-4df9-8342-cf04233fd6c7
+  cost {1}{R}
+  type Creature — Goblin Archer Ally
+  pt 2/1
+  keywords first strike
+  label "Cohort" activated {T}, tap untapped Ally you control: deal 1 damage to target opponent or planeswalker
+}

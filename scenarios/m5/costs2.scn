@@ -1,0 +1,298 @@
+# Cost variants: a choice of two additional costs ("As an additional cost
+# to cast this spell, sacrifice a creature or pay {3}", CR 601.2b, 601.2f),
+# costs that tap several untapped permanents ("Tap two untapped creatures
+# you control", "Tap an untapped Ally you control" beside {T}, CR 118.3,
+# 602.2b), and costs that exile cards from the graveyard ("Exile two cards
+# from your graveyard", "exile X creature cards from your graveyard").
+
+scenario "Lash of the Balrog sacrifices a creature" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lash of the Balrog"
+  turn 1 A: cast "Lash of the Balrog" sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Lash of the Balrog pays {4} instead" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Lash of the Balrog"
+  turn 1 A: cast "Lash of the Balrog" other_cost targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Lash of the Balrog with no creature pays {4}" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Lash of the Balrog"
+  turn 1 A: cast "Lash of the Balrog" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Lash of the Balrog with neither a creature nor {4} more can't be cast" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Lash of the Balrog"
+  illegal turn 1 A: cast "Lash of the Balrog" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Lightning Axe discards a card" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Axe", "Forest"
+  turn 1 A: cast "Lightning Axe" discarding "Forest" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Lightning Axe with no other card pays {5}" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Axe"
+  turn 1 A: cast "Lightning Axe" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Lightning Axe alone in hand without {5} more can't be cast" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Axe"
+  illegal turn 1 A: cast "Lightning Axe" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Final Payment pays 5 life" {
+  battlefield A: "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Final Payment"
+  turn 1 A: cast "Final Payment" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 15
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Final Payment sacrifices a creature instead" {
+  battlefield A: "Plains", "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Final Payment"
+  turn 1 A: cast "Final Payment" other_cost sacrificing "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 20
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Bone Shards discards a card instead of sacrificing" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Bone Shards", "Forest"
+  turn 1 A: cast "Bone Shards" other_cost discarding "Forest" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Annihilating Glare without {4} more sacrifices" {
+  battlefield A: "Swamp", "Ornithopter"
+  battlefield B: "Hill Giant"
+  hand A: "Annihilating Glare"
+  turn 1 A: cast "Annihilating Glare" sacrificing "Ornithopter" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Morkrut Behemoth pays {1}{B} more" {
+  battlefield A: 7 "Swamp"
+  hand A: "Morkrut Behemoth"
+  turn 1 A: cast "Morkrut Behemoth"
+  run_to turn 1 end
+  assert battlefield A contains "Morkrut Behemoth"
+}
+
+scenario "Morkrut Behemoth without a creature or {1}{B} more can't be cast" {
+  battlefield A: 6 "Swamp"
+  hand A: "Morkrut Behemoth"
+  illegal turn 1 A: cast "Morkrut Behemoth"
+  run_to turn 1 end
+}
+
+scenario "Siege Zombie taps three creatures, itself among them" {
+  battlefield A: "Siege Zombie", "Grizzly Bears", "Hill Giant"
+  turn 1 A: activate "Siege Zombie" sacrificing "Hill Giant"
+  run_to turn 1 end
+  assert life B 19
+  assert tapped "Siege Zombie"
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "Siege Zombie with two creatures can't activate" {
+  battlefield A: "Siege Zombie", "Grizzly Bears"
+  illegal turn 1 A: activate "Siege Zombie"
+  run_to turn 1 end
+}
+
+scenario "Siege Zombie taps creatures that came under control this turn" {
+  battlefield A: "Siege Zombie", 4 "Forest"
+  hand A: "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: cast "Llanowar Elves"
+  turn 1 A: activate "Siege Zombie" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 19
+  assert tapped "Llanowar Elves"
+}
+
+scenario "A Cohort ability taps another Ally, not itself" {
+  battlefield A: "Zulaport Chainmage", "Ondu War Cleric"
+  turn 1 A: activate "Zulaport Chainmage" sacrificing "Ondu War Cleric" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert tapped "Zulaport Chainmage"
+  assert tapped "Ondu War Cleric"
+}
+
+scenario "A Cohort ability with no other Ally can't be activated" {
+  battlefield A: "Zulaport Chainmage", "Grizzly Bears"
+  illegal turn 1 A: activate "Zulaport Chainmage" targeting player B
+  run_to turn 1 end
+}
+
+scenario "Adaptive Gemguard taps itself and an artifact" {
+  battlefield A: "Adaptive Gemguard", "Ornithopter"
+  turn 1 A: activate "Adaptive Gemguard"
+  run_to turn 1 end
+  assert counters "Adaptive Gemguard" +1/+1 1
+  assert tapped "Adaptive Gemguard"
+  assert tapped "Ornithopter"
+}
+
+scenario "Gaze of Justice taps three white creatures" {
+  battlefield A: "Plains", 3 "Savannah Lions"
+  battlefield B: "Hill Giant"
+  hand A: "Gaze of Justice"
+  turn 1 A: cast "Gaze of Justice" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Gaze of Justice with two white creatures can't be cast" {
+  battlefield A: "Plains", 2 "Savannah Lions", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Gaze of Justice"
+  illegal turn 1 A: cast "Gaze of Justice" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Warlord's Elite taps two lands beyond the three that pay for it" {
+  battlefield A: 5 "Plains"
+  hand A: "Warlord's Elite"
+  turn 1 A: cast "Warlord's Elite"
+  run_to turn 1 end
+  assert battlefield A contains "Warlord's Elite"
+}
+
+scenario "Warlord's Elite can't tap for its cost the lands that pay its mana" {
+  battlefield A: 4 "Plains"
+  hand A: "Warlord's Elite"
+  illegal turn 1 A: cast "Warlord's Elite"
+  run_to turn 1 end
+}
+
+scenario "Purple Pentapus returns from the graveyard by tapping a creature" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  graveyard A: "Purple Pentapus"
+  turn 1 A: activate "Purple Pentapus" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Purple Pentapus"
+  assert tapped "Purple Pentapus"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Purple Pentapus needs an untapped creature to return" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Purple Pentapus"
+  illegal turn 1 A: activate "Purple Pentapus"
+  run_to turn 1 end
+}
+
+scenario "Stitched Drake exiles a creature card from the graveyard" {
+  battlefield A: 3 "Island"
+  graveyard A: "Grizzly Bears"
+  hand A: "Stitched Drake"
+  turn 1 A: cast "Stitched Drake"
+  run_to turn 1 end
+  assert battlefield A contains "Stitched Drake"
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "Stitched Drake without a creature card in the graveyard can't be cast" {
+  battlefield A: 3 "Island"
+  graveyard A: "Forest"
+  hand A: "Stitched Drake"
+  illegal turn 1 A: cast "Stitched Drake"
+  run_to turn 1 end
+}
+
+scenario "Skaab Goliath needs two creature cards" {
+  battlefield A: 6 "Island"
+  graveyard A: "Grizzly Bears", "Forest"
+  hand A: "Skaab Goliath"
+  illegal turn 1 A: cast "Skaab Goliath"
+  run_to turn 1 end
+}
+
+scenario "Harvest Pyre exiles X cards for X damage" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: 3 "Forest"
+  hand A: "Harvest Pyre"
+  turn 1 A: cast "Harvest Pyre" x 3 targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert exile A contains 3 "Forest"
+}
+
+scenario "Organ Grinder exiles three cards" {
+  battlefield A: "Organ Grinder"
+  graveyard A: 3 "Forest"
+  turn 1 A: activate "Organ Grinder" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert exile A contains 3 "Forest"
+}
+
+scenario "Organ Grinder with two cards in the graveyard can't activate" {
+  battlefield A: "Organ Grinder"
+  graveyard A: 2 "Forest"
+  illegal turn 1 A: activate "Organ Grinder" targeting player B
+  run_to turn 1 end
+}
+
+scenario "Cabal Surgeon's cost spares the card it targets" {
+  battlefield A: "Cabal Surgeon", 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Forest", "Island"
+  turn 1 A: activate "Cabal Surgeon" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert exile A contains "Forest"
+  assert exile A contains "Island"
+}
+
+scenario "Tome Shredder exiles only an instant or sorcery card" {
+  battlefield A: "Tome Shredder"
+  graveyard A: "Grizzly Bears"
+  illegal turn 1 A: activate "Tome Shredder"
+  run_to turn 1 end
+}

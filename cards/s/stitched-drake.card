@@ -1,0 +1,8 @@
+card "Stitched Drake" {
+  oracle_id 10fd868f-45b3-4e2f-89d9-5c0b8a92f9fe
+  cost {1}{U}{U}
+  type Creature — Zombie Drake
+  pt 3/4
+  additional cost exile creature card from graveyard
+  keywords flying
+}

@@ -1,0 +1,8 @@
+card "Gaze of Justice" {
+  oracle_id 07c7e4d4-6452-437b-9f17-b0ec1fd9f702
+  cost {W}
+  type Sorcery
+  additional cost tap 3 untapped white creature you control
+  spell: exile target creature
+  flashback {5}{W}
+}

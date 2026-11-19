@@ -1,0 +1,7 @@
+card "Dread Rider" {
+  oracle_id e5c15ef5-6795-40c2-a131-a73f74142314
+  cost {5}{B}
+  type Creature — Spirit Knight
+  pt 3/7
+  activated {1}{B}, {T}, exile creature card from graveyard: target opponent loses 3 life
+}

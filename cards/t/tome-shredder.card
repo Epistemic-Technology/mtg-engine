@@ -1,0 +1,8 @@
+card "Tome Shredder" {
+  oracle_id b145952b-52e3-4a66-b47e-f08a489f9443
+  cost {2}{R}
+  type Creature — Wolf
+  pt 2/2
+  keywords haste
+  activated {T}, exile instant or sorcery card from graveyard: put 1 +1/+1 counter on this
+}

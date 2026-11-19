@@ -1,0 +1,7 @@
+card "Zulaport Chainmage" {
+  oracle_id 017f4471-db5a-4ad0-97b3-b1f12b52578a
+  cost {3}{B}
+  type Creature — Human Shaman Ally
+  pt 4/2
+  label "Cohort" activated {T}, tap untapped Ally you control: target opponent loses 2 life
+}

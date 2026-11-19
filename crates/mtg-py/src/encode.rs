@@ -84,10 +84,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Offspring { .. } => 32,
         DecisionKind::Bargain { .. } => 33,
         DecisionKind::TopOrBottom { .. } => 34,
+        DecisionKind::ChooseAdditionalCost { .. } => 35,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 35] = [
+pub const DECISION_KIND_NAMES: [&str; 36] = [
     "mulligan",
     "bottom",
     "priority",
@@ -123,6 +124,7 @@ pub const DECISION_KIND_NAMES: [&str; 35] = [
     "offspring",
     "bargain",
     "top_or_bottom",
+    "additional_cost",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {

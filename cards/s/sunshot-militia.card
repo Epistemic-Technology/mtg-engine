@@ -1,0 +1,7 @@
+card "Sunshot Militia" {
+  oracle_id 19afaf35-b420-49e0-bddf-3180bf1dc30f
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 1/3
+  activated tap 2 untapped artifact or creature you control, sorcery: deal 1 damage to each opponent
+}

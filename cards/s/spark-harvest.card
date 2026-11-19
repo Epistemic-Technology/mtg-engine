@@ -1,0 +1,8 @@
+card "Spark Harvest" {
+  oracle_id 25756e33-25e5-4976-8cce-a39fa2c4b007
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  additional cost or {3}{B}
+  spell: destroy target creature or planeswalker
+}

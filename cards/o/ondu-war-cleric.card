@@ -1,0 +1,7 @@
+card "Ondu War Cleric" {
+  oracle_id d011153e-d12a-4eb1-b105-64729e37be12
+  cost {1}{W}
+  type Creature — Human Cleric Ally
+  pt 2/2
+  label "Cohort" activated {T}, tap untapped Ally you control: you gain 2 life
+}

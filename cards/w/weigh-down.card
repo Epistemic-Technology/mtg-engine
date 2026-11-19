@@ -1,0 +1,7 @@
+card "Weigh Down" {
+  oracle_id 51f1ceb9-2305-4a4e-b422-7dd7f8deef98
+  cost {B}
+  type Sorcery
+  additional cost exile creature card from graveyard
+  spell: target creature gets -3/-3
+}

@@ -1,0 +1,7 @@
+card "Scarred Vinebreeder" {
+  oracle_id 759e454e-ee8c-4b0e-9503-26e4c0a2a8f9
+  cost {1}{B}
+  type Creature — Elf Shaman
+  pt 1/1
+  activated {2}{B}, exile Elf card from graveyard: this gets +3/+3
+}

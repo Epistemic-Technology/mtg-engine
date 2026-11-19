@@ -1,0 +1,7 @@
+card "Spurred Wolverine" {
+  oracle_id 245b62a8-b606-4106-87c3-a60ce3e16906
+  cost {4}{R}
+  type Creature — Wolverine Beast
+  pt 3/2
+  activated tap 2 untapped Beast you control: target creature gains first strike
+}

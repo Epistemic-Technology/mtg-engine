@@ -320,6 +320,9 @@ impl Compiler<'_> {
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
+        if let Some(cost) = &card.additional_or {
+            b = b.additional_or(self.cost(cost));
+        }
         if let Some(a) = &card.alt_cost {
             if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
                 return self.err("an alternative cost is mana and one kind of permanent");
@@ -826,6 +829,14 @@ impl Compiler<'_> {
                 Some(SacCost::This) => Some(CoreSacCost::This),
                 Some(SacCost::Filter(f)) => Some(CoreSacCost::Filter(self.filter(f))),
             },
+            count: c.count,
+            exile_cards: c.exile_cards.as_ref().map(|g| {
+                Box::new(mtg_core::card::GraveExile {
+                    n: g.n,
+                    x: g.x,
+                    filter: g.filter.as_ref().map(|f| self.filter(f)),
+                })
+            }),
         }
     }
 

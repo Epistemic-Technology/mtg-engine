@@ -1,0 +1,7 @@
+card "Warlord's Elite" {
+  oracle_id ee2c8714-6e85-4eb5-9bd6-057b6abfb136
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 4/4
+  additional cost tap 2 untapped artifact or creature or land you control
+}

@@ -63,6 +63,7 @@ double-faced permanent to its other face (CR 701.27).
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
+| `additional cost sacrifice creature` then `additional cost or {3}{B}` | "As an additional cost to cast this spell, sacrifice a creature or pay {3}{B}." (CR 601.2b): two additional costs, of which the caster pays one, chosen as the spell is cast (before the kicker and X); only those that can be paid are offered. A mana part prints "pay {3}{B}", and the total cost includes it (CR 601.2f). |
 | `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, or returned with `return`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
@@ -144,7 +145,17 @@ is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile thi
 your graveyard"; the ability is activated from the graveyard), `return
 land you control` ("Return a land you control to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
-control"), chosen like a sacrifice, `pay 3
+control"), chosen like a sacrifice; a count after `sacrifice`, `return`,
+or `tap` takes that many: `tap 2 untapped artifact or creature you
+control` ("Tap two untapped artifacts and/or creatures you control"; the
+player chooses the first and the engine the rest, and permanents tapped
+for a cost are tapped before mana is paid, so they don't also pay it; a
+cost with {T} never taps the source again for the rest), `exile 2 cards
+from graveyard`, `exile creature card from graveyard`, `exile X creature
+cards from graveyard` ("Exile two cards from your graveyard", "exile a
+creature card from your graveyard"; X announced as a spell is cast, at
+most the cards there; the engine exiles the oldest matching cards other
+than the source, sparing what the spell or ability targets), `pay 3
 life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
 only once each turn). `none` for a free ability. Activation restrictions
 (CR 602.5b): `if <static condition>` ("Activate only if there are seven or

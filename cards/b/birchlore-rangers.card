@@ -1,0 +1,8 @@
+card "Birchlore Rangers" {
+  oracle_id 667c5676-7a18-4fa9-b965-b26797538e23
+  cost {G}
+  type Creature — Elf Druid Ranger
+  pt 1/1
+  activated tap 2 untapped Elf you control: add any
+  morph {G}
+}

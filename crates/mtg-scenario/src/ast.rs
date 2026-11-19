@@ -135,6 +135,10 @@ pub enum Action {
         /// `alternative`: cast for the alternative cost the card's text
         /// offers (CR 118.9, "rather than pay this spell's mana cost").
         alternative: bool,
+        /// `other_cost`: pay the second of the spell's two additional costs
+        /// ("sacrifice a creature or pay {3}", CR 601.2b); otherwise the
+        /// first that can be paid.
+        other_cost: bool,
         /// `dividing 2, 1` after the targets: how a divided spell splits
         /// its damage or counters among them, in target order (CR
         /// 601.2d).

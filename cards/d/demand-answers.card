@@ -1,0 +1,8 @@
+card "Demand Answers" {
+  oracle_id c11e84a1-dbda-429b-8cd6-fd0deaefc689
+  cost {1}{R}
+  type Instant
+  additional cost sacrifice artifact
+  additional cost or discard 1 card
+  spell: draw 2 cards
+}

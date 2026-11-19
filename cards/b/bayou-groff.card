@@ -1,0 +1,8 @@
+card "Bayou Groff" {
+  oracle_id e83b2790-3cec-429c-a65d-6f4c7d025d37
+  cost {1}{G}
+  type Creature — Plant Dog
+  pt 5/4
+  additional cost sacrifice creature
+  additional cost or {3}
+}

@@ -194,6 +194,7 @@ impl GameState {
             || cost.energy > 0
             || cost.discard > 0
             || cost.discard_x
+            || cost.exile_cards.is_some()
             || !matches!(cost.sacrifice, None | Some(SacCost::This))
             || cost.mana.has_x()
         {

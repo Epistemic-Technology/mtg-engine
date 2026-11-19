@@ -89,6 +89,9 @@ pub struct Card {
     pub keywords: Vec<Keyword>,
     /// "As an additional cost to cast this spell, ..." (CR 601.2b).
     pub additional: Option<Cost>,
+    /// `additional cost or {3}`: the other of two additional costs, after
+    /// "or" ("sacrifice a creature or pay {3}").
+    pub additional_or: Option<Cost>,
     /// `alternative cost sacrifice Mountain`: "You may sacrifice a
     /// Mountain rather than pay this spell's mana cost." (CR 118.9).
     pub alt_cost: Option<AltCost>,
@@ -135,6 +138,7 @@ impl Card {
             loyalty: None,
             keywords: Vec::new(),
             additional: None,
+            additional_or: None,
             alt_cost: None,
             kicker: None,
             flashback: None,
@@ -362,6 +366,12 @@ pub struct Cost {
     /// `return land you control` / `tap untapped creature you control`:
     /// what the `sacrifice` filter's chosen permanent pays.
     pub chosen: mtg_core::card::ChosenCost,
+    /// `tap 2 untapped Beast you control`: how many permanents the
+    /// `sacrifice` filter chooses; 0 and 1 are one.
+    pub count: u32,
+    /// `exile 2 cards from graveyard`, `exile creature card from
+    /// graveyard`, `exile X creature cards from graveyard`.
+    pub exile_cards: Option<Box<ExileCards>>,
     /// "Activate only once each turn."
     pub per_turn: u8,
     /// `reduced {1} each Town you control`: "This ability costs {1} less to
@@ -386,8 +396,19 @@ pub struct Cost {
     pub order: Vec<CostItem>,
 }
 
+/// A cost exiling cards from the graveyard: `n` (or X) cards matching
+/// `filter`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ExileCards {
+    pub n: u32,
+    pub x: bool,
+    pub filter: Option<Filter>,
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CostItem {
+    /// `exile 2 cards from graveyard`.
+    ExileCards,
     RemoveCounters,
     /// `from graveyard`: activated from the graveyard (printed nowhere;
     /// the effect says "this card from your graveyard").

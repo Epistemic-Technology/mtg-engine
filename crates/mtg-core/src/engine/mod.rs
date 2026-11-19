@@ -631,6 +631,32 @@ impl GameState {
                         options,
                     });
                 }
+                Flow::ChoosingAdditional { spell } => {
+                    let Some(obj) = self.objects.get(spell) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = obj.controller;
+                    let options = self.additional_cost_options(spell);
+                    match options.as_slice() {
+                        [] => {
+                            // Neither can be paid any more: the cast is
+                            // undone (CR 726).
+                            self.undo_cast(spell, false);
+                        }
+                        [Choice::Mode(i)] => {
+                            self.objects[spell].cast.set_other_cost(*i == 1);
+                            self.flow = self.after_additional(spell);
+                        }
+                        _ => {
+                            return StepResult::Decision(Decision {
+                                player,
+                                kind: DecisionKind::ChooseAdditionalCost { spell },
+                                options,
+                            });
+                        }
+                    }
+                }
                 Flow::ChoosingKicker { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -745,16 +771,19 @@ impl GameState {
                             {
                                 &alt.cost
                             }
-                            _ => &d.additional,
+                            _ => self.additional_of(spell),
                         };
                         if sacrifice.is_none()
                             && let Some(crate::card::SacCost::Filter(f)) = &add.sacrifice
                         {
-                            let options: Vec<Choice> = self
-                                .sacrifice_candidates(caster, f, spell)
-                                .into_iter()
-                                .map(Choice::Sacrifice)
-                                .collect();
+                            let options: Vec<Choice> = if add.taps_chosen() {
+                                self.tap_first_options(spell, add)
+                            } else {
+                                self.sacrifice_candidates(caster, f, spell)
+                            }
+                            .into_iter()
+                            .map(Choice::Sacrifice)
+                            .collect();
                             if options.is_empty() {
                                 unreachable!("cast offered without a permanent to sacrifice");
                             }
@@ -1420,6 +1449,10 @@ impl GameState {
                     discard: None,
                 };
             }
+            (Flow::ChoosingAdditional { spell }, Choice::Mode(i)) => {
+                self.objects[spell].cast.set_other_cost(i == 1);
+                self.flow = self.after_additional(spell);
+            }
             (Flow::ChoosingKicker { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_kicked(true);
                 self.flow = self.after_kicker(spell);
@@ -1645,7 +1678,19 @@ impl GameState {
                 }
             };
         }
-        // CR 601.2b: the kicker decision comes before X.
+        // CR 601.2b: which additional cost, then the kicker, before X.
+        if self
+            .pool
+            .get(self.objects[spell].def)
+            .additional_or
+            .is_some()
+        {
+            return Flow::ChoosingAdditional { spell };
+        }
+        self.after_additional(spell)
+    }
+
+    fn after_additional(&self, spell: ObjId) -> Flow {
         if self.kicker_payable(spell) {
             Flow::ChoosingKicker { spell }
         } else {
@@ -1683,7 +1728,8 @@ impl GameState {
 
     fn after_bargain(&self, spell: ObjId) -> Flow {
         let def = self.pool.get(self.objects[spell].def);
-        if def.mana_cost.has_x() || def.additional.discard_x {
+        let add = self.additional_of(spell);
+        if def.mana_cost.has_x() || add.discard_x || add.exile_cards.as_ref().is_some_and(|g| g.x) {
             Flow::ChoosingX { spell }
         } else {
             Flow::Casting {

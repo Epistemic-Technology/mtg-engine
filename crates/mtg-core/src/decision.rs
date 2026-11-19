@@ -78,6 +78,10 @@ pub enum DecisionKind {
     /// Whether the owner puts `def` on top of their library (or Nth from
     /// the top): `Accept`; or on the bottom: `Decline`.
     TopOrBottom { def: CardRef },
+    /// Which of `spell`'s two additional costs to pay (CR 601.2b):
+    /// `Mode(0)` the first printed, `Mode(1)` the other; only those that
+    /// can be paid.
+    ChooseAdditionalCost { spell: ObjId },
     /// Whether to pay `spell`'s kicker (CR 702.33): `Accept` kicks.
     Kicker { spell: ObjId },
     /// Whether to pay a spell's buyback cost (CR 702.27).

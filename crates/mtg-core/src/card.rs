@@ -3707,6 +3707,25 @@ pub struct Cost {
     /// turn began (CR 302.6).
     pub tap: bool,
     pub sacrifice: Option<SacCost>,
+    /// How many permanents a `SacCost::Filter` cost chooses ("Tap two
+    /// untapped creatures you control"); 0 and 1 are one. The player
+    /// chooses the first and the engine the rest.
+    #[serde(default)]
+    pub count: u32,
+    /// "Exile two cards from your graveyard", "exile a creature card from
+    /// your graveyard" (CR 118.3): cards other than the source, the oldest
+    /// first.
+    #[serde(default)]
+    pub exile_cards: Option<Box<GraveExile>>,
+}
+
+/// A cost that exiles cards from its payer's graveyard: `n` of them (X,
+/// announced as the spell is cast, with `x`), each matching `filter`.
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct GraveExile {
+    pub n: u32,
+    pub x: bool,
+    pub filter: Option<ObjFilter>,
 }
 
 /// "You may pay {1} and return a basic land you control to its owner's hand
@@ -3738,7 +3757,20 @@ impl Cost {
             loyalty: 0,
             tap: false,
             sacrifice: None,
+            count: 0,
+            exile_cards: None,
         }
+    }
+
+    /// How many permanents the `SacCost::Filter` part chooses.
+    pub fn chosen_count(&self) -> usize {
+        self.count.max(1) as usize
+    }
+
+    /// "Tap an untapped creature you control": the chosen permanents are
+    /// tapped, before any mana is paid, so they don't also tap for mana.
+    pub fn taps_chosen(&self) -> bool {
+        self.chosen == ChosenCost::Tap && matches!(self.sacrifice, Some(SacCost::Filter(_)))
     }
 
     #[must_use]
@@ -4236,6 +4268,12 @@ pub struct CardDef {
     /// "As an additional cost to cast this spell, ..." (CR 601.2b, 118.8):
     /// sacrifice, discard, or life paid alongside the mana cost.
     pub additional: Cost,
+    /// "As an additional cost to cast this spell, sacrifice a creature or
+    /// pay {3}{B}" (CR 601.2b): the other of two additional costs, of which
+    /// the caster pays one, chosen as the spell is cast. `additional` is
+    /// the one printed first.
+    #[serde(default)]
+    pub additional_or: Option<Box<Cost>>,
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
     pub kicker: Option<Box<ManaCost>>,
@@ -5425,6 +5463,7 @@ impl Builder {
             evoke: None,
             dash: None,
             alt_cost: None,
+            additional_or: None,
             offspring: None,
             bargain: false,
             target_cost: None,
@@ -5525,6 +5564,13 @@ impl Builder {
     #[must_use]
     pub fn additional_cost(mut self, cost: Cost) -> Self {
         self.0.additional = cost;
+        self
+    }
+
+    /// The other of two additional costs ("... or pay {3}").
+    #[must_use]
+    pub fn additional_or(mut self, cost: Cost) -> Self {
+        self.0.additional_or = Some(Box::new(cost));
         self
     }
 

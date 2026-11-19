@@ -1,0 +1,8 @@
+card "Stonerise Spirit" {
+  oracle_id 9fbab5bc-c651-46dc-89b6-0bcfeadb3891
+  cost {1}{W}
+  type Creature — Spirit Bird
+  pt 1/2
+  keywords flying
+  activated {4}, exile card from graveyard: target creature gains flying
+}

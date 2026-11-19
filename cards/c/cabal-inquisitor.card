@@ -1,0 +1,7 @@
+card "Cabal Inquisitor" {
+  oracle_id 5bebf38e-bff6-470b-a2b8-cb0a87a7372f
+  cost {1}{B}
+  type Creature — Human Minion
+  pt 1/1
+  label "Threshold" activated {1}{B}, {T}, exile 2 cards from graveyard, sorcery, if threshold: target player discards 1 cards
+}

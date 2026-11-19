@@ -1,0 +1,7 @@
+card "Soul Shepherd" {
+  oracle_id 78dbcc18-291c-4b2c-9576-f8dc93914936
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 2/1
+  activated {W}, exile creature card from graveyard: you gain 1 life
+}

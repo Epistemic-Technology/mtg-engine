@@ -1,0 +1,8 @@
+card "Deadly Precision" {
+  oracle_id d23ca3d2-0731-4df4-a3c6-69ddf0c58601
+  cost {B}
+  type Sorcery
+  additional cost {4}
+  additional cost or sacrifice artifact or creature
+  spell: destroy target creature
+}

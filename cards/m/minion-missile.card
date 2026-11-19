@@ -1,0 +1,8 @@
+card "Minion Missile" {
+  oracle_id 670cf656-5c72-4d28-b5e6-dc77781dc001
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice creature
+  additional cost or discard 1 card
+  spell: destroy target creature; deal 2 damage to controller of that target 1
+}

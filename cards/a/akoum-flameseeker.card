@@ -1,0 +1,7 @@
+card "Akoum Flameseeker" {
+  oracle_id efae637f-3232-46f2-9839-f3386e2f447d
+  cost {2}{R}
+  type Creature — Human Shaman Ally
+  pt 3/2
+  label "Cohort" activated {T}, tap untapped Ally you control: discard 1 card; if you do, draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Pumpkin Bombardment" {
+  oracle_id 37827e84-9f5f-49ed-b939-0cf80dac82e7
+  cost {B/R}
+  type Sorcery
+  additional cost discard 1 card
+  additional cost or {2}
+  spell: deal 3 damage to target creature
+}

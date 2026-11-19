@@ -1,0 +1,8 @@
+card "Rank Officer" {
+  oracle_id 52c73c88-3b87-4184-b8e1-cd2b5688800d
+  cost {3}{B}
+  type Creature — Zombie Soldier
+  pt 3/1
+  triggered when this enters: you may discard 1 card; if you do, create 1 "2/2 black Zombie creature"
+  activated {1}{B}, {T}, exile creature card from graveyard: each opponent loses 2 life
+}

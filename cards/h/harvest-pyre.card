@@ -1,0 +1,7 @@
+card "Harvest Pyre" {
+  oracle_id 00e36265-0cd8-4084-adf5-d1ed44f0d689
+  cost {1}{R}
+  type Instant
+  additional cost exile X cards from graveyard
+  spell: deal X damage to target creature
+}

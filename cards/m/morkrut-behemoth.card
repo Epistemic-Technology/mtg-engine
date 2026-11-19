@@ -1,0 +1,9 @@
+card "Morkrut Behemoth" {
+  oracle_id 76c2571d-7d45-4c7a-99d1-302e2b26f8f6
+  cost {4}{B}
+  type Creature — Zombie Giant
+  pt 7/6
+  additional cost sacrifice creature
+  additional cost or {1}{B}
+  keywords menace
+}

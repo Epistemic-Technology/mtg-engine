@@ -1,0 +1,8 @@
+card "Silence the Echo" {
+  oracle_id 43654381-c55c-4d6d-abfd-12932ceb5a4a
+  cost {1}{B}
+  type Sorcery
+  additional cost sacrifice creature or planeswalker
+  additional cost or {3}
+  spell: destroy target creature or planeswalker
+}

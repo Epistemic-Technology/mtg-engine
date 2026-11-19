@@ -1,0 +1,8 @@
+card "Headless Skaab" {
+  oracle_id 203365d4-4793-47af-840e-418bd5569d50
+  cost {2}{U}
+  type Creature — Zombie Warrior
+  pt 3/6
+  additional cost exile creature card from graveyard
+  enters tapped
+}

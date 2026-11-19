@@ -1,0 +1,7 @@
+card "Adaptive Gemguard" {
+  oracle_id 2fdc0d15-ecb4-4a6d-be77-7a3fca188c9c
+  cost {3}{W}
+  type Artifact Creature — Gnome
+  pt 3/3
+  activated tap 2 untapped artifact or creature you control, sorcery: put 1 +1/+1 counter on this
+}

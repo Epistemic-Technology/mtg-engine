@@ -85,6 +85,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         loyalty: (def.loyalty > 0).then_some(def.loyalty),
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
+        additional_or: def.additional_or.as_deref().map(|c| d.cost(c)),
         alt_cost: def.alt_cost.as_deref().map(|a| {
             let mut cost = d.cost(&a.cost);
             cost.conditions = a
@@ -272,6 +273,14 @@ impl Decompiler<'_> {
             remove_counters: c.remove_counters,
             energy: c.energy,
             chosen: c.chosen,
+            count: c.count,
+            exile_cards: c.exile_cards.as_ref().map(|g| {
+                Box::new(crate::ast::ExileCards {
+                    n: g.n,
+                    x: g.x,
+                    filter: g.filter.as_ref().map(|f| self.filter(f)),
+                })
+            }),
             order: Vec::new(),
             conditions: Vec::new(),
             once_ever: false,

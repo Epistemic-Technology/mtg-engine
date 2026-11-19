@@ -1,0 +1,8 @@
+card "Lash of the Balrog" {
+  oracle_id 66499407-3ad2-464b-bbfe-95d860f53616
+  cost {B}
+  type Sorcery
+  additional cost sacrifice creature
+  additional cost or {4}
+  spell: destroy target creature
+}

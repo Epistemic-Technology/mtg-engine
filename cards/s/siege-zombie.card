@@ -1,0 +1,7 @@
+card "Siege Zombie" {
+  oracle_id a7756bc2-26ce-4044-a322-a898af8a393d
+  cost {1}{B}
+  type Creature — Zombie
+  pt 2/2
+  activated tap 3 untapped creature you control: each opponent loses 1 life
+}

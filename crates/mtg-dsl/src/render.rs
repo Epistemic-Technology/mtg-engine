@@ -1822,6 +1822,18 @@ fn filter_a(f: &Filter, card: &Card) -> String {
 
 // ---- costs ----
 
+/// A spell's additional cost, in a sentence: "sacrifice a creature",
+/// "pay {3}{B}".
+fn additional_text(cost: &Cost, ctx: &mut Ctx) -> String {
+    let c = cost_text(cost, ctx);
+    let mana = cost.mana.to_string();
+    if !mana.is_empty() && c.starts_with(&mana) {
+        return format!("pay {c}");
+    }
+    lowercase_first(&c)
+}
+
+#[allow(clippy::too_many_lines)] // one arm per cost part
 fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
     if let Some(n) = cost.loyalty {
         return if n >= 0 {
@@ -1836,6 +1848,7 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
+        CostItem::ExileCards,
     ];
     let order: &[CostItem] = if cost.order.is_empty() {
         &default_order
@@ -1858,15 +1871,27 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
             }
             CostItem::Sacrifice => match &cost.sacrifice {
                 Some(SacCost::This) => parts.push(format!("Sacrifice {}", ctx.source())),
-                Some(SacCost::Filter(f)) => parts.push(match cost.chosen {
-                    mtg_core::card::ChosenCost::Sacrifice => {
-                        format!("Sacrifice {}", filter_a(f, ctx.card))
-                    }
-                    mtg_core::card::ChosenCost::Return => {
-                        format!("Return {} to its owner's hand", filter_a(f, ctx.card))
-                    }
-                    mtg_core::card::ChosenCost::Tap => format!("Tap {}", filter_a(f, ctx.card)),
-                }),
+                Some(SacCost::Filter(f)) => {
+                    // "Tap two untapped artifacts and/or creatures you
+                    // control".
+                    let what = if cost.count > 1 {
+                        let p = filter_phrase(f, ctx.card, true);
+                        let p = match p.rfind(" or ") {
+                            Some(i) => format!("{} and/or {}", &p[..i], &p[i + 4..]),
+                            None => p,
+                        };
+                        format!("{} {p}", count_words(Num::N(cost.count), "a"))
+                    } else {
+                        filter_a(f, ctx.card)
+                    };
+                    parts.push(match cost.chosen {
+                        mtg_core::card::ChosenCost::Sacrifice => format!("Sacrifice {what}"),
+                        mtg_core::card::ChosenCost::Return => {
+                            format!("Return {what} to its owner's hand")
+                        }
+                        mtg_core::card::ChosenCost::Tap => format!("Tap {what}"),
+                    });
+                }
                 None => {}
             },
             CostItem::RemoveCounters => {
@@ -1877,6 +1902,21 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                 }
             }
             CostItem::FromGraveyard => {}
+            CostItem::ExileCards => {
+                if let Some(g) = &cost.exile_cards {
+                    let n = if g.x { Num::X } else { Num::N(g.n) };
+                    let kind = g
+                        .filter
+                        .as_ref()
+                        .map_or(String::new(), |f| card_filter_phrase(f, ctx.card) + " ");
+                    let what = if n == Num::N(1) {
+                        with_article(&format!("{kind}card"))
+                    } else {
+                        format!("{} {kind}cards", count_words(n, "a"))
+                    };
+                    parts.push(format!("Exile {what} from your graveyard"));
+                }
+            }
             CostItem::Exile => {
                 if cost.exile_self {
                     parts.push("Exile this card from your graveyard".to_string());
@@ -3108,7 +3148,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     | Target::GraveyardCard { who: Who::You, .. }
             ));
             let tapped = if *tapped { " tapped" } else { "" };
-            let mut text = if *under_you {
+            // Activated from the graveyard: "Return this card from your
+            // graveyard to the battlefield tapped."
+            let from_graveyard = *what == Recipient::Source
+                && matches!(ctx.current, Some(Ability::Activated { cost, .. }) if cost.from_graveyard);
+            let mut text = if from_graveyard {
+                format!("return this card from your graveyard to the battlefield{tapped}")
+            } else if *under_you {
                 format!("return {o} to the battlefield{tapped} under your control")
             } else if yours {
                 format!("return {o} to the battlefield{tapped}")
@@ -6931,6 +6977,18 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }
+    // Oracle prints an additional cost before keywords ("... sacrifice a
+    // creature or pay {1}{B}.\nMenace").
+    if let Some(cost) = &card.additional {
+        let mut ctx = Ctx::new(card, lookup, &[]);
+        let c = additional_text(cost, &mut ctx);
+        let c = match &card.additional_or {
+            // "sacrifice a creature or pay {3}" (CR 601.2b).
+            Some(or) => format!("{c} or {}", additional_text(or, &mut ctx)),
+            None => c,
+        };
+        lines.push(format!("As an additional cost to cast this spell, {c}."));
+    }
     let alone_pair = card.keywords.contains(&Keyword::CantAttackAlone)
         && card.keywords.contains(&Keyword::CantBlockAlone);
     for k in &card.keywords {
@@ -6945,14 +7003,6 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             continue;
         }
         lines.push(keyword_line(card, *k));
-    }
-    if let Some(cost) = &card.additional {
-        let mut ctx = Ctx::new(card, lookup, &[]);
-        let c = cost_text(cost, &mut ctx);
-        lines.push(format!(
-            "As an additional cost to cast this spell, {}.",
-            lowercase_first(&c)
-        ));
     }
     if let Some(a) = &card.alt_cost {
         lines.push(alt_cost_line(card, a));

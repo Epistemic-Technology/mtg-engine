@@ -1,0 +1,8 @@
+card "Final Payment" {
+  oracle_id e47d57dc-2e69-4939-8aec-077595f2ae05
+  cost {W}{B}
+  type Instant
+  additional cost pay 5 life
+  additional cost or sacrifice creature or enchantment
+  spell: destroy target creature
+}

@@ -297,6 +297,9 @@ impl CastInfo {
     /// Bargained (CR 702.166b); kept by the permanent ("if it was
     /// bargained").
     const BARGAINED: u16 = 0x200;
+    /// Cast paying the second of its two additional costs ("sacrifice a
+    /// creature or pay {3}", CR 601.2b).
+    const OTHER_COST: u16 = 0x400;
     const KICKED: u16 = 0x40;
     const FLASHBACK: u16 = 0x80;
     /// Cast as an adventure (CR 715.3) on the stack; "on an adventure" in
@@ -318,6 +321,18 @@ impl CastInfo {
             self.0 | Self::OFFSPRING
         } else {
             self.0 & !Self::OFFSPRING
+        };
+    }
+
+    pub const fn other_cost(self) -> bool {
+        self.0 & Self::OTHER_COST != 0
+    }
+
+    pub fn set_other_cost(&mut self, on: bool) {
+        self.0 = if on {
+            self.0 | Self::OTHER_COST
+        } else {
+            self.0 & !Self::OTHER_COST
         };
     }
 
@@ -881,6 +896,11 @@ pub enum Flow {
     /// Choosing whether to pay a spell's kicker (CR 702.33), after the mode
     /// and before X.
     ChoosingKicker {
+        spell: ObjId,
+    },
+    /// Choosing which of a spell's two additional costs to pay
+    /// ("sacrifice a creature or pay {3}", CR 601.2b), after the mode.
+    ChoosingAdditional {
         spell: ObjId,
     },
     /// Choosing whether to pay a spell's buyback cost (CR 702.27), after

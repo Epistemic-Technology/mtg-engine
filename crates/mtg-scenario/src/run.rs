@@ -134,6 +134,8 @@ struct Runner {
     pending_discard: Option<String>,
     /// Whether the spell being cast is scripted `kicked`.
     pending_kicked: bool,
+    /// `other_cost` on the cast being made.
+    pending_other_cost: bool,
     /// The ability whose scripted targets have all been chosen.
     targets_done: Option<ObjId>,
     /// The scripted division (`dividing 2, 1`) of the spell being cast
@@ -243,6 +245,7 @@ impl Runner {
             pending_sacrifice: None,
             pending_discard: None,
             pending_kicked: false,
+            pending_other_cost: false,
             attack_queue: None,
             attack_targets: Vec::new(),
             block_queue: None,
@@ -444,6 +447,10 @@ impl Runner {
             DecisionKind::Kicker { .. }
             | DecisionKind::Buyback { .. }
             | DecisionKind::Offspring { .. } => Ok(self.choose_kicker(d)),
+            DecisionKind::ChooseAdditionalCost { .. } => {
+                let want = Choice::Mode(usize::from(std::mem::take(&mut self.pending_other_cost)));
+                Ok(index_of(d, &want).unwrap_or(0))
+            }
             DecisionKind::Bargain { .. } => self.choose_bargain(d),
         }
     }
@@ -1072,6 +1079,13 @@ impl Runner {
                             _ => Vec::new(),
                         };
                         self.pending_mode = pending_mode;
+                        self.pending_other_cost = matches!(
+                            &a.action,
+                            Action::Cast {
+                                other_cost: true,
+                                ..
+                            }
+                        );
                         (
                             self.pending_x,
                             self.pending_sacrifice,

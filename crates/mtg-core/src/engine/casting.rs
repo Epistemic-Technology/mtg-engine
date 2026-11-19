@@ -244,6 +244,19 @@ impl GameState {
                             )
                             && self.targets_available(p, &ab.targets, Some(*id))
                         {
+                            // "{2}{B}, Tap an untapped creature you control:
+                            // Return this card from your graveyard ...".
+                            if ab.cost.taps_chosen() {
+                                for c in self.tap_cost_options(p, ab, *id, &sources) {
+                                    options.push(Choice::Activate {
+                                        source: *id,
+                                        ability: *a,
+                                        sacrifice: c,
+                                        discard: None,
+                                    });
+                                }
+                                continue;
+                            }
                             options.push(Choice::Activate {
                                 source: *id,
                                 ability: *a,
@@ -279,7 +292,11 @@ impl GameState {
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
                     continue;
                 }
-                if !self.additional_payable(p, &def.additional, *id) {
+                if def.additional_or.is_some() || def.additional.taps_chosen() {
+                    if !self.additional_options_payable(p, def, *id, &sources, &req) {
+                        continue;
+                    }
+                } else if !self.additional_payable(p, &def.additional, *id) {
                     continue;
                 }
                 let targets_ok = match def.modes() {
@@ -924,19 +941,25 @@ impl GameState {
             (0, _) | (_, None) => None,
             (_, Some(c)) => self.with_restricted(p, sources, Spend::Spell(c)),
         };
-        let payable = if helped || restricted.is_some() {
+        let all = if helped || restricted.is_some() {
             let mut all = restricted.unwrap_or_else(|| sources.clone());
             if helped {
                 all.extend(self.helper_sources(p, def));
             }
-            self.payable(p, &all, pool, &req, self.player(p).life, None)
+            Some(all)
         } else {
-            self.payable(p, sources, pool, &req, self.player(p).life, None)
+            None
         };
-        if !payable {
-            return false;
-        }
-        if !self.additional_payable(p, &def.additional, id) {
+        let srcs = all.as_ref().unwrap_or(sources);
+        // CR 601.2b: a choice of additional costs, or one that taps
+        // permanents the mana might need.
+        if def.additional_or.is_some() || def.additional.taps_chosen() {
+            if !self.additional_options_payable(p, def, id, srcs, &req) {
+                return false;
+            }
+        } else if !self.payable(p, srcs, pool, &req, self.player(p).life, None)
+            || !self.additional_payable(p, &def.additional, id)
+        {
             return false;
         }
         // A modal spell needs some mode to have its targets (CR 601.2b).
@@ -1235,7 +1258,10 @@ impl GameState {
             return false;
         };
         let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
-        if !(instant_speed || sorcery_timing) || def.additional.sacrifice.is_some() {
+        if !(instant_speed || sorcery_timing)
+            || def.additional.sacrifice.is_some()
+            || def.additional_or.is_some()
+        {
             return false;
         }
         if let Some(c) = alt.condition
@@ -1266,8 +1292,9 @@ impl GameState {
     }
 
     /// Whether `p` can pay a spell's additional costs (CR 601.2h): enough
-    /// life (CR 119.4), other cards to discard, something to sacrifice.
-    /// The spell's own card is never one of them, wherever it is cast from.
+    /// life (CR 119.4), other cards to discard, something to sacrifice,
+    /// cards to exile from the graveyard. The spell's own card is never one
+    /// of them, wherever it is cast from.
     fn additional_payable(&self, p: PlayerId, add: &Cost, spell: ObjId) -> bool {
         let ps = self.player(p);
         if add.life > 0 && ps.life < i32::try_from(add.life).unwrap_or(i32::MAX) {
@@ -1282,11 +1309,196 @@ impl GameState {
             return false;
         }
         if let Some(SacCost::Filter(f)) = &add.sacrifice
-            && self.sacrifice_candidates(p, f, spell).is_empty()
+            && self.sacrifice_candidates(p, f, spell).len() < add.chosen_count()
+        {
+            return false;
+        }
+        if let Some(g) = &add.exile_cards
+            && !g.x
+            && self.exile_candidates(p, g.filter.as_ref(), spell).len() < g.n as usize
         {
             return false;
         }
         true
+    }
+
+    /// Whether either of a spell's additional costs ("sacrifice a creature
+    /// or pay {3}") could be paid, apart from mana.
+    fn some_additional_payable(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
+        self.additional_payable(p, &def.additional, id)
+            || def
+                .additional_or
+                .as_deref()
+                .is_some_and(|c| self.additional_payable(p, c, id))
+    }
+
+    /// Whether a spell whose mana cost is `req` could be cast paying one
+    /// of its additional costs (CR 601.2b, 601.2h): with two ("sacrifice
+    /// a creature or pay {3}"), either; one that taps permanents ("tap
+    /// three untapped white creatures you control") leaves enough mana.
+    #[cold]
+    #[inline(never)]
+    fn additional_options_payable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sources: &Sources,
+        req: &ManaRequirement,
+    ) -> bool {
+        std::iter::once(&def.additional)
+            .chain(def.additional_or.as_deref())
+            .any(|c| self.cost_option_payable(p, c, id, sources, *req, true))
+    }
+
+    /// Whether `p` could pay `req` plus the additional cost `c` of the
+    /// spell `id`.
+    pub(super) fn cost_option_payable(
+        &self,
+        p: PlayerId,
+        c: &Cost,
+        id: ObjId,
+        sources: &Sources,
+        mut req: ManaRequirement,
+        add_mana: bool,
+    ) -> bool {
+        if !self.additional_payable(p, c, id) {
+            return false;
+        }
+        if add_mana {
+            req.add(&c.mana.requirements(0));
+        }
+        let ps = self.player(p);
+        if let (true, Some(SacCost::Filter(f))) = (c.taps_chosen(), &c.sacrifice) {
+            let Some(picks) = self.tap_picks(p, f, id, false, c.chosen_count(), None, sources)
+            else {
+                return false;
+            };
+            let rest = without(sources, &picks);
+            return self.payable(p, &rest, &ps.mana_pool, &req, ps.life, None);
+        }
+        self.payable(p, sources, &ps.mana_pool, &req, ps.life, None)
+    }
+
+    /// The permanents a "tap two untapped creatures you control" cost of
+    /// `source` taps (CR 118.3): `first` if chosen, then the engine's
+    /// pick of the rest, preferring ones that make no mana (in `sources`)
+    /// so the mana can still be paid. `None` if there aren't `n`. The
+    /// source isn't one of them when its own {T} is also paid
+    /// (`skip_source`).
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn tap_picks(
+        &self,
+        p: PlayerId,
+        f: &crate::card::ObjFilter,
+        source: ObjId,
+        skip_source: bool,
+        n: usize,
+        first: Option<ObjId>,
+        sources: &Sources,
+    ) -> Option<SmallVec<[ObjId; 4]>> {
+        let mut cands = self.sacrifice_candidates(p, f, source);
+        if skip_source {
+            cands.retain(|c| *c != source);
+        }
+        let mut picks: SmallVec<[ObjId; 4]> = SmallVec::new();
+        if let Some(c) = first {
+            if !cands.contains(&c) {
+                return None;
+            }
+            picks.push(c);
+        }
+        let makes_mana = |c: &ObjId| sources.iter().any(|(s, _)| s == c);
+        // Stable: the permanents' order otherwise.
+        cands.sort_by_key(makes_mana);
+        for c in cands {
+            if picks.len() >= n {
+                break;
+            }
+            if !picks.contains(&c) {
+                picks.push(c);
+            }
+        }
+        (picks.len() >= n).then_some(picks)
+    }
+
+    /// Cards in `p`'s graveyard a "exile a creature card from your
+    /// graveyard" cost of `source` could exile, oldest first.
+    pub(super) fn exile_candidates(
+        &self,
+        p: PlayerId,
+        filter: Option<&crate::card::ObjFilter>,
+        source: ObjId,
+    ) -> SmallVec<[ObjId; 8]> {
+        self.player(p)
+            .graveyard
+            .iter()
+            .copied()
+            .filter(|id| {
+                *id != source
+                    && filter.is_none_or(|f| {
+                        self.characteristics(*id)
+                            .is_some_and(|c| f.matches(*id, p, &c, Some(source), Some(p)))
+                    })
+            })
+            .collect()
+    }
+
+    /// Which of `spell`'s two additional costs its caster could pay
+    /// (CR 601.2b): `Mode(0)` the first, `Mode(1)` the other.
+    pub(super) fn additional_cost_options(&self, spell: ObjId) -> Vec<Choice> {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        let sources = self.spell_sources(spell);
+        std::iter::once(&def.additional)
+            .chain(def.additional_or.as_deref())
+            .enumerate()
+            .filter(|(i, c)| {
+                let req = self.spell_requirements_as(spell, 0, *i == 1);
+                self.cost_option_payable(o.controller, c, spell, &sources, req, false)
+            })
+            .map(|(i, _)| Choice::Mode(i))
+            .collect()
+    }
+
+    /// The permanents `spell`'s caster could tap first for its "tap two
+    /// untapped creatures you control" additional cost `add`, leaving the
+    /// mana payable.
+    pub(super) fn tap_first_options(&self, spell: ObjId, add: &Cost) -> Vec<ObjId> {
+        let Some(SacCost::Filter(f)) = &add.sacrifice else {
+            return Vec::new();
+        };
+        let p = self.objects[spell].controller;
+        let sources = self.spell_sources(spell);
+        let req = self.spell_requirements(spell, self.x_of(spell));
+        let ps = self.player(p);
+        self.sacrifice_candidates(p, f, spell)
+            .into_iter()
+            .filter(|c| {
+                self.tap_picks(p, f, spell, false, add.chosen_count(), Some(*c), &sources)
+                    .is_some_and(|picks| {
+                        self.payable(
+                            p,
+                            &without(&sources, &picks),
+                            &ps.mana_pool,
+                            &req,
+                            ps.life,
+                            None,
+                        )
+                    })
+            })
+            .collect()
+    }
+
+    /// The additional cost a spell being cast pays: the second of two if
+    /// that was chosen (CR 601.2b).
+    pub(super) fn additional_of(&self, spell: ObjId) -> &Cost {
+        let o = &self.objects[spell];
+        let def = self.pool.get(o.def);
+        match &def.additional_or {
+            Some(c) if o.cast.other_cost() => c,
+            _ => &def.additional,
+        }
     }
 
     pub(super) fn discard_candidates(
@@ -1362,6 +1574,17 @@ impl GameState {
     /// The mana a spell being cast costs with X fixed: its mana cost (or
     /// its flashback cost, CR 702.34a) plus its kicker if kicked.
     pub(super) fn spell_requirements(&self, spell: ObjId, x: u32) -> ManaRequirement {
+        self.spell_requirements_as(spell, x, self.objects[spell].cast.other_cost())
+    }
+
+    /// `spell_requirements`, paying the second of two additional costs if
+    /// `other` (CR 601.2b, 601.2f: the total cost includes it).
+    pub(super) fn spell_requirements_as(
+        &self,
+        spell: ObjId,
+        x: u32,
+        other: bool,
+    ) -> ManaRequirement {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
         let mut req = match (&def.flashback, o.cast.flashback()) {
@@ -1432,6 +1655,15 @@ impl GameState {
         {
             req.add(&e.requirements(0));
         }
+        // "As an additional cost to cast this spell, sacrifice a creature
+        // or pay {3}".
+        if let Some(c) = def.additional_or.as_deref().filter(|_| other)
+            && !c.mana.is_empty()
+        {
+            req.add(&c.mana.requirements(0));
+        } else if !other && !def.additional.mana.is_empty() {
+            req.add(&def.additional.mana.requirements(0));
+        }
         if def.self_cost.is_some() || def.cond_cost.is_some() || !self.cost_changers().is_empty() {
             adjust_generic(
                 &mut req,
@@ -1491,7 +1723,7 @@ impl GameState {
         };
         // CR 601.2h: casting it without paying its mana cost still pays its
         // additional costs (Improvised Club's sacrifice).
-        if !targets_ok || !self.additional_payable(p, &def.additional, card) {
+        if !targets_ok || !self.some_additional_payable(p, def, card) {
             return false;
         }
         let cost = match alt {
@@ -1740,14 +1972,24 @@ impl GameState {
                         continue;
                     }
                 }
+                if let Some(g) = &ab.cost.exile_cards
+                    && self.exile_candidates(p, g.filter.as_ref(), id).len() < g.n as usize
+                {
+                    continue;
+                }
                 // One option per way to pay the costs that need a choice.
                 let sacrifices: Vec<Option<ObjId>> = match &ab.cost.sacrifice {
                     None | Some(SacCost::This) => vec![None],
-                    Some(SacCost::Filter(f)) => self
-                        .sacrifice_candidates(p, f, id)
-                        .into_iter()
-                        .map(Some)
-                        .collect(),
+                    Some(SacCost::Filter(_)) if ab.cost.taps_chosen() => {
+                        self.tap_cost_options(p, ab, id, sources)
+                    }
+                    Some(SacCost::Filter(f)) => {
+                        let c = self.sacrifice_candidates(p, f, id);
+                        if c.len() < ab.cost.chosen_count() {
+                            continue;
+                        }
+                        c.into_iter().map(Some).collect()
+                    }
                 };
                 let discards: Vec<Option<ObjId>> = if ab.cost.discard > 0 {
                     self.discard_candidates(p, ab.cost.discard_filter.as_ref(), id)
@@ -1772,6 +2014,51 @@ impl GameState {
                 }
             }
         }
+    }
+
+    /// The choices of the first permanent an activated ability's "tap two
+    /// untapped Beasts you control" cost taps (CR 602.2b, 118.3): each
+    /// with enough others (not the source when its own {T} is paid too)
+    /// that the mana can still be paid without them.
+    #[cold]
+    #[inline(never)]
+    fn tap_cost_options(
+        &self,
+        p: PlayerId,
+        ab: &ActivatedAbility,
+        source: ObjId,
+        sources: &Sources,
+    ) -> Vec<Option<ObjId>> {
+        let Some(SacCost::Filter(f)) = &ab.cost.sacrifice else {
+            return Vec::new();
+        };
+        let n = ab.cost.chosen_count();
+        let req = self.activation_mana(source, ab);
+        let ps = self.player(p);
+        let mut cands = self.sacrifice_candidates(p, f, source);
+        if ab.cost.tap {
+            cands.retain(|c| *c != source);
+        }
+        cands
+            .iter()
+            .copied()
+            .filter(|c| {
+                self.tap_picks(p, f, source, ab.cost.tap, n, Some(*c), sources)
+                    .is_some_and(|picks| {
+                        req == ManaRequirement::default()
+                            || !picks.iter().any(|x| sources.iter().any(|(s, _)| s == x))
+                            || self.payable(
+                                p,
+                                &without(sources, &picks),
+                                &ps.mana_pool,
+                                &req,
+                                ps.life,
+                                Some(source),
+                            )
+                    })
+            })
+            .map(Some)
+            .collect()
     }
 
     /// CR 509.1h: `p`'s unblocked attacking creatures; none until
@@ -1984,7 +2271,7 @@ impl GameState {
         };
         // "As an additional cost to cast this spell, discard X cards": X
         // can't exceed the other cards in hand.
-        let add = &self.pool.get(self.objects[spell].def).additional;
+        let add = self.additional_of(spell);
         let max_x = if add.discard_x {
             let n = self
                 .discard_candidates(caster, add.discard_filter.as_ref(), spell)
@@ -1992,6 +2279,16 @@ impl GameState {
             max_x.min(u32::try_from(n).unwrap_or(MAX_X))
         } else {
             max_x
+        };
+        // "exile X cards from your graveyard": no more than there are.
+        let max_x = match &add.exile_cards {
+            Some(g) if g.x => {
+                let n = self
+                    .exile_candidates(caster, g.filter.as_ref(), spell)
+                    .len();
+                max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+            }
+            _ => max_x,
         };
         // "with mana value X": only an X some object fits (the targets
         // that follow must be chosen, CR 601.2c).
@@ -2237,6 +2534,27 @@ impl GameState {
         };
         if ab.cost.tap {
             self.tap(sa.source);
+        }
+        // "Tap two untapped Beasts you control": before the mana.
+        let mut sacrifice = sacrifice;
+        if let (true, Some(SacCost::Filter(f))) = (ab.cost.taps_chosen(), &ab.cost.sacrifice) {
+            let sources = self.ability_sources(controller, sa.source);
+            let n = ab.cost.chosen_count();
+            for c in self
+                .tap_picks(
+                    controller,
+                    f,
+                    sa.source,
+                    ab.cost.tap,
+                    n,
+                    sacrifice,
+                    &sources,
+                )
+                .unwrap_or_default()
+            {
+                self.tap(c);
+            }
+            sacrifice = None;
         }
         let sources = self.ability_sources(controller, sa.source);
         let req = self.activation_mana(sa.source, ab);
@@ -2672,18 +2990,44 @@ impl GameState {
         }
         match cost.sacrifice {
             Some(SacCost::This) => self.sacrifice(this),
-            Some(SacCost::Filter(_)) => {
-                if let Some(s) = sacrifice {
-                    match cost.chosen {
-                        crate::card::ChosenCost::Sacrifice => self.sacrifice(s),
-                        crate::card::ChosenCost::Return => {
-                            self.move_object(s, Zone::Hand, false);
+            Some(SacCost::Filter(ref f)) => {
+                if let Some(first) = sacrifice {
+                    // "Sacrifice two Goblins": the chosen one, then the
+                    // engine's pick of the rest.
+                    let mut picks: SmallVec<[ObjId; 4]> = smallvec::smallvec![first];
+                    if cost.count > 1 {
+                        let rest = self.sacrifice_candidates(p, f, this);
+                        picks.extend(
+                            rest.into_iter()
+                                .filter(|c| *c != first)
+                                .take(cost.chosen_count() - 1),
+                        );
+                    }
+                    for s in picks {
+                        match cost.chosen {
+                            crate::card::ChosenCost::Sacrifice => self.sacrifice(s),
+                            crate::card::ChosenCost::Return => {
+                                self.move_object(s, Zone::Hand, false);
+                            }
+                            crate::card::ChosenCost::Tap => self.tap(s),
                         }
-                        crate::card::ChosenCost::Tap => self.tap(s),
                     }
                 }
             }
             None => {}
+        }
+        // "Exile two cards from your graveyard": the oldest that match,
+        // sparing what the spell or ability being paid for (the top of the
+        // stack) targets.
+        if let Some(g) = &cost.exile_cards {
+            let mut cands = self.exile_candidates(p, g.filter.as_ref(), this);
+            if let Some(top) = self.stack.last().and_then(|t| self.objects.get(*t)) {
+                cands.sort_by_key(|c| top.targets.contains(&Target::Object(*c)));
+            }
+            let gone: SmallVec<[ObjId; 8]> = cands.into_iter().take(g.n as usize).collect();
+            for id in gone {
+                self.move_object(id, Zone::Exile, true);
+            }
         }
         if cost.discard > 0
             && let Some(c) = discard
@@ -2927,6 +3271,7 @@ impl GameState {
     }
 
     /// CR 601.2f–i: pay and finish casting; caster gets priority.
+    #[allow(clippy::too_many_lines)] // one block per kind of cost
     pub(super) fn finish_cast(
         &mut self,
         spell: ObjId,
@@ -2941,6 +3286,24 @@ impl GameState {
         let pool = std::sync::Arc::clone(&self.pool);
         let def = pool.get(def_ref);
         let req = self.spell_requirements(spell, x);
+        // "Tap three untapped white creatures you control": tapped before
+        // the mana is paid, so they don't also tap for it (CR 601.2h).
+        let mut sacrifice = sacrifice;
+        if let (true, Some(SacCost::Filter(f))) = (
+            self.additional_of(spell).taps_chosen(),
+            &self.additional_of(spell).sacrifice,
+        ) {
+            let n = self.additional_of(spell).chosen_count();
+            let sources = self.spell_sources(spell);
+            let f = f.clone();
+            for c in self
+                .tap_picks(caster, &f, spell, false, n, sacrifice, &sources)
+                .unwrap_or_default()
+            {
+                self.tap(c);
+            }
+            sacrifice = None;
+        }
         let sources = self.spell_sources(spell);
         if def.spent.record || self.spent_watchers > 0 {
             self.pay_recorded(spell, caster, &req, &sources, def.spent);
@@ -2972,14 +3335,28 @@ impl GameState {
             .as_deref()
             .filter(|_| self.objects[spell].alt == AltCast::AltCost);
         let add_sacrifice = if alt.is_some() { None } else { sacrifice };
+        let other = self.objects[spell].cast.other_cost();
         self.pay_costs_recorded(spell, |s| {
-            if def.additional.discard_x {
-                // "Discard X cards": as many as the X announced (CR 601.2b).
-                let mut add = def.additional.clone();
-                add.discard = x;
+            let chosen = match &def.additional_or {
+                Some(c) if other => c,
+                _ => &def.additional,
+            };
+            let x_cost = chosen.discard_x || chosen.exile_cards.as_ref().is_some_and(|g| g.x);
+            if x_cost {
+                // "Discard X cards", "exile X cards from your graveyard": as
+                // many as the X announced (CR 601.2b).
+                let mut add = chosen.clone();
+                if add.discard_x {
+                    add.discard = x;
+                }
+                if let Some(g) = &mut add.exile_cards
+                    && g.x
+                {
+                    g.n = x;
+                }
                 s.pay_other_costs(caster, &add, spell, add_sacrifice, discard);
             } else {
-                s.pay_other_costs(caster, &def.additional, spell, add_sacrifice, discard);
+                s.pay_other_costs(caster, chosen, spell, add_sacrifice, discard);
             }
             if let Some(alt) = alt {
                 let mut chosen: Vec<ObjId> = sacrifice.into_iter().collect();
@@ -5993,6 +6370,15 @@ pub(super) fn divisions(total: u32, k: usize) -> Vec<Vec<u32>> {
 /// exact; multi-type lands are assigned to the first color that needs them.
 /// Mana sources, inline for typical board sizes.
 pub(super) type Sources = SmallVec<[(ObjId, Mana); 12]>;
+
+/// `sources` less the permanents in `gone` (tapped for a cost).
+pub(super) fn without(sources: &Sources, gone: &[ObjId]) -> Sources {
+    sources
+        .iter()
+        .filter(|(s, _)| !gone.contains(s))
+        .copied()
+        .collect()
+}
 
 /// What mana is being spent on, for restricted mana (CR 106.6).
 #[derive(Copy, Clone)]

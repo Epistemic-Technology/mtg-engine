@@ -1,0 +1,7 @@
+card "Vault Robber" {
+  oracle_id 68c90a32-d6ee-4595-8517-5f4cb0e4062d
+  cost {1}{R}
+  type Creature — Dwarf Rogue
+  pt 1/3
+  activated {1}, {T}, exile creature card from graveyard: create 1 "Treasure"
+}

@@ -1,0 +1,8 @@
+card "Stir Up Trouble" {
+  oracle_id dda607bd-f419-4b7f-b052-a5ce6ce22bfe
+  cost {B}
+  type Sorcery
+  additional cost sacrifice artifact or creature
+  additional cost or {4}
+  spell: destroy target creature
+}

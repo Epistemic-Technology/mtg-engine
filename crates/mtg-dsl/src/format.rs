@@ -79,6 +79,9 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.additional {
         let _ = writeln!(out, "  additional cost {}", cost_text(c));
     }
+    if let Some(c) = &card.additional_or {
+        let _ = writeln!(out, "  additional cost or {}", cost_text(c));
+    }
     if let Some(a) = &card.alt_cost {
         let mut text = cost_text(&a.cost);
         if a.count > 1 {
@@ -2403,6 +2406,7 @@ fn cost_text(c: &Cost) -> String {
         CostItem::Sacrifice,
         CostItem::Discard,
         CostItem::Life,
+        CostItem::ExileCards,
     ];
     let order: &[CostItem] = if c.order.is_empty() {
         &default_order
@@ -2426,11 +2430,16 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Sacrifice => match &c.sacrifice {
                 Some(SacCost::This) => parts.push("sacrifice this".to_string()),
                 Some(SacCost::Filter(f)) => parts.push(format!(
-                    "{} {}",
+                    "{} {}{}",
                     match c.chosen {
                         mtg_core::card::ChosenCost::Sacrifice => "sacrifice",
                         mtg_core::card::ChosenCost::Return => "return",
                         mtg_core::card::ChosenCost::Tap => "tap",
+                    },
+                    if c.count > 1 {
+                        format!("{} ", c.count)
+                    } else {
+                        String::new()
                     },
                     filter(f)
                 )),
@@ -2444,6 +2453,20 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Exile => {
                 if c.exile_self {
                     parts.push("exile this from graveyard".to_string());
+                }
+            }
+            CostItem::ExileCards => {
+                if let Some(g) = &c.exile_cards {
+                    let n = if g.x {
+                        "X ".to_string()
+                    } else if g.n > 1 {
+                        format!("{} ", g.n)
+                    } else {
+                        String::new()
+                    };
+                    let what = g.filter.as_ref().map_or(String::new(), |f| filter(f) + " ");
+                    let cards = if g.x || g.n > 1 { "cards" } else { "card" };
+                    parts.push(format!("exile {n}{what}{cards} from graveyard"));
                 }
             }
             CostItem::FromGraveyard => parts.push("from graveyard".to_string()),

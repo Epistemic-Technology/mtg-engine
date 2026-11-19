@@ -1,0 +1,8 @@
+card "Annihilating Glare" {
+  oracle_id a75087aa-41bd-4e0f-a118-61b5209356f5
+  cost {B}
+  type Sorcery
+  additional cost {4}
+  additional cost or sacrifice artifact or creature
+  spell: destroy target creature or planeswalker
+}

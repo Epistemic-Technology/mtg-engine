@@ -1,0 +1,7 @@
+card "Haunting Misery" {
+  oracle_id 8db6651b-c368-46fd-b9c2-69a4d6562246
+  cost {1}{B}{B}
+  type Sorcery
+  additional cost exile X creature cards from graveyard
+  spell: deal X damage to target player or planeswalker
+}

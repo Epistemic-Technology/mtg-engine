@@ -682,6 +682,7 @@ impl P {
             loyalty: None,
             keywords: Vec::new(),
             additional: None,
+            additional_or: None,
             alt_cost: None,
             kicker: None,
             flashback: None,
@@ -827,7 +828,15 @@ impl P {
             "additional" => {
                 self.pos += 1;
                 self.expect_word("cost")?;
-                card.additional = Some(self.cost()?);
+                // `additional cost or {3}`: the other of two (CR 601.2b).
+                if self.eat_word("or") {
+                    if card.additional.is_none() {
+                        return self.fail("`additional cost or` follows an `additional cost`");
+                    }
+                    card.additional_or = Some(self.cost()?);
+                } else {
+                    card.additional = Some(self.cost()?);
+                }
                 self.end_stmt()
             }
             "alternative" => {
@@ -6678,6 +6687,11 @@ impl P {
                         if self.eat_word("this") {
                             cost.sacrifice = Some(SacCost::This);
                         } else {
+                            // `sacrifice 2 Goblin`.
+                            if let Some(Tok::Num(n)) = self.peek() {
+                                cost.count = *n;
+                                self.pos += 1;
+                            }
                             cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         }
                         cost.order.push(CostItem::Sacrifice);
@@ -6702,6 +6716,11 @@ impl P {
                             mtg_core::card::ChosenCost::Tap
                         };
                         self.pos += 1;
+                        // `tap 2 untapped creature you control`.
+                        if let Some(Tok::Num(n)) = self.peek() {
+                            cost.count = *n;
+                            self.pos += 1;
+                        }
                         cost.sacrifice = Some(SacCost::Filter(self.filter()?));
                         cost.order.push(CostItem::Sacrifice);
                     }
@@ -6714,6 +6733,30 @@ impl P {
                         self.pos += 4;
                         cost.exile_self = true;
                         cost.order.push(CostItem::Exile);
+                    }
+                    // `exile 2 cards from graveyard`, `exile creature card
+                    // from graveyard`, `exile X creature cards from
+                    // graveyard`.
+                    "exile" => {
+                        self.pos += 1;
+                        let (mut n, mut x) = (1, false);
+                        if let Some(Tok::Num(k)) = self.peek() {
+                            n = *k;
+                            self.pos += 1;
+                        } else if self.at_word("x") {
+                            x = true;
+                            n = 0;
+                            self.pos += 1;
+                        }
+                        let filter = if self.at_word("card") || self.at_word("cards") {
+                            None
+                        } else {
+                            Some(self.filter()?)
+                        };
+                        self.cards_word()?;
+                        self.expect_words(&["from", "graveyard"])?;
+                        cost.exile_cards = Some(Box::new(crate::ast::ExileCards { n, x, filter }));
+                        cost.order.push(CostItem::ExileCards);
                     }
                     "discard" => {
                         self.pos += 1;

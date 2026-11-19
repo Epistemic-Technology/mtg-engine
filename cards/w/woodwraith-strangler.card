@@ -1,0 +1,7 @@
+card "Woodwraith Strangler" {
+  oracle_id c72ab66b-2011-449c-93a6-1808669653f0
+  cost {2}{B}{G}
+  type Creature — Plant Zombie
+  pt 2/2
+  activated exile creature card from graveyard: regenerate this
+}

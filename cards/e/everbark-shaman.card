@@ -1,0 +1,7 @@
+card "Everbark Shaman" {
+  oracle_id cf319bc8-2aed-4c2c-8ae0-b669d2cf613e
+  cost {4}{G}
+  type Creature — Treefolk Shaman
+  pt 3/5
+  activated {T}, exile Treefolk card from graveyard: search up to 2 Forest card to battlefield tapped
+}
