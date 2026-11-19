@@ -473,6 +473,23 @@ impl GameState {
                     .unwrap_or(0);
                 return u32::try_from(best.max(0)).unwrap_or(0);
             }
+            CountExpr::DifferentlyNamed(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let mut names: SmallVec<[&str; 8]> = SmallVec::new();
+                for id in &self.battlefield {
+                    let o = &self.objects[*id];
+                    if let Some(c) = self.characteristics(*id)
+                        && f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                        && self.status_ok(f, *id)
+                    {
+                        let name = self.name_of(*id);
+                        if !name.is_empty() && !names.contains(&name) {
+                            names.push(name);
+                        }
+                    }
+                }
+                names.len()
+            }
             CountExpr::Party(roles) => {
                 // CR 700.8: the largest set of creatures you control
                 // filling distinct roles. With four roles, the reachable
@@ -1403,10 +1420,31 @@ impl GameState {
         changers: &[ObjId],
     ) -> i32 {
         let mut d = 0i32;
-        if let Some((delta, cond)) = def.cond_cost
-            && self.condition_now(self.pool.condition(cond), p, id)
-        {
-            d += delta;
+        if let Some((delta, cond)) = def.cond_cost {
+            let cond = self.pool.condition(cond);
+            // "If you've cast another instant or sorcery spell this turn":
+            // the spell being cast isn't cast until its costs are paid (CR
+            // 601.2i), so it is never among the spells counted, even once
+            // it is on the stack paying them.
+            let met = if let crate::card::StaticCondition::CastThisTurn {
+                filter,
+                at_least,
+                other: true,
+            } = cond
+            {
+                self.cast_this_turn
+                    .iter()
+                    .filter(|(q, def)| {
+                        *q == p && filter.matches_characteristics(&self.printed(*def))
+                    })
+                    .count()
+                    >= *at_least as usize
+            } else {
+                self.condition_now(cond, p, id)
+            };
+            if met {
+                d += delta;
+            }
         }
         if let Some(sc) = &def.self_cost {
             let ctx = EffectCtx {
@@ -2737,7 +2775,11 @@ impl GameState {
             .all(|(i, s)| match self.that_player_of(*s) {
                 // A target player relation restricts groups and counts, not
                 // targets.
-                None | Some(crate::card::ThatPlayer::Target(_)) => true,
+                None
+                | Some(
+                    crate::card::ThatPlayer::Target(_)
+                    | crate::card::ThatPlayer::TargetOrController { .. },
+                ) => true,
                 Some(crate::card::ThatPlayer::Triggering) => {
                     matches!(s, TargetSpec::UpTo(_))
                         || self
@@ -2853,6 +2895,25 @@ impl GameState {
     /// The permanents a stack object targets become its targets (CR 115.?):
     /// "becomes the target of a spell or ability" triggers see it.
     fn emit_targeted(&mut self, obj: ObjId) {
+        // CR 700.13a: targeting an opponent, anything an opponent
+        // controls, or a card in an opponent's graveyard is a crime.
+        let who = self.objects[obj].controller;
+        let bit = 1 << who.index().min(7);
+        if self.turn_log.crime & bit == 0
+            && self.objects[obj].targets.iter().any(|t| match t {
+                Target::Player(p) => *p != who,
+                Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
+                    if o.zone == Zone::Graveyard {
+                        o.owner != who
+                    } else {
+                        o.controller != who && matches!(o.zone, Zone::Battlefield | Zone::Stack)
+                    }
+                }),
+            })
+        {
+            self.turn_log.crime |= bit;
+            self.history_bump();
+        }
         let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
             .targets
             .iter()
@@ -4025,6 +4086,10 @@ impl GameState {
             return;
         }
         let def = o.def;
+        // "This spell can't be countered."
+        if self.pool.get(def).uncounterable {
+            return;
+        }
         let flashback = o.cast.flashback();
         self.emit(Event::Countered { spell: id, def });
         match dest {
@@ -4855,6 +4920,15 @@ impl GameState {
             ThatPlayer::Target(n) => match target(n)? {
                 Target::Player(p) => Some(Some(p)),
                 Target::Object(_) => None,
+            },
+            ThatPlayer::TargetOrController { n, .. } => match target(n)? {
+                Target::Player(p) => Some(Some(p)),
+                Target::Object(id) => self
+                    .objects
+                    .get(id)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(&id).map(|l| l.object.controller))
+                    .map(Some),
             },
             ThatPlayer::ControllerOf(n) => match target(n)? {
                 Target::Object(id) => self

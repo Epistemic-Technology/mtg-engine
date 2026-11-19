@@ -245,9 +245,12 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
-                Ability::TargetCost { delta, filter } => {
+                Ability::TargetCost { delta, filter, .. } => {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
+                }
+                Ability::Uncounterable => {
+                    b = b.uncounterable();
                 }
                 Ability::CondCost { delta, cond } => {
                     let c = self.static_cond(cond);
@@ -470,6 +473,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::Uncounterable
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
                     | Ability::CondCost { .. }
@@ -823,6 +827,16 @@ impl Compiler<'_> {
                 mtg_core::card::TypeSet::of(t.iter().copied()),
             ),
             StaticCond::DiscardedThisTurn => StaticCondition::DiscardedThisTurn,
+            StaticCond::Night => StaticCondition::Night,
+            StaticCond::LifeGainedThisTurn(n) => StaticCondition::LifeGainedThisTurn(*n),
+            StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
+            StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
+            StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
+                mtg_core::card::TypeSet::of(t.iter().copied()),
+            ),
+            StaticCond::SacrificedThisTurn(t) => {
+                StaticCondition::SacrificedThisTurn(mtg_core::card::TypeSet::of(t.iter().copied()))
+            }
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
@@ -871,6 +885,7 @@ impl Compiler<'_> {
             A::Votes { index, .. } => C::Votes(*index),
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
+            A::DifferentlyNamed(f) => C::DifferentlyNamed(self.filter(f)),
             A::Party => {
                 // CR 700.8: "up to one each of Cleric, Rogue, Warrior, and
                 // Wizard".
@@ -2239,6 +2254,9 @@ impl Compiler<'_> {
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::Uncounterable => {
+                return self.err("\"can't be countered\" is a property of the spell");
+            }
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
                 // choices is split by the caller through `abilities()`.

@@ -1136,6 +1136,11 @@ impl P {
                     generic,
                 })
             }
+            "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::Uncounterable)
+            }
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
                 let per = self.mana_cost()?.mana_value();
@@ -1144,12 +1149,20 @@ impl P {
                 {
                     let less = self.at_word("less");
                     self.pos += 4;
+                    let noun = if self.eat_word("spell") {
+                        crate::ast::TargetNoun::Spell
+                    } else if self.eat_word("card") {
+                        crate::ast::TargetNoun::Card
+                    } else {
+                        crate::ast::TargetNoun::Permanent
+                    };
                     let filter = self.filter()?;
                     self.end_stmt()?;
                     let n = i32::try_from(per).unwrap_or(0);
                     return Ok(Ability::TargetCost {
                         delta: if less { -n } else { n },
                         filter,
+                        noun,
                     });
                 }
                 if self.at_words(&["less", "if"]) || self.at_words(&["more", "if"]) {
@@ -2151,9 +2164,45 @@ impl P {
                 self.pos += k + 4;
                 return Ok(StaticCond::PutIntoGraveyardThisTurn(types));
             }
+            // `creature card to your graveyard this turn`.
+            let tail = ["card", "to", "your", "graveyard", "this", "turn"];
+            if (0..6).all(|i| self.word_at(k + i).as_deref() == Some(tail[i])) {
+                self.pos += k + 6;
+                return Ok(StaticCond::CardToGraveyardThisTurn(types));
+            }
         }
         if self.eat_words(&["discarded", "this", "turn"]) {
             return Ok(StaticCond::DiscardedThisTurn);
+        }
+        if self.eat_word("night") {
+            return Ok(StaticCond::Night);
+        }
+        if self.at_word("gained") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            let n = self.number()?;
+            self.expect_words(&["life", "this", "turn"])?;
+            return Ok(StaticCond::LifeGainedThisTurn(n));
+        }
+        if self.eat_word("sacrificed") {
+            let mut types = Vec::new();
+            loop {
+                let w = self.word()?;
+                let Some(t) = card_type(&w) else {
+                    return self.fail(format!("expected a card type, found {w}"));
+                };
+                types.push(t);
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::SacrificedThisTurn(types));
+        }
+        if self.eat_words(&["committed", "crime", "this", "turn"]) {
+            return Ok(StaticCond::CrimeThisTurn);
+        }
+        if self.eat_words(&["card", "left", "your", "graveyard", "this", "turn"]) {
+            return Ok(StaticCond::LeftGraveyardThisTurn);
         }
         if self.eat_words(&["more", "cards", "in", "hand", "than", "each", "opponent"]) {
             return Ok(StaticCond::MoreCardsInHand);
@@ -2795,6 +2844,9 @@ impl P {
             return true;
         }
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            return true;
+        }
+        if self.at_words(&["those", "targets"]) {
             return true;
         }
         if self.at_words(&["controller", "of", "that", "target"]) {
@@ -5377,6 +5429,11 @@ impl P {
                 let lw = w.to_ascii_lowercase();
                 if lw == "x" {
                     self.pos += 1;
+                    // `X plus 1`: "X plus 1 damage".
+                    if self.at_word("plus") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+                        self.pos += 1;
+                        return Ok(Num::XPlus(self.number()?));
+                    }
                     return Ok(Num::X);
                 }
                 if lw == "a" || lw == "an" {
@@ -5410,7 +5467,9 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::Count(_) | Num::ThatMuch => self.fail("X is not allowed here"),
+            Num::X | Num::XPlus(_) | Num::Count(_) | Num::ThatMuch => {
+                self.fail("X is not allowed here")
+            }
         }
     }
 
@@ -5578,6 +5637,9 @@ impl P {
         }
         // `greatest power creature you control`; bare `greatest power` is
         // among creatures you control.
+        if self.eat_words(&["differently", "named"]) {
+            return Ok(CountExpr::DifferentlyNamed(self.filter()?));
+        }
         if self.eat_words(&["greatest", "power", "graveyard"]) {
             return Ok(CountExpr::GreatestPowerInGraveyard(self.filter()?));
         }
@@ -6290,7 +6352,7 @@ impl P {
                         || (self.word_at(ws.len()).as_deref() == Some("that")
                             && matches!(
                                 self.word_at(ws.len() + 1).as_deref(),
-                                Some("entered" | "dealt" | "blocked" | "was")
+                                Some("entered" | "dealt" | "blocked" | "was" | "player")
                             )));
                 if !continues {
                     self.pos += ws.len();
@@ -6684,6 +6746,22 @@ impl P {
                         u8::try_from(self.targets.len() - 1).unwrap_or(u8::MAX),
                     ));
                     f.that_opponent = opponent;
+                }
+                // `that player 1 controls`, `that player or planeswalker 1
+                // controls`: the 1st target, a player, or its controller.
+                "that"
+                    if self.at_words(&["that", "player"])
+                        && (matches!(self.peek_at(2), Some(Tok::Num(_)))
+                            || self.at_words(&["that", "player", "or", "planeswalker"])) =>
+                {
+                    self.pos += 2;
+                    let planeswalker = self.eat_words(&["or", "planeswalker"]);
+                    let n = self.declared_target()?;
+                    self.expect_word("controls")?;
+                    f.that_player = Some(mtg_core::card::ThatPlayer::TargetOrController {
+                        n: u8::try_from(n).unwrap_or(u8::MAX),
+                        planeswalker,
+                    });
                 }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {

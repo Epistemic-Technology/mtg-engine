@@ -1,0 +1,6 @@
+card "Sparkmage's Gambit" {
+  oracle_id c8df3d1f-130e-4391-9bec-3f2d345a13fb
+  cost {1}{R}
+  type Sorcery
+  spell: deal 1 damage to up to 2 target creature; those targets can't block
+}

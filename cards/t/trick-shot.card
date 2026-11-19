@@ -1,0 +1,6 @@
+card "Trick Shot" {
+  oracle_id 843c8485-21b8-45ef-9a0c-4967f07278bb
+  cost {4}{R}
+  type Instant
+  spell: deal 6 damage to target creature and deal 2 damage to up to 1 another target creature token
+}

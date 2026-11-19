@@ -1686,6 +1686,7 @@ fn num(n: Num) -> String {
     match n {
         Num::N(n) => n.to_string(),
         Num::X => "X".to_string(),
+        Num::XPlus(n) => format!("X plus {n}"),
         Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()
@@ -1819,6 +1820,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::BlockingIt { beyond: 0 } => "creature blocking it".to_string(),
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
+        CountExpr::DifferentlyNamed(f) => format!("differently named {}", filter(f)),
         CountExpr::Party => "party".to_string(),
         CountExpr::GreatestManaValue => "greatest mana value".to_string(),
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
@@ -2174,6 +2176,13 @@ fn filter_one(f: &Filter) -> String {
     match f.that_player {
         Some(mtg_core::card::ThatPlayer::Triggering) => {
             words.push("that player controls".to_string());
+        }
+        Some(mtg_core::card::ThatPlayer::TargetOrController { n, planeswalker }) => {
+            words.push(format!(
+                "that player {}{} controls",
+                if planeswalker { "or planeswalker " } else { "" },
+                n + 1
+            ));
         }
         Some(mtg_core::card::ThatPlayer::ControllerOf(n)) => {
             words.push(format!("controller of target {} controls", n + 1));
@@ -3241,6 +3250,18 @@ fn static_cond(c: &StaticCond) -> String {
             format!("{} to graveyard this turn", names.join(" or "))
         }
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
+        StaticCond::Night => "night".to_string(),
+        StaticCond::LifeGainedThisTurn(n) => format!("gained {n} life this turn"),
+        StaticCond::CrimeThisTurn => "committed crime this turn".to_string(),
+        StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
+            format!("sacrificed {} this turn", names.join(" or "))
+        }
+        StaticCond::CardToGraveyardThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
+            format!("{} card to your graveyard this turn", names.join(" or "))
+        }
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
         StaticCond::Monarch => "you are monarch".to_string(),
@@ -3633,12 +3654,21 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 static_cond(cond)
             );
         }
-        Ability::TargetCost { delta, filter: f } => {
+        Ability::TargetCost {
+            delta,
+            filter: f,
+            noun,
+        } => {
             let _ = writeln!(
                 out,
-                "{indent}this spell costs {{{}}} {} if it targets {}",
+                "{indent}this spell costs {{{}}} {} if it targets {}{}",
                 delta.unsigned_abs(),
                 if *delta < 0 { "less" } else { "more" },
+                match noun {
+                    crate::ast::TargetNoun::Permanent => "",
+                    crate::ast::TargetNoun::Spell => "spell ",
+                    crate::ast::TargetNoun::Card => "card ",
+                },
                 filter(f)
             );
         }
@@ -3742,6 +3772,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::Uncounterable => {
+            let _ = writeln!(out, "{indent}this spell can't be countered");
         }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(

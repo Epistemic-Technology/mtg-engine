@@ -1,0 +1,7 @@
+card "Slice from the Shadows" {
+  oracle_id 4d31d3f4-4748-4713-808f-24699fcd7b10
+  cost {X}{B}
+  type Instant
+  this spell can't be countered
+  spell: target creature gets -1/-1 X
+}

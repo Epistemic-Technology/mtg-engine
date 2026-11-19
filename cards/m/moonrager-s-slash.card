@@ -1,0 +1,7 @@
+card "Moonrager's Slash" {
+  oracle_id 40a41774-fe50-438d-85e4-7f2beb29fb82
+  cost {2}{R}
+  type Instant
+  this spell costs {2} less if night
+  spell: deal 3 damage to any target
+}

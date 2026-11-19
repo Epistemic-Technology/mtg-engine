@@ -1,0 +1,485 @@
+# Damage to several targets ("deals 1 damage to each of up to two target
+# creatures", CR 601.2c, 115.3), damage to a target and the creatures its
+# player or controller controls ("1 damage to each creature that player or
+# that planeswalker's controller controls"), a second damage clause to the
+# first target's controller ("its controller", "that permanent's
+# controller"), and spells that cost less under a condition (CR 601.2f).
+
+scenario "Dual Shot deals 1 damage to each of two target creatures" {
+  battlefield A: "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Dual Shot"
+  turn 1 A: cast "Dual Shot" targeting "Llanowar Elves", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Dual Shot may target one creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Dual Shot"
+  turn 1 A: cast "Dual Shot" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Dual Shot can't target the same creature twice" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Dual Shot"
+  illegal turn 1 A: cast "Dual Shot" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Wrap in Flames: those creatures can't block" {
+  battlefield A: 4 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Wrap in Flames"
+  turn 1 A: cast "Wrap in Flames" targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert damage "Grizzly Bears" 1
+  assert life B 17
+}
+
+scenario "Cast into the Fire's first mode hits each of two creatures" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Cast into the Fire"
+  turn 1 A: cast "Cast into the Fire" mode 1 targeting "Llanowar Elves", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Radiating Lightning hits the player and each creature they control" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Llanowar Elves", "Hill Giant"
+  hand A: "Radiating Lightning"
+  turn 1 A: cast "Radiating Lightning" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 1
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Chandra's Fury at a planeswalker hits its controller's creatures" {
+  battlefield A: 5 "Mountain", "Grizzly Bears"
+  battlefield B: "Jace Beleren", "Llanowar Elves"
+  hand A: "Chandra's Fury"
+  turn 1 A: cast "Chandra's Fury" targeting "Jace Beleren"
+  run_to turn 1 end
+  assert graveyard B contains "Jace Beleren"
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 20
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Chandra's Fury at a player hits that player's creatures" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Chandra's Fury"
+  turn 1 A: cast "Chandra's Fury" targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Unleash Shell damages a planeswalker's controller" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Jace Beleren"
+  hand A: "Unleash Shell"
+  turn 1 A: cast "Unleash Shell" targeting "Jace Beleren"
+  run_to turn 1 end
+  assert graveyard B contains "Jace Beleren"
+  assert life B 18
+}
+
+scenario "Neonate's Rush costs {1} less with a Vampire" {
+  battlefield A: 2 "Mountain", "Vampire Nighthawk"
+  battlefield B: "Llanowar Elves"
+  hand A: "Neonate's Rush"
+  turn 1 A: cast "Neonate's Rush" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 19
+  assert hand A count 1
+}
+
+scenario "Neonate's Rush costs full price without a Vampire" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Neonate's Rush"
+  illegal turn 1 A: cast "Neonate's Rush" targeting "Llanowar Elves"
+  run_to turn 1 end
+}
+
+scenario "Trick Shot hits a creature and another creature token" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 2 "Plains", "Hill Giant"
+  hand B: "Raise the Alarm"
+  hand A: "Trick Shot"
+  start turn 1 B
+  turn 1 B: cast "Raise the Alarm"
+  turn 2 A: cast "Trick Shot" targeting "Hill Giant", oldest B "Soldier"
+  run_to turn 2 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B count 3
+}
+
+scenario "Trick Shot's token target can't be a nontoken creature" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Trick Shot"
+  illegal turn 1 A: cast "Trick Shot" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Fire Shrine Keeper deals 3 damage to each of two creatures" {
+  battlefield A: 8 "Mountain", "Fire Shrine Keeper"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 A: activate "Fire Shrine Keeper" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Fire Shrine Keeper"
+}
+
+scenario "Mage Duel costs {2} less after another instant" {
+  battlefield A: 2 "Forest", "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mage Duel", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Mage Duel" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Mage Duel costs full price with no other spell cast" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Mage Duel"
+  illegal turn 1 A: cast "Mage Duel" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Focus the Mind costs {2} less after another spell" {
+  battlefield A: 3 "Island", "Mountain"
+  hand A: "Focus the Mind", "Shock"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Focus the Mind"
+  run_to turn 1 end
+  assert hand A count 2
+  assert graveyard A contains "Focus the Mind"
+}
+
+scenario "Titanic Brawl costs {1} less targeting a creature with a +1/+1 counter" {
+  battlefield A: "Forest", "Grizzly Bears" with 1 +1/+1
+  battlefield B: "Llanowar Elves"
+  hand A: "Titanic Brawl"
+  turn 1 A: cast "Titanic Brawl" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Titanic Brawl costs full price targeting a creature with no counter" {
+  battlefield A: "Forest", "Grizzly Bears"
+  battlefield B: "Llanowar Elves"
+  hand A: "Titanic Brawl"
+  illegal turn 1 A: cast "Titanic Brawl" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 end
+}
+
+# ----- conditions of the turn -----
+
+scenario "Moonrager's Slash costs {2} less at night" {
+  battlefield A: 3 "Mountain"
+  hand A: "Brimstone Vandal", "Moonrager's Slash", "Shock", "Shock"
+  turn 1 A: cast "Brimstone Vandal"
+  turn 3 A: cast "Moonrager's Slash" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert graveyard A contains "Moonrager's Slash"
+  assert hand A count 1
+}
+
+scenario "Moonrager's Slash costs full price by day" {
+  battlefield A: 4 "Mountain"
+  hand A: "Brimstone Vandal", "Moonrager's Slash"
+  turn 1 A: cast "Brimstone Vandal"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Moonrager's Slash" targeting player B
+  run_to turn 1 end
+}
+
+scenario "Sanguine Indulgence costs {3} less after gaining 3 life" {
+  battlefield A: "Swamp", "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sanguine Indulgence", "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Sanguine Indulgence" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Sanguine Indulgence costs full price with no life gained" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sanguine Indulgence"
+  illegal turn 1 A: cast "Sanguine Indulgence" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Seize the Secrets costs {1} less after a crime" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Seize the Secrets", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Seize the Secrets"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Targeting your own creature is no crime" {
+  battlefield A: 2 "Island", "Mountain", "Hill Giant"
+  hand A: "Seize the Secrets", "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Seize the Secrets"
+  run_to turn 1 end
+}
+
+scenario "Wilt in the Heat costs {2} less after a card left your graveyard" {
+  battlefield A: "Swamp", "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Wilt in the Heat", "Raise Dead"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Wilt in the Heat" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Wilt in the Heat costs full price otherwise" {
+  battlefield A: "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Wilt in the Heat"
+  illegal turn 1 A: cast "Wilt in the Heat" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Macabre Reconstruction costs {2} less after a creature card hit your graveyard" {
+  battlefield A: "Mountain", 2 "Swamp", "Grizzly Bears"
+  hand A: "Macabre Reconstruction", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Macabre Reconstruction" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "An opponent's creature dying doesn't reduce Macabre Reconstruction" {
+  battlefield A: "Mountain", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Macabre Reconstruction", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Macabre Reconstruction" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- what it targets -----
+
+scenario "Out of Air costs {2} less countering a creature spell" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Out of Air"
+  hand B: "Grizzly Bears"
+  start turn 1 B
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 A: cast "Out of Air" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Out of Air costs full price countering a noncreature spell" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Out of Air"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  illegal turn 1 A: cast "Out of Air" targeting "Shock" in response to "Shock"
+  run_to turn 1 end
+}
+
+scenario "Revoke Demise costs {2} less for a creature card with mana value 3 or less" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Revoke Demise"
+  turn 1 A: cast "Revoke Demise" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Revoke Demise costs full price for a bigger creature card" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Revoke Demise"
+  illegal turn 1 A: cast "Revoke Demise" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Dire Downdraft costs {1} less targeting a tapped creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Dire Downdraft"
+  turn 1 A: cast "Dire Downdraft" targeting "Hill Giant"
+  run_to turn 1 end
+  assert library B contains "Hill Giant"
+}
+
+scenario "Dire Downdraft costs full price targeting an untapped creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Dire Downdraft"
+  illegal turn 1 A: cast "Dire Downdraft" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- counts -----
+
+scenario "Fungal Colossus costs {X} less for differently named lands" {
+  battlefield A: "Forest", "Island", "Swamp", "Mountain", "Plains"
+  hand A: "Fungal Colossus"
+  turn 1 A: cast "Fungal Colossus"
+  run_to turn 1 end
+  assert battlefield A contains "Fungal Colossus"
+}
+
+scenario "Fungal Colossus: lands of the same name count once" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Fungal Colossus"
+  illegal turn 1 A: cast "Fungal Colossus"
+  run_to turn 1 end
+}
+
+scenario "Meteor Shower deals X plus 1 damage divided" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Meteor Shower"
+  turn 1 A: cast "Meteor Shower" x 1 targeting "Llanowar Elves", "Grizzly Bears" dividing 1, 1
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Meteor Shower with X 0 deals 1 damage" {
+  battlefield A: "Mountain"
+  hand A: "Meteor Shower"
+  turn 1 A: cast "Meteor Shower" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+# ----- can't be countered -----
+
+scenario "Suspicious Detonation costs {3} less after sacrificing an artifact" {
+  battlefield A: 3 "Mountain", "Aether Spellbomb"
+  battlefield B: "Hill Giant"
+  hand A: "Suspicious Detonation"
+  turn 1 A: activate "Aether Spellbomb" ability 2
+  turn 1 A: wait
+  turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Suspicious Detonation costs full price with nothing sacrificed" {
+  battlefield A: 3 "Mountain", "Aether Spellbomb"
+  battlefield B: "Hill Giant"
+  hand A: "Suspicious Detonation"
+  illegal turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Suspicious Detonation can't be countered" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Suspicious Detonation"
+  hand B: "Cancel"
+  turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Suspicious Detonation" in response to "Suspicious Detonation"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Cancel"
+  assert graveyard A contains "Suspicious Detonation"
+}
+
+scenario "Suspicious Detonation isn't countered by ward" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Cackling Prowler"
+  hand A: "Suspicious Detonation"
+  turn 1 A: cast "Suspicious Detonation" targeting "Cackling Prowler"
+  run_to turn 1 end
+  assert graveyard B contains "Cackling Prowler"
+}
+
+scenario "A spell that can be countered is" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Unleash Shell"
+  hand B: "Cancel"
+  turn 1 A: cast "Unleash Shell" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Unleash Shell" in response to "Unleash Shell"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Unleash Shell"
+}
+
+scenario "Heated Debate can't be countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Heated Debate"
+  hand B: "Cancel"
+  turn 1 A: cast "Heated Debate" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Heated Debate" in response to "Heated Debate"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Out Cold taps two creatures and puts a stun counter on each of them" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Out Cold"
+  turn 1 A: cast "Out Cold" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert counters "Hill Giant" stun 1
+  assert counters "Grizzly Bears" stun 1
+  assert battlefield A contains "Clue"
+}
+
+scenario "Slice from the Shadows gives -X/-X" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Slice from the Shadows"
+  turn 1 A: cast "Slice from the Shadows" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}

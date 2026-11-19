@@ -1,0 +1,8 @@
+card "Shadow Guildmage" {
+  oracle_id cdda63d7-e3ea-455c-b7d4-c6cfdda2703c
+  cost {B}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {U}, {T}: put target creature you control on top of library
+  activated {R}, {T}: deal 1 damage to any target and deal 1 damage to you
+}

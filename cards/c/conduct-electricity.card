@@ -1,0 +1,6 @@
+card "Conduct Electricity" {
+  oracle_id 0369627e-3b83-4e5b-a8af-a99f944443b3
+  cost {4}{R}
+  type Instant
+  spell: deal 6 damage to target creature and deal 2 damage to up to one target creature token
+}

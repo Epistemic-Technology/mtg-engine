@@ -236,6 +236,9 @@ pub enum CountExpr {
     /// `greatest power creature you control`: "the greatest power among
     /// creatures you control".
     GreatestPower(Filter),
+    /// `differently named land you control`: "the number of differently
+    /// named lands you control".
+    DifferentlyNamed(Filter),
     /// `party`: "creatures in your party" (CR 700.8).
     Party,
     /// `greatest mana value`: "the greatest mana value among permanents you
@@ -326,6 +329,16 @@ pub enum CountExpr {
     /// `attached controller graveyard [<filter>]`: "the number of creature
     /// cards in its controller's graveyard" (of what the source enchants).
     HostGraveyard(Option<Filter>),
+}
+
+/// What a target-dependent cost's filter names: a permanent, a spell, or a
+/// card (in a graveyard).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TargetNoun {
+    #[default]
+    Permanent,
+    Spell,
+    Card,
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -852,6 +865,10 @@ pub enum Ability {
     TargetCost {
         delta: i32,
         filter: Filter,
+        /// `if it targets spell creature`: "a creature spell"; `if it
+        /// targets card creature with mana value 3 or less`: "a creature
+        /// card with mana value 3 or less".
+        noun: TargetNoun,
     },
     /// `this spell costs {3} less if creature died this turn`.
     CondCost {
@@ -912,6 +929,8 @@ pub enum Ability {
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
+    /// `this spell can't be countered`: "This spell can't be countered."
+    Uncounterable,
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
@@ -1297,6 +1316,21 @@ pub enum StaticCond {
     PutIntoGraveyardThisTurn(Vec<mtg_core::card::CardType>),
     /// `discarded this turn`: "you've discarded a card this turn".
     DiscardedThisTurn,
+    /// `night`: "it's night".
+    Night,
+    /// `gained 3 life this turn`: "you've gained 3 or more life this turn".
+    LifeGainedThisTurn(u32),
+    /// `committed crime this turn`: "you've committed a crime this turn".
+    CrimeThisTurn,
+    /// `card left your graveyard this turn`: "one or more cards left your
+    /// graveyard this turn".
+    LeftGraveyardThisTurn,
+    /// `creature card to your graveyard this turn`: "a creature card was
+    /// put into your graveyard from anywhere this turn".
+    CardToGraveyardThisTurn(Vec<mtg_core::card::CardType>),
+    /// `sacrificed artifact this turn`: "you've sacrificed an artifact this
+    /// turn".
+    SacrificedThisTurn(Vec<mtg_core::card::CardType>),
     /// `more cards in hand than each opponent`.
     MoreCardsInHand,
     /// `opponent poisoned` ("an opponent is poisoned"), `opponent poison 3

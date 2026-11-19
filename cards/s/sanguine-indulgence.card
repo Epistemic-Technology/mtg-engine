@@ -1,0 +1,7 @@
+card "Sanguine Indulgence" {
+  oracle_id 010ec11a-0484-486d-b7c0-de65593bf457
+  cost {3}{B}
+  type Sorcery
+  this spell costs {3} less if gained 3 life this turn
+  spell: return up to two target creature cards from your graveyard to hand
+}

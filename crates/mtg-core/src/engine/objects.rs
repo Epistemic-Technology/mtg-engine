@@ -227,11 +227,26 @@ impl GameState {
         }
         // CR 700.11: its owner descended if a permanent card went to their
         // graveyard (a token is no card).
-        if to == Zone::Graveyard
-            && old.kind == crate::state::ObjKind::Card
-            && self.pool.get(old.card).types.is_permanent_type()
-        {
-            self.turn_log.descended |= 1 << old.owner.index().min(7);
+        if to == Zone::Graveyard && old.kind == crate::state::ObjKind::Card {
+            let types = self.pool.get(old.card).types;
+            if types.is_permanent_type() {
+                self.turn_log.descended |= 1 << old.owner.index().min(7);
+            }
+            // "if a creature card was put into your graveyard from anywhere
+            // this turn".
+            let seen = &mut self.turn_log.cards_to_graveyard[old.owner.index().min(3)];
+            if !seen.contains_all(types) {
+                *seen = seen.union(types);
+                self.history_bump();
+            }
+        }
+        // "if one or more cards left your graveyard this turn".
+        if old.zone == Zone::Graveyard {
+            let bit = 1 << old.owner.index().min(7);
+            if self.turn_log.left_graveyard & bit == 0 {
+                self.turn_log.left_graveyard |= bit;
+                self.history_bump();
+            }
         }
         let old_flags = self.flags_of(&old);
         self.lki.insert(
@@ -666,7 +681,15 @@ impl GameState {
         if o.zone != Zone::Battlefield {
             return;
         }
-        let def = o.def;
+        let (def, who) = (o.def, o.controller);
+        // "If you've sacrificed an artifact this turn".
+        if let Some(c) = self.characteristics(id) {
+            let seen = &mut self.turn_log.sacrificed[who.index().min(3)];
+            if !seen.contains_all(c.types) {
+                *seen = seen.union(c.types);
+                self.history_bump();
+            }
+        }
         self.emit(Event::Sacrificed { obj: id, def });
         self.move_object(id, Zone::Graveyard, true);
     }
@@ -892,8 +915,13 @@ impl GameState {
             if let Some(log) = &mut self.this_way {
                 log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
             }
-        } else if self.turn_log.gained_life & bit == 0 {
-            self.turn_log.gained_life |= bit;
+        } else {
+            let gained = &mut self.turn_log.life_gained[p.index().min(3)];
+            *gained = gained.saturating_add(delta.unsigned_abs());
+            if self.turn_log.gained_life & bit == 0 {
+                self.turn_log.gained_life |= bit;
+            }
+            // "If you've gained 3 or more life this turn" may now hold.
             self.history_bump();
         }
         let ps = self.player_mut(p);

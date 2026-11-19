@@ -1,0 +1,7 @@
+card "Macabre Reconstruction" {
+  oracle_id 04633ecd-eac0-426a-83a5-8e88262fca30
+  cost {3}{B}
+  type Sorcery
+  this spell costs {2} less if creature card to your graveyard this turn
+  spell: return up to two target creature cards from your graveyard to hand
+}

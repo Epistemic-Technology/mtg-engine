@@ -1,0 +1,8 @@
+card "Granger Guildmage" {
+  oracle_id 0230fdda-d916-457e-9dfd-61783fcf4652
+  cost {G}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {R}, {T}: deal 1 damage to any target and deal 1 damage to you
+  activated {W}, {T}: target creature gains first strike
+}

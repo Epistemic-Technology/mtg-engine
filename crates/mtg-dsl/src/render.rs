@@ -92,6 +92,7 @@ fn count_words(n: Num, article: &str) -> String {
         // "Mill that many cards" (a counted noun); "that much life".
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
+        Num::XPlus(n) => format!("X plus {n}"),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -103,6 +104,7 @@ fn digits(n: Num) -> String {
     match n {
         Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
+        Num::XPlus(n) => format!("X plus {n}"),
         Num::N(n) => n.to_string(),
     }
 }
@@ -1248,6 +1250,20 @@ impl<'a> Ctx<'a> {
 
     /// A list of recipients, merging fresh targets of one kind ("two target
     /// lands").
+    /// Whether `rs` names several targets of one phrase not mentioned
+    /// before ("up to two target creatures"), as `obj_list` would print
+    /// them together.
+    fn fresh_target_group(&self, rs: &[Recipient]) -> bool {
+        match rs {
+            [Recipient::Targets(a, n)] => *n > 1 && !self.target_mentioned[*a],
+            [Recipient::Target(first), _, ..] => rs.iter().all(|r| {
+                matches!(r, Recipient::Target(i)
+                    if !self.target_mentioned[*i] && self.targets[*i] == self.targets[*first])
+            }),
+            _ => false,
+        }
+    }
+
     fn obj_list(&mut self, rs: &[Recipient], all: bool) -> String {
         let fresh: Vec<usize> = rs
             .iter()
@@ -1367,6 +1383,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::EachPermanentYouControl
                 | Recipient::Group(_)
                 | Recipient::Targets(..)
+                | Recipient::ThoseTargets(..)
                 | Recipient::TargetAnd(..)
         )
     }
@@ -1393,7 +1410,6 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::CreatureYouControl
             | TargetSpec::OtherCreature
             | TargetSpec::NonlegendaryCreatureYouControl
-            | TargetSpec::CreatureOrPlaneswalker
             | TargetSpec::CreatureWithSubtype(_)
             | TargetSpec::AttackingOrBlockingCreature
             | TargetSpec::AttackingCreature
@@ -1405,6 +1421,8 @@ fn target_noun(t: &Target) -> String {
             TargetSpec::Land => "land".to_string(),
             TargetSpec::ArtifactCreatureOrLand
             | TargetSpec::ArtifactOrEnchantment
+            // "that permanent's controller" (Unleash Shell).
+            | TargetSpec::CreatureOrPlaneswalker
             | TargetSpec::Permanent
             | TargetSpec::OtherPermanent
             | TargetSpec::ArtifactOrCreature
@@ -1597,6 +1615,18 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             filter_phrase_one(&rest, card, plural_form)
         );
     }
+    // `attacking or tapped creature`: "an attacking or tapped creature"
+    // (only creatures attack).
+    if base
+        == (Filter {
+            attacking: true,
+            ..Filter::default()
+        })
+        && alt.or.is_none()
+        && !alt.attacking
+    {
+        return format!("attacking or {}", filter_phrase_one(alt, card, plural_form));
+    }
     // "creatures with flying or reach".
     if let Some(k) = crate::format::keyword_alternative(&base, alt) {
         let one = filter_phrase_one(&base, card, plural_form);
@@ -1786,6 +1816,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             s.push_str(" target opponent controls");
         }
         Some(mtg_core::card::ThatPlayer::Target(_)) => s.push_str(" target player controls"),
+        Some(mtg_core::card::ThatPlayer::TargetOrController {
+            planeswalker: true, ..
+        }) => s.push_str(" that player or that planeswalker's controller controls"),
         Some(_) => s.push_str(" that player controls"),
         None => {}
     }
@@ -2469,6 +2502,12 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
         }
+        CountExpr::DifferentlyNamed(f) => {
+            return format!(
+                "the number of differently named {}",
+                filter_phrase(f, card, true)
+            );
+        }
         CountExpr::GreatestPowerInGraveyard(f) => {
             return format!(
                 "the greatest power among {} in your graveyard",
@@ -2940,7 +2979,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
                 "itself".to_string()
             } else {
-                ctx.obj_list(to, false)
+                // "deals 1 damage to each of up to two target creatures":
+                // the same amount to each of several targets of one phrase.
+                let each = if ctx.fresh_target_group(to) {
+                    "each of "
+                } else {
+                    ""
+                };
+                format!("{each}{}", ctx.obj_list(to, false))
             };
             Clause::with_subject(
                 Recipient::Source,
@@ -7399,6 +7445,28 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             )
         }
         StaticCond::DiscardedThisTurn => "you've discarded a card this turn".to_string(),
+        StaticCond::Night => "it's night".to_string(),
+        StaticCond::LifeGainedThisTurn(n) => {
+            format!("you've gained {n} or more life this turn")
+        }
+        StaticCond::CrimeThisTurn => "you've committed a crime this turn".to_string(),
+        StaticCond::LeftGraveyardThisTurn => {
+            "one or more cards left your graveyard this turn".to_string()
+        }
+        StaticCond::SacrificedThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
+            format!(
+                "you've sacrificed {} this turn",
+                with_article(&names.join(" or "))
+            )
+        }
+        StaticCond::CardToGraveyardThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
+            format!(
+                "{} card was put into your graveyard from anywhere this turn",
+                with_article(&names.join(" or "))
+            )
+        }
         StaticCond::MoreCardsInHand => "you have more cards in hand than each opponent".to_string(),
         StaticCond::OpponentPoison(1) => "an opponent is poisoned".to_string(),
         StaticCond::OpponentPoison(n) => {
@@ -7926,11 +7994,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 static_cond_text(cond, card)
             }
         ),
-        Ability::TargetCost { delta, filter } => format!(
+        Ability::TargetCost {
+            delta,
+            filter,
+            noun,
+        } => format!(
             "This spell costs {{{}}} {} to cast if it targets {}.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
-            filter_a(filter, card)
+            match noun {
+                crate::ast::TargetNoun::Permanent => filter_a(filter, card),
+                crate::ast::TargetNoun::Spell => a_spell(filter, card),
+                crate::ast::TargetNoun::Card => card_filter_a(filter, card),
+            }
         ),
         Ability::SelfCost { per, times } => {
             // "This spell costs {X} less to cast, where X is the greatest
@@ -8093,6 +8169,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::DeckAnyNumber => {
             format!("A deck can have any number of cards named {}.", card.name)
         }
+        Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }

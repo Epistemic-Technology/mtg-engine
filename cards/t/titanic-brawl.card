@@ -1,0 +1,7 @@
+card "Titanic Brawl" {
+  oracle_id e8434c77-10df-4456-af27-acb95d624189
+  cost {1}{G}
+  type Instant
+  this spell costs {1} less if it targets creature you control with +1/+1 counter
+  spell: target creature you control fights target creature you don't control
+}

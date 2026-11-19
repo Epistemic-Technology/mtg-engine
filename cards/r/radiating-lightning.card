@@ -1,0 +1,6 @@
+card "Radiating Lightning" {
+  oracle_id 9794f397-dd86-4cfe-a431-5f8d8c6b68ea
+  cost {3}{R}
+  type Instant
+  spell: deal 3 damage to target player and deal 1 damage to each creature that player 1 controls
+}

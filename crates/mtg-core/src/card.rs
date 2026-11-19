@@ -987,6 +987,11 @@ pub enum ThatPlayer {
     /// effect's groups and counts; nothing matches if that target is
     /// illegal as the effect happens (CR 608.2b).
     Target(u8),
+    /// The `n`th target if it's a player, else its controller ("deals 1
+    /// damage to each creature that player or that planeswalker's
+    /// controller controls"); `planeswalker` is only the wording. Judged
+    /// for groups and counts like `Target`.
+    TargetOrController { n: u8, planeswalker: bool },
 }
 
 /// How an object a filter matches must be in combat with the source.
@@ -1567,6 +1572,10 @@ pub enum CountExpr {
     /// filter ("the greatest power among creatures you control"); 0 with
     /// none.
     GreatestPower(ObjFilter),
+    /// Different names among battlefield permanents matching the filter
+    /// ("the number of differently named lands you control"); a nameless
+    /// face-down permanent adds none.
+    DifferentlyNamed(ObjFilter),
     /// The number of creatures in your party (CR 700.8): up to one each
     /// matching these four filters (Cleric, Rogue, Warrior, Wizard
     /// creatures you control), as many as can be assigned.
@@ -1967,6 +1976,20 @@ pub enum StaticCondition {
     PutIntoGraveyardThisTurn(TypeSet),
     /// "you've discarded a card this turn".
     DiscardedThisTurn,
+    /// "it's night" (CR 731).
+    Night,
+    /// "you've gained 3 or more life this turn": at least this much in all.
+    LifeGainedThisTurn(u32),
+    /// "you've committed a crime this turn" (CR 700.13).
+    CrimeThisTurn,
+    /// "one or more cards left your graveyard this turn".
+    LeftGraveyardThisTurn,
+    /// "a creature card was put into your graveyard from anywhere this
+    /// turn": a card of one of these types, as it is in the graveyard.
+    CardToGraveyardThisTurn(TypeSet),
+    /// "you've sacrificed an artifact this turn": a permanent with one of
+    /// these types, as it last existed.
+    SacrificedThisTurn(TypeSet),
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -2529,6 +2552,8 @@ pub enum Recipient {
 pub enum Num {
     N(u32),
     X,
+    /// "X plus 1": X and then some (Meteor Shower).
+    XPlus(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -2544,6 +2569,7 @@ impl Num {
         match self {
             Num::N(n) => n,
             Num::X => x,
+            Num::XPlus(n) => x.saturating_add(n),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -2553,6 +2579,7 @@ impl Num {
         match self {
             Num::N(n) => n,
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
+            Num::XPlus(n) => 3 + n,
         }
     }
 }
@@ -4804,6 +4831,10 @@ pub struct CardDef {
     /// "This spell costs {3} less to cast if a creature died this turn":
     /// generic mana, and the pool's condition index.
     pub cond_cost: Option<(i32, u16)>,
+    /// "This spell can't be countered." (CR 101.2: a spell or ability
+    /// that would counter it does nothing to it).
+    #[serde(default)]
+    pub uncounterable: bool,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -6128,6 +6159,11 @@ impl CardPool {
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
                 StaticCondition::GainedLifeThisTurn { .. }
+                    | StaticCondition::LifeGainedThisTurn(_)
+                    | StaticCondition::CrimeThisTurn
+                    | StaticCondition::LeftGraveyardThisTurn
+                    | StaticCondition::CardToGraveyardThisTurn(_)
+                    | StaticCondition::SacrificedThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
@@ -6302,6 +6338,7 @@ impl Builder {
             offspring: None,
             bargain: false,
             target_cost: None,
+            uncounterable: false,
             cond_cost: None,
             madness: None,
             foretell: None,
@@ -6509,6 +6546,13 @@ impl Builder {
     #[must_use]
     pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
         self.0.cond_cost = Some((delta, cond));
+        self
+    }
+
+    /// "This spell can't be countered."
+    #[must_use]
+    pub fn uncounterable(mut self) -> Self {
+        self.0.uncounterable = true;
         self
     }
 

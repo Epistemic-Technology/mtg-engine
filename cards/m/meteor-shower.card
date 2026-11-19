@@ -1,0 +1,6 @@
+card "Meteor Shower" {
+  oracle_id d2110083-b30f-43f1-9352-7536f5e19d3c
+  cost {X}{X}{R}
+  type Sorcery
+  spell: deal X plus 1 damage divided among any number of targets
+}

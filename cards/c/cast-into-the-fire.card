@@ -1,0 +1,9 @@
+card "Cast into the Fire" {
+  oracle_id b24ed296-e17d-4e36-8a86-a370868b0136
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode: deal 1 damage to up to 2 target creature
+    mode: exile target artifact
+  }
+}

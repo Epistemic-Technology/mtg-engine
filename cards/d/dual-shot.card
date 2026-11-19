@@ -1,0 +1,6 @@
+card "Dual Shot" {
+  oracle_id e56056dc-637e-4229-ae2c-dfd06d24086b
+  cost {R}
+  type Instant
+  spell: deal 1 damage to up to 2 target creature
+}

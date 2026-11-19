@@ -1,0 +1,6 @@
+card "Wrap in Flames" {
+  oracle_id b46efd59-eda7-4fe6-ace7-67ca8f6c088d
+  cost {3}{R}
+  type Sorcery
+  spell: deal 1 damage to up to 3 target creature; those targets can't block
+}

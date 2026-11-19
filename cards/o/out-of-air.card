@@ -1,0 +1,7 @@
+card "Out of Air" {
+  oracle_id fcea912b-58b1-4068-ac4d-1bc89aa7f33c
+  cost {2}{U}{U}
+  type Instant
+  this spell costs {2} less if it targets spell creature
+  spell: counter target spell
+}

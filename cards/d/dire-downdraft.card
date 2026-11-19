@@ -1,0 +1,7 @@
+card "Dire Downdraft" {
+  oracle_id a45065e9-951a-4c6d-80b6-bd86a49f7439
+  cost {3}{U}
+  type Instant
+  this spell costs {1} less if it targets attacking or tapped creature
+  spell: owner puts target creature on top or bottom of library
+}

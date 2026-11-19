@@ -921,6 +921,7 @@ fn per_count(
         | CountExpr::BlockingIt { .. }
         | CountExpr::TargetManaValue(_)
         | CountExpr::GreatestPower(_)
+        | CountExpr::DifferentlyNamed(_)
         | CountExpr::Party(_)
         | CountExpr::GreatestManaValue
         | CountExpr::SourceToughness

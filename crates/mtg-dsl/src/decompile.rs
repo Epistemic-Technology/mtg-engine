@@ -450,6 +450,22 @@ impl Decompiler<'_> {
                     .collect(),
             ),
             StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
+            StaticCondition::Night => StaticCond::Night,
+            StaticCondition::LifeGainedThisTurn(n) => StaticCond::LifeGainedThisTurn(*n),
+            StaticCondition::CrimeThisTurn => StaticCond::CrimeThisTurn,
+            StaticCondition::LeftGraveyardThisTurn => StaticCond::LeftGraveyardThisTurn,
+            StaticCondition::SacrificedThisTurn(t) => StaticCond::SacrificedThisTurn(
+                crate::render::CARD_TYPES
+                    .into_iter()
+                    .filter(|c| t.contains(*c))
+                    .collect(),
+            ),
+            StaticCondition::CardToGraveyardThisTurn(t) => StaticCond::CardToGraveyardThisTurn(
+                crate::render::CARD_TYPES
+                    .into_iter()
+                    .filter(|c| t.contains(*c))
+                    .collect(),
+            ),
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,

@@ -1,0 +1,7 @@
+card "Run Over" {
+  oracle_id 2b1bec38-5aaf-4ca0-9a04-fb4367c59c1e
+  cost {1}{G}
+  type Instant
+  this spell costs {1} less if it targets Mount or Vehicle you control
+  spell: target creature you control bites target creature an opponent controls
+}

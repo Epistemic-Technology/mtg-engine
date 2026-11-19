@@ -1,0 +1,7 @@
+card "Wilt in the Heat" {
+  oracle_id 3bed0b60-5944-44bb-9ddd-c82f323e6d20
+  cost {2}{R}{W}
+  type Instant
+  this spell costs {2} less if card left your graveyard this turn
+  spell: deal 5 damage to target creature; this turn, replace target 1 dies: exile
+}
