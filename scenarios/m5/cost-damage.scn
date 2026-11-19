@@ -167,3 +167,231 @@ scenario "Mage Duel costs full price with no other spell cast" {
   illegal turn 1 A: cast "Mage Duel" targeting "Grizzly Bears", "Hill Giant"
   run_to turn 1 end
 }
+
+scenario "Focus the Mind costs {2} less after another spell" {
+  battlefield A: 3 "Island", "Mountain"
+  hand A: "Focus the Mind", "Shock"
+  library A: "Plains", "Plains", "Plains", "Plains"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Focus the Mind"
+  run_to turn 1 end
+  assert hand A count 2
+  assert graveyard A contains "Focus the Mind"
+}
+
+scenario "Titanic Brawl costs {1} less targeting a creature with a +1/+1 counter" {
+  battlefield A: "Forest", "Grizzly Bears" with 1 +1/+1
+  battlefield B: "Llanowar Elves"
+  hand A: "Titanic Brawl"
+  turn 1 A: cast "Titanic Brawl" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "Titanic Brawl costs full price targeting a creature with no counter" {
+  battlefield A: "Forest", "Grizzly Bears"
+  battlefield B: "Llanowar Elves"
+  hand A: "Titanic Brawl"
+  illegal turn 1 A: cast "Titanic Brawl" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 end
+}
+
+# ----- conditions of the turn -----
+
+scenario "Moonrager's Slash costs {2} less at night" {
+  battlefield A: 3 "Mountain"
+  hand A: "Brimstone Vandal", "Moonrager's Slash", "Shock", "Shock"
+  turn 1 A: cast "Brimstone Vandal"
+  turn 3 A: cast "Moonrager's Slash" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  turn 3 A: wait
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert graveyard A contains "Moonrager's Slash"
+  assert hand A count 1
+}
+
+scenario "Moonrager's Slash costs full price by day" {
+  battlefield A: 4 "Mountain"
+  hand A: "Brimstone Vandal", "Moonrager's Slash"
+  turn 1 A: cast "Brimstone Vandal"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Moonrager's Slash" targeting player B
+  run_to turn 1 end
+}
+
+scenario "Sanguine Indulgence costs {3} less after gaining 3 life" {
+  battlefield A: "Swamp", "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sanguine Indulgence", "Healing Salve"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Sanguine Indulgence" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Sanguine Indulgence costs full price with no life gained" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sanguine Indulgence"
+  illegal turn 1 A: cast "Sanguine Indulgence" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Seize the Secrets costs {1} less after a crime" {
+  battlefield A: 2 "Island", "Mountain"
+  hand A: "Seize the Secrets", "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Seize the Secrets"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Targeting your own creature is no crime" {
+  battlefield A: 2 "Island", "Mountain", "Hill Giant"
+  hand A: "Seize the Secrets", "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Seize the Secrets"
+  run_to turn 1 end
+}
+
+scenario "Wilt in the Heat costs {2} less after a card left your graveyard" {
+  battlefield A: "Swamp", "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  graveyard A: "Grizzly Bears"
+  hand A: "Wilt in the Heat", "Raise Dead"
+  turn 1 A: cast "Raise Dead" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Wilt in the Heat" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Wilt in the Heat costs full price otherwise" {
+  battlefield A: "Mountain", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Wilt in the Heat"
+  illegal turn 1 A: cast "Wilt in the Heat" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Macabre Reconstruction costs {2} less after a creature card hit your graveyard" {
+  battlefield A: "Mountain", 2 "Swamp", "Grizzly Bears"
+  hand A: "Macabre Reconstruction", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Macabre Reconstruction" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "An opponent's creature dying doesn't reduce Macabre Reconstruction" {
+  battlefield A: "Mountain", 2 "Swamp"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Hill Giant"
+  hand A: "Macabre Reconstruction", "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Macabre Reconstruction" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- what it targets -----
+
+scenario "Out of Air costs {2} less countering a creature spell" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Out of Air"
+  hand B: "Grizzly Bears"
+  start turn 1 B
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 A: cast "Out of Air" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Out of Air costs full price countering a noncreature spell" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Out of Air"
+  hand B: "Shock"
+  start turn 1 B
+  turn 1 B: cast "Shock" targeting player A
+  illegal turn 1 A: cast "Out of Air" targeting "Shock" in response to "Shock"
+  run_to turn 1 end
+}
+
+scenario "Revoke Demise costs {2} less for a creature card with mana value 3 or less" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Revoke Demise"
+  turn 1 A: cast "Revoke Demise" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 22
+}
+
+scenario "Revoke Demise costs full price for a bigger creature card" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Hill Giant"
+  hand A: "Revoke Demise"
+  illegal turn 1 A: cast "Revoke Demise" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Dire Downdraft costs {1} less targeting a tapped creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Dire Downdraft"
+  turn 1 A: cast "Dire Downdraft" targeting "Hill Giant"
+  run_to turn 1 end
+  assert library B contains "Hill Giant"
+}
+
+scenario "Dire Downdraft costs full price targeting an untapped creature" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Dire Downdraft"
+  illegal turn 1 A: cast "Dire Downdraft" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- counts -----
+
+scenario "Fungal Colossus costs {X} less for differently named lands" {
+  battlefield A: "Forest", "Island", "Swamp", "Mountain", "Plains"
+  hand A: "Fungal Colossus"
+  turn 1 A: cast "Fungal Colossus"
+  run_to turn 1 end
+  assert battlefield A contains "Fungal Colossus"
+}
+
+scenario "Fungal Colossus: lands of the same name count once" {
+  battlefield A: 2 "Forest", 2 "Island"
+  hand A: "Fungal Colossus"
+  illegal turn 1 A: cast "Fungal Colossus"
+  run_to turn 1 end
+}
+
+scenario "Meteor Shower deals X plus 1 damage divided" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Meteor Shower"
+  turn 1 A: cast "Meteor Shower" x 1 targeting "Llanowar Elves", "Grizzly Bears" dividing 1, 1
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "Meteor Shower with X 0 deals 1 damage" {
+  battlefield A: "Mountain"
+  hand A: "Meteor Shower"
+  turn 1 A: cast "Meteor Shower" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}

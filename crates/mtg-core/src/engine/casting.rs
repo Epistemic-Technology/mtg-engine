@@ -467,6 +467,23 @@ impl GameState {
                     .unwrap_or(0);
                 return u32::try_from(best.max(0)).unwrap_or(0);
             }
+            CountExpr::DifferentlyNamed(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let mut names: SmallVec<[&str; 8]> = SmallVec::new();
+                for id in &self.battlefield {
+                    let o = &self.objects[*id];
+                    if let Some(c) = self.characteristics(*id)
+                        && f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                        && self.status_ok(f, *id)
+                    {
+                        let name = self.name_of(*id);
+                        if !name.is_empty() && !names.contains(&name) {
+                            names.push(name);
+                        }
+                    }
+                }
+                names.len()
+            }
             CountExpr::Party(roles) => {
                 // CR 700.8: the largest set of creatures you control
                 // filling distinct roles. With four roles, the reachable
@@ -2817,6 +2834,25 @@ impl GameState {
     /// The permanents a stack object targets become its targets (CR 115.?):
     /// "becomes the target of a spell or ability" triggers see it.
     fn emit_targeted(&mut self, obj: ObjId) {
+        // CR 700.13a: targeting an opponent, anything an opponent
+        // controls, or a card in an opponent's graveyard is a crime.
+        let who = self.objects[obj].controller;
+        let bit = 1 << who.index().min(7);
+        if self.turn_log.crime & bit == 0
+            && self.objects[obj].targets.iter().any(|t| match t {
+                Target::Player(p) => *p != who,
+                Target::Object(id) => self.objects.get(*id).is_some_and(|o| {
+                    if o.zone == Zone::Graveyard {
+                        o.owner != who
+                    } else {
+                        o.controller != who && matches!(o.zone, Zone::Battlefield | Zone::Stack)
+                    }
+                }),
+            })
+        {
+            self.turn_log.crime |= bit;
+            self.history_bump();
+        }
         let targets: SmallVec<[ObjId; 2]> = self.objects[obj]
             .targets
             .iter()

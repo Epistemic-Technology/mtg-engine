@@ -1571,6 +1571,10 @@ pub enum CountExpr {
     /// filter ("the greatest power among creatures you control"); 0 with
     /// none.
     GreatestPower(ObjFilter),
+    /// Different names among battlefield permanents matching the filter
+    /// ("the number of differently named lands you control"); a nameless
+    /// face-down permanent adds none.
+    DifferentlyNamed(ObjFilter),
     /// The number of creatures in your party (CR 700.8): up to one each
     /// matching these four filters (Cleric, Rogue, Warrior, Wizard
     /// creatures you control), as many as can be assigned.
@@ -1969,6 +1973,17 @@ pub enum StaticCondition {
     PutIntoGraveyardThisTurn(TypeSet),
     /// "you've discarded a card this turn".
     DiscardedThisTurn,
+    /// "it's night" (CR 731).
+    Night,
+    /// "you've gained 3 or more life this turn": at least this much in all.
+    LifeGainedThisTurn(u32),
+    /// "you've committed a crime this turn" (CR 700.13).
+    CrimeThisTurn,
+    /// "one or more cards left your graveyard this turn".
+    LeftGraveyardThisTurn,
+    /// "a creature card was put into your graveyard from anywhere this
+    /// turn": a card of one of these types, as it is in the graveyard.
+    CardToGraveyardThisTurn(TypeSet),
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -2519,6 +2534,8 @@ pub enum Recipient {
 pub enum Num {
     N(u32),
     X,
+    /// "X plus 1": X and then some (Meteor Shower).
+    XPlus(u32),
     /// The `i`th of the source card's `CardDef::counts` ("the number of
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
@@ -2534,6 +2551,7 @@ impl Num {
         match self {
             Num::N(n) => n,
             Num::X => x,
+            Num::XPlus(n) => x.saturating_add(n),
             Num::Count(_) | Num::ThatMuch => 0,
         }
     }
@@ -2543,6 +2561,7 @@ impl Num {
         match self {
             Num::N(n) => n,
             Num::X | Num::Count(_) | Num::ThatMuch => 3,
+            Num::XPlus(n) => 3 + n,
         }
     }
 }
@@ -6028,6 +6047,10 @@ impl CardPool {
         def.history_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
                 StaticCondition::GainedLifeThisTurn { .. }
+                    | StaticCondition::LifeGainedThisTurn(_)
+                    | StaticCondition::CrimeThisTurn
+                    | StaticCondition::LeftGraveyardThisTurn
+                    | StaticCondition::CardToGraveyardThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn

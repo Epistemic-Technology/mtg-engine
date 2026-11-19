@@ -245,7 +245,7 @@ impl Compiler<'_> {
                         times: *times,
                     });
                 }
-                Ability::TargetCost { delta, filter } => {
+                Ability::TargetCost { delta, filter, .. } => {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
                 }
@@ -791,6 +791,13 @@ impl Compiler<'_> {
                 mtg_core::card::TypeSet::of(t.iter().copied()),
             ),
             StaticCond::DiscardedThisTurn => StaticCondition::DiscardedThisTurn,
+            StaticCond::Night => StaticCondition::Night,
+            StaticCond::LifeGainedThisTurn(n) => StaticCondition::LifeGainedThisTurn(*n),
+            StaticCond::CrimeThisTurn => StaticCondition::CrimeThisTurn,
+            StaticCond::LeftGraveyardThisTurn => StaticCondition::LeftGraveyardThisTurn,
+            StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
+                mtg_core::card::TypeSet::of(t.iter().copied()),
+            ),
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
@@ -839,6 +846,7 @@ impl Compiler<'_> {
             A::Votes { index, .. } => C::Votes(*index),
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
+            A::DifferentlyNamed(f) => C::DifferentlyNamed(self.filter(f)),
             A::Party => {
                 // CR 700.8: "up to one each of Cleric, Rogue, Warrior, and
                 // Wizard".

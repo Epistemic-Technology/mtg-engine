@@ -1017,6 +1017,15 @@ pub struct TurnLog {
     /// The card types among permanents put into a graveyard from the
     /// battlefield, as they last existed.
     pub to_graveyard: crate::card::TypeSet,
+    /// Life each player gained in all.
+    pub life_gained: [u32; 4],
+    /// Players who committed a crime (CR 700.13).
+    pub crime: u8,
+    /// Players a card left the graveyard of.
+    pub left_graveyard: u8,
+    /// The card types among cards put into each player's graveyard from
+    /// anywhere (tokens are no cards).
+    pub cards_to_graveyard: [crate::card::TypeSet; 4],
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -2371,6 +2380,15 @@ impl GameState {
                 u32::from(self.turn_log.nonland_entered[you.index().min(3)]) >= *n
             }
             C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
+            C::Night => self.desig.day_night == DayNight::Night,
+            C::LifeGainedThisTurn(n) => self.turn_log.life_gained[you.index().min(3)] >= *n,
+            C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
+            C::LeftGraveyardThisTurn => {
+                self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
+            }
+            C::CardToGraveyardThisTurn(types) => {
+                self.turn_log.cards_to_graveyard[you.index().min(3)].intersects(*types)
+            }
             C::MoreCardsInHand => {
                 let mine = self.player(you).hand.len();
                 self.players_in_game()

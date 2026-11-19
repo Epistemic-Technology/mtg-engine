@@ -92,6 +92,7 @@ fn count_words(n: Num, article: &str) -> String {
         // "Mill that many cards" (a counted noun); "that much life".
         Num::ThatMuch => "that many".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
+        Num::XPlus(n) => format!("X plus {n}"),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
             .get(n as usize - 1)
@@ -103,6 +104,7 @@ fn digits(n: Num) -> String {
     match n {
         Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
+        Num::XPlus(n) => format!("X plus {n}"),
         Num::N(n) => n.to_string(),
     }
 }
@@ -1597,6 +1599,18 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             filter_phrase_one(&rest, card, plural_form)
         );
     }
+    // `attacking or tapped creature`: "an attacking or tapped creature"
+    // (only creatures attack).
+    if base
+        == (Filter {
+            attacking: true,
+            ..Filter::default()
+        })
+        && alt.or.is_none()
+        && !alt.attacking
+    {
+        return format!("attacking or {}", filter_phrase_one(alt, card, plural_form));
+    }
     // "creatures with flying or reach".
     if let Some(k) = crate::format::keyword_alternative(&base, alt) {
         let one = filter_phrase_one(&base, card, plural_form);
@@ -2467,6 +2481,12 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         // "the greatest power among creatures you control".
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
+        }
+        CountExpr::DifferentlyNamed(f) => {
+            return format!(
+                "the number of differently named {}",
+                filter_phrase(f, card, true)
+            );
         }
         CountExpr::GreatestPowerInGraveyard(f) => {
             return format!(
@@ -7269,6 +7289,21 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             )
         }
         StaticCond::DiscardedThisTurn => "you've discarded a card this turn".to_string(),
+        StaticCond::Night => "it's night".to_string(),
+        StaticCond::LifeGainedThisTurn(n) => {
+            format!("you've gained {n} or more life this turn")
+        }
+        StaticCond::CrimeThisTurn => "you've committed a crime this turn".to_string(),
+        StaticCond::LeftGraveyardThisTurn => {
+            "one or more cards left your graveyard this turn".to_string()
+        }
+        StaticCond::CardToGraveyardThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
+            format!(
+                "{} card was put into your graveyard from anywhere this turn",
+                with_article(&names.join(" or "))
+            )
+        }
         StaticCond::MoreCardsInHand => "you have more cards in hand than each opponent".to_string(),
         StaticCond::OpponentPoison(1) => "an opponent is poisoned".to_string(),
         StaticCond::OpponentPoison(n) => {
@@ -7796,11 +7831,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 static_cond_text(cond, card)
             }
         ),
-        Ability::TargetCost { delta, filter } => format!(
+        Ability::TargetCost {
+            delta,
+            filter,
+            noun,
+        } => format!(
             "This spell costs {{{}}} {} to cast if it targets {}.",
             delta.unsigned_abs(),
             if *delta < 0 { "less" } else { "more" },
-            filter_a(filter, card)
+            match noun {
+                crate::ast::TargetNoun::Permanent => filter_a(filter, card),
+                crate::ast::TargetNoun::Spell => a_spell(filter, card),
+                crate::ast::TargetNoun::Card => card_filter_a(filter, card),
+            }
         ),
         Ability::SelfCost { per, times } => {
             // "This spell costs {X} less to cast, where X is the greatest

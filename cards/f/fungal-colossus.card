@@ -1,0 +1,7 @@
+card "Fungal Colossus" {
+  oracle_id ce25dd89-dcc7-4576-b148-ef4c1cd5290c
+  cost {6}{G}
+  type Creature — Fungus Beast
+  pt 5/5
+  this spell costs {1} less count where differently named land you control
+}

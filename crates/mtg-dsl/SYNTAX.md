@@ -388,7 +388,21 @@ condition): "This spell costs {3} less to cast if a creature died this
 turn." (printed first, before keywords).
 `this spell costs {3} less if it targets tapped creature` (or `more`):
 "This spell costs {3} less to cast if it targets a tapped creature." Its
-targets are then held to ones the caster can pay for. Triggers `when
+targets are then held to ones the caster can pay for. `if it targets
+spell creature` is "a creature spell", `if it targets card creature with
+mana value 3 or less` "a creature card with mana value 3 or less", and
+`if it targets attacking or tapped creature` "an attacking or tapped
+creature". More conditions: `night` ("it's night", CR 731), `gained 3
+life this turn` ("you've gained 3 or more life this turn", in all),
+`committed crime this turn` ("you've committed a crime this turn", CR
+700.13: a spell or ability you control targeted an opponent, a permanent
+or spell an opponent controls, or a card in an opponent's graveyard),
+`card left your graveyard this turn` ("one or more cards left your
+graveyard this turn"), and `creature card to your graveyard this turn` ("a
+creature card was put into your graveyard from anywhere this turn"). A
+count `differently named land you control`: "the number of differently
+named lands you control" (`this spell costs {1} less count where
+differently named land you control`). Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
 In a triggered ability, `it` is the triggering object printed "it"
 ("Whenever another creature you control attacks, it gets +0/+1 until end
@@ -1141,6 +1155,20 @@ announces the division as the targets are chosen, each target getting at
 least one (so no more targets than the amount, and at least one when
 there is anything to divide); a target that is illegal on resolution
 loses its share. `another target creature` excludes the source.
+`deal X plus 1 damage divided among any number of targets` ("X plus 1
+damage"; also wherever a number goes). The same damage to several targets
+of one phrase prints "each of": `deal 1 damage to up to 2 target creature`
+("deals 1 damage to each of up to two target creatures"); `those targets`
+names every target declared so far again ("Those creatures can't block
+this turn"). `deal 2 damage to up to 1 another target creature token`:
+"up to one other target creature token" (not the first target). In a
+filter, `that player 1 controls` is the 1st target, a player, and `that
+player or planeswalker 1 controls` that player or that planeswalker's
+controller ("deals 4 damage to target player or planeswalker and 1 damage
+to each creature that player or that planeswalker's controller controls");
+`its controller` after a target is "its controller", and `controller of
+that target 1` of a creature-or-planeswalker target "that permanent's
+controller".
 Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `opponent or planeswalker`,
 `creature or planeswalker`, `land`, `tapped creature`, `creature you control`,
