@@ -1,0 +1,8 @@
+card "Somberwald Spider" {
+  oracle_id 8b3526c4-efc8-42be-a0ab-de10c4cc986d
+  cost {4}{G}
+  type Creature — Spider
+  pt 2/4
+  keywords reach
+  label "Morbid" enters with 2 +1/+1 counters if creature died this turn
+}

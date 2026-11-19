@@ -1,0 +1,8 @@
+card "Spontaneous Mutation" {
+  oracle_id ab78fa13-f599-4d08-bd27-d3d8740ae58f
+  cost {U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: -1/-0 count where graveyard
+}

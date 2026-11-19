@@ -1,0 +1,8 @@
+card "Soul-Guide Lantern" {
+  oracle_id 1b5e6560-ff2e-4475-96cb-63f64c8a86db
+  cost {1}
+  type Artifact
+  triggered when this enters: exile target card from a graveyard
+  activated {T}, sacrifice this: exile graveyard of each opponent
+  activated {1}, {T}, sacrifice this: draw 1 card
+}

@@ -1,0 +1,9 @@
+card "Brimstone Volley" {
+  oracle_id d12e374d-ed09-4d5e-bb7a-6c7d9ea80a1e
+  cost {2}{R}
+  type Instant
+  spell {
+  deal 3 damage to any target
+  label "Morbid" deal 5 damage instead if creature died this turn
+  }
+}

@@ -1,0 +1,9 @@
+card "Might Beyond Reason" {
+  oracle_id 563a8e37-b90e-4ea1-9366-8502b403e13e
+  cost {3}{G}
+  type Instant
+  spell {
+  put 2 +1/+1 counters on target creature
+  label "Delirium" put 3 +1/+1 counters on that target 1 instead if delirium
+  }
+}

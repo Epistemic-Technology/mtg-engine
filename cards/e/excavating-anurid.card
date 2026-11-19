@@ -1,0 +1,8 @@
+card "Excavating Anurid" {
+  oracle_id 0239b661-80be-4b52-b3b7-fca229192b58
+  cost {4}{G}
+  type Creature — Frog Beast
+  pt 4/4
+  triggered when this enters: you may sacrifice 1 land chosen; if you do, draw 1 card
+  label "Threshold" static as long as threshold, this: +1/+1, has vigilance
+}

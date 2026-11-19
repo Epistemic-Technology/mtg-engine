@@ -1,0 +1,7 @@
+card "Undercity Scrounger" {
+  oracle_id 2750451f-348e-452f-88d0-bc921c46e8cc
+  cost {2}{B}
+  type Artifact Creature — Human Rogue
+  pt 1/4
+  activated {T}, if creature died this turn: create 1 "Treasure"
+}

@@ -89,7 +89,7 @@ double-faced permanent to its other face (CR 701.27).
 | `equip {1}` | Equip (CR 702.6). |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
-| `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). |
+| `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last. `static during your turn, this: has first strike` prints "During your turn, ...". |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
@@ -445,7 +445,11 @@ turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
 entered this turn` prints "As long as this creature entered this turn"),
 `that dealt damage this turn` (it was the source of damage this turn),
 `that blocked this turn` (declared as a blocker this turn), `dealt damage
-this turn` (`damaged` printed "creature dealt damage this turn"), and
+this turn` (`damaged` printed "creature dealt damage this turn"), `dealt
+damage by this this turn` ("a creature dealt damage by this creature this
+turn": the source dealt it damage this turn; only a dies trigger's subject,
+`triggered whenever creature dealt damage by this this turn dies`, which
+looks back, CR 603.10a), and
 `with mana value X` / `with mana value X or less` (X of the spell, CR
 107.3; X is chosen before targets, CR 601.2b, so only an X some object
 fits is offered; on a card, the mana value prints after the noun: `target
@@ -576,7 +580,12 @@ spent to cast this spell"), `treasure spent` ("for each mana from a
 Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
 opponents' graveyards"), `opponents attacked` ("opponents you're
 attacking"), `attacked with this turn` ("creatures you attacked with this
-turn"), or `andor <expr>` (the same count, printed "artifact and/or
+turn"), `Zubera died this turn` ("for each Zubera that died this turn",
+"the number of Zubera that died this turn": creatures put into a graveyard
+from the battlefield this turn, matched as they last existed, CR 700.4),
+`greatest power graveyard creature` ("the greatest power among creature
+cards in your graveyard"; 0 with none), `graveyard permanent card` ("for
+each permanent card in your graveyard", CR 110.4a), or `andor <expr>` (the same count, printed "artifact and/or
 creature card"); two clauses of one sentence with the same `count where`
 share one X ("deals X damage to any target and you gain X life, where X
 is ..."); in a static ability `-1/-1 count where hand` prints "gets -X/-X,
@@ -617,7 +626,9 @@ on target creature"),
 `remove 1 +1/+1 counter from <what>`, `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
-`exile all graveyards`, `put <what> on top of library` / `on bottom of
+`exile all graveyards`, `exile graveyard of target player` ("Exile target
+player's graveyard"; `of each opponent`: "Exile each opponent's
+graveyard"), `put <what> on top of library` / `on bottom of
 library` / `into library 2 from top` ("Put target creature into its
 owner's library second from the top"; fewer cards, the bottom, CR 401.7),
 `shuffle <what> into library` ("Shuffle enchanted creature into its
@@ -794,7 +805,10 @@ targets` for "any target". Later mentions (`target 1`) print "them" or
 "they", and a group as subject takes "each" where Oracle has it ("One or
 two target creatures each get +2/+1", "Any number of target players each
 gain 6 life"). "X target cards from a single graveyard" (`X target card
-from a graveyard`) takes the rest from the first card's graveyard.
+from a graveyard`) and "up to two target cards from a single graveyard"
+(`up to 2 target card from a graveyard`) take the rest from the first
+card's graveyard; `up to 2 target card from graveyards` ("up to two target
+cards from graveyards") takes them from any.
 Divided effects (CR 601.2d) take a group: `deal 2 damage divided among 1
 to 2 targets` ("deals 2 damage divided as you choose among one or two
 targets"), `deal X damage divided among any number of targets`, and

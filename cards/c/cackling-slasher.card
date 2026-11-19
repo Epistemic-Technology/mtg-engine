@@ -1,0 +1,8 @@
+card "Cackling Slasher" {
+  oracle_id b9671f4b-72d2-48d7-a497-2ea0ab72cd0b
+  cost {3}{B}
+  type Creature — Human Assassin
+  pt 3/3
+  keywords deathtouch
+  enters with 1 +1/+1 counter if creature died this turn
+}

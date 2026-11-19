@@ -1,0 +1,8 @@
+card "Arashin Sunshield" {
+  oracle_id 1175d482-d8a2-467f-bc50-2f4b241966bb
+  cost {3}{W}
+  type Creature — Human Warrior
+  pt 3/4
+  triggered when this enters: exile up to 2 target card from a graveyard
+  activated {W}, {T}: tap target creature
+}

@@ -1,0 +1,7 @@
+card "Carrion Beetles" {
+  oracle_id d64a51be-2dd1-485f-98fa-c93d4c296e68
+  cost {B}
+  type Creature — Insect
+  pt 1/1
+  activated {2}{B}, {T}: exile up to 3 target card from a graveyard
+}

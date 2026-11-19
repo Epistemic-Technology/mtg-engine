@@ -1,0 +1,9 @@
+card "Tragic Slip" {
+  oracle_id fa6e2a47-a8cb-4224-ae3e-f61c90477285
+  cost {B}
+  type Instant
+  spell {
+  target creature gets -1/-1
+  label "Morbid" that target 1 gets -13/-13 instead if creature died this turn
+  }
+}

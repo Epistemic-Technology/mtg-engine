@@ -193,9 +193,14 @@ impl Decompiler<'_> {
             }
             TargetSpec::Filtered(i) => Target::Filter(self.filter(self.pool.filter(i))),
             TargetSpec::SpellFiltered(i) => Target::Spell(self.filter(self.pool.filter(i))),
-            TargetSpec::GraveyardCard { filter, who } => Target::GraveyardCard {
+            TargetSpec::GraveyardCard {
+                filter,
+                who,
+                graveyards,
+            } => Target::GraveyardCard {
                 filter: self.filter(self.pool.filter(filter)),
                 who,
+                graveyards,
             },
             TargetSpec::UpTo(_) => Target::UpTo(Box::new(self.target(self.pool.base_spec(t)))),
             TargetSpec::Many(i) => {
@@ -519,6 +524,7 @@ impl Decompiler<'_> {
                 what: vec![r(*what)],
             },
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
+            CoreEffect::ExileGraveyard { who } => Effect::ExileGraveyard { who: r(*who) },
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
             CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
@@ -1269,14 +1275,25 @@ impl Decompiler<'_> {
                 ..
             }) => Ability::EntersTappedUnless(self.static_cond(self.pool.condition(*i))),
             AbilityDef::Replacement(ReplacementAbility {
-                replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, .. },
+                replacement: mtg_core::card::Replacement::EnterWithCountersIf { n, cond, kind },
                 ..
-            }) => Ability::Mechanic(match self.pool.condition(*cond) {
-                StaticCondition::Escaped => crate::ast::Mechanic::EscapesWith(*n),
+            }) => match self.pool.condition(*cond) {
+                StaticCondition::Escaped => {
+                    Ability::Mechanic(crate::ast::Mechanic::EscapesWith(*n))
+                }
                 // The keywords come back as a separate conditional static.
-                StaticCondition::Kicked => crate::ast::Mechanic::KickedWith(*n, Vec::new()),
-                _ => crate::ast::Mechanic::Bloodthirst(*n),
-            }),
+                StaticCondition::Kicked => {
+                    Ability::Mechanic(crate::ast::Mechanic::KickedWith(*n, Vec::new()))
+                }
+                StaticCondition::OpponentDamagedThisTurn => {
+                    Ability::Mechanic(crate::ast::Mechanic::Bloodthirst(*n))
+                }
+                c => Ability::EntersWithCountersIf {
+                    kind: *kind,
+                    n: *n,
+                    cond: self.static_cond(c),
+                },
+            },
             AbilityDef::Replacement(r) => Ability::Replacement(self.replacement(r)),
             AbilityDef::Static(s) => Ability::Static {
                 filter: self.filter(&s.affected),

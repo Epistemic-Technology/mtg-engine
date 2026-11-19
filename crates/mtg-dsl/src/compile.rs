@@ -724,6 +724,8 @@ impl Compiler<'_> {
             A::OpponentsAttacked => C::OpponentsAttacked,
             A::AttackedWithThisTurn => C::AttackedWithThisTurn,
             A::AndOr(inner) => self.count_expr(inner),
+            A::DiedThisTurn(f) => C::DiedThisTurn(self.filter(f)),
+            A::GreatestPowerInGraveyard(f) => C::GreatestPowerInGraveyard(self.filter(f)),
         }
     }
 
@@ -741,11 +743,16 @@ impl Compiler<'_> {
                 let f = self.filter(f);
                 TargetSpec::SpellFiltered(self.pool.intern_filter(f))
             }
-            Target::GraveyardCard { filter, who } => {
+            Target::GraveyardCard {
+                filter,
+                who,
+                graveyards,
+            } => {
                 let f = self.filter(filter);
                 TargetSpec::GraveyardCard {
                     filter: self.pool.intern_filter(f),
                     who: *who,
+                    graveyards: *graveyards,
                 }
             }
             Target::UpTo(t) => {
@@ -1047,6 +1054,7 @@ impl Compiler<'_> {
                 }
             }
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
+            Effect::ExileGraveyard { who } => out.push(CoreEffect::ExileGraveyard { who: r(*who) }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
                 out.push(CoreEffect::Sacrifice { what: r(*what) });
             }
@@ -1958,6 +1966,19 @@ impl Compiler<'_> {
                 },
                 condition: condition.as_ref().map(|c| self.static_cond(c)),
             }),
+            Ability::EntersWithCountersIf { kind, n, cond } => {
+                let c = self.static_cond(cond);
+                let cond = self.pool.intern_condition(c);
+                AbilityDef::Replacement(ReplacementAbility {
+                    replaces: mtg_core::card::Replaces::Enters,
+                    replacement: mtg_core::card::Replacement::EnterWithCountersIf {
+                        cond,
+                        kind: *kind,
+                        n: *n,
+                    },
+                    then: Vec::new(),
+                })
+            }
             Ability::EntersTappedUnless(c) => {
                 let c = self.static_cond(c);
                 let i = self.pool.intern_condition(c);
@@ -2223,6 +2244,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                     ..Default::default()
                 },
                 who: Who::You,
+                graveyards: false,
             }],
             effects: one(E::YouMay(one(E::ReturnToHand {
                 what: vec![Recipient::Target(0)],

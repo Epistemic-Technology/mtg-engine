@@ -1,0 +1,8 @@
+card "Faerie Macabre" {
+  oracle_id c7d8beb6-472c-4758-9876-e8cbf98f4f72
+  cost {1}{B}{B}
+  type Creature — Faerie Rogue
+  pt 2/2
+  keywords flying
+  activated discard this: exile up to 2 target card from graveyards
+}

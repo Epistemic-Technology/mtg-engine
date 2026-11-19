@@ -1,0 +1,9 @@
+card "Offalsnout" {
+  oracle_id f0a20c62-035d-408a-9385-8f2bc2a6d332
+  cost {2}{B}
+  type Creature — Elemental
+  pt 2/2
+  keywords flash
+  triggered when this leaves the battlefield: exile target card from a graveyard
+  evoke {B}
+}

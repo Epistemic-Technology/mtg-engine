@@ -1,0 +1,7 @@
+card "Scarab Feast" {
+  oracle_id 8b9043d3-a1c6-4f49-9c49-ef78bbfbd4ac
+  cost {B}
+  type Instant
+  spell: exile up to 3 target card from a graveyard
+  cycling {B}
+}

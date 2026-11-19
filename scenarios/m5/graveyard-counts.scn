@@ -1,0 +1,442 @@
+# Graveyard counts and conditions (threshold, delirium, spell mastery,
+# undergrowth), creatures that died this turn (morbid, "for each Zubera that
+# died this turn", CR 700.4), and exiling graveyards and cards from a single
+# graveyard (CR 115.3, 601.2c).
+
+# ----- exiling a player's graveyard -----
+
+scenario "Bojuka Bog exiles target player's graveyard" {
+  hand A: "Bojuka Bog"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: play "Bojuka Bog"
+  turn 1 A: trigger "Bojuka Bog" targeting player B
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard B count 0
+  assert graveyard A contains "Hill Giant"
+  assert tapped "Bojuka Bog"
+}
+
+scenario "Tormod's Crypt exiles only the target player's graveyard" {
+  battlefield A: "Tormod's Crypt"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: activate "Tormod's Crypt" targeting player A
+  run_to turn 1 end
+  assert exile A contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+  # Sacrificed as a cost, it was in the graveyard as the ability resolved.
+  assert exile A contains "Tormod's Crypt"
+}
+
+scenario "Soul-Guide Lantern exiles each opponent's graveyard" {
+  battlefield A: "Soul-Guide Lantern"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: activate "Soul-Guide Lantern" ability 1
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard A contains "Hill Giant"
+}
+
+# ----- cards from a single graveyard, or from graveyards -----
+
+scenario "Scarab Feast exiles up to three cards from one graveyard" {
+  battlefield A: "Swamp"
+  hand A: "Scarab Feast"
+  graveyard B: "Grizzly Bears", "Shock", "Hill Giant"
+  turn 1 A: cast "Scarab Feast" targeting "Grizzly Bears", "Shock"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Scarab Feast can't take cards from two graveyards" {
+  battlefield A: "Swamp"
+  hand A: "Scarab Feast"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  illegal turn 1 A: cast "Scarab Feast" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Carrion Beetles can't take cards from two graveyards" {
+  battlefield A: "Carrion Beetles", 3 "Swamp"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears", "Shock"
+  illegal turn 1 A: activate "Carrion Beetles" targeting "Shock", "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Carrion Beetles exiles one card" {
+  battlefield A: "Carrion Beetles", 3 "Swamp"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: activate "Carrion Beetles" targeting "Shock"
+  run_to turn 1 end
+  assert exile B contains "Shock"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Faerie Macabre exiles cards from different graveyards" {
+  hand A: "Faerie Macabre"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: activate "Faerie Macabre" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Faerie Macabre"
+}
+
+# ----- creatures that died this turn -----
+
+scenario "Floating-Dream Zubera draws for each Zubera that died this turn" {
+  battlefield A: "Floating-Dream Zubera", "Silent-Chant Zubera", 2 "Mountain"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Silent-Chant Zubera"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Floating-Dream Zubera"
+  run_to turn 1 end
+  assert hand A count 2
+  assert life A 22
+}
+
+scenario "Floating-Dream Zubera doesn't count other creatures" {
+  battlefield A: "Floating-Dream Zubera", "Grizzly Bears", 2 "Mountain"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Floating-Dream Zubera"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Zubera that died last turn don't count" {
+  battlefield A: "Silent-Chant Zubera", 2 "Mountain"
+  battlefield B: "Dripping-Tongue Zubera"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Dripping-Tongue Zubera"
+  turn 2 upkeep A: cast "Lightning Bolt" targeting "Silent-Chant Zubera"
+  run_to turn 2 precombat_main
+  assert life A 22
+  assert battlefield B contains "Spirit"
+}
+
+scenario "Ember-Fist Zubera deals damage equal to the Zubera that died" {
+  battlefield A: "Ember-Fist Zubera", "Ashen-Skin Zubera", 2 "Mountain"
+  hand A: 2 "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Ashen-Skin Zubera"
+  turn 1 A: trigger "Ashen-Skin Zubera" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Ember-Fist Zubera"
+  turn 1 A: trigger "Ember-Fist Zubera" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Festerhide Boar enters with counters if a creature died this turn" {
+  battlefield A: "Grizzly Bears", "Mountain", 4 "Forest"
+  hand A: "Lightning Bolt", "Festerhide Boar"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Festerhide Boar"
+  run_to turn 1 end
+  assert counters "Festerhide Boar" +1/+1 2
+  assert power "Festerhide Boar" 5
+}
+
+scenario "Festerhide Boar enters without counters otherwise" {
+  battlefield A: 4 "Forest"
+  hand A: "Festerhide Boar"
+  turn 1 A: cast "Festerhide Boar"
+  run_to turn 1 end
+  assert power "Festerhide Boar" 3
+}
+
+scenario "Cackling Slasher enters with a counter after a death" {
+  battlefield A: "Grizzly Bears", 5 "Swamp", "Mountain"
+  hand A: "Lightning Bolt", "Cackling Slasher"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Cackling Slasher"
+  run_to turn 1 end
+  assert counters "Cackling Slasher" +1/+1 1
+}
+
+scenario "Caged Zombie can't be activated before a creature died" {
+  battlefield A: "Caged Zombie", 2 "Swamp"
+  illegal turn 1 A: activate "Caged Zombie"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Caged Zombie drains after a creature died" {
+  battlefield A: "Caged Zombie", "Grizzly Bears", 2 "Swamp", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: activate "Caged Zombie"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Tragic Slip gives -13/-13 after a death" {
+  battlefield A: "Grizzly Bears", "Swamp", "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Lightning Bolt", "Tragic Slip"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Tragic Slip" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Tragic Slip gives -1/-1 without a death" {
+  battlefield A: "Swamp"
+  battlefield B: "Serra Angel"
+  hand A: "Tragic Slip"
+  turn 1 A: cast "Tragic Slip" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" 3
+}
+
+# ----- graveyard counts -----
+
+scenario "Rhizome Lurcher enters with a counter per creature card in your graveyard" {
+  battlefield A: 2 "Swamp", 2 "Forest"
+  hand A: "Rhizome Lurcher"
+  graveyard A: 2 "Grizzly Bears", "Shock"
+  graveyard B: "Hill Giant"
+  turn 1 A: cast "Rhizome Lurcher"
+  run_to turn 1 end
+  assert counters "Rhizome Lurcher" +1/+1 2
+  assert power "Rhizome Lurcher" 4
+}
+
+scenario "Moldgraf Millipede counts the creature cards after milling" {
+  battlefield A: 5 "Forest"
+  hand A: "Moldgraf Millipede"
+  library A: "Grizzly Bears", "Shock", "Hill Giant", "Forest"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Moldgraf Millipede"
+  run_to turn 1 end
+  assert counters "Moldgraf Millipede" +1/+1 3
+}
+
+scenario "Carrion Grub gets the greatest power among creature cards in your graveyard" {
+  battlefield A: "Carrion Grub"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Shock"
+  graveyard B: "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Carrion Grub" 3
+  assert toughness "Carrion Grub" 5
+}
+
+scenario "Carrion Grub with no creature cards in your graveyard" {
+  battlefield A: "Carrion Grub"
+  graveyard A: "Shock"
+  run_to turn 1 precombat_main
+  assert power "Carrion Grub" 0
+}
+
+scenario "Gran Pulse Ochu counts permanent cards" {
+  battlefield A: "Gran Pulse Ochu", 8 "Forest"
+  graveyard A: "Grizzly Bears", "Forest", "Shock", "Lightning Bolt"
+  turn 1 A: activate "Gran Pulse Ochu"
+  run_to turn 1 postcombat_main
+  assert power "Gran Pulse Ochu" 3
+  assert toughness "Gran Pulse Ochu" 3
+}
+
+scenario "Fear of Death shrinks by the cards in your graveyard" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Fear of Death"
+  library A: "Island", "Island", "Island"
+  graveyard A: "Shock"
+  turn 1 A: cast "Fear of Death" targeting "Hill Giant"
+  run_to turn 1 end
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Sunflare Shaman deals X damage to any target and to itself" {
+  battlefield A: "Sunflare Shaman", 2 "Mountain"
+  graveyard A: "Sunflare Shaman", "Shock"
+  turn 1 A: activate "Sunflare Shaman" targeting player B
+  run_to turn 1 end
+  assert life B 19
+  assert graveyard A contains 2 "Sunflare Shaman"
+}
+
+scenario "Sewer Crocodile costs {3} less with five mana values in your graveyard" {
+  battlefield A: "Sewer Crocodile", "Island"
+  graveyard A: "Forest", "Shock", "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: activate "Sewer Crocodile"
+  run_to turn 1 end
+  assert tapped "Island"
+}
+
+scenario "Sewer Crocodile costs full price with four mana values" {
+  battlefield A: "Sewer Crocodile", "Island"
+  graveyard A: "Forest", "Shock", "Grizzly Bears", "Hill Giant", "Lightning Bolt"
+  illegal turn 1 A: activate "Sewer Crocodile"
+  run_to turn 1 end
+}
+
+scenario "Rakshasa's Disdain counters unless its controller pays per card in your graveyard" {
+  battlefield A: 3 "Island"
+  battlefield B: 2 "Mountain"
+  hand A: "Rakshasa's Disdain"
+  hand B: "Shock"
+  graveyard A: "Forest", "Hill Giant"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting player A
+  turn 2 A: cast "Rakshasa's Disdain" targeting "Shock" in response to "Shock"
+  run_to turn 2 end
+  assert life A 20
+  assert graveyard B contains "Shock"
+}
+
+scenario "Kamahl's Sledge with threshold also hits the controller" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Kamahl's Sledge"
+  graveyard A: 7 "Forest"
+  turn 1 A: cast "Kamahl's Sledge" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 16
+}
+
+scenario "Kamahl's Sledge without threshold" {
+  battlefield A: 7 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Kamahl's Sledge"
+  graveyard A: 6 "Forest"
+  turn 1 A: cast "Kamahl's Sledge" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Cabal Ritual adds five with threshold" {
+  battlefield A: 2 "Swamp"
+  hand A: "Cabal Ritual", "Gravedigger"
+  graveyard A: 7 "Forest"
+  turn 1 A: cast "Cabal Ritual"
+  turn 1 A: wait
+  turn 1 A: cast "Gravedigger"
+  run_to turn 1 end
+  assert battlefield A contains "Gravedigger"
+}
+
+scenario "Unholy Heat deals 6 with delirium" {
+  battlefield A: "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Unholy Heat"
+  graveyard A: "Forest", "Shock", "Grizzly Bears", "Tormod's Crypt"
+  turn 1 A: cast "Unholy Heat" targeting "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "Unholy Heat deals 2 without delirium" {
+  battlefield A: "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Unholy Heat"
+  graveyard A: "Forest", "Shock", "Grizzly Bears"
+  turn 1 A: cast "Unholy Heat" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert damage "Serra Angel" 2
+}
+
+scenario "Doc Ock has base 8/8 with eight cards in your graveyard" {
+  battlefield A: "Doc Ock, Sinister Scientist"
+  graveyard A: 8 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Doc Ock, Sinister Scientist" 8
+  assert toughness "Doc Ock, Sinister Scientist" 8
+}
+
+scenario "Doc Ock is 4/5 with seven cards in your graveyard" {
+  battlefield A: "Doc Ock, Sinister Scientist"
+  graveyard A: 7 "Forest"
+  run_to turn 1 precombat_main
+  assert power "Doc Ock, Sinister Scientist" 4
+}
+
+scenario "Ebony Charm exiles cards from a single graveyard" {
+  battlefield A: "Swamp"
+  hand A: "Ebony Charm"
+  graveyard A: "Hill Giant"
+  graveyard B: "Grizzly Bears", "Shock"
+  illegal turn 1 A: cast "Ebony Charm" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Ebony Charm exiles two cards from an opponent's graveyard" {
+  battlefield A: "Swamp"
+  hand A: "Ebony Charm"
+  graveyard B: "Grizzly Bears", "Shock"
+  turn 1 A: cast "Ebony Charm" mode 2 targeting "Grizzly Bears", "Shock"
+  run_to turn 1 end
+  assert exile B contains "Grizzly Bears"
+  assert exile B contains "Shock"
+}
+
+# ----- creatures dealt damage by this creature this turn -----
+
+scenario "Sengir Vampire grows when a creature it damaged dies later" {
+  battlefield A: "Sengir Vampire", "Mountain"
+  battlefield B: "Carrion Grub"
+  hand A: "Shock"
+  start turn 2 B
+  turn 2 B: attack "Carrion Grub"
+  turn 2 A: block "Carrion Grub" with "Sengir Vampire"
+  turn 2 postcombat_main A: cast "Shock" targeting "Carrion Grub"
+  run_to turn 2 end
+  assert graveyard B contains "Carrion Grub"
+  assert counters "Sengir Vampire" +1/+1 1
+}
+
+scenario "Sengir Vampire doesn't grow for a creature it didn't damage" {
+  battlefield A: "Sengir Vampire", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Sengir Vampire" +1/+1 0
+}
+
+scenario "Sengir Bats: damage dealt last turn doesn't count" {
+  battlefield A: "Sengir Bats", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Sengir Bats"
+  turn 3 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 3 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Sengir Bats"
+}
+
+scenario "Sengir Bats grows when a creature it blocked dies in combat" {
+  battlefield A: "Sengir Bats", "Sengir Vampire"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Sengir Bats"
+  turn 2 A: block "Grizzly Bears" with "Sengir Vampire"
+  turn 2 combat_damage B: assign "Grizzly Bears" to "Sengir Vampire" 2
+  run_to turn 2 end
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Sengir Bats" +1/+1 1
+  assert counters "Sengir Vampire" +1/+1 1
+}

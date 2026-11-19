@@ -1,0 +1,8 @@
+card "Sengir Bats" {
+  oracle_id ade8f21a-a7bb-4bd9-a7f2-9fa3060ff1e8
+  cost {1}{B}{B}
+  type Creature — Bat
+  pt 1/2
+  keywords flying
+  triggered whenever creature dealt damage by this this turn dies: put 1 +1/+1 counter on this creature
+}

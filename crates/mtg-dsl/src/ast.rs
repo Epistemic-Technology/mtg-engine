@@ -249,6 +249,12 @@ pub enum CountExpr {
     /// `andor <expr>`: the same count, its two types joined "and/or"
     /// ("artifact and/or creature card", "Merfolk and/or Faeries").
     AndOr(Box<CountExpr>),
+    /// `Zubera died this turn`: "Zubera that died this turn" (creatures
+    /// put into a graveyard from the battlefield this turn).
+    DiedThisTurn(Filter),
+    /// `greatest power graveyard creature`: "the greatest power among
+    /// creature cards in your graveyard".
+    GreatestPowerInGraveyard(Filter),
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -547,9 +553,12 @@ pub enum Target {
     Spell(Filter),
     /// `target card from a graveyard`, `target instant card from your
     /// graveyard`: a card in a graveyard (whose: `Any`, `You`, `Opponents`).
+    /// `graveyards`: `from graveyards` ("up to two target cards from
+    /// graveyards"), which need not share a graveyard.
     GraveyardCard {
         filter: Filter,
         who: Who,
+        graveyards: bool,
     },
     /// `up to 2 target creatures`: an optional target (CR 601.2c); the
     /// optional targets of an ability come last.
@@ -703,6 +712,14 @@ pub enum Ability {
     /// `enters tapped unless you control planeswalker`: "This land enters
     /// tapped unless you control a planeswalker." (CR 614.1d)
     EntersTappedUnless(StaticCond),
+    /// `enters with 2 +1/+1 counters if creature died this turn`: "This
+    /// creature enters with two +1/+1 counters on it if a creature died
+    /// this turn." (CR 614.1c), the condition judged as it enters.
+    EntersWithCountersIf {
+        kind: mtg_core::card::CounterKind,
+        n: u32,
+        cond: StaticCond,
+    },
     /// `can't attack unless defending player controls Island`, `can't
     /// block unless ...`, `can't attack or block unless ...`.
     AttackUnless {
@@ -1572,6 +1589,11 @@ pub enum Effect {
         what: Vec<Recipient>,
     },
     ExileAllGraveyards,
+    /// `exile graveyard of target player`: "Exile target player's
+    /// graveyard."
+    ExileGraveyard {
+        who: Recipient,
+    },
     Sacrifice {
         what: Recipient,
     },

@@ -1,0 +1,10 @@
+card "Qutrub Forayer" {
+  oracle_id 500ccb61-83b0-4b1f-ada6-65850ed5a825
+  cost {2}{B}
+  type Creature — Zombie Horror
+  pt 3/2
+  triggered when this enters: choose one {
+    mode: destroy target creature that was dealt damage this turn
+    mode: exile up to 2 target card from a graveyard
+  }
+}

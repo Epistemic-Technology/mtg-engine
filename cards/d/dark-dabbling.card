@@ -1,0 +1,9 @@
+card "Dark Dabbling" {
+  oracle_id 342daae1-f7f0-4bce-94bc-e9bdce53e48e
+  cost {2}{B}
+  type Instant
+  spell {
+  regenerate target creature; draw 1 card
+  label "Spell mastery" if 2 instant or sorcery cards in your graveyard, also regenerate each other creature you control
+  }
+}

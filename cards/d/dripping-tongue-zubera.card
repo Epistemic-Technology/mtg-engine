@@ -1,0 +1,7 @@
+card "Dripping-Tongue Zubera" {
+  oracle_id 78b1cb2d-1b48-4068-b6f3-8727ef9e8080
+  cost {1}{G}
+  type Creature — Zubera Spirit
+  pt 1/2
+  triggered when this dies: create count each Zubera died this turn "1/1 colorless Spirit creature"
+}

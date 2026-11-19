@@ -438,6 +438,7 @@ impl GameState {
             attackers_this_turn: Vec::new(),
             blockers_this_turn: Vec::new(),
             dealt_damage_this_turn: Vec::new(),
+            damaged_by_this_turn: Vec::new(),
             saddled: Vec::new(),
             turn_started_at: 0,
             x_values: Vec::new(),
@@ -452,6 +453,7 @@ impl GameState {
             lands_entered_this_turn: 0,
             artifacts_entered_this_turn: 0,
             creatures_died_this_turn: 0,
+            died_this_turn: Vec::new(),
             damaged_this_turn: 0,
             discarded_this_turn: 0,
             cast_this_turn: smallvec::SmallVec::new(),
@@ -822,19 +824,27 @@ impl GameState {
                         })
                         .map(Choice::Target)
                         .collect();
-                    // "X target cards from a single graveyard": the rest
-                    // come from the first one's graveyard.
-                    if let Some((have, ..)) = many
-                        && have > 0
+                    // "X target cards from a single graveyard", "up to two
+                    // target cards from a single graveyard": the rest come
+                    // from the first one's graveyard. A variable group's
+                    // first is at its own index; optional targets of one
+                    // phrase are consecutive copies of one spec.
+                    let first_of_group = match many {
+                        Some((have, ..)) if have > 0 => Some(next_target),
+                        Some(_) => None,
+                        None => (0..next_target).find(|&i| specs[i] == spec),
+                    };
+                    if let Some(first) = first_of_group
                         && matches!(
                             self.pool.base_spec(spec),
                             TargetSpec::GraveyardCard {
                                 who: crate::card::Who::Any,
+                                graveyards: false,
                                 ..
                             }
                         )
                         && let Some(Target::Object(first)) =
-                            self.objects[spell].targets.get(next_target).copied()
+                            self.objects[spell].targets.get(first).copied()
                     {
                         let owner = self.objects.get(first).map(|o| o.owner);
                         options.retain(|c| match c {
@@ -1943,6 +1953,7 @@ impl GameState {
             self.attackers_this_turn.clear();
             self.blockers_this_turn.clear();
             self.dealt_damage_this_turn.clear();
+            self.damaged_by_this_turn.clear();
             self.saddled.clear();
             self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
@@ -1953,6 +1964,7 @@ impl GameState {
             self.block_demands.clear();
             self.artifacts_entered_this_turn = 0;
             self.creatures_died_this_turn = 0;
+            self.died_this_turn.clear();
             self.damaged_this_turn = 0;
             self.discarded_this_turn = 0;
             self.cast_this_turn.clear();

@@ -1,0 +1,7 @@
+card "Floating-Dream Zubera" {
+  oracle_id 3d2e9712-d546-40ac-a5ea-2dd7b7d9e0c1
+  cost {1}{U}
+  type Creature — Zubera Spirit
+  pt 1/2
+  triggered when this dies: draw count each Zubera died this turn cards
+}

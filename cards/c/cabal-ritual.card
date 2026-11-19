@@ -1,0 +1,9 @@
+card "Cabal Ritual" {
+  oracle_id 5b5bf1fa-6502-4790-b66b-f0f8504ebc7c
+  cost {1}{B}
+  type Instant
+  spell {
+  add {B}{B}{B}
+  label "Threshold" add {B}{B}{B}{B}{B} instead if threshold
+  }
+}

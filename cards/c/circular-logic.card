@@ -1,0 +1,7 @@
+card "Circular Logic" {
+  oracle_id b071bbaf-79fa-413b-807b-2cc86c8a8125
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each graveyard
+  madness {U}
+}

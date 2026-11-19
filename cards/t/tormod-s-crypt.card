@@ -1,0 +1,6 @@
+card "Tormod's Crypt" {
+  oracle_id 1573f7f9-672c-421a-b1ac-3d0d8aea59ca
+  cost {0}
+  type Artifact
+  activated {T}, sacrifice this: exile graveyard of target player
+}

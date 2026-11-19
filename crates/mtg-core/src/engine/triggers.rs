@@ -440,6 +440,8 @@ impl GameState {
                             Some(w.source),
                             Some(w.controller),
                         ) && (!f.enchanted || enchants(*old))
+                            && (!f.status.damaged_by_source
+                                || self.damaged_by_this_turn.contains(&(w.source, *old)))
                     }
                 };
                 ok.then_some((Some(*old), Some(l.object.controller)))

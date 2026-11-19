@@ -1,0 +1,7 @@
+card "Bojuka Bog" {
+  oracle_id 04b7362d-0490-4cb0-b5d7-2a7732f659ce
+  type Land
+  enters tapped
+  triggered when this enters: exile graveyard of target player
+  mana {B}
+}

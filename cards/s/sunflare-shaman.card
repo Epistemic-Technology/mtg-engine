@@ -1,0 +1,7 @@
+card "Sunflare Shaman" {
+  oracle_id 0391691f-6708-481a-93a5-6677e6fa2ff3
+  cost {1}{R}
+  type Creature — Elemental Shaman
+  pt 2/1
+  activated {1}{R}, {T}: deal count where graveyard Elemental damage to any target and deal count where graveyard Elemental damage to this
+}

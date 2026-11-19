@@ -1,0 +1,7 @@
+card "Nihil Spellbomb" {
+  oracle_id b713e49f-1b13-42d1-91f2-cc7a579e7614
+  cost {1}
+  type Artifact
+  activated {T}, sacrifice this: exile graveyard of target player
+  triggered when this dies: you may pay {B}; if you do, draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Rakshasa's Disdain" {
+  oracle_id a8fe6204-9f55-45e5-99b3-43f2761ce8a3
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each graveyard
+}

@@ -789,6 +789,9 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_add(per_count(work, source, controller, inner));
         }
+        CountExpr::GreatestPowerInGraveyard(f) => {
+            return state.greatest_power_in_graveyard(you, f);
+        }
         CountExpr::CardsInHand => state.player(you).hand.len(),
         CountExpr::Life => usize::try_from(state.player(you).life.max(0)).unwrap_or(0),
         CountExpr::Times(k, inner) => {
@@ -814,6 +817,7 @@ fn per_count(
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors
         | CountExpr::SpentTreasure
+        | CountExpr::DiedThisTurn(_)
         | CountExpr::ColorsAmongPermanents => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)

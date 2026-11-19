@@ -119,7 +119,8 @@ fn pluralize(word: &str) -> String {
     // Creature types with irregular or unchanged plurals.
     match word {
         "Plains" | "Equipment" | "Kavu" | "Aurochs" | "Sheep" | "Fish" | "Moonfolk" | "Kithkin"
-        | "Merfolk" | "Samurai" | "Kor" | "Vedalken" | "Aetherborn" | "Eldrazi" | "Treefolk" => {
+        | "Merfolk" | "Samurai" | "Kor" | "Zubera" | "Vedalken" | "Aetherborn" | "Eldrazi"
+        | "Treefolk" => {
             return word.to_string();
         }
         "Elf" => return "Elves".to_string(),
@@ -845,11 +846,16 @@ impl<'a> Ctx<'a> {
                 controller_first(f, filter_phrase(f, self.card, false))
             ),
             Target::Spell(f) => self.spell_target_phrase(f),
-            Target::GraveyardCard { filter, who } => {
+            Target::GraveyardCard {
+                filter,
+                who,
+                graveyards,
+            } => {
                 let whose = match who {
-                    Who::You => "your",
-                    Who::Opponents => "an opponent's",
-                    Who::Any => "a",
+                    Who::You => "your graveyard",
+                    Who::Opponents => "an opponent's graveyard",
+                    Who::Any if *graveyards => "graveyards",
+                    Who::Any => "a graveyard",
                 };
                 let mut g = filter.clone();
                 let tgt = if g.relation == Relation::Other {
@@ -858,10 +864,7 @@ impl<'a> Ctx<'a> {
                 } else {
                     "target"
                 };
-                format!(
-                    "{tgt} {} from {whose} graveyard",
-                    cards_phrase(&g, self.card, false)
-                )
+                format!("{tgt} {} from {whose}", cards_phrase(&g, self.card, false))
             }
         }
     }
@@ -1147,10 +1150,15 @@ impl<'a> Ctx<'a> {
             Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
             Target::Filter(f) => filter_phrase(f, self.card, true),
             Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
-            Target::GraveyardCard { filter, who } => {
+            Target::GraveyardCard {
+                filter,
+                who,
+                graveyards,
+            } => {
                 let whose = match who {
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
+                    Who::Any if *graveyards => "graveyards",
                     Who::Any => "a single graveyard",
                 };
                 if *filter == Filter::default() {
@@ -1574,6 +1582,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.blocked_this_turn {
         s.push_str(" that blocked this turn");
+    }
+    // "a creature dealt damage by this creature this turn".
+    if f.status.damaged_by_source {
+        let _ = write!(s, " dealt damage by {} this turn", this_ref(card));
     }
     if let Some(c) = f.chosen {
         s.push_str(match c {
@@ -2035,6 +2047,17 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
         }
+        CountExpr::GreatestPowerInGraveyard(f) => {
+            return format!(
+                "the greatest power among {} in your graveyard",
+                cards_phrase(f, card, true)
+            );
+        }
+        // "for each Zubera that died this turn".
+        CountExpr::DiedThisTurn(f) => (
+            format!("{} that died this turn", filter_phrase(f, card, false)),
+            format!("{} that died this turn", filter_phrase(f, card, true)),
+        ),
         // "creatures named ~ on the battlefield" (`named_first`), "other
         // creature on the battlefield named ~".
         CountExpr::Permanents(f) if f.who.is_none() && f.same.is_some() && !f.named_first => {
@@ -2301,6 +2324,10 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
                 }
+                // "put a +1/+1 counter on this creature for each ...".
+                if matches!(e, Effect::AddCounters { .. }) {
+                    c.text = c.text.replacen(" counters on ", " counter on ", 1);
+                }
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
             }
         }
@@ -2333,7 +2360,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::DealDamage { amount, to, by } => {
             let s = ctx.subj(*by);
-            let objs = ctx.obj_list(to, false);
+            // "deals X damage to any target and X damage to itself".
+            let objs = if *by == Recipient::Source && to.as_slice() == [Recipient::Source] {
+                "itself".to_string()
+            } else {
+                ctx.obj_list(to, false)
+            };
             Clause::with_subject(
                 Recipient::Source,
                 s,
@@ -2782,6 +2814,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("exile {o}"))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
+        Effect::ExileGraveyard { who } => {
+            let o = ctx.obj(*who);
+            let whose = match o.as_str() {
+                "you" => "your".to_string(),
+                "it" | "them" => "their".to_string(),
+                o => format!("{o}'s"),
+            };
+            Clause::imperative(format!("exile {whose} graveyard"))
+        }
         Effect::Sacrifice { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("sacrifice {o}"))
@@ -4037,6 +4078,7 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         out.push_str("until end of turn, ");
     }
     let mut prev_subject: Option<Recipient> = None;
+    let mut suffix_done = false;
     for (i, c) in clauses.iter().enumerate() {
         if i > 0 {
             out.push_str(match s.joins.get(i - 1) {
@@ -4082,11 +4124,22 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         // ...": one X, explained once at the end.
         let shared_where = c.tail.starts_with(", where X is ")
             && clauses[i + 1..].iter().any(|d| d.tail == c.tail);
+        // "gains menace and gets +X/+0 until end of turn, where X is ...":
+        // the shared duration before the last clause's X.
+        if shared_suffix
+            && !s.eot_first
+            && i + 1 == clauses.len()
+            && c.tail.starts_with(", where X is ")
+        {
+            out.push(' ');
+            out.push_str(c.suffix.expect("shared"));
+            suffix_done = true;
+        }
         if !shared_where {
             out.push_str(&c.tail);
         }
     }
-    if shared_suffix && !s.eot_first {
+    if shared_suffix && !s.eot_first && !suffix_done {
         out.push(' ');
         out.push_str(clauses[0].suffix.expect("shared"));
     }
@@ -4227,7 +4280,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // "When enchanted creature dies", "Whenever a creature dies" on
             // an Aura: the filter can't be the card itself.
             let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t));
-            if f.relation == Relation::Other || f.enchanted || !can_be_self {
+            // "Whenever a creature dealt damage by this creature this turn
+            // dies": not the source.
+            if f.relation == Relation::Other
+                || f.enchanted
+                || !can_be_self
+                || f.status.damaged_by_source
+            {
                 format!("whenever {} dies", trigger_filter_a(f, ctx.card))
             } else {
                 let t = this(ctx);
@@ -4761,6 +4820,27 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
         ),
         (Replaces::Enters, Outcome::EnterTapped) => {
             format!("{} enters tapped.", capitalize(&this_ref(ctx.card)))
+        }
+        // "enters with a number of +1/+1 counters on it equal to the number
+        // of creature cards in your graveyard".
+        (
+            Replaces::Enters,
+            Outcome::EnterWithCounters {
+                kind,
+                n: Num::Count(i),
+            },
+        ) if ctx
+            .card
+            .counts
+            .get(usize::from(*i))
+            .is_some_and(|c| c.style == crate::ast::CountStyle::Equal) =>
+        {
+            format!(
+                "{} enters with a number of {} counters on it equal to {}.",
+                capitalize(&this_ref(ctx.card)),
+                counter_name(*kind),
+                count_phrase(&ctx.card.counts[usize::from(*i)].expr, ctx.card, false)
+            )
         }
         (Replaces::Enters, Outcome::EnterWithCounters { kind, n }) => format!(
             "{} enters with {} on it.",
@@ -6052,6 +6132,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             "{} enters tapped unless {}.",
             capitalize(&this_ref(card)),
             static_cond_text(c, card)
+        ),
+        Ability::EntersWithCountersIf { kind, n, cond } => format!(
+            "{} enters with {} on it if {}.",
+            capitalize(&this_ref(card)),
+            counters(Num::N(*n), *kind),
+            static_cond_text(cond, card)
         ),
         Ability::AttackUnless {
             cond,

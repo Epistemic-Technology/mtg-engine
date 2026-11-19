@@ -1,0 +1,8 @@
+card "Doc Ock, Sinister Scientist" {
+  oracle_id dbaa70e6-26de-4ce9-9543-e652cbe387c1
+  cost {4}{U}
+  type Legendary Creature — Human Scientist Villain
+  pt 4/5
+  static as long as 8 cards in your graveyard, this: base 8/8
+  static as long as you control other Villain, this: has hexproof
+}

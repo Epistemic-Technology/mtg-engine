@@ -1,0 +1,8 @@
+card "Rooftop Percher" {
+  oracle_id 3dc73517-0767-46ae-bc8d-ee378237a509
+  cost {5}
+  type Creature — Shapeshifter
+  pt 3/3
+  keywords changeling, flying
+  triggered when this enters: exile up to 2 target card from graveyards; you gain 3 life
+}

@@ -166,14 +166,20 @@ impl Fmt {
                         }
                         Target::Filter(f) => format!("target {}", filter(f)),
                         Target::Spell(f) => spell_target(f),
-                        Target::GraveyardCard { filter: f, who }
-                            if f.relation == Relation::Other =>
-                        {
+                        Target::GraveyardCard {
+                            filter: f,
+                            who,
+                            graveyards,
+                        } if f.relation == Relation::Other => {
                             let mut g = f.clone();
                             g.relation = Relation::Any;
-                            format!("another {}", graveyard_target(&g, *who))
+                            format!("another {}", graveyard_target(&g, *who, *graveyards))
                         }
-                        Target::GraveyardCard { filter: f, who } => graveyard_target(f, *who),
+                        Target::GraveyardCard {
+                            filter: f,
+                            who,
+                            graveyards,
+                        } => graveyard_target(f, *who, *graveyards),
                         Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
                     };
                     if up_to {
@@ -667,6 +673,9 @@ impl Fmt {
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
+            Effect::ExileGraveyard { who } => {
+                format!("exile graveyard of {}", self.recipient(*who, t))
+            }
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
             Effect::SacrificeBy { who, what } => format!(
                 "{} sacrifices {}",
@@ -1384,6 +1393,10 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::OpponentsAttacked => "opponents attacked".to_string(),
         CountExpr::AttackedWithThisTurn => "attacked with this turn".to_string(),
         CountExpr::AndOr(inner) => format!("andor {}", count_expr_text(inner)),
+        CountExpr::DiedThisTurn(f) => format!("{} died this turn", filter(f)),
+        CountExpr::GreatestPowerInGraveyard(f) => {
+            format!("greatest power graveyard {}", card_filter(f))
+        }
     }
 }
 
@@ -1434,11 +1447,12 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 
 /// `target card from a graveyard`, `target instant card from your
 /// graveyard`.
-pub fn graveyard_target(f: &Filter, who: Who) -> String {
+pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let whose = match who {
-        Who::You => "your",
-        Who::Opponents => "an opponent's",
-        Who::Any => "a",
+        Who::You => "your graveyard",
+        Who::Opponents => "an opponent's graveyard",
+        Who::Any if graveyards => "graveyards",
+        Who::Any => "a graveyard",
     };
     // "target card named this from your graveyard".
     let named = if f.same.is_some() { " named this" } else { "" };
@@ -1460,12 +1474,9 @@ pub fn graveyard_target(f: &Filter, who: Who) -> String {
         mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
     }
     if g == Filter::default() {
-        format!("target card{named}{mv} from {whose} graveyard")
+        format!("target card{named}{mv} from {whose}")
     } else {
-        format!(
-            "target {} card{named}{mv} from {whose} graveyard",
-            filter(&g)
-        )
+        format!("target {} card{named}{mv} from {whose}", filter(&g))
     }
 }
 
@@ -1639,6 +1650,9 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.status.blocked_this_turn {
         words.push("that blocked this turn".to_string());
+    }
+    if f.status.damaged_by_source {
+        words.push("dealt damage by this this turn".to_string());
     }
     match f.attached_to {
         Some(crate::ast::AttachedRef::Source) => words.push("attached to this".to_string()),
@@ -2886,6 +2900,14 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::EntersTappedUnless(c) => {
             let _ = writeln!(out, "{indent}enters tapped unless {}", static_cond(c));
+        }
+        Ability::EntersWithCountersIf { kind, n, cond } => {
+            let _ = writeln!(
+                out,
+                "{indent}enters with {n} {} if {}",
+                counter(*kind, Num::N(*n)),
+                static_cond(cond)
+            );
         }
         Ability::AttackUnless {
             cond,

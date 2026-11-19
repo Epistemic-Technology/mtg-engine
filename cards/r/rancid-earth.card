@@ -1,0 +1,9 @@
+card "Rancid Earth" {
+  oracle_id c1972a20-5308-4ee4-b234-751b805d30e4
+  cost {1}{B}{B}
+  type Sorcery
+  spell {
+  destroy target land
+  label "Threshold" if threshold, instead destroy that target 1 and deal 1 damage to each creature and each player
+  }
+}
