@@ -1,0 +1,8 @@
+card "Gilded Scuttler" {
+  oracle_id 093f6123-6b1d-456f-a526-8740bc969b4e
+  cost {2}{U}
+  type Artifact Creature — Crab
+  pt 1/3
+  keywords can't be blocked
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+}

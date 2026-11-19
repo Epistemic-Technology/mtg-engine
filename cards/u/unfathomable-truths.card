@@ -1,0 +1,7 @@
+card "Unfathomable Truths" {
+  oracle_id 63765157-e2ba-4cec-9501-8a405259de5b
+  cost {4}{U}
+  type Instant
+  keywords devoid
+  spell: draw 3 cards and create 1 "Eldrazi Spawn"
+}

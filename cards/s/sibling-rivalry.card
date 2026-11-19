@@ -1,0 +1,6 @@
+card "Sibling Rivalry" {
+  oracle_id 7fa1430f-cd2e-4071-a161-e32a61e33714
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target artifact or creature; untap target 1; target 1 gains haste; create 1 tapped "Powerstone"
+}

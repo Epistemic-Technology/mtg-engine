@@ -1444,6 +1444,15 @@ pub enum StaticCondition {
     },
     /// "a player has 13 or less life".
     AnyPlayerLifeAtMost(i32),
+    /// "an opponent has three or more poison counters" (corrupted).
+    OpponentPoisonAtLeast(u32),
+    /// "this creature has four or more oil counters on it" (`at_least`);
+    /// "there are no arrowhead counters on this artifact" (`n` 0).
+    SourceCounters {
+        kind: CounterKind,
+        n: u32,
+        at_least: bool,
+    },
     /// "defending player controls an Island" (the opponent, judged as
     /// attackers are declared).
     DefenderControls {
@@ -1610,6 +1619,23 @@ pub enum CounterKind {
     Level,
     Lore,
     Page,
+    Arrowhead,
+    Javelin,
+    Polyp,
+    Healing,
+    /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
+    /// each modifies power and toughness in layer 7c, and none annihilates
+    /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
+    PlusOnePlusZero,
+    PlusZeroPlusOne,
+    PlusZeroPlusTwo,
+    PlusOnePlusTwo,
+    PlusTwoPlusTwo,
+    MinusZeroMinusOne,
+    MinusZeroMinusTwo,
+    MinusOneMinusZero,
+    MinusTwoMinusOne,
+    MinusTwoMinusTwo,
     /// Keyword counters (CR 122.1b): the permanent has the keyword.
     Flying,
     FirstStrike,
@@ -1635,7 +1661,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 26] = [
+    pub const NAMED: [(&'static str, CounterKind); 30] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -1652,6 +1678,10 @@ impl CounterKind {
         ("level", CounterKind::Level),
         ("lore", CounterKind::Lore),
         ("page", CounterKind::Page),
+        ("arrowhead", CounterKind::Arrowhead),
+        ("javelin", CounterKind::Javelin),
+        ("polyp", CounterKind::Polyp),
+        ("healing", CounterKind::Healing),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -1664,17 +1694,82 @@ impl CounterKind {
         ("indestructible", CounterKind::Indestructible),
     ];
 
+    /// Power/toughness counters by their Oracle name, with what each adds
+    /// to power and toughness (CR 122.1a). "-0/-1" and "+0/+1" differ in
+    /// sign only where the change is not zero, so the pair of numbers
+    /// identifies the kind.
+    pub const PT: [(&'static str, CounterKind, i32, i32); 12] = [
+        ("+1/+1", CounterKind::PlusOnePlusOne, 1, 1),
+        ("-1/-1", CounterKind::MinusOneMinusOne, -1, -1),
+        ("+1/+0", CounterKind::PlusOnePlusZero, 1, 0),
+        ("+0/+1", CounterKind::PlusZeroPlusOne, 0, 1),
+        ("+0/+2", CounterKind::PlusZeroPlusTwo, 0, 2),
+        ("+1/+2", CounterKind::PlusOnePlusTwo, 1, 2),
+        ("+2/+2", CounterKind::PlusTwoPlusTwo, 2, 2),
+        ("-0/-1", CounterKind::MinusZeroMinusOne, 0, -1),
+        ("-0/-2", CounterKind::MinusZeroMinusTwo, 0, -2),
+        ("-1/-0", CounterKind::MinusOneMinusZero, -1, 0),
+        ("-2/-1", CounterKind::MinusTwoMinusOne, -2, -1),
+        ("-2/-2", CounterKind::MinusTwoMinusTwo, -2, -2),
+    ];
+
+    /// The power/toughness counter with this change, if any.
+    pub fn from_pt(power: i32, toughness: i32) -> Option<CounterKind> {
+        CounterKind::PT
+            .iter()
+            .find(|(_, _, p, t)| *p == power && *t == toughness)
+            .map(|(_, k, _, _)| *k)
+    }
+
+    /// What one counter of this kind adds to power and toughness (CR
+    /// 613.4c), if it is a power/toughness counter.
+    pub const fn pt(self) -> Option<(i32, i32)> {
+        Some(match self {
+            CounterKind::PlusOnePlusOne => (1, 1),
+            CounterKind::MinusOneMinusOne => (-1, -1),
+            CounterKind::PlusOnePlusZero => (1, 0),
+            CounterKind::PlusZeroPlusOne => (0, 1),
+            CounterKind::PlusZeroPlusTwo => (0, 2),
+            CounterKind::PlusOnePlusTwo => (1, 2),
+            CounterKind::PlusTwoPlusTwo => (2, 2),
+            CounterKind::MinusZeroMinusOne => (0, -1),
+            CounterKind::MinusZeroMinusTwo => (0, -2),
+            CounterKind::MinusOneMinusZero => (-1, 0),
+            CounterKind::MinusTwoMinusOne => (-2, -1),
+            CounterKind::MinusTwoMinusTwo => (-2, -2),
+            _ => return None,
+        })
+    }
+
     /// The Oracle word ("+1/+1", "stun").
     pub fn name(self) -> &'static str {
-        match self {
-            CounterKind::PlusOnePlusOne => "+1/+1",
-            CounterKind::MinusOneMinusOne => "-1/-1",
-            CounterKind::Loyalty => "loyalty",
-            other => CounterKind::NAMED
-                .iter()
-                .find(|(_, k)| *k == other)
-                .map_or("?", |(n, _)| n),
+        if self == CounterKind::Loyalty {
+            return "loyalty";
         }
+        if let Some((n, ..)) = CounterKind::PT.iter().find(|(_, k, ..)| *k == self) {
+            return n;
+        }
+        CounterKind::NAMED
+            .iter()
+            .find(|(_, k)| *k == self)
+            .map_or("?", |(n, _)| n)
+    }
+
+    /// A kind by its Oracle word ("+1/+0", "loyalty", "first strike").
+    pub fn by_name(name: &str) -> Option<CounterKind> {
+        if name == "loyalty" {
+            return Some(CounterKind::Loyalty);
+        }
+        CounterKind::PT
+            .iter()
+            .find(|(n, ..)| *n == name)
+            .map(|(_, k, ..)| *k)
+            .or_else(|| {
+                CounterKind::NAMED
+                    .iter()
+                    .find(|(n, _)| *n == name)
+                    .map(|(_, k)| *k)
+            })
     }
 
     /// The keyword a keyword counter grants (CR 122.1b).
@@ -2164,6 +2259,9 @@ pub enum Effect {
         token: CardRef,
         count: Num,
         who: Recipient,
+        /// "create a tapped Powerstone token": it enters tapped (CR
+        /// 111.1, 614.1c).
+        tapped: bool,
     },
     /// Attach the ability's source to the recipient (equip, CR 701.3).
     Attach {

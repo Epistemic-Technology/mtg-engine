@@ -1,0 +1,8 @@
+card "Lattice-Blade Mantis" {
+  oracle_id 6755a7af-5b55-4245-a777-27e69979479b
+  cost {3}{G}
+  type Creature — Phyrexian Insect
+  pt 4/3
+  enters with 2 oil counters
+  triggered whenever this attacks: you may remove 1 oil counter from this; if you do, untap this and this gets +1/+1
+}

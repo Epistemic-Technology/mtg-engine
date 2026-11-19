@@ -175,7 +175,7 @@ impl Runner {
                         Zone::Battlefield => {
                             let mut counters = Vec::new();
                             for (kind, n) in &card.counters {
-                                let Some(k) = counter_kind_by_name(kind) else {
+                                let Some(k) = CounterKind::by_name(kind) else {
                                     return fail(z.line, format!("unknown counter kind `{kind}`"));
                                 };
                                 counters.push((k, *n));
@@ -1988,7 +1988,7 @@ impl Runner {
             }
             Assertion::Counters(r, kind, want) => {
                 let id = self.resolve_obj(line, r)?;
-                let Some(k) = counter_kind_by_name(kind) else {
+                let Some(k) = CounterKind::by_name(kind) else {
                     return fail(line, format!("unknown counter kind `{kind}`"));
                 };
                 expect(
@@ -2229,15 +2229,6 @@ fn join(items: &[String]) -> String {
         "nothing".to_string()
     } else {
         items.join(", ")
-    }
-}
-
-fn counter_kind_by_name(name: &str) -> Option<CounterKind> {
-    match name {
-        "+1/+1" => Some(CounterKind::PlusOnePlusOne),
-        "-1/-1" => Some(CounterKind::MinusOneMinusOne),
-        "loyalty" => Some(CounterKind::Loyalty),
-        _ => None,
     }
 }
 

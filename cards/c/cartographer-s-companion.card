@@ -1,0 +1,7 @@
+card "Cartographer's Companion" {
+  oracle_id 460c0f0b-bbf4-4307-9b44-350175d83bfe
+  cost {3}
+  type Artifact Creature — Gnome
+  pt 2/1
+  triggered when this enters: create 1 "Map"
+}

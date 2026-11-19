@@ -241,6 +241,12 @@ impl Decompiler<'_> {
                 at_least: *at_least,
             },
             StaticCondition::AnyPlayerLifeAtMost(n) => StaticCond::AnyPlayerLifeAtMost(*n),
+            StaticCondition::OpponentPoisonAtLeast(n) => StaticCond::OpponentPoisonAtLeast(*n),
+            StaticCondition::SourceCounters { kind, n, at_least } => StaticCond::SourceCounters {
+                kind: *kind,
+                n: *n,
+                at_least: *at_least,
+            },
             StaticCondition::DefenderControls { filter, at_least } => {
                 StaticCond::DefenderControls {
                     filter: unowned(filter),
@@ -430,9 +436,15 @@ impl Decompiler<'_> {
             },
             CoreEffect::GainControl { of } => Effect::GainControl { of: r(*of) },
             CoreEffect::Attach { to } => Effect::Attach { to: r(*to) },
-            CoreEffect::CreateToken { token, count, .. } => Effect::CreateToken {
+            CoreEffect::CreateToken {
+                token,
+                count,
+                tapped,
+                ..
+            } => Effect::CreateToken {
                 token: self.pool.get(*token).name.clone(),
                 count: *count,
+                tapped: *tapped,
             },
             CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
                 of: r(*of),

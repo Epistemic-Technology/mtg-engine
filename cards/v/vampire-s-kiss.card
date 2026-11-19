@@ -1,0 +1,6 @@
+card "Vampire's Kiss" {
+  oracle_id 105cea6e-18e9-4dec-a533-0dca4d41320b
+  cost {1}{B}
+  type Sorcery
+  spell: target player loses 2 life and you gain 2 life; create 2 "Blood"
+}

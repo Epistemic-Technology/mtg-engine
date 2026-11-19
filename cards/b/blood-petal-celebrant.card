@@ -1,0 +1,8 @@
+card "Blood Petal Celebrant" {
+  oracle_id 219cf182-0942-4569-91e9-9bc9bb1d06d0
+  cost {1}{R}
+  type Creature — Vampire
+  pt 2/1
+  static this: has first strike as long as attacking
+  triggered when this dies: create 1 "Blood"
+}

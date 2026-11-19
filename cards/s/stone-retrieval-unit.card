@@ -1,0 +1,7 @@
+card "Stone Retrieval Unit" {
+  oracle_id 31d9a771-09ae-4cd4-bd19-6012f839a9e8
+  cost {4}
+  type Artifact Creature — Construct
+  pt 2/3
+  triggered when this enters: create 1 tapped "Powerstone"
+}

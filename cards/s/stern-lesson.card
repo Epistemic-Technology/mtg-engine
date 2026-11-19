@@ -1,0 +1,6 @@
+card "Stern Lesson" {
+  oracle_id 8315aa34-08b8-403e-a2e6-796a2d6978ad
+  cost {2}{U}
+  type Instant
+  spell: draw 2 cards then discard 1 card; create 1 tapped "Powerstone"
+}

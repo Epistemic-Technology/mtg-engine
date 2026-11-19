@@ -1,0 +1,7 @@
+card "Slithering Cryptid" {
+  oracle_id f570bac8-9987-4963-af02-476d18abc847
+  cost {2}{G/U}
+  type Creature — Fish Mutant
+  pt 2/3
+  triggered when this enters: create 1 "Mutagen"
+}

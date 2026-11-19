@@ -75,9 +75,18 @@ fn lex_line(line_no: usize, text: &str) -> Result<Vec<Tok>, ParseError> {
                 }
                 out.push(Tok::Str(s));
             }
-            '+' | '-' if text[i..].starts_with("+1/+1") || text[i..].starts_with("-1/-1") => {
-                out.push(Tok::Ident(text[i..i + 5].to_string()));
-                for _ in 0..4 {
+            // A power/toughness counter kind: "+1/+1", "-0/-1", "+1/+2".
+            '+' | '-'
+                if mtg_core::card::CounterKind::PT
+                    .iter()
+                    .any(|(n, ..)| text[i..].starts_with(n)) =>
+            {
+                let len = mtg_core::card::CounterKind::PT
+                    .iter()
+                    .find(|(n, ..)| text[i..].starts_with(n))
+                    .map_or(0, |(n, ..)| n.len());
+                out.push(Tok::Ident(text[i..i + len].to_string()));
+                for _ in 1..len {
                     chars.next();
                 }
             }

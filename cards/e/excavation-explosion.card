@@ -1,0 +1,6 @@
+card "Excavation Explosion" {
+  oracle_id 4bb75182-6dd4-42f7-9541-d484d0b57897
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage to any target; create 1 tapped "Powerstone"
+}

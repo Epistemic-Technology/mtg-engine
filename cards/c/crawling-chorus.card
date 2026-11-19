@@ -1,0 +1,8 @@
+card "Crawling Chorus" {
+  oracle_id 99ba0d4f-b2bf-48ea-95d6-b6b85ee077ab
+  cost {W}
+  type Creature — Phyrexian Horror
+  pt 1/1
+  toxic 1
+  triggered when this dies: create 1 "Phyrexian Mite"
+}

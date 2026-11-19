@@ -1,0 +1,7 @@
+card "Blood Fountain" {
+  oracle_id abfa5753-8c02-4e2f-8f98-b0636907293a
+  cost {B}
+  type Artifact
+  triggered when this enters: create 1 "Blood"
+  activated {3}{B}, {T}, sacrifice this: return up to two target creature cards from your graveyard to hand
+}

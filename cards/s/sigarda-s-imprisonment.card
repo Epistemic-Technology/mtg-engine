@@ -1,0 +1,8 @@
+card "Sigarda's Imprisonment" {
+  oracle_id 574230c7-b949-4c90-b107-c26458a6e469
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  activated {4}{W}: exile enchanted creature; create 1 "Blood"
+}

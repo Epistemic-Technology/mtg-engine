@@ -1,0 +1,7 @@
+card "Blood Servitor" {
+  oracle_id 5a3f9c4d-20a8-46aa-9cf3-3916f56a7906
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  triggered when this enters: create 1 "Blood"
+}

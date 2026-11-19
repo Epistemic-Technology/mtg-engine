@@ -1,0 +1,7 @@
+card "Utrom Scientists" {
+  oracle_id 89793c8c-98a3-4621-ad3d-cfc5949c65da
+  cost {2}{U}
+  type Artifact Creature — Utrom Robot Scientist
+  pt 2/2
+  triggered when this enters: tap up to one target creature and put 1 stun counters on target 1
+}

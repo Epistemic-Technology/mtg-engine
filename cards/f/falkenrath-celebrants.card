@@ -1,0 +1,8 @@
+card "Falkenrath Celebrants" {
+  oracle_id 3c0be888-0d66-4bad-84f4-90c3934915d7
+  cost {4}{R}
+  type Creature — Vampire
+  pt 4/4
+  keywords menace
+  triggered when this enters: create 2 "Blood"
+}

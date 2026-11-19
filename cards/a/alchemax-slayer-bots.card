@@ -1,0 +1,7 @@
+card "Alchemax Slayer-Bots" {
+  oracle_id cdc7356c-9621-4420-9fda-c8b91df0ec7c
+  cost {2}{U}
+  type Artifact Creature — Robot Villain
+  pt 2/2
+  triggered when this enters: tap target creature an opponent controls and put 1 stun counters on target 1
+}

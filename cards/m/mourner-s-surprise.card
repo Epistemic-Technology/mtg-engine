@@ -1,0 +1,6 @@
+card "Mourner's Surprise" {
+  oracle_id 567fa6e0-fc7b-4502-9c51-f2538c411003
+  cost {1}{B}
+  type Sorcery
+  spell: return up to one target creature card from your graveyard to hand; create 1 "Mercenary"
+}

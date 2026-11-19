@@ -1,0 +1,7 @@
+card "Nezumi Linkbreaker" {
+  oracle_id 5d24fb6b-7176-407c-b917-6c88a6da40df
+  cost {B}
+  type Creature — Rat Warlock
+  pt 1/1
+  triggered when this dies: create 1 "Mercenary"
+}

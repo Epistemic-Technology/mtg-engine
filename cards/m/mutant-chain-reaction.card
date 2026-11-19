@@ -1,0 +1,6 @@
+card "Mutant Chain Reaction" {
+  oracle_id ea9fc868-374b-4acc-be0d-4283907b4524
+  cost {2}{G}
+  type Sorcery
+  spell: destroy up to one target artifact, enchantment, or creature with flying; create 1 "Mutagen"
+}

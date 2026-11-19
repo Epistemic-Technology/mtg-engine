@@ -1,0 +1,6 @@
+card "Grisly Ritual" {
+  oracle_id 56c78349-e4fa-48ba-ae8e-d2312ae6edc6
+  cost {5}{B}
+  type Sorcery
+  spell: destroy target creature or planeswalker; create 2 "Blood"
+}

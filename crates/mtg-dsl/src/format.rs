@@ -569,6 +569,15 @@ impl Fmt {
                 counter(*kind, *count),
                 self.recipient(*to, t)
             ),
+            Effect::AddCounterList { counters, to } => format!(
+                "put {} on {}",
+                counters
+                    .iter()
+                    .map(|(k, n)| format!("{} {}", num(*n), counter(*k, *n)))
+                    .collect::<Vec<_>>()
+                    .join(" and "),
+                self.recipient(*to, t)
+            ),
             Effect::DealDamageDivided { amount, to } => format!(
                 "deal {} damage divided among {}",
                 num(*amount),
@@ -621,7 +630,15 @@ impl Fmt {
             }
             Effect::GainControl { of } => format!("gain control of {}", self.recipient(*of, t)),
             Effect::Attach { to } => format!("attach to {}", self.recipient(*to, t)),
-            Effect::CreateToken { token, count } => format!("create {} \"{token}\"", num(*count)),
+            Effect::CreateToken {
+                token,
+                count,
+                tapped,
+            } => format!(
+                "create {}{} \"{token}\"",
+                num(*count),
+                if *tapped { " tapped" } else { "" }
+            ),
             Effect::CreateTokenCopy { of, except } => {
                 let mut s = format!("create token copy of {}", self.recipient(*of, t));
                 if *except {
@@ -1906,6 +1923,17 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Equipped => "equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("player life {n} or less"),
+        StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
+        StaticCond::OpponentPoisonAtLeast(n) | StaticCond::OpponentPoison(n) => {
+            format!("opponent poison {n} or more")
+        }
+        StaticCond::SourceCounters { kind, n, at_least } => {
+            if *at_least {
+                format!("this has {n} or more {} counters", kind.name())
+            } else {
+                format!("this has no {} counters", kind.name())
+            }
+        }
         StaticCond::DefenderControls {
             filter: fl,
             at_least: 1,
@@ -1960,8 +1988,6 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::CastThisTurn(fl) => format!("cast {} spell this turn", filter(fl)),
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
-        StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
-        StaticCond::OpponentPoison(n) => format!("opponent poison {n} or more"),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
         StaticCond::TotalPower(n) => format!("total power {n} or more"),
         StaticCond::DifferentPowers(n) => format!("{n} different powers"),

@@ -1,0 +1,8 @@
+card "Shield Sphere" {
+  oracle_id df9ec9b0-be22-4136-923b-11a71ca4b6c2
+  cost {0}
+  type Artifact Creature — Wall
+  pt 0/6
+  keywords defender
+  triggered whenever this blocks: put 1 -0/-1 counter on this
+}

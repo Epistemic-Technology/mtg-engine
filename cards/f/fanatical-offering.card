@@ -1,0 +1,7 @@
+card "Fanatical Offering" {
+  oracle_id 3e5402bf-ce7b-4c23-9333-0acdcf349caf
+  cost {1}{B}
+  type Instant
+  additional cost sacrifice artifact or creature
+  spell: draw 2 cards and create 1 "Map"
+}

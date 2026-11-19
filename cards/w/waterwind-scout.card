@@ -1,0 +1,8 @@
+card "Waterwind Scout" {
+  oracle_id db65f874-6bf3-4fdb-a977-10b01b7ee2e9
+  cost {2}{U}
+  type Creature — Merfolk Scout
+  pt 2/2
+  keywords flying
+  triggered when this enters: create 1 "Map"
+}

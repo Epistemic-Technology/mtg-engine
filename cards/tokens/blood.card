@@ -1,0 +1,4 @@
+token "Blood" {
+  type Artifact — Blood
+  activated {1}, {T}, discard 1 card, sacrifice this: draw 1 card
+}

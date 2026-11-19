@@ -1,0 +1,7 @@
+token "Phyrexian Mite" {
+  type Artifact Creature — Phyrexian Mite
+  pt 1/1
+  color
+  keywords can't block
+  toxic 1
+}

@@ -1,0 +1,7 @@
+card "Spirit Shackle" {
+  oracle_id ddb770c1-a783-49c9-a36d-2434b8580743
+  cost {B}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature becomes tapped: put 1 -0/-2 counter on it
+}

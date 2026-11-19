@@ -1,0 +1,8 @@
+card "Voracious Vermin" {
+  oracle_id 8d36d80e-9934-4b56-bf3c-2b18a6da3d2d
+  cost {2}{B}
+  type Creature — Rat
+  pt 2/1
+  triggered when this enters: create 1 "1/1 black Rat creature that can't block"
+  triggered whenever another creature you control dies: put 1 +1/+1 counter on this
+}

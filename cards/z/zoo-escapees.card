@@ -1,0 +1,7 @@
+card "Zoo Escapees" {
+  oracle_id 107e9ada-4e2e-4032-addd-274bca956621
+  cost {1}{G}
+  type Creature — Boar Rhino
+  pt 2/2
+  triggered when this leaves the battlefield: create 1 "Mutagen"
+}

@@ -1,0 +1,8 @@
+card "Koilos Roc" {
+  oracle_id 0956c0f5-ff1d-43d5-88de-4c2d603cf798
+  cost {4}{U}
+  type Creature — Bird
+  pt 3/3
+  keywords flash, flying
+  triggered when this enters: create 1 tapped "Powerstone"
+}

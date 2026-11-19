@@ -1,0 +1,7 @@
+token "0/1 black Wizard creature that pings" {
+  name "Wizard"
+  type Creature — Wizard
+  pt 0/1
+  color black
+  triggered whenever you cast a noncreature spell: deal 1 damage to each opponent
+}

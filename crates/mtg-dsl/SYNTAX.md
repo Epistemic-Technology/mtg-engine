@@ -25,7 +25,16 @@ not gated. A token's block name is the key `create` uses; tokens the
 author generates are keyed by their description (`token "1/1 white Soldier
 creature with flying"`) and give their in-game name with a `name "Soldier"`
 line. A noncreature token whose one subtype is its name (Treasure, Food,
-Clue: CR 111.10) prints by name: "create a Treasure token".
+Clue, Blood, Map, Powerstone, Mutagen: CR 111.10) prints by name: "create
+a Treasure token". Other tokens print described: their keywords and
+keyword abilities bare, their restrictions and other abilities quoted ("a
+1/1 colorless Phyrexian Mite artifact creature token with toxic 1 and
+\"This token can't block.\""; "a 0/1 colorless Eldrazi Spawn creature
+token with \"Sacrifice this token: Add {C}.\""), and a creature token
+whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
+creature token named Cadet"). A token with a characteristic-defining
+ability prints its abilities after the sentence ("... token. It has
+\"...\"").
 
 ## Multi-face cards
 
@@ -219,13 +228,24 @@ control have total power 8 or greater", formidable), `3 different powers`
 parts of the turn under Costs, and the shorthands `threshold`, `delirium`,
 `metalcraft`. A conditional static ability that pumps what an earlier
 static ability of the card pumps prints "gets an additional +2/+2".
+in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
+`opponent poison 3 or more` ("an opponent has three or more poison
+counters", corrupted), `this has 4 or more oil counters` ("this creature
+has four or more oil counters on it"; first, "As long as ..., it gets
+..."), `this has no arrowhead counters` ("there are no arrowhead counters
+on this artifact"), and the shorthands `threshold`, `delirium`,
+`metalcraft`.
 
 ### Replacement events and outcomes
 
-Counter kinds: `+1/+1`, `-1/-1`, `loyalty`, `stun` (CR 122.1d: removed
-instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
-`ki`, `time`, `tide`, `shield`, `age`, `fade`, `ice`, `level`, `lore`,
-`page`, and the keyword counters `flying`, `first strike`, `trample`,
+Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
+`+1/+0`, `+0/+1`, `+0/+2`, `+1/+2`, `+2/+2`, `-0/-1`, `-0/-2`, `-1/-0`,
+`-2/-1`, `-2/-2` (CR 122.1a: each changes power and toughness in layer
+7c; only +1/+1 and -1/-1 counters annihilate, CR 704.5q), `loyalty`,
+`stun` (CR 122.1d: removed instead of untapping), `charge`, `oil`,
+`spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
+`fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
+`healing`, and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
@@ -443,6 +463,9 @@ either target is illegal as the spell resolves), `<what> bites itself`
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,
+`put 1 +1/+1 counter and 1 reach counter and 1 deathtouch counter on
+<what>` ("Put a +1/+1 counter, a reach counter, and a deathtouch counter
+on target creature"),
 `remove 1 +1/+1 counter from <what>`, `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
@@ -453,6 +476,7 @@ nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random`,
 `sacrifice <what>`, `tap <what>`, `untap <what> [and <what>]`,
 `gain control of <what>`, `attach to <what>`, `create 2 "Soldier"`,
+`create 1 tapped "Powerstone"` ("Create a tapped Powerstone token"),
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token), `transform

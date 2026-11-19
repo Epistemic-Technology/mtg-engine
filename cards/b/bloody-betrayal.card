@@ -1,0 +1,6 @@
+card "Bloody Betrayal" {
+  oracle_id a2743cb6-564d-43f1-99cc-4ba3ceb2e282
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste; create 1 "Blood"
+}

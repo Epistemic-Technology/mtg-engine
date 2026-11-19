@@ -1,0 +1,7 @@
+card "Mysidian Elder" {
+  oracle_id 10039992-d51a-47e7-9a70-02fe2227c163
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 1/3
+  triggered when this enters: create 1 "0/1 black Wizard creature that pings"
+}

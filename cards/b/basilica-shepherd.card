@@ -1,0 +1,8 @@
+card "Basilica Shepherd" {
+  oracle_id 929c67aa-49ff-4401-85e8-76990fe1a369
+  cost {3}{W}{W}
+  type Creature — Phyrexian Angel
+  pt 3/3
+  keywords flying
+  triggered when this enters: create 2 "Phyrexian Mite"
+}

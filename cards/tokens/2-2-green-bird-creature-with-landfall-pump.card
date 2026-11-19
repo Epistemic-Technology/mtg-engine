@@ -1,0 +1,7 @@
+token "2/2 green Bird creature with landfall pump" {
+  name "Bird"
+  type Creature — Bird
+  pt 2/2
+  color green
+  triggered whenever a land you control enters: this gets +1/+0
+}

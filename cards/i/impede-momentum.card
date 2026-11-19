@@ -1,0 +1,9 @@
+card "Impede Momentum" {
+  oracle_id c0239ff1-6ae6-431a-806e-7321d8272a1d
+  cost {1}{U}
+  type Sorcery
+  spell {
+    tap target creature and put 3 stun counters on target 1
+    scry 1
+  }
+}

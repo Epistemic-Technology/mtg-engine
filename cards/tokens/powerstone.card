@@ -1,0 +1,4 @@
+token "Powerstone" {
+  type Artifact — Powerstone
+  mana {C} not to cast nonartifact spell
+}
