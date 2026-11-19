@@ -1,0 +1,6 @@
+card "Chilling Trap" {
+  oracle_id 7ac49129-7da2-4729-b48c-b6da279c212e
+  cost {U}
+  type Instant
+  spell: target creature gets -4/-0; if you control Wizard, draw 1 card
+}

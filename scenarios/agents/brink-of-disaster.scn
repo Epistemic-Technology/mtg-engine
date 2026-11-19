@@ -1,0 +1,34 @@
+scenario "Brink of Disaster destroys the enchanted creature when it attacks" {
+  battlefield B: "Grizzly Bears"
+  battlefield A: 4 "Swamp"
+  hand A: "Brink of Disaster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brink of Disaster" targeting "Grizzly Bears"
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Brink of Disaster destroys an enchanted land tapped for mana" {
+  battlefield B: "Forest", "Hill Giant"
+  battlefield A: 4 "Swamp"
+  hand A: "Brink of Disaster"
+  hand B: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brink of Disaster" targeting "Forest"
+  turn 2 B: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Forest"
+  assert graveyard A contains "Brink of Disaster"
+}
+
+scenario "Brink of Disaster leaves an untapped creature alone" {
+  battlefield B: "Grizzly Bears"
+  battlefield A: 4 "Swamp"
+  hand A: "Brink of Disaster"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Brink of Disaster" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

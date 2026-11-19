@@ -1,0 +1,7 @@
+scenario "tezzeret's ambition with an artifact draws three" {
+  battlefield A: 5 "Island", "Ornithopter"
+  hand A: "Tezzeret's Ambition"
+  turn 1 A: cast "Tezzeret's Ambition"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}

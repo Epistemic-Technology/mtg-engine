@@ -1,0 +1,22 @@
+scenario "Surge of Thoughtweft pumps and draws with a Kithkin" {
+  battlefield A: "Grizzly Bears", "Amrou Kithkin", 2 "Plains"
+  hand A: "Surge of Thoughtweft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Surge of Thoughtweft"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Amrou Kithkin" 2
+  assert hand A count 1
+  run_to turn 2 untap
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Surge of Thoughtweft draws nothing without a Kithkin" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Surge of Thoughtweft"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Surge of Thoughtweft"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert hand A count 0
+}

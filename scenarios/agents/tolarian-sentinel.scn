@@ -1,0 +1,20 @@
+scenario "Tolarian Sentinel returns a permanent you control" {
+  battlefield A: "Tolarian Sentinel", "Island", "Grizzly Bears"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Tolarian Sentinel" discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert tapped "Tolarian Sentinel"
+}
+
+scenario "Tolarian Sentinel cannot return an opponent's permanent" {
+  battlefield A: "Tolarian Sentinel", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Tolarian Sentinel" discarding "Forest" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

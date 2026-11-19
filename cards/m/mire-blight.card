@@ -1,0 +1,7 @@
+card "Mire Blight" {
+  oracle_id fcfbe3b8-a955-45d8-9329-3af565a3b53c
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature is dealt damage: destroy that creature
+}

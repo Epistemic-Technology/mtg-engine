@@ -1,0 +1,8 @@
+card "Ambush Krotiq" {
+  oracle_id e53f5f82-a8e0-44b1-a3be-162a0724755d
+  cost {5}{G}
+  type Creature — Insect
+  pt 5/5
+  keywords trample
+  triggered when this enters: return 1 other creature you control chosen
+}

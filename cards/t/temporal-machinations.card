@@ -1,0 +1,6 @@
+card "Temporal Machinations" {
+  oracle_id f0adab66-c3fe-4989-b7c8-ab7bdc7f0fd1
+  cost {2}{U}
+  type Sorcery
+  spell: return target creature to hand; if you control artifact, draw 1 card
+}

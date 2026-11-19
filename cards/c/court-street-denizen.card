@@ -1,0 +1,7 @@
+card "Court Street Denizen" {
+  oracle_id 34312179-f3f9-47ca-bdf4-5abbd493876e
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered whenever other white creature you control enters: tap target creature an opponent controls
+}

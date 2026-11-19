@@ -1,0 +1,20 @@
+scenario "stream of unconsciousness shrinks and draws with a Wizard" {
+  battlefield A: "Island", "Prodigal Sorcerer"
+  battlefield B: "Hill Giant"
+  hand A: "Stream of Unconsciousness"
+  turn 1 A: cast "Stream of Unconsciousness" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" -1
+  assert toughness "Hill Giant" 3
+  assert hand A count 1
+}
+
+scenario "stream of unconsciousness without a Wizard draws nothing" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Stream of Unconsciousness"
+  turn 1 A: cast "Stream of Unconsciousness" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" -1
+  assert hand A count 0
+}

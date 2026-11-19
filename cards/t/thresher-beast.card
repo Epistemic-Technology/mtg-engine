@@ -1,0 +1,7 @@
+card "Thresher Beast" {
+  oracle_id e88915fd-7867-45e6-b4b9-ca0af1823c0d
+  cost {3}{G}{G}
+  type Creature — Beast
+  pt 4/4
+  triggered whenever this becomes blocked: defending player sacrifices 1 land
+}

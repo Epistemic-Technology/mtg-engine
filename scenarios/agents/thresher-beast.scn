@@ -1,0 +1,23 @@
+scenario "Thresher Beast: blocked, defending player sacrifices a land" {
+  battlefield A: "Thresher Beast"
+  battlefield B: "Hill Giant", 2 "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Thresher Beast"
+  turn 1 B: block "Thresher Beast" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains 1 "Forest"
+  assert graveyard B contains "Forest"
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Thresher Beast"
+}
+
+scenario "Thresher Beast: unblocked, no sacrifice" {
+  battlefield A: "Thresher Beast"
+  battlefield B: "Hill Giant", "Forest", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Thresher Beast"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert battlefield B contains "Forest"
+  assert battlefield B contains "Mountain"
+}

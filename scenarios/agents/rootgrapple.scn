@@ -1,0 +1,28 @@
+scenario "rootgrapple destroys a noncreature permanent and draws with a Treefolk" {
+  battlefield A: 5 "Forest", "Blanchwood Treefolk"
+  battlefield B: "Island"
+  hand A: "Rootgrapple"
+  turn 1 A: cast "Rootgrapple" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Island"
+  assert hand A count 1
+}
+
+scenario "rootgrapple without a Treefolk draws nothing" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Island"
+  hand A: "Rootgrapple"
+  turn 1 A: cast "Rootgrapple" targeting "Island"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Island"
+  assert hand A count 0
+}
+
+scenario "rootgrapple can't target a creature" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Rootgrapple"
+  illegal turn 1 A: cast "Rootgrapple" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Ornithopter"
+}

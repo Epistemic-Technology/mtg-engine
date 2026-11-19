@@ -1,0 +1,7 @@
+card "Centaur Safeguard" {
+  oracle_id 468604f2-52e6-4bb1-8a4f-ad0851288cba
+  cost {2}{G/W}
+  type Creature — Centaur Warrior
+  pt 3/1
+  triggered when this dies: you may you gain 3 life
+}

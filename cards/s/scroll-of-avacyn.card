@@ -1,0 +1,6 @@
+card "Scroll of Avacyn" {
+  oracle_id f728c4f1-178f-421b-a713-21f85892f051
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 card; if you control Angel, you gain 5 life
+}

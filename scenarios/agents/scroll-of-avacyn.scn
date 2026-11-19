@@ -1,0 +1,18 @@
+scenario "scroll of avacyn draws and gains 5 with an Angel" {
+  life A 10
+  battlefield A: "Plains", "Scroll of Avacyn", "Serra Angel"
+  turn 1 A: activate "Scroll of Avacyn"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Scroll of Avacyn"
+  assert hand A count 1
+  assert life A 15
+}
+
+scenario "scroll of avacyn without an Angel only draws" {
+  life A 10
+  battlefield A: "Plains", "Scroll of Avacyn"
+  turn 1 A: activate "Scroll of Avacyn"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 10
+}

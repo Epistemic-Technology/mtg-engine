@@ -1,0 +1,20 @@
+scenario "mire blight destroys the enchanted creature when it is dealt damage" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Mire Blight" on "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Mire Blight"
+}
+
+scenario "mire blight ignores damage to other creatures" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Serra Angel", "Mire Blight" on "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Serra Angel" 2
+}

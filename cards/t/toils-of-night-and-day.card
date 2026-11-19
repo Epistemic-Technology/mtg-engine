@@ -1,0 +1,6 @@
+card "Toils of Night and Day" {
+  oracle_id a50be01d-821f-4fdc-b12a-4a1a76432a21
+  cost {2}{U}
+  type Instant — Arcane
+  spell: you may tap or untap target permanent then you may tap or untap another target permanent
+}

@@ -1,0 +1,7 @@
+card "Aviary Mechanic" {
+  oracle_id b47d37ee-2bb2-4ca8-b245-94d2cc4b6684
+  cost {1}{W}
+  type Creature — Dwarf Artificer
+  pt 2/2
+  triggered when this enters: you may return 1 other permanent you control chosen
+}

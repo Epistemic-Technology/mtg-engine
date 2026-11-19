@@ -1,0 +1,8 @@
+card "Tolarian Sentinel" {
+  oracle_id bef15918-c0e7-4f6d-a589-f91f3fa11ef1
+  cost {3}{U}
+  type Creature — Human Spellshaper
+  pt 1/3
+  keywords flying
+  activated {U}, {T}, discard 1 card: return target permanent you control to hand
+}

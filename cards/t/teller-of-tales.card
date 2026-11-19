@@ -1,0 +1,8 @@
+card "Teller of Tales" {
+  oracle_id ca9d1d85-1b29-4779-9036-e4db6d330e71
+  cost {3}{U}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords flying
+  triggered whenever you cast Spirit or Arcane spell: you may tap or untap target creature
+}

@@ -1,0 +1,20 @@
+scenario "Hero in Training draws and gains 2 life with another Hero" {
+  battlefield A: "Amateur Hero", 3 "Plains"
+  hand A: "Hero in Training"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hero in Training"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hero in Training"
+  assert hand A count 1
+  assert life A 22
+}
+
+scenario "Hero in Training alone only draws" {
+  battlefield A: 3 "Plains"
+  hand A: "Hero in Training"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hero in Training"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 20
+}

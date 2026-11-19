@@ -1,0 +1,25 @@
+scenario "Black Tom Cassidy gains 1 life when tapped for mana with another Mutant" {
+  battlefield A: "Black Tom Cassidy", "Aeromunculus", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Black Tom Cassidy"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Black Tom Cassidy"
+  assert power "Grizzly Bears" 5
+  assert life A 21
+}
+
+scenario "Black Tom Cassidy alone only adds mana" {
+  battlefield A: "Black Tom Cassidy", "Grizzly Bears"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Black Tom Cassidy"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Black Tom Cassidy"
+  assert power "Grizzly Bears" 5
+  assert life A 20
+}

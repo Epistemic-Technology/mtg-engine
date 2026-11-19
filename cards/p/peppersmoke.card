@@ -1,0 +1,6 @@
+card "Peppersmoke" {
+  oracle_id 071733a2-6dc6-4b6e-8ed6-a130d14657fd
+  cost {B}
+  type Kindred Instant — Faerie
+  spell: target creature gets -1/-1; if you control Faerie, draw 1 card
+}

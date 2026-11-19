@@ -1,0 +1,17 @@
+scenario "uncontrolled infestation destroys the land when it becomes tapped" {
+  battlefield A: "Ash Barrens", "Uncontrolled Infestation" on "Ash Barrens"
+  hand A: "Scroll of Avacyn"
+  turn 1 A: cast "Scroll of Avacyn"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ash Barrens"
+  assert battlefield A contains "Scroll of Avacyn"
+}
+
+scenario "uncontrolled infestation ignores other lands" {
+  battlefield A: "Ash Barrens", "Wastes", "Uncontrolled Infestation" on "Ash Barrens"
+  hand A: "Scroll of Avacyn"
+  turn 1 A: cast "Scroll of Avacyn"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ash Barrens"
+  assert tapped "Wastes"
+}

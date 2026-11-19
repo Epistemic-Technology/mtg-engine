@@ -1,0 +1,28 @@
+scenario "Imperial Subduer attacking alone taps a creature" {
+  battlefield A: "Imperial Subduer"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Imperial Subduer"
+  turn 1 declare_attackers A: trigger "Imperial Subduer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Imperial Subduer does nothing when two creatures attack" {
+  battlefield A: "Imperial Subduer", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Imperial Subduer", "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Imperial Subduer can't tap your own creature" {
+  battlefield A: "Imperial Subduer", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Imperial Subduer"
+  illegal turn 1 declare_attackers A: trigger "Imperial Subduer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+}

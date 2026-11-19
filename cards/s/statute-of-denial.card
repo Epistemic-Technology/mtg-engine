@@ -1,0 +1,6 @@
+card "Statute of Denial" {
+  oracle_id 03e04cee-4727-44fe-96f3-42cbd08beb76
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; if you control blue creature, draw 1 card then discard 1 card
+}

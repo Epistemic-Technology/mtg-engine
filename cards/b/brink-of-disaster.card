@@ -1,0 +1,7 @@
+card "Brink of Disaster" {
+  oracle_id ae150b53-7c4e-48ce-abcf-cfe1e68bb4d5
+  cost {2}{B}{B}
+  type Enchantment — Aura
+  enchant creature or land
+  triggered when enchanted permanent becomes tapped: destroy that creature
+}

@@ -1,0 +1,24 @@
+scenario "Sylvok Lifestaff pumps and gains life when the creature dies" {
+  battlefield A: "Sylvok Lifestaff", "Grizzly Bears", "Plains", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sylvok Lifestaff" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 2
+  turn 1 postcombat_main A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Sylvok Lifestaff"
+  assert life A 23
+}
+
+scenario "Sylvok Lifestaff does nothing when an unequipped creature dies" {
+  battlefield A: "Sylvok Lifestaff", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 20
+}

@@ -1,0 +1,22 @@
+scenario "Court Street Denizen taps an opponent's creature when a white creature enters" {
+  battlefield A: "Court Street Denizen", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Savannah Lions"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Savannah Lions"
+  turn 1 A: trigger "Court Street Denizen" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert battlefield A contains "Savannah Lions"
+}
+
+scenario "Court Street Denizen ignores nonwhite creatures" {
+  battlefield A: "Court Street Denizen", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

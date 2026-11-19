@@ -1,0 +1,32 @@
+scenario "Nightscape Familiar makes blue spells cost {1} less" {
+  battlefield A: "Nightscape Familiar", 2 "Island"
+  hand A: "Divination"
+  library A: "Plains", "Plains", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Divination"
+  assert hand A count 2
+}
+
+scenario "Nightscape Familiar does not reduce green spells" {
+  battlefield A: "Nightscape Familiar", "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Nightscape Familiar regenerates" {
+  battlefield A: "Nightscape Familiar", 2 "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Nightscape Familiar"
+  turn 2 A: activate "Nightscape Familiar"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Nightscape Familiar"
+  assert tapped "Nightscape Familiar"
+  assert graveyard B contains "Lightning Bolt"
+}

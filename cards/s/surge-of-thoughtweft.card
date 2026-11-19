@@ -1,0 +1,6 @@
+card "Surge of Thoughtweft" {
+  oracle_id 76aea8c6-3bab-45e9-afb4-65e5597bb2fa
+  cost {1}{W}
+  type Kindred Instant — Kithkin
+  spell: each creature you control gets +1/+1; if you control Kithkin, draw 1 card
+}

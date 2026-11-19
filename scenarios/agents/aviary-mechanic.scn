@@ -1,0 +1,22 @@
+scenario "Aviary Mechanic may return another permanent you control" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Aviary Mechanic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aviary Mechanic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aviary Mechanic"
+  assert hand A count 1
+  assert battlefield A count 3
+}
+
+scenario "Aviary Mechanic's return is optional" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  hand A: "Aviary Mechanic"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Aviary Mechanic"
+  turn 1 A: decline "Aviary Mechanic"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Aviary Mechanic"
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}

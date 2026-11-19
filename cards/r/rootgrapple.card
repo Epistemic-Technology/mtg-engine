@@ -1,0 +1,6 @@
+card "Rootgrapple" {
+  oracle_id d6cd8c51-dd5b-4037-b6ae-1776e3743338
+  cost {4}{G}
+  type Kindred Instant — Treefolk
+  spell: destroy target noncreature permanent; if you control Treefolk, draw 1 card
+}

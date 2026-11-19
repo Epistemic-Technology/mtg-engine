@@ -1,0 +1,6 @@
+card "Tezzeret's Ambition" {
+  oracle_id 91486e70-94e4-431f-8899-fef019bb206e
+  cost {3}{U}{U}
+  type Sorcery
+  spell: draw 3 cards; if you control no artifact, discard 1 card
+}

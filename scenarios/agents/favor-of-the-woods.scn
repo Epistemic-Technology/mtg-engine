@@ -1,0 +1,22 @@
+scenario "Favor of the Woods gains 3 life when the enchanted creature blocks" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Favor of the Woods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Favor of the Woods" targeting "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 23
+}
+
+scenario "Favor of the Woods gains nothing when the creature does not block" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Favor of the Woods"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Favor of the Woods" targeting "Grizzly Bears"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+}

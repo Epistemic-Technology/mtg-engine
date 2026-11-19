@@ -1,0 +1,8 @@
+card "Sylvok Lifestaff" {
+  oracle_id e69b8388-1311-427f-9300-42badd5338ff
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +1/+0
+  triggered whenever other equipped creature dies: you gain 3 life
+  equip {1}
+}

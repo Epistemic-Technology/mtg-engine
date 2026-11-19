@@ -1,0 +1,22 @@
+scenario "Ambush Krotiq returns another creature you control" {
+  battlefield A: 6 "Forest", "Grizzly Bears"
+  hand A: "Ambush Krotiq"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ambush Krotiq"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ambush Krotiq"
+  assert battlefield A lacks "Grizzly Bears"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Ambush Krotiq stays when it is your only creature" {
+  battlefield A: 6 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Ambush Krotiq"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ambush Krotiq"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ambush Krotiq"
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A count 0
+}

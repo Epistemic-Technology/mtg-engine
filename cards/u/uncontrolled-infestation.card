@@ -1,0 +1,7 @@
+card "Uncontrolled Infestation" {
+  oracle_id 1de91c79-e9e6-4e37-98ff-ed92fc89d4bc
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant nonbasic land
+  triggered when enchanted land becomes tapped: destroy that creature
+}

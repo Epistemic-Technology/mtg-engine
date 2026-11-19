@@ -1,0 +1,7 @@
+card "Imperial Subduer" {
+  oracle_id bedf1dd5-b133-455b-bc3d-c7b1f469d91f
+  cost {2}{W}
+  type Creature — Human Samurai
+  pt 3/2
+  triggered whenever Samurai or Warrior you control attacks alone: tap target creature you don't control
+}

@@ -1,0 +1,24 @@
+scenario "Toils of Night and Day taps two untapped creatures" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Toils of Night and Day"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toils of Night and Day" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert graveyard A contains "Toils of Night and Day"
+}
+
+scenario "Toils of Night and Day: may decline both" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Toils of Night and Day"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Toils of Night and Day" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 A: decline "Toils of Night and Day"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert untapped "Hill Giant"
+  assert graveyard A contains "Toils of Night and Day"
+}

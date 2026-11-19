@@ -1,0 +1,21 @@
+scenario "peppersmoke kills a 1/1 and draws with a Faerie" {
+  battlefield A: "Swamp", "Argothian Sprite"
+  battlefield B: "Llanowar Elves"
+  hand A: "Peppersmoke"
+  turn 1 A: cast "Peppersmoke" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert graveyard A contains "Peppersmoke"
+  assert hand A count 1
+}
+
+scenario "peppersmoke without a Faerie draws nothing" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Peppersmoke"
+  turn 1 A: cast "Peppersmoke" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 1
+  assert toughness "Grizzly Bears" 1
+  assert hand A count 0
+}

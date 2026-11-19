@@ -1,0 +1,6 @@
+card "Stream of Unconsciousness" {
+  oracle_id 7da64f81-64d0-4019-a208-9ee8b6782d85
+  cost {U}
+  type Kindred Instant — Wizard
+  spell: target creature gets -4/-0; if you control Wizard, draw 1 card
+}

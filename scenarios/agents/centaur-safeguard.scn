@@ -1,0 +1,20 @@
+scenario "Centaur Safeguard dies and you gain 3 life" {
+  battlefield A: "Centaur Safeguard", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Centaur Safeguard"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Centaur Safeguard"
+  assert life A 23
+}
+
+scenario "Centaur Safeguard life gain is optional" {
+  battlefield A: "Centaur Safeguard", "Mountain"
+  hand A: "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shock" targeting "Centaur Safeguard"
+  turn 1 A: decline "Centaur Safeguard"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Centaur Safeguard"
+  assert life A 20
+}

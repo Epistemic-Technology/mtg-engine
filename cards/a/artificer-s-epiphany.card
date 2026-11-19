@@ -1,0 +1,6 @@
+card "Artificer's Epiphany" {
+  oracle_id ed10bb4c-f7ef-4046-8dde-465041b55078
+  cost {2}{U}
+  type Instant
+  spell: draw 2 cards; if you control no artifact, discard 1 card
+}

@@ -1,0 +1,7 @@
+card "Advocate of the Beast" {
+  oracle_id 1208cb6e-34b4-4a23-9a5b-a01229113e38
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/3
+  triggered at beginning of your end step: put 1 +1/+1 counter on target Beast creatures you control
+}

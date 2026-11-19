@@ -1,0 +1,7 @@
+card "Favor of the Woods" {
+  oracle_id 285ba9af-bdb8-4b31-b0c5-59aa40d4e3e9
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature blocks: you gain 3 life
+}

@@ -1,0 +1,6 @@
+card "Grave Peril" {
+  oracle_id f5a74cee-6b17-4ed4-bc05-94fac53f87d7
+  cost {1}{B}
+  type Enchantment
+  triggered when nonblack creature enters: sacrifice this; if you do, destroy that creature
+}

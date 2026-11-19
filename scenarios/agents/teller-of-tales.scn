@@ -1,0 +1,34 @@
+scenario "Teller of Tales taps a creature when an Arcane spell is cast" {
+  battlefield A: "Teller of Tales", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lava Spike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lava Spike" targeting player B
+  turn 1 A: trigger "Teller of Tales" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert life B 17
+}
+
+scenario "Teller of Tales may decline" {
+  battlefield A: "Teller of Tales", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lava Spike"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lava Spike" targeting player B
+  turn 1 A: trigger "Teller of Tales" targeting "Grizzly Bears"
+  turn 1 A: decline "Teller of Tales"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Teller of Tales ignores non-Spirit spells" {
+  battlefield A: "Teller of Tales", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

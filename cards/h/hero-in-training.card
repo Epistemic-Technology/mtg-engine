@@ -1,0 +1,7 @@
+card "Hero in Training" {
+  oracle_id 87f1a840-021c-4699-a2c4-f2926daf98eb
+  cost {2}{W}
+  type Creature — Human Hero
+  pt 2/2
+  triggered when this enters: draw 1 card; if you control other Hero, you gain 2 life
+}
