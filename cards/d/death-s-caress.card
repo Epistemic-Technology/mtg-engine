@@ -1,0 +1,6 @@
+card "Death's Caress" {
+  oracle_id aac711d1-2fa0-42f9-9eda-a1642f3ff016
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; if target 1 was Human creature, you gain count equal toughness of target 1 life
+}

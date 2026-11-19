@@ -608,7 +608,7 @@ fn per_count(
                 .unwrap_or(0)
                 .saturating_mul(per_count(work, source, controller, inner));
         }
-        CountExpr::SourcePower | CountExpr::TargetPower(_) => 0,
+        CountExpr::SourcePower | CountExpr::TargetStat { .. } => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

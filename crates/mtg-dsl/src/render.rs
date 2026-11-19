@@ -1511,12 +1511,19 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 )
             }
         },
-        CountExpr::SourcePower | CountExpr::TargetPower(_) => {
+        CountExpr::SourcePower => {
             return if each {
                 "for each power".to_string()
             } else {
                 "its power".to_string()
             };
+        }
+        CountExpr::TargetStat {
+            toughness, that, ..
+        } => {
+            let stat = if *toughness { "toughness" } else { "power" };
+            let whose = if *that { "that creature's" } else { "its" };
+            return format!("{whose} {stat}");
         }
         CountExpr::Life => return "your life total".to_string(),
         CountExpr::Times(..) => unreachable!("unwrapped above"),
@@ -2411,6 +2418,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
+        Effect::IfTarget(n, f, inner) => {
+            let noun = ctx.target_noun[*n].clone();
+            let body = sentences(inner, ctx);
+            let body = if body.starts_with(&ctx.card.name) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!(
+                "if that {noun} was {}, {}",
+                target_predicate(f, ctx.card),
+                body.trim_end_matches('.')
+            ))
+        }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);
             let body = if body.starts_with(&ctx.card.name) {
@@ -2515,6 +2536,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative("damage can't be prevented this turn".to_string())
         }
     }
+}
+
+/// What a target "was": "a Human", "green or white", "nonbasic".
+fn target_predicate(f: &Filter, card: &Card) -> String {
+    if f.types.iter().all(|t| *t == CardType::Creature)
+        && f.subtypes.is_empty()
+        && f.not_supertypes.is_empty()
+        && let Some(cs) = &f.colors
+    {
+        let words: Vec<String> = cs.iter().map(|c| color_name(*c).to_string()).collect();
+        return words.join(" or ");
+    }
+    if f.subtypes.is_empty()
+        && f.colors.is_none()
+        && f.not_supertypes == [Supertype::Basic]
+        && f.types.iter().all(|t| *t == CardType::Land)
+    {
+        return "nonbasic".to_string();
+    }
+    if f.types.iter().all(|t| *t == CardType::Creature) && f.subtypes.len() == 1 {
+        return with_article(&f.subtypes[0]);
+    }
+    with_article(&filter_phrase(f, card, false))
 }
 
 fn lowercase_first(s: &str) -> String {

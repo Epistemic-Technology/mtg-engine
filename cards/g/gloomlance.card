@@ -1,0 +1,6 @@
+card "Gloomlance" {
+  oracle_id 2aa040d2-35a1-4b1d-9542-395e1b8a9fd8
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; if target 1 was green or white creature, its controller discards 1 card
+}

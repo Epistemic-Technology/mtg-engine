@@ -195,6 +195,9 @@ turn." (printed first, before keywords).
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
+`if target 1 was <filter>, <sentence>`: "If that creature was a Human,
+...", "If that creature was green or white, ...", "If that land was
+nonbasic, ..." (the target as it last existed).
 Trigger `whenever you draw your second card each turn` (or `an opponent
 draws their second card each turn`).
 Steps: `at beginning of your combat` ("At the beginning of combat on your
@@ -300,7 +303,9 @@ where X is the number of ..."), `count equal <expr>` ("... equal to the
 number of ..."), or `count each <expr>` ("... for each ..."), with
 `<expr>` a filter (`creature you control`, `Elf on battlefield`),
 `domain`, `hand`, `graveyard [<filter>]`, `power` (the source's), `power
-of target 1`, or `life`; `this gets +1/+1 count each creature you
+of target 1` / `toughness of target 1` ("its power"; `power of that
+target 1` is "that creature's power"; read as the target last existed if
+it has left), or `life`; `this gets +1/+1 count each creature you
 control` scales a pump, and in a static ability `+1/+1 count each
 artifact you control` is "gets +1/+1 for each artifact you control"; "until end of turn" is implied by `gets`,
 `gains`, `becomes`, `has base power and toughness`, and `gain control of`

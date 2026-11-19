@@ -733,6 +733,12 @@ impl Fmt {
             ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::IfTarget(n, f, inner) => format!(
+                "if target {} was {}, {}",
+                n + 1,
+                filter(f),
+                self.line(inner, t)
+            ),
             Effect::IfCondition(c, inner) => {
                 format!("if {}, {}", static_cond(c), self.line(inner, t))
             }
@@ -876,7 +882,12 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
         CountExpr::CardsInGraveyard(Some(f)) => format!("graveyard {}", filter(f)),
         CountExpr::SourcePower => "power".to_string(),
-        CountExpr::TargetPower(i) => format!("power of target {}", i + 1),
+        CountExpr::TargetStat { n, toughness, that } => format!(
+            "{} of {}target {}",
+            if *toughness { "toughness" } else { "power" },
+            if *that { "that " } else { "" },
+            n + 1
+        ),
         CountExpr::Life => "life".to_string(),
     }
 }

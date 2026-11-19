@@ -452,7 +452,10 @@ impl Compiler<'_> {
             A::CardsInHand => C::CardsInHand,
             A::CardsInGraveyard(f) => C::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
             A::SourcePower => C::SourcePower,
-            A::TargetPower(i) => C::TargetPower(*i),
+            A::TargetStat { n, toughness, .. } => C::TargetStat {
+                n: *n,
+                toughness: *toughness,
+            },
             A::Life => C::Life,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
         }
@@ -804,6 +807,14 @@ impl Compiler<'_> {
             Effect::YouMay(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
+            }
+            Effect::IfTarget(n, f, inner) => {
+                let then = self.sentences(inner)?;
+                out.push(CoreEffect::IfTarget {
+                    n: u8::try_from(*n).unwrap_or(u8::MAX),
+                    filter: Box::new(self.filter(f)),
+                    then,
+                });
             }
             Effect::IfKicked(inner) => {
                 let effects = self.sentences(inner)?;

@@ -1,0 +1,6 @@
+card "Grisly Spectacle" {
+  oracle_id 8c83d21a-6138-409f-8e00-75dcd14388e2
+  cost {2}{B}{B}
+  type Instant
+  spell: destroy target nonartifact creature; its controller mills count equal power of that target 1 cards
+}

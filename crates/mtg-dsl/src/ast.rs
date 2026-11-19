@@ -126,7 +126,13 @@ pub enum CountExpr {
     CardsInHand,
     CardsInGraveyard(Option<Filter>),
     SourcePower,
-    TargetPower(usize),
+    /// `power of target 1` ("its power"), `toughness of that target 1`
+    /// ("that creature's toughness").
+    TargetStat {
+        n: usize,
+        toughness: bool,
+        that: bool,
+    },
     Life,
     /// `count each 2 creature you control`: "2 life for each creature
     /// you control".
@@ -1095,6 +1101,8 @@ pub enum Effect {
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
+    /// `if target 1 was Human, ...`: "If that creature was a Human, ...".
+    IfTarget(usize, Filter, Vec<Sentence>),
     /// `if you control Treefolk, draw 1 card`: a static condition,
     /// judged as it resolves.
     IfCondition(StaticCond, Vec<Sentence>),

@@ -1743,6 +1743,46 @@ impl P {
         )
     }
 
+    /// `if target 1 was Human, ...`: "If that creature was a Human, ...",
+    /// judged on the target's last state.
+    fn if_target(&mut self) -> R<Effect> {
+        self.pos += 2;
+        let n = self.number()? as usize;
+        if n == 0 || n > self.targets.len() {
+            return self.fail(format!("target {n} has not been declared"));
+        }
+        self.expect_words(&["was"])?;
+        let f = self.filter()?;
+        self.expect(&Tok::Comma)?;
+        let saved = self.subject.take();
+        let s = self.sentence()?;
+        self.subject = saved;
+        Ok(Effect::IfTarget(n - 1, f, vec![s]))
+    }
+
+    /// "if you control a Treefolk, ...": a static condition. `None` (and
+    /// nothing consumed) when what follows `if` is not one.
+    fn if_condition(&mut self) -> R<Option<Effect>> {
+        let save = self.pos;
+        self.pos += 1;
+        if let Ok(cond) = self.static_cond()
+            && self.peek() == Some(&Tok::Comma)
+        {
+            self.pos += 1;
+            let inner = if self.peek() == Some(&Tok::LBrace) {
+                self.effects_body()?
+            } else {
+                let saved = self.subject.take();
+                let s = self.sentence()?;
+                self.subject = saved;
+                vec![s]
+            };
+            return Ok(Some(Effect::IfCondition(cond, inner)));
+        }
+        self.pos = save;
+        Ok(None)
+    }
+
     fn clause(&mut self) -> R<Effect> {
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
@@ -1773,25 +1813,14 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
-        // "if you control a Treefolk, ...": a static condition.
-        if self.at_word("if") && !self.at_words(&["if", "kicked"]) {
-            let save = self.pos;
-            self.pos += 1;
-            if let Ok(cond) = self.static_cond()
-                && self.peek() == Some(&Tok::Comma)
-            {
-                self.pos += 1;
-                let inner = if self.peek() == Some(&Tok::LBrace) {
-                    self.effects_body()?
-                } else {
-                    let saved = self.subject.take();
-                    let s = self.sentence()?;
-                    self.subject = saved;
-                    vec![s]
-                };
-                return Ok(Effect::IfCondition(cond, inner));
-            }
-            self.pos = save;
+        if self.at_words(&["if", "target"]) {
+            return self.if_target();
+        }
+        if self.at_word("if")
+            && !self.at_words(&["if", "kicked"])
+            && let Some(e) = self.if_condition()?
+        {
+            return Ok(e);
         }
         // "if kicked, ..." (CR 702.33c).
         if self.at_words(&["if", "kicked"]) {
@@ -2805,13 +2834,25 @@ impl P {
         if self.eat_word("life") {
             return Ok(CountExpr::Life);
         }
-        if self.eat_word("power") {
-            if self.eat_words(&["of", "target"]) {
+        let stat = self.word_at(0);
+        let toughness = stat.as_deref() == Some("toughness");
+        if (toughness
+            && (self.at_words(&["toughness", "of", "target"])
+                || self.at_words(&["toughness", "of", "that", "target"])))
+            || (!toughness && stat.as_deref() == Some("power"))
+        {
+            self.pos += 1;
+            let that = self.eat_words(&["of", "that", "target"]);
+            if that || self.eat_words(&["of", "target"]) {
                 let n = self.number()? as usize;
                 if n == 0 || n > self.targets.len() {
                     return self.fail(format!("target {n} has not been declared"));
                 }
-                return Ok(CountExpr::TargetPower(n - 1));
+                return Ok(CountExpr::TargetStat {
+                    n: n - 1,
+                    toughness,
+                    that,
+                });
             }
             return Ok(CountExpr::SourcePower);
         }

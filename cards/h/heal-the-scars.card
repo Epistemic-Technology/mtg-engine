@@ -1,0 +1,6 @@
+card "Heal the Scars" {
+  oracle_id cc65a99f-ac7f-4ded-bb00-a5daf51e4bcd
+  cost {3}{G}
+  type Instant
+  spell: regenerate target creature; you gain count equal toughness of that target 1 life
+}

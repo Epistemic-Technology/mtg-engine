@@ -274,11 +274,12 @@ impl GameState {
                     .characteristics_or_lki(ctx.source)
                     .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0));
             }
-            CountExpr::TargetPower(t) => {
-                return match ctx.targets.get(*t) {
-                    Some(Target::Object(id)) => self
-                        .characteristics_or_lki(*id)
-                        .map_or(0, |c| u32::try_from(c.power().max(0)).unwrap_or(0)),
+            CountExpr::TargetStat { n, toughness } => {
+                return match ctx.targets.get(*n) {
+                    Some(Target::Object(id)) => self.characteristics_or_lki(*id).map_or(0, |c| {
+                        let v = if *toughness { c.toughness() } else { c.power() };
+                        u32::try_from(v.max(0)).unwrap_or(0)
+                    }),
                     _ => 0,
                 };
             }
@@ -2859,6 +2860,23 @@ impl GameState {
                 let c = self.pool.condition(*cond).clone();
                 if self.condition_now(&c, ctx.controller, ctx.source) {
                     for e in inner {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::IfTarget { n, filter, then } => {
+                let Some(Target::Object(id)) = ctx.targets.get(usize::from(*n)).copied() else {
+                    return;
+                };
+                let controller = match self.lki.get(&id) {
+                    Some(l) if self.characteristics(id).is_none() => l.object.controller,
+                    _ => self.objects[id].controller,
+                };
+                let fits = self.characteristics_or_lki(id).is_some_and(|c| {
+                    filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
+                });
+                if fits {
+                    for e in then {
                         self.apply_effect(ctx, e);
                     }
                 }

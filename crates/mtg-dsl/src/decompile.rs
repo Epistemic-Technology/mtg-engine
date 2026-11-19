@@ -453,6 +453,9 @@ impl Decompiler<'_> {
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::IfTarget { n, filter, then } => {
+                Effect::IfTarget(usize::from(*n), self.filter(filter), self.sentences(then))
+            }
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),
                 self.sentences(inner),

@@ -1,0 +1,60 @@
+# Amounts and conditions read from a target, as it last existed when it
+# has left the battlefield (CR 608.2h).
+
+scenario "Death's Caress: a Human gives life equal to its toughness" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Elite Vanguard"
+  hand A: "Death's Caress"
+  turn 1 A: cast "Death's Caress" targeting "Elite Vanguard"
+  run_to turn 1 end
+  assert graveyard B contains "Elite Vanguard"
+  assert life A 21
+}
+
+scenario "Death's Caress: no life for a creature that isn't a Human" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Death's Caress"
+  turn 1 A: cast "Death's Caress" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}
+
+scenario "Gloomlance: a green creature's controller discards" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Llanowar Elves"
+  hand A: "Gloomlance"
+  hand B: "Forest"
+  turn 1 A: cast "Gloomlance" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert hand B count 0
+}
+
+scenario "Gloomlance: no discard for a red creature" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Gloomlance"
+  hand B: "Forest"
+  turn 1 A: cast "Gloomlance" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B count 1
+}
+
+scenario "Grisly Spectacle: its controller mills cards equal to its power" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  library B: 5 "Island"
+  hand A: "Grisly Spectacle"
+  turn 1 A: cast "Grisly Spectacle" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B count 4
+}
+
+scenario "Heal the Scars: gain life equal to the target's toughness" {
+  battlefield A: 4 "Forest", "Hill Giant"
+  hand A: "Heal the Scars"
+  turn 1 A: cast "Heal the Scars" targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 23
+}

@@ -1252,8 +1252,9 @@ pub enum CountExpr {
     CardsInGraveyard(Option<ObjFilter>),
     /// The source's power ("equal to its power" on a creature's ability).
     SourcePower,
-    /// The `n`th target's power.
-    TargetPower(usize),
+    /// The `n`th target's power, or toughness (last known information
+    /// once it has left: CR 608.2h).
+    TargetStat { n: usize, toughness: bool },
     /// Your life total.
     Life,
     /// N times another count ("2 life for each creature you control").
@@ -1950,6 +1951,13 @@ pub enum Effect {
     },
     /// "If this spell was kicked, [do these]" (CR 702.33c).
     IfKicked(Vec<Effect>),
+    /// "If that creature was a Human, [do these]": the `n`th target,
+    /// judged as it last existed if it has left (CR 608.2h).
+    IfTarget {
+        n: u8,
+        filter: Box<ObjFilter>,
+        then: Vec<Effect>,
+    },
     /// "If you control a Treefolk, [these]": the pool's `n`th static
     /// condition, judged for the controller as the effect resolves.
     IfCondition(u16, Vec<Effect>),
@@ -2112,6 +2120,7 @@ impl Effect {
                 | Effect::IfKicked(_)
                 | Effect::IfYouDo(_)
                 | Effect::IfCondition(..)
+                | Effect::IfTarget { .. }
                 | Effect::UnlessPays { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
@@ -2781,6 +2790,8 @@ impl AbilityDef {
             if let Effect::YouMay(inner)
             | Effect::IfKicked(inner)
             | Effect::IfYouDo(inner)
+            | Effect::IfCondition(_, inner)
+            | Effect::IfTarget { then: inner, .. }
             | Effect::UnlessPays { effects: inner, .. } = e
             {
                 for i in inner {
