@@ -1,0 +1,6 @@
+card "Run Afoul" {
+  oracle_id 5462cb38-7cd7-46e8-a273-35d0d1af45b4
+  cost {G}
+  type Instant
+  spell: target opponent sacrifices 1 creature of their choice with flying
+}

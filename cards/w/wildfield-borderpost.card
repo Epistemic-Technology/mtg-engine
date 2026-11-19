@@ -1,0 +1,8 @@
+card "Wildfield Borderpost" {
+  oracle_id b8141489-00fa-4aba-85d0-4c883196fece
+  cost {1}{G}{W}
+  type Artifact
+  alternative cost {1}, return basic land you control
+  enters tapped
+  mana {G} or {W}
+}

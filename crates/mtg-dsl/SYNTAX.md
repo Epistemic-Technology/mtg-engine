@@ -63,6 +63,7 @@ double-faced permanent to its other face (CR 701.27).
 | `color green` | Color indicator (CR 204): for cards and tokens whose color is not their cost's. |
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
+| `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, or returned with `return`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
@@ -369,7 +370,12 @@ Wolf you control`. A spell target may say what the spell targets:
 targets can be one subject: `up to 2 target creature gets +2/+0`
 ("Up to two target creatures each get +2/+0"), later `targets 1 to 2`. A trailing
 `you control`, a leading `another`, and a type after two subtypes
-(`Elf or Soldier creature`) apply to both sides.
+(`Elf or Soldier creature`) apply to both sides; an alternative written
+with an article of its own doesn't take `other`: `other creature or an
+artifact` ("another creature or an artifact"), and `artifact or other
+creature` ("an artifact or another creature") keeps it on its side.
+`up to 1 another target permanent you control` is "up to one other target
+permanent you control" (CR 115.3: not one chosen for another target).
 
 Events: `damage to <affects>`, `combat damage to <affects>`,
 `damage from creature you control to <affects>` (without `to`, any
@@ -409,7 +415,8 @@ ability's subject then prints "All Sliver creatures", as old Slivers do), `Gobli
 control`, `enchanted` (the permanent this is attached to), `this` (the
 source itself, for characteristic-defining abilities).
 
-More filter words: `tapped`, `untapped`, `attacking`, `blocking`,
+More filter words: `token` ("a token", "artifact token", CR 111.1),
+`nontoken`, `tapped`, `untapped`, `attacking`, `blocking`,
 `damaged` (also written `that was dealt damage this turn`),
 `multicolored`, `monocolored`, `colorless`, `basic`, `legendary`, `snow`,
 colors joined with `or` (`red or green creature`, sharing a color), types
@@ -626,7 +633,10 @@ library"), `owner of target nonland permanent puts it into library 2
 from top or bottom` ("The owner of target nonland permanent puts it into
 their library second from the top or on the bottom"), `owner shuffles
 this into library` ("this creature's owner shuffles it into their
-library"), `<who> sacrifices 1 creature` ("of their choice"), `<what>
+library"), `<who> sacrifices 1 creature` ("of their choice"; `sacrifices 1 creature
+of their choice with flying` puts the "with" after it; `sacrifices 1
+artifact and 1 land` is "an artifact and a land of their choice", one
+choice after the other), `<what>
 loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random`,
@@ -740,7 +750,11 @@ and exile, "each creature without flying" after deal damage, and "White
 creatures you control get +2/+2" as a subject), `target creature and all other creature with same name as
 target 1` ("Target creature and all other creatures with the same name as
 that creature": the target, if still legal, and every other permanent with
-its name as the effect resolves), `target enchantment and each other
+its name as the effect resolves; returned, "to their owners' hands";
+`return target creature card from your graveyard and all other card with
+same name as target 1 to hand` is "Return target creature card and all
+other cards with the same name as that card from your graveyard to your
+hand", the cards in its graveyard), `target enchantment and each other
 enchantment that shares color with target 1` ("... and each other
 enchantment that shares a color with it": none but the target if it is
 colorless, CR 105.2c), and targets.

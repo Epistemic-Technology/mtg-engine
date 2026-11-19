@@ -727,8 +727,18 @@ impl GameState {
                             continue;
                         }
                         // CR 601.2h: additional costs that need a choice are
-                        // settled after targets, then everything is paid.
-                        let add = &self.pool.get(def).additional;
+                        // settled after targets, then everything is paid;
+                        // an alternative cost's permanent likewise (CR
+                        // 118.9).
+                        let d = self.pool.get(def);
+                        let add = match &d.alt_cost {
+                            Some(alt)
+                                if self.objects[spell].alt == crate::state::AltCast::AltCost =>
+                            {
+                                &alt.cost
+                            }
+                            _ => &d.additional,
+                        };
                         if sacrifice.is_none()
                             && let Some(crate::card::SacCost::Filter(f)) = &add.sacrifice
                         {
@@ -797,9 +807,9 @@ impl GameState {
                         };
                         continue;
                     }
-                    // "another target permanent": also not one chosen
-                    // before.
-                    let another = match spec {
+                    // "another target permanent", "up to one other target
+                    // artifact": also not one chosen before.
+                    let another = match self.pool.base_spec(spec) {
                         TargetSpec::OtherCreature | TargetSpec::OtherPermanent => true,
                         TargetSpec::Filtered(f) => {
                             self.pool.filter(f).relation == crate::card::Relation::Other
@@ -1280,6 +1290,9 @@ impl GameState {
             }
             (Flow::Priority, Choice::CastDash(card)) => {
                 self.begin_cast(player, card, crate::state::AltCast::Dash);
+            }
+            (Flow::Priority, Choice::CastAlt(card)) => {
+                self.begin_cast(player, card, crate::state::AltCast::AltCost);
             }
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;

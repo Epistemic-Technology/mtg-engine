@@ -1,0 +1,7 @@
+card "Glimmer Bairn" {
+  oracle_id 118cdf8b-44fb-4c3e-86c4-e7f4b1267646
+  cost {G}
+  type Creature — Ouphe
+  pt 1/2
+  activated sacrifice token: this gets +2/+2
+}

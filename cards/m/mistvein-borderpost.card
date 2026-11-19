@@ -1,0 +1,8 @@
+card "Mistvein Borderpost" {
+  oracle_id 1499af11-274f-4f8d-b0b6-20e1693ebab7
+  cost {1}{U}{B}
+  type Artifact
+  alternative cost {1}, return basic land you control
+  enters tapped
+  mana {U} or {B}
+}

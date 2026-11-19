@@ -1,0 +1,7 @@
+card "Crash" {
+  oracle_id 562af5da-1080-46d2-8a38-71f06b7e8457
+  cost {2}{R}
+  type Instant
+  alternative cost sacrifice Mountain
+  spell: destroy target artifact
+}

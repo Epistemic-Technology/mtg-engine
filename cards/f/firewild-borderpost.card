@@ -1,0 +1,8 @@
+card "Firewild Borderpost" {
+  oracle_id 312a5a75-9b68-4e4b-97fe-3ab644e3e493
+  cost {1}{R}{G}
+  type Artifact
+  alternative cost {1}, return basic land you control
+  enters tapped
+  mana {R} or {G}
+}

@@ -1,0 +1,7 @@
+card "Springbloom Druid" {
+  oracle_id 788a4896-3414-40bf-b391-d2efea2fb5f9
+  cost {2}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  triggered when this enters: you may sacrifice 1 land chosen; if you do, search up to 2 basic land card to battlefield tapped
+}

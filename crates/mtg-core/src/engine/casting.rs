@@ -109,6 +109,10 @@ impl GameState {
             {
                 options.push(Choice::CastEvoke(*id));
             }
+            // CR 118.9: an alternative cost of the card's own.
+            if def.alt_cost.is_some() && self.alt_castable(p, def, *id, sorcery_timing, &sources) {
+                options.push(Choice::CastAlt(*id));
+            }
             // CR 702.109a: cast for the dash cost instead.
             if let Some(dash) = &def.dash
                 && (sorcery_timing || def.keywords.contains(Keyword::Flash))
@@ -1034,6 +1038,54 @@ impl GameState {
 
     /// Cards in `p`'s hand that could be discarded for a cost of `source`
     /// with this filter ("discard a creature card").
+    /// Whether `p` could cast `def` (the card `id`) now for the alternative
+    /// cost its text offers (CR 118.9): its condition, timing, the mana,
+    /// enough permanents to sacrifice or return, and targets. Additional
+    /// costs that also choose a permanent aren't combined with it.
+    #[cold]
+    #[inline(never)]
+    fn alt_castable(
+        &self,
+        p: PlayerId,
+        def: &crate::card::CardDef,
+        id: ObjId,
+        sorcery_timing: bool,
+        sources: &Sources,
+    ) -> bool {
+        let Some(alt) = &def.alt_cost else {
+            return false;
+        };
+        let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        if !(instant_speed || sorcery_timing) || def.additional.sacrifice.is_some() {
+            return false;
+        }
+        if let Some(c) = alt.condition
+            && !self.condition_now(self.pool.condition(c), p, id)
+        {
+            return false;
+        }
+        if let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
+            && self.sacrifice_candidates(p, f, id).len() < alt.count.max(1) as usize
+        {
+            return false;
+        }
+        if !self.payable_for(
+            p,
+            sources,
+            &alt.cost.mana.requirements(0),
+            Spend::Spell(&self.printed(self.objects[id].def)),
+        ) || !self.additional_payable(p, &def.additional, id)
+        {
+            return false;
+        }
+        match def.modes() {
+            Some(modes) => modes
+                .iter()
+                .any(|m| self.targets_available(p, &m.targets, Some(id))),
+            None => self.targets_available(p, def.cast_targets(), Some(id)),
+        }
+    }
+
     /// Whether `p` can pay a spell's additional costs (CR 601.2h): enough
     /// life (CR 119.4), other cards to discard, something to sacrifice.
     /// The spell's own card is never one of them, wherever it is cast from.
@@ -1149,6 +1201,13 @@ impl GameState {
             (_, false) if o.alt == AltCast::Dash && def.dash.is_some() => {
                 def.dash.as_ref().expect("checked").requirements(x)
             }
+            (_, false) if o.alt == AltCast::AltCost && def.alt_cost.is_some() => def
+                .alt_cost
+                .as_ref()
+                .expect("checked")
+                .cost
+                .mana
+                .requirements(x),
             (_, false) if o.cast.evoked() && def.evoke.is_some() => {
                 def.evoke.as_ref().expect("checked").requirements(x)
             }
@@ -2706,14 +2765,38 @@ impl GameState {
                 self.move_object(id, Zone::Exile, true);
             }
         }
+        // CR 118.9: the alternative cost's permanents, the chosen one and
+        // (for "sacrifice two Mountains") the engine's pick of the rest.
+        let alt = def
+            .alt_cost
+            .as_deref()
+            .filter(|_| self.objects[spell].alt == AltCast::AltCost);
+        let add_sacrifice = if alt.is_some() { None } else { sacrifice };
         self.pay_costs_recorded(spell, |s| {
             if def.additional.discard_x {
                 // "Discard X cards": as many as the X announced (CR 601.2b).
                 let mut add = def.additional.clone();
                 add.discard = x;
-                s.pay_other_costs(caster, &add, spell, sacrifice, discard);
+                s.pay_other_costs(caster, &add, spell, add_sacrifice, discard);
             } else {
-                s.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
+                s.pay_other_costs(caster, &def.additional, spell, add_sacrifice, discard);
+            }
+            if let Some(alt) = alt {
+                let mut chosen: Vec<ObjId> = sacrifice.into_iter().collect();
+                if let Some(SacCost::Filter(f)) = &alt.cost.sacrifice {
+                    let rest: Vec<ObjId> = s
+                        .sacrifice_candidates(caster, f, spell)
+                        .into_iter()
+                        .filter(|c| !chosen.contains(c))
+                        .take((alt.count as usize).saturating_sub(chosen.len()))
+                        .collect();
+                    chosen.extend(rest);
+                }
+                let mut one = alt.cost.clone();
+                one.mana = crate::mana::ManaCost::default();
+                for c in chosen {
+                    s.pay_other_costs(caster, &one, spell, Some(c), None);
+                }
             }
         });
         // CR 702.166a: bargain's sacrifice.
@@ -3325,6 +3408,30 @@ impl GameState {
                     return out;
                 };
                 out.push(*t);
+                // "target creature card and all other cards with the same
+                // name as that card from your graveyard": a card's group is
+                // in its graveyard.
+                if let Target::Object(id) = *t
+                    && let Some(o) = self.objects.get(id)
+                    && o.zone == Zone::Graveyard
+                {
+                    let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
+                    let graveyard = &self.player(o.owner).graveyard;
+                    out.extend(
+                        graveyard
+                            .iter()
+                            .copied()
+                            .filter(|card| *card != id)
+                            .filter(|card| {
+                                let owner = self.objects[*card].owner;
+                                self.characteristics(*card).is_some_and(|ch| {
+                                    filter.matches(*card, owner, &ch, None, Some(ctx.controller))
+                                })
+                            })
+                            .map(Target::Object),
+                    );
+                    return out;
+                }
                 let mut group = SmallVec::new();
                 self.group_into(ctx, f, &mut group);
                 out.extend(group.into_iter().filter(|g| g != t));

@@ -1,0 +1,7 @@
+card "Malevolent Noble" {
+  oracle_id 4c23ae3a-108f-4a09-b89f-8c43c33dd144
+  cost {1}{B}
+  type Creature — Human Noble
+  pt 2/2
+  activated {2}, sacrifice artifact or other creature: put 1 +1/+1 counter on this
+}

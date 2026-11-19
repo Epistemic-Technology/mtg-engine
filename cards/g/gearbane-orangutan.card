@@ -1,0 +1,11 @@
+card "Gearbane Orangutan" {
+  oracle_id 1f3e7420-86aa-4847-bc2d-21f6bae470c8
+  cost {2}{R}
+  type Creature — Ape
+  pt 2/2
+  keywords reach
+  triggered when this enters: choose one {
+    mode: destroy up to one target artifact
+    mode: sacrifice 1 artifact chosen; if you do, put 2 +1/+1 counters on this creature
+  }
+}

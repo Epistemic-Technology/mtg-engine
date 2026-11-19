@@ -1,0 +1,7 @@
+card "Undercity Scavenger" {
+  oracle_id 5146ae31-9578-46e3-be78-eb90e4ba48cd
+  cost {3}{B}
+  type Creature — Ogre Warrior
+  pt 3/3
+  triggered when this enters: you may sacrifice 1 another creature chosen; if you do, put 2 +1/+1 counters on this creature then scry 2
+}

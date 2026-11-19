@@ -1,0 +1,6 @@
+card "Relic Crush" {
+  oracle_id 92381398-94f6-471f-874a-b5894e6f9487
+  cost {4}{G}
+  type Instant
+  spell: destroy target artifact or enchantment and up to 1 another target artifact or enchantment
+}

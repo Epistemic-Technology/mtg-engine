@@ -993,6 +993,8 @@ pub struct StatusQuals {
     /// chosen), filled in by the engine where X is known; elsewhere the
     /// mana value doesn't restrict.
     pub mana_value_x: bool,
+    /// "token" (`true`, CR 111.1) or "nontoken" (`false`).
+    pub token: Option<bool>,
 }
 
 impl StatusQuals {
@@ -1000,6 +1002,7 @@ impl StatusQuals {
     pub const fn any(&self) -> bool {
         self.blocked.is_some()
             || self.enchanted.is_some()
+            || self.token.is_some()
             || self.entered_this_turn
             || self.dealt_damage
             || self.blocked_this_turn
@@ -3483,6 +3486,18 @@ pub struct Cost {
     pub sacrifice: Option<SacCost>,
 }
 
+/// "You may pay {1} and return a basic land you control to its owner's hand
+/// rather than pay this spell's mana cost" (CR 118.9): mana and one chosen
+/// permanent to sacrifice or return (`cost.sacrifice`, `cost.chosen`),
+/// `count` of them ("sacrifice two Mountains"), offered only while the
+/// pool's condition `condition` holds ("If it's your turn, ...").
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct AltCost {
+    pub cost: Cost,
+    pub count: u32,
+    pub condition: Option<u16>,
+}
+
 impl Cost {
     pub fn parse(mana: &str) -> Cost {
         Cost {
@@ -4022,6 +4037,9 @@ pub struct CardDef {
     /// Dash (CR 702.109): an alternative cost; a dashed permanent has
     /// haste and returns to its owner's hand at the next end step.
     pub dash: Option<Box<ManaCost>>,
+    /// "You may sacrifice a Mountain rather than pay this spell's mana
+    /// cost." (CR 118.9): an alternative cost the card itself offers.
+    pub alt_cost: Option<Box<AltCost>>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -5161,6 +5179,7 @@ impl Builder {
             morph: None,
             evoke: None,
             dash: None,
+            alt_cost: None,
             offspring: None,
             bargain: false,
             target_cost: None,
@@ -5289,6 +5308,13 @@ impl Builder {
     #[must_use]
     pub fn dash(mut self, cost: ManaCost) -> Self {
         self.0.dash = Some(Box::new(cost));
+        self
+    }
+
+    /// An alternative cost of the card's own (CR 118.9).
+    #[must_use]
+    pub fn alt_cost(mut self, alt: AltCost) -> Self {
+        self.0.alt_cost = Some(Box::new(alt));
         self
     }
 

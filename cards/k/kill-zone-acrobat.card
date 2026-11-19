@@ -1,0 +1,7 @@
+card "Kill-Zone Acrobat" {
+  oracle_id 7c3982c5-6af3-4937-8d1f-e006f4e89342
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever this attacks: you may sacrifice 1 another creature or artifact chosen; if you do, this creature gains flying
+}

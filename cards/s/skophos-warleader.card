@@ -1,0 +1,7 @@
+card "Skophos Warleader" {
+  oracle_id 883a2b57-1075-4479-920b-3f7d5da1f444
+  cost {4}{R}
+  type Creature — Minotaur Warrior
+  pt 4/5
+  activated {R}, sacrifice other creature or an enchantment: this gets +1/+0 and gains menace
+}

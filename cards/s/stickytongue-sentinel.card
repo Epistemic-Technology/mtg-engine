@@ -1,0 +1,8 @@
+card "Stickytongue Sentinel" {
+  oracle_id 899f0931-4e9b-4fa8-9f6d-d13a7de05334
+  cost {2}{G}
+  type Creature — Frog Warrior
+  pt 3/3
+  keywords reach
+  triggered when this enters: return up to 1 another target permanent you control to hand
+}

@@ -1,0 +1,8 @@
+card "Mold Folk" {
+  oracle_id d0ec32d9-1d4e-4b6f-bc95-addbb484b0d3
+  cost {1}{B}
+  type Creature — Fungus Warrior
+  pt 1/1
+  keywords lifelink
+  label "Mold Harvest" activated {1}, sacrifice other creature or an artifact: put 1 +1/+1 counter on this
+}
