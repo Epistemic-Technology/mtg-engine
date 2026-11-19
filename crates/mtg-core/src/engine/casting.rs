@@ -2292,6 +2292,25 @@ impl GameState {
                     }
                 }
             }
+            Effect::TapOrUntap { to } => {
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        // Accept taps, Decline untaps.
+                        let k = self.choose_mid(
+                            ctx.controller,
+                            DecisionKind::YouMay {
+                                def: self.objects[id].def,
+                            },
+                            vec![Choice::Accept, Choice::Decline],
+                        );
+                        if k == 0 {
+                            self.tap(id);
+                        } else {
+                            self.untap(id);
+                        }
+                    }
+                }
+            }
             Effect::Untap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {

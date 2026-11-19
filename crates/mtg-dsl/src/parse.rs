@@ -2233,6 +2233,12 @@ impl P {
                 let what = self.recipient()?;
                 Ok(Effect::Sacrifice { what })
             }
+            "tap" if self.at_words(&["or", "untap"]) => {
+                self.pos += 2;
+                Ok(Effect::TapOrUntap {
+                    to: self.recipient()?,
+                })
+            }
             "tap" => {
                 let to = self.recipients()?;
                 Ok(Effect::Tap { to })

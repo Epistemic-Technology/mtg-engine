@@ -348,6 +348,34 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
 
 /// The subject of a cost change: "Artifact spells", "Instant and
 /// sorcery spells", "Spells".
+/// A cost changer's subject: "Goblin spells and Rogue spells", "Red
+/// spells and white spells" for two alternatives.
+fn cost_spells_subject(f: &Filter, card: &Card) -> String {
+    let second = |s: String, keep_case: bool| if keep_case { s } else { lowercase_first(&s) };
+    if let Some(alt) = &f.or {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        return format!(
+            "{} and {}",
+            spells_subject(&b, card),
+            second(spells_subject(&a, card), !a.subtypes.is_empty())
+        );
+    }
+    if let Some(cs) = &f.colors
+        && cs.len() == 2
+    {
+        let mut one = f.clone();
+        let words: Vec<String> = cs
+            .iter()
+            .map(|c| {
+                one.colors = Some(vec![*c]);
+                spells_subject(&one, card)
+            })
+            .collect();
+        return format!("{} and {}", words[0], lowercase_first(&words[1]));
+    }
+    spells_subject(f, card)
+}
+
 fn spells_subject(f: &Filter, card: &Card) -> String {
     if *f == Filter::default() {
         return "Spells".to_string();
@@ -638,6 +666,9 @@ impl<'a> Ctx<'a> {
     /// A recipient as the subject of a sentence.
     fn subj(&mut self, r: Recipient) -> String {
         match r {
+            // As a subject Oracle keeps "defending player" ("defending
+            // player loses 4 life").
+            Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::Targets(a, n) => {
                 if self.target_mentioned[a] {
                     "they".to_string()
@@ -1851,6 +1882,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Sacrifice { what } => {
             let o = ctx.obj(*what);
             Clause::imperative(format!("sacrifice {o}"))
+        }
+        Effect::TapOrUntap { to } => {
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("tap or untap {o}"))
         }
         Effect::Tap { to } => {
             let o = ctx.obj_list_tap(to);
@@ -3263,7 +3298,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             let more = if *generic > 0 { "more" } else { "less" };
             format!(
                 "{} {whose} cost {{{}}} {more} to cast.",
-                spells_subject(filter, card),
+                cost_spells_subject(filter, card),
                 generic.unsigned_abs()
             )
             .replace("  ", " ")

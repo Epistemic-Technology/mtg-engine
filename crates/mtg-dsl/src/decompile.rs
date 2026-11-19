@@ -328,6 +328,7 @@ impl Decompiler<'_> {
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },
             CoreEffect::Tap { to } => Effect::Tap { to: vec![r(*to)] },
+            CoreEffect::TapOrUntap { to } => Effect::TapOrUntap { to: r(*to) },
             CoreEffect::Untap { to } => Effect::Untap { to: vec![r(*to)] },
             CoreEffect::Grant { keywords: k, to } => Effect::Grant {
                 keywords: keywords(*k),

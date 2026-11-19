@@ -176,6 +176,11 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
 
+`tap or untap target creature` (the controller chooses on resolution).
+`spells red or white you cast cost {1} less` prints "Red spells and white
+spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue
+spells". `defending player` as a subject prints "defending player".
+
 Cost item `from graveyard`: activated from the graveyard ("Return this
 card from your graveyard to your hand." for `return this to hand`).
 `, and` between clauses repeats the subject ("you draw a card and you

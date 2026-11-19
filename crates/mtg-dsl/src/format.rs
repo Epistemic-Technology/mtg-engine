@@ -508,6 +508,7 @@ impl Fmt {
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
             Effect::Sacrifice { what } => format!("sacrifice {}", self.recipient(*what, t)),
             Effect::Tap { to } => format!("tap {}", self.recipients(to, t)),
+            Effect::TapOrUntap { to } => format!("tap or untap {}", self.recipient(*to, t)),
             Effect::Untap { to } => format!("untap {}", self.recipients(to, t)),
             Effect::Grant { keywords: ks, to } => {
                 let v = if matches!(

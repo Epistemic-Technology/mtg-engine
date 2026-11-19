@@ -1814,6 +1814,11 @@ pub enum Effect {
     Tap {
         to: Recipient,
     },
+    /// "Tap or untap target permanent": its controller (the ability's)
+    /// chooses as it resolves.
+    TapOrUntap {
+        to: Recipient,
+    },
     Untap {
         to: Recipient,
     },
@@ -2054,6 +2059,7 @@ impl Effect {
                 | Effect::Discover(_)
                 | Effect::Exploit
                 | Effect::CumulativeUpkeep(_)
+                | Effect::TapOrUntap { .. }
         )
     }
 }

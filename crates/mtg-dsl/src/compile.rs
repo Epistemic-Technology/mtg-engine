@@ -615,6 +615,7 @@ impl Compiler<'_> {
             }
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
             Effect::Sacrifice { what } => out.push(CoreEffect::Sacrifice { what: r(*what) }),
+            Effect::TapOrUntap { to } => out.push(CoreEffect::TapOrUntap { to: r(*to) }),
             Effect::Tap { to } => {
                 for t in to {
                     out.push(CoreEffect::Tap { to: r(*t) });

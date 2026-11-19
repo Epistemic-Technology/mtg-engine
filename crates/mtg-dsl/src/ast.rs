@@ -877,6 +877,10 @@ pub enum Effect {
     Tap {
         to: Vec<Recipient>,
     },
+    /// `tap or untap target creature`.
+    TapOrUntap {
+        to: Recipient,
+    },
     Untap {
         to: Vec<Recipient>,
     },
