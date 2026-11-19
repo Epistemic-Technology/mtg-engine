@@ -2051,6 +2051,9 @@ pub enum Effect {
     /// "Investigate" (CR 701.16): create a Clue token; `investigate
     /// twice` ("investigate twice") does it two times.
     Investigate(u32),
+    /// `target player investigates`: another player creates the Clue
+    /// ("Target player investigates.").
+    Investigates(Recipient),
     /// `put target creature on top of library`, `on bottom of library`,
     /// `into library 2 from top`; `owner puts target creature on top or
     /// bottom of library` ("Target creature's owner puts it on their
@@ -2139,6 +2142,26 @@ pub enum Effect {
     Clash,
     /// `if you win, <sentence>`, after `clash`.
     IfWonClash(Vec<Sentence>),
+    /// `target opponent exiles 1 creature they control`: "Target opponent
+    /// exiles a creature they control" (the player chooses).
+    ExileChosen {
+        who: Recipient,
+        count: Num,
+        filter: Filter,
+    },
+    /// `target opponent exiles 2 cards from hand`: "Target opponent exiles
+    /// two cards from their hand" (the player chooses).
+    ExileFromHand {
+        count: Num,
+        who: Recipient,
+    },
+    /// `target opponent reveals hand exiling nonland card from graveyard
+    /// or hand`: "Target opponent reveals their hand. You choose a nonland
+    /// card from that player's graveyard or hand and exile it."
+    ExileFromGraveyardOrHand {
+        who: Recipient,
+        filter: Filter,
+    },
     /// `target opponent reveals hand discarding nonland card`: "Target
     /// opponent reveals their hand. You choose a nonland card from it.
     /// That player discards that card."
@@ -2171,6 +2194,12 @@ pub enum Effect {
         /// alternative printed as its own card noun ("a basic land card or
         /// a Gate card").
         or_card: OrCard,
+        /// `its controller may search ...`: another player searches their
+        /// own library ("Its controller may search their library for
+        /// ..."); `None` is you.
+        who: Option<Recipient>,
+        /// `<who> may search`: the searcher may choose not to.
+        may: bool,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).

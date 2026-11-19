@@ -1,0 +1,7 @@
+card "Wirewood Herald" {
+  oracle_id 7a838374-fc40-4fb6-9d38-a96f01e7038a
+  cost {1}{G}
+  type Creature — Elf
+  pt 1/1
+  triggered when this dies: you may search Elf card reveal to hand that card
+}

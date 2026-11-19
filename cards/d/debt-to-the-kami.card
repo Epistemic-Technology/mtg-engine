@@ -1,0 +1,9 @@
+card "Debt to the Kami" {
+  oracle_id c6c1e576-7197-4067-8cd1-aa535188e1b8
+  cost {2}{B}
+  type Instant
+  choose one {
+    mode: target opponent exiles 1 creature they control
+    mode: target opponent exiles 1 enchantment they control
+  }
+}

@@ -1,0 +1,7 @@
+card "Prophetic Ravings" {
+  oracle_id 69af7bff-fb8c-4f59-88a1-6bfa87ba400a
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has haste, has ability { activated {T}, discard 1 card: draw 1 card }
+}

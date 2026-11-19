@@ -1381,6 +1381,8 @@ impl P {
                         reveal: true,
                         that_card: false,
                         or_card: crate::ast::OrCard::No,
+                        who: None,
+                        may: false,
                     }])],
                     equip: false,
                     cycling: true,
@@ -3460,6 +3462,20 @@ impl P {
                 if self.eat_word("discarding") {
                     return self.discard_chosen(subject, false);
                 }
+                // "You choose a nonland card from that player's graveyard
+                // or hand and exile it."
+                if self.eat_word("exiling") {
+                    let filter = if self.at_word("card") {
+                        Filter::default()
+                    } else {
+                        self.filter()?
+                    };
+                    self.expect_words(&["card", "from", "graveyard", "or", "hand"])?;
+                    return Ok(Effect::ExileFromGraveyardOrHand {
+                        who: subject,
+                        filter,
+                    });
+                }
                 Ok(Effect::RevealHand { who: subject })
             }
             // "loses all abilities and becomes a green Snake with base
@@ -3586,6 +3602,67 @@ impl P {
                 Ok(Effect::Discard {
                     count,
                     who: (explicit || subject != Recipient::You).then_some(subject),
+                })
+            }
+            "investigates" => Ok(Effect::Investigates(subject)),
+            // "Its controller may search their library for ...": the
+            // player searches their own library (CR 701.19).
+            "may" | "searches" if subject != Recipient::You => {
+                let may = w == "may";
+                if !may {
+                    self.pos -= 1;
+                }
+                if !self.at_word("search") && !self.at_word("searches") {
+                    return self.unexpected("`search` after `may`");
+                }
+                match self.verb_first()? {
+                    Effect::Search {
+                        filter,
+                        count,
+                        up_to,
+                        to,
+                        reveal,
+                        that_card,
+                        or_card,
+                        ..
+                    } => Ok(Effect::Search {
+                        filter,
+                        count,
+                        up_to,
+                        to,
+                        reveal,
+                        that_card,
+                        or_card,
+                        who: Some(subject),
+                        may,
+                    }),
+                    _ => self.fail("expected a search"),
+                }
+            }
+            // "Target opponent exiles two cards from their hand", "exiles
+            // a creature they control".
+            "exiles" => {
+                let count = if self.eat_word("a") || self.eat_word("an") {
+                    Num::N(1)
+                } else {
+                    self.num()?
+                };
+                if (self.at_word("card") || self.at_word("cards"))
+                    && self.word_at(1).as_deref() == Some("from")
+                {
+                    self.pos += 1;
+                    self.expect_words(&["from", "hand"])?;
+                    return Ok(Effect::ExileFromHand {
+                        count,
+                        who: subject,
+                    });
+                }
+                let filter = self.filter()?;
+                self.expect_words(&["they", "control"])?;
+                Ok(Effect::ExileChosen {
+                    who: subject,
+                    count,
+                    filter,
                 })
             }
             "fights" => {
@@ -4737,7 +4814,7 @@ impl P {
             "transform" => Ok(Effect::Transform {
                 what: self.recipient()?,
             }),
-            "search" => {
+            "search" | "searches" => {
                 let up_to = self.eat_words(&["up", "to"]);
                 let count = if matches!(self.peek(), Some(Tok::Num(_))) {
                     self.num()?
@@ -4807,6 +4884,8 @@ impl P {
                     reveal,
                     that_card,
                     or_card,
+                    who: None,
+                    may: false,
                 })
             }
             "add" => {

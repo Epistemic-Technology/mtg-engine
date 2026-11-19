@@ -1,0 +1,8 @@
+card "Pilgrim of the Ages" {
+  oracle_id f67084bb-07f8-420a-ad6e-9ab9842d3ee6
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  triggered when this enters: you may search basic Plains card reveal to hand
+  activated {6}, from graveyard: return this to hand
+}

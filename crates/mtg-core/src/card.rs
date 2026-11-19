@@ -2670,11 +2670,18 @@ pub enum Effect {
     /// "Search your library for a basic land card, reveal it, put it into
     /// your hand, then shuffle" (CR 701.19): up to `count` cards matching
     /// `filter` (judged on their printed characteristics); the searcher
-    /// may fail to find (CR 701.19b).
+    /// may fail to find (CR 701.19b). `who` searches their own library
+    /// ("Its controller may search their library ...": with `may`, they
+    /// may decline before finding anything, and then don't shuffle);
+    /// `reveal`: what is found is revealed ("reveal it"), so a card put
+    /// into a hand is known to every player until it moves.
     Search {
         filter: ObjFilter,
         count: Num,
         to: SearchTo,
+        who: Recipient,
+        may: bool,
+        reveal: bool,
     },
     /// "Put target creature on top of its owner's library", "on the
     /// bottom", "second from the top", "Its owner puts it on their choice
@@ -2697,6 +2704,28 @@ pub enum Effect {
         who: Recipient,
         filter: ObjFilter,
         count: Num,
+    },
+    /// "Target opponent exiles a creature they control": the recipient
+    /// player chooses `count` of their permanents matching the filter and
+    /// exiles them.
+    ExileChosen {
+        who: Recipient,
+        filter: ObjFilter,
+        count: Num,
+    },
+    /// "Target opponent exiles two cards from their hand": each recipient
+    /// player chooses `count` cards from their hand and exiles them.
+    ExileFromHand {
+        count: Num,
+        who: Recipient,
+    },
+    /// "Target opponent reveals their hand. You choose a nonland card from
+    /// that player's graveyard or hand and exile it.": the recipient
+    /// reveals their hand, then the controller picks one card matching
+    /// `filter` among the recipient's graveyard and hand.
+    ExileFromGraveyardOrHand {
+        who: Recipient,
+        filter: ObjFilter,
     },
     /// "Target creature loses flying until end of turn".
     Strip {
@@ -3372,6 +3401,9 @@ impl Effect {
                 | Effect::AddManaLandCould { .. }
                 | Effect::SacrificeChosen { .. }
                 | Effect::ReturnChosen { .. }
+                | Effect::ExileChosen { .. }
+                | Effect::ExileFromHand { .. }
+                | Effect::ExileFromGraveyardOrHand { .. }
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }

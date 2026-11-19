@@ -2427,6 +2427,7 @@ impl GameState {
                 trigger_player: None,
                 trigger_amount: 0,
             }),
+            revealed: 0,
         });
         self.stack.push(obj);
         self.bump();
@@ -4837,8 +4838,7 @@ impl GameState {
             .filter(|id| !before.contains(id))
             .collect();
         for &id in &drawn {
-            let def = self.objects[id].def;
-            self.emit(Event::Revealed { obj: id, def });
+            self.reveal_in_hand(id);
         }
         let castable: Vec<ObjId> = drawn
             .into_iter()
@@ -4861,6 +4861,116 @@ impl GameState {
                 .get_or_insert_with(Box::default)
                 .pending
                 .push((p, card, AltCast::Free));
+        }
+    }
+
+    /// Search `p`'s library (CR 701.19) for `count` cards matching
+    /// `filter` and put them where `to` says, then shuffle. With `may`,
+    /// declining before anything is found is not searching at all, and
+    /// the library isn't shuffled. With `reveal`, a card put into a hand
+    /// is known to every player (CR 701.20) until it moves.
+    #[allow(clippy::too_many_arguments)]
+    fn search_library(
+        &mut self,
+        ctx: &mut EffectCtx,
+        p: PlayerId,
+        filter: &crate::card::ObjFilter,
+        count: crate::card::Num,
+        to: SearchTo,
+        may: bool,
+        reveal: bool,
+    ) {
+        let to = &to;
+        let filter = &*self.chosen_filter(filter, ctx);
+        let mut found = Vec::new();
+        let mut declined = false;
+        for _ in 0..self.eval_num(count, ctx) {
+            // One option per distinct card (copies are alike).
+            let mut seen = Vec::new();
+            let mut options = Vec::new();
+            for id in self.player(p).library.iter().rev() {
+                if found.contains(id) {
+                    continue;
+                }
+                let o = &self.objects[*id];
+                let c = self.base_characteristics(o);
+                if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
+                    && self.status_ok(filter, *id)
+                    && !seen.contains(&o.def)
+                {
+                    seen.push(o.def);
+                    options.push(Choice::Target(Target::Object(*id)));
+                }
+            }
+            if options.is_empty() {
+                break;
+            }
+            options.push(Choice::Decline);
+            let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+            match options[k] {
+                Choice::Target(Target::Object(id)) => found.push(id),
+                _ => {
+                    declined = true;
+                    break;
+                }
+            }
+        }
+        // "may search": declining at once is choosing not to search.
+        if may && declined && found.is_empty() {
+            return;
+        }
+        let mut top = Vec::new();
+        // Cultivate: the searcher chooses the one that goes onto the
+        // battlefield tapped; the other goes to the hand (one found
+        // goes where they choose).
+        let mut to_field = None;
+        if *to == SearchTo::BattlefieldAndHand && !found.is_empty() {
+            let mut options: Vec<Choice> = found
+                .iter()
+                .map(|id| Choice::Target(Target::Object(*id)))
+                .collect();
+            if found.len() == 1 {
+                options.push(Choice::Decline);
+            }
+            let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+            if let Choice::Target(Target::Object(id)) = options[k] {
+                to_field = Some(id);
+            }
+        }
+        for id in found {
+            let to = match to {
+                SearchTo::BattlefieldAndHand if to_field == Some(id) => {
+                    &SearchTo::Battlefield { tapped: true }
+                }
+                SearchTo::BattlefieldAndHand => &SearchTo::Hand,
+                other => other,
+            };
+            match to {
+                SearchTo::Hand | SearchTo::BattlefieldAndHand => {
+                    let new = self.move_object(id, Zone::Hand, true);
+                    if reveal {
+                        self.reveal_in_hand(new);
+                    }
+                }
+                SearchTo::Battlefield { tapped } => {
+                    let new = self.put_onto_battlefield_with(
+                        id,
+                        p,
+                        super::replace::Enter {
+                            tapped: *tapped,
+                            counters: None,
+                        },
+                    );
+                    ctx.created = Some(new);
+                }
+                SearchTo::TopOfLibrary => top.push(id),
+            }
+        }
+        self.shuffle_library(p);
+        for id in top {
+            let lib = &mut self.player_mut(p).library;
+            lib.retain(|x| *x != id);
+            lib.push(id);
         }
     }
 
@@ -5143,88 +5253,29 @@ impl GameState {
             Effect::Scry { count } => {
                 self.scry_or_surveil(ctx.controller, self.eval_num(*count, ctx), false);
             }
-            Effect::Search { filter, count, to } => {
-                let p = ctx.controller;
-                // "Search your library for a card named ~".
-                let filter = &*self.chosen_filter(filter, ctx);
-                let mut found = Vec::new();
-                for _ in 0..self.eval_num(*count, ctx) {
-                    // One option per distinct card (copies are alike).
-                    let mut seen = Vec::new();
-                    let mut options = Vec::new();
-                    for id in self.player(p).library.iter().rev() {
-                        if found.contains(id) {
-                            continue;
-                        }
-                        let o = &self.objects[*id];
-                        let c = self.base_characteristics(o);
-                        if filter.matches(*id, p, &c, Some(ctx.source), Some(p))
-                            && self.status_ok(filter, *id)
-                            && !seen.contains(&o.def)
-                        {
-                            seen.push(o.def);
-                            options.push(Choice::Target(Target::Object(*id)));
-                        }
-                    }
-                    if options.is_empty() {
-                        break;
-                    }
-                    options.push(Choice::Decline);
-                    let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-                    match options[k] {
-                        Choice::Target(Target::Object(id)) => found.push(id),
-                        _ => break,
-                    }
-                }
-                let mut top = Vec::new();
-                // Cultivate: the searcher chooses the one that goes onto the
-                // battlefield tapped; the other goes to the hand (one found
-                // goes where they choose).
-                let mut to_field = None;
-                if *to == SearchTo::BattlefieldAndHand && !found.is_empty() {
-                    let mut options: Vec<Choice> = found
-                        .iter()
-                        .map(|id| Choice::Target(Target::Object(*id)))
-                        .collect();
-                    if found.len() == 1 {
-                        options.push(Choice::Decline);
-                    }
-                    let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-                    if let Choice::Target(Target::Object(id)) = options[k] {
-                        to_field = Some(id);
-                    }
-                }
-                for id in found {
-                    let to = match to {
-                        SearchTo::BattlefieldAndHand if to_field == Some(id) => {
-                            &SearchTo::Battlefield { tapped: true }
-                        }
-                        SearchTo::BattlefieldAndHand => &SearchTo::Hand,
-                        other => other,
-                    };
-                    match to {
-                        SearchTo::Hand | SearchTo::BattlefieldAndHand => {
-                            self.move_object(id, Zone::Hand, true);
-                        }
-                        SearchTo::Battlefield { tapped } => {
-                            let new = self.put_onto_battlefield_with(
-                                id,
-                                p,
-                                super::replace::Enter {
-                                    tapped: *tapped,
-                                    counters: None,
-                                },
-                            );
-                            ctx.created = Some(new);
-                        }
-                        SearchTo::TopOfLibrary => top.push(id),
-                    }
-                }
-                self.shuffle_library(p);
-                for id in top {
-                    let lib = &mut self.player_mut(p).library;
-                    lib.retain(|x| *x != id);
-                    lib.push(id);
+            Effect::Search {
+                filter,
+                count,
+                to,
+                who,
+                may,
+                reveal,
+            } => {
+                // "Its controller may search their library": each searcher
+                // searches their own library.
+                let searchers: SmallVec<[PlayerId; 2]> = if *who == Recipient::You {
+                    smallvec::smallvec![ctx.controller]
+                } else {
+                    self.recipients(ctx, *who)
+                        .into_iter()
+                        .filter_map(|t| match t {
+                            Target::Player(p) => Some(p),
+                            Target::Object(_) => None,
+                        })
+                        .collect()
+                };
+                for p in searchers {
+                    self.search_library(ctx, p, filter, *count, *to, *may, *reveal);
                 }
             }
             Effect::Transform { what } => {
@@ -5697,8 +5748,10 @@ impl GameState {
                 }
             }
             Effect::SacrificeChosen { who, filter, count }
-            | Effect::ReturnChosen { who, filter, count } => {
+            | Effect::ReturnChosen { who, filter, count }
+            | Effect::ExileChosen { who, filter, count } => {
                 let bounce = matches!(effect, Effect::ReturnChosen { .. });
+                let exile = matches!(effect, Effect::ExileChosen { .. });
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
@@ -5723,6 +5776,8 @@ impl GameState {
                         if let Choice::Sacrifice(id) = options[k] {
                             if bounce {
                                 self.move_object(id, Zone::Hand, false);
+                            } else if exile {
+                                self.move_object(id, Zone::Exile, false);
                             } else {
                                 self.sacrifice(id);
                             }
@@ -5730,10 +5785,70 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileFromHand { count, who } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    if self.player(p).hand.is_empty() {
+                        ctx.did = false;
+                    }
+                    for _ in 0..self.eval_num(*count, ctx) {
+                        let options: Vec<Choice> = self
+                            .player(p)
+                            .hand
+                            .iter()
+                            .map(|id| Choice::Discard {
+                                card: *id,
+                                def: self.objects[*id].def,
+                            })
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                        if let Choice::Discard { card, .. } = options[k] {
+                            self.move_object(card, Zone::Exile, false);
+                        }
+                    }
+                }
+            }
+            Effect::ExileFromGraveyardOrHand { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    // CR 701.20a: the hand is revealed first.
+                    self.reveal_hand(p);
+                    let ps = self.player(p);
+                    let options: Vec<Choice> = ps
+                        .graveyard
+                        .iter()
+                        .chain(ps.hand.iter())
+                        .filter(|id| {
+                            let o = &self.objects[**id];
+                            let c = self.base_characteristics(o);
+                            filter.matches(**id, p, &c, Some(ctx.source), Some(ctx.controller))
+                        })
+                        .map(|id| Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        continue;
+                    }
+                    let k =
+                        self.choose_mid(ctx.controller, DecisionKind::ChooseCard, options.clone());
+                    if let Choice::Discard { card, .. } = options[k] {
+                        self.move_object(card, Zone::Exile, false);
+                    }
+                }
+            }
             Effect::RevealHand { who } => {
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
-                        self.emit(Event::RevealedHand { player: p });
+                        self.reveal_hand(p);
                     }
                 }
             }
@@ -5748,8 +5863,7 @@ impl GameState {
                     }
                     let i = rand::Rng::random_range(&mut self.rng, 0..n);
                     let card = self.player(p).hand[i];
-                    let def = self.objects[card].def;
-                    self.emit(Event::Revealed { obj: card, def });
+                    self.reveal_in_hand(card);
                 }
             }
             Effect::Vote { options } => {
@@ -5849,7 +5963,7 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
-                    self.emit(Event::RevealedHand { player: p });
+                    self.reveal_hand(p);
                     let mut options: Vec<Choice> = self
                         .player(p)
                         .hand
@@ -6263,7 +6377,7 @@ impl GameState {
                         continue;
                     };
                     if filter.is_some() {
-                        self.emit(Event::RevealedHand { player: p });
+                        self.reveal_hand(p);
                     }
                     let cards: Vec<ObjId> = self
                         .player(p)
@@ -7183,7 +7297,13 @@ impl GameState {
             def: top_def,
         });
         if land {
-            self.move_object(top, Zone::Hand, false);
+            // The revealed land is known in its new hand too.
+            let new = self.move_object(top, Zone::Hand, false);
+            if let Some(o) = self.objects.get_mut(new)
+                && o.zone == Zone::Hand
+            {
+                o.revealed = u8::MAX;
+            }
             return;
         }
         self.add_counters(id, CounterKind::PlusOnePlusOne, 1);

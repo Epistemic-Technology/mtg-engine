@@ -1,0 +1,7 @@
+card "Memory Leak" {
+  oracle_id 256d884f-5dea-4906-a53d-cf14d43e6bc8
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent reveals hand exiling nonland card from graveyard or hand
+  cycling {1}
+}

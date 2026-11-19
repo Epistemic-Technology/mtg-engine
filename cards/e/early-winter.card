@@ -1,0 +1,9 @@
+card "Early Winter" {
+  oracle_id fbf2653e-9cc4-442f-bc73-6e2ba6e067cb
+  cost {4}{B}
+  type Instant
+  choose one {
+    mode: exile target creature
+    mode: target opponent exiles 1 enchantment they control
+  }
+}

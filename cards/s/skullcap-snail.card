@@ -1,0 +1,7 @@
+card "Skullcap Snail" {
+  oracle_id 6420e8a0-3ef4-4f95-bb6a-12409eef4d48
+  cost {1}{B}
+  type Creature — Fungus Snail
+  pt 1/1
+  triggered when this enters: target opponent exiles 1 card from hand
+}

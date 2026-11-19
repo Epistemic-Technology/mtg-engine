@@ -34,6 +34,10 @@ pub struct PlayerView {
     pub hand_count: usize,
     /// Cards in hand, present only when the viewer may see this hand.
     pub hand: Option<Vec<ObjectView>>,
+    /// The cards of another player's hand the viewer has seen revealed
+    /// and that haven't moved since (CR 701.20).
+    #[serde(default)]
+    pub revealed: Vec<ObjectView>,
     pub graveyard: Vec<ObjectView>,
     pub exile: Vec<ObjectView>,
     pub mana_pool: ManaPool,
@@ -57,12 +61,19 @@ pub struct GameView {
 
 impl GameState {
     /// Whether `viewer` may see the identity of `obj` (CR 400.2, 401.2).
-    /// Hidden zones are the library and other players' hands; M1 has no
-    /// reveal or look effects.
+    /// Hidden zones are the library and other players' hands; a card
+    /// revealed from a hand stays known until it moves.
     pub fn visible_to(&self, viewer: PlayerId, obj: ObjId) -> bool {
-        self.objects
-            .get(obj)
-            .is_some_and(|o| o.zone.is_public() || (o.zone == Zone::Hand && o.owner == viewer))
+        self.objects.get(obj).is_some_and(|o| {
+            o.zone.is_public()
+                || (o.zone == Zone::Hand && (o.owner == viewer || Self::seen_by(o, viewer)))
+        })
+    }
+
+    /// Whether `viewer` has seen `o` while it is in a hidden zone
+    /// (`GameObject::revealed`).
+    fn seen_by(o: &crate::state::GameObject, viewer: PlayerId) -> bool {
+        o.revealed & (1 << viewer.index().min(7)) != 0
     }
 
     fn object_view(&self, id: ObjId) -> ObjectView {
@@ -104,6 +115,15 @@ impl GameState {
                     hand_count: p.hand.len(),
                     hand: (id == viewer)
                         .then(|| p.hand.iter().map(|o| self.object_view(*o)).collect()),
+                    revealed: if id == viewer {
+                        Vec::new()
+                    } else {
+                        p.hand
+                            .iter()
+                            .filter(|o| Self::seen_by(&self.objects[**o], viewer))
+                            .map(|o| self.object_view(*o))
+                            .collect()
+                    },
                     graveyard: p.graveyard.iter().map(|o| self.object_view(*o)).collect(),
                     exile: p.exile.iter().map(|o| self.object_view(*o)).collect(),
                     mana_pool: p.mana_pool,
@@ -255,6 +275,15 @@ impl GameState {
                     perms.join("; ")
                 }
             );
+            let seen: Vec<String> = ps
+                .hand
+                .iter()
+                .filter(|id| p != viewer && Self::seen_by(&self.objects[**id], viewer))
+                .map(|id| self.describe_object(*id, viewer))
+                .collect();
+            if !seen.is_empty() {
+                let _ = writeln!(out, "  revealed in hand: {}", seen.join(", "));
+            }
             if p == viewer {
                 let hand: Vec<String> = ps
                     .hand
@@ -294,8 +323,9 @@ impl GameState {
 
     /// Resample everything hidden from `viewer` consistently with what the
     /// viewer knows (design §4.8): the opponent's hand is redrawn from
-    /// their hand and library together, every library is shuffled, and
-    /// the random number generator is reseeded.
+    /// their hand and library together, except the cards of it the viewer
+    /// has seen revealed (CR 701.20), which stay; every library is
+    /// shuffled, and the random number generator is reseeded.
     /// Object identities are kept; only zones and orders change. Valid at a
     /// point where the viewer is to act.
     pub fn determinize(&mut self, viewer: PlayerId, seed: u64) {
@@ -308,18 +338,39 @@ impl GameState {
                 self.players[i].library.shuffle(&mut rng);
                 continue;
             }
-            let hand_size = self.players[i].hand.len();
-            let mut unknown: Vec<ObjId> = self.players[i].hand.clone();
+            // Seen cards keep their places; the rest of the hand is
+            // redrawn into the other slots.
+            let hand = self.players[i].hand.clone();
+            let seen: Vec<bool> = hand
+                .iter()
+                .map(|id| Self::seen_by(&self.objects[*id], viewer))
+                .collect();
+            let mut unknown: Vec<ObjId> = hand
+                .iter()
+                .zip(&seen)
+                .filter(|(_, s)| !**s)
+                .map(|(id, _)| *id)
+                .collect();
+            let hidden = unknown.len();
             unknown.extend(self.players[i].library.iter().copied());
             unknown.shuffle(&mut rng);
-            let library = unknown.split_off(hand_size);
-            for id in &unknown {
+            let library = unknown.split_off(hidden);
+            let mut drawn = unknown.into_iter();
+            let hand: Vec<ObjId> = hand
+                .iter()
+                .zip(&seen)
+                .map(|(id, s)| if *s { *id } else { drawn.next().unwrap_or(*id) })
+                .collect();
+            for id in &hand {
                 self.objects[*id].zone = Zone::Hand;
             }
             for id in &library {
                 self.objects[*id].zone = Zone::Library;
+                // A card that was revealed in the hand and is now
+                // resampled into the library is no longer known there.
+                self.objects[*id].revealed = 0;
             }
-            self.players[i].hand = unknown;
+            self.players[i].hand = hand;
             self.players[i].library = library;
         }
         // The viewer can't know what later shuffles, die rolls, or random

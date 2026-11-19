@@ -1,0 +1,8 @@
+card "Shield-Wall Sentinel" {
+  oracle_id 4976f08c-6f8e-42e4-9584-f04793518ddb
+  cost {4}
+  type Artifact Creature — Golem
+  pt 1/3
+  keywords defender
+  triggered when this enters: you may search creature with defender card reveal to hand
+}

@@ -771,6 +771,21 @@ impl Decompiler<'_> {
                     })
                     .collect(),
             },
+            CoreEffect::ExileChosen { who, filter, count } => Effect::ExileChosen {
+                who: r(*who),
+                count: *count,
+                filter: self.filter(filter),
+            },
+            CoreEffect::ExileFromHand { count, who } => Effect::ExileFromHand {
+                count: *count,
+                who: r(*who),
+            },
+            CoreEffect::ExileFromGraveyardOrHand { who, filter } => {
+                Effect::ExileFromGraveyardOrHand {
+                    who: r(*who),
+                    filter: self.filter(filter),
+                }
+            }
             CoreEffect::DiscardChosen {
                 who,
                 filter,
@@ -782,17 +797,23 @@ impl Decompiler<'_> {
                 look: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
-            CoreEffect::Search { filter, count, to } => Effect::Search {
+            CoreEffect::Search {
+                filter,
+                count,
+                to,
+                who,
+                may,
+                reveal,
+            } => Effect::Search {
                 filter: self.filter(filter),
                 count: *count,
                 up_to: *count != mtg_core::card::Num::N(1),
                 to: *to,
-                reveal: matches!(
-                    to,
-                    mtg_core::card::SearchTo::Hand | mtg_core::card::SearchTo::BattlefieldAndHand
-                ),
+                reveal: *reveal,
                 that_card: false,
                 or_card: crate::ast::OrCard::No,
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+                may: *may,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {

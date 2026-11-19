@@ -897,6 +897,7 @@ impl Fmt {
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
             Effect::Investigate(1) => "investigate".to_string(),
+            Effect::Investigates(w) => format!("{} investigates", self.recipient(*w, t)),
             Effect::Investigate(2) => "investigate twice".to_string(),
             Effect::Investigate(n) => format!("investigate {n} times"),
             Effect::PumpVar {
@@ -996,6 +997,33 @@ impl Fmt {
                 self.recipient(*who, t),
                 num(*count)
             ),
+            Effect::ExileChosen {
+                who,
+                count,
+                filter: f,
+            } => format!(
+                "{} exiles {} {} they control",
+                self.recipient(*who, t),
+                num(*count),
+                filter(f)
+            ),
+            Effect::ExileFromHand { count, who } => format!(
+                "{} exiles {} {} from hand",
+                self.recipient(*who, t),
+                num(*count),
+                cards(*count)
+            ),
+            Effect::ExileFromGraveyardOrHand { who, filter: f } => {
+                let what = if *f == Filter::default() {
+                    "card".to_string()
+                } else {
+                    format!("{} card", filter(f))
+                };
+                format!(
+                    "{} reveals hand exiling {what} from graveyard or hand",
+                    self.recipient(*who, t)
+                )
+            }
             Effect::DiscardChosen {
                 who,
                 filter: f,
@@ -1069,8 +1097,19 @@ impl Fmt {
                 reveal,
                 that_card,
                 or_card,
+                who,
+                may,
             } => {
-                let mut t = "search ".to_string();
+                let searcher = who.map(|w| self.recipient(w, t));
+                let mut t = String::new();
+                if let Some(w) = &searcher {
+                    let _ = write!(t, "{w} ");
+                }
+                t.push_str(match (*may, searcher.is_some()) {
+                    (true, _) => "may search ",
+                    (false, true) => "searches ",
+                    (false, false) => "search ",
+                });
                 if *up_to {
                     t.push_str("up to ");
                 }

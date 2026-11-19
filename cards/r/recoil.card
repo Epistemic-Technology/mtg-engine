@@ -1,0 +1,6 @@
+card "Recoil" {
+  oracle_id 1579bf86-4400-4467-88e8-1c5ba1209804
+  cost {1}{U}{B}
+  type Instant
+  spell: return target permanent to hand; then that player discards 1 card
+}

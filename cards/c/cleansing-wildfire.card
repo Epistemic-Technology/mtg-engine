@@ -1,0 +1,9 @@
+card "Cleansing Wildfire" {
+  oracle_id 993b92f4-4160-4171-9e67-90dc935030fe
+  cost {1}{R}
+  type Sorcery
+  spell {
+    destroy target land; its controller may search basic land card to battlefield tapped
+    draw 1 card
+  }
+}

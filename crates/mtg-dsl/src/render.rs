@@ -3803,6 +3803,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
+        Effect::Investigates(w) => {
+            let s = ctx.subj(*w);
+            Clause::with_subject(
+                *w,
+                s,
+                ctx.verb(*w, "investigates", "investigate").to_string(),
+            )
+        }
         Effect::Investigate(n) => Clause::imperative(match n {
             1 => "investigate".to_string(),
             2 => "investigate twice".to_string(),
@@ -3989,6 +3997,51 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *who,
                 s,
                 format!("{} {what} at random", ctx.verb(*who, "discards", "discard")),
+            )
+        }
+        Effect::ExileChosen { who, count, filter } => {
+            let s = ctx.subj(*who);
+            let what = if *count == Num::N(1) {
+                with_article(&filter_phrase(filter, ctx.card, false))
+            } else {
+                format!(
+                    "{} {}",
+                    count_words(*count, "a"),
+                    filter_phrase(filter, ctx.card, true)
+                )
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{} {what} they control", ctx.verb(*who, "exiles", "exile")),
+            )
+        }
+        Effect::ExileFromHand { count, who } => {
+            let s = ctx.subj(*who);
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} {what} from their hand",
+                    ctx.verb(*who, "exiles", "exile")
+                ),
+            )
+        }
+        Effect::ExileFromGraveyardOrHand { who, filter } => {
+            let what = if *filter == Filter::default() {
+                "a card".to_string()
+            } else {
+                with_article(&format!("{} card", card_filter_phrase(filter, ctx.card)))
+            };
+            let s = ctx.subj(*who);
+            Clause::with_subject(
+                *who,
+                s,
+                format!(
+                    "{} their hand. You choose {what} from that player's graveyard or hand and exile it",
+                    ctx.verb(*who, "reveals", "reveal")
+                ),
             )
         }
         Effect::DiscardChosen {
@@ -4202,6 +4255,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             reveal,
             that_card,
             or_card,
+            who,
+            may,
         } => {
             let one = *count == Num::N(1) && !*up_to;
             let any = *count == Num::N(crate::ast::ANY_NUMBER);
@@ -4271,7 +4326,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ("it", "them")
             };
             let mut pron = if one { it } else { them };
-            let mut text = format!("search your library for {what}, ");
+            // "Its controller may search their library for ...".
+            let (verb, library, hand) = match who {
+                Some(w) if *w != Recipient::You => (
+                    if *may { "may search" } else { "searches" },
+                    "their library",
+                    "their hand",
+                ),
+                _ => (
+                    if *may { "may search" } else { "search" },
+                    "your library",
+                    "your hand",
+                ),
+            };
+            let mut text = format!("{verb} {library} for {what}, ");
             // "reveal that card, put it into your hand", "reveal those
             // cards, put one onto the battlefield tapped".
             let reveal_that = *that_card
@@ -4292,12 +4360,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             match to {
                 mtg_core::card::SearchTo::BattlefieldAndHand => {
-                    text.push_str(
-                        "put one onto the battlefield tapped and the other into your hand, then shuffle",
+                    let _ = write!(
+                        text,
+                        "put one onto the battlefield tapped and the other into {hand}, then shuffle",
                     );
                 }
                 mtg_core::card::SearchTo::Hand => {
-                    let _ = write!(text, "put {pron} into your hand, then shuffle");
+                    let _ = write!(text, "put {pron} into {hand}, then shuffle");
                 }
                 mtg_core::card::SearchTo::Battlefield { tapped } => {
                     let _ = write!(
@@ -4310,7 +4379,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     let _ = write!(text, "then shuffle and put {it} on top");
                 }
             }
-            Clause::imperative(text)
+            match who {
+                Some(w) if *w != Recipient::You => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(*w, s, text)
+                }
+                _ if *may => Clause::with_subject(Recipient::You, "you".to_string(), text),
+                _ => Clause::imperative(text),
+            }
         }
         Effect::AddMana(m) if m == &[Mana::Chosen] => {
             Clause::imperative("add one mana of the chosen color".to_string())
