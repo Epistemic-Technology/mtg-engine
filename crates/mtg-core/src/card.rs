@@ -6409,6 +6409,7 @@ impl Builder {
     }
 
     /// "This spell can't be countered."
+    #[must_use]
     pub fn uncounterable(mut self) -> Self {
         self.0.uncounterable = true;
         self
