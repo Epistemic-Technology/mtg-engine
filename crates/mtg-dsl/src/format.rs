@@ -206,7 +206,7 @@ impl Fmt {
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::Source => "this".to_string(),
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
-            Recipient::TriggeringObject => "that creature".to_string(),
+            Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringCard => "triggering card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
@@ -1083,6 +1083,13 @@ impl Fmt {
                     Some(w) => format!("{} discards {what}", self.recipient(*w, t)),
                 }
             }
+            Effect::WhenYouDo { targets, effects } => {
+                // Its own targets, declared afresh (CR 603.12).
+                let outer = std::mem::replace(&mut self.mentioned, vec![false; targets.len()]);
+                let body = self.line(effects, targets);
+                self.mentioned = outer;
+                format!("when you do, {body}")
+            }
             Effect::Instead {
                 cond,
                 wording,
@@ -1139,10 +1146,15 @@ impl Fmt {
                 trigger,
                 effects,
                 trigger_first,
+                this_turn,
             } => {
                 let about = self.recipient(*about, t);
                 let body = self.line(effects, t);
-                let trig = trigger_text(trigger, true);
+                let trig = if *this_turn {
+                    this_turn_trigger(trigger).to_string()
+                } else {
+                    trigger_text(trigger, true)
+                };
                 if *trigger_first {
                     format!("delayed {about}: {trig}, {body}")
                 } else {
@@ -1338,8 +1350,24 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Life => "life".to_string(),
         CountExpr::BlockingIt { beyond: 0 } => "creature blocking it".to_string(),
         CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
-        CountExpr::TargetManaValue(n) => format!("mana value of target {}", n + 1),
         CountExpr::GreatestPower(f) => format!("greatest power {}", filter(f)),
+        CountExpr::Party => "party".to_string(),
+        CountExpr::GreatestManaValue => "greatest mana value".to_string(),
+        CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
+        CountExpr::SourceToughness => "toughness".to_string(),
+        CountExpr::TargetManaValue { n, that } => format!(
+            "mana value of {}target {}",
+            if *that { "that " } else { "" },
+            n + 1
+        ),
+        CountExpr::ColorsAmongPermanents => "colors among permanents".to_string(),
+        CountExpr::CardsInOpponentsGraveyards(None) => "opponents graveyards".to_string(),
+        CountExpr::CardsInOpponentsGraveyards(Some(f)) => {
+            format!("opponents graveyards {}", card_filter(f))
+        }
+        CountExpr::OpponentsAttacked => "opponents attacked".to_string(),
+        CountExpr::AttackedWithThisTurn => "attacked with this turn".to_string(),
+        CountExpr::AndOr(inner) => format!("andor {}", count_expr_text(inner)),
     }
 }
 
@@ -2057,6 +2085,15 @@ fn cost_text(c: &Cost) -> String {
     if c.per_turn > 1 {
         parts.push(format!("{} times per turn", c.per_turn));
     }
+    match c.reduce.as_deref() {
+        Some((by, crate::ast::ReduceBy::Each(e))) => {
+            parts.push(format!("reduced {by} each {}", count_expr_text(e)));
+        }
+        Some((by, crate::ast::ReduceBy::If(d))) => {
+            parts.push(format!("reduced {by} if {}", static_cond(d)));
+        }
+        None => {}
+    }
     if parts.is_empty() {
         "none".to_string()
     } else {
@@ -2765,6 +2802,38 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
     }
 }
 
+/// `color of choice except blue`, `creature type of choice`, `land type
+/// of choice`, `Plains or Island` (`of choice` only with `of_choice`).
+fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
+    let of = if of_choice { " of choice" } else { "" };
+    match k {
+        ChoiceKind::Colors => format!("colors{of}"),
+        ChoiceKind::Color { except } => match except {
+            Some(c) => format!("color{of} except {}", format!("{c:?}").to_lowercase()),
+            None => format!("color{of}"),
+        },
+        ChoiceKind::CreatureType { except } => match except {
+            Some(t) => format!("creature type{of} except {t}"),
+            None => format!("creature type{of}"),
+        },
+        ChoiceKind::LandType(lands) if lands.len() == 5 || !of_choice => format!("land type{of}"),
+        ChoiceKind::LandType(lands) => lands
+            .iter()
+            .map(|c| crate::render::basic_land_name(*c))
+            .collect::<Vec<_>>()
+            .join(" or "),
+    }
+}
+
+/// A delayed trigger about its recipient that ends with the turn (CR
+/// 603.7c), as written and printed: "when that creature dies this turn".
+pub(crate) fn this_turn_trigger(t: &Trigger) -> &'static str {
+    match t {
+        Trigger::Leaves(_) => "when that creature leaves the battlefield this turn",
+        _ => "when that creature dies this turn",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2793,28 +2862,5 @@ mod tests {
             };
             assert_eq!(targets, &[Target::Spec(*spec)], "{}", target_phrase(*spec));
         }
-    }
-}
-
-/// `color of choice except blue`, `creature type of choice`, `land type
-/// of choice`, `Plains or Island` (`of choice` only with `of_choice`).
-fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
-    let of = if of_choice { " of choice" } else { "" };
-    match k {
-        ChoiceKind::Colors => format!("colors{of}"),
-        ChoiceKind::Color { except } => match except {
-            Some(c) => format!("color{of} except {}", format!("{c:?}").to_lowercase()),
-            None => format!("color{of}"),
-        },
-        ChoiceKind::CreatureType { except } => match except {
-            Some(t) => format!("creature type{of} except {t}"),
-            None => format!("creature type{of}"),
-        },
-        ChoiceKind::LandType(lands) if lands.len() == 5 || !of_choice => format!("land type{of}"),
-        ChoiceKind::LandType(lands) => lands
-            .iter()
-            .map(|c| crate::render::basic_land_name(*c))
-            .collect::<Vec<_>>()
-            .join(" or "),
     }
 }

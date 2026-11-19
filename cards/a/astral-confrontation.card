@@ -1,0 +1,7 @@
+card "Astral Confrontation" {
+  oracle_id 80788ac7-19d6-42d2-9f6e-676d7b5c912e
+  cost {4}{W}
+  type Instant
+  this spell costs {1} less count each opponents attacked
+  spell: exile target creature
+}

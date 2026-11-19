@@ -1,0 +1,6 @@
+card "Scarblade's Malice" {
+  oracle_id 66d57851-2844-4b9d-be78-e90fc620b750
+  cost {B}
+  type Instant
+  spell: target creature you control gains deathtouch and lifelink; delayed target 1: when that creature dies this turn, create 1 "2/2 black and green Elf creature"
+}

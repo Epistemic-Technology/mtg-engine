@@ -1,0 +1,6 @@
+card "Fists of Flame" {
+  oracle_id e05abb6b-e9f4-4d9e-ad1e-7805ebc09914
+  cost {1}{R}
+  type Instant
+  spell: draw 1 card; until end of turn, target creature gains trample and gets +1/+0 count each drawn this turn
+}

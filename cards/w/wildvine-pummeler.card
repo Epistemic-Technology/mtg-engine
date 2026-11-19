@@ -1,0 +1,8 @@
+card "Wildvine Pummeler" {
+  oracle_id 6c34674f-856b-4062-87d5-6ed73d9a9855
+  cost {6}{G}
+  type Creature — Giant Berserker
+  pt 6/5
+  label "Vivid" this spell costs {1} less count each colors among permanents
+  keywords reach, trample
+}

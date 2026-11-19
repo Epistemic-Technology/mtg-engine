@@ -1,0 +1,437 @@
+# Delayed triggers on an object leaving ("When that creature dies this
+# turn", CR 603.7c), reflexive triggers ("When you do", CR 603.12), counts
+# that scale effects and costs, and activated abilities that cost less.
+
+scenario "Make Your Mark: the creature dies this turn, a Spirit" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Make Your Mark", "Lightning Bolt"
+  turn 1 A: cast "Make Your Mark" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Spirit"
+  assert power "Spirit" 3
+}
+
+scenario "Make Your Mark: no Spirit when the creature dies a later turn" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Mountain"
+  hand A: "Make Your Mark"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Make Your Mark" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A lacks "Spirit"
+}
+
+scenario "Felonious Rage: a bounced creature didn't die" {
+  battlefield A: "Grizzly Bears", "Mountain", "Island"
+  hand A: "Felonious Rage", "Unsummon"
+  turn 1 A: cast "Felonious Rage" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Unsummon" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Detective"
+}
+
+scenario "Scarblade's Malice targets only a creature you control" {
+  battlefield A: "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Scarblade's Malice", "Lightning Bolt"
+  illegal turn 1 A: cast "Scarblade's Malice" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Kjeldoran Elite Guard: sacrificed when its target leaves this turn" {
+  battlefield A: "Kjeldoran Elite Guard", "Grizzly Bears", 2 "Mountain"
+  hand A: "Lightning Bolt", "Lightning Bolt"
+  turn 1 begin_combat A: activate "Kjeldoran Elite Guard" targeting "Grizzly Bears"
+  turn 1 begin_combat A: wait
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 begin_combat A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Kjeldoran Elite Guard"
+}
+
+scenario "Kjeldoran Elite Guard: activate only during combat" {
+  battlefield A: "Kjeldoran Elite Guard", "Grizzly Bears"
+  illegal turn 1 A: activate "Kjeldoran Elite Guard" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert untapped "Kjeldoran Elite Guard"
+}
+
+scenario "Kjeldoran Elite Guard: the delayed trigger ends with the turn" {
+  battlefield A: "Kjeldoran Elite Guard", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  turn 1 begin_combat A: activate "Kjeldoran Elite Guard" targeting "Grizzly Bears"
+  turn 2 B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Kjeldoran Elite Guard"
+}
+
+scenario "Rukh Egg: the Bird arrives at the next end step" {
+  battlefield A: "Rukh Egg", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Rukh Egg"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Bird"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Bird"
+  assert has "Bird" flying
+}
+
+scenario "In Thrall to the Pit kicked: the stolen creature is sacrificed" {
+  battlefield A: 4 "Mountain", 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "In Thrall to the Pit"
+  turn 1 A: cast "In Thrall to the Pit" kicked targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "In Thrall to the Pit unkicked: the creature goes back" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "In Thrall to the Pit"
+  turn 1 A: cast "In Thrall to the Pit" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Sparktongue Dragon: pay, and the reflexive trigger targets" {
+  battlefield A: 8 "Mountain"
+  hand A: "Sparktongue Dragon"
+  turn 1 A: cast "Sparktongue Dragon"
+  turn 1 A: trigger "Sparktongue Dragon" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Sparktongue Dragon: declined, no trigger and no payment" {
+  battlefield A: 8 "Mountain"
+  hand A: "Sparktongue Dragon"
+  turn 1 A: cast "Sparktongue Dragon"
+  turn 1 A: decline "Sparktongue Dragon"
+  run_to turn 1 end
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Sparktongue Dragon: unable to pay, no trigger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Sparktongue Dragon"
+  turn 1 A: cast "Sparktongue Dragon"
+  run_to turn 1 end
+  assert battlefield A contains "Sparktongue Dragon"
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Tether Technician: discard, then 2 damage" {
+  battlefield A: 5 "Mountain"
+  hand A: "Tether Technician", "Forest"
+  turn 1 A: cast "Tether Technician"
+  turn 1 A: trigger "Tether Technician" targeting player B
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+  assert life B 18
+}
+
+scenario "Tether Technician: nothing to discard, no trigger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Tether Technician"
+  turn 1 A: cast "Tether Technician"
+  run_to turn 1 end
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Boilerbilges Ripper: nothing else to sacrifice, no trigger" {
+  battlefield A: 5 "Mountain"
+  hand A: "Boilerbilges Ripper"
+  turn 1 A: cast "Boilerbilges Ripper"
+  run_to turn 1 end
+  assert battlefield A contains "Boilerbilges Ripper"
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Shrapnel Slinger: sacrifice a creature, destroy an artifact" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Shrapnel Slinger"
+  turn 1 A: cast "Shrapnel Slinger"
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert graveyard A count 1
+}
+
+scenario "Eastfarthing Farmer: +1/+1 for each Food" {
+  battlefield A: "Food", "Grizzly Bears", 3 "Plains"
+  hand A: "Eastfarthing Farmer"
+  turn 1 A: cast "Eastfarthing Farmer"
+  turn 1 A: trigger "Eastfarthing Farmer" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Drana's Silencer: X is the party, one per role" {
+  battlefield A: "Malakir Blood-Priest", "Cascade Seer", 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Drana's Silencer"
+  turn 1 A: cast "Drana's Silencer"
+  turn 1 A: trigger "Drana's Silencer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Deadly Alliance: a full party costs {B}" {
+  battlefield A: "Malakir Blood-Priest", "Cascade Seer", "Drana's Silencer", "Chitin Gravestalker", "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Deadly Alliance"
+  turn 1 A: cast "Deadly Alliance" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Deadly Alliance: two Rogues fill one role" {
+  battlefield A: "Drana's Silencer", "Drana's Silencer", "Malakir Blood-Priest", 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Deadly Alliance"
+  illegal turn 1 A: cast "Deadly Alliance" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Malakir Blood-Priest: drain by the party, itself included" {
+  battlefield A: "Cascade Seer", 2 "Swamp"
+  hand A: "Malakir Blood-Priest"
+  turn 1 A: cast "Malakir Blood-Priest"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Harsh Sustenance: one X for the damage and the life" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Plains", 2 "Swamp"
+  hand A: "Harsh Sustenance"
+  turn 1 A: cast "Harsh Sustenance" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Essence Harvest: X is the greatest power" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Swamp"
+  hand A: "Essence Harvest"
+  turn 1 A: cast "Essence Harvest" targeting player B
+  run_to turn 1 end
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Accelerated Mutation: X is the greatest mana value" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 5 "Forest"
+  hand A: "Accelerated Mutation"
+  turn 1 A: cast "Accelerated Mutation" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert toughness "Grizzly Bears" 6
+}
+
+scenario "Armored Armadillo: +X/+0 where X is its toughness" {
+  battlefield A: "Armored Armadillo", 4 "Plains"
+  turn 1 A: activate "Armored Armadillo"
+  run_to turn 1 postcombat_main
+  assert power "Armored Armadillo" 4
+}
+
+scenario "Escaped Experiment: -X/-0 for each artifact" {
+  battlefield A: "Escaped Experiment", "Ornithopter"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Escaped Experiment"
+  turn 1 A: trigger "Escaped Experiment" targeting "Hill Giant"
+  run_to turn 1 end_combat
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+}
+
+scenario "Wight of Precinct Six counts creature cards in opponents' graveyards" {
+  battlefield A: "Wight of Precinct Six"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Hill Giant", "Grizzly Bears", "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert power "Wight of Precinct Six" 3
+  assert toughness "Wight of Precinct Six" 3
+}
+
+scenario "Treeguard Duo: vigilance and +X/+X until end of turn" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  hand A: "Treeguard Duo"
+  turn 1 A: cast "Treeguard Duo"
+  turn 1 A: trigger "Treeguard Duo" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Fists of Flame counts the card it drew" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  hand A: "Fists of Flame"
+  start turn 3 A
+  turn 3 A: cast "Fists of Flame" targeting "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+}
+
+scenario "Inspired Fire costs {1} less for each card drawn this turn" {
+  battlefield A: 6 "Island", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Concentrate", "Inspired Fire"
+  turn 1 A: cast "Concentrate"
+  turn 1 A: wait
+  turn 1 A: cast "Inspired Fire" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Inspired Fire at full price with nothing drawn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Inspired Fire"
+  illegal turn 1 A: cast "Inspired Fire" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Molten Monstrosity costs {X} less for the greatest power" {
+  battlefield A: "Hill Giant", 5 "Mountain"
+  hand A: "Molten Monstrosity"
+  turn 1 A: cast "Molten Monstrosity"
+  run_to turn 1 end
+  assert battlefield A contains "Molten Monstrosity"
+}
+
+scenario "Search Party Captain costs less for each creature that attacked" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  hand A: "Search Party Captain"
+  turn 1 A: attack "Grizzly Bears", "Hill Giant"
+  turn 1 postcombat_main A: cast "Search Party Captain"
+  run_to turn 1 end
+  assert battlefield A contains "Search Party Captain"
+}
+
+scenario "Search Party Captain at full price before attacking" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 2 "Plains"
+  hand A: "Search Party Captain"
+  illegal turn 1 A: cast "Search Party Captain"
+  run_to turn 1 begin_combat
+  assert hand A contains "Search Party Captain"
+}
+
+scenario "Astral Confrontation costs {1} less while attacking the opponent" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Astral Confrontation"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Astral Confrontation" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+}
+
+scenario "Astral Confrontation at full price outside combat" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Astral Confrontation"
+  illegal turn 1 A: cast "Astral Confrontation" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Chitin Gravestalker counts artifact and/or creature cards" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Ornithopter", "Grizzly Bears", "Lightning Bolt"
+  hand A: "Chitin Gravestalker"
+  turn 1 A: cast "Chitin Gravestalker"
+  run_to turn 1 end
+  assert battlefield A contains "Chitin Gravestalker"
+}
+
+scenario "Chitin Gravestalker doesn't count other cards" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Ornithopter", "Lightning Bolt"
+  hand A: "Chitin Gravestalker"
+  illegal turn 1 A: cast "Chitin Gravestalker"
+  run_to turn 1 end
+  assert hand A contains "Chitin Gravestalker"
+}
+
+scenario "Wildvine Pummeler costs {1} less for each color among permanents" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Serra Angel", 4 "Forest"
+  hand A: "Wildvine Pummeler"
+  turn 1 A: cast "Wildvine Pummeler"
+  run_to turn 1 end
+  assert battlefield A contains "Wildvine Pummeler"
+}
+
+scenario "Qiqirn Merchant: {1} less to activate for each Town" {
+  battlefield A: "Qiqirn Merchant", 3 "Capital City", "Island"
+  turn 1 A: activate "Qiqirn Merchant" ability 2
+  run_to turn 1 end
+  assert graveyard A contains "Qiqirn Merchant"
+  assert hand A count 3
+}
+
+scenario "Qiqirn Merchant: full price without Towns" {
+  battlefield A: "Qiqirn Merchant", 4 "Island"
+  illegal turn 1 A: activate "Qiqirn Merchant" ability 2
+  run_to turn 1 end
+  assert battlefield A contains "Qiqirn Merchant"
+}
+
+scenario "Kami of Jealous Thirst is free after three draws" {
+  battlefield A: "Kami of Jealous Thirst", 4 "Island"
+  hand A: "Concentrate"
+  turn 1 A: cast "Concentrate"
+  turn 1 A: wait
+  turn 1 A: activate "Kami of Jealous Thirst"
+  run_to turn 1 end
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Kami of Jealous Thirst costs {4}{B} otherwise" {
+  battlefield A: "Kami of Jealous Thirst", 4 "Swamp"
+  illegal turn 1 A: activate "Kami of Jealous Thirst"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Kagemaro's Clutch: -X/-X for the cards in its controller's hand" {
+  battlefield B: "Hill Giant"
+  battlefield A: "Kagemaro's Clutch" on "Hill Giant"
+  hand A: "Lightning Bolt", "Unsummon"
+  run_to turn 1 precombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "Subdue: no combat damage, +0/+X for its mana value" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand B: "Subdue"
+  turn 1 A: attack "Hill Giant"
+  turn 1 declare_attackers B: cast "Subdue" targeting "Hill Giant"
+  run_to turn 1 end_combat
+  assert life B 20
+  assert toughness "Hill Giant" 7
+}

@@ -1,0 +1,7 @@
+card "Pyric Salamander" {
+  oracle_id 745a2815-8487-4b78-93b7-d1d4ef6adc8f
+  cost {1}{R}
+  type Creature — Salamander
+  pt 1/1
+  activated {R}: this gets +1/+0; delayed this: sacrifice this creature at beginning of the next end step
+}

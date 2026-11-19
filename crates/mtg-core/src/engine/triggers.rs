@@ -100,6 +100,16 @@ impl GameState {
         {
             self.delayed_step_triggers(*step, &mut fired);
         }
+        if let Event::ZoneChange {
+            old,
+            from: Zone::Battlefield,
+            to,
+            ..
+        } = event
+            && !self.delayed_triggers.is_empty()
+        {
+            self.delayed_leave_triggers(*old, *to, &mut fired);
+        }
         for mut t in fired {
             t.timestamp = self.tick();
             if self.logging {
@@ -138,6 +148,42 @@ impl GameState {
                 },
                 _ => false,
             };
+            if at {
+                self.delayed_triggers.remove(i);
+                fired.push(PendingTrigger {
+                    controller: dt.controller,
+                    ability: dt.ability,
+                    timestamp: 0,
+                });
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    /// Delayed triggered abilities waiting for `old` to die or leave the
+    /// battlefield ("When that creature dies this turn, ..."; CR 603.7),
+    /// each removed as it triggers (CR 603.7c).
+    #[cold]
+    #[inline(never)]
+    fn delayed_leave_triggers(
+        &mut self,
+        old: ObjId,
+        to: Zone,
+        fired: &mut SmallVec<[PendingTrigger; 2]>,
+    ) {
+        let mut i = 0;
+        while i < self.delayed_triggers.len() {
+            let dt = self.delayed_triggers[i];
+            let at = dt.ability.trigger_obj == Some(old)
+                && match self.pool.ability(dt.ability.ability) {
+                    AbilityDef::Triggered(t) => match &t.trigger {
+                        TriggerSpec::Dies(TriggerObj::This) => to == Zone::Graveyard,
+                        TriggerSpec::Leaves(TriggerObj::This) => true,
+                        _ => false,
+                    },
+                    _ => false,
+                };
             if at {
                 self.delayed_triggers.remove(i);
                 fired.push(PendingTrigger {

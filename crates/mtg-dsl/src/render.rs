@@ -464,6 +464,10 @@ fn article(word: &str) -> &'static str {
 }
 
 fn with_article(s: &str) -> String {
+    // "sacrifice another creature".
+    if let Some(rest) = s.strip_prefix("other ") {
+        return format!("another {rest}");
+    }
     format!("{} {s}", article(s))
 }
 
@@ -868,7 +872,7 @@ impl<'a> Ctx<'a> {
             }
             // "When enchanted creature is dealt damage, destroy it."
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
-            Recipient::TriggeringObject => "that creature".to_string(),
+            Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
@@ -1744,6 +1748,7 @@ fn keywords_list(ks: &[Keyword]) -> String {
     )
 }
 
+#[allow(clippy::too_many_lines)] // one part of the description after another
 fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String {
     let tap = if tapped { "tapped " } else { "" };
     let Some(token) = ctx.lookup.get(name) else {
@@ -1807,9 +1812,8 @@ fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String 
     // A creature token whose name is not its subtypes is named (CR
     // 111.4): "a 2/2 colorless Wizard Soldier creature token named Cadet".
     let shown = token.display_name.as_deref().unwrap_or(&token.name);
-    if token.types.contains(&CardType::Creature) && shown != token.subtypes.join(" ") {
-        let _ = write!(s, " named {shown}");
-    }
+    let named = (token.types.contains(&CardType::Creature) && shown != token.subtypes.join(" "))
+        .then(|| format!(" named {shown}"));
     // Keywords and keyword abilities print bare ("with flying", "with
     // toxic 1"); restrictions and other abilities print quoted ("with
     // \"This token can't block.\"").
@@ -1834,6 +1838,13 @@ fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String 
             _ => quoted.push(ability_text(token, a, ctx.lookup)),
         }
     }
+    // Keywords alone print before the name ("a 1/1 green Insect creature
+    // token with flying named Butterfly"); quoted abilities after it.
+    if let Some(named) = &named
+        && !(quoted.is_empty() && !bare.is_empty() && !has_cda_pt)
+    {
+        s.push_str(named);
+    }
     if has_cda_pt {
         // "create a white Avatar creature token. It has \"This token's
         // power and toughness are each equal to your life total.\""
@@ -1845,12 +1856,16 @@ fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String 
         }
         return s;
     }
+    let keywords_only = quoted.is_empty() && !bare.is_empty();
     let parts: Vec<String> = bare
         .into_iter()
         .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))
         .collect();
     if !parts.is_empty() {
         let _ = write!(s, " with {}", list(&parts));
+    }
+    if keywords_only && let Some(named) = named {
+        s.push_str(&named);
     }
     s
 }
@@ -1881,8 +1896,10 @@ fn except_text(card: &Card, current: Option<&Ability>) -> String {
 
 #[allow(clippy::too_many_lines)]
 /// "+X", "-X", or "+0" for a scaled pump's part.
-fn x_sign(v: i32) -> &'static str {
+/// One half of "+X/+0": a zero takes the other half's sign ("-X/-0").
+fn x_sign(v: i32, other: i32) -> &'static str {
     match v.cmp(&0) {
+        std::cmp::Ordering::Equal if other < 0 => "-0",
         std::cmp::Ordering::Equal => "+0",
         std::cmp::Ordering::Greater => "+X",
         std::cmp::Ordering::Less => "-X",
@@ -1905,6 +1922,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
+        Effect::Scry(n) => vec![*n],
         _ => Vec::new(),
     }
 }
@@ -1918,7 +1936,6 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         return count_phrase(inner, card, each);
     }
     let (one, many) = match c {
-        CountExpr::TargetManaValue(_) => return "its mana value".to_string(),
         // "the greatest power among creatures you control".
         CountExpr::GreatestPower(f) => {
             return format!("the greatest power among {}", filter_phrase(f, card, true));
@@ -2048,6 +2065,51 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             }
         }
         CountExpr::LifeLostThisWay => return "the life lost this way".to_string(),
+        CountExpr::Party => (
+            "creature in your party".to_string(),
+            "creatures in your party".to_string(),
+        ),
+        CountExpr::GreatestManaValue => {
+            return "the greatest mana value among permanents you control".to_string();
+        }
+        CountExpr::CardsDrawnThisTurn => (
+            "card you've drawn this turn".to_string(),
+            "cards you've drawn this turn".to_string(),
+        ),
+        CountExpr::SourceToughness => return "its toughness".to_string(),
+        CountExpr::TargetManaValue { that, .. } => {
+            let whose = if *that { "that creature's" } else { "its" };
+            return format!("{whose} mana value");
+        }
+        CountExpr::ColorsAmongPermanents => (
+            "color among permanents you control".to_string(),
+            "colors among permanents you control".to_string(),
+        ),
+        CountExpr::CardsInOpponentsGraveyards(f) => {
+            let f = f.clone().unwrap_or_default();
+            (
+                format!(
+                    "{} in your opponents' graveyards",
+                    cards_phrase(&f, card, false)
+                ),
+                format!(
+                    "{} in your opponents' graveyards",
+                    cards_phrase(&f, card, true)
+                ),
+            )
+        }
+        CountExpr::OpponentsAttacked => (
+            "opponent you're attacking".to_string(),
+            "opponents you're attacking".to_string(),
+        ),
+        CountExpr::AttackedWithThisTurn => (
+            "creature you attacked with this turn".to_string(),
+            "creatures you attacked with this turn".to_string(),
+        ),
+        // "for each artifact and/or creature card in your graveyard".
+        CountExpr::AndOr(inner) => {
+            return count_phrase(inner, card, each).replacen(" and ", " and/or ", 1);
+        }
     };
     if each {
         format!("for each {one}")
@@ -2174,19 +2236,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     pt_mod(*power, *toughness),
                     format!(" {}", count_phrase(&c.expr, ctx.card, true)),
                 ),
-                Some(c) => {
-                    let x = |v: i32| match v {
-                        0 => "+0".to_string(),
-                        v if v > 0 => "+X".to_string(),
-                        _ => "-X".to_string(),
-                    };
-                    (
-                        format!("{}/{}", x(*power), x(*toughness)),
-                        format!(", where X is {}", count_phrase(&c.expr, ctx.card, false)),
-                    )
-                }
+                Some(c) => (
+                    format!(
+                        "{}/{}",
+                        x_sign(*power, *toughness),
+                        x_sign(*toughness, *power)
+                    ),
+                    format!(", where X is {}", count_phrase(&c.expr, ctx.card, false)),
+                ),
                 None => (
-                    format!("{}/{}", x_sign(*power), x_sign(*toughness)),
+                    format!(
+                        "{}/{}",
+                        x_sign(*power, *toughness),
+                        x_sign(*toughness, *power)
+                    ),
                     String::new(),
                 ),
             };
@@ -3282,6 +3345,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, format!("{verb} that type")).until_eot()
         }
+        Effect::WhenYouDo { targets, effects } => {
+            // CR 603.12: its own targets; the source and the trigger as the
+            // ability around it has them.
+            let mut inner = Ctx::new(ctx.card, ctx.lookup, targets);
+            inner.current = ctx.current;
+            inner.trigger = ctx.trigger;
+            inner.source_mentioned = ctx.source_mentioned;
+            let body = sentences(effects, &mut inner);
+            ctx.source_mentioned |= inner.source_mentioned;
+            Clause::imperative(format!(
+                "when you do, {}",
+                lowercase_first(&body).trim_end_matches('.')
+            ))
+        }
         Effect::IfYouDo(inner) => {
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
@@ -3557,6 +3634,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             trigger,
             effects,
             trigger_first,
+            this_turn,
         } => {
             let was = (ctx.in_delayed, ctx.delayed_that);
             ctx.in_delayed = true;
@@ -3564,7 +3642,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let body = sentences(effects, ctx);
             (ctx.in_delayed, ctx.delayed_that) = was;
             let body = body.trim_end_matches('.').to_string();
-            let t = trigger_text(trigger, ctx, true);
+            let t = if *this_turn {
+                crate::format::this_turn_trigger(trigger).to_string()
+            } else {
+                trigger_text(trigger, ctx, true)
+            };
             if *trigger_first {
                 Clause::imperative(format!("{t}, {}", lowercase_first(&body)))
             } else {
@@ -3832,7 +3914,13 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             out.push(' ');
             out.push_str(suffix);
         }
-        out.push_str(&c.tail);
+        // "deals X damage to any target and you gain X life, where X is
+        // ...": one X, explained once at the end.
+        let shared_where = c.tail.starts_with(", where X is ")
+            && clauses[i + 1..].iter().any(|d| d.tail == c.tail);
+        if !shared_where {
+            out.push_str(&c.tail);
+        }
     }
     if shared_suffix && !s.eot_first {
         out.push(' ');
@@ -4829,12 +4917,29 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             let mut t = mod_text(m, plural_form);
             if let Mod::ModifyPtPer {
                 count: Num::Count(i),
-                ..
+                power,
+                toughness,
             } = m
                 && let Some(c) = card.counts.get(usize::from(*i))
             {
-                t.push(' ');
-                t.push_str(&count_phrase(&c.expr, card, true));
+                // "Enchanted creature gets -X/-X, where X is the number of
+                // cards in your hand."
+                if c.style == crate::ast::CountStyle::Where {
+                    t = t.replacen(
+                        &pt_mod(*power, *toughness),
+                        &format!(
+                            "{}/{}",
+                            x_sign(*power, *toughness),
+                            x_sign(*toughness, *power)
+                        ),
+                        1,
+                    );
+                    t.push_str(", where X is ");
+                    t.push_str(&count_phrase(&c.expr, card, false));
+                } else {
+                    t.push(' ');
+                    t.push_str(&count_phrase(&c.expr, card, true));
+                }
             }
             t
         })
@@ -5473,6 +5578,23 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             if let Some(k) = cost.keyword {
                 text = format!("{} — {text}", k.name());
             }
+            match cost.reduce.as_deref() {
+                Some((by, crate::ast::ReduceBy::Each(e))) => {
+                    let _ = write!(
+                        text,
+                        " This ability costs {by} less to activate {}.",
+                        count_phrase(e, card, true)
+                    );
+                }
+                Some((by, crate::ast::ReduceBy::If(c))) => {
+                    let _ = write!(
+                        text,
+                        " This ability costs {by} less to activate if {}.",
+                        static_cond_text(c, card)
+                    );
+                }
+                None => {}
+            }
             text.push_str(&restrictions_text(cost, card));
             text
         }
@@ -5584,6 +5706,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             filter_a(filter, card)
         ),
         Ability::SelfCost { per, times } => {
+            // "This spell costs {X} less to cast, where X is the greatest
+            // power among creatures you control."
+            if let Num::Count(i) = times
+                && let Some(c) = card.counts.get(usize::from(*i))
+                && c.style == crate::ast::CountStyle::Where
+            {
+                return format!(
+                    "This spell costs {{X}} less to cast, where X is {}.",
+                    count_phrase(&c.expr, card, false)
+                );
+            }
             let tail = match times {
                 Num::Count(i) => card
                     .counts

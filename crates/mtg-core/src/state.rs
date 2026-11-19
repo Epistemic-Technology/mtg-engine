@@ -95,11 +95,14 @@ pub struct Lookback {
 }
 
 /// A delayed triggered ability (CR 603.7): created by an effect, triggers
-/// once at the next matching step, then ceases to exist.
+/// once at the next matching step or event, then ceases to exist.
 #[derive(Copy, Clone, Debug)]
 pub struct DelayedTrigger {
     pub controller: PlayerId,
     pub ability: StackAbility,
+    /// "When that creature dies this turn": ends at cleanup if it hasn't
+    /// triggered (CR 603.7c).
+    pub this_turn: bool,
 }
 
 /// Something a spell or ability can target or an effect can act on.

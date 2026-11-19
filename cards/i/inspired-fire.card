@@ -1,0 +1,7 @@
+card "Inspired Fire" {
+  oracle_id 7f43b15b-b5d4-4ec6-bd5b-9cf56b2a6bde
+  cost {3}{R}
+  type Instant
+  this spell costs {1} less count each drawn this turn
+  spell: this deals 4 damage to target creature
+}

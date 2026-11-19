@@ -1,0 +1,7 @@
+card "Deadly Alliance" {
+  oracle_id 0d2cdcc6-da65-4f66-ba38-111efad44919
+  cost {4}{B}
+  type Instant
+  this spell costs {1} less count each party
+  spell: destroy target creature or planeswalker
+}

@@ -1,0 +1,7 @@
+card "Boilerbilges Ripper" {
+  oracle_id 0cbe2a00-4303-4ade-98b5-4172d97f15fb
+  cost {4}{R}
+  type Creature — Human Assassin
+  pt 4/4
+  triggered when this enters: you may you sacrifice a another creature or enchantment; when you do, this creature deals 2 damage to any target
+}

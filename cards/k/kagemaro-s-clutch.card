@@ -1,0 +1,7 @@
+card "Kagemaro's Clutch" {
+  oracle_id f83f6ba0-bb23-4c62-8a16-b17f5fbc0740
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted creature: -1/-1 count where hand
+}

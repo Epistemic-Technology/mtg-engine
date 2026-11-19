@@ -1,0 +1,7 @@
+card "In Thrall to the Pit" {
+  oracle_id 5bf1c26b-12eb-4be7-b9d6-f8ad75a778aa
+  cost {3}{R}
+  type Sorcery
+  kicker {2}{B}
+  spell: gain control of target creature; untap that creature; target 1 gains haste; if kicked, delayed target 1: sacrifice that creature at beginning of the next end step
+}

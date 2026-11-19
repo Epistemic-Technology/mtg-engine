@@ -1,0 +1,6 @@
+card "Accelerated Mutation" {
+  oracle_id f8a9c279-0f11-4a22-8651-f9caf013ca3c
+  cost {3}{G}{G}
+  type Instant
+  spell: target creature gets +1/+1 count where greatest mana value
+}

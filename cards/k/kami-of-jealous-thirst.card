@@ -1,0 +1,8 @@
+card "Kami of Jealous Thirst" {
+  oracle_id 5973d8f6-242c-4014-b66e-aa5c78440be7
+  cost {2}{B}
+  type Creature — Spirit
+  pt 1/3
+  keywords deathtouch
+  activated {4}{B}, reduced {4}{B} if drew 3 cards this turn, once: each opponent loses 2 life and you gain 2 life
+}

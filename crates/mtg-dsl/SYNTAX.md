@@ -154,7 +154,12 @@ end of combat`, and `once ever` ("only once": once for as long as the
 source stays the same object, CR 400.7). `sorcery`, `once`, and the
 restrictions print as one
 sentence in the order written: `if you control enchantment, sorcery` is
-"Activate only if you control an enchantment and only as a sorcery". An ability whose cost
+"Activate only if you control an enchantment and only as a sorcery".
+`reduced {1} each <count>` ("This ability costs {1} less to activate for
+each Town you control.") and `reduced {4}{B} if <static condition>` ("...
+less to activate if you've drawn three or more cards this turn.") take
+mana off the ability's cost as it is activated (CR 601.2f by way of
+602.2b), printed after the effect and before the restrictions. An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
 
 ### Triggers
@@ -522,6 +527,21 @@ target 1` is "that creature's power"; read as the target last existed if
 it has left), `mana value of target 1` ("its mana value", X included on
 the stack), `greatest power creature you control` ("the greatest power
 among creatures you control"), or `life`; `this gets +1/+1 count each creature you
+it has left), `mana value of target 1` ("its mana value"), `toughness`
+(the source's), `life`, `party` ("creatures in your party", CR 700.8: one
+each of Cleric, Rogue, Warrior, and Wizard at most), `greatest power`
+("the greatest power among creatures you control"), `greatest mana value`
+("... among permanents you control"), `drawn this turn` ("cards you've
+drawn this turn"), `colors among permanents` ("colors among permanents
+you control"), `opponents graveyards [<filter>]` ("creature cards in your
+opponents' graveyards"), `opponents attacked` ("opponents you're
+attacking"), `attacked with this turn` ("creatures you attacked with this
+turn"), or `andor <expr>` (the same count, printed "artifact and/or
+creature card"); two clauses of one sentence with the same `count where`
+share one X ("deals X damage to any target and you gain X life, where X
+is ..."); in a static ability `-1/-1 count where hand` prints "gets -X/-X,
+where X is ...", and `this spell costs {1} less count where greatest
+power` prints "costs {X} less to cast, where X is ..."; `this gets +1/+1 count each creature you
 control` scales a pump, and in a static ability `+1/+1 count each
 artifact you control` is "gets +1/+1 for each artifact you control"; "until end of turn" is implied by `gets`,
 `gains`, `becomes`, `has base power and toughness`, and `gain control of`
@@ -608,7 +628,12 @@ targets this` ("that targets this
 creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
-{2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless
+{2}. If you do, draw a card."), `when you do, <clause>` (a reflexive
+triggered ability, CR 603.12: it triggers only if the optional action
+before it happened, and its targets are its own, chosen as it goes on the
+stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
+target`; `you may you sacrifice a creature` prints "you may sacrifice a
+creature", and an empty choice is no action), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
 stop it), `add {R} or {G} or {W}` ("Add {R}, {G}, or {W}."), `adapt 2` (CR 701.46:
 +1/+1 counters only if it has none), `<what> connives` (CR 701.50), `dig 4 take creature
@@ -655,7 +680,11 @@ also works ("Draw a card at the beginning of the next turn's upkeep"), and
 `at end of combat` ("destroy it at end of combat"). Inside a delayed ability `it` is the object
 the ability is about; in one about `that creature` (the triggering object),
 `that creature` is that object too, only while it is the same object
-(CR 603.7c), and prints "that creature".
+(CR 603.7c), and prints "that creature"; in one about a target, `that
+creature` is the object too. `delayed target 1: when that creature dies
+this turn, <effects>` (and `when that creature leaves the battlefield this
+turn`) triggers once if that object dies (leaves) and ends unfired at the
+cleanup step (CR 603.7c).
 
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),

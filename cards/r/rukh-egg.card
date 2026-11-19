@@ -1,0 +1,7 @@
+card "Rukh Egg" {
+  oracle_id 98116aec-2ab1-4bee-b727-9feff6274825
+  cost {3}{R}
+  type Creature — Bird Egg
+  pt 0/3
+  triggered when this dies: delayed this: create 1 "4/4 red Bird creature with flying" at beginning of the next end step
+}

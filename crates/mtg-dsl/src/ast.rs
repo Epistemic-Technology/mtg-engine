@@ -207,11 +207,36 @@ pub enum CountExpr {
     BlockingIt {
         beyond: u32,
     },
-    /// `mana value of target 1`: "its mana value".
-    TargetManaValue(usize),
     /// `greatest power creature you control`: "the greatest power among
     /// creatures you control".
     GreatestPower(Filter),
+    /// `party`: "creatures in your party" (CR 700.8).
+    Party,
+    /// `greatest mana value`: "the greatest mana value among permanents you
+    /// control".
+    GreatestManaValue,
+    /// `drawn this turn`: "cards you've drawn this turn".
+    CardsDrawnThisTurn,
+    /// `toughness`: the source's, "its toughness".
+    SourceToughness,
+    /// `mana value of target 1` ("its mana value"), `mana value of that
+    /// target 1` ("that creature's mana value").
+    TargetManaValue {
+        n: usize,
+        that: bool,
+    },
+    /// `colors among permanents`: "colors among permanents you control".
+    ColorsAmongPermanents,
+    /// `opponents graveyards [<filter>]`: "cards in your opponents'
+    /// graveyards".
+    CardsInOpponentsGraveyards(Option<Filter>),
+    /// `opponents attacked`: "opponents you're attacking".
+    OpponentsAttacked,
+    /// `attacked with this turn`: "creatures you attacked with this turn".
+    AttackedWithThisTurn,
+    /// `andor <expr>`: the same count, its two types joined "and/or"
+    /// ("artifact and/or creature card", "Merfolk and/or Faeries").
+    AndOr(Box<CountExpr>),
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -222,6 +247,14 @@ pub struct Except {
     pub subtypes: Vec<String>,
     pub keywords: Vec<Keyword>,
     pub abilities: Vec<Ability>,
+}
+
+/// What takes an activated ability's cost down (`reduced {1} each Town you
+/// control`, `reduced {4}{B} if drew 3 cards this turn`).
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum ReduceBy {
+    Each(CountExpr),
+    If(StaticCond),
 }
 
 /// A cost (CR 118): of an activated ability or the additional cost of a
@@ -263,6 +296,9 @@ pub struct Cost {
     pub chosen: mtg_core::card::ChosenCost,
     /// "Activate only once each turn."
     pub per_turn: u8,
+    /// `reduced {1} each Town you control`: "This ability costs {1} less to
+    /// activate for each Town you control."
+    pub reduce: Option<Box<(ManaCost, ReduceBy)>>,
     /// `if <condition>`, `during your upkeep`: "Activate only if ..."
     /// (CR 602.5b).
     pub conditions: Vec<StaticCond>,
@@ -1360,6 +1396,9 @@ pub enum Recipient {
     EachCreatureYouControl,
     EachPermanentYouControl,
     SameObject,
+    /// `that creature` inside a delayed trigger about a target: the object
+    /// the trigger is about (`SameObject`), printed "that creature".
+    SameThat,
     CreatedObject,
     /// `each <filter>` / `all <filter>`: the `n`th of the card's `groups`.
     Group(u16),
@@ -1703,6 +1742,12 @@ pub enum Effect {
     },
     /// `if you do, ...`: only if the optional action before happened.
     IfYouDo(Vec<Sentence>),
+    /// `when you do, <sentence>`: a reflexive triggered ability (CR
+    /// 603.12) with targets of its own, chosen as it triggers.
+    WhenYouDo {
+        targets: Vec<Target>,
+        effects: Vec<Sentence>,
+    },
     /// `<clause> unless you pay {2}`, `... unless they pay {2}`: the payer
     /// may pay to stop it.
     UnlessPays {
@@ -1724,6 +1769,11 @@ pub enum Effect {
         trigger: Trigger,
         effects: Vec<Sentence>,
         trigger_first: bool,
+        /// `when that creature dies this turn` / `when that creature leaves
+        /// the battlefield this turn` (CR 603.7c): the trigger is
+        /// `Dies(This)` / `Leaves(This)` about the recipient, and ends with
+        /// the turn.
+        this_turn: bool,
     },
     /// A replacement or prevention effect that lasts until end of turn.
     CreateReplacement(Replacement),

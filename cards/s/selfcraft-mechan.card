@@ -1,0 +1,7 @@
+card "Selfcraft Mechan" {
+  oracle_id 4ba4cb4b-f421-4abd-8fcf-a01174447790
+  cost {3}{U}
+  type Artifact Creature — Robot Artificer
+  pt 3/4
+  triggered when this enters: you may you sacrifice a artifact; when you do, put 1 +1/+1 counter on target creature and draw 1 card
+}

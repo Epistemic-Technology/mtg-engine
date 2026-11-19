@@ -1,0 +1,7 @@
+card "Eastfarthing Farmer" {
+  oracle_id 4b1603f3-a246-449b-a109-99adb49e5ea4
+  cost {2}{W}
+  type Creature — Halfling Peasant
+  pt 2/3
+  triggered when this enters: create 1 "Food"; when you do, target creature you control gets +1/+1 count each Food you control
+}

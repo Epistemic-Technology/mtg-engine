@@ -1,0 +1,8 @@
+card "Qiqirn Merchant" {
+  oracle_id 560cb970-1c1b-4ba7-8352-bc67b4ea7843
+  cost {2}{U}
+  type Creature — Beast Citizen
+  pt 1/4
+  activated {1}, {T}: draw 1 card then discard 1 card
+  activated {7}, {T}, sacrifice this, reduced {1} each Town you control: draw 3 cards
+}

@@ -1,0 +1,7 @@
+card "Kjeldoran Elite Guard" {
+  oracle_id a1f6df2a-fc97-44d4-a0d1-902d8df94002
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  activated {T}, during combat: target creature gets +2/+2; delayed target 1: when that creature leaves the battlefield this turn, sacrifice this creature
+}

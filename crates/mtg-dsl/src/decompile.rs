@@ -247,6 +247,7 @@ impl Decompiler<'_> {
             conditions: Vec::new(),
             once_ever: false,
             restrict: Vec::new(),
+            reduce: None,
         }
     }
 
@@ -687,6 +688,15 @@ impl Decompiler<'_> {
                 self.sentences(inner),
             ),
             CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
+            CoreEffect::Reflexive(ability) => {
+                let AbilityDef::Triggered(t) = self.pool.ability(*ability) else {
+                    panic!("reflexive ability is not triggered");
+                };
+                Effect::WhenYouDo {
+                    targets: t.targets.iter().map(|t| self.target(*t)).collect(),
+                    effects: self.sentences(&t.effects),
+                }
+            }
             CoreEffect::Pay { mana, life } => Effect::Pay {
                 mana: mana.clone(),
                 life: *life,
@@ -715,7 +725,11 @@ impl Decompiler<'_> {
                 power: *power,
                 toughness: *toughness,
             },
-            CoreEffect::Delayed { ability, about } => {
+            CoreEffect::Delayed {
+                ability,
+                about,
+                this_turn,
+            } => {
                 let AbilityDef::Triggered(t) = self.pool.ability(*ability) else {
                     panic!("delayed ability is not triggered");
                 };
@@ -723,7 +737,8 @@ impl Decompiler<'_> {
                     about: r(*about),
                     trigger: self.trigger(&t.trigger),
                     effects: self.sentences(&t.effects),
-                    trigger_first: false,
+                    trigger_first: *this_turn,
+                    this_turn: *this_turn,
                 }
             }
             CoreEffect::CreateReplacement(rep) => Effect::CreateReplacement(self.replacement(rep)),
@@ -929,6 +944,9 @@ impl Decompiler<'_> {
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
             TriggerSpec::TurnedFaceUp => Trigger::TurnedFaceUp,
             TriggerSpec::Exploits => Trigger::Exploits,
+            TriggerSpec::Reflexive => {
+                unreachable!("a reflexive trigger is decompiled with its effect")
+            }
             TriggerSpec::DrawsNth { whose, n } => Trigger::DrawsNth {
                 whose: *whose,
                 n: *n,
