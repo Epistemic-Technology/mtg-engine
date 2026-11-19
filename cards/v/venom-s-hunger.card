@@ -1,0 +1,7 @@
+card "Venom's Hunger" {
+  oracle_id 8388faa0-f64e-4b01-836e-617f99b808a4
+  cost {4}{B}
+  type Sorcery
+  this spell costs {2} less if you control Villain
+  spell: destroy target creature; you gains 2 life
+}

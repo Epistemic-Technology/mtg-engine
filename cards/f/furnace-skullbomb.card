@@ -1,0 +1,7 @@
+card "Furnace Skullbomb" {
+  oracle_id 77e0c121-724c-43a0-84e3-1800e2d94a34
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: draw 1 cards
+  activated {1}{R}, sacrifice this, sorcery: put 2 oil counters on target artifact or creature you control; draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Grasp of the Hieromancer" {
+  oracle_id 51310af7-796d-4cf0-871e-5055765ffcdd
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has ability { triggered whenever this attacks: tap target creature defending player controls }
+}

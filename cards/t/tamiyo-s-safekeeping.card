@@ -1,0 +1,6 @@
+card "Tamiyo's Safekeeping" {
+  oracle_id bb2b324c-970a-4920-884e-c92ba49669f0
+  cost {G}
+  type Instant
+  spell: target permanent you control gains hexproof, indestructible; you gains 2 life
+}

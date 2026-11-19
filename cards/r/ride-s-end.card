@@ -1,0 +1,7 @@
+card "Ride's End" {
+  oracle_id 89e209f3-c474-453f-9659-ccebfc88bc0f
+  cost {4}{W}
+  type Instant
+  this spell costs {3} less if it targets tapped permanent
+  spell: exile target creature or Vehicle
+}

@@ -1,0 +1,7 @@
+card "Corridor Monitor" {
+  oracle_id 07b6ee55-a77e-4ba7-9ab7-8a8375c7acc9
+  cost {1}{U}
+  type Artifact Creature — Construct
+  pt 1/4
+  triggered when this enters: untap target artifact or creature you control
+}

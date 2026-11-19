@@ -1,0 +1,7 @@
+card "Winged Words" {
+  oracle_id c623aeb1-e6d4-48fe-bd2a-a7a6729aa4df
+  cost {2}{U}
+  type Sorcery
+  this spell costs {1} less if you control creature with flying
+  spell: draw 2 cards
+}

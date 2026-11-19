@@ -1,0 +1,7 @@
+card "Frilled Deathspitter" {
+  oracle_id a65c1fcc-61d1-43d9-a62c-65f156f98bce
+  cost {2}{R}
+  type Creature — Dinosaur
+  pt 3/2
+  label "Enrage" triggered whenever this is dealt damage: deal 2 damage to target opponent or planeswalker
+}

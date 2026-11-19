@@ -1,0 +1,7 @@
+card "Dark Endurance" {
+  oracle_id ded4009d-be23-4e36-a7a3-9e07230712ee
+  cost {1}{B}
+  type Instant
+  this spell costs {1} less if it targets blocking creature
+  spell: target creature gets +2/+0 and gains indestructible
+}

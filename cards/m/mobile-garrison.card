@@ -1,0 +1,8 @@
+card "Mobile Garrison" {
+  oracle_id 14ef5aa4-5f61-4fbd-9a8d-35920c40ec25
+  cost {3}
+  type Artifact — Vehicle
+  pt 3/4
+  triggered whenever this attacks: untap another target artifact or creature you control
+  crew 2
+}

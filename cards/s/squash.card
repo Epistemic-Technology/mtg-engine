@@ -1,0 +1,7 @@
+card "Squash" {
+  oracle_id 54bd7b7c-4052-437d-b2e4-311339e8e16e
+  cost {4}{R}
+  type Instant
+  this spell costs {3} less if you control Giant
+  spell: deal 6 damage to target creature or planeswalker
+}

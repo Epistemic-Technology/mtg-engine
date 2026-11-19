@@ -1,0 +1,7 @@
+card "Stoic Rebuttal" {
+  oracle_id 6dd5782d-2d1a-4d6b-8381-e15d0d5be24f
+  cost {1}{U}{U}
+  type Instant
+  label "Metalcraft" this spell costs {1} less if you control 3 artifact
+  spell: counter target spell
+}

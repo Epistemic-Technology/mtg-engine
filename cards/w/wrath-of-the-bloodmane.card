@@ -1,0 +1,7 @@
+card "Wrath of the Bloodmane" {
+  oracle_id c1994d6a-984d-4b75-9198-1f1822eab6eb
+  cost {2}{R}
+  type Instant
+  this spell costs {1} less if you control legendary creature
+  spell: deal 4 damage to target creature or planeswalker
+}

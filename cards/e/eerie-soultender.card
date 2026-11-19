@@ -1,0 +1,8 @@
+card "Eerie Soultender" {
+  oracle_id a3e4d14b-818a-4a4b-8462-1de9ad844941
+  cost {2}{B}
+  type Creature — Spirit Cleric
+  pt 3/1
+  triggered when this enters: mill 3 cards
+  activated {4}{B}, exile this from graveyard: return another target creature card from your graveyard to hand
+}

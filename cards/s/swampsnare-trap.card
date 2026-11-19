@@ -1,0 +1,8 @@
+card "Swampsnare Trap" {
+  oracle_id fc532d1d-6cf5-4b59-afb3-325d0bc0db77
+  cost {2}{B}
+  type Enchantment — Aura
+  this spell costs {1} less if it targets creature with flying
+  enchant creature
+  static enchanted: -5/-3
+}

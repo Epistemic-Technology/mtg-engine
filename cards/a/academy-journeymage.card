@@ -1,0 +1,8 @@
+card "Academy Journeymage" {
+  oracle_id b400700c-1d82-4721-a166-56f88ba6ad19
+  cost {4}{U}
+  type Creature — Human Wizard
+  pt 3/2
+  this spell costs {1} less if you control Wizard
+  triggered when this enters: return target creature an opponent controls to hand
+}

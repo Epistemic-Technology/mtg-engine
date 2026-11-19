@@ -1,0 +1,6 @@
+card "Sagittars' Volley" {
+  oracle_id d4c4c7d7-744a-4548-adad-a5fc4fb3f586
+  cost {2}{G}
+  type Instant
+  spell: destroy target creature with flying; deal 1 damage to each creature with flying your opponents control
+}

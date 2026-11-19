@@ -1,0 +1,10 @@
+card "Chill of the Grave" {
+  oracle_id 2ee4f7ba-7238-44b5-8315-9f50502ed796
+  cost {2}{U}
+  type Instant
+  this spell costs {1} less if you control Zombie
+  spell {
+    tap target creature; target 1 doesn't untap next untap step
+    draw 1 cards
+  }
+}

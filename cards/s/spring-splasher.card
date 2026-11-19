@@ -1,0 +1,7 @@
+card "Spring Splasher" {
+  oracle_id f1136a22-b202-4688-a44c-a9979c91261a
+  cost {1}{U}
+  type Creature — Frog Beast
+  pt 2/1
+  triggered whenever this attacks: target creature defending player controls gets -3/-0
+}

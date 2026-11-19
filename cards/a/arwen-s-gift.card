@@ -1,0 +1,7 @@
+card "Arwen's Gift" {
+  oracle_id 13ac12db-d04b-4211-90df-886e1c597e8f
+  cost {3}{U}
+  type Sorcery
+  this spell costs {1} less if you control 2 legendary creature
+  spell: scry 2 then draw 2 cards
+}

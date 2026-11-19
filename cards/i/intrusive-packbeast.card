@@ -1,0 +1,8 @@
+card "Intrusive Packbeast" {
+  oracle_id 85a59833-b661-4599-a5d1-042dee033617
+  cost {4}{W}
+  type Creature — Beast
+  pt 3/3
+  keywords vigilance
+  triggered when this enters: tap up to two target creatures your opponents control
+}

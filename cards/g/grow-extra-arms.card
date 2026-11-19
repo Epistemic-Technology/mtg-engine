@@ -1,0 +1,7 @@
+card "Grow Extra Arms" {
+  oracle_id 52f03e73-3dba-44c2-b256-10e7e208b961
+  cost {1}{G}
+  type Instant
+  this spell costs {1} less if it targets Spider
+  spell: target creature gets +4/+4
+}

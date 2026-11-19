@@ -1,0 +1,9 @@
+card "Light the Way" {
+  oracle_id 83917116-d2d8-4701-a79f-af17486706ae
+  cost {W}
+  type Instant
+  choose one {
+    mode: put 1 +1/+1 counters on target creature or Vehicle; untap target 1
+    mode: return target permanent you control to hand
+  }
+}

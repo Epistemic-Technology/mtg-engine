@@ -1,0 +1,7 @@
+card "Carrion Thrash" {
+  oracle_id 89599a64-19fc-47ad-a116-3ce0a10fa546
+  cost {2}{B}{R}{G}
+  type Creature — Lizard Warrior
+  pt 4/4
+  triggered when this dies: you may pay {2}; if you do, return another target creature card from your graveyard to hand
+}

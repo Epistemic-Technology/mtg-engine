@@ -1,0 +1,7 @@
+card "Sun-Crowned Hunters" {
+  oracle_id 9e6e6458-9e0e-404c-af07-225c4665eaec
+  cost {4}{R}{R}
+  type Creature — Dinosaur
+  pt 5/4
+  label "Enrage" triggered whenever this is dealt damage: deal 3 damage to target opponent or planeswalker
+}

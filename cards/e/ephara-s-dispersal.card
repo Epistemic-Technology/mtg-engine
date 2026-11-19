@@ -1,0 +1,7 @@
+card "Ephara's Dispersal" {
+  oracle_id 1e0bb57a-f5c7-45e9-b5b9-5bb3ec930108
+  cost {2}{U}
+  type Instant
+  this spell costs {2} less if it targets attacking creature
+  spell: return target creature to hand; surveil 2
+}

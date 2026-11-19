@@ -1,0 +1,10 @@
+card "Gust of Wind" {
+  oracle_id 7cfc14ce-9940-4c61-9daa-2c6dbf1a80ad
+  cost {3}{U}
+  type Sorcery
+  this spell costs {2} less if you control creature with flying
+  spell {
+    return target nonland permanent you don't control to hand
+    draw 1 cards
+  }
+}

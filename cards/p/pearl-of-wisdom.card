@@ -1,0 +1,7 @@
+card "Pearl of Wisdom" {
+  oracle_id 91ddd2bd-2dec-4670-8edb-e89c009b2187
+  cost {2}{U}
+  type Sorcery
+  this spell costs {1} less if you control Otter
+  spell: draw 2 cards
+}

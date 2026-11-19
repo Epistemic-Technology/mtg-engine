@@ -1,0 +1,8 @@
+card "Mistmeadow Council" {
+  oracle_id 9acfec0d-05a0-4b28-a883-e6863f1cb773
+  cost {4}{G}
+  type Creature — Kithkin Advisor
+  pt 4/3
+  this spell costs {1} less if you control Kithkin
+  triggered when this enters: draw 1 cards
+}

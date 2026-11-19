@@ -1,0 +1,9 @@
+card "Stensia Banquet" {
+  oracle_id 089e7086-3f8e-4b10-a660-fcf4fc99604e
+  cost {2}{R}
+  type Sorcery
+  spell {
+    deal count equal Vampire you control damage to target opponent or planeswalker
+    draw 1 cards
+  }
+}
