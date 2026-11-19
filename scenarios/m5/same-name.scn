@@ -1,0 +1,346 @@
+# References to cards by name and by sharing a characteristic: "named ~"
+# is the card's own name (CR 201.4b), counted in graveyards and on the
+# battlefield and searched for; "with the same name as that creature" and
+# "that shares a color with it" (CR 105.4) relate a group to a target.
+
+scenario "Kindle counts the Kindles in all graveyards" {
+  battlefield A: 2 "Mountain"
+  graveyard A: "Kindle"
+  graveyard B: "Kindle"
+  hand A: "Kindle"
+  turn 1 A: cast "Kindle" targeting player B
+  run_to turn 1 end
+  assert life B 16
+}
+
+scenario "Kindle alone deals 2: it is on the stack, not in the graveyard" {
+  battlefield A: 2 "Mountain"
+  hand A: "Kindle"
+  turn 1 A: cast "Kindle" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Kindle"
+}
+
+scenario "Galvanic Bombardment counts only your graveyard" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard B: 2 "Galvanic Bombardment"
+  hand A: "Galvanic Bombardment"
+  turn 1 A: cast "Galvanic Bombardment" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Galvanic Bombardment with copies in your graveyard" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  graveyard A: "Galvanic Bombardment"
+  hand A: "Galvanic Bombardment"
+  turn 1 A: cast "Galvanic Bombardment" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Accumulated Knowledge draws for each copy in any graveyard" {
+  battlefield A: 2 "Island"
+  graveyard A: "Accumulated Knowledge", "Kindle"
+  graveyard B: "Accumulated Knowledge"
+  hand A: "Accumulated Knowledge"
+  turn 1 A: cast "Accumulated Knowledge"
+  run_to turn 1 end
+  assert hand A count 3
+}
+
+scenario "Take Inventory counts only your graveyard" {
+  battlefield A: 2 "Island"
+  graveyard A: "Take Inventory"
+  graveyard B: 2 "Take Inventory"
+  hand A: "Take Inventory"
+  turn 1 A: cast "Take Inventory"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Goblin Gathering makes two plus one Goblin per copy in your graveyard" {
+  battlefield A: 3 "Mountain"
+  graveyard A: "Goblin Gathering", "Kindle"
+  hand A: "Goblin Gathering"
+  turn 1 A: cast "Goblin Gathering"
+  run_to turn 1 end
+  assert battlefield A contains 3 "Goblin"
+}
+
+scenario "Undead Servant makes a Zombie per Undead Servant in your graveyard" {
+  battlefield A: 4 "Swamp"
+  graveyard A: 2 "Undead Servant"
+  graveyard B: "Undead Servant"
+  hand A: "Undead Servant"
+  turn 1 A: cast "Undead Servant"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Zombie"
+}
+
+scenario "Life Burst gains 4 more life for each copy in each graveyard" {
+  battlefield A: 2 "Plains"
+  graveyard A: "Life Burst"
+  graveyard B: "Life Burst"
+  hand A: "Life Burst"
+  turn 1 A: cast "Life Burst" targeting player A
+  run_to turn 1 end
+  assert life A 32
+}
+
+scenario "Muscle Burst: 3 plus the copies in all graveyards" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  graveyard B: "Muscle Burst"
+  hand A: "Muscle Burst"
+  turn 1 A: cast "Muscle Burst" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Squadron Hawk finds up to three cards named Squadron Hawk" {
+  battlefield A: 2 "Plains"
+  library A: "Grizzly Bears", "Squadron Hawk", "Plains", "Squadron Hawk", "Squadron Hawk", "Squadron Hawk"
+  hand A: "Squadron Hawk"
+  turn 1 A: cast "Squadron Hawk"
+  run_to turn 1 end
+  assert hand A contains 3 "Squadron Hawk"
+  assert hand A lacks "Grizzly Bears"
+  assert library A contains "Squadron Hawk"
+}
+
+scenario "Squadron Hawk finds nothing else" {
+  battlefield A: 2 "Plains"
+  library A: "Grizzly Bears", "Plains"
+  hand A: "Squadron Hawk"
+  turn 1 A: cast "Squadron Hawk"
+  run_to turn 1 end
+  assert hand A count 0
+}
+
+scenario "Gathering Throng finds any number of cards named Gathering Throng" {
+  battlefield A: 3 "Plains"
+  library A: "Gathering Throng", "Plains", "Gathering Throng", "Gathering Throng", "Gathering Throng"
+  hand A: "Gathering Throng"
+  turn 1 A: cast "Gathering Throng"
+  run_to turn 1 end
+  assert hand A contains 4 "Gathering Throng"
+}
+
+scenario "Whisper Squad puts another Whisper Squad onto the battlefield tapped" {
+  battlefield A: "Whisper Squad", 2 "Swamp"
+  library A: "Grizzly Bears", "Whisper Squad"
+  turn 1 A: activate "Whisper Squad"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Whisper Squad"
+  assert tapped newest A "Whisper Squad"
+}
+
+scenario "Wretched Throng dies and finds its namesake (last known name)" {
+  battlefield A: "Wretched Throng", "Mountain"
+  library A: "Plains", "Wretched Throng"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Wretched Throng"
+  run_to turn 1 end
+  assert hand A contains "Wretched Throng"
+}
+
+scenario "Relentless Rats counts every other Relentless Rats on the battlefield" {
+  battlefield A: 2 "Relentless Rats"
+  battlefield B: "Relentless Rats", "Plague Rats"
+  run_to turn 1 precombat_main
+  assert power B "Relentless Rats" 4
+  assert toughness oldest A "Relentless Rats" 4
+}
+
+scenario "Timberpack Wolf counts only the wolves you control" {
+  battlefield A: 2 "Timberpack Wolf"
+  battlefield B: "Timberpack Wolf"
+  run_to turn 1 precombat_main
+  assert power oldest A "Timberpack Wolf" 3
+  assert power B "Timberpack Wolf" 2
+}
+
+scenario "Plague Rats counts itself and every Plague Rats" {
+  battlefield A: 2 "Plague Rats"
+  battlefield B: "Plague Rats", "Relentless Rats"
+  run_to turn 1 precombat_main
+  assert power B "Plague Rats" 3
+  assert toughness oldest A "Plague Rats" 3
+}
+
+scenario "Plague Rats shrinks as the others die" {
+  battlefield A: "Plague Rats", "Mountain"
+  battlefield B: "Plague Rats"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting B "Plague Rats"
+  run_to turn 1 end
+  assert graveyard B contains "Plague Rats"
+  assert power A "Plague Rats" 1
+}
+
+scenario "Charmed Stray puts a counter on each other Charmed Stray you control" {
+  battlefield A: "Plains", "Charmed Stray", "Grizzly Bears"
+  battlefield B: "Charmed Stray"
+  hand A: "Charmed Stray"
+  turn 1 A: cast "Charmed Stray"
+  run_to turn 1 end
+  assert counters oldest A "Charmed Stray" +1/+1 1
+  assert counters newest A "Charmed Stray" +1/+1 0
+  assert counters B "Charmed Stray" +1/+1 0
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Cleric of the Forward Order counts itself" {
+  battlefield A: 2 "Plains", "Cleric of the Forward Order"
+  hand A: "Cleric of the Forward Order"
+  turn 1 A: cast "Cleric of the Forward Order"
+  run_to turn 1 end
+  assert life A 24
+}
+
+scenario "Faerie Miscreant draws only with another Faerie Miscreant" {
+  battlefield A: 2 "Island", "Faerie Miscreant"
+  hand A: "Faerie Miscreant", "Faerie Miscreant"
+  turn 1 A: cast "Faerie Miscreant"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Faerie Miscreant alone draws nothing" {
+  battlefield A: "Island"
+  battlefield B: "Faerie Miscreant"
+  hand A: "Faerie Miscreant"
+  turn 1 A: cast "Faerie Miscreant"
+  run_to turn 1 end
+  assert hand A count 0
+}
+
+scenario "Hare Apparent makes a Rabbit per other Hare Apparent you control" {
+  battlefield A: 2 "Plains", 2 "Hare Apparent"
+  battlefield B: "Hare Apparent"
+  hand A: "Hare Apparent"
+  turn 1 A: cast "Hare Apparent"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Rabbit"
+}
+
+scenario "Clever Conjurer can't untap itself" {
+  battlefield A: "Clever Conjurer"
+  illegal turn 1 A: activate "Clever Conjurer" targeting "Clever Conjurer"
+  run_to turn 1 end
+}
+
+scenario "Clever Conjurer can't untap another Clever Conjurer" {
+  battlefield A: "Clever Conjurer"
+  battlefield B: "Clever Conjurer" tapped
+  illegal turn 1 A: activate "Clever Conjurer" targeting B "Clever Conjurer"
+  run_to turn 1 end
+}
+
+scenario "Clever Conjurer untaps another permanent" {
+  battlefield A: "Clever Conjurer", "Mountain" tapped
+  turn 1 A: activate "Clever Conjurer" targeting "Mountain"
+  run_to turn 1 end
+  assert untapped "Mountain"
+}
+
+scenario "Groffskithur returns a card named Groffskithur when blocked" {
+  battlefield A: "Groffskithur"
+  battlefield B: "Grizzly Bears"
+  graveyard A: "Groffskithur", "Hill Giant"
+  turn 3 A: attack "Groffskithur"
+  turn 3 B: block "Groffskithur" with "Grizzly Bears"
+  run_to turn 3 end
+  assert hand A contains "Groffskithur"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Echoing Decay shrinks every creature with the target's name" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: 2 "Grizzly Bears", "Hill Giant"
+  hand A: "Echoing Decay"
+  turn 1 A: cast "Echoing Decay" targeting oldest B "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A lacks "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Echoing Courage pumps only the namesakes" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Echoing Courage"
+  turn 1 A: cast "Echoing Courage" targeting A "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power A "Grizzly Bears" 4
+  assert power B "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+}
+
+scenario "Echoing Ruin destroys every artifact with the target's name" {
+  battlefield A: 2 "Mountain", "Ornithopter", "Memnite"
+  battlefield B: "Ornithopter"
+  hand A: "Echoing Ruin"
+  turn 1 A: cast "Echoing Ruin" targeting B "Ornithopter"
+  run_to turn 1 end
+  assert graveyard A contains "Ornithopter"
+  assert graveyard B contains "Ornithopter"
+  assert battlefield A contains "Memnite"
+}
+
+scenario "Echoing Calm destroys every enchantment with the target's name" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Hill Giant", "Pacifism" on "Grizzly Bears", "Pacifism" on "Hill Giant", "Holy Strength" on "Hill Giant"
+  hand A: "Echoing Calm"
+  turn 1 A: cast "Echoing Calm" targeting oldest A "Pacifism"
+  run_to turn 1 end
+  assert graveyard A contains 2 "Pacifism"
+  assert battlefield A contains "Holy Strength"
+}
+
+scenario "Wojek Siren pumps the target and each creature sharing a color with it" {
+  battlefield A: "Plains", "Raging Goblin", "Grizzly Bears"
+  battlefield B: "Goblin Piker", "Hill Giant"
+  hand A: "Wojek Siren"
+  turn 1 A: cast "Wojek Siren" targeting "Raging Goblin"
+  run_to turn 1 postcombat_main
+  assert power "Raging Goblin" 2
+  assert power "Goblin Piker" 3
+  assert power "Hill Giant" 4
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Wojek Siren on a colorless creature pumps it alone" {
+  battlefield A: "Plains", "Ornithopter", "Memnite", "Grizzly Bears"
+  hand A: "Wojek Siren"
+  turn 1 A: cast "Wojek Siren" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Ornithopter" 1
+  assert power "Memnite" 1
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Surge of Zeal gives haste to the target and those sharing a color" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Surge of Zeal"
+  turn 1 A: cast "Surge of Zeal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" haste
+  assert has "Llanowar Elves" haste
+  assert has not "Hill Giant" haste
+}
+
+scenario "Leave No Trace destroys enchantments sharing a color with the target" {
+  battlefield A: 2 "Plains", "Grizzly Bears", "Hill Giant", "Pacifism" on "Grizzly Bears", "Holy Strength" on "Hill Giant", "Unholy Strength" on "Hill Giant"
+  hand A: "Leave No Trace"
+  turn 1 A: cast "Leave No Trace" targeting "Pacifism"
+  run_to turn 1 end
+  assert graveyard A contains "Pacifism"
+  assert graveyard A contains "Holy Strength"
+  assert battlefield A contains "Unholy Strength"
+}

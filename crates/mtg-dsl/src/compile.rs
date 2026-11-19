@@ -8,16 +8,18 @@ use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
     CdaCount as CoreCdaCount, ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost,
     Effect as CoreEffect, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
-    Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
-    SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
-    TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
+    Recipient as CoreRecipient, Relation, ReplacementAbility, Replaces as CoreReplaces,
+    SacCost as CoreSacCost, Same, SameOf, SameWhat, StaticAbility, StaticCondition, SubtypeSet,
+    SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
+    Who,
 };
 use mtg_core::mana::{Color, ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Filter, Kind, Mechanic, Mod,
-    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Recipient, Replacement, Replaces, SacCost, SameRef, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -312,6 +314,7 @@ impl Compiler<'_> {
             if matches!(
                 unlabeled(a),
                 Ability::Keyword(_)
+                    | Ability::DeckAnyNumber
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
                     | Ability::CondCost { .. }
@@ -365,7 +368,35 @@ impl Compiler<'_> {
             not_keywords: KeywordSet::of(f.not_keywords.iter().copied()),
             subtypes: self.subtypes(&f.subtypes),
             not_subtypes: self.subtypes(&f.not_subtypes),
-            relation: f.relation,
+            // "and all other creatures with the same name as that
+            // creature": other than the target (`TargetAndGroup`), not the
+            // source.
+            relation: match f.same {
+                Some(SameRef::SameNameAs(_) | SameRef::SharesColorWith(_)) => Relation::Any,
+                _ => f.relation,
+            },
+            same: f.same.map(|r| {
+                let target = |n: usize| SameOf::Target(u8::try_from(n).unwrap_or(u8::MAX));
+                match r {
+                    SameRef::NamedThis => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::Name,
+                    },
+                    SameRef::NotNamedThis => Same {
+                        of: SameOf::Source,
+                        what: SameWhat::NotName,
+                    },
+                    SameRef::SameNameAs(n) => Same {
+                        of: target(n),
+                        what: SameWhat::Name,
+                    },
+                    SameRef::SharesColorWith(n) => Same {
+                        of: target(n),
+                        what: SameWhat::Color,
+                    },
+                }
+            }),
+            named: None,
             enchanted: f.enchanted,
             no_abilities: f.no_abilities,
             any_types: TypeSet::of(f.any_types.iter().copied()),
@@ -479,6 +510,10 @@ impl Compiler<'_> {
             },
             A::Life => C::Life,
             A::Times(n, inner) => C::Times(*n, Box::new(self.count_expr(inner))),
+            A::CardsInGraveyards { filter, .. } => {
+                C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
+            }
+            A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
         }
     }
 
@@ -550,6 +585,7 @@ impl Compiler<'_> {
     fn recipient(groups: &[u16], many: Option<usize>, r: Recipient) -> CoreRecipient {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
+            Recipient::TargetAnd(t, i) => CoreRecipient::TargetAndGroup(t, groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
@@ -1279,6 +1315,7 @@ impl Compiler<'_> {
         self.many = None;
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
+            Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
                 // choices is split by the caller through `abilities()`.

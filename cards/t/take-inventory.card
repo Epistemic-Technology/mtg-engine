@@ -1,0 +1,6 @@
+card "Take Inventory" {
+  oracle_id 925b3d1b-98cd-44f5-8aa0-e2b17df2808a
+  cost {1}{U}
+  type Sorcery
+  spell: draw 1 card then draw count equal graveyard named this cards
+}

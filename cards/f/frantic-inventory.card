@@ -1,0 +1,6 @@
+card "Frantic Inventory" {
+  oracle_id a7865331-4c53-46db-b2d7-7e5cb21b6b9d
+  cost {1}{U}
+  type Instant
+  spell: draw 1 card then draw count equal graveyard named this cards
+}

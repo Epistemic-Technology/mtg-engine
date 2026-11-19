@@ -1,0 +1,8 @@
+card "Squadron Hawk" {
+  oracle_id 00ab9841-934f-4a66-a98d-68d01661b1c9
+  cost {1}{W}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  triggered when this enters: you may search up to 3 card named this reveal to hand
+}

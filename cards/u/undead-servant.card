@@ -1,0 +1,7 @@
+card "Undead Servant" {
+  oracle_id 5bf9f397-0216-4ec9-a57b-406758dcc233
+  cost {3}{B}
+  type Creature — Zombie
+  pt 3/2
+  triggered when this enters: create count each graveyard named this "2/2 black Zombie creature"
+}

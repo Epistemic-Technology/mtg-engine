@@ -1,0 +1,8 @@
+card "Hare Apparent" {
+  oracle_id 3c1619bd-db5e-4df6-a196-0a9d62374f6d
+  cost {1}{W}
+  type Creature — Rabbit Noble
+  pt 2/2
+  triggered when this enters: create count equal other creature you control named this "1/1 white Rabbit creature"
+  deck any number
+}

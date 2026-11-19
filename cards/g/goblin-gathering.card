@@ -1,0 +1,6 @@
+card "Goblin Gathering" {
+  oracle_id 01f06642-015f-40b4-a940-af576ad9e82c
+  cost {2}{R}
+  type Sorcery
+  spell: create count equal plus two graveyard named this "1/1 red Goblin creature"
+}

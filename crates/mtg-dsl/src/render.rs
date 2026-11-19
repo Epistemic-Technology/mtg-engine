@@ -15,8 +15,8 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond,
-    Target, Trigger, TriggerObj,
+    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, SacCost, SameRef, Sentence,
+    StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -63,7 +63,7 @@ impl Lookup for std::collections::HashMap<String, Card> {
     }
 }
 
-const NUMBER_WORDS: [&str; 20] = [
+pub(crate) const NUMBER_WORDS: [&str; 20] = [
     "one",
     "two",
     "three",
@@ -724,14 +724,10 @@ impl<'a> Ctx<'a> {
                 } else {
                     "target"
                 };
-                if g == Filter::default() {
-                    format!("{tgt} card from {whose} graveyard")
-                } else {
-                    format!(
-                        "{tgt} {} card from {whose} graveyard",
-                        card_filter_phrase(&g, self.card)
-                    )
-                }
+                format!(
+                    "{tgt} {} from {whose} graveyard",
+                    cards_phrase(&g, self.card, false)
+                )
             }
         }
     }
@@ -799,7 +795,35 @@ impl<'a> Ctx<'a> {
                 format!("each {}", self.group_phrase(i, false))
             }
             Recipient::Attached => filter_phrase(&Filter::enchanted(), self.card, false),
+            Recipient::TargetAnd(t, i) => self.target_and(t, i),
         }
+    }
+
+    /// "target creature and all other creatures with the same name as that
+    /// creature", "target creature and each other creature that shares a
+    /// color with it".
+    fn target_and(&mut self, target: usize, group: u16) -> String {
+        let first = self.obj(Recipient::Target(target));
+        let Some(filter) = self.card.groups.get(usize::from(group)) else {
+            return first;
+        };
+        let mut rest = filter.clone();
+        rest.same = None;
+        let plural_form = filter.all;
+        let phrase = filter_phrase(&rest, self.card, plural_form);
+        let rel = match filter.same {
+            Some(SameRef::SameNameAs(n)) => format!(
+                " with the same name as that {}",
+                self.target_noun.get(n).map_or("permanent", String::as_str)
+            ),
+            Some(SameRef::SharesColorWith(_)) => format!(
+                " that {} a color with it",
+                if plural_form { "share" } else { "shares" }
+            ),
+            _ => String::new(),
+        };
+        let det = if plural_form { "all" } else { "each" };
+        format!("{first} and {det} {phrase}{rel}")
     }
 
     /// The filter of the card's `i`th group, as a noun phrase.
@@ -986,6 +1010,7 @@ impl<'a> Ctx<'a> {
                 | Recipient::EachPermanentYouControl
                 | Recipient::Group(_)
                 | Recipient::Targets(..)
+                | Recipient::TargetAnd(..)
         )
     }
 
@@ -1265,6 +1290,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if !f.not_keywords.is_empty() {
         let _ = write!(s, " without {}", keywords_list(&f.not_keywords));
     }
+    if f.named_first {
+        s.push_str(&same_phrase(f, card, plural_form));
+    }
     match f.who {
         Some(Who::You) => s.push_str(" you control"),
         Some(Who::Opponents) if f.dont_control => s.push_str(" you don't control"),
@@ -1289,7 +1317,40 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
             OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
         });
     }
+    if !f.named_first {
+        s.push_str(&same_phrase(f, card, plural_form));
+    }
     s
+}
+
+/// " named ~", " not named ~" (CR 201.4b: the card's own name), and the
+/// relations to a target outside a recipient that names it (" with the
+/// same name as it").
+fn same_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    match f.same {
+        None => String::new(),
+        Some(SameRef::NamedThis) => format!(" named {}", card.name),
+        Some(SameRef::NotNamedThis) => format!(" not named {}", card.name),
+        Some(SameRef::SameNameAs(_)) => " with the same name as it".to_string(),
+        Some(SameRef::SharesColorWith(_)) => format!(
+            " that {} a color with it",
+            if plural_form { "share" } else { "shares" }
+        ),
+    }
+}
+
+/// "card named ~", "cards named ~", "creature card": a filter on cards
+/// (in a library or graveyard) as a noun phrase, the name after the noun.
+fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    let mut g = f.clone();
+    g.same = None;
+    let p = if g == Filter::default() {
+        String::new()
+    } else {
+        format!("{} ", card_filter_phrase(&g, card))
+    };
+    let noun = if plural_form { "cards" } else { "card" };
+    format!("{p}{noun}{}", same_phrase(f, card, plural_form))
 }
 
 /// What "Choose ..." chooses: "a creature type other than Wall", "a
@@ -1628,6 +1689,25 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         return count_phrase(inner, card, each);
     }
     let (one, many) = match c {
+        // "creatures named ~ on the battlefield" (`named_first`), "other
+        // creature on the battlefield named ~".
+        CountExpr::Permanents(f) if f.who.is_none() && f.same.is_some() && !f.named_first => {
+            let mut g = f.clone();
+            g.same = None;
+            let place = " on the battlefield";
+            (
+                format!(
+                    "{}{place}{}",
+                    filter_phrase(&g, card, false),
+                    same_phrase(f, card, false)
+                ),
+                format!(
+                    "{}{place}{}",
+                    filter_phrase(&g, card, true),
+                    same_phrase(f, card, true)
+                ),
+            )
+        }
         CountExpr::Permanents(f) => {
             let place = if f.who.is_none() {
                 " on the battlefield"
@@ -1652,14 +1732,33 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "card in your graveyard".to_string(),
                 "cards in your graveyard".to_string(),
             ),
-            Some(f) => {
-                let p = card_filter_phrase(f, card);
-                (
-                    format!("{p} card in your graveyard"),
-                    format!("{p} cards in your graveyard"),
-                )
-            }
+            Some(f) => (
+                format!("{} in your graveyard", cards_phrase(f, card, false)),
+                format!("{} in your graveyard", cards_phrase(f, card, true)),
+            ),
         },
+        // "cards named ~ in all graveyards", "for each card named ~ in each
+        // graveyard".
+        CountExpr::CardsInGraveyards { filter, each } => {
+            let f = filter.clone().unwrap_or_default();
+            let place = if *each {
+                "each graveyard"
+            } else {
+                "all graveyards"
+            };
+            (
+                format!("{} in {place}", cards_phrase(&f, card, false)),
+                format!("{} in {place}", cards_phrase(&f, card, true)),
+            )
+        }
+        CountExpr::Plus { n, word, inner } => {
+            let n = if *word {
+                count_words(Num::N(*n), "one")
+            } else {
+                n.to_string()
+            };
+            return format!("{n} plus {}", count_phrase(inner, card, each));
+        }
         CountExpr::SourcePower => {
             return if each {
                 "for each power".to_string()
@@ -1701,7 +1800,13 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 );
             }
             CountStyle::Equal => {
-                c.text = c.text.replacen("X ", "", 1);
+                // "Create a number of 1/1 red Goblin creature tokens equal
+                // to ...".
+                c.text = if matches!(e, Effect::CreateToken { .. }) {
+                    c.text.replacen("X ", "a number of ", 1)
+                } else {
+                    c.text.replacen("X ", "", 1)
+                };
                 let _ = write!(
                     c.tail,
                     " equal to {}",
@@ -1720,6 +1825,10 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     .replacen("X damage", &format!("{per} damage"), 1)
                     .replacen("X ", "a ", 1)
                     .replacen("a cards", "a card", 1);
+                // "create a 2/2 black Zombie creature token for each ...".
+                if matches!(e, Effect::CreateToken { .. }) {
+                    c.text = c.text.replacen(" tokens", " token", 1);
+                }
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
             }
         }
@@ -2353,7 +2462,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             that_card,
         } => {
             let one = *count == Num::N(1) && !*up_to;
-            let what = if filter == &Filter::default() {
+            let any = *count == Num::N(crate::ast::ANY_NUMBER);
+            let what = if any {
+                format!("any number of {}", cards_phrase(filter, ctx.card, true))
+            } else if filter.same.is_some() {
+                // "a card named ~", "up to three cards named ~".
+                if one {
+                    format!("a {}", cards_phrase(filter, ctx.card, false))
+                } else {
+                    format!(
+                        "{}{} {}",
+                        if *up_to { "up to " } else { "" },
+                        count_words(*count, "a"),
+                        cards_phrase(filter, ctx.card, true)
+                    )
+                }
+            } else if filter == &Filter::default() {
                 if one {
                     "a card".to_string()
                 } else {
@@ -3636,7 +3760,15 @@ fn cda_count_text(c: &CdaCount, card: &Card) -> String {
         CdaCount::CreatureCardsInGraveyards => {
             "the number of creature cards in all graveyards".to_string()
         }
-        CdaCount::Permanents(f) => format!("the number of {}", filter_phrase(f, card, true)),
+        CdaCount::Permanents(f) => format!(
+            "the number of {}{}",
+            filter_phrase(f, card, true),
+            if f.who.is_none() {
+                " on the battlefield"
+            } else {
+                ""
+            }
+        ),
         CdaCount::ControllerLife => "your life total".to_string(),
     }
 }
@@ -4158,6 +4290,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 self_noun(card),
                 static_cond_text(cond, card)
             )
+        }
+        Ability::DeckAnyNumber => {
+            format!("A deck can have any number of cards named {}.", card.name)
         }
         Ability::HandSize { whose, delta } => {
             let (subject, have) = if *whose == Who::Opponents {

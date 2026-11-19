@@ -1,0 +1,6 @@
+card "Galvanic Bombardment" {
+  oracle_id 13d8347f-adb9-41b5-a7b0-a6153bcf2d6c
+  cost {R}
+  type Instant
+  spell: deal count where plus 2 graveyard named this damage to target creature
+}

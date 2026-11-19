@@ -141,6 +141,19 @@ impl Decompiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             chosen: f.chosen.then_some(crate::ast::OfChosen::ChosenType),
+            same: f.same.map(|r| {
+                use crate::ast::SameRef;
+                use mtg_core::card::{SameOf, SameWhat};
+                match (r.of, r.what) {
+                    (SameOf::Source, SameWhat::NotName) => SameRef::NotNamedThis,
+                    (SameOf::Source, _) => SameRef::NamedThis,
+                    (SameOf::Target(n), SameWhat::Color) => {
+                        SameRef::SharesColorWith(usize::from(n))
+                    }
+                    (SameOf::Target(n), _) => SameRef::SameNameAs(usize::from(n)),
+                }
+            }),
+            named_first: false,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
@@ -263,6 +276,7 @@ impl Decompiler<'_> {
             CoreRecipient::SameObject => Recipient::SameObject,
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
             CoreRecipient::Group(i) => Recipient::Group(i),
+            CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::Attached => Recipient::Attached,
         }
     }

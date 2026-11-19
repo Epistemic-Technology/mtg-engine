@@ -1,0 +1,6 @@
+card "Feast of Flesh" {
+  oracle_id 6f214306-1664-41ec-b999-1b7471bbcbd6
+  cost {B}
+  type Sorcery
+  spell: deal X damage to target creature and you gain count where plus 1 all graveyards named this life
+}

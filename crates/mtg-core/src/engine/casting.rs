@@ -268,17 +268,16 @@ impl GameState {
                 seen.iter().count()
             }
             CountExpr::CardsInHand => self.player(you).hand.len(),
-            CountExpr::CardsInGraveyard(f) => self
-                .player(you)
-                .graveyard
-                .iter()
-                .filter(|id| {
-                    f.as_ref().is_none_or(|f| {
-                        let c = self.base_characteristics(&self.objects[**id]);
-                        f.matches(**id, you, &c, None, Some(you)) && self.status_ok(f, **id)
-                    })
-                })
-                .count(),
+            CountExpr::Plus(k, inner) => return k.saturating_add(self.eval_count(inner, ctx)),
+            CountExpr::CardsInGraveyard(f) => {
+                let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
+                self.graveyard_count(std::slice::from_ref(&you), f.as_deref(), you)
+            }
+            CountExpr::CardsInAllGraveyards(f) => {
+                let f = f.as_ref().map(|f| self.chosen_filter(f, ctx));
+                let players: SmallVec<[PlayerId; 4]> = self.players_in_game().collect();
+                self.graveyard_count(&players, f.as_deref(), you)
+            }
             CountExpr::SourcePower => {
                 return self
                     .characteristics_or_lki(ctx.source)
@@ -296,6 +295,27 @@ impl GameState {
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
         };
         u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
+    /// Cards in `players`' graveyards matching `f` (all with none), judged
+    /// for `you`.
+    fn graveyard_count(
+        &self,
+        players: &[PlayerId],
+        f: Option<&crate::card::ObjFilter>,
+        you: PlayerId,
+    ) -> usize {
+        players
+            .iter()
+            .flat_map(|p| self.player(*p).graveyard.iter())
+            .filter(|id| {
+                f.is_none_or(|f| {
+                    let o = &self.objects[**id];
+                    let c = self.base_characteristics(o);
+                    f.matches(**id, o.owner, &c, None, Some(you)) && self.status_ok(f, **id)
+                })
+            })
+            .count()
     }
 
     /// Whether `p` could cast `def` (the card `id`, or one of its faces)
@@ -2351,35 +2371,52 @@ impl GameState {
                     out.push(Target::Object(t));
                 }
             }
-            Recipient::Group(f) => {
-                let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
-                let source = self.current_object(ctx.source);
-                // "Target creature you control gets +3/+3 and each other
-                // creature you control gets +1/+1": a spell's "other" is
-                // other than its targets.
-                let other_than_targets = filter.relation == crate::card::Relation::Other
-                    && self
-                        .objects
-                        .get(ctx.source)
-                        .is_some_and(|o| o.zone == Zone::Stack);
-                out.extend(
-                    self.battlefield
-                        .iter()
-                        .copied()
-                        .filter(|id| {
-                            !other_than_targets || !ctx.targets.contains(&Target::Object(*id))
-                        })
-                        .filter(|id| {
-                            let o = &self.objects[*id];
-                            self.characteristics(*id).is_some_and(|c| {
-                                filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
-                            }) && self.status_ok(filter, *id)
-                        })
-                        .map(Target::Object),
-                );
+            Recipient::Group(f) => self.group_into(ctx, f, &mut out),
+            // "Target creature and all other creatures with the same name as
+            // that creature": the target, if still legal, and the group
+            // judged against it as it is now (CR 608.2b, 608.2h).
+            Recipient::TargetAndGroup(i, f) => {
+                if !ctx.legal.get(i).copied().unwrap_or(false) {
+                    return out;
+                }
+                let Some(t) = ctx.targets.get(i) else {
+                    return out;
+                };
+                out.push(*t);
+                let mut group = SmallVec::new();
+                self.group_into(ctx, f, &mut group);
+                out.extend(group.into_iter().filter(|g| g != t));
             }
         }
         out
+    }
+
+    /// Every battlefield object in the pool's `f`th filter, as `ctx`'s
+    /// effects resolve.
+    fn group_into(&self, ctx: &EffectCtx, f: u16, out: &mut SmallVec<[Target; 2]>) {
+        let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
+        let source = self.current_object(ctx.source);
+        // "Target creature you control gets +3/+3 and each other creature
+        // you control gets +1/+1": a spell's "other" is other than its
+        // targets.
+        let other_than_targets = filter.relation == crate::card::Relation::Other
+            && self
+                .objects
+                .get(ctx.source)
+                .is_some_and(|o| o.zone == Zone::Stack);
+        out.extend(
+            self.battlefield
+                .iter()
+                .copied()
+                .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
+                .filter(|id| {
+                    let o = &self.objects[*id];
+                    self.characteristics(*id).is_some_and(|c| {
+                        filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
+                    }) && self.status_ok(filter, *id)
+                })
+                .map(Target::Object),
+        );
     }
 
     /// What "the chosen color" or "that type" refers to as `ctx`'s effects
@@ -2404,11 +2441,25 @@ impl GameState {
         f: &'f crate::card::ObjFilter,
         ctx: &EffectCtx,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
-        if f.chosen {
-            std::borrow::Cow::Owned(f.with_chosen(self.resolution_chosen(ctx)))
-        } else {
-            std::borrow::Cow::Borrowed(f)
+        if !f.chosen && f.same.is_none() {
+            return std::borrow::Cow::Borrowed(f);
         }
+        let mut g = if f.chosen {
+            f.with_chosen(self.resolution_chosen(ctx))
+        } else {
+            f.clone()
+        };
+        if let Some(same) = g.same {
+            let of = match same.of {
+                crate::card::SameOf::Source => Some(ctx.source),
+                crate::card::SameOf::Target(n) => match ctx.targets.get(usize::from(n)) {
+                    Some(Target::Object(id)) => Some(*id),
+                    _ => None,
+                },
+            };
+            g = self.with_same_of(&g, of);
+        }
+        std::borrow::Cow::Owned(g)
     }
 
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
@@ -2625,6 +2676,8 @@ impl GameState {
             }
             Effect::Search { filter, count, to } => {
                 let p = ctx.controller;
+                // "Search your library for a card named ~".
+                let filter = &*self.chosen_filter(filter, ctx);
                 let mut found = Vec::new();
                 for _ in 0..self.eval_num(*count, ctx) {
                     // One option per distinct card (copies are alike).

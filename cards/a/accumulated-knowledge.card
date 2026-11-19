@@ -1,0 +1,6 @@
+card "Accumulated Knowledge" {
+  oracle_id 1ca25379-d194-4670-a7bf-525ad11cf436
+  cost {1}{U}
+  type Instant
+  spell: draw 1 card then draw count equal all graveyards named this cards
+}

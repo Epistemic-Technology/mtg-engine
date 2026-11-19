@@ -1,0 +1,7 @@
+card "Legion Conquistador" {
+  oracle_id b20671e6-d740-4ef6-b408-bf8a0465c0da
+  cost {2}{W}
+  type Creature — Vampire Soldier
+  pt 2/2
+  triggered when this enters: you may search any number card named this reveal to hand
+}

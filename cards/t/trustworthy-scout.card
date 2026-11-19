@@ -1,0 +1,7 @@
+card "Trustworthy Scout" {
+  oracle_id 51d7b287-90d5-4e3b-a82c-6b98996154e1
+  cost {1}{W}
+  type Creature — Human Scout
+  pt 2/2
+  activated {1}{W}, exile this from graveyard: search card named this reveal to hand
+}

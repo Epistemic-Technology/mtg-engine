@@ -1,0 +1,7 @@
+card "Battalion Foot Soldier" {
+  oracle_id f6f39a85-28b9-49f3-ab90-2ff99169de42
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  triggered when this enters: you may search any number card named this reveal to hand
+}

@@ -218,6 +218,13 @@ impl Fmt {
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
             // `all` prints with the filter.
+            // `target creature and all other creature with same name as
+            // target 1`.
+            Recipient::TargetAnd(t, i) => {
+                let first = self.recipient(Recipient::Target(t), targets);
+                let group = self.recipient(Recipient::Group(i), targets);
+                format!("{first} and {group}")
+            }
             Recipient::Group(i) => match self.groups.get(usize::from(i)) {
                 Some(f) if f.all => filter(f),
                 Some(f) => format!("each {}", filter(f)),
@@ -720,13 +727,21 @@ impl Fmt {
                 if *up_to {
                     t.push_str("up to ");
                 }
-                if *count != Num::N(1) {
+                if *count == Num::N(crate::ast::ANY_NUMBER) {
+                    t.push_str("any number ");
+                } else if *count != Num::N(1) {
                     let _ = write!(t, "{} ", num(*count));
                 }
-                if *f != Filter::default() {
-                    let _ = write!(t, "{} ", filter(f));
+                // "a card named ~": the name after `card`.
+                let mut g = f.clone();
+                g.same = None;
+                if g != Filter::default() {
+                    let _ = write!(t, "{} ", filter(&g));
                 }
                 t.push_str("card");
+                if let Some(r) = f.same {
+                    let _ = write!(t, " {}", same_ref(r));
+                }
                 if *reveal {
                     t.push_str(" reveal");
                 }
@@ -984,12 +999,48 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
     use crate::ast::CountExpr;
     match e {
         CountExpr::Times(n, inner) => format!("{n} {}", count_expr_text(inner)),
+        CountExpr::Plus { n, word, inner } => {
+            let n = if *word {
+                crate::render::NUMBER_WORDS
+                    .get(*n as usize - 1)
+                    .map_or_else(|| n.to_string(), |w| (*w).to_string())
+            } else {
+                n.to_string()
+            };
+            format!("plus {n} {}", count_expr_text(inner))
+        }
+        CountExpr::CardsInGraveyards { filter: f, each } => {
+            let place = if *each {
+                "each graveyard"
+            } else {
+                "all graveyards"
+            };
+            match f {
+                None => place.to_string(),
+                Some(f) => format!("{place} {}", card_filter(f)),
+            }
+        }
+        // "creatures on the battlefield named ~": the name after the place.
+        CountExpr::Permanents(f) if f.who.is_none() && f.same.is_some() && !f.named_first => {
+            let mut g = f.clone();
+            g.same = None;
+            format!(
+                "{} on battlefield {}",
+                filter(&g),
+                same_ref(f.same.expect("checked"))
+            )
+        }
+        CountExpr::Permanents(f) if f.who.is_none() && f.named_first => {
+            let mut g = f.clone();
+            g.named_first = false;
+            format!("{} on battlefield", filter(&g))
+        }
         CountExpr::Permanents(f) if f.who.is_none() => format!("{} on battlefield", filter(f)),
         CountExpr::Permanents(f) => filter(f),
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
-        CountExpr::CardsInGraveyard(Some(f)) => format!("graveyard {}", filter(f)),
+        CountExpr::CardsInGraveyard(Some(f)) => format!("graveyard {}", card_filter(f)),
         CountExpr::SourcePower => "power".to_string(),
         CountExpr::TargetStat { n, toughness, that } => format!(
             "{} of {}target {}",
@@ -1054,10 +1105,14 @@ pub fn graveyard_target(f: &Filter, who: Who) -> String {
         Who::Opponents => "an opponent's",
         Who::Any => "a",
     };
-    if *f == Filter::default() {
-        format!("target card from {whose} graveyard")
+    // "target card named this from your graveyard".
+    let named = if f.same.is_some() { " named this" } else { "" };
+    let mut g = f.clone();
+    g.same = None;
+    if g == Filter::default() {
+        format!("target card{named} from {whose} graveyard")
     } else {
-        format!("target {} card from {whose} graveyard", filter(f))
+        format!("target {} card{named} from {whose} graveyard", filter(&g))
     }
 }
 
@@ -1165,6 +1220,11 @@ fn filter_one(f: &Filter) -> String {
     if !f.not_keywords.is_empty() {
         words.push(format!("without {}", keywords(&f.not_keywords)));
     }
+    if f.named_first
+        && let Some(r) = f.same
+    {
+        words.push(same_ref(r));
+    }
     match f.who {
         Some(Who::You) => words.push("you control".to_string()),
         Some(Who::Opponents) if f.dont_control => words.push("you don't control".to_string()),
@@ -1183,7 +1243,35 @@ fn filter_one(f: &Filter) -> String {
     if let Some(c) = f.chosen {
         words.push(of_chosen(c).to_string());
     }
+    if !f.named_first
+        && let Some(r) = f.same
+    {
+        words.push(same_ref(r));
+    }
     words.join(" ")
+}
+
+/// A filter on cards: `named this` alone rather than `permanent named
+/// this`.
+fn card_filter(f: &Filter) -> String {
+    let mut g = f.clone();
+    g.same = None;
+    match f.same {
+        Some(r) if g == Filter::default() => same_ref(r),
+        _ => filter(f),
+    }
+}
+
+/// `named this`, `with same name as target 1`, `that shares color with
+/// target 1`.
+pub fn same_ref(r: crate::ast::SameRef) -> String {
+    use crate::ast::SameRef;
+    match r {
+        SameRef::NamedThis => "named this".to_string(),
+        SameRef::NotNamedThis => "not named this".to_string(),
+        SameRef::SameNameAs(n) => format!("with same name as target {}", n + 1),
+        SameRef::SharesColorWith(n) => format!("that shares color with target {}", n + 1),
+    }
 }
 
 /// `of chosen type`, `of that type`, `of color of choice`.
@@ -1661,6 +1749,9 @@ fn modification(m: &Mod) -> String {
             let c = match count {
                 CdaCount::CardTypesInGraveyards => "card types in graveyards".to_string(),
                 CdaCount::CreatureCardsInGraveyards => "creature cards in graveyards".to_string(),
+                CdaCount::Permanents(f) if f.who.is_none() => {
+                    format!("count {} on battlefield", filter(f))
+                }
                 CdaCount::Permanents(f) => format!("count {}", filter(f)),
                 CdaCount::ControllerLife => "your life".to_string(),
             };
@@ -2124,6 +2215,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 _ => "block",
             };
             let _ = writeln!(out, "{indent}can't {what} unless {}", static_cond(cond));
+        }
+        Ability::DeckAnyNumber => {
+            let _ = writeln!(out, "{indent}deck any number");
         }
         Ability::HandSize { whose, delta } => {
             let who = if *whose == Who::Opponents {
