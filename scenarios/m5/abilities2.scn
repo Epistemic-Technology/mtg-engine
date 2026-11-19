@@ -495,6 +495,16 @@ scenario "Crypsis: a creature its controller controls can still target it" {
   assert graveyard A contains "Raging Goblin"
 }
 
+scenario "Mistform Sliver: a Sliver becomes a chosen type in addition to its others" {
+  battlefield A: "Mistform Sliver", "Island"
+  turn 1 A: activate "Mistform Sliver"
+  turn 1 A: choose Elf
+  run_to turn 1 postcombat_main
+  assert is "Mistform Sliver" Elf
+  assert is "Mistform Sliver" Sliver
+  assert is "Mistform Sliver" Illusion
+}
+
 scenario "Stonework Packbeast: also a Cleric, Rogue, Warrior, and Wizard" {
   battlefield A: "Stonework Packbeast"
   run_to turn 1 precombat_main

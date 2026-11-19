@@ -6110,6 +6110,7 @@ impl GameState {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let recipients = self.recipients(ctx, *to);
                 // CR 608.2b: with no legal recipient left, nothing to choose.
@@ -6167,6 +6168,7 @@ impl GameState {
                         Some(c) if matches!(kind, ChoiceKind::LandType(_)) => {
                             Modification::SetLandType(c)
                         }
+                        _ if *in_addition => Modification::AddSubtype(s),
                         _ => Modification::SetCreatureType(s),
                     },
                     (Chosen::None | Chosen::Votes(_), _) => return,

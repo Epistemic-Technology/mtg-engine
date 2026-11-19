@@ -2999,6 +2999,9 @@ pub enum Effect {
         to: Recipient,
         kind: ChoiceKind,
         protection: bool,
+        /// "becomes the creature type of your choice in addition to its
+        /// other types": the chosen type is added rather than replacing.
+        in_addition: bool,
     },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),

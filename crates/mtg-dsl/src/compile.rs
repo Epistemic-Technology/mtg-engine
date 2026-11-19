@@ -1544,12 +1544,14 @@ impl Compiler<'_> {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let kind = self.choice_kind(kind);
                 out.push(CoreEffect::OfChoice {
                     to: r(*to),
                     kind,
                     protection: *protection,
+                    in_addition: *in_addition,
                 });
             }
             Effect::YouMay(inner) => {
@@ -1730,6 +1732,7 @@ impl Compiler<'_> {
                     to: r(*to),
                     kind: mtg_core::card::ChoiceKind::Color { except: None },
                     protection: true,
+                    in_addition: false,
                 });
                 out.push(CoreEffect::OneOf(list));
             }

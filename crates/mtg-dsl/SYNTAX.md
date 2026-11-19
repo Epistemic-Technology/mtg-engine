@@ -686,7 +686,10 @@ quality (CR 702.16); as an effect, `target creature gains protection from
 artifact`, and `target permanent you control gains protection from
 artifact or from color of choice` ("... gains protection from artifacts or
 from the color of your choice until end of turn": the controller chooses
-one as it resolves, `choose "1"` or `choose "2"` in a scenario). `has
+one as it resolves, `choose "1"` or `choose "2"` in a scenario). `this becomes creature type of choice in addition` prints "...
+becomes the creature type of your choice in addition to its other types"
+(Mistform Sliver). A replacement outcome `hand` prints "return it to its
+owner's hand instead" (`replace <affects> dies: hand`). `has
 ward {2}` and `has toxic 1` grant those keyword abilities bare
 ("Enchanted creature gets +4/+4 and has trample and ward {1}."; CR 702.21,
 702.164); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end

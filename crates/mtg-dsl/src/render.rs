@@ -4617,6 +4617,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             kind,
             protection,
+            in_addition,
         } => {
             let s = ctx.subj(*to);
             let what = match kind {
@@ -4652,7 +4653,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ctx.verb(*to, "becomes", "become").to_string()
             };
-            Clause::with_subject(*to, s, format!("{verb} {what}")).until_eot()
+            let more = if *in_addition {
+                " in addition to its other types"
+            } else {
+                ""
+            };
+            Clause::with_subject(*to, s, format!("{verb} {what}{more}")).until_eot()
         }
         Effect::BecomeLandType {
             to,
@@ -6306,7 +6312,7 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
             capitalize(&this_ref(ctx.card)),
             counters(*n, *kind)
         ),
-        (Replaces::Dies { to }, Outcome::Instead(_)) => {
+        (Replaces::Dies { to }, Outcome::Instead(zone)) => {
             let who = match to {
                 Affects::Target(i) => {
                     ctx.target_mentioned[*i] = true;
@@ -6315,7 +6321,12 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 other => affects_to(other, ctx),
             };
             let when = if this_turn { " this turn" } else { "" };
-            format!("If {who} would die{when}, exile it instead.")
+            let instead = if *zone == mtg_core::state::Zone::Hand {
+                "return it to its owner's hand"
+            } else {
+                "exile it"
+            };
+            format!("If {who} would die{when}, {instead} instead.")
         }
         (Replaces::Destroy { to }, Outcome::Regenerate) => {
             let to = affects_to(to, ctx);

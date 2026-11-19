@@ -869,10 +869,12 @@ impl Decompiler<'_> {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => Effect::OfChoice {
                 to: r(*to),
                 kind: self.choice_kind(*kind),
                 protection: *protection,
+                in_addition: *in_addition,
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),

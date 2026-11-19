@@ -1288,6 +1288,7 @@ impl Fmt {
                 to,
                 kind,
                 protection,
+                in_addition,
             } => {
                 let verb = if *protection {
                     "gains protection from"
@@ -1295,9 +1296,10 @@ impl Fmt {
                     "becomes"
                 };
                 format!(
-                    "{} {verb} {}",
+                    "{} {verb} {}{}",
                     self.recipient(*to, t),
-                    choice_kind(kind, true)
+                    choice_kind(kind, true),
+                    if *in_addition { " in addition" } else { "" }
                 )
             }
             Effect::BecomeLandType {
@@ -1877,6 +1879,7 @@ fn outcome(o: &Outcome) -> String {
         Outcome::PreventNext(n) => format!("prevent next {}", num(*n)),
         Outcome::Double => "double".to_string(),
         Outcome::PlusOne => "plus one".to_string(),
+        Outcome::Instead(mtg_core::state::Zone::Hand) => "hand".to_string(),
         Outcome::Instead(_) => "exile".to_string(),
         Outcome::DrawTwo => "draw two".to_string(),
         Outcome::WinGame => "win".to_string(),

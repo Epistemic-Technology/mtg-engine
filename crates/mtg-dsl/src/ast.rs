@@ -2312,6 +2312,9 @@ pub enum Effect {
         to: Recipient,
         kind: ChoiceKind,
         protection: bool,
+        /// `becomes creature type of choice in addition`: "... in addition
+        /// to its other types".
+        in_addition: bool,
     },
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).

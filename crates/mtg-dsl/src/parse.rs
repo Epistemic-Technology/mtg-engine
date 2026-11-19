@@ -3400,6 +3400,7 @@ impl P {
                         to: subject,
                         kind: ChoiceKind::Color { except: None },
                         protection: true,
+                        in_addition: false,
                     });
                 }
                 if let Some(k) = self.keyword() {
@@ -3884,11 +3885,13 @@ impl P {
                     || self.at_words(&["creature", "type", "of", "choice"])
                 {
                     let kind = self.choice_kind(true)?;
+                    let in_addition = self.eat_words(&["in", "addition"]);
                     self.until_end_of_turn();
                     return Ok(Effect::OfChoice {
                         to: subject,
                         kind,
                         protection: false,
+                        in_addition,
                     });
                 }
                 // "becomes all colors" (Scrapbasket).
@@ -3952,6 +3955,7 @@ impl P {
                             to: subject,
                             kind: ChoiceKind::LandType(lands),
                             protection: false,
+                            in_addition: false,
                         });
                     }
                     self.until_end_of_turn();
@@ -8068,6 +8072,8 @@ impl P {
                 }
             }
             "double" => Outcome::Double,
+            // "return it to its owner's hand instead".
+            "hand" => Outcome::Instead(Zone::Hand),
             "plus" => {
                 self.expect_word("one")?;
                 Outcome::PlusOne
