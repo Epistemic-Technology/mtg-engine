@@ -1025,6 +1025,21 @@ impl Templates {
                 let b = recipient(cap(c, 2), t)?;
                 Some(format!("{a} fights {b}"))
             }),
+            (
+                r(r"^(.+?) deals damage to itself equal to its power$"),
+                |c, t| {
+                    let a = recipient(&subject(cap(c, 1)), t)?;
+                    Some(format!("{a} bites itself"))
+                },
+            ),
+            (
+                r(r"^(.+?) deals damage equal to its power to (.+)$"),
+                |c, t| {
+                    let a = recipient(&subject(cap(c, 1)), t)?;
+                    let b = recipient(cap(c, 2), t)?;
+                    Some(format!("{a} bites {b}"))
+                },
+            ),
             (r(r"^Attach (?:it|~|this) to (.+)$"), |c, t| {
                 Some(format!("attach to {}", recipient(cap(c, 1), t)?))
             }),

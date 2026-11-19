@@ -1,0 +1,6 @@
+card "Tenderize" {
+  oracle_id a03fa584-ceb5-410c-9b80-f75d00215537
+  cost {1}{G}
+  type Instant
+  spell: target creature you control bites target creature an opponent controls
+}

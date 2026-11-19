@@ -1806,6 +1806,16 @@ pub enum Effect {
         a: Recipient,
         b: Recipient,
     },
+    /// `source` deals damage equal to its power to `to` ("Target creature
+    /// you control deals damage equal to its power to target creature you
+    /// don't control"; with `to == source`, "deals damage to itself equal
+    /// to its power"). The creature is the damage's source (CR 120.3), so
+    /// its deathtouch, lifelink, infect, and wither apply. One-sided,
+    /// unlike fight (CR 701.12).
+    Bite {
+        source: Recipient,
+        to: Recipient,
+    },
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
     /// Create a replacement or prevention effect that lasts until end of

@@ -296,7 +296,11 @@ Subject-first clauses: `<who> gains 3 life`, `<who> loses 1 life`,
 `<what> gets +3/+3`, `<what> gains flying`, `<what> can't block` (this
 turn), `<what> fights <what>`, `<what> has base power and toughness 4/4`,
 `<what> becomes 2/2 Assembly-Worker artifact creature`, `this becomes a
-copy of <what> [with exceptions]`.
+copy of <what> [with exceptions]`, `<what> bites <what>` ("deals damage
+equal to its power to"; the creature is the damage's source, so its
+deathtouch, lifelink, infect, and wither apply, and it deals none if
+either target is illegal as the spell resolves), `<what> bites itself`
+("deals damage to itself equal to its power").
 
 Verb-first clauses: `deal 3 damage to <what> [and <what>]`,
 `destroy <what> [without regeneration]`, `put 2 +1/+1 counters on <what>`,

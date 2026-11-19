@@ -664,6 +664,16 @@ impl Fmt {
             Effect::Fight { a, b } => {
                 format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
             }
+            Effect::Bite { source, to } if source == to => {
+                format!("{} bites itself", self.recipient(*source, t))
+            }
+            Effect::Bite { source, to } => {
+                format!(
+                    "{} bites {}",
+                    self.recipient(*source, t),
+                    self.recipient(*to, t)
+                )
+            }
             Effect::Animate {
                 to,
                 types,

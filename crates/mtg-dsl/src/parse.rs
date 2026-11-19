@@ -1911,6 +1911,17 @@ impl P {
                 let b = self.recipient()?;
                 Ok(Effect::Fight { a: subject, b })
             }
+            "bites" => {
+                let to = if self.eat_word("itself") {
+                    subject
+                } else {
+                    self.recipient()?
+                };
+                Ok(Effect::Bite {
+                    source: subject,
+                    to,
+                })
+            }
             "has" | "have" => {
                 self.expect_words(&["base", "power", "and", "toughness"])?;
                 let Some(Tok::Pt {

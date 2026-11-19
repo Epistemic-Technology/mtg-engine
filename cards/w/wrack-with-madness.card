@@ -1,0 +1,6 @@
+card "Wrack with Madness" {
+  oracle_id c93c647e-0b9e-4a50-a519-42862d21a0f1
+  cost {3}{R}
+  type Sorcery
+  spell: target creature bites itself
+}

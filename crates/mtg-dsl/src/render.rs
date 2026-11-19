@@ -2183,6 +2183,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*b);
             Clause::with_subject(*a, s, format!("fights {o}"))
         }
+        Effect::Bite { source, to } if source == to => {
+            let s = ctx.subj(*source);
+            Clause::with_subject(
+                *source,
+                s,
+                "deals damage to itself equal to its power".to_string(),
+            )
+        }
+        Effect::Bite { source, to } => {
+            let s = ctx.subj(*source);
+            let o = ctx.obj(*to);
+            Clause::with_subject(
+                *source,
+                s,
+                format!("deals damage equal to its power to {o}"),
+            )
+        }
         Effect::CreateEmblem { emblem } => {
             let text = ctx.lookup.get(emblem).map(|e| oracle_text(e, ctx.lookup));
             Clause::with_subject(
