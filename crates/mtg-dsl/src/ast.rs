@@ -1262,6 +1262,9 @@ pub enum Trigger {
     BecomesTargetWhenever(TriggerObj),
     BecomesTapped(TriggerObj),
     BecomesUntapped(TriggerObj),
+    /// `whenever Aura becomes attached to this`: "Whenever an Aura becomes
+    /// attached to this creature".
+    BecomesAttachedTo(Filter),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -1589,8 +1592,15 @@ pub enum Effect {
     GainControl {
         of: Recipient,
     },
+    /// `attach to <to>` (this), `attach <what> to <to>`.
     Attach {
+        what: Recipient,
         to: Recipient,
+    },
+    /// `unattach all Equipment attached to target creature`: "Unattach all
+    /// Equipment from target creature".
+    Unattach {
+        what: Recipient,
     },
     /// `create 2 "Soldier"`; `create 1 tapped "Powerstone"`.
     CreateToken {
@@ -1732,14 +1742,24 @@ pub enum Effect {
         source: Recipient,
         to: Recipient,
     },
+    /// `this becomes 4/4 green Bear artifact creature`, `target creature
+    /// becomes Dragon base 4/4`, `this becomes artifact creature`, `this
+    /// becomes 2/2 Gargoyle creature with flying indefinitely`.
     Animate {
         to: Recipient,
         types: Vec<CardType>,
         subtypes: Vec<String>,
-        power: i32,
-        toughness: i32,
+        /// Its base power and toughness, if it gets new ones.
+        pt: Option<(i32, i32)>,
+        /// The P/T written `base 5/5`: "with base power and toughness 5/5"
+        /// after the types.
+        base: bool,
         /// Colors it becomes, if any ("4/4 green Bear artifact creature").
         colors: Vec<Color>,
+        /// `with flying`: "a 2/2 Gargoyle creature with flying".
+        keywords: Vec<Keyword>,
+        /// `indefinitely`: no duration (Opal Caryatid).
+        indefinite: bool,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {

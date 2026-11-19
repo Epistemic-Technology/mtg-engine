@@ -1,0 +1,246 @@
+# Equipment variants, attaching other objects, attachment triggers, and
+# animating permanents: "Equip Human {1}" (CR 702.6c), "attach target
+# Equipment you control to target creature" (CR 701.3), "unattach"
+# (CR 701.3d), "whenever an Aura becomes attached to this creature", and
+# "becomes a ... creature" (layers 4-7b, CR 205.1a, 613).
+
+# ---- filtered equip ----
+
+scenario "Dúnedain Blade: Equip Human onto a Human" {
+  battlefield A: "Elite Vanguard", "Dúnedain Blade", "Plains"
+  turn 1 A: activate "Dúnedain Blade" ability 1 targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert attached "Dúnedain Blade" to "Elite Vanguard"
+  assert power "Elite Vanguard" 4
+}
+
+scenario "Dúnedain Blade: Equip Human can't target a Bear" {
+  battlefield A: "Grizzly Bears", "Dúnedain Blade", "Plains"
+  illegal turn 1 A: activate "Dúnedain Blade" ability 1 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Dúnedain Blade: the plain equip ability takes any creature" {
+  battlefield A: "Grizzly Bears", "Dúnedain Blade", 3 "Plains"
+  turn 1 A: activate "Dúnedain Blade" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Veteran's Powerblade: Equip Soldier for {W}" {
+  battlefield A: "Elite Vanguard", "Veteran's Powerblade", "Plains"
+  turn 1 A: activate "Veteran's Powerblade" ability 1 targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert power "Elite Vanguard" 4
+}
+
+# ---- attaching another object ----
+
+scenario "Kazuul's Toll Collector moves an Equipment onto itself" {
+  battlefield A: "Kazuul's Toll Collector", "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  turn 1 A: activate "Kazuul's Toll Collector" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Kazuul's Toll Collector"
+  assert power "Grizzly Bears" 2
+  assert power "Kazuul's Toll Collector" 5
+}
+
+scenario "Kazuul's Toll Collector can't take an opponent's Equipment" {
+  battlefield A: "Kazuul's Toll Collector"
+  battlefield B: "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  illegal turn 1 A: activate "Kazuul's Toll Collector" targeting "Bonesplitter"
+  run_to turn 1 end
+  assert attached "Bonesplitter" to "Grizzly Bears"
+}
+
+scenario "Kor Outfitter attaches an Equipment as it enters" {
+  battlefield A: "Grizzly Bears", "Bonesplitter", 2 "Plains"
+  hand A: "Kor Outfitter"
+  turn 1 A: cast "Kor Outfitter"
+  turn 1 A: trigger "Kor Outfitter" targeting "Bonesplitter", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Aura Finesse moves an Aura and draws" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Holy Strength" on "Grizzly Bears", "Island"
+  hand A: "Aura Finesse"
+  turn 1 A: cast "Aura Finesse" targeting "Holy Strength", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Holy Strength" to "Hill Giant"
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 4
+  assert hand A count 1
+}
+
+scenario "Disarm: the Equipment stays on the battlefield, attached to nothing" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  hand A: "Disarm"
+  turn 1 A: cast "Disarm" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert battlefield B contains "Bonesplitter"
+}
+
+scenario "Resolute Strike attaches an Equipment to a Warrior" {
+  battlefield A: "Skilled Battlecarver", "Bonesplitter", "Plains"
+  hand A: "Resolute Strike"
+  turn 1 A: cast "Resolute Strike" targeting "Skilled Battlecarver"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Skilled Battlecarver"
+}
+
+scenario "Resolute Strike attaches nothing to a non-Warrior" {
+  battlefield A: "Grizzly Bears", "Bonesplitter", "Plains"
+  hand A: "Resolute Strike"
+  turn 1 A: cast "Resolute Strike" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Resolute Strike: declining the attach" {
+  battlefield A: "Skilled Battlecarver", "Bonesplitter", "Plains"
+  hand A: "Resolute Strike"
+  turn 1 A: cast "Resolute Strike" targeting "Skilled Battlecarver"
+  turn 1 A: decline "Resolute Strike"
+  run_to turn 1 postcombat_main
+  assert power "Skilled Battlecarver" 4
+}
+
+scenario "Auxiliary Boosters equips the Robot it makes" {
+  battlefield A: 5 "Plains"
+  hand A: "Auxiliary Boosters"
+  turn 1 A: cast "Auxiliary Boosters"
+  run_to turn 1 postcombat_main
+  assert attached "Auxiliary Boosters" to "Robot"
+  assert toughness "Robot" 4
+  assert has "Robot" flying
+}
+
+scenario "Goblin Plate Mail equips the amassed Army" {
+  battlefield A: "Swamp", "Mountain"
+  hand A: "Goblin Plate Mail"
+  turn 1 A: cast "Goblin Plate Mail"
+  run_to turn 1 postcombat_main
+  assert attached "Goblin Plate Mail" to "Goblin Army"
+  assert power "Goblin Army" 2
+  assert has "Goblin Army" menace
+}
+
+# ---- attachment triggers ----
+
+scenario "Bramble Elemental: an Aura attached makes two Saprolings" {
+  battlefield A: "Bramble Elemental", "Plains"
+  hand A: "Holy Strength"
+  turn 1 A: cast "Holy Strength" targeting "Bramble Elemental"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Saproling"
+}
+
+scenario "Bramble Elemental: an Equipment is not an Aura" {
+  battlefield A: "Bramble Elemental", "Bonesplitter", "Plains"
+  turn 1 A: activate "Bonesplitter" targeting "Bramble Elemental"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Bramble Elemental"
+  assert battlefield A lacks "Saproling"
+}
+
+scenario "Bestial Fury: blocked, the creature gets +4/+0 and trample" {
+  battlefield A: "Grizzly Bears", "Bestial Fury" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 combat_damage
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" trample
+}
+
+# ---- animation ----
+
+scenario "Opal Caryatid becomes a creature and stops being an enchantment" {
+  battlefield A: "Opal Caryatid"
+  battlefield B: "Forest", "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert is "Opal Caryatid" creature
+  assert is "Opal Caryatid" Soldier
+  assert is not "Opal Caryatid" enchantment
+  assert power "Opal Caryatid" 2
+}
+
+scenario "Opal Gargoyle ignores its controller's creature spells" {
+  battlefield A: "Opal Gargoyle", "Forest", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert is not "Opal Gargoyle" creature
+}
+
+scenario "Mimic becomes a 3/3 Shapeshifter until end of turn" {
+  battlefield A: "Mimic", 2 "Plains"
+  turn 1 A: activate "Mimic"
+  run_to turn 1 postcombat_main
+  assert is "Mimic" creature
+  assert is "Mimic" Shapeshifter
+  assert is "Mimic" Treasure
+  assert power "Mimic" 3
+  run_to turn 2 upkeep
+  assert is not "Mimic" creature
+}
+
+scenario "Mordenkainen's Polymorph: a Dragon with base 4/4 and flying, no longer a Bear" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Mordenkainen's Polymorph"
+  turn 1 A: cast "Mordenkainen's Polymorph" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Dragon
+  assert is not "Grizzly Bears" Bear
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" flying
+}
+
+scenario "Mind Transfer Protocol animates a noncreature artifact" {
+  battlefield A: "Bonesplitter", 3 "Island"
+  hand A: "Mind Transfer Protocol"
+  turn 1 A: cast "Mind Transfer Protocol" targeting "Bonesplitter"
+  run_to turn 1 postcombat_main
+  assert is "Bonesplitter" creature
+  assert toughness "Bonesplitter" 5
+  assert hand A count 1
+}
+
+scenario "Capenna Express: a Treasure sacrificed makes it a 6/6 creature" {
+  battlefield A: "Capenna Express", "Treasure"
+  turn 1 A: activate "Capenna Express" sacrificing "Treasure"
+  run_to turn 1 postcombat_main
+  assert is "Capenna Express" creature
+  assert power "Capenna Express" 6
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Rusted Relic: a 5/5 Golem with three artifacts" {
+  battlefield A: "Rusted Relic", "Ornithopter", "Memnite"
+  run_to turn 1 precombat_main
+  assert is "Rusted Relic" creature
+  assert is "Rusted Relic" Golem
+  assert power "Rusted Relic" 5
+}
+
+scenario "Rusted Relic: not a creature with two artifacts" {
+  battlefield A: "Rusted Relic", "Ornithopter"
+  run_to turn 1 precombat_main
+  assert is not "Rusted Relic" creature
+}
+
+scenario "Mishra's Factory is still a land as a creature" {
+  battlefield A: "Mishra's Factory", "Mountain"
+  turn 1 A: activate "Mishra's Factory"
+  run_to turn 1 declare_attackers
+  assert is "Mishra's Factory" creature
+  assert is "Mishra's Factory" land
+}

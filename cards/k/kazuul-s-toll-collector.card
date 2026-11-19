@@ -1,0 +1,7 @@
+card "Kazuul's Toll Collector" {
+  oracle_id 3b0694ff-aa92-4a2e-a366-69fdf5a57c4b
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 3/2
+  activated {0}, sorcery: attach target Equipment you control to this
+}

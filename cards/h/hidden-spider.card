@@ -1,0 +1,6 @@
+card "Hidden Spider" {
+  oracle_id b0709570-a145-4c3c-ba56-f06d25753855
+  cost {G}
+  type Enchantment
+  triggered when an opponent casts creature with flying spell if this is enchantment: this becomes 3/5 Spider creature with reach indefinitely
+}

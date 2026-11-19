@@ -321,6 +321,9 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     ),
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
+    // "attach this Equipment to the amassed Army": amass's Army (CR
+    // 701.47a), created or not.
+    (&["amassed", "Army"], Recipient::CreatedObject),
     (&["you"], Recipient::You),
     (&["this"], Recipient::Source),
 ];
@@ -1440,16 +1443,41 @@ impl P {
             }
             "equip" => {
                 self.pos += 1;
+                // "Equip Knight {1}": only onto a creature of that type
+                // you control (CR 702.6c).
+                let target = match self.peek() {
+                    Some(Tok::Word(w)) if w.chars().next().is_some_and(char::is_uppercase) => {
+                        let sub = w.clone();
+                        self.pos += 1;
+                        Target::Filter(Filter {
+                            who: Some(Who::You),
+                            types: vec![CardType::Creature],
+                            subtypes: vec![sub],
+                            ..Default::default()
+                        })
+                    }
+                    _ => Target::Spec(TargetSpec::CreatureYouControl),
+                };
                 let mana = self.mana_cost()?;
+                // "Equip {0}. Activate only once each turn."
+                let per_turn = if self.peek() == Some(&Tok::Comma) {
+                    self.pos += 1;
+                    self.expect_word("once")?;
+                    1
+                } else {
+                    0
+                };
                 self.end_stmt()?;
                 Ok(Ability::Activated {
                     cost: Cost {
                         mana,
                         sorcery: true,
+                        per_turn,
                         ..Default::default()
                     },
-                    targets: vec![Target::Spec(TargetSpec::CreatureYouControl)],
+                    targets: vec![target],
                     effects: vec![Sentence::new(vec![Effect::Attach {
+                        what: Recipient::Source,
                         to: Recipient::Target(0),
                     }])],
                     equip: true,
@@ -3214,38 +3242,77 @@ impl P {
                         indefinite,
                     });
                 }
-                let Some(Tok::Pt {
-                    power,
-                    toughness,
-                    signed: false,
-                }) = self.next()
-                else {
-                    return self.fail("expected P/T after `becomes`");
+                let mut pt = match self.peek() {
+                    Some(&Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) => {
+                        self.pos += 1;
+                        Some((power, toughness))
+                    }
+                    _ => None,
                 };
                 let mut types = Vec::new();
                 let mut subtypes = Vec::new();
                 let mut colors = Vec::new();
                 while let Some(Tok::Word(w)) = self.peek() {
-                    if w == "until" {
-                        break;
-                    }
                     if let Some(c) = color(w) {
                         colors.push(c);
                     } else if let Some(t) = card_type(w) {
                         types.push(t);
-                    } else {
+                    } else if w.chars().next().is_some_and(char::is_uppercase) {
                         subtypes.push(w.clone());
+                    } else {
+                        break;
                     }
                     self.pos += 1;
                 }
-                self.until_end_of_turn();
+                if types.is_empty() && subtypes.is_empty() {
+                    return self.fail("expected what `becomes` makes it (`4/4 artifact creature`)");
+                }
+                // "a Shapeshifter artifact creature with base power and
+                // toughness 5/5".
+                let mut base = false;
+                if pt.is_none() && self.eat_word("base") {
+                    let Some(Tok::Pt {
+                        power,
+                        toughness,
+                        signed: false,
+                    }) = self.next()
+                    else {
+                        return self.fail("expected P/T after `base`");
+                    };
+                    pt = Some((power, toughness));
+                    base = true;
+                }
+                let mut keywords = Vec::new();
+                if self.eat_word("with") {
+                    loop {
+                        let Some(k) = self.keyword() else {
+                            return self.fail("expected a keyword after `with`");
+                        };
+                        keywords.push(k);
+                        if self.peek() == Some(&Tok::Comma) {
+                            self.pos += 1;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                let indefinite = self.eat_word("indefinitely");
+                if !indefinite {
+                    self.until_end_of_turn();
+                }
                 Ok(Effect::Animate {
                     to: subject,
                     types,
                     subtypes,
-                    power,
-                    toughness,
+                    pt,
+                    base,
                     colors,
+                    keywords,
+                    indefinite,
                 })
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
@@ -3274,13 +3341,14 @@ impl P {
     /// before the clause ends or another verb starts. `return N <filter>
     /// chosen` alone is `ReturnChosen`.
     fn chosen_act_ahead(&self) -> bool {
-        const VERBS: [&str; 9] = [
+        const VERBS: [&str; 10] = [
             "tap",
             "sacrifice",
             "discard",
             "exile",
             "return",
             "put",
+            "attach",
             "create",
             "draw",
             "destroy",
@@ -3288,7 +3356,7 @@ impl P {
         let Some(verb) = self.word_at(0) else {
             return false;
         };
-        if !VERBS[..6].contains(&verb.as_str()) {
+        if !VERBS[..7].contains(&verb.as_str()) {
             return false;
         }
         let mut hand = false;
@@ -3335,6 +3403,16 @@ impl P {
             "tap" => (ChooseAct::Tap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
             "discard" => (ChooseAct::Discard, card_filter(self)?),
+            // `attach 1 Equipment you control to target 1 chosen`.
+            "attach" => {
+                let f = self.filter()?;
+                self.expect_words(&["to", "target"])?;
+                let Some(Tok::Num(n)) = self.next() else {
+                    return self.fail("expected a target number after `to target`");
+                };
+                let n = u8::try_from(n.saturating_sub(1)).unwrap_or(0);
+                (ChooseAct::AttachToTarget(n), f)
+            }
             "exile" => {
                 let f = card_filter(self)?;
                 self.expect_words(&["from", "your", "graveyard"])?;
@@ -3954,11 +4032,19 @@ impl P {
                 })
             }
             "attach" => {
-                self.eat_word("this");
-                self.expect_word("to")?;
+                let what = if self.eat_word("to") || self.eat_words(&["this", "to"]) {
+                    Recipient::Source
+                } else {
+                    let what = self.recipient()?;
+                    self.expect_word("to")?;
+                    what
+                };
                 let to = self.recipient()?;
-                Ok(Effect::Attach { to })
+                Ok(Effect::Attach { what, to })
             }
+            "unattach" => Ok(Effect::Unattach {
+                what: self.recipient()?,
+            }),
             "emblem" => {
                 let emblem = self.string()?;
                 Ok(Effect::CreateEmblem { emblem })
@@ -5987,6 +6073,13 @@ impl P {
             "becomes" if self.at_word("tapped") => {
                 self.pos += 1;
                 Ok(Trigger::BecomesTapped(obj))
+            }
+            "becomes" if self.at_words(&["attached", "to", "this"]) => {
+                self.pos += 3;
+                let TriggerObj::Filter(f) = obj else {
+                    return self.fail("expected what becomes attached (`Aura`)");
+                };
+                Ok(Trigger::BecomesAttachedTo(f))
             }
             "becomes" if self.at_word("untapped") => {
                 self.pos += 1;

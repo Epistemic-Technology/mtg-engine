@@ -1,0 +1,6 @@
+card "Vow to Erebor" {
+  oracle_id f8961618-ae68-4d13-84eb-8b5464ce4971
+  cost {1}{W}
+  type Instant
+  spell: untap target creature you control; it gets +2/+2; if target 1 is Dwarf, you may attach 1 Equipment you control to target 1 chosen
+}

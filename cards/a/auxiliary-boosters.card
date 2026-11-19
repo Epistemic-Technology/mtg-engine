@@ -1,0 +1,8 @@
+card "Auxiliary Boosters" {
+  oracle_id ffa3b20b-d77b-43d5-86ac-6a591df1877f
+  cost {4}{W}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "2/2 colorless Robot artifact creature" and attach to that token
+  static equipped: +1/+2, has flying
+  equip {3}
+}

@@ -1,0 +1,8 @@
+card "Iron Hills Stalwart" {
+  oracle_id bd4ab393-9538-4230-b2a1-bc77099481c9
+  cost {4}{R}
+  type Creature — Dwarf Warrior
+  pt 4/5
+  keywords reach, trample
+  triggered when this enters: attach target Equipment you control to up to 1 target creature you control
+}

@@ -1,0 +1,6 @@
+card "Mordenkainen's Polymorph" {
+  oracle_id 5ac8c234-030d-4ba1-bc2f-d05761045278
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature becomes Dragon base 4/4 and target 1 gains flying
+}

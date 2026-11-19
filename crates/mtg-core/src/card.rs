@@ -1319,6 +1319,10 @@ pub enum PtValue {
 pub enum Modification {
     /// "is a creature in addition to its other types" (layer 4).
     AddTypes(TypeSet),
+    /// "becomes an artifact creature" (layer 4): these card types replace
+    /// its others (CR 205.1a), except land ("It's still a land", CR
+    /// 205.1b; see `Effect::Animate`).
+    BecomeTypes(TypeSet),
     /// "is a Swamp in addition to its other land types" (layer 4; CR 305.7
     /// does not apply).
     AddLandType(Color),
@@ -1404,6 +1408,7 @@ impl Modification {
         match self {
             Modification::Control => Layer::L2Control,
             Modification::AddTypes(_)
+            | Modification::BecomeTypes(_)
             | Modification::AddLandType(_)
             | Modification::SetLandType(_)
             | Modification::AddSubtype(_)
@@ -2564,20 +2569,40 @@ pub enum Effect {
         /// 111.1, 614.1c).
         tapped: bool,
     },
-    /// Attach the ability's source to the recipient (equip, CR 701.3).
+    /// Attach `what` (an Aura or Equipment; `Source` for the ability's
+    /// source, as equip does) to the first object of `to` (CR 701.3).
+    /// "Attach target Equipment you control to target creature you
+    /// control" names another object.
     Attach {
+        what: Recipient,
         to: Recipient,
     },
+    /// "Unattach all Equipment from target creature" (CR 701.3d): each
+    /// object stays on the battlefield, attached to nothing.
+    Unattach {
+        what: Recipient,
+    },
     /// "becomes a 2/2 Assembly-Worker artifact creature until end of turn.
-    /// It's still a land" (layers 4 and 7b).
+    /// It's still a land" (layers 4, 5, 6 and 7b). The card types it
+    /// becomes replace its others (CR 205.1a; Opal Caryatid stops being an
+    /// enchantment) except land: every Oracle text animating a land says
+    /// "It's still a land" (CR 205.1b). The creature types replace its
+    /// others (CR 205.1a): "becomes a Dragon ... (It loses all other
+    /// creature types.)".
     Animate {
         to: Recipient,
         types: TypeSet,
         subtypes: SubtypeSet,
-        power: i32,
-        toughness: i32,
+        /// Its new base power and toughness; `None` keeps them ("This
+        /// Vehicle becomes an artifact creature until end of turn").
+        pt: Option<(i32, i32)>,
         /// "becomes a 4/4 green Bear artifact creature": its colors.
         colors: Option<ColorSet>,
+        /// "becomes a 2/2 Gargoyle creature with flying" (layer 6).
+        keywords: KeywordSet,
+        /// No duration: "it becomes a 2/2 Soldier creature" (Opal Caryatid)
+        /// lasts indefinitely.
+        indefinite: bool,
     },
     /// "becomes blue until end of turn", "becomes colorless" (layer 5).
     BecomeColor {
@@ -2986,6 +3011,9 @@ pub enum ChooseAct {
     /// "put a permanent card from among the milled cards into your hand":
     /// cards this resolution milled, still in the graveyard.
     MilledToHand,
+    /// "you may attach an Equipment you control to it" (permanents you
+    /// control): attached to the `n`th target (CR 701.3).
+    AttachToTarget(u8),
 }
 
 /// What a player chooses as a permanent enters ("As this land enters,
@@ -3164,6 +3192,7 @@ pub const WATCH_FACE_UP: u16 = 512;
 pub const WATCH_DRAW: u16 = 1024;
 pub const WATCH_CYCLE: u16 = 2048;
 pub const WATCH_DISCARD: u16 = 4096;
+pub const WATCH_ATTACH: u16 = 8192;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -3239,6 +3268,10 @@ pub enum TriggerSpec {
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
     TargetedByOpponent,
+    /// "Whenever an Aura becomes attached to this creature" (CR 701.3a,
+    /// 303.4): the object attached, which must match, is the triggering
+    /// object.
+    BecomesAttachedTo(ObjFilter),
     /// "Whenever this creature becomes tapped".
     BecomesTapped(TriggerObj),
     /// "Whenever this creature becomes untapped" (inspired).
@@ -3376,6 +3409,7 @@ impl TriggerSpec {
             | TriggerSpec::CastsFiltered { .. }
             | TriggerSpec::CastsNth { .. } => WATCH_CAST,
             TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
+            TriggerSpec::BecomesAttachedTo(_) => WATCH_ATTACH,
             TriggerSpec::Cycles {
                 or_discard: true, ..
             } => WATCH_DISCARD,

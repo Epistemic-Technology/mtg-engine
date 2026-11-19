@@ -1,0 +1,8 @@
+card "Inventor's Goggles" {
+  oracle_id ee32ab1a-1120-4c34-a538-7bde9eff5a6e
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+2
+  triggered whenever Artificer you control enters: you may attach to it
+  equip {2}
+}

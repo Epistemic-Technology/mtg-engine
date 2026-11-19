@@ -490,7 +490,10 @@ impl GameState {
             filter.matches(id, p, &c, Some(ctx.source), Some(p)) && self.status_ok(filter, id)
         };
         match act {
-            ChooseAct::Tap | ChooseAct::Sacrifice | ChooseAct::Bounce => self
+            ChooseAct::Tap
+            | ChooseAct::Sacrifice
+            | ChooseAct::Bounce
+            | ChooseAct::AttachToTarget(_) => self
                 .permanents_of(p)
                 .filter(|id| {
                     (act != ChooseAct::Tap || !self.objects[*id].tapped)
@@ -582,6 +585,20 @@ impl GameState {
                 }
                 ChooseAct::Bounce | ChooseAct::ReturnFromGraveyard | ChooseAct::MilledToHand => {
                     ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+                // An illegal target by now: nothing to attach to (CR
+                // 608.2b).
+                ChooseAct::AttachToTarget(n) => {
+                    let n = usize::from(n);
+                    if let Some(Target::Object(host)) = ctx.targets.get(n).copied()
+                        && ctx.legal.get(n).copied().unwrap_or(true)
+                        && self
+                            .objects
+                            .get(host)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                    {
+                        self.attach(id, host);
+                    }
                 }
             }
             done += 1;
@@ -2885,6 +2902,8 @@ impl GameState {
                 && self.objects.contains_key(new)
             {
                 self.objects[new].attached_to = Some(t);
+                // Before the event: its triggers read characteristics.
+                self.cbump();
                 self.emit(Event::Attached { obj: new, to: t });
             }
             self.cbump();
@@ -3331,6 +3350,35 @@ impl GameState {
             }
         }
         out
+    }
+
+    /// Attach `obj` to `host` (CR 701.3a). An Aura goes only where its
+    /// enchant ability allows, an Equipment only onto a creature, and an
+    /// Equipment that is a creature doesn't equip (CR 301.5c); an object
+    /// can't be attached to itself. Otherwise, or if it is already attached
+    /// to `host`, nothing happens (CR 701.3b, 701.3c).
+    pub(crate) fn attach(&mut self, obj: ObjId, host: ObjId) {
+        if obj == host || self.objects[obj].attached_to == Some(host) {
+            return;
+        }
+        let Some(c) = self.characteristics(obj) else {
+            return;
+        };
+        let legal = if c.has_subtype(crate::card::Subtype::AURA) {
+            let def = self.objects[obj].def;
+            let spec = self.pool.get(def).enchant().unwrap_or(TargetSpec::Creature);
+            self.is_legal_attachment(spec, host)
+        } else if c.has_subtype(crate::card::Subtype::EQUIPMENT) {
+            !c.is_creature() && self.is_legal_attachment(TargetSpec::Creature, host)
+        } else {
+            false
+        };
+        if !legal {
+            return;
+        }
+        self.objects[obj].attached_to = Some(host);
+        self.cbump();
+        self.emit(Event::Attached { obj, to: host });
     }
 
     /// What a filter's "attached to" names as `ctx`'s effects resolve: the
@@ -4207,53 +4255,84 @@ impl GameState {
                     }
                 }
             }
-            Effect::Attach { to } => {
-                let Some(source) = self
-                    .current_object(ctx.source)
-                    .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+            Effect::Attach { what, to } => {
+                let Some(host) = self
+                    .recipients(ctx, *to)
+                    .into_iter()
+                    .find_map(|t| on_battlefield(self, t))
                 else {
                     return;
                 };
-                for t in self.recipients(ctx, *to) {
+                let objs: SmallVec<[ObjId; 2]> = if *what == Recipient::Source {
+                    self.current_object(ctx.source)
+                        .filter(|s| self.objects[*s].zone == Zone::Battlefield)
+                        .into_iter()
+                        .collect()
+                } else {
+                    self.recipients(ctx, *what)
+                        .into_iter()
+                        .filter_map(|t| on_battlefield(self, t))
+                        .collect()
+                };
+                for obj in objs {
+                    self.attach(obj, host);
+                }
+            }
+            Effect::Unattach { what } => {
+                for t in self.recipients(ctx, *what) {
                     let Some(id) = on_battlefield(self, t) else {
                         continue;
                     };
-                    // CR 701.3b: an attachment to an illegal object does
-                    // nothing.
-                    if id == source || !self.is_legal_attachment(TargetSpec::Creature, id) {
-                        continue;
+                    if self.objects[id].attached_to.take().is_some() {
+                        self.cbump();
+                        self.emit(Event::Unattached { obj: id });
                     }
-                    self.objects[source].attached_to = Some(id);
-                    self.cbump();
-                    self.emit(Event::Attached {
-                        obj: source,
-                        to: id,
-                    });
                 }
             }
             Effect::Animate {
                 to,
                 types,
                 subtypes,
-                power,
-                toughness,
+                pt,
                 colors,
+                keywords,
+                indefinite,
             } => {
-                for t in self.recipients(ctx, *to) {
-                    let Some(id) = on_battlefield(self, t) else {
-                        continue;
-                    };
-                    let mut parts: SmallVec<[Modification; 2]> =
-                        smallvec::smallvec![Modification::AddTypes(*types)];
-                    parts.extend(subtypes.iter().map(|s| Modification::AddSubtype(*s)));
-                    if let Some(c) = colors {
-                        parts.push(Modification::SetColors(*c));
-                    }
+                let mut parts: SmallVec<[Modification; 2]> = SmallVec::new();
+                if !types.is_empty() {
+                    parts.push(Modification::BecomeTypes(*types));
+                }
+                // CR 205.1a: the first creature type replaces the old ones,
+                // the rest join it ("a 4/4 Phyrexian Eye artifact creature").
+                for (i, s) in subtypes.iter().enumerate() {
+                    parts.push(if i == 0 && s.is_creature_type() {
+                        Modification::SetCreatureType(*s)
+                    } else {
+                        Modification::AddSubtype(*s)
+                    });
+                }
+                if let Some(c) = colors {
+                    parts.push(Modification::SetColors(*c));
+                }
+                if !keywords.is_empty() {
+                    parts.push(Modification::AddKeywords(*keywords));
+                }
+                if let Some((power, toughness)) = pt {
                     parts.push(Modification::SetPt {
                         power: PtValue::Fixed(*power),
                         toughness: PtValue::Fixed(*toughness),
                     });
-                    self.effect_until_end_of_turn(ctx, id, parts);
+                }
+                let duration = if *indefinite {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
+                for t in self.recipients(ctx, *to) {
+                    let Some(id) = on_battlefield(self, t) else {
+                        continue;
+                    };
+                    self.effect_on(ctx, id, parts.clone(), duration);
                 }
             }
             Effect::BecomeColor { to, colors } => {
@@ -4823,6 +4902,8 @@ impl GameState {
                 }
                 if let Some(id) = target {
                     self.add_counters(id, CounterKind::PlusOnePlusOne, n);
+                    // "attach this Equipment to the amassed Army".
+                    ctx.created = Some(id);
                 }
             }
             // Modes resolve through the chosen mode (`effects_of`); looking

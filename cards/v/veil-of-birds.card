@@ -1,0 +1,6 @@
+card "Veil of Birds" {
+  oracle_id fc6278e5-7eb1-4590-880e-fe9efa0ec4d9
+  cost {U}
+  type Enchantment
+  triggered when an opponent casts spell if this is enchantment: this becomes 1/1 Bird creature with flying indefinitely
+}

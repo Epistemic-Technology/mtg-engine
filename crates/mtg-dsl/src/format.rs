@@ -687,7 +687,16 @@ impl Fmt {
                 format!("{} {v} {}", self.recipient(*to, t), keywords(ks))
             }
             Effect::GainControl { of } => format!("gain control of {}", self.recipient(*of, t)),
-            Effect::Attach { to } => format!("attach to {}", self.recipient(*to, t)),
+            Effect::Attach {
+                what: Recipient::Source,
+                to,
+            } => format!("attach to {}", self.recipient(*to, t)),
+            Effect::Attach { what, to } => format!(
+                "attach {} to {}",
+                self.recipient(*what, t),
+                self.recipient(*to, t)
+            ),
+            Effect::Unattach { what } => format!("unattach {}", self.recipient(*what, t)),
             Effect::CreateToken {
                 token,
                 count,
@@ -912,21 +921,29 @@ impl Fmt {
                 to,
                 types,
                 subtypes,
-                power,
-                toughness,
+                pt,
+                base,
                 colors,
+                keywords: ks,
+                indefinite,
             } => {
-                let mut words: Vec<String> = colors
-                    .iter()
-                    .map(|c| format!("{c:?}").to_lowercase())
-                    .collect();
+                let mut words: Vec<String> = Vec::new();
+                if let (Some((p, q)), false) = (pt, base) {
+                    words.push(format!("{p}/{q}"));
+                }
+                words.extend(colors.iter().map(|c| format!("{c:?}").to_lowercase()));
                 words.extend(subtypes.iter().cloned());
                 words.extend(types.iter().map(|t| format!("{t:?}").to_lowercase()));
-                format!(
-                    "{} becomes {power}/{toughness} {}",
-                    self.recipient(*to, t),
-                    words.join(" ")
-                )
+                if let (Some((p, q)), true) = (pt, base) {
+                    words.push(format!("base {p}/{q}"));
+                }
+                if !ks.is_empty() {
+                    words.push(format!("with {}", keywords(ks)));
+                }
+                if *indefinite {
+                    words.push("indefinitely".to_string());
+                }
+                format!("{} becomes {}", self.recipient(*to, t), words.join(" "))
             }
             Effect::BecomeColor { to, colors } => {
                 let c: Vec<String> = colors
@@ -1030,6 +1047,9 @@ impl Fmt {
                         "put {n} {f} {cs} from among {} into hand chosen",
                         if *among_them { "them" } else { "milled cards" }
                     ),
+                    ChooseAct::AttachToTarget(i) => {
+                        format!("attach {n} {f} to target {} chosen", i + 1)
+                    }
                 }
             }
             Effect::OneOf(options) => options
@@ -2023,6 +2043,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_obj(o)),
+        Trigger::BecomesAttachedTo(f) => {
+            format!("whenever {} becomes attached to this", filter(f))
+        }
         Trigger::BecomesUntapped(o) => format!("whenever {} becomes untapped", trigger_obj(o)),
         Trigger::DealtDamage(o) => format!("whenever {} is dealt damage", trigger_obj(o)),
         Trigger::DealsDamage { obj, to, combat } => format!(
@@ -2585,7 +2608,11 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             cycling,
         } => {
             if *equip {
-                let _ = writeln!(out, "{indent}equip {}", cost.mana);
+                let sub = crate::render::equip_subtype(targets)
+                    .map(|s| format!("{s} "))
+                    .unwrap_or_default();
+                let once = if cost.per_turn == 1 { ", once" } else { "" };
+                let _ = writeln!(out, "{indent}equip {sub}{}{once}", cost.mana);
                 return;
             }
             if *cycling {

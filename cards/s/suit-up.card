@@ -1,0 +1,9 @@
+card "Suit Up" {
+  oracle_id 29bbbbfe-77cb-411f-9c1b-f7e4724685c6
+  cost {2}{U}
+  type Instant
+  spell {
+    until end of turn, target creature or Vehicle becomes artifact creature base 4/5
+    draw 1 card
+  }
+}

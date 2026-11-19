@@ -1,0 +1,8 @@
+card "Dúnedain Blade" {
+  oracle_id 4b418846-6426-448a-b4cb-ce631e0a99a2
+  cost {1}{W}
+  type Artifact — Equipment
+  static equipped: +2/+1
+  equip Human {1}
+  equip {3}
+}

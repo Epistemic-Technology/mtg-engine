@@ -1064,7 +1064,11 @@ impl Compiler<'_> {
                 to: r(*to),
             }),
             Effect::GainControl { of } => out.push(CoreEffect::GainControl { of: r(*of) }),
-            Effect::Attach { to } => out.push(CoreEffect::Attach { to: r(*to) }),
+            Effect::Attach { what, to } => out.push(CoreEffect::Attach {
+                what: r(*what),
+                to: r(*to),
+            }),
+            Effect::Unattach { what } => out.push(CoreEffect::Unattach { what: r(*what) }),
             Effect::CreateToken {
                 token,
                 count,
@@ -1199,18 +1203,21 @@ impl Compiler<'_> {
                 to,
                 types,
                 subtypes,
-                power,
-                toughness,
+                pt,
+                base: _,
                 colors,
+                keywords,
+                indefinite,
             } => {
                 let subtypes = self.subtypes(subtypes);
                 out.push(CoreEffect::Animate {
                     to: r(*to),
                     types: TypeSet::of(types.iter().copied()),
                     subtypes,
-                    power: *power,
-                    toughness: *toughness,
+                    pt: *pt,
                     colors: (!colors.is_empty()).then(|| ColorSet::of(colors.iter().copied())),
+                    keywords: KeywordSet::of(keywords.iter().copied()),
+                    indefinite: *indefinite,
                 });
             }
             Effect::BecomeColor { to, colors } => out.push(CoreEffect::BecomeColor {
@@ -1540,6 +1547,7 @@ impl Compiler<'_> {
                 n: *n,
             },
             Trigger::BecomesTapped(o) => TriggerSpec::BecomesTapped(self.trigger_obj(o)),
+            Trigger::BecomesAttachedTo(f) => TriggerSpec::BecomesAttachedTo(self.filter(f)),
             Trigger::BecomesUntapped(o) => TriggerSpec::BecomesUntapped(self.trigger_obj(o)),
             Trigger::DealtDamage(o) => TriggerSpec::DealtDamage(self.trigger_obj(o)),
             Trigger::DealsDamage { obj, to, combat } => TriggerSpec::DealsDamage {
@@ -2136,7 +2144,7 @@ impl Compiler<'_> {
                     )
                 }
                 other => {
-                    let expanded = expand_mechanic(other, self.card.pt);
+                    let expanded = expand_mechanic(other);
                     return self.ability(&expanded);
                 }
             },
@@ -2157,7 +2165,7 @@ impl Compiler<'_> {
 /// What a keyword ability with a parameter stands for, as an ordinary
 /// ability (CR 702).
 #[allow(clippy::too_many_lines)] // one arm per mechanic
-fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
+fn expand_mechanic(m: &Mechanic) -> Ability {
     use crate::ast::{Effect as E, Join};
     let one = |e: E| vec![Sentence::new(vec![e])];
     match m {
@@ -2307,7 +2315,8 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
             cycling: false,
         },
         Mechanic::Crew(n) => {
-            let (power, toughness) = pt.unwrap_or((0, 0));
+            // The Vehicle keeps its printed power and toughness (CR
+            // 301.7a).
             Ability::Activated {
                 cost: Cost {
                     crew: *n,
@@ -2321,9 +2330,11 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                         mtg_core::card::CardType::Creature,
                     ],
                     subtypes: Vec::new(),
-                    power,
-                    toughness,
+                    pt: None,
+                    base: false,
                     colors: Vec::new(),
+                    keywords: Vec::new(),
+                    indefinite: false,
                 }),
                 equip: false,
                 cycling: false,

@@ -1,0 +1,6 @@
+card "Stuffed Bear" {
+  oracle_id 1402c116-194e-49ca-a8c1-09ca659c220c
+  cost {2}
+  type Artifact
+  activated {2}: this becomes 4/4 green Bear artifact creature until end of turn
+}

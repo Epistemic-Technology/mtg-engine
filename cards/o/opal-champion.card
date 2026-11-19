@@ -1,0 +1,6 @@
+card "Opal Champion" {
+  oracle_id 0d3617c3-1526-40e6-bc90-6139b5d3e1f1
+  cost {2}{W}
+  type Enchantment
+  triggered when an opponent casts creature spell if this is enchantment: this becomes 3/3 Knight creature with first strike indefinitely
+}

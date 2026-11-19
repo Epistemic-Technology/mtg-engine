@@ -1,0 +1,7 @@
+card "Mimic" {
+  oracle_id ba8156cd-2e78-4763-b61d-8bc85b2f3657
+  cost {2}
+  type Artifact — Treasure
+  mana any, sacrifice this
+  activated {2}: this becomes Shapeshifter artifact creature base 3/3 until end of turn
+}

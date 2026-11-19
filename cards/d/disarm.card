@@ -1,0 +1,6 @@
+card "Disarm" {
+  oracle_id 44d54814-2eeb-4df8-b8d3-789f0bcb307a
+  cost {U}
+  type Instant
+  spell: unattach all Equipment attached to target creature
+}

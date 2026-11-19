@@ -1,0 +1,7 @@
+card "Kor Outfitter" {
+  oracle_id 8ae3562f-28b7-4462-96ed-be0cf7052ccc
+  cost {W}{W}
+  type Creature — Kor Soldier
+  pt 2/2
+  triggered when this enters: you may attach target Equipment you control to target creature you control
+}

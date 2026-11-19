@@ -1,0 +1,8 @@
+card "Veteran's Powerblade" {
+  oracle_id da0b4e01-b312-4f37-a034-824ce58db02e
+  cost {3}
+  type Artifact — Equipment
+  static equipped: +2/+0
+  equip Soldier {W}
+  equip {2}
+}
