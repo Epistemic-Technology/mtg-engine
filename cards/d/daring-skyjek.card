@@ -1,0 +1,7 @@
+card "Daring Skyjek" {
+  oracle_id f15a202d-c1c4-49bd-924a-7a0a5667ff70
+  cost {1}{W}
+  type Creature — Human Knight
+  pt 3/1
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gains flying
+}

@@ -1,0 +1,9 @@
+card "Aurochs Herd" {
+  oracle_id b07bd1cd-4000-4e6b-b16b-283c76593377
+  cost {5}{G}
+  type Creature — Aurochs
+  pt 4/4
+  keywords trample
+  triggered when this enters: you may search Aurochs card reveal to hand
+  triggered whenever this attacks: this gets +1/+0 count each other attacking Aurochs
+}

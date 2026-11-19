@@ -1,0 +1,8 @@
+card "Expedition Lookout" {
+  oracle_id f8ad2f88-72ae-4e47-beb5-25a6dacc709b
+  cost {1}{U}
+  type Creature — Merfolk Rogue
+  pt 2/3
+  keywords defender
+  static as long as opponent graveyard 8 or more, this: has can attack as though it didn't have defender, can't be blocked
+}

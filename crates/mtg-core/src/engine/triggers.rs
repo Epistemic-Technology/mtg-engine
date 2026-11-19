@@ -430,9 +430,23 @@ impl GameState {
             | (
                 TriggerSpec::BecomesBlocked(what) | TriggerSpec::BlocksOrBlocked(what),
                 Event::Blocked { attacker },
-            ) => {
+            )
+            | (TriggerSpec::AttacksUnblocked(what), Event::Unblocked { attacker }) => {
                 let p = on_battlefield(what, *attacker)?;
                 Some((Some(*attacker), Some(p)))
+            }
+            (TriggerSpec::AttacksWith { this, min }, Event::Attack { attacker, .. }) => {
+                // Once per declaration: on the source's own attack, or on
+                // the first attacker declared.
+                let c = self.combat.as_ref()?;
+                let ok = if *this {
+                    *attacker == w.source
+                } else {
+                    c.attackers.first().is_some_and(|a| a.id == *attacker)
+                        && self.objects.get(*attacker)?.controller == w.controller
+                };
+                (ok && c.attackers.len() >= usize::from(*min))
+                    .then_some((this.then_some(*attacker), Some(w.controller)))
             }
             (TriggerSpec::AttacksAlone(what), Event::Attack { attacker, .. }) => {
                 // CR 506.5: the only creature declared as an attacker.

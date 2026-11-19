@@ -1,0 +1,7 @@
+card "Amrou Seekers" {
+  oracle_id 396efb56-7a54-4d91-b2ce-7f3c62c3238b
+  cost {2}{W}
+  type Creature — Kithkin Rebel
+  pt 2/2
+  can't be blocked except by artifact creature or white creature
+}

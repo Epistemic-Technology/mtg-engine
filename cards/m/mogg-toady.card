@@ -1,0 +1,8 @@
+card "Mogg Toady" {
+  oracle_id 77c7ba06-d247-421d-9e0c-54c3000c1b78
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/2
+  can't attack unless you control more creatures than defending player
+  can't block unless you control more creatures than attacking player
+}

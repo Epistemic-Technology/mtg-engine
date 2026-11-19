@@ -1,0 +1,8 @@
+card "Glacial Crasher" {
+  oracle_id 42441362-d638-423a-8928-ab3fd9b2d4f2
+  cost {4}{U}{U}
+  type Creature — Elemental
+  pt 5/5
+  keywords trample
+  can't attack unless on battlefield Mountain
+}

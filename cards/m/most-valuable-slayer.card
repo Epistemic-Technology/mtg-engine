@@ -1,0 +1,7 @@
+card "Most Valuable Slayer" {
+  oracle_id f5bece93-afb3-4fa4-83a8-d7eaac032522
+  cost {3}{R}
+  type Creature — Human Warrior
+  pt 2/4
+  triggered whenever you attack: target attacking creature gets +1/+0 and gains first strike
+}

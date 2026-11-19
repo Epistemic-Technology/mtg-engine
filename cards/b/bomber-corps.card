@@ -1,0 +1,7 @@
+card "Bomber Corps" {
+  oracle_id a429c351-d281-4e49-8564-bd96bdf5c41b
+  cost {1}{R}
+  type Creature — Human Soldier
+  pt 1/2
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature deals 1 damage to any target
+}

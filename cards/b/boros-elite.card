@@ -1,0 +1,7 @@
+card "Boros Elite" {
+  oracle_id 7c83fb45-03af-4f1a-b7e3-2c4f47511658
+  cost {W}
+  type Creature — Human Soldier
+  pt 1/1
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gets +2/+2
+}

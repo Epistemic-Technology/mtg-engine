@@ -213,6 +213,7 @@ impl Fmt {
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::Attached => "attached".to_string(),
+            Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -512,6 +513,11 @@ impl Fmt {
             Effect::ReturnChosen { count, filter: f } => {
                 format!("return {} {} chosen", num(*count), filter(f))
             }
+            Effect::BlocksIfAble { blocker, attacker } => format!(
+                "{} blocks {} if able",
+                self.recipient(*blocker, t),
+                self.recipient(*attacker, t)
+            ),
             Effect::SkipNextUntap { to } => {
                 format!("{} doesn't untap next untap step", self.recipient(*to, t))
             }
@@ -1247,6 +1253,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             n + 1
         ),
         CountExpr::Life => "life".to_string(),
+        CountExpr::BlockingIt { beyond: 0 } => "creature blocking it".to_string(),
+        CountExpr::BlockingIt { beyond } => format!("creature blocking it beyond {beyond}"),
     }
 }
 
@@ -1739,6 +1747,20 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::Attacks(o) => format!("whenever {} attacks", trigger_obj(o)),
         Trigger::AttacksAlone(o) => format!("whenever {} attacks alone", trigger_obj(o)),
+        Trigger::AttacksWith {
+            this: false,
+            min: 1,
+        } => "whenever you attack".to_string(),
+        Trigger::AttacksWith { this: false, min } => {
+            format!("whenever you attack with {min} or more creatures")
+        }
+        Trigger::AttacksWith { this: true, min } => format!(
+            "whenever this and at least {} other creatures attack",
+            min.saturating_sub(1)
+        ),
+        Trigger::AttacksUnblocked(o) => {
+            format!("whenever {} attacks and isn't blocked", trigger_obj(o))
+        }
         Trigger::BecomesBlocked(o) => format!("whenever {} becomes blocked", trigger_obj(o)),
         Trigger::BlocksOrBlocked(o) => {
             format!("whenever {} blocks or becomes blocked", trigger_obj(o))
@@ -2064,6 +2086,7 @@ fn body(
     }
 }
 
+#[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond(c: &StaticCond) -> String {
     match c {
         StaticCond::CardsInGraveyard(n) => format!("{n} cards in your graveyard"),
@@ -2102,12 +2125,42 @@ fn static_cond(c: &StaticCond) -> String {
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
+        StaticCond::OnBattlefield {
+            filter: fl,
+            at_least: 1,
+        } => format!("on battlefield {}", filter(fl)),
+        StaticCond::OnBattlefield {
+            filter: fl,
+            at_least,
+        } => format!("on battlefield {at_least} {}", filter(fl)),
+        StaticCond::DefenderPoisoned => "defending player poisoned".to_string(),
+        StaticCond::OthersInCombat {
+            filter: fl,
+            also: true,
+            block,
+            ..
+        } => format!(
+            "{} also {}",
+            filter(fl),
+            if *block { "blocks" } else { "attacks" }
+        ),
+        StaticCond::OthersInCombat {
+            at_least, block, ..
+        } => format!(
+            "at least {at_least} other creatures {}",
+            if *block { "block" } else { "attack" }
+        ),
+        StaticCond::MoreCreaturesThanOpponent { attacking } => format!(
+            "you control more creatures than {} player",
+            if *attacking { "attacking" } else { "defending" }
+        ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
         StaticCond::Escaped => unreachable!("only in `escapes with`"),
         StaticCond::Kicked => unreachable!("only in `kicked with`"),
         StaticCond::LandEnteredThisTurn => "land entered this turn".to_string(),
+        StaticCond::ArtifactEnteredThisTurn => "artifact entered this turn".to_string(),
         StaticCond::CardsDrawnThisTurn(n) => format!("drew {n} cards this turn"),
         StaticCond::CardsInHand { n, at_most } => {
             format!("hand {n} or {}", if *at_most { "less" } else { "more" })

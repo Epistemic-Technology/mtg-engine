@@ -306,6 +306,10 @@ impl GameState {
             CountExpr::LifeLostThisWay => {
                 return self.this_way.as_ref().map_or(0, |log| log.life_lost);
             }
+            CountExpr::BlockingIt { beyond } => {
+                let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
+                return n.saturating_sub(*beyond);
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
     }
@@ -2695,6 +2699,27 @@ impl GameState {
             .collect()
     }
 
+    /// The creatures blocking the triggering object, or else the source
+    /// ("each creature blocking it", CR 509.1h).
+    fn blocking_it(&self, ctx: &EffectCtx) -> SmallVec<[ObjId; 4]> {
+        let attacker = ctx
+            .trigger_obj
+            .and_then(|o| self.current_object(o))
+            .or_else(|| self.current_object(ctx.source));
+        let Some(a) = attacker.and_then(|a| self.combat.as_ref()?.attacker(a)) else {
+            return SmallVec::new();
+        };
+        a.blockers
+            .iter()
+            .copied()
+            .filter(|b| {
+                self.objects
+                    .get(*b)
+                    .is_some_and(|o| o.zone == Zone::Battlefield)
+            })
+            .collect()
+    }
+
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
     #[allow(clippy::too_many_lines)] // one arm per recipient kind
     fn recipients(&self, ctx: &EffectCtx, r: Recipient) -> SmallVec<[Target; 2]> {
@@ -2749,6 +2774,9 @@ impl GameState {
                 }
             }
             Recipient::You => out.push(Target::Player(ctx.controller)),
+            Recipient::BlockingIt => {
+                out.extend(self.blocking_it(ctx).into_iter().map(Target::Object));
+            }
             Recipient::EachOpponent => {
                 out.extend(
                     self.players_in_game()
@@ -3461,6 +3489,20 @@ impl GameState {
                             id,
                             smallvec::smallvec![Modification::AddAbility(*ability)],
                         );
+                    }
+                }
+            }
+            Effect::BlocksIfAble { blocker, attacker } => {
+                let attackers: SmallVec<[ObjId; 2]> = self
+                    .recipients(ctx, *attacker)
+                    .into_iter()
+                    .filter_map(|t| on_battlefield(self, t))
+                    .collect();
+                for t in self.recipients(ctx, *blocker) {
+                    if let Some(b) = on_battlefield(self, t) {
+                        for a in &attackers {
+                            self.block_demands.push((b, *a));
+                        }
                     }
                 }
             }

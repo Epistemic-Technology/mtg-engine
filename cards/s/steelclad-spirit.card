@@ -1,0 +1,8 @@
+card "Steelclad Spirit" {
+  oracle_id 3dc225a2-61b6-4ac9-a86b-df0c2b0b3898
+  cost {1}{U}
+  type Creature — Spirit
+  pt 3/3
+  keywords defender
+  triggered whenever enchantment you control enters: this can attack this turn as though it didn't have defender
+}

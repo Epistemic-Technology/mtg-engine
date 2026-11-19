@@ -1,0 +1,8 @@
+card "Piston-Fist Cyclops" {
+  oracle_id 790e3c9e-7d94-43f7-bc14-d83c7d4c889e
+  cost {1}{U/R}{U/R}
+  type Creature — Cyclops
+  pt 4/3
+  keywords defender
+  static as long as cast instant or sorcery spell this turn, this: has can attack as though it didn't have defender
+}

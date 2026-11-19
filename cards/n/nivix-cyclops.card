@@ -1,0 +1,8 @@
+card "Nivix Cyclops" {
+  oracle_id 68b8bfac-63f7-4dbd-bb2e-4ad394c77335
+  cost {1}{U}{R}
+  type Creature — Cyclops
+  pt 1/4
+  keywords defender
+  triggered whenever you cast an instant or sorcery spell: this gets +3/+0 and can attack this turn as though it didn't have defender
+}

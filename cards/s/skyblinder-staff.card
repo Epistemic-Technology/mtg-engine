@@ -1,0 +1,7 @@
+card "Skyblinder Staff" {
+  oracle_id 3fea3d1a-067b-4eae-8433-f7e1e7b724a3
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+0, has ability { can't be blocked by creature with flying }
+  equip {3}
+}

@@ -1,0 +1,8 @@
+card "Spire Serpent" {
+  oracle_id 6c0c5832-416f-405f-bb44-c24be6f9d081
+  cost {4}{U}
+  type Creature — Serpent
+  pt 3/5
+  keywords defender
+  label "Metalcraft" static as long as metalcraft, this: +2/+2, has can attack as though it didn't have defender
+}

@@ -522,6 +522,27 @@ impl Compiler<'_> {
                     at_least: *at_least,
                 }
             }
+            StaticCond::OnBattlefield { filter, at_least } => StaticCondition::OnBattlefield {
+                filter: self.filter(filter),
+                at_least: *at_least,
+            },
+            StaticCond::DefenderPoisoned => StaticCondition::DefenderPoisoned,
+            StaticCond::OthersInCombat {
+                filter,
+                at_least,
+                also,
+                block,
+            } => StaticCondition::OthersInCombat {
+                filter: self.filter(filter),
+                at_least: *at_least,
+                also: *also,
+                block: *block,
+            },
+            StaticCond::MoreCreaturesThanOpponent { attacking } => {
+                StaticCondition::MoreCreaturesThanOpponent {
+                    attacking: *attacking,
+                }
+            }
             StaticCond::YouControlNone(filter) => {
                 StaticCondition::YouControlNone(self.filter(filter).who(Who::You))
             }
@@ -531,6 +552,7 @@ impl Compiler<'_> {
             StaticCond::Escaped => StaticCondition::Escaped,
             StaticCond::Kicked => StaticCondition::Kicked,
             StaticCond::LandEnteredThisTurn => StaticCondition::LandEnteredThisTurn,
+            StaticCond::ArtifactEnteredThisTurn => StaticCondition::ArtifactEnteredThisTurn,
             StaticCond::CardsDrawnThisTurn(n) => StaticCondition::CardsDrawnThisTurn(*n),
             StaticCond::CardsInHand { n, at_most } => StaticCondition::CardsInHand {
                 n: *n,
@@ -591,6 +613,7 @@ impl Compiler<'_> {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
             A::LifeLostThisWay => C::LifeLostThisWay,
+            A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
         }
     }
 
@@ -694,6 +717,7 @@ impl Compiler<'_> {
             Recipient::SameObject => CoreRecipient::SameObject,
             Recipient::CreatedObject => CoreRecipient::CreatedObject,
             Recipient::Attached => CoreRecipient::Attached,
+            Recipient::BlockingIt => CoreRecipient::BlockingIt,
         }
     }
 
@@ -1205,6 +1229,10 @@ impl Compiler<'_> {
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
             Effect::SkipNextUntap { to } => out.push(CoreEffect::SkipNextUntap { to: r(*to) }),
+            Effect::BlocksIfAble { blocker, attacker } => out.push(CoreEffect::BlocksIfAble {
+                blocker: r(*blocker),
+                attacker: r(*attacker),
+            }),
             Effect::ReturnChosen { count, filter } => out.push(CoreEffect::ReturnChosen {
                 who: CoreRecipient::You,
                 filter: self.filter(filter).who(Who::You),
@@ -1309,6 +1337,11 @@ impl Compiler<'_> {
             },
             Trigger::Attacks(o) => TriggerSpec::Attacks(self.trigger_obj(o)),
             Trigger::AttacksAlone(o) => TriggerSpec::AttacksAlone(self.trigger_obj(o)),
+            Trigger::AttacksWith { this, min } => TriggerSpec::AttacksWith {
+                this: *this,
+                min: *min,
+            },
+            Trigger::AttacksUnblocked(o) => TriggerSpec::AttacksUnblocked(self.trigger_obj(o)),
             Trigger::BecomesBlocked(o) => TriggerSpec::BecomesBlocked(self.trigger_obj(o)),
             Trigger::BlocksOrBlocked(o) => TriggerSpec::BlocksOrBlocked(self.trigger_obj(o)),
             Trigger::AttacksOrBlocks(o) => TriggerSpec::AttacksOrBlocks(self.trigger_obj(o)),

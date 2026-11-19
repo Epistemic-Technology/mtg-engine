@@ -1,0 +1,7 @@
+card "Scarred Puma" {
+  oracle_id e28e1921-797b-4e6e-8058-3929af46eeb5
+  cost {R}
+  type Creature — Cat
+  pt 2/1
+  can't attack unless black or green creature also attacks
+}

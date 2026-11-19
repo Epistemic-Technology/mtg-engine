@@ -1,0 +1,8 @@
+card "Ogre Jailbreaker" {
+  oracle_id 08d27af8-7178-4694-8621-fabac54c8f0a
+  cost {3}{B}
+  type Creature — Ogre Rogue
+  pt 4/4
+  keywords defender
+  static this: has can attack as though it didn't have defender as long as you control Gate
+}

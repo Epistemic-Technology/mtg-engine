@@ -200,6 +200,9 @@ impl GameState {
             .characteristics(id)
             .expect("moving an object that exists");
         let characteristics_is_land = characteristics.is_land();
+        let characteristics_is_artifact = characteristics
+            .types
+            .contains(crate::card::CardType::Artifact);
         self.remove_from_zone_list(id);
         let old = self.objects.remove(id).expect("object exists");
         if old.zone == Zone::Battlefield && self.pool.is_face_down(old.def) {
@@ -307,6 +310,9 @@ impl GameState {
                 // Landfall: "you had a land enter the battlefield under
                 // your control this turn".
                 self.lands_entered_this_turn |= 1 << controller.index().min(7);
+            }
+            if characteristics_is_artifact {
+                self.artifacts_entered_this_turn |= 1 << controller.index().min(7);
             }
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);

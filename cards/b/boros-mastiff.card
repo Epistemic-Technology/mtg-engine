@@ -1,0 +1,7 @@
+card "Boros Mastiff" {
+  oracle_id bcbaef07-1d5b-457b-b373-77d3a2884b39
+  cost {1}{W}
+  type Creature — Dog
+  pt 2/2
+  label "Battalion" triggered whenever this and at least 2 other creatures attack: this creature gains lifelink
+}

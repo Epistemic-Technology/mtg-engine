@@ -1,0 +1,7 @@
+card "Boggart Prankster" {
+  oracle_id 1bcac664-835a-4474-8ca4-263801bde08e
+  cost {1}{B}
+  type Creature — Goblin Warrior
+  pt 1/3
+  triggered whenever you attack: target attacking Goblin you control gets +1/+0
+}

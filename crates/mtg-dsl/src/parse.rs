@@ -62,6 +62,12 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
 /// Keywords by their text, longest first.
 const KEYWORDS: &[(&[&str], Keyword)] = &[
     (
+        &[
+            "can", "attack", "as", "though", "it", "didn't", "have", "defender",
+        ],
+        Keyword::AttackDespiteDefender,
+    ),
+    (
         &["attacks", "each", "combat", "if", "able"],
         Keyword::MustAttack,
     ),
@@ -1711,6 +1717,9 @@ impl P {
         if self.eat_words(&["land", "entered", "this", "turn"]) {
             return Ok(StaticCond::LandEnteredThisTurn);
         }
+        if self.eat_words(&["artifact", "entered", "this", "turn"]) {
+            return Ok(StaticCond::ArtifactEnteredThisTurn);
+        }
         if self.eat_words(&["this", "has"]) {
             return self.source_counters_cond();
         }
@@ -1734,6 +1743,63 @@ impl P {
                 false
             };
             return Ok(StaticCond::CardsInHand { n, at_most });
+        }
+        // "unless at least two other creatures attack" (CR 508.1c).
+        if self.eat_words(&["at", "least"]) {
+            let at_least = self.number()?;
+            self.expect_words(&["other", "creatures"])?;
+            let block = self.eat_word("block");
+            if !block {
+                self.expect_word("attack")?;
+            }
+            return Ok(StaticCond::OthersInCombat {
+                filter: Filter {
+                    types: vec![CardType::Creature],
+                    ..Default::default()
+                },
+                at_least,
+                also: false,
+                block,
+            });
+        }
+        // "unless a black or green creature also attacks".
+        {
+            let start = self.pos;
+            if let Ok(filter) = self.filter()
+                && self.eat_word("also")
+            {
+                let block = self.eat_word("blocks");
+                if !block {
+                    self.expect_word("attacks")?;
+                }
+                return Ok(StaticCond::OthersInCombat {
+                    filter,
+                    at_least: 1,
+                    also: true,
+                    block,
+                });
+            }
+            self.pos = start;
+        }
+        if self.eat_words(&["defending", "player", "poisoned"]) {
+            return Ok(StaticCond::DefenderPoisoned);
+        }
+        if self.eat_words(&["you", "control", "more", "creatures", "than"]) {
+            let attacking = self.eat_word("attacking");
+            if !attacking {
+                self.expect_word("defending")?;
+            }
+            self.expect_word("player")?;
+            return Ok(StaticCond::MoreCreaturesThanOpponent { attacking });
+        }
+        if self.eat_words(&["on", "battlefield"]) {
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let filter = self.filter()?;
+            return Ok(StaticCond::OnBattlefield { filter, at_least });
         }
         if self.eat_words(&["defending", "player", "controls"]) {
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
@@ -2139,6 +2205,8 @@ impl P {
                     | "can"
                     | "must"
                     | "blocks"
+                    | "attacks"
+                    | "attack"
                     | "sacrifices"
                     | "sacrifice"
                     | "reveals"
@@ -2700,11 +2768,44 @@ impl P {
             // Blocking requirements and allowances (CR 509.1a, 509.1c):
             // "blocks if able", "must be blocked if able", "can block an
             // additional creature", "can block any number of creatures".
+            // "Target creature attacks this turn if able" (CR 508.1d).
+            "attacks" | "attack" => {
+                let _ = self.eat_words(&["this", "turn"]);
+                self.expect_words(&["if", "able"])?;
+                self.until_end_of_turn();
+                Ok(Effect::Grant {
+                    keywords: vec![Keyword::MustAttack],
+                    to: subject,
+                })
+            }
+            // "Target creature blocks this creature this turn if able".
+            "blocks" | "block"
+                if !self.at_word("if")
+                    && !self.at_words(&["this", "turn"])
+                    && !self.at_words(&["each", "combat"]) =>
+            {
+                let attacker = self.recipient()?;
+                let _ = self.eat_words(&["this", "turn"]);
+                self.expect_words(&["if", "able"])?;
+                Ok(Effect::BlocksIfAble {
+                    blocker: subject,
+                    attacker,
+                })
+            }
             "blocks" | "block" | "must" | "can" => {
                 let keyword = match w.as_str() {
                     "must" => {
                         self.expect_words(&["be", "blocked"])?;
                         Keyword::MustBeBlocked
+                    }
+                    "can" if self.eat_word("attack") => {
+                        // CR 702.3b: "can attack this turn as though it
+                        // didn't have defender".
+                        let _ = self.eat_words(&["this", "turn"]);
+                        self.expect_words(&["as", "though"])?;
+                        let _ = self.eat_word("it") || self.eat_word("they");
+                        self.expect_words(&["didn't", "have", "defender"])?;
+                        Keyword::AttackDespiteDefender
                     }
                     "can" => {
                         self.expect_word("block")?;
@@ -3797,6 +3898,7 @@ impl P {
     /// `domain`, `hand`, `graveyard [<filter>]`, `power`, `power of target
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
+    #[allow(clippy::too_many_lines)] // one branch per count
     fn count_expr(&mut self) -> R<crate::ast::CountExpr> {
         use crate::ast::CountExpr;
         if let Some(Tok::Num(n)) = self.peek() {
@@ -3816,6 +3918,19 @@ impl P {
         }
         if self.eat_word("life") {
             return Ok(CountExpr::Life);
+        }
+        // "for each creature blocking it [beyond the first]".
+        if self.eat_words(&["creature", "blocking", "it"]) {
+            let beyond = if self.eat_word("beyond") {
+                if self.eat_word("first") {
+                    1
+                } else {
+                    self.number()?
+                }
+            } else {
+                0
+            };
+            return Ok(CountExpr::BlockingIt { beyond });
         }
         let stat = self.word_at(0);
         let toughness = stat.as_deref() == Some("toughness");
@@ -4080,6 +4195,9 @@ impl P {
     fn recipient(&mut self) -> R<Recipient> {
         if self.at_many() {
             return self.many_target();
+        }
+        if self.eat_words(&["each", "creature", "blocking", "it"]) {
+            return Ok(Recipient::BlockingIt);
         }
         // "up to 1 target creature", "up to 2 target creatures".
         if self.at_words(&["up", "to"])
@@ -4839,6 +4957,7 @@ impl P {
                                 | "Octopus"
                                 | "Platypus"
                                 | "Walrus"
+                                | "Aurochs"
                         );
                         f.subtypes.push(if keep {
                             raw.clone()
@@ -5148,6 +5267,29 @@ impl P {
                 instant_or_sorcery,
             });
         }
+        // "Whenever you attack [with three or more creatures]" (CR 508.1m).
+        if self.eat_words(&["you", "attack"]) {
+            let min = if self.eat_word("with") {
+                let n = self.number()?;
+                self.expect_words(&["or", "more", "creatures"])?;
+                n
+            } else {
+                1
+            };
+            return Ok(Trigger::AttacksWith {
+                this: false,
+                min: u8::try_from(min).unwrap_or(u8::MAX),
+            });
+        }
+        // Battalion: "this and at least 2 other creatures attack".
+        if self.eat_words(&["this", "and", "at", "least"]) {
+            let n = self.number()?;
+            self.expect_words(&["other", "creatures", "attack"])?;
+            return Ok(Trigger::AttacksWith {
+                this: true,
+                min: u8::try_from(n + 1).unwrap_or(u8::MAX),
+            });
+        }
         let obj = self.trigger_obj()?;
         let w = self.word()?;
         match w.as_str() {
@@ -5194,6 +5336,9 @@ impl P {
             "attacks" => {
                 if self.eat_word("alone") {
                     return Ok(Trigger::AttacksAlone(obj));
+                }
+                if self.eat_words(&["and", "isn't", "blocked"]) {
+                    return Ok(Trigger::AttacksUnblocked(obj));
                 }
                 Ok(Trigger::Attacks(obj))
             }

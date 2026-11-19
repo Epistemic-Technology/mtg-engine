@@ -1,0 +1,8 @@
+card "Returned Phalanx" {
+  oracle_id f8d64a8e-1bff-4960-bc36-1fbb4fc18c8f
+  cost {1}{B}
+  type Creature — Zombie Soldier
+  pt 3/3
+  keywords defender
+  activated {1}{U}: this can attack this turn as though it didn't have defender
+}

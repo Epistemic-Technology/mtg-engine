@@ -1,0 +1,7 @@
+card "Mogg Conscripts" {
+  oracle_id b015686d-07e1-46c7-8e51-2bec646860d6
+  cost {R}
+  type Creature — Goblin
+  pt 2/2
+  can't attack unless cast creature spell this turn
+}

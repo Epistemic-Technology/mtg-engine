@@ -1,0 +1,7 @@
+card "Rampant Elephant" {
+  oracle_id aaaaf370-6486-4e17-9a93-92e05ebcf29f
+  cost {3}{W}
+  type Creature — Elephant
+  pt 2/2
+  activated {G}: target creature blocks this if able
+}

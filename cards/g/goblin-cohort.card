@@ -1,0 +1,7 @@
+card "Goblin Cohort" {
+  oracle_id 88f9a7e3-0b35-43e4-b16a-19c54a1e4e2c
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 2/2
+  can't attack unless cast creature spell this turn
+}

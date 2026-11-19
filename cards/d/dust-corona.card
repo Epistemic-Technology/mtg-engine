@@ -1,0 +1,7 @@
+card "Dust Corona" {
+  oracle_id 3f9ab49b-81fc-487e-8613-e30afcae164d
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+0, has ability { can't be blocked by creature with flying }
+}

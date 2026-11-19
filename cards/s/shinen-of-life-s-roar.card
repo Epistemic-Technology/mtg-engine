@@ -1,0 +1,8 @@
+card "Shinen of Life's Roar" {
+  oracle_id 7b9b3347-a374-40fd-a12a-73187225194e
+  cost {1}{G}
+  type Creature — Spirit
+  pt 1/2
+  keywords lure
+  label "Channel" activated {2}{G}{G}, discard this: target creature gains lure
+}

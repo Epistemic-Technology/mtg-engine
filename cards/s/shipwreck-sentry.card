@@ -1,0 +1,8 @@
+card "Shipwreck Sentry" {
+  oracle_id f05575f8-4961-4780-83fc-3584d9146a14
+  cost {1}{U}
+  type Creature — Human Pirate
+  pt 3/3
+  keywords defender
+  static as long as artifact entered this turn, this: has can attack as though it didn't have defender
+}

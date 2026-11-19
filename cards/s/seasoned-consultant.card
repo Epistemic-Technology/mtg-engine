@@ -1,0 +1,7 @@
+card "Seasoned Consultant" {
+  oracle_id 9ee64b00-6619-451e-bb48-10af107dcb2f
+  cost {1}{W}
+  type Creature — Human Detective
+  pt 1/3
+  triggered whenever you attack with 3 or more creatures: this gets +2/+0
+}

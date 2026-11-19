@@ -1,0 +1,7 @@
+card "Bloodcrazed Goblin" {
+  oracle_id a10e5b31-c9c1-45ca-85cc-4a50ed8c4946
+  cost {R}
+  type Creature — Goblin Berserker
+  pt 2/2
+  can't attack unless opponent damaged this turn
+}
