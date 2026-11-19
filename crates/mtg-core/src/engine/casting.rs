@@ -165,6 +165,60 @@ impl GameState {
                 }
             }
         }
+        // Impulse draw: exiled cards the player may play, paying their
+        // costs, with the usual timing and land-play allowance (CR 305.2,
+        // 601.3).
+        if let Some(e) = &self.exile_casts
+            && !e.playable.is_empty()
+        {
+            for pe in &e.playable {
+                let Some(o) = self.objects.get(pe.card) else {
+                    continue;
+                };
+                if pe.player != p || o.zone != Zone::Exile {
+                    continue;
+                }
+                let def = self.pool.get(o.def);
+                if def.is_land() {
+                    if sorcery_timing
+                        && ps.lands_played_this_turn < 1
+                        && !options.contains(&Choice::PlayLand(pe.card))
+                    {
+                        options.push(Choice::PlayLand(pe.card));
+                    }
+                    continue;
+                }
+                if !def.faces.is_empty()
+                    && matches!(def.layout, Layout::Adventure | Layout::Omen | Layout::Split)
+                {
+                    for (i, f) in def.faces.iter().enumerate() {
+                        let face = self.pool.get(*f);
+                        if self.castable(
+                            p,
+                            face,
+                            pe.card,
+                            sorcery_timing,
+                            &sources,
+                            &pool,
+                            &changers,
+                        ) {
+                            options.push(Choice::CastFace {
+                                card: pe.card,
+                                face: u8::try_from(i).unwrap_or(0),
+                            });
+                        }
+                    }
+                    if def.layout == Layout::Split {
+                        continue;
+                    }
+                }
+                if self.castable(p, def, pe.card, sorcery_timing, &sources, &pool, &changers)
+                    && !options.contains(&Choice::Cast(pe.card))
+                {
+                    options.push(Choice::Cast(pe.card));
+                }
+            }
+        }
         // CR 702.34a: instants and sorceries with flashback may be cast
         // from the graveyard for their flashback cost.
         if ps.flashback_in_graveyard > 0 {
@@ -3806,9 +3860,33 @@ impl GameState {
                     }
                 }
                 let mut top = Vec::new();
+                // Cultivate: the searcher chooses the one that goes onto the
+                // battlefield tapped; the other goes to the hand (one found
+                // goes where they choose).
+                let mut to_field = None;
+                if *to == SearchTo::BattlefieldAndHand && !found.is_empty() {
+                    let mut options: Vec<Choice> = found
+                        .iter()
+                        .map(|id| Choice::Target(Target::Object(*id)))
+                        .collect();
+                    if found.len() == 1 {
+                        options.push(Choice::Decline);
+                    }
+                    let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
+                    if let Choice::Target(Target::Object(id)) = options[k] {
+                        to_field = Some(id);
+                    }
+                }
                 for id in found {
+                    let to = match to {
+                        SearchTo::BattlefieldAndHand if to_field == Some(id) => {
+                            &SearchTo::Battlefield { tapped: true }
+                        }
+                        SearchTo::BattlefieldAndHand => &SearchTo::Hand,
+                        other => other,
+                    };
                     match to {
-                        SearchTo::Hand => {
+                        SearchTo::Hand | SearchTo::BattlefieldAndHand => {
                             self.move_object(id, Zone::Hand, true);
                         }
                         SearchTo::Battlefield { tapped } => {
@@ -5087,13 +5165,16 @@ impl GameState {
                 optional,
                 all,
                 rest_graveyard,
+                take,
+                also,
+                random,
             } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx) as usize;
                 let lib = &self.player(p).library;
                 let top: Vec<ObjId> = lib.iter().rev().take(n).copied().collect();
-                let matches = |s: &Self, id: ObjId| {
-                    filter.as_ref().is_none_or(|f| {
+                let matches = |s: &Self, f: Option<&crate::card::ObjFilter>, id: ObjId| {
+                    f.is_none_or(|f| {
                         let c = s.base_characteristics(&s.objects[id]);
                         f.matches(id, p, &c, Some(ctx.source), Some(p)) && s.status_ok(f, id)
                     })
@@ -5103,27 +5184,48 @@ impl GameState {
                     taken = top
                         .iter()
                         .copied()
-                        .filter(|id| matches(self, *id))
+                        .filter(|id| matches(self, filter.as_ref(), *id))
                         .collect();
                 } else {
-                    let mut options: Vec<Choice> = top
-                        .iter()
-                        .copied()
-                        .filter(|id| matches(self, *id))
-                        .map(|id| Choice::Target(Target::Object(id)))
-                        .collect();
-                    if !options.is_empty() {
-                        if *optional {
+                    // Up to `take` cards matching the filter, one at a time,
+                    // then one matching `also` ("a creature card and/or a
+                    // land card").
+                    let picks: Vec<(Option<&crate::card::ObjFilter>, bool)> =
+                        std::iter::repeat_n(filter.as_ref(), (*take as usize).min(top.len()))
+                            .map(|f| (f, *optional))
+                            .chain(also.as_ref().map(|f| (Some(f), true)))
+                            .collect();
+                    for (f, may) in picks {
+                        let mut options: Vec<Choice> = top
+                            .iter()
+                            .copied()
+                            .filter(|id| !taken.contains(id) && matches(self, f, *id))
+                            .map(|id| Choice::Target(Target::Object(id)))
+                            .collect();
+                        if options.is_empty() {
+                            if also.is_some() {
+                                continue;
+                            }
+                            break;
+                        }
+                        if may {
                             options.push(Choice::Decline);
                         }
                         let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-                        if let Choice::Target(Target::Object(id)) = options[k] {
-                            taken.push(id);
+                        match options[k] {
+                            Choice::Target(Target::Object(id)) => taken.push(id),
+                            _ if also.is_some() => {}
+                            _ => break,
                         }
                     }
                 }
                 for id in &taken {
                     self.move_object(*id, Zone::Hand, false);
+                }
+                let mut top = top;
+                if *random && !*rest_graveyard {
+                    use rand::seq::SliceRandom;
+                    top.shuffle(&mut self.rng);
                 }
                 for id in top {
                     if taken.contains(&id)
@@ -5138,6 +5240,29 @@ impl GameState {
                         self.move_object(id, Zone::Graveyard, false);
                     } else {
                         self.move_object(id, Zone::Library, false);
+                    }
+                }
+            }
+            Effect::ExilePlayable { count, until } => {
+                let p = ctx.controller;
+                // "Until the end of your next turn": through this turn too
+                // when it's already the controller's.
+                let own_ends = if self.active_player == p { 2 } else { 1 };
+                for _ in 0..self.eval_num(*count, ctx) {
+                    let Some(top) = self.player(p).library.last().copied() else {
+                        break;
+                    };
+                    let new = self.move_object(top, Zone::Exile, true);
+                    if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                        self.exile_casts
+                            .get_or_insert_with(Box::default)
+                            .playable
+                            .push(crate::state::PlayableExile {
+                                card: new,
+                                player: p,
+                                until: *until,
+                                own_ends,
+                            });
                     }
                 }
             }

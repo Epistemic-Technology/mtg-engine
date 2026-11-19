@@ -1,0 +1,8 @@
+card "Silver Deputy" {
+  oracle_id 7bbede9a-8981-4435-9854-af61a18c6166
+  cost {2}
+  type Artifact Creature — Mercenary
+  pt 1/2
+  triggered when this enters: you may search basic land card or a Desert card reveal to top
+  activated {T}, sorcery: target creature you control gets +1/+0 until end of turn
+}

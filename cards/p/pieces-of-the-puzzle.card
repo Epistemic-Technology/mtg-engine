@@ -1,0 +1,6 @@
+card "Pieces of the Puzzle" {
+  oracle_id 7b599b4d-95bc-4ed2-a167-84a697944747
+  cost {2}{U}
+  type Sorcery
+  spell: dig 5 reveal take 2 instant or sorcery card may rest graveyard
+}

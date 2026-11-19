@@ -1,0 +1,6 @@
+card "Scattered Thoughts" {
+  oracle_id 7594d892-1589-4643-a72a-2cfb2730a83d
+  cost {3}{U}
+  type Instant
+  spell: dig 4 take 2 card rest graveyard
+}

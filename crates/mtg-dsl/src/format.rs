@@ -502,6 +502,29 @@ impl Fmt {
             }
             Effect::Connive { what } => format!("{} connives", self.recipient(*what, t)),
             Effect::LookAtTop(n) => format!("look at top {}", num(*n)),
+            Effect::ExilePlayable {
+                count,
+                until,
+                first,
+                it,
+            } => {
+                let mut s = format!(
+                    "impulse {} {}",
+                    num(*count),
+                    match until {
+                        mtg_core::card::PlayUntil::ThisTurn => "this turn",
+                        mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
+                        mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
+                    }
+                );
+                if *first {
+                    s.push_str(" first");
+                }
+                if *it {
+                    s.push_str(" it");
+                }
+                s
+            }
             Effect::Dig {
                 count,
                 filter: f,
@@ -510,8 +533,15 @@ impl Fmt {
                 rest_graveyard,
                 reveal_top,
                 revealing,
+                take,
+                also,
+                random,
+                then,
             } => {
                 let mut s = format!("dig {}", num(*count));
+                if *then {
+                    s.push_str(" then");
+                }
                 if *reveal_top {
                     s.push_str(" reveal");
                 }
@@ -519,11 +549,19 @@ impl Fmt {
                 if *all {
                     s.push_str(" all");
                 }
+                if *take == crate::ast::ANY_NUMBER {
+                    s.push_str(" any");
+                } else if *take != 1 {
+                    let _ = write!(s, " {take}");
+                }
                 match f {
                     Some(f) => {
                         let _ = write!(s, " {} card", filter(f));
                     }
                     None => s.push_str(" card"),
+                }
+                if let Some(a) = also {
+                    let _ = write!(s, " and {} card", filter(a));
                 }
                 if *optional {
                     s.push_str(" may");
@@ -536,6 +574,9 @@ impl Fmt {
                 } else {
                     " rest bottom"
                 });
+                if *random {
+                    s.push_str(" random");
+                }
                 s
             }
             Effect::Modes(modes) => {
@@ -878,6 +919,7 @@ impl Fmt {
                 to,
                 reveal,
                 that_card,
+                or_card,
             } => {
                 let mut t = "search ".to_string();
                 if *up_to {
@@ -891,12 +933,43 @@ impl Fmt {
                 // "a card named ~": the name after `card`.
                 let mut g = f.clone();
                 g.same = None;
+                let alt = if *or_card == crate::ast::OrCard::No {
+                    None
+                } else {
+                    g.or.take()
+                };
+                // "card with mana value 3 or less": after the noun.
+                let mut mv = None;
+                if g.or.is_none() {
+                    mv = g.mana_value.take().map(|(cmp, n)| {
+                        let n = if g.status.mana_value_x {
+                            "X".to_string()
+                        } else {
+                            n.to_string()
+                        };
+                        format!(" with mana value {n}{}", cmp_suffix(cmp))
+                    });
+                    if mv.is_some() {
+                        g.status.mana_value_x = false;
+                    }
+                }
                 if g != Filter::default() {
                     let _ = write!(t, "{} ", filter(&g));
                 }
                 t.push_str("card");
                 if let Some(r) = f.same {
                     let _ = write!(t, " {}", same_ref(r));
+                }
+                if let Some(mv) = mv {
+                    t.push_str(&mv);
+                }
+                if let Some(a) = alt {
+                    let art = if *or_card == crate::ast::OrCard::Article {
+                        "a "
+                    } else {
+                        ""
+                    };
+                    let _ = write!(t, " or {art}{} card", filter(&a));
                 }
                 if *reveal {
                     t.push_str(" reveal");
@@ -908,6 +981,9 @@ impl Fmt {
                     }
                     mtg_core::card::SearchTo::Battlefield { tapped: false } => " to battlefield",
                     mtg_core::card::SearchTo::TopOfLibrary => " to top",
+                    mtg_core::card::SearchTo::BattlefieldAndHand => {
+                        " to battlefield tapped and hand"
+                    }
                 });
                 if *that_card {
                     t.push_str(" that card");
@@ -1047,6 +1123,7 @@ impl Fmt {
                 up_to,
                 filter: f,
                 among_them,
+                this_way,
             } => {
                 use mtg_core::card::ChooseAct;
                 let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
@@ -1065,7 +1142,13 @@ impl Fmt {
                     }
                     ChooseAct::MilledToHand => format!(
                         "put {n} {f} {cs} from among {} into hand chosen",
-                        if *among_them { "them" } else { "milled cards" }
+                        if *among_them {
+                            "them"
+                        } else if *this_way {
+                            "milled this way cards"
+                        } else {
+                            "milled cards"
+                        }
                     ),
                 }
             }

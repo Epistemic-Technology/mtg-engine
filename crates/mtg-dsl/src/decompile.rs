@@ -637,8 +637,12 @@ impl Decompiler<'_> {
                 count: *count,
                 up_to: *count != mtg_core::card::Num::N(1),
                 to: *to,
-                reveal: matches!(to, mtg_core::card::SearchTo::Hand),
+                reveal: matches!(
+                    to,
+                    mtg_core::card::SearchTo::Hand | mtg_core::card::SearchTo::BattlefieldAndHand
+                ),
                 that_card: false,
+                or_card: crate::ast::OrCard::No,
             },
             CoreEffect::Surveil { count } => Effect::Surveil(*count),
             CoreEffect::Discard { count, who } => Effect::Discard {
@@ -809,12 +813,21 @@ impl Decompiler<'_> {
                 what: Self::recipient(*what),
             },
             CoreEffect::LookAtTop { count } => Effect::LookAtTop(*count),
+            CoreEffect::ExilePlayable { count, until } => Effect::ExilePlayable {
+                count: *count,
+                until: *until,
+                first: *until != mtg_core::card::PlayUntil::YourNextEndStep,
+                it: false,
+            },
             CoreEffect::Dig {
                 count,
                 filter,
                 optional,
                 all,
                 rest_graveyard,
+                take,
+                also,
+                random,
             } => Effect::Dig {
                 count: *count,
                 filter: filter.as_ref().map(|f| self.filter(f)),
@@ -823,6 +836,10 @@ impl Decompiler<'_> {
                 rest_graveyard: *rest_graveyard,
                 reveal_top: false,
                 revealing: *optional,
+                take: *take,
+                also: also.as_ref().map(|f| self.filter(f)),
+                random: *random,
+                then: false,
             },
             CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {
@@ -865,6 +882,7 @@ impl Decompiler<'_> {
                 up_to: *up_to,
                 filter: self.filter(filter),
                 among_them: false,
+                this_way: false,
             },
             CoreEffect::OneOf(options) => {
                 // "gains your choice of lifelink or indestructible".

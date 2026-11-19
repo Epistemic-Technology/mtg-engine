@@ -1,0 +1,7 @@
+card "Shattered Landscape" {
+  oracle_id 7fbad3f2-66f6-4e3a-b9e0-1ddbcd94d42a
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Mountain or basic Plains or basic Swamp card to battlefield tapped
+  cycling {R}{W}{B}
+}

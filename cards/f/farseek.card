@@ -1,0 +1,6 @@
+card "Farseek" {
+  oracle_id 495e52e6-4c2b-4574-9474-eadbdcc8b4ac
+  cost {1}{G}
+  type Sorcery
+  spell: search Plains or Island or Swamp or Mountain card to battlefield tapped
+}

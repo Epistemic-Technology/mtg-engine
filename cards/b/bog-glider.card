@@ -1,0 +1,8 @@
+card "Bog Glider" {
+  oracle_id 6bff9d3a-a98d-4060-8409-4b81ce5aab15
+  cost {2}{B}
+  type Creature — Human Mercenary
+  pt 1/1
+  keywords flying
+  activated {T}, sacrifice land: search Mercenary permanent card with mana value 2 or less to battlefield
+}

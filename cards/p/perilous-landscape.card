@@ -1,0 +1,7 @@
+card "Perilous Landscape" {
+  oracle_id e2b472dd-047d-47eb-9ebb-df6aa4b52dd4
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Island or basic Mountain or basic Plains card to battlefield tapped
+  cycling {U}{R}{W}
+}

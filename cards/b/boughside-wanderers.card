@@ -1,0 +1,8 @@
+card "Boughside Wanderers" {
+  oracle_id dc788b66-d03d-4066-be35-481be96ed2f7
+  cost {4}{G}{G}
+  type Creature — Elf Scout
+  pt 4/4
+  triggered when this enters: dig 4 take permanent card may revealing rest bottom random
+  label "Landfall" triggered whenever land you control enters: this gets +2/+2
+}

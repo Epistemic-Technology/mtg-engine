@@ -1,0 +1,7 @@
+card "Alania's Pathmaker" {
+  oracle_id ce36a450-68a6-4519-a9f0-0e3b772054eb
+  cost {3}{R}
+  type Creature — Otter Wizard
+  pt 4/2
+  triggered when this enters: impulse 1 next turn first
+}

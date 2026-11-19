@@ -1,0 +1,7 @@
+card "Amrou Scout" {
+  oracle_id 4c80112a-8ff5-4ca4-8737-b8d499d78982
+  cost {1}{W}
+  type Creature — Kithkin Rebel Scout
+  pt 2/1
+  activated {4}, {T}: search Rebel permanent card with mana value 3 or less to battlefield
+}

@@ -1,0 +1,9 @@
+card "Impossible Inferno" {
+  oracle_id fa7c8092-94da-4147-aa90-0a951d2a8be8
+  cost {4}{R}
+  type Instant
+  spell {
+    this deals 6 damage to target creature
+    label "Delirium" if 4 card types in your graveyard, impulse 1 next turn it
+  }
+}

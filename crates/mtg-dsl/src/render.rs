@@ -513,7 +513,6 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
     // "a permanent card" (CR 110.4a).
     if f.not_types == [CardType::Instant, CardType::Sorcery]
         && f.types.is_empty()
-        && f.subtypes.is_empty()
         && f.any_types.is_empty()
     {
         let mut g = f.clone();
@@ -1409,7 +1408,16 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             sides.push(filter_phrase_one(&cur, card, plural_form));
             break;
         };
-        let (b, a) = crate::format::factor_qualifiers(&cur, &next);
+        let (b, mut a) = crate::format::factor_qualifiers(&cur, &next);
+        // "basic Forest, Plains, or Island": a supertype every side shares
+        // prints once, before the first.
+        if !f.supertypes.is_empty()
+            && a.supertypes == f.supertypes
+            && !a.subtypes.is_empty()
+            && b.subtypes.len() == 1
+        {
+            a.supertypes.clear();
+        }
         sides.push(filter_phrase_one(&b, card, plural_form));
         cur = a;
     }
@@ -1649,6 +1657,13 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         format!("{} ", card_filter_phrase(&g, card))
     };
     let noun = if plural_form { "cards" } else { "card" };
+    // "a card with flash": only qualities after the noun.
+    if let Some(after) = p.trim().strip_prefix("with ") {
+        return format!(
+            "{noun} with {after}{mv}{}",
+            same_phrase(f, card, plural_form)
+        );
+    }
     format!("{p}{noun}{mv}{}", same_phrase(f, card, plural_form))
 }
 
@@ -1678,11 +1693,20 @@ fn choice_noun(k: &ChoiceKind) -> String {
 /// A filter as a kind of card, with an article: "a creature card", "a
 /// nonblack card".
 fn card_filter_a(f: &Filter, card: &Card) -> String {
+    // "a permanent card", "a Rebel permanent card" (CR 110.4a).
+    if f.or.is_none() && f.not_types == [CardType::Instant, CardType::Sorcery] {
+        return with_article(&format!("{} card", card_filter_phrase(f, card)));
+    }
     let p = filter_phrase(f, card, false);
     let p = p.strip_suffix(" permanent").unwrap_or(&p);
     let p = if p == "permanent" { "" } else { p };
     if p.is_empty() {
         "a card".to_string()
+    } else if f.or.is_none()
+        && let Some((kind, quality)) = p.split_once(" with ")
+    {
+        // "a creature card with power 2 or less".
+        with_article(&format!("{kind} card with {quality}"))
     } else {
         with_article(&format!("{p} card"))
     }
@@ -2570,6 +2594,44 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*what);
             Clause::with_subject(*what, s, "connives".to_string())
         }
+        Effect::ExilePlayable {
+            count,
+            until,
+            first,
+            it,
+        } => {
+            use mtg_core::card::PlayUntil;
+            let one = *count == Num::N(1);
+            let head = if one {
+                "exile the top card of your library".to_string()
+            } else {
+                format!(
+                    "exile the top {} cards of your library",
+                    count_words(*count, "one")
+                )
+            };
+            let what = match (one, *it) {
+                (true, true) => "it",
+                (true, false) => "that card",
+                (false, _) => "those cards",
+            };
+            let body = if *first {
+                let when = match until {
+                    PlayUntil::ThisTurn => "Until end of turn",
+                    PlayUntil::EndOfYourNextTurn => "Until the end of your next turn",
+                    PlayUntil::YourNextEndStep => "Until your next end step",
+                };
+                format!("{when}, you may play {what}")
+            } else {
+                let when = match until {
+                    PlayUntil::ThisTurn => "this turn",
+                    PlayUntil::EndOfYourNextTurn => "until the end of your next turn",
+                    PlayUntil::YourNextEndStep => "until your next end step",
+                };
+                format!("You may play {what} {when}")
+            };
+            Clause::imperative(format!("{head}. {body}"))
+        }
         Effect::LookAtTop(n) => Clause::imperative(format!(
             "look at the top {} cards of your library, then put them back in any order",
             count_words(*n, "one")
@@ -2582,6 +2644,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             rest_graveyard,
             reveal_top,
             revealing,
+            take,
+            also,
+            random,
+            then,
         } => {
             let n = count_words(*count, "one");
             let head = if *reveal_top {
@@ -2593,14 +2659,58 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let rest = |word: &str| {
                 if *rest_graveyard {
                     format!("{word} into your graveyard")
+                } else if *random {
+                    format!("{word} on the bottom of your library in a random order")
                 } else if two {
                     format!("{word} on the bottom of your library")
                 } else {
                     format!("{word} on the bottom of your library in any order")
                 }
             };
-            let what = filter.as_ref().map(|f| card_filter_a(f, ctx.card));
+            let several = *take != 1 || also.is_some();
+            // "a creature card and/or a land card", "up to two instant
+            // and/or sorcery cards", "any number of creature cards".
+            let what = filter.as_ref().map(|f| {
+                if let Some(a) = also {
+                    format!(
+                        "{} and/or {}",
+                        card_filter_a(f, ctx.card),
+                        card_filter_a(a, ctx.card)
+                    )
+                } else if *take == 1 {
+                    card_filter_a(f, ctx.card)
+                } else {
+                    let kind = card_filter_phrase(f, ctx.card).replace(" or ", " and/or ");
+                    if *take == crate::ast::ANY_NUMBER {
+                        format!("any number of {kind} cards")
+                    } else {
+                        format!(
+                            "{}{} {kind} cards",
+                            if *optional { "up to " } else { "" },
+                            count_words(Num::N(*take), "one")
+                        )
+                    }
+                }
+            });
+            let it = if several { "the revealed cards" } else { "it" };
+            if filter.is_none() && *take != 1 {
+                // "Put two of those cards into your hand and the rest into
+                // your graveyard."
+                let k = count_words(Num::N(*take), "one");
+                return Clause::imperative(format!(
+                    "{head}. Put {k} of those cards into your hand and {}",
+                    rest("the rest")
+                ));
+            }
             let body = match (what, all, optional) {
+                (Some(w), false, true)
+                    if *take > 1 && *take != crate::ast::ANY_NUMBER && !*revealing =>
+                {
+                    format!(
+                        "Put {w} from among them into your hand and {}",
+                        rest("the rest")
+                    )
+                }
                 (Some(w), true, _) => {
                     let plural = w
                         .trim_start_matches("a ")
@@ -2612,7 +2722,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     )
                 }
                 (Some(w), false, true) if *revealing => format!(
-                    "You may reveal {w} from among them and put it into your hand. Put {}",
+                    "You may reveal {w} from among them and put {it} into your hand. Put {}",
                     rest("the rest")
                 ),
                 (Some(w), false, true) => format!(
@@ -2628,6 +2738,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     rest(if two { "the other" } else { "the rest" })
                 ),
             };
+            if *then {
+                // "look at the top three cards of your library, then put
+                // one of them into your hand and the rest into your
+                // graveyard".
+                let mut b = body;
+                if let Some(c) = b.get_mut(0..1) {
+                    c.make_ascii_lowercase();
+                }
+                return Clause::imperative(format!("{head}, then {b}"));
+            }
             Clause::imperative(format!("{head}. {body}"))
         }
         Effect::Modes(modes) => {
@@ -3215,6 +3335,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             up_to,
             filter,
             among_them,
+            this_way,
         } => {
             use mtg_core::card::ChooseAct;
             let one = *count == Num::N(1) && !*up_to;
@@ -3257,6 +3378,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     cards(),
                     if *among_them {
                         "them"
+                    } else if *this_way {
+                        "the cards milled this way"
                     } else {
                         "the milled cards"
                     }
@@ -3355,10 +3478,38 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             to,
             reveal,
             that_card,
+            or_card,
         } => {
             let one = *count == Num::N(1) && !*up_to;
             let any = *count == Num::N(crate::ast::ANY_NUMBER);
-            let what = if any {
+            let what = if *or_card != crate::ast::OrCard::No
+                && let Some(alt) = &filter.or
+            {
+                // "a basic land card or a Gate card", "up to two basic land
+                // cards and/or Gate cards".
+                let mut base = filter.clone();
+                base.or = None;
+                if one {
+                    let a = cards_phrase(alt, ctx.card, false);
+                    let a = if *or_card == crate::ast::OrCard::Article {
+                        with_article(&a)
+                    } else {
+                        a
+                    };
+                    format!(
+                        "{} or {a}",
+                        with_article(&cards_phrase(&base, ctx.card, false))
+                    )
+                } else {
+                    format!(
+                        "{}{} {} and/or {}",
+                        if *up_to { "up to " } else { "" },
+                        count_words(*count, "a"),
+                        cards_phrase(&base, ctx.card, true),
+                        cards_phrase(alt, ctx.card, true)
+                    )
+                }
+            } else if any {
                 format!("any number of {}", cards_phrase(filter, ctx.card, true))
             } else if filter.same.is_some() {
                 // "a card named ~", "up to three cards named ~".
@@ -3378,6 +3529,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 } else {
                     format!("{} cards", count_words(*count, "a"))
                 }
+            } else if one && filter.or.is_none() {
+                // "a Rebel permanent card with mana value 3 or less".
+                with_article(&cards_phrase(filter, ctx.card, false))
             } else if one {
                 with_article(&format!("{} card", filter_phrase(filter, ctx.card, false)))
             } else {
@@ -3393,12 +3547,32 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 ("it", "them")
             };
-            let pron = if one { it } else { them };
+            let mut pron = if one { it } else { them };
             let mut text = format!("search your library for {what}, ");
+            // "reveal that card, put it into your hand", "reveal those
+            // cards, put one onto the battlefield tapped".
+            let reveal_that = *that_card
+                && matches!(
+                    to,
+                    mtg_core::card::SearchTo::Hand | mtg_core::card::SearchTo::BattlefieldAndHand
+                );
             if *reveal {
-                let _ = write!(text, "reveal {}, ", if one { "it" } else { "them" });
+                let r = if reveal_that {
+                    pron = if one { "it" } else { "them" };
+                    if one { it } else { them }
+                } else if one {
+                    "it"
+                } else {
+                    "them"
+                };
+                let _ = write!(text, "reveal {r}, ");
             }
             match to {
+                mtg_core::card::SearchTo::BattlefieldAndHand => {
+                    text.push_str(
+                        "put one onto the battlefield tapped and the other into your hand, then shuffle",
+                    );
+                }
                 mtg_core::card::SearchTo::Hand => {
                     let _ = write!(text, "put {pron} into your hand, then shuffle");
                 }

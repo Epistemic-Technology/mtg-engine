@@ -1,0 +1,8 @@
+card "Gatecreeper Vine" {
+  oracle_id 0f539127-535f-4e0d-abaa-e884521098d2
+  cost {1}{G}
+  type Creature — Plant
+  pt 0/2
+  keywords defender
+  triggered when this enters: you may search basic land card or a Gate card reveal to hand
+}

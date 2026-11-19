@@ -1,0 +1,6 @@
+card "Open the Gates" {
+  oracle_id f38e43b6-9a8c-4f6a-bd1c-d5c4913a28a1
+  cost {G}
+  type Sorcery
+  spell: search basic land card or Gate card reveal to hand
+}

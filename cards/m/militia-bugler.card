@@ -1,0 +1,8 @@
+card "Militia Bugler" {
+  oracle_id edb6ae9e-a41c-4d82-97bf-4be00e98364c
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  keywords vigilance
+  triggered when this enters: dig 4 take creature with power 2 or less card may revealing rest bottom random
+}

@@ -1,0 +1,6 @@
+card "Uncovered Clues" {
+  oracle_id 942d550d-4823-4db8-8197-cbf15045f4f5
+  cost {2}{U}
+  type Sorcery
+  spell: dig 4 take 2 instant or sorcery card may revealing rest bottom
+}

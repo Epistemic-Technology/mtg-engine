@@ -1,0 +1,7 @@
+card "Cateran Brute" {
+  oracle_id f60d03ae-f45f-45b2-a0f7-108acb0a45db
+  cost {2}{B}
+  type Creature — Horror Mercenary
+  pt 2/2
+  activated {2}, {T}: search Mercenary permanent card with mana value 2 or less to battlefield
+}

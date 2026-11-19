@@ -1,0 +1,7 @@
+card "Trinket Mage" {
+  oracle_id ffc95093-24a2-4616-a44a-24788e8df9c8
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: you may search artifact card with mana value 1 or less reveal to hand that card
+}

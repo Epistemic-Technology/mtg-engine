@@ -1,0 +1,8 @@
+card "Defiant Falcon" {
+  oracle_id dc206e6a-e447-48d4-a91a-7c746320e2b4
+  cost {1}{W}
+  type Creature — Rebel Bird
+  pt 1/1
+  keywords flying
+  activated {4}, {T}: search Rebel permanent card with mana value 3 or less to battlefield
+}

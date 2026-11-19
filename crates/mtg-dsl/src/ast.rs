@@ -479,6 +479,19 @@ pub struct Filter {
     pub combat_with: Option<CombatRef>,
 }
 
+/// How a search prints its filter's alternative.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum OrCard {
+    /// One noun: "a basic Forest, Plains, or Island card".
+    #[default]
+    No,
+    /// `card or Gate card`: "a basic land card or Gate card" (plural
+    /// "basic land cards and/or Gate cards").
+    Bare,
+    /// `card or a Gate card`: "a basic land card or a Gate card".
+    Article,
+}
+
 /// A filter's combat relation to the source, as printed.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CombatRef {
@@ -1778,6 +1791,10 @@ pub enum Effect {
         to: mtg_core::card::SearchTo,
         reveal: bool,
         that_card: bool,
+        /// `search basic land card or Gate card ...`: the filter's
+        /// alternative printed as its own card noun ("a basic land card or
+        /// a Gate card").
+        or_card: OrCard,
     },
     /// `add {B}{B}`, `add any`: "Add {B}{B}.", "Add one mana of any
     /// color." (CR 106.4).
@@ -1975,10 +1992,36 @@ pub enum Effect {
         reveal_top: bool,
         /// "You may reveal a creature card from among them and put it".
         revealing: bool,
+        /// `take 2`, `take any`: up to that many ("Put up to two instant
+        /// and/or sorcery cards", "any number of creature cards";
+        /// `ANY_NUMBER`); without a filter, exactly that many ("Put two of
+        /// those cards into your hand").
+        take: u32,
+        /// `take creature card and land card`: "a creature card and/or a
+        /// land card".
+        also: Option<Filter>,
+        /// `rest bottom random`: "in a random order".
+        random: bool,
+        /// `dig 3 then take card rest graveyard`: "look at the top three
+        /// cards of your library, then put one of them into your hand and
+        /// the rest into your graveyard" (one sentence).
+        then: bool,
     },
     /// `look at top 3`: "look at the top three cards of your library, then
     /// put them back in any order".
     LookAtTop(Num),
+    /// `impulse 2 next turn first`: "Exile the top two cards of your
+    /// library. Until the end of your next turn, you may play those
+    /// cards." `impulse 1 this turn`: "... You may play that card this
+    /// turn."; `it` prints "it" for "that card"; `next end step` is "until
+    /// your next end step".
+    ExilePlayable {
+        count: Num,
+        until: mtg_core::card::PlayUntil,
+        /// The duration before "you may play".
+        first: bool,
+        it: bool,
+    },
     /// `choose one { mode: ... }` as a triggered ability's effect: "When
     /// this creature enters, choose one —" (CR 603.3c).
     Modes(Vec<Mode>),
@@ -2036,6 +2079,9 @@ pub enum Effect {
         /// `MilledToHand` only: "from among them" rather than "from among
         /// the milled cards".
         among_them: bool,
+        /// `MilledToHand` only: `from among milled this way cards`, "from
+        /// among the cards milled this way".
+        this_way: bool,
     },
     /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
     /// the controller chooses.

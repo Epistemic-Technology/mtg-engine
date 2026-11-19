@@ -1,0 +1,7 @@
+card "Eerie Gravestone" {
+  oracle_id cbf5bd0a-20ef-4dce-9f70-13339d438ff7
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card
+  activated {1}{B}, sacrifice this: mill 4 cards; you may put 1 creature card from among them into hand chosen
+}

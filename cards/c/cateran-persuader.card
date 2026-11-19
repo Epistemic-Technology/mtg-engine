@@ -1,0 +1,7 @@
+card "Cateran Persuader" {
+  oracle_id 415e9484-0788-4c00-bb1f-19308511114b
+  cost {B}{B}
+  type Creature — Human Mercenary
+  pt 2/1
+  activated {1}, {T}: search Mercenary permanent card with mana value 1 or less to battlefield
+}

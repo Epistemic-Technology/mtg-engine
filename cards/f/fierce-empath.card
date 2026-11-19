@@ -1,0 +1,7 @@
+card "Fierce Empath" {
+  oracle_id 5104053a-d394-4b00-82a4-60fd9f051a6e
+  cost {2}{G}
+  type Creature — Elf
+  pt 1/1
+  triggered when this enters: you may search creature card with mana value 6 or greater reveal to hand
+}

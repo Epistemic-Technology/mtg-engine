@@ -1,0 +1,6 @@
+card "Gift of the Gargantuan" {
+  oracle_id 34f9c2a9-ca7c-4a02-aec5-e8f407d09580
+  cost {2}{G}
+  type Sorcery
+  spell: dig 4 take creature card and land card may revealing rest bottom
+}

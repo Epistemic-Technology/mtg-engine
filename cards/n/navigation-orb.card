@@ -1,0 +1,6 @@
+card "Navigation Orb" {
+  oracle_id ba7a46f1-c2a5-42d3-93eb-4dcea7186e5e
+  cost {3}
+  type Artifact
+  activated {2}, {T}, sacrifice this: search up to 2 basic land card or Gate card reveal to battlefield tapped and hand that card
+}

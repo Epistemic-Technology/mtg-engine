@@ -1,0 +1,7 @@
+card "Mystical Teachings" {
+  oracle_id 81d72511-88b4-45ec-a5a9-e722caf55577
+  cost {3}{U}
+  type Instant
+  spell: search instant card or a with flash card reveal to hand
+  flashback {5}{B}
+}

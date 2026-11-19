@@ -190,6 +190,19 @@ pub struct ExileCasts {
     pub pending: Vec<(PlayerId, ObjId, AltCast)>,
     /// Cards foretold this turn (CR 702.143a: castable on a later turn).
     pub foretold_this_turn: Vec<ObjId>,
+    /// Cards exiled by impulse effects that a player may play.
+    pub playable: Vec<PlayableExile>,
+}
+
+/// An exiled card a player may play (impulse draw), and until when.
+#[derive(Copy, Clone, Debug)]
+pub struct PlayableExile {
+    pub card: ObjId,
+    pub player: PlayerId,
+    pub until: crate::card::PlayUntil,
+    /// For `EndOfYourNextTurn`: how many more of the player's turns must
+    /// end before the permission does.
+    pub own_ends: u8,
 }
 
 /// How a spell was cast (on the stack; `Suspend` stays with the permanent

@@ -1,0 +1,6 @@
+card "Merchant Scroll" {
+  oracle_id 86cebe2a-95e7-4f22-99cc-e805aeaf347e
+  cost {1}{U}
+  type Sorcery
+  spell: search blue instant card reveal to hand that card
+}

@@ -1,0 +1,6 @@
+card "Naya Panorama" {
+  oracle_id 71e28800-c42c-48c0-95e5-0296be54a4e8
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice this: search basic Mountain or basic Forest or basic Plains card to battlefield tapped
+}

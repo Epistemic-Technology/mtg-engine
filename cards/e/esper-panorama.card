@@ -1,0 +1,6 @@
+card "Esper Panorama" {
+  oracle_id 6b9cd3d0-4316-4945-b960-12f51052d260
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice this: search basic Plains or basic Island or basic Swamp card to battlefield tapped
+}

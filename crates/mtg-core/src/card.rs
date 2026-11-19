@@ -1622,6 +1622,18 @@ pub enum BlockRule {
     CantBlock(ObjFilter),
 }
 
+/// How long cards exiled by an impulse effect stay playable.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum PlayUntil {
+    /// "this turn", "until end of turn" (CR 514.2).
+    ThisTurn,
+    /// "until the end of your next turn".
+    EndOfYourNextTurn,
+    /// "until your next end step": until the controller's next end step
+    /// begins.
+    YourNextEndStep,
+}
+
 /// Where searched-for cards go.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum SearchTo {
@@ -1631,6 +1643,9 @@ pub enum SearchTo {
     },
     /// "put that card on top" (after shuffling).
     TopOfLibrary,
+    /// "put one onto the battlefield tapped and the other into your hand"
+    /// (Cultivate): the searcher chooses which.
+    BattlefieldAndHand,
 }
 
 /// A static ability (CR 604) that generates a continuous effect while its
@@ -2814,12 +2829,28 @@ pub enum Effect {
     /// any card ("Put one of them into your hand"); `all` takes every
     /// match ("Put all creature cards revealed this way into your hand");
     /// the rest go to the bottom or, with `rest_graveyard`, the graveyard.
+    /// `take` is how many may be taken (`u32::MAX`: any number: "You may
+    /// reveal any number of creature cards"); `also` takes one more
+    /// matching it ("a creature card and/or a land card"); `random` puts
+    /// the rest on the bottom in a random order.
     Dig {
         count: Num,
         filter: Option<ObjFilter>,
         optional: bool,
         all: bool,
         rest_graveyard: bool,
+        take: u32,
+        also: Option<ObjFilter>,
+        random: bool,
+    },
+    /// "Exile the top two cards of your library. Until the end of your next
+    /// turn, you may play those cards." (impulse draw): the controller may
+    /// play the exiled cards, paying their costs and following the usual
+    /// timing rules and land-play allowance (CR 305.2, 601.3), for as long
+    /// as `until` says.
+    ExilePlayable {
+        count: Num,
+        until: PlayUntil,
     },
     /// "Look at the top three cards of your library, then put them back in
     /// any order" (the engine keeps the order).

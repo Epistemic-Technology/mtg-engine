@@ -1,0 +1,6 @@
+card "Commune with Spirits" {
+  oracle_id 68f8ed23-024e-414f-bbb2-ab73fbe21b69
+  cost {G}
+  type Sorcery
+  spell: dig 4 take enchantment or land card may revealing rest bottom random
+}

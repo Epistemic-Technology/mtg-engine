@@ -1,0 +1,6 @@
+card "Wasteful Harvest" {
+  oracle_id d44627c0-1617-4706-bbeb-0169745364c7
+  cost {2}{G}
+  type Instant
+  spell: mill 5 cards; you may put 1 permanent card from among milled this way cards into hand chosen
+}
