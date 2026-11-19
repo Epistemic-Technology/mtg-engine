@@ -1,0 +1,6 @@
+card "Fire at Will" {
+  oracle_id ca8409ab-d438-441a-861f-c41e307d5621
+  cost {R/W}{R/W}{R/W}
+  type Instant
+  spell: deal 3 damage divided among 1 to 3 target attacking or blocking creatures
+}

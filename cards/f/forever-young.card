@@ -1,0 +1,9 @@
+card "Forever Young" {
+  oracle_id 31f32afa-5b2a-4218-ae7b-642e1cac3911
+  cost {1}{B}
+  type Sorcery
+  spell {
+    put any number of target creature card from your graveyard on top of library
+    draw 1 card
+  }
+}

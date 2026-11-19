@@ -1,0 +1,6 @@
+card "Rolling Thunder" {
+  oracle_id 9c47888b-28a5-4c43-9ee4-a9059e3c367d
+  cost {X}{R}{R}
+  type Sorcery
+  spell: deal X damage divided among any number of targets
+}

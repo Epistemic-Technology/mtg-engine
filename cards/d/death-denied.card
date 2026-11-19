@@ -1,0 +1,6 @@
+card "Death Denied" {
+  oracle_id 94f23a93-cd98-4ee7-9e62-9b7b49ace6fd
+  cost {X}{B}{B}
+  type Instant — Arcane
+  spell: return X target creature card from your graveyard to hand
+}

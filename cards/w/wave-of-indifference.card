@@ -1,0 +1,6 @@
+card "Wave of Indifference" {
+  oracle_id 932a47fa-9b78-4c7b-8df8-65e0309d663c
+  cost {X}{R}
+  type Sorcery
+  spell: X target creature can't block
+}

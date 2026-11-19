@@ -136,6 +136,20 @@ impl Fmt {
                 } else {
                     self.mentioned[i] = true;
                     let up_to = matches!(targets[i], Target::UpTo(_));
+                    // `1 to 2 target creature`, `any number of targets`.
+                    if let Target::Many { min, max, .. } = &targets[i] {
+                        let prefix = many_prefix(*min, *max);
+                        if let Target::Spec(mtg_core::card::TargetSpec::Any) = targets[i].base() {
+                            return format!("{prefix} targets");
+                        }
+                        let mut inner = targets.to_vec();
+                        inner[i] = targets[i].base().clone();
+                        let mut f = Fmt {
+                            mentioned: vec![false; inner.len()],
+                            groups: self.groups.clone(),
+                        };
+                        return format!("{prefix} {}", f.recipient(Recipient::Target(i), &inner));
+                    }
                     let phrase = match targets[i].base() {
                         Target::Spec(s) => target_phrase(*s),
                         Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
@@ -156,7 +170,7 @@ impl Fmt {
                             format!("another {}", graveyard_target(&g, *who))
                         }
                         Target::GraveyardCard { filter: f, who } => graveyard_target(f, *who),
-                        Target::UpTo(_) => unreachable!("base"),
+                        Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
                     };
                     if up_to {
                         format!("up to 1 {phrase}")
@@ -483,6 +497,17 @@ impl Fmt {
             },
             Effect::AddCounters { kind, count, to } => format!(
                 "put {} {} on {}",
+                num(*count),
+                counter(*kind, *count),
+                self.recipient(*to, t)
+            ),
+            Effect::DealDamageDivided { amount, to } => format!(
+                "deal {} damage divided among {}",
+                num(*amount),
+                self.recipient(*to, t)
+            ),
+            Effect::DistributeCounters { kind, count, to } => format!(
+                "distribute {} {} among {}",
                 num(*count),
                 counter(*kind, *count),
                 self.recipient(*to, t)
@@ -839,6 +864,15 @@ fn pay_amount(mana: &mtg_core::mana::ManaCost, life: u32) -> String {
         format!("{life} life")
     } else {
         mana.to_string()
+    }
+}
+
+/// The count of a variable target group: `X`, `1 to 2`, `any number of`.
+fn many_prefix(min: Num, max: Option<Num>) -> String {
+    match max {
+        None => "any number of".to_string(),
+        Some(m) if m == min => num(m),
+        Some(m) => format!("{} to {}", num(min), num(m)),
     }
 }
 
@@ -1602,7 +1636,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {
                     filter(f)
                 }
-                Target::UpTo(_) => unreachable!("base"),
+                Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             };
             let _ = writeln!(out, "{indent}enchant {phrase}");
         }

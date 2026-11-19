@@ -1,0 +1,6 @@
+card "Elven Rite" {
+  oracle_id 755dbf29-7484-444f-b5df-29ec4b4bbc82
+  cost {1}{G}
+  type Sorcery
+  spell: distribute 2 +1/+1 counters among 1 to 2 target creature
+}

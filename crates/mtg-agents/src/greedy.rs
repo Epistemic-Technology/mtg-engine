@@ -134,13 +134,19 @@ impl GreedyAgent {
                     | Effect::AddCounters { .. }
                     | Effect::Attach { .. }
                     | Effect::Regenerate { .. }
+                    | Effect::DistributeCounters {
+                        kind: CounterKind::PlusOnePlusOne,
+                        ..
+                    }
             )
         }) || aura_delta.is_some_and(|d| d > 0);
         let destroys_aura = aura_delta.is_some_and(|d| d < 0);
         let damage: u32 = effects
             .iter()
             .map(|e| match e {
-                Effect::DealDamage { amount, .. } => amount.hint(),
+                Effect::DealDamage { amount, .. } | Effect::DealDamageDivided { amount, .. } => {
+                    amount.hint()
+                }
                 _ => 0,
             })
             .sum();
@@ -196,6 +202,57 @@ impl GreedyAgent {
                 }
             }
         }
+    }
+
+    /// Worth of a division of damage or counters among `spell`'s
+    /// targets (CR 601.2d): kills and face damage for harm, counters on
+    /// our own creatures for help.
+    fn division_score(state: &GameState, me: PlayerId, spell: ObjId, parts: &[u32]) -> i64 {
+        let effects = state.effects_of(spell);
+        let Some(help) = effects.iter().find_map(|e| match e {
+            Effect::DealDamageDivided { .. } => Some(false),
+            Effect::DistributeCounters { kind, .. } => Some(*kind == CounterKind::PlusOnePlusOne),
+            _ => None,
+        }) else {
+            return 0;
+        };
+        let targets = &state.objects[spell].targets;
+        let first = targets.len().saturating_sub(parts.len());
+        let opp = state.opponent(me);
+        let mut score = 0i64;
+        for (t, n) in targets[first..].iter().zip(parts) {
+            let n = i64::from(*n);
+            score += match *t {
+                Target::Player(p) if p == opp && !help => {
+                    if n >= i64::from(state.player(p).life) {
+                        100_000
+                    } else {
+                        n
+                    }
+                }
+                Target::Player(_) => -10 * n,
+                Target::Object(id) => {
+                    let Some(c) = state.characteristics(id) else {
+                        continue;
+                    };
+                    let mine = state.objects[id].controller == me;
+                    if help {
+                        if mine { n * 2 } else { -10 * n }
+                    } else if mine {
+                        -10 * n
+                    } else {
+                        let lethal = i64::from(c.toughness()) - i64::from(state.objects[id].damage);
+                        if n >= lethal && !c.has(Keyword::Indestructible) {
+                            // A kill; less overkill is better.
+                            i64::from(value(&c) + 2) * 100 - (n - lethal)
+                        } else {
+                            0
+                        }
+                    }
+                }
+            };
+        }
+        score
     }
 
     fn best_by<F: Fn(&Choice) -> i64>(d: &Decision, score: F) -> ChoiceId {
@@ -375,10 +432,24 @@ impl GreedyAgent {
                 Choice::Pass => 0,
                 _ => -10,
             }),
-            DecisionKind::ChooseTarget { spell, .. } => Self::best_by(d, |c| match c {
-                Choice::Target(t) => i64::from(Self::target_score(state, me, spell, *t)),
-                // Declining an optional target ("up to two").
-                Choice::Done => 0,
+            DecisionKind::ChooseTarget { spell, .. } => {
+                // A divided spell spreads thinner with each target: stop
+                // unless the next one is worth it.
+                let divided = state.effects_of(spell).iter().any(|e| {
+                    matches!(
+                        e,
+                        Effect::DealDamageDivided { .. } | Effect::DistributeCounters { .. }
+                    )
+                });
+                Self::best_by(d, |c| match c {
+                    Choice::Target(t) => i64::from(Self::target_score(state, me, spell, *t)),
+                    // Declining an optional target ("up to two").
+                    Choice::Done => i64::from(divided),
+                    _ => i64::MIN,
+                })
+            }
+            DecisionKind::Divide { spell } => Self::best_by(d, |c| match c {
+                Choice::Divide(parts) => Self::division_score(state, me, spell, parts),
                 _ => i64::MIN,
             }),
             DecisionKind::DeclareAttackers => {

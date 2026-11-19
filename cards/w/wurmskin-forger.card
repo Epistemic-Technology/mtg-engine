@@ -1,0 +1,7 @@
+card "Wurmskin Forger" {
+  oracle_id c94332ac-982a-4c0f-85d4-43e950ac3069
+  cost {5}{G}{G}
+  type Creature — Elf Warrior
+  pt 2/2
+  triggered when this enters: distribute 3 +1/+1 counters among 1 to 3 target creatures
+}

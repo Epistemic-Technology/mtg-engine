@@ -532,6 +532,8 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
     let lowered;
     let s = if s.starts_with("Another target ")
         || s.starts_with("Up to ")
+        || s.starts_with("One or two ")
+        || s.starts_with("Any number of ")
         || s.starts_with("Target ")
         || s.starts_with("Enchanted ")
         || s.starts_with("Equipped ")
@@ -574,6 +576,12 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         *targets += if s.starts_with("two ") { 2 } else { 1 };
         return Some(s.to_string());
     }
+    // "X target creatures", "one or two target creatures", "any number of
+    // target players": a variable group (CR 601.2c).
+    if let Some((count, rest)) = many_count(s) {
+        *targets += 1;
+        return Some(format!("{count} {rest}"));
+    }
     // "up to two target creatures": optional targets.
     if let Some(rest) = s.strip_prefix("up to ") {
         let (n, tail) = rest.split_once(' ')?;
@@ -612,6 +620,21 @@ fn recipient(s: &str, targets: &mut usize) -> Option<String> {
         return Some(format!("target {targets}"));
     }
     None
+}
+
+/// The count of a variable target group in DSL form and the rest of the
+/// phrase ("one or two target creatures" → `1 to 2`, "target creatures").
+fn many_count(s: &str) -> Option<(&'static str, &str)> {
+    const COUNTS: [(&str, &str); 4] = [
+        ("X ", "X"),
+        ("one or two ", "1 to 2"),
+        ("one, two, or three ", "1 to 3"),
+        ("any number of ", "any number of"),
+    ];
+    COUNTS.iter().find_map(|(words, dsl)| {
+        let rest = s.strip_prefix(words)?;
+        (rest.starts_with("target ") || rest == "targets").then_some((*dsl, rest))
+    })
 }
 
 /// A plural noun phrase made singular for the DSL: "blue creatures you
@@ -662,6 +685,31 @@ impl Templates {
     fn new() -> Self {
         let r = |s: &str| Regex::new(s).unwrap();
         let rules: Vec<Rule> = vec![
+            // CR 601.2d: "deals 3 damage divided as you choose among one,
+            // two, or three targets".
+            (
+                r(
+                    r"^(?:~|this|This creature|This artifact|This enchantment|This permanent) deals (\S+) damage divided as you choose among (.+)$",
+                ),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    let (count, rest) = many_count(cap(c, 2))?;
+                    *t += 1;
+                    Some(format!("deal {n} damage divided among {count} {rest}"))
+                },
+            ),
+            (
+                r(r"^Distribute (\S+) ([+-]1/[+-]1) counters among (.+)$"),
+                |c, t| {
+                    let n = number(cap(c, 1))?;
+                    let (count, rest) = many_count(cap(c, 3))?;
+                    *t += 1;
+                    Some(format!(
+                        "distribute {n} {} counters among {count} {rest}",
+                        cap(c, 2)
+                    ))
+                },
+            ),
             (
                 r(
                     r"^(?:~|this|It|it|This creature|This artifact|This enchantment|This permanent|This land) deals (\S+) damage to (.+?)(?: and (.+))?$",
@@ -721,15 +769,18 @@ impl Templates {
                     Some(format!("{who} gains {}", keyword_list(cap(c, 2))?))
                 },
             ),
-            (r(r"^(.+?) (gains?|loses?) (\S+) life$"), |c, t| {
-                let who = recipient(&subject(cap(c, 1)), t)?;
-                let verb = if cap(c, 2).starts_with("gain") {
-                    "gains"
-                } else {
-                    "loses"
-                };
-                Some(format!("{who} {verb} {} life", number(cap(c, 3))?))
-            }),
+            (
+                r(r"^(.+?) (?:each )?(gains?|loses?) (\S+) life$"),
+                |c, t| {
+                    let who = recipient(&subject(cap(c, 1)), t)?;
+                    let verb = if cap(c, 2).starts_with("gain") {
+                        "gains"
+                    } else {
+                        "loses"
+                    };
+                    Some(format!("{who} {verb} {} life", number(cap(c, 3))?))
+                },
+            ),
             (r(r"^Draw (\S+) cards?$"), |c, _| {
                 Some(format!("draw {} cards", number(cap(c, 1))?))
             }),

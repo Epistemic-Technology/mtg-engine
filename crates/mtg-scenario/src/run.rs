@@ -134,6 +134,11 @@ struct Runner {
     pending_discard: Option<String>,
     /// Whether the spell being cast is scripted `kicked`.
     pending_kicked: bool,
+    /// The ability whose scripted targets have all been chosen.
+    targets_done: Option<ObjId>,
+    /// The scripted division (`dividing 2, 1`) of the spell being cast
+    /// (CR 601.2d).
+    pending_division: Vec<u32>,
     /// Attackers still to be added in an incremental declaration.
     attack_queue: Option<Vec<ObjId>>,
     /// Scripted `at` targets for attackers (CR 508.1a).
@@ -233,6 +238,8 @@ impl Runner {
             pending_illegal: false,
             pending_mode: None,
             pending_x: None,
+            pending_division: Vec::new(),
+            targets_done: None,
             pending_sacrifice: None,
             pending_discard: None,
             pending_kicked: false,
@@ -398,6 +405,13 @@ impl Runner {
                     self.pending_targets = None;
                     return Ok(done);
                 }
+                // A variable group of a triggered ability past its scripted
+                // targets (CR 601.2c): no more.
+                if let Some(done) = index_of(d, &Choice::Done)
+                    && self.targets_done == Some(spell)
+                {
+                    return Ok(done);
+                }
                 if self.state().objects[spell].kind == ObjKind::Ability {
                     self.choose_ability_target(d, spell, index, pos)
                 } else {
@@ -413,6 +427,7 @@ impl Runner {
             DecisionKind::LegendRule => Ok(self.keep_legend(d, pos)),
             DecisionKind::ChooseMode { .. } => self.choose_mode(d),
             DecisionKind::ChooseX { .. } => self.choose_x(d),
+            DecisionKind::Divide { .. } => self.choose_division(d),
             DecisionKind::ChooseSacrifice { .. } => self.choose_cost(d, "sacrifice"),
             DecisionKind::ChooseDiscardCost { .. } => self.choose_cost(d, "discard"),
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
@@ -450,6 +465,23 @@ impl Runner {
                 "{} cannot attack {}; options: {}",
                 self.state().name_of(attacker),
                 self.describe_target(t),
+                self.describe_options(d)
+            ),
+        })
+    }
+
+    /// The division of the spell being cast (CR 601.2d): the scripted
+    /// `dividing N, M`, else the engine's first.
+    fn choose_division(&mut self, d: &Decision) -> Res<ChoiceId> {
+        let parts = std::mem::take(&mut self.pending_division);
+        if parts.is_empty() {
+            return Ok(0);
+        }
+        let line = self.current_cast_line();
+        index_of(d, &Choice::Divide(parts.clone())).ok_or_else(|| Failure {
+            line,
+            message: format!(
+                "dividing {parts:?} is not legal; options: {}",
                 self.describe_options(d)
             ),
         })
@@ -719,10 +751,11 @@ impl Runner {
                 let Action::Trigger { targets, .. } = &self.actions[i].action else {
                     unreachable!()
                 };
-                let needed = self.state().targets_of(ability).len();
-                let optional = optional_count(self.state().targets_of(ability));
+                let specs = self.state().targets_of(ability);
+                let (needed, optional, more) =
+                    (specs.len(), optional_count(specs), unbounded(specs));
                 let targets = expand_auto(targets, needed);
-                if targets.len() > needed || targets.len() + optional < needed {
+                if (targets.len() > needed && !more) || targets.len() + optional < needed {
                     return fail(
                         self.actions[i].line,
                         format!(
@@ -742,6 +775,7 @@ impl Runner {
         if index + 1 >= targets.len() {
             // Last target of this ability: the next ability starts afresh.
             self.pending_targets = None;
+            self.targets_done = Some(ability);
         }
         let Some(tr) = targets.get(index) else {
             return fail(
@@ -938,7 +972,7 @@ impl Runner {
             let found = index_of(d, &option);
             let refused = match (a.illegal, found, &targets) {
                 (true, Some(idx), Some(ts)) if !ts.is_empty() => {
-                    self.scripted_target_refused(idx, ts, a.line)?
+                    self.scripted_target_refused(idx, ts, costs.0, a.line)?
                 }
                 _ => false,
             };
@@ -984,8 +1018,12 @@ impl Runner {
                 (false, Some(idx)) => {
                     self.fired[i] = true;
                     if let Some(targets) = targets {
-                        let ((needed, optional), pending_mode) =
+                        let ((needed, optional, variable), pending_mode) =
                             self.cast_needs(a.line, id, name, mode)?;
+                        self.pending_division = match &a.action {
+                            Action::Cast { divide, .. } => divide.clone(),
+                            _ => Vec::new(),
+                        };
                         self.pending_mode = pending_mode;
                         (
                             self.pending_x,
@@ -994,7 +1032,9 @@ impl Runner {
                             self.pending_kicked,
                         ) = costs;
                         let targets = expand_auto(&targets, needed);
-                        if targets.len() > needed || targets.len() + optional < needed {
+                        if (targets.len() > needed && !variable)
+                            || targets.len() + optional < needed
+                        {
                             return fail(
                                 a.line,
                                 format!(
@@ -1024,7 +1064,7 @@ impl Runner {
         id: ObjId,
         name: &str,
         mode: Option<usize>,
-    ) -> Res<((usize, usize), Option<usize>)> {
+    ) -> Res<((usize, usize, bool), Option<usize>)> {
         let st = self.state();
         let mut def = st.def_of(id).expect("card in hand");
         // `cast "Stomp"`: the named face of the card.
@@ -1038,7 +1078,7 @@ impl Runner {
                 return fail(line, format!("\"{name}\" is not modal"));
             }
             let t = def.cast_targets();
-            return Ok(((t.len(), optional_count(t)), None));
+            return Ok(((t.len(), optional_count(t), unbounded(t)), None));
         };
         let m = mode.unwrap_or(1);
         let Some(chosen) = modes.get(m - 1) else {
@@ -1048,7 +1088,11 @@ impl Runner {
             );
         };
         Ok((
-            (chosen.targets.len(), optional_count(&chosen.targets)),
+            (
+                chosen.targets.len(),
+                optional_count(&chosen.targets),
+                unbounded(&chosen.targets),
+            ),
             Some(m),
         ))
     }
@@ -1112,7 +1156,9 @@ impl Runner {
             .expect("action exists");
         match (a.illegal, found) {
             // "illegal ... targeting X": legal to activate, but not at X.
-            (true, Some(idx)) if self.scripted_target_refused(idx_u32(idx), targets, a.line)? => {
+            (true, Some(idx))
+                if self.scripted_target_refused(idx_u32(idx), targets, None, a.line)? =>
+            {
                 self.fired[i] = true;
                 Ok(None)
             }
@@ -1149,9 +1195,10 @@ impl Runner {
                     unreachable!()
                 };
                 let specs = self.state().pool.ability(*ability).targets();
-                let (needed, optional) = (specs.len(), optional_count(specs));
+                let (needed, optional, more) =
+                    (specs.len(), optional_count(specs), unbounded(specs));
                 let targets = expand_auto(targets, needed);
-                if targets.len() > needed || targets.len() + optional < needed {
+                if (targets.len() > needed && !more) || targets.len() + optional < needed {
                     return fail(
                         a.line,
                         format!(
@@ -1677,26 +1724,34 @@ impl Runner {
     /// For an `illegal` line with targets: on a copy of the game, take the
     /// action and answer target choices as scripted; whether the engine
     /// refuses one of the scripted targets (other choices take the first
-    /// option).
+    /// option, X the scripted one). A scripted target the engine never
+    /// asks for (a variable group with nothing legal to choose, CR
+    /// 601.2c) counts as refused.
     fn scripted_target_refused(
         &self,
         idx: ChoiceId,
         targets: &[TargetRef],
+        x: Option<u32>,
         line: usize,
     ) -> Res<bool> {
         let mut sim = self.engine.clone();
         if sim.step(idx).is_err() {
             return Ok(false);
         }
+        let mut asked = 0;
         for _ in 0..64 {
             let StepResult::Decision(d) = sim.current().clone() else {
                 return Ok(false);
             };
             let pick = match d.kind {
+                DecisionKind::ChooseX { .. } => {
+                    x.and_then(|x| index_of(&d, &Choice::X(x))).unwrap_or(0)
+                }
                 DecisionKind::ChooseTarget { index, .. } => {
                     let Some(tr) = targets.get(index) else {
                         return Ok(false);
                     };
+                    asked = asked.max(index + 1);
                     if matches!(tr, TargetRef::Auto) {
                         0
                     } else {
@@ -1707,7 +1762,7 @@ impl Runner {
                         }
                     }
                 }
-                DecisionKind::PriorityAction => return Ok(false),
+                DecisionKind::PriorityAction => return Ok(asked < targets.len()),
                 _ => 0,
             };
             if sim.step(pick).is_err() {
@@ -2071,6 +2126,10 @@ impl Runner {
             Choice::Color(c) => format!("{c:?}").to_lowercase(),
             Choice::Subtype(s) => self.state().pool.subtype_name(*s).to_string(),
             Choice::Division(div) => format!("assign {}", self.describe_division(div)),
+            Choice::Divide(parts) => format!(
+                "dividing {}",
+                join(&parts.iter().map(u32::to_string).collect::<Vec<_>>())
+            ),
             Choice::Discard { def, .. } => {
                 format!("discard {}", self.state().pool.get(*def).name)
             }
@@ -2339,10 +2398,21 @@ mod tests {
     }
 }
 
-/// Targets that may be left unchosen ("up to two").
+/// Targets that may be left unchosen ("up to two"; a variable group, CR
+/// 601.2c, counts as one).
 fn optional_count(specs: &[mtg_core::card::TargetSpec]) -> usize {
     specs
         .iter()
-        .filter(|s| matches!(s, mtg_core::card::TargetSpec::UpTo(_)))
+        .filter(|s| {
+            matches!(
+                s,
+                mtg_core::card::TargetSpec::UpTo(_) | mtg_core::card::TargetSpec::Many(_)
+            )
+        })
         .count()
+}
+
+/// Whether more targets than specs may be chosen (a variable group).
+fn unbounded(specs: &[mtg_core::card::TargetSpec]) -> bool {
+    matches!(specs.last(), Some(mtg_core::card::TargetSpec::Many(_)))
 }

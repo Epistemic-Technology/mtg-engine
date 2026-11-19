@@ -335,6 +335,9 @@ impl GameState {
         if old.zone == Zone::Stack && !self.x_values.is_empty() {
             self.x_values.retain(|(s, _)| *s != id);
         }
+        if old.zone == Zone::Stack && !self.divisions.is_empty() {
+            self.divisions.retain(|(s, _)| *s != id);
+        }
         // Graveyards feed characteristic-defining abilities (Tarmogoyf).
         let affects_chars = |z: Zone| matches!(z, Zone::Battlefield | Zone::Graveyard);
         // A static counting cards in hand (Empyrial Armor) sees hand moves.

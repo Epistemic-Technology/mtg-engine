@@ -407,7 +407,25 @@ mentions refer to it by number: `target 1`, printed as "it", or
 `that target 1`, printed as "that creature". `2 target lands` declares two
 targets of one kind (two different objects, CR 115.3); `up to 2 target
 creatures` declares optional ones (CR 601.2c), which come after an
-ability's other targets. `another target creature` excludes the source.
+ability's other targets. A variable group is one target word naming any
+number of objects within bounds (CR 601.2c), the last of an ability's
+targets: `X target creature` ("X target creatures": exactly X, the spell's
+X, which can't exceed what there is to target), `1 to 2 target creature`
+("one or two target creatures"; `1 to 3` prints "one, two, or three"),
+`any number of target player`, and `1 to 2 targets` / `any number of
+targets` for "any target". Later mentions (`target 1`) print "them" or
+"they", and a group as subject takes "each" where Oracle has it ("One or
+two target creatures each get +2/+1", "Any number of target players each
+gain 6 life"). "X target cards from a single graveyard" (`X target card
+from a graveyard`) takes the rest from the first card's graveyard.
+Divided effects (CR 601.2d) take a group: `deal 2 damage divided among 1
+to 2 targets` ("deals 2 damage divided as you choose among one or two
+targets"), `deal X damage divided among any number of targets`, and
+`distribute 2 +1/+1 counters among 1 to 2 target creature`. The caster
+announces the division as the targets are chosen, each target getting at
+least one (so no more targets than the amount, and at least one when
+there is anything to divide); a target that is illegal on resolution
+loses its share. `another target creature` excludes the source.
 Specifications: `any target`, `creature`, `player`, `player or planeswalker`,
 `opponent or planeswalker`,
 `creature or planeswalker`, `land`, `tapped creature`, `creature you control`,

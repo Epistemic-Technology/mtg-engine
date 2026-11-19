@@ -1,0 +1,6 @@
+card "Rock Slide" {
+  oracle_id 0b2e7c1a-dc07-4138-a560-dc80fa723860
+  cost {X}{R}
+  type Instant
+  spell: deal X damage divided among any number of target attacking or blocking creatures without flying
+}

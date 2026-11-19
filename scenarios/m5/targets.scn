@@ -1,0 +1,258 @@
+# Variable numbers of targets (CR 601.2c): "X target creatures", "one or
+# two target creatures", "any number of target ..."; and damage or counters
+# divided among targets as the spell is cast (CR 601.2d).
+
+scenario "divided damage: Twin Bolt splits 1 and 1" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Twin Bolt"
+  turn 1 A: cast "Twin Bolt" targeting "Grizzly Bears", "Llanowar Elves" dividing 1, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Grizzly Bears" 1
+}
+
+scenario "divided damage: one target takes it all" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Twin Bolt"
+  turn 1 A: cast "Twin Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "divided damage: Arc Lightning among three targets" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears", "Llanowar Elves"
+  hand A: "Arc Lightning"
+  turn 1 A: cast "Arc Lightning" targeting "Grizzly Bears", "Llanowar Elves", player B dividing 1, 1, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert life B 19
+}
+
+scenario "divided damage: Arc Lightning 2 to a creature and 1 to a player" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Arc Lightning"
+  turn 1 A: cast "Arc Lightning" targeting "Grizzly Bears", player B dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "divided damage: an illegal target's share is not dealt to the others" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears", "Island"
+  hand A: "Arc Lightning"
+  hand B: "Unsummon"
+  turn 1 A: cast "Arc Lightning" targeting "Grizzly Bears", player B dividing 2, 1
+  turn 1 B: cast "Unsummon" targeting "Grizzly Bears" in response to "Arc Lightning"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "divided damage: a target can't be chosen twice" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Forked Bolt"
+  illegal turn 1 A: cast "Forked Bolt" targeting "Grizzly Bears", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "divided damage: Rolling Thunder divides X" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant", "Llanowar Elves"
+  hand A: "Rolling Thunder"
+  turn 1 A: cast "Rolling Thunder" x 3 targeting "Hill Giant", "Llanowar Elves" dividing 2, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Hill Giant" 2
+}
+
+scenario "divided damage: Rolling Thunder with X 0 has no targets" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Rolling Thunder"
+  turn 1 A: cast "Rolling Thunder" x 0
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Rolling Thunder"
+  assert battlefield B contains "Llanowar Elves"
+}
+
+scenario "divided damage: Pyrotechnics among four targets" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Grizzly Bears", "Llanowar Elves", "Savannah Lions"
+  hand A: "Pyrotechnics"
+  turn 1 A: cast "Pyrotechnics" targeting "Grizzly Bears", "Llanowar Elves", "Savannah Lions", player B dividing 1, 1, 1, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert graveyard B contains "Savannah Lions"
+  assert damage "Grizzly Bears" 1
+  assert life B 19
+}
+
+scenario "distributed counters: Elven Rite puts one on each of two" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Elven Rite"
+  turn 1 A: cast "Elven Rite" targeting "Grizzly Bears", "Llanowar Elves" dividing 1, 1
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 1
+}
+
+scenario "distributed counters: Splendid Agony puts both on one" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Splendid Agony"
+  turn 1 A: cast "Splendid Agony" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "one or two targets: Hearts on Fire pumps two" {
+  battlefield A: 2 "Mountain", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Hearts on Fire"
+  turn 1 A: cast "Hearts on Fire" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Llanowar Elves" 2
+}
+
+scenario "one or two targets: Wind Sail needs at least one creature" {
+  battlefield A: 2 "Island"
+  hand A: "Wind Sail"
+  illegal turn 1 A: cast "Wind Sail"
+  run_to turn 1 end
+}
+
+scenario "one or two targets: Amazing Acrobatics taps two creatures" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Amazing Acrobatics"
+  turn 1 A: cast "Amazing Acrobatics" mode 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+}
+
+scenario "X targets: Word of Binding taps X creatures" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Word of Binding"
+  turn 1 A: cast "Word of Binding" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Hill Giant"
+  assert untapped "Llanowar Elves"
+}
+
+scenario "X targets: Wave of Indifference stops blockers" {
+  battlefield A: 2 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Wave of Indifference"
+  turn 1 A: cast "Wave of Indifference" x 1 targeting "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "X targets: Death Denied returns X creature cards" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Llanowar Elves"
+  hand A: "Death Denied"
+  turn 1 A: cast "Death Denied" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Llanowar Elves"
+}
+
+scenario "X targets: Rats' Feast takes cards from a single graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  graveyard B: "Hill Giant", "Llanowar Elves"
+  hand A: "Rats' Feast"
+  illegal turn 1 A: cast "Rats' Feast" x 2 targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "X targets: Rats' Feast exiles from one graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Hill Giant", "Llanowar Elves"
+  hand A: "Rats' Feast"
+  turn 1 A: cast "Rats' Feast" x 2 targeting "Hill Giant", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 0
+}
+
+scenario "any number of targets: Gravepurge with none just draws" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Gravepurge"
+  turn 1 A: cast "Gravepurge"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "any number of targets: Gravepurge stacks two and draws the last" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Gravepurge"
+  turn 1 A: cast "Gravepurge" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A lacks "Grizzly Bears"
+}
+
+scenario "any number of targets: only cards in your own graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard B: "Grizzly Bears"
+  hand A: "Gravepurge"
+  illegal turn 1 A: cast "Gravepurge" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "any number of targets: Hunters' Feast for both players" {
+  battlefield A: 4 "Forest"
+  hand A: "Hunters' Feast"
+  turn 1 A: cast "Hunters' Feast" targeting player A, player B
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert life B 26
+}
+
+scenario "any number of targets: Sway of Illusion recolors them" {
+  battlefield A: 2 "Island", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Sway of Illusion"
+  turn 1 A: cast "Sway of Illusion" targeting "Grizzly Bears", "Llanowar Elves"
+  turn 1 A: choose red
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" red
+  assert is "Llanowar Elves" red
+}
+
+scenario "distributed counters: a triggered ability divides too" {
+  battlefield A: 7 "Forest", "Grizzly Bears", "Llanowar Elves"
+  hand A: "Wurmskin Forger"
+  turn 1 A: cast "Wurmskin Forger"
+  turn 1 A: trigger "Wurmskin Forger" targeting "Grizzly Bears", "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Llanowar Elves" +1/+1 2
+}
+
+scenario "divided damage: Fire among two targets" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Fire // Ice"
+  turn 1 A: cast "Fire" targeting "Llanowar Elves", player B dividing 1, 1
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 19
+}

@@ -163,6 +163,14 @@ impl Decompiler<'_> {
                 who,
             },
             TargetSpec::UpTo(_) => Target::UpTo(Box::new(self.target(self.pool.base_spec(t)))),
+            TargetSpec::Many(i) => {
+                let m = self.pool.many(i);
+                Target::Many {
+                    target: Box::new(self.target(m.spec)),
+                    min: m.min,
+                    max: m.max,
+                }
+            }
             other => Target::Spec(other),
         }
     }
@@ -236,6 +244,8 @@ impl Decompiler<'_> {
     fn recipient(r: CoreRecipient) -> Recipient {
         match r {
             CoreRecipient::Target(i) => Recipient::Target(i),
+            // A variable group's targets, to the end of the list.
+            CoreRecipient::Targets(a, u8::MAX) => Recipient::Target(usize::from(a)),
             CoreRecipient::Targets(a, n) => Recipient::Targets(usize::from(a), usize::from(n)),
             CoreRecipient::You => Recipient::You,
             CoreRecipient::EachOpponent => Recipient::EachOpponent,
@@ -305,6 +315,15 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
             CoreEffect::AddCounters { kind, count, to } => Effect::AddCounters {
+                kind: *kind,
+                count: *count,
+                to: r(*to),
+            },
+            CoreEffect::DealDamageDivided { amount, to } => Effect::DealDamageDivided {
+                amount: *amount,
+                to: r(*to),
+            },
+            CoreEffect::DistributeCounters { kind, count, to } => Effect::DistributeCounters {
                 kind: *kind,
                 count: *count,
                 to: r(*to),

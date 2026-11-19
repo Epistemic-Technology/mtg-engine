@@ -1,0 +1,6 @@
+card "Hunters' Feast" {
+  oracle_id df206fb3-2d98-439e-9f1a-161bdbdc47b2
+  cost {3}{G}
+  type Sorcery
+  spell: any number of target player gains 6 life
+}

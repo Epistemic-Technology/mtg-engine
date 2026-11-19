@@ -1,0 +1,17 @@
+card "Fire // Ice" {
+  oracle_id ae92942b-919c-4ea9-b693-85fcef765d5a
+  layout split
+  face "Fire" {
+    cost {1}{R}
+    type Instant
+    spell: deal 2 damage divided among 1 to 2 targets
+  }
+  face "Ice" {
+    cost {1}{U}
+    type Instant
+    spell {
+      tap target permanent
+      draw 1 cards
+    }
+  }
+}

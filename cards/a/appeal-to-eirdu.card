@@ -1,0 +1,7 @@
+card "Appeal to Eirdu" {
+  oracle_id cea09261-41a2-43e5-bf43-c4097e6615c6
+  cost {3}{W}
+  type Instant
+  keywords convoke
+  spell: 1 to 2 target creatures each gets +2/+1
+}

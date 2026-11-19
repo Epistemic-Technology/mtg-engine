@@ -1,0 +1,9 @@
+card "Gravepurge" {
+  oracle_id cc94462f-a207-4fdb-8704-aa979c244cab
+  cost {2}{B}
+  type Instant
+  spell {
+    put any number of target creature card from your graveyard on top of library
+    draw 1 card
+  }
+}

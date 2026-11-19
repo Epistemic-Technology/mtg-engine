@@ -71,6 +71,7 @@ pub fn add_card(
             card: f,
             lookup: by_name,
             groups: Vec::new(),
+            many: None,
         };
         let def = c.card()?;
         let r = pool.add(def);
@@ -84,6 +85,7 @@ pub fn add_card(
         card,
         lookup: by_name,
         groups: Vec::new(),
+        many: None,
     };
     let mut def = c.card()?;
     if !faces.is_empty() {
@@ -129,6 +131,9 @@ struct Compiler<'a> {
     lookup: &'a dyn Lookup,
     /// The pool's filter id of each of the card's groups.
     groups: Vec<u16>,
+    /// The index of the variable target group (CR 601.2c) of the ability
+    /// being compiled, whose targets run to the end of the list.
+    many: Option<usize>,
 }
 
 impl Compiler<'_> {
@@ -483,10 +488,21 @@ impl Compiler<'_> {
                 let inner = self.target(t);
                 self.pool.intern_up_to(inner)
             }
+            Target::Many { target, min, max } => {
+                let spec = self.target(target);
+                self.pool.intern_many(mtg_core::card::ManyTargets {
+                    spec,
+                    min: *min,
+                    max: *max,
+                })
+            }
         }
     }
 
+    /// An ability's targets; its effects, compiled next, refer to a
+    /// variable group as all its targets.
     fn targets(&mut self, ts: &[Target]) -> Vec<TargetSpec> {
+        self.many = ts.iter().position(|t| matches!(t, Target::Many { .. }));
         ts.iter().map(|t| self.target(t)).collect()
     }
 
@@ -512,9 +528,13 @@ impl Compiler<'_> {
         }
     }
 
-    fn recipient(groups: &[u16], r: Recipient) -> CoreRecipient {
+    fn recipient(groups: &[u16], many: Option<usize>, r: Recipient) -> CoreRecipient {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
+            // A variable group: its targets to the end of the list.
+            Recipient::Target(i) if Some(i) == many => {
+                CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
+            }
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
             Recipient::Targets(a, n) => CoreRecipient::Targets(
                 u8::try_from(a).unwrap_or(u8::MAX),
@@ -565,7 +585,8 @@ impl Compiler<'_> {
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
         let groups = self.groups.clone();
-        let r = |x: Recipient| Self::recipient(&groups, x);
+        let many = self.many;
+        let r = |x: Recipient| Self::recipient(&groups, many, x);
         match e {
             Effect::DealDamage { amount, to } => {
                 for t in to {
@@ -614,6 +635,19 @@ impl Compiler<'_> {
                 count: *count,
                 to: r(*to),
             }),
+            Effect::DealDamageDivided { amount, to } => {
+                out.push(CoreEffect::DealDamageDivided {
+                    amount: *amount,
+                    to: r(*to),
+                });
+            }
+            Effect::DistributeCounters { kind, count, to } => {
+                out.push(CoreEffect::DistributeCounters {
+                    kind: *kind,
+                    count: *count,
+                    to: r(*to),
+                });
+            }
             Effect::RemoveCounters { kind, count, to } => out.push(CoreEffect::RemoveCounters {
                 kind: *kind,
                 count: *count,
@@ -1141,6 +1175,7 @@ impl Compiler<'_> {
 
     #[allow(clippy::too_many_lines)] // one arm per ability kind
     fn ability(&mut self, a: &Ability) -> Result<AbilityDef, CompileError> {
+        self.many = None;
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::Mana(m) => {

@@ -1,0 +1,6 @@
+card "Forked Bolt" {
+  oracle_id e0548f0d-4aec-4c39-8c34-52bfa2bf7c60
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage divided among 1 to 2 targets
+}

@@ -1,0 +1,6 @@
+card "Hearts on Fire" {
+  oracle_id c7502366-1a13-473a-b952-a26ce2e21cf2
+  cost {1}{R}
+  type Instant
+  spell: 1 to 2 target creature gets +2/+1
+}

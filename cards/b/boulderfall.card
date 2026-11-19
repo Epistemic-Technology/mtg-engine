@@ -1,0 +1,6 @@
+card "Boulderfall" {
+  oracle_id 2160aed4-5a7a-4eca-96b5-707204fa73bb
+  cost {6}{R}{R}
+  type Instant
+  spell: deal 5 damage divided among any number of targets
+}

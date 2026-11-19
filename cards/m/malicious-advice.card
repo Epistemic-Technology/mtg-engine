@@ -1,0 +1,6 @@
+card "Malicious Advice" {
+  oracle_id 14c1adf8-950b-4f64-9c84-956a623448f4
+  cost {X}{U}{B}
+  type Instant
+  spell: tap X target artifact, creature, or land; you lose X life
+}

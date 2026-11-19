@@ -1,0 +1,9 @@
+card "Amazing Acrobatics" {
+  oracle_id 0466f23c-d07c-4015-82d5-eab4b226f1ff
+  cost {1}{U}{U}
+  type Instant
+  choose one or both {
+    mode: counter target spell
+    mode: tap 1 to 2 target creature
+  }
+}

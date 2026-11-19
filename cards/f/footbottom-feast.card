@@ -1,0 +1,9 @@
+card "Footbottom Feast" {
+  oracle_id 0a35df9d-80a0-4b6f-91d5-dad980af47e1
+  cost {2}{B}
+  type Instant
+  spell {
+    put any number of target creature card from your graveyard on top of library
+    draw 1 card
+  }
+}

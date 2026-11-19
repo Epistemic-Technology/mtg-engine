@@ -426,6 +426,7 @@ impl GameState {
             loyalty_activated: Vec::new(),
             activated_once: Vec::new(),
             x_values: Vec::new(),
+            divisions: Vec::new(),
             turn_number: 0,
             spells_this_turn: [0; 4],
             drawn_this_turn: [0; 4],
@@ -646,6 +647,11 @@ impl GameState {
                     let is_ability = obj.kind == ObjKind::Ability;
                     let specs: Vec<TargetSpec> = self.targets_of(spell).to_vec();
                     if next_target >= specs.len() {
+                        // CR 601.2d: a division is announced with the
+                        // targets.
+                        if let Some(d) = self.division_decision(spell) {
+                            return StepResult::Decision(d);
+                        }
                         if is_ability {
                             // Targets chosen: an activated ability pays its
                             // costs; a triggered one is already on the stack.
@@ -703,6 +709,24 @@ impl GameState {
                     let spec = specs[next_target];
                     let optional = matches!(spec, TargetSpec::UpTo(_));
                     let chosen = &self.objects[spell].targets;
+                    // A variable group (CR 601.2c) takes targets until its
+                    // maximum, and may stop once it has its minimum.
+                    let many = match spec {
+                        TargetSpec::Many(i) => {
+                            let (min, max) = self.many_bounds(spell, i);
+                            Some((chosen.len().saturating_sub(next_target), min, max))
+                        }
+                        _ => None,
+                    };
+                    if many.is_some_and(|(have, _, max)| have >= max) {
+                        self.flow = Flow::Casting {
+                            spell,
+                            next_target: specs.len(),
+                            sacrifice,
+                            discard,
+                        };
+                        continue;
+                    }
                     // "another target permanent": also not one chosen
                     // before.
                     let another = match spec {
@@ -718,13 +742,36 @@ impl GameState {
                         .legal_targets(caster, spec, source)
                         .into_iter()
                         .filter(|t| {
-                            !chosen
-                                .iter()
-                                .zip(&specs)
-                                .any(|(c, s)| c == t && (*s == spec || another))
+                            !chosen.iter().enumerate().any(|(i, c)| {
+                                c == t
+                                    && crate::card::spec_for(&specs, i)
+                                        .is_some_and(|s| s == spec || another)
+                            })
                         })
                         .map(Choice::Target)
                         .collect();
+                    // "X target cards from a single graveyard": the rest
+                    // come from the first one's graveyard.
+                    if let Some((have, ..)) = many
+                        && have > 0
+                        && matches!(
+                            self.pool.base_spec(spec),
+                            TargetSpec::GraveyardCard {
+                                who: crate::card::Who::Any,
+                                ..
+                            }
+                        )
+                        && let Some(Target::Object(first)) =
+                            self.objects[spell].targets.get(next_target).copied()
+                    {
+                        let owner = self.objects.get(first).map(|o| o.owner);
+                        options.retain(|c| match c {
+                            Choice::Target(Target::Object(id)) => {
+                                self.objects.get(*id).map(|o| o.owner) == owner
+                            }
+                            _ => true,
+                        });
+                    }
                     // A cost that depends on the first target: only targets
                     // the caster can pay for (CR 601.2f comes after 601.2c,
                     // but an unpayable choice would be illegal to finish).
@@ -746,7 +793,21 @@ impl GameState {
                         }
                         options.push(Choice::Done);
                     }
-                    if options.is_empty() {
+                    if let Some((have, min, _)) = many
+                        && have >= min
+                    {
+                        if options.is_empty() {
+                            self.flow = Flow::Casting {
+                                spell,
+                                next_target: specs.len(),
+                                sacrifice,
+                                discard,
+                            };
+                            continue;
+                        }
+                        options.push(Choice::Done);
+                    }
+                    if options.is_empty() && many.is_none() {
                         // Checked when offered (`targets_available`); keep
                         // going rather than stall if that ever falls short.
                         options = self
@@ -767,7 +828,7 @@ impl GameState {
                         player: caster,
                         kind: DecisionKind::ChooseTarget {
                             spell,
-                            index: next_target,
+                            index: self.objects[spell].targets.len(),
                         },
                         options,
                     });
@@ -1300,12 +1361,20 @@ impl GameState {
                 Choice::Target(t),
             ) => {
                 self.objects[spell].targets.push(t);
+                // A variable group stays at its spec for more targets.
+                let many = matches!(
+                    self.targets_of(spell).get(next_target),
+                    Some(TargetSpec::Many(_))
+                );
                 self.flow = Flow::Casting {
                     spell,
-                    next_target: next_target + 1,
+                    next_target: next_target + usize::from(!many),
                     sacrifice,
                     discard,
                 };
+            }
+            (Flow::Casting { spell, .. }, Choice::Divide(parts)) => {
+                self.divisions.push((spell, parts));
             }
             (
                 Flow::Casting {
@@ -1617,6 +1686,7 @@ impl GameState {
                 Zone::Hand
             };
             self.x_values.retain(|(id, _)| *id != spell);
+            self.divisions.retain(|(id, _)| *id != spell);
             let card = self.move_object(spell, back, false);
             self.give_priority(controller);
             self.undone_cast = Some((card, self.version));
@@ -1887,5 +1957,22 @@ mod tests {
             e.step(u32::try_from(n).unwrap()),
             Err(EngineError::BadChoice { .. })
         ));
+    }
+
+    #[test]
+    fn divisions_give_each_target_at_least_one() {
+        // CR 601.2d.
+        assert_eq!(casting::divisions(3, 2), vec![vec![1, 2], vec![2, 1]]);
+        assert_eq!(casting::divisions(3, 3), vec![vec![1, 1, 1]]);
+        assert!(casting::divisions(2, 3).is_empty());
+        assert_eq!(casting::divisions(5, 2).len(), 4);
+        // Past the option cap: one heavy target each, and the even split.
+        let many = casting::divisions(30, 6);
+        assert_eq!(many.len(), 7);
+        assert!(
+            many.iter()
+                .all(|d| d.iter().sum::<u32>() == 30 && d.iter().all(|n| *n >= 1))
+        );
+        assert!(many.contains(&vec![5; 6]));
     }
 }

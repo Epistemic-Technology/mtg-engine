@@ -572,13 +572,7 @@ impl GameState {
                 _ => None,
             };
         if modal == Some(false)
-            || specs.iter().any(|s| {
-                !matches!(s, crate::card::TargetSpec::UpTo(_))
-                    && self
-                        .legal_targets(t.controller, *s, Some(t.ability.source))
-                        .len()
-                        < specs.iter().filter(|x| *x == s).count()
-            })
+            || !self.targets_available(t.controller, &specs, Some(t.ability.source))
         {
             self.emit(Event::TriggerRemoved {
                 source: t.ability.source,
@@ -661,13 +655,7 @@ impl GameState {
             self.remove_from_game(id);
             return;
         }
-        let legal: Vec<bool> = targets
-            .iter()
-            .zip(obj.targets.iter())
-            .map(|(spec, target)| {
-                self.is_legal_target_for(obj.controller, *spec, *target, Some(sa.source))
-            })
-            .collect();
+        let legal = self.targets_legal(obj.controller, targets, &obj.targets, Some(sa.source));
         if !legal.is_empty() && legal.iter().all(|l| !l) {
             self.emit(Event::Fizzle {
                 spell: id,
@@ -684,6 +672,7 @@ impl GameState {
             source: sa.source,
             controller: obj.controller,
             targets: obj.targets.to_vec(),
+            division: self.division_of(id),
             legal,
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
@@ -775,6 +764,9 @@ impl GameState {
 
     /// Remove an object that ceases to exist (an ability leaving the stack).
     pub(super) fn remove_from_game(&mut self, id: ObjId) {
+        if !self.divisions.is_empty() {
+            self.divisions.retain(|(s, _)| *s != id);
+        }
         self.remove_from_zone_list(id);
         self.objects.remove(id);
         self.bump();

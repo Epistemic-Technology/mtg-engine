@@ -85,6 +85,9 @@ pub enum DecisionKind {
     /// Whether to cast an exiled card now (madness, suspend, rebound,
     /// cascade): `Accept` casts it.
     CastFromExile { card: ObjId },
+    /// How `spell` divides its damage or counters among its targets as it
+    /// is cast (CR 601.2d): `Divide` options.
+    Divide { spell: ObjId },
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
@@ -191,6 +194,10 @@ pub enum Choice {
     /// Turn a face-down permanent face up for its morph (or disguise, or
     /// manifested creature card's mana) cost: a special action (CR 116.2b).
     TurnFaceUp(ObjId),
+    /// A spell's division of damage or counters (CR 601.2d): the amount
+    /// for each target of its variable group, in the order chosen; each at
+    /// least 1.
+    Divide(Vec<u32>),
 }
 
 impl Choice {
@@ -271,6 +278,14 @@ impl Choice {
                 out
             }
             Choice::X(n) => format!("X = {n}"),
+            Choice::Divide(parts) => format!(
+                "divide {}",
+                parts
+                    .iter()
+                    .map(u32::to_string)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),

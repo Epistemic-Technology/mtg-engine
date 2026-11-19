@@ -1552,6 +1552,31 @@ pub enum TargetSpec {
     /// optional spec (`CardPool::up_to`). The caster may stop choosing at
     /// an optional target; the optional targets come last.
     UpTo(u16),
+    /// "X target creatures", "one or two target creatures", "any number of
+    /// target cards" (CR 601.2c): the pool's `n`th variable group
+    /// (`CardPool::many`). One spec for the whole group, which is an
+    /// ability's last; its targets fill the rest of the target list.
+    Many(u16),
+}
+
+/// A variable number of targets of one kind (CR 601.2c): at least `min`,
+/// at most `max` (any number if `None`); X is the spell's X.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub struct ManyTargets {
+    pub spec: TargetSpec,
+    pub min: Num,
+    pub max: Option<Num>,
+}
+
+/// The spec the `i`th chosen target answers: a variable group's spec
+/// (`TargetSpec::Many`, always last) repeats to the end of the list.
+pub fn spec_for(specs: &[TargetSpec], i: usize) -> Option<TargetSpec> {
+    specs.get(i).copied().or_else(|| {
+        specs
+            .last()
+            .copied()
+            .filter(|s| matches!(s, TargetSpec::Many(_)))
+    })
 }
 
 impl TargetSpec {
@@ -1704,6 +1729,21 @@ pub enum Effect {
     },
     /// Put counters on a permanent (CR 122.6).
     AddCounters {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+    },
+    /// "deals 3 damage divided as you choose among one, two, or three
+    /// targets" (CR 601.2d): `to` is a variable target group
+    /// (`Recipient::Targets`); each target is dealt what the caster
+    /// assigned it when casting.
+    DealDamageDivided {
+        amount: Num,
+        to: Recipient,
+    },
+    /// "Distribute two +1/+1 counters among one or two target creatures"
+    /// (CR 601.2d), divided like `DealDamageDivided`.
+    DistributeCounters {
         kind: CounterKind,
         count: Num,
         to: Recipient,
@@ -3326,6 +3366,8 @@ pub struct CardPool {
     filters: Vec<ObjFilter>,
     /// Specs behind `TargetSpec::UpTo`.
     up_to: Vec<TargetSpec>,
+    /// Groups behind `TargetSpec::Many`.
+    many: Vec<ManyTargets>,
     /// Conditions behind `Replacement::EnterTappedUnless`,
     /// `AbilityDef::AttackUnless`, and `Condition::Static`.
     conditions: Vec<StaticCondition>,
@@ -3369,6 +3411,7 @@ impl CardPool {
             abilities: Vec::new(),
             filters: Vec::new(),
             up_to: Vec::new(),
+            many: Vec::new(),
             conditions: Vec::new(),
             asks: Vec::new(),
             enters: Vec::new(),
@@ -3581,6 +3624,22 @@ impl CardPool {
         TargetSpec::UpTo(u16::try_from(i).expect("few optional specs"))
     }
 
+    /// Intern a variable target group for `TargetSpec::Many`.
+    pub fn intern_many(&mut self, m: ManyTargets) -> TargetSpec {
+        let i = if let Some(i) = self.many.iter().position(|x| *x == m) {
+            i
+        } else {
+            self.many.push(m);
+            self.many.len() - 1
+        };
+        TargetSpec::Many(u16::try_from(i).expect("few target groups"))
+    }
+
+    /// The variable target group behind `TargetSpec::Many(i)`.
+    pub fn many(&self, i: u16) -> ManyTargets {
+        self.many[i as usize]
+    }
+
     /// Intern a condition for `Replacement::EnterTappedUnless` and friends.
     pub fn intern_condition(&mut self, c: StaticCondition) -> u16 {
         let i = if let Some(i) = self.conditions.iter().position(|x| *x == c) {
@@ -3600,6 +3659,7 @@ impl CardPool {
     pub fn base_spec(&self, spec: TargetSpec) -> TargetSpec {
         match spec {
             TargetSpec::UpTo(i) => self.up_to[i as usize],
+            TargetSpec::Many(i) => self.many[i as usize].spec,
             s => s,
         }
     }

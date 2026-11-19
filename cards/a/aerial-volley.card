@@ -1,0 +1,6 @@
+card "Aerial Volley" {
+  oracle_id ab855992-34da-42a2-b7c7-dec4db849159
+  cost {G}
+  type Instant
+  spell: deal 3 damage divided among 1 to 3 target creatures with flying
+}

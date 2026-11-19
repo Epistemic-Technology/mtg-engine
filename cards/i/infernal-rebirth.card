@@ -1,0 +1,7 @@
+card "Infernal Rebirth" {
+  oracle_id 05a1e1ee-67f0-4158-a012-01612bc9cc70
+  cost {3}{B}
+  type Instant
+  spell: return 1 to 2 target creature cards from your graveyard to hand
+  basic landcycling {2}
+}
