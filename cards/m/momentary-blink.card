@@ -1,0 +1,7 @@
+card "Momentary Blink" {
+  oracle_id a3ec6b5d-08ec-4ae0-b1db-c4b87a1849c7
+  cost {1}{W}
+  type Instant
+  spell: exile target creature you control then return target 1 to battlefield
+  flashback {3}{U}
+}

@@ -443,7 +443,34 @@ impl GameState {
             from: old.zone,
             to,
         });
+        if old.zone == Zone::Battlefield && !self.linked_exiles.is_empty() {
+            self.return_exiled_until(id);
+        }
         new
+    }
+
+    /// CR 610.3: the cards `left` exiled "until this leaves the
+    /// battlefield" return to the battlefield under their owners' control
+    /// (610.3c) right after it leaves, without using the stack.
+    #[cold]
+    #[inline(never)]
+    fn return_exiled_until(&mut self, left: ObjId) {
+        let mut back: SmallVec<[ObjId; 2]> = SmallVec::new();
+        self.linked_exiles.retain(|l| {
+            let mine = l.until && l.source == left;
+            if mine {
+                back.push(l.card);
+            }
+            !mine
+        });
+        for card in back {
+            if let Some(o) = self.objects.get(card)
+                && o.zone == Zone::Exile
+            {
+                let owner = o.owner;
+                self.put_onto_battlefield_with(card, owner, Enter::default());
+            }
+        }
     }
 
     /// Maintain the per-board counts that gate the engine's slow paths as

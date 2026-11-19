@@ -1,0 +1,9 @@
+card "Scrollshift" {
+  oracle_id 9f762b9f-7525-4ff8-bc1d-fbab66fd4013
+  cost {2}{W}
+  type Instant
+  spell {
+    exile up to 1 target artifact, creature, or enchantment you control then return target 1 to battlefield
+    draw 1 card
+  }
+}

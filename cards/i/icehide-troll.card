@@ -1,0 +1,7 @@
+card "Icehide Troll" {
+  oracle_id ce55c9a8-25ba-404c-95b4-c14ba4763081
+  cost {2}{G}
+  type Snow Creature — Troll Warrior
+  pt 2/3
+  activated {S}{S}: this gets +2/+0 and gains indestructible; tap it
+}

@@ -1014,6 +1014,8 @@ impl<'a> Ctx<'a> {
             }
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
+            Recipient::ExiledCard => "the exiled card".to_string(),
+            Recipient::ThoseCards(..) => "those cards".to_string(),
         }
     }
 
@@ -3340,6 +3342,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("return {o} to the battlefield{tapped} under your control")
             } else if yours {
                 format!("return {o} to the battlefield{tapped}")
+            } else if matches!(what, Recipient::ThoseCards(..)) {
+                // "return those cards to the battlefield under their
+                // owner's control" (Oracle's singular "owner's").
+                format!("return {o} to the battlefield{tapped} under their owner's control")
             } else {
                 format!("return {o} to the battlefield{tapped} under its owner's control")
             };
@@ -3364,6 +3370,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             }
             Clause::imperative(format!("exile {o}"))
+        }
+        // CR 610.3: "exile target creature an opponent controls until this
+        // enchantment leaves the battlefield".
+        Effect::ExileUntil { what } => {
+            let o = ctx.obj(*what);
+            if let Recipient::Target(i) = what {
+                ctx.target_noun[*i] = "card".to_string();
+            }
+            Clause::imperative(format!(
+                "exile {o} until {} leaves the battlefield",
+                this_ref(ctx.card)
+            ))
         }
         Effect::ExileAllGraveyards => Clause::imperative("exile all graveyards".to_string()),
         Effect::ExileGraveyard { who } => {
@@ -4235,7 +4253,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             if !*indefinite {
                 clause = clause.until_eot();
             }
-            if ctx.card.types.contains(&CardType::Land) && !types.contains(&CardType::Land) {
+            // "Target snow land becomes a 2/2 creature until end of turn.
+            // It's still a land."
+            let land_target = matches!(*to, Recipient::Target(i) if matches!(
+                ctx.targets[i].base(),
+                Target::Filter(f) if f.types == [CardType::Land]
+            ));
+            if (ctx.card.types.contains(&CardType::Land) || land_target)
+                && !types.contains(&CardType::Land)
+            {
                 clause.tail.push_str(". It's still a land");
             }
             clause
@@ -4969,6 +4995,12 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
             && clauses[i - 1].text.starts_with("deals ")
         {
             &c.text["deals ".len()..]
+        } else if same_subject
+            && c.text.starts_with("gains \"")
+            && clauses[i - 1].text.starts_with("gains ")
+        {
+            // "gains deathtouch and \"When this creature dies, ...\"".
+            &c.text["gains ".len()..]
         } else {
             &c.text
         };
@@ -7441,6 +7473,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                         mtg_core::card::ColorCount::Colorless => "colorless",
                     }
                 )
+            } else if *f
+                == (Filter {
+                    supertypes: vec![Supertype::Snow],
+                    ..Filter::default()
+                })
+            {
+                // "Protection from snow" (Ronom Hulk): from snow sources.
+                "Protection from snow".to_string()
             } else {
                 format!("Protection from {}", filter_phrase(f, card, true))
             }

@@ -1,0 +1,6 @@
+card "Cloudshift" {
+  oracle_id 6879f5ce-7a1b-4606-bad1-885779b0d456
+  cost {W}
+  type Instant
+  spell: exile target creature you control then return that card to battlefield under your control
+}

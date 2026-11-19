@@ -1,0 +1,6 @@
+card "Supernatural Stamina" {
+  oracle_id 65756e6d-9825-4ed6-91c4-79f1e3bd4ae5
+  cost {B}
+  type Instant
+  spell: until end of turn, target creature gets +2/+0 and gains ability { triggered when this dies: return this to battlefield tapped under its owner's control }
+}

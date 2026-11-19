@@ -4283,6 +4283,13 @@ impl P {
                     return Ok(Effect::ExileGraveyard { who });
                 }
                 let what = self.recipients()?;
+                // "until this enchantment leaves the battlefield" (CR 610.3).
+                if self.eat_words(&["until", "this", "leaves"]) {
+                    return match what.as_slice() {
+                        [one] => Ok(Effect::ExileUntil { what: *one }),
+                        _ => self.fail("`until this leaves` takes one recipient"),
+                    };
+                }
                 Ok(Effect::Exile { what })
             }
             "pay"
@@ -5665,6 +5672,15 @@ impl P {
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
             return Ok(Recipient::TriggeringController { that: true });
+        }
+        if self.eat_words(&["those", "cards"]) {
+            if self.targets.is_empty() {
+                return self.fail("`those cards` needs targets declared before it");
+            }
+            return Ok(Recipient::ThoseCards(0, self.targets.len()));
+        }
+        if self.eat_words(&["exiled", "card"]) {
+            return Ok(Recipient::ExiledCard);
         }
         if self.at_words(&["that", "card"]) {
             self.pos += 2;

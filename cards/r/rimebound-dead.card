@@ -1,0 +1,7 @@
+card "Rimebound Dead" {
+  oracle_id cfc58887-859d-4ba5-8507-1fb1aa4d37c0
+  cost {B}
+  type Snow Creature — Skeleton
+  pt 1/1
+  activated {S}: regenerate this
+}

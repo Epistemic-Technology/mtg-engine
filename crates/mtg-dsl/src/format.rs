@@ -245,6 +245,8 @@ impl Fmt {
             Recipient::Attached => "attached".to_string(),
             Recipient::AttachedController => "controller of enchanted".to_string(),
             Recipient::BlockingIt => "each creature blocking it".to_string(),
+            Recipient::ExiledCard => "exiled card".to_string(),
+            Recipient::ThoseCards(..) => "those cards".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -774,6 +776,9 @@ impl Fmt {
             }
             Effect::Regenerate { to } => format!("regenerate {}", self.recipient(*to, t)),
             Effect::Exile { what } => format!("exile {}", self.recipients(what, t)),
+            Effect::ExileUntil { what } => {
+                format!("exile {} until this leaves", self.recipient(*what, t))
+            }
             Effect::ExileAllGraveyards => "exile all graveyards".to_string(),
             Effect::ExileGraveyard { who } => {
                 format!("exile graveyard of {}", self.recipient(*who, t))

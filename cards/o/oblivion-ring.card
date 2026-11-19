@@ -1,0 +1,7 @@
+card "Oblivion Ring" {
+  oracle_id bd9b9772-f5f9-4c6b-913e-7193bea5d0a7
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile another target nonland permanent
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

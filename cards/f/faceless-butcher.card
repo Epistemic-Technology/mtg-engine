@@ -1,0 +1,8 @@
+card "Faceless Butcher" {
+  oracle_id 5237a105-60c4-4597-b24e-84c12ce7b01f
+  cost {2}{B}{B}
+  type Creature — Nightmare Horror
+  pt 2/3
+  triggered when this enters: exile another target creature
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

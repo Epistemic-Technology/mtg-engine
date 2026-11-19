@@ -2435,6 +2435,11 @@ pub enum Recipient {
     /// that creature", "target creature and each other creature that
     /// shares a color with it").
     TargetAndGroup(usize, u16),
+    /// The cards the source's linked ability exiled ("the exiled card",
+    /// CR 607.2a: Journey to Nowhere's "When this enchantment leaves the
+    /// battlefield, return the exiled card ..."), still in exile; see
+    /// `Effect::ExileLinked`.
+    ExiledCard,
 }
 
 /// A number in an effect's text: a constant, or X as chosen when the spell
@@ -2950,6 +2955,18 @@ pub enum Effect {
     /// Exile a permanent.
     Exile {
         what: Recipient,
+    },
+    /// Exile a permanent, remembering it as exiled by the source (CR
+    /// 607.2a): for its other ability's "the exiled card"
+    /// (`Recipient::ExiledCard`, Journey to Nowhere), the compiler turns
+    /// the card's `Exile`s into these. With `until`, "exile target
+    /// creature until this enchantment leaves the battlefield" (CR 610.3):
+    /// nothing is exiled if the source has already left (610.3a), and the
+    /// card returns under its owner's control (610.3c) as soon as the
+    /// source leaves.
+    ExileLinked {
+        what: Recipient,
+        until: bool,
     },
     /// Return a card from exile or a graveyard to the battlefield under its
     /// owner's control (or, `under_you`, the ability's controller's:

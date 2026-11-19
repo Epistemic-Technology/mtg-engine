@@ -1,0 +1,7 @@
+card "Balduvian Conjurer" {
+  oracle_id 3eb21641-90e1-4865-b7be-a21d52b7b56b
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 0/2
+  activated {T}: target snow land becomes 2/2 creature
+}

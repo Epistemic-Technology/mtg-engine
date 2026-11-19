@@ -1,0 +1,7 @@
+card "Grim Draugr" {
+  oracle_id 793fe164-6c57-4fe0-a955-d5f7ffe388a9
+  cost {2}{B}
+  type Snow Creature — Zombie Berserker
+  pt 3/2
+  activated {1}{S}: this gets +1/+0 and gains menace
+}

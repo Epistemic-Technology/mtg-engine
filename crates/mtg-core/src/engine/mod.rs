@@ -522,6 +522,7 @@ impl GameState {
             lki: std::collections::HashMap::default(),
             this_way: None,
             paid_costs: Vec::new(),
+            linked_exiles: Vec::new(),
             spent_mana: Vec::new(),
             spending: None,
             spent_watchers: 0,

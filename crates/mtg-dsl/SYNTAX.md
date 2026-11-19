@@ -56,7 +56,7 @@ double-faced permanent to its other face (CR 701.27).
 | Line | Meaning |
 |---|---|
 | `oracle_id 2b93787d-...` | The Scryfall `oracle_id` the card was authored against. Required for cards. |
-| `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, and Phyrexian `{R/P}` symbols are accepted (CR 107.4e–f); the engine pays them in a canonical order and pays 2 life for a Phyrexian symbol only when mana can't. |
+| `cost {1}{G}` | Mana cost. Omit for lands and tokens. Hybrid `{R/G}`, monocolored hybrid `{2/W}`, and Phyrexian `{R/P}` symbols are accepted (CR 107.4e–f); the engine pays them in a canonical order and pays 2 life for a Phyrexian symbol only when mana can't. Snow `{S}` (CR 107.4h, in any cost) is paid by tapping a different snow permanent for each symbol (the rest of the cost from the other sources and the pool); mana already floating in the pool pays no `{S}`, since the pool doesn't remember where its mana came from. `protection from snow` prints "Protection from snow". |
 | `type Legendary Creature — Goblin Shaman` | The type line: supertypes, types, then subtypes after `—` (or `-`). |
 | `pt 2/2` | Power and toughness. Omit when a characteristic-defining ability sets them (Scryfall prints `*`). |
 | `loyalty 3` | A planeswalker's printed loyalty. |
@@ -772,6 +772,17 @@ on target creature"),
 `remove 1 +1/+1 counter from <what>`, `remove all counters from <what>`,
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
+`exile <what> until this leaves` ("exile target creature an opponent
+controls until this enchantment leaves the battlefield", CR 610.3: nothing
+is exiled if the source has already left, and the card returns under its
+owner's control as soon as it leaves), `return exiled card to battlefield`
+("return the exiled card to the battlefield under its owner's control":
+what this permanent's own exiling triggered ability exiled, CR 607.2a, as
+in Journey to Nowhere; a flickered permanent is a new object and links
+nothing), `return those cards to battlefield [under your control]` (after
+`exile up to 2 target creature you control then`: "return those cards to
+the battlefield under their owner's control", each target found as the
+card it became, CR 400.7),
 `exile all graveyards`, `exile graveyard of target player` ("Exile target
 player's graveyard"; `of each opponent`: "Exile each opponent's
 graveyard"), `put <what> on top of library` / `on bottom of
@@ -921,7 +932,9 @@ doesn't untap next untap step` "Each attacking creature doesn't untap
 ..."), `<who> sacrifices that creature` ("that player sacrifices that
 creature": a sacrifice of that one permanent, worded with its
 controller), `<what> gains ability { <ability line> }` ("Target creature
-gains \"...\" until end of turn."), `proliferate` (CR
+gains \"...\" until end of turn."; after `gains deathtouch and`, the
+second "gains" is dropped: "gains deathtouch and \"When this creature
+dies, ...\""), `proliferate` (CR
 701.27; the engine makes the usual choices: your permanents' +1/+1 and
 loyalty counters, opponents' -1/-1 counters and poison), `<what>
 explores` (CR 701.44), `amass Zombies 2` (CR 701.47; needs the token

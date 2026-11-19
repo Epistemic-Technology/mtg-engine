@@ -1,0 +1,8 @@
+card "Winter's Rest" {
+  oracle_id 9df37d14-89fa-4a28-98ee-426062b5740d
+  cost {1}{U}
+  type Snow Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static as long as you control another snow permanent, enchanted creature: has doesn't untap
+}

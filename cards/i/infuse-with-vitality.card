@@ -1,0 +1,9 @@
+card "Infuse with Vitality" {
+  oracle_id 6799217a-030c-4c1b-9de3-99725c6ef4cf
+  cost {B}{G}
+  type Instant
+  spell {
+    until end of turn, target creature gains deathtouch and gains ability { triggered when this dies: return this to battlefield tapped under its owner's control }
+    you gain 2 life
+  }
+}

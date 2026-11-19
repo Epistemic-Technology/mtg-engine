@@ -1,0 +1,6 @@
+card "Isolation Zone" {
+  oracle_id 7c1890cf-36db-4720-a472-9158bdc0d8aa
+  cost {2}{W}{W}
+  type Enchantment
+  triggered when this enters: exile target creature or enchantment an opponent controls until this leaves
+}

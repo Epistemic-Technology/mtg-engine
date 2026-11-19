@@ -836,6 +836,18 @@ pub struct ThisWayLog {
     pub excess: u32,
 }
 
+/// A card a permanent exiled (`GameState::linked_exiles`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct LinkedExile {
+    /// The permanent whose ability exiled it, as the object it was on the
+    /// battlefield (its leaves-the-battlefield trigger has the same id).
+    pub source: ObjId,
+    /// The card in exile.
+    pub card: ObjId,
+    /// Exiled "until" the source leaves the battlefield (CR 610.3).
+    pub until: bool,
+}
+
 impl Moved {
     /// Whether this zone change was `verb` ("exiled", "discarded").
     pub fn is(&self, verb: crate::card::ThisWay) -> bool {
@@ -1190,6 +1202,11 @@ pub struct GameState {
     /// on the stack (CR 601.2h, 602.2b), keyed by the stack object: what
     /// "the sacrificed creature" refers to as it resolves.
     pub paid_costs: Vec<(ObjId, Vec<Moved>)>,
+    /// Cards exiled by a permanent's ability for its linked ability's "the
+    /// exiled card" (CR 607.2a), or until it leaves the battlefield (CR
+    /// 610.3); see `Effect::ExileLinked`. Empty on most boards: zone
+    /// changes check it only when it isn't.
+    pub linked_exiles: Vec<LinkedExile>,
     /// The mana spent to cast spells whose text asks about it (CR
     /// 601.2h; `CardDef::spent`), keyed by the spell and then by the
     /// permanent it became ("if {B} was spent to cast it"). Kept until the

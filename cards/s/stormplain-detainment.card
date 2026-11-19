@@ -1,0 +1,6 @@
+card "Stormplain Detainment" {
+  oracle_id 4ad9c550-5605-4ffe-8e27-e9f2d9ada000
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

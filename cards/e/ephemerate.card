@@ -1,0 +1,7 @@
+card "Ephemerate" {
+  oracle_id 0fd57894-b917-41c8-a394-360d1d31b236
+  cost {W}
+  type Instant
+  spell: exile target creature you control then return target 1 to battlefield
+  keywords rebound
+}

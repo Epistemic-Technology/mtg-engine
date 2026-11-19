@@ -1,0 +1,8 @@
+card "Boreal Griffin" {
+  oracle_id 862ecb4e-7030-48d5-bbdf-655662059430
+  cost {3}{W}{W}
+  type Snow Creature — Griffin
+  pt 3/2
+  keywords flying
+  activated {S}: this gains first strike
+}

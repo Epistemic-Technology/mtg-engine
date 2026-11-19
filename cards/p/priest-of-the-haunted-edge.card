@@ -1,0 +1,7 @@
+card "Priest of the Haunted Edge" {
+  oracle_id fb711b7d-bd7f-48e3-a6de-a12f94ef55d2
+  cost {1}{B}
+  type Snow Creature — Zombie Cleric
+  pt 0/4
+  activated {T}, sacrifice this, sorcery: target creature gets -1/-1 count where snow land you control
+}

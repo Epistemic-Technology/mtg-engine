@@ -1,0 +1,7 @@
+card "Trapped in the Screen" {
+  oracle_id 20f2fc0e-b1d4-4f80-9c7a-a9fb25fef7b8
+  cost {2}{W}
+  type Enchantment
+  ward {2}
+  triggered when this enters: exile target artifact, creature, or enchantment an opponent controls until this leaves
+}

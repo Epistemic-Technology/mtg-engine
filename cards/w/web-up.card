@@ -1,0 +1,6 @@
+card "Web Up" {
+  oracle_id 9b9b086c-d201-4574-a1e9-0d6f8de53d7d
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+}

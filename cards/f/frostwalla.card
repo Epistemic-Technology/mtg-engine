@@ -1,0 +1,7 @@
+card "Frostwalla" {
+  oracle_id 90772e8f-9b39-4cdd-864f-5e2c917f645e
+  cost {2}{G}
+  type Snow Creature — Lizard
+  pt 2/2
+  activated {S}, once: this gets +2/+2
+}

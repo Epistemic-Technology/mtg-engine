@@ -1,0 +1,6 @@
+card "Liminal Hold" {
+  oracle_id 101407b4-e7e8-4aff-84a2-a97947358b88
+  cost {3}{W}
+  type Enchantment
+  triggered when this enters: exile up to 1 target nonland permanent an opponent controls until this leaves; you gain 2 life
+}

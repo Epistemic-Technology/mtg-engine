@@ -1,0 +1,6 @@
+card "Return to Action" {
+  oracle_id 9c002b4d-bb6c-45a5-88e1-1df2958dff9f
+  cost {1}{B}
+  type Instant
+  spell: until end of turn, target creature gets +1/+0 and gains lifelink and gains ability { triggered when this dies: return this to battlefield tapped under its owner's control }
+}

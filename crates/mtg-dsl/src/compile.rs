@@ -120,6 +120,7 @@ pub fn add_card(
         token,
     };
     let mut def = c.card()?;
+    link_exiles(&mut def);
     if !faces.is_empty() {
         def.layout = card.layout;
         def.faces.clone_from(&faces);
@@ -901,7 +902,7 @@ impl Compiler<'_> {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
-            Recipient::Targets(a, n) => CoreRecipient::Targets(
+            Recipient::Targets(a, n) | Recipient::ThoseCards(a, n) => CoreRecipient::Targets(
                 u8::try_from(a).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
@@ -932,6 +933,7 @@ impl Compiler<'_> {
             Recipient::Attached => CoreRecipient::Attached,
             Recipient::AttachedController => CoreRecipient::AttachedController,
             Recipient::BlockingIt => CoreRecipient::BlockingIt,
+            Recipient::ExiledCard => CoreRecipient::ExiledCard,
         }
     }
 
@@ -1146,6 +1148,10 @@ impl Compiler<'_> {
                     out.push(CoreEffect::Exile { what: r(*w) });
                 }
             }
+            Effect::ExileUntil { what } => out.push(CoreEffect::ExileLinked {
+                what: r(*what),
+                until: true,
+            }),
             Effect::ExileAllGraveyards => out.push(CoreEffect::ExileAllGraveyards),
             Effect::ExileGraveyard { who } => out.push(CoreEffect::ExileGraveyard { who: r(*who) }),
             Effect::Sacrifice { what } | Effect::SacrificeBy { what, .. } => {
@@ -2628,6 +2634,37 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
 /// card: a copy of it, except a white (black) Zombie with no mana cost
 /// (eternalize: 4/4). The token's copiable values are these (CR 707.9b),
 /// so it is a definition of its own, keyed `"<name> (token)"`.
+/// CR 607.2a: when one of a card's abilities says "the exiled card"
+/// (Journey to Nowhere's "When this enchantment leaves the battlefield,
+/// return the exiled card ..."), the card's triggered abilities that exile
+/// are linked to it: they remember what they exiled.
+fn link_exiles(def: &mut mtg_core::card::CardDef) {
+    use mtg_core::card::AbilityDef;
+    let refers = def.abilities.iter().any(|a| {
+        a.all_effects().iter().any(|e| {
+            matches!(
+                e,
+                CoreEffect::ReturnToBattlefield {
+                    what: CoreRecipient::ExiledCard,
+                    ..
+                }
+            )
+        })
+    });
+    if !refers {
+        return;
+    }
+    for a in &mut def.abilities {
+        if let AbilityDef::Triggered(t) = a {
+            for e in &mut t.effects {
+                if let CoreEffect::Exile { what } = *e {
+                    *e = CoreEffect::ExileLinked { what, until: false };
+                }
+            }
+        }
+    }
+}
+
 fn derived_token(card: &Card) -> Option<Card> {
     let (color, pt) = card.abilities.iter().find_map(|a| match a {
         Ability::Mechanic(Mechanic::Embalm(_)) => Some((Some(Color::White), None)),

@@ -1,0 +1,7 @@
+card "Journey to Nowhere" {
+  oracle_id 2bfec482-be0d-4768-84e7-1c2c74ea1373
+  cost {1}{W}
+  type Enchantment
+  triggered when this enters: exile target creature
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

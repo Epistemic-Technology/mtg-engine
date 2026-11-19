@@ -1,0 +1,8 @@
+card "Ronom Hulk" {
+  oracle_id d3fb83af-8fc4-4f26-b2df-be5dd3ac56b2
+  cost {4}{G}
+  type Creature — Beast
+  pt 5/6
+  protection from snow
+  cumulative upkeep {1}
+}

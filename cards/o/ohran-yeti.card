@@ -1,0 +1,7 @@
+card "Ohran Yeti" {
+  oracle_id e606cba7-7e3c-4834-b2cd-56e51cedccb7
+  cost {3}{R}
+  type Snow Creature — Yeti
+  pt 3/3
+  activated {2}{S}: target snow creature gains first strike
+}

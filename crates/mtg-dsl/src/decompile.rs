@@ -464,6 +464,7 @@ impl Decompiler<'_> {
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::AttachedController => Recipient::AttachedController,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
+            CoreRecipient::ExiledCard => Recipient::ExiledCard,
         }
     }
 
@@ -585,9 +586,12 @@ impl Decompiler<'_> {
                 under_you: *under_you,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
-            CoreEffect::Exile { what } => Effect::Exile {
-                what: vec![r(*what)],
-            },
+            CoreEffect::Exile { what } | CoreEffect::ExileLinked { what, until: false } => {
+                Effect::Exile {
+                    what: vec![r(*what)],
+                }
+            }
+            CoreEffect::ExileLinked { what, until: true } => Effect::ExileUntil { what: r(*what) },
             CoreEffect::ExileAllGraveyards => Effect::ExileAllGraveyards,
             CoreEffect::ExileGraveyard { who } => Effect::ExileGraveyard { who: r(*who) },
             CoreEffect::Sacrifice { what } => Effect::Sacrifice { what: r(*what) },

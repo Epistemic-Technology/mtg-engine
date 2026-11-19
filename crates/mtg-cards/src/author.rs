@@ -3047,21 +3047,17 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
             return Err(Skip::Keyword(k.clone()));
         }
     }
-    // Hybrid and Phyrexian symbols the engine parses are fine; snow,
-    // energy, and the rarer hybrids ({W/U/P}, {C/W}) are not.
+    // Hybrid, Phyrexian, and snow symbols the engine parses are fine;
+    // energy and the rarer hybrids ({W/U/P}, {C/W}) are not.
     let symbol = Regex::new(r"\{([^}]*)\}").unwrap();
     let odd = |text: &str| {
         symbol.captures_iter(text).any(|c| {
             let inner = &c[1];
-            inner == "S"
-                || (inner.contains('/')
-                    && mtg_core::mana::ManaCost::parse(&format!("{{{inner}}}")).is_err())
+            inner.contains('/') && mtg_core::mana::ManaCost::parse(&format!("{{{inner}}}")).is_err()
         })
     };
     if odd(s.mana_cost.as_deref().unwrap_or("")) || odd(s.oracle_text.as_deref().unwrap_or("")) {
-        return Err(Skip::Keyword(
-            "snow, energy, or unusual hybrid symbol".to_string(),
-        ));
+        return Err(Skip::Keyword("energy or unusual hybrid symbol".to_string()));
     }
     let oracle = strip_reminder(s.oracle_text.as_deref().unwrap_or(""));
     let oracle = oracle.replace(&s.name, "~");

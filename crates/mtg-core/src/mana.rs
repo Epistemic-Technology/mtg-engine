@@ -1,7 +1,7 @@
 //! Colors, mana symbols, mana costs, and the mana pool (CR 105, 106, 107,
 //! 202). Single-colored, generic, colorless, `X`, hybrid (`{R/G}`),
-//! monocolored hybrid (`{2/W}`), and Phyrexian (`{R/P}`) symbols; snow
-//! symbols are not yet supported.
+//! monocolored hybrid (`{2/W}`), Phyrexian (`{R/P}`), and snow (`{S}`)
+//! symbols.
 
 use std::fmt;
 
@@ -138,6 +138,8 @@ pub enum ManaSymbol {
     TwoHybrid(Color),
     /// `{R/P}`: payable with the color or with 2 life (CR 107.4f).
     Phyrexian(Color),
+    /// `{S}`: one mana of any type produced by a snow source (CR 107.4h).
+    Snow,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
@@ -177,6 +179,7 @@ impl ManaCost {
             let parsed = match sym {
                 "X" => ManaSymbol::X,
                 "C" => ManaSymbol::Colorless,
+                "S" => ManaSymbol::Snow,
                 s if s.chars().all(|c| c.is_ascii_digit()) => {
                     let n: u32 = s
                         .parse()
@@ -234,7 +237,8 @@ impl ManaCost {
                 ManaSymbol::Colored(_)
                 | ManaSymbol::Colorless
                 | ManaSymbol::Hybrid(..)
-                | ManaSymbol::Phyrexian(_) => 1,
+                | ManaSymbol::Phyrexian(_)
+                | ManaSymbol::Snow => 1,
                 ManaSymbol::TwoHybrid(_) => 2,
                 ManaSymbol::X => 0,
             })
@@ -271,6 +275,7 @@ impl ManaCost {
                 ManaSymbol::Hybrid(a, b) => req.hybrid[hybrid_index(*a, *b)] += 1,
                 ManaSymbol::TwoHybrid(c) => req.two_hybrid[*c as usize] += 1,
                 ManaSymbol::Phyrexian(c) => req.phyrexian[*c as usize] += 1,
+                ManaSymbol::Snow => req.snow += 1,
             }
         }
         req
@@ -294,6 +299,7 @@ impl fmt::Display for ManaCost {
                 ManaSymbol::Hybrid(a, b) => write!(f, "{{{}/{}}}", a.letter(), b.letter())?,
                 ManaSymbol::TwoHybrid(c) => write!(f, "{{2/{}}}", c.letter())?,
                 ManaSymbol::Phyrexian(c) => write!(f, "{{{}/P}}", c.letter())?,
+                ManaSymbol::Snow => write!(f, "{{S}}")?,
             }
         }
         Ok(())
@@ -342,6 +348,10 @@ pub struct ManaRequirement {
     pub two_hybrid: [u8; 5],
     /// `{c/P}` symbols, indexed by color.
     pub phyrexian: [u8; 5],
+    /// `{S}` symbols (CR 107.4h): each paid with one mana from a snow
+    /// source, so a plan picks the sources (see the engine's
+    /// `snow_payment`).
+    pub snow: u32,
 }
 
 /// Most expansions a requirement offers; beyond it the rest are dropped
@@ -361,11 +371,15 @@ impl ManaRequirement {
                 .map(|n| 2 * u32::from(*n))
                 .sum::<u32>()
             + self.phyrexian.iter().map(|n| u32::from(*n)).sum::<u32>()
+            + self.snow
     }
 
-    /// No hybrid or Phyrexian symbols.
+    /// No hybrid, Phyrexian, or snow symbols.
     pub fn is_plain(&self) -> bool {
-        self.hybrid == [0; 10] && self.two_hybrid == [0; 5] && self.phyrexian == [0; 5]
+        self.hybrid == [0; 10]
+            && self.two_hybrid == [0; 5]
+            && self.phyrexian == [0; 5]
+            && self.snow == 0
     }
 
     /// Reduce by an amount of mana (CR 118.7): generic reduces generic
@@ -388,6 +402,9 @@ impl ManaRequirement {
             match *s {
                 ManaSymbol::Generic(n) => generic += u32::from(n),
                 ManaSymbol::X => {}
+                // No reduction is printed in snow mana; one mana of it
+                // would reduce generic mana.
+                ManaSymbol::Snow => generic += 1,
                 ManaSymbol::Colored(c) | ManaSymbol::Phyrexian(c) => {
                     color(self, c, &mut generic);
                 }
@@ -425,6 +442,7 @@ impl ManaRequirement {
         }
         self.colorless += other.colorless;
         self.generic += other.generic;
+        self.snow += other.snow;
         for (a, b) in self.hybrid.iter_mut().zip(other.hybrid) {
             *a += b;
         }
@@ -531,8 +549,13 @@ impl ManaPool {
     /// expansions`) from this pool: colored symbols from
     /// matching mana, `{C}` from colorless, then generic from whatever is
     /// left, colorless first and then colors in WUBRG order. Returns the
-    /// pool after payment.
+    /// pool after payment. The pool doesn't remember which of its mana a
+    /// snow source made, so it pays no `{S}` (the engine taps snow sources
+    /// for those, see `snow_payment`).
     pub fn payment_plan(&self, req: &ManaRequirement) -> Option<ManaPool> {
+        if req.snow > 0 {
+            return None;
+        }
         let mut left = *self;
         for (i, need) in req.colored.iter().enumerate() {
             if left.colored[i] < *need {
@@ -618,6 +641,22 @@ mod tests {
         pool.add(Mana::Colored(Color::Green));
         assert!(pool.can_pay(&ManaCost::parse("{R/G}").unwrap().requirements(0)));
         assert!(!pool.can_pay(&ManaCost::parse("{W/U}").unwrap().requirements(0)));
+    }
+
+    #[test]
+    fn snow() {
+        let c = ManaCost::parse("{1}{S}{S}").unwrap();
+        assert_eq!(c.to_string(), "{1}{S}{S}");
+        assert_eq!(c.mana_value(), 3);
+        assert!(c.colors().is_colorless());
+        let req = c.requirements(0);
+        assert_eq!((req.snow, req.generic, req.total()), (2, 1, 3));
+        assert!(!req.is_plain());
+        let mut pool = ManaPool::default();
+        for _ in 0..3 {
+            pool.add(Mana::Colorless);
+        }
+        assert!(!pool.can_pay(&req));
     }
 
     #[test]

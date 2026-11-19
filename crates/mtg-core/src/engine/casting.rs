@@ -3073,6 +3073,9 @@ impl GameState {
         life: i32,
         exclude: Option<ObjId>,
     ) -> bool {
+        if req.snow > 0 {
+            return self.snow_payment(sources, pool, req, life).is_some();
+        }
         payment_plan_from(sources, pool, req, life).is_some()
             || (self.ability_mana_possible()
                 && self
@@ -3350,6 +3353,14 @@ impl GameState {
         exclude: Option<ObjId>,
     ) {
         let ps = self.player(p);
+        if req.snow > 0 {
+            let (plan, req, life) = self
+                .snow_payment(sources, &ps.mana_pool, req, ps.life)
+                .expect("cast was offered only when payable");
+            self.tap_for_plan(p, &plan);
+            self.finish_payment(p, &req, life);
+            return;
+        }
         let Some((plan, req, life)) = resolve_payment(sources, &ps.mana_pool, req, ps.life) else {
             let plan = self
                 .ability_plan(p, sources, &ps.mana_pool, req, ps.life, exclude)
@@ -3359,6 +3370,87 @@ impl GameState {
         };
         self.tap_for_plan(p, &plan);
         self.finish_payment(p, &req, life);
+    }
+
+    /// A payment of `req`, which has `{S}` symbols (CR 107.4h): each paid
+    /// with the mana of a different snow source (a snow permanent) that the
+    /// plan taps, the rest planned as usual from the other sources and the
+    /// pool. Returns the plan, the requirement with `{S}` turned into
+    /// generic mana (paid from the pool once the snow sources' mana is
+    /// in it), and the life to pay. Mana already in the pool pays no
+    /// `{S}`: the pool doesn't remember where its mana came from.
+    #[cold]
+    #[inline(never)]
+    fn snow_payment(
+        &self,
+        sources: &[(ObjId, Mana)],
+        pool: &crate::mana::ManaPool,
+        req: &ManaRequirement,
+        life: i32,
+    ) -> Option<(Sources, ManaRequirement, u32)> {
+        let k = usize::try_from(req.snow).ok()?;
+        let mut rest = *req;
+        rest.snow = 0;
+        // Each snow source once, with the first mana it's listed for.
+        let mut snow: SmallVec<[(ObjId, Mana); 8]> = SmallVec::new();
+        for &(id, mana) in sources {
+            if snow.iter().any(|(s, _)| *s == id) {
+                continue;
+            }
+            let is_snow = self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield)
+                && self
+                    .characteristics(id)
+                    .is_some_and(|c| c.supertypes.contains(crate::card::Supertype::Snow));
+            if is_snow {
+                snow.push((
+                    id,
+                    if mana == Mana::Any {
+                        Mana::Colorless
+                    } else {
+                        mana
+                    },
+                ));
+            }
+        }
+        if snow.len() < k {
+            return None;
+        }
+        // Every way to choose `k` of them, in order, until the rest of the
+        // cost can be paid without them.
+        let mut pick: SmallVec<[usize; 4]> = (0..k).collect();
+        loop {
+            let chosen = |id: ObjId| pick.iter().any(|i| snow[*i].0 == id);
+            let others: Sources = sources
+                .iter()
+                .copied()
+                .filter(|(id, _)| !chosen(*id))
+                .collect();
+            if let Some((plan, mut r, l)) = resolve_payment(&others, pool, &rest, life) {
+                let mut full: Sources = pick.iter().map(|i| snow[*i]).collect();
+                full.extend_from_slice(&plan);
+                r.generic += req.snow;
+                return Some((full, r, l));
+            }
+            // The next combination in lexicographic order.
+            let n = snow.len();
+            let mut i = k;
+            loop {
+                if i == 0 {
+                    return None;
+                }
+                i -= 1;
+                if pick[i] < n - k + i {
+                    break;
+                }
+            }
+            pick[i] += 1;
+            for j in i + 1..k {
+                pick[j] = pick[j - 1] + 1;
+            }
+        }
     }
 
     /// Whether `id` is a Treasure (CR 111.10a), for "mana from a Treasure".
@@ -4318,6 +4410,19 @@ impl GameState {
                 }
             }
             Recipient::Group(f) => self.group_into(ctx, f, &mut out),
+            Recipient::ExiledCard => {
+                // CR 607.2a: what the source's linked ability exiled, while
+                // it's still in exile.
+                let objects = &self.objects;
+                self.linked_exiles
+                    .retain(|l| objects.get(l.card).is_some_and(|o| o.zone == Zone::Exile));
+                out.extend(
+                    self.linked_exiles
+                        .iter()
+                        .filter(|l| l.source == ctx.source)
+                        .map(|l| Target::Object(l.card)),
+                );
+            }
             Recipient::RandomOf(f) => {
                 let mut all = SmallVec::new();
                 self.group_into(ctx, f, &mut all);
@@ -6022,6 +6127,31 @@ impl GameState {
                     }
                 }
             }
+            Effect::ExileLinked { what, until } => {
+                // CR 610.3a: "until this leaves the battlefield" after it
+                // already has: nothing is exiled.
+                if *until
+                    && !self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Battlefield)
+                {
+                    return;
+                }
+                for t in self.recipients(ctx, *what) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        let new = self.move_object(id, Zone::Exile, true);
+                        ctx.created = Some(new);
+                        if self.objects.get(new).is_some_and(|o| o.zone == Zone::Exile) {
+                            self.linked_exiles.push(crate::state::LinkedExile {
+                                source: ctx.source,
+                                card: new,
+                                until: *until,
+                            });
+                        }
+                    }
+                }
+            }
             Effect::ReturnToBattlefield {
                 what,
                 counters,
@@ -6031,6 +6161,18 @@ impl GameState {
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else {
                         continue;
+                    };
+                    // "Exile two target creatures you control, then return
+                    // those cards": each target the resolution has moved
+                    // is found as the card it became (CR 400.7); the
+                    // targets were legal as it began.
+                    let id = if self.objects.contains_key(id) {
+                        id
+                    } else {
+                        match self.current_object(id) {
+                            Some(c) => c,
+                            None => continue,
+                        }
                     };
                     let Some(o) = self.objects.get(id) else {
                         continue;
@@ -6952,6 +7094,10 @@ pub(super) fn resolve_payment(
 ) -> Option<(Sources, ManaRequirement, u32)> {
     if req.is_plain() {
         return plain_payment_plan(sources, pool, req).map(|p| (p, *req, 0));
+    }
+    // `{S}` needs to know which sources are snow: `snow_payment`.
+    if req.snow > 0 {
+        return None;
     }
     req.expansions().into_iter().find_map(|(r, l)| {
         if i64::from(l) > i64::from(life) {

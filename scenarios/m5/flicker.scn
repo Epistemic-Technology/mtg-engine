@@ -10,3 +10,58 @@ scenario "Flicker of Fate returns the exiled creature, without its counters" {
   assert power "Grizzly Bears" 2
   assert exile A count 0
 }
+
+scenario "Displace returns both exiled creatures" {
+  battlefield A: "Island", "Island", "Island", "Grizzly Bears" with 1 +1/+1, "Hill Giant" tapped
+  hand A: "Displace"
+  turn 1 A: cast "Displace" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert untapped "Hill Giant"
+  assert power "Grizzly Bears" 2
+  assert exile A count 0
+}
+
+scenario "Displace with one target" {
+  battlefield A: "Island", "Island", "Island", "Grizzly Bears" with 1 +1/+1
+  hand A: "Displace"
+  turn 1 A: cast "Displace" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert exile A count 0
+}
+
+scenario "Displace can't target an opponent's creature" {
+  battlefield A: "Island", "Island", "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Displace"
+  illegal turn 1 A: cast "Displace" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Ephemerate rebounds and flickers again next upkeep" {
+  battlefield A: "Plains", "Grizzly Bears" with 1 +1/+1
+  hand A: "Ephemerate"
+  turn 1 A: cast "Ephemerate" targeting "Grizzly Bears"
+  turn 3 upkeep A: cast "Ephemerate" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Ephemerate"
+  assert power "Grizzly Bears" 2
+  run_to turn 3 precombat_main
+  assert graveyard A contains "Ephemerate"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Supernatural Stamina returns the creature tapped when it dies" {
+  battlefield A: "Swamp", "Mountain", "Grizzly Bears"
+  hand A: "Supernatural Stamina", "Shock"
+  turn 1 A: cast "Supernatural Stamina" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}

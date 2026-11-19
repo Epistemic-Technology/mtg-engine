@@ -1,0 +1,8 @@
+card "Petravark" {
+  oracle_id aedf022c-6065-42cb-85bb-225ae1650a5c
+  cost {3}{R}
+  type Creature — Nightmare Beast
+  pt 2/2
+  triggered when this enters: exile target land
+  triggered when this leaves the battlefield: return exiled card to battlefield
+}

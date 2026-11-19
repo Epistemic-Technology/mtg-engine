@@ -1,0 +1,107 @@
+# Snow mana: {S} is paid with one mana from a snow source (CR 107.4h).
+
+scenario "{S} is paid by tapping a snow land" {
+  battlefield A: "Chilling Shade", "Snow-Covered Swamp"
+  turn 1 A: activate "Chilling Shade"
+  run_to turn 1 postcombat_main
+  assert power "Chilling Shade" 2
+  assert tapped "Snow-Covered Swamp"
+}
+
+scenario "a land that isn't snow can't pay {S}" {
+  battlefield A: "Chilling Shade", "Swamp", "Swamp"
+  illegal turn 1 A: activate "Chilling Shade"
+  run_to turn 1 postcombat_main
+  assert power "Chilling Shade" 1
+  assert untapped oldest A "Swamp"
+}
+
+scenario "each {S} needs its own snow source" {
+  battlefield A: "Frost Raptor", "Snow-Covered Island", "Island", "Island"
+  illegal turn 1 A: activate "Frost Raptor"
+  run_to turn 1 postcombat_main
+  assert has not "Frost Raptor" shroud
+}
+
+scenario "{S}{S} from two snow sources, generic from the others" {
+  battlefield A: "Frost Raptor", "Grim Draugr", "Snow-Covered Island", "Snow-Covered Swamp", "Swamp"
+  turn 1 A: activate "Frost Raptor"
+  run_to turn 1 postcombat_main
+  assert has "Frost Raptor" shroud
+  assert tapped "Snow-Covered Island"
+  assert tapped "Snow-Covered Swamp"
+  assert untapped oldest A "Swamp"
+}
+
+scenario "the plan keeps snow lands for {S} and pays generic and colors with the rest" {
+  battlefield A: "Grim Draugr", "Snow-Covered Swamp", "Swamp"
+  turn 1 A: activate "Grim Draugr"
+  run_to turn 1 postcombat_main
+  assert power "Grim Draugr" 4
+  assert has "Grim Draugr" menace
+  assert tapped "Snow-Covered Swamp"
+  assert tapped "Swamp"
+}
+
+scenario "a snow land that paid one {S} is tapped for the next" {
+  battlefield A: "Pilfering Hawk", "Boreal Centaur", "Snow-Covered Forest"
+  library A: "Island", "Forest"
+  hand A: "Plains"
+  # Snow-Covered Forest pays for the Hawk's {S}; nothing is left for the
+  # Centaur (snow itself, but with no mana ability).
+  turn 1 A: activate "Pilfering Hawk"
+  illegal turn 1 main2 A: activate "Boreal Centaur"
+  run_to turn 1 end
+  assert hand A count 1
+  assert power "Boreal Centaur" 2
+}
+
+scenario "activate only once each turn" {
+  battlefield A: "Frostwalla", "Snow-Covered Forest", "Snow-Covered Forest"
+  turn 1 A: activate "Frostwalla"
+  turn 1 A: wait
+  illegal turn 1 A: activate "Frostwalla"
+  run_to turn 1 postcombat_main
+  assert power "Frostwalla" 4
+  assert untapped newest A "Snow-Covered Forest"
+}
+
+scenario "Icehide Troll gets +2/+0 and indestructible, and taps" {
+  battlefield A: "Icehide Troll", "Snow-Covered Forest", "Snow-Covered Mountain"
+  turn 1 A: activate "Icehide Troll"
+  run_to turn 1 postcombat_main
+  assert power "Icehide Troll" 4
+  assert has "Icehide Troll" indestructible
+  assert tapped "Icehide Troll"
+}
+
+scenario "Rimebound Dead regenerates for {S}" {
+  battlefield A: "Rimebound Dead", "Snow-Covered Swamp"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 A: activate "Rimebound Dead"
+  turn 2 B: cast "Shock" targeting "Rimebound Dead"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Rimebound Dead"
+  assert tapped "Rimebound Dead"
+}
+
+scenario "Priest of the Haunted Edge counts snow lands" {
+  battlefield A: "Priest of the Haunted Edge", "Snow-Covered Swamp", "Snow-Covered Forest", "Swamp"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Priest of the Haunted Edge" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 1
+}
+
+scenario "protection from snow: a snow creature can't block Ronom Hulk" {
+  battlefield A: "Ronom Hulk", "Forest"
+  battlefield B: "Chilling Shade"
+  start turn 2 A
+  turn 2 A: attack "Ronom Hulk"
+  illegal turn 2 B: block "Ronom Hulk" with "Chilling Shade"
+  run_to turn 2 postcombat_main
+  assert life B 15
+}

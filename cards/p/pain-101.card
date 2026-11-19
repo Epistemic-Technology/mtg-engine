@@ -1,0 +1,6 @@
+card "Pain 101" {
+  oracle_id e9975888-c75f-471e-a70d-17449e92226d
+  cost {1}{B}
+  type Instant
+  spell: until end of turn, target creature gains deathtouch and gains ability { triggered when this dies: return this to battlefield tapped under its owner's control }
+}

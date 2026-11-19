@@ -1,0 +1,6 @@
+card "Makeshift Binding" {
+  oracle_id 942f3f06-1df0-40b4-8537-71cbec111852
+  cost {2}{W}
+  type Enchantment
+  triggered when this enters: exile target creature an opponent controls until this leaves; you gain 2 life
+}

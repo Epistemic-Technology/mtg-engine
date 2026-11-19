@@ -1,0 +1,7 @@
+card "Boreal Centaur" {
+  oracle_id 2b548f9a-c160-427d-9bb4-1fe940f8ab28
+  cost {1}{G}
+  type Snow Creature — Centaur Warrior
+  pt 2/2
+  activated {S}, once: this gets +1/+1
+}

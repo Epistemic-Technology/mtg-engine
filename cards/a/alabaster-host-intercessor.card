@@ -1,0 +1,8 @@
+card "Alabaster Host Intercessor" {
+  oracle_id d1d719e9-9c02-40cf-8849-91a5c120a516
+  cost {5}{W}
+  type Creature — Phyrexian Samurai
+  pt 3/4
+  triggered when this enters: exile target creature an opponent controls until this leaves
+  plainscycling {2}
+}

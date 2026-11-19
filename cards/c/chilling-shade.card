@@ -1,0 +1,8 @@
+card "Chilling Shade" {
+  oracle_id 1bbcfbad-c4c5-4818-b73c-26d83f7fa22c
+  cost {2}{B}
+  type Snow Creature — Shade
+  pt 1/1
+  keywords flying
+  activated {S}: this gets +1/+1
+}

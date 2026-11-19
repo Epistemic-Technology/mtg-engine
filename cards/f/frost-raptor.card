@@ -1,0 +1,8 @@
+card "Frost Raptor" {
+  oracle_id 9ca01d83-7794-4952-8cd8-c2ecb32cffd5
+  cost {2}{U}
+  type Snow Creature — Bird
+  pt 2/2
+  keywords flying
+  activated {S}{S}: this gains shroud
+}

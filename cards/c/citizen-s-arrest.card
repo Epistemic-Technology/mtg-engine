@@ -1,0 +1,6 @@
+card "Citizen's Arrest" {
+  oracle_id 6f554418-9ee6-4a03-b81e-f93d5c70873e
+  cost {1}{W}{W}
+  type Enchantment
+  triggered when this enters: exile target creature or planeswalker an opponent controls until this leaves
+}

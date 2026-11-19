@@ -1740,6 +1740,13 @@ pub enum Recipient {
     /// 1`: the `n`th target and the `g`th group, whose filter relates to
     /// that target.
     TargetAnd(usize, u16),
+    /// `exiled card`: "the exiled card", what this permanent's linked
+    /// ability exiled (CR 607.2a).
+    ExiledCard,
+    /// `those cards`: the targets declared so far (`first`, `count`),
+    /// after an effect moved them ("Exile two target creatures you
+    /// control, then return those cards to the battlefield").
+    ThoseCards(usize, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1836,6 +1843,11 @@ pub enum Effect {
     },
     Exile {
         what: Vec<Recipient>,
+    },
+    /// `exile target creature until this leaves`: "... until this
+    /// enchantment leaves the battlefield" (CR 610.3).
+    ExileUntil {
+        what: Recipient,
     },
     ExileAllGraveyards,
     /// `exile graveyard of target player`: "Exile target player's

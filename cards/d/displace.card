@@ -1,0 +1,6 @@
+card "Displace" {
+  oracle_id 334e2147-5944-4558-b2bc-2f2bfb96dfa5
+  cost {2}{U}
+  type Instant
+  spell: exile up to 2 target creature you control then return those cards to battlefield
+}

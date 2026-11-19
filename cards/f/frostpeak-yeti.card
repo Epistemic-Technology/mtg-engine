@@ -1,0 +1,7 @@
+card "Frostpeak Yeti" {
+  oracle_id 0363363b-a538-4cf6-ae6b-6b45cdabd99a
+  cost {3}{U}
+  type Snow Creature — Yeti
+  pt 3/3
+  activated {1}{S}: this can't be blocked this turn
+}

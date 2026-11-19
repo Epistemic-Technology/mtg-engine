@@ -1,0 +1,8 @@
+card "Ronom Serpent" {
+  oracle_id ff35e480-8ea2-47bb-bb2a-24cefe9c2139
+  cost {5}{U}
+  type Snow Creature — Serpent
+  pt 5/6
+  can't attack unless defending player controls snow land
+  triggered when you control no snow land: sacrifice this
+}

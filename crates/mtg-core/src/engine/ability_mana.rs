@@ -657,6 +657,11 @@ impl GameState {
         life: i32,
         exclude: Option<ObjId>,
     ) -> Option<AbilityPlan> {
+        // `{S}` (CR 107.4h) is paid only by tapping snow sources, in the
+        // plain plan (`snow_payment`).
+        if req.snow > 0 {
+            return None;
+        }
         let abilities = self.ability_mana(p, exclude);
         if abilities.is_empty() {
             return None;

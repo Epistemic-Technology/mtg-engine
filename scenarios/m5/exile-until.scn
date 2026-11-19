@@ -1,0 +1,101 @@
+# "Exile ... until this enchantment leaves the battlefield" (CR 610.3) and
+# the linked "return the exiled card" of Journey to Nowhere (CR 607.2a).
+
+scenario "Banishing Light exiles until it leaves; the card returns at once" {
+  battlefield A: 3 "Plains", "Forest", "Forest"
+  battlefield B: "Grizzly Bears" with 1 +1/+1
+  hand A: "Banishing Light", "Naturalize"
+  turn 1 A: cast "Banishing Light"
+  turn 1 A: trigger "Banishing Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  turn 1 main2 A: cast "Naturalize" targeting "Banishing Light"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert exile B count 0
+  # A new object: its counter is gone (CR 400.7).
+  assert power "Grizzly Bears" 2
+}
+
+scenario "an opponent's permanent only" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Banishing Light"
+  turn 1 A: cast "Banishing Light"
+  illegal turn 1 A: trigger "Banishing Light" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+}
+
+scenario "if it has left before its ability resolves, nothing is exiled" {
+  battlefield A: 6 "Plains", "Nantuko Husk"
+  battlefield B: "Grizzly Bears"
+  hand A: "Alabaster Host Intercessor"
+  turn 1 A: cast "Alabaster Host Intercessor"
+  turn 1 A: trigger "Alabaster Host Intercessor" targeting "Grizzly Bears"
+  turn 1 A: activate "Nantuko Husk" sacrificing "Alabaster Host Intercessor"
+  run_to turn 1 postcombat_main
+  # CR 610.3a: the event it waits for has already happened.
+  assert graveyard A contains "Alabaster Host Intercessor"
+  assert battlefield B contains "Grizzly Bears"
+  assert exile B count 0
+}
+
+scenario "Journey to Nowhere: the leaves trigger returns the exiled card" {
+  battlefield A: "Plains", "Plains", "Forest", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Journey to Nowhere", "Naturalize"
+  turn 1 A: cast "Journey to Nowhere"
+  turn 1 A: trigger "Journey to Nowhere" targeting "Grizzly Bears"
+  turn 1 main2 A: cast "Naturalize" targeting "Journey to Nowhere"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert exile B count 0
+}
+
+scenario "Faceless Butcher gone before its ability resolves exiles the creature for good" {
+  battlefield A: 4 "Swamp", "Nantuko Husk"
+  battlefield B: "Grizzly Bears"
+  hand A: "Faceless Butcher"
+  turn 1 A: cast "Faceless Butcher"
+  turn 1 A: trigger "Faceless Butcher" targeting "Grizzly Bears"
+  turn 1 A: activate "Nantuko Husk" sacrificing "Faceless Butcher"
+  run_to turn 2 end
+  # Its leaves trigger resolved first, with nothing exiled yet.
+  assert exile B contains "Grizzly Bears"
+  assert graveyard A contains "Faceless Butcher"
+}
+
+scenario "Faceless Butcher returns the creature when it dies" {
+  battlefield A: 4 "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Faceless Butcher", "Lightning Bolt"
+  turn 1 A: cast "Faceless Butcher"
+  turn 1 A: trigger "Faceless Butcher" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  turn 1 main2 A: cast "Lightning Bolt" targeting "Faceless Butcher"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Faceless Butcher"
+}
+
+scenario "a flickered Faceless Butcher is a new object: the old one's card returns" {
+  battlefield A: 4 "Swamp", "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Faceless Butcher", "Cloudshift"
+  turn 1 A: cast "Faceless Butcher"
+  turn 1 A: trigger "Faceless Butcher" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  turn 1 main2 A: cast "Cloudshift" targeting "Faceless Butcher"
+  turn 1 main2 A: trigger "Faceless Butcher" targeting "Hill Giant"
+  run_to turn 1 end
+  # The old object's leaves trigger returned the Bears (CR 607.2a links
+  # each object's own abilities); the new object exiled the Giant.
+  assert battlefield B contains "Grizzly Bears"
+  assert exile B contains "Hill Giant"
+  assert exile B count 1
+}

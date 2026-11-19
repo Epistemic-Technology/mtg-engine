@@ -1,0 +1,7 @@
+card "White Auracite" {
+  oracle_id 6022608a-6cf2-45bd-adec-63211710a5ed
+  cost {2}{W}{W}
+  type Artifact
+  triggered when this enters: exile target nonland permanent an opponent controls until this leaves
+  activated {T}: add {W}
+}

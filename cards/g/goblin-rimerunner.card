@@ -1,0 +1,8 @@
+card "Goblin Rimerunner" {
+  oracle_id 8505f9a6-a510-43f9-a96d-b840b353e144
+  cost {2}{R}
+  type Snow Creature — Goblin Warrior
+  pt 2/2
+  activated {T}: target creature can't block this turn
+  activated {S}: this gains haste
+}

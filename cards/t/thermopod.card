@@ -1,0 +1,8 @@
+card "Thermopod" {
+  oracle_id c886fa01-bcee-4c73-9c46-2328711fc4f0
+  cost {4}{R}
+  type Snow Creature — Slug
+  pt 4/3
+  activated {S}: this gains haste
+  activated sacrifice creature: add {R}
+}
