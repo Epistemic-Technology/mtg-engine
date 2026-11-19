@@ -2308,12 +2308,17 @@ impl GameState {
             Effect::TapOrUntap { to } => {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        // Accept taps, Decline untaps.
+                        // Accept taps, Decline untaps; asked as the source's
+                        // choice.
+                        let def = self
+                            .objects
+                            .get(ctx.source)
+                            .map(|o| o.def)
+                            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                            .unwrap_or(self.objects[id].def);
                         let k = self.choose_mid(
                             ctx.controller,
-                            DecisionKind::YouMay {
-                                def: self.objects[id].def,
-                            },
+                            DecisionKind::YouMay { def },
                             vec![Choice::Accept, Choice::Decline],
                         );
                         if k == 0 {
@@ -2630,6 +2635,14 @@ impl GameState {
                             id,
                             smallvec::smallvec![Modification::SetLandType(*land)],
                         );
+                    }
+                }
+            }
+            Effect::IfCondition(cond, inner) => {
+                let c = self.pool.condition(*cond).clone();
+                if self.condition_now(&c, ctx.controller, ctx.source) {
+                    for e in inner {
+                        self.apply_effect(ctx, e);
                     }
                 }
             }

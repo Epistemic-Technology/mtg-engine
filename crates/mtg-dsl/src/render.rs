@@ -697,6 +697,10 @@ impl<'a> Ctx<'a> {
                     self.obj_list(&rs, false)
                 }
             }
+            // "That creature becomes black": named again on purpose.
+            Recipient::ThatTarget(i) if self.target_mentioned[i] => {
+                format!("that {}", self.target_noun[i])
+            }
             Recipient::Target(i) | Recipient::ThatTarget(i) => {
                 if self.target_mentioned[i] {
                     "it".to_string()
@@ -2217,8 +2221,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::with_subject(
                 *to,
                 s,
-                format!("{} {what} {EOT}", ctx.verb(*to, "becomes", "become")),
+                format!("{} {what}", ctx.verb(*to, "becomes", "become")),
             )
+            .until_eot()
         }
         Effect::BecomeLandType { to, land } => {
             let s = ctx.subj(*to);
@@ -2227,11 +2232,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 *to,
                 s,
                 format!(
-                    "{} {} {name} {EOT}",
+                    "{} {} {name}",
                     ctx.verb(*to, "becomes", "become"),
                     article(name)
                 ),
             )
+            .until_eot()
         }
         Effect::IfYouDo(inner) => {
             let body = sentences(inner, ctx);
@@ -2265,6 +2271,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             let _ = write!(c.tail, " unless {who} {amount}");
             c
+        }
+        Effect::IfCondition(c, inner) => {
+            let cond = static_cond_text(c, ctx.card);
+            let body = sentences(inner, ctx);
+            let body = lowercase_first(&body);
+            Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::IfKicked(inner) => {
             let body = sentences(inner, ctx);

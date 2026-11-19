@@ -439,6 +439,10 @@ impl Decompiler<'_> {
             },
             CoreEffect::YouMay(inner) => Effect::YouMay(self.sentences(inner)),
             CoreEffect::IfKicked(inner) => Effect::IfKicked(self.sentences(inner)),
+            CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
+                self.static_cond(self.pool.condition(*i)),
+                self.sentences(inner),
+            ),
             CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
             CoreEffect::Pay { mana, life } => Effect::Pay {
                 mana: mana.clone(),

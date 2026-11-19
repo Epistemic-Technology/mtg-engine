@@ -767,6 +767,12 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
             }
+            Effect::IfCondition(cond, inner) => {
+                let effects = self.sentences(inner)?;
+                let c = self.static_cond(cond);
+                let i = self.pool.intern_condition(c);
+                out.push(CoreEffect::IfCondition(i, effects));
+            }
             Effect::IfYouDo(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfYouDo(effects));

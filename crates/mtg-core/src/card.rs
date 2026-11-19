@@ -1890,6 +1890,9 @@ pub enum Effect {
     },
     /// "If this spell was kicked, [do these]" (CR 702.33c).
     IfKicked(Vec<Effect>),
+    /// "If you control a Treefolk, [these]": the pool's `n`th static
+    /// condition, judged for the controller as the effect resolves.
+    IfCondition(u16, Vec<Effect>),
     /// "has base power and toughness N/N until end of turn" (layer 7b).
     SetBasePt {
         to: Recipient,

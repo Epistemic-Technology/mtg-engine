@@ -179,6 +179,9 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes), `target creature becomes blue`, `this becomes colorless`,
 `target land becomes Island` (all until end of turn).
+`if you control Treefolk, draw 1 card`: a static condition judged as the
+effect resolves ("If you control a Treefolk, draw a card."). `that target
+1` prints "that creature" even after the first mention.
 `tap or untap target creature` (the controller chooses on resolution).
 `spells red or white you cast cost {1} less` prints "Red spells and white
 spells"; `spells Goblin or Rogue ...` prints "Goblin spells and Rogue

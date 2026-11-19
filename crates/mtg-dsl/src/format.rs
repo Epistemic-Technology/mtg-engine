@@ -706,6 +706,9 @@ impl Fmt {
             ),
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::IfCondition(c, inner) => {
+                format!("if {}, {}", static_cond(c), self.line(inner, t))
+            }
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
             Effect::UnlessPays {

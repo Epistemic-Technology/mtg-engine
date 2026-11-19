@@ -44,7 +44,9 @@ An action fires the first time its player is offered a matching decision
 during that turn and step. `illegal` inverts the check: the action must
 *not* be among the legal options when the point is reached; the default
 choice is taken instead. Either way the point must be reached, or the
-scenario fails.
+scenario fails. An `illegal` cast or activation with `targeting` also
+passes when the action is legal but one of the scripted targets is not
+(checked by taking the action on a copy of the game).
 
 | Action | Default step | Notes |
 |---|---|---|

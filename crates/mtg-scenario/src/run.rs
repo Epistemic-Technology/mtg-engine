@@ -880,7 +880,17 @@ impl Runner {
                 unreachable!()
             };
             let found = index_of(d, &option);
+            let refused = match (a.illegal, found, &targets) {
+                (true, Some(idx), Some(ts)) if !ts.is_empty() => {
+                    self.scripted_target_refused(idx, ts, a.line)?
+                }
+                _ => false,
+            };
             match (a.illegal, found) {
+                // "illegal cast ... targeting X": castable, but not at X.
+                (true, Some(_)) if refused => {
+                    self.fired[i] = true;
+                }
                 (true, Some(_)) => {
                     return fail(
                         a.line,
@@ -1041,6 +1051,11 @@ impl Runner {
             .position(|x| x.line == a.line)
             .expect("action exists");
         match (a.illegal, found) {
+            // "illegal ... targeting X": legal to activate, but not at X.
+            (true, Some(idx)) if self.scripted_target_refused(idx_u32(idx), targets, a.line)? => {
+                self.fired[i] = true;
+                Ok(None)
+            }
             (true, Some(_)) => fail(
                 a.line,
                 format!(
@@ -1576,6 +1591,49 @@ impl Runner {
                 ),
             ),
         }
+    }
+
+    /// For an `illegal` line with targets: on a copy of the game, take the
+    /// action and answer target choices as scripted; whether the engine
+    /// refuses one of the scripted targets (other choices take the first
+    /// option).
+    fn scripted_target_refused(
+        &self,
+        idx: ChoiceId,
+        targets: &[TargetRef],
+        line: usize,
+    ) -> Res<bool> {
+        let mut sim = self.engine.clone();
+        if sim.step(idx).is_err() {
+            return Ok(false);
+        }
+        for _ in 0..64 {
+            let StepResult::Decision(d) = sim.current().clone() else {
+                return Ok(false);
+            };
+            let pick = match d.kind {
+                DecisionKind::ChooseTarget { index, .. } => {
+                    let Some(tr) = targets.get(index) else {
+                        return Ok(false);
+                    };
+                    if matches!(tr, TargetRef::Auto) {
+                        0
+                    } else {
+                        let t = self.resolve_target(line, tr)?;
+                        match index_of(&d, &Choice::Target(t)) {
+                            Some(k) => k,
+                            None => return Ok(true),
+                        }
+                    }
+                }
+                DecisionKind::PriorityAction => return Ok(false),
+                _ => 0,
+            };
+            if sim.step(pick).is_err() {
+                return Ok(false);
+            }
+        }
+        Ok(false)
     }
 
     fn resolve_target(&self, line: usize, tr: &TargetRef) -> Res<Target> {

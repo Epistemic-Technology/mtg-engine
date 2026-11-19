@@ -1023,6 +1023,9 @@ pub enum Effect {
     YouMay(Vec<Sentence>),
     /// "If this spell was kicked, ..." (CR 702.33c).
     IfKicked(Vec<Sentence>),
+    /// `if you control Treefolk, draw 1 card`: a static condition,
+    /// judged as it resolves.
+    IfCondition(StaticCond, Vec<Sentence>),
     /// `pay {2}`, `pay 2 life` (inside `you may`).
     Pay {
         mana: ManaCost,

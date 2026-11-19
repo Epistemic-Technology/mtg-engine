@@ -1659,6 +1659,26 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
+        // "if you control a Treefolk, ...": a static condition.
+        if self.at_word("if") && !self.at_words(&["if", "kicked"]) {
+            let save = self.pos;
+            self.pos += 1;
+            if let Ok(cond) = self.static_cond()
+                && self.peek() == Some(&Tok::Comma)
+            {
+                self.pos += 1;
+                let inner = if self.peek() == Some(&Tok::LBrace) {
+                    self.effects_body()?
+                } else {
+                    let saved = self.subject.take();
+                    let s = self.sentence()?;
+                    self.subject = saved;
+                    vec![s]
+                };
+                return Ok(Effect::IfCondition(cond, inner));
+            }
+            self.pos = save;
+        }
         // "if kicked, ..." (CR 702.33c).
         if self.at_words(&["if", "kicked"]) {
             self.pos += 2;
