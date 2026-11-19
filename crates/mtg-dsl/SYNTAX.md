@@ -84,7 +84,7 @@ double-faced permanent to its other face (CR 701.27).
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
-| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen` and `has protection from chosen color`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
+| `as this enters choose color`, `as this enters choose color except white`, `as this enters choose creature type`, `as this enters choose land type`, `as it enters choose color` | "As this land enters, choose a color [other than white]." (CR 614.12; `land type` is "a basic land type"): the controller chooses as the permanent enters, however it enters; the permanent remembers it until it leaves (CR 400.7) for `mana chosen`, `set color chosen`, `has protection from chosen color`, `set land chosen`, `add chosen type`, and filters `of chosen color` / `of chosen type`. `as it enters` prints on the line before ("This land enters tapped. As it enters, choose a color."). |
 | `spells artifact you cast cost {1} less`, `spells noncreature cost {1} more`, `spells Dragon your opponents cast cost {2} more` | "Artifact spells you cast cost {1} less to cast." (CR 601.2f): the generic part only, never below zero. Types joined with `or` print "Instant and sorcery spells". |
 | `this spell costs {1} less count each artifact you control` | "This spell costs {1} less to cast for each artifact you control." |
 | `affinity for artifact` | "Affinity for artifacts" (CR 702.41). |
@@ -191,7 +191,23 @@ your choice"), `target land becomes Plains or Island` (one of those),
 `enchanted creature becomes creature type of choice` (it loses its other
 creature types, CR 205.1b) and `target creature becomes creature type of
 choice except Wall` ("Choose a creature type other than Wall. Target
-creature becomes that type until end of turn."), all until end of turn.
+creature becomes that type until end of turn."), `target creature becomes
+colors of choice` ("the color or colors of your choice": one color at a
+time, then `done`), all until end of turn. A choice may also be its own
+sentence, used by what follows in the same resolution (CR 608.2d):
+`choose creature type` ("Choose a creature type."), `choose color`,
+`choose land type` ("Choose a basic land type."), `choose creature type
+except Wall`; then `each land you control becomes that type` ("Each land
+you control becomes that type until end of turn"), `each creature you
+control gains protection from chosen color` (until end of turn), and
+filters `of that type` / `of chosen type` / `of chosen color` (`draw count
+each permanent you control of that type cards`). A filter `of creature
+type of choice` or `of color of choice` makes the choice itself as its
+effect resolves: `each creature of creature type of choice gets +0/+4`
+("Creatures of the creature type of your choice get +0/+4 until end of
+turn"), `destroy each enchantment of color of choice`. `target land
+becomes Forest indefinitely` has no duration ("Target land becomes a
+Forest.").
 `this spell costs {3} less if creature died this turn` (any static
 condition): "This spell costs {3} less to cast if a creature died this
 turn." (printed first, before keywords).
@@ -293,15 +309,27 @@ joined with `or` or listed (`artifact or enchantment`, `artifact,
 enchantment, or land`: at least one), negations listed with commas
 (`nonartifact, nonblack creature`), and `with
 power 2 or less`, `with toughness 4 or greater`, `with mana value 3`.
+A chosen color or type comes last: `creature you control of chosen color`
+("creatures you control of the chosen color", the color the source chose
+as it entered, CR 607.2a), `creature of chosen type`, `permanent you
+control of that type` (chosen earlier as the effect resolved), `enchantment
+of color of choice`, `creature of creature type of choice` (chosen as the
+effect resolves). With nothing chosen, nothing matches. As an effect's
+recipient, `all permanent ...` prints "all permanents ... to their owners'
+hands" where `each` prints "each permanent ... to its owner's hand".
 
 ### Modifications (static abilities)
 
 Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
 `base mv` (base power and toughness each equal to its mana value),
 `has flying, trample`, `loses all abilities`, `add type creature`,
-`loses flying`, `set land Mountain`, `add land Swamp`, `add subtype Saproling`, `control`
-(you control it), `add color white`, `set color blue`, `set color chosen`
-and `has protection from chosen color` (the color the source chose as it
+`loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
+Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
+`add subtype Saproling`, `control`
+(you control it), `add color white`, `set color blue`, `set color chosen`,
+`has protection from chosen color`, `set land chosen` ("Enchanted land is
+the chosen type") and `add chosen type` ("is the chosen type in addition
+to its other types") (the color or type the source chose as it
 entered), `switch pt`,
 `cda color all`, `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,

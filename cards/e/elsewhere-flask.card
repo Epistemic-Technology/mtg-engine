@@ -1,0 +1,7 @@
+card "Elsewhere Flask" {
+  oracle_id 610618f9-8186-44b6-8041-0a5b70f11cc1
+  cost {2}
+  type Artifact
+  triggered when this enters: draw 1 card
+  activated sacrifice this: choose land type; each land you control becomes that type
+}

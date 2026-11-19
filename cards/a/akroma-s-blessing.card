@@ -1,0 +1,7 @@
+card "Akroma's Blessing" {
+  oracle_id a3fc6888-0a4b-4e1d-b709-042b8b6b1a04
+  cost {2}{W}
+  type Instant
+  spell: choose color; each creature you control gains protection from chosen color
+  cycling {W}
+}

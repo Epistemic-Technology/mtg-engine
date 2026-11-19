@@ -140,6 +140,7 @@ impl Decompiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            chosen: f.chosen.then_some(crate::ast::OfChosen::ChosenType),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
@@ -466,10 +467,18 @@ impl Decompiler<'_> {
                 to: r(*to),
                 colors: colors(*c),
             },
-            CoreEffect::BecomeLandType { to, land } => Effect::BecomeLandType {
+            CoreEffect::BecomeLandType {
+                to,
+                land,
+                indefinite,
+            } => Effect::BecomeLandType {
                 to: r(*to),
                 land: *land,
+                indefinite: *indefinite,
             },
+            CoreEffect::Choose(kind) => Effect::Choose(self.choice_kind(*kind)),
+            CoreEffect::BecomeChosen { to } => Effect::BecomeChosen { to: r(*to) },
+            CoreEffect::ProtectionFromChosen { to } => Effect::ProtectionFromChosen { to: r(*to) },
             CoreEffect::OfChoice {
                 to,
                 kind,
@@ -751,6 +760,8 @@ impl Decompiler<'_> {
             Modification::AddTypes(t) => Mod::AddTypes(types(*t)),
             Modification::AddLandType(c) => Mod::AddLandType(*c),
             Modification::SetLandType(c) => Mod::SetLandType(*c),
+            Modification::ChosenLandType => Mod::ChosenLandType,
+            Modification::AddChosenType => Mod::AddChosenType,
             // No static ability sets a creature type (only `OfChoice`
             // effects do); the nearest the syntax has.
             Modification::AddSubtype(s) | Modification::SetCreatureType(s) => {
@@ -921,6 +932,7 @@ impl Decompiler<'_> {
     fn choice_kind(&self, k: CoreChoiceKind) -> ChoiceKind {
         match k {
             CoreChoiceKind::Color { except } => ChoiceKind::Color { except },
+            CoreChoiceKind::Colors => ChoiceKind::Colors,
             CoreChoiceKind::CreatureType { except } => ChoiceKind::CreatureType {
                 except: except.map(|s| self.pool.subtype_name(s).to_string()),
             },

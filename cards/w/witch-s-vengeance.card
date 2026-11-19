@@ -1,0 +1,6 @@
+card "Witch's Vengeance" {
+  oracle_id 7b0d9139-b3ad-4065-9b55-aeeda8950bee
+  cost {1}{B}{B}
+  type Sorcery
+  spell: each creature of creature type of choice gets -3/-3
+}

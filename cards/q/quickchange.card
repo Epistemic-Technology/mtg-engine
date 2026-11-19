@@ -1,0 +1,9 @@
+card "Quickchange" {
+  oracle_id 77f34281-6f93-4043-a13d-8d83014e7620
+  cost {1}{U}
+  type Instant
+  spell {
+    target creature becomes colors of choice
+    draw 1 card
+  }
+}

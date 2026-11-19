@@ -1,0 +1,7 @@
+card "Shared Triumph" {
+  oracle_id 64d022ab-5222-4a7a-ab8a-89749560f666
+  cost {1}{W}
+  type Enchantment
+  as this enters choose creature type
+  static creature of chosen type: +1/+1
+}

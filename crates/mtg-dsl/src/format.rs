@@ -217,9 +217,11 @@ impl Fmt {
             Recipient::CreatedObject => "that token".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
+            // `all` prints with the filter.
             Recipient::Group(i) => match self.groups.get(usize::from(i)) {
-                Some(f) => format!("all {}", filter(f)),
-                None => "all permanent".to_string(),
+                Some(f) if f.all => filter(f),
+                Some(f) => format!("each {}", filter(f)),
+                None => "each permanent".to_string(),
             },
         }
     }
@@ -822,11 +824,24 @@ impl Fmt {
                     choice_kind(kind, true)
                 )
             }
-            Effect::BecomeLandType { to, land } => format!(
-                "{} becomes {}",
+            Effect::BecomeLandType {
+                to,
+                land,
+                indefinite,
+            } => format!(
+                "{} becomes {}{}",
                 self.recipient(*to, t),
-                crate::render::basic_land_name(*land)
+                crate::render::basic_land_name(*land),
+                if *indefinite { " indefinitely" } else { "" }
             ),
+            Effect::Choose(kind) => format!("choose {}", choice_kind(kind, false)),
+            Effect::ProtectionFromChosen { to } => format!(
+                "{} gains protection from chosen color",
+                self.recipient(*to, t)
+            ),
+            Effect::BecomeChosen { to } => {
+                format!("{} becomes that type", self.recipient(*to, t))
+            }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
             Effect::IfTarget(n, f, inner) => format!(
@@ -1165,7 +1180,23 @@ fn filter_one(f: &Filter) -> String {
     if f.no_abilities {
         words.push("with no abilities".to_string());
     }
+    if let Some(c) = f.chosen {
+        words.push(of_chosen(c).to_string());
+    }
     words.join(" ")
+}
+
+/// `of chosen type`, `of that type`, `of color of choice`.
+fn of_chosen(c: crate::ast::OfChosen) -> &'static str {
+    use crate::ast::OfChosen;
+    match c {
+        OfChosen::ChosenColor => "of chosen color",
+        OfChosen::ChosenType => "of chosen type",
+        OfChosen::ThatType => "of that type",
+        OfChosen::ThatColor => "of that color",
+        OfChosen::ColorOfChoice => "of color of choice",
+        OfChosen::CreatureTypeOfChoice => "of creature type of choice",
+    }
 }
 
 /// `target instant spell that targets a creature`.
@@ -1568,6 +1599,15 @@ fn modification(m: &Mod) -> String {
         ),
         Mod::AddLandType(c) => format!("add land {}", basic_land_name(*c)),
         Mod::SetLandType(c) => format!("set land {}", basic_land_name(*c)),
+        Mod::SetLandTypes(cs) => format!(
+            "set land {}",
+            cs.iter()
+                .map(|c| basic_land_name(*c))
+                .collect::<Vec<_>>()
+                .join(" ")
+        ),
+        Mod::ChosenLandType => "set land chosen".to_string(),
+        Mod::AddChosenType => "add chosen type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
         Mod::Control => "control".to_string(),
         Mod::AddColors(cs) => format!(
@@ -2143,6 +2183,7 @@ mod tests {
 fn choice_kind(k: &ChoiceKind, of_choice: bool) -> String {
     let of = if of_choice { " of choice" } else { "" };
     match k {
+        ChoiceKind::Colors => format!("colors{of}"),
         ChoiceKind::Color { except } => match except {
             Some(c) => format!("color{of} except {}", format!("{c:?}").to_lowercase()),
             None => format!("color{of}"),

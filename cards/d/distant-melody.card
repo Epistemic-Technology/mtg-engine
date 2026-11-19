@@ -1,0 +1,6 @@
+card "Distant Melody" {
+  oracle_id ac6c5852-71c7-4f19-8c87-ccb345052862
+  cost {3}{U}
+  type Sorcery
+  spell: choose creature type; draw count each permanent you control of that type cards
+}

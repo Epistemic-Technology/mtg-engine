@@ -1,0 +1,9 @@
+card "Mistform Wakecaster" {
+  oracle_id 7108f2a2-1541-4bbf-aeb8-2a892a6dc337
+  cost {4}{U}
+  type Creature — Illusion
+  pt 2/3
+  keywords flying
+  activated {1}: this becomes creature type of choice
+  activated {2}{U}{U}, {T}: choose creature type; each creature you control becomes that type
+}

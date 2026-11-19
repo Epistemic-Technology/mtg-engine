@@ -33,7 +33,7 @@ use crate::card::{
 use crate::decision::{Choice, Decision, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::state::{GameState, LossReason, Target, Zone};
+use crate::state::{Chosen, GameState, LossReason, Target, Zone};
 
 /// How a permanent enters the battlefield, as modified by replacement
 /// effects (CR 614.1c, 614.12).
@@ -906,6 +906,7 @@ impl GameState {
                 created: None,
                 x: 0,
                 did: true,
+                chosen: Chosen::None,
             };
             for effect in &c.ability.then {
                 self.apply_effect(&mut ctx, effect);

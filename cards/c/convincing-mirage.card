@@ -1,0 +1,8 @@
+card "Convincing Mirage" {
+  oracle_id 685c4665-e04c-4012-aa5b-888a042c2a21
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant land
+  as this enters choose land type
+  static enchanted: set land chosen
+}

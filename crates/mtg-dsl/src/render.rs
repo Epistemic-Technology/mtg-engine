@@ -15,8 +15,8 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target,
-    Trigger, TriggerObj,
+    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond,
+    Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -1279,7 +1279,40 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.damaged {
         s.push_str(" that was dealt damage this turn");
     }
+    if let Some(c) = f.chosen {
+        s.push_str(match c {
+            OfChosen::ChosenColor => " of the chosen color",
+            OfChosen::ChosenType => " of the chosen type",
+            OfChosen::ThatType => " of that type",
+            OfChosen::ThatColor => " of that color",
+            OfChosen::ColorOfChoice => " of the color of your choice",
+            OfChosen::CreatureTypeOfChoice => " of the creature type of your choice",
+        });
+    }
     s
+}
+
+/// What "Choose ..." chooses: "a creature type other than Wall", "a
+/// color", "a basic land type".
+fn choice_noun(k: &ChoiceKind) -> String {
+    match k {
+        ChoiceKind::Color { except: None } => "a color".to_string(),
+        ChoiceKind::Colors => "one or more colors".to_string(),
+        ChoiceKind::Color { except: Some(c) } => {
+            format!("a color other than {}", format!("{c:?}").to_lowercase())
+        }
+        ChoiceKind::CreatureType { except: None } => "a creature type".to_string(),
+        ChoiceKind::CreatureType { except: Some(t) } => {
+            format!("a creature type other than {t}")
+        }
+        ChoiceKind::LandType(lands) if lands.len() == 5 => "a basic land type".to_string(),
+        ChoiceKind::LandType(lands) => or_list(
+            &lands
+                .iter()
+                .map(|c| basic_land_name(*c).to_string())
+                .collect::<Vec<_>>(),
+        ),
+    }
 }
 
 /// A filter as a kind of card, with an article: "a creature card", "a
@@ -2038,8 +2071,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             });
             // "each other creature you control ... to its owner's hand";
             // only several recipients take "their owners' hands".
-            let plural = what.len() > 1;
-            let o = if what.len() == 1 {
+            let all = match what.as_slice() {
+                [Recipient::Group(i)] => {
+                    ctx.card.groups.get(usize::from(*i)).is_some_and(|f| f.all)
+                }
+                _ => false,
+            };
+            let plural = what.len() > 1 || all;
+            let o = if all {
+                ctx.obj_all(what[0])
+            } else if what.len() == 1 {
                 ctx.obj(what[0])
             } else {
                 ctx.obj_list(what, false)
@@ -2492,6 +2533,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let s = ctx.subj(*to);
             let what = match kind {
                 ChoiceKind::Color { .. } => "the color of your choice".to_string(),
+                ChoiceKind::Colors => "the color or colors of your choice".to_string(),
                 ChoiceKind::LandType(lands) if lands.len() == 5 => {
                     "the basic land type of your choice".to_string()
                 }
@@ -2524,10 +2566,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, format!("{verb} {what}")).until_eot()
         }
-        Effect::BecomeLandType { to, land } => {
+        Effect::BecomeLandType {
+            to,
+            land,
+            indefinite,
+        } => {
             let s = ctx.subj(*to);
             let name = basic_land_name(*land);
-            Clause::with_subject(
+            let c = Clause::with_subject(
                 *to,
                 s,
                 format!(
@@ -2535,8 +2581,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ctx.verb(*to, "becomes", "become"),
                     article(name)
                 ),
-            )
-            .until_eot()
+            );
+            if *indefinite { c } else { c.until_eot() }
+        }
+        Effect::Choose(kind) => Clause::imperative(format!("choose {}", choice_noun(kind))),
+        Effect::ProtectionFromChosen { to } => {
+            let s = ctx.subj(*to);
+            let verb = ctx.verb(*to, "gains", "gain");
+            Clause::with_subject(*to, s, format!("{verb} protection from the chosen color"))
+                .until_eot()
+        }
+        // "Each land you control becomes that type": a group is "each".
+        Effect::BecomeChosen { to } => {
+            let (s, verb) = match to {
+                Recipient::Group(_)
+                | Recipient::EachCreature
+                | Recipient::EachCreatureYouControl
+                | Recipient::EachPermanentYouControl => (ctx.obj(*to), "becomes"),
+                _ => (ctx.subj(*to), ctx.verb(*to, "becomes", "become")),
+            };
+            Clause::with_subject(*to, s, format!("{verb} that type")).until_eot()
         }
         Effect::IfYouDo(inner) => {
             let body = sentences(inner, ctx);
@@ -3478,6 +3542,21 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
             v("is", "are"),
             with_article(s)
         ),
+        Mod::AddChosenType => format!(
+            "{} the chosen type in addition to its other types",
+            v("is", "are")
+        ),
+        Mod::ChosenLandType => format!("{} the chosen type", v("is", "are")),
+        // "is a Mountain, Forest, and Plains".
+        Mod::SetLandTypes(cs) => format!(
+            "{} {}",
+            v("is", "are"),
+            with_article(&list(
+                &cs.iter()
+                    .map(|c| basic_land_name(*c).to_string())
+                    .collect::<Vec<_>>()
+            ))
+        ),
         Mod::Control => "control".to_string(),
         Mod::AddColors(cs) => format!(
             "{} {} in addition to its other colors",
@@ -3601,7 +3680,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     let each = mods.iter().any(|m| {
         matches!(
             m,
-            Mod::AddTypes(_) | Mod::AddLandType(_) | Mod::AddSubtype(_) | Mod::AddColors(_)
+            Mod::AddTypes(_)
+                | Mod::AddLandType(_)
+                | Mod::AddSubtype(_)
+                | Mod::AddColors(_)
+                | Mod::AddChosenType
         )
     });
     let (subject, plural_form) = if filter.relation == Relation::This {
@@ -3628,6 +3711,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             && filter.power.is_none()
             && filter.toughness.is_none()
             && filter.mana_value.is_none()
+            && filter.chosen.is_none()
             && filter.relation == Relation::Any;
         let p = filter_phrase(filter, card, true);
         if bare || filter.all {
@@ -3816,17 +3900,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::XManaColor(c) => format!("Spend only {} mana on X.", color_name(*c)),
         Ability::AsEntersChoose { kind, joined } => {
-            let what = match kind {
-                ChoiceKind::Color { except: None } => "a color".to_string(),
-                ChoiceKind::Color { except: Some(c) } => {
-                    format!("a color other than {}", format!("{c:?}").to_lowercase())
-                }
-                ChoiceKind::CreatureType { except: None } => "a creature type".to_string(),
-                ChoiceKind::CreatureType { except: Some(t) } => {
-                    format!("a creature type other than {t}")
-                }
-                ChoiceKind::LandType(_) => "a basic land type".to_string(),
-            };
+            let what = choice_noun(kind);
             if *joined {
                 format!("As it enters, choose {what}.")
             } else {

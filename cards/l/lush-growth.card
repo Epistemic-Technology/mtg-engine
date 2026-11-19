@@ -1,0 +1,7 @@
+card "Lush Growth" {
+  oracle_id c8f8fbf0-4f51-4a5c-82f9-99917513df6d
+  cost {G}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: set land Mountain Forest Plains
+}

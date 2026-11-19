@@ -1,0 +1,7 @@
+card "Thelonite Monk" {
+  oracle_id 26b0b742-48f7-4ab5-93de-6bd39a7f61ea
+  cost {2}{G}{G}
+  type Creature — Insect Monk Cleric
+  pt 1/2
+  activated {T}, sacrifice green creature: target land becomes Forest indefinitely
+}

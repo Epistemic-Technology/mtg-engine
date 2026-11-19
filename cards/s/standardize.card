@@ -1,0 +1,6 @@
+card "Standardize" {
+  oracle_id 2d4e0e0f-7167-40a4-ad76-2d5b45223eaa
+  cost {U}{U}
+  type Instant
+  spell: choose creature type except Wall; each creature becomes that type
+}

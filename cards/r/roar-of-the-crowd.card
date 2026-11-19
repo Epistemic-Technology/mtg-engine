@@ -1,0 +1,6 @@
+card "Roar of the Crowd" {
+  oracle_id 0ab56978-7add-4427-b10d-4f59ab4b2c5d
+  cost {3}{R}
+  type Sorcery
+  spell: choose creature type; deal count equal permanent you control of chosen type damage to any target
+}

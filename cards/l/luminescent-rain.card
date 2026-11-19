@@ -1,0 +1,6 @@
+card "Luminescent Rain" {
+  oracle_id 7e23a2e7-b8b3-424f-8922-a1adb1db3f4d
+  cost {2}{G}
+  type Instant
+  spell: choose creature type; you gain count each 2 permanent you control of that type life
+}

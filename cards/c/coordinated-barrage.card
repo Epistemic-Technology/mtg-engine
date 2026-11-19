@@ -1,0 +1,6 @@
+card "Coordinated Barrage" {
+  oracle_id 690acf56-8af4-4e96-a3a7-c8bbfe524d24
+  cost {W}
+  type Instant
+  spell: choose creature type; deal count equal permanent you control of chosen type damage to target attacking or blocking creature
+}

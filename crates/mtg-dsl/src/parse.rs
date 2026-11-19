@@ -12,8 +12,8 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
-    Except, Filter, Join, Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost,
-    Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Except, Filter, Join, Kind, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces,
+    SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -514,6 +514,10 @@ impl P {
             }
             Ok(())
         };
+        if self.eat_word("colors") {
+            suffix(self)?;
+            return Ok(ChoiceKind::Colors);
+        }
         if self.eat_word("color") {
             suffix(self)?;
             let except = if self.eat_word("except") {
@@ -1990,6 +1994,10 @@ impl P {
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of });
                 }
+                if self.eat_words(&["protection", "from", "chosen", "color"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::ProtectionFromChosen { to: subject });
+                }
                 if self.eat_words(&["protection", "from", "color", "of", "choice"]) {
                     self.until_end_of_turn();
                     return Ok(Effect::OfChoice {
@@ -2271,8 +2279,14 @@ impl P {
                     let except = self.except_clause();
                     return Ok(Effect::BecomeCopy { of, except });
                 }
+                // "becomes that type": chosen earlier in the resolution.
+                if self.eat_words(&["that", "type"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::BecomeChosen { to: subject });
+                }
                 // "becomes the color of your choice" and kin.
                 if self.at_words(&["color", "of", "choice"])
+                    || self.at_words(&["colors", "of", "choice"])
                     || self.at_words(&["land", "type", "of", "choice"])
                     || self.at_words(&["creature", "type", "of", "choice"])
                 {
@@ -2326,7 +2340,12 @@ impl P {
                         });
                     }
                     self.until_end_of_turn();
-                    return Ok(Effect::BecomeLandType { to: subject, land });
+                    let indefinite = self.eat_word("indefinitely");
+                    return Ok(Effect::BecomeLandType {
+                        to: subject,
+                        land,
+                        indefinite,
+                    });
                 }
                 let Some(Tok::Pt {
                     power,
@@ -2399,6 +2418,15 @@ impl P {
     fn verb_first(&mut self) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
+            // "Choose a creature type." as the effect resolves.
+            "choose"
+                if matches!(
+                    self.word_at(0).as_deref(),
+                    Some("color" | "creature" | "land")
+                ) =>
+            {
+                Ok(Effect::Choose(self.choice_kind(false)?))
+            }
             "deal" | "deals" => {
                 let amount = self.num()?;
                 self.expect_word("damage")?;
@@ -3388,18 +3416,28 @@ impl P {
         }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
-                // "each creature with flying" is a group, not "each creature".
+                // "each creature with flying" is a group, not "each creature";
+                // so is "each creature you control of chosen type".
                 let continues = (ws[0] == "each" || ws[0] == "all")
-                    && matches!(self.word_at(ws.len()).as_deref(), Some("with" | "without"));
+                    && matches!(
+                        self.word_at(ws.len()).as_deref(),
+                        Some("with" | "without" | "of")
+                    );
                 if !continues {
                     self.pos += ws.len();
                     return Ok(*r);
                 }
+                break;
             }
         }
         // "each <filter>" / "all <filter>": every matching permanent.
-        if self.eat_word("each") || self.eat_word("all") {
-            let f = self.filter()?;
+        if self.at_word("each") || self.at_word("all") {
+            // "Return all permanents ... to their owners' hands" against
+            // "Return each ... to its owner's hand".
+            let all = self.eat_word("all");
+            self.eat_word("each");
+            let mut f = self.filter()?;
+            f.all |= all;
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
             } else {
@@ -3730,6 +3768,29 @@ impl P {
                 "damaged" => {
                     f.damaged = true;
                     self.pos += 1;
+                }
+                // "of the chosen type", "of that type", "of the color of
+                // your choice".
+                "of" if f.chosen.is_none() => {
+                    let of = [
+                        (&["of", "chosen", "color"][..], OfChosen::ChosenColor),
+                        (&["of", "chosen", "type"][..], OfChosen::ChosenType),
+                        (&["of", "that", "type"][..], OfChosen::ThatType),
+                        (&["of", "that", "color"][..], OfChosen::ThatColor),
+                        (
+                            &["of", "color", "of", "choice"][..],
+                            OfChosen::ColorOfChoice,
+                        ),
+                        (
+                            &["of", "creature", "type", "of", "choice"][..],
+                            OfChosen::CreatureTypeOfChoice,
+                        ),
+                    ]
+                    .into_iter()
+                    .find(|(words, _)| self.at_words(words));
+                    let Some((words, c)) = of else { break };
+                    self.pos += words.len();
+                    f.chosen = Some(c);
                 }
                 "that" if self.at_words(&["that", "was", "dealt", "damage", "this", "turn"]) => {
                     f.damaged = true;
@@ -4650,17 +4711,30 @@ impl P {
                         }
                         Ok(Mod::AddTypes(types))
                     }
+                    "land" if set && self.eat_word("chosen") => Ok(Mod::ChosenLandType),
                     "land" => {
                         let name = self.word()?;
                         let Some(c) = basic_land_type(&name) else {
                             return self.fail(format!("not a basic land type: {name}"));
                         };
-                        Ok(if set {
+                        // `set land Mountain Forest Plains`: all of them.
+                        let mut more = vec![c];
+                        while set
+                            && let Some(Tok::Word(w)) = self.peek()
+                            && let Some(c) = basic_land_type(w)
+                        {
+                            more.push(c);
+                            self.pos += 1;
+                        }
+                        Ok(if more.len() > 1 {
+                            Mod::SetLandTypes(more)
+                        } else if set {
                             Mod::SetLandType(c)
                         } else {
                             Mod::AddLandType(c)
                         })
                     }
+                    "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
                     "subtype" => {
                         if set {
                             return self.fail("`set subtype` is not supported");

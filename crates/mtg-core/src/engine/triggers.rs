@@ -705,6 +705,7 @@ impl GameState {
             created: None,
             x: 0,
             did: true,
+            chosen: Chosen::None,
         };
         self.apply_effects(&mut ctx, effects, split);
         if self.objects.contains_key(id) {

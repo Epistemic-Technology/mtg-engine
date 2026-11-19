@@ -1,0 +1,6 @@
+card "Brave the Elements" {
+  oracle_id 9d73a51a-1c8e-40cd-8124-aeff406a0884
+  cost {W}
+  type Instant
+  spell: choose color; each white creature you control gains protection from chosen color
+}

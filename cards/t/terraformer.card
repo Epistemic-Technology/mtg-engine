@@ -1,0 +1,7 @@
+card "Terraformer" {
+  oracle_id 683089a8-d5a9-438a-a463-77cc6148125e
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {1}: choose land type; each land you control becomes that type
+}

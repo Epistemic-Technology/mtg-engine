@@ -73,7 +73,7 @@ game, with the scripted X).
 | `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
 | `wait` | `precombat_main` | Pass priority until the stack is empty before any later action of this player at the same point fires (so a second spell is cast after the first resolves rather than in response to it). |
 | `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
-| `choose red`, `choose Island`, `choose Merfolk` (or quoted) | any step | A color or type chosen as a permanent enters ("As this land enters, choose a color") or as an effect resolves ("the color of your choice"); also the color of mana of any color. `illegal ... choose Wall` checks that it is not offered. Unscripted, the engine's first option (white; the first type). |
+| `choose red`, `choose Island`, `choose Merfolk` (or quoted) | any step | A color or type chosen as a permanent enters ("As this land enters, choose a color") or as an effect resolves ("the color of your choice"); also the color of mana of any color. "The color or colors of your choice" asks a color at a time: `choose blue`, `choose red`, `choose done`. `illegal ... choose Wall` checks that it is not offered. Unscripted, the engine's first option (white; the first type). |
 
 Step names: `untap`, `upkeep`, `draw`, `precombat_main` (`main1`),
 `begin_combat`, `declare_attackers`, `declare_blockers`,

@@ -1,0 +1,9 @@
+card "Adaptive Automaton" {
+  oracle_id 53c730c6-2f8c-4af8-b400-b9d573a71e60
+  cost {3}
+  type Artifact Creature — Construct
+  pt 2/2
+  as this enters choose creature type
+  static this: add chosen type
+  static other creature you control of chosen type: +1/+1
+}

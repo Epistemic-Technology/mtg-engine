@@ -240,16 +240,18 @@ impl GameState {
         let you = ctx.controller;
         let n = match expr {
             CountExpr::Times(k, inner) => return k.saturating_mul(self.eval_count(inner, ctx)),
-            CountExpr::Permanents(f) => self
-                .battlefield
-                .iter()
-                .filter(|id| {
-                    let o = &self.objects[**id];
-                    self.characteristics(**id).is_some_and(|c| {
-                        f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
-                    }) && self.status_ok(f, **id)
-                })
-                .count(),
+            CountExpr::Permanents(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                self.battlefield
+                    .iter()
+                    .filter(|id| {
+                        let o = &self.objects[**id];
+                        self.characteristics(**id).is_some_and(|c| {
+                            f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
+                        }) && self.status_ok(f, **id)
+                    })
+                    .count()
+            }
             CountExpr::Domain => {
                 let mut seen = crate::mana::ColorSet::default();
                 for id in self.permanents_of(you) {
@@ -597,6 +599,7 @@ impl GameState {
                 created: None,
                 x: 0,
                 did: true,
+                chosen: Chosen::None,
             };
             let n = sc.per.saturating_mul(self.eval_num(sc.times, &ctx));
             d -= i32::try_from(n).unwrap_or(i32::MAX);
@@ -1222,6 +1225,7 @@ impl GameState {
             created: None,
             x: self.x_of(spell),
             did: true,
+            chosen: Chosen::None,
         };
         Some(self.eval_num(amount, &ctx))
     }
@@ -2009,6 +2013,7 @@ impl GameState {
                 created: None,
                 x: self.x_of(spell),
                 did: true,
+                chosen: Chosen::None,
             };
             let split = self.mode_split_of(spell);
             self.apply_effects(&mut ctx, effects, split);
@@ -2086,6 +2091,10 @@ impl GameState {
     /// a permanent enters, CR 614.12, or as an effect resolves, CR 608.2d).
     pub(super) fn choose_kind(&mut self, p: PlayerId, kind: ChoiceKind) -> Chosen {
         let (decision, options): (DecisionKind, Vec<Choice>) = match kind {
+            ChoiceKind::Colors => (
+                DecisionKind::ChooseColor,
+                Color::ALL.into_iter().map(Choice::Color).collect(),
+            ),
             ChoiceKind::Color { except } => (
                 DecisionKind::ChooseColor,
                 Color::ALL
@@ -2340,7 +2349,7 @@ impl GameState {
                 }
             }
             Recipient::Group(f) => {
-                let filter = self.pool.filter(f);
+                let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
                 let source = self.current_object(ctx.source);
                 out.extend(
                     self.battlefield
@@ -2359,6 +2368,35 @@ impl GameState {
         out
     }
 
+    /// What "the chosen color" or "that type" refers to as `ctx`'s effects
+    /// resolve: the choice made earlier in the resolution (CR 608.2d), or
+    /// else the one the source made as it entered (CR 607.2a), as it last
+    /// existed if it has left.
+    fn resolution_chosen(&self, ctx: &EffectCtx) -> Chosen {
+        if ctx.chosen != Chosen::None {
+            return ctx.chosen;
+        }
+        self.objects
+            .get(ctx.source)
+            .map(|o| o.chosen)
+            .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.chosen))
+            .unwrap_or_default()
+    }
+
+    /// `f` with "of the chosen type" filled in (`ObjFilter::with_chosen`);
+    /// other filters as they are.
+    fn chosen_filter<'f>(
+        &self,
+        f: &'f crate::card::ObjFilter,
+        ctx: &EffectCtx,
+    ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
+        if f.chosen {
+            std::borrow::Cow::Owned(f.with_chosen(self.resolution_chosen(ctx)))
+        } else {
+            std::borrow::Cow::Borrowed(f)
+        }
+    }
+
     /// Store an "until end of turn" effect on one object (CR 611.2a, 611.2c).
     fn effect_until_end_of_turn(
         &mut self,
@@ -2366,12 +2404,24 @@ impl GameState {
         id: ObjId,
         parts: SmallVec<[Modification; 2]>,
     ) {
+        self.effect_on(ctx, id, parts, Duration::UntilEndOfTurn);
+    }
+
+    /// Store an effect on one object for `duration` (CR 611.2a, 611.2c):
+    /// until end of turn, or indefinitely.
+    fn effect_on(
+        &mut self,
+        ctx: &EffectCtx,
+        id: ObjId,
+        parts: SmallVec<[Modification; 2]>,
+        duration: Duration,
+    ) {
         let timestamp = self.tick();
         self.effects.push(ContinuousEffect {
             source: Some(ctx.source),
             controller: ctx.controller,
             timestamp,
-            duration: Duration::UntilEndOfTurn,
+            duration,
             affected: Affected::Objects(smallvec::smallvec![id]),
             parts,
         });
@@ -3144,14 +3194,53 @@ impl GameState {
                     }
                 }
             }
-            Effect::BecomeLandType { to, land } => {
+            Effect::BecomeLandType {
+                to,
+                land,
+                indefinite,
+            } => {
+                let duration = if *indefinite {
+                    Duration::Permanent
+                } else {
+                    Duration::UntilEndOfTurn
+                };
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
-                        self.effect_until_end_of_turn(
+                        self.effect_on(
                             ctx,
                             id,
                             smallvec::smallvec![Modification::SetLandType(*land)],
+                            duration,
                         );
+                    }
+                }
+            }
+            // CR 608.2d: chosen as the effect resolves, for what follows.
+            Effect::Choose(kind) => ctx.chosen = self.choose_kind(ctx.controller, *kind),
+            Effect::ProtectionFromChosen { to } => {
+                let Some(c) = self.resolution_chosen(ctx).color() else {
+                    return;
+                };
+                let part = Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]));
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
+                    }
+                }
+            }
+            Effect::BecomeChosen { to } => {
+                let part = match self.resolution_chosen(ctx) {
+                    Chosen::Color(c) => Modification::SetColors(ColorSet::of([c])),
+                    // CR 305.7: a basic land type replaces the land's others.
+                    Chosen::Subtype(s) => match s.basic_color() {
+                        Some(c) => Modification::SetLandType(c),
+                        None => Modification::SetCreatureType(s),
+                    },
+                    Chosen::None => return,
+                };
+                for t in self.recipients(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
                     }
                 }
             }
@@ -3166,6 +3255,45 @@ impl GameState {
                     .iter()
                     .any(|t| on_battlefield(self, *t).is_some())
                 {
+                    return;
+                }
+                // "the color or colors of your choice": a color at a time,
+                // until the player is done (at least one; never colorless).
+                if *kind == ChoiceKind::Colors {
+                    let mut set = ColorSet::default();
+                    loop {
+                        let mut options: Vec<Choice> = Color::ALL
+                            .into_iter()
+                            .filter(|c| !set.contains(*c))
+                            .map(Choice::Color)
+                            .collect();
+                        // Done first: by default, one color.
+                        if set != ColorSet::default() {
+                            options.insert(0, Choice::Done);
+                        }
+                        let k = match options.len() {
+                            0 => break,
+                            1 => 0,
+                            _ => self.choose_mid(
+                                ctx.controller,
+                                DecisionKind::ChooseColor,
+                                options.clone(),
+                            ),
+                        };
+                        match options[k.min(options.len() - 1)] {
+                            Choice::Color(c) => set = set.with(c),
+                            _ => break,
+                        }
+                    }
+                    for t in recipients {
+                        if let Some(id) = on_battlefield(self, t) {
+                            self.effect_until_end_of_turn(
+                                ctx,
+                                id,
+                                smallvec::smallvec![Modification::SetColors(set)],
+                            );
+                        }
+                    }
                     return;
                 }
                 let part = match (self.choose_kind(ctx.controller, *kind), *protection) {
@@ -3792,10 +3920,12 @@ impl GameState {
                         created: ctx.created,
                         x: ctx.x,
                         did: ctx.did,
+                        chosen: ctx.chosen,
                     };
                     self.apply_effect(&mut second, effect);
                     ctx.created = second.created;
                     ctx.did = second.did;
+                    ctx.chosen = second.chosen;
                 }
                 _ => self.apply_effect(ctx, effect),
             }
@@ -3912,6 +4042,10 @@ pub(super) struct EffectCtx {
     /// mandatory action ("Sacrifice this creature. If you do, ...")
     /// follows it.
     pub did: bool,
+    /// What the controller chose as this resolution went ("Choose a
+    /// creature type.", CR 608.2d), for the filters and effects that refer
+    /// to it later in the resolution.
+    pub chosen: Chosen,
 }
 
 /// The ways to divide `total` among `k` targets, each getting at least 1
