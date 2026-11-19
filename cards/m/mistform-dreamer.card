@@ -1,0 +1,8 @@
+card "Mistform Dreamer" {
+  oracle_id 5c679c43-5990-4dcf-a36e-865c17bdea32
+  cost {2}{U}
+  type Creature — Illusion
+  pt 2/1
+  keywords flying
+  activated {1}: this becomes creature type of choice
+}

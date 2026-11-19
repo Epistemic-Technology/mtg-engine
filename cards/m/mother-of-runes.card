@@ -1,0 +1,7 @@
+card "Mother of Runes" {
+  oracle_id 60433b48-d27f-413c-905c-43839b1943f1
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {T}: target creature you control gains protection from color of choice
+}

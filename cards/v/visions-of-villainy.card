@@ -1,0 +1,7 @@
+card "Visions of Villainy" {
+  oracle_id 3b46800b-711b-4cbb-b296-26115b4f6839
+  cost {2}{B}
+  type Instant
+  this spell costs {1} less if you control Villain
+  spell: you draw 2 cards and lose 2 life
+}

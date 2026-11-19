@@ -1,0 +1,9 @@
+card "Orcish Cannonade" {
+  oracle_id af224f6f-cedd-498f-a08e-7be0db5a11b7
+  cost {1}{R}{R}
+  type Instant
+spell {
+  deal 2 damage to any target and deal 3 damage to you
+  draw 1 card
+}
+}

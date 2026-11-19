@@ -1,0 +1,6 @@
+card "Consign to the Pit" {
+  oracle_id b0c50079-5376-47ff-82c5-d52dbf49afdf
+  cost {5}{B}
+  type Sorcery
+  spell: destroy target creature; deal 2 damage to controller of that target 1
+}

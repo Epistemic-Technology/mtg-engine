@@ -1,0 +1,7 @@
+card "Grollub" {
+  oracle_id 22c8c952-2713-418e-8259-aea09b4e740b
+  cost {2}{B}
+  type Creature — Beast
+  pt 3/3
+  triggered whenever this is dealt damage: each opponent gains that much life
+}

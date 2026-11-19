@@ -1,0 +1,7 @@
+card "Thriving Isle" {
+  oracle_id 69fc70b8-b143-4662-ac95-e2743037239d
+  type Land
+  enters tapped
+  as it enters choose color except blue
+  mana {U} or chosen
+}

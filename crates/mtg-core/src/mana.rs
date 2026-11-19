@@ -439,8 +439,8 @@ impl ManaPool {
         match mana {
             Mana::Colored(c) => self.colored[c as usize] += 1,
             // A payment plan names the color before mana is added; treat a
-            // stray `Any` as colorless.
-            Mana::Colorless | Mana::Any => self.colorless += 1,
+            // stray `Any` or `Chosen` as colorless.
+            Mana::Colorless | Mana::Any | Mana::Chosen => self.colorless += 1,
         }
     }
 
@@ -501,6 +501,9 @@ pub enum Mana {
     Colorless,
     /// "Add one mana of any color": the color is chosen as it is spent.
     Any,
+    /// "Add one mana of the chosen color": the color chosen as the source
+    /// entered (CR 607.2a); none if no color was chosen.
+    Chosen,
 }
 
 #[cfg(test)]

@@ -11,9 +11,9 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, BlockRule, Card, CdaCount, Cost, CostItem, Effect, Except, Filter, Join,
-    Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond,
-    Target, Trigger, TriggerObj,
+    Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, Effect, Except,
+    Filter, Join, Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence,
+    StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -499,6 +499,44 @@ impl P {
     /// End of a statement: newline, `}`, or end of file (not consumed).
     fn at_stmt_end(&self) -> bool {
         matches!(self.peek(), None | Some(Tok::Newline | Tok::RBrace))
+    }
+
+    /// `color [except blue]`, `creature type [except Wall]`, `land type`;
+    /// with `of_choice`, each followed by `of choice` (before `except`).
+    fn choice_kind(&mut self, of_choice: bool) -> R<ChoiceKind> {
+        let suffix = |p: &mut Self| -> R<()> {
+            if of_choice {
+                p.expect_words(&["of", "choice"])?;
+            }
+            Ok(())
+        };
+        if self.eat_word("color") {
+            suffix(self)?;
+            let except = if self.eat_word("except") {
+                let Some(c) = self.word_at(0).as_deref().and_then(color) else {
+                    return self.fail("expected a color after `except`");
+                };
+                self.pos += 1;
+                Some(c)
+            } else {
+                None
+            };
+            return Ok(ChoiceKind::Color { except });
+        }
+        if self.eat_words(&["creature", "type"]) {
+            suffix(self)?;
+            let except = if self.eat_word("except") {
+                Some(self.word()?)
+            } else {
+                None
+            };
+            return Ok(ChoiceKind::CreatureType { except });
+        }
+        if self.eat_words(&["land", "type"]) {
+            suffix(self)?;
+            return Ok(ChoiceKind::LandType(Color::ALL.to_vec()));
+        }
+        self.unexpected("`color`, `creature type` or `land type`")
     }
 
     fn end_stmt(&mut self) -> R<()> {
@@ -1065,8 +1103,12 @@ impl P {
                 self.pos += 1;
                 let mut out = Vec::new();
                 loop {
-                    if self.eat_word("any") {
-                        out.push(Mana::Any);
+                    if self.eat_word("any") || self.at_word("chosen") {
+                        out.push(if self.eat_word("chosen") {
+                            Mana::Chosen
+                        } else {
+                            Mana::Any
+                        });
                         if !(self.eat_word("or") || self.eat_word("and")) {
                             break;
                         }
@@ -1207,6 +1249,15 @@ impl P {
                 self.pos += 1;
                 let r = self.replacement()?;
                 Ok(Ability::Replacement(r))
+            }
+            "as" if self.at_words(&["as", "this", "enters", "choose"])
+                || self.at_words(&["as", "it", "enters", "choose"]) =>
+            {
+                let joined = self.at_words(&["as", "it"]);
+                self.pos += 4;
+                let kind = self.choice_kind(false)?;
+                self.end_stmt()?;
+                Ok(Ability::AsEntersChoose { kind, joined })
             }
             "enters" if self.at_words(&["enters", "as"]) => {
                 self.pos += 2;
@@ -1824,6 +1875,14 @@ impl P {
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of });
                 }
+                if self.eat_words(&["protection", "from", "color", "of", "choice"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::OfChoice {
+                        to: subject,
+                        kind: ChoiceKind::Color { except: None },
+                        protection: true,
+                    });
+                }
                 if let Some(k) = self.keyword() {
                     let mut keywords = vec![k];
                     loop {
@@ -2097,6 +2156,19 @@ impl P {
                     let except = self.except_clause();
                     return Ok(Effect::BecomeCopy { of, except });
                 }
+                // "becomes the color of your choice" and kin.
+                if self.at_words(&["color", "of", "choice"])
+                    || self.at_words(&["land", "type", "of", "choice"])
+                    || self.at_words(&["creature", "type", "of", "choice"])
+                {
+                    let kind = self.choice_kind(true)?;
+                    self.until_end_of_turn();
+                    return Ok(Effect::OfChoice {
+                        to: subject,
+                        kind,
+                        protection: false,
+                    });
+                }
                 // "becomes blue", "becomes colorless".
                 if self.at_word("colorless") || self.word_at(0).as_deref().and_then(color).is_some()
                 {
@@ -2119,6 +2191,25 @@ impl P {
                     && let Some(land) = basic_land_type(w)
                 {
                     self.pos += 1;
+                    // "becomes a Plains or an Island": the controller's choice.
+                    if self.at_word("or") {
+                        let mut lands = vec![land];
+                        while self.eat_word("or") {
+                            let Some(Tok::Word(w)) = self.next() else {
+                                return self.fail("expected a basic land type after `or`");
+                            };
+                            let Some(l) = basic_land_type(&w) else {
+                                return self.fail("expected a basic land type after `or`");
+                            };
+                            lands.push(l);
+                        }
+                        self.until_end_of_turn();
+                        return Ok(Effect::OfChoice {
+                            to: subject,
+                            kind: ChoiceKind::LandType(lands),
+                            protection: false,
+                        });
+                    }
                     self.until_end_of_turn();
                     return Ok(Effect::BecomeLandType { to: subject, land });
                 }
@@ -4159,6 +4250,9 @@ impl P {
                 self.pos += 1;
                 Ok(Mod::AddAbility(Box::new(self.nested_ability()?)))
             }
+            "has" | "have" if self.eat_words(&["protection", "from", "chosen", "color"]) => {
+                Ok(Mod::ProtectionFromChosen)
+            }
             "has" | "have" => Ok(Mod::AddKeywords(self.keyword_list()?)),
             "loses" | "lose" if self.keyword_ahead() => {
                 Ok(Mod::LosesKeywords(self.keyword_list()?))
@@ -4209,6 +4303,7 @@ impl P {
                         }
                         Ok(Mod::AddSubtype(self.word()?))
                     }
+                    "color" if set && self.eat_word("chosen") => Ok(Mod::ChosenColor),
                     "color" | "colors" => {
                         let colors = self.color_list()?;
                         Ok(if set {

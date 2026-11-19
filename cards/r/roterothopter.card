@@ -1,0 +1,8 @@
+card "Roterothopter" {
+  oracle_id 69c69d69-3565-4d9c-82c0-a96d0fb80513
+  cost {1}
+  type Artifact Creature — Thopter
+  pt 0/2
+keywords flying
+activated {2}, 2 times per turn: this gets +1/+0
+}

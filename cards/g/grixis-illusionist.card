@@ -1,0 +1,7 @@
+card "Grixis Illusionist" {
+  oracle_id c231698b-c584-4047-9668-5322e4b0065b
+  cost {U}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: target land you control becomes land type of choice
+}

@@ -1,0 +1,8 @@
+card "Kjeldoran Gargoyle" {
+  oracle_id b82d1104-8a54-4745-ba8b-eeddcb657338
+  cost {5}{W}
+  type Creature — Gargoyle
+  pt 3/3
+  keywords flying, first strike
+  triggered whenever this deals damage: you gain that much life
+}

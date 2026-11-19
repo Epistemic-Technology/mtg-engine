@@ -1,0 +1,8 @@
+card "Room of Refuge" {
+  oracle_id 27d5b2eb-94fe-45fb-806c-354044de7ba5
+  type Land
+  enters tapped
+  as it enters choose color
+  mana chosen
+  activated {5}, {T}, sacrifice this, sorcery: put 2 +1/+1 counters on target creature
+}

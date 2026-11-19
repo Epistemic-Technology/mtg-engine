@@ -1,0 +1,8 @@
+card "Sygg, River Guide" {
+  oracle_id 73f6da1e-b8ce-4b5a-9da0-84ca67adaf1c
+  cost {W}{U}
+  type Legendary Creature — Merfolk Wizard
+  pt 2/2
+  keywords islandwalk
+  activated {1}{W}: target Merfolk you control gains protection from color of choice
+}

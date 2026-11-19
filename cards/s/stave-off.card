@@ -1,0 +1,6 @@
+card "Stave Off" {
+  oracle_id c77c23bc-efde-43ce-bf6f-7a8531d81d89
+  cost {W}
+  type Instant
+  spell: target creature gains protection from color of choice
+}

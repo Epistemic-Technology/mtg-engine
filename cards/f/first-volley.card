@@ -1,0 +1,6 @@
+card "First Volley" {
+  oracle_id b6a89457-1581-46d4-b75b-c5b8704d9f6f
+  cost {1}{R}
+  type Instant — Arcane
+  spell: deal 1 damage to target creature and deal 1 damage to controller of that target 1
+}

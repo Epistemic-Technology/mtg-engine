@@ -1,0 +1,7 @@
+card "Jackal Pup" {
+  oracle_id 993e41e6-0643-4a1f-8ada-b7a4aae486d9
+  cost {R}
+  type Creature — Jackal
+  pt 2/1
+  triggered whenever this is dealt damage: deal that much damage to you
+}

@@ -679,6 +679,14 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
             },
             None,
         ),
+        "choose" => {
+            let what = if matches!(line.peek(), Some(Tok::Str(_))) {
+                line.string()?
+            } else {
+                line.ident()?
+            };
+            (Action::Choose(what), None)
+        }
         "copy" => {
             if line.peek_ident("nothing") {
                 line.pos += 1;

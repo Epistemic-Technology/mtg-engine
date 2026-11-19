@@ -1,0 +1,7 @@
+card "Cartel Aristocrat" {
+  oracle_id 9603e553-f72d-40bf-94ab-596afb7d6db3
+  cost {W}{B}
+  type Creature — Human Advisor
+  pt 2/2
+  activated sacrifice another creature: this gains protection from color of choice
+}

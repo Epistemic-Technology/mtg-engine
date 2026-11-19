@@ -1,0 +1,7 @@
+card "Spikeshot Goblin" {
+  oracle_id 3cbd4c8e-fe3f-4a7c-90a5-7bc656d7bb10
+  cost {2}{R}
+  type Creature — Goblin Shaman
+  pt 1/2
+  activated {R}, {T}: this bites any target
+}

@@ -3,16 +3,17 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, Affects, Cost, CounterKind, Effect, Keyword, Layout, Modification,
-    PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo, TargetSpec,
+    AbilityDef, AbilityId, Affects, ChoiceKind, Cost, CounterKind, Effect, Keyword, KeywordSet,
+    Layout, Modification, PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo, Subtype,
+    TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
-use crate::mana::{Color, Mana, ManaRequirement};
+use crate::mana::{Color, ColorSet, Mana, ManaRequirement};
 use crate::state::{
-    Affected, AltCast, CastInfo, ContinuousEffect, DelayedTrigger, Duration, GameObject, GameState,
-    ObjKind, ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
+    Affected, AltCast, CastInfo, Chosen, ContinuousEffect, DelayedTrigger, Duration, GameObject,
+    GameState, ObjKind, ReplacementEffect, RuleEffect, StackAbility, Target, Zone,
 };
 
 impl GameState {
@@ -1072,6 +1073,7 @@ impl GameState {
             controlled_since_turn_start: false,
             echo_due: false,
             skip_untap: false,
+            chosen: Chosen::None,
             alt: crate::state::AltCast::None,
             timestamp,
             targets: SmallVec::new(),
@@ -1379,6 +1381,12 @@ impl GameState {
             }
             for a in &c.abilities {
                 match self.pool.ability(*a) {
+                    // The color chosen as it entered; none, no mana.
+                    AbilityDef::TapForMana(Mana::Chosen) => {
+                        if let Some(c) = o.chosen.color() {
+                            list.push((id, Mana::Colored(c)));
+                        }
+                    }
                     AbilityDef::TapForMana(m) => list.push((id, *m)),
                     // Sources that sacrifice themselves go after the rest.
                     AbilityDef::SacForMana(_) => any_sacrificed = true,
@@ -1400,8 +1408,14 @@ impl GameState {
                     continue;
                 }
                 for a in &c.abilities {
-                    if let AbilityDef::SacForMana(m) = self.pool.ability(*a) {
-                        out.push((id, *m));
+                    match self.pool.ability(*a) {
+                        AbilityDef::SacForMana(Mana::Chosen) => {
+                            if let Some(c) = o.chosen.color() {
+                                out.push((id, Mana::Colored(c)));
+                            }
+                        }
+                        AbilityDef::SacForMana(m) => out.push((id, *m)),
+                        _ => {}
                     }
                 }
             }
@@ -1803,6 +1817,54 @@ impl GameState {
         let new = self.move_object(spell, Zone::Exile, true);
         self.objects[new].cast.set_adventure(true);
         self.player_mut(owner).adventures_in_exile += 1;
+    }
+
+    /// The color `source` chose as it entered (CR 607.2a), if it is still
+    /// that object.
+    fn chosen_color_of(&self, source: ObjId) -> Option<Color> {
+        self.objects.get(source).and_then(|o| o.chosen.color())
+    }
+
+    /// The player chooses a color, creature type, or basic land type (as
+    /// a permanent enters, CR 614.12, or as an effect resolves, CR 608.2d).
+    pub(super) fn choose_kind(&mut self, p: PlayerId, kind: ChoiceKind) -> Chosen {
+        let (decision, options): (DecisionKind, Vec<Choice>) = match kind {
+            ChoiceKind::Color { except } => (
+                DecisionKind::ChooseColor,
+                Color::ALL
+                    .into_iter()
+                    .filter(|c| Some(*c) != except)
+                    .map(Choice::Color)
+                    .collect(),
+            ),
+            ChoiceKind::CreatureType { except } => (
+                DecisionKind::ChooseType,
+                (0..self.pool.subtype_count())
+                    .filter_map(|i| u16::try_from(i).ok().map(Subtype))
+                    .filter(|s| s.is_creature_type() && Some(*s) != except)
+                    .map(Choice::Subtype)
+                    .collect(),
+            ),
+            ChoiceKind::LandType(set) => (
+                DecisionKind::ChooseType,
+                set.iter()
+                    .map(|c| Choice::Subtype(Subtype::basic(c)))
+                    .collect(),
+            ),
+        };
+        if options.is_empty() {
+            return Chosen::None;
+        }
+        let k = if options.len() == 1 {
+            0
+        } else {
+            self.choose_mid(p, decision, options.clone())
+        };
+        match options[k.min(options.len() - 1)] {
+            Choice::Color(c) => Chosen::Color(c),
+            Choice::Subtype(s) => Chosen::Subtype(s),
+            _ => Chosen::None,
+        }
     }
 
     /// CR 707.?: "you may have ~ enter as a copy of ...". The controller
@@ -2263,13 +2325,19 @@ impl GameState {
             Effect::AddMana(mana) => {
                 let p = ctx.controller;
                 for m in mana {
-                    let m = if *m == Mana::Any {
-                        let options: Vec<Choice> =
-                            Color::ALL.into_iter().map(Choice::Color).collect();
-                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
-                        Mana::Colored(Color::ALL[k.min(4)])
-                    } else {
-                        *m
+                    let m = match *m {
+                        Mana::Any => {
+                            let options: Vec<Choice> =
+                                Color::ALL.into_iter().map(Choice::Color).collect();
+                            let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                            Mana::Colored(Color::ALL[k.min(4)])
+                        }
+                        // Ruling: no chosen color, no mana.
+                        Mana::Chosen => match self.chosen_color_of(ctx.source) {
+                            Some(c) => Mana::Colored(c),
+                            None => continue,
+                        },
+                        m => m,
                     };
                     self.player_mut(p).mana_pool.add(m);
                 }
@@ -2277,10 +2345,12 @@ impl GameState {
             }
             Effect::AddManaOneOf(mana) => {
                 let p = ctx.controller;
+                let chosen = self.chosen_color_of(ctx.source);
                 let options: Vec<Choice> = mana
                     .iter()
                     .filter_map(|m| match m {
                         Mana::Colored(c) => Some(Choice::Color(*c)),
+                        Mana::Chosen => chosen.map(Choice::Color),
                         _ => None,
                     })
                     .collect();
@@ -2299,14 +2369,17 @@ impl GameState {
             Effect::AddManaTimes { mana, count } => {
                 let p = ctx.controller;
                 let n = self.eval_num(*count, ctx);
-                if n > 0 {
-                    let m = if *mana == Mana::Any {
-                        let options: Vec<Choice> =
-                            Color::ALL.into_iter().map(Choice::Color).collect();
-                        let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
-                        Mana::Colored(Color::ALL[k.min(4)])
-                    } else {
-                        *mana
+                let chosen = self.chosen_color_of(ctx.source);
+                if n > 0 && (*mana != Mana::Chosen || chosen.is_some()) {
+                    let m = match *mana {
+                        Mana::Any => {
+                            let options: Vec<Choice> =
+                                Color::ALL.into_iter().map(Choice::Color).collect();
+                            let k = self.choose_mid(p, DecisionKind::ChooseColor, options);
+                            Mana::Colored(Color::ALL[k.min(4)])
+                        }
+                        Mana::Chosen => Mana::Colored(chosen.unwrap_or(Color::White)),
+                        m => m,
                     };
                     for _ in 0..n.min(1000) {
                         self.player_mut(p).mana_pool.add(m);
@@ -2729,6 +2802,38 @@ impl GameState {
                             id,
                             smallvec::smallvec![Modification::SetLandType(*land)],
                         );
+                    }
+                }
+            }
+            Effect::OfChoice {
+                to,
+                kind,
+                protection,
+            } => {
+                let recipients = self.recipients(ctx, *to);
+                // CR 608.2b: with no legal recipient left, nothing to choose.
+                if !recipients
+                    .iter()
+                    .any(|t| on_battlefield(self, *t).is_some())
+                {
+                    return;
+                }
+                let part = match (self.choose_kind(ctx.controller, *kind), *protection) {
+                    (Chosen::Color(c), true) => {
+                        Modification::AddKeywords(KeywordSet::of([Keyword::protection_from(c)]))
+                    }
+                    (Chosen::Color(c), false) => Modification::SetColors(ColorSet::of([c])),
+                    (Chosen::Subtype(s), _) => match s.basic_color() {
+                        Some(c) if matches!(kind, ChoiceKind::LandType(_)) => {
+                            Modification::SetLandType(c)
+                        }
+                        _ => Modification::SetCreatureType(s),
+                    },
+                    (Chosen::None, _) => return,
+                };
+                for t in recipients {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.effect_until_end_of_turn(ctx, id, smallvec::smallvec![part.clone()]);
                     }
                 }
             }

@@ -6,18 +6,18 @@ use std::collections::HashMap;
 
 use mtg_core::card::{
     AbilityDef, ActivatedAbility, Affects as CoreAffects, Builder, CardPool, CardRef,
-    CdaCount as CoreCdaCount, CopyExcept, Cost as CoreCost, Effect as CoreEffect, KeywordSet,
-    Mode as CoreMode, Modification, Num, ObjFilter, Recipient as CoreRecipient, ReplacementAbility,
-    Replaces as CoreReplaces, SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet,
-    SupertypeSet, TargetSpec, TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet,
-    Who,
+    CdaCount as CoreCdaCount, ChoiceKind as CoreChoiceKind, CopyExcept, Cost as CoreCost,
+    Effect as CoreEffect, KeywordSet, Mode as CoreMode, Modification, Num, ObjFilter,
+    Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
+    SacCost as CoreSacCost, StaticAbility, StaticCondition, SubtypeSet, SupertypeSet, TargetSpec,
+    TriggerObj as CoreTriggerObj, TriggerSpec, TriggeredAbility, TypeSet, Who,
 };
 use mtg_core::mana::{ColorSet, Mana};
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, Cost, Effect, Filter, Kind, Mechanic, Mod, Recipient,
-    Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Filter, Kind, Mechanic, Mod,
+    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::render::{self, Lookup};
 
@@ -550,6 +550,18 @@ impl Compiler<'_> {
         Ok(out)
     }
 
+    fn choice_kind(&mut self, k: &ChoiceKind) -> CoreChoiceKind {
+        match k {
+            ChoiceKind::Color { except } => CoreChoiceKind::Color { except: *except },
+            ChoiceKind::CreatureType { except } => CoreChoiceKind::CreatureType {
+                except: except.as_ref().map(|s| self.pool.subtype(s)),
+            },
+            ChoiceKind::LandType(lands) => {
+                CoreChoiceKind::LandType(ColorSet::of(lands.iter().copied()))
+            }
+        }
+    }
+
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, e: &Effect, out: &mut Vec<CoreEffect>) -> Result<(), CompileError> {
         let groups = self.groups.clone();
@@ -777,6 +789,18 @@ impl Compiler<'_> {
                 to: r(*to),
                 land: *land,
             }),
+            Effect::OfChoice {
+                to,
+                kind,
+                protection,
+            } => {
+                let kind = self.choice_kind(kind);
+                out.push(CoreEffect::OfChoice {
+                    to: r(*to),
+                    kind,
+                    protection: *protection,
+                });
+            }
             Effect::YouMay(inner) => {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::YouMay(effects));
@@ -1098,6 +1122,8 @@ impl Compiler<'_> {
             },
             Mod::SwitchPt => Modification::SwitchPt,
             Mod::CdaColors(c) => Modification::CdaColors(ColorSet::of(c.iter().copied())),
+            Mod::ChosenColor => Modification::ChosenColor,
+            Mod::ProtectionFromChosen => Modification::ProtectionFromChosen,
             Mod::CdaPt {
                 count,
                 plus_toughness,
@@ -1242,6 +1268,9 @@ impl Compiler<'_> {
                 }
             }),
             Ability::EntersAsCopy(f) => AbilityDef::EntersAsCopy(self.filter(f)),
+            Ability::AsEntersChoose { kind, .. } => {
+                AbilityDef::AsEntersChoose(self.choice_kind(kind))
+            }
             Ability::CostChange {
                 filter,
                 whose,

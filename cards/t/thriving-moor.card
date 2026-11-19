@@ -1,0 +1,7 @@
+card "Thriving Moor" {
+  oracle_id bff416bb-d193-4c45-b2c1-7c297dbfad08
+  type Land
+  enters tapped
+  as it enters choose color except black
+  mana {B} or chosen
+}

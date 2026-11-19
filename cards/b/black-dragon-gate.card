@@ -1,0 +1,7 @@
+card "Black Dragon Gate" {
+  oracle_id dde6bce5-8bbe-4866-b5aa-2c05c7d37241
+  type Land — Gate
+  enters tapped
+  as this enters choose color except black
+  mana {B} or chosen
+}

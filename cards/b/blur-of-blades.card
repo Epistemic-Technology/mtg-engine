@@ -1,0 +1,6 @@
+card "Blur of Blades" {
+  oracle_id 65410f7a-c749-4b23-ad61-8a7136efcad2
+  cost {1}{R}
+  type Instant
+  spell: put 1 -1/-1 counter on target creature; deal 2 damage to controller of that target 1
+}

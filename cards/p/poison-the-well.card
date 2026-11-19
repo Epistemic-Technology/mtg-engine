@@ -1,0 +1,6 @@
+card "Poison the Well" {
+  oracle_id a47ae84f-dcbc-4a60-9266-c1a02f92e7f8
+  cost {2}{B/R}{B/R}
+  type Sorcery
+  spell: destroy target land; deal 2 damage to controller of that target 1
+}

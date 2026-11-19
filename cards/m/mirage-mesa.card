@@ -1,0 +1,7 @@
+card "Mirage Mesa" {
+  oracle_id e103f422-85c0-43f8-8a2f-8b7863e503fa
+  type Land — Desert
+  enters tapped
+  as it enters choose color
+  mana chosen
+}

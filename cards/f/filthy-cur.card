@@ -1,0 +1,7 @@
+card "Filthy Cur" {
+  oracle_id 4aa9764a-39ab-4d55-bc71-45f83035fb4c
+  cost {1}{B}
+  type Creature — Dog
+  pt 2/2
+  triggered whenever this is dealt damage: you lose that much life
+}

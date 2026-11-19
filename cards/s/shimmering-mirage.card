@@ -1,0 +1,9 @@
+card "Shimmering Mirage" {
+  oracle_id d1720ddc-d6ad-4d78-8dd7-29539bbb73da
+  cost {1}{U}
+  type Instant
+  spell {
+    target land becomes land type of choice
+    draw 1 card
+  }
+}

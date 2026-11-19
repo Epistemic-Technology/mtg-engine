@@ -434,6 +434,7 @@ impl GameState {
             damaged_this_turn: 0,
             exile_casts: None,
             suspended_count: 0,
+            enters_choice_cards: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,
             starting_player,

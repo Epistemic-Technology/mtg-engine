@@ -1,0 +1,7 @@
+card "Shimmerdrift Vale" {
+  oracle_id 2ac34f3e-822d-4fde-99ca-a31c4d9503fd
+  type Snow Land
+  enters tapped
+  as this enters choose color
+  mana chosen
+}

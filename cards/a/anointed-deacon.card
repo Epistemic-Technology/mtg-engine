@@ -1,0 +1,7 @@
+card "Anointed Deacon" {
+  oracle_id 5212f0a8-7341-4960-835b-2f4600ca1b2d
+  cost {4}{B}
+  type Creature — Vampire Cleric
+  pt 3/3
+  triggered at beginning of your combat: you may target Vampire gets +2/+0
+}

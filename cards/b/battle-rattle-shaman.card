@@ -1,0 +1,7 @@
+card "Battle-Rattle Shaman" {
+  oracle_id 72dc807b-35fb-4d69-ae4c-04eed0646170
+  cost {3}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  triggered at beginning of your combat: you may target creature gets +2/+0
+}

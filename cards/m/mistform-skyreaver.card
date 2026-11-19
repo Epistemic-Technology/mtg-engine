@@ -1,0 +1,8 @@
+card "Mistform Skyreaver" {
+  oracle_id 6a291cf5-13cc-4e04-a565-f36650fbe5a1
+  cost {5}{U}{U}
+  type Creature — Illusion
+  pt 6/6
+  keywords flying
+  activated {1}: this becomes creature type of choice
+}

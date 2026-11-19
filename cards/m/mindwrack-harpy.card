@@ -1,0 +1,8 @@
+card "Mindwrack Harpy" {
+  oracle_id f20f27d1-2c50-41d5-b1af-44a0e7ca2e00
+  cost {3}{B}
+  type Enchantment Creature — Harpy
+  pt 3/2
+  keywords flying
+  triggered at beginning of your combat: each player mills 3 cards
+}

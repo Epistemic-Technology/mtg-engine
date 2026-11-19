@@ -1,0 +1,8 @@
+card "Pit Imp" {
+  oracle_id 3decbc45-3e79-455f-9d62-878ee31b458d
+  cost {B}
+  type Creature — Imp
+  pt 0/1
+keywords flying
+activated {B}, 2 times per turn: this gets +1/+0
+}

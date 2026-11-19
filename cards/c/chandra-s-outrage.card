@@ -1,0 +1,6 @@
+card "Chandra's Outrage" {
+  oracle_id 47437865-0032-4f47-b0ab-034cc841bb84
+  cost {2}{R}{R}
+  type Instant
+  spell: deal 4 damage to target creature and deal 2 damage to controller of that target 1
+}

@@ -189,6 +189,9 @@ pub enum Action {
     },
     /// `copy "Name"` / `copy nothing`: what a Clone enters as a copy of.
     Copy(Option<ObjRef>),
+    /// `choose red`, `choose Island`, `choose "Merfolk"`: a color or type
+    /// chosen as a permanent enters or an effect resolves.
+    Choose(String),
 }
 
 impl Action {
@@ -207,6 +210,7 @@ impl Action {
             Action::YouMay { accept: true, .. } => "accept",
             Action::YouMay { accept: false, .. } => "decline",
             Action::Copy(_) => "copy",
+            Action::Choose(_) => "choose",
             Action::Wait => "wait",
             Action::TurnFaceUp(_) => "unmorph",
             Action::Suspend(_) => "suspend",

@@ -1,0 +1,6 @@
+card "Fall of the Hammer" {
+  oracle_id 7e3fe8e4-e56a-4109-a314-96c44bbe7d22
+  cost {1}{R}
+  type Instant
+  spell: target creature you control bites another target creature
+}

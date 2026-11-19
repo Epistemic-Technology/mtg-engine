@@ -1,0 +1,6 @@
+card "Melt Terrain" {
+  oracle_id 1c0940d6-9f0d-4d84-ab28-ff6595254675
+  cost {2}{R}{R}
+  type Sorcery
+  spell: destroy target land; deal 2 damage to controller of that target 1
+}

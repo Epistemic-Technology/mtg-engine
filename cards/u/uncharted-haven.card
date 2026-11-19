@@ -1,0 +1,7 @@
+card "Uncharted Haven" {
+  oracle_id d23c3613-bc5e-4fc5-939c-62a090c53a79
+  type Land
+  enters tapped
+  as it enters choose color
+  mana chosen
+}

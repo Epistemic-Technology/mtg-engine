@@ -1,0 +1,7 @@
+card "Fireslinger" {
+  oracle_id 0e5a5cee-d068-42cf-bf58-8e1360720be0
+  cost {1}{R}
+  type Creature — Human Wizard
+  pt 1/1
+  activated {T}: deal 1 damage to any target and deal 1 damage to you
+}

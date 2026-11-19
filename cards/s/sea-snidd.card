@@ -1,0 +1,7 @@
+card "Sea Snidd" {
+  oracle_id c5fdcbc9-e7da-4a88-95cf-c526f10ad96e
+  cost {4}{U}
+  type Creature — Beast
+  pt 3/3
+  activated {T}: target land becomes land type of choice
+}

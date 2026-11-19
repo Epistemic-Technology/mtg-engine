@@ -1,0 +1,8 @@
+card "Phyrexian Battleflies" {
+  oracle_id 58ed1294-ba7d-43a1-b988-8d78d9fa0e3e
+  cost {B}
+  type Creature — Phyrexian Insect
+  pt 0/1
+keywords flying
+activated {B}, 2 times per turn: this gets +1/+0
+}

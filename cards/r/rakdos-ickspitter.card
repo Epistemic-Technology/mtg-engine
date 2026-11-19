@@ -1,0 +1,7 @@
+card "Rakdos Ickspitter" {
+  oracle_id 329f6e2e-6c37-4e98-bd45-bd252f1a2bd9
+  cost {1}{B}{R}
+  type Creature — Thrull
+  pt 1/1
+  activated {T}: deal 1 damage to target creature and controller of that target 1 loses 1 life
+}

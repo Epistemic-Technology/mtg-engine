@@ -1,0 +1,8 @@
+card "Rainbow Crow" {
+  oracle_id 79bf98c8-1169-477d-838e-2ebc0fa396dc
+  cost {3}{U}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  activated {1}: this becomes color of choice
+}

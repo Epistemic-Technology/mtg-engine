@@ -1,0 +1,8 @@
+card "Stormscape Master" {
+  oracle_id bfcd6c5d-7189-4d84-b0df-0a5ce5f43528
+  cost {2}{U}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {W}{W}, {T}: target creature gains protection from color of choice
+  activated {B}{B}, {T}: target player loses 2 life and you gain 2 life
+}

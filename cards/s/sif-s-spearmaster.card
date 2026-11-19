@@ -1,0 +1,7 @@
+card "Sif's Spearmaster" {
+  oracle_id 9ae33bde-ccc9-40e2-9957-05cd9725f8cf
+  cost {2}{R}
+  type Creature — God Warrior Hero
+  pt 1/4
+  activated {T}: this bites target opponent
+}

@@ -1,0 +1,7 @@
+card "Kami of the Painted Road" {
+  oracle_id 1335c655-35f5-4561-8e12-d79124e52ce6
+  cost {4}{W}
+  type Creature — Spirit
+  pt 3/3
+  triggered whenever you cast Spirit or Arcane spell: this gains protection from color of choice
+}

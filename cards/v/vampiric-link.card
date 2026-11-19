@@ -1,0 +1,7 @@
+card "Vampiric Link" {
+  oracle_id 3f4521b4-1efd-4592-a50d-5ee9918df177
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage: you gain that much life
+}

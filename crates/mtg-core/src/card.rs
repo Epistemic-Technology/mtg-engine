@@ -1137,6 +1137,14 @@ pub enum Modification {
     SetLandType(Color),
     /// "is an Assembly-Worker" (layer 4): gains a creature type.
     AddSubtype(Subtype),
+    /// "becomes a Merfolk" (layer 4): the creature type replaces its
+    /// others (CR 205.1b), changeling's included.
+    SetCreatureType(Subtype),
+    /// "is the chosen color" (layer 5): the color the static ability's
+    /// source chose as it entered (CR 607.2a).
+    ChosenColor,
+    /// "has protection from the chosen color" (layer 6).
+    ProtectionFromChosen,
     /// The effect's controller controls the object (layer 2, CR 613.1b).
     /// Applied by `GameState::sync_control`, not through characteristics.
     Control,
@@ -1202,11 +1210,14 @@ impl Modification {
             Modification::AddTypes(_)
             | Modification::AddLandType(_)
             | Modification::SetLandType(_)
-            | Modification::AddSubtype(_) => Layer::L4Type,
+            | Modification::AddSubtype(_)
+            | Modification::SetCreatureType(_) => Layer::L4Type,
             Modification::AddColors(_)
             | Modification::SetColors(_)
-            | Modification::CdaColors(_) => Layer::L5Color,
+            | Modification::CdaColors(_)
+            | Modification::ChosenColor => Layer::L5Color,
             Modification::AddKeywords(_)
+            | Modification::ProtectionFromChosen
             | Modification::AddAbility(_)
             | Modification::RemoveKeywords(_)
             | Modification::RemoveAllAbilities => Layer::L6Ability,
@@ -1907,6 +1918,17 @@ pub enum Effect {
         to: Recipient,
         land: Color,
     },
+    /// "becomes the color of your choice", "gains protection from the
+    /// color of your choice", "becomes the basic land type of your
+    /// choice", "becomes the creature type of your choice" until end of
+    /// turn: the controller chooses as the effect resolves (CR 608.2d),
+    /// once for all recipients. `protection` grants protection from the
+    /// chosen color (a `ChoiceKind::Color`) instead of becoming it.
+    OfChoice {
+        to: Recipient,
+        kind: ChoiceKind,
+        protection: bool,
+    },
     /// "You may [do these]": the controller decides on resolution.
     YouMay(Vec<Effect>),
     /// "pay {2}" / "pay 2 life", inside "you may": it happens only if the
@@ -2114,8 +2136,23 @@ impl Effect {
                 | Effect::Exploit
                 | Effect::CumulativeUpkeep(_)
                 | Effect::TapOrUntap { .. }
+                | Effect::OfChoice { .. }
         )
     }
+}
+
+/// What a player chooses as a permanent enters ("As this land enters,
+/// choose a color", CR 614.12) or as an effect resolves ("the color of
+/// your choice").
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ChoiceKind {
+    /// A color ("choose a color other than white").
+    Color { except: Option<Color> },
+    /// A creature type ("choose a creature type other than Wall").
+    CreatureType { except: Option<Subtype> },
+    /// One of these basic land types: all five for "the basic land type
+    /// of your choice", or "a Plains or an Island".
+    LandType(ColorSet),
 }
 
 /// Effects that modify the rules rather than objects (CR 613.11, 614.17).
@@ -2638,6 +2675,11 @@ pub enum AbilityDef {
     /// (CR 707.? Clone): the choice is made as the permanent spell
     /// resolves, among battlefield objects matching the filter.
     EntersAsCopy(ObjFilter),
+    /// "As this land enters, choose a color" (CR 614.12): the controller
+    /// chooses as the permanent enters; the object remembers the choice
+    /// (`GameObject::chosen`) for the abilities that refer to it ("the
+    /// chosen color", CR 607.2a) until it leaves the battlefield.
+    AsEntersChoose(ChoiceKind),
     /// "Enchant <spec>" (CR 702.5): an Aura's targeting requirement and
     /// attachment legality.
     Enchant(TargetSpec),
@@ -2703,7 +2745,8 @@ impl AbilityDef {
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
-            | AbilityDef::EntersAsCopy(_) => &[],
+            | AbilityDef::EntersAsCopy(_)
+            | AbilityDef::AsEntersChoose(_) => &[],
         }
     }
 
@@ -2725,7 +2768,8 @@ impl AbilityDef {
             | AbilityDef::Static(_)
             | AbilityDef::Replacement(_)
             | AbilityDef::Modal(_)
-            | AbilityDef::EntersAsCopy(_) => &[],
+            | AbilityDef::EntersAsCopy(_)
+            | AbilityDef::AsEntersChoose(_) => &[],
         }
     }
 
@@ -2914,6 +2958,9 @@ impl DefFlags {
     /// long as you control no untapped lands"): tapping must then
     /// invalidate the characteristics cache.
     const TAP_STATIC: u16 = 4096;
+    /// "As this enters, choose ..." (`AbilityDef::AsEntersChoose`): a
+    /// question as the permanent enters, however it does.
+    const ENTERS_CHOICE: u16 = 8192;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u16 = DefFlags::MODIFIES_ENTERING;
 
@@ -2950,6 +2997,10 @@ impl DefFlags {
 
     pub const fn has_mid_choice(self) -> bool {
         self.has(DefFlags::MID_CHOICE)
+    }
+
+    pub const fn has_enters_choice(self) -> bool {
+        self.has(DefFlags::ENTERS_CHOICE)
     }
 
     pub const fn has_cda(self) -> bool {
@@ -3058,8 +3109,17 @@ impl DefFlags {
         flags.set(
             DefFlags::MID_CHOICE,
             abilities.iter().any(|a| {
-                matches!(a, AbilityDef::EntersAsCopy(_)) || a.all_effects().iter().any(|e| e.asks())
+                matches!(
+                    a,
+                    AbilityDef::EntersAsCopy(_) | AbilityDef::AsEntersChoose(_)
+                ) || a.all_effects().iter().any(|e| e.asks())
             }),
+        );
+        flags.set(
+            DefFlags::ENTERS_CHOICE,
+            abilities
+                .iter()
+                .any(|a| matches!(a, AbilityDef::AsEntersChoose(_))),
         );
         flags
     }
@@ -3167,6 +3227,18 @@ impl CardDef {
     pub fn modes(&self) -> Option<&[Mode]> {
         self.abilities.iter().find_map(|a| match a {
             AbilityDef::Modal(m) => Some(m.as_slice()),
+            _ => None,
+        })
+    }
+
+    /// What an "As this enters, choose ..." ability chooses, if it has
+    /// one.
+    pub fn enters_choice(&self) -> Option<ChoiceKind> {
+        if !self.flags.has(DefFlags::ENTERS_CHOICE) {
+            return None;
+        }
+        self.abilities.iter().find_map(|a| match a {
+            AbilityDef::AsEntersChoose(k) => Some(*k),
             _ => None,
         })
     }
@@ -3683,6 +3755,11 @@ impl CardPool {
 
     pub fn subtype_lookup(&self, name: &str) -> Option<Subtype> {
         self.subtype_ids.get(name).copied()
+    }
+
+    /// How many subtypes are interned (`Subtype(0)` up to this).
+    pub fn subtype_count(&self) -> usize {
+        self.subtypes.len()
     }
 
     pub fn subtype_name(&self, s: Subtype) -> &str {

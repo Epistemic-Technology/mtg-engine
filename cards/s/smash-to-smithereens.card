@@ -1,0 +1,6 @@
+card "Smash to Smithereens" {
+  oracle_id e0583f29-c344-4b56-b0dc-bef1089a95c7
+  cost {1}{R}
+  type Instant
+  spell: destroy target artifact; deal 3 damage to controller of that target 1
+}

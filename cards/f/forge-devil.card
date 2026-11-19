@@ -1,0 +1,7 @@
+card "Forge Devil" {
+  oracle_id be7a38a3-c27f-4917-a59c-763d0b36e427
+  cost {R}
+  type Creature — Devil
+  pt 1/1
+  triggered when this enters: deal 1 damage to target creature and deal 1 damage to you
+}

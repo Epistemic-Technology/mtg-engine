@@ -1,0 +1,7 @@
+card "Benevolent Bodyguard" {
+  oracle_id c8c38570-0b42-4bfc-896f-f57f9a11ba9d
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated sacrifice this: target creature you control gains protection from color of choice
+}

@@ -1,0 +1,7 @@
+card "Thriving Bluff" {
+  oracle_id 91fceb34-0f2d-4392-be27-00dcd765637f
+  type Land
+  enters tapped
+  as it enters choose color except red
+  mana {R} or chosen
+}

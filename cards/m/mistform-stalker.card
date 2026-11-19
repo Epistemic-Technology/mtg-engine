@@ -1,0 +1,8 @@
+card "Mistform Stalker" {
+  oracle_id 0f9c4b56-7ad7-4262-8079-3eee5f0cdd3b
+  cost {1}{U}
+  type Creature — Illusion
+  pt 1/1
+  activated {1}: this becomes creature type of choice
+  activated {2}{U}{U}: this gets +2/+2 and gains flying
+}

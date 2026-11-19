@@ -1,0 +1,7 @@
+card "Citadel Gate" {
+  oracle_id 15f1fe23-5af4-4fc4-8cde-2e0bf9f9be0c
+  type Land — Gate
+  enters tapped
+  as this enters choose color except white
+  mana {W} or chosen
+}

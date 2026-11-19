@@ -1,0 +1,8 @@
+card "Knight of Dawn" {
+  oracle_id 51262155-f1be-45a8-a21f-94e920a93e55
+  cost {1}{W}{W}
+  type Creature — Human Knight
+  pt 2/2
+  keywords first strike
+  activated {W}{W}: this gains protection from color of choice
+}

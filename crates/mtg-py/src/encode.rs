@@ -77,10 +77,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::Buyback { .. } => 25,
         DecisionKind::PutFromHand => 26,
         DecisionKind::CastFromExile { .. } => 27,
+        DecisionKind::ChooseType => 28,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 28] = [
+pub const DECISION_KIND_NAMES: [&str; 29] = [
     "mulligan",
     "bottom",
     "priority",
@@ -109,6 +110,7 @@ pub const DECISION_KIND_NAMES: [&str; 28] = [
     "buyback",
     "put_from_hand",
     "cast_from_exile",
+    "choose_type",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -152,10 +154,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::CastEvoke(_) => 32,
         Choice::Suspend(_) => 33,
         Choice::Foretell(_) => 34,
+        Choice::Subtype(_) => 35,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 35] = [
+pub const CHOICE_KIND_NAMES: [&str; 36] = [
     "keep",
     "mulligan",
     "bottom",
@@ -191,6 +194,7 @@ pub const CHOICE_KIND_NAMES: [&str; 35] = [
     "cast_evoke",
     "suspend",
     "foretell",
+    "subtype",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -390,6 +394,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             }
             Choice::X(x) => (-1.0, -1.0, 0.0, *x as f32, *x as f32),
             Choice::Color(c) => (-1.0, -1.0, 0.0, f32::from(*c as u8), 0.0),
+            Choice::Subtype(t) => (-1.0, -1.0, 0.0, f32::from(t.0), 0.0),
             Choice::CastFace { card, face } => {
                 let cost = state
                     .objects

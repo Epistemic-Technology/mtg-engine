@@ -1,0 +1,7 @@
+card "Thriving Grove" {
+  oracle_id a8052556-8962-4130-86a8-6fb7b6a324f7
+  type Land
+  enters tapped
+  as it enters choose color except green
+  mana {G} or chosen
+}

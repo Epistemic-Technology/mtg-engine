@@ -1,0 +1,8 @@
+card "Rappelling Scouts" {
+  oracle_id c71eb9b5-2017-4e6c-8140-f9c8af65893f
+  cost {2}{W}{W}
+  type Creature — Human Rebel Scout
+  pt 1/4
+  keywords flying
+  activated {2}{W}: this gains protection from color of choice
+}

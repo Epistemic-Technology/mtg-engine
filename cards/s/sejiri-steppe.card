@@ -1,0 +1,7 @@
+card "Sejiri Steppe" {
+  oracle_id 3dfbf95e-a91b-429c-96e2-95ac777e7027
+  type Land
+  enters tapped
+  triggered when this enters: target creature you control gains protection from color of choice
+  mana {W}
+}

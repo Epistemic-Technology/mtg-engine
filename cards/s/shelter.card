@@ -1,0 +1,9 @@
+card "Shelter" {
+  oracle_id c1909d70-d8f4-4c54-8587-0a910f123238
+  cost {1}{W}
+  type Instant
+  spell {
+    target creature you control gains protection from color of choice
+    draw 1 card
+  }
+}

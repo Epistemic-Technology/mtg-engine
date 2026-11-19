@@ -1,0 +1,7 @@
+card "Shinka Gatekeeper" {
+  oracle_id 7792d3af-5c64-4d0a-a2b3-b903d787b0ab
+  cost {2}{R}
+  type Creature — Ogre Warrior
+  pt 3/2
+  triggered whenever this is dealt damage: deal that much damage to you
+}

@@ -1,0 +1,8 @@
+card "Coldsteel Heart" {
+  oracle_id 21d700e8-0255-418e-96a0-6fe05b3f836d
+  cost {2}
+  type Snow Artifact
+  enters tapped
+  as this enters choose color
+  mana chosen
+}

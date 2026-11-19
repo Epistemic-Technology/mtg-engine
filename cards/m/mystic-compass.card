@@ -1,0 +1,6 @@
+card "Mystic Compass" {
+  oracle_id 87bafa97-38fd-41a2-8b1d-315e88d9d0bf
+  cost {2}
+  type Artifact
+  activated {1}, {T}: target land becomes land type of choice
+}

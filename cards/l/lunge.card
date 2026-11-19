@@ -1,0 +1,6 @@
+card "Lunge" {
+  oracle_id 5e642112-9592-475f-ba03-d71544270cfa
+  cost {2}{R}
+  type Instant
+  spell: deal 2 damage to target creature and deal 2 damage to target player or planeswalker
+}

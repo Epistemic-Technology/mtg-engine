@@ -1,0 +1,223 @@
+# Choices made as a permanent enters (CR 614.12) or as an effect resolves
+# (CR 608.2d), remembered and referred to later (CR 607.2a).
+
+scenario "Crossroads Village taps for the color chosen as it entered" {
+  hand A: "Crossroads Village", "Tidal Visionary"
+  turn 1 A: play "Crossroads Village"
+  turn 1 A: choose blue
+  turn 3 A: cast "Tidal Visionary"
+  run_to turn 3 end
+  assert battlefield A contains "Tidal Visionary"
+  assert tapped "Crossroads Village"
+}
+
+scenario "Crossroads Village makes no other color" {
+  hand A: "Crossroads Village", "Tidal Visionary"
+  turn 1 A: play "Crossroads Village"
+  turn 1 A: choose red
+  illegal turn 3 A: cast "Tidal Visionary"
+  run_to turn 3 end
+  assert hand A contains "Tidal Visionary"
+}
+
+scenario "Shimmerdrift Vale: the choice is made as it enters, whoever plays it" {
+  hand B: "Shimmerdrift Vale", "Shock"
+  start turn 2 B precombat_main
+  battlefield A: "Grizzly Bears"
+  turn 2 B: play "Shimmerdrift Vale"
+  turn 2 B: choose red
+  turn 4 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 4 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "a land that leaves and returns chooses again" {
+  battlefield A: 2 "Island"
+  hand A: "Uncharted Haven", "Boomerang", "Shock"
+  turn 1 A: play "Uncharted Haven"
+  turn 1 A: choose blue
+  turn 3 A: cast "Boomerang" targeting "Uncharted Haven"
+  turn 5 A: play "Uncharted Haven"
+  turn 5 A: choose red
+  turn 7 A: cast "Shock" targeting player B
+  run_to turn 7 end
+  assert life B 18
+}
+
+scenario "Tidal Visionary: the creature becomes the chosen color until end of turn" {
+  battlefield A: "Tidal Visionary", "Grizzly Bears"
+  turn 1 A: activate "Tidal Visionary" targeting "Grizzly Bears"
+  turn 1 A: choose black
+  run_to turn 1 end
+  assert is "Grizzly Bears" black
+  assert is not "Grizzly Bears" green
+  run_to turn 2 upkeep
+  assert is "Grizzly Bears" green
+  assert is not "Grizzly Bears" black
+}
+
+scenario "Wild Mongrel gets +1/+1 and becomes the chosen color" {
+  battlefield A: "Wild Mongrel"
+  hand A: "Shock"
+  turn 1 A: activate "Wild Mongrel" discarding "Shock"
+  turn 1 A: choose blue
+  run_to turn 1 end
+  assert power "Wild Mongrel" 3
+  assert is "Wild Mongrel" blue
+  assert is not "Wild Mongrel" green
+}
+
+scenario "Stave Off: protection from the chosen color stops a red spell" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Stave Off"
+  hand B: "Shock"
+  turn 1 A: cast "Stave Off" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert battlefield A contains "Grizzly Bears"
+  assert hand B contains "Shock"
+}
+
+scenario "Stave Off: protection from another color does not" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Stave Off"
+  hand B: "Shock"
+  turn 1 A: cast "Stave Off" targeting "Grizzly Bears"
+  turn 1 A: choose black
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Benevolent Bodyguard: the target is chosen first, the color on resolution" {
+  battlefield A: "Benevolent Bodyguard", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 A: activate "Benevolent Bodyguard" targeting "Grizzly Bears"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Benevolent Bodyguard"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Reef Shaman: the land becomes the chosen basic land type" {
+  battlefield A: "Reef Shaman"
+  battlefield B: "Mountain"
+  turn 1 A: activate "Reef Shaman" targeting "Mountain"
+  turn 1 A: choose Island
+  run_to turn 1 end
+  assert is "Mountain" island
+  assert is not "Mountain" mountain
+  run_to turn 2 upkeep
+  assert is "Mountain" mountain
+}
+
+scenario "Tundra Kavu offers only Plains or Island" {
+  battlefield A: "Tundra Kavu"
+  battlefield B: "Mountain"
+  turn 1 A: activate "Tundra Kavu" targeting "Mountain"
+  illegal turn 1 A: choose Swamp
+  run_to turn 1 end
+  assert is "Mountain" plains
+  assert is not "Mountain" mountain
+}
+
+scenario "Mistform Mask: the creature becomes only the chosen creature type" {
+  battlefield A: "Grizzly Bears", "Island", "Mistform Mask" on "Grizzly Bears"
+  turn 1 A: activate "Mistform Mask"
+  turn 1 A: choose Merfolk
+  run_to turn 1 end
+  assert is "Grizzly Bears" Merfolk
+  assert is not "Grizzly Bears" Bear
+  run_to turn 2 upkeep
+  assert is "Grizzly Bears" Bear
+}
+
+scenario "Imagecrafter can't choose Wall" {
+  battlefield A: "Imagecrafter", "Grizzly Bears"
+  turn 1 A: activate "Imagecrafter" targeting "Grizzly Bears"
+  illegal turn 1 A: choose Wall
+  run_to turn 1 end
+  assert is not "Grizzly Bears" Bear
+}
+
+scenario "Imagecrafter: the target becomes the chosen type" {
+  battlefield A: "Imagecrafter", "Grizzly Bears"
+  turn 1 A: activate "Imagecrafter" targeting "Grizzly Bears"
+  turn 1 A: choose Goblin
+  run_to turn 1 end
+  assert is "Grizzly Bears" Goblin
+  assert is not "Grizzly Bears" Bear
+}
+
+scenario "a land put onto the battlefield by an effect chooses as it enters" {
+  battlefield A: "Skyshroud Ranger", "Forest"
+  hand A: "Mirage Mesa", "Shock"
+  turn 1 A: activate "Skyshroud Ranger"
+  turn 1 A: choose red
+  turn 3 A: cast "Shock" targeting player B
+  run_to turn 3 end
+  assert life B 18
+}
+
+scenario "Voice of All has protection from the color chosen as it entered" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Voice of All"
+  hand B: "Shock"
+  turn 1 A: cast "Voice of All"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Voice of All"
+  run_to turn 1 cleanup
+  assert hand B contains "Shock"
+}
+
+scenario "Voice of All has no protection from another color" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Mountain"
+  hand A: "Voice of All"
+  hand B: "Shock"
+  turn 1 A: cast "Voice of All"
+  turn 1 A: choose blue
+  turn 1 end B: cast "Shock" targeting "Voice of All"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Voice of All"
+}
+
+scenario "Alloy Golem is the chosen color" {
+  battlefield A: 6 "Plains"
+  hand A: "Alloy Golem"
+  turn 1 A: cast "Alloy Golem"
+  turn 1 A: choose green
+  run_to turn 1 end
+  assert is "Alloy Golem" green
+  assert is "Alloy Golem" artifact
+}
+
+scenario "Ward Sliver gives every Sliver protection from the chosen color" {
+  battlefield A: 5 "Plains", "Muscle Sliver"
+  battlefield B: "Mountain"
+  hand A: "Ward Sliver"
+  hand B: "Shock"
+  turn 1 A: cast "Ward Sliver"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Muscle Sliver"
+  run_to turn 1 cleanup
+  assert hand B contains "Shock"
+}
+
+scenario "Shifting Sky makes nonland permanents the chosen color" {
+  battlefield A: 2 "Plains", "Island", "Grizzly Bears"
+  hand A: "Shifting Sky"
+  turn 1 A: cast "Shifting Sky"
+  turn 1 A: choose black
+  run_to turn 1 end
+  assert is "Grizzly Bears" black
+  assert is not "Grizzly Bears" green
+  assert is "Shifting Sky" black
+  assert is not "Island" black
+}

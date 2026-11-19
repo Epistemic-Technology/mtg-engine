@@ -1,0 +1,6 @@
+card "Punish the Enemy" {
+  oracle_id 09f73f77-a9bc-4718-be7d-ba6e08576e3a
+  cost {4}{R}
+  type Instant
+spell: deal 3 damage to target player or planeswalker and deal 3 damage to target creature
+}

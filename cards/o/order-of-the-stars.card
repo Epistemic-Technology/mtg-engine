@@ -1,0 +1,9 @@
+card "Order of the Stars" {
+  oracle_id 66418c65-a15f-489e-8a2d-6cee1b5d977c
+  cost {W}
+  type Creature — Human Cleric
+  pt 0/1
+  keywords defender
+  as this enters choose color
+  static this: has protection from chosen color
+}

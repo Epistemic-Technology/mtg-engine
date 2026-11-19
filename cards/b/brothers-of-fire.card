@@ -1,0 +1,7 @@
+card "Brothers of Fire" {
+  oracle_id ee9208e7-2075-45b9-9ed7-b18e1a280d79
+  cost {1}{R}{R}
+  type Creature — Human Shaman
+  pt 2/2
+  activated {1}{R}{R}: deal 1 damage to any target and deal 1 damage to you
+}

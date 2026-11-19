@@ -1,0 +1,7 @@
+card "Wild Mongrel" {
+  oracle_id e9441ab3-7a17-4f9b-a873-e5e82f6e9690
+  cost {1}{G}
+  type Creature — Dog
+  pt 2/2
+  activated discard 1 card: this gets +1/+1 and becomes color of choice
+}

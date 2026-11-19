@@ -1,0 +1,6 @@
+card "Shower of Sparks" {
+  oracle_id a43500ed-4aa6-49de-8a6e-a1781301b108
+  cost {R}
+  type Instant
+spell: deal 1 damage to target creature and deal 1 damage to target player or planeswalker
+}
