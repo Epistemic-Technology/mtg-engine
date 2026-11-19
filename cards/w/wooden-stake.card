@@ -1,0 +1,8 @@
+card "Wooden Stake" {
+  oracle_id 1b26dbb7-0ae5-4279-87b6-1b722c30a386
+  cost {2}
+  type Artifact — Equipment
+  static equipped: +1/+0
+  triggered whenever equipped creature blocks or becomes blocked by a Vampire: destroy that creature without regeneration
+  equip {1}
+}

@@ -1,0 +1,8 @@
+card "Aura Gnarlid" {
+  oracle_id 586aebf2-4653-49fa-8425-13bd1f511bf0
+  cost {2}{G}
+  type Creature — Beast
+  pt 2/2
+  can't be blocked by creature with lesser power
+  static this: +1/+1 count each Aura on battlefield
+}

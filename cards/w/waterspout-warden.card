@@ -1,0 +1,7 @@
+card "Waterspout Warden" {
+  oracle_id 5e11386f-4667-47f7-b280-eabd927e4a46
+  cost {2}{U}
+  type Creature — Frog Soldier
+  pt 3/2
+  triggered whenever this attacks if another creature entered this turn: this gains flying
+}

@@ -1,0 +1,7 @@
+card "Brazen Blademaster" {
+  oracle_id 43c92618-0aae-41f8-aa39-393e5d6b5ff7
+  cost {2}{R}
+  type Creature — Orc Pirate
+  pt 2/3
+  triggered whenever this attacks while you control 2 artifact: this gets +2/+1
+}

@@ -503,6 +503,26 @@ fn article(word: &str) -> &'static str {
     }
 }
 
+/// "a Knight or a Soldier", "an enchantment or an enchanted permanent":
+/// two alternatives of a condition, each with its article.
+fn each_with_article(f: &Filter, card: &Card) -> String {
+    match &f.or {
+        Some(alt) if alt.or.is_none() && f.alt_article => {
+            let base = Filter {
+                or: None,
+                alt_article: false,
+                ..f.clone()
+            };
+            format!(
+                "{} or {}",
+                with_article(&filter_phrase(&base, card, false)),
+                with_article(&filter_phrase(alt, card, false))
+            )
+        }
+        _ => with_article(&filter_phrase(f, card, false)),
+    }
+}
+
 fn with_article(s: &str) -> String {
     // "sacrifice another creature".
     if let Some(rest) = s.strip_prefix("other ") {
@@ -951,6 +971,14 @@ impl<'a> Ctx<'a> {
             }
             // "When enchanted creature is dealt damage, destroy it."
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
+            // "Whenever enchanted creature deals damage to a creature,
+            // destroy the other creature."
+            Recipient::TriggeringObject if self.trigger_other_of_enchanted() => {
+                "the other creature".to_string()
+            }
+            Recipient::SameObject if self.delayed_that && self.trigger_other_of_enchanted() => {
+                "the other creature".to_string()
+            }
             // "At the beginning of the upkeep of enchanted land's
             // controller, destroy that land".
             Recipient::TriggeringObject
@@ -1069,11 +1097,40 @@ impl<'a> Ctx<'a> {
                 self.target_mentioned[n] = true;
                 format!("{phrase} attached to that {}", self.target_noun[n])
             }
+            Some(AttachedRef::TriggeringObject) => format!("{phrase} attached to that creature"),
             _ => phrase,
         }
     }
 
     /// A recipient as the subject of a sentence.
+    /// A trigger of an Aura about the enchanted creature and another
+    /// creature (blocking, or damage dealt to it): Oracle calls that one
+    /// "the other creature".
+    fn trigger_other_of_enchanted(&self) -> bool {
+        // An Equipment's "equipped creature" keeps "that creature" (Wooden
+        // Stake).
+        if self.card.subtypes.iter().any(|s| s == "Equipment") {
+            return false;
+        }
+        self.trigger.is_some_and(|t| {
+            let t = match t {
+                Trigger::When(inner) => inner,
+                t => t,
+            };
+            matches!(
+                t,
+                Trigger::BlockPair { obj: TriggerObj::Filter(f), .. }
+                    | Trigger::DealsDamageTo { obj: TriggerObj::Filter(f), .. }
+                    | Trigger::DealsDamage {
+                        obj: TriggerObj::Filter(f),
+                        to: mtg_core::card::DamageTo::Creature,
+                        ..
+                    }
+                    if f.enchanted
+            )
+        })
+    }
+
     fn trigger_is_enchanted(&self) -> bool {
         self.trigger.is_some_and(|t| {
             let t = match t {
@@ -1500,7 +1557,9 @@ fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
         };
         return match a {
             AttachedRef::Source | AttachedRef::Host => format!("{p} attached to it"),
-            AttachedRef::Target(_) | AttachedRef::ThatTarget(_) => p,
+            AttachedRef::Target(_) | AttachedRef::ThatTarget(_) | AttachedRef::TriggeringObject => {
+                p
+            }
         };
     }
     let Some(alt) = &f.or else {
@@ -1577,6 +1636,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     if f.status.enchanted == Some(true) {
         words.push("enchanted".to_string());
+    }
+    if f.status.equipped {
+        words.push("equipped".to_string());
     }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
@@ -3109,6 +3171,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let a = ctx.obj(*attacker);
             Clause::with_subject(*blocker, s, format!("blocks {a} this turn if able"))
         }
+        Effect::CantBlockThis { blocker, attacker } => {
+            let s = ctx.subj(*blocker);
+            let a = ctx.obj(*attacker);
+            Clause::with_subject(*blocker, s, format!("can't block {a} this turn"))
+        }
+        Effect::CantBeRegenerated { to } => {
+            let s = ctx.subj(*to);
+            Clause::with_subject(*to, s, "can't be regenerated this turn".to_string())
+        }
         Effect::SkipNextUntap { to } => {
             let s = match *to {
                 // "Tap up to two target creatures. Those creatures don't
@@ -4240,7 +4311,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             clause
         }
-        Effect::BecomeColor { to, colors } => {
+        Effect::BecomeColor {
+            to,
+            colors,
+            indefinite,
+        } => {
             let s = ctx.subj(*to);
             let c: Vec<String> = colors
                 .iter()
@@ -4254,12 +4329,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             } else {
                 list(&c)
             };
-            Clause::with_subject(
+            let c = Clause::with_subject(
                 *to,
                 s,
                 format!("{} {what}", ctx.verb(*to, "becomes", "become")),
-            )
-            .until_eot()
+            );
+            if *indefinite { c } else { c.until_eot() }
         }
         Effect::OfChoice {
             to,
@@ -5258,7 +5333,12 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever {} {} {}",
                 trigger_subject(obj, ctx),
                 crate::format::block_pair_verb(*blocks, *blocked),
-                filter_a(other, ctx.card)
+                // "by a creature that has been dealt damage this turn"
+                // (Giant Shark).
+                filter_a(other, ctx.card).replace(
+                    " that was dealt damage this turn",
+                    " that has been dealt damage this turn"
+                )
             );
             // With another creature named, Oracle names the source again
             // ("..., this creature deals 1 damage to that creature").
@@ -5336,6 +5416,15 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 "whenever {} is dealt combat damage",
                 trigger_subject(o, ctx)
             )
+        }
+        Trigger::DealsDamageTo { obj, filter } => {
+            let s = format!(
+                "whenever {} deals damage to {}",
+                trigger_subject(obj, ctx),
+                filter_a(filter, ctx.card)
+            );
+            ctx.source_mentioned = false;
+            s
         }
         Trigger::DealsDamage { obj, to, combat } => format!(
             "whenever {} deals {}damage{}",
@@ -5474,7 +5563,7 @@ fn condition_text(c: Condition, ctx: &mut Ctx) -> String {
         Condition::EchoDue => {
             "if it came under your control since the beginning of your last upkeep".to_string()
         }
-        Condition::Static(_) => unreachable!("an AST condition"),
+        Condition::Static(_) | Condition::While(_) => unreachable!("an AST condition"),
         Condition::Evoked => "if it was evoked".to_string(),
     }
 }
@@ -6241,6 +6330,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                 if let Ability::BlockRule(r) = a.as_ref() {
                     return block_rule_phrase(r, card, false);
                 }
+                // "Enchanted creature gets +3/+0 and can only attack
+                // alone." (Errantry)
+                if only_attacks_alone(a) {
+                    return "can only attack alone".to_string();
+                }
                 // "has ward {2}" (CR 702.21): a keyword ability, bare.
                 if let Some(k) = crate::format::granted_mechanic(a) {
                     return format!("{} {k}", if plural_form { "have" } else { "has" });
@@ -6394,9 +6488,25 @@ fn block_rule_phrase(r: &crate::ast::BlockRule, card: &Card, this_turn: bool) ->
         BlockRule::NotBy(f) => format!("can't be blocked by {}{turn}", pl(f)),
         BlockRule::OnlyBy(f) => format!("can't be blocked{turn} except by {}", pl(f)),
         BlockRule::AtMostOne => format!("can't be blocked by more than one creature{turn}"),
+        // Printed as a whole sentence by `ability_text`; granted, the
+        // same rule in the attacker's words.
+        BlockRule::NotByLesserPower => format!(
+            "can't be blocked{turn} by creatures with power less than {}'s power",
+            this_ref(card)
+        ),
         BlockRule::BlocksOnly(f) => format!("can block only {}{turn}", pl(f)),
         BlockRule::CantBlock(f) => format!("can't block {}{turn}", pl(f)),
     }
+}
+
+/// `can't attack if creature also attacks`: "can only attack alone".
+fn only_attacks_alone(a: &Ability) -> bool {
+    matches!(a, Ability::AttackUnless {
+        cond: StaticCond::OthersInCombat { filter, at_least: 1, also: true, block: false },
+        attack: true,
+        block: false,
+        negated: true,
+    } if filter.types == [CardType::Creature] && Filter { types: Vec::new(), ..filter.clone() } == Filter::default())
 }
 
 /// An ability another grants, in quotes, about the object that has it
@@ -6431,7 +6541,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 crate::format::relation_any(&mut g);
                 format!("another {}", filter_phrase(&g, card, false))
             } else if *at_least == 1 {
-                with_article(&filter_phrase(&f, card, false))
+                each_with_article(&f, card)
             } else {
                 format!("{} {}", or_more(*at_least), filter_phrase(&f, card, true))
             };
@@ -6470,11 +6580,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::DefenderControls { filter, at_least } => {
             let mut f = filter.clone();
             f.who = None;
-            if *at_least == 1 {
+            if *at_least == 0 {
                 format!(
-                    "defending player controls {}",
-                    with_article(&filter_phrase(&f, card, false))
+                    "defending player controls no {}",
+                    filter_phrase(&f, card, true)
                 )
+            } else if *at_least == 1 {
+                format!("defending player controls {}", each_with_article(&f, card))
             } else {
                 format!(
                     "defending player controls {} {}",
@@ -6537,6 +6649,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             format!("you control {}", all.join(" and "))
         }
         StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
+        StaticCond::AttackedLastTurn => "it attacked during your last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
         StaticCond::OpponentLostLifeThisTurn => "an opponent lost life this turn".to_string(),
@@ -7141,8 +7254,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     out.push_str(", ");
                     out.push_str(&condition_text(*c, &mut ctx));
                 }
-                Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
-                    out.push_str(" while saddled");
+                // "Whenever this creature attacks while saddled", "...
+                // while you control two or more artifacts".
+                Some(crate::ast::TrigCond::While(c)) => {
+                    out.push_str(" while ");
+                    out.push_str(&match c {
+                        StaticCond::Saddled => "saddled".to_string(),
+                        c => static_cond_text(c, card),
+                    });
                 }
                 // "Whenever you cast a noncreature spell, if at least four
                 // mana was spent to cast it, ...".
@@ -7216,6 +7335,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             cond_if,
         } => {
             let mut body = static_text(filter, mods, card);
+            // "This creature doesn't untap during your untap step if ..."
+            // (Goblin Rock Sled).
+            if filter.relation == Relation::This {
+                body = body.replace(
+                    "doesn't untap during its controller's untap step",
+                    "doesn't untap during your untap step",
+                );
+            }
             // "Threshold — Enchanted creature gets an additional +2/-2 as
             // long as ...": a conditional pump on what an earlier static
             // ability of this card already pumps.
@@ -7233,16 +7360,38 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             match condition {
                 None => body,
-                Some(c) if *cond_if => format!(
-                    "{} if {}.",
-                    body.strip_suffix('.').unwrap_or(&body),
-                    static_cond_text(c, card)
-                ),
+                Some(c) if *cond_if => {
+                    let mut cond = static_cond_text(c, card);
+                    // "Enchanted creature can't block if it's black."
+                    // (Hobble): the subject is what the condition is about.
+                    if let StaticCond::AttachedIs(_) = c {
+                        let noun = if card.subtypes.iter().any(|s| s == "Equipment") {
+                            "equipped creature".to_string()
+                        } else {
+                            format!("enchanted {}", enchanted_noun(card))
+                        };
+                        if lowercase_first(&body).starts_with(&format!("{noun} ")) {
+                            if let Some(rest) = cond.strip_prefix(&format!("{noun} is ")) {
+                                cond = format!("it's {rest}");
+                            } else if let Some(rest) = cond.strip_prefix(&format!("{noun} ")) {
+                                cond = format!("it {rest}");
+                            }
+                        }
+                    }
+                    format!("{} if {cond}.", body.strip_suffix('.').unwrap_or(&body))
+                }
                 Some(c) => conditional_static(&body, c, *cond_first, card),
             }
         }
         Ability::BlockRule(r) => {
             let me = capitalize(&this_ref(card));
+            if *r == crate::ast::BlockRule::NotByLesserPower {
+                // Wandering Wolf.
+                return format!(
+                    "Creatures with power less than {}'s power can't block it.",
+                    this_ref(card)
+                );
+            }
             format!("{me} {}.", block_rule_phrase(r, card, false))
         }
         Ability::Labeled { label, ability } => {
@@ -7384,10 +7533,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             capitalize(&this_ref(card)),
             static_cond_text(c, card)
         ),
+        Ability::AttackUnless { .. } if only_attacks_alone(a) => {
+            format!("{} can only attack alone.", capitalize(&this_ref(card)))
+        }
         Ability::AttackUnless {
             cond,
             attack,
             block,
+            negated,
         } => {
             let what = match (attack, block) {
                 (true, true) => "attack or block",
@@ -7397,8 +7550,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             // "unless an opponent has been dealt damage this turn".
             let cond = static_cond_text(cond, card).replace(" was dealt ", " has been dealt ");
             format!(
-                "{} can't {what} unless {cond}.",
-                capitalize(&this_ref(card))
+                "{} can't {what} {} {cond}.",
+                capitalize(&this_ref(card)),
+                if *negated { "if" } else { "unless" }
             )
         }
         Ability::DeckAnyNumber => {

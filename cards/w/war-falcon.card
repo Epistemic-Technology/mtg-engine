@@ -1,0 +1,8 @@
+card "War Falcon" {
+  oracle_id 406bccb6-6602-4486-a556-e0b550650253
+  cost {W}
+  type Creature — Bird
+  pt 2/1
+  keywords flying
+  can't attack unless you control Knight or a Soldier
+}

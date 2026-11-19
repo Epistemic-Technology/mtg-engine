@@ -1,0 +1,7 @@
+card "Fearsome Temper" {
+  oracle_id 85e9bc3e-e0da-4ad4-9631-472f75f91663
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2 and has ability { activated {2}{R}: target creature can't block this }
+}

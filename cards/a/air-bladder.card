@@ -1,0 +1,8 @@
+card "Air Bladder" {
+  oracle_id 25c8a3b0-c393-4fc6-a373-808cd8e9850c
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  static enchanted: has ability { can block only creature with flying }
+}

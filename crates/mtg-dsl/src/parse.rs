@@ -1553,8 +1553,11 @@ impl P {
                 if when && !crate::format::natural_when(&trigger) {
                     trigger = Trigger::When(Box::new(trigger));
                 }
-                let condition = if self.eat_words(&["while", "saddled"]) {
-                    Some(crate::ast::TrigCond::Static(StaticCond::Saddled))
+                // "attacks while saddled", "attacks while you control two
+                // or more artifacts": a trigger condition, not an
+                // intervening "if" (CR 603.2, 603.4).
+                let condition = if self.eat_word("while") {
+                    Some(crate::ast::TrigCond::While(self.static_cond()?))
                 } else if self.eat_word("if") {
                     let at = self.pos;
                     if let Ok(c) = self.condition() {
@@ -1672,7 +1675,10 @@ impl P {
             "can't"
                 if self.at_words(&["can't", "attack", "unless"])
                     || self.at_words(&["can't", "block", "unless"])
-                    || self.at_words(&["can't", "attack", "or", "block", "unless"]) =>
+                    || self.at_words(&["can't", "attack", "or", "block", "unless"])
+                    || self.at_words(&["can't", "attack", "if"])
+                    || self.at_words(&["can't", "block", "if"])
+                    || self.at_words(&["can't", "attack", "or", "block", "if"]) =>
             {
                 self.pos += 1;
                 let (attack, block) = if self.eat_words(&["attack", "or", "block"]) {
@@ -1683,13 +1689,17 @@ impl P {
                     self.expect_word("block")?;
                     (false, true)
                 };
-                self.expect_word("unless")?;
+                let negated = self.eat_word("if");
+                if !negated {
+                    self.expect_word("unless")?;
+                }
                 let cond = self.static_cond()?;
                 self.end_stmt()?;
                 Ok(Ability::AttackUnless {
                     cond,
                     attack,
                     block,
+                    negated,
                 })
             }
             "can't" | "can" => {
@@ -1703,6 +1713,8 @@ impl P {
                     self.expect_words(&["be", "blocked"])?;
                     if self.eat_words(&["by", "more", "than", "one", "creature"]) {
                         BlockRule::AtMostOne
+                    } else if self.eat_words(&["by", "creature", "with", "lesser", "power"]) {
+                        BlockRule::NotByLesserPower
                     } else if self.eat_words(&["except", "by"]) {
                         BlockRule::OnlyBy(self.filter()?)
                     } else {
@@ -2120,6 +2132,9 @@ impl P {
         if self.eat_words(&["attacked", "this", "turn"]) {
             return Ok(StaticCond::AttackedThisTurn);
         }
+        if self.eat_words(&["attacked", "last", "turn"]) {
+            return Ok(StaticCond::AttackedLastTurn);
+        }
         if self.eat_word("bargained") {
             return Ok(StaticCond::Bargained);
         }
@@ -2239,7 +2254,8 @@ impl P {
             let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
                 self.number()?
             } else {
-                1
+                // `defending player controls no Glimmer creature`: 0.
+                u32::from(!self.eat_word("no"))
             };
             let filter = self.filter()?;
             return Ok(StaticCond::DefenderControls { filter, at_least });
@@ -3512,6 +3528,20 @@ impl P {
                     to: subject,
                 })
             }
+            // "Target creature can't block this creature this turn".
+            "can't"
+                if self.at_word("block")
+                    && matches!(self.word_at(1).as_deref(), Some("this" | "it"))
+                    && !self.at_words(&["block", "this", "turn"]) =>
+            {
+                self.pos += 1;
+                let attacker = self.recipient()?;
+                let _ = self.eat_words(&["this", "turn"]);
+                Ok(Effect::CantBlockThis {
+                    blocker: subject,
+                    attacker,
+                })
+            }
             "can't" => {
                 let keywords = if self.eat_word("block") {
                     vec![Keyword::CantBlock]
@@ -3521,6 +3551,9 @@ impl P {
                     } else {
                         vec![Keyword::CantAttack]
                     }
+                } else if self.eat_words(&["be", "regenerated"]) {
+                    self.eat_words(&["this", "turn"]);
+                    return Ok(Effect::CantBeRegenerated { to: subject });
                 } else if self.eat_words(&["be", "blocked"]) {
                     vec![Keyword::Unblockable]
                 } else {
@@ -3626,6 +3659,7 @@ impl P {
                     return Ok(Effect::BecomeColor {
                         to: subject,
                         colors: Color::ALL.to_vec(),
+                        indefinite: self.eat_word("indefinitely"),
                     });
                 }
                 // "becomes blue", "becomes colorless"; not "becomes a blue
@@ -3655,6 +3689,7 @@ impl P {
                     return Ok(Effect::BecomeColor {
                         to: subject,
                         colors,
+                        indefinite: self.eat_word("indefinitely"),
                     });
                 }
                 // "becomes an Island".
@@ -6270,6 +6305,11 @@ impl P {
                     f.status.enchanted = Some(w == "with");
                     self.pos += 2;
                 }
+                // "an equipped creature" (`creature with Equipment`).
+                "with" if self.word_at(1).as_deref() == Some("equipment") && !f.status.equipped => {
+                    f.status.equipped = true;
+                    self.pos += 2;
+                }
                 "blocked" | "unblocked"
                     if self.word_at(1).as_deref() != Some("by") && f.status.blocked.is_none() =>
                 {
@@ -6437,6 +6477,8 @@ impl P {
                     self.pos += 2;
                     f.attached_to = Some(if self.eat_word("this") {
                         AttachedRef::Source
+                    } else if self.in_trigger && self.eat_words(&["that", "creature"]) {
+                        AttachedRef::TriggeringObject
                     } else if self.eat_word("attached")
                         || self.eat_words(&["enchanted", "creature"])
                         || self.eat_words(&["equipped", "creature"])
@@ -6494,6 +6536,8 @@ impl P {
                             crate::format::share_qualifiers(&mut f, &mut alt);
                             if own_article && f.relation == Relation::Other {
                                 alt.relation = Relation::Any;
+                            } else if own_article {
+                                f.alt_article = true;
                             }
                             f.or = Some(Box::new(alt));
                             consumed += self.pos - before;
@@ -7080,6 +7124,15 @@ impl P {
                 let to = if self.eat_word("to") {
                     self.eat_word("a");
                     self.eat_word("an");
+                    // "deals damage to a Vampire": any other filter.
+                    let simple = matches!(
+                        self.word_at(0).as_deref(),
+                        Some("creature" | "player" | "opponent")
+                    ) && !matches!(self.peek_at(1), Some(Tok::Word(w)) if w != "if" && w != "while");
+                    if !combat && !simple {
+                        let filter = Box::new(self.filter()?);
+                        return Ok(Trigger::DealsDamageTo { obj, filter });
+                    }
                     match self.word()?.as_str() {
                         "creature" => mtg_core::card::DamageTo::Creature,
                         "player" => mtg_core::card::DamageTo::Player,

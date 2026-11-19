@@ -1,0 +1,8 @@
+card "Ravening Warg" {
+  oracle_id 8060d231-7477-441d-b249-8e75aa1d7791
+  cost {1}{B}
+  type Creature — Wolf
+  pt 2/2
+  keywords deathtouch
+  label "Ferocious" triggered whenever this attacks while you control creature with power 4 or greater: you gain 2 life
+}

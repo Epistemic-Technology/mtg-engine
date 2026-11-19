@@ -382,6 +382,7 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
         StaticCondition::AttackedThisTurn => {
             state.attacked_this_turn & (1 << you.index().min(7)) != 0
         }
+        StaticCondition::AttackedLastTurn => state.attacked_last_turn.contains(&(you, source)),
         StaticCondition::CreatureDiedThisTurn => state.creatures_died_this_turn > 0,
         StaticCondition::LandEnteredThisTurn => {
             state.lands_entered_this_turn & (1 << you.index().min(7)) != 0

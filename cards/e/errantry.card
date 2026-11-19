@@ -1,0 +1,7 @@
+card "Errantry" {
+  oracle_id fee455f2-fcc4-47b1-a533-92fa1ae8ae63
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+0 and has ability { can't attack if creature also attacks }
+}

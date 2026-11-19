@@ -1,0 +1,7 @@
+card "Ogre Leadfoot" {
+  oracle_id 17e00d6e-c57d-48ea-a1a1-0c1097083851
+  cost {4}{R}
+  type Creature — Ogre
+  pt 3/3
+  triggered whenever this becomes blocked by an artifact creature: destroy that creature
+}

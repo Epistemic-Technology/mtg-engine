@@ -649,6 +649,14 @@ impl Fmt {
                 self.recipient(*blocker, t),
                 self.recipient(*attacker, t)
             ),
+            Effect::CantBlockThis { blocker, attacker } => format!(
+                "{} can't block {}",
+                self.recipient(*blocker, t),
+                self.recipient(*attacker, t)
+            ),
+            Effect::CantBeRegenerated { to } => {
+                format!("{} can't be regenerated", self.recipient(*to, t))
+            }
             Effect::SkipNextUntap { to } => {
                 format!("{} doesn't untap next untap step", self.recipient(*to, t))
             }
@@ -1167,13 +1175,17 @@ impl Fmt {
                     words.join(" ")
                 )
             }
-            Effect::BecomeColor { to, colors } => {
+            Effect::BecomeColor {
+                to,
+                colors,
+                indefinite,
+            } => {
                 let c: Vec<String> = colors
                     .iter()
                     .map(|c| format!("{c:?}").to_lowercase())
                     .collect();
                 format!(
-                    "{} becomes {}",
+                    "{} becomes {}{}",
                     self.recipient(*to, t),
                     if c.is_empty() {
                         "colorless".to_string()
@@ -1181,7 +1193,8 @@ impl Fmt {
                         "all colors".to_string()
                     } else {
                         c.join(" and ")
-                    }
+                    },
+                    if *indefinite { " indefinitely" } else { "" }
                 )
             }
             Effect::OfChoice {
@@ -1863,6 +1876,15 @@ pub fn filter(f: &Filter) -> String {
             return format!("{} or {article} {a}", filter_one(&base));
         }
         let (b, a) = factor_qualifiers(&base, alt);
+        if f.alt_article {
+            let a = filter(&a);
+            let article = if a.starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            };
+            return format!("{} or {article} {a}", filter_one(&b));
+        }
         return format!("{} or {}", filter_one(&b), filter(&a));
     }
     filter_one(f)
@@ -1968,6 +1990,9 @@ fn filter_one(f: &Filter) -> String {
     if let Some(e) = f.status.enchanted {
         words.push(if e { "with aura" } else { "without aura" }.to_string());
     }
+    if f.status.equipped {
+        words.push("with Equipment".to_string());
+    }
     if f.status.modified {
         words.push("modified".to_string());
     }
@@ -2048,6 +2073,9 @@ fn filter_one(f: &Filter) -> String {
     match f.attached_to {
         Some(crate::ast::AttachedRef::Source) => words.push("attached to this".to_string()),
         Some(crate::ast::AttachedRef::Host) => words.push("attached to attached".to_string()),
+        Some(crate::ast::AttachedRef::TriggeringObject) => {
+            words.push("attached to that creature".to_string());
+        }
         Some(crate::ast::AttachedRef::Target(n)) => {
             words.push(format!("attached to target {}", n + 1));
         }
@@ -2488,6 +2516,13 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::DealtCombatDamage(o) => {
             format!("whenever {} is dealt combat damage", trigger_obj(o))
         }
+        Trigger::DealsDamageTo { obj, filter: f } => {
+            format!(
+                "whenever {} deals damage to {}",
+                trigger_obj(obj),
+                filter(f)
+            )
+        }
         Trigger::DealsDamage { obj, to, combat } => format!(
             "whenever {} deals {}damage{}",
             trigger_obj(obj),
@@ -2872,6 +2907,10 @@ fn static_cond(c: &StaticCond) -> String {
         } => format!("defending player controls {}", filter(fl)),
         StaticCond::DefenderControls {
             filter: fl,
+            at_least: 0,
+        } => format!("defending player controls no {}", filter(fl)),
+        StaticCond::DefenderControls {
+            filter: fl,
             at_least,
         } => format!("defending player controls {at_least} {}", filter(fl)),
         StaticCond::YouControlNone(fl) => format!("you control no {}", filter(fl)),
@@ -2909,6 +2948,7 @@ fn static_cond(c: &StaticCond) -> String {
             if *attacking { "attacking" } else { "defending" }
         ),
         StaticCond::AttackedThisTurn => "attacked this turn".to_string(),
+        StaticCond::AttackedLastTurn => "attacked last turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "opponent damaged this turn".to_string(),
         StaticCond::OpponentLostLifeThisTurn => "opponent lost life this turn".to_string(),
@@ -3206,8 +3246,8 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         } => {
             let mut head = format!("triggered {}", trigger_text(trigger, false));
             let condition = match condition {
-                Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
-                    head.push_str(" while saddled");
+                Some(crate::ast::TrigCond::While(c)) => {
+                    let _ = write!(head, " while {}", static_cond(c));
                     None
                 }
                 Some(crate::ast::TrigCond::Static(c)) => {
@@ -3218,7 +3258,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 None => None,
             };
             match condition {
-                Some(mtg_core::card::Condition::Static(_)) => unreachable!("an AST condition"),
+                Some(
+                    mtg_core::card::Condition::Static(_) | mtg_core::card::Condition::While(_),
+                ) => unreachable!("an AST condition"),
                 Some(mtg_core::card::Condition::SourceUntapped) => {
                     head.push_str(" if this is untapped");
                 }
@@ -3325,6 +3367,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 }
                 crate::ast::BlockRule::AtMostOne => {
                     "can't be blocked by more than one creature".to_string()
+                }
+                crate::ast::BlockRule::NotByLesserPower => {
+                    "can't be blocked by creature with lesser power".to_string()
                 }
                 crate::ast::BlockRule::BlocksOnly(f) => format!("can block only {}", filter(f)),
                 crate::ast::BlockRule::CantBlock(f) => format!("can't block {}", filter(f)),
@@ -3461,13 +3506,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             cond,
             attack,
             block,
+            negated,
         } => {
             let what = match (attack, block) {
                 (true, true) => "attack or block",
                 (true, false) => "attack",
                 _ => "block",
             };
-            let _ = writeln!(out, "{indent}can't {what} unless {}", static_cond(cond));
+            let word = if *negated { "if" } else { "unless" };
+            let _ = writeln!(out, "{indent}can't {what} {word} {}", static_cond(cond));
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");

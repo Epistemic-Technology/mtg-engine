@@ -1,0 +1,8 @@
+card "Soltari Visionary" {
+  oracle_id 7971f5c2-97b7-441f-ad77-954f43ede0a1
+  cost {1}{W}{W}
+  type Creature — Soltari Cleric
+  pt 2/2
+  keywords shadow
+  triggered whenever this deals damage to a player: destroy target enchantment that player controls
+}

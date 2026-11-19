@@ -1,0 +1,8 @@
+card "Bog Serpent" {
+  oracle_id 9a9877b5-9f75-4c83-b11b-f006aecb075b
+  cost {5}{B}
+  type Creature — Serpent
+  pt 5/5
+  can't attack unless defending player controls Swamp
+  triggered when you control no Swamp: sacrifice this
+}

@@ -1,0 +1,9 @@
+card "Stratus Walk" {
+  oracle_id eda37caa-d676-460a-804b-3ba9d8a8d044
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 cards
+  static enchanted: has flying
+  static enchanted: has ability { can block only creature with flying }
+}

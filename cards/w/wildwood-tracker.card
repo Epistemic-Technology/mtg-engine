@@ -1,0 +1,7 @@
+card "Wildwood Tracker" {
+  oracle_id 4ca31946-72ef-4c45-a7bb-494a99dc2982
+  cost {G}
+  type Creature — Elf Warrior
+  pt 1/1
+  triggered whenever this attacks or blocks if you control other non-Human creature: this gets +1/+1
+}

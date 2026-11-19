@@ -1,0 +1,7 @@
+card "Aisling Leprechaun" {
+  oracle_id 5456f00c-0bef-4c14-902f-f5c14475f284
+  cost {G}
+  type Creature — Faerie
+  pt 1/1
+  triggered whenever this blocks or becomes blocked by a creature: that creature becomes green indefinitely
+}

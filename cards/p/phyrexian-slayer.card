@@ -1,0 +1,8 @@
+card "Phyrexian Slayer" {
+  oracle_id da74cb57-f6de-4d05-a339-6412beb8df25
+  cost {3}{B}
+  type Creature — Phyrexian Minion
+  pt 2/2
+  keywords flying
+  triggered whenever this becomes blocked by a white creature: destroy that creature without regeneration
+}

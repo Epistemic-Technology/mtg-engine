@@ -1006,6 +1006,8 @@ pub struct StatusQuals {
     /// "enchanted permanent" (`true`, CR 303.4: an Aura is attached to
     /// it) or "that isn't enchanted" (`false`).
     pub enchanted: Option<bool>,
+    /// "equipped creature" (CR 301.5: an Equipment attached to it).
+    pub equipped: bool,
     /// "that entered this turn": its timestamp, the time it entered (CR
     /// 613.7e), is from this turn.
     pub entered_this_turn: bool,
@@ -1052,6 +1054,7 @@ impl StatusQuals {
     pub const fn any(&self) -> bool {
         self.blocked.is_some()
             || self.enchanted.is_some()
+            || self.equipped
             || self.token.is_some()
             || self.entered_this_turn
             || self.dealt_damage
@@ -1076,6 +1079,10 @@ pub enum AttachedTo {
     /// The `n`th target ("Destroy all Equipment attached to that
     /// creature").
     Target(u8),
+    /// The triggering object ("destroy all Auras attached to that
+    /// creature" after "Whenever this creature blocks or becomes blocked by
+    /// a creature").
+    TriggeringObject,
 }
 
 /// What a filter's `same` relates the object to (CR 201.2: "named ~" is
@@ -1679,6 +1686,9 @@ pub enum BlockRule {
     BlocksOnly(ObjFilter),
     /// "can't block creatures with flying".
     CantBlock(ObjFilter),
+    /// "Creatures with power less than this creature's power can't block
+    /// it." (judged as blockers are declared, CR 509.1b).
+    NotByLesserPower,
 }
 
 /// How long cards exiled by an impulse effect stay playable.
@@ -1760,7 +1770,8 @@ pub enum StaticCondition {
         at_least: bool,
     },
     /// "defending player controls an Island" (the opponent, judged as
-    /// attackers are declared).
+    /// attackers are declared); `at_least` 0: "defending player controls
+    /// no Glimmer creatures".
     DefenderControls {
         filter: ObjFilter,
         at_least: u32,
@@ -1796,6 +1807,11 @@ pub enum StaticCondition {
     YouControlEach(Vec<ObjFilter>),
     /// Raid: "you attacked this turn".
     AttackedThisTurn,
+    /// "if it attacked during your last turn" (Giant Turtle, Goblin Rock
+    /// Sled): the source was declared as an attacker during its
+    /// controller's most recent turn before this one (or this one, while
+    /// it is not theirs).
+    AttackedLastTurn,
     /// The entering object was cast with escape ("escapes with").
     Escaped,
     /// Bloodthirst: "an opponent was dealt damage this turn".
@@ -2850,6 +2866,9 @@ pub enum Effect {
     BecomeColor {
         to: Recipient,
         colors: ColorSet,
+        /// No duration ("That creature becomes green. (This effect lasts
+        /// indefinitely.)").
+        indefinite: bool,
     },
     /// "Target land becomes an Island until end of turn" (layer 4);
     /// `indefinite`, with no duration ("Target land becomes a Forest. (This
@@ -3094,9 +3113,20 @@ pub enum Effect {
     SkipNextUntap {
         to: Recipient,
     },
+    /// "That creature can't be regenerated this turn" (CR 701.15): no
+    /// regeneration shield replaces its destruction this turn.
+    CantBeRegenerated {
+        to: Recipient,
+    },
     /// "Target creature blocks this creature this turn if able" (CR
     /// 509.1c): a blocking requirement on `blocker` for one attacker.
     BlocksIfAble {
+        blocker: Recipient,
+        attacker: Recipient,
+    },
+    /// "Target creature can't block this creature this turn" (CR 509.1b):
+    /// a blocking restriction on `blocker` for one attacker.
+    CantBlockThis {
         blocker: Recipient,
         attacker: Recipient,
     },
@@ -3636,6 +3666,10 @@ pub enum TriggerSpec {
         to: DamageTo,
         combat: bool,
     },
+    /// "Whenever this creature deals damage to a Vampire", "to a Goblin or
+    /// Orc": the damaged permanent, which must match `filter`, is the
+    /// triggering object ("that creature").
+    DealsDamageTo { what: TriggerObj, filter: ObjFilter },
     /// "Whenever you cast an artifact spell", "a multicolored spell", "a
     /// Spirit or Arcane spell": the spell matches the filter.
     CastsFiltered { whose: Who, filter: ObjFilter },
@@ -3765,7 +3799,8 @@ impl TriggerSpec {
             TriggerSpec::DealsCombatDamageToPlayer(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealtCombatDamage(_)
-            | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,
+            | TriggerSpec::DealsDamage { .. }
+            | TriggerSpec::DealsDamageTo { .. } => WATCH_DAMAGE,
             TriggerSpec::BecomesTapped(_) | TriggerSpec::BecomesUntapped(_) => WATCH_TAP,
             TriggerSpec::TurnedFaceUp(_) => WATCH_FACE_UP,
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
@@ -3815,6 +3850,12 @@ pub enum Condition {
     Static(u16),
     /// "if it was evoked" (CR 702.74a).
     Evoked,
+    /// The pool's `n`th static condition as a trigger condition, not an
+    /// intervening "if": "Whenever this creature attacks while you control
+    /// two or more artifacts" is judged only as the event happens, so the
+    /// ability resolves even if the condition no longer holds (CR 603.2,
+    /// unlike CR 603.4).
+    While(u16),
 }
 
 /// A triggered ability (CR 603).
@@ -4281,6 +4322,9 @@ pub enum AbilityDef {
         condition: u16,
         attack: bool,
         block: bool,
+        /// "can't attack if defending player controls an untapped land":
+        /// the restriction applies while the condition holds.
+        negated: bool,
     },
     /// Protection from what matches the filter ("protection from
     /// artifacts", "from Goblins", "from everything"), judged on a source's
@@ -5597,6 +5641,15 @@ impl CardPool {
             def.hand_static || def.step_static || def.history_static,
         );
         flags.set(DefFlags::SPENT_WATCH, self.watches_spent(&def.abilities));
+        // "Enchanted creature ... can only attack alone" (Errantry): a
+        // granted attack restriction counts its source in
+        // `GameState::attack_rule_sources` too.
+        if def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+                Modification::AddAbility(id) if matches!(self.ability(*id), AbilityDef::AttackUnless { .. }))))
+        }) {
+            flags.set(DefFlags::ATTACK_RULE, true);
+        }
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,

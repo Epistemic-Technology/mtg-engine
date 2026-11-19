@@ -1,0 +1,9 @@
+card "Giant Shark" {
+  oracle_id 44a10a63-be9c-4f1d-aad6-b5337112bda5
+  cost {5}{U}
+  type Creature — Shark
+  pt 4/4
+  can't attack unless defending player controls Island
+  triggered whenever this blocks or becomes blocked by a creature that was dealt damage this turn: this gets +2/+0 and gains trample
+  triggered when you control no Island: sacrifice this
+}

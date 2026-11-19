@@ -1,0 +1,7 @@
+card "Duct Crawler" {
+  oracle_id d47a7aa5-3b64-4ff8-bb10-e46a34d1993c
+  cost {R}
+  type Creature — Insect
+  pt 1/1
+  activated {1}{R}: target creature can't block this
+}

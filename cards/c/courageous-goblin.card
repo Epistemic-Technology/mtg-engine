@@ -1,0 +1,7 @@
+card "Courageous Goblin" {
+  oracle_id c107e271-5741-4a84-bfc4-3bc322972d0d
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/2
+  triggered whenever this attacks while you control creature with power 4 or greater: this creature gets +1/+0 and gains menace
+}

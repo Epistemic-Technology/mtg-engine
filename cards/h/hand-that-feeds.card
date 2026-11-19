@@ -1,0 +1,7 @@
+card "Hand That Feeds" {
+  oracle_id 6b348051-3ba8-4aa0-b337-b42d8ef8cbba
+  cost {1}{R}
+  type Creature — Mutant
+  pt 2/2
+  label "Delirium" triggered whenever this attacks while delirium: this gets +2/+0 and gains menace
+}

@@ -1,0 +1,8 @@
+card "Ornery Dilophosaur" {
+  oracle_id 8291bc2e-ef58-4bd4-b261-b587142bbb1c
+  cost {3}{G}
+  type Creature — Dinosaur
+  pt 2/2
+  keywords deathtouch
+  triggered whenever this attacks if you control creature with power 4 or greater: this gets +2/+2
+}

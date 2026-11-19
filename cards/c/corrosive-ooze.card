@@ -1,0 +1,7 @@
+card "Corrosive Ooze" {
+  oracle_id 416cca4a-b1b2-49d5-9cac-ec347056bdb0
+  cost {1}{G}
+  type Creature — Ooze
+  pt 2/2
+  triggered whenever this blocks or becomes blocked by a creature with Equipment: delayed that creature: destroy all Equipment attached to that creature at end of combat
+}
