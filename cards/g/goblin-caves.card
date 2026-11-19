@@ -1,0 +1,7 @@
+card "Goblin Caves" {
+  oracle_id 3ab5c3a7-12e7-4394-a495-0bc7c310bf9c
+  cost {1}{R}{R}
+  type Enchantment — Aura
+  enchant land
+  static as long as attached is basic Mountain, Goblin creature: +0/+2
+}

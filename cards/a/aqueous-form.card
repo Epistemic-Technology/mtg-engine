@@ -1,0 +1,8 @@
+card "Aqueous Form" {
+  oracle_id 3378fef3-4d8c-4d9e-a338-4abb6f70d410
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't be blocked
+  triggered whenever enchanted creature attacks: scry 1
+}

@@ -1,0 +1,8 @@
+card "Mightstone's Animation" {
+  oracle_id de68a69a-0c4e-43b9-821d-2fe2269b5e48
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant artifact
+  triggered when this enters: draw 1 card
+  static enchanted: add type creature, base 4/4
+}

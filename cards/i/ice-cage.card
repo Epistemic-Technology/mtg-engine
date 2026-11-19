@@ -1,0 +1,8 @@
+card "Ice Cage" {
+  oracle_id e37416cc-f343-44cd-8676-4ce4d4068e85
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't activate
+  triggered when enchanted creature becomes targeted: destroy this
+}

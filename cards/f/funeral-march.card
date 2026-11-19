@@ -1,0 +1,7 @@
+card "Funeral March" {
+  oracle_id 4d8afa5c-cef3-4e67-bd4c-ebd5c68b96a7
+  cost {1}{B}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature leaves the battlefield: its controller sacrifices 1 creature of their choice
+}

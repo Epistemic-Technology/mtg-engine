@@ -1,0 +1,7 @@
+card "Akki War Paint" {
+  oracle_id e01ab6d8-8419-436e-a8fb-10aa46ca3d05
+  cost {R}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static as long as attached is creature, enchanted: +2/+1
+}

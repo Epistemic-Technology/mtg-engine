@@ -1,0 +1,8 @@
+card "Crystallization" {
+  oracle_id 3e50d4c9-343b-42e7-b777-9d479e97e776
+  cost {G/U}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block
+  triggered when enchanted creature becomes targeted: exile that creature
+}

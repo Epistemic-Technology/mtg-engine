@@ -1,0 +1,8 @@
+card "Contaminated Ground" {
+  oracle_id 55e04860-f4f5-445b-81f2-b500fa9b456a
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: set land Swamp
+  triggered whenever enchanted land becomes tapped: its controller loses 2 life
+}

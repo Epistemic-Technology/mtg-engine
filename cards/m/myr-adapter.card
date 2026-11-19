@@ -1,0 +1,7 @@
+card "Myr Adapter" {
+  oracle_id 714f916a-10ac-4c54-b1c7-a97b7ad8b9e5
+  cost {3}
+  type Artifact Creature — Myr
+  pt 1/1
+  static this: +1/+1 count each Equipment attached to this
+}

@@ -1,0 +1,8 @@
+card "Gift of Wrath" {
+  oracle_id 9ba31dd0-d78e-4639-a550-bd72cac5898a
+  cost {3}{R}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static as long as attached is creature, enchanted: +2/+2, has menace
+  triggered when this leaves the battlefield: create 1 "2/2 red Spirit creature with menace"
+}

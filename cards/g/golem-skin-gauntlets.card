@@ -1,0 +1,7 @@
+card "Golem-Skin Gauntlets" {
+  oracle_id 2a956224-8bdb-40d8-8405-2aa29eb228e0
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +1/+0 count each Equipment attached to attached
+  equip {2}
+}

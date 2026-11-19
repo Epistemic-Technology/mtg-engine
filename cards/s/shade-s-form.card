@@ -1,0 +1,8 @@
+card "Shade's Form" {
+  oracle_id 682a6d77-e8cd-4bf2-b777-7793101e0fd3
+  cost {1}{B}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {B}: this gets +1/+1 }
+  triggered when enchanted creature dies: return triggering card to the battlefield under your control
+}

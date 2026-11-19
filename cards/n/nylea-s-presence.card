@@ -1,0 +1,8 @@
+card "Nylea's Presence" {
+  oracle_id 93fe5eed-520f-467a-8e27-6f40eaa727e8
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: draw 1 card
+  static enchanted: add land all
+}

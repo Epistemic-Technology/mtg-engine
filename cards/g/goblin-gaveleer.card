@@ -1,0 +1,8 @@
+card "Goblin Gaveleer" {
+  oracle_id 739621e6-e138-4ef9-87e8-c730b5a7f495
+  cost {R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  keywords trample
+  static this: +2/+0 count each Equipment attached to this
+}

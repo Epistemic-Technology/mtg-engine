@@ -1,0 +1,8 @@
+card "Short Circuit" {
+  oracle_id 5ea0e3a5-9c38-4da4-98a6-41c14be512d9
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant artifact or creature
+  static as long as attached is creature, enchanted: -3/-0, loses flying
+}

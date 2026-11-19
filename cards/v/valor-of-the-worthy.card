@@ -1,0 +1,8 @@
+card "Valor of the Worthy" {
+  oracle_id 84534792-7834-4a3c-9940-c1eccbe6e9cf
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  triggered when enchanted creature leaves the battlefield: create 1 "1/1 white Spirit creature with flying"
+}

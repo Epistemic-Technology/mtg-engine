@@ -1,0 +1,8 @@
+card "Arachnus Web" {
+  oracle_id 8b25f353-0798-4a03-a928-6a701a919468
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't activate
+  triggered at beginning of the end step if attached is with power 4 or greater: destroy this
+}

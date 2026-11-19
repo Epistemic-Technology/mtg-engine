@@ -711,6 +711,34 @@ fn per_count(
         return 0;
     };
     let n = match count {
+        // "for each Aura and Equipment attached to it": judged from the
+        // characteristics computed so far ("Aura or Equipment" needs no
+        // state, and asking for it here would compute them again).
+        CountExpr::Permanents(f) if f.attached_to.is_some() => {
+            let host = match f.attached_to {
+                Some(crate::card::AttachedTo::Source) => source,
+                Some(crate::card::AttachedTo::SourceHost) => {
+                    source.and_then(|s| state.objects.get(s)?.attached_to)
+                }
+                _ => None,
+            };
+            work.ids
+                .iter()
+                .filter(|id| {
+                    let o = &state.objects[**id];
+                    host.is_some()
+                        && o.attached_to == host
+                        && o.zone == Zone::Battlefield
+                        && f.matches(
+                            **id,
+                            work.controller_of(**id),
+                            &work.chars[work.index[*id]],
+                            source,
+                            Some(you),
+                        )
+                })
+                .count()
+        }
         CountExpr::Permanents(f) => work
             .matching(&same_filled(work, f, source), source, Some(you))
             .len(),

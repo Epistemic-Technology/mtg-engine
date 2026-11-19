@@ -1,0 +1,7 @@
+card "Gift of the Woods" {
+  oracle_id 491c6f69-9b75-4d5d-b41f-a14b2fbfdd07
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature blocks or becomes blocked: it gets +0/+3 and you gain 1 life
+}

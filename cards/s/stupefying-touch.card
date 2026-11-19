@@ -1,0 +1,8 @@
+card "Stupefying Touch" {
+  oracle_id 566eafea-c8c2-43d6-b491-f20de276cdb6
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: draw 1 card
+  static enchanted: has can't activate
+}

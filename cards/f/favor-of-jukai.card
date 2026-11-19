@@ -1,0 +1,8 @@
+card "Favor of Jukai" {
+  oracle_id 08af6fdc-4068-4652-b1fc-cda5309c7b71
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static as long as attached is creature, enchanted: +3/+3, has reach
+  label "Channel" activated {1}{G}, discard this: target creature gets +3/+3 and gains reach
+}

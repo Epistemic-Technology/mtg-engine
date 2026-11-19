@@ -1,0 +1,7 @@
+card "Chronic Flooding" {
+  oracle_id 474db5db-914e-474d-b0c2-7987d5986dc3
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land becomes tapped: its controller mills 3 cards
+}

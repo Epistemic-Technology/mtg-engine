@@ -1,0 +1,8 @@
+card "Sticky Fingers" {
+  oracle_id fa8ddc13-5108-4fe9-b3aa-dc28df476f7b
+  cost {R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has menace, has ability { triggered whenever this deals combat damage to a player: create 1 "Treasure" }
+  triggered when enchanted creature dies: draw 1 card
+}

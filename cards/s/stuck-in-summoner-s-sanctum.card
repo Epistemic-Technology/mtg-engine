@@ -1,0 +1,9 @@
+card "Stuck in Summoner's Sanctum" {
+  oracle_id 84d308ce-c3c5-4612-accc-6e6cc68a33be
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant artifact or creature
+  triggered when this enters: tap enchanted permanent
+  static enchanted: has doesn't untap, can't activate
+}

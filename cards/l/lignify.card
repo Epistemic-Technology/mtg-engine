@@ -1,0 +1,7 @@
+card "Lignify" {
+  oracle_id 63625b26-3a19-4c3c-b18a-91247bb2a40c
+  cost {1}{G}
+  type Kindred Enchantment — Treefolk Aura
+  enchant creature
+  static enchanted: set subtype Treefolk, base 0/4, loses all abilities
+}

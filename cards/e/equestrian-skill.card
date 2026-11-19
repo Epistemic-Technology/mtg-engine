@@ -1,0 +1,8 @@
+card "Equestrian Skill" {
+  oracle_id 8c8c12ff-24ff-4279-9bde-da8899d2c2d5
+  cost {3}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+  static as long as attached is Human, enchanted: has trample
+}

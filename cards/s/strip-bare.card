@@ -1,0 +1,6 @@
+card "Strip Bare" {
+  oracle_id 957e8ded-90e7-4bc6-98c1-eb6af1fd0ce5
+  cost {W}
+  type Instant
+  spell: destroy all Aura or Equipment attached to target creature
+}

@@ -1,0 +1,8 @@
+card "Squee's Embrace" {
+  oracle_id 095f8dac-15b8-4c28-ae33-6dc71152bcc7
+  cost {R}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2
+  triggered when enchanted creature dies: return triggering card to hand
+}

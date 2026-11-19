@@ -1,0 +1,8 @@
+card "Tormentor's Helm" {
+  oracle_id 4f5f0988-0b1f-4f4b-bcee-cc76fa484d9e
+  cost {R}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  triggered whenever equipped creature becomes blocked: it deals 1 damage to that defending player
+  equip {1}
+}

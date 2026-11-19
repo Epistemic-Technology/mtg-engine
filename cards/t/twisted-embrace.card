@@ -1,0 +1,8 @@
+card "Twisted Embrace" {
+  oracle_id 2e29efee-1eed-4bef-8574-0f6ff99d3cda
+  cost {2}{B}{B}
+  type Enchantment — Aura
+  enchant artifact or creature you control
+  triggered when this enters: destroy target creature or planeswalker an opponent controls
+  static as long as attached is creature, enchanted: +1/+1
+}

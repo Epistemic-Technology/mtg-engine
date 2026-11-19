@@ -1,0 +1,8 @@
+card "S.H.I.E.L.D. Spy Kit" {
+  oracle_id 6fd44fb9-3433-4cb0-95a4-4ac8170b2166
+  cost {W}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  triggered whenever equipped creature attacks alone: untap it and scry 1
+  equip {1}
+}

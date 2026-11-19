@@ -1,0 +1,7 @@
+card "Arrest" {
+  oracle_id 81728b98-8cf9-4734-a318-69184bb4d15c
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack, can't block, can't activate
+}

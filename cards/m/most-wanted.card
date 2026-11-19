@@ -1,0 +1,9 @@
+card "Most Wanted" {
+  oracle_id 140d38cc-0ae6-4e9b-a60f-a51d2947e07b
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+1
+  triggered when enchanted creature dies: create 2 "Treasure"
+}

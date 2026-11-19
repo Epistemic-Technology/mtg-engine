@@ -1,0 +1,8 @@
+card "Flamespeaker's Will" {
+  oracle_id 3abc09a9-3baa-45ff-b048-53e42d4fa9f2
+  cost {R}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: +1/+1
+  triggered whenever enchanted creature deals combat damage to a player: you may sacrifice this; if you do, destroy target artifact
+}

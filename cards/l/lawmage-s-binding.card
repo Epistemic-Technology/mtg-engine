@@ -1,0 +1,8 @@
+card "Lawmage's Binding" {
+  oracle_id 10f0e797-3887-4c2b-9cff-80f110b952e1
+  cost {1}{W}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has can't attack, can't block, can't activate
+}

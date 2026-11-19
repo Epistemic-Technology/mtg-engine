@@ -1,0 +1,8 @@
+card "Soul-Strike Technique" {
+  oracle_id 2a6b32cd-a0f5-4e3e-9069-b525d485f84f
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has vigilance
+  triggered when enchanted creature dies: manifest the top card of your library
+}

@@ -1,0 +1,8 @@
+card "Goldvein Pick" {
+  oracle_id c1624d10-8838-4af8-aea1-a96c0fe6fd6b
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  triggered whenever equipped creature deals combat damage to a player: create 1 "Treasure"
+  equip {1}
+}

@@ -290,6 +290,13 @@ pub enum Keyword {
     /// "This creature can attack as though it didn't have defender." (CR
     /// 702.3b): defender doesn't stop it attacking.
     AttackDespiteDefender,
+    /// "Its activated abilities can't be activated" (Arrest): a
+    /// restriction kept with the keywords, covering mana abilities too
+    /// (CR 605.1a, 602.5).
+    CantActivate,
+    /// "Its activated abilities can't be activated unless they're mana
+    /// abilities" (Realmbreaker's Grasp).
+    CantActivateNonMana,
 }
 
 /// The pool's built-in triggered abilities that aren't keywords on a
@@ -409,7 +416,7 @@ impl KeywordSet {
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 60] = [
+    pub const ALL: [Keyword; 62] = [
         Keyword::Deathtouch,
         Keyword::Defender,
         Keyword::DoubleStrike,
@@ -470,6 +477,8 @@ impl Keyword {
         Keyword::BlockAdditional,
         Keyword::BlockAny,
         Keyword::AttackDespiteDefender,
+        Keyword::CantActivate,
+        Keyword::CantActivateNonMana,
     ];
 
     /// The keyword as Oracle prints it.
@@ -535,6 +544,10 @@ impl Keyword {
             Keyword::BlockAdditional => "can block an additional creature each combat",
             Keyword::BlockAny => "can block any number of creatures",
             Keyword::AttackDespiteDefender => "can attack as though it didn't have defender",
+            Keyword::CantActivate => "its activated abilities can't be activated",
+            Keyword::CantActivateNonMana => {
+                "its activated abilities can't be activated unless they're mana abilities"
+            }
         }
     }
 
@@ -926,6 +939,24 @@ pub struct ObjFilter {
     /// name (CR 201.2), so the definition stands for the name; tokens of
     /// different definitions that share a name are not recognized as such.
     pub named: Option<(CardRef, bool)>,
+    /// "attached to it" (CR 301.5, 303.4): the object must be attached to
+    /// this. Judged where the source and targets are known (a count, a
+    /// group of an effect); elsewhere it doesn't restrict.
+    pub attached_to: Option<AttachedTo>,
+}
+
+/// What an object a filter matches must be attached to.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum AttachedTo {
+    /// The source ("for each Aura and Equipment attached to it" on a
+    /// creature).
+    Source,
+    /// What the source is attached to ("for each Equipment attached to
+    /// it" on an Equipment: the equipped creature).
+    SourceHost,
+    /// The `n`th target ("Destroy all Equipment attached to that
+    /// creature").
+    Target(u8),
 }
 
 /// What a filter's `same` relates the object to (CR 201.2: "named ~" is
@@ -1989,6 +2020,15 @@ pub enum Recipient {
     Source,
     /// The object whose action triggered the ability ("that creature").
     TriggeringObject,
+    /// The card the triggering object became by the zone change that
+    /// triggered the ability ("When enchanted creature dies, return that
+    /// card to its owner's hand"): only that new object, while it exists
+    /// (CR 400.7).
+    TriggeringCard,
+    /// The controller of the triggering object, as it last existed on the
+    /// battlefield if it has left ("When enchanted creature dies, its
+    /// controller draws a card", "that creature's controller").
+    TriggeringController,
     /// The player whose action triggered the ability ("that player", or the
     /// active player for "at the beginning of each player's ..." triggers).
     TriggeringPlayer,
@@ -2279,6 +2319,14 @@ pub enum Effect {
         source: Recipient,
         to: Recipient,
     },
+    /// `source` (an object other than the ability's source) deals `amount`
+    /// damage to `to` (CR 120.3): "Whenever equipped creature becomes
+    /// blocked, it deals 1 damage to defending player."
+    DamageFrom {
+        source: Recipient,
+        amount: Num,
+        to: Recipient,
+    },
     /// Exile every card in every graveyard.
     ExileAllGraveyards,
     /// Create a replacement or prevention effect that lasts until end of
@@ -2436,10 +2484,14 @@ pub enum Effect {
         what: Recipient,
     },
     /// Return a card from exile or a graveyard to the battlefield under its
-    /// owner's control, optionally with counters on it.
+    /// owner's control (or, `under_you`, the ability's controller's:
+    /// "return that card to the battlefield under your control"),
+    /// optionally tapped or with counters on it.
     ReturnToBattlefield {
         what: Recipient,
         counters: Option<(CounterKind, u32)>,
+        tapped: bool,
+        under_you: bool,
     },
     /// The ability's source becomes a copy of the recipient (CR 707),
     /// keeping its own definition's `copy_except` if `except`.
@@ -4418,6 +4470,8 @@ impl CardPool {
                 effects: vec![Effect::ReturnToBattlefield {
                     what: Recipient::Source,
                     counters: Some((kind, 1)),
+                    tapped: false,
+                    under_you: false,
                 }],
             }));
             if slot == 0 {

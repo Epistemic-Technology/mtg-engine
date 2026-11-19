@@ -1,0 +1,7 @@
+card "Suppression Bonds" {
+  oracle_id e844ded0-821a-4378-8f58-bf1e1c0269d5
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant nonland permanent
+  static enchanted: has can't attack, can't block, can't activate
+}

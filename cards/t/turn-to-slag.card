@@ -1,0 +1,6 @@
+card "Turn to Slag" {
+  oracle_id 4339f621-8502-4433-a37a-654591ca1b43
+  cost {3}{R}{R}
+  type Sorcery
+  spell: deal 5 damage to target creature; destroy all Equipment attached to that target 1
+}

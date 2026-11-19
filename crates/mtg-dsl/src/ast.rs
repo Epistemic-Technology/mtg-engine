@@ -335,6 +335,23 @@ pub struct Filter {
     /// named ~ on the battlefield", "creature named ~ you control") rather
     /// than after it ("creature you control named ~").
     pub named_first: bool,
+    /// `attached to this`, `attached to attached`, `attached to target 1`
+    /// (`ObjFilter::attached_to`).
+    pub attached_to: Option<AttachedRef>,
+}
+
+/// What a filter's objects must be attached to.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum AttachedRef {
+    /// `attached to this`: "attached to it" (the source).
+    Source,
+    /// `attached to attached` (or `enchanted creature`, `equipped
+    /// creature`): "attached to it", the source's host.
+    Host,
+    /// `attached to target 1`: the target, "it" after its first mention.
+    Target(usize),
+    /// `attached to that target 1`: "attached to that creature".
+    ThatTarget(usize),
 }
 
 /// A filter's relation to the source or a target.
@@ -1193,6 +1210,12 @@ pub enum Mod {
     /// types".
     AddChosenType,
     AddSubtype(String),
+    /// `set subtype Spirit`: "is a Spirit" (it loses its other creature
+    /// types, CR 205.1b).
+    SetSubtype(String),
+    /// `add land all`: "is every basic land type in addition to its other
+    /// types".
+    AddAllLandTypes,
     Control,
     AddColors(Vec<Color>),
     SetColors(Vec<Color>),
@@ -1274,11 +1297,26 @@ pub enum Recipient {
     /// its first mention ("If this spell was kicked, it deals 2 damage").
     SourceIt,
     TriggeringObject,
+    /// `triggering card`: the card the triggering object became, "that
+    /// card" ("When enchanted creature dies, return that card to its
+    /// owner's hand").
+    TriggeringCard,
+    /// `its controller` in a triggered ability with no targets: the
+    /// triggering object's controller ("When enchanted creature dies, its
+    /// controller draws a card"); `controller of that creature` (`that`)
+    /// prints "that creature's controller" (or "that land's").
+    TriggeringController {
+        that: bool,
+    },
     /// The triggering object written `it` in a triggered ability ("Whenever
     /// another creature you control attacks, it gets +0/+1").
     TriggeringIt,
     TriggeringPlayer,
     DefendingPlayer,
+    /// `that defending player`: the defending player, printed "defending
+    /// player" where `defending player` as an object prints "the player
+    /// or planeswalker it's attacking" (Tormentor's Helm's older wording).
+    DefendingPlayerWord,
     EachCreature,
     EachPlayer,
     EachCreatureYouControl,
@@ -1378,9 +1416,12 @@ pub enum Effect {
     ReturnToHand {
         what: Vec<Recipient>,
     },
+    /// `return that card to battlefield tapped under your control`.
     ReturnToBattlefield {
         what: Recipient,
         counters: Option<(CounterKind, u32)>,
+        tapped: bool,
+        under_you: bool,
     },
     Regenerate {
         to: Recipient,

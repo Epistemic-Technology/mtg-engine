@@ -155,6 +155,15 @@ impl Decompiler<'_> {
                 }
             }),
             named_first: false,
+            attached_to: f.attached_to.map(|a| {
+                use crate::ast::AttachedRef;
+                use mtg_core::card::AttachedTo;
+                match a {
+                    AttachedTo::Source => AttachedRef::Source,
+                    AttachedTo::SourceHost => AttachedRef::Host,
+                    AttachedTo::Target(n) => AttachedRef::Target(usize::from(n)),
+                }
+            }),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(crate::ast::Targeting {
@@ -354,6 +363,8 @@ impl Decompiler<'_> {
             CoreRecipient::EachOpponent => Recipient::EachOpponent,
             CoreRecipient::Source => Recipient::Source,
             CoreRecipient::TriggeringObject => Recipient::TriggeringObject,
+            CoreRecipient::TriggeringCard => Recipient::TriggeringCard,
+            CoreRecipient::TriggeringController => Recipient::TriggeringController { that: false },
             CoreRecipient::TriggeringPlayer => Recipient::TriggeringPlayer,
             CoreRecipient::DefendingPlayer => Recipient::DefendingPlayer,
             CoreRecipient::ControllerOf(i) => Recipient::ControllerOf(i),
@@ -470,9 +481,16 @@ impl Decompiler<'_> {
             CoreEffect::ReturnToHand { what } => Effect::ReturnToHand {
                 what: vec![r(*what)],
             },
-            CoreEffect::ReturnToBattlefield { what, counters } => Effect::ReturnToBattlefield {
+            CoreEffect::ReturnToBattlefield {
+                what,
+                counters,
+                tapped,
+                under_you,
+            } => Effect::ReturnToBattlefield {
                 what: r(*what),
                 counters: *counters,
+                tapped: *tapped,
+                under_you: *under_you,
             },
             CoreEffect::Regenerate { to } => Effect::Regenerate { to: r(*to) },
             CoreEffect::Exile { what } => Effect::Exile {
@@ -585,6 +603,14 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
             CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
+            CoreEffect::DamageFrom { source, amount, to } => Effect::DealDamage {
+                amount: *amount,
+                to: vec![r(*to)],
+                by: match source {
+                    CoreRecipient::TriggeringObject => Recipient::TriggeringIt,
+                    other => r(*other),
+                },
+            },
             CoreEffect::Bite { source, to } => Effect::Bite {
                 source: r(*source),
                 to: r(*to),
@@ -992,10 +1018,9 @@ impl Decompiler<'_> {
             Modification::SetLandType(c) => Mod::SetLandType(*c),
             Modification::ChosenLandType => Mod::ChosenLandType,
             Modification::AddChosenType => Mod::AddChosenType,
-            // No static ability sets a creature type (only `OfChoice`
-            // effects do); the nearest the syntax has.
-            Modification::AddSubtype(s) | Modification::SetCreatureType(s) => {
-                Mod::AddSubtype(self.pool.subtype_name(*s).to_string())
+            Modification::AddSubtype(s) => Mod::AddSubtype(self.pool.subtype_name(*s).to_string()),
+            Modification::SetCreatureType(s) => {
+                Mod::SetSubtype(self.pool.subtype_name(*s).to_string())
             }
             Modification::Control => Mod::Control,
             Modification::AddColors(c) => Mod::AddColors(colors(*c)),

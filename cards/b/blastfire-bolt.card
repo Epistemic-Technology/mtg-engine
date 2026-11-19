@@ -1,0 +1,6 @@
+card "Blastfire Bolt" {
+  oracle_id dcddeac9-8de7-4347-a956-522f4f2fc63b
+  cost {5}{R}
+  type Instant
+  spell: deal 5 damage to target creature; destroy all Equipment attached to that target 1
+}

@@ -1,0 +1,7 @@
+card "Armory of Iroas" {
+  oracle_id 7ac1aab0-9d2d-4fb7-b0bb-0af3e6d665db
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever equipped creature attacks: put 1 +1/+1 counter on it
+  equip {2}
+}

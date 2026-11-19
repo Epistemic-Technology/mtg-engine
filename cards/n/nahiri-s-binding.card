@@ -1,0 +1,7 @@
+card "Nahiri's Binding" {
+  oracle_id 8f674382-78b5-462c-9a7f-c5f613c317d4
+  cost {1}{W}{W}
+  type Enchantment — Aura
+  enchant creature or planeswalker
+  static enchanted: has can't attack, can't block, can't activate
+}

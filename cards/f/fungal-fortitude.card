@@ -1,0 +1,9 @@
+card "Fungal Fortitude" {
+  oracle_id cf73d2e7-584f-41d0-8fc7-50d886dcf9fe
+  cost {1}{B}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+0
+  triggered when enchanted creature dies: return it to the battlefield tapped under its owner's control
+}

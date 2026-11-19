@@ -1,0 +1,8 @@
+card "Hawkeye's Bow" {
+  oracle_id 83798eb8-b14f-4620-bce2-1a6804a24dc7
+  cost {R}
+  type Artifact — Equipment
+  static equipped creature: +1/+0, has reach
+  triggered whenever equipped creature becomes tapped: it deals 1 damage to each opponent
+  equip {1}
+}

@@ -1,0 +1,8 @@
+card "Goblin Shrine" {
+  oracle_id 5e35df8a-2404-4b3b-888a-25d663bd4383
+  cost {1}{R}{R}
+  type Enchantment — Aura
+  enchant land
+  static as long as attached is basic Mountain, Goblin creature: +1/+0
+  triggered when this leaves the battlefield: deal 1 damage to each Goblin creature
+}

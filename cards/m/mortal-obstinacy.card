@@ -1,0 +1,8 @@
+card "Mortal Obstinacy" {
+  oracle_id ea29c489-bd04-4f36-8b59-bccaac153152
+  cost {W}
+  type Enchantment — Aura
+  enchant creature you control
+  static enchanted: +1/+1
+  triggered whenever enchanted creature deals combat damage to a player: you may sacrifice this; if you do, destroy target enchantment
+}

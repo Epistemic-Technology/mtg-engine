@@ -1,0 +1,7 @@
+card "Seizures" {
+  oracle_id 550921f5-ec65-460d-9ada-f2c5a4c4b2c4
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature becomes tapped: deal 3 damage to controller of that creature unless that player pays {3}
+}

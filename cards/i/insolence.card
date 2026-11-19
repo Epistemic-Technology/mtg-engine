@@ -1,0 +1,7 @@
+card "Insolence" {
+  oracle_id 33a6d78a-a3c7-44f1-8ce9-d6632123fec1
+  cost {2}{R}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature becomes tapped: deal 2 damage to controller of that creature
+}
