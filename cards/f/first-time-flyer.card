@@ -1,0 +1,8 @@
+card "First-Time Flyer" {
+  oracle_id cbbea4e2-4b36-4965-89b6-00d2a564f146
+  cost {1}{U}
+  type Creature — Human Pilot Ally
+  pt 1/2
+  keywords flying
+  static this: +1/+1 as long as there's Lesson card in your graveyard
+}

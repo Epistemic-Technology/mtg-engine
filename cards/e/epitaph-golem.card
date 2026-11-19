@@ -1,0 +1,7 @@
+card "Epitaph Golem" {
+  oracle_id e3483dd4-0118-4143-9b55-51078a6f274a
+  cost {5}
+  type Artifact Creature — Golem
+  pt 3/5
+  activated {2}: put target card from your graveyard on bottom of library
+}

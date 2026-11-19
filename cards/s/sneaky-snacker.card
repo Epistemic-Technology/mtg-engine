@@ -1,0 +1,8 @@
+card "Sneaky Snacker" {
+  oracle_id f255492e-4e12-48b4-9c19-8a2a2780a1b7
+  cost {U}{B}
+  type Creature — Faerie Rogue
+  pt 2/1
+  keywords flying
+  triggered from graveyard when you draw your third card in a turn: return this to battlefield tapped
+}

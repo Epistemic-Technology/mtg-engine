@@ -1,0 +1,6 @@
+card "Brainstorm" {
+  oracle_id 36cd2364-d113-47d1-b2c4-b088d9eb88dd
+  cost {U}
+  type Instant
+  spell: draw 3 cards then put 2 cards from hand on top of library
+}

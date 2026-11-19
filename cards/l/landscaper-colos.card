@@ -1,0 +1,8 @@
+card "Landscaper Colos" {
+  oracle_id 144bef8b-3583-4e98-9285-a1965e7e17f8
+  cost {5}{W}
+  type Creature — Goat Beast
+  pt 4/6
+  triggered when this enters: put target card from an opponent's graveyard on bottom of library
+  basic landcycling {1}{W}
+}

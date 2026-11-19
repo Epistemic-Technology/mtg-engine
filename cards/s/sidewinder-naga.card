@@ -1,0 +1,7 @@
+card "Sidewinder Naga" {
+  oracle_id 92247856-35a4-4c1d-90bc-fa0d28524ecd
+  cost {2}{G}
+  type Creature — Snake Warrior
+  pt 3/2
+  static as long as you control Desert or there is Desert card in your graveyard, this: +1/+0, has trample
+}

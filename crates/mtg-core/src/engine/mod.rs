@@ -466,6 +466,7 @@ impl GameState {
             turn_log: crate::state::TurnLog::default(),
             exile_casts: None,
             suspended_count: 0,
+            graveyard_trigger_cards: 0,
             enters_choice_cards: 0,
             spells_last_turn: [0; 4],
             active_player: starting_player,

@@ -768,6 +768,9 @@ pub enum Ability {
         condition: Option<TrigCond>,
         targets: Vec<Target>,
         effects: Vec<Sentence>,
+        /// `triggered from graveyard ...`: works only while the card is
+        /// in its owner's graveyard (CR 113.6k).
+        from_graveyard: bool,
     },
     Replacement(Replacement),
     Static {
@@ -993,6 +996,21 @@ pub enum BlockRule {
     CantBlock(Filter),
 }
 
+/// How a graveyard-card condition is worded.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum GraveyardWording {
+    /// "there are two or more creature cards in your graveyard".
+    ThereAre,
+    /// "you have four or more creature cards in your graveyard".
+    YouHave,
+    /// "there is a land card in your graveyard".
+    ThereIs,
+    /// "there's a Lesson card in your graveyard".
+    Theres,
+    /// "an artifact card is in your graveyard".
+    IsIn,
+}
+
 /// What a conditional static ability checks.
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[allow(clippy::large_enum_variant)] // a syntax tree, not a hot structure
@@ -1111,12 +1129,18 @@ pub enum StaticCond {
     /// `2 instant or sorcery cards in your graveyard`: "there are two or
     /// more instant and/or sorcery cards in your graveyard"; `you have 4
     /// creature cards in your graveyard`: "you have four or more creature
-    /// cards in your graveyard".
+    /// cards in your graveyard"; `there is land card in your graveyard`:
+    /// "there is a land card in your graveyard" (`there's` prints
+    /// "there's a"); `1 artifact card is in your graveyard`: "an artifact
+    /// card is in your graveyard".
     GraveyardCards {
         filter: Filter,
         at_least: u32,
-        have: bool,
+        wording: GraveyardWording,
     },
+    /// `you control Desert or there is Desert card in your graveyard`:
+    /// either holds.
+    Or(Box<StaticCond>, Box<StaticCond>),
     /// `opponent graveyard 8 or more`: "an opponent has eight or more
     /// cards in their graveyard".
     OpponentGraveyard(u32),
@@ -1538,10 +1562,12 @@ pub enum Trigger {
     },
     /// `when this exploits a creature` (CR 702.110).
     Exploits,
-    /// `whenever you draw your second card each turn`.
+    /// `whenever you draw your second card each turn`; `... card in a
+    /// turn` prints that way ("When you draw your third card in a turn").
     DrawsNth {
         whose: Who,
         n: u8,
+        in_a_turn: bool,
     },
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
@@ -1824,12 +1850,15 @@ pub enum Effect {
     ReturnToHand {
         what: Vec<Recipient>,
     },
-    /// `return that card to battlefield tapped under your control`.
+    /// `return that card to battlefield tapped under your control`;
+    /// `return this to battlefield attached to triggering object`: "...
+    /// to the battlefield attached to that creature" (an Aura, CR 303.4f).
     ReturnToBattlefield {
         what: Recipient,
         counters: Option<(CounterKind, u32)>,
         tapped: bool,
         under_you: bool,
+        attached: Option<Recipient>,
     },
     Regenerate {
         to: Recipient,
@@ -2065,6 +2094,16 @@ pub enum Effect {
     Discard {
         count: Num,
         who: Option<Recipient>,
+    },
+    /// `put 1 card from hand on bottom of library`: "put a card from your
+    /// hand on the bottom of your library"; `target opponent puts 1 card
+    /// from hand on top of library`: "Target opponent puts a card from
+    /// their hand on top of their library". Two or more on top print "in
+    /// any order". `who` is `None` for the imperative.
+    HandToLibrary {
+        count: Num,
+        who: Option<Recipient>,
+        bottom: bool,
     },
     Fight {
         a: Recipient,

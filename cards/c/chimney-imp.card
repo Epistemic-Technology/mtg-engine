@@ -1,0 +1,8 @@
+card "Chimney Imp" {
+  oracle_id 3901bf30-b7c1-4977-a7b1-fcdafcc266cd
+  cost {4}{B}
+  type Creature — Imp
+  pt 1/2
+  keywords flying
+  triggered when this dies: target opponent puts 1 card from hand on top of library
+}

@@ -875,9 +875,24 @@ impl GameState {
             Effect::Discard {
                 who: crate::card::Recipient::You,
                 ..
+            }
+            | Effect::HandToLibrary {
+                who: crate::card::Recipient::You,
+                ..
             } => !self.player(ctx.controller).hand.is_empty(),
             _ => true,
         }
+    }
+
+    /// An ability of a card in a graveyard ("return this card from your
+    /// graveyard to your hand") whose card has since left it: the card is
+    /// a new object elsewhere (CR 400.7) and the ability can't find it.
+    fn source_left_graveyard(&self, ctx: &EffectCtx) -> bool {
+        !self.objects.contains_key(ctx.source)
+            && self
+                .lki
+                .get(&ctx.source)
+                .is_some_and(|l| l.object.zone == Zone::Graveyard)
     }
 
     /// `p` discards `n` cards of their choice (CR 701.9), one at a time.
@@ -4623,6 +4638,9 @@ impl GameState {
                 }
             }
             Effect::ReturnToHand { what } => {
+                if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
+                    return;
+                }
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else {
                         continue;
@@ -4960,6 +4978,40 @@ impl GameState {
                     }
                     let n = self.eval_num(*count, ctx);
                     self.discard_n(p, n);
+                }
+            }
+            Effect::HandToLibrary { count, who, bottom } => {
+                let place = if *bottom {
+                    crate::card::LibraryPlace::Bottom
+                } else {
+                    crate::card::LibraryPlace::Top
+                };
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    // "If you do" (Fire Prophecy): a card was put back.
+                    if self.player(p).hand.is_empty() {
+                        ctx.did = false;
+                    }
+                    for _ in 0..self.eval_num(*count, ctx) {
+                        let options: Vec<Choice> = self
+                            .player(p)
+                            .hand
+                            .iter()
+                            .map(|id| Choice::Discard {
+                                card: *id,
+                                def: self.objects[*id].def,
+                            })
+                            .collect();
+                        if options.is_empty() {
+                            break;
+                        }
+                        let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                        if let Choice::Discard { card, .. } = options[k] {
+                            self.put_in_library(card, place);
+                        }
+                    }
                 }
             }
             Effect::Fight { a, b } => {
@@ -6027,7 +6079,26 @@ impl GameState {
                 counters,
                 tapped,
                 under_you,
+                attached,
             } => {
+                if *what == crate::card::Recipient::Source && self.source_left_graveyard(ctx) {
+                    return;
+                }
+                // CR 303.4f: "attached to that creature": the host must
+                // still be on the battlefield (CR 303.4g).
+                let host = match attached {
+                    Some(r) => {
+                        let Some(h) = self
+                            .recipients(ctx, *r)
+                            .into_iter()
+                            .find_map(|t| on_battlefield(self, t))
+                        else {
+                            return;
+                        };
+                        Some(h)
+                    }
+                    None => None,
+                };
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else {
                         continue;
@@ -6038,6 +6109,18 @@ impl GameState {
                     if !matches!(o.zone, Zone::Exile | Zone::Graveyard) {
                         continue;
                     }
+                    // CR 303.4g: an Aura that can't legally enchant the
+                    // host stays where it is.
+                    if let Some(h) = host {
+                        let spec = self
+                            .pool
+                            .get(o.def)
+                            .enchant()
+                            .unwrap_or(TargetSpec::Creature);
+                        if !self.is_legal_attachment(spec, h) {
+                            continue;
+                        }
+                    }
                     let controller = if *under_you { ctx.controller } else { o.owner };
                     let new = self.put_onto_battlefield_with(
                         id,
@@ -6047,6 +6130,16 @@ impl GameState {
                             counters: *counters,
                         },
                     );
+                    if let Some(h) = host
+                        && self
+                            .objects
+                            .get(new)
+                            .is_some_and(|o| o.zone == Zone::Battlefield)
+                        && self.objects.contains_key(h)
+                    {
+                        self.objects[new].attached_to = Some(h);
+                        self.cbump();
+                    }
                     ctx.created = Some(new);
                 }
             }

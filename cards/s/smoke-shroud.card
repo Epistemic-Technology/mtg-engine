@@ -1,0 +1,8 @@
+card "Smoke Shroud" {
+  oracle_id a621c5f6-c1c6-4bc9-88b1-f459efa07a39
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has flying
+  triggered from graveyard when Ninja you control enters: you may return this to battlefield attached to that creature
+}

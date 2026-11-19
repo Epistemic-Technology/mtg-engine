@@ -1,0 +1,8 @@
+card "Hoarding Recluse" {
+  oracle_id 5fc09704-56cf-4e47-bd96-27ac34434941
+  cost {3}{G}
+  type Creature — Spider
+  pt 2/3
+  keywords reach, deathtouch
+  triggered when this dies: put up to 1 another target card from a graveyard on bottom of library
+}

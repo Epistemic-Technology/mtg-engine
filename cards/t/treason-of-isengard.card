@@ -1,0 +1,9 @@
+card "Treason of Isengard" {
+  oracle_id b04ef0bd-5e96-45d4-afa8-1f3bc8544e1a
+  cost {2}{U}
+  type Sorcery
+  spell {
+  put up to 1 target instant or sorcery card from your graveyard on top of library
+  amass Orcs 2
+  }
+}

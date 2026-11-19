@@ -1,0 +1,9 @@
+card "Dragon Wings" {
+  oracle_id 85271333-af96-447a-8a16-9fadf0eaedb2
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has flying
+  cycling {1}{U}
+  triggered from graveyard when creature with mana value 6 or greater enters: you may return this to battlefield attached to that creature
+}

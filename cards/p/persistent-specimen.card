@@ -1,0 +1,7 @@
+card "Persistent Specimen" {
+  oracle_id 5f4ad578-f2c4-47f6-8080-8fbc17383f6f
+  cost {B}
+  type Creature — Skeleton
+  pt 1/1
+  activated {2}{B}, from graveyard: return this to battlefield tapped
+}

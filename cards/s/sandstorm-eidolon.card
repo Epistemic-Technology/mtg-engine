@@ -1,0 +1,8 @@
+card "Sandstorm Eidolon" {
+  oracle_id 84fe1c59-3f7b-4c1c-9bc4-78a185cfcc0c
+  cost {3}{R}
+  type Creature — Spirit
+  pt 2/2
+  activated {R}, sacrifice this: target creature can't block this turn
+  triggered from graveyard whenever you cast multicolored spell: you may return this to hand
+}

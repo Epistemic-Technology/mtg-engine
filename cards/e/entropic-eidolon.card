@@ -1,0 +1,8 @@
+card "Entropic Eidolon" {
+  oracle_id be5f788a-8a2e-447c-9e65-f9fc197ddfc9
+  cost {3}{B}
+  type Creature — Spirit
+  pt 2/2
+  activated {B}, sacrifice this: target player loses 1 life and you gain 1 life
+  triggered from graveyard whenever you cast multicolored spell: you may return this to hand
+}

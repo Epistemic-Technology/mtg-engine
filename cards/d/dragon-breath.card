@@ -1,0 +1,9 @@
+card "Dragon Breath" {
+  oracle_id 3535daf2-7dce-4fda-92ce-ad2a1ee95197
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has haste
+  activated {R}: enchanted creature gets +1/+0
+  triggered from graveyard when creature with mana value 6 or greater enters: you may return this to battlefield attached to that creature
+}

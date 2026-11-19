@@ -1,0 +1,8 @@
+card "Unquenchable Thirst" {
+  oracle_id 5f55d41a-ef93-4d4f-ab55-13ea887e7af2
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: if you control Desert or there is Desert card in your graveyard, tap enchanted creature
+  static enchanted: has doesn't untap during its controller's untap step
+}

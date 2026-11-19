@@ -1,0 +1,8 @@
+card "Dragon Fangs" {
+  oracle_id 0131d2ac-d677-45fd-9729-a5428139cb5b
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has trample
+  triggered from graveyard when creature with mana value 6 or greater enters: you may return this to battlefield attached to that creature
+}

@@ -261,7 +261,11 @@ more cards this turn").
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 `2 instant or sorcery cards in your graveyard` ("there are two or more
 instant and/or sorcery cards in your graveyard"; any card filter), `you
-have 4 creature cards in your graveyard`, `5 mana values in your
+have 4 creature cards in your graveyard`, `there is land card in your
+graveyard` ("there is a land card in your graveyard"; `there's Lesson card
+in your graveyard` prints "there's a"), `1 artifact card is in your
+graveyard` ("an artifact card is in your graveyard"), `you control Desert
+or there is Desert card in your graveyard` (either holds), `5 mana values in your
 graveyard`, `opponent graveyard 8 or more` ("an opponent has eight or more
 cards in their graveyard"), `opponent controls Human`, `this is untapped`,
 `this is Wall` ("it's untapped", "it's a Wall"), `modified` ("it's
@@ -388,7 +392,8 @@ target as it resolves, or last existed); `also` after the comma prints
 legendary"), a keyword prints "has" ("If that creature has infect"), and
 a graveyard card target adds "card" ("If it's a Zombie card").
 Trigger `whenever you draw your second card each turn` (or `an opponent
-draws their second card each turn`).
+draws their second card each turn`); `card in a turn` prints "When you
+draw your third card in a turn".
 Steps: `at beginning of your combat` ("At the beginning of combat on your
 turn"), `your first main`, `your second main` ("... your second main
 phase"). Recipient `controller of that target 1` ("that artifact's
@@ -438,6 +443,22 @@ spells". `defending player` as a subject prints "defending player".
 
 Cost item `from graveyard`: activated from the graveyard ("Return this
 card from your graveyard to your hand." for `return this to hand`).
+`triggered from graveyard <trigger>: ...` is a triggered ability that
+works only while the card is in its owner's graveyard (CR 113.6k),
+controlled by its owner; `return this to hand` / `return this to
+battlefield tapped` in it print "return this card from your graveyard to
+...". A card in a graveyard sees no event that put it there (CR 400.7),
+and once it leaves the graveyard the ability can't return it. `return this
+to battlefield attached to that creature` (an Aura, CR 303.4f): "...
+attached to that creature"; nothing happens if that creature is gone or
+can't be enchanted by it (CR 303.4g).
+Cards from hand into a library: `put 1 card from hand on bottom of
+library` ("put a card from your hand on the bottom of your library"),
+`put 2 cards from hand on top of library` ("... on top of your library in
+any order": chosen one at a time, the last on top), `target opponent puts
+1 card from hand on top of library` ("Target opponent puts a card from
+their hand on top of their library"), `each player puts ...`. With an
+empty hand, `if you do` after it fails.
 `, and` between clauses repeats the subject ("you draw a card and you
 lose 1 life"). Filters: `your opponents control`, `creature with flying
 or reach`.

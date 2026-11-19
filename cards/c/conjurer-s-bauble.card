@@ -1,0 +1,6 @@
+card "Conjurer's Bauble" {
+  oracle_id 4fd493b3-63f9-4633-8f88-8755e489da32
+  cost {1}
+  type Artifact
+  activated {T}, sacrifice this: put up to 1 target card from your graveyard on bottom of library; draw 1 card
+}

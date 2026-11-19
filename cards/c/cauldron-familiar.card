@@ -1,0 +1,8 @@
+card "Cauldron Familiar" {
+  oracle_id a7dc2e62-1c50-4ed7-b71f-2d782a447a5e
+  cost {B}
+  type Creature — Cat
+  pt 1/1
+  triggered when this enters: each opponent loses 1 life and you gain 1 life
+  activated sacrifice Food, from graveyard: return this to battlefield
+}

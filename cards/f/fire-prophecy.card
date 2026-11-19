@@ -1,0 +1,6 @@
+card "Fire Prophecy" {
+  oracle_id b5e51171-2e36-4b09-b43d-e5d437a19305
+  cost {1}{R}
+  type Instant
+  spell: this deals 3 damage to target creature; you may put 1 card from hand on bottom of library; if you do, draw 1 card
+}

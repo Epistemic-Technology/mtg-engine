@@ -1,0 +1,7 @@
+card "Solitary Camel" {
+  oracle_id 2eac0c6a-b289-4b75-9571-59869e62d180
+  cost {2}{W}
+  type Creature — Camel
+  pt 3/2
+  static this: has lifelink as long as you control Desert or there is Desert card in your graveyard
+}

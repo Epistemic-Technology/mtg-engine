@@ -1,0 +1,8 @@
+card "Barkform Harvester" {
+  oracle_id 0339bd11-ad71-4998-9b5d-a32790f0e5e3
+  cost {3}
+  type Artifact Creature — Shapeshifter
+  pt 2/3
+  keywords changeling, reach
+  activated {2}: put target card from your graveyard on bottom of library
+}

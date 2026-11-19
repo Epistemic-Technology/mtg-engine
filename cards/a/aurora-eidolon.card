@@ -1,0 +1,8 @@
+card "Aurora Eidolon" {
+  oracle_id 4fc8a155-4eb8-4b86-8ccc-2569630d3bfa
+  cost {3}{W}
+  type Creature — Spirit
+  pt 2/2
+  activated {W}, sacrifice this: prevent next 3 damage to any target this turn
+  triggered from graveyard whenever you cast multicolored spell: you may return this to hand
+}

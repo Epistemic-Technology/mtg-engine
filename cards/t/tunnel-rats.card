@@ -1,0 +1,7 @@
+card "Tunnel Rats" {
+  oracle_id 0a8e5c48-885d-4ea8-9c68-a3e9213d4289
+  cost {1}{B}
+  type Creature — Rat
+  pt 2/2
+  activated {4}{B}, from graveyard: return this to battlefield tapped
+}

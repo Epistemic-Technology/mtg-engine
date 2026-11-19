@@ -759,6 +759,7 @@ impl Fmt {
                 counters,
                 tapped,
                 under_you,
+                attached,
             } => {
                 let mut s = format!("return {} to battlefield", self.recipient(*what, t));
                 if *tapped {
@@ -769,6 +770,9 @@ impl Fmt {
                 }
                 if let Some((kind, n)) = counters {
                     let _ = write!(s, " with {n} {}", counter(*kind, Num::N(*n)));
+                }
+                if let Some(a) = attached {
+                    let _ = write!(s, " attached to {}", self.recipient(*a, t));
                 }
                 s
             }
@@ -1111,6 +1115,21 @@ impl Fmt {
                     )
                 }
             },
+            Effect::HandToLibrary { count, who, bottom } => {
+                let rest = format!(
+                    "{} {} from hand on {} of library",
+                    num(*count),
+                    cards(*count),
+                    if *bottom { "bottom" } else { "top" }
+                );
+                match who {
+                    None => format!("put {rest}"),
+                    Some(w) => {
+                        let v = if *w == Recipient::You { "put" } else { "puts" };
+                        format!("{} {v} {rest}", self.recipient(*w, t))
+                    }
+                }
+            }
             Effect::Fight { a, b } => {
                 format!("{} fights {}", self.recipient(*a, t), self.recipient(*b, t))
             }
@@ -2270,15 +2289,16 @@ fn block_pair_text(obj: &TriggerObj, other: &Filter, blocks: bool, blocked: bool
 }
 
 /// "whenever you draw your second card each turn".
-pub fn draws_nth(whose: Who, n: u8) -> String {
+pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
     let nth = match n {
         1 => "first",
         2 => "second",
         _ => "third",
     };
+    let turn = if in_a_turn { "in a turn" } else { "each turn" };
     match whose {
-        Who::Opponents => format!("whenever an opponent draws their {nth} card each turn"),
-        _ => format!("whenever you draw your {nth} card each turn"),
+        Who::Opponents => format!("whenever an opponent draws their {nth} card {turn}"),
+        _ => format!("whenever you draw your {nth} card {turn}"),
     }
 }
 
@@ -2474,7 +2494,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::TurnedFaceUp(o) => format!("whenever {} is turned face up", trigger_obj(o)),
         Trigger::Exploits => "when this exploits a creature".to_string(),
-        Trigger::DrawsNth { whose, n } => draws_nth(*whose, *n),
+        Trigger::DrawsNth {
+            whose,
+            n,
+            in_a_turn,
+        } => draws_nth(*whose, *n, *in_a_turn),
         Trigger::BecomesTargetWhenever(o) => {
             format!("whenever {} becomes targeted", trigger_obj(o))
         }
@@ -2941,12 +2965,20 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::GraveyardCards {
             filter: fl,
             at_least,
-            have,
-        } => format!(
-            "{}{at_least} {} cards in your graveyard",
-            if *have { "you have " } else { "" },
-            filter(fl)
-        ),
+            wording,
+        } => {
+            use crate::ast::GraveyardWording as W;
+            match wording {
+                W::ThereAre => format!("{at_least} {} cards in your graveyard", filter(fl)),
+                W::YouHave => {
+                    format!("you have {at_least} {} cards in your graveyard", filter(fl))
+                }
+                W::ThereIs => format!("there is {} card in your graveyard", filter(fl)),
+                W::Theres => format!("there's {} card in your graveyard", filter(fl)),
+                W::IsIn => format!("1 {} card is in your graveyard", filter(fl)),
+            }
+        }
+        StaticCond::Or(a, b) => format!("{} or {}", static_cond(a), static_cond(b)),
         StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
         StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
         StaticCond::OpponentControls {
@@ -3203,8 +3235,17 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             condition,
             targets,
             effects,
+            from_graveyard,
         } => {
-            let mut head = format!("triggered {}", trigger_text(trigger, false));
+            let mut head = format!(
+                "triggered {}{}",
+                if *from_graveyard {
+                    "from graveyard "
+                } else {
+                    ""
+                },
+                trigger_text(trigger, false)
+            );
             let condition = match condition {
                 Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
                     head.push_str(" while saddled");
