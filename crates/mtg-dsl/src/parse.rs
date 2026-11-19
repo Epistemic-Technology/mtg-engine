@@ -1178,6 +1178,11 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::ExtraVote { optional })
             }
+            "protection" if self.at_words(&["protection", "doesn't", "remove", "this"]) => {
+                self.pos += 4;
+                self.end_stmt()?;
+                Ok(Ability::AuraStays)
+            }
             "deck" if self.at_words(&["deck", "any", "number"]) => {
                 self.pos += 3;
                 self.end_stmt()?;
@@ -1272,7 +1277,7 @@ impl P {
             }
             "ward" | "echo" | "unearth" | "buyback" | "outlast" | "morph" | "megamorph"
             | "disguise" | "evoke" | "madness" | "foretell" | "entwine" | "ninjutsu"
-            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring"
+            | "scavenge" | "dash" | "embalm" | "eternalize" | "offspring" | "strive"
                 if matches!(self.peek_at(1), Some(Tok::Sym(_))) =>
             {
                 self.pos += 1;
@@ -1296,6 +1301,7 @@ impl P {
                     "embalm" => Mechanic::Embalm(c),
                     "eternalize" => Mechanic::Eternalize(c),
                     "offspring" => Mechanic::Offspring(c),
+                    "strive" => Mechanic::Strive(c),
                     _ => Mechanic::Outlast(c),
                 }))
             }
@@ -6839,6 +6845,20 @@ impl P {
                 }
                 // `attached to this`, `attached to attached`, `attached to
                 // target creature`, `attached to that target 1`.
+                // `Aura attached to creature`: "an Aura attached to a
+                // creature" (any creature, CR 303.4).
+                "attached"
+                    if (self.at_words(&["attached", "to", "creature"])
+                        || self.at_words(&["attached", "to", "land"]))
+                        && f.status.on.is_none() =>
+                {
+                    f.status.on = Some(if self.word_at(2).as_deref() == Some("land") {
+                        mtg_core::card::OnHost::Land
+                    } else {
+                        mtg_core::card::OnHost::Creature
+                    });
+                    self.pos += 3;
+                }
                 "attached" if self.at_words(&["attached", "to"]) && f.attached_to.is_none() => {
                     self.pos += 2;
                     f.attached_to = Some(if self.eat_word("this") {

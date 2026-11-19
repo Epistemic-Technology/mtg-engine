@@ -1,0 +1,7 @@
+card "Devout Harpist" {
+  oracle_id f57901c2-80c6-49d6-8de3-c96aaeb72bbf
+  cost {W}
+  type Creature — Human
+  pt 1/1
+  activated {T}: destroy target Aura attached to creature
+}

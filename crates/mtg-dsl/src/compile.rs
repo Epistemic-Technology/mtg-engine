@@ -310,8 +310,14 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Offspring(cost)) => {
                     b = b.offspring(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::Strive(cost)) => {
+                    b = b.strive(cost.clone());
+                }
                 Ability::Mechanic(Mechanic::Bargain) => {
                     b = b.bargain();
+                }
+                Ability::AuraStays => {
+                    b = b.aura_stays();
                 }
                 Ability::Mechanic(Mechanic::Ascend) => {
                     b = b.marks(mtg_core::card::Marks::ASCEND);
@@ -447,6 +453,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::AuraStays
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
                     | Ability::CondCost { .. }
@@ -466,6 +473,7 @@ impl Compiler<'_> {
                             | Mechanic::Disguise(_)
                             | Mechanic::Dash(_)
                             | Mechanic::Bargain
+                            | Mechanic::Strive(_)
                             | Mechanic::Ascend
                             | Mechanic::StartYourEngines
                             | Mechanic::BecomesDay
@@ -2175,6 +2183,9 @@ impl Compiler<'_> {
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::AuraStays => {
+                return self.err("`protection doesn't remove this` is not an ability");
+            }
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
                 // choices is split by the caller through `abilities()`.
@@ -2475,6 +2486,7 @@ impl Compiler<'_> {
                 | Mechanic::Disguise(_)
                 | Mechanic::Dash(_)
                 | Mechanic::Bargain
+                | Mechanic::Strive(_)
                 | Mechanic::Ascend
                 | Mechanic::StartYourEngines
                 | Mechanic::BecomesDay => {
@@ -2853,6 +2865,7 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::Eternalize(_)
         | Mechanic::Backup(_)
         | Mechanic::Offspring(_)
+        | Mechanic::Strive(_)
         | Mechanic::Bargain
         | Mechanic::Ascend
         | Mechanic::StartYourEngines

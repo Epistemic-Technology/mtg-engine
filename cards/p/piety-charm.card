@@ -1,0 +1,10 @@
+card "Piety Charm" {
+  oracle_id 3d4ec57a-8541-42ed-9790-7933f96c8adf
+  cost {W}
+  type Instant
+  choose one {
+    mode: destroy target Aura attached to creature
+    mode: target Soldier creature gets +2/+2
+    mode: each creature you control gains vigilance
+  }
+}

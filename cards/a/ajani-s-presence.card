@@ -1,0 +1,7 @@
+card "Ajani's Presence" {
+  oracle_id 925a0b9b-a1fa-4aad-89d9-e2698ac3582f
+  cost {W}
+  type Instant
+  strive {2}{W}
+  spell: any number of target creature gets +1/+1 and gains indestructible
+}

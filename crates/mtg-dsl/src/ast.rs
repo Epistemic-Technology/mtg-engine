@@ -905,6 +905,9 @@ pub enum Ability {
     ExtraVote {
         optional: bool,
     },
+    /// `protection doesn't remove this`: "This effect doesn't remove this
+    /// Aura.", printed after the static ability before it.
+    AuraStays,
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
@@ -950,6 +953,9 @@ pub enum Mechanic {
     /// CR 702.30: at your upkeep, if it came under your control since your
     /// last upkeep, sacrifice it unless you pay.
     Echo(ManaCost),
+    /// `strive {2}{W}`: "Strive — This spell costs {2}{W} more to cast for
+    /// each target beyond the first."
+    Strive(ManaCost),
     /// `echo discard 1 card`: "Echo—Discard a card." (CR 702.30a).
     EchoCost(Cost),
     /// CR 702.84: from the graveyard as a sorcery: return it with haste,

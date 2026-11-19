@@ -914,7 +914,12 @@ impl GameState {
                         }
                         _ => None,
                     };
-                    if many.is_some_and(|(have, _, max)| have >= max) {
+                    // Strive: no more targets than the caster can pay for.
+                    let strive_capped = !is_ability
+                        && many.is_some_and(|(have, ..)| have >= 1)
+                        && self.pool.get(def).strive.is_some()
+                        && !self.strive_payable(spell);
+                    if strive_capped || many.is_some_and(|(have, _, max)| have >= max) {
                         self.flow = Flow::Casting {
                             spell,
                             next_target: specs.len(),

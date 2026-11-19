@@ -1784,6 +1784,12 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.status.toxic {
         s.push_str(" with toxic");
     }
+    // "target Aura attached to a creature".
+    match f.status.on {
+        Some(mtg_core::card::OnHost::Creature) => s.push_str(" attached to a creature"),
+        Some(mtg_core::card::OnHost::Land) => s.push_str(" attached to a land"),
+        None => {}
+    }
     // "creature you control with a +1/+1 counter on it" (after the
     // controller, as Oracle prints it).
     if let Some(q) = f.status.counter {
@@ -7920,6 +7926,9 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Eternalize(c) => format!("Eternalize {c}"),
             crate::ast::Mechanic::Backup(n) => format!("Backup {n}"),
             crate::ast::Mechanic::Offspring(c) => format!("Offspring {c}"),
+            crate::ast::Mechanic::Strive(c) => format!(
+                "Strive \u{2014} This spell costs {c} more to cast for each target beyond the first."
+            ),
             crate::ast::Mechanic::Bargain => "Bargain".to_string(),
             crate::ast::Mechanic::Saddle(n) => format!("Saddle {n}"),
             crate::ast::Mechanic::Ascend => "Ascend".to_string(),
@@ -7979,6 +7988,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::DeckAnyNumber => {
             format!("A deck can have any number of cards named {}.", card.name)
         }
+        Ability::AuraStays => "This effect doesn't remove this Aura.".to_string(),
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }
@@ -8146,7 +8156,7 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         // "This land enters tapped. As it enters, choose a color." is one
         // line.
         match (&card.abilities[i], lines.last_mut()) {
-            (Ability::AsEntersChoose { joined: true, .. }, Some(last)) => {
+            (Ability::AsEntersChoose { joined: true, .. } | Ability::AuraStays, Some(last)) => {
                 last.push(' ');
                 last.push_str(&text);
             }

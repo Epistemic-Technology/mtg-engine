@@ -1,0 +1,7 @@
+card "Aerial Formation" {
+  oracle_id b0168b7e-a8b8-4ce3-af12-a43f3818b6a1
+  cost {U}
+  type Instant
+  strive {2}{U}
+  spell: any number of target creature gets +1/+1 and gains flying
+}

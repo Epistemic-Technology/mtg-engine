@@ -1044,6 +1044,17 @@ pub struct StatusQuals {
     /// "with toxic", "if that creature has toxic" (CR 702.164): one of its
     /// abilities is toxic N, printed or granted.
     pub toxic: bool,
+    /// "Aura attached to a creature", "Aura attached to a land": what it
+    /// is attached to (CR 303.4) is of that kind.
+    pub on: Option<OnHost>,
+}
+
+/// The kind of permanent `StatusQuals::on` asks the object to be attached
+/// to.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum OnHost {
+    Creature,
+    Land,
 }
 
 /// The counters `StatusQuals::counter` asks for.
@@ -1070,6 +1081,7 @@ impl StatusQuals {
             || self.counter.is_some()
             || self.modified
             || self.toxic
+            || self.on.is_some()
     }
 }
 
@@ -4784,6 +4796,14 @@ pub struct CardDef {
     /// Bargain (CR 702.166): "You may sacrifice an artifact, enchantment,
     /// or token as you cast this spell."
     pub bargain: bool,
+    /// "This effect doesn't remove this Aura.": protection the Aura grants
+    /// doesn't make it fall off (CR 702.16; the state-based check of CR
+    /// 704.5m ignores protection for this Aura).
+    pub aura_stays: bool,
+    /// Strive (CR 207.2c): "This spell costs {2}{W} more to cast for each
+    /// target beyond the first." Added as the total cost is determined
+    /// (CR 601.2f), after the targets.
+    pub strive: Option<Box<ManaCost>>,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
     pub madness: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
@@ -6206,6 +6226,8 @@ impl Builder {
             flash_if: None,
             offspring: None,
             bargain: false,
+            aura_stays: false,
+            strive: None,
             target_cost: None,
             cond_cost: None,
             madness: None,
@@ -6390,6 +6412,18 @@ impl Builder {
     }
 
     /// Bargain (CR 702.166).
+    #[must_use]
+    pub fn strive(mut self, cost: ManaCost) -> Self {
+        self.0.strive = Some(Box::new(cost));
+        self
+    }
+
+    #[must_use]
+    pub fn aura_stays(mut self) -> Self {
+        self.0.aura_stays = true;
+        self
+    }
+
     #[must_use]
     pub fn bargain(mut self) -> Self {
         self.0.bargain = true;

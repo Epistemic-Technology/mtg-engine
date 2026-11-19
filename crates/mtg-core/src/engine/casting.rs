@@ -1847,6 +1847,12 @@ impl GameState {
         {
             req.add(&b.requirements(0));
         }
+        // Strive: the cost once for each target beyond the first.
+        if let Some(s) = &def.strive {
+            for _ in 1..o.targets.len() {
+                req.add(&s.requirements(0));
+            }
+        }
         // CR 702.42a: every mode, for the entwine cost on top.
         if let Some(e) = &def.entwine
             && self.mode_split_of(spell).is_some()
@@ -2942,6 +2948,20 @@ impl GameState {
             }
         }
         self.give_priority(controller);
+    }
+
+    /// Strive: whether `spell` could still be paid for with one more
+    /// target.
+    pub(super) fn strive_payable(&self, spell: ObjId) -> bool {
+        let o = &self.objects[spell];
+        let Some(s) = &self.pool.get(o.def).strive else {
+            return true;
+        };
+        let mut req = self.spell_requirements(spell, self.x_of(spell));
+        req.add(&s.requirements(0));
+        let sources = self.spell_sources(spell);
+        let ps = self.player(o.controller);
+        self.payable(o.controller, &sources, &ps.mana_pool, &req, ps.life, None)
     }
 
     /// Whether `spell` could be paid for with `t` as its first target.

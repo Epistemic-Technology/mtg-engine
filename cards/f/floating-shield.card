@@ -1,0 +1,10 @@
+card "Floating Shield" {
+  oracle_id 332716fb-cc1c-4a6f-b7d4-bd7f13cfa438
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  as this enters choose color
+  static enchanted: has protection from chosen color
+  protection doesn't remove this
+  activated sacrifice this: target creature gains protection from chosen color
+}

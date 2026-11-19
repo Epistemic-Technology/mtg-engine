@@ -1,0 +1,44 @@
+# Strive (CR 207.2c ability word): "This spell costs {2}{R} more to cast
+# for each target beyond the first", added as the total cost is
+# determined after targets (CR 601.2f); the caster can't choose more
+# targets than they can pay for.
+
+scenario "strive: one target costs the mana cost" {
+  battlefield A: "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Rouse the Mob"
+  turn 1 A: cast "Rouse the Mob" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" trample
+  assert power "Hill Giant" 3
+}
+
+scenario "strive: two targets cost {2}{R} more" {
+  battlefield A: 4 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Rouse the Mob"
+  turn 1 A: cast "Rouse the Mob" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+}
+
+scenario "strive: no second target without the mana for it" {
+  battlefield A: 3 "Mountain", "Grizzly Bears", "Hill Giant"
+  hand A: "Rouse the Mob"
+  turn 1 A: cast "Rouse the Mob" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 3
+}
+
+scenario "strive: Ajani's Presence gives indestructible" {
+  battlefield A: "Plains", "Grizzly Bears", "Mountain"
+  hand A: "Ajani's Presence", "Lightning Bolt"
+  turn 1 A: cast "Ajani's Presence" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

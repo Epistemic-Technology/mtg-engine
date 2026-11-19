@@ -1,0 +1,10 @@
+card "Cho-Manno's Blessing" {
+  oracle_id fe9f2a67-b8af-48fd-83cd-d15168d2e64f
+  cost {W}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  as this enters choose color
+  static enchanted: has protection from chosen color
+  protection doesn't remove this
+}

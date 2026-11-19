@@ -2101,6 +2101,11 @@ fn filter_one(f: &Filter) -> String {
     if f.status.toxic {
         words.push("with toxic".to_string());
     }
+    match f.status.on {
+        Some(mtg_core::card::OnHost::Creature) => words.push("attached to creature".to_string()),
+        Some(mtg_core::card::OnHost::Land) => words.push("attached to land".to_string()),
+        None => {}
+    }
     match f.status.counter {
         Some(mtg_core::card::CounterQual::Any) => words.push("with counter".to_string()),
         Some(mtg_core::card::CounterQual::Kind(k)) => {
@@ -3638,6 +3643,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Eternalize(c) => format!("eternalize {c}"),
                 crate::ast::Mechanic::Backup(n) => format!("backup {n}"),
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
+                crate::ast::Mechanic::Strive(c) => format!("strive {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
                 crate::ast::Mechanic::Ascend => "ascend".to_string(),
@@ -3682,6 +3688,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::AuraStays => {
+            let _ = writeln!(out, "{indent}protection doesn't remove this");
         }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(

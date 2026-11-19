@@ -106,7 +106,9 @@ impl GameState {
                 // graveyard.
                 if let Some(spec) = self.pool.get(o.def).enchant()
                     && !o.attached_to.is_some_and(|t| {
-                        self.is_legal_attachment(spec, t) && !self.protected_attachment(id, t)
+                        self.is_legal_attachment(spec, t)
+                            && (self.pool.get(o.def).aura_stays
+                                || !self.protected_attachment(id, t))
                     })
                 {
                     to_graveyard.push(id);
