@@ -1,0 +1,7 @@
+token "2/2 red Spirit creature with menace" {
+  name "Spirit"
+  type Creature — Spirit
+  pt 2/2
+  color red
+  keywords menace
+}

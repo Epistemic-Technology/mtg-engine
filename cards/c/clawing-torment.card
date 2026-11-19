@@ -1,0 +1,8 @@
+card "Clawing Torment" {
+  oracle_id 0ac5c149-f6af-46b6-974e-14689e9a583d
+  cost {B}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static as long as attached is creature, enchanted: -1/-1, has can't block
+  static enchanted: has ability { triggered at beginning of your upkeep: you lose 1 life }
+}

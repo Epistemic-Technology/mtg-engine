@@ -1,0 +1,8 @@
+card "Heavy Mattock" {
+  oracle_id f1f45310-d665-400d-934f-e48e7858ce8c
+  cost {3}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  static as long as attached is Human, equipped creature: +1/+1
+  equip {2}
+}

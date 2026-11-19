@@ -1,0 +1,8 @@
+card "Nettling Curse" {
+  oracle_id 93d575b3-0fff-4fc6-85c6-3a8a9d672d6f
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks or blocks: its controller loses 3 life
+  activated {1}{R}: enchanted creature gains attacks each combat if able
+}

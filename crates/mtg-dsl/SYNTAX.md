@@ -424,6 +424,52 @@ damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
 it.
 
+#### Auras and Equipment
+
+`has can't activate` ("its activated abilities can't be activated", CR
+602.5: mana abilities too) and `has can't activate except mana` ("...
+unless they're mana abilities") are restrictions like `can't attack`;
+they print last, after ", and" ("Enchanted creature can't attack or
+block, and its activated abilities can't be activated"; "and" alone after
+`doesn't untap`), or alone as "Enchanted creature's activated abilities
+can't be activated." `set subtype Treefolk` is "is a Treefolk" (it loses
+its other creature types, CR 205.1b); `add land all` is "is every basic
+land type in addition to its other types". A type followed by a base P/T
+is one phrase: `set subtype Treefolk, base 0/4, loses all abilities`
+("is a Treefolk with base power and toughness 0/4 and loses all
+abilities"), `add type creature, base 4/4` ("is a creature with base power
+and toughness 4/4 in addition to its other types"). `as long as attached
+is creature, enchanted: +2/+1` prints "As long as enchanted permanent is a
+creature, it gets +2/+1." (the noun is what the Aura enchants); `attached
+is Human or Angel` is "a Human or an Angel"; in a trigger condition
+`attached is with power 4 or greater` is "enchanted creature's power is 4
+or greater".
+
+A filter may say what its objects are attached to: `attached to this`
+(the source: "for each Aura and Equipment attached to it", written `count
+each Aura or Equipment attached to this`), `attached to attached` (what
+the source is attached to: Golem-Skin Gauntlets' "for each Equipment
+attached to it"), `attached to target creature` (declaring the target:
+`destroy all Aura or Equipment attached to target creature`), `attached
+to target 1` ("it": `return target creature and all Aura attached to
+target 1 to hand`), and `attached to that target 1` ("that creature").
+
+In a triggered ability, `triggering card` is the card the triggering
+object became ("When enchanted creature dies, return that card to its
+owner's hand": `return triggering card to hand`; only that card, CR
+400.7). With no targets, `its controller` is the triggering object's
+controller as it last existed ("When enchanted creature dies, its
+controller draws a card"); `controller of that creature` prints "that
+creature's controller" ("that land's controller" for an Aura that
+enchants a land). `return triggering card to battlefield tapped under
+your control` takes `tapped` and `under your control` (else "under its
+owner's control"). `it deals 1 damage to each opponent` makes the
+triggering creature the damage's source (CR 120.3: Hawkeye's Bow), and
+`that defending player` prints "defending player" where `defending
+player` as an object prints "the player or planeswalker it's attacking".
+`enchanted creature gains attacks each combat if able` prints "Enchanted
+creature attacks this turn if able."
+
 ### Effects
 
 Effects are clauses. `;` separates sentences; `and` joins clauses into one

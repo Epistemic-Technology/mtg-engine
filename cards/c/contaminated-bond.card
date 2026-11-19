@@ -1,0 +1,7 @@
+card "Contaminated Bond" {
+  oracle_id 56aeaee8-e014-485e-b7ad-e26ade663bcf
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks or blocks: its controller loses 3 life
+}

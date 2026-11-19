@@ -1,0 +1,8 @@
+card "Spinal Graft" {
+  oracle_id 70b5eca0-c61b-4066-ae5f-90948912c04e
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +3/+3
+  triggered when enchanted creature becomes targeted: destroy that creature without regeneration
+}

@@ -1,0 +1,7 @@
+card "Unhallowed Pact" {
+  oracle_id da1dd850-9118-42b9-8846-e6bd5042775c
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: return triggering card to the battlefield under your control
+}

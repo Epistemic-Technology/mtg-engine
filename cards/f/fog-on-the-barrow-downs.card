@@ -1,0 +1,7 @@
+card "Fog on the Barrow-Downs" {
+  oracle_id 66bee79a-7e47-4fc4-ba07-323cd2de6261
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: set subtype Spirit, has can't attack, can't block
+}

@@ -1,0 +1,6 @@
+card "Hubris" {
+  oracle_id 95fbd573-c04c-408a-a8c3-f7e1ad5ddac0
+  cost {1}{U}
+  type Instant
+  spell: return target creature and all Aura attached to target 1 to hand
+}

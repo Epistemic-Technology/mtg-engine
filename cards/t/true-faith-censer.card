@@ -1,0 +1,8 @@
+card "True-Faith Censer" {
+  oracle_id 330f2e60-810d-4fe0-9a35-b3f2b29e3e2a
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +1/+1, has vigilance
+  static as long as attached is Human, equipped creature: +1/+0
+  equip {2}
+}

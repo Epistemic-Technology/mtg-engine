@@ -1,0 +1,7 @@
+card "Leyline Phantom" {
+  oracle_id af642b8d-a085-4a07-8a1d-ca385d4700f7
+  cost {4}{U}
+  type Creature — Illusion
+  pt 5/5
+  triggered when this deals combat damage: return this to hand
+}

@@ -1,0 +1,7 @@
+card "Stasis Cocoon" {
+  oracle_id ba11db54-149d-427e-b9ff-d1e29bbcbb11
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant artifact
+  static enchanted: has can't attack, can't block, can't activate
+}

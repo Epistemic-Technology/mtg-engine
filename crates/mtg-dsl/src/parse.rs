@@ -11,10 +11,10 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
-    Except, Filter, InsteadCond, InsteadWording, Join, Kind, Mechanic, Mod, Mode, OfChosen,
-    Recipient, Replacement, Replaces, Restrict, SacCost, SameRef, Sentence, StaticCond, Target,
-    Trigger, TriggerObj,
+    Ability, Affects, AttachedRef, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem,
+    DamageWording, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, Mechanic, Mod,
+    Mode, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost, SameRef, Sentence,
+    StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -90,6 +90,11 @@ const KEYWORDS: &[(&[&str], Keyword)] = &[
         Keyword::BlockAny,
     ),
     (&["lure"], Keyword::Lure),
+    (
+        &["can't", "activate", "except", "mana"],
+        Keyword::CantActivateNonMana,
+    ),
+    (&["can't", "activate"], Keyword::CantActivate),
     (&["can't", "be", "blocked"], Keyword::Unblockable),
     (&["can't", "attack", "alone"], Keyword::CantAttackAlone),
     (&["can't", "block", "alone"], Keyword::CantBlockAlone),
@@ -259,6 +264,10 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["that", "permanent"], Recipient::TriggeringObject),
     (&["that", "object"], Recipient::TriggeringObject),
     (&["that", "player"], Recipient::TriggeringPlayer),
+    (
+        &["that", "defending", "player"],
+        Recipient::DefendingPlayerWord,
+    ),
     (&["defending", "player"], Recipient::DefendingPlayer),
     (&["that", "token"], Recipient::CreatedObject),
     (&["you"], Recipient::You),
@@ -2085,6 +2094,11 @@ impl P {
         if w == "its" && matches!(self.word_at(1).as_deref(), Some("controller" | "owner")) {
             return true;
         }
+        if self.at_words(&["triggering", "card"])
+            || self.at_words(&["controller", "of", "that", "creature"])
+        {
+            return true;
+        }
         if w == "any" && self.word_at(1).as_deref() == Some("target") {
             return true;
         }
@@ -2344,7 +2358,11 @@ impl P {
             "deal" | "deals"
                 if matches!(
                     subject,
-                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                    Recipient::Source
+                        | Recipient::SourceNamed
+                        | Recipient::SourceIt
+                        | Recipient::TriggeringIt
+                        | Recipient::TriggeringObject
                 ) =>
             {
                 self.pos -= 1;
@@ -2933,7 +2951,9 @@ impl P {
                 }
                 self.eat_word("the");
                 self.expect_word("battlefield")?;
+                let tapped = self.eat_word("tapped");
                 self.eat_words(&["under", "its", "owner's", "control"]);
+                let under_you = self.eat_words(&["under", "your", "control"]);
                 let counters = if self.eat_word("with") {
                     let n = self.count()?;
                     let kind = self.counter_kind()?;
@@ -2942,7 +2962,12 @@ impl P {
                 } else {
                     None
                 };
-                Ok(Effect::ReturnToBattlefield { what, counters })
+                Ok(Effect::ReturnToBattlefield {
+                    what,
+                    counters,
+                    tapped,
+                    under_you,
+                })
             }
             "regenerate" => {
                 let to = self.recipient()?;
@@ -3773,6 +3798,17 @@ impl P {
         {
             return Ok(Recipient::Attached);
         }
+        if self.eat_words(&["triggering", "card"]) {
+            return Ok(Recipient::TriggeringCard);
+        }
+        // In a triggered ability with no targets, `its controller` is the
+        // triggering object's; `controller of that creature` names it.
+        if self.in_trigger && self.targets.is_empty() && self.eat_words(&["its", "controller"]) {
+            return Ok(Recipient::TriggeringController { that: false });
+        }
+        if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
+            return Ok(Recipient::TriggeringController { that: true });
+        }
         if self.at_words(&["that", "card"]) {
             self.pos += 2;
             return Ok(if self.in_delayed {
@@ -4338,6 +4374,25 @@ impl P {
                     f.damaged = true;
                     self.pos += 6;
                 }
+                // `attached to this`, `attached to attached`, `attached to
+                // target creature`, `attached to that target 1`.
+                "attached" if self.at_words(&["attached", "to"]) && f.attached_to.is_none() => {
+                    self.pos += 2;
+                    f.attached_to = Some(if self.eat_word("this") {
+                        AttachedRef::Source
+                    } else if self.eat_word("attached")
+                        || self.eat_words(&["enchanted", "creature"])
+                        || self.eat_words(&["equipped", "creature"])
+                    {
+                        AttachedRef::Host
+                    } else {
+                        match self.recipient()? {
+                            Recipient::Target(n) => AttachedRef::Target(n),
+                            Recipient::ThatTarget(n) => AttachedRef::ThatTarget(n),
+                            _ => return self.fail("expected `this`, `attached`, or a target"),
+                        }
+                    });
+                }
                 "multicolored" | "monocolored" | "colorless" => {
                     f.color_count = Some(match w.as_str() {
                         "multicolored" => ColorCount::Multicolored,
@@ -4472,6 +4527,12 @@ impl P {
         }
         // "creature named ~ you control": the name before the controller.
         f.named_first = named_before_who && f.who.is_some();
+        // "Aura or Equipment attached to this": attached to whichever.
+        if f.attached_to.is_none()
+            && let Some(alt) = f.or.as_mut()
+        {
+            f.attached_to = alt.attached_to.take();
+        }
         Ok(f)
     }
 
@@ -5381,6 +5442,7 @@ impl P {
                         Ok(Mod::AddTypes(types))
                     }
                     "land" if set && self.eat_word("chosen") => Ok(Mod::ChosenLandType),
+                    "land" if !set && self.eat_word("all") => Ok(Mod::AddAllLandTypes),
                     "land" => {
                         let name = self.word()?;
                         let Some(c) = basic_land_type(&name) else {
@@ -5405,10 +5467,12 @@ impl P {
                     }
                     "chosen" if !set && self.eat_word("type") => Ok(Mod::AddChosenType),
                     "subtype" => {
-                        if set {
-                            return self.fail("`set subtype` is not supported");
-                        }
-                        Ok(Mod::AddSubtype(self.word()?))
+                        let s = self.word()?;
+                        Ok(if set {
+                            Mod::SetSubtype(s)
+                        } else {
+                            Mod::AddSubtype(s)
+                        })
                     }
                     "color" if set && self.eat_word("chosen") => Ok(Mod::ChosenColor),
                     "color" | "colors" => {

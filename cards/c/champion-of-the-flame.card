@@ -1,0 +1,8 @@
+card "Champion of the Flame" {
+  oracle_id d9dbe40f-38e9-460a-b84f-4aa22650017e
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 1/1
+  keywords trample
+  static this: +2/+2 count each Aura or Equipment attached to this
+}

@@ -1,0 +1,8 @@
+card "Giant's Skewer" {
+  oracle_id aaa8377e-21de-4c63-a26a-c25d986a272d
+  cost {1}{B}
+  type Artifact — Equipment
+  static equipped creature: +2/+1
+  triggered whenever equipped creature deals combat damage to creature: create 1 "Food"
+  equip {3}
+}

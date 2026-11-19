@@ -1,0 +1,7 @@
+card "Planar Disruption" {
+  oracle_id 6128679e-7e54-41e4-ab6e-25aeeffed49f
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant artifact, creature, or planeswalker
+  static enchanted: has can't attack, can't block, can't activate
+}

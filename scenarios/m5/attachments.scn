@@ -1,0 +1,359 @@
+# Aura and Equipment mechanics: activation bars (CR 602.5), what a dying
+# enchanted creature leaves behind (CR 400.7), its controller, things
+# attached to a creature, and what an Aura grants as long as its
+# permanent is a creature.
+
+# ---- "its activated abilities can't be activated" ----
+
+scenario "Arrest: no activated abilities, no attacking or blocking" {
+  battlefield A: "Prodigal Sorcerer", "Arrest" on "Prodigal Sorcerer"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  illegal turn 1 A: attack "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Arrest elsewhere: the other creature's abilities still work" {
+  battlefield A: "Prodigal Sorcerer", "Grizzly Bears", "Arrest" on "Grizzly Bears"
+  turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Encrust bars mana abilities too" {
+  battlefield A: "Llanowar Elves", "Encrust" on "Llanowar Elves"
+  hand A: "Giant Growth"
+  illegal turn 1 A: cast "Giant Growth" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert hand A contains "Giant Growth"
+}
+
+scenario "Realmbreaker's Grasp leaves mana abilities" {
+  battlefield A: "Llanowar Elves", "Realmbreaker's Grasp" on "Llanowar Elves"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard A contains "Giant Growth"
+}
+
+scenario "Realmbreaker's Grasp bars other abilities" {
+  battlefield A: "Prodigal Sorcerer", "Realmbreaker's Grasp" on "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  run_to turn 1 end
+  assert life B 20
+}
+
+scenario "Stupefying Touch: abilities barred, but it may still attack" {
+  battlefield A: "Prodigal Sorcerer", "Stupefying Touch" on "Prodigal Sorcerer"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  turn 1 A: attack "Prodigal Sorcerer"
+  run_to turn 1 end
+  assert life B 19
+}
+
+# ---- when enchanted creature dies: that card ----
+
+scenario "Demonic Vigor: the dead creature returns to its owner's hand" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Demonic Vigor" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert graveyard B contains "Demonic Vigor"
+  assert graveyard B lacks "Grizzly Bears"
+}
+
+scenario "Demonic Vigor: another creature's death doesn't count" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Demonic Vigor" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B lacks "Grizzly Bears"
+}
+
+scenario "False Demise: the card returns under the Aura's controller" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  battlefield A: "False Demise" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield A contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Ferocity of the Hunt: the card returns tapped under its owner's control" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  battlefield A: "Ferocity of the Hunt" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert tapped "Hill Giant"
+}
+
+scenario "Fate Foretold: the dead creature's controller draws" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Fate Foretold" on "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B count 1
+  assert hand A count 0
+}
+
+scenario "Funeral March: its controller sacrifices a creature" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  battlefield A: "Funeral March" on "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+# ---- triggers about the enchanted permanent's controller ----
+
+scenario "Contaminated Bond: the attacking creature's controller loses 3" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Contaminated Bond" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 17
+  assert life B 18
+}
+
+scenario "Psychic Venom: tapping the land costs its controller 2" {
+  battlefield A: "Forest"
+  battlefield B: "Psychic Venom" on "Forest"
+  hand A: "Giant Growth"
+  battlefield A: "Grizzly Bears"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 18
+  assert life B 20
+}
+
+scenario "Insolence: an untapped creature costs nothing" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Insolence" on "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 20
+}
+
+# ---- what is attached to a creature ----
+
+scenario "Champion of the Flame counts Auras and Equipment" {
+  battlefield A: "Champion of the Flame", "Holy Strength" on "Champion of the Flame", "Bonesplitter" on "Champion of the Flame"
+  run_to turn 1 precombat_main
+  # 1/1, +1/+2 from Holy Strength, +2/+0 from Bonesplitter, +4/+4.
+  assert power "Champion of the Flame" 8
+  assert toughness "Champion of the Flame" 7
+}
+
+scenario "Champion of the Flame ignores Auras on other creatures" {
+  battlefield A: "Champion of the Flame", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Champion of the Flame" 1
+}
+
+scenario "Golem-Skin Gauntlets counts the Equipment on the equipped creature" {
+  battlefield A: "Grizzly Bears", "Golem-Skin Gauntlets" on "Grizzly Bears", "Bonesplitter" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  # 2/2, +2/+0 from Bonesplitter, +1/+0 for each of two Equipment.
+  assert power "Grizzly Bears" 6
+}
+
+scenario "Strip Bare destroys only what is attached to the target" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Holy Strength" on "Grizzly Bears", "Bonesplitter" on "Grizzly Bears", "Pacifism" on "Hill Giant"
+  hand A: "Strip Bare"
+  turn 1 A: cast "Strip Bare" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Holy Strength"
+  assert graveyard B contains "Bonesplitter"
+  assert battlefield B contains "Pacifism"
+}
+
+scenario "Turn to Slag: damage, then the creature's Equipment is destroyed" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Bonesplitter" on "Hill Giant", "Golem-Skin Gauntlets" on "Grizzly Bears"
+  hand A: "Turn to Slag"
+  turn 1 A: cast "Turn to Slag" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Bonesplitter"
+  assert battlefield B contains "Golem-Skin Gauntlets"
+}
+
+scenario "Hubris returns the creature and its Auras" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears", "Holy Strength" on "Hill Giant", "Pacifism" on "Grizzly Bears"
+  hand A: "Hubris"
+  turn 1 A: cast "Hubris" targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Holy Strength"
+  assert battlefield B contains "Pacifism"
+}
+
+# ---- as long as the enchanted permanent is a creature ----
+
+scenario "Akki War Paint on a creature" {
+  battlefield A: "Ornithopter", "Akki War Paint" on "Ornithopter"
+  run_to turn 1 precombat_main
+  assert power "Ornithopter" 2
+  assert toughness "Ornithopter" 3
+}
+
+scenario "Bladed Bracers: vigilance only for a Human or an Angel" {
+  battlefield A: "Elite Vanguard", "Grizzly Bears", "Bladed Bracers" on "Elite Vanguard"
+  run_to turn 1 precombat_main
+  assert has "Elite Vanguard" vigilance
+  assert power "Elite Vanguard" 3
+}
+
+scenario "Bladed Bracers on a non-Human" {
+  battlefield A: "Grizzly Bears", "Bladed Bracers" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert has not "Grizzly Bears" vigilance
+  assert power "Grizzly Bears" 3
+}
+
+# ---- equipped creature triggers ----
+
+scenario "Goldvein Pick: combat damage to a player makes a Treasure" {
+  battlefield A: "Grizzly Bears", "Goldvein Pick" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Armory of Iroas: a counter on the attacking equipped creature" {
+  battlefield A: "Grizzly Bears", "Armory of Iroas" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 17
+}
+
+scenario "Faith's Fetters leaves mana abilities" {
+  battlefield A: "Llanowar Elves", "Prodigal Sorcerer"
+  battlefield B: "Faith's Fetters" on "Llanowar Elves", "Faith's Fetters" on "Prodigal Sorcerer"
+  hand A: "Giant Growth"
+  illegal turn 1 A: activate "Prodigal Sorcerer" targeting player B
+  turn 1 A: cast "Giant Growth" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard A contains "Giant Growth"
+  assert life B 20
+}
+
+scenario "Ice Cage: targeting the creature destroys the Aura" {
+  battlefield A: "Forest"
+  battlefield B: "Grizzly Bears", "Ice Cage" on "Grizzly Bears"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Ice Cage"
+}
+
+# ---- the equipped creature as a damage source ----
+
+scenario "Tormentor's Helm: the blocked creature deals 1 damage to defending player" {
+  battlefield A: "Grizzly Bears", "Tormentor's Helm" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Tormentor's Helm: unblocked, no trigger" {
+  battlefield A: "Grizzly Bears", "Tormentor's Helm" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Hawkeye's Bow: the equipped creature is the source, so its lifelink applies" {
+  battlefield A: "Ajani's Sunstriker", "Hawkeye's Bow" on "Ajani's Sunstriker"
+  turn 1 A: attack "Ajani's Sunstriker"
+  run_to turn 1 declare_blockers
+  assert life B 19
+  assert life A 21
+}
+
+# ---- types an Aura sets or adds ----
+
+scenario "Lignify: a 0/4 Treefolk with no abilities" {
+  battlefield A: "Serra Angel"
+  battlefield B: "Lignify" on "Serra Angel"
+  run_to turn 1 precombat_main
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 4
+  assert is "Serra Angel" "Treefolk"
+  assert is not "Serra Angel" "Angel"
+  assert has not "Serra Angel" flying
+}
+
+scenario "Nylea's Presence: every basic land type" {
+  battlefield A: "Wastes"
+  battlefield A: "Nylea's Presence" on "Wastes"
+  run_to turn 1 precombat_main
+  assert is "Wastes" swamp
+  assert is "Wastes" island
+  assert is "Wastes" forest
+}
+
+scenario "Mightstone's Animation: a 4/4 artifact creature" {
+  battlefield A: "Sol Ring", "Mightstone's Animation" on "Sol Ring"
+  run_to turn 1 precombat_main
+  assert is "Sol Ring" creature
+  assert is "Sol Ring" artifact
+  assert power "Sol Ring" 4
+}
+
+# ---- more Aura triggers ----
+
+scenario "Nettling Curse: the enchanted creature must attack, and its controller pays" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  battlefield B: "Nettling Curse" on "Grizzly Bears"
+  turn 1 upkeep B: activate "Nettling Curse"
+  run_to turn 1 end
+  assert life A 17
+  assert life B 18
+}
+
+scenario "Arachnus Web falls off a big creature" {
+  battlefield A: "Hill Giant", "Forest"
+  battlefield B: "Arachnus Web" on "Hill Giant"
+  hand A: "Giant Growth"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 cleanup
+  assert graveyard B contains "Arachnus Web"
+}
+
+scenario "Arachnus Web stays on a small creature" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Arachnus Web" on "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Arachnus Web"
+}
+
+scenario "Gift of Wrath leaves a Spirit" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears", "Gift of Wrath" on "Grizzly Bears"
+  hand A: "Hubris"
+  turn 1 A: cast "Hubris" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield B contains "Spirit"
+  assert hand B contains "Gift of Wrath"
+}

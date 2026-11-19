@@ -1,0 +1,7 @@
+card "Petrify" {
+  oracle_id ebec110e-aff3-48aa-abf6-309dd2ffb478
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has can't attack, can't block, can't activate
+}

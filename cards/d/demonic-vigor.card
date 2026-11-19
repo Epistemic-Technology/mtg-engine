@@ -1,0 +1,8 @@
+card "Demonic Vigor" {
+  oracle_id 00cb93a8-5d33-4c6a-9e2a-4b3560f76f3f
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  triggered when enchanted creature dies: return triggering card to hand
+}

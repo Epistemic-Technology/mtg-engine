@@ -425,6 +425,17 @@ impl Compiler<'_> {
             blocking: f.blocking,
             damaged: f.damaged,
             chosen: f.chosen.is_some(),
+            attached_to: f.attached_to.map(|a| {
+                use crate::ast::AttachedRef;
+                use mtg_core::card::AttachedTo;
+                match a {
+                    AttachedRef::Source => AttachedTo::Source,
+                    AttachedRef::Host => AttachedTo::SourceHost,
+                    AttachedRef::Target(n) | AttachedRef::ThatTarget(n) => {
+                        AttachedTo::Target(u8::try_from(n).unwrap_or(u8::MAX))
+                    }
+                }
+            }),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
                 Box::new(mtg_core::card::SpellTargets {
@@ -674,11 +685,15 @@ impl Compiler<'_> {
             Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
                 CoreRecipient::Source
             }
+            Recipient::TriggeringCard => CoreRecipient::TriggeringCard,
+            Recipient::TriggeringController { .. } => CoreRecipient::TriggeringController,
             Recipient::TriggeringObject | Recipient::TriggeringIt => {
                 CoreRecipient::TriggeringObject
             }
             Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
-            Recipient::DefendingPlayer => CoreRecipient::DefendingPlayer,
+            Recipient::DefendingPlayer | Recipient::DefendingPlayerWord => {
+                CoreRecipient::DefendingPlayer
+            }
             Recipient::ControllerOf(i) | Recipient::ThatControllerOf(i) => {
                 CoreRecipient::ControllerOf(i)
             }
@@ -776,6 +791,21 @@ impl Compiler<'_> {
             Effect::DealDamage { to, .. } if to.is_empty() => {
                 return self.err("`deal N damage` without `to` only in an `instead` sentence");
             }
+            // "it deals 1 damage to each opponent" about the triggering
+            // creature: that creature is the source (CR 120.3).
+            Effect::DealDamage {
+                amount,
+                to,
+                by: by @ (Recipient::TriggeringIt | Recipient::TriggeringObject),
+            } => {
+                for t in to {
+                    out.push(CoreEffect::DamageFrom {
+                        source: r(*by),
+                        amount: *amount,
+                        to: r(*t),
+                    });
+                }
+            }
             Effect::DealDamage { amount, to, .. } => {
                 for t in to {
                     out.push(CoreEffect::DealDamage {
@@ -860,10 +890,17 @@ impl Compiler<'_> {
                     out.push(CoreEffect::ReturnToHand { what: r(*w) });
                 }
             }
-            Effect::ReturnToBattlefield { what, counters } => {
+            Effect::ReturnToBattlefield {
+                what,
+                counters,
+                tapped,
+                under_you,
+            } => {
                 out.push(CoreEffect::ReturnToBattlefield {
                     what: r(*what),
                     counters: *counters,
+                    tapped: *tapped,
+                    under_you: *under_you,
                 });
             }
             Effect::Regenerate { to } => out.push(CoreEffect::Regenerate { to: r(*to) }),
@@ -1417,6 +1454,9 @@ impl Compiler<'_> {
             Mod::ChosenLandType => Modification::ChosenLandType,
             Mod::AddChosenType => Modification::AddChosenType,
             Mod::AddSubtype(s) => Modification::AddSubtype(self.pool.subtype(s)),
+            Mod::SetSubtype(s) => Modification::SetCreatureType(self.pool.subtype(s)),
+            // A static ability compiles all five (`Ability::Static`).
+            Mod::AddAllLandTypes => Modification::AddLandType(Color::White),
             Mod::Control => Modification::Control,
             Mod::AddColors(c) => Modification::AddColors(ColorSet::of(c.iter().copied())),
             Mod::SetColors(c) => Modification::SetColors(ColorSet::of(c.iter().copied())),
@@ -1568,6 +1608,10 @@ impl Compiler<'_> {
                     for m in mods {
                         // "is a Mountain, Forest, and Plains": the first
                         // replaces its land types, the rest add to it.
+                        if *m == Mod::AddAllLandTypes {
+                            parts.extend(Color::ALL.iter().map(|c| Modification::AddLandType(*c)));
+                            continue;
+                        }
                         if let Mod::SetLandTypes(lands) = m {
                             for (i, c) in lands.iter().enumerate() {
                                 parts.push(if i == 0 {
@@ -1804,6 +1848,8 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                     E::ReturnToBattlefield {
                         what: Recipient::Source,
                         counters: None,
+                        tapped: false,
+                        under_you: false,
                     },
                     E::Grant {
                         keywords: vec![mtg_core::card::Keyword::Haste],

@@ -1,0 +1,8 @@
+card "Faith's Fetters" {
+  oracle_id 2b2d76f5-4c9b-49dc-b202-68095e2d9b29
+  cost {3}{W}
+  type Enchantment — Aura
+  enchant permanent
+  triggered when this enters: you gain 4 life
+  static enchanted: has can't attack, can't block, can't activate except mana
+}

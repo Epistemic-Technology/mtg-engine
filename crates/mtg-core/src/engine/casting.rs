@@ -244,13 +244,16 @@ impl GameState {
             CountExpr::Times(k, inner) => return k.saturating_mul(self.eval_count(inner, ctx)),
             CountExpr::Permanents(f) => {
                 let f = &*self.chosen_filter(f, ctx);
+                let host = f.attached_to.map(|a| self.attached_host(ctx, a));
                 self.battlefield
                     .iter()
                     .filter(|id| {
                         let o = &self.objects[**id];
-                        self.characteristics(**id).is_some_and(|c| {
-                            f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
-                        }) && self.status_ok(f, **id)
+                        host.is_none_or(|h| h.is_some() && o.attached_to == h)
+                            && self.characteristics(**id).is_some_and(|c| {
+                                f.matches(**id, o.controller, &c, Some(ctx.source), Some(you))
+                            })
+                            && self.status_ok(f, **id)
                     })
                     .count()
             }
@@ -1015,10 +1018,17 @@ impl GameState {
                 continue;
             };
             let sick = c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste);
+            // CR 602.5: "its activated abilities can't be activated"
+            // (Arrest), or all but its mana abilities (CR 605.1a).
+            let barred = c.has(Keyword::CantActivate);
+            let barred_nonmana = c.has(Keyword::CantActivateNonMana);
             for a in &c.abilities {
                 let AbilityDef::Activated(ab) = self.pool.ability(*a) else {
                     continue;
                 };
+                if barred || (barred_nonmana && !ab.is_mana_ability()) {
+                    continue;
+                }
                 if ab.sorcery_speed && !sorcery_timing {
                     continue;
                 }
@@ -1631,6 +1641,11 @@ impl GameState {
             if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
                 continue;
             }
+            // CR 602.5: no activated abilities, mana abilities included
+            // (Encrust on a mana artifact).
+            if c.has(Keyword::CantActivate) {
+                continue;
+            }
             let other_use =
                 c.is_creature() || (self.activated_sources > 0 && self.flags_of(o).has_activated());
             let list = if other_use { &mut later } else { &mut out };
@@ -1666,7 +1681,9 @@ impl GameState {
                 let Some(c) = self.characteristics(id) else {
                     continue;
                 };
-                if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
+                if (c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste))
+                    || c.has(Keyword::CantActivate)
+                {
                     continue;
                 }
                 for a in &c.abilities {
@@ -1722,8 +1739,10 @@ impl GameState {
             let Some(c) = self.characteristics(id) else {
                 continue;
             };
-            // CR 302.6, as for the other sources.
-            if c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste) {
+            // CR 302.6 and 602.5, as for the other sources.
+            if (c.is_creature() && !o.controlled_since_turn_start && !c.has(Keyword::Haste))
+                || c.has(Keyword::CantActivate)
+            {
                 continue;
             }
             for a in &c.abilities {
@@ -2426,6 +2445,28 @@ impl GameState {
                     out.push(Target::Player(p));
                 }
             }
+            Recipient::TriggeringCard => {
+                if let Some(id) = ctx
+                    .trigger_obj
+                    .and_then(|o| self.lki.get(&o)?.moved_to)
+                    .filter(|id| self.objects.contains_key(*id))
+                {
+                    out.push(Target::Object(id));
+                }
+            }
+            Recipient::TriggeringController => {
+                let p = ctx.trigger_obj.and_then(|o| match self.objects.get(o) {
+                    Some(x) if x.zone == Zone::Battlefield => Some(x.controller),
+                    x => self
+                        .lki
+                        .get(&o)
+                        .map(|l| l.object.controller)
+                        .or(x.map(|x| x.controller)),
+                });
+                if let Some(p) = p {
+                    out.push(Target::Player(p));
+                }
+            }
             Recipient::DefendingPlayer => {
                 let attacked = ctx
                     .trigger_obj
@@ -2492,10 +2533,38 @@ impl GameState {
         out
     }
 
+    /// What a filter's "attached to" names as `ctx`'s effects resolve: the
+    /// source, what it's attached to, or a target still legal.
+    fn attached_host(&self, ctx: &EffectCtx, a: crate::card::AttachedTo) -> Option<ObjId> {
+        use crate::card::AttachedTo;
+        match a {
+            AttachedTo::Source => self.current_object(ctx.source),
+            AttachedTo::SourceHost => self
+                .objects
+                .get(ctx.source)
+                .and_then(|o| o.attached_to)
+                .or_else(|| self.lki.get(&ctx.source)?.object.attached_to),
+            AttachedTo::Target(n) => {
+                let n = usize::from(n);
+                match ctx.targets.get(n) {
+                    Some(Target::Object(id)) if ctx.legal.get(n).copied().unwrap_or(false) => {
+                        Some(*id)
+                    }
+                    _ => None,
+                }
+            }
+        }
+    }
+
     /// Every battlefield object in the pool's `f`th filter, as `ctx`'s
     /// effects resolve.
     fn group_into(&self, ctx: &EffectCtx, f: u16, out: &mut SmallVec<[Target; 2]>) {
         let filter = &*self.chosen_filter(self.pool.filter(f), ctx);
+        // "all Auras attached to it": nothing if what it names is gone.
+        let host = filter.attached_to.map(|a| self.attached_host(ctx, a));
+        if host == Some(None) {
+            return;
+        }
         let source = self.current_object(ctx.source);
         // "Target creature you control gets +3/+3 and each other creature
         // you control gets +1/+1": a spell's "other" is other than its
@@ -2510,6 +2579,7 @@ impl GameState {
                 .iter()
                 .copied()
                 .filter(|id| !other_than_targets || !ctx.targets.contains(&Target::Object(*id)))
+                .filter(|id| host.is_none_or(|h| self.objects[*id].attached_to == h))
                 .filter(|id| {
                     let o = &self.objects[*id];
                     self.characteristics(*id).is_some_and(|c| {
@@ -3013,6 +3083,20 @@ impl GameState {
                 if let (Some(x), Some(y)) = (x, y) {
                     let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
                     self.deal_damage(x, y, u32::try_from(p).unwrap_or(0), false);
+                }
+            }
+            Effect::DamageFrom { source, amount, to } => {
+                let Some(x) = self
+                    .recipients(ctx, *source)
+                    .first()
+                    .copied()
+                    .and_then(|t| on_battlefield(self, t))
+                else {
+                    return;
+                };
+                let n = self.eval_num(*amount, ctx);
+                for y in self.recipients(ctx, *to) {
+                    self.deal_damage(x, y, n, false);
                 }
             }
             Effect::ExileAllGraveyards => {
@@ -3687,7 +3771,12 @@ impl GameState {
                     }
                 }
             }
-            Effect::ReturnToBattlefield { what, counters } => {
+            Effect::ReturnToBattlefield {
+                what,
+                counters,
+                tapped,
+                under_you,
+            } => {
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else {
                         continue;
@@ -3698,12 +3787,12 @@ impl GameState {
                     if !matches!(o.zone, Zone::Exile | Zone::Graveyard) {
                         continue;
                     }
-                    let owner = o.owner;
+                    let controller = if *under_you { ctx.controller } else { o.owner };
                     let new = self.put_onto_battlefield_with(
                         id,
-                        owner,
+                        controller,
                         super::replace::Enter {
-                            tapped: false,
+                            tapped: *tapped,
                             counters: *counters,
                         },
                     );

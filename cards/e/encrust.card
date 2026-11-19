@@ -1,0 +1,7 @@
+card "Encrust" {
+  oracle_id 2e056743-78ff-45b6-80df-7486d52d5df6
+  cost {1}{U}{U}
+  type Enchantment — Aura
+  enchant artifact or creature
+  static enchanted: has doesn't untap, can't activate
+}

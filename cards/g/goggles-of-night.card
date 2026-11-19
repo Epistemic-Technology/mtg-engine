@@ -1,0 +1,7 @@
+card "Goggles of Night" {
+  oracle_id af27761d-88df-4d4f-a366-d55ed62d1d33
+  cost {1}{U}
+  type Artifact — Equipment
+  triggered whenever equipped creature deals combat damage to a player: scry 1 then draw 1 card
+  equip {2}
+}

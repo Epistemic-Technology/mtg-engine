@@ -1,0 +1,8 @@
+card "Bladed Bracers" {
+  oracle_id 24d373cd-245a-4051-b187-ba8cc83b0c48
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +1/+1
+  static as long as attached is Human or Angel, equipped creature: has vigilance
+  equip {2}
+}

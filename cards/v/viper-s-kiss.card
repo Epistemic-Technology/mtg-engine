@@ -1,0 +1,7 @@
+card "Viper's Kiss" {
+  oracle_id 35dead9a-20ab-45e9-be3e-36857c928ab9
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1, has can't activate
+}

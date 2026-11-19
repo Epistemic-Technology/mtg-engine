@@ -1,0 +1,8 @@
+card "Detainment Spell" {
+  oracle_id b46526af-6b88-42c4-b317-4b499f151ff0
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't activate
+  activated {1}{W}: attach to target creature
+}

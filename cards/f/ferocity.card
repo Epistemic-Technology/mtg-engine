@@ -1,0 +1,7 @@
+card "Ferocity" {
+  oracle_id 1b1a0f35-3126-4b88-90aa-c56e67850a9d
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature blocks or becomes blocked: you may put 1 +1/+1 counter on it
+}

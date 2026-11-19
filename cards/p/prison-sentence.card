@@ -1,0 +1,8 @@
+card "Prison Sentence" {
+  oracle_id 6d9f2fe0-5657-45b4-9431-36e0f6c8eba2
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: scry 2
+  static enchanted: has can't attack, can't block, can't activate
+}

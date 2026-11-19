@@ -1,0 +1,9 @@
+card "Sleeping Potion" {
+  oracle_id c8fbcef0-2cbf-4a59-8322-374dd9153ebf
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  triggered when enchanted creature becomes targeted: sacrifice this
+}

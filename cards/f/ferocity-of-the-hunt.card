@@ -1,0 +1,9 @@
+card "Ferocity of the Hunt" {
+  oracle_id 747a1b36-eb4f-44e6-9e5a-bb1a0259a471
+  cost {1}{B/G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +1/+0, has deathtouch
+  triggered when enchanted creature dies: return triggering card to the battlefield tapped under its owner's control
+}

@@ -1,0 +1,7 @@
+card "Heart-Piercer Bow" {
+  oracle_id ebe9dad7-d74d-4fa8-b17a-88ff79209379
+  cost {2}
+  type Artifact — Equipment
+  triggered whenever equipped creature attacks: deal 1 damage to target creature defending player controls
+  equip {1}
+}

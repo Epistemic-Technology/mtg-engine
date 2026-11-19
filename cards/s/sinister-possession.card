@@ -1,0 +1,7 @@
+card "Sinister Possession" {
+  oracle_id 6ee431f3-64ec-4015-8f5a-9c2ac6004ebd
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature attacks or blocks: its controller loses 2 life
+}

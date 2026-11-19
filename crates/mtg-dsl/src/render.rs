@@ -14,9 +14,9 @@ use mtg_core::mana::{Color, Mana};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost, SameRef,
-    Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, AttachedRef, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording,
+    Effect, Filter, Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost,
+    SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -199,8 +199,25 @@ pub fn keyword_name(k: Keyword) -> &'static str {
         Keyword::Swampwalk => "swampwalk",
         Keyword::Mountainwalk => "mountainwalk",
         Keyword::Forestwalk => "forestwalk",
+        // Written as restrictions; Oracle's sentence is `activation_clause`.
+        Keyword::CantActivate => "can't activate",
+        Keyword::CantActivateNonMana => "can't activate except mana",
         k => k.name(),
     }
+}
+
+/// Whether the keyword bars activated abilities (CR 602.5).
+fn is_activation_bar(k: Keyword) -> bool {
+    matches!(k, Keyword::CantActivate | Keyword::CantActivateNonMana)
+}
+
+/// "its activated abilities can't be activated[ unless they're mana
+/// abilities]": the last of the restrictions in `ks` that bars activation.
+fn activation_clause(ks: &[Keyword]) -> Option<&'static str> {
+    ks.iter()
+        .rev()
+        .find(|k| is_activation_bar(**k))
+        .map(|k| k.name())
 }
 
 /// Restrictions the engine keeps with the keywords but Oracle prints as
@@ -220,6 +237,8 @@ pub fn is_restriction(k: Keyword) -> bool {
             | Keyword::BlockAdditional
             | Keyword::BlockAny
             | Keyword::Lure
+            | Keyword::CantActivate
+            | Keyword::CantActivateNonMana
     )
 }
 
@@ -228,7 +247,11 @@ pub fn is_restriction(k: Keyword) -> bool {
 fn is_block_rule(k: Keyword) -> bool {
     matches!(
         k,
-        Keyword::MustBlock | Keyword::MustBeBlocked | Keyword::BlockAdditional | Keyword::BlockAny
+        Keyword::MustBlock
+            | Keyword::MustBeBlocked
+            | Keyword::BlockAdditional
+            | Keyword::BlockAny
+            | Keyword::MustAttack
     )
 }
 
@@ -240,6 +263,7 @@ fn block_rule_this_turn(k: Keyword) -> &'static str {
         Keyword::MustBeBlocked => "must be blocked this turn if able",
         Keyword::BlockAdditional => "can block an additional creature this turn",
         Keyword::BlockAny => "can block any number of creatures this turn",
+        Keyword::MustAttack => "attacks this turn if able",
         k => keyword_name(k),
     }
 }
@@ -286,6 +310,9 @@ fn restriction_phrase(ks: &[Keyword]) -> String {
 /// A keyword as a line of text: the name, or a restriction as a sentence
 /// about the card.
 fn keyword_line(card: &Card, k: Keyword) -> String {
+    if is_activation_bar(k) {
+        return format!("{}'s {}.", capitalize(&this_ref(card)), &k.name()[4..]);
+    }
     if k == Keyword::DoesntUntap {
         return format!(
             "{} doesn't untap during your untap step.",
@@ -820,10 +847,22 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
-            Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::TriggeringCard => "that card".to_string(),
+            Recipient::TriggeringController { that: true } => {
+                let noun = if self.trigger_is_enchanted() {
+                    enchanted_noun(self.card)
+                } else {
+                    "creature"
+                };
+                format!("that {noun}'s controller")
+            }
+            Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
+                "its controller".to_string()
+            }
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
+            Recipient::DefendingPlayerWord => "defending player".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => {
@@ -875,10 +914,23 @@ impl<'a> Ctx<'a> {
     }
 
     /// The filter of the card's `i`th group, as a noun phrase.
-    fn group_phrase(&self, i: u16, plural_form: bool) -> String {
-        match self.card.groups.get(usize::from(i)) {
-            Some(f) => filter_phrase(f, self.card, plural_form),
-            None => "permanent".to_string(),
+    fn group_phrase(&mut self, i: u16, plural_form: bool) -> String {
+        let Some(f) = self.card.groups.get(usize::from(i)) else {
+            return "permanent".to_string();
+        };
+        let phrase = filter_phrase(f, self.card, plural_form);
+        // "all Auras attached to it", "all Equipment attached to that
+        // creature", "all Auras and Equipment attached to target creature".
+        match f.attached_to {
+            Some(AttachedRef::Target(n)) => {
+                let what = self.obj(Recipient::Target(n));
+                format!("{phrase} attached to {what}")
+            }
+            Some(AttachedRef::ThatTarget(n)) => {
+                self.target_mentioned[n] = true;
+                format!("{phrase} attached to that {}", self.target_noun[n])
+            }
+            _ => phrase,
         }
     }
 
@@ -995,7 +1047,17 @@ impl<'a> Ctx<'a> {
         }
         let items: Vec<String> = rs
             .iter()
-            .map(|r| if all { self.obj_all(*r) } else { self.obj(*r) })
+            .map(|r| {
+                // "target creature and all Auras attached to it".
+                let all_group = rs.len() > 1
+                    && matches!(r, Recipient::Group(i)
+                    if self.card.groups.get(usize::from(*i)).is_some_and(|f| f.all));
+                if all || all_group {
+                    self.obj_all(*r)
+                } else {
+                    self.obj(*r)
+                }
+            })
             .collect();
         list(&items)
     }
@@ -1178,6 +1240,8 @@ fn enchanted_noun(card: &Card) -> &'static str {
             | TargetSpec::CreatureOrPlaneswalker,
         )) => "permanent",
         Some(Target::Filter(f)) if f.types == [CardType::Land] => "land",
+        // "Enchant nonland permanent".
+        Some(Target::Filter(f)) if f.types.is_empty() && f.subtypes.is_empty() => "permanent",
         Some(Target::Filter(f)) if f.types.len() + f.any_types.len() > 1 => "permanent",
         _ => "creature",
     }
@@ -1189,6 +1253,25 @@ fn enchanted_noun(card: &Card) -> &'static str {
 /// control", "nonbasic land") or plural.
 #[allow(clippy::too_many_lines)] // one block per filter part
 fn filter_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
+    // "for each Aura and Equipment attached to it"; a target's phrase is
+    // the sentence's (`group_phrase`).
+    if let Some(a) = f.attached_to {
+        let g = Filter {
+            attached_to: None,
+            ..f.clone()
+        };
+        let p = filter_phrase(&g, card, plural_form);
+        // "for each Aura and Equipment attached to it".
+        let p = if plural_form {
+            p
+        } else {
+            p.replace(" or ", " and ")
+        };
+        return match a {
+            AttachedRef::Source | AttachedRef::Host => format!("{p} attached to it"),
+            AttachedRef::Target(_) | AttachedRef::ThatTarget(_) => p,
+        };
+    }
     let Some(alt) = &f.or else {
         return filter_phrase_one(f, card, plural_form);
     };
@@ -1805,7 +1888,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             )
         }
         CountExpr::Permanents(f) => {
-            let place = if f.who.is_none() {
+            let place = if f.who.is_none() && f.attached_to.is_none() {
                 " on the battlefield"
             } else {
                 ""
@@ -2331,7 +2414,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("return {o} to {hand}"))
         }
-        Effect::ReturnToBattlefield { what, counters: c } => {
+        Effect::ReturnToBattlefield {
+            what,
+            counters: c,
+            tapped,
+            under_you,
+        } => {
             let o = match what {
                 Recipient::SameObject | Recipient::CreatedObject => "that card".to_string(),
                 other => ctx.obj(*other),
@@ -2343,10 +2431,13 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
                     | Target::GraveyardCard { who: Who::You, .. }
             ));
-            let mut text = if yours {
-                format!("return {o} to the battlefield")
+            let tapped = if *tapped { " tapped" } else { "" };
+            let mut text = if *under_you {
+                format!("return {o} to the battlefield{tapped} under your control")
+            } else if yours {
+                format!("return {o} to the battlefield{tapped}")
             } else {
-                format!("return {o} to the battlefield under its owner's control")
+                format!("return {o} to the battlefield{tapped} under its owner's control")
             };
             if let Some((kind, n)) = c {
                 let _ = write!(text, " with {} on it", counters(Num::N(*n), *kind));
@@ -3114,6 +3205,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
 
 /// What a target "was": "a Human", "green or white", "nonbasic".
 fn target_predicate(f: &Filter, card: &Card) -> String {
+    // "a Human or an Angel".
+    if let Some(alt) = &f.or
+        && f.subtypes.len() == 1
+        && alt.subtypes.len() == 1
+        && f.types.is_empty()
+        && alt.types.is_empty()
+    {
+        let base = Filter {
+            or: None,
+            ..f.clone()
+        };
+        return format!(
+            "{} or {}",
+            target_predicate(&base, card),
+            target_predicate(alt, card)
+        );
+    }
     if f.types.iter().all(|t| *t == CardType::Creature)
         && f.subtypes.is_empty()
         && f.not_supertypes.is_empty()
@@ -3129,8 +3237,19 @@ fn target_predicate(f: &Filter, card: &Card) -> String {
     {
         return "nonbasic".to_string();
     }
-    if f.types.iter().all(|t| *t == CardType::Creature) && f.subtypes.len() == 1 {
+    if f.types.iter().all(|t| *t == CardType::Creature)
+        && f.supertypes.is_empty()
+        && f.subtypes.len() == 1
+    {
         return with_article(&f.subtypes[0]);
+    }
+    if f.types.iter().all(|t| *t == CardType::Creature)
+        && f.supertypes.is_empty()
+        && f.colors.is_none()
+        && f.subtypes.len() > 1
+    {
+        let each: Vec<String> = f.subtypes.iter().map(|s| with_article(s)).collect();
+        return or_list(&each);
     }
     with_article(&filter_phrase(f, card, false))
 }
@@ -3958,6 +4077,11 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
                 format!("is {}", with_article(basic_land_name(*c)))
             }
         }
+        Mod::SetSubtype(s) => format!("{} {}", v("is", "are"), with_article(s)),
+        Mod::AddAllLandTypes => format!(
+            "{} every basic land type in addition to its other types",
+            v("is", "are")
+        ),
         Mod::AddSubtype(s) => format!(
             "{} {} in addition to its other types",
             v("is", "are"),
@@ -4156,7 +4280,43 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
         let what = lowercase_first(&subject);
         return format!("{}.", capitalize(&lure_sentence(&what, false)));
     }
-    let parts: Vec<String> = mods
+    // "Enchanted creature can't attack or block, and its activated
+    // abilities can't be activated" (CR 602.5): a clause of its own, last.
+    let bars: Vec<Keyword> = mods
+        .iter()
+        .filter_map(|m| match m {
+            Mod::AddKeywords(ks) => Some(ks.iter().copied().filter(|k| is_activation_bar(*k))),
+            _ => None,
+        })
+        .flatten()
+        .collect();
+    let activation = activation_clause(&bars);
+    let stripped: Vec<Mod>;
+    let mods = if activation.is_some() {
+        stripped = mods
+            .iter()
+            .filter_map(|m| match m {
+                Mod::AddKeywords(ks) => {
+                    let rest: Vec<Keyword> = ks
+                        .iter()
+                        .copied()
+                        .filter(|k| !is_activation_bar(*k))
+                        .collect();
+                    (!rest.is_empty()).then_some(Mod::AddKeywords(rest))
+                }
+                m => Some(m.clone()),
+            })
+            .collect();
+        if stripped.is_empty() {
+            // "Enchanted creature's activated abilities can't be activated."
+            let clause = activation.unwrap_or_default();
+            return format!("{subject}'s {}.", &clause[4..]);
+        }
+        stripped.as_slice()
+    } else {
+        mods
+    };
+    let mut parts: Vec<String> = mods
         .iter()
         .map(|m| {
             if let Mod::AddAbility(a) = m {
@@ -4183,7 +4343,43 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             t
         })
         .collect();
-    let body = format!("{subject} {}", list(&parts));
+    // "has menace and \"Whenever ...\"": one "has" for both.
+    for i in 1..parts.len() {
+        if parts[i].starts_with("has \"") && parts[i - 1].starts_with("has ") {
+            parts[i] = parts[i]["has ".len()..].to_string();
+        }
+    }
+    // "is a Treefolk with base power and toughness 0/4", "is a creature
+    // with base power and toughness 4/4 in addition to its other types":
+    // a type and the base P/T that follows it are one phrase.
+    for i in (0..mods.len().saturating_sub(1)).rev() {
+        let (Mod::SetSubtype(_) | Mod::AddTypes(_) | Mod::AddSubtype(_)) = &mods[i] else {
+            continue;
+        };
+        let Mod::SetPt {
+            power: PtValue::Fixed(p),
+            toughness: PtValue::Fixed(t),
+        } = &mods[i + 1]
+        else {
+            continue;
+        };
+        let with = format!(" with base power and toughness {p}/{t}");
+        let joined = match parts[i].split_once(" in addition to its other types") {
+            Some((head, tail)) => format!("{head}{with} in addition to its other types{tail}"),
+            None => format!("{}{with}", parts[i]),
+        };
+        parts[i] = joined;
+        parts.remove(i + 1);
+    }
+    let mut body = format!("{subject} {}", list(&parts));
+    if let Some(clause) = activation {
+        // Oracle joins it with ", and", except after "doesn't untap during
+        // its controller's untap step" (Encrust).
+        let untap_only =
+            matches!(mods, [Mod::AddKeywords(ks)] if ks.as_slice() == [Keyword::DoesntUntap]);
+        body.push_str(if untap_only { " and " } else { ", and " });
+        body.push_str(clause);
+    }
     if body.ends_with(".\"") {
         body
     } else {
@@ -4347,12 +4543,30 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::AttackingAlone => "it's attacking alone".to_string(),
         StaticCond::Blocked => "it's blocked".to_string(),
         StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
-        StaticCond::AttachedIs(f) => format!(
-            "{} creature is {}",
-            if card.subtypes.iter().any(|s| s == "Equipment") {
-                "equipped"
+        // "As long as enchanted permanent is a creature" (an Aura that
+        // enchants an artifact or creature names what it enchants).
+        // "if enchanted creature's power is 4 or greater".
+        StaticCond::AttachedIs(f)
+            if f.power.is_some()
+                && Filter {
+                    power: None,
+                    ..f.clone()
+                } == Filter::default() =>
+        {
+            let (cmp, n) = f.power.expect("checked");
+            let noun = if card.subtypes.iter().any(|s| s == "Equipment") {
+                "equipped creature".to_string()
             } else {
-                "enchanted"
+                format!("enchanted {}", enchanted_noun(card))
+            };
+            format!("{noun}'s power is {n}{}", cmp_words(cmp))
+        }
+        StaticCond::AttachedIs(f) => format!(
+            "{} is {}",
+            if card.subtypes.iter().any(|s| s == "Equipment") {
+                "equipped creature".to_string()
+            } else {
+                format!("enchanted {}", enchanted_noun(card))
             },
             is_predicate(f, card)
         ),
@@ -4538,7 +4752,7 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
         } else if let StaticCond::AttachedIs(_) = c
             && let Some(rest) = body
                 .strip_prefix("Equipped creature ")
-                .or_else(|| body.strip_prefix("Enchanted creature "))
+                .or_else(|| body.strip_prefix(&format!("Enchanted {} ", enchanted_noun(card))))
         {
             // "As long as equipped creature is legendary, it has menace."
             format!("it {rest}")

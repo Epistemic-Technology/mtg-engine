@@ -1,0 +1,8 @@
+card "Failed Conversion" {
+  oracle_id e0930791-72b0-4d8b-b242-7b4094fed14e
+  cost {4}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -4/-4
+  triggered when enchanted creature dies: surveil 2
+}

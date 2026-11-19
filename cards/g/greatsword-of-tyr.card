@@ -1,0 +1,7 @@
+card "Greatsword of Tyr" {
+  oracle_id 81a602b6-a4f9-4534-a84e-2fa7556c2309
+  cost {1}{W}
+  type Artifact — Equipment
+  triggered whenever equipped creature attacks: put 1 +1/+1 counter on it and tap up to 1 target creature defending player controls
+  equip {W}
+}

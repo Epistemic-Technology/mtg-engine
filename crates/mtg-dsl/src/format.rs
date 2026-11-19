@@ -131,6 +131,7 @@ struct Fmt {
 }
 
 impl Fmt {
+    #[allow(clippy::too_many_lines)] // one arm per recipient kind
     fn recipient(&mut self, r: Recipient, targets: &[Target]) -> String {
         match r {
             Recipient::Target(i) => {
@@ -206,9 +207,16 @@ impl Fmt {
             Recipient::Source => "this".to_string(),
             Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
             Recipient::TriggeringObject => "that creature".to_string(),
+            Recipient::TriggeringCard => "triggering card".to_string(),
+            Recipient::TriggeringController { that: true } => {
+                "controller of that creature".to_string()
+            }
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
-            Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::DefendingPlayerWord => "that defending player".to_string(),
+            Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
+                "its controller".to_string()
+            }
             Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -230,11 +238,26 @@ impl Fmt {
                 let group = self.recipient(Recipient::Group(i), targets);
                 format!("{first} and {group}")
             }
-            Recipient::Group(i) => match self.groups.get(usize::from(i)) {
-                Some(f) if f.all => filter(f),
-                Some(f) => format!("each {}", filter(f)),
-                None => "each permanent".to_string(),
-            },
+            Recipient::Group(i) => {
+                let text = match self.groups.get(usize::from(i)) {
+                    Some(f) if f.all => filter(f),
+                    Some(f) => format!("each {}", filter(f)),
+                    None => "each permanent".to_string(),
+                };
+                // `all Aura attached to target creature`: the target is
+                // declared inside the group's filter.
+                let attached = self.groups.get(usize::from(i)).and_then(|f| f.attached_to);
+                match attached {
+                    Some(crate::ast::AttachedRef::Target(n)) if !self.mentioned[n] => {
+                        let declared = self.recipient(Recipient::Target(n), targets);
+                        text.replace(
+                            &format!("attached to target {}", n + 1),
+                            &format!("attached to {declared}"),
+                        )
+                    }
+                    _ => text,
+                }
+            }
         }
     }
 
@@ -614,8 +637,19 @@ impl Fmt {
                 format!("remove all counters from {}", self.recipient(*to, t))
             }
             Effect::ReturnToHand { what } => format!("return {} to hand", self.recipients(what, t)),
-            Effect::ReturnToBattlefield { what, counters } => {
+            Effect::ReturnToBattlefield {
+                what,
+                counters,
+                tapped,
+                under_you,
+            } => {
                 let mut s = format!("return {} to battlefield", self.recipient(*what, t));
+                if *tapped {
+                    s.push_str(" tapped");
+                }
+                if *under_you {
+                    s.push_str(" under your control");
+                }
                 if let Some((kind, n)) = counters {
                     let _ = write!(s, " with {n} {}", counter(*kind, Num::N(*n)));
                 }
@@ -1184,6 +1218,20 @@ pub fn graveyard_target(f: &Filter, who: Who) -> String {
 }
 
 pub fn filter(f: &Filter) -> String {
+    // "Aura or Equipment attached to target creature": after both sides.
+    if f.attached_to.is_some() && f.or.is_some() {
+        let base = Filter {
+            attached_to: None,
+            ..f.clone()
+        };
+        let only = Filter {
+            attached_to: f.attached_to,
+            ..Filter::default()
+        };
+        let tail = filter_one(&only);
+        let tail = tail.trim_start_matches("permanent ");
+        return format!("{} {tail}", filter(&base));
+    }
     if let Some(alt) = &f.or {
         let mut base = f.clone();
         base.or = None;
@@ -1306,6 +1354,17 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.no_abilities {
         words.push("with no abilities".to_string());
+    }
+    match f.attached_to {
+        Some(crate::ast::AttachedRef::Source) => words.push("attached to this".to_string()),
+        Some(crate::ast::AttachedRef::Host) => words.push("attached to attached".to_string()),
+        Some(crate::ast::AttachedRef::Target(n)) => {
+            words.push(format!("attached to target {}", n + 1));
+        }
+        Some(crate::ast::AttachedRef::ThatTarget(n)) => {
+            words.push(format!("attached to that target {}", n + 1));
+        }
+        None => {}
     }
     if let Some(c) = f.chosen {
         words.push(of_chosen(c).to_string());
@@ -1825,6 +1884,8 @@ fn modification(m: &Mod) -> String {
         Mod::ChosenLandType => "set land chosen".to_string(),
         Mod::AddChosenType => "add chosen type".to_string(),
         Mod::AddSubtype(s) => format!("add subtype {s}"),
+        Mod::SetSubtype(s) => format!("set subtype {s}"),
+        Mod::AddAllLandTypes => "add land all".to_string(),
         Mod::Control => "control".to_string(),
         Mod::AddColors(cs) => format!(
             "add color {}",

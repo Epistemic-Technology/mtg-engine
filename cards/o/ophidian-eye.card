@@ -1,0 +1,8 @@
+card "Ophidian Eye" {
+  oracle_id e83b8830-fa97-4e60-b042-005e552a3ceb
+  cost {2}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered whenever enchanted creature deals damage to opponent: you may draw 1 card
+}

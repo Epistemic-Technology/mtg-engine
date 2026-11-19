@@ -1,0 +1,7 @@
+card "False Demise" {
+  oracle_id 50ffa9f0-fb3b-4de4-b463-6d7ee8b5e93a
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: return triggering card to the battlefield under your control
+}
