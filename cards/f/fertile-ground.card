@@ -1,0 +1,7 @@
+card "Fertile Ground" {
+  oracle_id cf14d4e5-5965-45ad-97f7-26facf2884b5
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add any
+}

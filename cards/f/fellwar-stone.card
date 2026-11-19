@@ -1,0 +1,6 @@
+card "Fellwar Stone" {
+  oracle_id 95560508-7ac9-4be9-8a3f-3c7d5b52807b
+  cost {2}
+  type Artifact
+  activated {T}: add any that land opponent controls could produce
+}

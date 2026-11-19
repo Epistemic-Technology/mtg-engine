@@ -1,0 +1,8 @@
+card "Axebane Guardian" {
+  oracle_id 060e0378-e335-4b3d-82aa-ae36639339f6
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 0/3
+  keywords defender
+  activated {T}: add X mana any combination count where creature you control with defender
+}

@@ -19,7 +19,9 @@
 
 use smallvec::SmallVec;
 
-use crate::card::{AbilityDef, AbilityId, ActivatedAbility, Effect, Keyword, SacCost};
+use crate::card::{
+    AbilityDef, AbilityId, ActivatedAbility, CounterKind, Effect, EffectCond, Keyword, SacCost, Who,
+};
 use crate::ids::{ObjId, PlayerId};
 use crate::mana::{Color, ManaPool, ManaRequirement};
 use crate::mana::{ColorSet, Mana};
@@ -42,6 +44,11 @@ const MAX_COMBOS: usize = 256;
 /// Most mana one activation is taken to make ("add {G} for each Elf").
 const MAX_OUT: u32 = 8;
 
+/// The ability of a planned tap of a plain source whose mana triggered
+/// mana abilities add to (`AbilityDef::ManaTrigger`): no ability of the
+/// pool.
+const BOOSTED_TAP: AbilityId = AbilityId(u32::MAX);
+
 fn kinds_of(m: Mana) -> Kinds {
     match m {
         Mana::Colored(c) => 1 << (c as u8),
@@ -60,6 +67,51 @@ fn some_mana(k: Kinds) -> Mana {
     match Color::ALL.into_iter().find(|c| k & (1 << (*c as u8)) != 0) {
         Some(c) => Mana::Colored(c),
         None => Mana::Colorless,
+    }
+}
+
+/// What `GameState::mana_made` has found so far.
+struct Made {
+    out: Outs,
+    tie: Tie,
+    rest: bool,
+}
+
+/// Whether payment may apply `e`, an effect of a mana ability besides its
+/// mana, right after the mana: one that asks nothing and needs no target
+/// ("draw a card", "This land deals 1 damage to you", "If there are no
+/// depletion counters on this land, sacrifice it", a delayed trigger).
+fn rest_ok(e: &Effect) -> bool {
+    match e {
+        Effect::IfCondition(_, inner) => inner.iter().all(rest_ok),
+        Effect::DrawCards { .. }
+        | Effect::GainLife { .. }
+        | Effect::LoseLife { .. }
+        | Effect::Delayed { .. }
+        | Effect::DealDamage { .. }
+        | Effect::Sacrifice { .. } => true,
+        _ => false,
+    }
+}
+
+/// The kinds of mana an effect could add, however much (CR 106.7).
+fn effect_kinds(e: &Effect, chosen: Kinds) -> Kinds {
+    let of = |m: Mana| {
+        if m == Mana::Chosen {
+            chosen
+        } else {
+            kinds_of(m)
+        }
+    };
+    match e {
+        Effect::AddMana(ms) | Effect::AddManaOneOf(ms) => ms.iter().fold(0, |k, m| k | of(*m)),
+        Effect::AddManaTimes { mana, .. } => of(*mana),
+        Effect::AddManaCombination { colors, .. } => color_kinds(*colors),
+        Effect::Instead { base, alt, .. } => base
+            .iter()
+            .chain(alt)
+            .fold(0, |k, e| k | effect_kinds(e, chosen)),
+        _ => 0,
     }
 }
 
@@ -89,6 +141,11 @@ pub(super) struct AbilityMana {
     /// Recorded for "activate only once each turn" and friends.
     per_turn: bool,
     once_ever: bool,
+    /// Counters removed from its source as a cost.
+    remove: Option<(CounterKind, u32)>,
+    /// It does more than add mana ("If there are no depletion counters on
+    /// this land, sacrifice it."): the rest is applied after the mana.
+    rest: bool,
     /// How many times it may be activated now.
     times: u8,
     /// The kinds each mana it adds may be.
@@ -112,7 +169,10 @@ pub(super) struct Activation {
     pub sac: bool,
     pub per_turn: bool,
     pub once_ever: bool,
-    /// The mana it adds, colors chosen (CR 106.1b).
+    pub remove: Option<(CounterKind, u32)>,
+    pub rest: bool,
+    /// The mana it adds, colors chosen (CR 106.1b), triggered mana
+    /// abilities' included.
     pub mana: SmallVec<[Mana; 4]>,
 }
 
@@ -133,7 +193,8 @@ impl GameState {
     /// granted. One branch on the failure path of every payability check.
     #[inline]
     pub(super) fn ability_mana_possible(&self) -> bool {
-        (self.activated_sources | self.grant_sources | self.eot_grants) != 0
+        (self.activated_sources | self.grant_sources | self.eot_grants | self.mana_trigger_sources)
+            != 0
     }
 
     /// The activated mana abilities of `p`'s permanents (other than
@@ -168,7 +229,184 @@ impl GameState {
                 }
             }
         }
+        if self.mana_trigger_sources > 0 {
+            self.boosted_taps(p, exclude, &mut out);
+        }
         out
+    }
+
+    /// Plain sources (`mana_sources`) whose mana triggered mana abilities
+    /// add to (CR 605.1b: Wild Growth's {G} as the land is tapped), as
+    /// activations making both: the planner may then count a land as two
+    /// mana. Tapping it as a plain source adds the extra mana too, after
+    /// the plan (`tap_for_plan`).
+    #[cold]
+    fn boosted_taps(&self, p: PlayerId, exclude: Option<ObjId>, out: &mut Vec<AbilityMana>) {
+        let sources = self.mana_sources(p);
+        let mut seen: SmallVec<[ObjId; 8]> = SmallVec::new();
+        for (id, _) in &sources {
+            if Some(*id) == exclude || seen.contains(id) || self.sacrifices_for_mana(*id) {
+                continue;
+            }
+            seen.push(*id);
+            let Some(extra) = self.boost_outs(p, *id) else {
+                continue;
+            };
+            let own = sources
+                .iter()
+                .filter(|(s, _)| s == id)
+                .fold(0, |k, (_, m)| k | kinds_of(*m));
+            let mut made: Outs = smallvec::smallvec![own];
+            made.extend(extra);
+            out.push(AbilityMana {
+                id: *id,
+                ability: BOOSTED_TAP,
+                cost: ManaRequirement::default(),
+                life: 0,
+                tap: true,
+                sac: false,
+                per_turn: false,
+                once_ever: false,
+                remove: None,
+                rest: false,
+                times: 1,
+                out: made,
+                tie: Tie::Free,
+                weight: 1,
+            });
+        }
+    }
+
+    /// The triggered mana abilities (`AbilityDef::ManaTrigger`) that
+    /// trigger when `tapped` is tapped for mana: their sources and
+    /// abilities.
+    pub(super) fn mana_triggers_on(&self, tapped: ObjId) -> SmallVec<[(ObjId, AbilityId); 2]> {
+        let mut out = SmallVec::new();
+        let Some(t) = self.objects.get(tapped) else {
+            return out;
+        };
+        let Some(tc) = self.characteristics(tapped) else {
+            return out;
+        };
+        for src in &self.battlefield {
+            let o = &self.objects[*src];
+            if !self.flags_of(o).has_mana_trigger() {
+                continue;
+            }
+            let Some(c) = self.characteristics(*src) else {
+                continue;
+            };
+            for a in &c.abilities {
+                let AbilityDef::ManaTrigger { what, .. } = self.pool.ability(*a) else {
+                    continue;
+                };
+                if (!what.enchanted || o.attached_to == Some(tapped))
+                    && what.matches(tapped, t.controller, &tc, Some(*src), Some(o.controller))
+                    && self.status_ok(what, tapped)
+                {
+                    out.push((*src, *a));
+                }
+            }
+        }
+        out
+    }
+
+    /// The kinds of the extra mana triggered mana abilities add as
+    /// `tapped` is tapped for mana; `None` without any (or with any the
+    /// planner can't foresee).
+    fn boost_outs(&self, p: PlayerId, tapped: ObjId) -> Option<Outs> {
+        let mut out = Outs::new();
+        for (src, a) in self.mana_triggers_on(tapped) {
+            let (made, tie, rest) = self.mana_made(p, src, self.pool.ability(a).effects())?;
+            if (tie != Tie::Free && made.len() > 1) || rest {
+                return None;
+            }
+            out.extend(made);
+        }
+        (!out.is_empty()).then_some(out)
+    }
+
+    /// CR 605.4a: the triggered mana abilities of `tapped`, just tapped for
+    /// mana, resolve at once, adding their mana for its controller.
+    #[cold]
+    #[inline(never)]
+    pub(super) fn fire_mana_triggers(&mut self, tapped: ObjId) {
+        let Some(p) = self.objects.get(tapped).map(|o| o.controller) else {
+            return;
+        };
+        for (src, a) in self.mana_triggers_on(tapped) {
+            let pool = std::sync::Arc::clone(&self.pool);
+            let mut ctx = EffectCtx {
+                source: src,
+                controller: p,
+                targets: Vec::new(),
+                division: Vec::new(),
+                legal: Vec::new(),
+                trigger_obj: Some(tapped),
+                trigger_player: None,
+                trigger_amount: 0,
+                created: None,
+                x: 0,
+                did: true,
+                chosen: Chosen::None,
+            };
+            for e in pool.ability(a).effects() {
+                self.apply_effect(&mut ctx, e);
+            }
+        }
+    }
+
+    /// The kinds of mana lands (`whose`, from `p`; `basic`: basic lands
+    /// only) could produce (CR 106.7): their mana abilities' mana, whatever
+    /// they cost and whether or not they could be activated. Abilities
+    /// that themselves ask what lands could produce add nothing.
+    pub(super) fn lands_could_produce(&self, p: PlayerId, whose: Who, basic: bool) -> Kinds {
+        let mut kinds: Kinds = 0;
+        for id in &self.battlefield {
+            let o = &self.objects[*id];
+            let theirs = match whose {
+                Who::You => o.controller == p,
+                Who::Opponents => o.controller != p,
+                Who::Any => true,
+            };
+            if !theirs {
+                continue;
+            }
+            let Some(ch) = self.characteristics(*id) else {
+                continue;
+            };
+            if !ch.is_land() || (basic && !ch.supertypes.contains(crate::card::Supertype::Basic)) {
+                continue;
+            }
+            for s in &ch.subtypes {
+                if let Some(color) = s.basic_color() {
+                    kinds |= 1 << (color as u8);
+                }
+            }
+            let chosen = o.chosen.color().map_or(0, |c| 1 << (c as u8));
+            let of = |m: Mana| {
+                if m == Mana::Chosen {
+                    chosen
+                } else {
+                    kinds_of(m)
+                }
+            };
+            for a in &ch.abilities {
+                match self.pool.ability(*a) {
+                    AbilityDef::TapForMana(mana) | AbilityDef::SacForMana(mana) => {
+                        kinds |= of(*mana);
+                    }
+                    AbilityDef::RestrictedMana { mana, .. } => kinds |= of(*mana),
+                    AbilityDef::Activated(ab) if ab.is_mana_ability() => {
+                        for e in &ab.effects {
+                            kinds |= effect_kinds(e, chosen);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        kinds
     }
 
     /// `ab` as an `AbilityMana`, if it is a mana ability whose costs the
@@ -190,7 +428,9 @@ impl GameState {
             || cost.discard_self
             || cost.exile_self
             || cost.crew > 0
-            || cost.remove_counters.is_some()
+            || cost
+                .remove_counters
+                .is_some_and(|(k, n)| self.objects[id].counters(k) < n)
             || cost.energy > 0
             || cost.discard > 0
             || cost.discard_x
@@ -217,17 +457,29 @@ impl GameState {
             MAX_TIMES
         };
         let sac = cost.sacrifice.is_some();
-        let times = if cost.tap || sac || ab.once_ever {
+        let times = if cost.tap || sac || ab.once_ever || cost.remove_counters.is_some() {
             1
         } else {
             used.min(MAX_TIMES)
         };
-        let (out, tie) = self.mana_made(p, id, &ab.effects)?;
+        let (mut out, tie, rest) = self.mana_made(p, id, &ab.effects)?;
+        // CR 605.1b: tapping it for mana triggers mana abilities that add
+        // to what it makes.
+        if cost.tap
+            && self.mana_trigger_sources > 0
+            && let Some(extra) = self.boost_outs(p, id)
+        {
+            if tie != Tie::Free {
+                return None;
+            }
+            out.extend(extra);
+        }
         let weight = 1
             + if sac { 4 } else { 0 }
             + 3 * req.total()
             + 2 * cost.life
-            + u32::from(!cost.tap && !sac && req.total() == 0);
+            + u32::from(!cost.tap && !sac && req.total() == 0)
+            + 2 * u32::from(rest || cost.remove_counters.is_some());
         Some(AbilityMana {
             id,
             ability: a,
@@ -237,6 +489,8 @@ impl GameState {
             sac,
             per_turn: ab.per_turn > 0,
             once_ever: ab.once_ever,
+            remove: cost.remove_counters,
+            rest,
             times,
             out,
             tie,
@@ -245,17 +499,45 @@ impl GameState {
     }
 
     /// The mana these effects add, as `apply_effect` would (one entry per
-    /// mana, the kinds it may be), and how the entries relate; `None` if
-    /// it adds none or mixes ties.
+    /// mana, the kinds it may be), how the entries relate, and whether the
+    /// effects do more than add mana (applied after, see `rest_ok`);
+    /// `None` if they add none, mix ties, or do something payment can't
+    /// do on the way.
     fn mana_made(
         &self,
         p: PlayerId,
         id: ObjId,
         effects: &[Effect],
-    ) -> Option<(SmallVec<[Kinds; 4]>, Tie)> {
+    ) -> Option<(SmallVec<[Kinds; 4]>, Tie, bool)> {
+        let ctx = EffectCtx {
+            source: id,
+            controller: p,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+        };
+        let mut made = Made {
+            out: SmallVec::new(),
+            tie: Tie::Free,
+            rest: false,
+        };
+        self.mana_made_into(&ctx, effects, &mut made)?;
+        if made.out.is_empty() {
+            return None;
+        }
+        Some((made.out, made.tie, made.rest))
+    }
+
+    fn mana_made_into(&self, ctx: &EffectCtx, effects: &[Effect], made: &mut Made) -> Option<()> {
+        let id = ctx.source;
         let chosen = self.chosen_color_of(id).map_or(0, |c| 1 << (c as u8));
-        let mut out = SmallVec::new();
-        let mut tie = Tie::Free;
         let set_tie = |t: Tie, tie: &mut Tie| {
             if t == Tie::Free || *tie == t {
                 return true;
@@ -274,7 +556,7 @@ impl GameState {
                             kinds_of(*m)
                         };
                         if k != 0 {
-                            out.push(k);
+                            made.out.push(k);
                         }
                     }
                 }
@@ -290,27 +572,14 @@ impl GameState {
                         })
                         .collect();
                     if colors.len() == mana.len() && !colors.is_empty() {
-                        out.push(colors.iter().fold(0, |a, b| a | b));
+                        made.out.push(colors.iter().fold(0, |a, b| a | b));
                     } else {
-                        out.push(mana.first().map_or(COLORLESS, |m| kinds_of(*m)));
+                        made.out
+                            .push(mana.first().map_or(COLORLESS, |m| kinds_of(*m)));
                     }
                 }
                 Effect::AddManaTimes { mana, count } => {
-                    let ctx = EffectCtx {
-                        source: id,
-                        controller: p,
-                        targets: Vec::new(),
-                        division: Vec::new(),
-                        legal: Vec::new(),
-                        trigger_obj: None,
-                        trigger_player: None,
-                        trigger_amount: 0,
-                        created: None,
-                        x: 0,
-                        did: true,
-                        chosen: Chosen::None,
-                    };
-                    let n = self.eval_num(*count, &ctx).min(MAX_OUT);
+                    let n = self.eval_num(*count, ctx).min(MAX_OUT);
                     let k = match *mana {
                         Mana::Chosen => chosen,
                         m => kinds_of(m),
@@ -318,11 +587,11 @@ impl GameState {
                     if n == 0 || k == 0 {
                         continue;
                     }
-                    if k == ANY_COLOR && n > 1 && !set_tie(Tie::Same, &mut tie) {
+                    if k == ANY_COLOR && n > 1 && !set_tie(Tie::Same, &mut made.tie) {
                         return None;
                     }
                     for _ in 0..n {
-                        out.push(k);
+                        made.out.push(k);
                     }
                 }
                 Effect::AddManaCombination {
@@ -331,27 +600,47 @@ impl GameState {
                     different,
                 } => {
                     let k = color_kinds(*colors);
+                    let count = self.eval_num(*count, ctx);
                     let n = if *different {
-                        (*count).min(colors.count())
+                        count.min(colors.count())
                     } else {
-                        *count
+                        count
                     };
-                    if *different && n > 1 && !set_tie(Tie::Different, &mut tie) {
+                    if *different && n > 1 && !set_tie(Tie::Different, &mut made.tie) {
                         return None;
                     }
                     for _ in 0..n.min(MAX_OUT) {
-                        out.push(k);
+                        made.out.push(k);
                     }
                 }
+                Effect::AddManaLandCould { whose, basic } => {
+                    let k = self.lands_could_produce(ctx.controller, *whose, *basic) & ANY_COLOR;
+                    if k != 0 {
+                        made.out.push(k);
+                    }
+                }
+                // "Add {C}. If you control an Urza's Mine and an Urza's
+                // Power-Plant, add {C}{C} instead." (CR 608.2c): the branch
+                // that would happen now.
+                Effect::Instead {
+                    cond: EffectCond::Static(i),
+                    base,
+                    alt,
+                } if e.adds_mana() => {
+                    let c = self.pool.condition(*i);
+                    let branch = if self.condition_for(c, ctx.controller, id, None) {
+                        alt
+                    } else {
+                        base
+                    };
+                    self.mana_made_into(ctx, branch, made)?;
+                }
+                e if rest_ok(e) => made.rest = true,
                 _ => return None,
             }
         }
-        if out.is_empty() {
-            return None;
-        }
-        Some((out, tie))
+        Some(())
     }
-
     /// A payment of `req` from `sources`, `pool`, and `p`'s activated mana
     /// abilities (all but `exclude`'s); see the module comment. `None`
     /// when there are no such abilities, so that it never disagrees with
@@ -774,6 +1063,8 @@ fn matching(
             sac: a.sac,
             per_turn: a.per_turn,
             once_ever: a.once_ever,
+            remove: a.remove,
+            rest: a.rest,
             mana: out.iter().map(|k| some_mana(*k)).collect(),
         })
         .collect();

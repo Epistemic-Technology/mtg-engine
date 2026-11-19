@@ -1,0 +1,7 @@
+card "Overgrowth" {
+  oracle_id e6ccebf4-f4f0-404f-a634-4d751ef9c8aa
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add {G}{G}
+}

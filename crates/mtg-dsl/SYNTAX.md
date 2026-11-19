@@ -89,7 +89,7 @@ double-faced permanent to its other face (CR 701.27).
 | `equip {1}` | Equip (CR 702.6). |
 | `triggered <trigger> [if <condition>]: <effects>` | A triggered ability (CR 603). |
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
-| `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). |
+| `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). |
 | `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last. `static during your turn, this: has first strike` prints "During your turn, ...". |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
@@ -185,6 +185,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `when this becomes targeted` | becomes the target of a spell or ability |
 | `whenever this becomes targeted` | "Whenever this creature becomes the target of a spell or ability" (`when` prints "When") |
 | `whenever this becomes tapped`, `whenever this becomes untapped` | |
+| `whenever enchanted land is tapped for mana: add {G}` | "Whenever enchanted land is tapped for mana, its controller adds an additional {G}." (`enchanted Forest` for an Aura with `enchant Forest`). A triggered mana ability (CR 605.1b): its effects may only add mana (`add any`, `add {G}{G}`, `add 2 mana any combination`, `add chosen`, `add {G} count each Elf on battlefield`), for the tapped permanent's controller, and it resolves at once when the permanent is tapped for mana by a mana ability (CR 605.4a), whether paying a cost or activated by hand. Payment counts the extra mana as part of what the permanent makes. |
 | `whenever this is dealt damage` | (enrage) |
 | `whenever this deals damage`, `... deals damage to creature`, `... to player`, `... to opponent`, `... deals combat damage to creature` | the damaged creature is "that creature", the damaged player "that player" |
 | `whenever you cast artifact spell`, `whenever a player casts Goblin spell`, `whenever an opponent casts multicolored spell` | a cast trigger with any filter |
@@ -224,7 +225,9 @@ attacking" when the subject is something else), `opponent life 10 or
 less` ("an opponent has 10 or less life"), `your life 30 or more`,
 `player life 13 or less` ("a player has 13 or less life"), `defending
 player controls Island`, `you control no untapped land`, `you control
-other Goblin` ("you control another Goblin"), `attacked this turn` (raid),
+other Goblin` ("you control another Goblin"), `you control Urza's Mine and
+Urza's Power-Plant` ("you control an Urza's Mine and an Urza's
+Power-Plant": one of each), `attacked this turn` (raid),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
 in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
 the shorthands `threshold`, `delirium`, `metalcraft`; also `land entered
@@ -645,7 +648,23 @@ once, CR 605), `add any 2` ("Add two mana of any one color."), `add 2 mana
 any combination` / `add 3 mana any combination of {R}{G}` / `add 2 mana
 different colors` ("Add two mana in any combination of colors.", "Add
 three mana in any combination of {R} and/or {G}.", "Add two mana of
-different colors."; each mana's color chosen as it is added), `search basic land card reveal to hand`, `search up to 2
+different colors."; each mana's color chosen as it is added; `add X mana
+any combination` with the ability's X, `add X mana any combination count
+where creature you control with defender` "Add X mana in any combination
+of colors, where X is the number of ..."), `add chosen` ("Add one mana of
+the chosen color."), `add {G} count equal power` ("Add an amount of {G}
+equal to this creature's power."), `add any that land opponent controls
+could produce`, `add any that land you control could produce`, `add any
+that basic land you control could produce` ("Add one mana of any color
+that a land an opponent controls could produce.": the colors those lands'
+mana abilities could make as it resolves, CR 106.7, tapped or not; none,
+no mana). An activated ability that adds mana and has no targets is a mana
+ability even if it does more (CR 605.1a): `activated {T}, remove 1
+depletion counter from this: add {G}{G}; if this has no depletion
+counters, sacrifice this` resolves at once, and payment activates it
+(removing the counter, then the rest) when plain sources fall short,
+`add {C}; if you control Urza's Mine and Urza's Tower, add {C}{C}
+instead` counting as the mana it would make now. `search basic land card reveal to hand`, `search up to 2
 Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"; `search up to 3 card named this reveal to hand`,

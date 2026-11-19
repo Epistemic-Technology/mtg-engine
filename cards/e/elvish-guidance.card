@@ -1,0 +1,7 @@
+card "Elvish Guidance" {
+  oracle_id 8d6b94d5-bb53-4941-8c6b-7ebef764c1ce
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered whenever enchanted land is tapped for mana: add {G} count each Elf on battlefield
+}

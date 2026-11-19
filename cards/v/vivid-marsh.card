@@ -1,0 +1,8 @@
+card "Vivid Marsh" {
+  oracle_id 20b32052-f66f-4eb8-b56e-00d531907f19
+  type Land
+  enters tapped
+  enters with 2 charge counters
+  mana {B}
+  activated {T}, remove 1 charge counter from this: add any
+}

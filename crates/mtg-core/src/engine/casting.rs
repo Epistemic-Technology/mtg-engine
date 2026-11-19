@@ -2033,6 +2033,11 @@ impl GameState {
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
             self.resolve_top();
+            // CR 605.4a: mana abilities it triggered by tapping its source
+            // for mana resolve right after it.
+            if ab.cost.tap && self.mana_trigger_sources > 0 {
+                self.fire_mana_triggers(sa.source);
+            }
         }
         self.give_priority(controller);
     }
@@ -2225,7 +2230,7 @@ impl GameState {
     /// `{T}` mana ability the plan could have used instead). Read from the
     /// printed definition: no effect grants a sacrifice mana ability.
     #[inline]
-    fn sacrifices_for_mana(&self, id: ObjId) -> bool {
+    pub(super) fn sacrifices_for_mana(&self, id: ObjId) -> bool {
         let def = self.pool.get(self.objects[id].def);
         let mut sac = false;
         for a in &def.ability_ids {
@@ -2585,6 +2590,11 @@ impl GameState {
     #[allow(clippy::inline_always)] // measured: out of line costs 0.7% instructions/game
     #[inline(always)]
     fn tap_for_plan(&mut self, p: PlayerId, plan: &Sources) {
+        let boosted = if self.mana_trigger_sources > 0 {
+            self.tapped_for_mana(p, plan)
+        } else {
+            SmallVec::new()
+        };
         for &(id, mana) in plan {
             // Delve's cards are exiled; everything else is tapped.
             if self
@@ -2608,6 +2618,61 @@ impl GameState {
                 self.sacrifice(id);
             }
         }
+        for id in boosted {
+            self.fire_mana_triggers(id);
+        }
+    }
+
+    /// The sources of `plan` tapped for mana (not tapped for convoke or
+    /// improvise, CR 702.51, 702.126) whose tapping triggers mana
+    /// abilities (CR 605.1b).
+    #[cold]
+    #[inline(never)]
+    fn tapped_for_mana(&self, p: PlayerId, plan: &Sources) -> SmallVec<[ObjId; 2]> {
+        let sources = self.mana_sources(p);
+        let mut out = SmallVec::new();
+        for (id, _) in plan {
+            let Some(o) = self.objects.get(*id) else {
+                continue;
+            };
+            if o.zone == Zone::Battlefield
+                && !out.contains(id)
+                && (sources.iter().any(|(s, _)| s == id) || self.flags_of(o).has_restricted_mana())
+                && !self.mana_triggers_on(*id).is_empty()
+            {
+                out.push(*id);
+            }
+        }
+        out
+    }
+
+    /// The effects of mana ability `a` of `id` besides its mana, applied
+    /// after the mana as payment activates it ("If there are no depletion
+    /// counters on this land, sacrifice it.").
+    #[cold]
+    #[inline(never)]
+    fn mana_ability_rest(&mut self, p: PlayerId, id: ObjId, a: crate::card::AbilityId) {
+        let pool = std::sync::Arc::clone(&self.pool);
+        let AbilityDef::Activated(ab) = pool.ability(a) else {
+            return;
+        };
+        let mut ctx = EffectCtx {
+            source: id,
+            controller: p,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: None,
+            trigger_player: None,
+            trigger_amount: 0,
+            created: None,
+            x: 0,
+            did: true,
+            chosen: Chosen::None,
+        };
+        for e in ab.effects.iter().filter(|e| !e.adds_mana()) {
+            self.apply_effect(&mut ctx, e);
+        }
     }
 
     /// CR 601.2g–h with mana abilities activated along the way: tap the
@@ -2630,8 +2695,14 @@ impl GameState {
             if act.life > 0 {
                 self.change_life(p, -i32::try_from(act.life).unwrap_or(i32::MAX));
             }
+            if let Some((k, n)) = act.remove {
+                self.remove_counters(act.id, k, n);
+            }
             for m in act.mana {
                 self.player_mut(p).mana_pool.add(m);
+            }
+            if act.rest {
+                self.mana_ability_rest(p, act.id, act.ability);
             }
             if act.per_turn {
                 self.activated_once.push((act.id, act.ability));
@@ -3806,6 +3877,28 @@ impl GameState {
                     self.bump();
                 }
             }
+            Effect::AddManaLandCould { whose, basic } => {
+                // CR 106.7: the colors those lands could produce now.
+                let p = ctx.controller;
+                let k = self.lands_could_produce(p, *whose, *basic);
+                let options: Vec<Choice> = Color::ALL
+                    .into_iter()
+                    .filter(|c| k & (1 << (*c as u8)) != 0)
+                    .map(Choice::Color)
+                    .collect();
+                let c = match options.len() {
+                    0 => None,
+                    1 => Some(options[0].clone()),
+                    n => {
+                        let i = self.choose_mid(p, DecisionKind::ChooseColor, options.clone());
+                        Some(options[i.min(n - 1)].clone())
+                    }
+                };
+                if let Some(Choice::Color(c)) = c {
+                    self.player_mut(p).mana_pool.add(Mana::Colored(c));
+                    self.bump();
+                }
+            }
             Effect::AddManaCombination {
                 count,
                 colors,
@@ -3814,7 +3907,8 @@ impl GameState {
                 // CR 106.1b: each mana's color is chosen as it is added.
                 let p = ctx.controller;
                 let mut left = *colors;
-                for _ in 0..*count {
+                let n = self.eval_num(*count, ctx).min(1000);
+                for _ in 0..n {
                     let options: Vec<Choice> = left.iter().map(Choice::Color).collect();
                     let Some(&Choice::Color(c)) = (match options.len() {
                         0 => None,

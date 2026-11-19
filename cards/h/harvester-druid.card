@@ -1,0 +1,7 @@
+card "Harvester Druid" {
+  oracle_id c2b4f43a-6609-43ca-ad0d-897b6f8cb22f
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {T}: add any that land you control could produce
+}

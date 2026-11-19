@@ -915,6 +915,9 @@ pub enum StaticCond {
     },
     /// `you control no untapped land`.
     YouControlNone(Filter),
+    /// `you control Urza's Mine and Urza's Power-Plant`: "you control an
+    /// Urza's Mine and an Urza's Power-Plant".
+    YouControlEach(Vec<Filter>),
     /// `attacked this turn` (raid): "you attacked this turn".
     AttackedThisTurn,
     /// `creature died this turn` (morbid).
@@ -1265,6 +1268,11 @@ pub enum Trigger {
     BecomesTargetWhenever(TriggerObj),
     BecomesTapped(TriggerObj),
     BecomesUntapped(TriggerObj),
+    /// `whenever enchanted land is tapped for mana: add {G}`: "Whenever
+    /// enchanted land is tapped for mana, its controller adds an
+    /// additional {G}." A triggered mana ability (CR 605.1b); its effects
+    /// are mana for the tapped permanent's controller, nothing else.
+    TappedForMana(TriggerObj),
     /// `whenever this is dealt damage`.
     DealtDamage(TriggerObj),
     /// `whenever this deals damage to creature`, `... to player`, `... to
@@ -1722,9 +1730,16 @@ pub enum Effect {
     /// combination of colors.", "... of {R} and/or {G}.", "Add two mana of
     /// different colors."
     AddManaCombination {
-        count: u32,
+        count: Num,
         colors: mtg_core::mana::ColorSet,
         different: bool,
+    },
+    /// `add any that land opponent controls could produce`, `add any that
+    /// basic land you control could produce`: "Add one mana of any color
+    /// that a land an opponent controls could produce." (CR 106.7).
+    AddManaLandCould {
+        whose: Who,
+        basic: bool,
     },
     Surveil(Num),
     /// `who` is `None` for the imperative "discard a card".

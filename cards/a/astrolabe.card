@@ -1,0 +1,6 @@
+card "Astrolabe" {
+  oracle_id d19567ac-1f52-40eb-b2cf-4c791823ec92
+  cost {3}
+  type Artifact
+  activated {1}, {T}, sacrifice this: add any 2; delayed this: draw 1 cards at beginning of the next turn's upkeep
+}

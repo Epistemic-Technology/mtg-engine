@@ -425,6 +425,7 @@ impl GameState {
             self.tap_static_sources += d(flags.has_tap_static());
             self.cost_change_sources += d(flags.has_cost_change());
             self.restricted_mana_sources += d(flags.has_restricted_mana());
+            self.mana_trigger_sources += d(flags.has_mana_trigger());
             self.turn_static_sources += d(flags.has_turn_static());
             self.attack_rule_sources += d(flags.has_attack_rule());
             self.grant_sources += d(flags.grants_abilities());
@@ -439,6 +440,7 @@ impl GameState {
             self.tap_static_sources -= d(flags.has_tap_static());
             self.cost_change_sources -= d(flags.has_cost_change());
             self.restricted_mana_sources -= d(flags.has_restricted_mana());
+            self.mana_trigger_sources -= d(flags.has_mana_trigger());
             self.turn_static_sources -= d(flags.has_turn_static());
             self.attack_rule_sources -= d(flags.has_attack_rule());
             self.grant_sources -= d(flags.grants_abilities());

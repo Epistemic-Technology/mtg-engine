@@ -1342,6 +1342,46 @@ fn enchanted_noun(card: &Card) -> &'static str {
     }
 }
 
+/// "This land enters tapped with two depletion counters on it.": one
+/// sentence for an "enters tapped" followed by an "enters with counters".
+fn enters_tapped_with(card: &Card, i: usize) -> Option<String> {
+    let (
+        Ability::Replacement(Replacement {
+            event: Replaces::Enters,
+            outcome: Outcome::EnterTapped,
+            then: t1,
+        }),
+        Some(Ability::Replacement(Replacement {
+            event: Replaces::Enters,
+            outcome: Outcome::EnterWithCounters { kind, n },
+            then: t2,
+        })),
+    ) = (&card.abilities[i], card.abilities.get(i + 1))
+    else {
+        return None;
+    };
+    (t1.is_empty() && t2.is_empty()).then(|| {
+        format!(
+            "{} enters tapped with {} on it.",
+            capitalize(&this_ref(card)),
+            counters(*n, *kind)
+        )
+    })
+}
+
+/// `enchanted_noun`, or the land type an Aura enchants ("enchanted
+/// Forest" for "Enchant Forest").
+fn enchanted_subtype_noun(card: &Card) -> String {
+    let sub = card.abilities.iter().find_map(|a| match a {
+        Ability::Enchant(Target::Filter(f)) if f.types.is_empty() => match f.subtypes.as_slice() {
+            [s] => Some(s.clone()),
+            _ => None,
+        },
+        _ => None,
+    });
+    sub.unwrap_or_else(|| enchanted_noun(card).to_string())
+}
+
 // ---- filters ----
 
 /// The noun phrase of a filter without an article, singular ("creature you
@@ -1417,7 +1457,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         if is_equipment(card) {
             return "equipped creature".to_string();
         }
-        return format!("enchanted {}", enchanted_noun(card));
+        return format!("enchanted {}", enchanted_subtype_noun(card));
     }
     if f.types.is_empty() && f.not_types.contains(&CardType::Planeswalker) {
         let mut s = "artifacts, creatures, enchantments, and lands".to_string();
@@ -2014,6 +2054,7 @@ fn nums_of(e: &Effect) -> Vec<Num> {
         | Effect::AddCounters { count, .. }
         | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
+        | Effect::AddManaCombination { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
         Effect::AddCounterList { counters, .. } => counters.iter().map(|(_, n)| *n).collect(),
         Effect::CounterUnlessPays { x, .. } => vec![*x],
@@ -2063,9 +2104,17 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             } else {
                 ""
             };
+            // "for each creature you control with defender": Oracle names
+            // the controller before the qualities.
             (
-                format!("{}{place}", filter_phrase(f, card, false)),
-                format!("{}{place}", filter_phrase(f, card, true)),
+                format!(
+                    "{}{place}",
+                    controller_first(f, filter_phrase(f, card, false))
+                ),
+                format!(
+                    "{}{place}",
+                    controller_first(f, filter_phrase(f, card, true))
+                ),
             )
         }
         CountExpr::Domain => (
@@ -2254,6 +2303,17 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     ", where X is {}",
                     count_phrase(&count.expr, ctx.card, false)
                 );
+            }
+            // "Add an amount of {G} equal to this creature's power."
+            CountStyle::Equal if matches!(e, Effect::AddManaTimes { .. }) => {
+                c.text = c.text.replacen("add ", "add an amount of ", 1);
+                let what = match &count.expr {
+                    crate::ast::CountExpr::SourcePower => {
+                        format!("{}'s power", this_ref(ctx.card))
+                    }
+                    other => count_phrase(other, ctx.card, false),
+                };
+                let _ = write!(c.tail, " equal to {what}");
             }
             CountStyle::Equal => {
                 // "Create a number of 1/1 red Goblin creature tokens equal
@@ -3281,9 +3341,20 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             Clause::imperative(text)
         }
+        Effect::AddMana(m) if m == &[Mana::Chosen] => {
+            Clause::imperative("add one mana of the chosen color".to_string())
+        }
         Effect::AddMana(m) => {
             Clause::imperative(format!("add {}", mana_symbols(m, "one mana of any color")))
         }
+        Effect::AddManaLandCould { whose, basic } => Clause::imperative(format!(
+            "add one mana of any color that a {}land {} could produce",
+            if *basic { "basic " } else { "" },
+            match whose {
+                Who::Opponents => "an opponent controls",
+                _ => "you control",
+            }
+        )),
         Effect::AddManaOneOf(m) => {
             let syms: Vec<String> = m.iter().map(|x| mana_symbols(&[*x], "?")).collect();
             Clause::imperative(format!("add {}", or_list(&syms)))
@@ -3304,7 +3375,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             colors,
             different,
         } => {
-            let n = count_words(Num::N(*count), "one");
+            let n = count_words(*count, "one");
             Clause::imperative(if *different {
                 format!("add {n} mana of different colors")
             } else if colors.count() == 5 {
@@ -4384,6 +4455,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             this(ctx)
         ),
         Trigger::BecomesTapped(o) => format!("whenever {} becomes tapped", trigger_subject(o, ctx)),
+        Trigger::TappedForMana(o) => {
+            format!("whenever {} is tapped for mana", trigger_subject(o, ctx))
+        }
         Trigger::BecomesUntapped(o) => {
             format!("whenever {} becomes untapped", trigger_subject(o, ctx))
         }
@@ -5335,6 +5409,18 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             f.who = None;
             format!("you control no {}", filter_phrase(&f, card, true))
         }
+        // "you control an Urza's Mine and an Urza's Power-Plant".
+        StaticCond::YouControlEach(filters) => {
+            let all: Vec<String> = filters
+                .iter()
+                .map(|f| {
+                    let mut f = f.clone();
+                    f.who = None;
+                    with_article(&filter_phrase(&f, card, false))
+                })
+                .collect();
+            format!("you control {}", all.join(" and "))
+        }
         StaticCond::AttackedThisTurn => "you attacked this turn".to_string(),
         StaticCond::CreatureDiedThisTurn => "a creature died this turn".to_string(),
         StaticCond::OpponentDamagedThisTurn => "an opponent was dealt damage this turn".to_string(),
@@ -5895,7 +5981,17 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 None => {}
             }
             out.push_str(", ");
-            out.push_str(&effects_after(effects, &mut ctx, true));
+            let text = effects_after(effects, &mut ctx, true);
+            // A triggered mana ability's mana is for the tapped permanent's
+            // controller (CR 605.1b): "its controller adds an additional
+            // {G}".
+            match (trigger, text.strip_prefix("add ")) {
+                (Trigger::TappedForMana(_), Some(rest)) => {
+                    out.push_str("its controller adds an additional ");
+                    out.push_str(rest);
+                }
+                _ => out.push_str(&text),
+            }
             out
         }
         Ability::Replacement(r) => {
@@ -6202,6 +6298,11 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         }
         if cost_line(&card.abilities[i]) {
             i += 1;
+            continue;
+        }
+        if let Some(line) = enters_tapped_with(card, i) {
+            lines.push(line);
+            i += 2;
             continue;
         }
         let text = ability_text(card, &card.abilities[i], lookup);

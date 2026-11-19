@@ -1,0 +1,7 @@
+card "Ilysian Caryatid" {
+  oracle_id 5f2be3c2-060a-43e1-b63b-9cd3c78ffcb0
+  cost {1}{G}
+  type Creature — Plant
+  pt 1/1
+  activated {T}: add any; if you control creature with power 4 or greater, add any 2 instead
+}

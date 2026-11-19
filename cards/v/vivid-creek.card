@@ -1,0 +1,8 @@
+card "Vivid Creek" {
+  oracle_id 2da7c49f-cc1e-45d9-9cbf-067e92b0daef
+  type Land
+  enters tapped
+  enters with 2 charge counters
+  mana {U}
+  activated {T}, remove 1 charge counter from this: add any
+}

@@ -1,0 +1,7 @@
+card "Sylvok Explorer" {
+  oracle_id cf7371c8-2fd8-4e70-abde-27495af85011
+  cost {1}{G}
+  type Creature — Human Druid
+  pt 1/1
+  activated {T}: add any that land opponent controls could produce
+}

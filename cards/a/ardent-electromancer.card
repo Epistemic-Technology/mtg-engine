@@ -1,0 +1,7 @@
+card "Ardent Electromancer" {
+  oracle_id 43827acb-70cf-44a3-8560-e9f7330c835e
+  cost {2}{R}
+  type Creature — Human Wizard
+  pt 3/2
+  triggered when this enters: add {R} count each party
+}

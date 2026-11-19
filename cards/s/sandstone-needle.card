@@ -1,0 +1,7 @@
+card "Sandstone Needle" {
+  oracle_id c8e0a1a5-8188-4677-9d8a-a18eb593343a
+  type Land
+  enters tapped
+  enters with 2 depletion counters
+  activated {T}, remove 1 depletion counter from this: add {R}{R}; if this has no depletion counters, sacrifice this
+}
