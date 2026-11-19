@@ -538,6 +538,18 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     }
                 }
             }
+            let mut divide = Vec::new();
+            if line.peek_ident("dividing") {
+                line.pos += 1;
+                loop {
+                    divide.push(line.unsigned()?);
+                    if line.peek() == Some(&Tok::Comma) {
+                        line.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
             let respond_to = if line.peek_ident("in") {
                 line.pos += 1;
                 line.keyword("response")?;
@@ -558,6 +570,7 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
                     sacrifice,
                     discard,
                     targets,
+                    divide,
                     respond_to,
                 },
                 Some(Step::PrecombatMain),

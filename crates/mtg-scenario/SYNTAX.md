@@ -45,14 +45,16 @@ during that turn and step. `illegal` inverts the check: the action must
 *not* be among the legal options when the point is reached; the default
 choice is taken instead. Either way the point must be reached, or the
 scenario fails. An `illegal` cast or activation with `targeting` also
-passes when the action is legal but one of the scripted targets is not
-(checked by taking the action on a copy of the game).
+passes when the action is legal but one of the scripted targets is not,
+or is never asked for (checked by taking the action on a copy of the
+game, with the scripted X).
 
 | Action | Default step | Notes |
 |---|---|---|
 | `play "Forest"` | `precombat_main` | Play a land from hand. |
-| `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs; `targeting auto` takes the engine's first legal option for each (what converted XMage tests use when the test let XMage pick). Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
+| `cast "Shock" targeting "Hill Giant"` | `precombat_main` | Targets are comma-separated: `"name"`, `B "name"` (controller-qualified), or `player B`. Exactly as many as the spell needs (any number within a variable group's bounds); `targeting auto` takes the engine's first legal option for each (what converted XMage tests use when the test let XMage pick). Add `in response to "Spell"` to fire only while an object of that name is on the stack. Sorcery-speed spells wait for an empty stack and retry at the player's next priority in the same step. |
 | `cast "Abrade" mode 2 targeting "Rod of Ruin"` | `precombat_main` | A modal spell (CR 700.2): `mode N` (1-based) chooses the mode before targets; the targets are the mode's. Unscripted, the first mode with legal targets is chosen. |
+| `cast "Twin Bolt" targeting "Grizzly Bears", player B dividing 1, 1` | `precombat_main` | A spell that divides damage or counters among its targets (CR 601.2d): `dividing` gives each target's share, in target order, after `targeting`. Unscripted, the engine's first division. A variable number of targets ("X target creatures", "any number of target ...", CR 601.2c) takes as many as are scripted; the rest are declined. |
 | `cast "Blaze" x 3 targeting player B` | `precombat_main` | `x N` chooses X for a spell with {X} in its cost (CR 601.2b); the scenario fails if the player cannot pay for it. Unscripted, X is 0. |
 | `cast "Bone Splinters" sacrificing "Goblin" targeting "Hill Giant"`, `cast "Tormenting Voice" discarding "Forest"` | `precombat_main` | Additional costs (CR 601.2h): what to sacrifice or discard. The order is `from graveyard`, `kicked`, `mode`, `x`, `sacrificing`, `discarding`, `targeting`. Unscripted, the engine's first option. |
 | `cast "Goblin Bushwhacker" kicked` | `precombat_main` | Pay the kicker (CR 702.33), and a buyback cost (CR 702.27). The engine offers the choice only when the kicker can be paid on top of the cost; unscripted (or unaffordable), the spell is not kicked. |

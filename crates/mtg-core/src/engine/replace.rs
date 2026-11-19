@@ -898,6 +898,7 @@ impl GameState {
                 source: c.source,
                 controller: c.controller,
                 targets: Vec::new(),
+                division: Vec::new(),
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,

@@ -1,0 +1,9 @@
+card "Sway of Illusion" {
+  oracle_id 9a7e2298-8855-43a7-8cb1-4b31e4058c3f
+  cost {1}{U}
+  type Instant
+  spell {
+    any number of target creature becomes color of choice
+    draw 1 card
+  }
+}

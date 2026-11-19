@@ -643,6 +643,29 @@ impl<'a> Ctx<'a> {
 
     fn target_first(&mut self, i: usize) -> String {
         self.target_mentioned[i] = true;
+        // "X target creatures", "one or two targets", "any number of
+        // target creature cards from your graveyard".
+        if let Target::Many { min, max, .. } = &self.targets[i] {
+            let count = match max {
+                None => "any number of".to_string(),
+                Some(m) if m == min => count_words(*m, "one"),
+                Some(Num::N(m)) => {
+                    let lo = match min {
+                        Num::N(n) => *n,
+                        _ => 0,
+                    };
+                    let words: Vec<String> = (lo.max(1)..=*m)
+                        .map(|n| count_words(Num::N(n), "one"))
+                        .collect();
+                    or_list(&words)
+                }
+                Some(m) => count_words(*m, "one"),
+            };
+            return match self.targets[i].base() {
+                Target::Spec(TargetSpec::Any) => format!("{count} targets"),
+                _ => format!("{count} target {}", self.plural_target_noun(i)),
+            };
+        }
         let phrase = self.target_phrase_of(i);
         if matches!(self.targets[i], Target::UpTo(_)) {
             format!("up to one {phrase}")
@@ -670,9 +693,15 @@ impl<'a> Ctx<'a> {
         out
     }
 
+    /// Whether a recipient is a variable target group (CR 601.2c).
+    fn is_many(&self, r: Recipient) -> bool {
+        matches!(r, Recipient::Target(i) | Recipient::ThatTarget(i)
+            if matches!(self.targets.get(i), Some(Target::Many { .. })))
+    }
+
     fn target_phrase_of(&self, i: usize) -> String {
         match self.targets[i].base() {
-            Target::UpTo(_) => unreachable!("base"),
+            Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             Target::Spec(s) => target_phrase(*s),
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
             Target::Filter(f) if f.relation == Relation::Other => {
@@ -720,7 +749,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::Target(i) => {
                 if self.target_mentioned[i] {
-                    "it".to_string()
+                    if self.is_many(r) { "them" } else { "it" }.to_string()
                 } else {
                     self.target_first(i)
                 }
@@ -819,7 +848,7 @@ impl<'a> Ctx<'a> {
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) => {
                 if self.target_mentioned[i] {
-                    "it".to_string()
+                    if self.is_many(r) { "they" } else { "it" }.to_string()
                 } else {
                     self.target_first(i)
                 }
@@ -886,31 +915,7 @@ impl<'a> Ctx<'a> {
             } else {
                 ""
             };
-            let noun = match self.targets[fresh[0]].base() {
-                Target::UpTo(_) => unreachable!("base"),
-                Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
-                    "creature cards from your graveyard".to_string()
-                }
-                Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
-                Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
-                Target::Filter(f) => filter_phrase(f, self.card, true),
-                Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
-                Target::GraveyardCard { filter, who } => {
-                    let whose = match who {
-                        Who::You => "your graveyard",
-                        Who::Opponents => "an opponent's graveyard",
-                        Who::Any => "a single graveyard",
-                    };
-                    if *filter == Filter::default() {
-                        format!("cards from {whose}")
-                    } else {
-                        format!(
-                            "{} cards from {whose}",
-                            filter_phrase(filter, self.card, false)
-                        )
-                    }
-                }
-            };
+            let noun = self.plural_target_noun(fresh[0]);
             return format!(
                 "{up_to}{} target {noun}",
                 count_words(Num::N(u32::try_from(fresh.len()).expect("small")), "a")
@@ -921,6 +926,39 @@ impl<'a> Ctx<'a> {
             .map(|r| if all { self.obj_all(*r) } else { self.obj(*r) })
             .collect();
         list(&items)
+    }
+
+    /// The plural noun of target `i`'s kind: "lands", "creature cards
+    /// from your graveyard".
+    fn plural_target_noun(&self, i: usize) -> String {
+        match self.targets[i].base() {
+            Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
+            Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
+                "creature cards from your graveyard".to_string()
+            }
+            Target::Spec(TargetSpec::ArtifactCreatureOrLand) => {
+                "artifacts, creatures, and/or lands".to_string()
+            }
+            Target::Spec(s) => pluralize(&target_phrase(*s).replace("target ", "")),
+            Target::CreatureOfSubtype(sub) => format!("{sub} creatures"),
+            Target::Filter(f) => filter_phrase(f, self.card, true),
+            Target::Spell(f) => format!("{} spells", filter_phrase(f, self.card, false)),
+            Target::GraveyardCard { filter, who } => {
+                let whose = match who {
+                    Who::You => "your graveyard",
+                    Who::Opponents => "an opponent's graveyard",
+                    Who::Any => "a single graveyard",
+                };
+                if *filter == Filter::default() {
+                    format!("cards from {whose}")
+                } else {
+                    format!(
+                        "{} cards from {whose}",
+                        filter_phrase(filter, self.card, false)
+                    )
+                }
+            }
+        }
     }
 
     /// Objects of tap and untap: Oracle says "tap all artifacts" for a
@@ -952,8 +990,7 @@ impl<'a> Ctx<'a> {
     }
 
     fn verb(&self, r: Recipient, singular: &'static str, plural: &'static str) -> &'static str {
-        let _ = self;
-        if r == Recipient::You || Self::is_plural(r) {
+        if r == Recipient::You || Self::is_plural(r) || self.is_many(r) {
             plural
         } else {
             singular
@@ -963,7 +1000,7 @@ impl<'a> Ctx<'a> {
 
 fn target_noun(t: &Target) -> String {
     match t.base() {
-        Target::UpTo(_) => unreachable!("base"),
+        Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
         Target::CreatureOfSubtype(_) => "creature".to_string(),
         Target::Spell(_) => "spell".to_string(),
         Target::GraveyardCard { .. } => "card".to_string(),
@@ -990,6 +1027,7 @@ fn target_noun(t: &Target) -> String {
             | TargetSpec::OtherPermanent
             | TargetSpec::ArtifactOrCreature
             | TargetSpec::UpTo(_)
+            | TargetSpec::Many(_)
             | TargetSpec::Filtered(_) => "permanent".to_string(),
             TargetSpec::Artifact => "artifact".to_string(),
             TargetSpec::Enchantment => "enchantment".to_string(),
@@ -1043,6 +1081,7 @@ pub fn target_phrase(s: TargetSpec) -> String {
         TargetSpec::BlockingCreature => "target blocking creature",
         TargetSpec::GraveyardCard { .. } => "target card from a graveyard",
         TargetSpec::UpTo(_) => "up to one target permanent",
+        TargetSpec::Many(_) => "any number of target permanents",
     }
     .to_string()
 }
@@ -1534,12 +1573,14 @@ fn x_sign(v: i32) -> &'static str {
 fn nums_of(e: &Effect) -> Vec<Num> {
     match e {
         Effect::DealDamage { amount, .. }
+        | Effect::DealDamageDivided { amount, .. }
         | Effect::GainLife { amount, .. }
         | Effect::LoseLife { amount, .. } => vec![*amount],
         Effect::DrawCards { count, .. }
         | Effect::Mill { count, .. }
         | Effect::Discard { count, .. }
         | Effect::AddCounters { count, .. }
+        | Effect::DistributeCounters { count, .. }
         | Effect::AddManaTimes { count, .. }
         | Effect::CreateToken { count, .. } => vec![*count],
         _ => Vec::new(),
@@ -1711,7 +1752,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         } => {
             let s = ctx.subj(*to);
             // "Up to two target creatures each get +1/+0".
-            let each = if matches!(to, Recipient::Targets(..)) {
+            let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
                 "each "
             } else {
                 ""
@@ -1741,12 +1782,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(text)
         }
         Effect::GainLife { amount, who } => {
+            // "Any number of target players each gain 6 life."
+            let each = if ctx.is_many(*who) { "each " } else { "" };
             let s = ctx.subj(*who);
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} {} life",
+                    "{each}{} {} life",
                     ctx.verb(*who, "gains", "gain"),
                     digits(*amount)
                 ),
@@ -1962,6 +2005,24 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove {c} from {o}"))
         }
+        // CR 601.2d.
+        Effect::DealDamageDivided { amount, to } => {
+            let s = ctx.source();
+            let objs = ctx.obj(*to);
+            Clause::with_subject(
+                Recipient::Source,
+                s,
+                format!(
+                    "deals {} damage divided as you choose among {objs}",
+                    digits(*amount)
+                ),
+            )
+        }
+        Effect::DistributeCounters { kind, count, to } => {
+            let c = counters(*count, *kind);
+            let o = ctx.obj(*to);
+            Clause::imperative(format!("distribute {c} among {o}"))
+        }
         Effect::RemoveAllCounters { to } => {
             let o = ctx.obj(*to);
             Clause::imperative(format!("remove all counters from {o}"))
@@ -2142,7 +2203,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             // A card from your own graveyard goes to "your library".
             let yours = matches!(*what, Recipient::Target(i)
                 if matches!(ctx.targets.get(i).map(Target::base),
-                    Some(Target::GraveyardCard { who: Who::You, .. })));
+                    Some(Target::GraveyardCard { who: Who::You, .. }
+                        | Target::Spec(TargetSpec::CreatureCardInYourGraveyard))));
             let o = ctx.obj(*what);
             let place = if *top {
                 "on top of"
@@ -3793,7 +3855,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             format!("{{T}}, Sacrifice this {}: Add {what}.", self_noun(card))
         }
         Ability::Enchant(t) => match t.base() {
-            Target::UpTo(_) => unreachable!("base"),
+            Target::UpTo(_) | Target::Many { .. } => unreachable!("base"),
             Target::Spec(s) => format!("Enchant {}", target_phrase(*s).replace("target ", "")),
             Target::CreatureOfSubtype(sub) => format!("Enchant {sub} creature"),
             Target::Filter(f) | Target::Spell(f) | Target::GraveyardCard { filter: f, .. } => {

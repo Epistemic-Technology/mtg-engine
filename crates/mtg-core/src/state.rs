@@ -797,6 +797,10 @@ pub struct GameState {
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,
+    /// How spells and abilities on the stack divide damage or counters
+    /// among their targets (CR 601.2d), in target order from the variable
+    /// group's first target; kept off `GameObject` like `x_values`.
+    pub divisions: Vec<(ObjId, Vec<u32>)>,
     pub turn_number: u32,
     /// Spells each player has cast this turn, and the most any one player
     /// cast last turn ("if no spells were cast last turn", werewolves).
@@ -980,6 +984,18 @@ impl GameState {
             .iter()
             .find(|(id, _)| *id == spell)
             .map_or(0, |(_, x)| *x)
+    }
+
+    /// The division a stack object announced (CR 601.2d); empty if none.
+    pub fn division_of(&self, id: ObjId) -> Vec<u32> {
+        if self.divisions.is_empty() {
+            return Vec::new();
+        }
+        self.divisions
+            .iter()
+            .find(|(s, _)| *s == id)
+            .map(|(_, d)| d.clone())
+            .unwrap_or_default()
     }
 
     /// Record an event: triggered abilities that watch it trigger (CR 603.2),
@@ -1392,6 +1408,7 @@ impl GameState {
             | TargetSpec::SpellFiltered(_)
             | TargetSpec::GraveyardCard { .. }
             | TargetSpec::UpTo(_)
+            | TargetSpec::Many(_)
             | TargetSpec::CreatureCardInYourGraveyard => false,
         }
     }
@@ -1526,7 +1543,7 @@ impl GameState {
         source: Option<ObjId>,
     ) -> bool {
         use crate::card::TargetSpec;
-        if let TargetSpec::UpTo(_) = spec {
+        if let TargetSpec::UpTo(_) | TargetSpec::Many(_) = spec {
             return self.is_legal_target_for(caster, self.pool.base_spec(spec), target, source);
         }
         match target {
@@ -1664,6 +1681,7 @@ impl GameState {
                     | TargetSpec::CreatureSpell
                     | TargetSpec::NoncreatureSpell
                     | TargetSpec::UpTo(_)
+                    | TargetSpec::Many(_)
                     | TargetSpec::CreatureCardInYourGraveyard => false,
                 };
                 let hexproof_ok = (!c.has(Keyword::Hexproof) || obj.controller == caster)

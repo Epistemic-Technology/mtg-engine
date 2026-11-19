@@ -69,6 +69,7 @@ impl MctsAgent {
                 | DecisionKind::DeclareBlockers
                 | DecisionKind::ChooseTarget { .. }
                 | DecisionKind::ChooseMode { .. }
+                | DecisionKind::Divide { .. }
         )
     }
 

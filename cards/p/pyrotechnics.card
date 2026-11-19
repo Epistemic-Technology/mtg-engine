@@ -1,0 +1,6 @@
+card "Pyrotechnics" {
+  oracle_id 794b9ddf-1660-441f-9cc2-a0f5d4d0cf22
+  cost {4}{R}
+  type Sorcery
+  spell: deal 4 damage divided among any number of targets
+}

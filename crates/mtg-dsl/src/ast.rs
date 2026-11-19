@@ -324,13 +324,22 @@ pub enum Target {
     /// `up to 2 target creatures`: an optional target (CR 601.2c); the
     /// optional targets of an ability come last.
     UpTo(Box<Target>),
+    /// `X target creatures`, `1 to 2 target creatures`, `any number of
+    /// target creatures`: one target word naming a variable number of
+    /// objects (CR 601.2c), at least `min` and at most `max` (any number
+    /// if `None`); the last of an ability's targets.
+    Many {
+        target: Box<Target>,
+        min: Num,
+        max: Option<Num>,
+    },
 }
 
 impl Target {
-    /// The target without its "up to".
+    /// The target without its "up to" or count.
     pub fn base(&self) -> &Target {
         match self {
-            Target::UpTo(t) => t.base(),
+            Target::UpTo(t) | Target::Many { target: t, .. } => t.base(),
             t => t,
         }
     }
@@ -968,6 +977,19 @@ pub enum Effect {
         who: Option<Recipient>,
     },
     AddCounters {
+        kind: CounterKind,
+        count: Num,
+        to: Recipient,
+    },
+    /// `deal 3 damage divided among 1 to 3 targets`: "deals 3 damage
+    /// divided as you choose among one, two, or three targets" (CR
+    /// 601.2d); `to` is a variable target group.
+    DealDamageDivided {
+        amount: Num,
+        to: Recipient,
+    },
+    /// `distribute 2 +1/+1 counters among 1 to 2 target creatures`.
+    DistributeCounters {
         kind: CounterKind,
         count: Num,
         to: Recipient,

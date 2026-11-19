@@ -1,0 +1,6 @@
+card "Splendid Agony" {
+  oracle_id e9958344-13d5-4f7b-acc8-904e5d99b90e
+  cost {2}{B}
+  type Instant
+  spell: distribute 2 -1/-1 counters among 1 to 2 target creature
+}

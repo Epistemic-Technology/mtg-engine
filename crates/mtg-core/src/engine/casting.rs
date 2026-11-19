@@ -576,6 +576,7 @@ impl GameState {
                 source: id,
                 controller: p,
                 targets: Vec::new(),
+                division: Vec::new(),
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,
@@ -1164,7 +1165,15 @@ impl GameState {
         let caster = self.objects[spell].controller;
         let sources = self.spell_sources(spell);
         let pool = self.player(caster).mana_pool;
-        (0..=MAX_X)
+        // "X target creatures": X can't exceed the creatures there are to
+        // target (CR 601.2c).
+        let max_x = match self.targets_of(spell).last() {
+            Some(s @ TargetSpec::Many(i)) if self.pool.many(*i).min == crate::card::Num::X => {
+                u32::try_from(self.legal_targets(caster, *s, Some(spell)).len()).unwrap_or(MAX_X)
+            }
+            _ => MAX_X,
+        };
+        (0..=max_x.min(MAX_X))
             .take_while(|x| {
                 payment_plan_from(
                     &sources,
@@ -1176,6 +1185,78 @@ impl GameState {
             })
             .map(Choice::X)
             .collect()
+    }
+
+    /// The damage or counters `spell` divides among its variable target
+    /// group (CR 601.2d), as it is being cast; `None` if it divides
+    /// nothing.
+    pub(super) fn divided_total(&self, spell: ObjId) -> Option<u32> {
+        let amount = self.effects_of(spell).iter().find_map(|e| match e {
+            Effect::DealDamageDivided { amount, .. } => Some(*amount),
+            Effect::DistributeCounters { count, .. } => Some(*count),
+            _ => None,
+        })?;
+        let o = &self.objects[spell];
+        let ctx = EffectCtx {
+            source: o.ability.map_or(spell, |a| a.source),
+            controller: o.controller,
+            targets: Vec::new(),
+            division: Vec::new(),
+            legal: Vec::new(),
+            trigger_obj: o.ability.and_then(|a| a.trigger_obj),
+            trigger_player: o.ability.and_then(|a| a.trigger_player),
+            trigger_amount: o.ability.map_or(0, |a| a.trigger_amount),
+            created: None,
+            x: self.x_of(spell),
+            did: true,
+        };
+        Some(self.eval_num(amount, &ctx))
+    }
+
+    /// How many targets `spell` may choose for its variable group `i`
+    /// (CR 601.2c): X is the spell's; a divided amount needs a target for
+    /// each part and at least one target to divide among (CR 601.2d).
+    pub(super) fn many_bounds(&self, spell: ObjId, i: u16) -> (usize, usize) {
+        let m = self.pool.many(i);
+        let x = self.x_of(spell);
+        let mut min = m.min.eval(x) as usize;
+        let mut max = m.max.map_or(usize::MAX, |n| n.eval(x) as usize);
+        if let Some(total) = self.divided_total(spell) {
+            max = max.min(total as usize);
+            if total > 0 {
+                min = min.max(1);
+            }
+        }
+        (min.min(max), max)
+    }
+
+    /// The division decision for a spell or ability whose targets are
+    /// chosen (CR 601.2d), or `None` once it is settled. One target takes
+    /// everything without a question.
+    pub(super) fn division_decision(&mut self, spell: ObjId) -> Option<crate::decision::Decision> {
+        let specs = self.targets_of(spell);
+        if !matches!(specs.last(), Some(TargetSpec::Many(_)))
+            || self.divisions.iter().any(|(s, _)| *s == spell)
+        {
+            return None;
+        }
+        let first = specs.len() - 1;
+        let total = self.divided_total(spell)?;
+        let k = self.objects[spell].targets.len().saturating_sub(first);
+        if k <= 1 {
+            self.divisions
+                .push((spell, if k == 1 { vec![total] } else { Vec::new() }));
+            return None;
+        }
+        let options: Vec<Choice> = divisions(total, k)
+            .into_iter()
+            .map(Choice::Divide)
+            .collect();
+        Some(crate::decision::Decision {
+            player: self.objects[spell].controller,
+            kind: DecisionKind::Divide { spell },
+            options,
+        })
     }
 
     /// An ability object on the stack has its targets. An activated ability
@@ -1206,10 +1287,18 @@ impl GameState {
         source: Option<ObjId>,
     ) -> bool {
         // CR 115.3: "two target lands" needs two different lands.
-        specs.iter().all(|s| {
-            matches!(s, TargetSpec::UpTo(_))
-                || self.legal_targets(p, *s, source).len()
-                    >= specs.iter().filter(|x| *x == s).count()
+        specs.iter().all(|s| match s {
+            TargetSpec::UpTo(_) => true,
+            // "One or two target creatures" needs one; X can be 0.
+            TargetSpec::Many(i) => match self.pool.many(*i).min {
+                crate::card::Num::N(n) => {
+                    n == 0 || self.legal_targets(p, *s, source).len() >= n as usize
+                }
+                _ => true,
+            },
+            _ => {
+                self.legal_targets(p, *s, source).len() >= specs.iter().filter(|x| *x == s).count()
+            }
         })
     }
 
@@ -1881,11 +1970,7 @@ impl GameState {
         if let Some((specs, effects)) = parts {
             // CR 608.2b: targets that are no longer legal are ignored; if all
             // are illegal the spell does not resolve.
-            let legal: Vec<bool> = specs
-                .iter()
-                .zip(obj.targets.iter())
-                .map(|(spec, t)| self.is_legal_target_for(obj.controller, *spec, *t, Some(spell)))
-                .collect();
+            let legal = self.targets_legal(obj.controller, specs, &obj.targets, Some(spell));
             // A spell whose optional targets were all declined has none.
             if !legal.is_empty() && legal.iter().all(|l| !l) {
                 self.emit(Event::Fizzle {
@@ -1903,6 +1988,7 @@ impl GameState {
                 source: spell,
                 controller: obj.controller,
                 targets: obj.targets.to_vec(),
+                division: self.division_of(spell),
                 legal,
                 trigger_obj: None,
                 trigger_player: None,
@@ -2081,6 +2167,44 @@ impl GameState {
             obj: spell,
             of: def,
         });
+    }
+
+    /// Per chosen target, whether it is still legal for its spec (CR
+    /// 608.2b); a variable group's spec covers the rest of the list.
+    pub(super) fn targets_legal(
+        &self,
+        controller: PlayerId,
+        specs: &[TargetSpec],
+        targets: &[Target],
+        source: Option<ObjId>,
+    ) -> Vec<bool> {
+        targets
+            .iter()
+            .enumerate()
+            .map_while(|(i, t)| {
+                crate::card::spec_for(specs, i)
+                    .map(|spec| self.is_legal_target_for(controller, spec, *t, source))
+            })
+            .collect()
+    }
+
+    /// The still-legal targets of a divided effect's group with what each
+    /// was assigned (CR 601.2d).
+    fn divided(ctx: &EffectCtx, to: Recipient) -> SmallVec<[(Target, u32); 4]> {
+        let first = match to {
+            Recipient::Targets(a, _) => usize::from(a),
+            Recipient::Target(i) => i,
+            _ => return SmallVec::new(),
+        };
+        let count = ctx.targets.len().saturating_sub(first);
+        (0..count)
+            .filter(|k| ctx.legal.get(first + k).copied().unwrap_or(false))
+            .filter_map(|k| {
+                let n = ctx.division.get(k).copied().unwrap_or(0);
+                ctx.targets.get(first + k).map(|t| (*t, n))
+            })
+            .filter(|(_, n)| *n > 0)
+            .collect()
     }
 
     /// Who or what a `Recipient` denotes while `ctx`'s effects resolve.
@@ -2305,6 +2429,20 @@ impl GameState {
                 for t in self.recipients(ctx, *to) {
                     if let Some(id) = on_battlefield(self, t) {
                         self.add_counters(id, *kind, self.eval_num(*count, ctx));
+                    }
+                }
+            }
+            // CR 601.2d, 608.2b: the division announced on casting holds;
+            // what an illegal target was assigned is not dealt.
+            Effect::DealDamageDivided { to, .. } => {
+                for (t, n) in Self::divided(ctx, *to) {
+                    self.deal_damage(ctx.source, t, n, false);
+                }
+            }
+            Effect::DistributeCounters { kind, to, .. } => {
+                for (t, n) in Self::divided(ctx, *to) {
+                    if let Some(id) = on_battlefield(self, t) {
+                        self.add_counters(id, *kind, n);
                     }
                 }
             }
@@ -3622,6 +3760,7 @@ impl GameState {
                         source: ctx.source,
                         controller: ctx.controller,
                         targets: ctx.targets.get(t..).unwrap_or(&[]).to_vec(),
+                        division: ctx.division.clone(),
                         legal: ctx.legal.get(t..).unwrap_or(&[]).to_vec(),
                         trigger_obj: ctx.trigger_obj,
                         trigger_player: ctx.trigger_player,
@@ -3729,6 +3868,9 @@ pub(super) struct EffectCtx {
     pub source: ObjId,
     pub controller: PlayerId,
     pub targets: Vec<Target>,
+    /// Per target of a variable group: the damage or counters the caster
+    /// divided onto it (CR 601.2d); empty if nothing is divided.
+    pub division: Vec<u32>,
     /// Per target: still legal on resolution (CR 608.2b).
     pub legal: Vec<bool>,
     pub trigger_obj: Option<ObjId>,
@@ -3746,6 +3888,62 @@ pub(super) struct EffectCtx {
     /// mandatory action ("Sacrifice this creature. If you do, ...")
     /// follows it.
     pub did: bool,
+}
+
+/// The ways to divide `total` among `k` targets, each getting at least 1
+/// (CR 601.2d), in lexicographic order. Past `MAX_SET_OPTIONS` ways only
+/// the even split and those giving one target all but the minimum to the
+/// others are offered.
+pub(super) fn divisions(total: u32, k: usize) -> Vec<Vec<u32>> {
+    fn rec(left: u32, k: usize, cur: &mut Vec<u32>, out: &mut Vec<Vec<u32>>, cap: usize) -> bool {
+        if out.len() > cap {
+            return false;
+        }
+        if k == 1 {
+            cur.push(left);
+            out.push(cur.clone());
+            cur.pop();
+            return true;
+        }
+        let k32 = u32::try_from(k).unwrap_or(u32::MAX);
+        for n in 1..=left.saturating_sub(k32 - 1) {
+            cur.push(n);
+            let ok = rec(left - n, k - 1, cur, out, cap);
+            cur.pop();
+            if !ok {
+                return false;
+            }
+        }
+        true
+    }
+    let k32 = u32::try_from(k).unwrap_or(u32::MAX);
+    if k == 0 || total < k32 {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    if rec(
+        total,
+        k,
+        &mut Vec::with_capacity(k),
+        &mut out,
+        super::MAX_SET_OPTIONS,
+    ) {
+        return out;
+    }
+    let mut out: Vec<Vec<u32>> = (0..k)
+        .map(|j| {
+            (0..k)
+                .map(|i| if i == j { total - (k32 - 1) } else { 1 })
+                .collect()
+        })
+        .collect();
+    let even: Vec<u32> = (0..k32)
+        .map(|i| total / k32 + u32::from(i < total % k32))
+        .collect();
+    if !out.contains(&even) {
+        out.push(even);
+    }
+    out
 }
 
 /// A canonical payment plan: which sources to tap, and for what, so that

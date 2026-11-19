@@ -1,0 +1,6 @@
+card "Wind Sail" {
+  oracle_id c7fb6ff0-4555-4bd1-b00d-ba2ed1cb4afc
+  cost {1}{U}
+  type Sorcery
+  spell: 1 to 2 target creature gains flying
+}

@@ -78,10 +78,11 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::PutFromHand => 26,
         DecisionKind::CastFromExile { .. } => 27,
         DecisionKind::ChooseType => 28,
+        DecisionKind::Divide { .. } => 29,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 29] = [
+pub const DECISION_KIND_NAMES: [&str; 30] = [
     "mulligan",
     "bottom",
     "priority",
@@ -111,6 +112,7 @@ pub const DECISION_KIND_NAMES: [&str; 29] = [
     "put_from_hand",
     "cast_from_exile",
     "choose_type",
+    "divide",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {
@@ -155,10 +157,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Suspend(_) => 33,
         Choice::Foretell(_) => 34,
         Choice::Subtype(_) => 35,
+        Choice::Divide(_) => 36,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 36] = [
+pub const CHOICE_KIND_NAMES: [&str; 37] = [
     "keep",
     "mulligan",
     "bottom",
@@ -195,6 +198,7 @@ pub const CHOICE_KIND_NAMES: [&str; 36] = [
     "suspend",
     "foretell",
     "subtype",
+    "divide",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -376,6 +380,31 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
                 0.0,
             ),
             Choice::Division(div) => (-1.0, -1.0, 0.0, div.len() as f32, 0.0),
+            // A spell's division (CR 601.2d): the target given the most,
+            // that amount, and how many targets share it.
+            Choice::Divide(parts) => {
+                let spell = match decision.kind {
+                    DecisionKind::Divide { spell } => state.objects.get(spell),
+                    _ => None,
+                };
+                let (k, most) = parts
+                    .iter()
+                    .enumerate()
+                    .max_by_key(|(k, n)| (**n, std::cmp::Reverse(*k)))
+                    .map_or((0, 0), |(k, n)| (k, *n));
+                let t = spell.and_then(|o| {
+                    o.targets
+                        .get(o.targets.len().saturating_sub(parts.len()) + k)
+                        .copied()
+                });
+                (
+                    -1.0,
+                    t.as_ref().map_or(-1.0, target_card),
+                    t.as_ref().map_or(0.0, target_player),
+                    most as f32,
+                    parts.len() as f32,
+                )
+            }
             Choice::Discard { def, .. }
             | Choice::Replacement { def, .. }
             | Choice::KeepLegend { def, .. }

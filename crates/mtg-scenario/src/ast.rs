@@ -130,6 +130,10 @@ pub enum Action {
         face_down: bool,
         /// `evoked`: cast for the evoke cost (CR 702.74).
         evoked: bool,
+        /// `dividing 2, 1` after the targets: how a divided spell splits
+        /// its damage or counters among them, in target order (CR
+        /// 601.2d).
+        divide: Vec<u32>,
     },
     /// `unmorph "X"`: turn the face-down permanent that is card X face up.
     TurnFaceUp(String),

@@ -1,0 +1,6 @@
+card "Arc Lightning" {
+  oracle_id 5acc8b39-3c3e-4012-8cfd-ac3c2c4ca982
+  cost {2}{R}
+  type Sorcery
+  spell: deal 3 damage divided among 1 to 3 targets
+}

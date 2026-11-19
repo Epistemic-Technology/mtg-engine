@@ -1747,6 +1747,9 @@ impl P {
     }
 
     fn at_recipient(&self) -> bool {
+        if self.at_many() {
+            return true;
+        }
         if matches!(self.peek(), Some(Tok::Num(_))) && self.word_at(1).as_deref() == Some("target")
         {
             return true;
@@ -1942,7 +1945,7 @@ impl P {
                     .then_some(Recipient::Targets(*a, subjects.len())),
                 _ => None,
             };
-            if group.is_some() {
+            if group.is_some() || self.is_many_subject(&subjects) {
                 self.eat_word("each");
             }
             let subject = if let Some(g) = group {
@@ -2399,6 +2402,11 @@ impl P {
             "deal" | "deals" => {
                 let amount = self.num()?;
                 self.expect_word("damage")?;
+                // CR 601.2d: "divided as you choose among ...".
+                if self.eat_words(&["divided", "among"]) {
+                    let to = self.divided_group()?;
+                    return Ok(Effect::DealDamageDivided { amount, to });
+                }
                 self.expect_word("to")?;
                 let to = self.recipients()?;
                 Ok(Effect::DealDamage { amount, to })
@@ -2449,6 +2457,13 @@ impl P {
                 self.expect_word("on")?;
                 let to = self.recipient()?;
                 Ok(Effect::AddCounters { kind, count, to })
+            }
+            "distribute" => {
+                let count = self.num()?;
+                let kind = self.counter_kind()?;
+                self.expect_word("among")?;
+                let to = self.divided_group()?;
+                Ok(Effect::DistributeCounters { kind, count, to })
             }
             "remove" => {
                 if self.eat_words(&["all", "counters", "from"]) {
@@ -3053,6 +3068,21 @@ impl P {
 
     // ---- recipients and targets ----
 
+    /// Whether a subject is one variable target group ("one or two target
+    /// creatures each get ...").
+    fn is_many_subject(&self, subjects: &[Recipient]) -> bool {
+        matches!(subjects, [Recipient::Target(i)]
+            if matches!(self.targets.get(*i), Some(Target::Many { .. })))
+    }
+
+    /// What a divided amount is divided among: a variable target group.
+    fn divided_group(&mut self) -> R<Recipient> {
+        if !self.at_many() {
+            return self.unexpected("`1 to 2 targets` or `any number of targets`");
+        }
+        self.many_target()
+    }
+
     /// One or more recipients joined by `and` ("each creature and each
     /// player", "two target lands").
     fn recipients(&mut self) -> R<Vec<Recipient>> {
@@ -3087,8 +3117,53 @@ impl P {
         !probe.at_subject_verb()
     }
 
+    /// Whether a variable target group starts here: `X target`, `1 to 2
+    /// target(s)`, `any number of target(s)` (CR 601.2c).
+    fn at_many(&self) -> bool {
+        let target = |k: usize| matches!(self.word_at(k).as_deref(), Some("target" | "targets"));
+        (self.at_word("x") && target(1))
+            || (self.at_words(&["any", "number", "of"]) && target(3))
+            || (matches!(self.peek(), Some(Tok::Num(_)))
+                && self.word_at(1).as_deref() == Some("to")
+                && matches!(self.peek_at(2), Some(Tok::Num(_)))
+                && target(3))
+    }
+
+    /// A variable target group (see `at_many`), declared as one target.
+    fn many_target(&mut self) -> R<Recipient> {
+        let (min, max) = if self.eat_word("x") {
+            (Num::X, Some(Num::X))
+        } else if self.eat_words(&["any", "number", "of"]) {
+            (Num::N(0), None)
+        } else {
+            let a = self.number()?;
+            self.expect_word("to")?;
+            let b = self.number()?;
+            if b <= a {
+                return self.fail("`a to b target`: b must be more than a");
+            }
+            (Num::N(a), Some(Num::N(b)))
+        };
+        let target = if self.eat_word("targets") {
+            Target::Spec(TargetSpec::Any)
+        } else {
+            self.expect_word("target")?;
+            self.target_spec()?
+        };
+        let i = self.targets.len();
+        self.targets.push(Target::Many {
+            target: Box::new(target),
+            min,
+            max,
+        });
+        Ok(Recipient::Target(i))
+    }
+
     /// A recipient, or `N target <spec>` declaring several.
     fn recipient_group(&mut self) -> R<Vec<Recipient>> {
+        if self.at_many() {
+            return Ok(vec![self.many_target()?]);
+        }
         // "up to two target creatures": optional targets (CR 601.2c).
         let up_to = self.at_words(&["up", "to"])
             && (matches!(self.peek_at(2), Some(Tok::Num(_)))
@@ -3136,6 +3211,9 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one check per recipient form
     fn recipient(&mut self) -> R<Recipient> {
+        if self.at_many() {
+            return self.many_target();
+        }
         // "up to 1 target creature", "up to 2 target creatures".
         if self.at_words(&["up", "to"])
             && (matches!(self.peek_at(2), Some(Tok::Num(_)))

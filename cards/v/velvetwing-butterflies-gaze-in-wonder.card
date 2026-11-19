@@ -1,0 +1,13 @@
+card "Velvetwing Butterflies // Gaze in Wonder" {
+  oracle_id 70a702fe-1dd6-4d7b-a85a-45744ecad741
+  layout adventure
+  cost {2}{W}
+  type Creature — Insect
+  pt 2/2
+  keywords flying
+  face "Gaze in Wonder" {
+    cost {1}{W}
+    type Instant — Adventure
+    spell: tap 1 to 2 target creatures
+  }
+}

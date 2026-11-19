@@ -1,0 +1,6 @@
+card "Twin Bolt" {
+  oracle_id 970dc070-3668-4584-9904-2897b27bb806
+  cost {1}{R}
+  type Instant
+  spell: deal 2 damage divided among 1 to 2 targets
+}
