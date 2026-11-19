@@ -1,0 +1,9 @@
+card "How to Start a Riot" {
+  oracle_id 268d0056-0d3e-438a-ab17-625a6f5ec68a
+  cost {2}{R}
+  type Instant — Lesson
+  spell {
+  target creature gains menace
+  each creature target player controls gets +2/+0
+  }
+}

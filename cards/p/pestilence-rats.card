@@ -1,0 +1,7 @@
+card "Pestilence Rats" {
+  oracle_id bc6449c8-f0cd-4c07-8acf-436f97e8bbb2
+  cost {2}{B}
+  type Creature — Rat
+  pt */3
+  static this: cda power count other Rat on battlefield
+}

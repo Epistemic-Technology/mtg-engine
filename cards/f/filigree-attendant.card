@@ -1,0 +1,8 @@
+card "Filigree Attendant" {
+  oracle_id ab7c9e72-8f30-47f7-918c-cd3c0593d704
+  cost {2}{U}{U}
+  type Artifact Creature — Homunculus
+  pt */3
+  keywords flying
+  static this: cda power count artifact you control
+}

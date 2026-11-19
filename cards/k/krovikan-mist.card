@@ -1,0 +1,7 @@
+card "Krovikan Mist" {
+  oracle_id 6cae42b6-8b09-4188-8e79-203eebc77585
+  cost {1}{U}
+  type Creature — Illusion
+  keywords flying
+  static this: cda pt count Illusion on battlefield
+}

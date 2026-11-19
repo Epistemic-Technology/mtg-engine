@@ -1,0 +1,6 @@
+card "Humble" {
+  oracle_id d2d41f12-18d8-473b-9308-3f02d7d791f0
+  cost {1}{W}
+  type Instant
+  spell: until end of turn, target creature loses all abilities and has base power and toughness 0/1
+}

@@ -1,0 +1,7 @@
+card "Honorable Scout" {
+  oracle_id 16345f75-f33e-4a31-adb1-d3563358fcec
+  cost {W}
+  type Creature — Human Soldier Scout
+  pt 1/1
+  triggered when this enters: you gain count each 2 andor black or red creature target opponent controls life
+}

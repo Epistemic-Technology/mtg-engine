@@ -1,0 +1,9 @@
+card "Crash Through" {
+  oracle_id 41c15160-ee8c-42e3-bc6c-593b8c8ae335
+  cost {R}
+  type Sorcery
+  spell {
+  each creature you control gains trample
+  draw 1 card
+  }
+}

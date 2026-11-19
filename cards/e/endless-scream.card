@@ -1,0 +1,8 @@
+card "Endless Scream" {
+  oracle_id cde3e29c-31fd-4dce-a008-283bbe90bfc6
+  cost {X}{B}
+  type Enchantment — Aura
+  enchant creature
+  enters with X scream counters
+  static enchanted: +1/+0 count each scream counter on this
+}

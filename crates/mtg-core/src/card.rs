@@ -980,6 +980,11 @@ pub enum ThatPlayer {
     /// controls deals damage ... to another target creature that player
     /// controls").
     ControllerOf(u8),
+    /// The `n`th target, a player ("Creatures target player controls get
+    /// -2/-2", "for each creature target opponent controls"). Judged for an
+    /// effect's groups and counts; nothing matches if that target is
+    /// illegal as the effect happens (CR 608.2b).
+    Target(u8),
 }
 
 /// How an object a filter matches must be in combat with the source.
@@ -1439,27 +1444,36 @@ pub enum Modification {
     /// Transguild Courier): layer 5, applied before other layer 5 effects
     /// (CR 613.2).
     CdaColors(ColorSet),
-    /// A characteristic-defining ability setting power and toughness
-    /// (CR 604.3, layer 7a): power is the count, toughness the count plus
-    /// `plus_toughness`.
+    /// A characteristic-defining ability setting power and/or toughness
+    /// (CR 604.3, layer 7a): what `sets` names is the count (toughness the
+    /// count plus `plus_toughness`); the other keeps its printed value. The
+    /// count is judged from the source's controller as the layer applies
+    /// (`CountExpr`, as for `ModifyPtPer`).
     CdaPt {
-        count: CdaCount,
+        count: CountExpr,
+        sets: CdaSets,
         plus_toughness: i32,
     },
 }
 
-/// What a power/toughness-defining ability counts.
-#[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
-pub enum CdaCount {
-    /// Card types among cards in all graveyards (Tarmogoyf).
-    CardTypesInGraveyards,
-    /// Creature cards in all graveyards (Lhurgoyf).
-    CreatureCardsInGraveyards,
-    /// Permanents matching a filter, judged from the controller (Nightmare:
-    /// "Swamps you control").
-    Permanents(ObjFilter),
-    /// The controller's life total (Ajani Goldmane's Avatar).
-    ControllerLife,
+/// Which of power and toughness a characteristic-defining ability defines
+/// ("~'s power is equal to ...", "~'s toughness is equal to ...", "~'s
+/// power and toughness are each equal to ...").
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+pub enum CdaSets {
+    #[default]
+    Both,
+    Power,
+    Toughness,
+}
+
+impl CdaSets {
+    pub const fn power(self) -> bool {
+        matches!(self, CdaSets::Both | CdaSets::Power)
+    }
+    pub const fn toughness(self) -> bool {
+        matches!(self, CdaSets::Both | CdaSets::Toughness)
+    }
 }
 
 impl Modification {
@@ -1611,6 +1625,18 @@ pub enum CountExpr {
     /// loyalty to a planeswalker): "You gain life equal to the damage
     /// dealt this way", "the excess damage dealt this way".
     DamageThisWay { excess: bool },
+    /// Card types among cards in all graveyards (Tarmogoyf; CR 205.2a).
+    CardTypesInAllGraveyards,
+    /// Counters of a kind on the source ("the number of +1/+1 counters on
+    /// this creature", "for each scream counter on this Aura"), as it last
+    /// existed on the battlefield once it has left (CR 608.2h: "When this
+    /// creature dies, ... the number of +1/+1 counters on this creature").
+    SourceCounters(CounterKind),
+    /// Cards, all or matching the filter, in the graveyard of the
+    /// controller of what the source is attached to ("Enchanted creature
+    /// gets -X/-X, where X is the number of creature cards in its
+    /// controller's graveyard"); 0 unattached.
+    HostGraveyard(Option<ObjFilter>),
 }
 
 /// A characteristic a count reads from an object.
@@ -2054,6 +2080,8 @@ pub enum CounterKind {
     Polyp,
     Healing,
     Mining,
+    Scream,
+    Credit,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2092,7 +2120,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 31] = [
+    pub const NAMED: [(&'static str, CounterKind); 33] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2114,6 +2142,8 @@ impl CounterKind {
         ("polyp", CounterKind::Polyp),
         ("healing", CounterKind::Healing),
         ("mining", CounterKind::Mining),
+        ("scream", CounterKind::Scream),
+        ("credit", CounterKind::Credit),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -4774,7 +4804,7 @@ impl DefFlags {
             abilities.iter().any(|a| {
                 matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|p| matches!(
                     p,
-                    Modification::CdaPt { count: CdaCount::ControllerLife, .. }
+                    Modification::CdaPt { count: CountExpr::Life, .. }
                         | Modification::ModifyPtPer { count: CountExpr::Life, .. }
                 )) || matches!(s.condition, Some(
                     StaticCondition::OpponentLifeAtMost(_)
@@ -5563,6 +5593,7 @@ impl CardPool {
             matches!(a, AbilityDef::Static(sa) if sa.parts.iter().any(|m| matches!(
                 m,
                 Modification::ModifyPtPer { count: CountExpr::CardsInHand, .. }
+                    | Modification::CdaPt { count: CountExpr::CardsInHand, .. }
             )) || matches!(sa.condition, Some(
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand

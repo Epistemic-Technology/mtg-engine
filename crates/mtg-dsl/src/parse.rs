@@ -11,10 +11,10 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, AttachedRef, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem,
-    DamageWording, DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind,
-    LibraryPlace, LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces,
-    Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, AttachedRef, BlockRule, Card, ChoiceKind, Cost, CostItem, DamageWording,
+    DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
+    LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces, Restrict,
+    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -3328,6 +3328,30 @@ impl P {
             // power and toughness 1/1" (Snakeform): one effect.
             "lose" | "loses" if self.at_words(&["all", "abilities", "and"]) => {
                 self.pos += 3;
+                // "loses all abilities and has base power and toughness
+                // 0/1" (Humble): one effect, layers 6 and 7b.
+                if self.at_words(&["has", "base"]) || self.at_words(&["have", "base"]) {
+                    let Effect::SetBasePt {
+                        to,
+                        power,
+                        toughness,
+                    } = self.subject_verb(subject, explicit)?
+                    else {
+                        return self.fail("expected `has base power and toughness N/N`");
+                    };
+                    return Ok(Effect::Animate {
+                        to,
+                        types: Vec::new(),
+                        subtypes: Vec::new(),
+                        pt: Some((power, toughness)),
+                        base: true,
+                        colors: Vec::new(),
+                        keywords: Vec::new(),
+                        indefinite: false,
+                        loses_abilities: true,
+                        in_addition: false,
+                    });
+                }
                 if !(self.at_word("becomes") || self.at_word("become")) {
                     return self.unexpected("`becomes` after `loses all abilities and`");
                 }
@@ -5114,6 +5138,22 @@ impl P {
         if self.eat_words(&["damage", "dealt", "this", "way"]) {
             return Ok(CountExpr::DamageThisWay { excess: false });
         }
+        if self.eat_words(&["card", "types", "in", "graveyards"]) {
+            return Ok(CountExpr::CardTypesInGraveyards);
+        }
+        // `+1/+1 counters on this`, `age counters on it`.
+        let at = self.pos;
+        if let Ok(kind) = self.counter_kind()
+            && self.eat_word("on")
+        {
+            if self.eat_word("this") {
+                return Ok(CountExpr::SourceCounters { kind, it: false });
+            }
+            if self.eat_word("it") {
+                return Ok(CountExpr::SourceCounters { kind, it: true });
+            }
+        }
+        self.pos = at;
         if self.eat_words(&["excess", "damage", "dealt", "this", "way"]) {
             return Ok(CountExpr::DamageThisWay { excess: true });
         }
@@ -5292,6 +5332,12 @@ impl P {
         }
         let in_all = self.at_words(&["all", "graveyards"]);
         let in_each = self.at_words(&["each", "graveyard"]);
+        // `attached controller graveyard creature`: "creature cards in its
+        // controller's graveyard".
+        let host = self.at_words(&["attached", "controller", "graveyard"]);
+        if host {
+            self.pos += 2;
+        }
         if in_all || in_each || self.at_word("graveyard") {
             self.pos += if self.at_word("graveyard") { 1 } else { 2 };
             let f = if self.at_stmt_end()
@@ -5313,7 +5359,9 @@ impl P {
                 }
                 Some(f)
             };
-            return Ok(if in_all || in_each {
+            return Ok(if host {
+                CountExpr::HostGraveyard(f)
+            } else if in_all || in_each {
                 CountExpr::CardsInGraveyards {
                     filter: f,
                     each: in_each,
@@ -5361,7 +5409,10 @@ impl P {
     fn at_counter_qual(&self) -> bool {
         self.word_at(0).as_deref() == Some("with")
             && (self.word_at(1).as_deref() == Some("counter")
-                || (matches!(self.peek_at(1), Some(Tok::Pt { signed: true, .. }))
+                || ((matches!(self.peek_at(1), Some(Tok::Pt { signed: true, .. }))
+                    || self
+                        .word_at(1)
+                        .is_some_and(|w| CounterKind::NAMED.iter().any(|(n, _)| *n == w)))
                     && self.word_at(2).as_deref() == Some("counter")))
     }
 
@@ -5816,6 +5867,12 @@ impl P {
                         )
                     ) || (self.word_at(ws.len()).as_deref() == Some("blocking")
                         && matches!(self.word_at(ws.len() + 1).as_deref(), Some("this" | "or")))
+                        // "each creature target player controls".
+                        || (self.word_at(ws.len()).as_deref() == Some("target")
+                            && matches!(
+                                self.word_at(ws.len() + 1).as_deref(),
+                                Some("player" | "opponent")
+                            ))
                         || (self.word_at(ws.len()).as_deref() == Some("that")
                             && matches!(
                                 self.word_at(ws.len() + 1).as_deref(),
@@ -5944,6 +6001,7 @@ impl P {
                     (next.as_deref(), after.as_deref()),
                     (Some("you"), Some("don't" | "control"))
                         | (Some("an"), Some("opponent"))
+                        | (Some("target"), Some("player" | "opponent"))
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (Some("that"), Some("was" | "entered" | "dealt" | "blocked" | "player"))
                         | (Some("other"), Some("than"))
@@ -5963,6 +6021,12 @@ impl P {
                     || matches!(next.as_deref(), Some("token" | "tokens"))
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(self.peek_at(ws.len() + 1), Some(Tok::Pt { signed: true, .. })))
+                    // "permanent you control with oil counter".
+                    || (matches!(next.as_deref(), Some("with"))
+                        && after
+                            .as_deref()
+                            .is_some_and(|w| CounterKind::NAMED.iter().any(|(n, _)| *n == w))
+                        && self.word_at(ws.len() + 2).as_deref() == Some("counter"))
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(after.as_deref(), Some("power" | "toughness" | "mana")))
                     || next.as_deref().and_then(card_type).is_some()
@@ -6171,6 +6235,24 @@ impl P {
                 "other" | "another" => {
                     f.relation = Relation::Other;
                     self.pos += 1;
+                }
+                // "creatures target player controls": declares the target.
+                "target"
+                    if f.that_player.is_none()
+                        && (self.at_words(&["target", "player", "controls"])
+                            || self.at_words(&["target", "opponent", "controls"])) =>
+                {
+                    let opponent = self.word_at(1).as_deref() == Some("opponent");
+                    self.pos += 3;
+                    self.targets.push(Target::Spec(if opponent {
+                        TargetSpec::Opponent
+                    } else {
+                        TargetSpec::Player
+                    }));
+                    f.that_player = Some(mtg_core::card::ThatPlayer::Target(
+                        u8::try_from(self.targets.len() - 1).unwrap_or(u8::MAX),
+                    ));
+                    f.that_opponent = opponent;
                 }
                 // "that player controls": the triggering player.
                 "that" if self.at_words(&["that", "player", "controls"]) => {
@@ -7789,14 +7871,25 @@ impl P {
                         }
                         Ok(Mod::CdaColors(self.color_list()?))
                     }
-                    "pt" => {
-                        let count = if self.eat_words(&["card", "types", "in", "graveyards"]) {
-                            CdaCount::CardTypesInGraveyards
-                        } else if self.eat_words(&["creature", "cards", "in", "graveyards"]) {
-                            CdaCount::CreatureCardsInGraveyards
+                    "pt" | "power" | "toughness" => {
+                        use crate::ast::CountExpr;
+                        use mtg_core::card::CdaSets;
+                        let sets = match what.as_str() {
+                            "power" => CdaSets::Power,
+                            "toughness" => CdaSets::Toughness,
+                            _ => CdaSets::Both,
+                        };
+                        let count = if self.eat_words(&["creature", "cards", "in", "graveyards"]) {
+                            CountExpr::CardsInGraveyards {
+                                filter: Some(Filter {
+                                    types: vec![CardType::Creature],
+                                    ..Filter::default()
+                                }),
+                                each: false,
+                            }
                         } else if self.eat_words(&["your", "life"]) {
                             self.eat_word("total");
-                            CdaCount::ControllerLife
+                            CountExpr::Life
                         } else if self.eat_word("count") {
                             let f = self.filter()?;
                             // "the number of creatures named ~ on the
@@ -7804,12 +7897,12 @@ impl P {
                             if f.who.is_none() {
                                 self.eat_words(&["on", "battlefield"]);
                             }
-                            CdaCount::Permanents(f)
+                            CountExpr::Permanents(f)
                         } else {
-                            return self.unexpected("what to count");
+                            self.count_expr()?
                         };
                         let plus_toughness = match self.peek() {
-                            Some(Tok::Signed(n)) => {
+                            Some(Tok::Signed(n)) if sets == CdaSets::Both => {
                                 let n = *n;
                                 self.pos += 1;
                                 n
@@ -7818,6 +7911,7 @@ impl P {
                         };
                         Ok(Mod::CdaPt {
                             count,
+                            sets,
                             plus_toughness,
                         })
                     }

@@ -1,0 +1,354 @@
+# Scaled power and toughness: characteristic-defining abilities that define
+# power, toughness, or both from a count (CR 604.3, layer 7a), counts of
+# counters on the source (as it last existed once it has left, CR 608.2h),
+# groups and counts of what a target player controls, counts of an enchanted
+# creature's controller's graveyard, and base power and toughness set along
+# with losing abilities (layers 6 and 7b).
+
+# ----- characteristic-defining abilities -----
+
+scenario "Swarm of Rats counts only the Rats its controller controls" {
+  battlefield A: "Swarm of Rats", "Pestilence Rats"
+  battlefield B: "Typhoid Rats"
+  run_to turn 1 precombat_main
+  assert power "Swarm of Rats" 2
+  assert toughness "Swarm of Rats" 1
+  # Pestilence Rats counts other Rats on the battlefield, either player's.
+  assert power "Pestilence Rats" 2
+  assert toughness "Pestilence Rats" 3
+}
+
+scenario "Filigree Attendant's power follows the artifacts its controller controls" {
+  battlefield A: "Filigree Attendant", "Ornithopter", "Mountain"
+  hand A: "Shatter"
+  battlefield A: "Mountain"
+  turn 1 A: cast "Shatter" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Filigree Attendant" 1
+  assert toughness "Filigree Attendant" 3
+}
+
+scenario "Freedom Fighter Recruit shrinks as creatures leave" {
+  battlefield A: "Freedom Fighter Recruit", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  run_to turn 1 precombat_main
+  assert power "Freedom Fighter Recruit" 2
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Freedom Fighter Recruit" 1
+  assert toughness "Freedom Fighter Recruit" 2
+}
+
+scenario "Aven Trailblazer's toughness is its domain count" {
+  battlefield A: "Aven Trailblazer", "Plains", "Island", "Island"
+  run_to turn 1 precombat_main
+  assert power "Aven Trailblazer" 2
+  assert toughness "Aven Trailblazer" 2
+}
+
+scenario "Aven Trailblazer with no basic land types has toughness 0 and dies" {
+  battlefield A: "Aven Trailblazer"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Aven Trailblazer"
+}
+
+scenario "Matca Rioters' power and toughness are its domain count" {
+  battlefield A: "Matca Rioters", "Forest", "Mountain", "Forest"
+  battlefield B: "Plains"
+  run_to turn 1 precombat_main
+  assert power "Matca Rioters" 2
+  assert toughness "Matca Rioters" 2
+}
+
+scenario "Krovikan Mist counts every Illusion on the battlefield" {
+  battlefield A: "Krovikan Mist"
+  battlefield B: "Krovikan Mist"
+  run_to turn 1 precombat_main
+  assert power A "Krovikan Mist" 2
+  assert toughness B "Krovikan Mist" 2
+}
+
+scenario "Serpent of the Endless Sea counts Islands and can't attack without one across" {
+  battlefield A: "Serpent of the Endless Sea", 3 "Island", "Grizzly Bears"
+  battlefield B: "Mountain"
+  illegal turn 1 A: attack "Serpent of the Endless Sea"
+  run_to turn 1 end_combat
+  assert power "Serpent of the Endless Sea" 3
+  assert toughness "Serpent of the Endless Sea" 3
+  assert life B 20
+}
+
+# ----- counters on the source -----
+
+scenario "Servant of the Scale moves its +1/+1 counters as it dies" {
+  battlefield A: "Servant of the Scale" with 2 +1/+1, "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Servant of the Scale"
+  turn 1 A: trigger "Servant of the Scale" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Servant of the Scale"
+  assert counters "Grizzly Bears" +1/+1 2
+  assert power "Grizzly Bears" 4
+}
+
+scenario "Soulstinger passes on one -1/-1 counter for each it had" {
+  battlefield A: "Soulstinger" with 2 -1/-1, "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Soulstinger"
+  turn 1 A: trigger "Soulstinger" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -1/-1 2
+  assert power "Hill Giant" 1
+}
+
+scenario "Soulstinger's counters are optional" {
+  battlefield A: "Soulstinger" with 2 -1/-1, "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Soulstinger"
+  turn 1 A: trigger "Soulstinger" targeting "Hill Giant"
+  turn 1 A: decline "Soulstinger"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" -1/-1 0
+  assert power "Hill Giant" 3
+}
+
+scenario "Kjeldoran Javelineer deals damage equal to its age counters" {
+  battlefield A: "Kjeldoran Javelineer" with 2 age
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_blockers A: activate "Kjeldoran Javelineer" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Kjeldoran Javelineer can't target a creature that isn't in combat" {
+  battlefield A: "Kjeldoran Javelineer" with 2 age
+  battlefield B: "Hill Giant"
+  start turn 2 B
+  illegal turn 2 precombat_main A: activate "Kjeldoran Javelineer" targeting "Hill Giant"
+  run_to turn 2 end_combat
+}
+
+scenario "Endless Scream gives +1/+0 for each scream counter on it" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  hand A: "Endless Scream"
+  turn 1 A: cast "Endless Scream" x 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Endless Scream" scream 3
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "Icatian Moneychanger gains life for its credit counters as it last existed" {
+  battlefield A: "Icatian Moneychanger" with 3 credit
+  start turn 1 A upkeep
+  # In response to its upkeep trigger: three counters, not four.
+  turn 1 upkeep A: activate "Icatian Moneychanger"
+  run_to turn 1 precombat_main
+  assert life A 23
+  assert graveyard A contains "Icatian Moneychanger"
+}
+
+scenario "Icatian Moneychanger gets a credit counter each upkeep and pays out only then" {
+  battlefield A: "Icatian Moneychanger" with 3 credit
+  start turn 1 A upkeep
+  illegal turn 1 precombat_main A: activate "Icatian Moneychanger"
+  run_to turn 1 postcombat_main
+  assert counters "Icatian Moneychanger" credit 4
+  assert life A 20
+}
+
+scenario "Kuldotha Cackler counts permanents with oil counters" {
+  battlefield A: "Kuldotha Cackler", "Ornithopter" with 2 oil, "Grizzly Bears" with 1 oil, "Mountain"
+  turn 1 A: attack "Kuldotha Cackler"
+  run_to turn 1 postcombat_main
+  assert power "Kuldotha Cackler" 4
+  assert life B 16
+}
+
+# ----- what a target player controls -----
+
+scenario "Arms of Hadar shrinks only the target player's creatures" {
+  battlefield A: "Hill Giant", 4 "Swamp"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Arms of Hadar"
+  turn 1 A: cast "Arms of Hadar" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert power B "Hill Giant" 1
+  assert toughness B "Hill Giant" 1
+  assert power A "Hill Giant" 3
+}
+
+scenario "Arms of Hadar doesn't affect creatures that enter later" {
+  battlefield A: 4 "Swamp", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Arms of Hadar", "Grizzly Bears"
+  turn 1 A: cast "Arms of Hadar" targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert power B "Hill Giant" 3
+}
+
+scenario "How to Start a Riot pumps the target player's creatures" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  battlefield B: "Typhoid Rats"
+  hand A: "How to Start a Riot"
+  turn 1 A: cast "How to Start a Riot" targeting "Grizzly Bears", player A
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" menace
+  assert has not "Hill Giant" menace
+  assert power "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  assert power "Typhoid Rats" 1
+}
+
+scenario "Divine Congregation counts the target player's creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Typhoid Rats", "Grizzly Bears"
+  hand A: "Divine Congregation"
+  turn 1 A: cast "Divine Congregation" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 26
+}
+
+scenario "Honorable Scout counts black and/or red creatures of the target opponent" {
+  battlefield A: "Plains", "Hill Giant"
+  battlefield B: "Hill Giant", "Typhoid Rats", "Grizzly Bears"
+  hand A: "Honorable Scout"
+  turn 1 A: cast "Honorable Scout"
+  turn 1 A: trigger "Honorable Scout" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 24
+}
+
+scenario "Honorable Scout must target an opponent" {
+  battlefield A: "Plains", "Hill Giant"
+  hand A: "Honorable Scout"
+  turn 1 A: cast "Honorable Scout"
+  illegal turn 1 A: trigger "Honorable Scout" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+# ----- the enchanted creature's controller's graveyard -----
+
+scenario "Death's Approach counts creature cards in its controller's graveyard" {
+  battlefield A: "Death's Approach" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  graveyard B: 2 "Grizzly Bears", "Shock"
+  graveyard A: 3 "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power B "Hill Giant" 1
+  assert toughness B "Hill Giant" 1
+}
+
+scenario "Death's Approach grows as creatures die" {
+  battlefield A: "Death's Approach" on "Hill Giant", "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  graveyard B: 2 "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Disturbing Conversion counts the cards milled into its controller's graveyard" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Disturbing Conversion"
+  turn 1 A: cast "Disturbing Conversion" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B count 2
+  assert power "Hill Giant" 1
+  assert toughness "Hill Giant" 3
+}
+
+# ----- base power and toughness with lost abilities -----
+
+scenario "Humble: no abilities and base 0/1 until end of turn" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Serra Angel"
+  hand A: "Humble"
+  turn 1 A: cast "Humble" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert has not "Serra Angel" flying
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 1
+  run_to turn 2 precombat_main
+  assert has "Serra Angel" flying
+  assert power "Serra Angel" 4
+}
+
+scenario "Ovinize applies before later pumps (layer 7b, then 7c)" {
+  battlefield A: 2 "Island", "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Ovinize", "Giant Growth"
+  turn 1 A: cast "Ovinize" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+  assert toughness "Hill Giant" 4
+}
+
+scenario "Deep Freeze keeps the defender it grants" {
+  battlefield A: "Deep Freeze" on "Serra Angel"
+  battlefield B: "Serra Angel"
+  start turn 2 B
+  illegal turn 2 B: attack "Serra Angel"
+  run_to turn 2 postcombat_main
+  assert has "Serra Angel" defender
+  assert has not "Serra Angel" flying
+  assert has not "Serra Angel" vigilance
+  assert power "Serra Angel" 0
+  assert toughness "Serra Angel" 4
+  assert is "Serra Angel" Wall
+  assert is "Serra Angel" blue
+  assert is "Serra Angel" white
+}
+
+scenario "Stasis Field: base 0/2 with defender" {
+  battlefield A: "Stasis Field" on "Hill Giant"
+  battlefield B: "Hill Giant"
+  run_to turn 1 precombat_main
+  assert has "Hill Giant" defender
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 2
+}
+
+# ----- pumps scaled by a moved creature's power -----
+
+scenario "Call for Blood gives -X/-X for the sacrificed creature's power" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 5 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Call for Blood"
+  turn 1 A: cast "Call for Blood" sacrificing "Hill Giant" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Crash Through gives trample and draws" {
+  battlefield A: "Mountain", "Hill Giant"
+  hand A: "Crash Through"
+  turn 1 A: cast "Crash Through"
+  run_to turn 1 postcombat_main
+  assert has "Hill Giant" trample
+  assert hand A count 1
+}
+
+scenario "Marshaling Cry pumps and grants vigilance" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Marshaling Cry"
+  turn 1 A: cast "Marshaling Cry"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" vigilance
+}

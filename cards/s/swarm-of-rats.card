@@ -1,0 +1,7 @@
+card "Swarm of Rats" {
+  oracle_id 7fe21ade-01f1-45ff-9b70-bc6302c3d284
+  cost {1}{B}
+  type Creature — Rat
+  pt */1
+  static this: cda power count Rat you control
+}

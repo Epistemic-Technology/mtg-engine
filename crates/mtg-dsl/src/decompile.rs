@@ -3,18 +3,17 @@
 //! express every definition the engine holds.
 
 use mtg_core::card::{
-    AbilityDef, Affects as CoreAffects, CardDef, CardPool, CardType, CdaCount as CoreCdaCount,
-    ChoiceKind as CoreChoiceKind, Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification,
-    ObjFilter, Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
+    AbilityDef, Affects as CoreAffects, CardDef, CardPool, CardType, ChoiceKind as CoreChoiceKind,
+    Cost as CoreCost, Effect as CoreEffect, KeywordSet, Modification, ObjFilter,
+    Recipient as CoreRecipient, ReplacementAbility, Replaces as CoreReplaces,
     SacCost as CoreSacCost, StaticCondition, Supertype, SupertypeSet, TargetSpec,
     TriggerObj as CoreTriggerObj, TriggerSpec, TypeSet,
 };
 use mtg_core::mana::{Color, ColorSet};
 
 use crate::ast::{
-    Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Except, Filter, Kind, Mod, Mode,
-    Recipient, Replacement, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger,
-    TriggerObj,
+    Ability, Affects, Card, ChoiceKind, Cost, Effect, Except, Filter, Kind, Mod, Mode, Recipient,
+    Replacement, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 const ALL_TYPES: [CardType; 9] = [
@@ -118,6 +117,33 @@ struct Decompiler<'a> {
 }
 
 impl Decompiler<'_> {
+    /// A characteristic-defining ability's count (`Modification::CdaPt`):
+    /// the counts a static ability can judge (`layers::per_count`); others
+    /// read as domain.
+    fn cda_count(&self, c: &mtg_core::card::CountExpr) -> crate::ast::CountExpr {
+        use crate::ast::CountExpr as A;
+        use mtg_core::card::CountExpr as C;
+        match c {
+            C::Permanents(f) => A::Permanents(self.filter(f)),
+            C::Life => A::Life,
+            C::CardsInHand => A::CardsInHand,
+            C::CardsInGraveyard(f) => A::CardsInGraveyard(f.as_ref().map(|f| self.filter(f))),
+            C::CardsInAllGraveyards(f) => A::CardsInGraveyards {
+                filter: f.as_ref().map(|f| self.filter(f)),
+                each: false,
+            },
+            C::CardTypesInAllGraveyards => A::CardTypesInGraveyards,
+            C::Plus(n, inner) => A::Plus {
+                n: *n,
+                word: false,
+                inner: Box::new(self.cda_count(inner)),
+            },
+            C::Times(n, inner) => A::Times(*n, Box::new(self.cda_count(inner))),
+            C::Sum(a, b) => A::Sum(Box::new(self.cda_count(a)), Box::new(self.cda_count(b))),
+            _ => A::Domain,
+        }
+    }
+
     fn filter(&self, f: &ObjFilter) -> Filter {
         Filter {
             who: f.who,
@@ -191,6 +217,7 @@ impl Decompiler<'_> {
                 }
             }),
             that_player: f.that_player,
+            that_opponent: false,
             not_attached: f.not_attached,
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),
             targeting: f.targeting.as_ref().map(|t| {
@@ -1261,14 +1288,11 @@ impl Decompiler<'_> {
             Modification::CdaColors(c) => Mod::CdaColors(colors(*c)),
             Modification::CdaPt {
                 count,
+                sets,
                 plus_toughness,
             } => Mod::CdaPt {
-                count: match count {
-                    CoreCdaCount::CardTypesInGraveyards => CdaCount::CardTypesInGraveyards,
-                    CoreCdaCount::CreatureCardsInGraveyards => CdaCount::CreatureCardsInGraveyards,
-                    CoreCdaCount::Permanents(f) => CdaCount::Permanents(self.filter(f)),
-                    CoreCdaCount::ControllerLife => CdaCount::ControllerLife,
-                },
+                count: self.cda_count(count),
+                sets: *sets,
                 plus_toughness: *plus_toughness,
             },
         }

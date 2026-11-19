@@ -1,0 +1,10 @@
+card "Icatian Moneychanger" {
+  oracle_id 9b81aa32-e0f7-493f-92b8-85c2c46aef91
+  cost {W}
+  type Creature — Human
+  pt 0/2
+  enters with 3 credit counters
+  triggered when this enters: deal 3 damage to you
+  triggered at beginning of your upkeep: put 1 credit counter on this
+  activated sacrifice this, during your upkeep: you gain count each credit counter on this life
+}

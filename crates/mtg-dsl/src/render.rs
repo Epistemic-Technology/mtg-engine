@@ -14,9 +14,9 @@ use mtg_core::mana::{Color, Mana};
 use mtg_core::turn::Step;
 
 use crate::ast::{
-    Ability, Affects, AttachedRef, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording,
-    Effect, Filter, Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost,
-    SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, AttachedRef, Card, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
+    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost, SameRef,
+    Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -1695,8 +1695,13 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::Any) | None => {}
     }
-    if f.that_player.is_some() {
-        s.push_str(" that player controls");
+    match f.that_player {
+        Some(mtg_core::card::ThatPlayer::Target(_)) if f.that_opponent => {
+            s.push_str(" target opponent controls");
+        }
+        Some(mtg_core::card::ThatPlayer::Target(_)) => s.push_str(" target player controls"),
+        Some(_) => s.push_str(" that player controls"),
+        None => {}
     }
     if f.not_attached {
         let mut host = Filter::enchanted();
@@ -2373,7 +2378,11 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         CountExpr::Permanents(f) => {
             // "for each other attacking creature": attacking and blocking
             // creatures are on the battlefield without saying so.
-            let place = if f.who.is_none() && !f.attacking && !f.blocking && f.attached_to.is_none()
+            let place = if f.who.is_none()
+                && f.that_player.is_none()
+                && !f.attacking
+                && !f.blocking
+                && f.attached_to.is_none()
             {
                 " on the battlefield"
             } else {
@@ -2603,6 +2612,36 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             );
         }
         CountExpr::LifeLostThisTurn => return "the life you've lost this turn".to_string(),
+        // "the number of +1/+1 counters on this creature", "for each
+        // scream counter on this Aura", "the number of age counters on it".
+        CountExpr::SourceCounters { kind, it } => {
+            let on = if *it {
+                "it".to_string()
+            } else {
+                this_ref(card)
+            };
+            (
+                format!("{} counter on {on}", counter_name(*kind)),
+                format!("{} counters on {on}", counter_name(*kind)),
+            )
+        }
+        CountExpr::HostGraveyard(f) => {
+            let f = f.clone().unwrap_or_default();
+            (
+                format!(
+                    "{} in its controller's graveyard",
+                    cards_phrase(&f, card, false)
+                ),
+                format!(
+                    "{} in its controller's graveyard",
+                    cards_phrase(&f, card, true)
+                ),
+            )
+        }
+        CountExpr::CardTypesInGraveyards => (
+            "card type among cards in all graveyards".to_string(),
+            "card types among cards in all graveyards".to_string(),
+        ),
         CountExpr::DamageThisWay { excess } => {
             return if *excess {
                 "the excess damage dealt this way".to_string()
@@ -4186,6 +4225,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             in_addition,
         } => {
             let s = ctx.subj(*to);
+            // "loses all abilities and has base power and toughness 0/1".
+            if let (Some((p, q)), true, true) = (pt, base, *loses_abilities)
+                && types.is_empty()
+                && subtypes.is_empty()
+                && colors.is_empty()
+                && keywords.is_empty()
+                && !*in_addition
+            {
+                let text = format!(
+                    "{} all abilities and {} base power and toughness {p}/{q}",
+                    ctx.verb(*to, "loses", "lose"),
+                    ctx.verb(*to, "has", "have")
+                );
+                let clause = Clause::with_subject(*to, s, text);
+                return if *indefinite {
+                    clause
+                } else {
+                    clause.until_eot()
+                };
+            }
             // "up to two target creatures each ... become blue Illusions".
             let plural = ctx.verb(*to, "becomes", "become") == "become";
             let mut words = Vec::new();
@@ -6068,15 +6127,10 @@ fn mod_text(m: &Mod, plural_form: bool) -> String {
     }
 }
 
-fn cda_count_text(c: &CdaCount, card: &Card) -> String {
+fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
+    use crate::ast::CountExpr;
     match c {
-        CdaCount::CardTypesInGraveyards => {
-            "the number of card types among cards in all graveyards".to_string()
-        }
-        CdaCount::CreatureCardsInGraveyards => {
-            "the number of creature cards in all graveyards".to_string()
-        }
-        CdaCount::Permanents(f) => format!(
+        CountExpr::Permanents(f) => format!(
             "the number of {}{}",
             filter_phrase(f, card, true),
             if f.who.is_none() {
@@ -6085,7 +6139,7 @@ fn cda_count_text(c: &CdaCount, card: &Card) -> String {
                 ""
             }
         ),
-        CdaCount::ControllerLife => "your life total".to_string(),
+        other => count_phrase(other, card, false),
     }
 }
 
@@ -6094,6 +6148,7 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
         count,
+        sets,
         plus_toughness,
     }) = mods.iter().find(|m| matches!(m, Mod::CdaPt { .. }))
     {
@@ -6103,7 +6158,11 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             format!("{}'s", short_name(card))
         };
         let n = cda_count_text(count, card);
-        return if *plus_toughness == 0 {
+        return if *sets == mtg_core::card::CdaSets::Power {
+            format!("{owner} power is equal to {n}.")
+        } else if *sets == mtg_core::card::CdaSets::Toughness {
+            format!("{owner} toughness is equal to {n}.")
+        } else if *plus_toughness == 0 {
             format!("{owner} power and toughness are each equal to {n}.")
         } else {
             format!(
@@ -6296,6 +6355,17 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
             t
         })
         .collect();
+    // "has defender, and loses all other abilities": abilities it gains
+    // before losing the rest are kept (`compile` applies the loss first).
+    for (i, m) in mods.iter().enumerate() {
+        if *m == Mod::RemoveAllAbilities
+            && mods[..i]
+                .iter()
+                .any(|m| matches!(m, Mod::AddKeywords(_) | Mod::AddAbility(_)))
+        {
+            parts[i] = parts[i].replacen(" all abilities", " all other abilities", 1);
+        }
+    }
     // "has menace and \"Whenever ...\"", "has trample and ward {1}": one
     // "has" for both.
     for i in 1..parts.len() {

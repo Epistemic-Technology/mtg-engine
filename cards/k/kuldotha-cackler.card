@@ -1,0 +1,8 @@
+card "Kuldotha Cackler" {
+  oracle_id e1a41091-6ff1-42bb-b248-90040107efe1
+  cost {2}{R}
+  type Creature — Phyrexian Hyena
+  pt 2/3
+  keywords trample
+  triggered whenever this attacks: this gets +1/+0 count where permanent you control with oil counter
+}

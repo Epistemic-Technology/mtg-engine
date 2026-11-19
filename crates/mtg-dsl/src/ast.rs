@@ -313,6 +313,19 @@ pub enum CountExpr {
     DamageThisWay {
         excess: bool,
     },
+    /// `card types in graveyards`: "the number of card types among cards
+    /// in all graveyards".
+    CardTypesInGraveyards,
+    /// `+1/+1 counters on this` ("the number of +1/+1 counters on this
+    /// creature", "for each -1/-1 counter on this creature"), `age
+    /// counters on it` ("on it").
+    SourceCounters {
+        kind: mtg_core::card::CounterKind,
+        it: bool,
+    },
+    /// `attached controller graveyard [<filter>]`: "the number of creature
+    /// cards in its controller's graveyard" (of what the source enchants).
+    HostGraveyard(Option<Filter>),
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -538,6 +551,9 @@ pub struct Filter {
     /// triggering player), `that target 1 player controls` (the 1st
     /// target's controller), all printed "that player" (`ObjFilter::that_player`).
     pub that_player: Option<mtg_core::card::ThatPlayer>,
+    /// With `that_player` a target (`target player controls`, `target
+    /// opponent controls`): the target is an opponent.
+    pub that_opponent: bool,
     /// `other than enchanted`: "other than enchanted creature"
     /// (`ObjFilter::not_attached`).
     pub not_attached: bool,
@@ -1643,19 +1659,13 @@ pub enum Mod {
     ChosenColor,
     /// `has protection from chosen color`.
     ProtectionFromChosen,
+    /// `cda pt <count> [+N]`, `cda power <count>`, `cda toughness
+    /// <count>`: a characteristic-defining ability (CR 604.3).
     CdaPt {
-        count: CdaCount,
+        count: CountExpr,
+        sets: mtg_core::card::CdaSets,
         plus_toughness: i32,
     },
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-#[allow(clippy::large_enum_variant)]
-pub enum CdaCount {
-    CardTypesInGraveyards,
-    CreatureCardsInGraveyards,
-    Permanents(Filter),
-    ControllerLife,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]

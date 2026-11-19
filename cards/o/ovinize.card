@@ -1,0 +1,6 @@
+card "Ovinize" {
+  oracle_id 98799336-a61e-4e35-ac30-51edb81301f6
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature loses all abilities and has base power and toughness 0/1
+}
