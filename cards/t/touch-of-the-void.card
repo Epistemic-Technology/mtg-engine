@@ -1,0 +1,7 @@
+card "Touch of the Void" {
+  oracle_id 6b530534-5c02-4874-9256-501102ef8a5f
+  cost {2}{R}
+  type Sorcery
+  keywords devoid
+  spell: deal 3 damage to any target; this turn, replace creature dealt damage this way dies: exile
+}

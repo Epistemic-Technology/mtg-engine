@@ -342,6 +342,7 @@ impl Fmt {
                     format!("chosen {f}")
                 }
             }
+            Affects::DamagedThisWay => "creature dealt damage this way".to_string(),
         }
     }
 
@@ -574,6 +575,7 @@ impl Fmt {
                 also,
                 random,
                 then,
+                top,
             } => {
                 let mut s = format!("dig {}", num(*count));
                 if *then {
@@ -605,6 +607,9 @@ impl Fmt {
                 }
                 if *revealing {
                     s.push_str(" revealing");
+                }
+                if *top {
+                    s.push_str(" top");
                 }
                 s.push_str(if *rest_graveyard {
                     " rest graveyard"
@@ -1308,6 +1313,7 @@ impl Fmt {
             } => {
                 use mtg_core::card::ChooseAct;
                 let n = format!("{}{}", if *up_to { "up to " } else { "" }, num(*count));
+                let unfiltered = *f == Filter::default();
                 let f = filter(f);
                 let cs = cards(*count);
                 match act {
@@ -1315,6 +1321,13 @@ impl Fmt {
                     ChooseAct::Sacrifice => format!("sacrifice {n} {f} chosen"),
                     ChooseAct::Bounce => format!("return {n} {f} to hand chosen"),
                     ChooseAct::Discard => format!("discard {n} {f} {cs} chosen"),
+                    // "put a card from your hand": no filter, no word for it.
+                    ChooseAct::HandToBottom if unfiltered => {
+                        format!("put {n} {cs} from hand on bottom of library chosen")
+                    }
+                    ChooseAct::HandToBottom => {
+                        format!("put {n} {f} {cs} from hand on bottom of library chosen")
+                    }
                     ChooseAct::ExileFromGraveyard => {
                         format!("exile {n} {f} {cs} from your graveyard chosen")
                     }
@@ -2916,6 +2929,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::Enchanted => "enchanted".to_string(),
         StaticCond::Equipped => "equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("opponent life {n} or less"),
+        StaticCond::MoreLifeThanOpponent => "your life more than opponent".to_string(),
+        StaticCond::BasicLandTypes(n) => format!("{n} basic land types"),
+        StaticCond::YouDontControl(fl) => format!("you don't control {}", filter(fl)),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("player life {n} or less"),
         StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
         StaticCond::OpponentPoisonAtLeast(n) | StaticCond::OpponentPoison(n) => {

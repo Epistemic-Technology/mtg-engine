@@ -1835,6 +1835,16 @@ fn cards_phrase(f: &Filter, card: &Card, plural_form: bool) -> String {
             same_phrase(f, card, plural_form)
         );
     }
+    // "creature card with infect": a keyword after the noun.
+    if g.or.is_none()
+        && !g.keywords.is_empty()
+        && let Some((kind, quality)) = p.trim_end().split_once(" with ")
+    {
+        return format!(
+            "{kind} {noun} with {quality}{mv}{}",
+            same_phrase(f, card, plural_form)
+        );
+    }
     format!("{p}{noun}{mv}{}", same_phrase(f, card, plural_form))
 }
 
@@ -3034,6 +3044,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             also,
             random,
             then,
+            top,
         } => {
             let n = count_words(*count, "one");
             let head = if *reveal_top {
@@ -3079,6 +3090,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
             });
             let it = if several { "the revealed cards" } else { "it" };
+            // "You may put one of those cards back on top of your library.
+            // Put the rest into your graveyard."
+            if *top {
+                let w = what
+                    .clone()
+                    .unwrap_or_else(|| "one of those cards".to_string());
+                let may = if *optional { "You may put" } else { "Put" };
+                return Clause::imperative(format!(
+                    "{head}. {may} {w} back on top of your library. Put {}",
+                    rest("the rest")
+                ));
+            }
             if filter.is_none() && *take != 1 {
                 // "Put two of those cards into your hand and the rest into
                 // your graveyard."
@@ -3952,6 +3975,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     if one { "its" } else { "their" }
                 ),
                 ChooseAct::Discard => format!("discard {}", cards()),
+                ChooseAct::HandToBottom => format!(
+                    "put {} from your hand on the bottom of your library",
+                    cards()
+                ),
                 ChooseAct::ExileFromGraveyard => {
                     format!("exile {} from your graveyard", cards())
                 }
@@ -4649,8 +4676,23 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ..f.clone()
             }) == Filter::default()
                 && f.damaged;
+            // "If that creature's power is 0 or less" (Depressurize).
+            let power_only = f.power.filter(|_| {
+                (Filter {
+                    power: None,
+                    types: Vec::new(),
+                    ..f.clone()
+                }) == Filter::default()
+                    && f.types.iter().all(|t| *t == CardType::Creature)
+            });
             let cond = match (check.tense, has) {
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
+                (TargetTense::Is, _) if let Some((cmp, n)) = power_only => {
+                    format!("its power is {n}{}", cmp_words(cmp))
+                }
+                (TargetTense::ThatIs, _) if let Some((cmp, n)) = power_only => {
+                    format!("that {noun}'s power is {n}{}", cmp_words(cmp))
+                }
                 (TargetTense::Was, _) if *f == Filter::controlled_by_you() => {
                     format!("you controlled that {noun}")
                 }
@@ -4915,6 +4957,23 @@ fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
 }
 
 fn target_predicate(f: &Filter, card: &Card) -> String {
+    // "If that creature is attacking" (Sweep Away).
+    if f.types.iter().all(|t| *t == CardType::Creature)
+        && (f.attacking || f.blocking)
+        && (Filter {
+            types: Vec::new(),
+            attacking: false,
+            blocking: false,
+            ..f.clone()
+        }) == Filter::default()
+    {
+        return match (f.attacking, f.blocking) {
+            (true, true) => "attacking or blocking",
+            (true, false) => "attacking",
+            _ => "blocking",
+        }
+        .to_string();
+    }
     // "a Human or an Angel".
     if let Some(alt) = &f.or
         && f.subtypes.len() == 1
@@ -5657,6 +5716,7 @@ fn affects_to(a: &Affects, ctx: &mut Ctx) -> String {
             ctx.obj(Recipient::Target(*i))
         ),
         Affects::Chosen(f) => chosen_source(f, ctx.card),
+        Affects::DamagedThisWay => "a creature dealt damage this way".to_string(),
     }
 }
 
@@ -6598,6 +6658,10 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
                 format!("another {}", filter_phrase(&g, card, false))
             } else if *at_least == 1 {
                 with_article(&filter_phrase(&f, card, false))
+            } else if f.or.is_some() && f.or.as_ref().is_some_and(|a| a.or.is_none()) {
+                // "seven or more lands and/or Treefolk".
+                let p = filter_phrase(&f, card, true).replacen(" and ", " and/or ", 1);
+                format!("{} {p}", or_more(*at_least))
             } else {
                 format!("{} {}", or_more(*at_least), filter_phrase(&f, card, true))
             };
@@ -6788,6 +6852,19 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::Enchanted => "it's enchanted".to_string(),
         StaticCond::Equipped => "it's equipped".to_string(),
         StaticCond::OpponentLifeAtMost(n) => format!("an opponent has {n} or less life"),
+        StaticCond::MoreLifeThanOpponent => "you have more life than an opponent".to_string(),
+        StaticCond::BasicLandTypes(n) => format!(
+            "there are {} basic land types among lands you control",
+            or_more(*n)
+        ),
+        StaticCond::YouDontControl(filter) => {
+            let mut f = filter.clone();
+            f.who = None;
+            format!(
+                "you don't control {}",
+                with_article(&filter_phrase(&f, card, false))
+            )
+        }
         StaticCond::YourLife { n, at_least } => format!(
             "you have {n} or {} life",
             if *at_least { "more" } else { "less" }
@@ -6801,6 +6878,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             // Spell mastery: "instant and/or sorcery cards".
             if filter.or.is_some() || !filter.any_types.is_empty() {
                 p = p.replace(" or ", " and/or ");
+            }
+            // "there is an Elf card in your graveyard".
+            if *at_least == 1 && !*have {
+                return format!(
+                    "there is {} in your graveyard",
+                    with_article(&format!("{p} card"))
+                );
             }
             format!(
                 "{} {} {p} cards in your graveyard",

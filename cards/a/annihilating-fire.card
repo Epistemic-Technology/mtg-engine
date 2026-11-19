@@ -1,0 +1,6 @@
+card "Annihilating Fire" {
+  oracle_id 762f891e-5d88-42b0-8abf-c69f3421011b
+  cost {1}{R}{R}
+  type Instant
+  spell: deal 3 damage to any target; this turn, replace creature dealt damage this way dies: exile
+}

@@ -1,0 +1,7 @@
+card "Oil-Gorger Troll" {
+  oracle_id 238f2c86-4376-48f2-ae71-c10d3d785163
+  cost {3}{G}{G}
+  type Creature — Phyrexian Troll Warrior
+  pt 3/4
+  triggered whenever this enters: you gain 3 life; then if you control permanent with oil counter, draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Dawnhand Eulogist" {
+  oracle_id 57bbd80b-290f-461e-8dc6-26ba4d673fa9
+  cost {3}{B}
+  type Creature — Elf Warlock
+  pt 3/3
+  keywords menace
+  triggered whenever this enters: mill 3 cards; then if 1 Elf cards in your graveyard, each opponent loses 2 life and you gain 2 life
+}

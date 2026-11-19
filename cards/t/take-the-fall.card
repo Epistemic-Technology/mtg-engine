@@ -1,0 +1,9 @@
+card "Take the Fall" {
+  oracle_id 279f3aa5-5807-4797-8cd1-e009984a3691
+  cost {U}
+  type Instant
+  spell {
+    target creature gets -1/-0; target 1 gets -4/-0 instead if you control outlaw
+    draw 1 card
+  }
+}

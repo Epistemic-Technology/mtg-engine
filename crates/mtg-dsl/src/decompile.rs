@@ -339,6 +339,8 @@ impl Decompiler<'_> {
             StaticCondition::SourceEnchanted => StaticCond::Enchanted,
             StaticCondition::SourceEquipped => StaticCond::Equipped,
             StaticCondition::OpponentLifeAtMost(n) => StaticCond::OpponentLifeAtMost(*n),
+            StaticCondition::MoreLifeThanOpponent => StaticCond::MoreLifeThanOpponent,
+            StaticCondition::BasicLandTypes(n) => StaticCond::BasicLandTypes(*n),
             StaticCondition::YourLife { n, at_least } => StaticCond::YourLife {
                 n: *n,
                 at_least: *at_least,
@@ -971,6 +973,7 @@ impl Decompiler<'_> {
                 take,
                 also,
                 random,
+                top,
             } => Effect::Dig {
                 count: *count,
                 filter: filter.as_ref().map(|f| self.filter(f)),
@@ -983,6 +986,7 @@ impl Decompiler<'_> {
                 also: also.as_ref().map(|f| self.filter(f)),
                 random: *random,
                 then: false,
+                top: *top,
             },
             CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {
@@ -1217,6 +1221,7 @@ impl Decompiler<'_> {
             CoreAffects::Targets(a, n) => Affects::Targets(usize::from(*a), usize::from(*n)),
             CoreAffects::OtherThanTarget(f, i) => Affects::OtherThanTarget(self.filter(f), *i),
             CoreAffects::Chosen(f) => Affects::Chosen(self.filter(f)),
+            CoreAffects::DamagedThisWay => Affects::DamagedThisWay,
         }
     }
 

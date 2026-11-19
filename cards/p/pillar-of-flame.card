@@ -1,0 +1,6 @@
+card "Pillar of Flame" {
+  oracle_id 468cfc88-a493-44dc-9d0a-63d9cc89c114
+  cost {R}
+  type Sorcery
+  spell: deal 2 damage to any target; this turn, replace creature dealt damage this way dies: exile
+}

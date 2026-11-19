@@ -1,0 +1,8 @@
+card "Gutless Plunderer" {
+  oracle_id 31265357-5ecb-4d83-80ff-1795b1dfdecb
+  cost {2}{B}
+  type Creature — Skeleton Pirate
+  pt 2/2
+  keywords deathtouch
+  label "Raid" triggered whenever this enters if attacked this turn: dig 3 take card may top rest graveyard
+}

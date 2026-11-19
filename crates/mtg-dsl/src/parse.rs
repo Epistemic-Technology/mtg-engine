@@ -2278,6 +2278,12 @@ impl P {
             self.expect_words(&["or", "less"])?;
             return Ok(StaticCond::OpponentLifeAtMost(n));
         }
+        if self.eat_words(&["your", "life", "more", "than", "opponent"]) {
+            return Ok(StaticCond::MoreLifeThanOpponent);
+        }
+        if self.eat_words(&["you", "don't", "control"]) {
+            return Ok(StaticCond::YouDontControl(self.filter()?));
+        }
         if self.eat_words(&["your", "life"]) {
             let n = i32::try_from(self.number()?).unwrap_or(0);
             self.expect_word("or")?;
@@ -2318,6 +2324,9 @@ impl P {
         }
         if self.eat_words(&["different", "powers"]) {
             return Ok(StaticCond::DifferentPowers(n));
+        }
+        if self.eat_words(&["basic", "land", "types"]) {
+            return Ok(StaticCond::BasicLandTypes(n));
         }
         if self
             .word_at(0)
@@ -3962,6 +3971,20 @@ impl P {
                     (ChooseAct::Bounce, f)
                 }
             }
+            // `put 1 card from hand on bottom of library chosen`.
+            "put"
+                if {
+                    let at = self.pos;
+                    let hand = card_filter(self).is_ok()
+                        && self.at_words(&["from", "hand", "on", "bottom", "of", "library"]);
+                    self.pos = at;
+                    hand
+                } =>
+            {
+                let f = card_filter(self)?;
+                self.pos += 6;
+                (ChooseAct::HandToBottom, f)
+            }
             _ => {
                 let f = card_filter(self)?;
                 self.expect_words(&["from", "among"])?;
@@ -4415,6 +4438,8 @@ impl P {
                 };
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
+                // `take card may top`: back on top of the library.
+                let top = self.eat_word("top");
                 self.expect_word("rest")?;
                 let rest_graveyard = if self.eat_word("graveyard") {
                     true
@@ -4434,6 +4459,7 @@ impl P {
                     take,
                     also,
                     random,
+                    top,
                     then,
                 })
             }
@@ -5460,11 +5486,13 @@ impl P {
     fn at_counter_qual(&self) -> bool {
         self.word_at(0).as_deref() == Some("with")
             && (self.word_at(1).as_deref() == Some("counter")
-                || ((matches!(self.peek_at(1), Some(Tok::Pt { signed: true, .. }))
-                    || self
-                        .word_at(1)
-                        .is_some_and(|w| CounterKind::NAMED.iter().any(|(n, _)| *n == w)))
-                    && self.word_at(2).as_deref() == Some("counter")))
+                || (matches!(self.peek_at(1), Some(Tok::Pt { signed: true, .. }))
+                    && self.word_at(2).as_deref() == Some("counter"))
+                // "with an oil counter on it": a named kind.
+                || (self.word_at(2).as_deref() == Some("counter")
+                    && self.word_at(1).is_some_and(|w| {
+                        w != "loyalty" && CounterKind::NAMED.iter().any(|(n, _)| *n == w)
+                    })))
     }
 
     fn counter_kind(&mut self) -> R<CounterKind> {
@@ -6153,12 +6181,27 @@ impl P {
                 return self.unexpected("`from` after the card's mana value");
             }
         }
+        // "creature card with infect from your graveyard": a keyword after
+        // the noun.
+        let mut kw_after = false;
+        if !named && !mv_after && self.at_words(&["card", "with"]) {
+            let at = self.pos;
+            self.pos += 2;
+            match self.keyword() {
+                Some(k) if self.at_word("from") => {
+                    f.keywords.push(k);
+                    kw_after = true;
+                }
+                _ => self.pos = at,
+            }
+        }
         if named
             || mv_after
+            || kw_after
             || self.at_words(&["card", "from"])
             || self.at_words(&["cards", "from"])
         {
-            self.pos += if mv_after { 1 } else { 2 };
+            self.pos += if mv_after || kw_after { 1 } else { 2 };
             // `from graveyards`: several targets from any graveyards.
             if self.eat_word("graveyards") {
                 return Ok(Target::GraveyardCard {
@@ -6696,6 +6739,11 @@ impl P {
                         self.pos += 1;
                     } else if let Some(t) = card_type(&w) {
                         f.types.push(t);
+                        self.pos += 1;
+                    } else if w == "outlaw" && f.subtypes.is_empty() {
+                        // "an outlaw": an Assassin, Mercenary, Pirate, Rogue,
+                        // or Warlock (a batch of subtypes, CR 700.12).
+                        f.subtypes.push(crate::ast::OUTLAW.to_string());
                         self.pos += 1;
                     } else if raw.chars().next().is_some_and(char::is_uppercase) {
                         // Plural subtypes are singular in a filter; a few
@@ -7580,6 +7628,12 @@ impl P {
             }
             return Ok(Replaces::Dies {
                 to: Affects::Target(n - 1),
+            });
+        }
+        // `creature dealt damage this way dies` (CR 608.2c).
+        if self.eat_words(&["creature", "dealt", "damage", "this", "way", "dies"]) {
+            return Ok(Replaces::Dies {
+                to: Affects::DamagedThisWay,
             });
         }
         if self.eat_word("destroy") {
