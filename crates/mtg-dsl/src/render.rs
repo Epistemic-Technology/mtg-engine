@@ -1436,8 +1436,11 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 );
             }
             CountStyle::Each => {
+                // "gain 1 life for each", "deals 1 damage ... for each".
                 c.text = c
                     .text
+                    .replacen("X life", "1 life", 1)
+                    .replacen("X damage", "1 damage", 1)
                     .replacen("X ", "a ", 1)
                     .replacen("a cards", "a card", 1);
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
@@ -1919,6 +1922,10 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     filter_phrase(filter, ctx.card, true)
                 )
             };
+            // "Sacrifice a creature.": you choose.
+            if *who == Recipient::You {
+                return Clause::imperative(format!("sacrifice {what}"));
+            }
             Clause::with_subject(
                 *who,
                 s,
@@ -2171,6 +2178,8 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
+            // "you may gain 3 life", not "you may you gain".
+            let body = body.strip_prefix("you ").unwrap_or(&body);
             Clause::imperative(format!("you may {}", body.trim_end_matches('.')))
         }
         Effect::Delayed {

@@ -1610,6 +1610,7 @@ impl P {
                     | "fights"
                     | "can't"
                     | "sacrifices"
+                    | "sacrifice"
                     | "reveals"
                     | "reveal"
             )
@@ -1780,7 +1781,7 @@ impl P {
                     to: subject,
                 })
             }
-            "sacrifices" => {
+            "sacrifices" | "sacrifice" => {
                 let count = if self.eat_word("a") || self.eat_word("an") {
                     Num::N(1)
                 } else {
