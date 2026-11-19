@@ -45,6 +45,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         counts: Vec::new(),
         in_delayed: false,
         delayed_that: false,
+        delayed_dies: false,
         in_trigger: false,
         it_source: false,
         subject: None,
@@ -452,6 +453,9 @@ struct P {
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
+    /// Inside "When that creature dies (leaves the battlefield) this
+    /// turn": "its controller" is the controller that object had.
+    delayed_dies: bool,
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
@@ -5023,7 +5027,11 @@ impl P {
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
                     }
-                    (t, self.sentences_inline()?, true)
+                    let was_dies = self.delayed_dies;
+                    self.delayed_dies = true;
+                    let e = self.sentences_inline();
+                    self.delayed_dies = was_dies;
+                    (t, e?, true)
                 } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
                     let t = self.trigger()?;
                     if self.peek() == Some(&Tok::Comma) {
@@ -5758,6 +5766,7 @@ impl P {
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
+            delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             subject: None,
@@ -5975,7 +5984,9 @@ impl P {
         }
         // In a triggered ability with no targets, `its controller` is the
         // triggering object's; `controller of that creature` names it.
-        if self.in_trigger && self.targets.is_empty() && self.eat_words(&["its", "controller"]) {
+        if (self.in_trigger && self.targets.is_empty() || self.delayed_dies)
+            && self.eat_words(&["its", "controller"])
+        {
             return Ok(Recipient::TriggeringController { that: false });
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
@@ -6259,6 +6270,7 @@ impl P {
                         counts: Vec::new(),
                         in_delayed: false,
                         delayed_that: false,
+                        delayed_dies: false,
                         in_trigger: false,
                         it_source: false,
                         subject: None,

@@ -1,0 +1,7 @@
+card "Travel Preparations" {
+  oracle_id 8432729e-5fd4-4661-8b79-e41b1d03eb7b
+  cost {1}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on up to 2 target creature
+  flashback {1}{W}
+}

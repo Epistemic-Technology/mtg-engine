@@ -1,0 +1,5 @@
+card "Obscura Storefront" {
+  oracle_id dc31a6f8-6228-4a25-b937-5d8d78514333
+  type Land
+  triggered when this enters: sacrifice this; when you do, search basic Plains, Island, or Swamp card to battlefield tapped and you gain 1 life
+}

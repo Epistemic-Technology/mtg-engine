@@ -1,0 +1,7 @@
+card "Balduvian Horde" {
+  oracle_id fd2a94d3-901d-4b46-aa9b-a30ed6dea6bd
+  cost {2}{R}{R}
+  type Creature — Human Barbarian
+  pt 5/5
+  triggered when this enters: sacrifice this unless you discard 1 card at random
+}

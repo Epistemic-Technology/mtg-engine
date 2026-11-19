@@ -1,0 +1,7 @@
+card "Heaped Harvest" {
+  oracle_id bbfc5011-a9b7-442d-a443-974a5a64de46
+  cost {2}{G}
+  type Artifact — Food
+  triggered when this enters and when you sacrifice this: you may search basic land card to battlefield tapped
+  activated {2}, {T}, sacrifice this: you gain 3 life
+}

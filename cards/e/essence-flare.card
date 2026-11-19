@@ -1,0 +1,8 @@
+card "Essence Flare" {
+  oracle_id 9bdc79c9-c8b0-4db1-89d9-0ca7920b6576
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: gets +2/+0
+  triggered at beginning of enchanted controller's upkeep: put 1 -0/-1 counter on that creature
+}

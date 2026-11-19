@@ -1,0 +1,360 @@
+# Counters on each of a group of targets ("each of up to two target
+# creatures", "each of those creatures"), named counter kinds, sacrifice
+# triggers (CR 701.21), and "sacrifice it unless you <act>".
+
+scenario "Gavony Silversmith puts a counter on each of two target creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Gavony Silversmith"
+  turn 1 A: cast "Gavony Silversmith"
+  turn 1 A: trigger "Gavony Silversmith" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Gavony Silversmith" +1/+1 0
+}
+
+scenario "Travel Preparations may take just one target" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Travel Preparations"
+  turn 1 A: cast "Travel Preparations" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Hill Giant" +1/+1 1
+  assert counters "Grizzly Bears" +1/+1 0
+}
+
+scenario "Predictive Preparations needs at least one target creature" {
+  battlefield A: 2 "Plains"
+  hand A: "Predictive Preparations"
+  illegal turn 1 A: cast "Predictive Preparations"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Predictive Preparations"
+}
+
+scenario "Thrive puts a counter on each of X target creatures" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Thrive"
+  turn 1 A: cast "Thrive" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Felidar Savior targets other creatures you control" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Felidar Savior"
+  turn 1 A: cast "Felidar Savior"
+  turn 1 A: trigger "Felidar Savior" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Felidar Savior" +1/+1 0
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Stall for Time kicked stuns each of those creatures" {
+  battlefield A: 2 "Plains", 3 "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Stall for Time"
+  turn 1 A: cast "Stall for Time" kicked targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 1
+  assert counters "Hill Giant" stun 1
+  assert hand A count 1
+  # CR 122.1d: the stun counter is removed instead of untapping.
+  run_to turn 2 upkeep
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+
+scenario "Stall for Time unkicked only taps" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Stall for Time"
+  turn 1 A: cast "Stall for Time" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 0
+  run_to turn 2 upkeep
+  assert untapped "Hill Giant"
+}
+
+scenario "Fear of Immobility stuns a creature an opponent controls" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fear of Immobility"
+  turn 1 A: cast "Fear of Immobility"
+  turn 1 A: trigger "Fear of Immobility" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Fear of Immobility doesn't stun your own creature" {
+  battlefield A: 5 "Plains", "Grizzly Bears"
+  hand A: "Fear of Immobility"
+  turn 1 A: cast "Fear of Immobility"
+  turn 1 A: trigger "Fear of Immobility" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert counters "Grizzly Bears" stun 0
+}
+
+scenario "Luxa River Shrine counts brick counters" {
+  battlefield A: "Luxa River Shrine" with 2 brick, "Plains"
+  life A 10
+  turn 1 A: activate "Luxa River Shrine" ability 1
+  illegal turn 1 A: activate "Luxa River Shrine" ability 2
+  run_to turn 1 postcombat_main
+  assert counters "Luxa River Shrine" brick 3
+  assert life A 11
+  turn 3 A: activate "Luxa River Shrine" ability 2
+  run_to turn 3 postcombat_main
+  assert life A 13
+}
+
+scenario "Trade Caravan gets a currency counter each upkeep" {
+  battlefield A: "Trade Caravan"
+  run_to turn 1 precombat_main
+  assert counters "Trade Caravan" currency 1
+  run_to turn 3 precombat_main
+  assert counters "Trade Caravan" currency 2
+}
+
+scenario "Bloodbriar and Carrot Cake see the cake sacrificed" {
+  battlefield A: 2 "Plains", "Bloodbriar", "Carrot Cake"
+  life A 10
+  turn 1 A: activate "Carrot Cake"
+  run_to turn 1 postcombat_main
+  assert counters "Bloodbriar" +1/+1 1
+  assert battlefield A contains "Rabbit"
+  assert life A 13
+  assert graveyard A contains "Carrot Cake"
+}
+
+scenario "Bloodbriar doesn't see a creature die without a sacrifice" {
+  battlefield A: "Mountain", "Bloodbriar", "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Bloodbriar" +1/+1 0
+}
+
+scenario "Bloodbriar doesn't see an opponent's sacrifice" {
+  battlefield A: "Bloodbriar"
+  battlefield B: "Forest"
+  hand B: "Rogue Elephant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Rogue Elephant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Rogue Elephant"
+  assert counters "Bloodbriar" +1/+1 0
+}
+
+scenario "Rogue Elephant: sacrificing a Forest keeps it, and Body Dropper ignores the land" {
+  battlefield A: "Forest", "Body Dropper", "Gixian Infiltrator"
+  hand A: "Rogue Elephant"
+  turn 1 A: cast "Rogue Elephant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rogue Elephant"
+  assert graveyard A contains "Forest"
+  assert counters "Body Dropper" +1/+1 0
+  assert counters "Gixian Infiltrator" +1/+1 1
+}
+
+scenario "Rogue Elephant declined: it is sacrificed, and Mortician Beetle sees it" {
+  battlefield A: "Mortician Beetle"
+  battlefield B: "Forest"
+  hand B: "Rogue Elephant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Rogue Elephant"
+  turn 2 B: decline "Rogue Elephant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Rogue Elephant"
+  assert battlefield B contains "Forest"
+  assert counters "Mortician Beetle" +1/+1 1
+}
+
+scenario "Body Dropper grows when its cost sacrifices another creature" {
+  battlefield A: "Swamp", "Mountain", "Body Dropper", "Grizzly Bears"
+  turn 1 A: activate "Body Dropper" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Body Dropper" +1/+1 1
+  assert has "Body Dropper" menace
+}
+
+scenario "Balduvian Horde with an empty hand is sacrificed" {
+  battlefield A: 4 "Mountain"
+  hand A: "Balduvian Horde"
+  turn 1 A: cast "Balduvian Horde"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Balduvian Horde"
+}
+
+scenario "Balduvian Horde stays if a card is discarded at random" {
+  battlefield A: 4 "Mountain"
+  hand A: "Balduvian Horde", "Hill Giant"
+  turn 1 A: cast "Balduvian Horde"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Balduvian Horde"
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Bull Elephant can't return one Forest for two" {
+  battlefield A: "Forest", 3 "Plains"
+  hand A: "Bull Elephant"
+  turn 1 A: cast "Bull Elephant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Bull Elephant"
+  assert battlefield A contains "Forest"
+}
+
+scenario "Bull Elephant returns two Forests" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Bull Elephant"
+  turn 1 A: cast "Bull Elephant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bull Elephant"
+  assert hand A contains 2 "Forest"
+}
+
+scenario "Drake Familiar may return an opponent's enchantment" {
+  battlefield A: 2 "Island"
+  battlefield B: "Glorious Anthem"
+  hand A: "Drake Familiar"
+  turn 1 A: cast "Drake Familiar"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Drake Familiar"
+  assert hand B contains "Glorious Anthem"
+}
+
+scenario "Glint Hawk with no artifact is sacrificed" {
+  battlefield A: "Plains"
+  hand A: "Glint Hawk"
+  turn 1 A: cast "Glint Hawk"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Glint Hawk"
+}
+
+scenario "Command Bridge taps an untapped permanent to stay" {
+  battlefield A: "Grizzly Bears"
+  hand A: "Command Bridge"
+  turn 1 A: play "Command Bridge"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Command Bridge"
+  assert tapped "Grizzly Bears"
+  assert tapped "Command Bridge"
+}
+
+scenario "Command Bridge with nothing untapped is sacrificed" {
+  hand A: "Command Bridge"
+  turn 1 A: play "Command Bridge"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Command Bridge"
+}
+
+scenario "Riveteers Overlook: when you do, it fetches a basic tapped and gains 1 life" {
+  hand A: "Riveteers Overlook"
+  library A: "Swamp", "Plains"
+  turn 1 A: play "Riveteers Overlook"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Riveteers Overlook"
+  assert battlefield A contains "Swamp"
+  assert tapped "Swamp"
+  assert life A 21
+}
+
+scenario "Burdened Aerialist gains flying as its Treasure is sacrificed for mana" {
+  battlefield A: 3 "Island"
+  hand A: "Burdened Aerialist", "Shock"
+  turn 1 A: cast "Burdened Aerialist"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A lacks "Treasure"
+  assert has "Burdened Aerialist" flying
+}
+
+scenario "Fylgja's healing counter prevents 1 damage to enchanted creature" {
+  battlefield A: "Plains", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Fylgja"
+  hand B: "Shock"
+  turn 1 A: cast "Fylgja" targeting "Grizzly Bears"
+  turn 3 A: activate "Fylgja" ability 1
+  turn 3 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 4 upkeep
+  # Shock's 2 damage less the 1 prevented doesn't kill the 2/2.
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+  assert counters "Fylgja" healing 3
+}
+
+scenario "Rapier Wit stuns on your turn" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Rapier Wit"
+  turn 1 A: cast "Rapier Wit" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+  assert hand A count 1
+}
+
+scenario "Rapier Wit on an opponent's turn only taps" {
+  battlefield A: 2 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Rapier Wit"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Rapier Wit" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 0
+}
+
+scenario "Snaremaster Sprite: paying {2} taps and stuns" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Snaremaster Sprite"
+  turn 1 A: cast "Snaremaster Sprite"
+  turn 1 A: trigger "Snaremaster Sprite" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert counters "Hill Giant" stun 1
+}
+
+scenario "Virulent Wound: the creature dies this turn, its controller gets a poison counter" {
+  battlefield A: "Swamp"
+  battlefield B: "Typhoid Rats"
+  hand A: "Virulent Wound"
+  turn 1 A: cast "Virulent Wound" targeting "Typhoid Rats"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Typhoid Rats"
+  assert poison B 1
+  assert poison A 0
+}
+
+scenario "Virulent Wound: a creature that survives gives no poison" {
+  battlefield A: "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Virulent Wound"
+  turn 1 A: cast "Virulent Wound" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Grizzly Bears" -1/-1 1
+  assert poison B 0
+}
+
+scenario "Heaped Harvest searches when it is sacrificed" {
+  battlefield A: 2 "Plains", "Heaped Harvest"
+  library A: "Forest", "Plains"
+  turn 1 A: activate "Heaped Harvest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Heaped Harvest"
+  assert battlefield A contains "Forest"
+  assert tapped "Forest"
+  assert life A 23
+}

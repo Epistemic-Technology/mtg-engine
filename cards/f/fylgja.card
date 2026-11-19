@@ -1,0 +1,9 @@
+card "Fylgja" {
+  oracle_id df0e5dd8-65e0-474c-ac32-6e0f6f16b8e6
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  enters with 4 healing counters
+  activated remove 1 healing counter from this: prevent next 1 damage to enchanted creature this turn
+  activated {2}{W}: put 1 healing counter on this
+}

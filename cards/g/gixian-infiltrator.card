@@ -1,0 +1,7 @@
+card "Gixian Infiltrator" {
+  oracle_id 2497926c-b253-4400-b540-776ee2cd807c
+  cost {1}{B}
+  type Creature — Phyrexian Human
+  pt 2/1
+  triggered whenever you sacrifice other permanent: put 1 +1/+1 counter on this
+}

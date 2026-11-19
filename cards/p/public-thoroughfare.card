@@ -1,0 +1,7 @@
+card "Public Thoroughfare" {
+  oracle_id de5b995c-9691-4555-9070-66bcbc29f955
+  type Land
+  enters tapped
+  triggered when this enters: sacrifice this unless you tap 1 untapped artifact or land you control chosen
+  mana any
+}

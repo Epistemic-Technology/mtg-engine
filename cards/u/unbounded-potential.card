@@ -1,0 +1,10 @@
+card "Unbounded Potential" {
+  oracle_id d9ae08cf-eef0-407a-ad2c-08b4c89f99f0
+  cost {1}{W}
+  type Instant
+  choose one {
+    mode: put 1 +1/+1 counter on up to 2 target creature
+    mode: proliferate
+  }
+  entwine {3}{W}
+}

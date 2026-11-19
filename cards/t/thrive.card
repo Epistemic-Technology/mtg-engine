@@ -1,0 +1,6 @@
+card "Thrive" {
+  oracle_id fe3c524e-10b7-485a-9285-973092eeb214
+  cost {X}{G}
+  type Sorcery
+  spell: put 1 +1/+1 counter on X target creature
+}

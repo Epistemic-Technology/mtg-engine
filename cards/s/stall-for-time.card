@@ -1,0 +1,10 @@
+card "Stall for Time" {
+  oracle_id 09a400bd-83f1-4fac-a218-64c9f041874f
+  cost {2}{W}
+  type Instant
+  kicker {1}{U}
+  spell {
+    tap up to 2 target creature; if kicked, put 1 stun counter on those targets
+    draw 1 card
+  }
+}

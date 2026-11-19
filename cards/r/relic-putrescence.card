@@ -1,0 +1,7 @@
+card "Relic Putrescence" {
+  oracle_id 7e6fd429-f925-4ff7-9c6e-34c2c9d15d04
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant artifact
+  triggered whenever enchanted becomes tapped: its controller gets 1 poison counters
+}

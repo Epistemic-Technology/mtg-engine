@@ -1,0 +1,5 @@
+card "Brokers Hideout" {
+  oracle_id bd002797-a545-4bee-88bf-b878436e7cca
+  type Land
+  triggered when this enters: sacrifice this; when you do, search basic Forest, Plains, or Island card to battlefield tapped and you gain 1 life
+}

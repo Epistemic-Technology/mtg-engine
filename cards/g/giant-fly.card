@@ -1,0 +1,8 @@
+card "Giant Fly" {
+  oracle_id 439ae30b-348d-480c-8d3d-fe105167bdc4
+  cost {2}{B}
+  type Creature — Insect
+  pt 2/2
+  keywords flying
+  triggered whenever you sacrifice other permanent: this gets +1/+0
+}

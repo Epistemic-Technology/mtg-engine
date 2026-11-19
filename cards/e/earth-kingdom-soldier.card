@@ -1,0 +1,8 @@
+card "Earth Kingdom Soldier" {
+  oracle_id 4289f2d4-3db2-4dd1-9c18-af3f78309844
+  cost {4}{G/W}
+  type Creature — Human Soldier
+  pt 3/4
+  keywords vigilance
+  triggered when this enters: put 1 +1/+1 counter on up to 2 target creature you control
+}

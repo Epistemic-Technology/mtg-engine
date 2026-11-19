@@ -1,0 +1,9 @@
+card "Rapier Wit" {
+  oracle_id cf43518b-bfec-443d-a6c0-f2d848dc5fa8
+  cost {1}{W}
+  type Instant
+  spell {
+    tap target creature; if your turn, put 1 stun counter on target 1
+    draw 1 card
+  }
+}

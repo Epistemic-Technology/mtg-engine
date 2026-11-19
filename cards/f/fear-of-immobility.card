@@ -1,0 +1,7 @@
+card "Fear of Immobility" {
+  oracle_id fb2600a8-0ba6-4888-ac8a-f206469d4c71
+  cost {4}{W}
+  type Enchantment Creature — Nightmare
+  pt 4/4
+  triggered when this enters: tap up to 1 target creature; if that target 1 is an opponent controls, put 1 stun counter on target 1
+}

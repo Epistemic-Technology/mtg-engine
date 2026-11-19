@@ -1,0 +1,8 @@
+card "Burdened Aerialist" {
+  oracle_id dd39cccb-095c-4ef4-8423-f4d328849295
+  cost {2}{U}
+  type Creature — Human Pirate
+  pt 3/1
+  triggered when this enters: create 1 "Treasure"
+  triggered whenever you sacrifice token: this gains flying
+}

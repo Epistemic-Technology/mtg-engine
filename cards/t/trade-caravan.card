@@ -1,0 +1,8 @@
+card "Trade Caravan" {
+  oracle_id 8faccd56-dfc2-4cfc-880c-db40b935336a
+  cost {W}
+  type Creature — Human Nomad
+  pt 1/1
+  triggered at beginning of your upkeep: put 1 currency counter on this
+  activated remove 2 currency counters from this, during opponent upkeep: untap target basic land
+}

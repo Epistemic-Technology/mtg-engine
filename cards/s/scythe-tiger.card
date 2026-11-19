@@ -1,0 +1,8 @@
+card "Scythe Tiger" {
+  oracle_id 4d0fa514-87fc-46ff-bf49-4cd332396978
+  cost {G}
+  type Creature — Cat
+  pt 3/2
+  keywords shroud
+  triggered when this enters: sacrifice this unless you sacrifice 1 land chosen
+}

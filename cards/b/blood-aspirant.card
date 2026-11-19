@@ -1,0 +1,8 @@
+card "Blood Aspirant" {
+  oracle_id 6db51087-6995-4ed4-978a-3d17d60019af
+  cost {1}{R}
+  type Creature — Satyr Berserker
+  pt 1/1
+  triggered whenever you sacrifice permanent: put 1 +1/+1 counter on this
+  activated {1}{R}, {T}, sacrifice creature or enchantment: deal 1 damage to target creature; that target 1 can't block this turn
+}

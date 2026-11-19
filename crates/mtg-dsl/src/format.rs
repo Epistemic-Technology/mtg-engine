@@ -2582,11 +2582,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
         Trigger::DayNight => "whenever day becomes night or night becomes day".to_string(),
-        Trigger::Sacrificed { obj, whose } => format!(
-            "whenever {} {}",
-            sacrifices_words(*whose),
-            trigger_obj(obj)
-        ),
+        Trigger::Sacrificed { obj, whose } => {
+            format!("whenever {} {}", sacrifices_words(*whose), trigger_obj(obj))
+        }
         Trigger::RollsDice { whose } => match whose {
             Who::You => "whenever you roll dice".to_string(),
             _ => "whenever a player rolls dice".to_string(),

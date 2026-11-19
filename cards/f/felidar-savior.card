@@ -1,0 +1,8 @@
+card "Felidar Savior" {
+  oracle_id 2bee2508-cd5d-4c62-a205-12d8bbb3143d
+  cost {3}{W}
+  type Creature — Cat Beast
+  pt 2/3
+  keywords lifelink
+  triggered when this enters: put 1 +1/+1 counter on up to 2 another target creature you control
+}
