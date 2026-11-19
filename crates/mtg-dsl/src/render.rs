@@ -2827,7 +2827,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             use crate::ast::{InsteadCond, InsteadWording};
             let kicked = matches!(cond, InsteadCond::Kicked);
             let cond = match cond {
-                InsteadCond::Kicked => format!("this {} was kicked", spell_noun(ctx.card)),
+                InsteadCond::Kicked => format!("this {} was kicked", kicked_noun(ctx.card)),
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
                 InsteadCond::Target { n, that, filter } => {
                     ctx.target_mentioned[*n] = true;
@@ -4693,7 +4693,7 @@ pub fn normalize(text: &str) -> String {
 }
 
 /// "this spell" / "this creature" in "If this spell was kicked".
-fn spell_noun(card: &Card) -> String {
+fn kicked_noun(card: &Card) -> String {
     if is_spell(card) {
         "spell".to_string()
     } else {
