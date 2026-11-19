@@ -1,0 +1,7 @@
+card "Disciple of Kangee" {
+  oracle_id 778fb830-2d2b-4f81-a193-e6b652981695
+  cost {2}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  activated {U}, {T}: target creature gains flying and becomes blue
+}

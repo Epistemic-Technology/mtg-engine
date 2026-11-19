@@ -1,0 +1,8 @@
+card "Fists of the Demigod" {
+  oracle_id 0e6f9fc3-5cc7-42cc-ae83-9be875a1579f
+  cost {1}{B/R}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is black, enchanted: +1/+1, has wither
+  static as long as attached is red, enchanted: +1/+1, has first strike
+}

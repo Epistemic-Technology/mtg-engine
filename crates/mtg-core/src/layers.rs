@@ -460,6 +460,11 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
                     && filter
                         .tapped
                         .is_none_or(|t| state.objects[host].tapped == t)
+                    // "As long as enchanted creature has toxic" (CR 702.164).
+                    && (!filter.status.toxic
+                        || work.chars[i].abilities.iter().any(|a| {
+                            matches!(state.pool.ability(*a), AbilityDef::Toxic(_))
+                        }))
             }),
         StaticCondition::SourceModified => {
             let has = |id: ObjId, sub: crate::card::Subtype| {

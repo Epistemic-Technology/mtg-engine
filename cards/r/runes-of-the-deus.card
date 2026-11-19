@@ -1,0 +1,8 @@
+card "Runes of the Deus" {
+  oracle_id 674b9469-3213-4cb0-be7e-db209bc09f92
+  cost {4}{R/G}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is red, enchanted: +1/+1, has double strike
+  static as long as attached is green, enchanted: +1/+1, has trample
+}

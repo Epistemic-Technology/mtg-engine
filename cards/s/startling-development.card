@@ -1,0 +1,7 @@
+card "Startling Development" {
+  oracle_id 8747ca90-ac1d-45fd-89fe-aac385cd66b4
+  cost {1}{U}
+  type Instant
+  spell: until end of turn, target creature becomes blue Serpent base 4/4
+  cycling {1}
+}

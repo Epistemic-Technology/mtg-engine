@@ -4624,22 +4624,39 @@ impl GameState {
                 colors,
                 keywords,
                 indefinite,
+                loses_abilities,
+                in_addition,
             } => {
                 let mut parts: SmallVec<[Modification; 2]> = SmallVec::new();
                 if !types.is_empty() {
-                    parts.push(Modification::BecomeTypes(*types));
+                    parts.push(if *in_addition {
+                        Modification::AddTypes(*types)
+                    } else {
+                        Modification::BecomeTypes(*types)
+                    });
                 }
                 // CR 205.1a: the first creature type replaces the old ones,
-                // the rest join it ("a 4/4 Phyrexian Eye artifact creature").
+                // the rest join it ("a 4/4 Phyrexian Eye artifact creature");
+                // "in addition to its other ... types" (CR 205.1b) adds them
+                // all.
                 for (i, s) in subtypes.iter().enumerate() {
-                    parts.push(if i == 0 && s.is_creature_type() {
+                    parts.push(if i == 0 && s.is_creature_type() && !*in_addition {
                         Modification::SetCreatureType(*s)
                     } else {
                         Modification::AddSubtype(*s)
                     });
                 }
                 if let Some(c) = colors {
-                    parts.push(Modification::SetColors(*c));
+                    parts.push(if *in_addition {
+                        Modification::AddColors(*c)
+                    } else {
+                        Modification::SetColors(*c)
+                    });
+                }
+                // CR 613.1f: in layer 6, in the order written: it loses its
+                // abilities, then gains the effect's keywords.
+                if *loses_abilities {
+                    parts.push(Modification::RemoveAllAbilities);
                 }
                 if !keywords.is_empty() {
                     parts.push(Modification::AddKeywords(*keywords));
@@ -5644,6 +5661,12 @@ impl GameState {
         }
         self.characteristics_or_lki(id).is_some_and(|c| {
             filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
+                // "If that creature has toxic" (CR 702.164), as it last
+                // existed if it has left.
+                && (!filter.status.toxic
+                    || c.abilities.iter().any(|a| {
+                        matches!(self.pool.ability(*a), crate::card::AbilityDef::Toxic(_))
+                    }))
         })
     }
 

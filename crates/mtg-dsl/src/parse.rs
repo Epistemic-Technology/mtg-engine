@@ -1754,6 +1754,26 @@ impl P {
 
     /// `{ <ability line> }`: an ability granted by another ("has \"...\""),
     /// parsed with targets of its own.
+    /// `ward {2}` or `toxic 1` after `has` or `gains`: a keyword ability
+    /// with a parameter, granted bare ("has ward {2}", "gains toxic 1"; CR
+    /// 702.21, 702.164).
+    fn granted_mechanic(&mut self) -> R<Option<Ability>> {
+        if self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))) {
+            self.pos += 1;
+            return Ok(Some(Ability::Mechanic(Mechanic::Ward(self.mana_cost()?))));
+        }
+        if self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
+            self.pos += 1;
+            return Ok(Some(Ability::Mechanic(Mechanic::Toxic(self.number()?))));
+        }
+        Ok(None)
+    }
+
+    fn granted_mechanic_ahead(&self) -> bool {
+        (self.at_word("ward") && matches!(self.peek_at(1), Some(Tok::Sym(_))))
+            || (self.at_word("toxic") && matches!(self.peek_at(1), Some(Tok::Num(_))))
+    }
+
     fn nested_ability(&mut self) -> R<Ability> {
         self.expect(&Tok::LBrace)?;
         self.skip_newlines();
@@ -2906,9 +2926,13 @@ impl P {
                     _ => self.fail("`deals ... divided` takes no subject"),
                 }
             }
-            "gain" | "gains" if self.at_word("ability") => {
-                self.pos += 1;
-                let ability = Box::new(self.nested_ability()?);
+            "gain" | "gains" if self.at_word("ability") || self.granted_mechanic_ahead() => {
+                let ability = Box::new(if let Some(a) = self.granted_mechanic()? {
+                    a
+                } else {
+                    self.pos += 1;
+                    self.nested_ability()?
+                });
                 self.until_end_of_turn();
                 Ok(Effect::GrantAbility {
                     ability,
@@ -3073,6 +3097,40 @@ impl P {
                     return self.discard_chosen(subject, false);
                 }
                 Ok(Effect::RevealHand { who: subject })
+            }
+            // "loses all abilities and becomes a green Snake with base
+            // power and toughness 1/1" (Snakeform): one effect.
+            "lose" | "loses" if self.at_words(&["all", "abilities", "and"]) => {
+                self.pos += 3;
+                if !(self.at_word("becomes") || self.at_word("become")) {
+                    return self.unexpected("`becomes` after `loses all abilities and`");
+                }
+                match self.subject_verb(subject, explicit)? {
+                    Effect::Animate {
+                        to,
+                        types,
+                        subtypes,
+                        pt,
+                        base,
+                        colors,
+                        keywords,
+                        indefinite,
+                        in_addition,
+                        ..
+                    } => Ok(Effect::Animate {
+                        to,
+                        types,
+                        subtypes,
+                        pt,
+                        base,
+                        colors,
+                        keywords,
+                        indefinite,
+                        loses_abilities: true,
+                        in_addition,
+                    }),
+                    _ => self.fail("`loses all abilities and becomes` takes what it becomes"),
+                }
             }
             "lose" | "loses" => {
                 let amount = self.num()?;
@@ -3327,8 +3385,28 @@ impl P {
                         protection: false,
                     });
                 }
-                // "becomes blue", "becomes colorless".
-                if self.at_word("colorless") || self.word_at(0).as_deref().and_then(color).is_some()
+                // "becomes all colors" (Scrapbasket).
+                if self.eat_words(&["all", "colors"]) {
+                    self.until_end_of_turn();
+                    return Ok(Effect::BecomeColor {
+                        to: subject,
+                        colors: Color::ALL.to_vec(),
+                    });
+                }
+                // "becomes blue", "becomes colorless"; not "becomes a blue
+                // Serpent", which `Animate` takes.
+                let mut k = 0;
+                while self.word_at(k).as_deref().and_then(color).is_some()
+                    || (k > 0 && self.word_at(k).as_deref() == Some("and"))
+                {
+                    k += 1;
+                }
+                let animates = k > 0
+                    && (matches!(self.peek_at(k), Some(Tok::Pt { .. }))
+                        || matches!(self.peek_at(k), Some(Tok::Word(w))
+                            if card_type(w).is_some() || w.chars().next().is_some_and(char::is_uppercase)));
+                if self.at_word("colorless")
+                    || (!animates && self.word_at(0).as_deref().and_then(color).is_some())
                 {
                     let mut colors = Vec::new();
                     if !self.eat_word("colorless") {
@@ -3434,6 +3512,8 @@ impl P {
                         }
                     }
                 }
+                // "a black Demon in addition to its other colors and types".
+                let in_addition = self.eat_words(&["in", "addition"]);
                 let indefinite = self.eat_word("indefinitely");
                 if !indefinite {
                     self.until_end_of_turn();
@@ -3447,6 +3527,8 @@ impl P {
                     colors,
                     keywords,
                     indefinite,
+                    loses_abilities: false,
+                    in_addition,
                 })
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
@@ -5385,8 +5467,13 @@ impl P {
             // "Return each ... to its owner's hand".
             let all = self.eat_word("all");
             self.eat_word("each");
+            // `each single other creature you control with toxic gains
+            // toxic 1`: printed one at a time, "Each other creature ...
+            // gains".
+            let single = !all && self.eat_word("single");
             let mut f = self.filter()?;
             f.all |= all;
+            f.each = single;
             let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
                 i
             } else {
@@ -5476,7 +5563,7 @@ impl P {
                         | (Some("defending" | "your"), Some("player" | "opponents"))
                         | (Some("that"), Some("was" | "entered" | "dealt" | "blocked"))
                         | (Some("with" | "without"), Some("aura"))
-                        | (Some("with"), Some("counter"))
+                        | (Some("with"), Some("counter" | "toxic"))
                         | (Some("blocked"), Some("by"))
                         | (Some("blocking"), Some("this" | "or"))
                 ) || comma_type
@@ -5756,6 +5843,15 @@ impl P {
                     } else {
                         mtg_core::card::CounterQual::Kind(self.counter_kind()?)
                     });
+                }
+                // "with toxic" (CR 702.164), not "with toxic 1".
+                "with"
+                    if self.word_at(1).as_deref() == Some("toxic")
+                        && !matches!(self.peek_at(2), Some(Tok::Num(_)))
+                        && !f.status.toxic =>
+                {
+                    f.status.toxic = true;
+                    self.pos += 2;
                 }
                 "with" | "without"
                     if self.word_at(1).as_deref() == Some("aura")
@@ -7118,6 +7214,9 @@ impl P {
                 self.pos += 1;
                 Ok(Mod::AddAbility(Box::new(self.nested_ability()?)))
             }
+            "has" | "have" if self.granted_mechanic_ahead() => Ok(Mod::AddAbility(Box::new(
+                self.granted_mechanic()?.expect("checked"),
+            ))),
             "has" | "have" if self.eat_words(&["protection", "from", "chosen", "color"]) => {
                 Ok(Mod::ProtectionFromChosen)
             }
@@ -7205,6 +7304,10 @@ impl P {
                     "color" | "colors" => {
                         if self.eat_word("all") {
                             return Ok(Mod::CdaColors(Color::ALL.to_vec()));
+                        }
+                        // "Ghostfire is colorless." (CR 604.3).
+                        if self.eat_word("colorless") {
+                            return Ok(Mod::CdaColors(Vec::new()));
                         }
                         Ok(Mod::CdaColors(self.color_list()?))
                     }

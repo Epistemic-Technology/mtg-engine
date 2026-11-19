@@ -1,0 +1,8 @@
+card "Clout of the Dominus" {
+  oracle_id 6e412163-a93a-4738-a8f0-a4d27c960360
+  cost {U/R}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is blue, enchanted: +1/+1, has shroud
+  static as long as attached is red, enchanted: +1/+1, has haste
+}

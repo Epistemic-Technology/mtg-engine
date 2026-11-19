@@ -1,0 +1,6 @@
+card "Hexgold Slash" {
+  oracle_id 573a3afb-3a2a-41b7-ac1a-9685b90bffa3
+  cost {R}
+  type Instant
+  spell: deal 2 damage to target creature; if that target 1 is with toxic, deal 4 damage to that creature instead
+}

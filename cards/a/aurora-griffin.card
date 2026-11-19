@@ -1,0 +1,8 @@
+card "Aurora Griffin" {
+  oracle_id 4d74c735-8035-4c42-bfb1-1bc97e5bdd9a
+  cost {3}{W}
+  type Creature — Griffin
+  pt 2/2
+  keywords flying
+  activated {W}: target permanent becomes white
+}

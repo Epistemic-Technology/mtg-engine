@@ -1901,6 +1901,12 @@ pub enum Effect {
         keywords: Vec<Keyword>,
         /// `indefinitely`: no duration (Opal Caryatid).
         indefinite: bool,
+        /// `loses all abilities and becomes green Snake base 1/1`
+        /// (Snakeform).
+        loses_abilities: bool,
+        /// `becomes black Demon in addition`: "in addition to its other
+        /// colors and types".
+        in_addition: bool,
     },
     /// `this becomes blue`, `becomes colorless` (until end of turn).
     BecomeColor {

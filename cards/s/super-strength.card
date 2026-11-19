@@ -1,0 +1,7 @@
+card "Super Strength" {
+  oracle_id e1b577ad-1488-43b5-83d9-e40bd60c74be
+  cost {4}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +4/+4, has trample, has ward {1}
+}

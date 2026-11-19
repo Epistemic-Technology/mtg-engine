@@ -293,7 +293,19 @@ becomes 2/2 Gargoyle creature with flying indefinitely` (keywords after
 target creature becomes Dragon base 4/4 and target 1 gains flying`;
 a trigger condition `if this is enchantment` prints "if this permanent is
 an enchantment" and the source is "it" after it, `target creature becomes blue`, `this becomes colorless`,
-`target land becomes Island` (all until end of turn). Chosen as the
+`target land becomes Island` (all until end of turn), `this becomes all
+colors` (CR 105.2). Colors before a creature type make an animation:
+`until end of turn, target creature becomes blue Serpent base 5/5` ("...
+becomes a blue Serpent with base power and toughness 5/5"; the color and
+creature type replace its others, layers 4, 5, and 7b), `loses all
+abilities and becomes green Snake base 1/1` ("loses all abilities and
+becomes a green Snake ...", layer 6 too), and `in addition` adds instead of
+replacing: `it becomes black Demon in addition indefinitely` ("it becomes
+a black Demon in addition to its other colors and types"), `up to 2
+target creature each has base power and toughness 3/3, gains flying, and
+becomes blue Illusion in addition` ("... each have base power and
+toughness 3/3, gain flying, and become blue Illusions in addition to
+their other colors and types"). Chosen as the
 effect resolves (CR 608.2d), once for all its recipients: `target creature
 becomes color of choice`, `target creature gains protection from color of
 choice`, `target land becomes land type of choice` ("the basic land type of
@@ -504,7 +516,18 @@ counter` / `with counter` ("creature you control with a +1/+1 counter on
 it", "with a counter on it", CR 122.1; plural "with +1/+1 counters on
 them"; printed after the controller), and `modified` ("a modified
 creature", CR 700.9: it has a counter, is equipped, or is enchanted by an
-Aura its controller controls). `creature
+Aura its controller controls), and `with toxic` ("each other creature you
+control with toxic", CR 702.164: one of its abilities is toxic N, printed
+or granted; printed after the controller). As a check on a target or what
+an Aura enchants it prints "has": `if that target 1 is with toxic, draw 1
+card` ("If that creature has toxic, draw a card."), `deal 2 damage to
+target creature; if that target 1 is with toxic, deal 4 damage to that
+creature instead`, `triggered when this enters if attached is with toxic:
+enchanted creature gains hexproof` ("When this Aura enters, if enchanted
+creature has toxic, that creature gains hexproof until end of turn."; an
+Aura spell enters attached to its target, CR 303.4f, so the condition
+sees it). A group written `each single <filter>` prints one at a time
+("Each other creature you control with toxic gains toxic 1"). `creature
 with aura or enchantment creature` is two alternatives: a type followed by
 another starts a filter of its own. In a static ability's subject these
 qualifiers are re-judged only when characteristics change, so they belong
@@ -538,13 +561,24 @@ Mountain, Forest, and Plains": all of them and no other), `add land Swamp`,
 the chosen type") and `add chosen type` ("is the chosen type in addition
 to its other types") (the color or type the source chose as it
 entered), `switch pt`,
-`cda color all`, `cda pt card types in graveyards +1`,
+`cda color all`, `cda color colorless` ("Ghostfire is colorless.": a
+color-defining ability, CR 604.3, so the card is colorless in every zone,
+the stack included), `cda pt card types in graveyards +1`,
 `cda pt creature cards in graveyards +1`, `cda pt count Swamp you control`,
 `cda pt your life`, and `has ability { <ability line> }`: a quoted ability
 granted in layer 6 ("Enchanted creature has \"{T}: This creature deals 1
 damage to any target.\""), written as its own ability line (`activated
 {T}: deal 1 damage to any target`), where `this` is the object that has
-it.
+it. `has ward {2}` and `has toxic 1` grant those keyword abilities bare
+("Enchanted creature gets +4/+4 and has trample and ward {1}."; CR 702.21,
+702.164); as an effect, `<what> gains toxic 1` ("gains toxic 1 until end
+of turn"). Toxic values add up (CR 702.164c). `add color black, add
+subtype Zombie` together print "is a black Zombie in addition to its other
+colors and types". Lure among other modifications prints "all creatures
+able to block it do so" ("As long as enchanted creature is green, it gets
++1/+1 and all creatures able to block it do so."). `as long as attached is
+black, enchanted: ...` is "As long as enchanted creature is black, it
+...".
 
 #### Auras and Equipment
 

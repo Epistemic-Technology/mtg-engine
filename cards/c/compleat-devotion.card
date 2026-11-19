@@ -1,0 +1,6 @@
+card "Compleat Devotion" {
+  oracle_id c2a6cfb7-e5bd-49c8-aa51-fd5203eca8b8
+  cost {1}{W}
+  type Instant
+  spell: target creature you control gets +2/+2; if that target 1 is with toxic, draw 1 card
+}

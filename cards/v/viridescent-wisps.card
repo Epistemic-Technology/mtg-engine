@@ -1,0 +1,9 @@
+card "Viridescent Wisps" {
+  oracle_id 3003e19e-ae60-4e10-b688-d0cac2a63cb2
+  cost {G}
+  type Instant
+  spell {
+    target creature becomes green and gets +1/+0
+    draw 1 card
+  }
+}

@@ -1012,6 +1012,9 @@ pub struct StatusQuals {
     /// "modified creature" (CR 700.9): it has a counter, is equipped, or
     /// is enchanted by an Aura its controller controls.
     pub modified: bool,
+    /// "with toxic", "if that creature has toxic" (CR 702.164): one of its
+    /// abilities is toxic N, printed or granted.
+    pub toxic: bool,
 }
 
 /// The counters `StatusQuals::counter` asks for.
@@ -1036,6 +1039,7 @@ impl StatusQuals {
             || self.mana_value_x
             || self.counter.is_some()
             || self.modified
+            || self.toxic
     }
 }
 
@@ -2712,6 +2716,13 @@ pub enum Effect {
         /// No duration: "it becomes a 2/2 Soldier creature" (Opal Caryatid)
         /// lasts indefinitely.
         indefinite: bool,
+        /// "loses all abilities and becomes a green Snake" (Snakeform):
+        /// layer 6 removes its abilities, before the effect's keywords.
+        loses_abilities: bool,
+        /// "becomes a black Demon in addition to its other colors and
+        /// types": the types, subtypes, and colors are added (layers 4 and
+        /// 5) instead of replacing its others.
+        in_addition: bool,
     },
     /// "becomes blue until end of turn", "becomes colorless" (layer 5).
     BecomeColor {

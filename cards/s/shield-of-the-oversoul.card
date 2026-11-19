@@ -1,0 +1,8 @@
+card "Shield of the Oversoul" {
+  oracle_id 9b598025-80a3-4144-be9a-863165161594
+  cost {2}{G/W}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is green, enchanted: +1/+1, has indestructible
+  static as long as attached is white, enchanted: +1/+1, has flying
+}

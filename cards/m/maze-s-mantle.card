@@ -1,0 +1,9 @@
+card "Maze's Mantle" {
+  oracle_id b4e85b7c-3047-46d1-a6e6-2ec5eac0268a
+  cost {2}{G}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  triggered when this enters if attached is with toxic: enchanted creature gains hexproof
+  static enchanted: +2/+2
+}

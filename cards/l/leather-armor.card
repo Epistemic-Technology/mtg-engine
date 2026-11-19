@@ -1,0 +1,7 @@
+card "Leather Armor" {
+  oracle_id 7a6ce270-c261-422f-845f-11c22602a274
+  cost {1}
+  type Artifact — Equipment
+  static equipped creature: +0/+1, has ward {1}
+  equip {0}, once
+}

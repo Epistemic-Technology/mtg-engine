@@ -1,0 +1,8 @@
+card "Scourge of the Nobilis" {
+  oracle_id 4a1126a3-f8ce-4790-aa51-1e3f4b63eb18
+  cost {2}{R/W}
+  type Enchantment — Aura
+  enchant creature
+  static as long as attached is red, enchanted: +1/+1, has ability { activated {R/W}: this gets +1/+0 }
+  static as long as attached is white, enchanted: +1/+1, has lifelink
+}

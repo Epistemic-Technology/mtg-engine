@@ -1,0 +1,9 @@
+card "Cerulean Wisps" {
+  oracle_id a6605c50-558e-417c-8c75-6c45b06d6e13
+  cost {U}
+  type Instant
+  spell {
+    target creature becomes blue; untap that creature
+    draw 1 card
+  }
+}

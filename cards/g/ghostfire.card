@@ -1,0 +1,7 @@
+card "Ghostfire" {
+  oracle_id 3479a4e6-c67d-4958-8a47-43d3a2f69bb1
+  cost {2}{R}
+  type Instant
+  static this: cda color colorless
+  spell: deal 3 damage to any target
+}

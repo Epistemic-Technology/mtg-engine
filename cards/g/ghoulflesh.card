@@ -1,0 +1,7 @@
+card "Ghoulflesh" {
+  oracle_id 640c0424-b862-438f-a527-ff606151040a
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -1/-1, add color black, add subtype Zombie
+}
