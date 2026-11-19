@@ -1860,6 +1860,31 @@ impl GameState {
         self.spell_requirements_as(spell, x, self.objects[spell].cast.other_cost())
     }
 
+    /// The splice costs of the cards spliced onto `spell` (CR 702.47a,
+    /// 601.2f), and strive's cost once for each target beyond the first.
+    fn add_splice_and_strive(
+        &self,
+        spell: ObjId,
+        def: &crate::card::CardDef,
+        targets: usize,
+        req: &mut ManaRequirement,
+    ) {
+        if !self.splices.is_empty()
+            && let Some(sp) = self.splices.iter().find(|s| s.spell == spell)
+        {
+            for (_, d) in &sp.cards {
+                if let Some(c) = &self.pool.get(*d).splice {
+                    req.add(&c.mana.requirements(0));
+                }
+            }
+        }
+        if let Some(s) = &def.strive {
+            for _ in 1..targets {
+                req.add(&s.requirements(0));
+            }
+        }
+    }
+
     /// `spell_requirements`, paying the second of two additional costs if
     /// `other` (CR 601.2b, 601.2f: the total cost includes it).
     pub(super) fn spell_requirements_as(
@@ -1935,22 +1960,7 @@ impl GameState {
         {
             req.add(&b.requirements(0));
         }
-        // CR 702.47a, 601.2f: the splice costs of the cards spliced on.
-        if !self.splices.is_empty()
-            && let Some(sp) = self.splices.iter().find(|s| s.spell == spell)
-        {
-            for (_, d) in &sp.cards {
-                if let Some(c) = &self.pool.get(*d).splice {
-                    req.add(&c.mana.requirements(0));
-                }
-            }
-        }
-        // Strive: the cost once for each target beyond the first.
-        if let Some(s) = &def.strive {
-            for _ in 1..o.targets.len() {
-                req.add(&s.requirements(0));
-            }
-        }
+        self.add_splice_and_strive(spell, def, o.targets.len(), &mut req);
         // CR 702.42a: every mode, for the entwine cost on top.
         if let Some(e) = &def.entwine
             && self.mode_split_of(spell).is_some()
