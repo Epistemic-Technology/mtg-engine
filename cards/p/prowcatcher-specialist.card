@@ -1,0 +1,8 @@
+card "Prowcatcher Specialist" {
+  oracle_id 594132ac-32a7-41d5-b7f0-3692bbed7f6f
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  keywords haste
+  exhaust {3}{R}: put 2 +1/+1 counters on this
+}

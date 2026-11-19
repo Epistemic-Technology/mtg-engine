@@ -1247,6 +1247,11 @@ impl P {
             }
             "choose" => {
                 self.pos += 1;
+                if self.eat_word("two") {
+                    let modes = self.modes_block()?;
+                    self.end_stmt()?;
+                    return Ok(Ability::ModalTwo(modes));
+                }
                 self.expect_word("one")?;
                 let both = self.eat_words(&["or", "both"]);
                 let modes = self.modes_block()?;
@@ -1257,9 +1262,15 @@ impl P {
                     Ability::Modal(modes)
                 })
             }
-            "activated" => {
+            "activated" | "boast" | "exhaust" | "power-up" => {
                 self.pos += 1;
-                let cost = self.cost()?;
+                let mut cost = self.cost()?;
+                cost.keyword = match w.as_str() {
+                    "boast" => Some(mtg_core::card::ActivatedKeyword::Boast),
+                    "exhaust" => Some(mtg_core::card::ActivatedKeyword::Exhaust),
+                    "power-up" => Some(mtg_core::card::ActivatedKeyword::PowerUp),
+                    _ => None,
+                };
                 let effects = self.effects_body()?;
                 Ok(Ability::Activated {
                     cost,
@@ -1497,12 +1508,21 @@ impl P {
                 break;
             }
             self.expect_word("mode")?;
+            let name = match self.peek() {
+                Some(Tok::Str(s)) => {
+                    let s = s.clone();
+                    self.pos += 1;
+                    Some(s)
+                }
+                _ => None,
+            };
             self.targets.clear();
             self.subject = None;
             let effects = self.effects_body()?;
             modes.push(Mode {
                 targets: std::mem::take(&mut self.targets),
                 effects,
+                name,
             });
         }
         self.targets = outer;

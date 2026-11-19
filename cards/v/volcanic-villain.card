@@ -1,0 +1,8 @@
+card "Volcanic Villain" {
+  oracle_id a257426d-70c9-4d58-bd8b-97ec38f6e133
+  cost {2}{R}
+  type Creature — Elemental Villain
+  pt 3/2
+  keywords haste
+  power-up {5}{R}: put 2 +1/+1 counters on this
+}

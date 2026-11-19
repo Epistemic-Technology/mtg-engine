@@ -1,0 +1,180 @@
+# Activated-ability keywords with activation limits: boast (CR 702.142),
+# exhaust (CR 702.177), power-up (CR 702.193); and mode variants: named
+# modes and "choose two" (CR 700.2).
+
+scenario "boast: after attacking, Axgard Braggart untaps and grows" {
+  battlefield A: "Axgard Braggart", 2 "Plains"
+  turn 1 A: attack "Axgard Braggart"
+  turn 1 postcombat_main A: activate "Axgard Braggart"
+  run_to turn 1 end
+  assert life B 17
+  assert untapped "Axgard Braggart"
+  assert counters "Axgard Braggart" +1/+1 1
+  assert power "Axgard Braggart" 4
+}
+
+scenario "boast: during combat, before damage" {
+  battlefield A: "Fearless Pup", 3 "Mountain"
+  turn 1 A: attack "Fearless Pup"
+  turn 1 declare_attackers A: activate "Fearless Pup"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "boast: not without attacking" {
+  battlefield A: "Axgard Braggart", 2 "Plains"
+  illegal turn 1 postcombat_main A: activate "Axgard Braggart"
+  run_to turn 1 end
+  assert counters "Axgard Braggart" +1/+1 0
+}
+
+scenario "boast: another creature attacking is not enough" {
+  battlefield A: "Duskwielder", "Grizzly Bears", "Swamp"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 postcombat_main A: activate "Duskwielder" targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "boast: only once each turn, again the next time it attacks" {
+  battlefield A: "Duskwielder", 2 "Swamp"
+  turn 1 A: attack "Duskwielder"
+  turn 1 end_combat A: activate "Duskwielder" targeting player B
+  illegal turn 1 postcombat_main A: activate "Duskwielder" targeting player B
+  turn 3 A: attack "Duskwielder"
+  turn 3 postcombat_main A: activate "Duskwielder" targeting player B
+  run_to turn 3 end
+  assert life B 16
+  assert life A 22
+}
+
+scenario "boast: Hagi Mob deals 1 damage to any target" {
+  battlefield A: "Hagi Mob", 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  turn 1 A: attack "Hagi Mob"
+  turn 1 postcombat_main A: activate "Hagi Mob" targeting "Llanowar Elves"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+}
+
+scenario "exhaust: Camera Launcher grows and makes a Thopter" {
+  battlefield A: "Camera Launcher", 3 "Plains"
+  turn 1 A: activate "Camera Launcher"
+  run_to turn 1 postcombat_main
+  assert counters "Camera Launcher" +1/+1 1
+  assert battlefield A contains "Thopter"
+  assert has "Thopter" flying
+}
+
+scenario "exhaust: only once, not again the same turn or a later one" {
+  battlefield A: "Skystreak Engineer", 10 "Island"
+  turn 1 A: activate "Skystreak Engineer"
+  illegal turn 1 postcombat_main A: activate "Skystreak Engineer"
+  illegal turn 3 A: activate "Skystreak Engineer"
+  run_to turn 3 end
+  assert counters "Skystreak Engineer" +1/+1 2
+}
+
+scenario "exhaust: a new object after a zone change may exhaust again" {
+  battlefield A: "Prowcatcher Specialist", 10 "Mountain", "Island"
+  hand A: "Unsummon"
+  turn 1 A: activate "Prowcatcher Specialist"
+  turn 1 A: wait
+  turn 1 A: cast "Unsummon" targeting "Prowcatcher Specialist"
+  turn 1 A: wait
+  turn 1 A: cast "Prowcatcher Specialist"
+  turn 1 postcombat_main A: activate "Prowcatcher Specialist"
+  run_to turn 1 end
+  assert counters "Prowcatcher Specialist" +1/+1 2
+}
+
+scenario "power-up: cheaper by its mana cost the turn it entered" {
+  battlefield A: 6 "Mountain"
+  hand A: "Volcanic Villain"
+  turn 1 A: cast "Volcanic Villain"
+  turn 1 A: activate "Volcanic Villain"
+  run_to turn 1 end
+  assert counters "Volcanic Villain" +1/+1 2
+  assert power "Volcanic Villain" 5
+}
+
+scenario "power-up: full cost after the turn it entered" {
+  battlefield A: "Volcanic Villain", 5 "Mountain"
+  illegal turn 1 A: activate "Volcanic Villain"
+  run_to turn 1 end
+  assert counters "Volcanic Villain" +1/+1 0
+}
+
+scenario "power-up: full cost paid on a later turn" {
+  battlefield A: "Volcanic Villain", 6 "Mountain"
+  turn 1 A: activate "Volcanic Villain"
+  run_to turn 1 end
+  assert counters "Volcanic Villain" +1/+1 2
+}
+
+scenario "power-up: colored mana in its cost reduces generic past the colored" {
+  battlefield A: 4 "Forest"
+  hand A: "Serpent Specialist"
+  turn 1 A: cast "Serpent Specialist"
+  turn 1 A: activate "Serpent Specialist"
+  run_to turn 1 end
+  assert counters "Serpent Specialist" +1/+1 2
+}
+
+scenario "power-up: only once" {
+  battlefield A: "Serpent Specialist", 12 "Forest"
+  turn 1 A: activate "Serpent Specialist"
+  illegal turn 1 postcombat_main A: activate "Serpent Specialist"
+  illegal turn 3 A: activate "Serpent Specialist"
+  run_to turn 3 end
+  assert counters "Serpent Specialist" +1/+1 2
+}
+
+scenario "named modes: Plundering Barbarian smashes the chest" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Plundering Barbarian"
+  turn 1 A: cast "Plundering Barbarian"
+  turn 1 A: trigger "Plundering Barbarian" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "named modes: with no artifact, Plundering Barbarian pries it open" {
+  battlefield A: 3 "Mountain"
+  hand A: "Plundering Barbarian"
+  turn 1 A: cast "Plundering Barbarian"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+}
+
+scenario "named modes: You See a Guard Approach hides a creature" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "You See a Guard Approach"
+  turn 1 A: cast "You See a Guard Approach" mode 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" hexproof
+}
+
+scenario "choose two: Return from the Wilds makes a Human and a Food" {
+  battlefield A: 3 "Forest"
+  hand A: "Return from the Wilds"
+  library A: "Forest", "Island"
+  turn 1 A: cast "Return from the Wilds" mode 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Human"
+  assert battlefield A contains "Food"
+  assert library A count 2
+}
+
+scenario "choose two: a land and a Human" {
+  battlefield A: 3 "Forest"
+  hand A: "Return from the Wilds"
+  library A: "Grizzly Bears", "Island", "Grizzly Bears"
+  turn 1 A: cast "Return from the Wilds" mode 1
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert battlefield A contains "Human"
+  assert battlefield A lacks "Food"
+}

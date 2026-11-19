@@ -1,0 +1,7 @@
+card "Hagi Mob" {
+  oracle_id c19aaf86-b098-4e7d-af50-9e02ae3cda55
+  cost {4}{R}
+  type Creature — Troll Berserker
+  pt 5/4
+  boast {1}{R}: deal 1 damage to any target
+}

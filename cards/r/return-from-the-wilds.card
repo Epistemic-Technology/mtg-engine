@@ -1,0 +1,10 @@
+card "Return from the Wilds" {
+  oracle_id 541adb13-1277-4c9e-ae1e-976f7aac1c72
+  cost {2}{G}
+  type Sorcery
+  choose two {
+    mode: search basic land card to battlefield tapped
+    mode: create 1 "1/1 white Human creature"
+    mode: create 1 "Food"
+  }
+}

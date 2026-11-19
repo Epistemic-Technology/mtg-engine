@@ -1,0 +1,9 @@
+card "You Come to the Gnoll Camp" {
+  oracle_id e0945337-1833-4545-a83f-fca673e7f0d0
+  cost {1}{R}
+  type Instant
+  choose one {
+    mode "Intimidate Them": up to two target creatures can't block
+    mode "Fend Them Off": target creature gets +3/+1
+  }
+}

@@ -1,0 +1,7 @@
+card "Stampeding Scurryfoot" {
+  oracle_id 7b860806-0118-40f8-861b-225a7c1cf151
+  cost {G}
+  type Creature — Mouse
+  pt 1/1
+  exhaust {3}{G}: put 1 +1/+1 counters on this; create 1 "3/3 green Elephant creature"
+}

@@ -363,6 +363,56 @@ impl ManaRequirement {
         self.hybrid == [0; 10] && self.two_hybrid == [0; 5] && self.phyrexian == [0; 5]
     }
 
+    /// Reduce by an amount of mana (CR 118.7): generic reduces generic
+    /// only (118.7a); colored or colorless reduces mana of that type and
+    /// any excess reduces generic (118.7b–d). A hybrid symbol reduces by
+    /// a color the cost needs if either half is one, else by its generic
+    /// half or one generic (118.7e); a Phyrexian symbol by its color
+    /// (118.7f); X is zero.
+    pub fn reduce_by(&mut self, by: &ManaCost) {
+        let mut generic = 0u32;
+        let color = |req: &mut ManaRequirement, c: Color, generic: &mut u32| {
+            let have = &mut req.colored[c as usize];
+            if *have > 0 {
+                *have -= 1;
+            } else {
+                *generic += 1;
+            }
+        };
+        for s in &by.symbols {
+            match *s {
+                ManaSymbol::Generic(n) => generic += u32::from(n),
+                ManaSymbol::X => {}
+                ManaSymbol::Colored(c) | ManaSymbol::Phyrexian(c) => {
+                    color(self, c, &mut generic);
+                }
+                ManaSymbol::Colorless => {
+                    if self.colorless > 0 {
+                        self.colorless -= 1;
+                    } else {
+                        generic += 1;
+                    }
+                }
+                ManaSymbol::Hybrid(a, b) => {
+                    let c = if self.colored[b as usize] > 0 && self.colored[a as usize] == 0 {
+                        b
+                    } else {
+                        a
+                    };
+                    color(self, c, &mut generic);
+                }
+                ManaSymbol::TwoHybrid(c) => {
+                    if self.colored[c as usize] > 0 {
+                        color(self, c, &mut generic);
+                    } else {
+                        generic += 2;
+                    }
+                }
+            }
+        }
+        self.generic = self.generic.saturating_sub(generic);
+    }
+
     /// Add another requirement (a kicker on top of a mana cost).
     pub fn add(&mut self, other: &ManaRequirement) {
         for (a, b) in self.colored.iter_mut().zip(other.colored) {

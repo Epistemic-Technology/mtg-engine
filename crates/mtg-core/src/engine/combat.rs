@@ -367,6 +367,7 @@ impl GameState {
             {
                 self.tap(id);
             }
+            self.attackers_this_turn.push(id);
             attackers.push(Attacker {
                 id,
                 attacking: target,

@@ -1,0 +1,8 @@
+card "Hazard of the Dunes" {
+  oracle_id 799664fc-279c-40c1-8e40-44a68c38801b
+  cost {3}{G}
+  type Creature — Wurm
+  pt 4/4
+  keywords reach, trample
+  exhaust {6}{G}: put 3 +1/+1 counters on this
+}

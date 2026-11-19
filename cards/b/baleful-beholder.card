@@ -1,0 +1,10 @@
+card "Baleful Beholder" {
+  oracle_id e7645ac4-6e05-426a-a62d-a33b30c33102
+  cost {4}{B}{B}
+  type Creature — Beholder
+  pt 6/5
+  triggered when this enters: choose one {
+    mode "Antimagic Cone": each opponent sacrifices 1 enchantment
+    mode "Fear Ray": each creature you control gain menace
+  }
+}

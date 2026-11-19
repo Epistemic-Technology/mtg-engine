@@ -176,11 +176,33 @@ impl Decompiler<'_> {
         }
     }
 
+    fn mode(&self, m: &mtg_core::card::Mode) -> Mode {
+        Mode {
+            targets: m.targets.iter().map(|t| self.target(*t)).collect(),
+            effects: self.sentences(&m.effects),
+            name: m.name.clone(),
+        }
+    }
+
+    /// One mode of a "choose two" pair: some of its effects and targets.
+    fn mode_part<E, T>(&self, m: &mtg_core::card::Mode, effects: E, targets: T) -> Mode
+    where
+        E: std::slice::SliceIndex<[CoreEffect], Output = [CoreEffect]>,
+        T: std::slice::SliceIndex<[TargetSpec], Output = [TargetSpec]>,
+    {
+        Mode {
+            targets: m.targets[targets].iter().map(|t| self.target(*t)).collect(),
+            effects: self.sentences(&m.effects[effects]),
+            name: None,
+        }
+    }
+
     fn cost(&self, c: &CoreCost) -> Cost {
         Cost {
             mana: c.mana.clone(),
             discard_self: c.discard_self,
             per_turn: 0,
+            keyword: None,
             tap: c.tap,
             life: c.life,
             discard: c.discard,
@@ -589,15 +611,7 @@ impl Decompiler<'_> {
                 reveal_top: false,
                 revealing: *optional,
             },
-            CoreEffect::Modes(modes) => Effect::Modes(
-                modes
-                    .iter()
-                    .map(|m| Mode {
-                        targets: m.targets.iter().map(|t| self.target(*t)).collect(),
-                        effects: self.sentences(&m.effects),
-                    })
-                    .collect(),
-            ),
+            CoreEffect::Modes(modes) => Effect::Modes(modes.iter().map(|m| self.mode(m)).collect()),
             CoreEffect::GrantAbility { ability, to } => Effect::GrantAbility {
                 ability: Box::new(self.ability(self.pool.ability(*ability))),
                 to: Self::recipient(*to),
@@ -856,14 +870,29 @@ impl Decompiler<'_> {
                 effects: self.sentences(effects),
             },
             AbilityDef::Modal(modes) => {
+                // "Choose two": only pairs; the first ones, (0, 1), (0, 2),
+                // ..., give every single mode.
+                if !modes.is_empty() && modes.iter().all(|m| m.split.is_some()) {
+                    let n = (2..=modes.len() + 1)
+                        .find(|n| n * (n - 1) / 2 == modes.len())
+                        .unwrap_or(2);
+                    let mut singles = Vec::new();
+                    for (i, m) in modes.iter().take(n - 1).enumerate() {
+                        let (e, t) = m
+                            .split
+                            .map_or((0, 0), |(e, t)| (usize::from(e), usize::from(t)));
+                        if i == 0 {
+                            singles.push(self.mode_part(m, ..e, ..t));
+                        }
+                        singles.push(self.mode_part(m, e.., t..));
+                    }
+                    return Ability::ModalTwo(singles);
+                }
                 let both = modes.iter().any(|m| m.split.is_some());
                 let modes: Vec<Mode> = modes
                     .iter()
                     .filter(|m| m.split.is_none())
-                    .map(|m| Mode {
-                        targets: m.targets.iter().map(|t| self.target(*t)).collect(),
-                        effects: self.sentences(&m.effects),
-                    })
+                    .map(|m| self.mode(m))
                     .collect();
                 if both {
                     Ability::ModalBoth(modes)
@@ -883,6 +912,7 @@ impl Decompiler<'_> {
                 let mut cost = self.cost(&act.cost);
                 cost.sorcery = act.sorcery_speed;
                 cost.per_turn = act.per_turn;
+                cost.keyword = act.keyword;
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),

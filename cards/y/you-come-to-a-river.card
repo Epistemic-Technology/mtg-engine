@@ -1,0 +1,9 @@
+card "You Come to a River" {
+  oracle_id 9913da11-07f0-494a-8c47-11629dcb5be2
+  cost {1}{U}
+  type Instant
+  choose one {
+    mode "Fight the Current": return target nonland permanent to hand
+    mode "Find a Crossing": target creature gets +1/+0 until end of turn and can't be blocked
+  }
+}

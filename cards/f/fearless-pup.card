@@ -1,0 +1,8 @@
+card "Fearless Pup" {
+  oracle_id 61295adf-9a58-479a-b6e5-403aa0876c22
+  cost {R}
+  type Creature — Wolf
+  pt 1/1
+  keywords first strike
+  boast {2}{R}: this gets +2/+0
+}

@@ -1,0 +1,8 @@
+card "Pet Avengers" {
+  oracle_id bbee7921-19c9-4c70-8462-f16e7e9c25db
+  cost {3}{G}
+  type Creature — Dragon Cat Dog Bird Frog Hero
+  pt 4/4
+  keywords reach
+  power-up {6}{G}: put 1 +1/+1 counters on this and create 1 "3/2 white Hero creature with vigilance"
+}

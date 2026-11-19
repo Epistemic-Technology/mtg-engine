@@ -191,6 +191,9 @@ pub struct Cost {
     pub chosen: mtg_core::card::ChosenCost,
     /// "Activate only once each turn."
     pub per_turn: u8,
+    /// `boast {1}{W}: ...`, `exhaust`, `power-up`: the keyword printed
+    /// before the cost ("Boast — {1}{W}: ..."), which adds its rules.
+    pub keyword: Option<mtg_core::card::ActivatedKeyword>,
     /// The order the parts were written in, which is the order printed
     /// (Oracle has no fixed one); empty means mana, tap, sacrifice,
     /// discard, life.
@@ -424,6 +427,8 @@ pub enum Ability {
     /// `choose one or both { mode: ... mode: ... }` (CR 700.2): two modes,
     /// either or both.
     ModalBoth(Vec<Mode>),
+    /// `choose two { mode: ... }` (CR 700.2): two different modes.
+    ModalTwo(Vec<Mode>),
     Activated {
         cost: Cost,
         targets: Vec<Target>,
@@ -670,6 +675,9 @@ pub enum StaticCond {
 pub struct Mode {
     pub targets: Vec<Target>,
     pub effects: Vec<Sentence>,
+    /// `mode "Smash the Chest": ...`: a named mode, "• Smash the Chest —
+    /// Destroy target artifact."
+    pub name: Option<String>,
 }
 
 /// Effects that print as one sentence ("target player loses 1 life and you

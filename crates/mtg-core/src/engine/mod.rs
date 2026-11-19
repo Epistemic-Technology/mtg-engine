@@ -253,6 +253,9 @@ impl Engine {
         }
         state.turn_number = setup.turn_number;
         state.step = setup.step;
+        // Permanents set up count as controlled since the turn began, so
+        // they did not enter this turn either (power-up, CR 702.193a).
+        state.turn_started_at = state.next_timestamp;
         state.emit(Event::GameStart {
             starting_player: setup.active_player,
         });
@@ -426,6 +429,9 @@ impl GameState {
             emblems: Vec::new(),
             loyalty_activated: Vec::new(),
             activated_once: Vec::new(),
+            activated_ever: Vec::new(),
+            attackers_this_turn: Vec::new(),
+            turn_started_at: 0,
             x_values: Vec::new(),
             divisions: Vec::new(),
             turn_number: 0,
@@ -1801,6 +1807,8 @@ impl GameState {
             self.lki.clear();
             self.loyalty_activated.clear();
             self.activated_once.clear();
+            self.attackers_this_turn.clear();
+            self.turn_started_at = self.next_timestamp;
             self.turn_number += 1;
             self.spells_last_turn = std::mem::take(&mut self.spells_this_turn);
             self.drawn_this_turn = [0; 4];

@@ -1,0 +1,11 @@
+card "Dawnbringer Cleric" {
+  oracle_id 0146f430-da82-48d3-a576-c2b05101797f
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  triggered when this enters: choose one {
+    mode "Cure Wounds": you gain 2 life
+    mode "Dispel Magic": destroy target enchantment
+    mode "Gentle Repose": exile target card from a graveyard
+  }
+}

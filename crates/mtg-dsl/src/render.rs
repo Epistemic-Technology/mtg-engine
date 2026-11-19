@@ -1909,6 +1909,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 let mut inner = Ctx::new(ctx.card, ctx.lookup, &m.targets);
                 inner.current = ctx.current;
                 out.push_str("\n• ");
+                push_mode_name(&mut out, m);
                 out.push_str(&sentences(&m.effects, &mut inner));
             }
             Clause::imperative(out)
@@ -3951,16 +3952,18 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             sentences(effects, &mut ctx)
         }
-        Ability::Modal(modes) | Ability::ModalBoth(modes) => {
-            let mut out = if matches!(a, Ability::ModalBoth(_)) {
-                "Choose one or both —".to_string()
-            } else {
-                "Choose one —".to_string()
-            };
+        Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
+            let mut out = match a {
+                Ability::ModalBoth(_) => "Choose one or both —",
+                Ability::ModalTwo(_) => "Choose two —",
+                _ => "Choose one —",
+            }
+            .to_string();
             for m in modes {
                 let mut ctx = Ctx::new(card, lookup, &m.targets);
                 ctx.current = Some(a);
                 out.push_str("\n• ");
+                push_mode_name(&mut out, m);
                 out.push_str(&sentences(&m.effects, &mut ctx));
             }
             out
@@ -3985,6 +3988,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
             let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
+            // CR 702.142, 702.177, 702.193: the keyword prints before the
+            // cost and its rules are reminder text.
+            if let Some(k) = cost.keyword {
+                text = format!("{} — {text}", k.name());
+            }
             // Loyalty abilities are sorcery-speed by rule (CR 606.3).
             if cost.sorcery && cost.loyalty.is_none() {
                 text.push_str(" Activate only as a sorcery.");
@@ -4211,6 +4219,14 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             sentence(&s)
         }
+    }
+}
+
+/// A named mode's name and dash: "Smash the Chest — ".
+fn push_mode_name(out: &mut String, m: &crate::ast::Mode) {
+    if let Some(n) = &m.name {
+        out.push_str(n);
+        out.push_str(" — ");
     }
 }
 

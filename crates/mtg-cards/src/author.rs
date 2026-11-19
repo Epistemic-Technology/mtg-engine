@@ -61,7 +61,7 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 64] = [
+const TEMPLATED_TAGS: [&str; 67] = [
     "Transform",
     "Landcycling",
     "Basic landcycling",
@@ -127,6 +127,9 @@ const TEMPLATED_TAGS: [&str; 64] = [
     "Modular",
     "Cumulative upkeep",
     "Exert",
+    "Boast",
+    "Exhaust",
+    "Power-up",
 ];
 
 /// Ability words (CR 207.2c): labels with no rules meaning, printed
@@ -2627,6 +2630,16 @@ impl Builder<'_> {
                 .push("static enchanted: control".to_string());
             return Ok(());
         }
+        // CR 702.142, 702.177, 702.193: "Boast — <cost>: <effects>" (the
+        // keyword's rules are reminder text, already gone).
+        let (word, line) = [
+            ("Boast — ", "boast"),
+            ("Exhaust — ", "exhaust"),
+            ("Power-up — ", "power-up"),
+        ]
+        .iter()
+        .find_map(|(prefix, word)| Some((*word, line.strip_prefix(prefix)?)))
+        .unwrap_or(("activated", line));
         // Activated abilities: "<cost>: <effects>[ Activate only once each turn.]".
         if let Some((cost, rest)) = line.split_once(": ")
             && let Some(mut cost) = cost_text(cost)
@@ -2647,7 +2660,7 @@ impl Builder<'_> {
             };
             let mut targets = 0;
             let effects = self.templates.effects(rest, &mut targets)?;
-            self.statements.push(format!("activated {cost}: {effects}"));
+            self.statements.push(format!("{word} {cost}: {effects}"));
             return Ok(());
         }
         if let Some(c) = Regex::new(r"^Cumulative upkeep ((?:\{[0-9WUBRGC]+\})+)$")
@@ -2724,17 +2737,10 @@ impl Builder<'_> {
         Err(Skip::Sentence(line.to_string()))
     }
 
-    fn modal(&mut self, modes: &[String], both: bool) -> Result<(), Skip> {
-        let head = if both {
-            "choose one or both {"
-        } else {
-            "choose one {"
-        };
-        let mut lines = vec![head.to_string()];
+    fn modal(&mut self, modes: &[String], head: &str) -> Result<(), Skip> {
+        let mut lines = vec![format!("{head} {{")];
         for m in modes {
-            let mut targets = 0;
-            let effects = self.templates.effects(m, &mut targets)?;
-            lines.push(format!("  mode: {effects}"));
+            lines.push(format!("  {}", self.mode(m)?));
         }
         lines.push("}".to_string());
         self.statements.push(lines.join("\n  "));
@@ -2742,13 +2748,26 @@ impl Builder<'_> {
         Ok(())
     }
 
+    /// One mode's line; a named mode ("Smash the Chest — Destroy target
+    /// artifact.") keeps its name.
+    fn mode(&self, m: &str) -> Result<String, Skip> {
+        let m = m.trim();
+        let (head, m) = match m.split_once(" — ") {
+            Some((name, rest)) if name.len() < 50 && !name.contains(['{', '.', '"', ',']) => {
+                (format!("mode \"{name}\""), rest)
+            }
+            _ => ("mode".to_string(), m),
+        };
+        let mut targets = 0;
+        let effects = self.templates.effects(m, &mut targets)?;
+        Ok(format!("{head}: {effects}"))
+    }
+
     /// "When this creature enters, choose one —" with its modes.
     fn modal_trigger(&mut self, trigger: &str, modes: &[String]) -> Result<(), Skip> {
         let mut lines = vec![format!("triggered {trigger}: choose one {{")];
         for m in modes {
-            let mut targets = 0;
-            let effects = self.templates.effects(m, &mut targets)?;
-            lines.push(format!("  mode: {effects}"));
+            lines.push(format!("  {}", self.mode(m)?));
         }
         lines.push("}".to_string());
         self.statements.push(lines.join("\n  "));
@@ -2897,14 +2916,20 @@ pub fn author_card(s: &ScryCard, corpus: &[Card]) -> Result<Authored, Skip> {
     let mut i = 0;
     while i < lines.len() {
         let line = lines[i];
-        if line == "Choose one —" || line == "Choose one or both —" {
+        let head = match line {
+            "Choose one —" => Some("choose one"),
+            "Choose one or both —" => Some("choose one or both"),
+            "Choose two —" => Some("choose two"),
+            _ => None,
+        };
+        if let Some(head) = head {
             let mut modes = Vec::new();
             i += 1;
             while i < lines.len() && lines[i].starts_with("• ") {
                 modes.push(lines[i][3..].to_string());
                 i += 1;
             }
-            b.modal(&modes, line == "Choose one or both —")?;
+            b.modal(&modes, head)?;
             continue;
         }
         // "When this creature enters, choose one —" and its modes.
