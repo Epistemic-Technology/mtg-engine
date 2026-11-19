@@ -1,0 +1,7 @@
+card "Extremis Elite" {
+  oracle_id b058ee2e-ddb9-4f49-bbe0-16b72d54d4da
+  cost {1}{R}
+  type Creature — Human Mercenary Villain
+  pt 2/2
+  power-up {4}{R}: put 2 +1/+1 counters on this; deal 1 damage to any target
+}

@@ -475,7 +475,7 @@ impl Fmt {
                     body(
                         &mut inner,
                         "    ",
-                        "mode",
+                        &mode_head(m),
                         &m.effects,
                         &m.targets,
                         &self.groups,
@@ -1874,6 +1874,14 @@ fn modification(m: &Mod) -> String {
 
 /// Writes `head: body` on one line, or `head {` ... `}` if the effects
 /// span paragraphs.
+/// `mode`, or `mode "Smash the Chest"` for a named mode.
+fn mode_head(m: &crate::ast::Mode) -> String {
+    match &m.name {
+        Some(n) => format!("mode \"{n}\""),
+        None => "mode".to_string(),
+    }
+}
+
 fn body(
     out: &mut String,
     indent: &str,
@@ -2090,18 +2098,18 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::Spell { targets, effects } => body(out, indent, "spell", effects, targets, groups),
         Ability::Exert(effects) => body(out, indent, "exert", effects, &[], groups),
-        Ability::Modal(modes) | Ability::ModalBoth(modes) => {
-            let head = if matches!(ability, Ability::ModalBoth(_)) {
-                "choose one or both"
-            } else {
-                "choose one"
+        Ability::Modal(modes) | Ability::ModalBoth(modes) | Ability::ModalTwo(modes) => {
+            let head = match ability {
+                Ability::ModalBoth(_) => "choose one or both",
+                Ability::ModalTwo(_) => "choose two",
+                _ => "choose one",
             };
             let _ = writeln!(out, "{indent}{head} {{");
             for m in modes {
                 body(
                     out,
                     &format!("{indent}  "),
-                    "mode",
+                    &mode_head(m),
                     &m.effects,
                     &m.targets,
                     groups,
@@ -2147,10 +2155,16 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 );
                 return;
             }
+            let word = match cost.keyword {
+                Some(mtg_core::card::ActivatedKeyword::Boast) => "boast",
+                Some(mtg_core::card::ActivatedKeyword::Exhaust) => "exhaust",
+                Some(mtg_core::card::ActivatedKeyword::PowerUp) => "power-up",
+                None => "activated",
+            };
             body(
                 out,
                 indent,
-                &format!("activated {}", cost_text(cost)),
+                &format!("{word} {}", cost_text(cost)),
                 effects,
                 targets,
                 groups,

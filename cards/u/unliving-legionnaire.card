@@ -1,0 +1,8 @@
+card "Unliving Legionnaire" {
+  oracle_id 0edaf433-4ded-4841-bc86-136780c0767f
+  cost {3}{B}
+  type Creature — Vampire Villain
+  pt 3/2
+  keywords flying
+  power-up {5}{B}{B}: return up to one target creature card from your graveyard to hand; put 2 +1/+1 counters on this
+}

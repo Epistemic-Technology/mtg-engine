@@ -794,9 +794,17 @@ pub struct GameState {
     pub loyalty_activated: Vec<ObjId>,
     /// "Activate only once each turn" abilities used this turn.
     pub activated_once: Vec<(ObjId, crate::card::AbilityId)>,
-    /// "Activate only once" abilities used, for the rest of the game (a
-    /// permanent that changes zones is a new object, CR 400.7).
+    /// "Activate only once" abilities used (exhaust, CR 702.177a;
+    /// power-up, CR 702.193a): never cleared, since the object a new
+    /// zone makes is a new object with a new id (CR 400.7).
     pub activated_ever: Vec<(ObjId, crate::card::AbilityId)>,
+    /// Creatures declared as attackers this turn (boast, CR 702.142a);
+    /// one put onto the battlefield attacking was never declared.
+    pub attackers_this_turn: Vec<ObjId>,
+    /// The first timestamp of this turn: a permanent whose timestamp is
+    /// not older entered this turn (power-up, CR 702.193a), as a
+    /// permanent's timestamp is the time it entered (CR 613.7e).
+    pub turn_started_at: Timestamp,
     /// X as chosen for spells on the stack (CR 107.3), kept off
     /// `GameObject` so the hot struct stays at 120 bytes.
     pub x_values: Vec<(ObjId, u32)>,

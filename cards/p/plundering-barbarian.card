@@ -1,0 +1,10 @@
+card "Plundering Barbarian" {
+  oracle_id da2d27f7-cced-4118-bddc-41712e37e916
+  cost {2}{R}
+  type Creature — Dwarf Barbarian
+  pt 2/2
+  triggered when this enters: choose one {
+    mode "Smash the Chest": destroy target artifact
+    mode "Pry It Open": create 1 "Treasure"
+  }
+}

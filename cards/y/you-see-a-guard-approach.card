@@ -1,0 +1,9 @@
+card "You See a Guard Approach" {
+  oracle_id 49aa87c7-034b-409d-b37f-50db6a42e533
+  cost {U}
+  type Instant
+  choose one {
+    mode "Distract the Guard": tap target creature
+    mode "Hide": target creature you control gains hexproof
+  }
+}

@@ -1,0 +1,8 @@
+card "Aerial Doombot" {
+  oracle_id f24efc60-fdac-4a5d-bcbc-784ec5ae6d96
+  cost {U}
+  type Artifact Creature — Robot Villain
+  pt 1/1
+  keywords flying
+  power-up {5}{U}: put 3 +1/+1 counters on this
+}

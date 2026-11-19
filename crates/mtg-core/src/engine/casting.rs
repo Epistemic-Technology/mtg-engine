@@ -3,9 +3,9 @@
 use smallvec::SmallVec;
 
 use crate::card::{
-    AbilityDef, AbilityId, Affects, ChoiceKind, Cost, CounterKind, Effect, EffectCond, Keyword,
-    KeywordSet, Layout, Modification, PtValue, Recipient, Replacement, Replaces, SacCost, SearchTo,
-    Subtype, TargetSpec,
+    AbilityDef, AbilityId, ActivatedAbility, ActivatedKeyword, Affects, ChoiceKind, Cost,
+    CounterKind, Effect, EffectCond, Keyword, KeywordSet, Layout, Modification, PtValue, Recipient,
+    Replacement, Replaces, SacCost, SearchTo, Subtype, TargetSpec,
 };
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
@@ -1037,17 +1037,23 @@ impl GameState {
                 {
                     continue;
                 }
+                if let Some(k) = ab.keyword
+                    && !self.keyword_allows(k, id, *a)
+                {
+                    continue;
+                }
                 // CR 302.6: a creature's {T} needs it to have been controlled
                 // since the turn began.
                 if ab.cost.tap && (o.tapped || sick) {
                     continue;
                 }
+                let req = self.activation_mana(id, ab);
                 // A source tapped as a cost cannot also tap for mana.
                 let payable = if ab.cost.tap {
                     let rest: Sources = sources.iter().filter(|(s, _)| *s != id).copied().collect();
-                    payment_plan_from(&rest, &pool, &ab.cost.mana.requirements(0), life).is_some()
+                    payment_plan_from(&rest, &pool, &req, life).is_some()
                 } else {
-                    payment_plan_from(sources, &pool, &ab.cost.mana.requirements(0), life).is_some()
+                    payment_plan_from(sources, &pool, &req, life).is_some()
                 };
                 if !payable {
                     continue;
@@ -1132,6 +1138,32 @@ impl GameState {
             && !(ab.once_ever && self.activated_ever.contains(&(source, ability)))
     }
 
+    /// Whether an ability with this keyword may be activated now (CR
+    /// 702.142a boast: only if the creature attacked this turn, once each
+    /// turn; CR 702.177a exhaust, 702.193a power-up: only once).
+    fn keyword_allows(&self, k: ActivatedKeyword, id: ObjId, a: AbilityId) -> bool {
+        if k.once_ever() {
+            !self.activated_ever.contains(&(id, a))
+        } else {
+            self.attackers_this_turn.contains(&id) && !self.activated_once.contains(&(id, a))
+        }
+    }
+
+    /// The mana an activated ability of `source` costs: CR 702.193a, a
+    /// power-up ability of a permanent that entered this turn costs its
+    /// mana cost less (702.193b, 118.7).
+    pub(super) fn activation_mana(&self, source: ObjId, ab: &ActivatedAbility) -> ManaRequirement {
+        let mut req = ab.cost.mana.requirements(0);
+        if ab.keyword == Some(ActivatedKeyword::PowerUp)
+            && let Some(o) = self.objects.get(source)
+            && o.zone == Zone::Battlefield
+            && o.timestamp >= self.turn_started_at
+        {
+            req.reduce_by(&self.pool.get(o.def).mana_cost);
+        }
+        req
+    }
+
     /// CR 602.2a: announce an activated ability; it goes on the stack and
     /// its targets are chosen next (`Flow::Casting`), then costs are paid
     /// (`finish_activation`).
@@ -1149,10 +1181,10 @@ impl GameState {
             if a.cost.loyalty != 0 {
                 self.loyalty_activated.push(source);
             }
-            if a.per_turn > 0 {
+            if a.per_turn > 0 || a.keyword == Some(ActivatedKeyword::Boast) {
                 self.activated_once.push((source, ability));
             }
-            if a.once_ever {
+            if a.once_ever || a.keyword.is_some_and(ActivatedKeyword::once_ever) {
                 self.activated_ever.push((source, ability));
             }
         }
@@ -1425,7 +1457,8 @@ impl GameState {
             self.tap(sa.source);
         }
         let sources = self.ability_sources(controller);
-        self.pay_from(controller, &ab.cost.mana.requirements(0), &sources);
+        let req = self.activation_mana(sa.source, ab);
+        self.pay_from(controller, &req, &sources);
         if ab.cost.crew > 0 {
             for c in self.crew_choice(controller, sa.source, ab.cost.crew) {
                 self.tap(c);

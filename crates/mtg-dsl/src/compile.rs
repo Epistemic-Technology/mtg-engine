@@ -301,7 +301,10 @@ impl Compiler<'_> {
             .filter(|a| {
                 matches!(
                     a,
-                    Ability::Spell { .. } | Ability::Modal(_) | Ability::ModalBoth(_)
+                    Ability::Spell { .. }
+                        | Ability::Modal(_)
+                        | Ability::ModalBoth(_)
+                        | Ability::ModalTwo(_)
                 )
             })
             .count();
@@ -434,11 +437,13 @@ impl Compiler<'_> {
     }
 
     /// A mode list; with `both`, a third mode that is the two together
-    /// ("choose one or both", CR 700.2).
+    /// ("choose one or both", CR 700.2); with `two`, only the pairs of
+    /// different modes ("choose two", CR 700.2d), each made like "both".
     fn modes(
         &mut self,
         modes: &[crate::ast::Mode],
         both: bool,
+        two: bool,
     ) -> Result<Vec<CoreMode>, CompileError> {
         let mut out = Vec::new();
         for m in modes {
@@ -449,22 +454,39 @@ impl Compiler<'_> {
                     .trim_end_matches('.')
                     .to_string(),
                 split: None,
+                name: m.name.clone(),
             });
+        }
+        let pair = |a: &CoreMode, b: &CoreMode| CoreMode {
+            targets: a.targets.iter().chain(&b.targets).copied().collect(),
+            effects: a.effects.iter().chain(&b.effects).cloned().collect(),
+            text: format!("{} and {}", a.text, b.text),
+            split: Some((
+                u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
+                u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
+            )),
+            name: None,
+        };
+        if two {
+            // The chosen mode is kept in three bits (`CastInfo`): at most
+            // four modes, six pairs. The pairs alone are the modes; the
+            // single modes are read back from them.
+            if !(3..=4).contains(&out.len()) || modes.iter().any(|m| m.name.is_some()) {
+                return self.err("`choose two` takes three or four unnamed modes");
+            }
+            let mut pairs = Vec::new();
+            for i in 0..out.len() {
+                for j in i + 1..out.len() {
+                    pairs.push(pair(&out[i], &out[j]));
+                }
+            }
+            return Ok(pairs);
         }
         if both {
             let [a, b] = out.as_slice() else {
                 return self.err("`choose one or both` takes two modes");
             };
-            let split = (
-                u16::try_from(a.effects.len()).unwrap_or(u16::MAX),
-                u16::try_from(a.targets.len()).unwrap_or(u16::MAX),
-            );
-            let both = CoreMode {
-                targets: a.targets.iter().chain(&b.targets).copied().collect(),
-                effects: a.effects.iter().chain(&b.effects).cloned().collect(),
-                text: format!("{} and {}", a.text, b.text),
-                split: Some(split),
-            };
+            let both = pair(a, b);
             out.push(both);
         }
         Ok(out)
@@ -1158,7 +1180,7 @@ impl Compiler<'_> {
                 rest_graveyard: *rest_graveyard,
             }),
             Effect::Modes(modes) => {
-                let modes = self.modes(modes, false)?;
+                let modes = self.modes(modes, false, false)?;
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
@@ -1464,9 +1486,11 @@ impl Compiler<'_> {
                         .abilities
                         .iter()
                         .any(|a| matches!(a, Ability::Mechanic(Mechanic::Entwine(_)))),
+                    false,
                 )?,
             ),
-            Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true)?),
+            Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
+            Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
             Ability::Activated {
                 cost,
                 targets,
@@ -1488,6 +1512,7 @@ impl Compiler<'_> {
                 from_hand: *cycling || cost.discard_self,
                 cycling: *cycling,
                 from_graveyard: cost.from_graveyard || cost.exile_self,
+                keyword: cost.keyword,
                 text: render::ability_text(self.card, a, self.lookup),
             }),
             Ability::Triggered {

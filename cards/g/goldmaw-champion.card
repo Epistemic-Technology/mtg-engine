@@ -1,0 +1,7 @@
+card "Goldmaw Champion" {
+  oracle_id 9cbc8765-1735-48ca-bbc2-411aa7da2ed3
+  cost {2}{W}
+  type Creature — Dwarf Warrior
+  pt 2/3
+  boast {1}{W}: tap target creature
+}

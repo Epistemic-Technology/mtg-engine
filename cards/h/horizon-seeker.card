@@ -1,0 +1,7 @@
+card "Horizon Seeker" {
+  oracle_id e0610ab1-88d3-4502-84b7-3a08d0170167
+  cost {2}{G}
+  type Creature — Human Warrior
+  pt 3/2
+  boast {1}{G}: search basic land card reveal to hand
+}

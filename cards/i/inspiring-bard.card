@@ -1,0 +1,10 @@
+card "Inspiring Bard" {
+  oracle_id 88443470-f696-4f9b-b34d-50be8f1d4bc2
+  cost {3}{G}
+  type Creature — Elf Bard
+  pt 3/3
+  triggered when this enters: choose one {
+    mode "Bardic Inspiration": target creature gets +2/+2
+    mode "Song of Rest": you gain 3 life
+  }
+}

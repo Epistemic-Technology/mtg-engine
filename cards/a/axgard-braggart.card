@@ -1,0 +1,7 @@
+card "Axgard Braggart" {
+  oracle_id d0d4ab83-8b9b-49cd-86b8-720abd0550f4
+  cost {3}{W}
+  type Creature — Dwarf Warrior
+  pt 3/3
+  boast {1}{W}: untap this; put 1 +1/+1 counters on this
+}

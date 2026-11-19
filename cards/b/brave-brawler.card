@@ -1,0 +1,8 @@
+card "Brave Brawler" {
+  oracle_id a1a791be-71e6-4c1f-8717-08ca62d40de2
+  cost {1}{W}
+  type Creature — Human Warrior Hero
+  pt 2/1
+  keywords lifelink
+  power-up {4}{W}: put 2 +1/+1 counters on this
+}

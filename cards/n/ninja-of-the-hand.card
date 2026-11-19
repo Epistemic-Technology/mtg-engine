@@ -1,0 +1,8 @@
+card "Ninja of the Hand" {
+  oracle_id c38f7447-e646-438d-81bd-fe2a71c8a79c
+  cost {2}{B}
+  type Creature — Human Ninja Villain
+  pt 2/2
+  keywords deathtouch
+  power-up {4}{B}: each opponent discards 1 cards; put 1 +1/+1 counters on this
+}

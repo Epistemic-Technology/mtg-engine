@@ -1,0 +1,9 @@
+card "You're Ambushed on the Road" {
+  oracle_id 934ef52e-3e97-418a-bbcf-114badbb2c8a
+  cost {W}
+  type Instant
+  choose one {
+    mode "Make a Retreat": return target creature you control to hand
+    mode "Stand and Fight": target creature gets +1/+3
+  }
+}

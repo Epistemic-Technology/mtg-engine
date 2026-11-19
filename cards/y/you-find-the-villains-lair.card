@@ -1,0 +1,9 @@
+card "You Find the Villains' Lair" {
+  oracle_id 41cdeb52-e90f-44f8-94d2-23aa032c4870
+  cost {1}{U}{U}
+  type Instant
+  choose one {
+    mode "Foil Their Scheme": counter target spell
+    mode "Learn Their Secrets": draw 2 cards then discard 2 cards
+  }
+}

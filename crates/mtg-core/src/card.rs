@@ -3175,8 +3175,41 @@ pub struct ActivatedAbility {
     pub cycling: bool,
     /// Activated from the graveyard (unearth, CR 702.84).
     pub from_graveyard: bool,
+    /// A keyword that adds rules to the ability ("Boast — {1}{W}: ...").
+    pub keyword: Option<ActivatedKeyword>,
     /// The ability's text, for naming the choice.
     pub text: String,
+}
+
+/// A keyword that adds rules to the activated ability after it.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum ActivatedKeyword {
+    /// CR 702.142a: "Activate only if this creature attacked this turn
+    /// and only once each turn."
+    Boast,
+    /// CR 702.177a: "Activate only once."
+    Exhaust,
+    /// CR 702.193a: "If this permanent entered this turn, this ability's
+    /// cost is reduced by this permanent's mana cost. Activate this
+    /// ability only once."
+    PowerUp,
+}
+
+impl ActivatedKeyword {
+    /// The keyword as printed before the cost.
+    pub fn name(self) -> &'static str {
+        match self {
+            ActivatedKeyword::Boast => "Boast",
+            ActivatedKeyword::Exhaust => "Exhaust",
+            ActivatedKeyword::PowerUp => "Power-up",
+        }
+    }
+
+    /// Whether the ability may be activated only once for the object's
+    /// whole existence (CR 702.177a, 702.193a), not once each turn.
+    pub fn once_ever(self) -> bool {
+        matches!(self, ActivatedKeyword::Exhaust | ActivatedKeyword::PowerUp)
+    }
 }
 
 impl ActivatedAbility {
@@ -3236,6 +3269,9 @@ pub struct Mode {
     /// modes' targets and effects one after the other. Effects from index
     /// `.0` on see the targets from index `.1` on as their own.
     pub split: Option<(u16, u16)>,
+    /// A named mode's name ("• Smash the Chest — Destroy target
+    /// artifact."), printed before its effect; it has no rules meaning.
+    pub name: Option<String>,
 }
 
 /// Modifications a copy effect makes as part of copying (CR 707.9b):
