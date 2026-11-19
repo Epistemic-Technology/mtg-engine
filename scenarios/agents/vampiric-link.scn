@@ -1,0 +1,27 @@
+scenario "vampiric link gains life equal to combat damage dealt" {
+  battlefield A: "Hill Giant", "Vampiric Link" on "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "vampiric link on an opponent's creature feeds the aura's controller" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Vampiric Link" on "Hill Giant"
+  start turn 1 A
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert life A 20
+}
+
+scenario "vampiric link counts noncombat damage" {
+  battlefield A: "Sif's Spearmaster", "Vampiric Link" on "Sif's Spearmaster"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sif's Spearmaster" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}

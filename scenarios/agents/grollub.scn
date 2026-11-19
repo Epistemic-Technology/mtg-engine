@@ -1,0 +1,9 @@
+scenario "Grollub gives opponents life equal to damage dealt to it" {
+  battlefield A: "Grollub", "Mountain"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Grollub"
+  run_to turn 2 postcombat_main
+  assert life B 22
+  assert life A 20
+}

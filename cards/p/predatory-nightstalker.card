@@ -1,0 +1,7 @@
+card "Predatory Nightstalker" {
+  oracle_id 9d2ad65f-fba0-45e9-a5e6-bec63a9db979
+  cost {3}{B}{B}
+  type Creature — Nightstalker
+  pt 3/2
+  triggered when this enters: you may target opponent sacrifices 1 creature
+}

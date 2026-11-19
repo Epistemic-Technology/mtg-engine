@@ -1,0 +1,24 @@
+scenario "roterothopter pumps twice per turn" {
+  battlefield A: "Roterothopter", 6 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Roterothopter"
+  turn 1 A: activate "Roterothopter"
+  illegal turn 1 postcombat_main A: activate "Roterothopter"
+  run_to turn 1 postcombat_main
+  assert power "Roterothopter" 2
+  run_to turn 1 end
+  assert power "Roterothopter" 2
+}
+
+scenario "roterothopter pump wears off and resets next turn" {
+  battlefield A: "Roterothopter", 6 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Roterothopter"
+  turn 3 A: activate "Roterothopter"
+  turn 3 A: activate "Roterothopter"
+  run_to turn 2 upkeep
+  assert power "Roterothopter" 0
+  run_to turn 3 postcombat_main
+  assert power "Roterothopter" 2
+  assert has "Roterothopter" flying
+}

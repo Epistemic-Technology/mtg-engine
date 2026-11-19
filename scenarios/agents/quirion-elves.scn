@@ -1,0 +1,23 @@
+scenario "Quirion Elves makes mana of the chosen color" {
+  battlefield A: 2 "Forest"
+  hand A: "Quirion Elves", "Lightning Bolt"
+  turn 1 A: cast "Quirion Elves"
+  turn 1 A: choose red
+  run_to turn 3 precombat_main
+  turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 17
+  assert tapped "Quirion Elves"
+}
+
+scenario "Quirion Elves without the chosen color can't make it" {
+  battlefield A: 2 "Forest"
+  hand A: "Quirion Elves", "Lightning Bolt"
+  turn 1 A: cast "Quirion Elves"
+  turn 1 A: choose blue
+  run_to turn 3 precombat_main
+  illegal turn 3 A: cast "Lightning Bolt" targeting player B
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert hand A contains "Lightning Bolt"
+}

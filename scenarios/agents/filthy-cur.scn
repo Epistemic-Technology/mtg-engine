@@ -1,0 +1,10 @@
+scenario "Filthy Cur makes you lose the damage it is dealt" {
+  battlefield A: "Filthy Cur", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting "Filthy Cur"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert life B 20
+  assert graveyard A contains "Filthy Cur"
+}

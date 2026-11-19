@@ -1,0 +1,20 @@
+scenario "sif's spearmaster deals damage equal to its power to an opponent" {
+  battlefield A: "Sif's Spearmaster", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Sif's Spearmaster"
+  turn 1 A: wait
+  turn 1 A: activate "Sif's Spearmaster" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+  assert tapped "Sif's Spearmaster"
+}
+
+scenario "sif's spearmaster can't target its controller" {
+  battlefield A: "Sif's Spearmaster"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Sif's Spearmaster" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

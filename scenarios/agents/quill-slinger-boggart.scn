@@ -1,0 +1,22 @@
+scenario "Quill-Slinger Boggart drains when a player casts a Kithkin spell" {
+  battlefield A: "Quill-Slinger Boggart"
+  battlefield B: "Plains"
+  hand B: "Apothecary Initiate"
+  start turn 2 B
+  turn 2 B: cast "Apothecary Initiate"
+  turn 2 A: trigger "Quill-Slinger Boggart" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 20
+}
+
+scenario "Quill-Slinger Boggart ignores non-Kithkin spells" {
+  battlefield A: "Quill-Slinger Boggart"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 20
+  assert battlefield B contains "Grizzly Bears"
+}

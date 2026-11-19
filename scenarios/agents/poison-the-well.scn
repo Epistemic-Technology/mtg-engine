@@ -1,0 +1,22 @@
+scenario "poison the well destroys a land and damages its controller" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Poison the Well"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Poison the Well" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "poison the well on your own land damages you" {
+  battlefield A: 4 "Swamp", "Forest"
+  hand A: "Poison the Well"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Poison the Well" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert life B 20
+  assert graveyard A contains "Forest"
+}

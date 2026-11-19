@@ -1,0 +1,20 @@
+scenario "spikeshot goblin deals damage equal to its power" {
+  battlefield A: "Spikeshot Goblin", "Mountain"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Spikeshot Goblin" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert damage "Grizzly Bears" 1
+  assert tapped "Spikeshot Goblin"
+}
+
+scenario "spikeshot goblin pumped hits a player harder" {
+  battlefield A: "Spikeshot Goblin", "Mountain", "Forest"
+  hand A: "Giant Growth"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant Growth" targeting "Spikeshot Goblin"
+  turn 1 A: wait
+  turn 1 A: activate "Spikeshot Goblin" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

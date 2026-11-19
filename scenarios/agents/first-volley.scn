@@ -1,0 +1,10 @@
+scenario "First Volley pings a creature and its controller" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "First Volley"
+  start turn 2 A precombat_main
+  turn 2 A: cast "First Volley" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life B 19
+}

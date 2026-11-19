@@ -1,0 +1,22 @@
+scenario "Manaforge Cinder filters mana into black" {
+  battlefield A: "Manaforge Cinder", "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Disfigure"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Manaforge Cinder"
+  turn 2 A: cast "Disfigure" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Plains"
+}
+
+scenario "Manaforge Cinder activates no more than three times each turn" {
+  battlefield A: "Manaforge Cinder", 4 "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Manaforge Cinder"
+  turn 2 A: activate "Manaforge Cinder"
+  turn 2 A: activate "Manaforge Cinder"
+  illegal turn 2 A: activate "Manaforge Cinder"
+  run_to turn 2 postcombat_main
+  assert untapped newest "Plains"
+}

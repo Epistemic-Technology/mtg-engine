@@ -1,0 +1,20 @@
+scenario "Predatory Nightstalker makes the opponent sacrifice a creature" {
+  battlefield A: 5 "Swamp"
+  hand A: "Predatory Nightstalker"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Predatory Nightstalker"
+  turn 1 A: trigger "Predatory Nightstalker" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Predatory Nightstalker"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Predatory Nightstalker's sacrifice is optional" {
+  battlefield A: 5 "Swamp"
+  hand A: "Predatory Nightstalker"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Predatory Nightstalker"
+  turn 1 A: decline "Predatory Nightstalker"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

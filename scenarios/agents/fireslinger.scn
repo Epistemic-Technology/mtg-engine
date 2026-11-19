@@ -1,0 +1,10 @@
+scenario "Fireslinger pings and hurts its controller" {
+  battlefield A: "Fireslinger"
+  battlefield B: "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Fireslinger" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life A 19
+  assert tapped "Fireslinger"
+}

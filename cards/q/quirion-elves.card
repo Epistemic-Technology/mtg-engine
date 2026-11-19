@@ -1,0 +1,9 @@
+card "Quirion Elves" {
+  oracle_id e2975a88-5a5a-462a-90b9-d8c00150b6d3
+  cost {1}{G}
+  type Creature — Elf Druid
+  pt 1/1
+  as this enters choose color
+  activated {T}: add {G}
+  mana chosen
+}

@@ -1,0 +1,17 @@
+scenario "Battle-Rattle Shaman pumps a creature at beginning of combat" {
+  battlefield A: "Battle-Rattle Shaman", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Battle-Rattle Shaman" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 16
+}
+
+scenario "Battle-Rattle Shaman may decline" {
+  battlefield A: "Battle-Rattle Shaman", "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Battle-Rattle Shaman" targeting "Grizzly Bears"
+  turn 2 begin_combat A: decline "Battle-Rattle Shaman"
+  run_to turn 2 declare_attackers
+  assert power "Grizzly Bears" 2
+}

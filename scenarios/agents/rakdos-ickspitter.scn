@@ -1,0 +1,20 @@
+scenario "rakdos ickspitter pings a creature and its controller loses 1" {
+  battlefield A: "Rakdos Ickspitter"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rakdos Ickspitter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert life B 19
+  assert life A 20
+  assert tapped "Rakdos Ickspitter"
+}
+
+scenario "rakdos ickspitter on your own creature costs you life" {
+  battlefield A: "Rakdos Ickspitter", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rakdos Ickspitter" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 19
+  assert life B 20
+}

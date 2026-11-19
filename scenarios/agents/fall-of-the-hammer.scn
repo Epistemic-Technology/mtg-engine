@@ -1,0 +1,20 @@
+scenario "Fall of the Hammer: your creature deals its power to another" {
+  battlefield A: 2 "Mountain", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Fall of the Hammer"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Fall of the Hammer" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Fall of the Hammer's first target must be yours" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Fall of the Hammer"
+  start turn 2 A precombat_main
+  illegal turn 2 A: cast "Fall of the Hammer" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Fall of the Hammer"
+}

@@ -1,0 +1,24 @@
+scenario "pit-imp pumps twice per turn" {
+  battlefield A: "Pit Imp", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pit Imp"
+  turn 1 A: activate "Pit Imp"
+  illegal turn 1 postcombat_main A: activate "Pit Imp"
+  run_to turn 1 postcombat_main
+  assert power "Pit Imp" 2
+  run_to turn 1 end
+  assert power "Pit Imp" 2
+}
+
+scenario "pit-imp pump wears off and resets next turn" {
+  battlefield A: "Pit Imp", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Pit Imp"
+  turn 3 A: activate "Pit Imp"
+  turn 3 A: activate "Pit Imp"
+  run_to turn 2 upkeep
+  assert power "Pit Imp" 0
+  run_to turn 3 postcombat_main
+  assert power "Pit Imp" 2
+  assert has "Pit Imp" flying
+}

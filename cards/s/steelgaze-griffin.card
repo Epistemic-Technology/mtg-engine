@@ -1,0 +1,8 @@
+card "Steelgaze Griffin" {
+  oracle_id 3fdc082b-1abf-4715-9d66-105981c1f989
+  cost {4}{U}
+  type Creature — Griffin
+  pt 2/4
+  keywords flying
+  triggered whenever you draw your second card each turn: this gets +2/+0
+}

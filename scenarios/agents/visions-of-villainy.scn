@@ -1,0 +1,30 @@
+scenario "visions of villainy draws two and loses two" {
+  battlefield A: 3 "Swamp"
+  hand A: "Visions of Villainy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Visions of Villainy"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+  assert graveyard A contains "Visions of Villainy"
+}
+
+scenario "visions of villainy costs one less with a villain" {
+  battlefield A: 2 "Swamp", "Common Crook"
+  hand A: "Visions of Villainy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Visions of Villainy"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+}
+
+scenario "visions of villainy without a villain needs full cost" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Visions of Villainy"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Visions of Villainy"
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert life A 20
+}

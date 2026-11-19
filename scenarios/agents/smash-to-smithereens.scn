@@ -1,0 +1,22 @@
+scenario "smash to smithereens destroys an artifact and damages its controller" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Smash to Smithereens"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Smash to Smithereens" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 17
+  assert life A 20
+}
+
+scenario "smash to smithereens needs an artifact" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Smash to Smithereens"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Smash to Smithereens" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 20
+}

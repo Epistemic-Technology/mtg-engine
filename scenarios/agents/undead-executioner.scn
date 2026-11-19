@@ -1,0 +1,22 @@
+scenario "Undead Executioner shrinks a creature when it dies" {
+  battlefield A: "Undead Executioner", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Undead Executioner"
+  turn 1 A: trigger "Undead Executioner" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Undead Executioner"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Undead Executioner's -2/-2 is optional" {
+  battlefield A: "Undead Executioner", "Mountain"
+  hand A: "Lightning Bolt"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Lightning Bolt" targeting "Undead Executioner"
+  turn 1 A: trigger "Undead Executioner" targeting "Grizzly Bears"
+  turn 1 A: decline "Undead Executioner"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert power "Grizzly Bears" 2
+}

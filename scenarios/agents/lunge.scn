@@ -1,0 +1,10 @@
+scenario "Lunge hits a creature and a player" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lunge"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lunge" targeting "Grizzly Bears", player B
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 18
+}

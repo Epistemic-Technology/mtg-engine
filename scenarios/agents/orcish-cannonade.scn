@@ -1,0 +1,21 @@
+scenario "orcish cannonade deals 2 to target, 3 to you, draws" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Orcish Cannonade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orcish Cannonade" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 17
+  assert hand A count 1
+}
+
+scenario "orcish cannonade at a player" {
+  battlefield A: 3 "Mountain"
+  hand A: "Orcish Cannonade"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Orcish Cannonade" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 17
+}

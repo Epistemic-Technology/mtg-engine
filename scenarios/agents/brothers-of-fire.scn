@@ -1,0 +1,18 @@
+scenario "Brothers of Fire pings any target and its controller" {
+  battlefield A: "Brothers of Fire", 3 "Mountain"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Brothers of Fire" targeting player B
+  run_to turn 2 postcombat_main
+  assert life B 19
+  assert life A 19
+}
+
+scenario "Brothers of Fire kills a creature" {
+  battlefield A: "Brothers of Fire", 6 "Mountain"
+  battlefield B: "Llanowar Elves"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Brothers of Fire" targeting "Llanowar Elves"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Llanowar Elves"
+  assert life A 19
+}

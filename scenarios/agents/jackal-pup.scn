@@ -1,0 +1,10 @@
+scenario "Jackal Pup deals the damage it is dealt to its controller" {
+  battlefield A: "Jackal Pup"
+  battlefield B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Jackal Pup"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert graveyard A contains "Jackal Pup"
+}

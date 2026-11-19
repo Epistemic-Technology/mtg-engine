@@ -1,0 +1,11 @@
+scenario "punish the enemy hits a player and a creature" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Punish the Enemy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Punish the Enemy" targeting player B, "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert graveyard B contains "Hill Giant"
+  assert life A 20
+}

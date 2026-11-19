@@ -1,0 +1,7 @@
+card "Quill-Slinger Boggart" {
+  oracle_id 593b229b-579b-4052-8a00-dac787b149b1
+  cost {3}{B}
+  type Creature — Goblin Warrior
+  pt 3/2
+  triggered whenever a player casts Kithkin spell: you may target player loses 1 life
+}

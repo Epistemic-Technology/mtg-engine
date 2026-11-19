@@ -1,0 +1,7 @@
+card "Undead Executioner" {
+  oracle_id e2bfac84-0e2f-4f3e-8d87-a555c26093a6
+  cost {3}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered when this dies: you may target creature gets -2/-2
+}

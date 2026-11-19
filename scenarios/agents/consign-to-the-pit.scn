@@ -1,0 +1,10 @@
+scenario "Consign to the Pit destroys and burns the controller" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Consign to the Pit"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Consign to the Pit" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+}

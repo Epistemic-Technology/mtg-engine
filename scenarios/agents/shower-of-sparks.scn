@@ -1,0 +1,11 @@
+scenario "shower of sparks hits a creature and a player" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shower of Sparks"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shower of Sparks" targeting "Grizzly Bears", player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert damage "Grizzly Bears" 1
+  assert battlefield B contains "Grizzly Bears"
+}

@@ -1,0 +1,10 @@
+scenario "Melt Terrain destroys a land and burns its controller" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Melt Terrain"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Melt Terrain" targeting "Forest"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 18
+}

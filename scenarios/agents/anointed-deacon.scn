@@ -1,0 +1,25 @@
+scenario "Anointed Deacon pumps a Vampire at beginning of combat" {
+  battlefield A: "Anointed Deacon", "Vampire Envoy"
+  start turn 2 A precombat_main
+  turn 2 begin_combat A: trigger "Anointed Deacon" targeting "Vampire Envoy"
+  run_to turn 2 declare_attackers
+  assert power "Vampire Envoy" 3
+  assert power "Anointed Deacon" 3
+}
+
+scenario "Anointed Deacon can't target a non-Vampire" {
+  battlefield A: "Anointed Deacon", "Grizzly Bears"
+  start turn 2 A precombat_main
+  illegal turn 2 begin_combat A: trigger "Anointed Deacon" targeting "Grizzly Bears"
+  run_to turn 2 declare_attackers
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Anointed Deacon does not trigger on opponent's turn" {
+  battlefield A: "Anointed Deacon"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  run_to turn 2 declare_attackers
+  assert stack count 0
+  assert power "Anointed Deacon" 3
+}

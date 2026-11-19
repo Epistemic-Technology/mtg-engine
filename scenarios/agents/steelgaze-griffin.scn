@@ -1,0 +1,18 @@
+scenario "Steelgaze Griffin gets +2/+0 on the second draw of the turn" {
+  battlefield A: "Steelgaze Griffin", "Island"
+  hand A: "Opt"
+  start turn 3 A
+  turn 3 A: cast "Opt"
+  run_to turn 3 begin_combat
+  assert power "Steelgaze Griffin" 4
+  assert toughness "Steelgaze Griffin" 4
+  run_to turn 4 upkeep
+  assert power "Steelgaze Griffin" 2
+}
+
+scenario "Steelgaze Griffin ignores the first draw" {
+  battlefield A: "Steelgaze Griffin"
+  start turn 3 A
+  run_to turn 3 begin_combat
+  assert power "Steelgaze Griffin" 2
+}

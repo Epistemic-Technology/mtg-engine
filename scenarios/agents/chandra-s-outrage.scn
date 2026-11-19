@@ -1,0 +1,21 @@
+scenario "Chandra's Outrage kills a creature and burns its controller" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Chandra's Outrage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Chandra's Outrage" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Chandra's Outrage on own creature burns its caster" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Chandra's Outrage"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Chandra's Outrage" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert life B 20
+}

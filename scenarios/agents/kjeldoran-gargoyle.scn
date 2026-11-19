@@ -1,0 +1,20 @@
+scenario "Kjeldoran Gargoyle gains life equal to damage dealt" {
+  battlefield A: "Kjeldoran Gargoyle"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Kjeldoran Gargoyle"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Kjeldoran Gargoyle gains life from damage to a blocker" {
+  battlefield A: "Kjeldoran Gargoyle"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Kjeldoran Gargoyle"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 23
+  assert damage "Kjeldoran Gargoyle" 0
+}

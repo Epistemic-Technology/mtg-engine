@@ -1,0 +1,15 @@
+scenario "Mindwrack Harpy mills each player three at beginning of combat" {
+  battlefield A: "Mindwrack Harpy"
+  start turn 2 A precombat_main
+  run_to turn 2 declare_attackers
+  assert graveyard A contains 3 "Plains"
+  assert graveyard B contains 3 "Plains"
+}
+
+scenario "Mindwrack Harpy does not trigger on opponent's combat" {
+  battlefield A: "Mindwrack Harpy"
+  start turn 2 B precombat_main
+  run_to turn 2 declare_attackers
+  assert graveyard A lacks "Plains"
+  assert graveyard B lacks "Plains"
+}

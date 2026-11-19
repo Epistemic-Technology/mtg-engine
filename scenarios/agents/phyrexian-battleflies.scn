@@ -1,0 +1,24 @@
+scenario "phyrexian-battleflies pumps twice per turn" {
+  battlefield A: "Phyrexian Battleflies", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Phyrexian Battleflies"
+  turn 1 A: activate "Phyrexian Battleflies"
+  illegal turn 1 postcombat_main A: activate "Phyrexian Battleflies"
+  run_to turn 1 postcombat_main
+  assert power "Phyrexian Battleflies" 2
+  run_to turn 1 end
+  assert power "Phyrexian Battleflies" 2
+}
+
+scenario "phyrexian-battleflies pump wears off and resets next turn" {
+  battlefield A: "Phyrexian Battleflies", 4 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Phyrexian Battleflies"
+  turn 3 A: activate "Phyrexian Battleflies"
+  turn 3 A: activate "Phyrexian Battleflies"
+  run_to turn 2 upkeep
+  assert power "Phyrexian Battleflies" 0
+  run_to turn 3 postcombat_main
+  assert power "Phyrexian Battleflies" 2
+  assert has "Phyrexian Battleflies" flying
+}
