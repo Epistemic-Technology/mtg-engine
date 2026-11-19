@@ -1,0 +1,8 @@
+card "Enduring Sliver" {
+  oracle_id f9726123-f87b-41bb-9b6f-6d2fbcf0eae2
+  cost {1}{W}
+  type Creature — Sliver
+  pt 2/2
+  outlast {2}
+  static other Sliver creature you control: has outlast {2}
+}

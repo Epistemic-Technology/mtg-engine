@@ -2079,7 +2079,14 @@ fn filter_one(f: &Filter) -> String {
         }
     }
     if let Some(e) = f.status.enchanted {
-        words.push(if e { "with aura" } else { "without aura" }.to_string());
+        words.push(
+            match (e, f.enchanted_late) {
+                (true, true) => "with aura late",
+                (true, false) => "with aura",
+                (false, _) => "without aura",
+            }
+            .to_string(),
+        );
     }
     if f.status.equipped {
         words.push("with Equipment".to_string());

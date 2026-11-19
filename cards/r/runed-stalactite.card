@@ -1,0 +1,7 @@
+card "Runed Stalactite" {
+  oracle_id 1c169307-71f5-4679-8b5a-d60c1109b9db
+  cost {1}
+  type Artifact — Equipment
+  static equipped: +1/+1, add subtype every
+  equip {2}
+}

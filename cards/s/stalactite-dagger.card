@@ -1,0 +1,8 @@
+card "Stalactite Dagger" {
+  oracle_id 064c3269-c012-4fc7-84c3-5f147a82a03c
+  cost {2}
+  type Artifact — Equipment
+  triggered when this enters: create 1 "1/1 colorless Shapeshifter creature with changeling"
+  static equipped: +1/+1, add subtype all
+  equip {2}
+}

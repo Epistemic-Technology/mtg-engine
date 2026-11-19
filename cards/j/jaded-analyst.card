@@ -1,0 +1,8 @@
+card "Jaded Analyst" {
+  oracle_id e43400fe-3df5-4942-abc3-b9bba34fc7cd
+  cost {1}{U}
+  type Creature — Human Detective
+  pt 3/2
+  keywords defender
+  triggered whenever you draw your second card each turn: this loses defender and gains vigilance
+}

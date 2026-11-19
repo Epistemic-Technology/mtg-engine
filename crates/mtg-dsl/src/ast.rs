@@ -552,6 +552,9 @@ pub struct Filter {
     /// named ~ on the battlefield", "creature named ~ you control") rather
     /// than after it ("creature you control named ~").
     pub named_first: bool,
+    /// `with aura late`: "creatures you control that are enchanted"
+    /// (`status.enchanted`, printed after the controller).
+    pub enchanted_late: bool,
     /// `attached to this`, `attached to attached`, `attached to target 1`
     /// (`ObjFilter::attached_to`).
     pub attached_to: Option<AttachedRef>,

@@ -1,0 +1,7 @@
+card "Virulent Sliver" {
+  oracle_id 767c896d-4ff6-4cd4-b3a4-80179e84e1cd
+  cost {G}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver creature: has poisonous 1
+}

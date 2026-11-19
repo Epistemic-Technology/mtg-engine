@@ -1,0 +1,7 @@
+card "Guildscorn Ward" {
+  oracle_id daff56a6-a5b6-4726-8fee-676b846e0c6b
+  cost {W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has protection from multicolored
+}

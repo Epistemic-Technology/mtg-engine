@@ -1,0 +1,9 @@
+card "Amoeboid Changeling" {
+  oracle_id 68865793-daeb-4c55-80cb-12853f9f96c4
+  cost {1}{U}
+  type Creature — Shapeshifter
+  pt 1/1
+  keywords changeling
+  activated {T}: target creature gains all creature types
+  activated {T}: target creature loses all creature types
+}

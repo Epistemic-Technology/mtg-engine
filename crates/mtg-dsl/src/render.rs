@@ -1641,7 +1641,7 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     if f.relation == Relation::Other {
         words.push("other".to_string());
     }
-    if f.status.enchanted == Some(true) {
+    if f.status.enchanted == Some(true) && !f.enchanted_late {
         words.push("enchanted".to_string());
     }
     if f.status.equipped {
@@ -1817,6 +1817,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     };
     if f.status.enchanted == Some(false) {
         that(&mut s, " that isn't enchanted", " that aren't enchanted");
+    }
+    if f.status.enchanted == Some(true) && f.enchanted_late {
+        that(&mut s, " that's enchanted", " that are enchanted");
     }
     if let Some(r) = f.combat_with {
         let this = this_ref(card);

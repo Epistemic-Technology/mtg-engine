@@ -1,0 +1,8 @@
+card "Undercover Skrull" {
+  oracle_id 33b1379f-b329-42cd-92ed-4811d44ed8dd
+  cost {1}{G}
+  type Creature — Skrull Shapeshifter Villain
+  pt 1/1
+  static as long as 2 creature cards in your graveyard, this: +2/+2, add subtype all
+  activated {T}: add any
+}

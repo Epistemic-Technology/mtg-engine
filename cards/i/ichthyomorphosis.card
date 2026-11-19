@@ -1,0 +1,7 @@
+card "Ichthyomorphosis" {
+  oracle_id 816e13c6-79d8-431f-a04e-15c423baf7b3
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: loses all abilities, set color blue, set subtype Fish, base 0/1
+}

@@ -244,9 +244,12 @@ impl GameState {
     fn candidates(&self, ev: &Proposed, applied: &Applied) -> Vec<Candidate> {
         let mut out = Vec::new();
         if self.replacement_sources > 0 {
+            // A permanent may have a replacement ability granted to it
+            // (absorb from Lymph Sliver).
+            let granted = self.grant_sources > 0;
             for id in &self.battlefield {
                 let o = &self.objects[*id];
-                if !self.flags_of(o).has_replacements() {
+                if !granted && !self.flags_of(o).has_replacements() {
                     continue;
                 }
                 let Some(c) = self.characteristics(*id) else {

@@ -1,0 +1,8 @@
+card "Gustrider Exuberant" {
+  oracle_id a358fe8f-6ec2-4b42-8851-ef65308ccb1d
+  cost {2}{W}
+  type Creature — Human Wizard
+  pt 1/2
+  keywords flying
+  activated sacrifice this: each creature you control with power 5 or greater gains flying
+}

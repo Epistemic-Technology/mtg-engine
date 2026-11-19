@@ -1,0 +1,7 @@
+card "Blades of Velis Vel" {
+  oracle_id 9955885b-fad7-4ee6-bd62-48d8a7731044
+  cost {1}{R}
+  type Kindred Instant — Shapeshifter
+  keywords changeling
+  spell: up to 2 target creature each gets +2/+0 and gains all creature types
+}

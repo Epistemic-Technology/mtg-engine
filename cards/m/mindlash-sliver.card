@@ -1,0 +1,7 @@
+card "Mindlash Sliver" {
+  oracle_id 7a08b371-1353-476d-ae72-379594f801da
+  cost {B}
+  type Creature — Sliver
+  pt 1/1
+  static all Sliver: has ability { activated {1}, sacrifice this: each player discards 1 card }
+}

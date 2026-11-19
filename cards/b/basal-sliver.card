@@ -1,0 +1,7 @@
+card "Basal Sliver" {
+  oracle_id 18e7ba0d-88a5-466b-9228-d3f5aae8f83e
+  cost {2}{B}
+  type Creature — Sliver
+  pt 2/2
+  static all Sliver: has ability { activated sacrifice this: add {B}{B} }
+}

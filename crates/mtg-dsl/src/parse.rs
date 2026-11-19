@@ -6693,6 +6693,9 @@ impl P {
                 {
                     f.status.enchanted = Some(w == "with");
                     self.pos += 2;
+                    if w == "with" && self.eat_word("late") {
+                        f.enchanted_late = true;
+                    }
                 }
                 // "an equipped creature" (`creature with Equipment`).
                 "with" if self.word_at(1).as_deref() == Some("equipment") && !f.status.equipped => {

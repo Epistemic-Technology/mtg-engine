@@ -6066,6 +6066,15 @@ impl CardPool {
         }) {
             flags.set(DefFlags::ATTACK_RULE, true);
         }
+        // "All Sliver creatures have absorb 1": a granted replacement or
+        // prevention ability counts its granter in
+        // `GameState::replacement_sources`, so replacements are looked for.
+        if def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(s) if s.parts.iter().any(|m| matches!(m,
+                Modification::AddAbility(id) if matches!(self.ability(*id), AbilityDef::Replacement(r) if !matches!(r.replaces, Replaces::Enters)))))
+        }) {
+            flags.set(DefFlags::REPLACEMENTS, true);
+        }
         flags.set(DefFlags::MARKS, !def.marks.is_empty());
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
