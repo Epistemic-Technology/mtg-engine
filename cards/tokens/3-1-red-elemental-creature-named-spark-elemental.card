@@ -1,0 +1,8 @@
+token "3/1 red Elemental creature named Spark Elemental" {
+  name "Spark Elemental"
+  type Creature — Elemental
+  pt 3/1
+  color red
+  keywords trample, haste
+  triggered at beginning of the end step: sacrifice this
+}

@@ -1,0 +1,6 @@
+token "Cursed Role" {
+  name "Cursed"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: base 1/1
+}

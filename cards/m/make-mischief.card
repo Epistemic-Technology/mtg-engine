@@ -1,0 +1,6 @@
+card "Make Mischief" {
+  oracle_id 5de50aa5-3b30-4d7d-9203-bc8fc0f8fb34
+  cost {2}{R}
+  type Sorcery
+  spell: deal 1 damage to any target; create 1 "1/1 red Devil creature that pings" it has
+}

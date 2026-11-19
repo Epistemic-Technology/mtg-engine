@@ -1,0 +1,7 @@
+card "Dread Drone" {
+  oracle_id b6821131-9ae1-4a3c-8235-90deae33c05f
+  cost {4}{B}
+  type Creature — Eldrazi Drone
+  pt 4/1
+  triggered when this enters: create 2 "Eldrazi Spawn" it has
+}

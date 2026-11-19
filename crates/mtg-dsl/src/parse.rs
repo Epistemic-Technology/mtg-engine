@@ -3766,22 +3766,27 @@ impl P {
                     in_addition,
                 })
             }
-            // "and you create a 1/1 ... token".
-            "create" if subject == Recipient::You => {
+            // "and you create a 1/1 ... token", "Its controller creates a
+            // Treasure token", "each player creates ...".
+            "create" | "creates" => {
                 self.pos -= 1;
                 match self.verb_first()? {
                     Effect::CreateToken {
                         token,
                         count,
                         tapped,
+                        it_has,
+                        attached,
                         ..
                     } => Ok(Effect::CreateToken {
                         token,
                         count,
                         tapped,
-                        you: true,
+                        who: Some(subject),
+                        it_has,
+                        attached,
                     }),
-                    _ => self.fail("expected a token after `you create`"),
+                    _ => self.fail("expected a token after `create`"),
                 }
             }
             _ => self.fail(format!("unknown verb `{w}` after a subject")),
@@ -4671,7 +4676,8 @@ impl P {
                 let dest = self.countered_to();
                 Ok(Effect::Counter { to, dest })
             }
-            "create" => {
+            // `creates` after a subject (`its controller creates ...`).
+            "create" | "creates" => {
                 if self.eat_word("token") || self.eat_words(&["a", "token"]) {
                     self.expect_word("copy")?;
                     self.expect_word("of")?;
@@ -4684,11 +4690,19 @@ impl P {
                 let token = self.string()?;
                 self.eat_word("token");
                 self.eat_word("tokens");
+                let it_has = self.eat_words(&["it", "has"]);
+                let attached = if self.eat_words(&["attached", "to"]) {
+                    Some(self.recipient()?)
+                } else {
+                    None
+                };
                 Ok(Effect::CreateToken {
                     token,
                     count,
                     tapped,
-                    you: false,
+                    who: None,
+                    it_has,
+                    attached,
                 })
             }
             "attach" => {

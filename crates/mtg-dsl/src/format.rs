@@ -822,13 +822,29 @@ impl Fmt {
                 token,
                 count,
                 tapped,
-                you,
-            } => format!(
-                "{}create {}{} \"{token}\"",
-                if *you { "you " } else { "" },
-                num(*count),
-                if *tapped { " tapped" } else { "" }
-            ),
+                who,
+                it_has,
+                attached,
+            } => {
+                let mut s = match who {
+                    None => String::from("create"),
+                    Some(Recipient::You) => String::from("you create"),
+                    Some(w) => format!("{} creates", self.recipient(*w, t)),
+                };
+                let _ = write!(
+                    s,
+                    " {}{} \"{token}\"",
+                    num(*count),
+                    if *tapped { " tapped" } else { "" }
+                );
+                if *it_has {
+                    s.push_str(" it has");
+                }
+                if let Some(a) = attached {
+                    let _ = write!(s, " attached to {}", self.recipient(*a, t));
+                }
+                s
+            }
             Effect::CreateTokenCopy { of, except } => {
                 let mut s = format!("create token copy of {}", self.recipient(*of, t));
                 if *except {

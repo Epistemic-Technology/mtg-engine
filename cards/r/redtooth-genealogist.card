@@ -1,0 +1,7 @@
+card "Redtooth Genealogist" {
+  oracle_id f6cb9c5a-601e-4580-9fab-903e9b00e35e
+  cost {2}{G}
+  type Creature — Elf Advisor
+  pt 2/3
+  triggered when this enters: create 1 "Royal Role" attached to another target creature you control
+}

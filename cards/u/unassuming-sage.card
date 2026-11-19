@@ -1,0 +1,7 @@
+card "Unassuming Sage" {
+  oracle_id 1cf4e16b-2273-41c7-9bcd-0cdc78e12198
+  cost {1}{W}
+  type Creature — Human Peasant Wizard
+  pt 2/2
+  triggered when this enters: you may pay {2}; if you do, create 1 "Sorcerer Role" attached to this
+}

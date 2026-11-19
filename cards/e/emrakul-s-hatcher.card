@@ -1,0 +1,7 @@
+card "Emrakul's Hatcher" {
+  oracle_id 1ee811fb-c25d-4cf5-b396-539c36e8f90f
+  cost {4}{R}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  triggered when this enters: create 3 "Eldrazi Spawn" it has
+}

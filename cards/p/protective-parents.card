@@ -1,0 +1,7 @@
+card "Protective Parents" {
+  oracle_id d9717522-358b-41ac-9183-8a6b3981f921
+  cost {2}{W}
+  type Creature — Human Peasant
+  pt 3/2
+  triggered when this dies: create 1 "Young Hero Role" attached to up to 1 target creature you control
+}

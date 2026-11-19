@@ -1,0 +1,7 @@
+card "Call the Scions" {
+  oracle_id 731a70e8-40d6-47b9-b2b3-b16c818e1935
+  cost {2}{G}
+  type Sorcery
+  keywords devoid
+  spell: create 2 "Eldrazi Scion" it has
+}

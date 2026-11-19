@@ -1,0 +1,8 @@
+card "Charmed Clothier" {
+  oracle_id ad0e6b12-a6bd-4860-9eac-68b2492d9567
+  cost {4}{W}
+  type Creature — Faerie Advisor
+  pt 3/3
+  keywords flying
+  triggered when this enters: create 1 "Royal Role" attached to another target creature you control
+}

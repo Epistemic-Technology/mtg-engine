@@ -1,0 +1,6 @@
+card "Shatter the Oath" {
+  oracle_id f545870d-b628-4acb-88c7-37c2d72a5a85
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature or enchantment; create 1 "Wicked Role" attached to up to 1 target creature you control
+}

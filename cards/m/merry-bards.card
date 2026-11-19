@@ -1,0 +1,7 @@
+card "Merry Bards" {
+  oracle_id 699fa8e6-84f5-4010-a8fe-7b2e4f280ef9
+  cost {2}{R}
+  type Creature — Human Bard
+  pt 3/2
+  triggered when this enters: you may pay {1}; when you do, create 1 "Young Hero Role" attached to target creature you control
+}

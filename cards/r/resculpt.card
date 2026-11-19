@@ -1,0 +1,6 @@
+card "Resculpt" {
+  oracle_id 814e321d-16fd-4f7b-a8d8-2b089be76f2c
+  cost {1}{U}
+  type Instant
+  spell: exile target artifact or creature; its controller creates 1 "4/4 blue and red Elemental creature"
+}

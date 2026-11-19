@@ -1,0 +1,8 @@
+card "Eyeless Watcher" {
+  oracle_id ba047b0b-d451-4566-8656-00b00611de8c
+  cost {3}{G}
+  type Creature — Eldrazi Drone
+  pt 1/1
+  keywords devoid
+  triggered when this enters: create 2 "Eldrazi Scion" it has
+}

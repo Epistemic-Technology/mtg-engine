@@ -1,0 +1,8 @@
+card "Blisterpod" {
+  oracle_id 2a62b226-d317-4212-9781-9c1d72056f11
+  cost {G}
+  type Creature — Eldrazi Drone
+  pt 1/1
+  keywords devoid
+  triggered when this dies: create 1 "Eldrazi Scion" it has
+}

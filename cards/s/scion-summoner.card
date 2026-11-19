@@ -1,0 +1,8 @@
+card "Scion Summoner" {
+  oracle_id fa60f3a6-5834-4059-adea-dd17366b7885
+  cost {2}{G}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  keywords devoid
+  triggered when this enters: create 1 "Eldrazi Scion" it has
+}

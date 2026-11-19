@@ -1,0 +1,7 @@
+card "Broodrage Mycoid" {
+  oracle_id eeba4706-b4f2-48f9-bcb1-e42a5fc68c40
+  cost {3}{B}
+  type Creature — Fungus
+  pt 4/3
+  triggered at beginning of your end step if descended this turn: create 1 "1/1 black Fungus creature that can't block"
+}

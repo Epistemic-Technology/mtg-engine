@@ -1,0 +1,9 @@
+card "Cut In" {
+  oracle_id 9b205900-ec39-455e-900b-615ece08a07f
+  cost {3}{R}
+  type Sorcery
+  spell {
+    deal 4 damage to target creature
+    create 1 "Young Hero Role" attached to up to 1 target creature you control
+  }
+}

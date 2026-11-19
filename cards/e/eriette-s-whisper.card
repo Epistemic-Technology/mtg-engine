@@ -1,0 +1,6 @@
+card "Eriette's Whisper" {
+  oracle_id 27ca3201-a374-4a9d-b0ba-93b391f36844
+  cost {3}{B}
+  type Sorcery
+  spell: target opponent discards 2 cards; create 1 "Wicked Role" attached to up to 1 target creature you control
+}

@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::card::{CardRef, CounterKind, TargetSpec};
+use crate::card::{CardRef, CounterKind, Subtype, TargetSpec};
 use crate::decision::{Choice, DecisionKind};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
@@ -74,6 +74,7 @@ impl GameState {
             let mut to_destroy = Vec::new();
             let mut annihilate = Vec::new();
             let mut unattach = Vec::new();
+            let mut roles: Vec<(ObjId, PlayerId, u64, ObjId)> = Vec::new();
             // 704.5d: tokens that left the battlefield cease to exist. They
             // are listed as they leave (`move_object_now`), so only the
             // battlefield itself needs a walk.
@@ -106,6 +107,14 @@ impl GameState {
                     to_graveyard.push(id);
                     continue;
                 }
+                // 704.5z: Roles, gathered here as legally attached Auras.
+                if let (Some(_), Some(host)) = (self.pool.get(o.def).enchant(), o.attached_to)
+                    && self
+                        .characteristics(id)
+                        .is_some_and(|c| c.has_subtype(Subtype::ROLE))
+                {
+                    roles.push((host, o.controller, o.timestamp, id));
+                }
                 // 704.5n: an Equipment attached to something it cannot
                 // equip becomes unattached.
                 if self.pool.get(o.def).is_equipment()
@@ -132,6 +141,16 @@ impl GameState {
                 } else if o.damage >= u32::try_from(c.toughness).unwrap_or(0) || o.deathtouch_damage
                 {
                     to_destroy.push(id);
+                }
+            }
+            // 704.5z (CR 303.7a): of the Roles one player controls on one
+            // permanent, all but the newest go to the graveyard.
+            if roles.len() >= 2 {
+                roles.sort_unstable();
+                for w in roles.windows(2) {
+                    if w[0].0 == w[1].0 && w[0].1 == w[1].1 {
+                        to_graveyard.push(w[0].3);
+                    }
                 }
             }
             // 704.5j: the legend rule.

@@ -1,0 +1,6 @@
+card "Buy Your Silence" {
+  oracle_id 2fd01a30-0c0e-4ac5-b96d-b2a6dad31f0c
+  cost {4}{W}
+  type Sorcery
+  spell: exile target nonland permanent; its controller creates 1 "Treasure"
+}

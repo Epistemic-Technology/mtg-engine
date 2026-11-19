@@ -5509,12 +5509,39 @@ impl GameState {
                 count,
                 who,
                 tapped,
+                attached,
             } => {
+                // CR 303.4f: an Aura token enters attached to what it was
+                // created attached to; with nothing it could enchant there
+                // (no target chosen, or one now illegal), it isn't created.
+                let host = match attached {
+                    Some(r) => {
+                        let spec = self
+                            .pool
+                            .get(*token)
+                            .enchant()
+                            .unwrap_or(TargetSpec::Creature);
+                        let host = self
+                            .recipients(ctx, *r)
+                            .into_iter()
+                            .find_map(|t| on_battlefield(self, t))
+                            .filter(|h| self.is_legal_attachment(spec, *h));
+                        if host.is_none() {
+                            return;
+                        }
+                        host
+                    }
+                    None => None,
+                };
                 for t in self.recipients(ctx, *who) {
                     if let Target::Player(p) = t {
                         for _ in 0..self.eval_num(*count, ctx) {
                             // "then attach this Equipment to it".
-                            ctx.created = Some(self.create_token_with(*token, p, *tapped));
+                            let id = self.create_token_with(*token, p, *tapped);
+                            if let Some(h) = host {
+                                self.attach(id, h);
+                            }
+                            ctx.created = Some(id);
                         }
                     }
                 }

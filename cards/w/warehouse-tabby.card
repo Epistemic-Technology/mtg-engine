@@ -1,0 +1,8 @@
+card "Warehouse Tabby" {
+  oracle_id a7736614-cdd3-43bd-ab3e-461e3e24ed40
+  cost {B}
+  type Creature — Cat
+  pt 1/1
+  triggered whenever enchantment you control is put into a graveyard from the battlefield: create 1 "1/1 black Rat creature that can't block"
+  activated {1}{B}: this gains deathtouch
+}

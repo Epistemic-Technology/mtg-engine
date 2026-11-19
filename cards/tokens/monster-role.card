@@ -1,0 +1,6 @@
+token "Monster Role" {
+  name "Monster"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: +1/+1, has trample
+}

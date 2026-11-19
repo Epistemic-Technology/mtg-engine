@@ -1,0 +1,7 @@
+token "1/1 black Fungus creature that can't block" {
+  name "Fungus"
+  type Creature — Fungus
+  pt 1/1
+  color black
+  keywords can't block
+}

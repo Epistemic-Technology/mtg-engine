@@ -1,0 +1,9 @@
+card "Charge of the Mites" {
+  oracle_id fa47c190-d66a-41b0-aa08-21036cda4223
+  cost {2}{W}
+  type Instant
+  choose one {
+    mode: deal damage equal creature you control to target creature or planeswalker
+    mode: create 2 "Phyrexian Mite"
+  }
+}

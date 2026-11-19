@@ -1,0 +1,7 @@
+card "Ravenform" {
+  oracle_id d3d61a6a-7870-44df-92e5-513dac2c2c3e
+  cost {2}{U}
+  type Sorcery
+  spell: exile target artifact or creature; its controller creates 1 "1/1 blue Bird creature with flying"
+  foretell {U}
+}

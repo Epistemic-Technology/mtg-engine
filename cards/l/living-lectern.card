@@ -1,0 +1,7 @@
+card "Living Lectern" {
+  oracle_id 061e7fb2-2c04-4845-b60a-0e2512a2dec1
+  cost {1}{U}
+  type Artifact Creature — Construct
+  pt 0/4
+  activated {1}, sacrifice this, sorcery: draw 1 card; create 1 "Sorcerer Role" attached to up to 1 another target creature you control
+}

@@ -1,0 +1,6 @@
+card "Afterlife" {
+  oracle_id 4c13e2b5-961a-4031-84b1-15bd19b94286
+  cost {2}{W}
+  type Instant
+  spell: destroy target creature without regeneration; its controller creates 1 "1/1 white Spirit creature with flying"
+}

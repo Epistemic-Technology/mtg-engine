@@ -1,0 +1,6 @@
+card "Essence Feed" {
+  oracle_id c29b997a-5be6-4d51-a81b-d00677ef401d
+  cost {5}{B}
+  type Sorcery
+  spell: target player loses 3 life; you gain 3 life and create 3 "Eldrazi Spawn" it has
+}

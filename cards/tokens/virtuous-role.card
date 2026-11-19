@@ -1,0 +1,6 @@
+token "Virtuous Role" {
+  name "Virtuous"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: +1/+1 count each enchantment you control
+}

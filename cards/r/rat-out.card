@@ -1,0 +1,6 @@
+card "Rat Out" {
+  oracle_id 37043e1e-4556-45f7-9484-15dd8ed5272b
+  cost {B}
+  type Instant
+  spell: up to 1 target creature gets -1/-1; you create 1 "1/1 black Rat creature that can't block"
+}

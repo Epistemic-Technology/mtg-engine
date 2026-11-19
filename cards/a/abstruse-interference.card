@@ -1,0 +1,7 @@
+card "Abstruse Interference" {
+  oracle_id e8ebf5cb-3a26-4bbd-812b-414c129e4bb7
+  cost {2}{U}
+  type Instant
+  keywords devoid
+  spell: counter target spell unless its controller pays {1}; you create 1 "Eldrazi Scion" it has
+}

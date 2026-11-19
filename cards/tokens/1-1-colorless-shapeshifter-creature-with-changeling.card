@@ -1,0 +1,7 @@
+token "1/1 colorless Shapeshifter creature with changeling" {
+  name "Shapeshifter"
+  type Creature — Shapeshifter
+  pt 1/1
+  color
+  keywords changeling
+}
