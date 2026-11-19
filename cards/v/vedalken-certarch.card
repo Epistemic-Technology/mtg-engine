@@ -1,0 +1,7 @@
+card "Vedalken Certarch" {
+  oracle_id 337533fb-2783-493c-856f-c41a83cca443
+  cost {U}
+  type Creature — Vedalken Wizard
+  pt 1/1
+  label "Metalcraft" activated {T}, if metalcraft: tap target artifact, creature, or land
+}

@@ -1,0 +1,7 @@
+card "Night Revelers" {
+  oracle_id 56697773-8a04-49b6-8327-895e972da7e7
+  cost {4}{R}
+  type Creature — Vampire
+  pt 4/4
+  static this: has haste as long as opponent controls Human
+}

@@ -121,7 +121,19 @@ land you control` ("Return a land you control to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
 control"), chosen like a sacrifice, `pay 3
 life`, `sorcery` (printed "Activate only as a sorcery."), `once` (activate
-only once each turn). `none` for a free ability. An ability whose cost
+only once each turn). `none` for a free ability. Activation restrictions
+(CR 602.5b): `if <static condition>` ("Activate only if there are seven or
+more cards in your graveyard"; `if blocked` prints "only if this creature is
+blocked", `if this is creature` "only if this permanent is a creature"),
+`during your upkeep`, `during opponent upkeep` ("during an opponent's
+upkeep"), `during your turn`, `during combat`, `before attackers` ("before
+attackers are declared"), `during your turn before attackers` ("during your
+turn, before attackers are declared"), `during declare blockers`, `during
+end of combat`, and `once ever` ("only once": once for as long as the
+source stays the same object, CR 400.7). `sorcery`, `once`, and the
+restrictions print as one
+sentence in the order written: `if you control enchantment, sorcery` is
+"Activate only if you control an enchantment and only as a sorcery". An ability whose cost
 includes `discard this` is activated from the hand (cycling, channel).
 
 ### Triggers
@@ -168,8 +180,25 @@ less` ("an opponent has 10 or less life"), `your life 30 or more`,
 player controls Island`, `you control no untapped land`, `you control
 other Goblin` ("you control another Goblin"), `attacked this turn` (raid),
 `creature died this turn` (morbid), `hand 0 or less` ("you have no cards
-in hand"), `hand 1 or less` ("you have one or fewer cards in hand"), and
-the shorthands `threshold`, `delirium`, `metalcraft`.
+in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
+`2 instant or sorcery cards in your graveyard` ("there are two or more
+instant and/or sorcery cards in your graveyard"; any card filter), `you
+have 4 creature cards in your graveyard`, `5 mana values in your
+graveyard`, `opponent graveyard 8 or more` ("an opponent has eight or more
+cards in their graveyard"), `opponent controls Human`, `this is untapped`,
+`this is Wall` ("it's untapped", "it's a Wall"), `modified` ("it's
+modified", CR 700.9), `attacking alone`, `blocked`, `being blocked` ("at
+least one creature is blocking this creature"), `attached is legendary`
+("equipped creature is legendary"; "enchanted" on an Aura), `drew 2 this
+turn` ("you've drawn two or more cards this turn"), `cast instant or sorcery
+spell this turn`, `discarded this turn`, `more cards in hand than each
+opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
+3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
+control have total power 8 or greater", formidable), `3 different powers`
+("you control three or more creatures with different powers", coven), the
+parts of the turn under Costs, and the shorthands `threshold`, `delirium`,
+`metalcraft`. A conditional static ability that pumps what an earlier
+static ability of the card pumps prints "gets an additional +2/+2".
 
 ### Replacement events and outcomes
 
@@ -234,7 +263,10 @@ dealt damage, you gain that much life": `you gain that much life`).
 control"); filter `defending player controls` (two players: the
 attacker's opponent).
 `if you control Treefolk, draw 1 card`: a static condition judged as the
-effect resolves ("If you control a Treefolk, draw a card."). `that target
+effect resolves ("If you control a Treefolk, draw a card."). A sentence may
+start with an ability word: `label "Spell mastery" if 2 instant or sorcery
+cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
+instant and/or sorcery cards in your graveyard, scry 2."). `that target
 1` prints "that creature" even after the first mention.
 `tap or untap target creature` (the controller chooses on resolution).
 `spells red or white you cast cost {1} less` prints "Red spells and white

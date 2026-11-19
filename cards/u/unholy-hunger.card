@@ -1,0 +1,9 @@
+card "Unholy Hunger" {
+  oracle_id ed8d8eb5-fbc8-4b7f-9b75-53ab118e72de
+  cost {3}{B}{B}
+  type Instant
+  spell {
+  destroy target creature
+  label "Spell mastery" if 2 instant or sorcery cards in your graveyard, you gain 2 life
+  }
+}

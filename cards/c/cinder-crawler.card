@@ -1,0 +1,7 @@
+card "Cinder Crawler" {
+  oracle_id 3850479f-1c1e-4a72-ae47-6da2997202e2
+  cost {1}{R}
+  type Creature — Salamander
+  pt 1/2
+  activated {R}, if blocked: this gets +1/+0
+}

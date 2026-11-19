@@ -36,6 +36,7 @@ impl GameState {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
+                        && self.activation_allowed(ab, *a, p, *id)
                         && self.payable_for(
                             p,
                             &sources,
@@ -150,6 +151,7 @@ impl GameState {
                         if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                             && ab.from_graveyard
                             && (!ab.sorcery_speed || sorcery_timing)
+                            && self.activation_allowed(ab, *a, p, *id)
                             && self.payable_for(
                                 p,
                                 &sources,
@@ -1000,6 +1002,9 @@ impl GameState {
                 if ab.sorcery_speed && !sorcery_timing {
                     continue;
                 }
+                if !self.activation_allowed(ab, *a, p, id) {
+                    continue;
+                }
                 if ab.from_hand
                     || ab.from_graveyard
                     || (ab.per_turn > 0
@@ -1091,6 +1096,22 @@ impl GameState {
         }
     }
 
+    /// CR 602.5b: an ability's own restrictions on when it may be
+    /// activated ("Activate only during your upkeep", "Activate only if you
+    /// control an enchantment"), judged for the activating player.
+    pub(super) fn activation_allowed(
+        &self,
+        ab: &crate::card::ActivatedAbility,
+        ability: AbilityId,
+        p: PlayerId,
+        source: ObjId,
+    ) -> bool {
+        ab.conditions
+            .iter()
+            .all(|c| self.condition_now(c, p, source))
+            && !(ab.once_ever && self.activated_ever.contains(&(source, ability)))
+    }
+
     /// CR 602.2a: announce an activated ability; it goes on the stack and
     /// its targets are chosen next (`Flow::Casting`), then costs are paid
     /// (`finish_activation`).
@@ -1110,6 +1131,9 @@ impl GameState {
             }
             if a.per_turn > 0 {
                 self.activated_once.push((source, ability));
+            }
+            if a.once_ever {
+                self.activated_ever.push((source, ability));
             }
         }
         let timestamp = self.tick();
@@ -1851,6 +1875,17 @@ impl GameState {
         self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
+        self.cast_this_turn.push((caster, def_ref));
+        // "As long as you've cast an instant or sorcery spell this turn":
+        // the cast is recorded after the card left its zone, so a
+        // hand-watching static is refreshed now.
+        if self
+            .battlefield
+            .iter()
+            .any(|b| self.pool.get(self.objects[*b].def).hand_static)
+        {
+            self.cbump();
+        }
         self.emit(Event::Cast {
             player: caster,
             spell,
@@ -2340,9 +2375,17 @@ impl GameState {
                 }
             }
             Recipient::Attached => {
-                if let Some(t) = self
-                    .current_object(ctx.source)
-                    .and_then(|s| self.objects[s].attached_to)
+                // An Aura sacrificed to pay for its own ability still names
+                // what it enchanted, as it last existed (CR 113.7a).
+                let attached = match self.objects.get(ctx.source) {
+                    Some(o) => o.attached_to,
+                    None => self.lki.get(&ctx.source).and_then(|l| l.object.attached_to),
+                };
+                if let Some(t) = attached
+                    .or_else(|| {
+                        self.current_object(ctx.source)
+                            .and_then(|s| self.objects[s].attached_to)
+                    })
                     .filter(|t| self.objects.contains_key(*t))
                 {
                     out.push(Target::Object(t));
@@ -3569,7 +3612,7 @@ impl GameState {
                         && n > 0
                     {
                         self.player_mut(p).poison += n;
-                        self.bump();
+                        self.poison_bump();
                         self.sba_touch();
                     }
                 }
@@ -3852,7 +3895,7 @@ impl GameState {
         for q in opponents {
             if self.player(q).poison > 0 {
                 self.player_mut(q).poison += 1;
-                self.bump();
+                self.poison_bump();
                 self.sba_touch();
             }
         }

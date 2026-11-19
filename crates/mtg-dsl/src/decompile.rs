@@ -13,7 +13,8 @@ use mtg_core::mana::{Color, ColorSet};
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, Effect, Except, Filter, Kind, Mod, Mode,
-    Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    Recipient, Replacement, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger,
+    TriggerObj,
 };
 
 const ALL_TYPES: [CardType; 9] = [
@@ -198,6 +199,9 @@ impl Decompiler<'_> {
             energy: c.energy,
             chosen: c.chosen,
             order: Vec::new(),
+            conditions: Vec::new(),
+            once_ever: false,
+            restrict: Vec::new(),
         }
     }
 
@@ -235,6 +239,34 @@ impl Decompiler<'_> {
             StaticCondition::CreatureDiedThisTurn => StaticCond::CreatureDiedThisTurn,
             StaticCondition::OpponentDamagedThisTurn => StaticCond::OpponentDamagedThisTurn,
             StaticCondition::Escaped => StaticCond::Escaped,
+            StaticCondition::GraveyardCards { filter, at_least } => StaticCond::GraveyardCards {
+                filter: unowned(filter),
+                at_least: *at_least,
+                have: false,
+            },
+            StaticCondition::OpponentGraveyard(n) => StaticCond::OpponentGraveyard(*n),
+            StaticCondition::ManaValuesInGraveyard(n) => StaticCond::ManaValuesInGraveyard(*n),
+            StaticCondition::OpponentControls { filter, at_least } => {
+                StaticCond::OpponentControls {
+                    filter: unowned(filter),
+                    at_least: *at_least,
+                }
+            }
+            StaticCondition::SourceIs(f) => StaticCond::Is(unowned(f)),
+            StaticCondition::SourceModified => StaticCond::Modified,
+            StaticCondition::SourceAttackingAlone => StaticCond::AttackingAlone,
+            StaticCondition::SourceBlocked => StaticCond::Blocked,
+            StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
+            StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
+            StaticCondition::DrawnThisTurn(n) => StaticCond::DrawnThisTurn(*n),
+            StaticCondition::CastThisTurn(f) => StaticCond::CastThisTurn(unowned(f)),
+            StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
+            StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
+            StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
+            StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
+            StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
+            StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
+            StaticCondition::During(t) => StaticCond::During(*t),
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -883,6 +915,18 @@ impl Decompiler<'_> {
                 let mut cost = self.cost(&act.cost);
                 cost.sorcery = act.sorcery_speed;
                 cost.per_turn = act.per_turn;
+                cost.conditions = act.conditions.iter().map(|c| self.static_cond(c)).collect();
+                cost.restrict = (0..cost.conditions.len()).map(Restrict::Cond).collect();
+                if cost.sorcery && !cost.restrict.is_empty() {
+                    cost.restrict.push(Restrict::Sorcery);
+                }
+                if cost.per_turn == 1 && !cost.restrict.is_empty() {
+                    cost.restrict.push(Restrict::Once);
+                }
+                if act.once_ever {
+                    cost.once_ever = true;
+                    cost.restrict.push(Restrict::OnceEver);
+                }
                 Ability::Activated {
                     cost,
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),

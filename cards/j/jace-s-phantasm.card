@@ -1,0 +1,8 @@
+card "Jace's Phantasm" {
+  oracle_id ab56df8f-0ba3-4d66-bde2-4c9b4acf07e5
+  cost {U}
+  type Creature — Illusion
+  pt 1/1
+  keywords flying
+  static this: +4/+4 as long as opponent graveyard 10 or more
+}

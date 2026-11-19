@@ -1,0 +1,9 @@
+card "Calculated Dismissal" {
+  oracle_id d8e63065-9ebc-419d-b7af-5867fd81edff
+  cost {2}{U}
+  type Instant
+  spell {
+  counter target spell unless its controller pays {3}
+  label "Spell mastery" if 2 instant or sorcery cards in your graveyard, scry 2
+  }
+}

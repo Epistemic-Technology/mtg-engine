@@ -426,6 +426,7 @@ impl GameState {
             emblems: Vec::new(),
             loyalty_activated: Vec::new(),
             activated_once: Vec::new(),
+            activated_ever: Vec::new(),
             x_values: Vec::new(),
             divisions: Vec::new(),
             turn_number: 0,
@@ -434,6 +435,8 @@ impl GameState {
             attacked_this_turn: 0,
             creatures_died_this_turn: 0,
             damaged_this_turn: 0,
+            discarded_this_turn: 0,
+            cast_this_turn: smallvec::SmallVec::new(),
             exile_casts: None,
             suspended_count: 0,
             enters_choice_cards: 0,
@@ -1797,6 +1800,15 @@ impl GameState {
         }
         if let Some(next) = self.step.next() {
             self.step = next;
+            // A static ability conditioned on a part of the turn (CR
+            // 611.3a) changes with the step.
+            if self
+                .battlefield
+                .iter()
+                .any(|id| self.pool.get(self.objects[*id].def).step_static)
+            {
+                self.cbump();
+            }
         } else {
             self.lki.clear();
             self.loyalty_activated.clear();
@@ -1807,6 +1819,8 @@ impl GameState {
             self.attacked_this_turn = 0;
             self.creatures_died_this_turn = 0;
             self.damaged_this_turn = 0;
+            self.discarded_this_turn = 0;
+            self.cast_this_turn.clear();
             if let Some(e) = &mut self.exile_casts {
                 e.foretold_this_turn.clear();
             }

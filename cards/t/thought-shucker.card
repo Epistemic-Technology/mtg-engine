@@ -1,0 +1,7 @@
+card "Thought Shucker" {
+  oracle_id 33f4fcd5-4eea-4146-a564-da5511a8ee0a
+  cost {1}{U}
+  type Creature — Rat Rogue
+  pt 1/3
+  label "Threshold" activated {1}{U}, if threshold, once ever: put 1 +1/+1 counter on this and draw 1 card
+}

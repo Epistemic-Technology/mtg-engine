@@ -1,0 +1,8 @@
+card "Mistform Wall" {
+  oracle_id 02c4abd0-9a68-4a85-954b-3f64666c1f8d
+  cost {2}{U}
+  type Creature — Illusion Wall
+  pt 1/4
+  static this: has defender as long as this is Wall
+  activated {1}: this becomes creature type of choice
+}

@@ -1,0 +1,7 @@
+card "Steadfast Unicorn" {
+  oracle_id c823d38c-e73c-4e09-ab20-c5e7de1f1c64
+  cost {W}
+  type Creature — Unicorn
+  pt 1/2
+  activated {3}{W}, during your turn: each creature you control gets +1/+1 and gains vigilance
+}

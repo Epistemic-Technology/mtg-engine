@@ -1,0 +1,7 @@
+card "Lotleth Giant" {
+  oracle_id 5e0bd136-e7e9-49f0-910b-a9fb0b9c481a
+  cost {6}{B}
+  type Creature — Zombie Giant
+  pt 6/5
+  label "Undergrowth" triggered when this enters: deal count each graveyard creature damage to target opponent
+}

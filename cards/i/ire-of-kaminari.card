@@ -1,0 +1,6 @@
+card "Ire of Kaminari" {
+  oracle_id 4870ec65-8067-45fb-b7ec-a6eca87c7e77
+  cost {3}{R}
+  type Instant — Arcane
+  spell: deal count equal graveyard Arcane damage to any target
+}

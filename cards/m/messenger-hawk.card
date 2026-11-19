@@ -1,0 +1,9 @@
+card "Messenger Hawk" {
+  oracle_id 4029e884-8154-42b3-ae29-3cb98374a294
+  cost {2}{U/B}
+  type Creature — Bird Scout
+  pt 1/2
+  keywords flying
+  triggered when this enters: create 1 "Clue"
+  static this: +2/+0 as long as drew 2 this turn
+}

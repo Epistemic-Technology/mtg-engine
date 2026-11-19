@@ -1,0 +1,8 @@
+card "Strange Augmentation" {
+  oracle_id 5a499546-eab4-40e7-8f7b-4d318aa25810
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1
+  label "Delirium" static enchanted: +2/+2 as long as delirium
+}

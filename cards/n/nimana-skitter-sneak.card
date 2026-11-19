@@ -1,0 +1,7 @@
+card "Nimana Skitter-Sneak" {
+  oracle_id d3168d01-12ea-4a93-9519-82a3544b5bf6
+  cost {3}{B}
+  type Creature — Human Rogue
+  pt 3/4
+  static as long as opponent graveyard 8 or more, this: +1/+0, has menace
+}

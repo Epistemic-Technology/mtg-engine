@@ -572,6 +572,17 @@ impl GameState {
         self.propose(Proposed::GainLife { player: p, amount });
     }
 
+    /// A poison count changed: characteristics change only through a
+    /// static ability that reads one ("as long as an opponent is
+    /// poisoned"), which counts among `life_cda_sources`.
+    pub(super) fn poison_bump(&mut self) {
+        if self.life_cda_sources > 0 {
+            self.cbump();
+        } else {
+            self.bump();
+        }
+    }
+
     /// Change a life total directly (life loss, or a gain that has passed
     /// through the pipeline).
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
@@ -637,7 +648,7 @@ impl GameState {
                 if infect {
                     // CR 702.90b: damage to a player as poison counters.
                     self.player_mut(p).poison += amount;
-                    self.bump();
+                    self.poison_bump();
                     self.sba_touch();
                 } else {
                     let delta = -i32::try_from(amount).unwrap_or(i32::MAX);
@@ -655,7 +666,7 @@ impl GameState {
                         .sum();
                     if toxic > 0 {
                         self.player_mut(p).poison += toxic;
-                        self.bump();
+                        self.poison_bump();
                         self.sba_touch();
                     }
                 }
@@ -772,6 +783,7 @@ impl GameState {
 
     /// Discard a card from hand (CR 701.8).
     pub(super) fn discard_card(&mut self, p: PlayerId, card: ObjId) {
+        self.discarded_this_turn |= 1 << p.index().min(7);
         self.emit(Event::Discard { player: p, card });
         // CR 702.35a: a card with madness is discarded into exile, and its
         // trigger lets its owner cast it for the madness cost.

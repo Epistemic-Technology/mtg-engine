@@ -1,0 +1,7 @@
+card "Shu Farmer" {
+  oracle_id 0d059577-0790-4033-b719-a74b6a62262e
+  cost {1}{W}
+  type Creature — Human
+  pt 1/1
+  activated {T}, during your turn before attackers: you gain 1 life
+}

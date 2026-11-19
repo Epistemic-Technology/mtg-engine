@@ -1,0 +1,7 @@
+card "Atarka Beastbreaker" {
+  oracle_id fdd4ef61-607a-4090-9380-dabbbb448519
+  cost {1}{G}
+  type Creature — Human Warrior
+  pt 2/2
+  label "Formidable" activated {4}{G}, if total power 8 or more: this gets +4/+4
+}

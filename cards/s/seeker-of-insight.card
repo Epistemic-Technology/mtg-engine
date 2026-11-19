@@ -1,0 +1,7 @@
+card "Seeker of Insight" {
+  oracle_id a0b2d446-fe90-40f8-8674-7421c425b489
+  cost {1}{U}
+  type Creature — Human Wizard
+  pt 1/3
+  activated {T}, if cast noncreature spell this turn: draw 1 card then discard 1 card
+}

@@ -1,0 +1,7 @@
+card "Foggy Swamp Hunters" {
+  oracle_id 1941cf7a-ad53-4bce-beea-104951619a30
+  cost {3}{B}
+  type Creature — Human Ranger Ally
+  pt 3/4
+  static as long as drew 2 this turn, this: has lifelink, menace
+}

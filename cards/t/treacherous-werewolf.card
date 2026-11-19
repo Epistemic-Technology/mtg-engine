@@ -1,0 +1,7 @@
+card "Treacherous Werewolf" {
+  oracle_id 59681998-c395-4d37-a419-2a78cf894506
+  cost {2}{B}
+  type Creature — Werewolf Minion
+  pt 2/2
+  label "Threshold" static as long as threshold, this: +2/+2, has ability { triggered when this dies: you lose 4 life }
+}

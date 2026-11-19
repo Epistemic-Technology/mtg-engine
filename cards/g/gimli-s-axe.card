@@ -1,0 +1,8 @@
+card "Gimli's Axe" {
+  oracle_id 773b40b1-72f0-48a0-b210-2afa5df5485e
+  cost {2}{R}
+  type Artifact — Equipment
+  static equipped creature: +3/+0
+  static as long as attached is legendary, equipped creature: has menace
+  equip {2}
+}

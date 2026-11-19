@@ -1,0 +1,8 @@
+card "Obstinate Gargoyle" {
+  oracle_id f3bd9bfe-847f-4ed1-88aa-6aa6b3fa7199
+  cost {1}{W}{B}
+  type Artifact Creature — Gargoyle
+  pt 2/2
+  static this: has flying as long as modified
+  keywords persist
+}

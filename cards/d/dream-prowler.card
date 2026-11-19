@@ -1,0 +1,7 @@
+card "Dream Prowler" {
+  oracle_id b56c5b39-2465-4a25-b806-bb84866e576f
+  cost {2}{U}{U}
+  type Creature — Illusion
+  pt 1/5
+  static this: has can't be blocked as long as attacking alone
+}

@@ -12,7 +12,7 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, Recipient, Replaces, SacCost, Sentence, StaticCond, Target, Trigger,
+    Join, Kind, Mod, Recipient, Replaces, Restrict, SacCost, Sentence, StaticCond, Target, Trigger,
     TriggerObj,
 };
 use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
@@ -358,6 +358,9 @@ impl Fmt {
 
     fn sentence(&mut self, s: &Sentence, targets: &[Target]) -> String {
         let mut out = String::new();
+        if let Some(l) = &s.label {
+            let _ = write!(out, "label \"{l}\" ");
+        }
         if s.eot_first {
             out.push_str("until end of turn, ");
         }
@@ -1565,12 +1568,27 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Energy => parts.push(format!("pay {} energy", c.energy)),
         }
     }
-    if c.sorcery && c.loyalty.is_none() {
-        parts.push("sorcery".to_string());
+    if c.restrict.is_empty() {
+        if c.sorcery && c.loyalty.is_none() {
+            parts.push("sorcery".to_string());
+        }
+        if c.per_turn == 1 {
+            parts.push("once".to_string());
+        }
     }
-    if c.per_turn == 1 {
-        parts.push("once".to_string());
-    } else if c.per_turn > 1 {
+    for r in &c.restrict {
+        match r {
+            Restrict::Sorcery => parts.push("sorcery".to_string()),
+            Restrict::Once => parts.push("once".to_string()),
+            Restrict::OnceEver => parts.push("once ever".to_string()),
+            Restrict::Cond(i) => parts.push(match &c.conditions[*i] {
+                StaticCond::DuringYourTurn => "during your turn".to_string(),
+                d @ StaticCond::During(_) => static_cond(d),
+                d => format!("if {}", static_cond(d)),
+            }),
+        }
+    }
+    if c.per_turn > 1 {
         parts.push(format!("{} times per turn", c.per_turn));
     }
     if parts.is_empty() {
@@ -1745,6 +1763,53 @@ fn static_cond(c: &StaticCond) -> String {
                 "your life {n} or {}",
                 if *at_least { "more" } else { "less" }
             )
+        }
+        StaticCond::GraveyardCards {
+            filter: fl,
+            at_least,
+            have,
+        } => format!(
+            "{}{at_least} {} cards in your graveyard",
+            if *have { "you have " } else { "" },
+            filter(fl)
+        ),
+        StaticCond::OpponentGraveyard(n) => format!("opponent graveyard {n} or more"),
+        StaticCond::ManaValuesInGraveyard(n) => format!("{n} mana values in your graveyard"),
+        StaticCond::OpponentControls {
+            filter: fl,
+            at_least: 1,
+        } => format!("opponent controls {}", filter(fl)),
+        StaticCond::OpponentControls {
+            filter: fl,
+            at_least,
+        } => format!("opponent controls {at_least} {}", filter(fl)),
+        StaticCond::Is(fl) => format!("this is {}", filter(fl)),
+        StaticCond::Modified => "modified".to_string(),
+        StaticCond::AttackingAlone => "attacking alone".to_string(),
+        StaticCond::Blocked => "blocked".to_string(),
+        StaticCond::BeingBlocked => "being blocked".to_string(),
+        StaticCond::AttachedIs(fl) => format!("attached is {}", filter(fl)),
+        StaticCond::DrawnThisTurn(n) => format!("drew {n} this turn"),
+        StaticCond::CastThisTurn(fl) => format!("cast {} spell this turn", filter(fl)),
+        StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
+        StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
+        StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
+        StaticCond::OpponentPoison(n) => format!("opponent poison {n} or more"),
+        StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::TotalPower(n) => format!("total power {n} or more"),
+        StaticCond::DifferentPowers(n) => format!("{n} different powers"),
+        StaticCond::During(t) => {
+            use mtg_core::card::TurnTime as T;
+            match t {
+                T::YourUpkeep => "during your upkeep",
+                T::OpponentUpkeep => "during opponent upkeep",
+                T::Combat => "during combat",
+                T::BeforeAttackers => "before attackers",
+                T::YourTurnBeforeAttackers => "during your turn before attackers",
+                T::DeclareBlockers => "during declare blockers",
+                T::EndOfCombat => "during end of combat",
+            }
+            .to_string()
         }
     }
 }

@@ -1,0 +1,8 @@
+card "Webweaver Changeling" {
+  oracle_id c8cf9387-54df-45b1-ad8d-9de57ed8916b
+  cost {3}{G}{G}
+  type Creature — Shapeshifter
+  pt 3/5
+  keywords changeling, reach
+  triggered when this enters if 3 creature cards in your graveyard: you gain 5 life
+}

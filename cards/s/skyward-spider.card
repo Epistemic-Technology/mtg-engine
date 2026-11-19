@@ -1,0 +1,8 @@
+card "Skyward Spider" {
+  oracle_id d6ba76fa-441c-4a74-bfea-8ae2a2c9e391
+  cost {W/U}{W/U}
+  type Creature — Spider Human Hero
+  pt 2/2
+  ward {2}
+  static this: has flying as long as modified
+}

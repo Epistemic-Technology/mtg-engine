@@ -1,0 +1,7 @@
+card "Leapfrog" {
+  oracle_id 6614dbe5-d7c7-4a51-91db-912764050269
+  cost {2}{U}
+  type Creature — Frog
+  pt 3/1
+  static this: has flying as long as cast instant or sorcery spell this turn
+}

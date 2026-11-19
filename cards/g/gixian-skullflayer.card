@@ -1,0 +1,7 @@
+card "Gixian Skullflayer" {
+  oracle_id 0b2a59a3-cf87-48fe-99e2-4c2063119b55
+  cost {2}{B}
+  type Creature — Phyrexian Human Assassin
+  pt 2/3
+  triggered at beginning of your upkeep step if 3 creature cards in your graveyard: put 1 +1/+1 counter on this
+}

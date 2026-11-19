@@ -1,0 +1,7 @@
+card "Gaea's Touch" {
+  oracle_id ddd053ea-5b91-4def-a003-2e297a170d99
+  cost {G}{G}
+  type Enchantment
+  activated {0}, sorcery, once: you may put basic Forest card from hand onto battlefield
+  activated sacrifice this: add {G}{G}
+}

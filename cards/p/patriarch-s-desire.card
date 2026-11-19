@@ -1,0 +1,8 @@
+card "Patriarch's Desire" {
+  oracle_id 23b518ab-561f-4551-8270-082cde99b993
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/-2
+  label "Threshold" static enchanted: +2/-2 as long as threshold
+}

@@ -1,0 +1,8 @@
+card "Castle Raptors" {
+  oracle_id 6f967951-99d3-4cce-bb26-b60b22bb99b0
+  cost {4}{W}
+  type Creature — Bird Soldier
+  pt 3/3
+  keywords flying
+  static as long as this is untapped, this: +0/+2
+}

@@ -1,0 +1,8 @@
+card "Sinew Dancer" {
+  oracle_id a605864a-f46f-4ebc-8e56-ce7322c918b0
+  cost {W}
+  type Creature — Phyrexian Soldier
+  pt 1/1
+  activated {3}{W}, {T}: tap target creature
+  label "Corrupted" activated {W}, {T}, if opponent poison 3 or more: tap target creature
+}

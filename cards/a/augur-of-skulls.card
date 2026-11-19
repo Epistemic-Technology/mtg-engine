@@ -1,0 +1,8 @@
+card "Augur of Skulls" {
+  oracle_id 723398f2-eaf2-4615-9078-418b9f540a33
+  cost {1}{B}
+  type Creature — Skeleton Wizard
+  pt 1/1
+  activated {1}{B}: regenerate this
+  activated sacrifice this, during your upkeep: target player discards 2 cards
+}

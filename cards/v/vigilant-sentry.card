@@ -1,0 +1,7 @@
+card "Vigilant Sentry" {
+  oracle_id 9bb66d53-a83c-4313-91c3-4df09c248558
+  cost {1}{W}{W}
+  type Creature — Human Nomad
+  pt 2/2
+  label "Threshold" static as long as threshold, this: +1/+1, has ability { activated {T}: target attacking or blocking creature gets +3/+3 }
+}

@@ -1,0 +1,8 @@
+card "Augur il-Vec" {
+  oracle_id 34e05dc1-35af-402d-96ae-e249b3738493
+  cost {1}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  keywords shadow
+  activated sacrifice this, during your upkeep: you gain 4 life
+}

@@ -15,8 +15,8 @@ use mtg_core::turn::Step;
 
 use crate::ast::{
     Ability, Affects, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect, Filter,
-    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, SacCost, Sentence, StaticCond,
-    Target, Trigger, TriggerObj,
+    Join, Kind, Mod, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost, Sentence,
+    StaticCond, Target, Trigger, TriggerObj,
 };
 
 /// "+3/+3", "-3/-0": a zero part takes the other part's sign, as Oracle
@@ -1653,7 +1653,12 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
                 "cards in your graveyard".to_string(),
             ),
             Some(f) => {
-                let p = card_filter_phrase(f, card);
+                let mut p = card_filter_phrase(f, card);
+                // "the number of instant and sorcery cards in your
+                // graveyard".
+                if !f.any_types.is_empty() {
+                    p = p.replace(" or ", " and ");
+                }
                 (
                     format!("{p} card in your graveyard"),
                     format!("{p} cards in your graveyard"),
@@ -2928,6 +2933,10 @@ fn sentences(ss: &[Sentence], ctx: &mut Ctx) -> String {
         if i > 0 {
             out.push(if s.para { '\n' } else { ' ' });
         }
+        if let Some(l) = &s.label {
+            out.push_str(l);
+            out.push_str(" — ");
+        }
         out.push_str(&sentence(&sentence_text(s, ctx)));
     }
     out
@@ -3774,6 +3783,7 @@ fn quoted(a: &Ability, card: &Card, noun: CardType, lookup: &dyn Lookup) -> Stri
 }
 
 /// "seven or more cards are in your graveyard", "you control an Island".
+#[allow(clippy::too_many_lines)] // one arm per condition
 fn static_cond_text(c: &StaticCond, card: &Card) -> String {
     let or_more = |n: u32| format!("{} or more", count_words(Num::N(n), "one"));
     match c {
@@ -3845,7 +3855,215 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "you have {n} or {} life",
             if *at_least { "more" } else { "less" }
         ),
+        StaticCond::GraveyardCards {
+            filter,
+            at_least,
+            have,
+        } => {
+            let mut p = card_filter_phrase(filter, card);
+            // Spell mastery: "instant and/or sorcery cards".
+            if filter.or.is_some() || !filter.any_types.is_empty() {
+                p = p.replace(" or ", " and/or ");
+            }
+            format!(
+                "{} {} {p} cards in your graveyard",
+                if *have { "you have" } else { "there are" },
+                or_more(*at_least)
+            )
+        }
+        StaticCond::OpponentGraveyard(n) => {
+            format!("an opponent has {} cards in their graveyard", or_more(*n))
+        }
+        StaticCond::ManaValuesInGraveyard(n) => format!(
+            "there are {} mana values among cards in your graveyard",
+            or_more(*n)
+        ),
+        StaticCond::OpponentControls { filter, at_least } => {
+            let mut f = filter.clone();
+            f.who = None;
+            if *at_least == 1 {
+                format!(
+                    "an opponent controls {}",
+                    with_article(&filter_phrase(&f, card, false))
+                )
+            } else {
+                format!(
+                    "an opponent controls {} {}",
+                    or_more(*at_least),
+                    filter_phrase(&f, card, true)
+                )
+            }
+        }
+        StaticCond::Is(f) => format!("it's {}", is_predicate(f, card)),
+        StaticCond::Modified => "it's modified".to_string(),
+        StaticCond::AttackingAlone => "it's attacking alone".to_string(),
+        StaticCond::Blocked => "it's blocked".to_string(),
+        StaticCond::BeingBlocked => "at least one creature is blocking it".to_string(),
+        StaticCond::AttachedIs(f) => format!(
+            "{} creature is {}",
+            if card.subtypes.iter().any(|s| s == "Equipment") {
+                "equipped"
+            } else {
+                "enchanted"
+            },
+            is_predicate(f, card)
+        ),
+        StaticCond::DrawnThisTurn(n) => {
+            format!("you've drawn {} cards this turn", or_more(*n))
+        }
+        StaticCond::CastThisTurn(f) => format!(
+            "you've cast {} this turn",
+            with_article(&format!("{} spell", card_filter_phrase(f, card)))
+        ),
+        StaticCond::DiscardedThisTurn => "you've discarded a card this turn".to_string(),
+        StaticCond::MoreCardsInHand => "you have more cards in hand than each opponent".to_string(),
+        StaticCond::OpponentPoison(1) => "an opponent is poisoned".to_string(),
+        StaticCond::OpponentPoison(n) => {
+            format!("an opponent has {} poison counters", or_more(*n))
+        }
+        StaticCond::OwnCardInExile => "you own a card in exile".to_string(),
+        StaticCond::TotalPower(n) => {
+            format!("creatures you control have total power {n} or greater")
+        }
+        StaticCond::DifferentPowers(n) => format!(
+            "you control {} creatures with different powers",
+            or_more(*n)
+        ),
+        StaticCond::During(t) => turn_time_text(*t).to_string(),
     }
+}
+
+/// "during your upkeep", "before attackers are declared" (CR 602.5b).
+fn turn_time_text(t: mtg_core::card::TurnTime) -> &'static str {
+    use mtg_core::card::TurnTime as T;
+    match t {
+        T::YourUpkeep => "during your upkeep",
+        T::OpponentUpkeep => "during an opponent's upkeep",
+        T::Combat => "during combat",
+        T::BeforeAttackers => "before attackers are declared",
+        T::YourTurnBeforeAttackers => "during your turn, before attackers are declared",
+        T::DeclareBlockers => "during the declare blockers step",
+        T::EndOfCombat => "during the end of combat step",
+    }
+}
+
+/// What a permanent is, after "is": "untapped", "a Wall", "legendary".
+fn is_predicate(f: &Filter, card: &Card) -> String {
+    let bare = Filter {
+        tapped: None,
+        ..f.clone()
+    };
+    if bare == Filter::default() {
+        return match f.tapped {
+            Some(true) => "tapped".to_string(),
+            _ => "untapped".to_string(),
+        };
+    }
+    if !f.supertypes.is_empty()
+        && (Filter {
+            supertypes: Vec::new(),
+            ..bare.clone()
+        }) == Filter::default()
+    {
+        return f
+            .supertypes
+            .iter()
+            .map(|s| format!("{s:?}").to_lowercase())
+            .collect::<Vec<_>>()
+            .join(" ");
+    }
+    target_predicate(f, card)
+}
+
+/// Whether a condition is about the source ("it's attacking"), printed
+/// "this creature is ..." when the sentence's subject is something else.
+fn about_source(c: &StaticCond) -> bool {
+    matches!(
+        c,
+        StaticCond::Attacking
+            | StaticCond::Enchanted
+            | StaticCond::Equipped
+            | StaticCond::Is(_)
+            | StaticCond::Modified
+            | StaticCond::AttackingAlone
+            | StaticCond::Blocked
+    )
+}
+
+/// An activated ability's restrictions as one sentence, in the order
+/// written: "Activate only if you control an enchantment and only as a
+/// sorcery." (CR 602.5).
+fn restrictions_text(cost: &Cost, card: &Card) -> String {
+    let mut items: Vec<String> = Vec::new();
+    let default = [Restrict::Sorcery, Restrict::Once];
+    let order: &[Restrict] = if cost.restrict.is_empty() {
+        &default
+    } else {
+        &cost.restrict
+    };
+    for r in order {
+        match r {
+            // Loyalty abilities are sorcery-speed by rule (CR 606.3).
+            Restrict::Sorcery if cost.sorcery && cost.loyalty.is_none() => {
+                items.push("as a sorcery".to_string());
+            }
+            Restrict::Once if cost.per_turn == 1 => items.push("once each turn".to_string()),
+            Restrict::OnceEver => items.push("once".to_string()),
+            Restrict::Cond(i) => items.push(match &cost.conditions[*i] {
+                StaticCond::DuringYourTurn => "during your turn".to_string(),
+                StaticCond::During(t) => turn_time_text(*t).to_string(),
+                c => {
+                    let mut t = static_cond_text(c, card);
+                    // "Activate only if this permanent is a creature": a
+                    // type the card may lack is asked of the permanent.
+                    let noun = match c {
+                        StaticCond::Is(f) if !f.types.is_empty() => "permanent".to_string(),
+                        _ => self_noun(card),
+                    };
+                    if about_source(c) {
+                        t = t.replace("it's", &format!("this {noun} is"));
+                    }
+                    if *c == StaticCond::BeingBlocked {
+                        t = t.replace("blocking it", &format!("blocking this {noun}"));
+                    }
+                    format!("if {t}")
+                }
+            }),
+            _ => {}
+        }
+    }
+    let mut out = String::new();
+    if cost.restrict.is_empty() {
+        // Written without an order: each its own sentence.
+        for i in &items {
+            let _ = write!(out, " Activate only {i}.");
+        }
+    } else if !items.is_empty() {
+        let n = items.len();
+        out.push_str(" Activate only ");
+        for (k, i) in items.iter().enumerate() {
+            if k > 0 {
+                out.push_str(if n == 2 {
+                    " and only "
+                } else if k == n - 1 {
+                    ", and only "
+                } else {
+                    ", only "
+                });
+            }
+            out.push_str(i);
+        }
+        out.push('.');
+    }
+    if cost.per_turn > 1 {
+        let n = match cost.per_turn {
+            2 => "twice".to_string(),
+            3 => "three times".to_string(),
+            n => format!("{n} times"),
+        };
+        let _ = write!(out, " Activate no more than {n} each turn.");
+    }
+    out
 }
 
 /// A static ability's text with its condition: "As long as <cond>, <text>"
@@ -3854,25 +4072,24 @@ fn conditional_static(body: &str, c: &StaticCond, first: bool, card: &Card) -> S
     let mut cond = static_cond_text(c, card);
     // "as long as it's enchanted" about the subject; "as long as this
     // creature is enchanted" when the subject is something else.
-    if matches!(
-        c,
-        StaticCond::Attacking | StaticCond::Enchanted | StaticCond::Equipped
-    ) && !body.starts_with("This ")
-    {
+    if about_source(c) && !body.starts_with("This ") {
         cond = cond.replace("it's", &format!("this {} is", self_noun(card)));
     }
     if first {
         let this = format!("This {} ", self_noun(card));
         let rest = if body.starts_with(&card.name) {
             body.to_string()
-        } else if matches!(
-            c,
-            StaticCond::Attacking | StaticCond::Enchanted | StaticCond::Equipped
-        ) && body.starts_with(&this)
-        {
+        } else if about_source(c) && body.starts_with(&this) {
             // "As long as this creature is equipped, it gets +1/+1."
             cond = cond.replace("it's", &format!("this {} is", self_noun(card)));
             format!("it {}", &body[this.len()..])
+        } else if let StaticCond::AttachedIs(_) = c
+            && let Some(rest) = body
+                .strip_prefix("Equipped creature ")
+                .or_else(|| body.strip_prefix("Enchanted creature "))
+        {
+            // "As long as equipped creature is legendary, it has menace."
+            format!("it {rest}")
         } else {
             lowercase_first(body)
         };
@@ -3985,20 +4202,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             ctx.current = Some(a);
             let c = cost_text(cost, &mut ctx);
             let mut text = format!("{c}: {}", effects_after(effects, &mut ctx, false));
-            // Loyalty abilities are sorcery-speed by rule (CR 606.3).
-            if cost.sorcery && cost.loyalty.is_none() {
-                text.push_str(" Activate only as a sorcery.");
-            }
-            if cost.per_turn == 1 {
-                text.push_str(" Activate only once each turn.");
-            } else if cost.per_turn > 1 {
-                let n = match cost.per_turn {
-                    2 => "twice".to_string(),
-                    3 => "three times".to_string(),
-                    n => format!("{n} times"),
-                };
-                let _ = write!(text, " Activate no more than {n} each turn.");
-            }
+            text.push_str(&restrictions_text(cost, card));
             text
         }
         Ability::Triggered {
@@ -4041,7 +4245,22 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             condition,
             cond_first,
         } => {
-            let body = static_text(filter, mods, card);
+            let mut body = static_text(filter, mods, card);
+            // "Threshold — Enchanted creature gets an additional +2/-2 as
+            // long as ...": a conditional pump on what an earlier static
+            // ability of this card already pumps.
+            if condition.is_some()
+                && card
+                    .abilities
+                    .iter()
+                    .take_while(|b| !std::ptr::eq(*b, a))
+                    .any(|b| {
+                        matches!(b, Ability::Static { filter: f, condition: None, mods: m, .. }
+                        if f == filter && m.iter().any(|x| matches!(x, Mod::ModifyPt { .. })))
+                    })
+            {
+                body = body.replacen(" gets ", " gets an additional ", 1);
+            }
             match condition {
                 None => body,
                 Some(c) => conditional_static(&body, c, *cond_first, card),

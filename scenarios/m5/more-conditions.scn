@@ -1,0 +1,492 @@
+# More conditions, usable wherever static conditions are: activation
+# restrictions (CR 602.5b: "Activate only during your upkeep", "Activate
+# only if ..."), "as long as" static abilities (CR 611.3a), "if" clauses
+# in effects, and intervening "if" triggers (CR 603.4).
+
+# ---- activation restrictions: parts of the turn ----
+
+scenario "during your upkeep: Augur il-Vec activates in its controller's upkeep" {
+  battlefield A: "Augur il-Vec"
+  turn 1 upkeep A: activate "Augur il-Vec"
+  run_to turn 1 precombat_main
+  assert life A 24
+  assert graveyard A contains "Augur il-Vec"
+}
+
+scenario "during your upkeep: not in the main phase" {
+  battlefield A: "Augur il-Vec"
+  illegal turn 1 A: activate "Augur il-Vec"
+  run_to turn 1 end
+  assert battlefield A contains "Augur il-Vec"
+}
+
+scenario "during your upkeep: not in an opponent's upkeep" {
+  battlefield A: "Emberwilde Augur"
+  start turn 2 B
+  illegal turn 2 upkeep A: activate "Emberwilde Augur" targeting player B
+  run_to turn 2 precombat_main
+  assert battlefield A contains "Emberwilde Augur"
+}
+
+scenario "before attackers are declared: Shu Farmer in the first main phase" {
+  battlefield A: "Shu Farmer"
+  turn 1 A: activate "Shu Farmer"
+  run_to turn 1 end
+  assert life A 21
+}
+
+scenario "before attackers are declared: not in the second main phase" {
+  battlefield A: "Shu Farmer"
+  illegal turn 1 postcombat_main A: activate "Shu Farmer"
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "during your turn, before attackers: not on an opponent's turn" {
+  battlefield A: "Wu Longbowman"
+  start turn 2 B
+  illegal turn 2 A: activate "Wu Longbowman" targeting player B
+  run_to turn 2 end
+  assert life B 20
+}
+
+scenario "during your turn: Zuran Enchanter on its controller's turn" {
+  battlefield A: "Zuran Enchanter", 3 "Swamp"
+  hand B: "Forest"
+  turn 1 A: activate "Zuran Enchanter" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Forest"
+}
+
+scenario "during your turn: not on an opponent's turn" {
+  battlefield A: "Zuran Enchanter", 3 "Swamp"
+  hand B: "Forest"
+  start turn 2 B
+  illegal turn 2 A: activate "Zuran Enchanter" targeting player B
+  run_to turn 2 end
+}
+
+scenario "during the end of combat step: Desert hits an attacker" {
+  battlefield A: "Desert"
+  battlefield B: "Isamaru, Hound of Konda"
+  start turn 2 B
+  turn 2 B: attack "Isamaru, Hound of Konda"
+  illegal turn 2 combat_damage A: activate "Desert" targeting "Isamaru, Hound of Konda"
+  turn 2 end_combat A: activate "Desert" targeting "Isamaru, Hound of Konda"
+  run_to turn 2 postcombat_main
+  assert damage "Isamaru, Hound of Konda" 1
+}
+
+# ---- activation restrictions: "Activate only if ..." ----
+
+scenario "threshold: Chainflinger's second ability with seven cards in the graveyard" {
+  battlefield A: "Chainflinger", 3 "Mountain"
+  graveyard A: 7 "Grizzly Bears"
+  turn 1 A: activate "Chainflinger" ability 2 targeting player B
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "threshold: not with six cards" {
+  battlefield A: "Chainflinger", 3 "Mountain"
+  graveyard A: 6 "Grizzly Bears"
+  illegal turn 1 A: activate "Chainflinger" ability 2 targeting player B
+  run_to turn 1 end
+}
+
+scenario "you control a creature with flying: Celestial Enforcer" {
+  battlefield A: "Celestial Enforcer", "Serra Angel", 2 "Plains"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Celestial Enforcer" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert tapped "Grizzly Bears"
+}
+
+scenario "you control a creature with flying: not without one" {
+  battlefield A: "Celestial Enforcer", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  illegal turn 1 A: activate "Celestial Enforcer" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "formidable: total power 8 or greater" {
+  battlefield A: "Atarka Beastbreaker", "Craw Wurm", 5 "Forest"
+  turn 1 A: activate "Atarka Beastbreaker"
+  run_to turn 1 postcombat_main
+  assert power "Atarka Beastbreaker" 6
+}
+
+scenario "formidable: not with total power 4" {
+  battlefield A: "Atarka Beastbreaker", "Grizzly Bears", 5 "Forest"
+  illegal turn 1 A: activate "Atarka Beastbreaker"
+  run_to turn 1 end
+}
+
+scenario "coven: three creatures with different powers" {
+  battlefield B: "Craw Wurm"
+  battlefield A: "Grizzly Bears", "Hill Giant", "Shu Farmer", 3 "Plains", "Candletrap" on "Craw Wurm"
+  turn 1 A: activate "Candletrap"
+  run_to turn 1 end
+  assert exile B contains "Craw Wurm"
+}
+
+scenario "coven: not with two different powers" {
+  battlefield B: "Craw Wurm"
+  battlefield A: "Grizzly Bears", "Grizzly Bears", "Hill Giant", 3 "Plains", "Candletrap" on "Craw Wurm"
+  illegal turn 1 A: activate "Candletrap"
+  run_to turn 1 end
+}
+
+scenario "metalcraft activation: Vedalken Certarch needs three artifacts" {
+  battlefield A: "Vedalken Certarch", "Potioner's Trove", "Potioner's Trove"
+  battlefield B: "Grizzly Bears"
+  illegal turn 1 A: activate "Vedalken Certarch" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "an opponent has three or more poison counters: Sinew Dancer" {
+  battlefield A: "Sinew Dancer", "Plains"
+  battlefield B: "Grizzly Bears"
+  poison B: 3
+  turn 1 A: activate "Sinew Dancer" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert tapped "Grizzly Bears"
+}
+
+scenario "an opponent has three or more poison counters: not with two" {
+  battlefield A: "Sinew Dancer", "Plains"
+  battlefield B: "Grizzly Bears"
+  poison B: 2
+  illegal turn 1 A: activate "Sinew Dancer" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "you own a card in exile: Dreadlight Monstrosity" {
+  battlefield A: "Dreadlight Monstrosity", 5 "Island"
+  exile A: "Grizzly Bears"
+  turn 1 A: activate "Dreadlight Monstrosity"
+  run_to turn 1 end
+}
+
+scenario "you own a card in exile: not with an empty exile" {
+  battlefield A: "Dreadlight Monstrosity", 5 "Island"
+  illegal turn 1 A: activate "Dreadlight Monstrosity"
+  run_to turn 1 end
+}
+
+scenario "more cards in hand than each opponent: Kitsune Bonesetter" {
+  battlefield A: "Kitsune Bonesetter", "Grizzly Bears"
+  hand A: "Forest", "Forest"
+  hand B: "Forest"
+  turn 1 A: activate "Kitsune Bonesetter" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "more cards in hand than each opponent: not with as many" {
+  battlefield A: "Kitsune Bonesetter", "Grizzly Bears"
+  hand A: "Forest"
+  hand B: "Forest"
+  illegal turn 1 A: activate "Kitsune Bonesetter" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "this creature is blocked: Cinder Crawler" {
+  battlefield A: "Cinder Crawler", "Mountain"
+  battlefield B: "Llanowar Augur"
+  turn 1 A: attack "Cinder Crawler"
+  turn 1 B: block "Cinder Crawler" with "Llanowar Augur"
+  turn 1 declare_blockers A: activate "Cinder Crawler"
+  run_to turn 1 combat_damage
+  assert power "Cinder Crawler" 2
+}
+
+scenario "this creature is blocked: not while unblocked" {
+  battlefield A: "Cinder Crawler", "Mountain"
+  turn 1 A: attack "Cinder Crawler"
+  illegal turn 1 declare_blockers A: activate "Cinder Crawler"
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "you've cast an instant or sorcery spell this turn: Potioner's Trove" {
+  battlefield A: "Potioner's Trove", "Mountain"
+  hand A: "Lightning Bolt"
+  illegal turn 1 A: activate "Potioner's Trove"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 postcombat_main A: activate "Potioner's Trove"
+  run_to turn 1 end
+  assert life A 22
+  assert life B 17
+}
+
+scenario "you've discarded a card this turn; sorcery speed, once each turn" {
+  battlefield A: "Thunderhead Gunner", "Gilt-Blade Prowler", "Plains"
+  hand A: "Forest", "Island"
+  illegal turn 1 A: activate "Gilt-Blade Prowler"
+  turn 1 A: activate "Thunderhead Gunner" discarding "Forest"
+  illegal turn 1 postcombat_main A: activate "Thunderhead Gunner" discarding "Island"
+  turn 1 postcombat_main A: activate "Gilt-Blade Prowler"
+  run_to turn 1 end
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+  assert life A 19
+  assert hand A count 3
+}
+
+scenario "if you control an enchantment, as a sorcery: Heron-Blessed Geist from the graveyard" {
+  battlefield A: "Gaea's Touch", 4 "Plains"
+  graveyard A: "Heron-Blessed Geist"
+  turn 1 A: activate "Heron-Blessed Geist"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Spirit"
+  assert exile A contains "Heron-Blessed Geist"
+}
+
+# ---- static abilities ----
+
+scenario "as long as it's untapped: Castle Raptors loses the bonus as it attacks" {
+  battlefield A: "Castle Raptors"
+  assert toughness "Castle Raptors" 5
+  turn 1 A: attack "Castle Raptors"
+  run_to turn 1 postcombat_main
+  assert tapped "Castle Raptors"
+  assert toughness "Castle Raptors" 3
+  assert life B 17
+}
+
+scenario "you've drawn two or more cards this turn: Eyekite" {
+  battlefield A: "Eyekite", 3 "Island"
+  hand A: "Divination"
+  assert power "Eyekite" 1
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert power "Eyekite" 3
+  run_to turn 2 precombat_main
+  assert power "Eyekite" 1
+}
+
+scenario "you've cast an instant or sorcery spell this turn: Leapfrog gains flying" {
+  battlefield A: "Leapfrog", "Mountain"
+  hand A: "Lightning Bolt"
+  assert has not "Leapfrog" flying
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert has "Leapfrog" flying
+}
+
+scenario "an opponent has ten or more cards in their graveyard: Jace's Phantasm" {
+  battlefield A: "Jace's Phantasm"
+  graveyard B: 10 "Grizzly Bears"
+  assert power "Jace's Phantasm" 5
+}
+
+scenario "an opponent has ten or more cards in their graveyard: not with nine" {
+  battlefield A: "Jace's Phantasm"
+  graveyard B: 9 "Grizzly Bears"
+  graveyard A: 10 "Grizzly Bears"
+  assert power "Jace's Phantasm" 1
+}
+
+scenario "an opponent controls a Human: Night Revelers has haste" {
+  battlefield A: "Night Revelers"
+  battlefield B: "Shu Farmer"
+  assert has "Night Revelers" haste
+}
+
+scenario "an opponent controls an Island: Water Wurm, not for your own" {
+  battlefield A: "Water Wurm", "Island"
+  assert toughness "Water Wurm" 1
+}
+
+scenario "an opponent is poisoned: Viridian Betrayers has infect" {
+  battlefield A: "Viridian Betrayers"
+  poison B: 1
+  assert has "Viridian Betrayers" infect
+}
+
+scenario "an opponent is poisoned: not while no one is" {
+  battlefield A: "Viridian Betrayers"
+  poison A: 1
+  assert has not "Viridian Betrayers" infect
+}
+
+scenario "as long as it's modified: Obstinate Gargoyle with a counter" {
+  battlefield A: "Obstinate Gargoyle" with 1 +1/+1, "Skyward Spider"
+  assert has "Obstinate Gargoyle" flying
+  assert has not "Skyward Spider" flying
+}
+
+scenario "as long as equipped creature is legendary: Gimli's Axe" {
+  battlefield A: "Isamaru, Hound of Konda", "Grizzly Bears", "Gimli's Axe" on "Isamaru, Hound of Konda"
+  assert has "Isamaru, Hound of Konda" menace
+  assert power "Isamaru, Hound of Konda" 5
+}
+
+scenario "as long as equipped creature is legendary: not a nonlegendary one" {
+  battlefield A: "Grizzly Bears", "Gimli's Axe" on "Grizzly Bears"
+  assert has not "Grizzly Bears" menace
+  assert power "Grizzly Bears" 5
+}
+
+scenario "as long as it's a Wall: Mistform Wall loses defender as it changes type" {
+  battlefield A: "Mistform Wall", "Island"
+  assert has "Mistform Wall" defender
+  turn 1 A: activate "Mistform Wall"
+  turn 1 A: choose Goblin
+  run_to turn 1 postcombat_main
+  assert has not "Mistform Wall" defender
+}
+
+scenario "as long as it's attacking alone: Dream Prowler can't be blocked" {
+  battlefield A: "Dream Prowler"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Dream Prowler"
+  illegal turn 1 B: block "Dream Prowler" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "as long as it's attacking alone: blockable beside another attacker" {
+  battlefield A: "Dream Prowler", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Dream Prowler", "Hill Giant"
+  turn 1 B: block "Dream Prowler" with "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "more cards in hand than each opponent: Okina Nightwatch" {
+  battlefield A: "Okina Nightwatch"
+  hand A: "Forest", "Forest"
+  hand B: "Forest"
+  assert power "Okina Nightwatch" 7
+}
+
+scenario "two or more instant and/or sorcery cards in your graveyard: Ghitu Lavarunner" {
+  battlefield A: "Ghitu Lavarunner"
+  graveyard A: "Lightning Bolt", "Divination"
+  assert power "Ghitu Lavarunner" 2
+  assert has "Ghitu Lavarunner" haste
+}
+
+scenario "two or more instant and/or sorcery cards: not one and a creature" {
+  battlefield A: "Ghitu Lavarunner"
+  graveyard A: "Lightning Bolt", "Grizzly Bears"
+  assert power "Ghitu Lavarunner" 1
+}
+
+scenario "five or more mana values among cards in your graveyard: Snooping Newsie" {
+  battlefield A: "Snooping Newsie"
+  graveyard A: "Forest", "Lightning Bolt", "Grizzly Bears", "Divination", "Hill Giant"
+  assert power "Snooping Newsie" 3
+  assert has "Snooping Newsie" lifelink
+}
+
+scenario "five or more mana values: four distinct values are not enough" {
+  battlefield A: "Snooping Newsie"
+  graveyard A: "Forest", "Lightning Bolt", "Grizzly Bears", "Divination", "Shock"
+  assert power "Snooping Newsie" 2
+}
+
+scenario "an additional pump as long as you have no cards in hand: Taste for Mayhem" {
+  battlefield A: "Grizzly Bears", "Taste for Mayhem" on "Grizzly Bears"
+  assert power "Grizzly Bears" 6
+}
+
+scenario "hellbent: the granted regeneration needs an empty hand" {
+  battlefield A: "Gobhobbler Rats"
+  hand A: "Forest"
+  assert power "Gobhobbler Rats" 2
+}
+
+# ---- intervening "if" triggers and "if" clauses ----
+
+scenario "three or more creature cards in your graveyard: Gixian Skullflayer's upkeep trigger" {
+  battlefield A: "Gixian Skullflayer"
+  graveyard A: 3 "Grizzly Bears"
+  start turn 1 A
+  run_to turn 1 precombat_main
+  assert counters "Gixian Skullflayer" +1/+1 1
+}
+
+scenario "three or more creature cards: two creatures and a land don't count" {
+  battlefield A: "Gixian Skullflayer"
+  graveyard A: 2 "Grizzly Bears", "Forest"
+  run_to turn 1 precombat_main
+  assert counters "Gixian Skullflayer" +1/+1 0
+}
+
+scenario "you have four or more creature cards in your graveyard: Pit Keeper" {
+  battlefield A: 2 "Swamp"
+  hand A: "Pit Keeper"
+  graveyard A: 3 "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Pit Keeper"
+  turn 1 A: trigger "Pit Keeper" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "spell mastery: Unholy Hunger gains life with two instants and sorceries" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unholy Hunger"
+  graveyard A: "Lightning Bolt", "Divination"
+  turn 1 A: cast "Unholy Hunger" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 22
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "spell mastery: no life with one" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Unholy Hunger"
+  graveyard A: "Lightning Bolt"
+  turn 1 A: cast "Unholy Hunger" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life A 20
+}
+
+scenario "an opponent has eight or more cards in their graveyard: Tenured Oilcaster" {
+  battlefield A: "Tenured Oilcaster"
+  graveyard B: 8 "Forest"
+  assert power "Tenured Oilcaster" 5
+}
+
+scenario "during your turn: Path to Redemption exiles what it enchanted" {
+  battlefield B: "Hill Giant"
+  battlefield A: 5 "Plains", "Path to Redemption" on "Hill Giant"
+  turn 1 A: activate "Path to Redemption"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Ally"
+  assert graveyard A contains "Path to Redemption"
+}
+
+scenario "declare blockers step, a creature blocking it: Grizzled Wolverine, not in the damage step" {
+  battlefield A: "Grizzled Wolverine", 2 "Mountain"
+  battlefield B: "Llanowar Augur"
+  turn 1 A: attack "Grizzled Wolverine"
+  turn 1 B: block "Grizzled Wolverine" with "Llanowar Augur"
+  turn 1 declare_blockers A: activate "Grizzled Wolverine"
+  illegal turn 1 combat_damage A: activate "Grizzled Wolverine"
+  run_to turn 1 end_combat
+  assert power "Grizzled Wolverine" 4
+}
+
+scenario "at least one creature blocking it: not while unblocked" {
+  battlefield A: "Grizzled Wolverine", 2 "Mountain"
+  turn 1 A: attack "Grizzled Wolverine"
+  illegal turn 1 declare_blockers A: activate "Grizzled Wolverine"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "activate only once: Thought Shucker, not again on a later turn" {
+  battlefield A: "Thought Shucker", 2 "Island"
+  graveyard A: 7 "Grizzly Bears"
+  turn 1 A: activate "Thought Shucker"
+  illegal turn 3 A: activate "Thought Shucker"
+  run_to turn 3 end
+  assert counters "Thought Shucker" +1/+1 1
+}

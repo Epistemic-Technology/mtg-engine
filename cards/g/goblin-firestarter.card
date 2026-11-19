@@ -1,0 +1,7 @@
+card "Goblin Firestarter" {
+  oracle_id 18279733-5568-427c-b0a2-044bca28f688
+  cost {R}
+  type Creature — Goblin
+  pt 1/1
+  activated sacrifice this, during your turn before attackers: deal 1 damage to any target
+}

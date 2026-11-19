@@ -1,0 +1,7 @@
+card "Spelleater Wolverine" {
+  oracle_id a3b226b9-f149-4578-882b-77447608380a
+  cost {2}{R}
+  type Creature — Wolverine
+  pt 3/2
+  static this: has double strike as long as 3 instant or sorcery cards in your graveyard
+}

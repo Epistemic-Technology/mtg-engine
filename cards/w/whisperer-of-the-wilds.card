@@ -1,0 +1,8 @@
+card "Whisperer of the Wilds" {
+  oracle_id c1e456b6-5d2b-4c42-9464-54a8f9f8f3ba
+  cost {1}{G}
+  type Creature — Human Shaman
+  pt 0/2
+  mana {G}
+  label "Ferocious" activated {T}, if you control creature with power 4 or greater: add {G}{G}
+}

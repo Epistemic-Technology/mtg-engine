@@ -1,0 +1,7 @@
+card "Stallion of Ashmouth" {
+  oracle_id 0dc6a90e-c517-445e-9a93-29b3119fb4dc
+  cost {3}{B}
+  type Creature — Nightmare Horse
+  pt 3/3
+  label "Delirium" activated {1}{B}, if delirium: this gets +1/+1
+}

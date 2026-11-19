@@ -1,0 +1,8 @@
+card "Eyekite" {
+  oracle_id fb3f2677-a31d-49ad-a9d1-7324733938d6
+  cost {1}{U}
+  type Creature — Drake
+  pt 1/2
+  keywords flying
+  static this: +2/+0 as long as drew 2 this turn
+}

@@ -1,0 +1,6 @@
+card "Desert" {
+  oracle_id 195107ad-879d-4b02-a44a-a3ba70fedf88
+  type Land — Desert
+  mana {C}
+  activated {T}, during end of combat: deal 1 damage to target attacking creature
+}
