@@ -102,7 +102,7 @@ impl GameState {
     /// Whether every creature of an attack (or block) declaration's set
     /// may take part with the others (`set_rules_allow`).
     pub(super) fn set_legal(&self, set: &[ObjId], block: bool) -> bool {
-        set.iter().all(|id| self.set_rules_allow(*id, set, block))
+        self.attack_rule_sources == 0 || set.iter().all(|id| self.set_rules_allow(*id, set, block))
     }
 
     /// The largest part of a declaration's set whose creatures' conditions
@@ -319,22 +319,24 @@ impl GameState {
 
     /// Menace (CR 702.110b): an attacker is blocked by zero or at least two.
     pub(super) fn block_set_legal(&self, blocks: &[(ObjId, ObjId)]) -> bool {
-        let attackers: Vec<ObjId> = self
-            .combat
-            .as_ref()
-            .map(|c| c.attackers.iter().map(|a| a.id).collect())
-            .unwrap_or_default();
-        let mut blockers: SmallVec<[ObjId; 4]> = SmallVec::new();
-        for (b, _) in blocks {
-            if !blockers.contains(b) {
-                blockers.push(*b);
+        if self.attack_rule_sources > 0 {
+            let mut blockers: SmallVec<[ObjId; 4]> = SmallVec::new();
+            for (b, _) in blocks {
+                if !blockers.contains(b) {
+                    blockers.push(*b);
+                }
+            }
+            if !self.set_legal(&blockers, true) {
+                return false;
             }
         }
-        self.set_legal(&blockers, true)
-            && attackers.iter().all(|a| {
-                let n = blocks.iter().filter(|(_, x)| x == a).count();
-                (!self.has_menace(*a) || n != 1) && (n <= 1 || !self.at_most_one_blocker(*a))
-            })
+        let Some(combat) = &self.combat else {
+            return true;
+        };
+        combat.attackers.iter().all(|a| {
+            let n = blocks.iter().filter(|(_, x)| *x == a.id).count();
+            (!self.has_menace(a.id) || n != 1) && (n <= 1 || !self.at_most_one_blocker(a.id))
+        })
     }
 
     /// An attacker that can't be blocked by more than one creature has

@@ -987,6 +987,9 @@ pub struct GameState {
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,
+    /// Battlefield permanents with an attack or block condition
+    /// (`DefFlags::ATTACK_RULE`): declarations check them only then.
+    pub attack_rule_sources: u32,
     /// Face-down permanents on the battlefield, so listing options skips
     /// the turn-face-up check without any.
     pub face_down_count: u32,

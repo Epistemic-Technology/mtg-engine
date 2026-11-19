@@ -238,6 +238,7 @@ impl Engine {
                 state.cost_change_sources += u32::from(def.flags().has_cost_change());
                 state.restricted_mana_sources += u32::from(def.flags().has_restricted_mana());
                 state.turn_static_sources += u32::from(def.flags().has_turn_static());
+                state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
@@ -497,6 +498,7 @@ impl GameState {
             cost_change_sources: 0,
             restricted_mana_sources: 0,
             turn_static_sources: 0,
+            attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
             undone_cast: None,
