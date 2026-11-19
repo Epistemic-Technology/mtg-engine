@@ -1,0 +1,6 @@
+card "Wing Puncture" {
+  oracle_id 5de32ec7-3085-4b6b-a52e-5a1b3fdf07d3
+  cost {G}
+  type Instant
+  spell: target creature you control bites target creature with flying
+}

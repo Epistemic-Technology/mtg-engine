@@ -2354,6 +2354,21 @@ impl GameState {
                     self.deal_damage(y, Target::Object(x), u32::try_from(py).unwrap_or(0), false);
                 }
             }
+            Effect::Bite { source, to } => {
+                // CR 608.2b: an illegal target is unaffected. If the
+                // creature is no longer a legal target it deals no damage;
+                // if the recipient is illegal there is nothing to damage.
+                let x = self
+                    .recipients(ctx, *source)
+                    .first()
+                    .copied()
+                    .and_then(|t| on_battlefield(self, t));
+                let y = self.recipients(ctx, *to).first().copied();
+                if let (Some(x), Some(y)) = (x, y) {
+                    let p = self.characteristics(x).map_or(0, |c| c.power.max(0));
+                    self.deal_damage(x, y, u32::try_from(p).unwrap_or(0), false);
+                }
+            }
             Effect::ExileAllGraveyards => {
                 let cards: Vec<ObjId> = self
                     .players

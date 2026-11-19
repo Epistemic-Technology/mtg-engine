@@ -1,0 +1,6 @@
+card "Soul's Fire" {
+  oracle_id 62d7ed6e-c386-477e-b155-982c3790f842
+  cost {2}{R}
+  type Instant
+  spell: target creature you control bites any target
+}

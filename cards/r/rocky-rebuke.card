@@ -1,0 +1,6 @@
+card "Rocky Rebuke" {
+  oracle_id fd85db70-8616-42df-9dac-bad7923f88d7
+  cost {1}{G}
+  type Instant
+  spell: target creature you control bites target creature an opponent controls
+}

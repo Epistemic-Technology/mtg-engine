@@ -1,0 +1,6 @@
+card "Tail Slash" {
+  oracle_id 69c51904-f758-4853-a86c-317c04462ea2
+  cost {2}{R}
+  type Instant
+  spell: target creature you control bites target creature you don't control
+}

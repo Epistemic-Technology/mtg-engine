@@ -1,0 +1,137 @@
+# "Bite": a creature deals damage equal to its power to another target
+# (Rabid Bite, Soul's Fire) or to itself (Wrack with Madness). One-sided,
+# unlike fight (CR 701.12); the creature is the damage's source (CR 120.3),
+# and an illegal target means no damage (CR 608.2b).
+
+scenario "bite: Rabid Bite's creature deals damage equal to its power, and takes none" {
+  battlefield A: "Hill Giant", 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Rabid Bite"
+  turn 1 A: cast "Rabid Bite" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+  assert graveyard A contains "Rabid Bite"
+}
+
+scenario "bite: the second target must be a creature you don't control" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 2 "Forest"
+  hand A: "Rabid Bite"
+  illegal turn 1 A: cast "Rabid Bite" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "bite: the first target must be a creature you control" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Rabid Bite"
+  illegal turn 1 A: cast "Rabid Bite" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "bite: the creature's deathtouch and lifelink apply" {
+  battlefield A: "Vampire Nighthawk", 2 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Rabid Bite"
+  turn 1 A: cast "Rabid Bite" targeting "Vampire Nighthawk", "Serra Angel"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+  assert life A 22
+}
+
+scenario "bite: infect damage is -1/-1 counters" {
+  battlefield A: "Glistener Elf", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Rabid Bite"
+  turn 1 A: cast "Rabid Bite" targeting "Glistener Elf", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Hill Giant" -1/-1 1
+  assert damage "Hill Giant" 0
+}
+
+scenario "bite: wither damage is -1/-1 counters" {
+  battlefield A: "Sickle Ripper", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Rabid Bite"
+  turn 1 A: cast "Rabid Bite" targeting "Sickle Ripper", "Hill Giant"
+  run_to turn 1 end
+  assert counters "Hill Giant" -1/-1 2
+  assert toughness "Hill Giant" 1
+}
+
+scenario "bite: power is checked as the spell resolves" {
+  battlefield A: "Hill Giant", 3 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Rabid Bite", "Giant Growth"
+  turn 1 A: cast "Rabid Bite" targeting "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Giant Growth" targeting "Hill Giant" in response to "Rabid Bite"
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "bite: no damage if the creature is gone (CR 608.2b)" {
+  battlefield A: "Grizzly Bears", 3 "Mountain"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Tail Slash"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Tail Slash" targeting "Grizzly Bears", "Hill Giant"
+  turn 1 B: cast "Lightning Bolt" targeting "Grizzly Bears" in response to "Tail Slash"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+}
+
+scenario "bite: Quarrel can't target a creature you control second" {
+  battlefield A: "Hill Giant", "Grizzly Bears", 2 "Forest"
+  hand A: "Quarrel"
+  illegal turn 1 A: cast "Quarrel" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "bite: Wing Puncture needs a creature with flying" {
+  battlefield A: "Hill Giant", "Forest"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  hand A: "Wing Puncture"
+  illegal turn 1 A: cast "Wing Puncture" targeting "Hill Giant", "Grizzly Bears"
+  turn 1 A: cast "Wing Puncture" targeting "Hill Giant", "Serra Angel"
+  run_to turn 1 end
+  assert damage "Serra Angel" 3
+  assert damage "Hill Giant" 0
+}
+
+scenario "bite: Soul's Fire can hit a player" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  hand A: "Soul's Fire"
+  turn 1 A: cast "Soul's Fire" targeting "Hill Giant", player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "bite: Soul's Fire can hit a planeswalker" {
+  battlefield A: "Hill Giant", 3 "Mountain"
+  battlefield B: "Jace Beleren"
+  hand A: "Soul's Fire"
+  turn 1 A: cast "Soul's Fire" targeting "Hill Giant", "Jace Beleren"
+  run_to turn 1 end
+  assert graveyard B contains "Jace Beleren"
+}
+
+scenario "bite: Wrack with Madness makes a creature damage itself" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Wrack with Madness"
+  turn 1 A: cast "Wrack with Madness" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "bite: Wrack with Madness uses the creature's own lifelink and deathtouch" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Vampire Nighthawk"
+  hand A: "Wrack with Madness"
+  turn 1 A: cast "Wrack with Madness" targeting "Vampire Nighthawk"
+  run_to turn 1 end
+  assert graveyard B contains "Vampire Nighthawk"
+  assert life B 22
+  assert life A 20
+}

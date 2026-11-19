@@ -1,0 +1,6 @@
+card "Aggressive Instinct" {
+  oracle_id d1c8f14b-7977-488a-8bd9-cefd6687f017
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control bites target creature you don't control
+}

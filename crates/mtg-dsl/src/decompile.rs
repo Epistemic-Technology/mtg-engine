@@ -412,6 +412,10 @@ impl Decompiler<'_> {
                 who: (*who != CoreRecipient::You).then(|| r(*who)),
             },
             CoreEffect::Fight { a, b } => Effect::Fight { a: r(*a), b: r(*b) },
+            CoreEffect::Bite { source, to } => Effect::Bite {
+                source: r(*source),
+                to: r(*to),
+            },
             CoreEffect::Animate {
                 to,
                 types: t,

@@ -1017,6 +1017,12 @@ pub enum Effect {
         a: Recipient,
         b: Recipient,
     },
+    /// `<what> bites <what>`: "deals damage equal to its power to"; `bites
+    /// itself` when `to == source`.
+    Bite {
+        source: Recipient,
+        to: Recipient,
+    },
     Animate {
         to: Recipient,
         types: Vec<CardType>,

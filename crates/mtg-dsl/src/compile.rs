@@ -733,6 +733,10 @@ impl Compiler<'_> {
                 who: who.map_or(CoreRecipient::You, r),
             }),
             Effect::Fight { a, b } => out.push(CoreEffect::Fight { a: r(*a), b: r(*b) }),
+            Effect::Bite { source, to } => out.push(CoreEffect::Bite {
+                source: r(*source),
+                to: r(*to),
+            }),
             Effect::CreateEmblem { emblem } => {
                 let Some(emblem_ref) = self.pool.lookup(emblem) else {
                     return self.err(format!("unknown emblem \"{emblem}\""));

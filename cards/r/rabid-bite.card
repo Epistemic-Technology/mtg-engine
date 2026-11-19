@@ -1,0 +1,6 @@
+card "Rabid Bite" {
+  oracle_id 6d5dc34b-3eea-4b77-8db7-94bc30b14c4c
+  cost {1}{G}
+  type Sorcery
+  spell: target creature you control bites target creature you don't control
+}
