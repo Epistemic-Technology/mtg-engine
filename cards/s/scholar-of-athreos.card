@@ -1,0 +1,7 @@
+card "Scholar of Athreos" {
+  oracle_id 18c5e7a0-4397-48bb-b993-1c3e3b08be2c
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 1/4
+  activated {2}{B}: each opponent loses 1 life; you gain count equal life lost this way life
+}

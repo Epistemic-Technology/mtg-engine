@@ -295,8 +295,212 @@ impl GameState {
                 };
             }
             CountExpr::Life => return u32::try_from(self.player(you).life.max(0)).unwrap_or(0),
+            CountExpr::ThisWay(verb, f) => self.this_way.as_ref().map_or(0, |log| {
+                log.moved
+                    .iter()
+                    .filter(|m| {
+                        m.is(*verb) && f.as_ref().is_none_or(|f| self.moved_matches(ctx, m, f))
+                    })
+                    .count()
+            }),
+            CountExpr::LifeLostThisWay => {
+                return self.this_way.as_ref().map_or(0, |log| log.life_lost);
+            }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
+    }
+
+    /// What `Effect::ChooseAct` may act on, for its controller.
+    fn act_candidates(
+        &self,
+        ctx: &EffectCtx,
+        act: crate::card::ChooseAct,
+        filter: &crate::card::ObjFilter,
+    ) -> Vec<ObjId> {
+        use crate::card::ChooseAct;
+        let p = ctx.controller;
+        let card_ok = |id: ObjId| {
+            let o = &self.objects[id];
+            let c = self.base_characteristics(o);
+            filter.matches(id, p, &c, Some(ctx.source), Some(p)) && self.status_ok(filter, id)
+        };
+        match act {
+            ChooseAct::Tap | ChooseAct::Sacrifice | ChooseAct::Bounce => self
+                .permanents_of(p)
+                .filter(|id| {
+                    (act != ChooseAct::Tap || !self.objects[*id].tapped)
+                        && self
+                            .characteristics(*id)
+                            .is_some_and(|c| filter.matches(*id, p, &c, Some(ctx.source), Some(p)))
+                        && self.status_ok(filter, *id)
+                })
+                .collect(),
+            ChooseAct::Discard => self
+                .player(p)
+                .hand
+                .iter()
+                .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            ChooseAct::ExileFromGraveyard | ChooseAct::ReturnFromGraveyard => self
+                .player(p)
+                .graveyard
+                .iter()
+                .copied()
+                .filter(|id| card_ok(*id))
+                .collect(),
+            // "from among the milled cards": those still in the graveyard.
+            ChooseAct::MilledToHand => self.this_way.as_ref().map_or_else(Vec::new, |log| {
+                log.moved
+                    .iter()
+                    .filter(|m| m.is(crate::card::ThisWay::Milled))
+                    .map(|m| m.new)
+                    .filter(|id| {
+                        self.objects
+                            .get(*id)
+                            .is_some_and(|o| o.zone == Zone::Graveyard)
+                            && card_ok(*id)
+                    })
+                    .collect()
+            }),
+        }
+    }
+
+    /// `Effect::ChooseAct`: the controller chooses `n` candidates (up to
+    /// `n` with `up_to`) and each is acted on; returns how many were.
+    /// Without `up_to`, nothing happens unless all `n` can be chosen.
+    fn choose_act(
+        &mut self,
+        ctx: &mut EffectCtx,
+        act: crate::card::ChooseAct,
+        filter: &crate::card::ObjFilter,
+        n: usize,
+        up_to: bool,
+    ) -> usize {
+        use crate::card::ChooseAct;
+        let mut cands = self.act_candidates(ctx, act, filter);
+        if n == 0 || (!up_to && cands.len() < n) {
+            return 0;
+        }
+        let p = ctx.controller;
+        let mut done = 0;
+        while done < n && !cands.is_empty() {
+            let id = if !up_to && cands.len() == n - done {
+                cands[0]
+            } else {
+                let mut options: Vec<Choice> = cands
+                    .iter()
+                    .map(|id| match self.objects[*id].zone {
+                        Zone::Battlefield => Choice::Sacrifice(*id),
+                        _ => Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        },
+                    })
+                    .collect();
+                if up_to {
+                    options.push(Choice::Done);
+                }
+                let k = self.choose_mid(p, DecisionKind::ChooseCard, options.clone());
+                match options[k] {
+                    Choice::Sacrifice(id) | Choice::Discard { card: id, .. } => id,
+                    _ => break,
+                }
+            };
+            cands.retain(|c| *c != id);
+            match act {
+                ChooseAct::Tap => self.tap(id),
+                ChooseAct::Sacrifice => self.sacrifice(id),
+                ChooseAct::Discard => self.discard_card(p, id),
+                ChooseAct::ExileFromGraveyard => {
+                    ctx.created = Some(self.move_object(id, Zone::Exile, false));
+                }
+                ChooseAct::Bounce | ChooseAct::ReturnFromGraveyard | ChooseAct::MilledToHand => {
+                    ctx.created = Some(self.move_object(id, Zone::Hand, false));
+                }
+            }
+            done += 1;
+        }
+        done
+    }
+
+    /// Whether the controller can do `e` now, for `Effect::OneOf`: a
+    /// choice needs something to choose; anything else can be done.
+    fn can_do(&self, ctx: &EffectCtx, e: &Effect) -> bool {
+        match e {
+            Effect::ChooseAct {
+                act,
+                filter,
+                count,
+                up_to,
+            } => {
+                *up_to
+                    || self.act_candidates(ctx, *act, filter).len()
+                        >= self.eval_num(*count, ctx) as usize
+            }
+            Effect::Discard {
+                who: crate::card::Recipient::You,
+                ..
+            } => !self.player(ctx.controller).hand.is_empty(),
+            _ => true,
+        }
+    }
+
+    /// `p` discards `n` cards of their choice (CR 701.9), one at a time.
+    fn discard_n(&mut self, p: PlayerId, n: u32) {
+        for _ in 0..n {
+            let options: Vec<Choice> = self
+                .player(p)
+                .hand
+                .iter()
+                .map(|id| Choice::Discard {
+                    card: *id,
+                    def: self.objects[*id].def,
+                })
+                .collect();
+            if options.is_empty() {
+                break;
+            }
+            let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
+            if let Choice::Discard { card, .. } = options[k] {
+                self.discard_card(p, card);
+            }
+        }
+    }
+
+    /// Whether an object the resolution moved matches `f`, as it last
+    /// existed before moving (CR 608.2h).
+    fn moved_matches(
+        &self,
+        ctx: &EffectCtx,
+        m: &crate::state::Moved,
+        f: &crate::card::ObjFilter,
+    ) -> bool {
+        self.lki.get(&m.old).is_some_and(|l| {
+            f.matches(
+                m.old,
+                l.object.controller,
+                &l.characteristics,
+                Some(ctx.source),
+                Some(ctx.controller),
+            )
+        })
+    }
+
+    /// "If a creature card was exiled this way" (CR 608.2c): what the
+    /// resolution, or the costs paid for it, did.
+    pub(super) fn this_way_holds(&self, ctx: &EffectCtx, cond: &crate::card::ThisWayCond) -> bool {
+        let Some(log) = &self.this_way else {
+            return false;
+        };
+        log.moved.iter().any(|m| {
+            m.is(cond.verb)
+                && (!cond.by_you || m.owner == ctx.controller)
+                && cond
+                    .filter
+                    .as_ref()
+                    .is_none_or(|f| self.moved_matches(ctx, m, f) != cond.negated)
+        })
     }
 
     /// Cards in `players`' graveyards matching `f` (all with none), judged
@@ -1501,7 +1705,9 @@ impl GameState {
                 cycled = self.current_object(sa.source).map(|c| (c, card_def));
             }
         }
-        self.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+        self.pay_costs_recorded(obj, |s| {
+            s.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
+        });
         self.emit(Event::Activated {
             obj,
             source: sa.source,
@@ -1910,6 +2116,38 @@ impl GameState {
         }
     }
 
+    /// Pay costs for the stack object `obj`, remembering what they
+    /// sacrificed or discarded for "the sacrificed creature" and "If a
+    /// Saproling was sacrificed this way" as it resolves.
+    fn pay_costs_recorded(&mut self, obj: ObjId, pay: impl FnOnce(&mut Self)) {
+        let outer = self.this_way.replace(crate::state::ThisWayLog::default());
+        pay(self);
+        let paid = std::mem::replace(&mut self.this_way, outer).map(|l| l.moved);
+        if let Some(paid) = paid
+            && !paid.is_empty()
+        {
+            self.paid_costs.push((obj, paid));
+        }
+    }
+
+    /// Start recording what the resolution of stack object `obj` does
+    /// "this way" (CR 608.2c), beginning with what its costs paid; returns
+    /// the record of a resolution this one interrupts (a mana ability's),
+    /// for `end_this_way`.
+    pub(super) fn begin_this_way(&mut self, obj: ObjId) -> Option<crate::state::ThisWayLog> {
+        let mut log = crate::state::ThisWayLog::default();
+        if !self.paid_costs.is_empty()
+            && let Some(i) = self.paid_costs.iter().position(|(o, _)| *o == obj)
+        {
+            log.moved = self.paid_costs.swap_remove(i).1;
+        }
+        self.this_way.replace(log)
+    }
+
+    pub(super) fn end_this_way(&mut self, outer: Option<crate::state::ThisWayLog>) {
+        self.this_way = outer;
+    }
+
     pub(super) fn pay(&mut self, p: PlayerId, req: &ManaRequirement) {
         let sources = self.mana_sources(p);
         self.pay_from(p, req, &sources, None);
@@ -2053,14 +2291,16 @@ impl GameState {
                 self.move_object(id, Zone::Exile, true);
             }
         }
-        if def.additional.discard_x {
-            // "Discard X cards": as many as the X announced (CR 601.2b).
-            let mut add = def.additional.clone();
-            add.discard = x;
-            self.pay_other_costs(caster, &add, spell, sacrifice, discard);
-        } else {
-            self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
-        }
+        self.pay_costs_recorded(spell, |s| {
+            if def.additional.discard_x {
+                // "Discard X cards": as many as the X announced (CR 601.2b).
+                let mut add = def.additional.clone();
+                add.discard = x;
+                s.pay_other_costs(caster, &add, spell, sacrifice, discard);
+            } else {
+                s.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
+            }
+        });
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
         self.cast_this_turn.push((caster, def_ref));
@@ -2240,7 +2480,9 @@ impl GameState {
                 chosen: Chosen::None,
             };
             let split = self.mode_split_of(spell);
+            let outer = self.begin_this_way(spell);
             self.apply_effects(&mut ctx, effects, split);
+            self.end_this_way(outer);
         } else {
             self.emit(Event::Resolve {
                 spell,
@@ -2794,10 +3036,15 @@ impl GameState {
                     let Target::Object(id) = t else {
                         continue;
                     };
-                    let in_zone = self
-                        .objects
-                        .get(id)
-                        .is_some_and(|o| matches!(o.zone, Zone::Battlefield | Zone::Graveyard));
+                    // "return Psychic Miasma to its owner's hand": the
+                    // resolving spell itself, from the stack (it then
+                    // doesn't go to the graveyard, CR 608.2n).
+                    let in_zone = self.objects.get(id).is_some_and(|o| {
+                        matches!(o.zone, Zone::Battlefield | Zone::Graveyard)
+                            || (o.zone == Zone::Stack
+                                && id == ctx.source
+                                && o.kind != ObjKind::Ability)
+                    });
                     if in_zone {
                         self.move_object(id, Zone::Hand, false);
                     }
@@ -3069,24 +3316,8 @@ impl GameState {
                     if self.player(p).hand.is_empty() {
                         ctx.did = false;
                     }
-                    for _ in 0..self.eval_num(*count, ctx) {
-                        let options: Vec<Choice> = self
-                            .player(p)
-                            .hand
-                            .iter()
-                            .map(|id| Choice::Discard {
-                                card: *id,
-                                def: self.objects[*id].def,
-                            })
-                            .collect();
-                        if options.is_empty() {
-                            break;
-                        }
-                        let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
-                        if let Choice::Discard { card, .. } = options[k] {
-                            self.discard_card(p, card);
-                        }
-                    }
+                    let n = self.eval_num(*count, ctx);
+                    self.discard_n(p, n);
                 }
             }
             Effect::Fight { a, b } => {
@@ -3358,13 +3589,17 @@ impl GameState {
                     }
                 }
             }
-            Effect::DiscardChosen { who, filter } => {
+            Effect::DiscardChosen {
+                who,
+                filter,
+                optional,
+            } => {
                 for t in self.recipients(ctx, *who) {
                     let Target::Player(p) = t else {
                         continue;
                     };
                     self.emit(Event::RevealedHand { player: p });
-                    let options: Vec<Choice> = self
+                    let mut options: Vec<Choice> = self
                         .player(p)
                         .hand
                         .iter()
@@ -3381,6 +3616,9 @@ impl GameState {
                         .collect();
                     if options.is_empty() {
                         continue;
+                    }
+                    if *optional {
+                        options.push(Choice::Done);
                     }
                     let k = self.choose_mid(ctx.controller, DecisionKind::Discard, options.clone());
                     if let Choice::Discard { card, .. } = options[k] {
@@ -3603,6 +3841,112 @@ impl GameState {
                     ctx.did = false;
                 }
             }
+            Effect::IfThisWay { cond, then } => {
+                if self.this_way_holds(ctx, cond) {
+                    for e in then {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
+            Effect::ChooseAct {
+                act,
+                filter,
+                count,
+                up_to,
+            } => {
+                let n = self.eval_num(*count, ctx) as usize;
+                let did = self.choose_act(ctx, *act, filter, n, *up_to);
+                if did == 0 {
+                    ctx.did = false;
+                }
+            }
+            Effect::OneOf(options) => {
+                let doable: Vec<usize> = (0..options.len())
+                    .filter(|i| self.can_do(ctx, &options[*i]))
+                    .collect();
+                let Some(&first) = doable.first() else {
+                    ctx.did = false;
+                    return;
+                };
+                let def = self
+                    .objects
+                    .get(ctx.source)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(&ctx.source).map(|l| l.object.def))
+                    .expect("a resolving spell or its last known information exists");
+                let k = if doable.len() == 1 {
+                    first
+                } else {
+                    let choices: Vec<Choice> = doable.iter().map(|i| Choice::Mode(*i)).collect();
+                    let k = self.choose_mid(
+                        ctx.controller,
+                        DecisionKind::ChooseOption { def },
+                        choices,
+                    );
+                    doable[k]
+                };
+                self.apply_effect(ctx, &options[k]);
+            }
+            Effect::DiscardUnless { who, count, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    // CR 608.2d: the player chooses: one matching card, or
+                    // `count` cards.
+                    let mut options: Vec<Choice> = self
+                        .player(p)
+                        .hand
+                        .iter()
+                        .filter(|id| {
+                            let o = &self.objects[**id];
+                            let c = self.base_characteristics(o);
+                            filter.matches(**id, p, &c, None, Some(p))
+                        })
+                        .map(|id| Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        })
+                        .collect();
+                    let n = self.eval_num(*count, ctx);
+                    if options.is_empty() {
+                        self.discard_n(p, n);
+                        continue;
+                    }
+                    options.push(Choice::Done);
+                    let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
+                    match options[k] {
+                        Choice::Discard { card, .. } => self.discard_card(p, card),
+                        _ => self.discard_n(p, n),
+                    }
+                }
+            }
+            Effect::DiscardAll { who, filter } => {
+                for t in self.recipients(ctx, *who) {
+                    let Target::Player(p) = t else {
+                        continue;
+                    };
+                    if filter.is_some() {
+                        self.emit(Event::RevealedHand { player: p });
+                    }
+                    let cards: Vec<ObjId> = self
+                        .player(p)
+                        .hand
+                        .iter()
+                        .copied()
+                        .filter(|id| {
+                            filter.as_ref().is_none_or(|f| {
+                                let o = &self.objects[*id];
+                                let c = self.base_characteristics(o);
+                                f.matches(*id, p, &c, None, Some(p))
+                            })
+                        })
+                        .collect();
+                    for c in cards {
+                        self.discard_card(p, c);
+                    }
+                }
+            }
             Effect::IfTarget { n, filter, then } => {
                 if self.nth_target_matches(ctx, *n, filter) {
                     for e in then {
@@ -3620,6 +3964,7 @@ impl GameState {
                         self.condition_now(&c, ctx.controller, ctx.source)
                     }
                     EffectCond::Target { n, filter } => self.nth_target_matches(ctx, *n, filter),
+                    EffectCond::ThisWay(c) => self.this_way_holds(ctx, c),
                 };
                 for e in if holds { alt } else { base } {
                     self.apply_effect(ctx, e);

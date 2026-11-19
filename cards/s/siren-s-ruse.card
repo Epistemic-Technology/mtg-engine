@@ -1,0 +1,6 @@
+card "Siren's Ruse" {
+  oracle_id 58a55d14-b03b-4648-b168-ad35ff088b19
+  cost {1}{U}
+  type Instant
+  spell: exile target creature you control then return that card to battlefield under its owner's control; if Pirate was exiled this way, draw 1 card
+}

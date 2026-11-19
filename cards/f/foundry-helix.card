@@ -1,0 +1,7 @@
+card "Foundry Helix" {
+  oracle_id f4f66558-3c99-4488-ad2d-90626a922042
+  cost {1}{R}{W}
+  type Instant
+  additional cost sacrifice permanent
+  spell: deal 4 damage to any target; if the sacrificed permanent was artifact, you gain 4 life
+}

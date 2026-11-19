@@ -1,0 +1,6 @@
+card "Mystic Meditation" {
+  oracle_id d7c18aa7-4184-4658-9a5a-0b64992348ee
+  cost {3}{U}
+  type Sorcery
+  spell: draw 3 cards; then discard 2 cards unless you discard creature card
+}

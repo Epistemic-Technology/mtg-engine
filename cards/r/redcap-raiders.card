@@ -1,0 +1,7 @@
+card "Redcap Raiders" {
+  oracle_id 05c42b13-5125-477c-991f-692c4e22bc53
+  cost {2}{R}
+  type Creature — Goblin Warrior
+  pt 3/2
+  triggered whenever this attacks: you may tap 1 untapped non-Human creature you control chosen; if you do, this creature gets +1/+1 and gains trample
+}

@@ -1,0 +1,6 @@
+card "Alchemist's Gift" {
+  oracle_id 4e698713-6203-44f2-b438-1b26b951536d
+  cost {B}
+  type Instant
+  spell: target creature gets +1/+1 and gains choice of deathtouch or lifelink
+}

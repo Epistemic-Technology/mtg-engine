@@ -1,0 +1,7 @@
+card "Crypt Lurker" {
+  oracle_id f0cbf361-d7dc-4556-a654-71c08785095a
+  cost {3}{B}
+  type Creature — Horror
+  pt 3/4
+  triggered when this enters: you may sacrifice 1 creature chosen or discard 1 creature card chosen; if you do, draw 1 card
+}

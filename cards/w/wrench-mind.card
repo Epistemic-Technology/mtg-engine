@@ -1,0 +1,6 @@
+card "Wrench Mind" {
+  oracle_id 484eeb13-fe74-45fe-b089-7beec87cfcdb
+  cost {B}{B}
+  type Sorcery
+  spell: target player discards 2 cards unless they discard artifact card
+}

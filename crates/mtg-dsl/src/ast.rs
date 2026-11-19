@@ -123,6 +123,8 @@ pub enum CountStyle {
     Equal,
     /// `count each ...`: "... for each ...".
     Each,
+    /// `count that many ...`: "draw that many cards".
+    ThatMany,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -159,6 +161,14 @@ pub enum CountExpr {
         word: bool,
         inner: Box<CountExpr>,
     },
+    /// `enchantment destroyed this way`, `discarded this way`: what the
+    /// resolution did (CR 608.2c).
+    ThisWay {
+        verb: mtg_core::card::ThisWay,
+        filter: Option<Filter>,
+    },
+    /// `life lost this way`: "the life lost this way".
+    LifeLostThisWay,
 }
 
 /// A search's count meaning "any number of cards" (`search any number`).
@@ -838,6 +848,9 @@ pub enum InsteadCond {
         that: bool,
         filter: Filter,
     },
+    /// `the sacrificed creature was legendary`: "If the sacrificed
+    /// creature was legendary, draw three cards instead."
+    ThisWay(ThisWayCond),
 }
 
 /// Where "instead" and the condition print.
@@ -865,6 +878,9 @@ pub struct Sentence {
     /// Printed "Until end of turn, ..." with the duration first (Water
     /// Wings) rather than after each clause.
     pub eot_first: bool,
+    /// Printed "Then ..." (`then` before the sentence): "Then that player
+    /// discards a card."
+    pub then_first: bool,
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
@@ -891,6 +907,7 @@ impl Sentence {
             label: None,
             para: false,
             eot_first: false,
+            then_first: false,
             joins,
         }
     }
@@ -1389,6 +1406,11 @@ pub enum Effect {
     DiscardChosen {
         who: Recipient,
         filter: Option<Filter>,
+        /// `discarding may ...`: "You may choose ...".
+        may: bool,
+        /// `look at hand of target player discarding ...`: "Look at
+        /// target player's hand" rather than "reveals their hand".
+        look: bool,
     },
     /// `transform this`: "transform this creature" (CR 701.27).
     Transform {
@@ -1626,4 +1648,102 @@ pub enum Effect {
     },
     /// `pay 2 energy`, inside `may`.
     PayEnergy(u32),
+    /// `if creature card was exiled this way, <sentence>`, `if the
+    /// sacrificed creature was Human, <sentence>`: what the resolution, or
+    /// the costs paid for it, did (CR 608.2c).
+    IfThisWay(ThisWayCond, Vec<Sentence>),
+    /// `tap 1 other untapped Citizen you control chosen`, `exile 2
+    /// creature card from your graveyard chosen`, `return up to 2 land you
+    /// control chosen`: the controller chooses what to act on.
+    ChooseAct {
+        act: mtg_core::card::ChooseAct,
+        count: Num,
+        up_to: bool,
+        filter: Filter,
+        /// `MilledToHand` only: "from among them" rather than "from among
+        /// the milled cards".
+        among_them: bool,
+    },
+    /// `sacrifice 1 artifact chosen or discard 1 card`: one of these, as
+    /// the controller chooses.
+    OneOf(Vec<Effect>),
+    /// `target creature gains choice of lifelink or indestructible`:
+    /// "gains your choice of lifelink or indestructible until end of
+    /// turn".
+    GrantChoice {
+        to: Recipient,
+        keywords: Vec<Keyword>,
+    },
+    /// `discard 2 cards unless you discard creature card`, `that player
+    /// discards 2 cards unless they discard land card`.
+    DiscardUnless {
+        who: Option<Recipient>,
+        count: Num,
+        filter: Filter,
+    },
+    /// `discard hand` ("discard your hand"), `discard all cards in hand`
+    /// ("discard all the cards in your hand"), `<who> discards all Trap
+    /// card` ("discards all Trap cards").
+    DiscardAll {
+        who: Option<Recipient>,
+        filter: Option<Filter>,
+        /// With no filter: "all the cards in your hand" rather than "your
+        /// hand".
+        all_cards: bool,
+    },
+}
+
+/// `<filter> was exiled this way`, `you discarded card this way`, `the
+/// sacrificed creature was Human`.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct ThisWayCond {
+    pub verb: mtg_core::card::ThisWay,
+    pub filter: Option<Filter>,
+    /// The filter names cards ("a creature card"), not permanents.
+    pub card: bool,
+    /// "wasn't".
+    pub negated: bool,
+    pub wording: ThisWayWording,
+}
+
+/// How a `ThisWay` is written and printed: "exiled", "sacrificed", ...;
+/// a card put into a hand was "returned".
+pub fn this_way_word(v: mtg_core::card::ThisWay) -> &'static str {
+    use mtg_core::card::ThisWay;
+    match v {
+        ThisWay::Exiled => "exiled",
+        ThisWay::Sacrificed => "sacrificed",
+        ThisWay::Destroyed => "destroyed",
+        ThisWay::Discarded => "discarded",
+        ThisWay::Milled => "milled",
+        ThisWay::PutInHand => "returned",
+    }
+}
+
+/// The `ThisWay` a word names.
+pub fn this_way_verb(w: &str) -> Option<mtg_core::card::ThisWay> {
+    use mtg_core::card::ThisWay;
+    [
+        ThisWay::Exiled,
+        ThisWay::Sacrificed,
+        ThisWay::Destroyed,
+        ThisWay::Discarded,
+        ThisWay::Milled,
+        ThisWay::PutInHand,
+    ]
+    .into_iter()
+    .find(|v| this_way_word(*v) == w)
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum ThisWayWording {
+    /// "If a creature card was exiled this way".
+    Was,
+    /// "If an artifact is destroyed this way".
+    Is,
+    /// "If you discarded a card this way", "If you put an artifact card
+    /// into your hand this way".
+    You,
+    /// "If the sacrificed creature was a Human": the noun.
+    The(String),
 }

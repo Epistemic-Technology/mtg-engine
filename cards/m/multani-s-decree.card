@@ -1,0 +1,6 @@
+card "Multani's Decree" {
+  oracle_id b233473d-d22b-45e4-9fe7-55d1170a788b
+  cost {3}{G}
+  type Sorcery
+  spell: destroy each enchantment; you gain count each 2 enchantment destroyed this way life
+}

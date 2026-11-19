@@ -1,0 +1,6 @@
+card "Compulsive Research" {
+  oracle_id f947808c-a1cc-41ea-9d06-e1279a0da527
+  cost {2}{U}
+  type Sorcery
+  spell: target player draws 3 cards; then that player discards 2 cards unless they discard land card
+}

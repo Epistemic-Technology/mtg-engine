@@ -1,0 +1,6 @@
+card "Smashing Success" {
+  oracle_id cb19d2f7-0511-4c66-ba4c-f38516920c20
+  cost {3}{R}
+  type Instant
+  spell: destroy target artifact or land; if artifact is destroyed this way, create 1 "Treasure"
+}

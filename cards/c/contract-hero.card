@@ -1,0 +1,8 @@
+card "Contract Hero" {
+  oracle_id a5c9b167-5824-4fc8-ba7a-ffa64363c029
+  cost {2}{R}
+  type Creature — Human Mercenary Hero
+  pt 2/3
+  triggered when this enters: create 1 "Treasure"
+  triggered whenever this attacks: you may sacrifice 1 artifact chosen or discard 1 card; if you do, this creature gets +2/+0
+}

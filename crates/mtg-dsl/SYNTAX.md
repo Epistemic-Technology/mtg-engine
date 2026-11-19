@@ -701,3 +701,63 @@ line. `deal 4 damage` without `to` deals it to what the sentence before
 dealt damage to ("it deals 4 damage instead"). A spell names itself again
 in the upgrade unless it is for kicker; creating the token the sentence
 before created prints "create four of those tokens".
+
+### Choosing what to act on, alternatives, and "this way"
+
+Optional actions that choose what they act on (CR 608.2d) end in
+`chosen`; the controller chooses as the effect resolves, and without `up
+to` the action happens only if all of it can ("you may exile two creature
+cards from your graveyard" does nothing with one), which is what `if you
+do` then sees:
+
+- `tap 1 other untapped Citizen you control chosen` ("tap another untapped
+  Citizen you control"), `tap 2 other untapped creature you control chosen`
+- `sacrifice 1 creature chosen` ("sacrifice a creature")
+- `discard 1 creature card chosen` ("discard a creature card")
+- `exile 2 creature card from your graveyard chosen`
+- `return 1 creature or land card from your graveyard to hand chosen`
+  ("return a creature or land card from your graveyard to your hand"),
+  `return up to 2 creature card from your graveyard to hand chosen`
+- `return up to 2 land you control to hand chosen` ("return up to two
+  lands you control to their owner's hand")
+- `put 1 permanent card from among milled cards into hand chosen` ("put a
+  permanent card from among the milled cards into your hand"; `from among
+  them`): cards this resolution milled that are still in the graveyard.
+
+`permanent card` is a card that is not an instant or sorcery (CR 110.4a).
+
+`A or B` joins alternatives the controller chooses between, among those it
+can do: `you may sacrifice 1 artifact chosen or discard 1 card; if you do,
+draw 1 card`, `create 1 "Food" or create 1 "Treasure"` ("create a Food
+token or a Treasure token"). `target creature gains choice of lifelink or
+indestructible` is "gains your choice of lifelink or indestructible until
+end of turn". With none possible nothing happens and `if you do` sees that.
+
+Conditions on what the resolution did "this way" (CR 608.2c), judged on
+the objects as they last existed (CR 608.2h): `if creature card was exiled
+this way, ...`, `if artifact is destroyed this way, ...` ("If an artifact
+is destroyed this way"), `if land card is discarded this way, ...`, `if
+Saproling was sacrificed this way, ...`, `if you discarded card this way,
+...` (cards you owned), `if you put Town card into hand this way, ...`.
+Verbs: `exiled`, `sacrificed`, `destroyed`, `discarded`, `milled`,
+`returned` (put into a hand). What a spell's or ability's costs sacrificed
+or discarded counts too (CR 601.2h, 602.2b): `if the sacrificed creature was
+Human, ...`, `if the sacrificed permanent was artifact, ...`, `if the
+discarded card wasn't land card, ...`, and as an "instead": `if the
+sacrificed creature was legendary, draw 3 cards instead`. Counts: `count
+each 2 enchantment destroyed this way` ("2 life for each enchantment
+destroyed this way"), `count equal life lost this way` ("life equal to the
+life lost this way"), `count that many discarded this way` ("draw that
+many cards").
+
+Discards: `discard hand` ("Discard your hand"), `discard all cards in hand`
+("Discard all the cards in your hand"), `<who> discards all Trap card`
+("discards all Trap cards"), `discard 2 cards unless you discard creature
+card`, `that player discards 2 cards unless they discard land card` (the
+player discards one such card or else two). `<who> reveals hand discarding
+may nonland card` ("You may choose a nonland card from it."), `look at hand
+of target player discarding may nonland card` ("look at target player's
+hand. You may choose ..."), `look at hand of target player discarding card`
+("Look at target player's hand and choose a card from it."). A sentence
+may start `then` ("Then discard two cards unless ..."). `return this to its
+owner's hand` in a spell returns the resolving spell from the stack.

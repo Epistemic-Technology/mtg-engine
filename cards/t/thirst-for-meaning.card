@@ -1,0 +1,6 @@
+card "Thirst for Meaning" {
+  oracle_id 70e58068-90d2-4720-a11c-5d243046b4a3
+  cost {2}{U}
+  type Instant
+  spell: draw 3 cards; then discard 2 cards unless you discard enchantment card
+}

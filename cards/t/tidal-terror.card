@@ -1,0 +1,8 @@
+card "Tidal Terror" {
+  oracle_id e7866ce6-d507-4221-bb19-d3e6fd7b57d8
+  cost {4}{U}{U}
+  type Creature — Octopus
+  pt 5/6
+  triggered whenever this attacks: you may tap 2 other untapped creature you control chosen; if you do, this creature can't be blocked this turn
+  islandcycling {2}
+}

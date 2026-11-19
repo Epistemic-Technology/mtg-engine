@@ -1,0 +1,6 @@
+card "Rapid Rescue" {
+  oracle_id de1ad369-5aa3-4c54-8fb1-30b7f1d4d542
+  cost {G}
+  type Instant
+  spell: mill 2 cards; you may put 1 permanent card from among milled cards into hand chosen; you gain 2 life
+}

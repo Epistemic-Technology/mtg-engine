@@ -1,0 +1,8 @@
+card "Kazandu Stomper" {
+  oracle_id 121f6c96-2911-4ee3-b14e-d3b143eb14c3
+  cost {5}{G}
+  type Creature — Beast
+  pt 6/5
+  keywords trample
+  triggered when this enters: return up to 2 land you control to hand chosen
+}

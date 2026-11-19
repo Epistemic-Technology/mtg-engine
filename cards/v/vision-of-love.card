@@ -1,0 +1,6 @@
+card "Vision of Love" {
+  oracle_id 70c96b50-ac2b-493d-bd15-fc66eb767111
+  cost {1}{R}
+  type Instant
+  spell: you may sacrifice 1 artifact chosen or discard 1 card; if you do, draw 2 cards
+}

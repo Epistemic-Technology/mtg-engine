@@ -1941,6 +1941,8 @@ impl P {
         } else {
             None
         };
+        // "Then that player discards a card.": a sentence led by "then".
+        let then_first = self.eat_word("then");
         // "until end of turn, <clauses>": the duration printed first.
         let eot_first = self.eat_words(&["until", "end", "of", "turn"]);
         if eot_first && self.peek() == Some(&Tok::Comma) {
@@ -1965,6 +1967,20 @@ impl P {
                 }
                 self.pos += 1;
                 joins.push(Join::Then);
+            } else if self.at_word("or") {
+                // `sacrifice 1 artifact chosen or discard 1 card`: one of
+                // these, chosen as it resolves.
+                self.pos += 1;
+                let c = self.clause()?;
+                let last = clauses.pop().expect("a first clause");
+                clauses.push(match last {
+                    Effect::OneOf(mut v) => {
+                        v.push(c);
+                        Effect::OneOf(v)
+                    }
+                    other => Effect::OneOf(vec![other, c]),
+                });
+                continue;
             } else if self.peek() == Some(&Tok::Comma) {
                 // `A, B and C`: a list of clauses, when a clause follows.
                 let at = self.pos;
@@ -1993,6 +2009,7 @@ impl P {
             label,
             para: false,
             eot_first,
+            then_first,
             joins,
         };
         // `<sentence> instead if <cond>` (CR 608.2c).
@@ -2166,6 +2183,113 @@ impl P {
         Ok(Effect::IfTarget(n - 1, f, vec![s]))
     }
 
+    /// Whether an `if` here is a "this way" condition: `this way`, or
+    /// `the sacrificed creature was ...`, before the comma.
+    fn this_way_ahead(&self) -> bool {
+        if self.word_at(1).as_deref() == Some("the")
+            && self
+                .word_at(2)
+                .is_some_and(|w| crate::ast::this_way_verb(&w).is_some())
+        {
+            return true;
+        }
+        let mut k = 1;
+        loop {
+            match self.peek_at(k) {
+                None | Some(Tok::Comma | Tok::Semi | Tok::Newline) => return false,
+                _ => {}
+            }
+            if self.word_at(k).as_deref() == Some("this")
+                && self.word_at(k + 1).as_deref() == Some("way")
+            {
+                return true;
+            }
+            k += 1;
+        }
+    }
+
+    /// After `if`: `<filter> [card] was <verb> this way`, `<filter> is
+    /// <verb> this way`, `you discarded <filter> card this way`, `you put
+    /// <filter> card into hand this way`, `the sacrificed creature was[n't]
+    /// <filter> [card]`.
+    fn this_way_cond(&mut self) -> R<crate::ast::ThisWayCond> {
+        use crate::ast::{ThisWayCond, ThisWayWording, this_way_verb};
+        let verb_at = |p: &Self| p.word_at(0).and_then(|w| this_way_verb(&w));
+        if self.eat_word("the") {
+            let Some(verb) = verb_at(self) else {
+                return self.unexpected("`sacrificed`, `discarded`, ...");
+            };
+            self.pos += 1;
+            let noun = self.word()?;
+            let negated = if self.eat_word("wasn't") {
+                true
+            } else {
+                self.expect_word("was")?;
+                false
+            };
+            let (filter, card) = self.this_way_what()?;
+            return Ok(ThisWayCond {
+                verb,
+                filter,
+                card,
+                negated,
+                wording: ThisWayWording::The(noun),
+            });
+        }
+        if self.eat_word("you") {
+            let verb = if self.eat_word("put") {
+                mtg_core::card::ThisWay::PutInHand
+            } else {
+                let Some(v) = verb_at(self) else {
+                    return self.unexpected("`discarded` or `put`");
+                };
+                self.pos += 1;
+                v
+            };
+            let (filter, card) = self.this_way_what()?;
+            if verb == mtg_core::card::ThisWay::PutInHand {
+                self.expect_words(&["into", "hand"])?;
+            }
+            self.expect_words(&["this", "way"])?;
+            return Ok(ThisWayCond {
+                verb,
+                filter,
+                card,
+                negated: false,
+                wording: ThisWayWording::You,
+            });
+        }
+        let (filter, card) = self.this_way_what()?;
+        let wording = if self.eat_word("is") {
+            ThisWayWording::Is
+        } else {
+            self.expect_word("was")?;
+            ThisWayWording::Was
+        };
+        let Some(verb) = verb_at(self) else {
+            return self.unexpected("`exiled`, `sacrificed`, ...");
+        };
+        self.pos += 1;
+        self.expect_words(&["this", "way"])?;
+        Ok(ThisWayCond {
+            verb,
+            filter,
+            card,
+            negated: false,
+            wording,
+        })
+    }
+
+    /// `card`, `<filter> card`, or `<filter>`.
+    fn this_way_what(&mut self) -> R<(Option<Filter>, bool)> {
+        if self.eat_word("card") {
+            return Ok((None, true));
+        }
+        let f = self.filter()?;
+        let card = self.eat_word("card");
+        Ok((Some(f), card))
+    }
+
     /// After `if <condition>,`: `instead <sentence>` or `<sentence>
     /// instead` (CR 608.2c), or else the plain sentence (`Err`).
     fn instead_body(&mut self, cond: InsteadCond) -> R<Result<Effect, Sentence>> {
@@ -2193,6 +2317,13 @@ impl P {
     fn instead_cond(&mut self) -> R<InsteadCond> {
         if self.eat_word("kicked") {
             return Ok(InsteadCond::Kicked);
+        }
+        if self.at_word("the")
+            && self
+                .word_at(1)
+                .is_some_and(|w| crate::ast::this_way_verb(&w).is_some())
+        {
+            return Ok(InsteadCond::ThisWay(self.this_way_cond()?));
         }
         if self.at_word("target") || self.at_words(&["that", "target"]) {
             let that = self.eat_word("that");
@@ -2267,6 +2398,15 @@ impl P {
         }
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
+        }
+        if self.at_word("if") && self.this_way_ahead() {
+            self.pos += 1;
+            let cond = self.this_way_cond()?;
+            self.expect(&Tok::Comma)?;
+            return match self.instead_body(InsteadCond::ThisWay(cond.clone()))? {
+                Ok(e) => Ok(e),
+                Err(s) => Ok(Effect::IfThisWay(cond, vec![s])),
+            };
         }
         if self.at_word("if")
             && !self.at_words(&["if", "kicked"])
@@ -2374,6 +2514,23 @@ impl P {
                     self.until_end_of_turn();
                     return Ok(Effect::GainControl { of });
                 }
+                if self.eat_words(&["choice", "of"]) {
+                    let mut keywords = Vec::new();
+                    loop {
+                        let Some(k) = self.keyword() else {
+                            return self.unexpected("a keyword");
+                        };
+                        keywords.push(k);
+                        if !self.eat_word("or") {
+                            break;
+                        }
+                    }
+                    self.until_end_of_turn();
+                    return Ok(Effect::GrantChoice {
+                        to: subject,
+                        keywords,
+                    });
+                }
                 if self.eat_words(&["protection", "from", "chosen", "color"]) {
                     self.until_end_of_turn();
                     return Ok(Effect::ProtectionFromChosen { to: subject });
@@ -2456,17 +2613,7 @@ impl P {
                 self.eat_word("their");
                 self.expect_word("hand")?;
                 if self.eat_word("discarding") {
-                    let filter = if self.eat_word("card") {
-                        None
-                    } else {
-                        let f = self.filter()?;
-                        self.expect_word("card")?;
-                        Some(f)
-                    };
-                    return Ok(Effect::DiscardChosen {
-                        who: subject,
-                        filter,
-                    });
+                    return self.discard_chosen(subject, false);
                 }
                 Ok(Effect::RevealHand { who: subject })
             }
@@ -2495,8 +2642,18 @@ impl P {
                 })
             }
             "discard" | "discards" => {
+                if let Some(e) = self.discard_all(Some(subject))? {
+                    return Ok(e);
+                }
                 let count = self.num()?;
                 self.cards_word()?;
+                if let Some(filter) = self.discard_unless()? {
+                    return Ok(Effect::DiscardUnless {
+                        who: Some(subject),
+                        count,
+                        filter,
+                    });
+                }
                 if self.eat_words(&["at", "random"]) {
                     return Ok(Effect::DiscardRandom {
                         count,
@@ -2782,6 +2939,174 @@ impl P {
         self.eat_words(&["with", "exceptions"])
     }
 
+    /// Whether a chosen action (`tap 1 other untapped creature you
+    /// control chosen`) starts here: one of its verbs, with `chosen`
+    /// before the clause ends or another verb starts. `return N <filter>
+    /// chosen` alone is `ReturnChosen`.
+    fn chosen_act_ahead(&self) -> bool {
+        const VERBS: [&str; 9] = [
+            "tap",
+            "sacrifice",
+            "discard",
+            "exile",
+            "return",
+            "put",
+            "create",
+            "draw",
+            "destroy",
+        ];
+        let Some(verb) = self.word_at(0) else {
+            return false;
+        };
+        if !VERBS[..6].contains(&verb.as_str()) {
+            return false;
+        }
+        let mut hand = false;
+        let mut k = 1;
+        loop {
+            match self.peek_at(k) {
+                None | Some(Tok::Semi | Tok::Newline) => return false,
+                _ => {}
+            }
+            match self.word_at(k).as_deref() {
+                Some("chosen") => {
+                    return verb != "return" || hand || self.word_at(1).as_deref() == Some("up");
+                }
+                Some("hand") => hand = true,
+                Some(w) if VERBS.contains(&w) => return false,
+                _ => {}
+            }
+            k += 1;
+        }
+    }
+
+    /// `tap [up to] N <filter> chosen`, `sacrifice ...`, `discard N
+    /// <filter> card chosen`, `exile N <filter> card from your graveyard
+    /// chosen`, `return N <filter> card from your graveyard to hand
+    /// chosen`, `return up to N <filter> to hand chosen`, `put N <filter>
+    /// card from among milled cards into hand chosen` (or `from among
+    /// them`).
+    fn chosen_act(&mut self) -> R<Effect> {
+        use mtg_core::card::ChooseAct;
+        let verb = self.word()?;
+        let up_to = self.eat_words(&["up", "to"]);
+        let count = self.num()?;
+        let card_filter = |p: &mut Self| -> R<Filter> {
+            let f = if p.at_word("card") || p.at_word("cards") {
+                Filter::default()
+            } else {
+                p.filter()?
+            };
+            p.cards_word()?;
+            Ok(f)
+        };
+        let mut among_them = false;
+        let (act, filter) = match verb.as_str() {
+            "tap" => (ChooseAct::Tap, self.filter()?),
+            "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
+            "discard" => (ChooseAct::Discard, card_filter(self)?),
+            "exile" => {
+                let f = card_filter(self)?;
+                self.expect_words(&["from", "your", "graveyard"])?;
+                (ChooseAct::ExileFromGraveyard, f)
+            }
+            "return" => {
+                let f = if self.at_word("card") || self.at_word("cards") {
+                    Filter::default()
+                } else {
+                    self.filter()?
+                };
+                if self.eat_word("card") || self.eat_word("cards") {
+                    self.expect_words(&["from", "your", "graveyard", "to", "hand"])?;
+                    (ChooseAct::ReturnFromGraveyard, f)
+                } else {
+                    self.expect_words(&["to", "hand"])?;
+                    (ChooseAct::Bounce, f)
+                }
+            }
+            _ => {
+                let f = card_filter(self)?;
+                self.expect_words(&["from", "among"])?;
+                if self.eat_word("them") {
+                    among_them = true;
+                } else {
+                    self.expect_words(&["milled", "cards"])?;
+                }
+                self.expect_words(&["into", "hand"])?;
+                (ChooseAct::MilledToHand, f)
+            }
+        };
+        self.expect_word("chosen")?;
+        Ok(Effect::ChooseAct {
+            act,
+            count,
+            up_to,
+            filter,
+            among_them,
+        })
+    }
+
+    /// `unless you discard <filter> card` / `unless they discard ...` after
+    /// a discard: `None` (nothing consumed) if that doesn't follow.
+    fn discard_unless(&mut self) -> R<Option<Filter>> {
+        if !(self.at_words(&["unless", "you", "discard"])
+            || self.at_words(&["unless", "they", "discard"]))
+        {
+            return Ok(None);
+        }
+        self.pos += 3;
+        let f = self.filter()?;
+        self.expect_word("card")?;
+        Ok(Some(f))
+    }
+
+    /// After `discard`/`discards`: `hand`, `all cards in hand`, `all
+    /// <filter> card`; `None` (nothing consumed) otherwise.
+    fn discard_all(&mut self, who: Option<Recipient>) -> R<Option<Effect>> {
+        if self.eat_word("hand") {
+            return Ok(Some(Effect::DiscardAll {
+                who,
+                filter: None,
+                all_cards: false,
+            }));
+        }
+        if !self.eat_word("all") {
+            return Ok(None);
+        }
+        if self.eat_words(&["cards", "in", "hand"]) {
+            return Ok(Some(Effect::DiscardAll {
+                who,
+                filter: None,
+                all_cards: true,
+            }));
+        }
+        let f = self.filter()?;
+        self.cards_word()?;
+        Ok(Some(Effect::DiscardAll {
+            who,
+            filter: Some(f),
+            all_cards: false,
+        }))
+    }
+
+    /// After `discarding`: `[may] card` or `[may] <filter> card`.
+    fn discard_chosen(&mut self, who: Recipient, look: bool) -> R<Effect> {
+        let may = self.eat_word("may");
+        let filter = if self.eat_word("card") {
+            None
+        } else {
+            let f = self.filter()?;
+            self.expect_word("card")?;
+            Some(f)
+        };
+        Ok(Effect::DiscardChosen {
+            who,
+            filter,
+            may,
+            look,
+        })
+    }
+
     fn cards_word(&mut self) -> R<()> {
         if self.eat_word("card") || self.eat_word("cards") {
             Ok(())
@@ -2796,6 +3121,9 @@ impl P {
 
     #[allow(clippy::too_many_lines)]
     fn verb_first(&mut self) -> R<Effect> {
+        if self.chosen_act_ahead() {
+            return self.chosen_act();
+        }
         let w = self.word()?;
         match w.as_str() {
             // "Choose a creature type." as the effect resolves.
@@ -3003,9 +3331,11 @@ impl P {
             }
             "look" if self.at_words(&["at", "hand", "of"]) => {
                 self.pos += 3;
-                Ok(Effect::LookAtHand {
-                    who: self.recipient()?,
-                })
+                let who = self.recipient()?;
+                if self.eat_word("discarding") {
+                    return self.discard_chosen(who, true);
+                }
+                Ok(Effect::LookAtHand { who })
             }
             "look" if self.at_words(&["at", "top"]) => {
                 self.pos += 2;
@@ -3067,8 +3397,18 @@ impl P {
                 Ok(Effect::Mill { count, who: None })
             }
             "discard" => {
+                if let Some(e) = self.discard_all(None)? {
+                    return Ok(e);
+                }
                 let count = self.num()?;
                 self.cards_word()?;
+                if let Some(filter) = self.discard_unless()? {
+                    return Ok(Effect::DiscardUnless {
+                        who: None,
+                        count,
+                        filter,
+                    });
+                }
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
@@ -3360,12 +3700,17 @@ impl P {
             return Ok(Num::ThatMuch);
         }
         if self.at_word("count")
-            && matches!(self.word_at(1).as_deref(), Some("where" | "equal" | "each"))
+            && (matches!(self.word_at(1).as_deref(), Some("where" | "equal" | "each"))
+                || self.at_words(&["count", "that", "many"]))
         {
             self.pos += 1;
             let style = match self.word()?.as_str() {
                 "where" => crate::ast::CountStyle::Where,
                 "equal" => crate::ast::CountStyle::Equal,
+                "that" => {
+                    self.expect_word("many")?;
+                    crate::ast::CountStyle::ThatMany
+                }
                 _ => crate::ast::CountStyle::Each,
             };
             let expr = self.count_expr()?;
@@ -3414,6 +3759,41 @@ impl P {
         }
     }
 
+    /// `life lost this way`, `discarded this way`, `enchantment destroyed
+    /// this way`: what the resolution did (CR 608.2c); `None` (nothing
+    /// consumed) otherwise.
+    fn this_way_count(&mut self) -> R<Option<crate::ast::CountExpr>> {
+        use crate::ast::CountExpr;
+        if self.eat_words(&["life", "lost", "this", "way"]) {
+            return Ok(Some(CountExpr::LifeLostThisWay));
+        }
+        if let Some(verb) = self
+            .word_at(0)
+            .and_then(|w| crate::ast::this_way_verb(&w))
+            .filter(|_| self.word_at(1).as_deref() == Some("this"))
+        {
+            self.pos += 1;
+            self.expect_words(&["this", "way"])?;
+            return Ok(Some(CountExpr::ThisWay { verb, filter: None }));
+        }
+        if (1..10).any(|k| {
+            self.word_at(k).as_deref() == Some("this")
+                && self.word_at(k + 1).as_deref() == Some("way")
+        }) {
+            let f = self.filter()?;
+            let Some(verb) = self.word_at(0).and_then(|w| crate::ast::this_way_verb(&w)) else {
+                return self.unexpected("`destroyed`, `exiled`, ...");
+            };
+            self.pos += 1;
+            self.expect_words(&["this", "way"])?;
+            return Ok(Some(CountExpr::ThisWay {
+                verb,
+                filter: Some(f),
+            }));
+        }
+        Ok(None)
+    }
+
     /// `domain`, `hand`, `graveyard [<filter>]`, `power`, `power of target
     /// N`, `life`, or a filter (`creature you control`, `Elf on
     /// battlefield`).
@@ -3424,6 +3804,9 @@ impl P {
             self.pos += 1;
             let inner = self.count_expr()?;
             return Ok(CountExpr::Times(n, Box::new(inner)));
+        }
+        if let Some(c) = self.this_way_count()? {
+            return Ok(c);
         }
         if self.eat_word("domain") {
             return Ok(CountExpr::Domain);
@@ -4185,6 +4568,15 @@ impl P {
                 }
                 "all" => {
                     f.all = true;
+                    self.pos += 1;
+                }
+                // "a permanent card": not an instant or sorcery (CR
+                // 110.4a).
+                "permanent"
+                    if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
+                        && f == Filter::default() =>
+                {
+                    f.not_types = vec![CardType::Instant, CardType::Sorcery];
                     self.pos += 1;
                 }
                 "a" | "an" | "each" | "permanent" | "permanents" => self.pos += 1,

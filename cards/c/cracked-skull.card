@@ -1,0 +1,8 @@
+card "Cracked Skull" {
+  oracle_id 4415b65d-5473-4b19-94f7-e5cf4ce64d5e
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: look at hand of target player discarding may nonland card
+  triggered when enchanted creature is dealt damage: destroy it
+}

@@ -362,6 +362,9 @@ impl Decompiler<'_> {
                             filter: self.filter(filter),
                         }
                     }
+                    mtg_core::card::EffectCond::ThisWay(c) => {
+                        crate::ast::InsteadCond::ThisWay(self.this_way_cond(c))
+                    }
                 };
                 out.push(Sentence::new(vec![Effect::Instead {
                     cond,
@@ -531,9 +534,15 @@ impl Decompiler<'_> {
                 count: *count,
                 who: r(*who),
             },
-            CoreEffect::DiscardChosen { who, filter } => Effect::DiscardChosen {
+            CoreEffect::DiscardChosen {
+                who,
+                filter,
+                optional,
+            } => Effect::DiscardChosen {
                 who: r(*who),
                 filter: filter.as_ref().map(|f| self.filter(f)),
+                may: *optional,
+                look: false,
             },
             CoreEffect::Transform { what } => Effect::Transform { what: r(*what) },
             CoreEffect::Search { filter, count, to } => Effect::Search {
@@ -721,6 +730,70 @@ impl Decompiler<'_> {
             CoreEffect::PutFromHand { filter, tapped } => Effect::PutFromHand {
                 filter: self.filter(filter),
                 tapped: *tapped,
+            },
+            CoreEffect::IfThisWay { cond, then } => {
+                Effect::IfThisWay(self.this_way_cond(cond), self.sentences(then))
+            }
+            CoreEffect::ChooseAct {
+                act,
+                filter,
+                count,
+                up_to,
+            } => Effect::ChooseAct {
+                act: *act,
+                count: *count,
+                up_to: *up_to,
+                filter: self.filter(filter),
+                among_them: false,
+            },
+            CoreEffect::OneOf(options) => {
+                // "gains your choice of lifelink or indestructible".
+                let granted: Option<Vec<_>> = options
+                    .iter()
+                    .map(|o| match o {
+                        CoreEffect::Grant { keywords: k, to } if keywords(*k).len() == 1 => {
+                            Some((keywords(*k)[0], *to))
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                match granted {
+                    Some(g) if !g.is_empty() && g.iter().all(|(_, t)| *t == g[0].1) => {
+                        Effect::GrantChoice {
+                            to: r(g[0].1),
+                            keywords: g.iter().map(|(k, _)| *k).collect(),
+                        }
+                    }
+                    _ => Effect::OneOf(options.iter().map(|o| self.effect(o)).collect()),
+                }
+            }
+            CoreEffect::DiscardUnless { who, count, filter } => Effect::DiscardUnless {
+                who: Some(r(*who)),
+                count: *count,
+                filter: self.filter(filter),
+            },
+            CoreEffect::DiscardAll { who, filter } => Effect::DiscardAll {
+                who: Some(r(*who)),
+                filter: filter.as_ref().map(|f| self.filter(f)),
+                all_cards: false,
+            },
+        }
+    }
+
+    fn this_way_cond(&self, c: &mtg_core::card::ThisWayCond) -> crate::ast::ThisWayCond {
+        use mtg_core::card::ThisWay;
+        crate::ast::ThisWayCond {
+            verb: c.verb,
+            filter: c.filter.as_ref().map(|f| self.filter(f)),
+            card: matches!(
+                c.verb,
+                ThisWay::Discarded | ThisWay::Milled | ThisWay::PutInHand
+            ),
+            negated: c.negated,
+            wording: if c.by_you {
+                crate::ast::ThisWayWording::You
+            } else {
+                crate::ast::ThisWayWording::Was
             },
         }
     }

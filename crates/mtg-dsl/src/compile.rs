@@ -587,6 +587,10 @@ impl Compiler<'_> {
                 C::CardsInAllGraveyards(filter.as_ref().map(|f| self.filter(f)))
             }
             A::Plus { n, inner, .. } => C::Plus(*n, Box::new(self.count_expr(inner))),
+            A::ThisWay { verb, filter } => {
+                C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
+            }
+            A::LifeLostThisWay => C::LifeLostThisWay,
         }
     }
 
@@ -716,6 +720,7 @@ impl Compiler<'_> {
                         n: u8::try_from(*n).unwrap_or(u8::MAX),
                         filter: Box::new(self.filter(filter)),
                     },
+                    InsteadCond::ThisWay(c) => EffectCond::ThisWay(self.this_way_cond(c)),
                 };
                 out.push(CoreEffect::Instead { cond, base, alt });
                 continue;
@@ -727,6 +732,15 @@ impl Compiler<'_> {
             prev = Some((start, s));
         }
         Ok(out)
+    }
+
+    fn this_way_cond(&mut self, c: &crate::ast::ThisWayCond) -> mtg_core::card::ThisWayCond {
+        mtg_core::card::ThisWayCond {
+            verb: c.verb,
+            filter: c.filter.as_ref().map(|f| Box::new(self.filter(f))),
+            negated: c.negated,
+            by_you: c.wording == crate::ast::ThisWayWording::You,
+        }
     }
 
     fn choice_kind(&mut self, k: &ChoiceKind) -> CoreChoiceKind {
@@ -969,11 +983,14 @@ impl Compiler<'_> {
                 count: *count,
                 who: r(*who),
             }),
-            Effect::DiscardChosen { who, filter } => {
+            Effect::DiscardChosen {
+                who, filter, may, ..
+            } => {
                 let filter = filter.as_ref().map(|f| self.filter(f));
                 out.push(CoreEffect::DiscardChosen {
                     who: r(*who),
                     filter,
+                    optional: *may,
                 });
             }
             Effect::Transform { what } => out.push(CoreEffect::Transform { what: r(*what) }),
@@ -1205,6 +1222,58 @@ impl Compiler<'_> {
                 filter: self.filter(filter),
                 tapped: *tapped,
             }),
+            Effect::IfThisWay(c, inner) => {
+                let then = self.sentences(inner)?;
+                let cond = self.this_way_cond(c);
+                out.push(CoreEffect::IfThisWay { cond, then });
+            }
+            Effect::ChooseAct {
+                act,
+                count,
+                up_to,
+                filter,
+                ..
+            } => out.push(CoreEffect::ChooseAct {
+                act: *act,
+                filter: self.filter(filter),
+                count: *count,
+                up_to: *up_to,
+            }),
+            Effect::OneOf(options) => {
+                let mut list = Vec::new();
+                for o in options {
+                    let mut one = Vec::new();
+                    self.effect(o, &mut one)?;
+                    if one.len() != 1 {
+                        return self.err("each alternative of `or` must be one effect");
+                    }
+                    list.extend(one);
+                }
+                out.push(CoreEffect::OneOf(list));
+            }
+            Effect::GrantChoice { to, keywords } => out.push(CoreEffect::OneOf(
+                keywords
+                    .iter()
+                    .map(|k| CoreEffect::Grant {
+                        keywords: KeywordSet::of([*k]),
+                        to: r(*to),
+                    })
+                    .collect(),
+            )),
+            Effect::DiscardUnless { who, count, filter } => {
+                out.push(CoreEffect::DiscardUnless {
+                    who: who.map_or(CoreRecipient::You, r),
+                    count: *count,
+                    filter: self.filter(filter),
+                });
+            }
+            Effect::DiscardAll { who, filter, .. } => {
+                let filter = filter.as_ref().map(|f| self.filter(f));
+                out.push(CoreEffect::DiscardAll {
+                    who: who.map_or(CoreRecipient::You, r),
+                    filter,
+                });
+            }
             Effect::AddPoison { count, who } => out.push(CoreEffect::AddPoison {
                 count: *count,
                 who: r(*who),
@@ -1788,6 +1857,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                then_first: false,
                 joins: vec![Join::Then],
             }],
         },
@@ -1824,6 +1894,7 @@ fn expand_mechanic(m: &Mechanic, pt: Option<(i32, i32)>) -> Ability {
                 label: None,
                 para: false,
                 eot_first: false,
+                then_first: false,
                 joins: vec![Join::And, Join::And],
             }],
             equip: false,

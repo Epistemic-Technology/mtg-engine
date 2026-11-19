@@ -1,0 +1,6 @@
+card "Trapfinder's Trick" {
+  oracle_id 9792ae99-7b3a-46cb-bd22-0b33c499ce1a
+  cost {1}{U}
+  type Sorcery
+  spell: target player reveals hand and discards all Trap card
+}

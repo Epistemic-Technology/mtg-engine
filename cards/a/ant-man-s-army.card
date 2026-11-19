@@ -1,0 +1,7 @@
+card "Ant-Man's Army" {
+  oracle_id 34c0f75d-10a9-428d-b202-3defb3949090
+  cost {2}{G}
+  type Creature — Insect
+  pt 3/2
+  triggered when this enters: create 1 "Food" or create 1 "Treasure"
+}

@@ -1,0 +1,7 @@
+card "Grab the Prize" {
+  oracle_id a37387f0-9d57-49ff-aa38-2c6b359e8916
+  cost {1}{R}
+  type Sorcery
+  additional cost discard 1 card
+  spell: draw 2 cards; if the discarded card wasn't land card, deal 2 damage to each opponent
+}

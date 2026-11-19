@@ -79,10 +79,12 @@ pub const fn decision_kind_index(k: DecisionKind) -> usize {
         DecisionKind::CastFromExile { .. } => 27,
         DecisionKind::ChooseType => 28,
         DecisionKind::Divide { .. } => 29,
+        DecisionKind::ChooseCard => 30,
+        DecisionKind::ChooseOption { .. } => 31,
     }
 }
 
-pub const DECISION_KIND_NAMES: [&str; 30] = [
+pub const DECISION_KIND_NAMES: [&str; 32] = [
     "mulligan",
     "bottom",
     "priority",
@@ -113,6 +115,8 @@ pub const DECISION_KIND_NAMES: [&str; 30] = [
     "cast_from_exile",
     "choose_type",
     "divide",
+    "choose_card",
+    "choose_option",
 ];
 
 pub fn decision_kind_name(k: DecisionKind) -> &'static str {

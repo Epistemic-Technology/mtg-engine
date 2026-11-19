@@ -304,6 +304,8 @@ impl GreedyAgent {
             | DecisionKind::PayOrCounter { .. }
             | DecisionKind::Kicker { .. }
             | DecisionKind::Buyback { .. }
+            | DecisionKind::ChooseCard
+            | DecisionKind::ChooseOption { .. }
             | DecisionKind::PutFromHand => 0,
             // Keep the newest (the engine lists them oldest first).
             // The newest legend, and the largest X the mana allows.

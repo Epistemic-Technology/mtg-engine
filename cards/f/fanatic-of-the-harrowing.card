@@ -1,0 +1,7 @@
+card "Fanatic of the Harrowing" {
+  oracle_id 878e5e0d-beb9-4f8d-a640-62140c907e52
+  cost {3}{B}
+  type Creature — Human Cleric
+  pt 2/2
+  triggered when this enters: each player discards 1 card; if you discarded card this way, draw 1 card
+}

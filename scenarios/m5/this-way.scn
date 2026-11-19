@@ -1,0 +1,505 @@
+# Optional actions that choose what they act on, alternatives ("A or B"),
+# and what a resolution did "this way" (CR 608.2c), including the costs
+# paid for it (CR 601.2h, 602.2b).
+
+# ----- optional chosen actions ("you may ... If you do, ...") -----
+
+scenario "Crypt Lurker: sacrifice a creature, then draw" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Crypt Lurker", "Hill Giant"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Crypt Lurker"
+  turn 1 A: choose "1"
+  turn 1 A: choose "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Crypt Lurker: discard a creature card instead" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Crypt Lurker", "Hill Giant"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Crypt Lurker"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert hand A contains "Island"
+}
+
+scenario "Crypt Lurker: declined, nothing is drawn" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Crypt Lurker"
+  library A: "Island", "Forest"
+  turn 1 A: cast "Crypt Lurker"
+  turn 1 A: decline "Crypt Lurker"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Crypt Lurker may sacrifice itself" {
+  battlefield A: 4 "Swamp"
+  hand A: "Crypt Lurker", "Island"
+  library A: "Forest"
+  turn 1 A: cast "Crypt Lurker"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Crypt Lurker"
+  assert hand A count 2
+}
+
+scenario "K'un-Lun Warrior: nothing to sacrifice or discard, no card is drawn" {
+  battlefield A: 2 "Mountain"
+  hand A: "K'un-Lun Warrior"
+  library A: "Forest"
+  turn 1 A: cast "K'un-Lun Warrior"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "K'un-Lun Warrior"
+  assert hand A count 0
+}
+
+scenario "Vision of Love: the only thing to do is discard" {
+  battlefield A: 2 "Mountain"
+  hand A: "Vision of Love", "Island"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Vision of Love"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert hand A count 2
+}
+
+scenario "Skywarp Skaab: two creature cards are needed to exile any" {
+  battlefield A: 5 "Island"
+  hand A: "Skywarp Skaab"
+  graveyard A: "Grizzly Bears", "Forest"
+  library A: "Plains"
+  turn 1 A: cast "Skywarp Skaab"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Skywarp Skaab: exile two creature cards, draw a card" {
+  battlefield A: 5 "Island"
+  hand A: "Skywarp Skaab"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Forest"
+  library A: "Plains"
+  turn 1 A: cast "Skywarp Skaab"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert exile A contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert hand A contains "Plains"
+}
+
+scenario "Civil Servant taps another Citizen for +1/+0 and lifelink" {
+  battlefield A: "Civil Servant", "Town Greeter"
+  start turn 2 A
+  library A: 5 "Forest"
+  turn 2 A: attack "Civil Servant"
+  run_to turn 2 postcombat_main
+  assert tapped "Town Greeter"
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Civil Servant can't tap itself or a non-Citizen" {
+  battlefield A: "Civil Servant", "Grizzly Bears"
+  start turn 2 A
+  library A: 5 "Forest"
+  turn 2 A: attack "Civil Servant"
+  run_to turn 2 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Corpse Churn returns a milled creature card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Corpse Churn"
+  library A: "Island", "Grizzly Bears", "Hill Giant", "Forest"
+  turn 1 A: cast "Corpse Churn"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Island"
+}
+
+scenario "Kazandu Stomper returns up to two lands: one, then done" {
+  battlefield A: 6 "Forest"
+  hand A: "Kazandu Stomper"
+  turn 1 A: cast "Kazandu Stomper"
+  turn 1 A: choose "Forest"
+  turn 1 A: choose done
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+  assert hand A contains "Forest"
+  assert battlefield A contains 5 "Forest"
+}
+
+scenario "Rapid Rescue: only a milled permanent card, not one already there" {
+  battlefield A: "Forest"
+  hand A: "Rapid Rescue"
+  graveyard A: "Hill Giant"
+  library A: "Lightning Bolt", "Grizzly Bears", "Island"
+  turn 1 A: cast "Rapid Rescue"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard A contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "Ant-Man's Army makes your choice of token" {
+  battlefield A: 3 "Forest"
+  hand A: "Ant-Man's Army"
+  turn 1 A: cast "Ant-Man's Army"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield A lacks "Food"
+}
+
+scenario "Orcish Medicine: indestructible chosen" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  battlefield B: 2 "Mountain"
+  hand A: "Orcish Medicine"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Orcish Medicine" targeting "Grizzly Bears"
+  turn 1 A: choose "2"
+  turn 1 end B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" indestructible
+  assert has not "Grizzly Bears" lifelink
+  assert battlefield A contains "Orc Army"
+  run_to turn 2
+  assert battlefield A contains "Grizzly Bears"
+}
+
+# ----- "this way" -----
+
+scenario "Diregraf Scavenger drains when it exiles a creature card" {
+  battlefield A: 4 "Swamp"
+  hand A: "Diregraf Scavenger"
+  graveyard B: "Grizzly Bears"
+  turn 1 A: cast "Diregraf Scavenger"
+  turn 1 A: trigger "Diregraf Scavenger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Grizzly Bears"
+  assert life B 18
+  assert life A 22
+}
+
+scenario "Diregraf Scavenger: a land card exiled, no drain" {
+  battlefield A: 4 "Swamp"
+  hand A: "Diregraf Scavenger"
+  graveyard B: "Forest"
+  turn 1 A: cast "Diregraf Scavenger"
+  turn 1 A: trigger "Diregraf Scavenger" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Forest"
+  assert life B 20
+  assert life A 20
+}
+
+scenario "Siren's Ruse draws for a Pirate" {
+  battlefield A: 2 "Island", "Bigfin Bouncer"
+  hand A: "Siren's Ruse"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Siren's Ruse" targeting "Bigfin Bouncer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bigfin Bouncer"
+  assert hand A count 1
+}
+
+scenario "Siren's Ruse: no card for a non-Pirate" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Siren's Ruse"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Siren's Ruse" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Smashing Success: an artifact destroyed makes a Treasure" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Smashing Success"
+  turn 1 A: cast "Smashing Success" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Smashing Success: a land destroyed makes none" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Smashing Success"
+  turn 1 A: cast "Smashing Success" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Psychic Miasma returns to hand when a land is discarded" {
+  battlefield A: 2 "Swamp"
+  hand A: "Psychic Miasma"
+  hand B: "Forest"
+  turn 1 A: cast "Psychic Miasma" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert hand A contains "Psychic Miasma"
+}
+
+scenario "Psychic Miasma stays in the graveyard after a nonland discard" {
+  battlefield A: 2 "Swamp"
+  hand A: "Psychic Miasma"
+  hand B: "Grizzly Bears"
+  turn 1 A: cast "Psychic Miasma" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert graveyard A contains "Psychic Miasma"
+}
+
+scenario "Falkenrath Torturer: the sacrificed creature was a Human" {
+  battlefield A: "Falkenrath Torturer", "Elite Vanguard"
+  turn 1 A: activate "Falkenrath Torturer" sacrificing "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert counters "Falkenrath Torturer" +1/+1 1
+  assert has "Falkenrath Torturer" flying
+}
+
+scenario "Falkenrath Torturer: a non-Human gives no counter" {
+  battlefield A: "Falkenrath Torturer", "Grizzly Bears"
+  turn 1 A: activate "Falkenrath Torturer" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Falkenrath Torturer" +1/+1 0
+  assert has "Falkenrath Torturer" flying
+}
+
+scenario "Nasty End draws three for a legendary creature" {
+  battlefield A: 2 "Swamp", "Adun Oakenshield"
+  hand A: "Nasty End"
+  library A: 5 "Forest"
+  turn 1 A: cast "Nasty End" sacrificing "Adun Oakenshield"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+}
+
+scenario "Nasty End draws two otherwise" {
+  battlefield A: 2 "Swamp", "Grizzly Bears"
+  hand A: "Nasty End"
+  library A: 5 "Forest"
+  turn 1 A: cast "Nasty End" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Grab the Prize: a nonland discard deals 2" {
+  battlefield A: 2 "Mountain"
+  hand A: "Grab the Prize", "Grizzly Bears"
+  library A: 5 "Forest"
+  turn 1 A: cast "Grab the Prize" discarding "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand A count 2
+}
+
+scenario "Grab the Prize: a land discard deals nothing" {
+  battlefield A: 2 "Mountain"
+  hand A: "Grab the Prize", "Island"
+  library A: 5 "Forest"
+  turn 1 A: cast "Grab the Prize" discarding "Island"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}
+
+scenario "Foundry Helix gains 4 for a sacrificed artifact" {
+  battlefield A: "Mountain", "Plains", "Mountain", "Ornithopter"
+  hand A: "Foundry Helix"
+  turn 1 A: cast "Foundry Helix" sacrificing "Ornithopter" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 24
+}
+
+scenario "Fanatic of the Harrowing: you discarded, you draw" {
+  battlefield A: 4 "Swamp"
+  hand A: "Fanatic of the Harrowing", "Island"
+  hand B: "Forest"
+  library A: "Plains"
+  turn 1 A: cast "Fanatic of the Harrowing"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Island"
+  assert graveyard B contains "Forest"
+  assert hand A contains "Plains"
+}
+
+scenario "Fanatic of the Harrowing: only the opponent discarded, no draw" {
+  battlefield A: 4 "Swamp"
+  hand A: "Fanatic of the Harrowing"
+  hand B: "Forest"
+  library A: "Plains"
+  turn 1 A: cast "Fanatic of the Harrowing"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert hand A count 0
+}
+
+scenario "Multani's Decree gains 2 life per enchantment destroyed" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Grizzly Bears", "Pacifism" on "Grizzly Bears", "Hill Giant", "Pacifism" on "Hill Giant"
+  hand A: "Multani's Decree"
+  turn 1 A: cast "Multani's Decree"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains 2 "Pacifism"
+  assert life A 24
+}
+
+scenario "Blood Tithe gains the life lost" {
+  battlefield A: 4 "Swamp"
+  hand A: "Blood Tithe"
+  turn 1 A: cast "Blood Tithe"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "Tolarian Winds draws as many as it discarded" {
+  battlefield A: 2 "Island"
+  hand A: "Tolarian Winds", "Forest", "Plains", "Swamp"
+  library A: 5 "Mountain"
+  turn 1 A: cast "Tolarian Winds"
+  run_to turn 1 postcombat_main
+  assert hand A count 3
+  assert hand A contains 3 "Mountain"
+  assert graveyard A contains "Swamp"
+}
+
+scenario "Dangerous Wager discards the hand, then draws two" {
+  battlefield A: 2 "Mountain"
+  hand A: "Dangerous Wager", "Forest", "Plains", "Swamp"
+  library A: 5 "Mountain"
+  turn 1 A: cast "Dangerous Wager"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Forest"
+}
+
+scenario "Compulsive Research: a land card is discarded alone" {
+  battlefield A: 3 "Island"
+  hand A: "Compulsive Research", "Grizzly Bears"
+  library A: "Forest", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Compulsive Research" targeting player A
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A count 3
+}
+
+scenario "Compulsive Research: no land card, two cards are discarded" {
+  battlefield A: 3 "Island"
+  hand A: "Compulsive Research"
+  library A: "Grizzly Bears", "Hill Giant", "Serra Angel"
+  turn 1 A: cast "Compulsive Research" targeting player A
+  run_to turn 1 postcombat_main
+  assert hand A count 1
+}
+
+scenario "Extract the Truth: a creature, enchantment, or planeswalker card" {
+  battlefield A: 2 "Swamp"
+  hand A: "Extract the Truth"
+  hand B: "Forest", "Grizzly Bears"
+  turn 1 A: cast "Extract the Truth" mode 1 targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Forest"
+}
+
+scenario "Tidal Terror needs two other untapped creatures" {
+  battlefield A: "Tidal Terror", "Grizzly Bears"
+  start turn 2 A
+  library A: 5 "Forest"
+  battlefield B: "Hill Giant"
+  turn 2 A: attack "Tidal Terror"
+  turn 2 B: block "Tidal Terror" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Tidal Terror taps two others and can't be blocked" {
+  battlefield A: "Tidal Terror", "Grizzly Bears", "Elite Vanguard"
+  start turn 2 A
+  library A: 5 "Forest"
+  battlefield B: "Hill Giant"
+  turn 2 A: attack "Tidal Terror"
+  illegal turn 2 B: block "Tidal Terror" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert tapped "Elite Vanguard"
+  assert life B 15
+}
+
+scenario "Master Skald exiles a creature card to return an enchantment card" {
+  battlefield A: 5 "Plains"
+  hand A: "Master Skald"
+  graveyard A: "Grizzly Bears", "Pacifism"
+  turn 1 A: cast "Master Skald"
+  turn 1 A: trigger "Master Skald" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Grizzly Bears"
+  assert hand A contains "Pacifism"
+}
+
+scenario "Master Skald: no creature card to exile, nothing returns" {
+  battlefield A: 5 "Plains"
+  hand A: "Master Skald"
+  graveyard A: "Pacifism"
+  turn 1 A: cast "Master Skald"
+  turn 1 A: trigger "Master Skald" targeting "Pacifism"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Pacifism"
+}
+
+scenario "Scholar of Athreos gains the life lost" {
+  battlefield A: "Scholar of Athreos", 2 "Plains", "Swamp"
+  turn 1 A: activate "Scholar of Athreos"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Wrench Mind: an artifact card is discarded alone" {
+  battlefield A: 2 "Swamp"
+  hand A: "Wrench Mind"
+  hand B: "Forest", "Ornithopter", "Island"
+  turn 1 A: cast "Wrench Mind" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert hand B count 2
+}
+
+scenario "Thrull Surgeon: look at the hand and choose a card" {
+  battlefield A: "Thrull Surgeon", 2 "Swamp"
+  hand B: "Forest", "Grizzly Bears"
+  turn 1 A: activate "Thrull Surgeon" targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Thrull Surgeon"
+  assert hand B count 1
+}
+
+scenario "Alchemist's Gift: deathtouch chosen" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Alchemist's Gift"
+  turn 1 A: cast "Alchemist's Gift" targeting "Grizzly Bears"
+  turn 1 A: choose "1"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert has "Grizzly Bears" deathtouch
+  assert has not "Grizzly Bears" lifelink
+}

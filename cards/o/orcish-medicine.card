@@ -1,0 +1,9 @@
+card "Orcish Medicine" {
+  oracle_id 2f9a5e7c-f463-4773-bf67-a07339ce9b5d
+  cost {1}{B}
+  type Instant
+  spell {
+    target creature gains choice of lifelink or indestructible
+    amass Orcs 1
+  }
+}

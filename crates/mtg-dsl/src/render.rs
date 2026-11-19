@@ -459,6 +459,21 @@ fn card_filter_phrase(f: &Filter, card: &Card) -> String {
             card_filter_phrase(&a, card)
         );
     }
+    // "a permanent card" (CR 110.4a).
+    if f.not_types == [CardType::Instant, CardType::Sorcery]
+        && f.types.is_empty()
+        && f.subtypes.is_empty()
+        && f.any_types.is_empty()
+    {
+        let mut g = f.clone();
+        g.not_types.clear();
+        let p = card_filter_phrase(&g, card);
+        return if p.is_empty() {
+            "permanent".to_string()
+        } else {
+            format!("{p} permanent")
+        };
+    }
     let p = filter_phrase(f, card, false);
     if f.types.is_empty() && f.subtypes.is_empty() && f.any_types.is_empty() {
         p.replace(" permanent", "").replace("permanent", "")
@@ -1881,6 +1896,21 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
         }
         CountExpr::Life => return "your life total".to_string(),
         CountExpr::Times(..) => unreachable!("unwrapped above"),
+        // "for each enchantment destroyed this way".
+        CountExpr::ThisWay { verb, filter } => {
+            let verb = crate::ast::this_way_word(*verb);
+            match filter {
+                None => (
+                    format!("card {verb} this way"),
+                    format!("cards {verb} this way"),
+                ),
+                Some(f) => (
+                    format!("{} {verb} this way", filter_phrase(f, card, false)),
+                    format!("{} {verb} this way", filter_phrase(f, card, true)),
+                ),
+            }
+        }
+        CountExpr::LifeLostThisWay => return "the life lost this way".to_string(),
     };
     if each {
         format!("for each {one}")
@@ -1919,6 +1949,8 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     count_phrase(&count.expr, ctx.card, false)
                 );
             }
+            // "then draw that many cards".
+            CountStyle::ThatMany => c.text = c.text.replacen("X ", "that many ", 1),
             CountStyle::Each => {
                 // "gain 1 life for each", "deals 1 damage ... for each".
                 let per = match &count.expr {
@@ -2569,20 +2601,187 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
-        Effect::DiscardChosen { who, filter } => {
-            let s = ctx.subj(*who);
+        Effect::DiscardChosen {
+            who,
+            filter,
+            may,
+            look,
+        } => {
             let what = match filter {
                 None => "a card".to_string(),
                 Some(f) => with_article(&format!("{} card", card_filter_phrase(f, ctx.card))),
             };
+            let choose = match (*look, *may) {
+                // "Look at target player's hand and choose a card from it."
+                (true, false) => format!(" and choose {what} from it."),
+                (_, true) => format!(". You may choose {what} from it."),
+                (false, false) => format!(". You choose {what} from it."),
+            };
+            if *look {
+                let o = ctx.obj(*who);
+                let whose = match o.as_str() {
+                    "you" => "your".to_string(),
+                    "it" | "them" => "their".to_string(),
+                    o => format!("{o}'s"),
+                };
+                return Clause::imperative(format!(
+                    "look at {whose} hand{choose} That player discards that card"
+                ));
+            }
+            let s = ctx.subj(*who);
             Clause::with_subject(
                 *who,
                 s,
                 format!(
-                    "{} their hand. You choose {what} from it. That player discards that card",
+                    "{} their hand{choose} That player discards that card",
                     ctx.verb(*who, "reveals", "reveal")
                 ),
             )
+        }
+        Effect::IfThisWay(cond, inner) => {
+            let cond = this_way_text(cond, ctx.card);
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
+        }
+        Effect::ChooseAct {
+            act,
+            count,
+            up_to,
+            filter,
+            among_them,
+        } => {
+            use mtg_core::card::ChooseAct;
+            let one = *count == Num::N(1) && !*up_to;
+            let n = if *up_to {
+                format!("up to {}", count_words(*count, "one"))
+            } else {
+                count_words(*count, "a")
+            };
+            let permanents = || {
+                if one {
+                    filter_a(filter, ctx.card)
+                } else {
+                    format!("{n} {}", filter_phrase(filter, ctx.card, true))
+                }
+            };
+            let cards = || {
+                if one {
+                    with_article(&cards_phrase(filter, ctx.card, false))
+                } else {
+                    format!("{n} {}", cards_phrase(filter, ctx.card, true))
+                }
+            };
+            Clause::imperative(match act {
+                ChooseAct::Tap => format!("tap {}", permanents()),
+                ChooseAct::Sacrifice => format!("sacrifice {}", permanents()),
+                ChooseAct::Bounce => format!(
+                    "return {} to {} owner's hand",
+                    permanents(),
+                    if one { "its" } else { "their" }
+                ),
+                ChooseAct::Discard => format!("discard {}", cards()),
+                ChooseAct::ExileFromGraveyard => {
+                    format!("exile {} from your graveyard", cards())
+                }
+                ChooseAct::ReturnFromGraveyard => {
+                    format!("return {} from your graveyard to your hand", cards())
+                }
+                ChooseAct::MilledToHand => format!(
+                    "put {} from among {} into your hand",
+                    cards(),
+                    if *among_them {
+                        "them"
+                    } else {
+                        "the milled cards"
+                    }
+                ),
+            })
+        }
+        Effect::OneOf(options) => {
+            // "sacrifice an artifact or discard a card"; "create a Food
+            // token or a Treasure token" (the verb once).
+            let texts: Vec<String> = options.iter().map(|o| clause(o, ctx).text).collect();
+            let verb = texts[0].split(' ').next().unwrap_or_default().to_string();
+            let same = texts
+                .iter()
+                .all(|t| t.split(' ').next() == Some(verb.as_str()));
+            let mut out = texts[0].clone();
+            for t in &texts[1..] {
+                out.push_str(" or ");
+                if same && verb == "create" {
+                    out.push_str(t[verb.len()..].trim_start());
+                } else {
+                    out.push_str(t);
+                }
+            }
+            Clause::imperative(out)
+        }
+        Effect::GrantChoice { to, keywords } => {
+            let s = ctx.subj(*to);
+            let ks: Vec<String> = keywords
+                .iter()
+                .map(|k| keywords_list(std::slice::from_ref(k)))
+                .collect();
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} your choice of {}",
+                    ctx.verb(*to, "gains", "gain"),
+                    ks.join(" or ")
+                ),
+            )
+            .until_eot()
+        }
+        Effect::DiscardUnless { who, count, filter } => {
+            let what = format!("{} {}", count_words(*count, "a"), plural(*count, "card"));
+            let alt = with_article(&cards_phrase(filter, ctx.card, false));
+            match who {
+                None => Clause::imperative(format!("discard {what} unless you discard {alt}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!(
+                            "{} {what} unless they discard {alt}",
+                            ctx.verb(*w, "discards", "discard")
+                        ),
+                    )
+                }
+            }
+        }
+        Effect::DiscardAll {
+            who,
+            filter,
+            all_cards,
+        } => {
+            let whose = if who.is_none_or(|w| w == Recipient::You) {
+                "your"
+            } else {
+                "their"
+            };
+            let what = match (filter, all_cards) {
+                (Some(f), _) => format!("all {}", cards_phrase(f, ctx.card, true)),
+                (None, true) => format!("all the cards in {whose} hand"),
+                (None, false) => format!("{whose} hand"),
+            };
+            match who {
+                None => Clause::imperative(format!("discard {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    Clause::with_subject(
+                        *w,
+                        s,
+                        format!("{} {what}", ctx.verb(*w, "discards", "discard")),
+                    )
+                }
+            }
         }
         Effect::Transform { what } => {
             let o = ctx.obj(*what);
@@ -2931,6 +3130,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let cond = match cond {
                 InsteadCond::Kicked => format!("this {} was kicked", kicked_noun(ctx.card)),
                 InsteadCond::Static(c) => static_cond_text(c, ctx.card),
+                InsteadCond::ThisWay(c) => this_way_text(c, ctx.card),
                 InsteadCond::Target { n, that, filter } => {
                     ctx.target_mentioned[*n] = true;
                     // "If that creature is another Hero".
@@ -3113,6 +3313,47 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
 }
 
 /// What a target "was": "a Human", "green or white", "nonbasic".
+/// "a creature card was exiled this way", "you discarded a card this
+/// way", "the sacrificed creature was a Human" (after "if").
+fn this_way_text(c: &crate::ast::ThisWayCond, card: &Card) -> String {
+    use crate::ast::ThisWayWording;
+    let verb = crate::ast::this_way_word(c.verb);
+    let what = match (&c.filter, c.card) {
+        (None, _) => "a card".to_string(),
+        (Some(f), true) => with_article(&cards_phrase(f, card, false)),
+        (Some(f), false) => with_article(&filter_phrase(f, card, false)),
+    };
+    match &c.wording {
+        ThisWayWording::Was => format!("{what} was {verb} this way"),
+        ThisWayWording::Is => format!("{what} is {verb} this way"),
+        ThisWayWording::You if c.verb == mtg_core::card::ThisWay::PutInHand => {
+            format!("you put {what} into your hand this way")
+        }
+        ThisWayWording::You => format!("you {verb} {what} this way"),
+        ThisWayWording::The(noun) => {
+            let pred = match (&c.filter, c.card) {
+                // "If the sacrificed creature was legendary".
+                (Some(f), false)
+                    if f.types.is_empty()
+                        && f.subtypes.is_empty()
+                        && f.any_types.is_empty()
+                        && !f.supertypes.is_empty() =>
+                {
+                    filter_phrase(f, card, false)
+                        .trim_end_matches(" permanent")
+                        .to_string()
+                }
+                (Some(f), false) => target_predicate(f, card),
+                _ => what,
+            };
+            format!(
+                "the {verb} {noun} {} {pred}",
+                if c.negated { "wasn't" } else { "was" }
+            )
+        }
+    }
+}
+
 fn target_predicate(f: &Filter, card: &Card) -> String {
     if f.types.iter().all(|t| *t == CardType::Creature)
         && f.subtypes.is_empty()
@@ -3215,6 +3456,9 @@ fn sentence_text(s: &Sentence, ctx: &mut Ctx) -> String {
         && clauses[0].suffix.is_some()
         && clauses.iter().all(|c| c.suffix == clauses[0].suffix);
     let mut out = String::new();
+    if s.then_first {
+        out.push_str("then ");
+    }
     if s.eot_first {
         out.push_str("until end of turn, ");
     }

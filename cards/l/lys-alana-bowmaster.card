@@ -1,0 +1,8 @@
+card "Lys Alana Bowmaster" {
+  oracle_id 135e6545-4ec5-4136-9019-3fda92052b7a
+  cost {2}{G}
+  type Creature — Elf Archer
+  pt 2/2
+  keywords reach
+  triggered whenever you cast Elf spell: you may deal 2 damage to target creature with flying
+}
