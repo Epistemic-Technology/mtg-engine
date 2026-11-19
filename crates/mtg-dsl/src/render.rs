@@ -2607,6 +2607,9 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 )
             }
         }
+        Trigger::EveryStep(Step::BeginningOfCombat) => {
+            "at the beginning of each combat".to_string()
+        }
         Trigger::EveryStep(step) => {
             let name = step_name(*step, Who::You);
             format!(
