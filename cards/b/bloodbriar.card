@@ -1,0 +1,7 @@
+card "Bloodbriar" {
+  oracle_id 7aef2a40-ae18-46d6-9873-0e5056345b81
+  cost {2}{G}
+  type Creature — Plant Elemental
+  pt 2/3
+  triggered whenever you sacrifice other permanent: put 1 +1/+1 counter on this
+}

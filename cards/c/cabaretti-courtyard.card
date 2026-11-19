@@ -1,0 +1,5 @@
+card "Cabaretti Courtyard" {
+  oracle_id 65424bea-fd53-4f85-9757-0b91a6d40ba4
+  type Land
+  triggered when this enters: sacrifice this; when you do, search basic Mountain, Forest, or Plains card to battlefield tapped and you gain 1 life
+}

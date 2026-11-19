@@ -1,0 +1,8 @@
+card "Snaremaster Sprite" {
+  oracle_id b0632f1b-14e5-4534-b2c5-af9d557fdcc0
+  cost {U}
+  type Creature — Faerie Wizard
+  pt 1/1
+  keywords flying
+  triggered when this enters: you may pay {2}; when you do, tap target creature an opponent controls and put 1 stun counter on target 1
+}

@@ -246,6 +246,7 @@ impl Fmt {
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::ExiledCard => "exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseTargets(..) => "those targets".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
@@ -1530,6 +1531,11 @@ impl Fmt {
                 }
             }
             Effect::Pay { mana, life } => format!("pay {}", pay_amount(mana, *life)),
+            Effect::UnlessYou { act, effect } => {
+                let inner = self.effect(effect, t);
+                let act = self.effect(act, t);
+                format!("{inner} unless you {act}")
+            }
             Effect::UnlessPays {
                 payer,
                 mana,
@@ -2455,6 +2461,16 @@ pub fn draws_nth(whose: Who, n: u8, in_a_turn: bool) -> String {
     }
 }
 
+/// Who sacrifices in a sacrifice trigger: "you sacrifice", "a player
+/// sacrifices", "an opponent sacrifices" (the same in the DSL and Oracle).
+pub(crate) fn sacrifices_words(whose: Who) -> &'static str {
+    match whose {
+        Who::You => "you sacrifice",
+        Who::Any => "a player sacrifices",
+        Who::Opponents => "an opponent sacrifices",
+    }
+}
+
 /// Triggers Oracle words "When" (the rest "Whenever", or "At").
 pub fn natural_when(t: &Trigger) -> bool {
     matches!(
@@ -2462,6 +2478,10 @@ pub fn natural_when(t: &Trigger) -> bool {
         Trigger::Enters(TriggerObj::This)
             | Trigger::Dies(TriggerObj::This)
             | Trigger::Leaves(TriggerObj::This)
+            | Trigger::Sacrificed {
+                obj: TriggerObj::This,
+                ..
+            }
             | Trigger::TurnedFaceUp(TriggerObj::This)
             | Trigger::Exploits
             | Trigger::BecomesTarget(TriggerObj::This)
@@ -2612,6 +2632,9 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         }
         Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
         Trigger::DayNight => "whenever day becomes night or night becomes day".to_string(),
+        Trigger::Sacrificed { obj, whose } => {
+            format!("whenever {} {}", sacrifices_words(*whose), trigger_obj(obj))
+        }
         Trigger::RollsDice { whose } => match whose {
             Who::You => "whenever you roll dice".to_string(),
             _ => "whenever a player rolls dice".to_string(),
@@ -3053,6 +3076,9 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::OpponentPoison(1) => "opponent poisoned".to_string(),
         StaticCond::OpponentPoisonAtLeast(n) | StaticCond::OpponentPoison(n) => {
             format!("opponent poison {n} or more")
+        }
+        StaticCond::SourceCountersThere { kind, n } => {
+            format!("there are {n} or more {} counters on this", kind.name())
         }
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least {

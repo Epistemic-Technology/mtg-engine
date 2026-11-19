@@ -610,6 +610,13 @@ impl GameState {
             // CR 731.1a: day becoming night or night becoming day, not
             // the first day.
             (TriggerSpec::DayNight, Event::DayNight { changed: true, .. }) => Some((None, None)),
+            // CR 701.21a: only a permanent's controller can sacrifice it.
+            // The event comes just before it leaves, so the permanent (and
+            // a source sacrificing itself) is still on the battlefield.
+            (TriggerSpec::Sacrificed { what, whose }, Event::Sacrificed { obj, .. }) => {
+                let p = on_battlefield(what, *obj)?;
+                whose_ok(*whose, p).then_some((Some(*obj), Some(p)))
+            }
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))

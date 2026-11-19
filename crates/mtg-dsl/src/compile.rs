@@ -716,6 +716,11 @@ impl Compiler<'_> {
                 n: *n,
                 at_least: *at_least,
             },
+            StaticCond::SourceCountersThere { kind, n } => StaticCondition::SourceCounters {
+                kind: *kind,
+                n: *n,
+                at_least: true,
+            },
             StaticCond::DefenderControls { filter, at_least } => {
                 StaticCondition::DefenderControls {
                     filter: self.filter(filter).who(Who::You),
@@ -1004,7 +1009,9 @@ impl Compiler<'_> {
                 CoreRecipient::Targets(u8::try_from(i).unwrap_or(u8::MAX), u8::MAX)
             }
             Recipient::Target(i) | Recipient::ThatTarget(i) => CoreRecipient::Target(i),
-            Recipient::Targets(a, n) | Recipient::ThoseCards(a, n) => CoreRecipient::Targets(
+            Recipient::Targets(a, n)
+            | Recipient::ThoseCards(a, n)
+            | Recipient::ThoseTargets(a, n) => CoreRecipient::Targets(
                 u8::try_from(a).unwrap_or(u8::MAX),
                 u8::try_from(n).unwrap_or(u8::MAX),
             ),
@@ -1645,6 +1652,13 @@ impl Compiler<'_> {
                 mana: mana.clone(),
                 life: *life,
             }),
+            Effect::UnlessYou { act, effect } => {
+                let mut acts = Vec::new();
+                self.effect(act, &mut acts)?;
+                let mut effects = Vec::new();
+                self.effect(effect, &mut effects)?;
+                out.push(CoreEffect::UnlessYou { act: acts, effects });
+            }
             Effect::UnlessPays {
                 payer,
                 mana,
@@ -1911,6 +1925,10 @@ impl Compiler<'_> {
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
             Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
             Trigger::DayNight => TriggerSpec::DayNight,
+            Trigger::Sacrificed { obj, whose } => TriggerSpec::Sacrificed {
+                what: self.trigger_obj(obj),
+                whose: *whose,
+            },
             Trigger::WinsFlip { whose } => TriggerSpec::WinsFlip { whose: *whose },
             Trigger::CastsSpell {
                 whose,

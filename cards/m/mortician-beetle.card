@@ -1,0 +1,7 @@
+card "Mortician Beetle" {
+  oracle_id dc5c4a38-a415-466a-a7ea-dc04eee7f691
+  cost {B}
+  type Creature — Insect
+  pt 1/1
+  triggered whenever a player sacrifices creature: you may put 1 +1/+1 counter on this
+}

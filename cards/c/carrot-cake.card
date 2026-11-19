@@ -1,0 +1,7 @@
+card "Carrot Cake" {
+  oracle_id 5fe3aabd-3271-41bf-ae50-f6efaba7c4ae
+  cost {1}{W}
+  type Artifact — Food
+  triggered when this enters and when you sacrifice this: create 1 "1/1 white Rabbit creature" and scry 1
+  activated {2}, {T}, sacrifice this: you gain 3 life
+}

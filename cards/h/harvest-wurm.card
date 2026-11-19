@@ -1,0 +1,7 @@
+card "Harvest Wurm" {
+  oracle_id cd539212-ef7b-4f78-8d62-c42289aedc51
+  cost {1}{G}
+  type Creature — Wurm
+  pt 3/2
+  triggered when this enters: sacrifice this unless you return 1 basic land card from your graveyard to hand chosen
+}

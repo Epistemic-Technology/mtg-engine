@@ -1,0 +1,7 @@
+card "Protocol Knight" {
+  oracle_id ac935fad-2fa7-4afc-9db4-3cd30ec4aabd
+  cost {3}{U}
+  type Creature — Human Knight
+  pt 3/4
+  triggered when this enters: tap target creature an opponent controls; put 1 stun counter on that target 1 if you control other Knight
+}

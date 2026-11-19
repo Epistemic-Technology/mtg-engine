@@ -1,0 +1,7 @@
+card "Luxa River Shrine" {
+  oracle_id 1eb64899-8865-48cc-bd58-529b1294ec99
+  cost {3}
+  type Artifact
+  activated {1}, {T}: you gain 1 life; put 1 brick counter on this
+  activated {T}, if there are 3 or more brick counters on this: you gain 2 life
+}

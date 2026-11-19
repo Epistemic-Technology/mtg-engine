@@ -1,0 +1,7 @@
+card "Rogue Elephant" {
+  oracle_id bed7ac55-fe40-46d0-bc22-1c8d11f41459
+  cost {G}
+  type Creature — Elephant
+  pt 3/3
+  triggered when this enters: sacrifice this unless you sacrifice 1 Forest chosen
+}

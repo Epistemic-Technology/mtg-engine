@@ -1,0 +1,8 @@
+card "Drake Familiar" {
+  oracle_id 5d144825-594a-454b-9276-fe92e87c19c0
+  cost {1}{U}
+  type Creature — Drake
+  pt 2/1
+  keywords flying
+  triggered when this enters: sacrifice this unless you return 1 enchantment to hand chosen
+}

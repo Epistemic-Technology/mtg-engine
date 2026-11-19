@@ -1126,6 +1126,13 @@ pub enum StaticCond {
         n: u32,
         at_least: bool,
     },
+    /// `there are 3 or more brick counters on this`: "there are three or
+    /// more brick counters on this artifact" (the same condition, worded
+    /// from the counters).
+    SourceCountersThere {
+        kind: CounterKind,
+        n: u32,
+    },
     /// `defending player controls Island`: "defending player controls an
     /// Island"; `at_least` 0, `defending player controls no Glimmer
     /// creature`: "... controls no Glimmer creatures".
@@ -1589,6 +1596,12 @@ pub enum Trigger {
     AttacksOrBlocks(TriggerObj),
     /// `when this leaves the battlefield`.
     Leaves(TriggerObj),
+    /// `whenever you sacrifice other permanent`, `whenever a player
+    /// sacrifices creature`, `when you sacrifice this` (CR 701.21).
+    Sacrificed {
+        obj: TriggerObj,
+        whose: Who,
+    },
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
     /// `deals combat damage to defending player`: the same trigger, worded
@@ -1875,6 +1888,10 @@ pub enum Recipient {
     /// after an effect moved them ("Exile two target creatures you
     /// control, then return those cards to the battlefield").
     ThoseCards(usize, usize),
+    /// `those targets`: every target declared so far, named again by
+    /// their kind ("If this spell was kicked, put a stun counter on each
+    /// of those creatures").
+    ThoseTargets(usize, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -2389,6 +2406,13 @@ pub enum Effect {
         payer: Recipient,
         mana: ManaCost,
         life: u32,
+        effect: Box<Effect>,
+    },
+    /// `<clause> unless you <clause>`: "sacrifice it unless you discard
+    /// a card at random", "... unless you return two Forests you control
+    /// to their owner's hand" (the controller may act to stop it).
+    UnlessYou {
+        act: Box<Effect>,
         effect: Box<Effect>,
     },
     /// "<what> has base power and toughness 4/4 until end of turn".

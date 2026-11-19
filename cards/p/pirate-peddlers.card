@@ -1,0 +1,8 @@
+card "Pirate Peddlers" {
+  oracle_id 4771a871-576e-4a14-92f0-b5b41c63d615
+  cost {2}{B}
+  type Creature — Human Pirate
+  pt 2/2
+  keywords deathtouch
+  triggered whenever you sacrifice other permanent: put 1 +1/+1 counter on this
+}

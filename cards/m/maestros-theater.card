@@ -1,0 +1,5 @@
+card "Maestros Theater" {
+  oracle_id 9464ddf2-4bcb-44f6-b945-89a132544de6
+  type Land
+  triggered when this enters: sacrifice this; when you do, search basic Island, Swamp, or Mountain card to battlefield tapped and you gain 1 life
+}

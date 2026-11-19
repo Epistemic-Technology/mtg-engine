@@ -228,6 +228,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever one or more artifact you control enter` | once for all the matching objects entering together (CR 603.2c), counted as `that much`; objects entering before the next time a player gets priority count as together |
 | `when this enters and whenever you cast ...`, `when you cycle this and when this dies` | one ability with two trigger events, joined with "and" |
 | `when this enters or dies`, `whenever this enters or attacks`, `when this enters or leaves the battlefield`, `when this enters or is turned face up` | one ability with two events of the source, the subject printed once: "When this creature enters or dies" ("When this artifact enters or is put into a graveyard from the battlefield" on a noncreature), "Whenever this creature enters or attacks"; the word written (`when` / `whenever`) is the word printed ("Whenever this creature enters or dies"). A face-down permanent has no abilities, so one cast face down triggers only as it turns face up (CR 708.8) |
+| `whenever you sacrifice other permanent`, `whenever you sacrifice token`, `whenever a player sacrifices creature`, `whenever an opponent sacrifices ...`, `when this enters and when you sacrifice this` | a permanent is sacrificed (CR 701.21) by its controller, the player named: "Whenever you sacrifice another permanent", "Whenever a player sacrifices a creature", "When this artifact enters and when you sacrifice it". It triggers as the permanent is sacrificed, judged while it is still on the battlefield (so a permanent sacrificing itself sees it), whether by an effect, a cost, or a mana ability (a Treasure); a creature that dies otherwise doesn't. The sacrificed permanent is the triggering object |
 | `whenever permanent is turned face up`, `whenever this or permanent is turned face up`, `whenever Detective you control is turned face up` | "Whenever a permanent is turned face up", "Whenever this creature or another permanent is turned face up": the permanent judged as it is face up (CR 708.8) |
 
 A trigger's subject prints its controller before its "with" qualities
@@ -319,7 +320,8 @@ in hand"), `hand 1 or less` ("you have one or fewer cards in hand"),
 counters", corrupted), `this has 4 or more oil counters` ("this creature
 has four or more oil counters on it"; first, "As long as ..., it gets
 ..."), `this has no arrowhead counters` ("there are no arrowhead counters
-on this artifact"), and the shorthands `threshold`, `delirium`,
+on this artifact"), `there are 3 or more brick counters on this` ("there
+are three or more brick counters on this artifact"), and the shorthands `threshold`, `delirium`,
 `metalcraft`.
 
 ### Replacement events and outcomes
@@ -331,10 +333,19 @@ Counter kinds: `+1/+1`, `-1/-1`, the other power/toughness counters
 `stun` (CR 122.1d: removed instead of untapping), `charge`, `oil`,
 `spore`, `depletion`, `quest`, `ki`, `time`, `tide`, `shield`, `age`,
 `fade`, `ice`, `level`, `lore`, `page`, `arrowhead`, `javelin`, `polyp`,
-`healing`, and the keyword counters `flying`, `first strike`, `trample`,
+`healing`, `mining`, `scream`, `credit`, `brick`, `currency`, `sleep`,
+`net`, `flood`, `glyph`, and the keyword counters `flying`, `first strike`, `trample`,
 `lifelink`, `deathtouch`, `reach`, `menace`, `vigilance`, `hexproof`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
+
+Counters on a group of targets: `put 1 +1/+1 counter on up to 2 target
+creature` ("put a +1/+1 counter on each of up to two target creatures";
+`1 to 2 target creature` is "one or two", `X target creature` "X",
+`up to 2 another target creature you control` "up to two other target
+creatures you control"), `... and put 1 stun counter on them` ("on each
+of them"), and `put 1 stun counter on those targets` ("on each of those
+creatures": every target declared so far, named by their kind).
 
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes; the card types replace the permanent's others except land, CR
@@ -462,7 +473,8 @@ creature card with infect from your graveyard`. A target check may be
 its combat state or its power: `if that target 1 is attacking, ...`
 ("If that creature is attacking"), `then if that target 1 is creature
 with power 0 or less, destroy target 1` ("Then if that creature's power
-is 0 or less, destroy it"). An "instead" that is optional (`if that
+is 0 or less, destroy it"), or its controller: `if that target 1 is an
+opponent controls, ...` ("If an opponent controls that creature"). An "instead" that is optional (`if that
 target 1 is attacking, you may put target 1 on top of library instead`)
 does the earlier instruction when declined. A sentence may
 start with an ability word: `label "Spell mastery" if 2 instant or sorcery
@@ -996,7 +1008,15 @@ triggered ability, CR 603.12: it triggers only if the optional action
 before it happened, and its targets are its own, chosen as it goes on the
 stack: `you may pay {2}{R}; when you do, this deals 3 damage to any
 target`; `you may you sacrifice a creature` prints "you may sacrifice a
-creature", and an empty choice is no action), `<clause> unless you pay {1}` / `unless
+creature", and an empty choice is no action), `<clause> unless you <clause>` (an act, not a payment: `sacrifice this
+unless you discard 1 card at random`, `... unless you return 2 Forest you
+control to hand chosen` ("... unless you return two Forests you control to
+their owner's hand"), `... unless you sacrifice 1 land chosen`, `... unless
+you tap 1 untapped permanent you control chosen`, `... unless you return 1
+basic land card from your graveyard to hand chosen`: the controller may
+act as it resolves; only an act they can complete in full counts, and with
+none possible the clause happens without asking; `return 1 enchantment to
+hand chosen` with no controller may return anyone's), `<clause> unless you pay {1}` / `unless
 they pay 2 life` / `unless its controller pays {2}` (the payer may pay to
 stop it), `unless any player pays {2}` / `{X}` (each player in turn from the
 active player may pay, until one does; the effect's own controller is

@@ -335,7 +335,8 @@ impl Event {
             WATCH_STEP_BEGIN, WATCH_TAP, WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
-            Event::ZoneChange { .. } => WATCH_ZONE_CHANGE,
+            // A sacrifice is the start of a zone change (CR 701.21a).
+            Event::ZoneChange { .. } | Event::Sacrificed { .. } => WATCH_ZONE_CHANGE,
             Event::StepBegin { .. } => WATCH_STEP_BEGIN,
             Event::Attack { .. } => WATCH_ATTACK,
             Event::Block { .. } | Event::Blocked { .. } | Event::Unblocked { .. } => WATCH_BLOCK,

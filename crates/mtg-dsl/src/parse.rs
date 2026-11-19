@@ -45,6 +45,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         counts: Vec::new(),
         in_delayed: false,
         delayed_that: false,
+        delayed_dies: false,
         in_trigger: false,
         it_source: false,
         subject: None,
@@ -453,6 +454,9 @@ struct P {
     /// Inside a delayed trigger about the triggering object: "that
     /// creature" is the object it is about (`it`).
     delayed_that: bool,
+    /// Inside "When that creature dies (leaves the battlefield) this
+    /// turn": "its controller" is the controller that object had.
+    delayed_dies: bool,
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
@@ -2252,6 +2256,13 @@ impl P {
         if self.eat_words(&["this", "has"]) {
             return self.source_counters_cond();
         }
+        if self.eat_words(&["there", "are"]) {
+            let n = self.number()?;
+            self.expect_words(&["or", "more"])?;
+            let kind = self.counter_kind()?;
+            self.expect_words(&["on", "this"])?;
+            return Ok(StaticCond::SourceCountersThere { kind, n });
+        }
         if self.eat_words(&["opponent", "poison"]) {
             let n = self.number()?;
             self.expect_words(&["or", "more"])?;
@@ -2713,6 +2724,17 @@ impl P {
     fn unless_suffix(&mut self, e: Effect) -> R<Effect> {
         if !self.at_word("unless") {
             return Ok(e);
+        }
+        // `unless you sacrifice 1 Forest chosen`: an act, not a payment.
+        if self.at_words(&["unless", "you"])
+            && !matches!(self.word_at(2).as_deref(), Some("pay" | "do"))
+        {
+            self.pos += 2;
+            let act = self.clause()?;
+            return Ok(Effect::UnlessYou {
+                act: Box::new(act),
+                effect: Box::new(e),
+            });
         }
         self.pos += 1;
         let payer = if self.eat_words(&["you", "pay"]) {
@@ -5120,7 +5142,11 @@ impl P {
                     if self.peek() == Some(&Tok::Comma) {
                         self.pos += 1;
                     }
-                    (t, self.sentences_inline()?, true)
+                    let was_dies = self.delayed_dies;
+                    self.delayed_dies = true;
+                    let e = self.sentences_inline();
+                    self.delayed_dies = was_dies;
+                    (t, e?, true)
                 } else if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
                     let t = self.trigger()?;
                     if self.peek() == Some(&Tok::Comma) {
@@ -5855,6 +5881,7 @@ impl P {
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
             delayed_that: self.delayed_that,
+            delayed_dies: self.delayed_dies,
             in_trigger: self.in_trigger,
             it_source: self.it_source,
             subject: None,
@@ -5928,22 +5955,18 @@ impl P {
                     && self.word_at(4).as_deref() == Some("target"));
         if up_to {
             self.pos += 2;
-            // "up to one other target": one only.
-            if self.word_at(1).as_deref() == Some("another")
-                && (matches!(self.peek(), Some(Tok::Num(1))) || self.at_word("one"))
-            {
-                self.pos += 1;
-            }
         }
+        // "up to two other target creatures you control".
+        let counted = self.word_at(1).as_deref() == Some("target")
+            || up_to && self.word_at(1).as_deref() == Some("another");
         let count = match self.peek() {
-            Some(Tok::Num(n)) if self.word_at(1).as_deref() == Some("target") => {
+            Some(Tok::Num(n)) if counted => {
                 let n = *n;
                 self.pos += 1;
                 n
             }
             Some(Tok::Word(w))
-                if NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())
-                    && self.word_at(1).as_deref() == Some("target") =>
+                if NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str()) && counted =>
             {
                 let n = NUMBER_WORDS
                     .iter()
@@ -6077,7 +6100,9 @@ impl P {
         }
         // In a triggered ability with no targets, `its controller` is the
         // triggering object's; `controller of that creature` names it.
-        if self.in_trigger && self.targets.is_empty() && self.eat_words(&["its", "controller"]) {
+        if (self.in_trigger && self.targets.is_empty() || self.delayed_dies)
+            && self.eat_words(&["its", "controller"])
+        {
             return Ok(Recipient::TriggeringController { that: false });
         }
         if self.in_trigger && self.eat_words(&["controller", "of", "that", "creature"]) {
@@ -6088,6 +6113,12 @@ impl P {
                 return self.fail("`those cards` needs targets declared before it");
             }
             return Ok(Recipient::ThoseCards(0, self.targets.len()));
+        }
+        if self.eat_words(&["those", "targets"]) {
+            if self.targets.is_empty() {
+                return self.fail("`those targets` needs targets declared before it");
+            }
+            return Ok(Recipient::ThoseTargets(0, self.targets.len()));
         }
         if self.eat_words(&["exiled", "card"]) {
             return Ok(Recipient::ExiledCard);
@@ -6363,6 +6394,7 @@ impl P {
                         counts: Vec::new(),
                         in_delayed: false,
                         delayed_that: false,
+                        delayed_dies: false,
                         in_trigger: false,
                         it_source: false,
                         subject: None,
@@ -7339,6 +7371,23 @@ impl P {
         if self.at_words(&["a", "player", "rolls", "dice"]) {
             self.pos += 4;
             return Ok(Trigger::RollsDice { whose: Who::Any });
+        }
+        // CR 701.21: "you sacrifice another permanent", "a player
+        // sacrifices a creature", "you sacrifice this".
+        if self.at_words(&["you", "sacrifice"])
+            || self.at_words(&["a", "player", "sacrifices"])
+            || self.at_words(&["an", "opponent", "sacrifices"])
+        {
+            let whose = if self.eat_words(&["you", "sacrifice"]) {
+                Who::You
+            } else if self.eat_words(&["a", "player", "sacrifices"]) {
+                Who::Any
+            } else {
+                self.pos += 3;
+                Who::Opponents
+            };
+            let obj = self.trigger_obj()?;
+            return Ok(Trigger::Sacrificed { obj, whose });
         }
         if self.at_words(&["a", "player", "gains", "life"]) {
             self.pos += 4;

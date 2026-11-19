@@ -1,0 +1,5 @@
+card "Riveteers Overlook" {
+  oracle_id 5548ff43-e5f6-4a63-8562-a2b1de06d6f5
+  type Land
+  triggered when this enters: sacrifice this; when you do, search basic Swamp, Mountain, or Forest card to battlefield tapped and you gain 1 life
+}

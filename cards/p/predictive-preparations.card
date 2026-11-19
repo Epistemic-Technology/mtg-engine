@@ -1,0 +1,7 @@
+card "Predictive Preparations" {
+  oracle_id d06a5642-861b-4b0d-9ea5-07046b7e1d37
+  cost {1}{W}
+  type Sorcery
+  spell: put 1 +1/+1 counter on 1 to 2 target creature
+  flashback {3}{W}
+}

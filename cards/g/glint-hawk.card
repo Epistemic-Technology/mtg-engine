@@ -1,0 +1,8 @@
+card "Glint Hawk" {
+  oracle_id 5d24525f-dbac-434b-bda7-ff8af55245ff
+  cost {W}
+  type Creature — Bird
+  pt 2/2
+  keywords flying
+  triggered when this enters: sacrifice this unless you return 1 artifact you control to hand chosen
+}

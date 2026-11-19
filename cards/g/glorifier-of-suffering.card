@@ -1,0 +1,7 @@
+card "Glorifier of Suffering" {
+  oracle_id 07a8ca73-9890-4c87-8b39-fd9eaea5ef45
+  cost {2}{W}
+  type Creature — Vampire Soldier
+  pt 3/2
+  triggered when this enters: you may sacrifice 1 another creature or artifact chosen; when you do, put 1 +1/+1 counter on up to 2 target creature
+}

@@ -2121,6 +2121,12 @@ pub enum CounterKind {
     Mining,
     Scream,
     Credit,
+    Brick,
+    Currency,
+    Sleep,
+    Net,
+    Flood,
+    Glyph,
     /// Power/toughness counters other than +1/+1 and -1/-1 (CR 122.1a):
     /// each modifies power and toughness in layer 7c, and none annihilates
     /// with another (CR 704.5q is about +1/+1 and -1/-1 only).
@@ -2159,7 +2165,7 @@ impl Keyword {
 
 impl CounterKind {
     /// Named kinds by their Oracle word ("stun", "first strike").
-    pub const NAMED: [(&'static str, CounterKind); 33] = [
+    pub const NAMED: [(&'static str, CounterKind); 39] = [
         ("stun", CounterKind::Stun),
         ("charge", CounterKind::Charge),
         ("oil", CounterKind::Oil),
@@ -2183,6 +2189,12 @@ impl CounterKind {
         ("mining", CounterKind::Mining),
         ("scream", CounterKind::Scream),
         ("credit", CounterKind::Credit),
+        ("brick", CounterKind::Brick),
+        ("currency", CounterKind::Currency),
+        ("sleep", CounterKind::Sleep),
+        ("net", CounterKind::Net),
+        ("flood", CounterKind::Flood),
+        ("glyph", CounterKind::Glyph),
         ("flying", CounterKind::Flying),
         ("first strike", CounterKind::FirstStrike),
         ("trample", CounterKind::Trample),
@@ -3046,6 +3058,14 @@ pub enum Effect {
         life: u32,
         effects: Vec<Effect>,
     },
+    /// "Sacrifice it unless you discard a card at random", "... unless you
+    /// return two Forests you control to their owner's hand": the
+    /// controller may do `act` (CR 608.2d, chosen as it resolves); unless
+    /// they do (and can do it all), `effects` happen.
+    UnlessYou {
+        act: Vec<Effect>,
+        effects: Vec<Effect>,
+    },
     /// "If this spell was kicked, [do these]" (CR 702.33c).
     IfKicked(Vec<Effect>),
     /// "If that creature was a Human, [do these]": the `n`th target,
@@ -3399,6 +3419,7 @@ impl Effect {
                 | Effect::IfTarget { .. }
                 | Effect::Instead { .. }
                 | Effect::UnlessPays { .. }
+                | Effect::UnlessYou { .. }
                 | Effect::Scry { .. }
                 | Effect::Surveil { .. }
                 | Effect::Discard { .. }
@@ -3927,6 +3948,12 @@ pub enum TriggerSpec {
     /// "Whenever day becomes night or night becomes day" (CR 731.2): not
     /// as it first becomes day.
     DayNight,
+    /// "Whenever you sacrifice another permanent", "Whenever a player
+    /// sacrifices a creature", "when you sacrifice it" (CR 701.21): the
+    /// sacrificed permanent, judged as it is sacrificed (still on the
+    /// battlefield), is the triggering object; `whose` is who sacrificed
+    /// it, its controller (CR 701.21a).
+    Sacrificed { what: TriggerObj, whose: Who },
 }
 
 /// Which of a player's spells this turn a cast trigger wants.
@@ -3998,6 +4025,7 @@ impl TriggerSpec {
             TriggerSpec::Enters(_)
             | TriggerSpec::Dies(_)
             | TriggerSpec::Leaves(_)
+            | TriggerSpec::Sacrificed { .. }
             | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } | TriggerSpec::AttachedControllersStep(_) => {
@@ -4656,6 +4684,11 @@ impl AbilityDef {
             }
             if let Effect::FlipCoin { won } | Effect::Clash { won } = e {
                 for i in won {
+                    walk(i, out);
+                }
+            }
+            if let Effect::UnlessYou { act, effects } = e {
+                for i in act.iter().chain(effects) {
                     walk(i, out);
                 }
             }

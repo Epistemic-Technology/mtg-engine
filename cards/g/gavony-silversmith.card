@@ -1,0 +1,7 @@
+card "Gavony Silversmith" {
+  oracle_id a0ee4faa-1ab0-4b4f-a564-ee2358500daf
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered when this enters: put 1 +1/+1 counter on up to 2 target creature
+}

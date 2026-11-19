@@ -1,0 +1,8 @@
+card "Basri's Acolyte" {
+  oracle_id 92c824da-2351-43bd-9fa0-d09709ad8205
+  cost {2}{W}{W}
+  type Creature — Cat Cleric
+  pt 2/3
+  keywords lifelink
+  triggered when this enters: put 1 +1/+1 counter on up to 2 another target creature you control
+}

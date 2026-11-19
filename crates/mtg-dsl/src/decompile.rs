@@ -933,6 +933,17 @@ impl Decompiler<'_> {
                 mana: mana.clone(),
                 life: *life,
             },
+            CoreEffect::UnlessYou { act, effects } => Effect::UnlessYou {
+                act: Box::new(
+                    act.first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+                effect: Box::new(
+                    effects
+                        .first()
+                        .map_or(Effect::ExileAllGraveyards, |e| self.effect(e)),
+                ),
+            },
             CoreEffect::UnlessPays {
                 payer,
                 mana,
@@ -1205,6 +1216,10 @@ impl Decompiler<'_> {
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
             TriggerSpec::DayNight => Trigger::DayNight,
+            TriggerSpec::Sacrificed { what, whose } => Trigger::Sacrificed {
+                obj: self.trigger_obj(what),
+                whose: *whose,
+            },
             TriggerSpec::WinsFlip { whose } => Trigger::WinsFlip { whose: *whose },
             TriggerSpec::CastsSpell {
                 whose,

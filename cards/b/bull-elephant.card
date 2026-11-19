@@ -1,0 +1,7 @@
+card "Bull Elephant" {
+  oracle_id 4ed04ece-64d2-41a4-bf36-b993cbbf2aac
+  cost {3}{G}
+  type Creature — Elephant
+  pt 4/4
+  triggered when this enters: sacrifice this unless you return 2 Forest you control to hand chosen
+}

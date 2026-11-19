@@ -1,0 +1,8 @@
+card "Body Dropper" {
+  oracle_id c0c465ea-4242-4737-9c3e-69222bdb8f1b
+  cost {B}{R}
+  type Creature — Devil Warrior
+  pt 2/2
+  triggered whenever you sacrifice other creature: put 1 +1/+1 counter on this
+  activated {B}{R}, sacrifice other creature: this gains menace
+}
