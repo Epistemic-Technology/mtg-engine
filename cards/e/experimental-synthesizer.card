@@ -1,0 +1,7 @@
+card "Experimental Synthesizer" {
+  oracle_id 11db299a-0918-46a3-b39b-16acc3f4e281
+  cost {R}
+  type Artifact
+  triggered when this enters or leaves the battlefield: impulse 1 this turn first
+  activated {2}{R}, sacrifice this, sorcery: create 1 "2/2 white Samurai creature with vigilance"
+}

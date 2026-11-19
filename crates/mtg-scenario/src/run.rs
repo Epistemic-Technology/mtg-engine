@@ -947,7 +947,10 @@ impl Runner {
             }
             let (name, option, targets, mode, costs) = match &a.action {
                 Action::Play(name) => {
-                    let id = self.in_hand(a.line, d.player, name)?;
+                    let id = match self.playable_in_exile(d.player, name, true) {
+                        Some(id) if self.in_hand(a.line, d.player, name).is_err() => id,
+                        _ => self.in_hand(a.line, d.player, name)?,
+                    };
                     (
                         name,
                         Choice::PlayLand(id),
@@ -983,7 +986,12 @@ impl Runner {
                     } else if let Some(id) = self.on_adventure(d.player, name) {
                         Choice::Cast(id)
                     } else {
-                        Choice::Cast(self.in_hand(a.line, d.player, name)?)
+                        match self.in_hand(a.line, d.player, name) {
+                            Ok(id) => Choice::Cast(id),
+                            Err(e) => {
+                                Choice::Cast(self.playable_in_exile(d.player, name, true).ok_or(e)?)
+                            }
+                        }
                     };
                     (
                         name,
@@ -1629,11 +1637,45 @@ impl Runner {
     /// A card of this name on an adventure in `p`'s exile (CR 715.3d).
     fn on_adventure(&self, p: PlayerId, name: &str) -> Option<ObjId> {
         let st = self.state();
-        st.player(p).exile.iter().copied().find(|id| {
-            (st.objects[*id].cast.adventure()
-                || st.objects[*id].alt == mtg_core::state::AltCast::Foretold)
-                && st.name_of(*id) == name
-        })
+        st.player(p)
+            .exile
+            .iter()
+            .copied()
+            .find(|id| {
+                (st.objects[*id].cast.adventure()
+                    || st.objects[*id].alt == mtg_core::state::AltCast::Foretold)
+                    && st.name_of(*id) == name
+            })
+            .or_else(|| self.playable_in_exile(p, name, false))
+    }
+
+    /// An exiled card `p` may play (impulse draw); failing that, with
+    /// `any`, any card in exile by that name (an `illegal` line checks it
+    /// can't be played).
+    fn playable_in_exile(&self, p: PlayerId, name: &str, any: bool) -> Option<ObjId> {
+        let st = self.state();
+        st.exile_casts
+            .as_ref()
+            .and_then(|e| {
+                e.playable
+                    .iter()
+                    .find(|pe| {
+                        pe.player == p
+                            && st.objects.get(pe.card).is_some_and(|o| {
+                                o.zone == Zone::Exile && st.name_of(pe.card) == name
+                            })
+                    })
+                    .map(|pe| pe.card)
+            })
+            .or_else(|| {
+                if !any {
+                    return None;
+                }
+                st.objects
+                    .iter()
+                    .find(|(id, o)| o.zone == Zone::Exile && st.name_of(*id) == name)
+                    .map(|(id, _)| id)
+            })
     }
 
     fn in_hand(&self, line: usize, p: PlayerId, name: &str) -> Res<ObjId> {

@@ -1,0 +1,9 @@
+card "Mjölnir's Might" {
+  oracle_id 8c944733-3fb5-4d1f-af1a-3fd31377eb9a
+  cost {3}{R}
+  type Sorcery
+  spell {
+    this deals 4 damage to target player
+    impulse 1 next turn first
+  }
+}

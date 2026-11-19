@@ -1,0 +1,6 @@
+card "Something Worth Saving" {
+  oracle_id 46cf0e3e-3c3e-4eb8-a71a-4b4b87744ced
+  cost {1}{G}
+  type Instant
+  spell: mill 4 cards; you may put 1 permanent card from among them into hand chosen; you gain 1 life
+}

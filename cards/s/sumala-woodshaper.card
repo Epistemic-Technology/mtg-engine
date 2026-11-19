@@ -1,0 +1,7 @@
+card "Sumala Woodshaper" {
+  oracle_id 5a44062b-f1db-4122-8570-1241a16cb895
+  cost {2}{G}{W}
+  type Creature — Elf Druid
+  pt 2/1
+  triggered when this enters: dig 4 take creature or enchantment card may revealing rest bottom random
+}

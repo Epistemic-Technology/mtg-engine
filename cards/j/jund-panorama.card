@@ -1,0 +1,6 @@
+card "Jund Panorama" {
+  oracle_id f39f33ac-074d-442d-ae4c-1d694ee315f3
+  type Land
+  mana {C}
+  activated {1}, {T}, sacrifice this: search basic Swamp or basic Mountain or basic Forest card to battlefield tapped
+}

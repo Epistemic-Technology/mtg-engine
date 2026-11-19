@@ -1,0 +1,8 @@
+card "Crimson Operative" {
+  oracle_id d8863742-6c1c-415a-ad27-7def6d119c6a
+  cost {3}{R}
+  type Artifact Creature — Human Villain
+  pt 3/2
+  keywords prowess
+  triggered when this enters: impulse 1 next turn first
+}

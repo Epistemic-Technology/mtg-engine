@@ -1,0 +1,7 @@
+card "Foreboding Landscape" {
+  oracle_id bcfe1653-e602-4d38-abe7-bfcc7f203f9d
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Swamp or basic Forest or basic Island card to battlefield tapped
+  cycling {B}{G}{U}
+}

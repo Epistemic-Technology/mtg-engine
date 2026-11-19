@@ -1,0 +1,7 @@
+card "Ramosian Sergeant" {
+  oracle_id 9b0a14b9-977d-4e25-a519-eaddb0f94b6a
+  cost {W}
+  type Creature — Human Rebel
+  pt 1/1
+  activated {3}, {T}: search Rebel permanent card with mana value 2 or less to battlefield
+}

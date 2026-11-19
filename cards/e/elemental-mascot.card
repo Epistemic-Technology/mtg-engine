@@ -1,0 +1,8 @@
+card "Elemental Mascot" {
+  oracle_id 882f30e4-4ce1-4581-8d2d-d763aa13befe
+  cost {1}{U}{R}
+  type Creature — Elemental Bird
+  pt 1/4
+  keywords flying, vigilance
+  label "Opus" triggered whenever you cast an instant or sorcery spell: this gets +1/+0; if that spell spent 5 mana, impulse 1 next turn
+}

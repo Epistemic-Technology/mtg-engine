@@ -1,0 +1,6 @@
+card "Reckless Impulse" {
+  oracle_id 584cf0fd-112a-4ca6-9c0e-1f3228a7d325
+  cost {1}{R}
+  type Sorcery
+  spell: impulse 2 next turn first
+}

@@ -1,0 +1,6 @@
+card "Cultivate" {
+  oracle_id 8b755881-a72d-4e21-a369-d2924eb4585a
+  cost {2}{G}
+  type Sorcery
+  spell: search up to 2 basic land card reveal to battlefield tapped and hand that card
+}

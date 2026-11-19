@@ -1,0 +1,7 @@
+card "Contaminated Landscape" {
+  oracle_id 28196fd9-00c9-4cd0-b603-0eec8511ec79
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Plains or basic Island or basic Swamp card to battlefield tapped
+  cycling {W}{U}{B}
+}

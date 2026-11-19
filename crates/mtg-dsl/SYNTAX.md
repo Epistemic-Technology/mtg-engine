@@ -648,7 +648,28 @@ Forest card to battlefield tapped`, `search basic land card reveal to
 top` ("Search your library for ..., then shuffle"; add `that card` to
 print "that card" for "it"; `search up to 3 card named this reveal to hand`,
 `search any number card named this reveal to hand`: "a card named ~",
-"up to three cards named ~", "any number of cards named ~"),
+"up to three cards named ~", "any number of cards named ~"; `search basic
+Forest or basic Plains or basic Island card to battlefield tapped`: "a
+basic Forest, Plains, or Island card" (a supertype every alternative
+shares prints once); `search basic land card or a Gate card reveal to
+hand` / `... or Gate card ...`: "a basic land card or a Gate card",
+"... or Gate card", plural "up to two basic land cards and/or Gate
+cards"; `search instant card or a with flash card ...`: "an instant card
+or a card with flash"; `search Rebel permanent card with mana value 3 or
+less to battlefield`: the mana value after the noun, `permanent card`
+not an instant or sorcery (CR 110.4a); `reveal to hand that card`:
+"reveal that card, put it into your hand"; `search up to 2 basic land
+card reveal to battlefield tapped and hand that card`: "reveal those
+cards, put one onto the battlefield tapped and the other into your
+hand" (the searcher chooses which; one found goes where they choose)),
+`impulse 2 next turn first` ("Exile the top two cards of your library.
+Until the end of your next turn, you may play those cards."; impulse
+draw: the controller may play the exiled cards, paying their costs, with
+the usual timing permissions and a land only with a land play left, CR
+305.2, 601.3; `impulse 1 this turn` is "You may play that card this
+turn.", `first` puts the duration first ("Until end of turn, you may
+play that card."), `it` prints "it" for "that card", and `next end step`
+is "until your next end step", which ends as that step begins),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
 `... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
 each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
@@ -681,7 +702,16 @@ your hand. Put the rest on the bottom of your library in any order."; `dig
 3 take card rest graveyard`: "Put one of them into your hand and the rest
 into your graveyard"; `dig 4 reveal take all land card rest graveyard`:
 "Reveal the top four cards ... Put all land cards revealed this way into
-your hand and the rest into your graveyard"), `look at top 3` ("look at
+your hand and the rest into your graveyard"; `take 2 instant or sorcery
+card may`: "up to two instant and/or sorcery cards", and without a
+filter `dig 4 take 2 card rest graveyard`: "Put two of those cards into
+your hand"; `take any creature card may revealing`: "You may reveal any
+number of creature cards from among them and put the revealed cards into
+your hand"; `take creature card and land card may`: "a creature card
+and/or a land card" (one of each); `rest bottom random`: "in a random
+order"; `dig 3 then take card rest graveyard`: "look at the top three
+cards of your library, then put one of them into your hand and the rest
+into your graveyard"), `look at top 3` ("look at
 the top three cards of your library, then put them back in any order"),
 `return 1 land you control chosen` ("return a land you control to its
 owner's hand"), `switch pt of target
@@ -891,7 +921,9 @@ do` then sees:
   lands you control to their owner's hand")
 - `put 1 permanent card from among milled cards into hand chosen` ("put a
   permanent card from among the milled cards into your hand"; `from among
-  them`): cards this resolution milled that are still in the graveyard.
+  them`; `from among milled this way cards`: "from among the cards milled
+  this way"): cards this resolution milled that are still in the
+  graveyard.
 
 `permanent card` is a card that is not an instant or sorcery (CR 110.4a).
 

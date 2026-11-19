@@ -1,0 +1,7 @@
+card "Gundabad Opportunist" {
+  oracle_id 61773534-8da8-48fa-b51a-73c0a9a751c4
+  cost {3}{R}
+  type Creature — Goblin Rogue
+  pt 4/2
+  triggered when this enters: impulse 1 next turn first
+}

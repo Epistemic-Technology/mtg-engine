@@ -1,0 +1,7 @@
+card "Chase Stein, Runaway" {
+  oracle_id 161ff063-b784-43c7-b608-f78be3daa5b2
+  cost {1}{R}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  activated {T}, discard 1 card: impulse 1 next turn first
+}

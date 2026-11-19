@@ -1,0 +1,7 @@
+card "Tranquil Landscape" {
+  oracle_id d4eb65d5-99fd-4daf-b7d3-8ebf99ee9c61
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Forest or basic Plains or basic Island card to battlefield tapped
+  cycling {G}{W}{U}
+}

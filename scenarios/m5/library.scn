@@ -1,0 +1,265 @@
+# M5: library manipulation: impulse draw (exile the top cards, play them
+# for a while), search filters (several basic land types, "or a Gate
+# card", mana value, one onto the battlefield and one into the hand), and
+# dig variants (and/or, up to N, any number, random order, milled this
+# way).
+
+scenario "impulse: Reckless Impulse's cards are cast and played from exile" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Reckless Impulse"
+  library A: "Grizzly Bears", "Mountain", "Island"
+  turn 1 A: cast "Reckless Impulse"
+  turn 1 A: wait
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: play "Mountain"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert battlefield A contains 3 "Mountain"
+  assert graveyard A contains "Reckless Impulse"
+}
+
+scenario "impulse: a land from exile needs a land play left" {
+  battlefield A: 2 "Mountain"
+  hand A: "Reckless Impulse", "Forest"
+  library A: "Mountain", "Island", "Island"
+  turn 1 A: play "Forest"
+  turn 1 A: cast "Reckless Impulse"
+  turn 1 A: wait
+  illegal turn 1 A: play "Mountain"
+  run_to turn 1 end
+  assert exile A contains "Mountain"
+  assert battlefield A contains 2 "Mountain"
+}
+
+scenario "impulse: until the end of your next turn lasts through that turn" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Wrenn's Resolve"
+  library A: "Grizzly Bears", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Wrenn's Resolve"
+  turn 3 A: cast "Grizzly Bears"
+  run_to turn 3 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "impulse: the permission ends with your next turn" {
+  battlefield A: 2 "Mountain", 2 "Forest"
+  hand A: "Wrenn's Resolve"
+  library A: "Grizzly Bears", "Island", "Island", "Island", "Island"
+  turn 1 A: cast "Wrenn's Resolve"
+  illegal turn 5 A: cast "Grizzly Bears"
+  run_to turn 5 end
+  assert exile A contains "Grizzly Bears"
+}
+
+scenario "impulse: an instant from exile on the opponent's turn" {
+  battlefield A: 3 "Mountain"
+  hand A: "Wrenn's Resolve"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Wrenn's Resolve"
+  turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert life B 17
+}
+
+scenario "impulse: this turn only (Experimental Synthesizer)" {
+  battlefield A: 2 "Mountain"
+  hand A: "Experimental Synthesizer"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Experimental Synthesizer"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "impulse: this turn only: gone the next turn" {
+  battlefield A: 3 "Mountain"
+  hand A: "Experimental Synthesizer"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Experimental Synthesizer"
+  illegal turn 2 upkeep A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 draw
+  assert life B 20
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "impulse: until your next end step ends as it begins (Haste Magic)" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Haste Magic"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Haste Magic" targeting "Grizzly Bears"
+  illegal turn 1 end A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 cleanup
+  assert life B 20
+  assert exile A contains "Lightning Bolt"
+}
+
+scenario "impulse: until your next end step: castable before it" {
+  battlefield A: 3 "Mountain", "Grizzly Bears"
+  hand A: "Haste Magic"
+  library A: "Lightning Bolt", "Island", "Island", "Island"
+  turn 1 A: cast "Haste Magic" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "impulse: the opponent can't play the exiled card" {
+  battlefield A: 2 "Mountain"
+  battlefield B: 3 "Mountain"
+  hand A: "Reckless Impulse"
+  library A: "Lightning Bolt", "Island", "Island"
+  turn 1 A: cast "Reckless Impulse"
+  illegal turn 2 B: cast "Lightning Bolt" targeting player A
+  run_to turn 2 end
+  assert life A 20
+}
+
+scenario "search: Bant Panorama finds a basic Forest, Plains, or Island" {
+  battlefield A: "Bant Panorama", "Mountain"
+  library A: "Mountain", "Island", "Swamp"
+  turn 1 A: activate "Bant Panorama" ability 1
+  run_to turn 1 end
+  assert battlefield A contains "Island"
+  assert tapped "Island"
+  assert library A count 2
+}
+
+scenario "search: Bant Panorama doesn't find a Mountain" {
+  battlefield A: "Bant Panorama", "Mountain"
+  library A: "Mountain", "Swamp"
+  turn 1 A: activate "Bant Panorama" ability 1
+  run_to turn 1 end
+  assert library A count 2
+  assert graveyard A contains "Bant Panorama"
+}
+
+scenario "search: Open the Gates finds a basic land card or a Gate card" {
+  battlefield A: "Forest"
+  hand A: "Open the Gates"
+  library A: "Grizzly Bears", "Plains"
+  turn 1 A: cast "Open the Gates"
+  run_to turn 1 end
+  assert hand A contains "Plains"
+  assert library A count 1
+}
+
+scenario "search: Cultivate puts one onto the battlefield tapped and the other into the hand" {
+  battlefield A: 3 "Forest"
+  hand A: "Cultivate"
+  library A: "Plains", "Grizzly Bears", "Island"
+  turn 1 A: cast "Cultivate"
+  run_to turn 1 end
+  assert battlefield A contains "Plains"
+  assert tapped "Plains"
+  assert hand A contains "Island"
+  assert library A count 1
+}
+
+scenario "search: Ramosian Sergeant finds a Rebel with mana value 2 or less" {
+  battlefield A: "Ramosian Sergeant", 3 "Plains"
+  library A: "Grizzly Bears", "Ramosian Lieutenant"
+  turn 1 A: activate "Ramosian Sergeant"
+  run_to turn 1 end
+  assert battlefield A contains "Ramosian Lieutenant"
+  assert untapped "Ramosian Lieutenant"
+}
+
+scenario "search: Trinket Mage doesn't find an artifact with mana value 2" {
+  battlefield A: 3 "Island"
+  hand A: "Trinket Mage"
+  library A: "Experimental Synthesizer", "Navigation Orb"
+  turn 1 A: cast "Trinket Mage"
+  run_to turn 1 end
+  assert hand A contains "Experimental Synthesizer"
+  assert library A contains "Navigation Orb"
+}
+
+scenario "search: Mystical Teachings finds an instant, not a creature" {
+  battlefield A: 4 "Island"
+  hand A: "Mystical Teachings"
+  library A: "Grizzly Bears", "Shock"
+  turn 1 A: cast "Mystical Teachings"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert library A contains "Grizzly Bears"
+}
+
+scenario "dig: Benefaction of Rhonas takes a creature and/or an enchantment" {
+  battlefield A: 3 "Forest"
+  hand A: "Benefaction of Rhonas"
+  library A: "Island", "Grizzly Bears", "Hill Giant", "Shock", "Forest", "Plains"
+  turn 1 A: cast "Benefaction of Rhonas"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A count 5
+  assert library A count 1
+}
+
+scenario "dig: Gift of the Gargantuan takes a creature and a land" {
+  battlefield A: 3 "Forest"
+  hand A: "Gift of the Gargantuan"
+  library A: "Shock", "Grizzly Bears", "Island", "Hill Giant", "Plains"
+  turn 1 A: cast "Gift of the Gargantuan"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Island"
+  assert hand A count 2
+  assert library A count 3
+}
+
+scenario "dig: Pieces of the Puzzle takes up to two instants and/or sorceries" {
+  battlefield A: 3 "Island"
+  hand A: "Pieces of the Puzzle"
+  library A: "Shock", "Lightning Bolt", "Divination", "Island", "Grizzly Bears"
+  turn 1 A: cast "Pieces of the Puzzle"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A contains "Lightning Bolt"
+  assert hand A count 2
+  assert graveyard A contains "Divination"
+}
+
+scenario "dig: Scattered Thoughts puts two into the hand, the rest into the graveyard" {
+  battlefield A: 4 "Island"
+  hand A: "Scattered Thoughts"
+  library A: "Island", "Plains", "Swamp", "Mountain", "Forest"
+  turn 1 A: cast "Scattered Thoughts"
+  run_to turn 1 end
+  assert hand A count 2
+  assert graveyard A count 3
+  assert library A count 1
+}
+
+scenario "dig: Lead the Stampede takes any number of creature cards" {
+  battlefield A: 3 "Forest"
+  hand A: "Lead the Stampede"
+  library A: "Grizzly Bears", "Island", "Hill Giant", "Serra Angel", "Shock", "Plains"
+  turn 1 A: cast "Lead the Stampede"
+  run_to turn 1 end
+  assert hand A count 3
+  assert hand A contains "Serra Angel"
+  assert library A count 3
+}
+
+scenario "dig: Floriferous Vinewall puts the rest on the bottom" {
+  battlefield A: 2 "Forest"
+  hand A: "Floriferous Vinewall"
+  library A: "Grizzly Bears", "Shock", "Island", "Hill Giant", "Serra Angel", "Divination", "Plains"
+  turn 1 A: cast "Floriferous Vinewall"
+  run_to turn 1 end
+  assert hand A contains "Island"
+  assert library A count 6
+}
+
+scenario "dig: Wasteful Harvest returns a permanent card milled this way" {
+  battlefield A: 3 "Forest"
+  hand A: "Wasteful Harvest"
+  library A: "Shock", "Grizzly Bears", "Island", "Divination", "Plains", "Forest"
+  turn 1 A: cast "Wasteful Harvest"
+  run_to turn 1 end
+  assert hand A count 1
+  assert graveyard A contains "Shock"
+  assert graveyard A count 5
+}

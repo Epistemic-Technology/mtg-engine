@@ -1,0 +1,8 @@
+card "Rathi Intimidator" {
+  oracle_id a24f4198-2412-4b73-8e20-4ced3a826301
+  cost {1}{B}{B}
+  type Creature — Phyrexian Horror Mercenary
+  pt 2/1
+  keywords fear
+  activated {2}, {T}: search Mercenary permanent card with mana value 2 or less to battlefield
+}

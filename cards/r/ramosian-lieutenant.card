@@ -1,0 +1,7 @@
+card "Ramosian Lieutenant" {
+  oracle_id ddd2a87e-4020-4408-b4e6-a2120d485855
+  cost {1}{W}
+  type Creature — Human Rebel
+  pt 1/2
+  activated {4}, {T}: search Rebel permanent card with mana value 3 or less to battlefield
+}

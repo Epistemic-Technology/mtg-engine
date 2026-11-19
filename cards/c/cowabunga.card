@@ -1,0 +1,6 @@
+card "Cowabunga!" {
+  oracle_id a1ddf985-1646-468c-b1a4-ab6bb8e9dd7c
+  cost {G}
+  type Sorcery
+  spell: dig 4 take Mutant or Ninja or Turtle or land card may revealing rest bottom random
+}

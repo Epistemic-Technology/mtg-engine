@@ -1,0 +1,6 @@
+card "Relentless Pursuit" {
+  oracle_id d39c378b-f0a2-400f-af40-a632e24b6d72
+  cost {2}{G}
+  type Sorcery
+  spell: dig 4 reveal take creature card and land card may rest graveyard
+}

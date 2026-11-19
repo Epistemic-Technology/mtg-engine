@@ -1367,12 +1367,19 @@ impl Compiler<'_> {
             Effect::CumulativeUpkeep(c) => out.push(CoreEffect::CumulativeUpkeep(c.clone())),
             Effect::Connive { what } => out.push(CoreEffect::Connive { what: r(*what) }),
             Effect::LookAtTop(n) => out.push(CoreEffect::LookAtTop { count: *n }),
+            Effect::ExilePlayable { count, until, .. } => out.push(CoreEffect::ExilePlayable {
+                count: *count,
+                until: *until,
+            }),
             Effect::Dig {
                 count,
                 filter,
                 optional,
                 all,
                 rest_graveyard,
+                take,
+                also,
+                random,
                 ..
             } => out.push(CoreEffect::Dig {
                 count: *count,
@@ -1380,6 +1387,9 @@ impl Compiler<'_> {
                 optional: *optional,
                 all: *all,
                 rest_graveyard: *rest_graveyard,
+                take: *take,
+                also: also.as_ref().map(|f| self.filter(f)),
+                random: *random,
             }),
             Effect::Modes(modes) => {
                 let modes = self.modes(modes, false, false)?;

@@ -1,0 +1,7 @@
+card "Deceptive Landscape" {
+  oracle_id 1831fe12-dbe0-437f-8fc8-f01bbb701fe1
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Plains or basic Swamp or basic Forest card to battlefield tapped
+  cycling {W}{B}{G}
+}

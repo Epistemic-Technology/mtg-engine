@@ -1,0 +1,7 @@
+card "Organ Hoarder" {
+  oracle_id a6f0dcbc-ca45-4ae8-961e-e42ef8d8a975
+  cost {3}{U}
+  type Creature — Zombie
+  pt 3/2
+  triggered when this enters: dig 3 then take card rest graveyard
+}

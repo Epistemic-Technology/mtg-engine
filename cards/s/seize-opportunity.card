@@ -1,0 +1,9 @@
+card "Seize Opportunity" {
+  oracle_id d0458ffe-9a61-443f-8e80-3d2dde224a4d
+  cost {2}{R}
+  type Instant
+  choose one {
+    mode: impulse 2 next turn first
+    mode: up to 2 target creature each get +2/+1
+  }
+}

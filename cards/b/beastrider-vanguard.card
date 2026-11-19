@@ -1,0 +1,7 @@
+card "Beastrider Vanguard" {
+  oracle_id 19a0d191-64c0-4e8a-8cb0-bf680cc681bb
+  cost {1}{G}
+  type Creature — Human Knight
+  pt 2/2
+  activated {4}{G}: dig 3 take permanent card may revealing rest bottom
+}

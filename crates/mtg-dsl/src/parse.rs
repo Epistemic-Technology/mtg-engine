@@ -1293,6 +1293,7 @@ impl P {
                         to: mtg_core::card::SearchTo::Hand,
                         reveal: true,
                         that_card: false,
+                        or_card: crate::ast::OrCard::No,
                     }])],
                     equip: false,
                     cycling: true,
@@ -3331,6 +3332,7 @@ impl P {
             Ok(f)
         };
         let mut among_them = false;
+        let mut this_way = false;
         let (act, filter) = match verb.as_str() {
             "tap" => (ChooseAct::Tap, self.filter()?),
             "sacrifice" => (ChooseAct::Sacrifice, self.filter()?),
@@ -3359,6 +3361,8 @@ impl P {
                 self.expect_words(&["from", "among"])?;
                 if self.eat_word("them") {
                     among_them = true;
+                } else if self.eat_words(&["milled", "this", "way", "cards"]) {
+                    this_way = true;
                 } else {
                     self.expect_words(&["milled", "cards"])?;
                 }
@@ -3373,6 +3377,7 @@ impl P {
             up_to,
             filter,
             among_them,
+            this_way,
         })
     }
 
@@ -3680,17 +3685,52 @@ impl P {
             "proliferate" => Ok(Effect::Proliferate),
             "adapt" => Ok(Effect::Adapt(self.count()?)),
             "discover" => Ok(Effect::Discover(self.count()?)),
+            "impulse" => {
+                let count = self.num()?;
+                let until = if self.eat_words(&["this", "turn"]) {
+                    mtg_core::card::PlayUntil::ThisTurn
+                } else if self.eat_words(&["next", "turn"]) {
+                    mtg_core::card::PlayUntil::EndOfYourNextTurn
+                } else if self.eat_words(&["next", "end", "step"]) {
+                    mtg_core::card::PlayUntil::YourNextEndStep
+                } else {
+                    return self.unexpected("`this turn`, `next turn`, or `next end step`");
+                };
+                let first = self.eat_word("first");
+                let it = self.eat_word("it");
+                Ok(Effect::ExilePlayable {
+                    count,
+                    until,
+                    first,
+                    it,
+                })
+            }
             "dig" => {
                 let count = self.num()?;
+                let then = self.eat_word("then");
                 let reveal_top = self.eat_word("reveal");
                 self.expect_word("take")?;
                 let all = self.eat_word("all");
+                let take = if matches!(self.peek(), Some(Tok::Num(_))) {
+                    self.number()?
+                } else if self.eat_word("any") {
+                    crate::ast::ANY_NUMBER
+                } else {
+                    1
+                };
                 let filter = if self.eat_word("card") {
                     None
                 } else {
                     let f = self.filter()?;
                     self.expect_word("card")?;
                     Some(f)
+                };
+                let also = if filter.is_some() && self.eat_word("and") {
+                    let f = self.filter()?;
+                    self.expect_word("card")?;
+                    Some(f)
+                } else {
+                    None
                 };
                 let optional = self.eat_word("may");
                 let revealing = self.eat_word("revealing");
@@ -3701,6 +3741,7 @@ impl P {
                     self.expect_word("bottom")?;
                     false
                 };
+                let random = !rest_graveyard && self.eat_word("random");
                 Ok(Effect::Dig {
                     count,
                     filter,
@@ -3709,6 +3750,10 @@ impl P {
                     rest_graveyard,
                     reveal_top,
                     revealing,
+                    take,
+                    also,
+                    random,
+                    then,
                 })
             }
             "look" if self.at_words(&["at", "hand", "of"]) => {
@@ -3820,13 +3865,39 @@ impl P {
                 if self.eat_words(&["named", "this"]) {
                     filter.same = Some(SameRef::NamedThis);
                 }
+                // "a creature card with mana value 6 or greater": the mana
+                // value after the noun.
+                if filter.mana_value.is_none() && self.at_words(&["with", "mana", "value"]) {
+                    let g = self.filter()?;
+                    filter.mana_value = g.mana_value;
+                    filter.status.mana_value_x = g.status.mana_value_x;
+                }
+                // "a basic land card or a Gate card": the alternative as its
+                // own noun.
+                let mut or_card = crate::ast::OrCard::No;
+                if self.at_word("or") && filter.or.is_none() && filter != Filter::default() {
+                    self.pos += 1;
+                    or_card = if self.eat_word("a") || self.eat_word("an") {
+                        crate::ast::OrCard::Article
+                    } else {
+                        crate::ast::OrCard::Bare
+                    };
+                    let alt = self.filter()?;
+                    if !(self.eat_word("card") || self.eat_word("cards")) {
+                        return self.unexpected("`card`");
+                    }
+                    filter.or = Some(Box::new(alt));
+                }
                 let reveal = self.eat_word("reveal");
                 self.expect_word("to")?;
                 let to = if self.eat_word("hand") {
                     mtg_core::card::SearchTo::Hand
                 } else if self.eat_word("battlefield") {
-                    mtg_core::card::SearchTo::Battlefield {
-                        tapped: self.eat_word("tapped"),
+                    let tapped = self.eat_word("tapped");
+                    if tapped && self.eat_words(&["and", "hand"]) {
+                        mtg_core::card::SearchTo::BattlefieldAndHand
+                    } else {
+                        mtg_core::card::SearchTo::Battlefield { tapped }
                     }
                 } else if self.eat_word("top") {
                     mtg_core::card::SearchTo::TopOfLibrary
@@ -3841,6 +3912,7 @@ impl P {
                     to,
                     reveal,
                     that_card,
+                    or_card,
                 })
             }
             "add" => {
@@ -5184,7 +5256,11 @@ impl P {
                 // 110.4a).
                 "permanent"
                     if matches!(self.word_at(1).as_deref(), Some("card" | "cards"))
-                        && f == Filter::default() =>
+                        && (f == Filter::default()
+                            || (f.types.is_empty()
+                                && f.not_types.is_empty()
+                                && f.any_types.is_empty()
+                                && !f.subtypes.is_empty())) =>
                 {
                     f.not_types = vec![CardType::Instant, CardType::Sorcery];
                     self.pos += 1;

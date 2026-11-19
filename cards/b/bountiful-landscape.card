@@ -1,0 +1,7 @@
+card "Bountiful Landscape" {
+  oracle_id 2eb69a8f-9456-4852-b868-85ae609d3441
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Forest or basic Island or basic Mountain card to battlefield tapped
+  cycling {G}{U}{R}
+}

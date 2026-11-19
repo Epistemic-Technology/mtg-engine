@@ -1,0 +1,8 @@
+card "Kulrath Zealot" {
+  oracle_id d18ca75c-3572-4851-9580-27bafe10edd6
+  cost {5}{R}
+  type Creature — Elemental Warrior
+  pt 6/5
+  triggered when this enters: impulse 1 next turn first
+  basic landcycling {1}{R}
+}

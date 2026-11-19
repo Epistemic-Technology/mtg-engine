@@ -1919,6 +1919,16 @@ impl GameState {
         }
         if let Some(next) = self.step.next() {
             self.step = next;
+            // "Until your next end step": the permission ends as it begins.
+            if next == Step::End
+                && let Some(e) = &mut self.exile_casts
+                && !e.playable.is_empty()
+            {
+                let active = self.active_player;
+                e.playable.retain(|pe| {
+                    pe.until != crate::card::PlayUntil::YourNextEndStep || pe.player != active
+                });
+            }
             // A static ability conditioned on a part of the turn (CR
             // 611.3a) changes with the step.
             if self.turn_static_sources > 0
@@ -1958,6 +1968,26 @@ impl GameState {
             self.cast_this_turn.clear();
             if let Some(e) = &mut self.exile_casts {
                 e.foretold_this_turn.clear();
+                if !e.playable.is_empty() {
+                    // Impulse permissions end with the turn ("this turn") or
+                    // with the player's next turn.
+                    let (objects, active) = (&self.objects, self.active_player);
+                    e.playable.retain_mut(|pe| {
+                        if !objects.get(pe.card).is_some_and(|o| o.zone == Zone::Exile) {
+                            return false;
+                        }
+                        match pe.until {
+                            crate::card::PlayUntil::ThisTurn => false,
+                            crate::card::PlayUntil::EndOfYourNextTurn => {
+                                if pe.player == active {
+                                    pe.own_ends = pe.own_ends.saturating_sub(1);
+                                }
+                                pe.own_ends > 0
+                            }
+                            crate::card::PlayUntil::YourNextEndStep => true,
+                        }
+                    });
+                }
             }
             self.eot_grants = 0;
             self.active_player = self.next_player_in_game(self.active_player);

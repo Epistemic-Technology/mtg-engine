@@ -1,0 +1,7 @@
+card "Tuskeri Firewalker" {
+  oracle_id 36dda03b-a3c1-4ef4-ae62-da318028a39e
+  cost {2}{R}
+  type Creature — Human Berserker
+  pt 3/2
+  boast {1}: impulse 1 this turn
+}

@@ -1,0 +1,7 @@
+card "Warehouse Thief" {
+  oracle_id ddf34a38-29d5-4bf3-9b08-e7c9579a4200
+  cost {3}{R}
+  type Creature — Tiefling Rogue
+  pt 4/2
+  activated {2}, {T}, sacrifice artifact or creature: impulse 1 next turn first
+}

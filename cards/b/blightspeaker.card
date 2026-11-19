@@ -1,0 +1,8 @@
+card "Blightspeaker" {
+  oracle_id 0d16e52a-a7d0-4850-b49d-99f7978133e4
+  cost {1}{B}
+  type Creature — Human Rebel Cleric
+  pt 1/1
+  activated {T}: target player loses 1 life
+  activated {4}, {T}: search Rebel permanent card with mana value 3 or less to battlefield
+}

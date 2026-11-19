@@ -1,0 +1,6 @@
+card "In the Presence of Ages" {
+  oracle_id 142a960c-4d8e-4b3b-a0db-435c22df8f92
+  cost {2}{G}
+  type Instant
+  spell: dig 4 reveal take creature card and land card may rest graveyard
+}

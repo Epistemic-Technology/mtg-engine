@@ -1,0 +1,7 @@
+card "Dark-Dweller Oracle" {
+  oracle_id 17917b7a-2b2b-4a96-a21e-10cd91375660
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 2/2
+  activated {1}, sacrifice creature: impulse 1 this turn
+}

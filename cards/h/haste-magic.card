@@ -1,0 +1,6 @@
+card "Haste Magic" {
+  oracle_id 5249dd0d-3bda-452e-ac6e-774c0ebc2e41
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+1 and gains haste; impulse 1 next end step it
+}

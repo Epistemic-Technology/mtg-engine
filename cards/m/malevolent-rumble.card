@@ -1,0 +1,6 @@
+card "Malevolent Rumble" {
+  oracle_id d30d8968-ec24-4155-97e2-28efd52c8810
+  cost {1}{G}
+  type Sorcery
+  spell: dig 4 reveal take permanent card may rest graveyard; create 1 "Eldrazi Spawn"
+}

@@ -1,0 +1,7 @@
+card "Twisted Landscape" {
+  oracle_id db659cae-2078-423e-a6ed-63898dbab87f
+  type Land
+  mana {C}
+  activated {T}, sacrifice this: search basic Swamp or basic Mountain or basic Forest card to battlefield tapped
+  cycling {B}{R}{G}
+}

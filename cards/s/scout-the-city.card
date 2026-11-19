@@ -1,0 +1,9 @@
+card "Scout the City" {
+  oracle_id ecb8e283-5cdb-4e6a-bdff-546c1617363c
+  cost {1}{G}
+  type Sorcery
+  choose one {
+    mode "Look Around": mill 3 cards; you may put 1 permanent card from among them into hand chosen; you gain 3 life
+    mode "Bring Down": destroy target creature with flying
+  }
+}
