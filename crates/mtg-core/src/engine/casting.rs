@@ -2340,11 +2340,14 @@ impl GameState {
                 }
             }
             Recipient::Attached => {
-                if let Some(t) = self
-                    .current_object(ctx.source)
-                    .and_then(|s| self.objects[s].attached_to)
-                    .filter(|t| self.objects.contains_key(*t))
-                {
+                // "Sacrifice this Equipment: Equipped creature can't be
+                // blocked this turn": a source that has left uses what it
+                // was attached to as it last existed (CR 608.2h).
+                let attached = match self.objects.get(ctx.source) {
+                    Some(o) if o.zone == Zone::Battlefield => o.attached_to,
+                    _ => self.lki.get(&ctx.source).and_then(|l| l.object.attached_to),
+                };
+                if let Some(t) = attached.filter(|t| self.objects.contains_key(*t)) {
                     out.push(Target::Object(t));
                 }
             }

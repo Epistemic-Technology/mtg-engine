@@ -1,0 +1,13 @@
+# An Equipment or Aura sacrificed to pay for its ability still finds the
+# creature it was attached to (CR 608.2h).
+
+scenario "Wings of Hubris: sacrificed, the equipped creature can't be blocked" {
+  battlefield A: "Grizzly Bears", "Wings of Hubris" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Wings of Hubris"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Wings of Hubris"
+}
