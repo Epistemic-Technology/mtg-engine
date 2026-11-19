@@ -1601,6 +1601,8 @@ pub enum Num {
     /// creatures you control"), evaluated as the effect happens
     /// (`GameState::eval_num`).
     Count(u8),
+    /// "that much": the triggering event's amount (damage dealt).
+    ThatMuch,
 }
 
 impl Num {
@@ -1610,7 +1612,7 @@ impl Num {
         match self {
             Num::N(n) => n,
             Num::X => x,
-            Num::Count(_) => 0,
+            Num::Count(_) | Num::ThatMuch => 0,
         }
     }
 
@@ -1618,7 +1620,7 @@ impl Num {
     pub const fn hint(self) -> u32 {
         match self {
             Num::N(n) => n,
-            Num::X | Num::Count(_) => 3,
+            Num::X | Num::Count(_) | Num::ThatMuch => 3,
         }
     }
 }

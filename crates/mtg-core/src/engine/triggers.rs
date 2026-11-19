@@ -38,6 +38,10 @@ impl GameState {
             return;
         }
         let watchers = self.watchers(event);
+        let event_amount = match event {
+            Event::Damage { amount, .. } => *amount,
+            _ => 0,
+        };
         let mut fired: SmallVec<[PendingTrigger; 2]> = SmallVec::new();
         for w in &watchers {
             let mut abilities: SmallVec<[AbilityId; 8]> =
@@ -67,6 +71,7 @@ impl GameState {
                         def: w.chars.def,
                         trigger_obj,
                         trigger_player,
+                        trigger_amount: event_amount,
                     },
                     timestamp: 0,
                 });
@@ -144,6 +149,7 @@ impl GameState {
                         def: o.def,
                         trigger_obj: None,
                         trigger_player: None,
+                        trigger_amount: 0,
                     },
                     timestamp: 0,
                 });
@@ -666,6 +672,7 @@ impl GameState {
             legal,
             trigger_obj: sa.trigger_obj,
             trigger_player: sa.trigger_player,
+            trigger_amount: sa.trigger_amount,
             created: None,
             x: 0,
             did: true,

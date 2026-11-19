@@ -67,6 +67,8 @@ pub struct StackAbility {
     pub trigger_obj: Option<ObjId>,
     /// The player whose action triggered it, if any.
     pub trigger_player: Option<PlayerId>,
+    /// The amount of the triggering event (damage dealt), for "that much".
+    pub trigger_amount: u32,
 }
 
 /// A triggered ability that has triggered but is not yet on the stack

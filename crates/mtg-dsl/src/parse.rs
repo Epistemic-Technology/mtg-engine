@@ -2544,6 +2544,10 @@ impl P {
     }
 
     fn num(&mut self) -> R<Num> {
+        if self.at_words(&["that", "much"]) {
+            self.pos += 2;
+            return Ok(Num::ThatMuch);
+        }
         if self.at_word("count")
             && matches!(self.word_at(1).as_deref(), Some("where" | "equal" | "each"))
         {
@@ -2595,7 +2599,7 @@ impl P {
     fn count(&mut self) -> R<u32> {
         match self.num()? {
             Num::N(n) => Ok(n),
-            Num::X | Num::Count(_) => self.fail("X is not allowed here"),
+            Num::X | Num::Count(_) | Num::ThatMuch => self.fail("X is not allowed here"),
         }
     }
 

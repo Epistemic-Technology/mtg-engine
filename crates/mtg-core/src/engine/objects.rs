@@ -784,6 +784,7 @@ impl GameState {
                 def,
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
             },
             timestamp,
         });

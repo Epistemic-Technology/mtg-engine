@@ -210,6 +210,7 @@ impl GameState {
         use crate::card::Num;
         let i = match n {
             Num::Count(i) => i as usize,
+            Num::ThatMuch => return ctx.trigger_amount,
             other => return other.eval(ctx.x),
         };
         let def = self
@@ -551,6 +552,7 @@ impl GameState {
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
                 created: None,
                 x: 0,
                 did: true,
@@ -1069,6 +1071,7 @@ impl GameState {
                 def,
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
             }),
         });
         self.stack.push(obj);
@@ -1719,6 +1722,7 @@ impl GameState {
                 legal,
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
                 created: None,
                 x: self.x_of(spell),
                 did: true,
@@ -1769,6 +1773,7 @@ impl GameState {
                 def,
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
             },
         });
     }
@@ -2840,6 +2845,7 @@ impl GameState {
                             def,
                             trigger_obj: Some(id),
                             trigger_player: None,
+                            trigger_amount: 0,
                         },
                     });
                     self.emit(Event::DelayedTriggerCreated {
@@ -3280,6 +3286,7 @@ impl GameState {
                         legal: ctx.legal.get(t..).unwrap_or(&[]).to_vec(),
                         trigger_obj: ctx.trigger_obj,
                         trigger_player: ctx.trigger_player,
+                        trigger_amount: ctx.trigger_amount,
                         created: ctx.created,
                         x: ctx.x,
                         did: ctx.did,
@@ -3377,6 +3384,8 @@ pub(super) struct EffectCtx {
     pub legal: Vec<bool>,
     pub trigger_obj: Option<ObjId>,
     pub trigger_player: Option<PlayerId>,
+    /// The triggering event's amount, for "that much".
+    pub trigger_amount: u32,
     /// The object the most recent effect of this resolution created or
     /// moved (a token, an exiled card), for "sacrifice it" clauses that
     /// follow (`Recipient::CreatedObject`).

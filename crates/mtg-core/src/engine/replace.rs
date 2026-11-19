@@ -837,6 +837,7 @@ impl GameState {
                 legal: Vec::new(),
                 trigger_obj: None,
                 trigger_player: None,
+                trigger_amount: 0,
                 created: None,
                 x: 0,
                 did: true,

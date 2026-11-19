@@ -819,6 +819,7 @@ fn num(n: Num) -> String {
     match n {
         Num::N(n) => n.to_string(),
         Num::X => "X".to_string(),
+        Num::ThatMuch => "that much".to_string(),
         Num::Count(i) => COUNTS.with(|c| {
             c.borrow()
                 .get(usize::from(i))

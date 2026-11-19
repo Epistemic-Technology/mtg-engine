@@ -88,6 +88,7 @@ const NUMBER_WORDS: [&str; 20] = [
 /// A count in words ("a", "two", "X").
 fn count_words(n: Num, article: &str) -> String {
     match n {
+        Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::N(1) => article.to_string(),
         Num::N(n) => NUMBER_WORDS
@@ -98,6 +99,7 @@ fn count_words(n: Num, article: &str) -> String {
 
 fn digits(n: Num) -> String {
     match n {
+        Num::ThatMuch => "that much".to_string(),
         Num::X | Num::Count(_) => "X".to_string(),
         Num::N(n) => n.to_string(),
     }
