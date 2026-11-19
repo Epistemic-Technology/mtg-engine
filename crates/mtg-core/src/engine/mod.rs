@@ -1085,7 +1085,7 @@ impl GameState {
             (Flow::Priority, Choice::CastFaceDown(card)) => {
                 self.consecutive_passes = 0;
                 let ward = matches!(
-                    self.pool.get(self.objects[card].def).morph,
+                    self.pool.get(self.objects[card].def).morph.as_deref(),
                     Some((_, crate::card::MorphKind::Disguise))
                 );
                 let spell = self.move_object(card, Zone::Stack, true);
@@ -1146,7 +1146,7 @@ impl GameState {
                 // CR 702.62a, 116.2f: a special action; the player keeps
                 // priority.
                 let def = self.pool.get(self.objects[id].def);
-                if let Some((n, cost)) = def.suspend.clone() {
+                if let Some((n, cost)) = def.suspend.as_deref().cloned() {
                     self.pay(player, &cost.requirements(0));
                     let new = self.move_object(id, Zone::Exile, true);
                     let o = &mut self.objects[new];

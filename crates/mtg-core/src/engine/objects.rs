@@ -428,7 +428,10 @@ impl GameState {
         let (flags, legend, mega) = (
             self.flags_of(&self.objects[id]),
             def.is_legendary(),
-            matches!(def.morph, Some((_, crate::card::MorphKind::Megamorph))),
+            matches!(
+                def.morph.as_deref(),
+                Some((_, crate::card::MorphKind::Megamorph))
+            ),
         );
         self.count_sources(flags, legend, true);
         self.cbump();

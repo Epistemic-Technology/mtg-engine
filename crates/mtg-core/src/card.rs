@@ -2747,37 +2747,37 @@ pub struct CardDef {
     pub additional: Cost,
     /// Kicker (CR 702.33): an optional additional mana cost chosen as the
     /// spell is cast.
-    pub kicker: Option<ManaCost>,
+    pub kicker: Option<Box<ManaCost>>,
     /// What this spell's own text takes off its cost (affinity).
     pub self_cost: Option<SelfCost>,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
-    pub buyback: Option<ManaCost>,
+    pub buyback: Option<Box<ManaCost>>,
     /// Morph, megamorph, or disguise (CR 702.37, 702.168): cast face down
     /// for {3}, turned face up for this cost.
-    pub morph: Option<(ManaCost, MorphKind)>,
+    pub morph: Option<Box<(ManaCost, MorphKind)>>,
     /// Evoke (CR 702.74): an alternative cost; an evoked permanent is
     /// sacrificed as it enters.
-    pub evoke: Option<ManaCost>,
+    pub evoke: Option<Box<ManaCost>>,
     /// Madness (CR 702.35): cast for this cost as it's discarded.
-    pub madness: Option<ManaCost>,
+    pub madness: Option<Box<ManaCost>>,
     /// Foretell (CR 702.143): exiled from hand for {2}, cast later for
     /// this cost.
-    pub foretell: Option<ManaCost>,
+    pub foretell: Option<Box<ManaCost>>,
     /// Suspend N—cost (CR 702.62).
-    pub suspend: Option<(u32, ManaCost)>,
+    pub suspend: Option<Box<(u32, ManaCost)>>,
     /// Entwine (CR 702.42): every mode of a "choose one" spell for this
     /// cost on top.
-    pub entwine: Option<ManaCost>,
+    pub entwine: Option<Box<ManaCost>>,
     /// Escape—cost, exile N other cards from your graveyard (CR 702.138).
-    pub escape: Option<(ManaCost, u32)>,
+    pub escape: Option<Box<(ManaCost, u32)>>,
     /// Modular N (CR 702.43): enters with N +1/+1 counters (its dies
     /// trigger is an ordinary ability).
     pub modular: u32,
     /// Flashback (CR 702.34): the spell may be cast from the graveyard for
     /// this cost instead of its mana cost, and is exiled as it leaves the
     /// stack.
-    pub flashback: Option<Cost>,
+    pub flashback: Option<Box<Cost>>,
     /// Event kinds any of this definition's triggers (keyword triggers
     /// included) can fire on; see `TriggerSpec::watch_mask`.
     watch_mask: u16,
@@ -3752,35 +3752,35 @@ impl Builder {
     /// Kicker (CR 702.33).
     #[must_use]
     pub fn kicker(mut self, cost: ManaCost) -> Self {
-        self.0.kicker = Some(cost);
+        self.0.kicker = Some(Box::new(cost));
         self
     }
 
     /// Morph, megamorph, or disguise (CR 702.37, 702.168).
     #[must_use]
     pub fn morph(mut self, cost: ManaCost, kind: MorphKind) -> Self {
-        self.0.morph = Some((cost, kind));
+        self.0.morph = Some(Box::new((cost, kind)));
         self
     }
 
     /// Evoke (CR 702.74).
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
-        self.0.evoke = Some(cost);
+        self.0.evoke = Some(Box::new(cost));
         self
     }
 
     /// Madness (CR 702.35).
     #[must_use]
     pub fn madness(mut self, cost: ManaCost) -> Self {
-        self.0.madness = Some(cost);
+        self.0.madness = Some(Box::new(cost));
         self
     }
 
     /// Foretell (CR 702.143).
     #[must_use]
     pub fn foretell(mut self, cost: ManaCost) -> Self {
-        self.0.foretell = Some(cost);
+        self.0.foretell = Some(Box::new(cost));
         self
     }
 
@@ -3794,28 +3794,28 @@ impl Builder {
     /// Entwine (CR 702.42).
     #[must_use]
     pub fn entwine(mut self, cost: ManaCost) -> Self {
-        self.0.entwine = Some(cost);
+        self.0.entwine = Some(Box::new(cost));
         self
     }
 
     /// Escape (CR 702.138).
     #[must_use]
     pub fn escape(mut self, cost: ManaCost, exile: u32) -> Self {
-        self.0.escape = Some((cost, exile));
+        self.0.escape = Some(Box::new((cost, exile)));
         self
     }
 
     /// Suspend N—cost (CR 702.62).
     #[must_use]
     pub fn suspend(mut self, n: u32, cost: ManaCost) -> Self {
-        self.0.suspend = Some((n, cost));
+        self.0.suspend = Some(Box::new((n, cost)));
         self
     }
 
     /// Buyback (CR 702.27).
     #[must_use]
     pub fn buyback(mut self, cost: ManaCost) -> Self {
-        self.0.buyback = Some(cost);
+        self.0.buyback = Some(Box::new(cost));
         self
     }
 
@@ -3829,7 +3829,7 @@ impl Builder {
     /// Flashback (CR 702.34).
     #[must_use]
     pub fn flashback(mut self, cost: Cost) -> Self {
-        self.0.flashback = Some(cost);
+        self.0.flashback = Some(Box::new(cost));
         self
     }
 

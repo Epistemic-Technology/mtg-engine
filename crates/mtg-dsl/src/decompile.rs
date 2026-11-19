@@ -84,7 +84,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         loyalty: (def.loyalty > 0).then_some(def.loyalty),
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
-        kicker: def.kicker.clone(),
+        kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
         abilities: def.abilities.iter().map(|a| d.ability(a)).collect(),

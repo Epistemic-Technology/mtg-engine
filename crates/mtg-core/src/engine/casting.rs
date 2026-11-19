@@ -365,7 +365,7 @@ impl GameState {
     ) {
         let ps = self.player(p);
         let def = self.pool.get(self.objects[id].def);
-        if let Some((_, cost)) = &def.suspend
+        if let Some((_, cost)) = def.suspend.as_deref()
             && (sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash))
             && payment_plan_from(sources, &ps.mana_pool, &cost.requirements(0), ps.life).is_some()
         {
@@ -396,7 +396,7 @@ impl GameState {
             return None;
         }
         let card = self.pool.get(o.card);
-        match &card.morph {
+        match card.morph.as_deref() {
             Some((cost, _)) => Some(cost.clone()),
             None if card.is_creature() => Some(card.mana_cost.clone()),
             None => None,
@@ -704,7 +704,7 @@ impl GameState {
     #[inline(never)]
     fn escape_castable(&self, p: PlayerId, card: ObjId, sorcery_timing: bool) -> bool {
         let def = self.pool.get(self.objects[card].def);
-        let Some((cost, n)) = &def.escape else {
+        let Some((cost, n)) = def.escape.as_deref() else {
             return false;
         };
         let instant = def.is_instant() || def.keywords.contains(Keyword::Flash);
@@ -1467,7 +1467,7 @@ impl GameState {
         }
         // CR 702.138a: exile the other cards escape asks for (the oldest).
         if self.objects[spell].alt == AltCast::Escape
-            && let Some((_, n)) = def.escape
+            && let Some(&(_, n)) = def.escape.as_deref()
         {
             let gone: Vec<ObjId> = self
                 .player(caster)

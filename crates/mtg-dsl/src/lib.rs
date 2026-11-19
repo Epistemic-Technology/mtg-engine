@@ -53,7 +53,50 @@ pub fn shard(slug: &str) -> String {
 
 /// The embedded card files: (path relative to `cards/`, contents).
 pub fn card_files() -> &'static [(&'static str, &'static str)] {
-    embedded::CARD_FILES
+    static FROM_DIR: std::sync::OnceLock<Vec<(&'static str, &'static str)>> =
+        std::sync::OnceLock::new();
+    // `MTG_CARDS_DIR=drafts:cards`: read the card files at run time instead,
+    // so a built binary checks cards written since (card authoring). With
+    // several directories, a card in an earlier one wins.
+    match std::env::var_os("MTG_CARDS_DIR") {
+        Some(dirs) => FROM_DIR.get_or_init(|| {
+            std::env::split_paths(&dirs)
+                .flat_map(|d| read_card_dir(&d))
+                .collect()
+        }),
+        None => embedded::CARD_FILES,
+    }
+}
+
+fn read_card_dir(root: &std::path::Path) -> Vec<(&'static str, &'static str)> {
+    fn collect(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for e in entries.flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                collect(&p, out);
+            } else if p.extension().is_some_and(|x| x == "card") {
+                out.push(p);
+            }
+        }
+    }
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let mut files = Vec::new();
+    collect(&root, &mut files);
+    files.sort();
+    files
+        .into_iter()
+        .filter_map(|f| {
+            let text = std::fs::read_to_string(&f).ok()?;
+            let rel = f.strip_prefix(&root).unwrap_or(&f).display().to_string();
+            Some((
+                &*Box::leak(rel.into_boxed_str()),
+                &*Box::leak(text.into_boxed_str()),
+            ))
+        })
+        .collect()
 }
 
 #[derive(Debug, Error)]
@@ -84,11 +127,26 @@ pub fn builtin_cards() -> Result<Vec<ast::Card>, LoadError> {
     let mut all = Vec::new();
     let mut seen: HashMap<String, String> = HashMap::new();
     for (path, text) in card_files() {
-        let cards = parse(text).map_err(|source| LoadError::Parse {
-            path: (*path).to_string(),
-            source,
-        })?;
+        // Read at run time (card authoring), a file being written or a
+        // second copy of a card is skipped, not fatal.
+        let lenient = std::env::var_os("MTG_CARDS_DIR").is_some();
+        let cards = match parse(text) {
+            Ok(c) => c,
+            Err(e) if lenient => {
+                eprintln!("skipping {path}: {e}");
+                continue;
+            }
+            Err(source) => {
+                return Err(LoadError::Parse {
+                    path: (*path).to_string(),
+                    source,
+                });
+            }
+        };
         for c in cards {
+            if lenient && seen.contains_key(&c.name) {
+                continue;
+            }
             if let Some(first) = seen.insert(c.name.clone(), (*path).to_string()) {
                 return Err(LoadError::Duplicate {
                     name: c.name,
