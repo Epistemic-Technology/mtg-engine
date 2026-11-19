@@ -1,0 +1,5 @@
+card "Maze of Ith" {
+  oracle_id 38a12bd7-4394-44a8-91a0-6a4ff7fa4f71
+  type Land
+  activated {T}: untap target attacking creature; prevent all combat damage to and from that target 1 this turn
+}

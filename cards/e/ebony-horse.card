@@ -1,0 +1,6 @@
+card "Ebony Horse" {
+  oracle_id 4eb67ba3-35e3-47c3-820f-62814cf202a7
+  cost {3}
+  type Artifact
+  activated {2}, {T}: untap target attacking creature you control; prevent all combat damage to and from that target 1 this turn
+}

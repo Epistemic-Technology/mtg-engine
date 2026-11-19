@@ -1,0 +1,6 @@
+card "Thwart the Enemy" {
+  oracle_id 5799baed-3457-4bf2-adf3-239a41dcc1c8
+  cost {2}{G}
+  type Instant
+  spell: prevent all damage this turn from creature your opponents control
+}

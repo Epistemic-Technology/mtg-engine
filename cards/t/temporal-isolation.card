@@ -1,0 +1,9 @@
+card "Temporal Isolation" {
+  oracle_id cb5ab978-d9b1-4f2f-bf3a-5e28e96b9e2e
+  cost {1}{W}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: has shadow
+  replace damage from enchanted to any: prevent
+}

@@ -358,8 +358,21 @@ impl GameState {
                 combat.is_none_or(|k| k == *c)
                     && from
                         .as_ref()
-                        .is_none_or(|f| self.source_matches(f, *src, source, controller))
+                        .is_none_or(|f| self.source_is(f, *src, source, controller, locked))
                     && self.affects(to, *target, source, controller, locked)
+            }
+            (
+                Replaces::DamageToAndBy { what, combat },
+                Proposed::Damage {
+                    source: src,
+                    target,
+                    combat: c,
+                    ..
+                },
+            ) => {
+                combat.is_none_or(|k| k == *c)
+                    && (self.affects(what, *target, source, controller, locked)
+                        || self.source_is(what, *src, source, controller, locked))
             }
             (Replaces::GainLife { whose }, Proposed::GainLife { player, .. }) => {
                 whose_ok(*whose, *player)
@@ -475,6 +488,35 @@ impl GameState {
                     || matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
             }
             Affects::Target(_) => locked == Some(target),
+            Affects::OtherThanTarget(f, _) => {
+                locked != Some(target)
+                    && matches!(target, Target::Object(id) if self.filter_matches(f, id, source, controller))
+            }
+        }
+    }
+
+    /// Whether `src`, the source of damage, is among what `from` covers
+    /// (CR 609.7). Players never deal damage.
+    fn source_is(
+        &self,
+        from: &Affects,
+        src: ObjId,
+        source: ObjId,
+        controller: PlayerId,
+        locked: Option<Target>,
+    ) -> bool {
+        match from {
+            Affects::Any => true,
+            Affects::This => src == source,
+            Affects::You | Affects::Players(_) => false,
+            Affects::Objects(f) | Affects::YouAnd(f) => {
+                self.source_matches(f, src, source, controller)
+            }
+            Affects::Target(_) => locked == Some(Target::Object(src)),
+            Affects::OtherThanTarget(f, _) => {
+                locked != Some(Target::Object(src))
+                    && self.source_matches(f, src, source, controller)
+            }
         }
     }
 
@@ -489,11 +531,23 @@ impl GameState {
         let Some(o) = self.objects.get(id) else {
             return false;
         };
-        if o.zone != Zone::Battlefield {
+        if o.zone != Zone::Battlefield || (f.enchanted && !self.enchants(source, id)) {
             return false;
         }
         self.characteristics(id)
             .is_some_and(|c| f.matches(id, o.controller, &c, Some(source), Some(controller)))
+            && self.status_ok(f, id)
+    }
+
+    /// Whether `source` (or its last known information) is attached to
+    /// `id`: "enchanted creature".
+    fn enchants(&self, source: ObjId, id: ObjId) -> bool {
+        self.objects
+            .get(source)
+            .map(|a| a.attached_to)
+            .or_else(|| self.lki.get(&source).map(|l| l.object.attached_to))
+            .flatten()
+            == Some(id)
     }
 
     /// Whether the source of damage matches `f` (CR 609.7b–c), using last
@@ -516,7 +570,17 @@ impl GameState {
         else {
             return false;
         };
+        if f.enchanted && !self.enchants(source, src) {
+            return false;
+        }
+        // State ("attacking", "unblocked") is judged while the source is on
+        // the battlefield; one that has left has none.
+        let on_battlefield = self
+            .objects
+            .get(src)
+            .is_some_and(|o| o.zone == Zone::Battlefield);
         f.matches(src, ctl, &c, Some(source), Some(controller))
+            && (!f.needs_state() || (on_battlefield && self.status_ok(f, src)))
     }
 
     /// Apply one effect to the event (CR 614.6, 615.6), then its additional

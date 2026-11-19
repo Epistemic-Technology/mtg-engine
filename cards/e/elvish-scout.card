@@ -1,0 +1,7 @@
+card "Elvish Scout" {
+  oracle_id d39a492e-a599-4283-bfc1-8e99065a9303
+  cost {G}
+  type Creature — Elf Scout
+  pt 1/1
+  activated {G}, {T}: untap target attacking creature you control; prevent all combat damage to and from target 1 this turn
+}

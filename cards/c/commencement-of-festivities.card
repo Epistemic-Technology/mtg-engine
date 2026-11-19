@@ -1,0 +1,6 @@
+card "Commencement of Festivities" {
+  oracle_id 56ea8f6b-a765-44e7-bf0e-4d4a2405684b
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage to each player this turn
+}

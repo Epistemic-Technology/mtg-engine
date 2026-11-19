@@ -1,0 +1,6 @@
+card "Warning" {
+  oracle_id c5ba0f0f-65c5-4ffa-987a-f320b401ec8f
+  cost {W}
+  type Instant
+  spell: prevent all combat damage from target attacking creature this turn
+}

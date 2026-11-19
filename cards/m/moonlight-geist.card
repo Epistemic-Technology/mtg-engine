@@ -1,0 +1,8 @@
+card "Moonlight Geist" {
+  oracle_id 12a8c546-d0d1-4c3d-bfca-c1e59cef349a
+  cost {2}{W}
+  type Creature — Spirit
+  pt 2/1
+  keywords flying
+  activated {3}{W}: prevent all combat damage to and from this this turn
+}

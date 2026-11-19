@@ -1,0 +1,6 @@
+card "Statecraft" {
+  oracle_id 854ef7c2-52e9-486a-aab6-7e3b3a6185ea
+  cost {3}{U}
+  type Enchantment
+  replace combat damage to and from creature you control: prevent
+}

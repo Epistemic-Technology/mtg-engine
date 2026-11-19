@@ -11,9 +11,9 @@ use mtg_core::turn::Step;
 use thiserror::Error;
 
 use crate::ast::{
-    Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, Effect, Except,
-    Filter, Join, Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost, Sentence,
-    StaticCond, Target, Trigger, TriggerObj,
+    Ability, Affects, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem, DamageWording, Effect,
+    Except, Filter, Join, Kind, Mechanic, Mod, Mode, Recipient, Replacement, Replaces, SacCost,
+    Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -2815,18 +2815,41 @@ impl P {
                     None
                 };
                 self.expect_word("damage")?;
-                let to = if self.eat_word("to") {
-                    self.affects()?
+                let event = if next.is_none() {
+                    let event = self.damage_event(combat)?;
+                    self.expect_words(&["this", "turn"])?;
+                    match event {
+                        // `... this turn from <source>`: "dealt this turn by"
+                        // (Vine Snare).
+                        Replaces::Damage {
+                            from: None,
+                            to,
+                            combat,
+                            ..
+                        } if self.eat_word("from") => Replaces::Damage {
+                            from: Some(self.source()?),
+                            to,
+                            combat,
+                            wording: DamageWording::DealtLate,
+                        },
+                        e => e,
+                    }
                 } else {
-                    Affects::Any
-                };
-                self.expect_words(&["this", "turn"])?;
-                Ok(Effect::CreateReplacement(Replacement {
-                    event: Replaces::Damage {
+                    let to = if self.eat_word("to") {
+                        self.affects()?
+                    } else {
+                        Affects::Any
+                    };
+                    self.expect_words(&["this", "turn"])?;
+                    Replaces::Damage {
                         from: None,
                         to,
                         combat,
-                    },
+                        wording: DamageWording::Dealt,
+                    }
+                };
+                Ok(Effect::CreateReplacement(Replacement {
+                    event,
                     outcome: match next {
                         Some(n) => Outcome::PreventNext(n),
                         None => Outcome::Prevent,
@@ -3777,13 +3800,24 @@ impl P {
         {
             return Ok(Affects::Players(Who::Any));
         }
-        if self.at_word("target") {
+        if self.at_word("target") || self.at_words(&["that", "target"]) {
             return match self.recipient()? {
                 Recipient::Target(i) => Ok(Affects::Target(i)),
+                Recipient::ThatTarget(i) => Ok(Affects::ThatTarget(i)),
                 _ => unreachable!(),
             };
         }
-        Ok(Affects::Objects(self.filter()?))
+        let f = self.filter()?;
+        // `creature except target creature`: "creatures other than target
+        // creature".
+        if self.at_words(&["except", "target"]) {
+            self.pos += 1;
+            return match self.recipient()? {
+                Recipient::Target(i) => Ok(Affects::OtherThanTarget(f, i)),
+                _ => unreachable!(),
+            };
+        }
+        Ok(Affects::Objects(f))
     }
 
     // ---- triggers, conditions, costs, replacements, modifications ----
@@ -4300,14 +4334,62 @@ impl P {
             None
         };
         self.expect_word("damage")?;
-        let from = if self.eat_word("from") {
-            Some(self.filter()?)
-        } else {
-            None
-        };
-        self.expect_word("to")?;
-        let to = self.affects()?;
-        Ok(Replaces::Damage { from, to, combat })
+        self.damage_event(combat)
+    }
+
+    /// The rest of a damage event after `damage`: `to and from <affects>`,
+    /// `<source> would deal [to <affects>]`, or `[from <source>] [to
+    /// <affects>]` (either order). Without `to`, any recipient.
+    fn damage_event(&mut self, combat: Option<bool>) -> R<Replaces> {
+        if self.eat_words(&["to", "and", "from"]) {
+            return Ok(Replaces::DamageToAndBy {
+                what: self.affects()?,
+                combat,
+            });
+        }
+        let ends = |p: &Self| p.at_words(&["this", "turn"]) || p.at_end_of_event();
+        let mut from = None;
+        let mut wording = DamageWording::Dealt;
+        if !self.at_word("to") && !self.at_word("from") && !ends(self) {
+            from = Some(self.source()?);
+            self.expect_words(&["would", "deal"])?;
+            wording = DamageWording::WouldDeal;
+        }
+        let mut to = Affects::Any;
+        loop {
+            if from.is_none() && self.eat_word("from") {
+                from = Some(self.source()?);
+            } else if self.eat_word("to") {
+                to = self.affects()?;
+            } else {
+                break;
+            }
+        }
+        Ok(Replaces::Damage {
+            from,
+            to,
+            combat,
+            wording,
+        })
+    }
+
+    /// Whether the next token ends a replacement's event (`:` before the
+    /// outcome).
+    fn at_end_of_event(&self) -> bool {
+        matches!(self.peek(), Some(Tok::Colon) | None)
+    }
+
+    /// A damage source: what `affects` reads, as an object (no `from any`:
+    /// leave `from` out).
+    fn source(&mut self) -> R<Affects> {
+        let a = self.affects()?;
+        if matches!(
+            a,
+            Affects::Any | Affects::You | Affects::Players(_) | Affects::YouAnd(_)
+        ) {
+            return self.fail("a damage source is an object, not a player".to_string());
+        }
+        Ok(a)
     }
 
     fn outcome(&mut self) -> R<Outcome> {

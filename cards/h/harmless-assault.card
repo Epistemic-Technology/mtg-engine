@@ -1,0 +1,6 @@
+card "Harmless Assault" {
+  oracle_id bfcc3a16-1ca8-4112-a10e-d4e52d3daa8d
+  cost {2}{W}{W}
+  type Instant
+  spell: prevent all combat damage this turn from attacking creature
+}

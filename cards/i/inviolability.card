@@ -1,0 +1,7 @@
+card "Inviolability" {
+  oracle_id 3f336198-2425-447a-88b4-9be21ef7e90a
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  replace damage to enchanted: prevent
+}

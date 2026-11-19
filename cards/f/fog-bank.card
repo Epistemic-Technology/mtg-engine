@@ -1,0 +1,8 @@
+card "Fog Bank" {
+  oracle_id 3a2bb47d-228d-499e-a34b-9e10d99e9b2c
+  cost {1}{U}
+  type Creature — Wall
+  pt 0/2
+  keywords defender, flying
+  replace combat damage to and from this: prevent
+}

@@ -1,0 +1,6 @@
+card "Vine Snare" {
+  oracle_id f3303d45-b3ee-4389-8172-d9ffa8bf251b
+  cost {2}{G}
+  type Instant
+  spell: prevent all combat damage this turn from creature with power 4 or less
+}

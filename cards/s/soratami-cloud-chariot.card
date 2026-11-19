@@ -1,0 +1,7 @@
+card "Soratami Cloud Chariot" {
+  oracle_id 1a46373a-b48a-4118-92e0-d856ce409690
+  cost {5}
+  type Artifact
+  activated {2}: target creature you control gains flying until end of turn
+  activated {2}: prevent all combat damage to and from target creature you control this turn
+}

@@ -1,0 +1,8 @@
+card "Demonic Torment" {
+  oracle_id 2172b724-9004-488e-88d3-a5fc48c50e41
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't attack
+  replace combat damage from enchanted to any: prevent
+}

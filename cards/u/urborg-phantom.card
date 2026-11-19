@@ -1,0 +1,8 @@
+card "Urborg Phantom" {
+  oracle_id f8b5d2f4-58a8-408c-bb67-6b5f9ba5b678
+  cost {2}{B}
+  type Creature — Spirit Minion
+  pt 3/1
+  keywords can't block
+  activated {U}: prevent all combat damage to and from this this turn
+}

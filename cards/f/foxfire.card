@@ -1,0 +1,9 @@
+card "Foxfire" {
+  oracle_id 6c270e6a-12a7-4323-87ba-6d770986fb48
+  cost {2}{G}
+  type Instant
+  spell {
+    untap target attacking creature; prevent all combat damage to and from that target 1 this turn
+    delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

@@ -1,0 +1,6 @@
+card "Tanglesap" {
+  oracle_id a533df83-782f-4f77-a0be-312ae56f6447
+  cost {1}{G}
+  type Instant
+  spell: prevent all combat damage this turn from creature without trample
+}

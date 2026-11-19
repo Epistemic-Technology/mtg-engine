@@ -1,0 +1,7 @@
+card "Fend Off" {
+  oracle_id fa8f3827-8cd9-4896-ab0c-26fecacceb40
+  cost {1}{W}
+  type Instant
+  spell: prevent all combat damage from target creature this turn
+  cycling {2}
+}
