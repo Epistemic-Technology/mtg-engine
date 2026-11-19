@@ -1,0 +1,20 @@
+scenario "Invasive Species returns another permanent you control" {
+  battlefield A: 3 "Forest"
+  hand A: "Invasive Species"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invasive Species"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Invasive Species"
+  assert battlefield A contains 2 "Forest"
+  assert hand A contains "Forest"
+}
+
+scenario "Invasive Species never returns itself" {
+  battlefield A: 3 "Forest", "Grizzly Bears"
+  hand A: "Invasive Species"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Invasive Species"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Invasive Species"
+  assert hand A count 1
+}

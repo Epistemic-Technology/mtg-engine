@@ -1,0 +1,9 @@
+card "Clairvoyance" {
+  oracle_id 851333be-d7d5-472a-95cb-0a28da09ce24
+  cost {U}
+  type Instant
+  spell {
+    look at hand of target player
+    delayed this: draw 1 card at beginning of the next turn's upkeep
+  }
+}

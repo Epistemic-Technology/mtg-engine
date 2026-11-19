@@ -1,0 +1,7 @@
+card "Trickster Mage" {
+  oracle_id d5a9fd97-535c-4aa4-9777-6cf8a413b6ec
+  cost {U}
+  type Creature — Human Spellshaper
+  pt 1/1
+  activated {U}, {T}, discard 1 card: you may tap or untap target artifact, creature, or land
+}

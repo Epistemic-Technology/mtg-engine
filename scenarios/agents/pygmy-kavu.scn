@@ -1,0 +1,20 @@
+scenario "Pygmy Kavu draws a card for each black creature opponents control" {
+  battlefield A: "Forest", "Forest", "Forest", "Forest", "Typhoid Rats"
+  battlefield B: "Typhoid Rats", "Scathe Zombies", "Grizzly Bears"
+  hand A: "Pygmy Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pygmy Kavu"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Pygmy Kavu"
+  assert hand A count 2
+}
+
+scenario "Pygmy Kavu draws nothing with no black creatures opposing" {
+  battlefield A: "Forest", "Forest", "Forest", "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pygmy Kavu"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pygmy Kavu"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+}

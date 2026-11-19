@@ -1,0 +1,19 @@
+scenario "alley grifters: becoming blocked makes defending player discard" {
+  battlefield A: "Alley Grifters"
+  battlefield B: "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: attack "Alley Grifters"
+  turn 1 B: block "Alley Grifters" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "alley grifters: unblocked, no discard" {
+  battlefield A: "Alley Grifters"
+  hand B: "Shock"
+  turn 1 A: attack "Alley Grifters"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+card "Gilt-Leaf Seer" {
+  oracle_id eab27405-f590-40b7-ad7c-0e6c52410c0a
+  cost {2}{G}
+  type Creature — Elf Shaman
+  pt 2/2
+  activated {G}, {T}: look at top 2
+}

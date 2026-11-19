@@ -1,0 +1,12 @@
+scenario "kavu recluse: target land becomes a forest until end of turn" {
+  battlefield A: "Kavu Recluse"
+  battlefield B: "Mountain"
+  turn 1 A: activate "Kavu Recluse" targeting B "Mountain"
+  run_to turn 1 postcombat_main
+  assert is "Mountain" forest
+  assert is not "Mountain" mountain
+  assert tapped "Kavu Recluse"
+  run_to turn 2 upkeep
+  assert is "Mountain" mountain
+  assert is not "Mountain" forest
+}

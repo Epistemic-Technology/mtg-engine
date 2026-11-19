@@ -1,0 +1,7 @@
+card "Kavu Recluse" {
+  oracle_id d44ff432-7485-448f-a08d-8417e18b8820
+  cost {2}{R}
+  type Creature — Kavu
+  pt 2/2
+  activated {T}: target land becomes Forest
+}

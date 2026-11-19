@@ -1,0 +1,13 @@
+scenario "Clairvoyance draws a card at the next turn's upkeep" {
+  battlefield A: "Island"
+  hand A: "Clairvoyance"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Clairvoyance" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert graveyard A contains "Clairvoyance"
+  run_to turn 2 precombat_main
+  assert hand A count 1
+  assert hand B contains "Grizzly Bears"
+}

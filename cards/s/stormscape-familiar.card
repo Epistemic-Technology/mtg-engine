@@ -1,0 +1,8 @@
+card "Stormscape Familiar" {
+  oracle_id a8f5a11f-3291-4ee9-a96d-4fa38af14932
+  cost {1}{U}
+  type Creature — Bird
+  pt 1/1
+  keywords flying
+  spells white or black you cast cost {1} less
+}

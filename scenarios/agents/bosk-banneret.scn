@@ -1,0 +1,23 @@
+scenario "bosk banneret: treefolk spells cost 1 less" {
+  battlefield A: "Bosk Banneret", 2 "Forest"
+  hand A: "Tilling Treefolk"
+  turn 1 A: cast "Tilling Treefolk"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tilling Treefolk"
+}
+
+scenario "bosk banneret: shaman spells cost 1 less" {
+  battlefield A: "Bosk Banneret", "Forest"
+  hand A: "Sakura-Tribe Elder"
+  turn 1 A: cast "Sakura-Tribe Elder"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sakura-Tribe Elder"
+}
+
+scenario "bosk banneret: other spells cost full" {
+  battlefield A: "Bosk Banneret", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

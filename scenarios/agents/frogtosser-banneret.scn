@@ -1,0 +1,26 @@
+scenario "frogtosser banneret: goblin spells cost 1 less" {
+  battlefield A: "Frogtosser Banneret", "Mountain"
+  hand A: "Skinbrand Goblin"
+  turn 1 A: cast "Skinbrand Goblin"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skinbrand Goblin"
+}
+
+scenario "frogtosser banneret: rogue spells cost 1 less" {
+  battlefield A: "Frogtosser Banneret", "Swamp"
+  hand A: "Zulaport Cutthroat"
+  turn 1 A: cast "Zulaport Cutthroat"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zulaport Cutthroat"
+}
+
+scenario "frogtosser banneret: haste, and other spells cost full" {
+  battlefield A: 2 "Swamp", "Forest"
+  hand A: "Frogtosser Banneret", "Grizzly Bears"
+  turn 1 A: cast "Frogtosser Banneret"
+  illegal turn 1 A: cast "Grizzly Bears"
+  turn 1 A: attack "Frogtosser Banneret"
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert hand A contains "Grizzly Bears"
+}

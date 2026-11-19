@@ -1,0 +1,17 @@
+scenario "raging spirit: becomes colorless until end of turn" {
+  battlefield A: "Raging Spirit", 2 "Mountain"
+  turn 1 A: activate "Raging Spirit"
+  run_to turn 1 postcombat_main
+  assert is not "Raging Spirit" red
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+  run_to turn 2 upkeep
+  assert is "Raging Spirit" red
+}
+
+scenario "raging spirit: red before activation" {
+  battlefield A: "Raging Spirit"
+  illegal turn 1 A: activate "Raging Spirit"
+  run_to turn 1 postcombat_main
+  assert is "Raging Spirit" red
+}

@@ -1,0 +1,15 @@
+scenario "thornscape familiar: red spells cost 1 less" {
+  battlefield A: "Thornscape Familiar", 3 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "thornscape familiar: green spells cost full" {
+  battlefield A: "Thornscape Familiar", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

@@ -1,0 +1,24 @@
+scenario "thunderscape familiar: green spells cost 1 less" {
+  battlefield A: "Thunderscape Familiar", "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "thunderscape familiar: red spells cost full" {
+  battlefield A: "Thunderscape Familiar", 3 "Mountain"
+  hand A: "Hill Giant"
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "thunderscape familiar: first strike" {
+  battlefield A: "Thunderscape Familiar"
+  battlefield B: "Wind Drake"
+  start turn 2 B
+  turn 2 B: attack "Wind Drake"
+  run_to turn 2 postcombat_main
+  assert has "Thunderscape Familiar" first_strike
+}

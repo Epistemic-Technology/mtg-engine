@@ -1,0 +1,20 @@
+scenario "Trickster Mage taps an opposing creature" {
+  battlefield A: "Island", "Trickster Mage"
+  battlefield B: "Hill Giant"
+  hand A: "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Trickster Mage" discarding "Forest" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert tapped "Hill Giant"
+  assert tapped "Trickster Mage"
+  assert graveyard A contains "Forest"
+}
+
+scenario "Trickster Mage needs a card to discard" {
+  battlefield A: "Island", "Trickster Mage"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Trickster Mage" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert untapped "Hill Giant"
+}

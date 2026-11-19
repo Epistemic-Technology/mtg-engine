@@ -1,0 +1,7 @@
+card "Vedalken Ghoul" {
+  oracle_id 708b13ef-f297-4176-9d09-e633c4d600da
+  cost {U}{B}
+  type Creature — Vedalken Zombie
+  pt 1/1
+  triggered whenever this becomes blocked: defending player loses 4 life
+}

@@ -1,0 +1,20 @@
+scenario "twiddle: tap target creature" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Twiddle"
+  turn 1 A: cast "Twiddle" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert graveyard A contains "Twiddle"
+}
+
+scenario "twiddle: may decline" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Twiddle"
+  turn 1 A: cast "Twiddle" targeting "Grizzly Bears"
+  turn 1 A: decline "Twiddle"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert graveyard A contains "Twiddle"
+}

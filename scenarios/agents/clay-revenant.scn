@@ -1,0 +1,15 @@
+scenario "clay revenant enters tapped" {
+  battlefield A: "Plains"
+  hand A: "Clay Revenant"
+  turn 1 A: cast "Clay Revenant"
+  run_to turn 1 postcombat_main
+  assert tapped "Clay Revenant"
+}
+scenario "clay revenant returns from graveyard to hand" {
+  battlefield A: 2 "Plains", "Swamp"
+  graveyard A: "Clay Revenant"
+  turn 1 A: activate "Clay Revenant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Clay Revenant"
+  assert graveyard A lacks "Clay Revenant"
+}

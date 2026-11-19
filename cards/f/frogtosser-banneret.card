@@ -1,0 +1,8 @@
+card "Frogtosser Banneret" {
+  oracle_id 91ebedb5-cb5f-4c58-ad30-6c6b0a106aa0
+  cost {1}{B}
+  type Creature — Goblin Rogue
+  pt 1/1
+  keywords haste
+  spells Goblin or Rogue you cast cost {1} less
+}

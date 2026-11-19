@@ -1,0 +1,7 @@
+card "Pygmy Kavu" {
+  oracle_id 17407b73-0dbe-4a71-84ec-3aaca9651f5b
+  cost {3}{G}
+  type Creature — Kavu
+  pt 1/2
+  triggered when this enters: draw count each black creature your opponents control cards
+}

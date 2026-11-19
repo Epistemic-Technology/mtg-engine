@@ -1,0 +1,7 @@
+card "Stonybrook Angler" {
+  oracle_id d29d28c8-4ba9-4fcc-b0d7-5d7b3de89b82
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/2
+  activated {1}{U}, {T}: you may tap or untap target creature
+}

@@ -1,0 +1,8 @@
+card "Speakeasy Server" {
+  oracle_id 4e08e07f-ca30-4e34-b207-d8fe62c03777
+  cost {4}{W}
+  type Creature — Bird Citizen
+  pt 3/3
+  keywords flying
+  triggered when this enters: you gain count each other creature you control life
+}

@@ -1,0 +1,7 @@
+card "Slimy Kavu" {
+  oracle_id 95625072-c457-4224-b509-5feaa35e9ca6
+  cost {2}{R}
+  type Creature — Kavu
+  pt 2/2
+  activated {T}: target land becomes Swamp
+}

@@ -1,0 +1,7 @@
+card "Alley Grifters" {
+  oracle_id 399af8ea-7a6f-4f43-bd39-dc29a6e75e06
+  cost {1}{B}{B}
+  type Creature — Human Mercenary
+  pt 2/2
+  triggered whenever this becomes blocked: defending player discards 1 card
+}

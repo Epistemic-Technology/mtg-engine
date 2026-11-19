@@ -1,0 +1,12 @@
+scenario "slimy kavu: target land becomes a swamp until end of turn" {
+  battlefield A: "Slimy Kavu"
+  battlefield B: "Forest"
+  turn 1 A: activate "Slimy Kavu" targeting B "Forest"
+  run_to turn 1 postcombat_main
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+  assert tapped "Slimy Kavu"
+  run_to turn 2 upkeep
+  assert is "Forest" forest
+  assert is not "Forest" swamp
+}

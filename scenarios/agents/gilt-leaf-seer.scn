@@ -1,0 +1,19 @@
+scenario "Gilt-Leaf Seer looks at the top two cards and keeps them on top" {
+  battlefield A: "Gilt-Leaf Seer", "Forest"
+  library A: "Island", "Mountain", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Gilt-Leaf Seer"
+  run_to turn 1 postcombat_main
+  assert tapped "Gilt-Leaf Seer"
+  assert tapped "Forest"
+  assert library A count 3
+  assert hand A count 0
+}
+
+scenario "Gilt-Leaf Seer needs green mana" {
+  battlefield A: "Gilt-Leaf Seer", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Gilt-Leaf Seer"
+  run_to turn 1 postcombat_main
+  assert untapped "Gilt-Leaf Seer"
+}

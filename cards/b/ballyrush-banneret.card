@@ -1,0 +1,7 @@
+card "Ballyrush Banneret" {
+  oracle_id 0ad27d0e-b6c3-4c3f-a389-285d889b6a65
+  cost {1}{W}
+  type Creature — Kithkin Soldier
+  pt 2/1
+  spells Kithkin or Soldier you cast cost {1} less
+}

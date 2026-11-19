@@ -1,0 +1,7 @@
+card "Raging Spirit" {
+  oracle_id 137e0ad2-e10a-4327-86a3-5ac7bc7fc469
+  cost {3}{R}
+  type Creature — Spirit
+  pt 3/3
+  activated {2}: this becomes colorless
+}

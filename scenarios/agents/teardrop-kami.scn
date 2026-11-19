@@ -1,0 +1,8 @@
+scenario "teardrop kami: sacrifice to tap target creature" {
+  battlefield A: "Teardrop Kami"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Teardrop Kami" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert graveyard A contains "Teardrop Kami"
+}

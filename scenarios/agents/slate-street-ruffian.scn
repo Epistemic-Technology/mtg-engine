@@ -1,0 +1,19 @@
+scenario "slate street ruffian: becoming blocked makes defending player discard" {
+  battlefield A: "Slate Street Ruffian"
+  battlefield B: "Grizzly Bears"
+  hand B: "Shock"
+  turn 1 A: attack "Slate Street Ruffian"
+  turn 1 B: block "Slate Street Ruffian" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand B count 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "slate street ruffian: unblocked, no discard" {
+  battlefield A: "Slate Street Ruffian"
+  hand B: "Shock"
+  turn 1 A: attack "Slate Street Ruffian"
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert life B 18
+}

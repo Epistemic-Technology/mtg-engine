@@ -1,0 +1,9 @@
+card "Twitch" {
+  oracle_id 321fd970-a259-448d-bd98-e85e386174f9
+  cost {2}{U}
+  type Instant
+  spell {
+  you may tap or untap target artifact, creature, or land
+  draw 1 card
+  }
+}

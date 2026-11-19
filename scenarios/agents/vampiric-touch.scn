@@ -1,0 +1,12 @@
+scenario "Vampiric Touch drains the opponent for 2" {
+  battlefield A: "Swamp", "Swamp", "Swamp"
+  hand A: "Vampiric Touch"
+  life A 15
+  start turn 1 A precombat_main
+  turn 1 A: cast "Vampiric Touch" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 17
+  assert graveyard A contains "Vampiric Touch"
+}
+

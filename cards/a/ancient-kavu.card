@@ -1,0 +1,7 @@
+card "Ancient Kavu" {
+  oracle_id 598a7347-b772-4839-a02f-b930076c1354
+  cost {3}{R}
+  type Creature — Kavu
+  pt 3/3
+  activated {2}: this becomes colorless
+}

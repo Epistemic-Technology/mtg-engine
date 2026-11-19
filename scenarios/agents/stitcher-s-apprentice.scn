@@ -1,0 +1,18 @@
+scenario "Stitcher's Apprentice makes a Homunculus, then a creature is sacrificed" {
+  battlefield A: "Stitcher's Apprentice", 2 "Island"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Stitcher's Apprentice"
+  run_to turn 1 postcombat_main
+  # Unscripted, the engine sacrifices the first creature offered: the Apprentice.
+  assert battlefield A contains "Homunculus"
+  assert power "Homunculus" 2
+  assert graveyard A contains "Stitcher's Apprentice"
+}
+
+scenario "Stitcher's Apprentice needs {1}{U}" {
+  battlefield A: "Stitcher's Apprentice", "Island"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Stitcher's Apprentice"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Homunculus"
+}

@@ -1,0 +1,7 @@
+card "Invasive Species" {
+  oracle_id 9c4c478c-6f0c-430a-91eb-4125a73d03a7
+  cost {2}{G}
+  type Creature — Insect
+  pt 3/3
+  triggered when this enters: return 1 other permanent you control chosen
+}

@@ -1,0 +1,8 @@
+card "Stitcher's Apprentice" {
+  oracle_id 14bf3049-faa3-4c1f-a613-603e977a50a4
+  cost {1}{U}
+  type Creature — Homunculus
+  pt 1/2
+  activated {1}{U}, {T}: create 1 "2/2 blue Homunculus creature" then you sacrifice 1 creature
+}
+

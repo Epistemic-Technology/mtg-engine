@@ -1,0 +1,10 @@
+scenario "Speakeasy Server gains life for each other creature you control" {
+  battlefield A: "Plains", "Plains", "Plains", "Plains", "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Speakeasy Server"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Speakeasy Server"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert has "Speakeasy Server" flying
+}

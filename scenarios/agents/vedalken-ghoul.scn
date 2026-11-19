@@ -1,0 +1,16 @@
+scenario "vedalken ghoul: becoming blocked costs defending player 4 life" {
+  battlefield A: "Vedalken Ghoul"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Vedalken Ghoul"
+  turn 1 B: block "Vedalken Ghoul" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert life A 20
+}
+
+scenario "vedalken ghoul: unblocked deals only combat damage" {
+  battlefield A: "Vedalken Ghoul"
+  turn 1 A: attack "Vedalken Ghoul"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

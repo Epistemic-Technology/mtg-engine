@@ -1,0 +1,7 @@
+card "Rimefur Reindeer" {
+  oracle_id 66dc3237-3543-4fc2-96f1-c8d1eff7c04c
+  cost {3}{W}
+  type Creature — Elk
+  pt 3/4
+  triggered whenever enchantment you control enters: tap target creature an opponent controls
+}

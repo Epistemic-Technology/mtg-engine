@@ -1,0 +1,7 @@
+card "Thornscape Familiar" {
+  oracle_id 3f92c684-f2fd-4fe5-bfb5-e27061d2c45b
+  cost {1}{G}
+  type Creature — Insect
+  pt 2/1
+  spells red or white you cast cost {1} less
+}

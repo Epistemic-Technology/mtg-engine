@@ -1,0 +1,23 @@
+scenario "stormscape familiar: white spells cost 1 less" {
+  battlefield A: "Stormscape Familiar", "Plains"
+  hand A: "Skyblade of the Legion"
+  turn 1 A: cast "Skyblade of the Legion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skyblade of the Legion"
+}
+
+scenario "stormscape familiar: black spells cost 1 less" {
+  battlefield A: "Stormscape Familiar", "Swamp"
+  hand A: "Zulaport Cutthroat"
+  turn 1 A: cast "Zulaport Cutthroat"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Zulaport Cutthroat"
+}
+
+scenario "stormscape familiar: green spells cost full" {
+  battlefield A: "Stormscape Familiar", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

@@ -1,0 +1,22 @@
+scenario "Rimefur Reindeer taps an opponent's creature when an enchantment enters" {
+  battlefield A: "Rimefur Reindeer", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Holy Strength"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Holy Strength" targeting "Rimefur Reindeer"
+  turn 1 A: trigger "Rimefur Reindeer" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert power "Rimefur Reindeer" 4
+}
+
+scenario "Rimefur Reindeer ignores creatures entering" {
+  battlefield A: "Rimefur Reindeer", 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert untapped "Hill Giant"
+  assert battlefield A contains "Grizzly Bears"
+}

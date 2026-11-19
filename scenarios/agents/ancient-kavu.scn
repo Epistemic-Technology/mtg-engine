@@ -1,0 +1,17 @@
+scenario "ancient kavu: becomes colorless until end of turn" {
+  battlefield A: "Ancient Kavu", 2 "Mountain"
+  turn 1 A: activate "Ancient Kavu"
+  run_to turn 1 postcombat_main
+  assert is not "Ancient Kavu" red
+  assert tapped oldest "Mountain"
+  assert tapped newest "Mountain"
+  run_to turn 2 upkeep
+  assert is "Ancient Kavu" red
+}
+
+scenario "ancient kavu: red before activation" {
+  battlefield A: "Ancient Kavu"
+  illegal turn 1 A: activate "Ancient Kavu"
+  run_to turn 1 postcombat_main
+  assert is "Ancient Kavu" red
+}

@@ -1,0 +1,7 @@
+card "Slate Street Ruffian" {
+  oracle_id c74d72ee-4795-41ca-b676-4d5a05bd12b7
+  cost {2}{B}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this becomes blocked: defending player discards 1 card
+}

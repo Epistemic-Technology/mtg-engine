@@ -1,0 +1,7 @@
+card "Teardrop Kami" {
+  oracle_id 6f47a67e-1fcd-4f3f-81d0-1a6868606390
+  cost {U}
+  type Creature — Spirit
+  pt 1/1
+  activated sacrifice this: you may tap or untap target creature
+}

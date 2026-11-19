@@ -1,0 +1,7 @@
+card "Bosk Banneret" {
+  oracle_id b84dedfd-4020-444f-ac5a-54c65c0d0378
+  cost {1}{G}
+  type Creature — Treefolk Shaman
+  pt 1/3
+  spells Treefolk or Shaman you cast cost {1} less
+}

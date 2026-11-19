@@ -1,0 +1,7 @@
+card "Agate-Blade Assassin" {
+  oracle_id 381a3e8e-71dd-48e4-ab62-53478bde4a14
+  cost {1}{B}
+  type Creature — Lizard Assassin
+  pt 1/3
+  triggered whenever this attacks: defending player loses 1 life and you gain 1 life
+}

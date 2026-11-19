@@ -1,0 +1,24 @@
+scenario "pestermite: enters and taps target permanent" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pestermite"
+  turn 1 A: cast "Pestermite"
+  turn 1 A: trigger "Pestermite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert has "Pestermite" flying
+}
+
+scenario "pestermite: flash in on opponent's upkeep to tap an attacker" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Pestermite"
+  start turn 2 B
+  turn 2 upkeep A: cast "Pestermite"
+  turn 2 upkeep A: trigger "Pestermite" targeting "Grizzly Bears"
+  illegal turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Pestermite"
+  assert tapped "Grizzly Bears"
+  assert life A 20
+}

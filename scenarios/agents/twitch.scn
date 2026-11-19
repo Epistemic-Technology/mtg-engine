@@ -1,0 +1,20 @@
+scenario "twitch: tap target creature and draw a card" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Twitch"
+  turn 1 A: cast "Twitch" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tapped "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "twitch: decline the tap, still draw" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Twitch"
+  turn 1 A: cast "Twitch" targeting "Grizzly Bears"
+  turn 1 A: decline "Twitch"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+  assert hand A count 1
+}

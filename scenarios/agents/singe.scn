@@ -1,0 +1,18 @@
+scenario "singe damages and turns black" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Singe"
+  turn 1 A: cast "Singe" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 1
+  assert is "Hill Giant" black
+  assert graveyard A contains "Singe"
+}
+scenario "singe leaves other creatures their color" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Singe"
+  turn 1 A: cast "Singe" targeting "Hill Giant"
+  run_to turn 1 end
+  assert is not "Grizzly Bears" black
+}

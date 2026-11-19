@@ -1,0 +1,6 @@
+card "Twiddle" {
+  oracle_id 773ad2ef-5acc-49ea-8d85-056330e87039
+  cost {U}
+  type Instant
+  spell: you may tap or untap target artifact, creature, or land
+}

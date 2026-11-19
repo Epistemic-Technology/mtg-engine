@@ -1,0 +1,7 @@
+card "Havengul Skaab" {
+  oracle_id 8fda6c20-04dc-4b60-9313-896a032ee5cb
+  cost {5}{U}
+  type Creature — Zombie Horror
+  pt 4/5
+  triggered whenever this attacks: return 1 other creature you control chosen
+}

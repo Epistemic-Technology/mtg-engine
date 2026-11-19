@@ -1,0 +1,15 @@
+scenario "ballyrush banneret: soldier spells cost 1 less" {
+  battlefield A: "Ballyrush Banneret", "Plains"
+  hand A: "Skyblade of the Legion"
+  turn 1 A: cast "Skyblade of the Legion"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skyblade of the Legion"
+}
+
+scenario "ballyrush banneret: other spells cost full" {
+  battlefield A: "Ballyrush Banneret", "Forest"
+  hand A: "Grizzly Bears"
+  illegal turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+}

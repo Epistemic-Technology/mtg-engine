@@ -1,0 +1,6 @@
+card "Singe" {
+  oracle_id e7fbdebf-2275-4bf6-b364-6a1849765f94
+  cost {R}
+  type Instant
+  spell: deal 1 damage to target creature; that target 1 becomes black
+}

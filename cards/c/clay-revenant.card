@@ -1,0 +1,8 @@
+card "Clay Revenant" {
+  oracle_id c183186b-d92c-45a2-92d1-42e0df2b441f
+  cost {1}
+  type Artifact Creature — Golem
+  pt 1/2
+  enters tapped
+  activated {2}{B}, from graveyard: return this to hand
+}

@@ -1,0 +1,14 @@
+scenario "glimmerpost gains life for each Locus" {
+  battlefield A: "Glimmerpost"
+  hand A: "Glimmerpost"
+  turn 1 A: play "Glimmerpost"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A contains 2 "Glimmerpost"
+}
+scenario "glimmerpost alone gains 1" {
+  hand A: "Glimmerpost"
+  turn 1 A: play "Glimmerpost"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
