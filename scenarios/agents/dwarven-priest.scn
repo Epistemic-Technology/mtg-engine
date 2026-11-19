@@ -1,0 +1,19 @@
+scenario "Dwarven Priest gains 1 life per creature, counting itself" {
+  battlefield A: 2 "Grizzly Bears", 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Dwarven Priest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dwarven Priest"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Dwarven Priest"
+  assert life A 23
+}
+
+scenario "Dwarven Priest alone gains 1 life" {
+  battlefield A: 4 "Plains"
+  hand A: "Dwarven Priest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Dwarven Priest"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}

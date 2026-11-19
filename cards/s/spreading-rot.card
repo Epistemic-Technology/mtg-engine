@@ -1,0 +1,6 @@
+card "Spreading Rot" {
+  oracle_id 3c1b95bd-a2fc-47cd-8940-e4af03bd3ce2
+  cost {4}{B}
+  type Sorcery
+  spell: destroy target land; its controller loses 2 life
+}

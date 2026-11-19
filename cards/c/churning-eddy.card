@@ -1,0 +1,6 @@
+card "Churning Eddy" {
+  oracle_id 774e53b2-5aec-43e1-b4fe-8812b8430401
+  cost {3}{U}
+  type Sorcery
+  spell: return target creature and target land to hand
+}

@@ -1,0 +1,8 @@
+card "Mists of Littjara" {
+  oracle_id c0162a6c-12d9-4b84-811a-ee6e39401863
+  cost {1}{U}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature or Vehicle
+  static enchanted: -3/-0
+}

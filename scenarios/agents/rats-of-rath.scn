@@ -1,0 +1,18 @@
+scenario "Rats of Rath destroys a land you control" {
+  battlefield A: "Rats of Rath", "Swamp", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rats of Rath" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert battlefield A contains "Rats of Rath"
+}
+
+scenario "Rats of Rath destroys a creature you control" {
+  battlefield A: "Rats of Rath", "Swamp", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Rats of Rath" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}

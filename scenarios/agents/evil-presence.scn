@@ -1,0 +1,21 @@
+scenario "Evil Presence makes the enchanted land a Swamp" {
+  battlefield A: "Swamp"
+  battlefield B: "Forest"
+  hand A: "Evil Presence"
+  turn 1 A: cast "Evil Presence" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert attached "Evil Presence" to "Forest"
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+}
+
+scenario "a land enchanted by Evil Presence taps for black" {
+  battlefield A: "Forest", "Evil Presence" on "Forest", "Swamp", "Plains"
+  hand A: "Murder"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert tapped "Forest"
+}

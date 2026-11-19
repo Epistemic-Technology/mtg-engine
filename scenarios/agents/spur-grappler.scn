@@ -1,0 +1,24 @@
+
+scenario "Spur Grappler gets +2/+1 with no lands" {
+  battlefield A: "Spur Grappler"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Spur Grappler" 4
+  assert toughness "Spur Grappler" 2
+}
+
+scenario "Spur Grappler is 2/1 with an untapped land" {
+  battlefield A: "Spur Grappler", "Mountain"
+  start turn 1 A precombat_main
+  run_to turn 1 begin_combat
+  assert power "Spur Grappler" 2
+  assert toughness "Spur Grappler" 1
+}
+
+scenario "Spur Grappler: a tapped land doesn't count, and tapping the last one turns it on" {
+  battlefield A: "Spur Grappler", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert power "Spur Grappler" 4
+}

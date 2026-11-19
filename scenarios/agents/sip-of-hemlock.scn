@@ -1,0 +1,22 @@
+scenario "Sip of Hemlock destroys a creature and its controller loses 2 life" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Sip of Hemlock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sip of Hemlock" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Sip of Hemlock on your own creature costs you the life" {
+  battlefield A: 6 "Swamp", "Grizzly Bears"
+  hand A: "Sip of Hemlock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sip of Hemlock" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life A 18
+  assert life B 20
+}

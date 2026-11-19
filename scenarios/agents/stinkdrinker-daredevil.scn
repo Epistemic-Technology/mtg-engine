@@ -1,0 +1,17 @@
+scenario "Stinkdrinker Daredevil makes Giant spells cost {2} less" {
+  battlefield A: "Stinkdrinker Daredevil", 2 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Stinkdrinker Daredevil does not reduce non-Giant spells" {
+  battlefield A: "Stinkdrinker Daredevil", 2 "Island"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Wind Drake"
+}

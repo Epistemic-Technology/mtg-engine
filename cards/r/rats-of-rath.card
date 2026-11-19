@@ -1,0 +1,7 @@
+card "Rats of Rath" {
+  oracle_id 75458175-eeb1-4a6b-93d9-c744c93b3759
+  cost {1}{B}
+  type Creature — Rat
+  pt 2/1
+  activated {B}: destroy target artifact or creature or land you control
+}

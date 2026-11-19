@@ -1,0 +1,17 @@
+scenario "Knight of the Stampede makes a Dinosaur cost {2} less" {
+  battlefield A: "Knight of the Stampede", 3 "Plains"
+  hand A: "Sun-Crested Pterodon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sun-Crested Pterodon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sun-Crested Pterodon"
+}
+
+scenario "Knight of the Stampede does not reduce non-Dinosaurs" {
+  battlefield A: "Knight of the Stampede", 3 "Plains"
+  hand A: "Serra Angel"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+}

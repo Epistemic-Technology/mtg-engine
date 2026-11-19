@@ -1,0 +1,8 @@
+card "Maze Glider" {
+  oracle_id 2388a064-ae84-4eac-b1d9-819a40052d12
+  cost {5}{U}
+  type Creature — Elemental
+  pt 3/5
+  keywords flying
+  static multicolored creature you control: has flying
+}

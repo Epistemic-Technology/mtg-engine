@@ -1,0 +1,21 @@
+scenario "Ruinous Minotaur makes its controller sacrifice a land after hitting an opponent" {
+  battlefield A: "Ruinous Minotaur", 2 "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ruinous Minotaur"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains 1 "Mountain"
+  assert graveyard A contains "Mountain"
+}
+
+scenario "Ruinous Minotaur blocked deals no damage to an opponent" {
+  battlefield A: "Ruinous Minotaur", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Ruinous Minotaur"
+  turn 1 B: block "Ruinous Minotaur" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert battlefield A contains 2 "Mountain"
+  assert graveyard B contains "Hill Giant"
+}

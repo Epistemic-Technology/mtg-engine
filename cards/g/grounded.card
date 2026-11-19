@@ -1,0 +1,7 @@
+card "Grounded" {
+  oracle_id cca3557c-c911-494e-95e7-cebec3442d63
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: loses flying
+}

@@ -1,0 +1,15 @@
+scenario "Dream Fracture counters and both draw" {
+  battlefield A: 3 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Dream Fracture"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 precombat_main A: cast "Dream Fracture" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert hand B count 1
+  assert hand A count 1
+  assert graveyard A contains "Dream Fracture"
+}

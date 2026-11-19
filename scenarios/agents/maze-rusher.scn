@@ -1,0 +1,20 @@
+scenario "Maze Rusher gives multicolored creatures you control haste" {
+  battlefield A: "Maze Rusher", "Senate Guildmage", "Grizzly Bears"
+  battlefield B: "Senate Guildmage"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Maze Rusher" haste
+  assert has A "Senate Guildmage" haste
+  assert has not B "Senate Guildmage" haste
+  assert has not "Grizzly Bears" haste
+}
+
+scenario "Maze Rusher attacks the turn it is cast" {
+  battlefield A: 6 "Mountain"
+  hand A: "Maze Rusher"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Maze Rusher"
+  turn 1 A: attack "Maze Rusher"
+  run_to turn 1 postcombat_main
+  assert life B 14
+}

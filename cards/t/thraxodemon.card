@@ -1,0 +1,7 @@
+card "Thraxodemon" {
+  oracle_id 01cf689c-5a64-4ecf-b45d-3f385c9b212b
+  cost {1}{B}
+  type Creature — Demon
+  pt 2/2
+  activated {3}, {T}, sacrifice another creature or artifact: draw 1 card
+}

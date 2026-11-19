@@ -1,0 +1,7 @@
+card "Skyhunter Cub" {
+  oracle_id 1e9ebdf3-306a-48e1-8096-6a1d289e108c
+  cost {2}{W}
+  type Creature — Cat Knight
+  pt 2/2
+  static as long as equipped, this: +1/+1, has flying
+}

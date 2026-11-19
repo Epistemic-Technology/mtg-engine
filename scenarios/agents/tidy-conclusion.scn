@@ -1,0 +1,21 @@
+scenario "Tidy Conclusion destroys and gains 1 life per artifact" {
+  battlefield A: 5 "Swamp", "Ornithopter", "Bonesplitter"
+  battlefield B: "Hill Giant"
+  hand A: "Tidy Conclusion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tidy Conclusion" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life A 22
+}
+
+scenario "Tidy Conclusion with no artifacts gains no life" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tidy Conclusion"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tidy Conclusion" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life A 20
+}

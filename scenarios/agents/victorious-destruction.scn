@@ -1,0 +1,21 @@
+scenario "Victorious Destruction destroys a land and its controller loses 1 life" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Victorious Destruction"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Victorious Destruction" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 19
+}
+
+scenario "Victorious Destruction destroys an artifact" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Victorious Destruction"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Victorious Destruction" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 19
+}

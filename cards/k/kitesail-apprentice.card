@@ -1,0 +1,7 @@
+card "Kitesail Apprentice" {
+  oracle_id c2157f2c-a3a4-47aa-b33e-b2c65e11c2e5
+  cost {W}
+  type Creature — Kor Soldier
+  pt 1/1
+  static as long as equipped, this: +1/+1, has flying
+}

@@ -1,0 +1,6 @@
+card "Introduction to Annihilation" {
+  oracle_id 60e36f86-e284-468e-8073-07f19a3ed65e
+  cost {5}
+  type Sorcery — Lesson
+  spell: exile target nonland permanent; its controller draws 1 card
+}

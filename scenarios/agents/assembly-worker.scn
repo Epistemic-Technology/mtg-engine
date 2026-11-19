@@ -1,0 +1,19 @@
+scenario "Assembly-Worker pumps another Assembly-Worker" {
+  battlefield A: 2 "Assembly-Worker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Assembly-Worker" targeting newest "Assembly-Worker"
+  run_to turn 1 begin_combat
+  assert power newest A "Assembly-Worker" 3
+  assert toughness newest A "Assembly-Worker" 3
+  assert power oldest A "Assembly-Worker" 2
+  assert tapped oldest A "Assembly-Worker"
+}
+
+scenario "Assembly-Worker only pumps Assembly-Workers" {
+  battlefield A: "Grizzly Bears", "Assembly-Worker"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Assembly-Worker" targeting auto
+  run_to turn 1 begin_combat
+  assert power "Grizzly Bears" 2
+  assert power "Assembly-Worker" 3
+}

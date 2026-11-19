@@ -1,0 +1,6 @@
+card "Despoil" {
+  oracle_id 77fa18fa-5dba-4e4c-9b24-9bfa9b68779f
+  cost {3}{B}
+  type Sorcery
+  spell: destroy target land; its controller loses 2 life
+}

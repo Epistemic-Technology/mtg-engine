@@ -1,0 +1,21 @@
+scenario "slagdrill scrapper sacrifices a land to draw" {
+  battlefield A: "Slagdrill Scrapper", 3 "Mountain"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Slagdrill Scrapper"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 1
+  assert graveyard A contains "Mountain"
+  assert battlefield A contains 2 "Mountain"
+  assert tapped "Slagdrill Scrapper"
+}
+
+scenario "slagdrill scrapper can't be activated while tapped" {
+  battlefield A: "Slagdrill Scrapper" tapped, 3 "Mountain"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Slagdrill Scrapper"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert battlefield A contains 3 "Mountain"
+}

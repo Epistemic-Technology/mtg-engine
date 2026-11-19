@@ -1,0 +1,6 @@
+card "Symbiosis" {
+  oracle_id 787b494b-731b-4e99-8e46-157bc86f6eea
+  cost {1}{G}
+  type Instant
+  spell: 2 target creatures gets +2/+2
+}

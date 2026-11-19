@@ -1,0 +1,6 @@
+card "Misfortune's Gain" {
+  oracle_id 01b778d7-0965-48ab-a81f-e29f8a233d07
+  cost {3}{W}
+  type Sorcery
+  spell: destroy target creature; its owner gains 4 life
+}

@@ -1,0 +1,19 @@
+scenario "Kitesail Apprentice: equipped, it gets +1/+1 and has flying" {
+  battlefield A: "Kitesail Apprentice", "Leonin Scimitar", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leonin Scimitar" targeting "Kitesail Apprentice"
+  run_to turn 1 postcombat_main
+  assert attached "Leonin Scimitar" to "Kitesail Apprentice"
+  assert power "Kitesail Apprentice" 3
+  assert toughness "Kitesail Apprentice" 3
+  assert has "Kitesail Apprentice" flying
+}
+
+scenario "Kitesail Apprentice: unequipped, no bonus and no flying" {
+  battlefield A: "Kitesail Apprentice", "Leonin Scimitar", 3 "Plains"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Kitesail Apprentice" 1
+  assert toughness "Kitesail Apprentice" 1
+  assert has not "Kitesail Apprentice" flying
+}

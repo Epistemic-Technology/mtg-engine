@@ -1,0 +1,20 @@
+scenario "Maze Sentinel gives multicolored creatures you control vigilance" {
+  battlefield A: "Maze Sentinel", "Senate Guildmage", "Grizzly Bears"
+  battlefield B: "Senate Guildmage"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Maze Sentinel" vigilance
+  assert has A "Senate Guildmage" vigilance
+  assert has not B "Senate Guildmage" vigilance
+  assert has not "Grizzly Bears" vigilance
+}
+
+scenario "Attacking with vigilance does not tap" {
+  battlefield A: "Maze Sentinel", "Senate Guildmage"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Maze Sentinel", "Senate Guildmage"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert untapped "Maze Sentinel"
+  assert untapped "Senate Guildmage"
+}

@@ -1,0 +1,6 @@
+card "Dust to Dust" {
+  oracle_id b17eb586-0272-4d02-be75-de06ea044b6f
+  cost {1}{W}{W}
+  type Sorcery
+  spell: exile 2 target artifacts
+}

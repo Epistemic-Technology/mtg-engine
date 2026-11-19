@@ -1,0 +1,22 @@
+scenario "Leonin Den-Guard unequipped is a plain 1/3" {
+  battlefield A: "Leonin Den-Guard", "Short Sword"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Leonin Den-Guard" 1
+  assert toughness "Leonin Den-Guard" 3
+  assert has not "Leonin Den-Guard" vigilance
+}
+
+scenario "Leonin Den-Guard equipped gets +1/+1 and vigilance" {
+  battlefield A: "Leonin Den-Guard", "Short Sword", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Short Sword" targeting "Leonin Den-Guard"
+  turn 1 A: attack "Leonin Den-Guard"
+  run_to turn 1 postcombat_main
+  assert attached "Short Sword" to "Leonin Den-Guard"
+  assert power "Leonin Den-Guard" 3
+  assert toughness "Leonin Den-Guard" 5
+  assert has "Leonin Den-Guard" vigilance
+  assert untapped "Leonin Den-Guard"
+  assert life B 17
+}

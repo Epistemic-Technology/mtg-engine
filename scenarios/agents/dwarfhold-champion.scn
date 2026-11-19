@@ -1,0 +1,16 @@
+scenario "Dwarfhold Champion gets +0/+2 while equipped" {
+  battlefield A: "Dwarfhold Champion", "Short Sword", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Short Sword" targeting "Dwarfhold Champion"
+  run_to turn 1 postcombat_main
+  assert power "Dwarfhold Champion" 4
+  assert toughness "Dwarfhold Champion" 4
+}
+
+scenario "Dwarfhold Champion is 3/1 unequipped" {
+  battlefield A: "Dwarfhold Champion"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Dwarfhold Champion" 3
+  assert toughness "Dwarfhold Champion" 1
+}

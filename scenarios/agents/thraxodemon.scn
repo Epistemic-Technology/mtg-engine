@@ -1,0 +1,29 @@
+scenario "Thraxodemon sacrifices an artifact to draw a card" {
+  battlefield A: "Thraxodemon", 3 "Swamp", "Ornithopter"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Thraxodemon" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Ornithopter"
+  assert hand A contains "Hill Giant"
+  assert tapped "Thraxodemon"
+}
+
+scenario "Thraxodemon sacrifices another creature to draw a card" {
+  battlefield A: "Thraxodemon", 3 "Swamp", "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Thraxodemon" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert battlefield A contains "Thraxodemon"
+  assert hand A count 1
+}
+
+scenario "Thraxodemon cannot sacrifice itself" {
+  battlefield A: "Thraxodemon", 3 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Thraxodemon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Thraxodemon"
+}

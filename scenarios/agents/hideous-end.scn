@@ -1,0 +1,21 @@
+scenario "Hideous End destroys a nonblack creature and its controller loses 2 life" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Hideous End"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hideous End" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Hideous End cannot target a black creature" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Rats of Rath"
+  hand A: "Hideous End"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hideous End" targeting "Rats of Rath"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Rats of Rath"
+}

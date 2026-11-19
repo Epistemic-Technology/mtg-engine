@@ -1,0 +1,12 @@
+scenario "Blood Age General pumps attacking Spirits only" {
+  battlefield A: "Blood Age General", "Scorched Rusalka", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Scorched Rusalka", "Grizzly Bears"
+  turn 1 declare_attackers A: activate "Blood Age General"
+  run_to turn 1 combat_damage
+  assert power "Scorched Rusalka" 2
+  assert power "Grizzly Bears" 2
+  assert tapped "Blood Age General"
+  run_to turn 1 postcombat_main
+  assert life B 16
+}

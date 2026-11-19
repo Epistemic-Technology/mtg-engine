@@ -1,0 +1,11 @@
+scenario "Despoil destroys a land and its controller loses 2 life" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Despoil"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Despoil" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 18
+  assert life A 20
+}

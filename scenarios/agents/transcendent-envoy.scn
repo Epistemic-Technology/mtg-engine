@@ -1,0 +1,18 @@
+scenario "Transcendent Envoy makes Aura spells cost {1} less" {
+  battlefield A: "Transcendent Envoy", "Plains"
+  hand A: "Conviction"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Conviction" targeting "Transcendent Envoy"
+  run_to turn 1 postcombat_main
+  assert attached "Conviction" to "Transcendent Envoy"
+  assert has "Transcendent Envoy" flying
+}
+
+scenario "without Transcendent Envoy one land is not enough" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Conviction"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Conviction" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Conviction"
+}

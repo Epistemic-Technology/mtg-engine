@@ -1,0 +1,7 @@
+card "Grazing Gladehart" {
+  oracle_id f19f28e5-9cad-4398-b2d4-9e7fefb23cb4
+  cost {2}{G}
+  type Creature — Antelope
+  pt 2/2
+  label "Landfall" triggered whenever land you control enters: you may you gains 2 life
+}

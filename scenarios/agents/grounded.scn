@@ -1,0 +1,22 @@
+scenario "Grounded removes flying" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Serra Angel"
+  hand A: "Grounded"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grounded" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert attached "Grounded" to "Serra Angel"
+  assert has not "Serra Angel" flying
+  assert has "Serra Angel" vigilance
+}
+
+scenario "a creature enchanted by Grounded can be blocked by a non-flyer" {
+  battlefield A: "Serra Angel", "Grounded" on "Serra Angel"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Serra Angel"
+  turn 1 B: block "Serra Angel" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Hill Giant"
+}

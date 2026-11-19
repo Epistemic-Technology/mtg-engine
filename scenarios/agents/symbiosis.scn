@@ -1,0 +1,13 @@
+scenario "Symbiosis gives two target creatures +2/+2 until end of turn" {
+  battlefield A: 2 "Forest", "Grizzly Bears", "Hill Giant"
+  hand A: "Symbiosis"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Symbiosis" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 4
+  assert power "Hill Giant" 5
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert power "Hill Giant" 3
+}

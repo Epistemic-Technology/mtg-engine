@@ -1,0 +1,22 @@
+scenario "Rhox Meditant draws with a green permanent" {
+  battlefield A: "Grizzly Bears", 4 "Plains"
+  hand A: "Rhox Meditant"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rhox Meditant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rhox Meditant"
+  assert hand A contains "Island"
+  assert hand A count 1
+}
+
+scenario "Rhox Meditant draws nothing without a green permanent" {
+  battlefield A: 4 "Plains"
+  hand A: "Rhox Meditant"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rhox Meditant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Rhox Meditant"
+  assert hand A count 0
+}

@@ -1,0 +1,7 @@
+card "Kinjalli's Caller" {
+  oracle_id bba6075b-8bbb-4496-80a9-bfa7f003d1e8
+  cost {W}
+  type Creature — Human Cleric
+  pt 0/3
+  spells Dinosaur you cast cost {1} less
+}

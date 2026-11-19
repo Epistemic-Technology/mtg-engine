@@ -1,0 +1,7 @@
+card "Blood Age General" {
+  oracle_id 10ea73c8-7cf8-4a48-a0cc-072bb541880f
+  cost {1}{R}
+  type Creature — Spirit Warrior
+  pt 2/2
+  activated {T}: each attacking Spirit gets +1/+0
+}

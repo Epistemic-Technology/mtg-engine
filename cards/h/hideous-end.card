@@ -1,0 +1,6 @@
+card "Hideous End" {
+  oracle_id f1eafb69-e7c0-4a22-9e73-6bc32168a7c5
+  cost {1}{B}{B}
+  type Instant
+  spell: destroy target nonblack creature; its controller loses 2 life
+}

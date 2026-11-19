@@ -1,0 +1,6 @@
+card "Thought Collapse" {
+  oracle_id 6a265af8-448d-402b-b728-b7ed64521842
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; its controller mills 3 cards
+}

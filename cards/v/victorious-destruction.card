@@ -1,0 +1,6 @@
+card "Victorious Destruction" {
+  oracle_id fa5d6c02-53b2-4144-87cb-e223b529ba7d
+  cost {4}{R}
+  type Sorcery
+  spell: destroy target artifact or land; its controller loses 1 life
+}

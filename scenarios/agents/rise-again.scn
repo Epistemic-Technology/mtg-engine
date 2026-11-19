@@ -1,0 +1,21 @@
+scenario "Rise Again returns a creature card from your graveyard to the battlefield" {
+  battlefield A: 5 "Swamp"
+  hand A: "Rise Again"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rise Again" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Rise Again"
+}
+
+scenario "Rise Again can't target a creature card in an opponent's graveyard" {
+  battlefield A: 5 "Swamp"
+  hand A: "Rise Again"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Rise Again" targeting B "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

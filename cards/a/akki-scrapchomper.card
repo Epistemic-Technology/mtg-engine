@@ -1,0 +1,7 @@
+card "Akki Scrapchomper" {
+  oracle_id baea7cc5-15ec-4229-ad8b-d4b34c2e21e8
+  cost {R}
+  type Creature — Phyrexian Goblin
+  pt 1/1
+  activated {1}{R}, {T}, sacrifice artifact or land: draw 1 card
+}

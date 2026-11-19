@@ -1,0 +1,21 @@
+scenario "Sick and Tired gives two target creatures -1/-1" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Boros Recruit", "Hill Giant"
+  hand A: "Sick and Tired"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sick and Tired" targeting "Boros Recruit", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Boros Recruit"
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}
+
+scenario "Sick and Tired needs two targets" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Sick and Tired"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Sick and Tired" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sick and Tired"
+}

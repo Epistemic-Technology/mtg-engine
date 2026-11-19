@@ -1,0 +1,6 @@
+card "Ethereal Haze" {
+  oracle_id 0cdbd9e7-4941-46ac-99d8-ea227181bdf8
+  cost {W}
+  type Instant — Arcane
+  spell: this turn, replace damage from creature to any: prevent
+}

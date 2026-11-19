@@ -1,0 +1,7 @@
+card "Ruinous Minotaur" {
+  oracle_id ece9d3e5-79e5-4c56-9e8d-8abcd819c041
+  cost {1}{R}{R}
+  type Creature — Minotaur Warrior
+  pt 5/2
+  triggered whenever this deals damage to opponent: you sacrifices 1 land
+}

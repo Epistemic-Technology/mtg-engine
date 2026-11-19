@@ -1,0 +1,6 @@
+card "Glimmerburst" {
+  oracle_id a26820b9-3bec-41b2-9812-99e4a2211297
+  cost {3}{U}
+  type Instant
+  spell: draw 2 cards; create 1 "1/1 white Glimmer enchantment creature"
+}

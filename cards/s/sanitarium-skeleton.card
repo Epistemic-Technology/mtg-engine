@@ -1,0 +1,7 @@
+card "Sanitarium Skeleton" {
+  oracle_id d09b0648-e324-4a16-b78c-d1849177c04f
+  cost {B}
+  type Creature — Skeleton
+  pt 1/2
+  activated {2}{B}, from graveyard: return this to hand
+}

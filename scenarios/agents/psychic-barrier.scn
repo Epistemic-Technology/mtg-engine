@@ -1,0 +1,29 @@
+scenario "psychic barrier counters a creature spell and its controller loses 1 life" {
+  battlefield A: 2 "Island"
+  hand A: "Psychic Barrier"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Psychic Barrier" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B lacks "Grizzly Bears"
+  assert life B 19
+  assert life A 20
+  assert graveyard A contains "Psychic Barrier"
+}
+
+scenario "psychic barrier can't target a noncreature spell" {
+  battlefield A: 2 "Island"
+  hand A: "Psychic Barrier"
+  battlefield B: 3 "Island"
+  hand B: "Divination"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Divination"
+  illegal turn 2 A: cast "Psychic Barrier" targeting "Divination" in response to "Divination"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Divination"
+  assert hand A contains "Psychic Barrier"
+  assert life B 20
+}

@@ -1,0 +1,6 @@
+card "Argivian Restoration" {
+  oracle_id d887919a-68d5-455d-977c-4f1f0b4b3141
+  cost {2}{U}{U}
+  type Sorcery
+  spell: return target artifact card from your graveyard to battlefield
+}

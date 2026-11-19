@@ -1,0 +1,7 @@
+card "Woolly Mammoths" {
+  oracle_id 6e5f1088-a5ab-48ec-be27-c88eb164cf63
+  cost {1}{G}{G}
+  type Creature — Elephant
+  pt 3/2
+  static this: has trample as long as you control snow land
+}

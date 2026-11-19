@@ -1,0 +1,8 @@
+card "Maze Rusher" {
+  oracle_id f6ef6ac6-bf1f-41ed-bd3f-a3806a76a336
+  cost {5}{R}
+  type Creature — Elemental
+  pt 6/3
+  keywords haste
+  static multicolored creature you control: has haste
+}

@@ -1,0 +1,10 @@
+scenario "Maze Behemoth gives multicolored creatures you control trample" {
+  battlefield A: "Maze Behemoth", "Boros Recruit", "Grizzly Bears"
+  battlefield B: "Boros Recruit"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Maze Behemoth" trample
+  assert has A "Boros Recruit" trample
+  assert has not "Grizzly Bears" trample
+  assert has not B "Boros Recruit" trample
+}

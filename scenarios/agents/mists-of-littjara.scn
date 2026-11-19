@@ -1,0 +1,13 @@
+scenario "flash in on an attacker" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Mists of Littjara"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Mists of Littjara" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert power "Hill Giant" 0
+  assert toughness "Hill Giant" 3
+  assert attached "Mists of Littjara" to "Hill Giant"
+}

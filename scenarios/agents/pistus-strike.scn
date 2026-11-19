@@ -1,0 +1,21 @@
+scenario "Pistus Strike destroys a flier and poisons its controller" {
+  battlefield A: 3 "Forest"
+  hand A: "Pistus Strike"
+  battlefield B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pistus Strike" targeting "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Wind Drake"
+  assert poison B 1
+}
+
+scenario "Pistus Strike cannot target a creature without flying" {
+  battlefield A: 3 "Forest"
+  hand A: "Pistus Strike"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Pistus Strike" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert hand A contains "Pistus Strike"
+}

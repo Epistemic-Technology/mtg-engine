@@ -1,0 +1,6 @@
+card "Glissa's Scorn" {
+  oracle_id f30f17f0-bd2d-4f10-9739-111917acc100
+  cost {1}{G}
+  type Instant
+  spell: destroy target artifact; its controller loses 1 life
+}

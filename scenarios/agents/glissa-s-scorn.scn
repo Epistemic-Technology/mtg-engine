@@ -1,0 +1,21 @@
+scenario "Glissa's Scorn destroys an artifact and its controller loses 1 life" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Glissa's Scorn"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glissa's Scorn" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+  assert life B 19
+  assert life A 20
+}
+
+scenario "Glissa's Scorn can't target a nonartifact creature" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Grizzly Bears"
+  hand A: "Glissa's Scorn"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Glissa's Scorn" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

@@ -1,0 +1,7 @@
+card "Tormented Soul" {
+  oracle_id ee334bd7-d344-4684-85c8-d0464bbaf2b4
+  cost {B}
+  type Creature — Spirit
+  pt 1/1
+  static this: has can't block, can't be blocked
+}

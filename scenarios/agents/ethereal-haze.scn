@@ -1,0 +1,26 @@
+scenario "Ethereal Haze prevents combat damage from creatures" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Plains", "Grizzly Bears"
+  hand B: "Ethereal Haze"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Hill Giant"
+  turn 2 declare_attackers B: cast "Ethereal Haze"
+  turn 2 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+  assert damage "Hill Giant" 0
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Ethereal Haze does not prevent damage from a noncreature source" {
+  battlefield A: "Plains", "Mountain", "Hill Giant"
+  hand A: "Ethereal Haze", "Lightning Bolt"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Ethereal Haze"
+  turn 2 A: wait
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 17
+}

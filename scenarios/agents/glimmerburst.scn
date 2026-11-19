@@ -1,0 +1,15 @@
+scenario "Glimmerburst draws two and makes a Glimmer" {
+  battlefield A: 4 "Island"
+  hand A: "Glimmerburst"
+  library A: "Forest", "Mountain", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Glimmerburst"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert graveyard A contains "Glimmerburst"
+  assert battlefield A contains "Glimmer"
+  assert is "Glimmer" enchantment
+  assert is "Glimmer" creature
+  assert is "Glimmer" white
+  assert power "Glimmer" 1
+}

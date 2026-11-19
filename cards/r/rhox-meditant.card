@@ -1,0 +1,7 @@
+card "Rhox Meditant" {
+  oracle_id 832c6834-2cc7-41d5-b881-37c24c13ab8a
+  cost {3}{W}
+  type Creature — Rhino Monk
+  pt 2/4
+  triggered when this enters if you control green permanent: draw 1 card
+}

@@ -1,0 +1,17 @@
+scenario "Dragonlord's Servant makes Dragon spells cost {1} less" {
+  battlefield A: "Dragonlord's Servant", 5 "Mountain"
+  hand A: "Shivan Dragon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Shivan Dragon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Shivan Dragon"
+}
+
+scenario "Dragonlord's Servant does not reduce non-Dragon spells" {
+  battlefield A: "Dragonlord's Servant", 3 "Mountain"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

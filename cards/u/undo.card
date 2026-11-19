@@ -1,0 +1,6 @@
+card "Undo" {
+  oracle_id b446c3bd-3c7d-4d59-ba59-3dd80818465e
+  cost {1}{U}{U}
+  type Sorcery
+  spell: return 2 target creatures to hand
+}

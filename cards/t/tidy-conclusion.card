@@ -1,0 +1,6 @@
+card "Tidy Conclusion" {
+  oracle_id d73adc2e-c458-40a9-b10b-7d2133778717
+  cost {3}{B}{B}
+  type Instant
+  spell: destroy target creature; you gain count each artifact you control life
+}

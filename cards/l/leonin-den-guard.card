@@ -1,0 +1,7 @@
+card "Leonin Den-Guard" {
+  oracle_id 651220f7-223a-49b3-995d-32f08eb3a16a
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 1/3
+  static as long as equipped, this: +1/+1, has vigilance
+}

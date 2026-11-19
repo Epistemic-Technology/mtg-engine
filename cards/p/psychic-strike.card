@@ -1,0 +1,6 @@
+card "Psychic Strike" {
+  oracle_id 17694111-5623-48b3-8c54-c383418e8d2b
+  cost {1}{U}{B}
+  type Instant
+  spell: counter target spell; its controller mills 2 cards
+}

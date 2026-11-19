@@ -1,0 +1,6 @@
+card "Orcish Oriflamme" {
+  oracle_id 0b16a650-68b0-44dc-a9e1-15b7966e0b18
+  cost {3}{R}
+  type Enchantment
+  static attacking creature you control: +1/+0
+}

@@ -1,0 +1,19 @@
+scenario "Skyhunter Cub: equipped, it gets +1/+1 and has flying" {
+  battlefield A: "Skyhunter Cub", "Leonin Scimitar", 3 "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Leonin Scimitar" targeting "Skyhunter Cub"
+  run_to turn 1 postcombat_main
+  assert attached "Leonin Scimitar" to "Skyhunter Cub"
+  assert power "Skyhunter Cub" 4
+  assert toughness "Skyhunter Cub" 4
+  assert has "Skyhunter Cub" flying
+}
+
+scenario "Skyhunter Cub: unequipped, no bonus and no flying" {
+  battlefield A: "Skyhunter Cub", "Leonin Scimitar", 3 "Plains"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Skyhunter Cub" 2
+  assert toughness "Skyhunter Cub" 2
+  assert has not "Skyhunter Cub" flying
+}

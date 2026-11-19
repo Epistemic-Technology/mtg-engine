@@ -1,0 +1,11 @@
+scenario "Undo returns two creatures to their owners' hands" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Undo"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Undo" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Hill Giant"
+  assert graveyard A contains "Undo"
+}

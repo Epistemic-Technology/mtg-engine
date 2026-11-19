@@ -1,0 +1,11 @@
+scenario "Misfortune's Gain destroys a creature and its owner gains 4 life" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Grizzly Bears"
+  hand A: "Misfortune's Gain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Misfortune's Gain" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 24
+  assert life A 20
+}

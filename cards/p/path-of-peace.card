@@ -1,0 +1,6 @@
+card "Path of Peace" {
+  oracle_id b7593cf8-4dcb-473b-a2ef-180fffe66738
+  cost {3}{W}
+  type Sorcery
+  spell: destroy target creature; its owner gains 4 life
+}

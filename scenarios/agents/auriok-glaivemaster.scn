@@ -1,0 +1,31 @@
+scenario "equipped Glaivemaster gets +1/+1 and first strike" {
+  battlefield A: "Auriok Glaivemaster", "Bonesplitter", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Auriok Glaivemaster"
+  run_to turn 1 postcombat_main
+  assert attached "Bonesplitter" to "Auriok Glaivemaster"
+  assert power "Auriok Glaivemaster" 4
+  assert toughness "Auriok Glaivemaster" 2
+  assert has "Auriok Glaivemaster" first_strike
+}
+
+scenario "unequipped Glaivemaster has no bonus" {
+  battlefield A: "Auriok Glaivemaster"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power "Auriok Glaivemaster" 1
+  assert toughness "Auriok Glaivemaster" 1
+  assert has not "Auriok Glaivemaster" first_strike
+}
+
+scenario "first strike kills blocker before it strikes back" {
+  battlefield A: "Auriok Glaivemaster", "Bonesplitter", "Plains"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Bonesplitter" targeting "Auriok Glaivemaster"
+  turn 1 A: attack "Auriok Glaivemaster"
+  turn 1 B: block "Auriok Glaivemaster" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Auriok Glaivemaster"
+}

@@ -1,0 +1,21 @@
+scenario "False Defeat returns a creature card to the battlefield" {
+  battlefield A: 4 "Plains"
+  hand A: "False Defeat"
+  graveyard A: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "False Defeat" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+}
+
+scenario "False Defeat can't return a card from an opponent's graveyard" {
+  battlefield A: 4 "Plains"
+  hand A: "False Defeat"
+  graveyard B: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "False Defeat" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert hand A contains "False Defeat"
+}

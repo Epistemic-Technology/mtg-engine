@@ -1,0 +1,20 @@
+scenario "Orcish Oriflamme pumps attacking creatures only" {
+  battlefield A: "Orcish Oriflamme", "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 declare_blockers
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert power "Grizzly Bears" 2
+}
+
+scenario "Orcish Oriflamme does not pump the opponent's attackers" {
+  battlefield A: "Orcish Oriflamme"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+}

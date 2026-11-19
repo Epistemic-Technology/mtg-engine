@@ -1,0 +1,20 @@
+scenario "Dust to Dust exiles two target artifacts" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Ornithopter", "Sol Ring", "Grizzly Bears"
+  hand A: "Dust to Dust"
+  turn 1 A: cast "Dust to Dust" targeting "Ornithopter", "Sol Ring"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Ornithopter"
+  assert exile B contains "Sol Ring"
+  assert battlefield B contains "Grizzly Bears"
+  assert graveyard A contains "Dust to Dust"
+}
+
+scenario "Dust to Dust cannot target a creature" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Ornithopter", "Grizzly Bears"
+  hand A: "Dust to Dust"
+  illegal turn 1 A: cast "Dust to Dust" targeting "Ornithopter", "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+}

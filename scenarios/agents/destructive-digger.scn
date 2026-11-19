@@ -1,0 +1,29 @@
+scenario "Destructive Digger sacrifices a land to draw" {
+  battlefield A: "Destructive Digger", 3 "Mountain", "Forest"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Destructive Digger" sacrificing "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert tapped "Destructive Digger"
+}
+
+scenario "Destructive Digger sacrifices an artifact to draw" {
+  battlefield A: "Destructive Digger", 3 "Mountain", "Ornithopter"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Destructive Digger" sacrificing "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Ornithopter"
+}
+
+scenario "Destructive Digger can't sacrifice a creature" {
+  battlefield A: "Destructive Digger", 3 "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Destructive Digger" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert hand A count 0
+}

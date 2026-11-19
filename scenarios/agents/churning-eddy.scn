@@ -1,0 +1,21 @@
+scenario "Churning Eddy returns a creature and a land to their owners' hands" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Mountain"
+  hand A: "Churning Eddy"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Churning Eddy" targeting "Hill Giant", "Mountain"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Mountain"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "Churning Eddy needs a creature target" {
+  battlefield A: 4 "Island"
+  battlefield B: "Mountain"
+  hand A: "Churning Eddy"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Churning Eddy" targeting "Mountain", "Mountain"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Mountain"
+}

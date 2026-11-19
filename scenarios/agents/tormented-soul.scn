@@ -1,0 +1,20 @@
+scenario "Tormented Soul can't be blocked" {
+  battlefield A: "Tormented Soul"
+  battlefield B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Tormented Soul"
+  illegal turn 1 B: block "Tormented Soul" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "Tormented Soul can't block" {
+  battlefield A: "Tormented Soul"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 A: block "Grizzly Bears" with "Tormented Soul"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert battlefield A contains "Tormented Soul"
+}

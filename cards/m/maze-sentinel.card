@@ -1,0 +1,8 @@
+card "Maze Sentinel" {
+  oracle_id 635360cd-0114-47d1-8a98-e6a3678652a8
+  cost {5}{W}
+  type Creature — Elemental
+  pt 3/6
+  keywords vigilance
+  static multicolored creature you control: has vigilance
+}

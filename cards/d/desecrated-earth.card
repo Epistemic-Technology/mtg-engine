@@ -1,0 +1,6 @@
+card "Desecrated Earth" {
+  oracle_id 3c9242fd-915b-4f6d-b4ee-830c9d80c9e8
+  cost {4}{B}
+  type Sorcery
+  spell: destroy target land; its controller discards 1 card
+}

@@ -1,0 +1,7 @@
+card "Destructive Digger" {
+  oracle_id 56787f7d-d9e9-42f2-a419-31f15e6e436e
+  cost {2}{R}
+  type Creature — Goblin
+  pt 3/2
+  activated {3}, {T}, sacrifice artifact or land: draw 1 card
+}

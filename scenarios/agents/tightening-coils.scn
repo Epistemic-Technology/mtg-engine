@@ -1,0 +1,12 @@
+scenario "enchanted creature gets -6/-0 and loses flying" {
+  battlefield A: 2 "Island"
+  battlefield B: "Serra Angel"
+  hand A: "Tightening Coils"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tightening Coils" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert power "Serra Angel" -2
+  assert toughness "Serra Angel" 4
+  assert has not "Serra Angel" flying
+  assert has "Serra Angel" vigilance
+}

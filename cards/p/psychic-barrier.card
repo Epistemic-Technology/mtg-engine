@@ -1,0 +1,6 @@
+card "Psychic Barrier" {
+  oracle_id 2e712090-2284-4325-8ee8-38cd0e2bedd8
+  cost {U}{U}
+  type Instant
+  spell: counter target creature spell; its controller loses 1 life
+}

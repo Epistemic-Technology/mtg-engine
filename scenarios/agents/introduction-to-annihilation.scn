@@ -1,0 +1,24 @@
+scenario "introduction to annihilation exiles a nonland permanent and its controller draws" {
+  battlefield A: 5 "Plains"
+  hand A: "Introduction to Annihilation"
+  battlefield B: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Introduction to Annihilation" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Hill Giant"
+  assert battlefield B lacks "Hill Giant"
+  assert hand B count 1
+  assert hand A count 0
+  assert graveyard A contains "Introduction to Annihilation"
+}
+
+scenario "introduction to annihilation can't target a land" {
+  battlefield A: 5 "Plains"
+  hand A: "Introduction to Annihilation"
+  battlefield B: "Forest"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Introduction to Annihilation" targeting B "Forest"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Forest"
+  assert hand A contains "Introduction to Annihilation"
+}

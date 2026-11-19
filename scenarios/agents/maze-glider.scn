@@ -1,0 +1,10 @@
+scenario "Maze Glider gives multicolored creatures you control flying" {
+  battlefield A: "Maze Glider", "Boros Recruit", "Grizzly Bears"
+  battlefield B: "Boros Recruit"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has "Maze Glider" flying
+  assert has A "Boros Recruit" flying
+  assert has not "Grizzly Bears" flying
+  assert has not B "Boros Recruit" flying
+}

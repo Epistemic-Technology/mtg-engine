@@ -1,0 +1,7 @@
+card "Slagdrill Scrapper" {
+  oracle_id 7f1edf4c-46a1-426d-8ce9-757a4c27367d
+  cost {R}
+  type Artifact Creature — Robot Scout
+  pt 1/2
+  activated {2}, {T}, sacrifice another artifact or land: draw 1 card
+}

@@ -1,0 +1,8 @@
+card "Maze Behemoth" {
+  oracle_id d54c258f-1914-449a-857d-11f9478bff63
+  cost {5}{G}
+  type Creature — Elemental
+  pt 5/4
+  keywords trample
+  static multicolored creature you control: has trample
+}

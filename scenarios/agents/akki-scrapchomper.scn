@@ -1,0 +1,18 @@
+scenario "Akki Scrapchomper sacrifices a land to draw" {
+  battlefield A: "Akki Scrapchomper", 2 "Mountain", "Forest"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Akki Scrapchomper" sacrificing "Forest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert graveyard A contains "Forest"
+  assert tapped "Akki Scrapchomper"
+}
+
+scenario "Akki Scrapchomper can't sacrifice a creature" {
+  battlefield A: "Akki Scrapchomper", 2 "Mountain", "Grizzly Bears"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Akki Scrapchomper" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+}

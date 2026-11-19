@@ -1,0 +1,8 @@
+card "Transcendent Envoy" {
+  oracle_id f08f7814-4585-41dd-b82e-ed2ef5e24242
+  cost {1}{W}
+  type Enchantment Creature — Griffin
+  pt 1/2
+  keywords flying
+  spells Aura you cast cost {1} less
+}

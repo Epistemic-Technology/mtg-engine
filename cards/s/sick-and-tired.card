@@ -1,0 +1,6 @@
+card "Sick and Tired" {
+  oracle_id 070d82db-0851-4f6d-8bf7-1a79c4c2cfee
+  cost {2}{B}
+  type Instant
+  spell: 2 target creatures gets -1/-1
+}

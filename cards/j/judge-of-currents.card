@@ -1,0 +1,7 @@
+card "Judge of Currents" {
+  oracle_id b4eafd12-5f3e-43e6-aa0a-6bb5f4f5782b
+  cost {1}{W}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  triggered whenever Merfolk you control becomes tapped: you may you gains 1 life
+}

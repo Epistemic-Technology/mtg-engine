@@ -1,0 +1,29 @@
+scenario "Grazing Gladehart: playing a land gains 2 life" {
+  battlefield A: "Grazing Gladehart"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert battlefield A contains "Forest"
+}
+
+scenario "Grazing Gladehart: the life gain is optional" {
+  battlefield A: "Grazing Gladehart"
+  hand A: "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: play "Forest"
+  turn 1 A: decline "Grazing Gladehart"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}
+
+scenario "Grazing Gladehart: an opponent's land does not trigger it" {
+  battlefield A: "Grazing Gladehart"
+  hand B: "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: play "Forest"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 20
+}

@@ -1,0 +1,7 @@
+card "Stinkdrinker Daredevil" {
+  oracle_id 25af5e13-ebe8-4bc4-b8fe-8b9aee59579c
+  cost {2}{R}
+  type Creature — Goblin Rogue
+  pt 1/3
+  spells Giant you cast cost {2} less
+}

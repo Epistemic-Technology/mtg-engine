@@ -1,0 +1,17 @@
+scenario "sacrifice a creature to draw" {
+  battlefield A: "Kingpin's Enforcers", "Grizzly Bears", 3 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kingpin's Enforcers" sacrificing "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 1
+  assert battlefield A contains "Kingpin's Enforcers"
+}
+scenario "lifelink on attack" {
+  battlefield A: "Kingpin's Enforcers"
+  start turn 1 A
+  turn 1 A: attack "Kingpin's Enforcers"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert life B 18
+}

@@ -1,0 +1,7 @@
+card "Dragonlord's Servant" {
+  oracle_id faf81ae0-0b35-45ef-a50d-6cecf0c0eeeb
+  cost {1}{R}
+  type Creature — Goblin Shaman
+  pt 1/3
+  spells Dragon you cast cost {1} less
+}

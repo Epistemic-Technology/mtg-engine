@@ -1,0 +1,17 @@
+scenario "Kinjalli's Caller makes a Dinosaur cost {1} less" {
+  battlefield A: "Kinjalli's Caller", 4 "Plains"
+  hand A: "Sun-Crested Pterodon"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Sun-Crested Pterodon"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Sun-Crested Pterodon"
+}
+
+scenario "without Kinjalli's Caller four lands are not enough" {
+  battlefield A: 4 "Plains"
+  hand A: "Sun-Crested Pterodon"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Sun-Crested Pterodon"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Sun-Crested Pterodon"
+}

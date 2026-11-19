@@ -1,0 +1,8 @@
+card "Kingpin's Enforcers" {
+  oracle_id 342df67f-44d8-4b0a-b1d7-4241966d0598
+  cost {2}{B}
+  type Creature — Human Villain
+  pt 2/3
+  keywords lifelink
+  activated {2}{B}, sacrifice artifact or creature: draw 1 card
+}

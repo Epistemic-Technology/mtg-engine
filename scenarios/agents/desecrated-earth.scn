@@ -1,0 +1,12 @@
+scenario "Desecrated Earth destroys a land and its controller discards" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Desecrated Earth"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Desecrated Earth" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B count 0
+}

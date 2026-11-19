@@ -1,0 +1,6 @@
+card "Didn't Say Please" {
+  oracle_id b90bc464-a95a-42e4-9d9a-4b0882eb57ba
+  cost {1}{U}{U}
+  type Instant
+  spell: counter target spell; its controller mills 3 cards
+}

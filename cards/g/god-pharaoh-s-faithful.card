@@ -1,0 +1,7 @@
+card "God-Pharaoh's Faithful" {
+  oracle_id 3f86e6c6-fca5-43e9-88cc-4546cdd5f0ec
+  cost {W}
+  type Creature — Human Wizard
+  pt 0/4
+  triggered whenever you cast blue or black or red spell: you gain 1 life
+}

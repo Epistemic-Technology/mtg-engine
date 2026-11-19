@@ -1,0 +1,6 @@
+token "1/1 white Glimmer enchantment creature" {
+  name "Glimmer"
+  type Enchantment Creature — Glimmer
+  pt 1/1
+  color white
+}

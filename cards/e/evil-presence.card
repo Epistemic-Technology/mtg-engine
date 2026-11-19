@@ -1,0 +1,7 @@
+card "Evil Presence" {
+  oracle_id 3d8ac41c-0566-48b2-a744-39db2f72272c
+  cost {B}
+  type Enchantment — Aura
+  enchant land
+  static enchanted: set land Swamp
+}

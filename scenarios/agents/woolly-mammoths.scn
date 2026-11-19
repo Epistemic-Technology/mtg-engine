@@ -1,0 +1,20 @@
+scenario "Woolly Mammoths has trample with a snow land" {
+  battlefield A: "Woolly Mammoths", "Snow-Covered Forest"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  run_to turn 2 precombat_main
+  assert has "Woolly Mammoths" trample
+  turn 2 A: attack "Woolly Mammoths"
+  turn 2 B: block "Woolly Mammoths" with "Grizzly Bears"
+  turn 2 A: assign "Woolly Mammoths" to "Grizzly Bears" 2, player B 1
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 19
+}
+
+scenario "Woolly Mammoths has no trample without a snow land" {
+  battlefield A: "Woolly Mammoths", "Forest"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert has not "Woolly Mammoths" trample
+}
