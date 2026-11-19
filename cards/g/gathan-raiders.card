@@ -1,0 +1,8 @@
+card "Gathan Raiders" {
+  oracle_id 31ea0a21-9c47-4917-9df9-3469b6e5243d
+  cost {3}{R}{R}
+  type Creature — Human Warrior
+  pt 3/3
+  label "Hellbent" static this: +2/+2 as long as hand 0 or less
+  morph discard 1 card
+}

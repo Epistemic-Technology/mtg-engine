@@ -1,0 +1,7 @@
+card "Paperfin Rascal" {
+  oracle_id bdec1d22-2f89-424b-b48f-46c9158943af
+  cost {2}{U}
+  type Creature — Merfolk Rogue
+  pt 2/2
+  triggered when this enters: clash; if you win, put 1 +1/+1 counters on this
+}

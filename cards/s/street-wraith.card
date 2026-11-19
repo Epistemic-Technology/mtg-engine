@@ -1,0 +1,8 @@
+card "Street Wraith" {
+  oracle_id bd7867f4-4f58-49c2-9c24-a124dfdb506d
+  cost {3}{B}{B}
+  type Creature — Wraith
+  pt 3/4
+  keywords swampwalk
+  cycling pay 2 life
+}

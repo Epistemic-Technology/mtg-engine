@@ -255,6 +255,23 @@ impl Compiler<'_> {
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
                 }
+                Ability::Mechanic(Mechanic::BuybackCost(cost)) => {
+                    let Some(crate::ast::SacCost::Filter(f)) = &cost.sacrifice else {
+                        return self.err("a buyback cost other than mana sacrifices a permanent");
+                    };
+                    if !cost.mana.is_empty() || cost.life > 0 || cost.discard > 0 || cost.tap {
+                        return self.err("a buyback cost other than mana sacrifices a permanent");
+                    }
+                    let f = self.filter(f);
+                    b = b.buyback_sacrifice(f);
+                }
+                Ability::Mechanic(Mechanic::MorphCost(cost)) => {
+                    if cost.tap || cost.discard_self || cost.discard_x || cost.count > 1 {
+                        return self.err("a morph cost may be mana, life, a discard, or a return");
+                    }
+                    let c = self.cost(cost);
+                    b = b.morph_cost(c);
+                }
                 Ability::Mechanic(Mechanic::Evoke(cost)) => {
                     b = b.evoke(cost.clone());
                 }
@@ -372,8 +389,15 @@ impl Compiler<'_> {
             b = b.kicker(k.clone());
         }
         if let Some(fb) = &card.flashback {
-            if fb.tap || fb.discard > 0 || fb.sacrifice.is_some() || fb.discard_self {
-                return self.err("a flashback cost may only be mana and life");
+            // "Flashback—Sacrifice three creatures.", "Flashback—Tap three
+            // untapped white creatures you control." settle the permanent
+            // the way an additional cost does, so not alongside one.
+            if fb.tap || fb.discard > 0 || fb.discard_self {
+                return self.err("a flashback cost may only be mana, life, and a chosen permanent");
+            }
+            if fb.sacrifice.is_some() && (card.additional.is_some() || card.additional_or.is_some())
+            {
+                return self.err("a flashback cost choosing a permanent with an additional cost");
             }
             b = b.flashback(self.cost(fb));
         }
@@ -418,6 +442,8 @@ impl Compiler<'_> {
                     | Ability::Affinity(_)
                     | Ability::Mechanic(
                         Mechanic::Buyback(_)
+                            | Mechanic::BuybackCost(_)
+                            | Mechanic::MorphCost(_)
                             | Mechanic::Evoke(_)
                             | Mechanic::Madness(_)
                             | Mechanic::Foretell(_)
@@ -1326,6 +1352,15 @@ impl Compiler<'_> {
             // the stack.
             Effect::ChooseTarget(_) => {}
             Effect::FlipCoin => out.push(CoreEffect::FlipCoin { won: Vec::new() }),
+            Effect::Clash => out.push(CoreEffect::Clash { won: Vec::new() }),
+            // What winning the clash just before does.
+            Effect::IfWonClash(inner) => {
+                let then = self.sentences(inner)?;
+                match out.last_mut() {
+                    Some(CoreEffect::Clash { won }) if won.is_empty() => *won = then,
+                    _ => return self.err("`if you win` needs a `clash` before it"),
+                }
+            }
             Effect::Vote(words) => out.push(CoreEffect::Vote {
                 options: u8::try_from(words.len()).unwrap_or(u8::MAX),
             }),
@@ -2298,6 +2333,8 @@ impl Compiler<'_> {
                     })
                 }
                 Mechanic::Buyback(_)
+                | Mechanic::BuybackCost(_)
+                | Mechanic::MorphCost(_)
                 | Mechanic::Evoke(_)
                 | Mechanic::Madness(_)
                 | Mechanic::Foretell(_)
@@ -2515,6 +2552,21 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
                 dest: crate::ast::CounteredTo::Graveyard,
             }),
         },
+        // "Ward—Pay 3 life." (CR 702.21a).
+        Mechanic::WardCost(cost) => Ability::Triggered {
+            trigger: Trigger::TargetedByOpponent,
+            condition: None,
+            targets: Vec::new(),
+            effects: one(E::UnlessPays {
+                payer: Recipient::TriggeringController { that: false },
+                mana: cost.mana.clone(),
+                life: cost.life,
+                effect: Box::new(E::Counter {
+                    to: Recipient::TriggeringObject,
+                    dest: crate::ast::CounteredTo::Graveyard,
+                }),
+            }),
+        },
         Mechanic::Echo(cost) => Ability::Triggered {
             trigger: Trigger::BeginningOfStep {
                 step: mtg_core::turn::Step::Upkeep,
@@ -2640,6 +2692,8 @@ fn expand_mechanic(m: &Mechanic) -> Ability {
         | Mechanic::EscapesWith(_)
         | Mechanic::KickedWith(..)
         | Mechanic::Buyback(_)
+        | Mechanic::BuybackCost(_)
+        | Mechanic::MorphCost(_)
         | Mechanic::Morph(_)
         | Mechanic::Megamorph(_)
         | Mechanic::Disguise(_)

@@ -1,0 +1,7 @@
+card "Raven Guild Initiate" {
+  oracle_id 67a1529f-aa37-4df8-97e3-5b1d8c03a76f
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 1/4
+  morph return Bird you control
+}

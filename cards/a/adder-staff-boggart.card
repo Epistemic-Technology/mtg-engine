@@ -1,0 +1,7 @@
+card "Adder-Staff Boggart" {
+  oracle_id c95e75fb-2bf2-431c-b7ca-d84236bffe5c
+  cost {1}{R}
+  type Creature — Goblin Warrior
+  pt 2/1
+  triggered when this enters: clash; if you win, put 1 +1/+1 counters on this
+}

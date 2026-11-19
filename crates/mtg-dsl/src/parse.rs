@@ -1299,6 +1299,18 @@ impl P {
                     _ => Mechanic::Outlast(c),
                 }))
             }
+            // "Ward—Pay 3 life.", "Morph—Discard a card.", "Buyback—
+            // Sacrifice a land.": a keyword whose cost isn't mana.
+            "ward" | "morph" | "buyback" if matches!(self.peek_at(1), Some(Tok::Word(_))) => {
+                self.pos += 1;
+                let c = self.cost()?;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(match w.as_str() {
+                    "ward" => Mechanic::WardCost(c),
+                    "morph" => Mechanic::MorphCost(c),
+                    _ => Mechanic::BuybackCost(c),
+                }))
+            }
             "bargain" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
                 self.pos += 1;
                 self.end_stmt()?;
@@ -1361,14 +1373,22 @@ impl P {
             }
             "cycling" => {
                 self.pos += 1;
-                let mana = self.mana_cost()?;
-                self.end_stmt()?;
-                Ok(Ability::Activated {
-                    cost: Cost {
-                        mana,
+                // "Cycling—Pay 2 life.": a cost other than mana.
+                let cost = if matches!(self.peek(), Some(Tok::Word(_))) {
+                    Cost {
+                        discard_self: true,
+                        ..self.cost()?
+                    }
+                } else {
+                    Cost {
+                        mana: self.mana_cost()?,
                         discard_self: true,
                         ..Default::default()
-                    },
+                    }
+                };
+                self.end_stmt()?;
+                Ok(Ability::Activated {
+                    cost,
                     targets: Vec::new(),
                     effects: vec![Sentence::new(vec![Effect::DrawCards {
                         count: Num::N(1),
@@ -3016,6 +3036,14 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfWonFlip(vec![s]));
         }
+        // "If you win, ..." after "clash with an opponent" (CR 701.23).
+        if self.at_words(&["if", "you", "win"]) && self.peek_at(3) == Some(&Tok::Comma) {
+            self.pos += 4;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfWonClash(vec![s]));
+        }
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
         }
@@ -4079,6 +4107,8 @@ impl P {
                 self.expect_word("coin")?;
                 Ok(Effect::FlipCoin)
             }
+            // CR 701.23: "clash with an opponent".
+            "clash" => Ok(Effect::Clash),
             // CR 701.38: "starting with you, each player votes for ...".
             "vote" => {
                 if self.eat_word("return") {

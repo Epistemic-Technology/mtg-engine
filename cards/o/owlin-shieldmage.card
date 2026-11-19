@@ -1,0 +1,8 @@
+card "Owlin Shieldmage" {
+  oracle_id 50c477c1-8457-40f6-bba9-1a4ba0862178
+  cost {3}{W}{B}
+  type Creature — Bird Warlock
+  pt 3/3
+  keywords flying
+  ward pay 3 life
+}

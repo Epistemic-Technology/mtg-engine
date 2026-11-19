@@ -1,0 +1,7 @@
+card "Reaping the Rewards" {
+  oracle_id b4177445-46d8-4427-a345-d786c820c3af
+  cost {W}
+  type Instant
+  buyback sacrifice land
+  spell: you gain 2 life
+}

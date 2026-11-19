@@ -31,12 +31,15 @@ impl GameState {
         for id in &ps.hand {
             let def = self.pool.get(self.objects[*id].def);
             // Abilities activated from the hand (cycling, CR 702.29) are
-            // instant speed and cost only mana.
+            // instant speed and cost mana, or life ("Cycling—Pay 2 life.",
+            // CR 119.4).
             if self.flags_of(&self.objects[*id]).has_activated() {
                 for a in &def.ability_ids {
                     if let AbilityDef::Activated(ab) = self.pool.ability(*a)
                         && ab.from_hand
                         && self.activation_allowed(ab, *a, p, *id)
+                        && (ab.cost.life == 0
+                            || ps.life >= i32::try_from(ab.cost.life).unwrap_or(i32::MAX))
                         && self.payable_for(
                             p,
                             &sources,
@@ -290,6 +293,17 @@ impl GameState {
                     continue;
                 }
                 if fb.life > 0 && ps.life < i32::try_from(fb.life).unwrap_or(i32::MAX) {
+                    continue;
+                }
+                // "Flashback—Sacrifice a Mountain.", "Flashback—Tap three
+                // untapped white creatures you control."
+                if fb.sacrifice.is_some()
+                    && !(if fb.taps_chosen() {
+                        self.cost_option_payable(p, fb, *id, &sources, req, false)
+                    } else {
+                        self.additional_payable(p, fb, *id)
+                    })
+                {
                     continue;
                 }
                 if def.additional_or.is_some() || def.additional.taps_chosen() {
@@ -1126,10 +1140,11 @@ impl GameState {
                     p,
                     sources,
                     &ps.mana_pool,
-                    &cost.requirements(0),
+                    &cost.mana.requirements(0),
                     ps.life,
                     None,
                 )
+                && self.additional_payable(p, &cost, id)
             {
                 options.push(Choice::TurnFaceUp(id));
             }
@@ -1181,7 +1196,7 @@ impl GameState {
     /// What turning the face-down permanent `id` face up costs: its morph
     /// or disguise cost, or a manifested creature card's mana cost (CR
     /// 701.34a); `None` if it isn't face down or can't be turned up.
-    pub(super) fn face_up_cost(&self, id: ObjId) -> Option<crate::mana::ManaCost> {
+    pub(super) fn face_up_cost(&self, id: ObjId) -> Option<Cost> {
         let o = self.objects.get(id)?;
         if !self.pool.is_face_down(o.def) || o.zone != Zone::Battlefield {
             return None;
@@ -1189,9 +1204,26 @@ impl GameState {
         let card = self.pool.get(o.card);
         match card.morph.as_deref() {
             Some((cost, _)) => Some(cost.clone()),
-            None if card.is_creature() => Some(card.mana_cost.clone()),
+            None if card.is_creature() => Some(Cost {
+                mana: card.mana_cost.clone(),
+                ..Cost::default()
+            }),
             None => None,
         }
+    }
+
+    /// Turn the face-down permanent `id` face up (CR 702.37e), paying its
+    /// morph cost: mana, life, and the card discarded or permanent
+    /// returned for it (`pick`, chosen by the player).
+    pub(super) fn pay_face_up(&mut self, p: PlayerId, id: ObjId, cost: &Cost, pick: Option<ObjId>) {
+        self.pay(p, &cost.mana.requirements(0));
+        let (sac, discard) = if cost.discard > 0 {
+            (None, pick)
+        } else {
+            (pick, None)
+        };
+        self.pay_other_costs(p, cost, id, sac, discard);
+        self.turn_face_up(id);
     }
 
     /// Other untapped creatures `p` controls that could crew `vehicle`,
@@ -1643,6 +1675,15 @@ impl GameState {
     pub(super) fn additional_of(&self, spell: ObjId) -> &Cost {
         let o = &self.objects[spell];
         let def = self.pool.get(o.def);
+        // "Flashback—Sacrifice three creatures.": the flashback cost's
+        // chosen permanents are settled like an additional cost's (CR
+        // 702.34a, 601.2h); such a card has no additional cost of its own.
+        if let Some(fb) = def.flashback.as_deref()
+            && fb.sacrifice.is_some()
+            && o.cast.flashback()
+        {
+            return fb;
+        }
         match &def.additional_or {
             Some(c) if o.cast.other_cost() => c,
             _ => &def.additional,
@@ -1699,6 +1740,11 @@ impl GameState {
             return false;
         };
         if o.cast.flashback() {
+            return false;
+        }
+        if let Some(f) = def.buyback_sacrifice.as_deref()
+            && self.sacrifice_candidates(o.controller, f, spell).is_empty()
+        {
             return false;
         }
         let mut req = self.spell_requirements(spell, 0);
@@ -3761,7 +3807,14 @@ impl GameState {
             self.pay_from(caster, &req, &sources, None);
         }
         if let (Some(fb), true) = (&def.flashback, flashback) {
-            self.pay_other_costs(caster, fb, spell, None, None);
+            // A permanent chosen for the flashback cost (`additional_of`);
+            // one to tap was tapped above.
+            let pick = if fb.sacrifice.is_some() {
+                sacrifice.take()
+            } else {
+                None
+            };
+            self.pay_other_costs(caster, fb, spell, pick, None);
         }
         // CR 702.138a: exile the other cards escape asks for (the oldest).
         if self.objects[spell].alt == AltCast::Escape
@@ -3831,7 +3884,8 @@ impl GameState {
                 }
             }
         });
-        // CR 702.166a: bargain's sacrifice.
+        // CR 702.166a: bargain's sacrifice (and buyback's, "Buyback—
+        // Sacrifice a land.", kept in the same list).
         if !self.bargains.is_empty()
             && let Some(i) = self.bargains.iter().position(|(s, _)| *s == spell)
         {
@@ -5521,6 +5575,13 @@ impl GameState {
                     }
                 }
             }
+            Effect::Clash { won } => {
+                if self.clash(ctx.controller) {
+                    for e in won {
+                        self.apply_effect(ctx, e);
+                    }
+                }
+            }
             Effect::RollDie { sides, rows } => {
                 let result = self.roll_die(ctx.controller, *sides);
                 // CR 706.3a: the row whose range holds the result.
@@ -6723,6 +6784,53 @@ impl GameState {
     }
 
     /// The creature `id` explores (CR 701.44).
+    /// Clash with an opponent (CR 701.23): `p` and an opponent each reveal
+    /// the top card of their library, then each, starting with the active
+    /// player (CR 101.4), puts theirs on the top or bottom. `p` wins if
+    /// their card's mana value is greater than the opponent's (or the
+    /// opponent revealed nothing, CR 701.23b, c).
+    pub(super) fn clash(&mut self, p: PlayerId) -> bool {
+        let mut opp = self.next_player(p);
+        while opp != p && self.player(opp).lost.is_some() {
+            opp = self.next_player(opp);
+        }
+        let mut revealed: SmallVec<[(PlayerId, ObjId, u32); 2]> = SmallVec::new();
+        for who in [p, opp] {
+            if who == p && !revealed.is_empty() {
+                continue;
+            }
+            if let Some(top) = self.player(who).library.last().copied() {
+                let def = self.objects[top].def;
+                self.emit(Event::Revealed { obj: top, def });
+                revealed.push((who, top, self.pool.get(def).mana_cost.mana_value()));
+            }
+        }
+        let mine = revealed.iter().find(|r| r.0 == p).map(|r| r.2);
+        let theirs = revealed.iter().find(|r| r.0 != p).map(|r| r.2);
+        let won = match (mine, theirs) {
+            (Some(m), Some(t)) => m > t,
+            (Some(_), None) => opp != p,
+            (None, _) => false,
+        };
+        revealed.sort_by_key(|r| r.0 != self.active_player);
+        for (who, card, _) in revealed {
+            let def = self.objects[card].def;
+            let top = self.choose_mid(
+                who,
+                DecisionKind::TopOrBottom { def },
+                vec![Choice::Accept, Choice::Decline],
+            ) == 0;
+            if !top {
+                let lib = &mut self.player_mut(who).library;
+                if let Some(i) = lib.iter().position(|c| *c == card) {
+                    let c = lib.remove(i);
+                    lib.insert(0, c);
+                }
+            }
+        }
+        won
+    }
+
     fn explore(&mut self, ctx: &EffectCtx, id: ObjId) {
         let Some(o) = self.objects.get(id) else {
             return;

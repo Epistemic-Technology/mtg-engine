@@ -1,0 +1,7 @@
+card "Battle Screech" {
+  oracle_id e73131cd-b454-405b-9539-9d777e232b9e
+  cost {2}{W}{W}
+  type Sorcery
+  spell: create 2 "1/1 white Bird creature with flying"
+  flashback tap 3 untapped white creature you control
+}

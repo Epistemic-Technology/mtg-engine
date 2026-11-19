@@ -1,0 +1,6 @@
+card "Weed Strangle" {
+  oracle_id af64ce09-b7d9-4db9-905e-c4356f242ced
+  cost {3}{B}{B}
+  type Sorcery
+  spell: destroy target creature; clash; if you win, you gain count equal toughness of that target 1 life
+}

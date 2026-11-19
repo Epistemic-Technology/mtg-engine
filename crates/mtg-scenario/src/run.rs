@@ -391,8 +391,9 @@ impl Runner {
             | DecisionKind::Surveil { .. }
             | DecisionKind::Edict
             | DecisionKind::SearchLibrary
-            | DecisionKind::PayOrCounter { .. }
             | DecisionKind::PutFromHand => Ok(0),
+            // `decline "Owlin Shieldmage"`: don't pay its ward cost.
+            DecisionKind::PayOrCounter { def } => Ok(self.you_may(d, pos, def)),
             DecisionKind::CastFromExile { card } => Ok(self.cast_from_exile(d, pos, card)),
             DecisionKind::PriorityAction => self.priority_action(d, pos),
             DecisionKind::ChooseTarget { spell, index } => {
@@ -443,6 +444,14 @@ impl Runner {
             | DecisionKind::ChooseType
             | DecisionKind::ChooseCard
             | DecisionKind::ChooseOption { .. } => self.choose_named(d, pos),
+            // "Buyback—Sacrifice a land.": `kicked sacrificing "Forest"`.
+            DecisionKind::Buyback { .. }
+                if self.pending_kicked
+                    && d.options.iter().any(|c| matches!(c, Choice::Sacrifice(_))) =>
+            {
+                self.pending_kicked = false;
+                self.choose_cost(d, "sacrifice")
+            }
             // `kicked` also pays buyback (an optional additional cost).
             DecisionKind::Kicker { .. }
             | DecisionKind::Buyback { .. }
@@ -905,6 +914,21 @@ impl Runner {
                 }
                 _ => false,
             });
+            // `illegal unmorph "X"`: not offered here, as required.
+            if self.actions[i].illegal {
+                if found.is_some() {
+                    return fail(
+                        self.actions[i].line,
+                        format!(
+                            "{} \"{name}\" was legal for {} but the scenario says it must not be",
+                            self.actions[i].action.kind_name(),
+                            player_name(d.player)
+                        ),
+                    );
+                }
+                self.fired[i] = true;
+                continue;
+            }
             if let Some(k) = found {
                 self.fired[i] = true;
                 return Ok(idx_u32(k));

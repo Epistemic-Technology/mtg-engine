@@ -942,6 +942,12 @@ pub enum Flow {
     ChoosingX {
         spell: ObjId,
     },
+    /// Turning a face-down permanent face up for a morph cost that
+    /// discards a card or returns a permanent (CR 702.37e): the player
+    /// chooses which.
+    TurningFaceUp {
+        obj: ObjId,
+    },
     /// Choosing whether to pay a spell's kicker (CR 702.33), after the mode
     /// and before X.
     ChoosingKicker {

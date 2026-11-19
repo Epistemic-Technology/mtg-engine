@@ -531,6 +531,13 @@ impl Decompiler<'_> {
                 out.push(Sentence::new(vec![Effect::IfWonFlip(self.sentences(won))]));
                 continue;
             }
+            if let CoreEffect::Clash { won } = e
+                && !won.is_empty()
+            {
+                out.push(Sentence::new(vec![Effect::Clash]));
+                out.push(Sentence::new(vec![Effect::IfWonClash(self.sentences(won))]));
+                continue;
+            }
             out.push(Sentence::new(vec![self.effect(e)]));
         }
         out
@@ -734,6 +741,7 @@ impl Decompiler<'_> {
                 another: false,
             },
             CoreEffect::FlipCoin { .. } => Effect::FlipCoin,
+            CoreEffect::Clash { .. } => Effect::Clash,
             CoreEffect::Vote { options } => {
                 Effect::Vote((1..=*options).map(|i| format!("choice{i}")).collect())
             }

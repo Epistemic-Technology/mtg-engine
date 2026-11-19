@@ -1,0 +1,8 @@
+card "Nath's Elite" {
+  oracle_id 2445fb97-a9c9-4078-8a8e-64b8c3951c4a
+  cost {4}{G}
+  type Creature — Elf Warrior
+  pt 4/2
+  keywords lure
+  triggered when this enters: clash; if you win, put 1 +1/+1 counters on this
+}

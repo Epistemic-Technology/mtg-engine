@@ -1,0 +1,7 @@
+card "Lava Dart" {
+  oracle_id e48891e3-30a2-4fc8-a858-cec33c6e4ab5
+  cost {R}
+  type Instant
+  spell: deal 1 damage to any target
+  flashback sacrifice Mountain
+}

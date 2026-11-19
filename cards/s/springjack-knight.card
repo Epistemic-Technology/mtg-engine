@@ -1,0 +1,7 @@
+card "Springjack Knight" {
+  oracle_id 97b0b719-d948-4671-97ba-1b2be8cc55e4
+  cost {2}{W}
+  type Creature — Kithkin Knight
+  pt 2/1
+  triggered whenever this attacks: clash; if you win, target creature gains double strike
+}

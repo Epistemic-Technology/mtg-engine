@@ -1,0 +1,287 @@
+# M5: keyword abilities with costs other than mana (Ward—Pay 3 life,
+# Cycling—Pay 2 life, Flashback—Sacrifice a Mountain, Morph—Pay 5 life,
+# Buyback—Sacrifice a land), and clash (CR 701.23).
+
+scenario "ward pay life: the opponent pays 3 life and the spell resolves" {
+  battlefield A: "Owlin Shieldmage"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Owlin Shieldmage"
+  run_to turn 2 end
+  assert life B 17
+  assert damage "Owlin Shieldmage" 2
+}
+
+scenario "ward pay life: unpaid, the spell is countered" {
+  battlefield A: "Dwarven Forge-Chanter"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Dwarven Forge-Chanter"
+  turn 2 B: decline "Dwarven Forge-Chanter"
+  run_to turn 2 end
+  assert life B 20
+  assert battlefield A contains "Dwarven Forge-Chanter"
+  assert graveyard B contains "Shock"
+}
+
+scenario "ward pay life: not with too little life" {
+  life B 1
+  battlefield A: "Owlin Shieldmage"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  start turn 2 B
+  turn 2 B: cast "Shock" targeting "Owlin Shieldmage"
+  run_to turn 2 end
+  assert life B 1
+  assert damage "Owlin Shieldmage" 0
+  assert graveyard B contains "Shock"
+}
+
+scenario "cycling pay life: 2 life and the card for a draw" {
+  hand A: "Street Wraith"
+  library A: "Grizzly Bears", "Island"
+  turn 1 A: activate "Street Wraith"
+  run_to turn 1 postcombat_main
+  assert life A 18
+  assert graveyard A contains "Street Wraith"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "cycling pay life: not with less than 2 life" {
+  life A 1
+  hand A: "Street Wraith"
+  illegal turn 1 A: activate "Street Wraith"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Street Wraith"
+}
+
+scenario "flashback sacrifice: a Mountain pays it from the graveyard" {
+  battlefield A: "Mountain", "Forest"
+  graveyard A: "Lava Dart"
+  turn 1 A: cast "Lava Dart" from graveyard sacrificing "Mountain" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard A contains "Mountain"
+  assert exile A contains "Lava Dart"
+  assert battlefield A contains "Forest"
+}
+
+scenario "flashback sacrifice: no Mountain, no flashback" {
+  battlefield A: "Forest"
+  graveyard A: "Lava Dart"
+  illegal turn 1 A: cast "Lava Dart" from graveyard targeting player B
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Lava Dart"
+}
+
+scenario "flashback sacrifice three creatures: Dread Return" {
+  battlefield A: 3 "Grizzly Bears"
+  graveyard A: "Serra Angel", "Dread Return"
+  turn 1 A: cast "Dread Return" from graveyard targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Serra Angel"
+  assert graveyard A contains 3 "Grizzly Bears"
+  assert exile A contains "Dread Return"
+}
+
+scenario "flashback sacrifice three creatures: two aren't enough" {
+  battlefield A: 2 "Grizzly Bears"
+  graveyard A: "Serra Angel", "Dread Return"
+  illegal turn 1 A: cast "Dread Return" from graveyard targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dread Return"
+}
+
+scenario "flashback tap three white creatures: Battle Screech" {
+  battlefield A: 3 "Serra Angel"
+  graveyard A: "Battle Screech"
+  turn 1 A: cast "Battle Screech" from graveyard
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Bird"
+  assert tapped oldest A "Serra Angel"
+  assert tapped newest A "Serra Angel"
+  assert exile A contains "Battle Screech"
+}
+
+scenario "morph pay life: turned face up for 5 life" {
+  battlefield A: 3 "Swamp"
+  hand A: "Zombie Cutthroat"
+  turn 1 A: cast "Zombie Cutthroat" face_down
+  turn 1 postcombat_main A: unmorph "Zombie Cutthroat"
+  run_to turn 1 end
+  assert life A 15
+  assert power "Zombie Cutthroat" 3
+}
+
+scenario "morph pay life: not with 5 life or less" {
+  life A 4
+  battlefield A: 3 "Swamp"
+  hand A: "Zombie Cutthroat"
+  turn 1 A: cast "Zombie Cutthroat" face_down
+  illegal turn 1 postcombat_main A: unmorph "Zombie Cutthroat"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "morph discard: a card from hand turns it face up" {
+  battlefield A: 3 "Mountain"
+  hand A: "Gathan Raiders", "Grizzly Bears"
+  turn 1 A: cast "Gathan Raiders" face_down
+  turn 1 postcombat_main A: unmorph "Gathan Raiders"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 0
+  assert power "Gathan Raiders" 5
+}
+
+scenario "morph discard: not with an empty hand" {
+  battlefield A: 3 "Mountain"
+  hand A: "Gathan Raiders"
+  turn 1 A: cast "Gathan Raiders" face_down
+  illegal turn 1 postcombat_main A: unmorph "Gathan Raiders"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "morph return: a Bird goes back to hand" {
+  battlefield A: 3 "Island", "Owlin Shieldmage"
+  hand A: "Raven Guild Initiate"
+  turn 1 A: cast "Raven Guild Initiate" face_down
+  turn 1 postcombat_main A: unmorph "Raven Guild Initiate"
+  run_to turn 1 end
+  assert hand A contains "Owlin Shieldmage"
+  assert toughness "Raven Guild Initiate" 4
+}
+
+scenario "morph return: no Bird, no turning face up" {
+  battlefield A: 3 "Island"
+  hand A: "Raven Guild Initiate"
+  turn 1 A: cast "Raven Guild Initiate" face_down
+  illegal turn 1 postcombat_main A: unmorph "Raven Guild Initiate"
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}
+
+scenario "buyback sacrifice: a land, and the spell returns to hand" {
+  battlefield A: "Plains", "Forest"
+  hand A: "Reaping the Rewards"
+  turn 1 A: cast "Reaping the Rewards" kicked sacrificing "Forest"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert hand A contains "Reaping the Rewards"
+  assert graveyard A contains "Forest"
+}
+
+scenario "buyback sacrifice: declined, the spell goes to the graveyard" {
+  battlefield A: "Plains", "Forest"
+  hand A: "Reaping the Rewards"
+  turn 1 A: cast "Reaping the Rewards"
+  run_to turn 1 postcombat_main
+  assert life A 22
+  assert graveyard A contains "Reaping the Rewards"
+  assert battlefield A contains "Forest"
+}
+
+scenario "clash: the greater mana value wins, a +1/+1 counter" {
+  battlefield A: 2 "Mountain"
+  hand A: "Adder-Staff Boggart"
+  library A: "Serra Angel", "Grizzly Bears"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Adder-Staff Boggart"
+  run_to turn 1 postcombat_main
+  assert counters "Adder-Staff Boggart" +1/+1 1
+  assert library A count 2
+}
+
+scenario "clash: the lesser mana value loses" {
+  battlefield A: 2 "Mountain"
+  hand A: "Adder-Staff Boggart"
+  library A: "Island", "Grizzly Bears"
+  library B: "Serra Angel", "Forest"
+  turn 1 A: cast "Adder-Staff Boggart"
+  run_to turn 1 postcombat_main
+  assert counters "Adder-Staff Boggart" +1/+1 0
+}
+
+scenario "clash: equal mana values, nobody wins" {
+  battlefield A: 4 "Plains"
+  hand A: "Oaken Brawler"
+  library A: "Lightning Bolt", "Island"
+  library B: "Shock", "Forest"
+  turn 1 A: cast "Oaken Brawler"
+  run_to turn 1 postcombat_main
+  assert counters "Oaken Brawler" +1/+1 0
+}
+
+scenario "clash: each player keeps the card on top by default" {
+  battlefield A: 2 "Mountain"
+  hand A: "Adder-Staff Boggart"
+  library A: "Serra Angel", "Grizzly Bears"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Adder-Staff Boggart"
+  run_to turn 3 precombat_main
+  assert hand A contains "Serra Angel"
+  assert hand B contains "Island"
+}
+
+scenario "clash: a revealed card may go to the bottom" {
+  battlefield A: 2 "Mountain"
+  hand A: "Adder-Staff Boggart"
+  library A: "Serra Angel", "Grizzly Bears"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Adder-Staff Boggart"
+  turn 1 A: decline "Serra Angel"
+  turn 1 B: decline "Island"
+  run_to turn 3 precombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand B contains "Forest"
+  assert counters "Adder-Staff Boggart" +1/+1 1
+}
+
+scenario "clash: Lash Out deals 3 more to the controller on a win" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lash Out"
+  library A: "Serra Angel", "Grizzly Bears"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Lash Out" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "clash: Lash Out without a win" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Lash Out"
+  library A: "Island", "Grizzly Bears"
+  library B: "Serra Angel", "Forest"
+  turn 1 A: cast "Lash Out" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "clash: an additional +2/+2 and trample on a win" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  hand A: "Fistful of Force"
+  library A: "Serra Angel", "Grizzly Bears"
+  library B: "Island", "Forest"
+  turn 1 A: cast "Fistful of Force" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert has "Grizzly Bears" trample
+}
+
+
+scenario "clash: an empty library reveals nothing and the other player wins" {
+  battlefield A: 2 "Mountain"
+  hand A: "Adder-Staff Boggart"
+  library A: "Island"
+  library B:
+  turn 1 A: cast "Adder-Staff Boggart"
+  run_to turn 1 postcombat_main
+  assert counters "Adder-Staff Boggart" +1/+1 1
+}

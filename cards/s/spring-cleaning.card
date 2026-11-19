@@ -1,0 +1,6 @@
+card "Spring Cleaning" {
+  oracle_id 9b3b81cf-f020-4e1e-95c7-db44ca153dc1
+  cost {1}{G}
+  type Instant
+  spell: destroy target enchantment; clash; if you win, destroy each enchantment your opponents control
+}
