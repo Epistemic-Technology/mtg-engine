@@ -1590,6 +1590,9 @@ impl GameState {
             _ => false,
         };
         land_play
+            // A mana-boost trigger (CR 605.1b) resolves while mana is paid
+            // and may ask for a color, during any payment.
+            || self.mana_trigger_sources > 0
             || replacers >= 2
             || self.legendary_count >= 2
             || self.stack.iter().any(|id| {

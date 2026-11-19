@@ -269,6 +269,30 @@ mod tests {
         }
     }
 
+    /// A mana-boost Aura that asks for colors (Market Festival, CR 605.1b)
+    /// resolves inside any payment, including "unless its controller pays"
+    /// (Mana Tithe): those payments need the mid-event snapshot too. Found
+    /// by random-deck fuzzing.
+    #[test]
+    fn mana_boost_color_choice_during_any_payment() {
+        let pool = Arc::new(builtin_pool());
+        let spec: &[(&str, usize)] = &[
+            ("Plains", 12),
+            ("Forest", 12),
+            ("Market Festival", 8),
+            ("Mana Tithe", 8),
+            ("Grizzly Bears", 10),
+            ("Savannah Lions", 10),
+        ];
+        let deck: Vec<_> = spec
+            .iter()
+            .flat_map(|(n, k)| std::iter::repeat_n(pool.lookup(n).expect(n), *k))
+            .collect();
+        let games = if cfg!(debug_assertions) { 12 } else { 100 };
+        let stats = random_batch(&pool, &[deck.clone(), deck], games, 5, false);
+        assert_eq!(stats.panics.len(), 0, "{:?}", stats.panics);
+    }
+
     /// Decisions taken in the middle of an event (which of several
     /// replacement effects applies first, CR 616.1; which legend to keep,
     /// CR 704.5j) make the engine roll an action back and replay it. A
