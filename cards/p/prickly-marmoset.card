@@ -1,0 +1,8 @@
+card "Prickly Marmoset" {
+  oracle_id a1ef3b31-b996-48ea-967a-2b56fb2fb22b
+  cost {2}{R}
+  type Creature — Monkey
+  pt 2/3
+  keywords first strike
+  triggered whenever you cycle a card: this gets +2/+0
+}

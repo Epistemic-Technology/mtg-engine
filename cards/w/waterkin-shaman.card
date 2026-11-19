@@ -1,0 +1,7 @@
+card "Waterkin Shaman" {
+  oracle_id 64e0c580-0e55-4f42-8594-11ccb584d633
+  cost {1}{U}
+  type Creature — Elemental Shaman
+  pt 2/1
+  triggered whenever creature you control with flying enters: this gets +1/+1
+}

@@ -171,6 +171,13 @@ pub fn describe(state: &GameState, e: &Event, viewer: PlayerId) -> Option<String
             delta.abs()
         ),
         Event::Destroyed { obj: o, .. } => format!("{} is destroyed.", obj(state, *o)),
+        Event::Cycled { player, card, .. } => {
+            format!(
+                "{} {}.",
+                verb(*player, viewer, "cycle", "cycles"),
+                obj(state, *card)
+            )
+        }
         Event::Discard { player, card } => {
             format!(
                 "{} {}.",

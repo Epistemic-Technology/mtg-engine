@@ -1,0 +1,7 @@
+card "Highland Berserker" {
+  oracle_id 633849f6-fad7-49d7-8bf5-2a3a4510965f
+  cost {1}{R}
+  type Creature — Human Berserker Ally
+  pt 2/1
+  triggered whenever this or Ally you control enters: you may each Ally creature you control gains first strike
+}

@@ -1,0 +1,7 @@
+card "Warbeast of Gorgoroth" {
+  oracle_id 7ca52e15-5a55-4d79-b0bf-0e2dc515ae6a
+  cost {4}{R}
+  type Creature — Beast
+  pt 5/4
+  triggered whenever this or creature you control with power 4 or greater dies: amass Orcs 2
+}

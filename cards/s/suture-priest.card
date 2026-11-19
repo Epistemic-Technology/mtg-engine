@@ -1,0 +1,8 @@
+card "Suture Priest" {
+  oracle_id c4d36522-3ace-4bfb-bf2d-1a366f458698
+  cost {1}{W}
+  type Creature — Phyrexian Cleric
+  pt 1/1
+  triggered whenever other creature you control enters: you may you gain 1 life
+  triggered whenever creature an opponent controls enters: you may that player loses 1 life
+}

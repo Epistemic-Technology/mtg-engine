@@ -1,0 +1,7 @@
+card "Oakheart Dryads" {
+  oracle_id 60bac6e8-0c72-4665-9b01-d07c99dd1716
+  cost {2}{G}
+  type Enchantment Creature — Nymph Dryad
+  pt 2/3
+  label "Constellation" triggered whenever this or enchantment you control enters: target creature gets +1/+1
+}

@@ -1,0 +1,8 @@
+card "Grixis Sojourners" {
+  oracle_id 21f507fd-6a26-455c-879a-f838e0aa2a43
+  cost {1}{U}{B}{R}
+  type Creature — Zombie Ogre
+  pt 4/3
+  triggered when you cycle this and when this dies: you may exile target card from a graveyard
+  cycling {2}{B}
+}

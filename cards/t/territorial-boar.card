@@ -1,0 +1,7 @@
+card "Territorial Boar" {
+  oracle_id 848fc2b8-7208-4415-8be1-add84c780f6e
+  cost {1}{G}
+  type Creature — Boar
+  pt 2/2
+  triggered whenever creature you control with power 4 or greater enters: this gets +1/+1 and this gains vigilance
+}

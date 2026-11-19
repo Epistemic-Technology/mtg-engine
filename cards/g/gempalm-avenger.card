@@ -1,0 +1,8 @@
+card "Gempalm Avenger" {
+  oracle_id cb9e6860-591f-4758-aaa3-14efa0a775f5
+  cost {5}{W}
+  type Creature — Human Soldier
+  pt 3/5
+  cycling {2}{W}
+  triggered when you cycle this: each Soldier creature gets +1/+1 and gains first strike
+}

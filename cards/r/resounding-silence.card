@@ -1,0 +1,8 @@
+card "Resounding Silence" {
+  oracle_id 6eefa487-1542-4d24-80bd-4893d9d908c8
+  cost {3}{W}
+  type Instant
+  spell: exile target attacking creature
+  cycling {5}{G}{W}{U}
+  triggered when you cycle this: exile up to 2 target attacking creatures
+}

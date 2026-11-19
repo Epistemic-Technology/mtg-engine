@@ -1,0 +1,7 @@
+card "Vicious Clown" {
+  oracle_id e02abbc0-687b-4aef-95b8-bf18e199725a
+  cost {2}{R}
+  type Creature — Human Clown
+  pt 2/3
+  triggered whenever other creature you control with power 2 or less enters: this gets +2/+0
+}

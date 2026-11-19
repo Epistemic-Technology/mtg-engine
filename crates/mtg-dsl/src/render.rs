@@ -347,6 +347,20 @@ fn capitalize(s: &str) -> String {
 
 /// "an instant or sorcery spell", "an artifact spell", "a Giant spell",
 /// "an Elemental spell or a Chandra planeswalker spell".
+/// "creature spell", "spell with mana value 4 or greater": the noun
+/// "spell" goes before a filter's "with" qualities.
+fn spell_noun(what: &str) -> String {
+    let what = what.trim();
+    if let Some(rest) = what.strip_prefix("with ") {
+        return format!("spell with {rest}");
+    }
+    match what.find(" with ") {
+        Some(i) => format!("{} spell{}", &what[..i], &what[i..]),
+        None if what.is_empty() => "spell".to_string(),
+        None => format!("{what} spell"),
+    }
+}
+
 fn a_spell(f: &Filter, card: &Card) -> String {
     if let Some(alt) = &f.or {
         let (b, a) = crate::format::factor_qualifiers(f, alt);
@@ -377,7 +391,7 @@ fn a_spell(f: &Filter, card: &Card) -> String {
     } else {
         what.to_string()
     };
-    format!("{} spell", with_article(&what))
+    with_article(&spell_noun(&what))
 }
 
 /// "{T}: Add {C}. Spend this mana only to cast an instant or sorcery
@@ -686,11 +700,7 @@ impl<'a> Ctx<'a> {
         let mut base_filter = spell.clone();
         let targeting = base_filter.targeting.take();
         let base = card_filter_phrase(&base_filter, self.card);
-        let mut out = if base.is_empty() {
-            "target spell".to_string()
-        } else {
-            format!("target {base} spell")
-        };
+        let mut out = format!("target {}", spell_noun(&base));
         if let Some(what) = targeting {
             out.push_str(" that targets ");
             out.push_str(&crate::format::targeting(&what, |g| {
@@ -2919,7 +2929,29 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             }
             // "you may have target creature get +2/+0": another subject
             // takes "have" and the verb's base form.
-            let subject_led = ["target ", "that ", "it ", "another target ", "up to "]
+            // "you may have this creature deal 1 damage ...", "you may
+            // have Ally creatures you control get +1/+0 ...".
+            let group_led = matches!(
+                inner.first().and_then(|s| s.effects.first()),
+                Some(
+                    Effect::Pump {
+                        to: Recipient::Group(_),
+                        ..
+                    } | Effect::Grant {
+                        to: Recipient::Group(_),
+                        ..
+                    }
+                )
+            );
+            let subject_led = group_led
+                || [
+                    "target ",
+                    "that ",
+                    "it ",
+                    "another target ",
+                    "up to ",
+                    "this ",
+                ]
                 .iter()
                 .any(|p| body.starts_with(p));
             if subject_led {
@@ -3201,9 +3233,33 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
     };
     match t {
         Trigger::When(_) => unreachable!("unwrapped above"),
+        Trigger::Either(a, b) => {
+            let a = trigger_text(a, ctx, next);
+            format!("{a} and {}", trigger_text(b, ctx, next))
+        }
+        // CR 702.29d: the card is cycled from the hand, so it's "this card".
+        Trigger::Cycles { this: true, .. } => {
+            ctx.source_mentioned = true;
+            "when you cycle this card".to_string()
+        }
+        Trigger::Cycles {
+            this,
+            another,
+            or_discard,
+        } => crate::format::cycles_text(*this, *another, *or_discard),
+        Trigger::CastsNth { whose, nth } => {
+            format!("whenever {}", crate::format::spell_ordinal(*nth, *whose))
+        }
+        Trigger::EntersBatch(f) => format!(
+            "whenever one or more {} enter",
+            controller_first(f, filter_phrase(f, ctx.card, true))
+        ),
+        Trigger::Dies(o @ TriggerObj::ThisOr(_)) => {
+            format!("whenever {} dies", trigger_subject(o, ctx))
+        }
         Trigger::Enters(TriggerObj::This) => format!("when {} enters", this(ctx)),
-        Trigger::Enters(TriggerObj::Filter(f)) => {
-            format!("whenever {} enters", filter_a(f, ctx.card))
+        Trigger::Enters(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} enters", trigger_subject(o, ctx))
         }
         Trigger::Dies(TriggerObj::This) => {
             if ctx.card.types.contains(&CardType::Creature) {
@@ -3220,7 +3276,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // an Aura: the filter can't be the card itself.
             let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t));
             if f.relation == Relation::Other || f.enchanted || !can_be_self {
-                format!("whenever {} dies", filter_a(f, ctx.card))
+                format!("whenever {} dies", trigger_filter_a(f, ctx.card))
             } else {
                 let t = this(ctx);
                 format!(
@@ -3257,20 +3313,20 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             }
         }
         Trigger::Attacks(TriggerObj::This) => format!("whenever {} attacks", this(ctx)),
-        Trigger::Attacks(TriggerObj::Filter(f)) => {
-            format!("whenever {} attacks", filter_a(f, ctx.card))
+        Trigger::Attacks(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} attacks", trigger_subject(o, ctx))
         }
         Trigger::AttacksAlone(TriggerObj::This) => {
             format!("whenever {} attacks alone", this(ctx))
         }
-        Trigger::AttacksAlone(TriggerObj::Filter(f)) => {
-            format!("whenever {} attacks alone", filter_a(f, ctx.card))
+        Trigger::AttacksAlone(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} attacks alone", trigger_subject(o, ctx))
         }
         Trigger::BecomesBlocked(TriggerObj::This) => {
             format!("whenever {} becomes blocked", this(ctx))
         }
-        Trigger::BecomesBlocked(TriggerObj::Filter(f)) => {
-            format!("whenever {} becomes blocked", filter_a(f, ctx.card))
+        Trigger::BecomesBlocked(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} becomes blocked", trigger_subject(o, ctx))
         }
         Trigger::AttacksOrBlocks(o) => {
             format!("whenever {} attacks or blocks", trigger_subject(o, ctx))
@@ -3278,16 +3334,19 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         Trigger::Leaves(TriggerObj::This) => {
             format!("when {} leaves the battlefield", this(ctx))
         }
-        Trigger::Leaves(TriggerObj::Filter(f)) => {
-            format!("whenever {} leaves the battlefield", filter_a(f, ctx.card))
+        Trigger::Leaves(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!(
+                "whenever {} leaves the battlefield",
+                trigger_subject(o, ctx)
+            )
         }
         Trigger::BlocksOrBlocked(TriggerObj::This) => {
             format!("whenever {} blocks or becomes blocked", this(ctx))
         }
-        Trigger::BlocksOrBlocked(TriggerObj::Filter(f)) => {
+        Trigger::BlocksOrBlocked(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!(
                 "whenever {} blocks or becomes blocked",
-                filter_a(f, ctx.card)
+                trigger_subject(o, ctx)
             )
         }
         Trigger::Blocks(TriggerObj::This) => format!("whenever {} blocks", this(ctx)),
@@ -3308,16 +3367,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             ctx.source_mentioned = false;
             s
         }
-        Trigger::Blocks(TriggerObj::Filter(f)) => {
-            format!("whenever {} blocks", filter_a(f, ctx.card))
+        Trigger::Blocks(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!("whenever {} blocks", trigger_subject(o, ctx))
         }
         Trigger::DealsCombatDamageToPlayer(TriggerObj::This) => {
             format!("whenever {} deals combat damage to a player", this(ctx))
         }
-        Trigger::DealsCombatDamageToPlayer(TriggerObj::Filter(f)) => {
+        Trigger::DealsCombatDamageToPlayer(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!(
                 "whenever {} deals combat damage to a player",
-                filter_a(f, ctx.card)
+                trigger_subject(o, ctx)
             )
         }
         Trigger::GainsLife { whose } => match whose {
@@ -3376,7 +3435,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             } else {
                 what.to_string()
             };
-            format!("whenever {who} {} spell", with_article(&what))
+            format!("whenever {who} {}", with_article(&spell_noun(&what)))
         }
         Trigger::TurnedFaceUp => format!("when {} is turned face up", this(ctx)),
         Trigger::Exploits => format!("when {} exploits a creature", this(ctx)),
@@ -3389,11 +3448,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             "when {} becomes the target of a spell or ability",
             this(ctx)
         ),
-        Trigger::BecomesTarget(TriggerObj::Filter(f))
-        | Trigger::BecomesTargetWhenever(TriggerObj::Filter(f)) => format!(
-            "whenever {} becomes the target of a spell or ability",
-            filter_a(f, ctx.card)
-        ),
+        Trigger::BecomesTarget(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_)))
+        | Trigger::BecomesTargetWhenever(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
+            format!(
+                "whenever {} becomes the target of a spell or ability",
+                trigger_subject(o, ctx)
+            )
+        }
     }
 }
 
@@ -3404,7 +3465,46 @@ fn trigger_subject(o: &TriggerObj, ctx: &mut Ctx) -> String {
             ctx.source_mentioned = true;
             format!("this {}", self_noun(ctx.card))
         }
-        TriggerObj::Filter(f) => filter_a(f, ctx.card),
+        TriggerObj::Filter(f) => trigger_filter_a(f, ctx.card),
+        // Oracle names the source again after this ("..., put a +1/+1
+        // counter on this creature").
+        TriggerObj::ThisOr(f) => {
+            let p = trigger_filter_a(f, ctx.card);
+            let p = p
+                .strip_prefix("an ")
+                .or_else(|| p.strip_prefix("a "))
+                .unwrap_or(&p);
+            format!("this {} or another {p}", self_noun(ctx.card))
+        }
+    }
+}
+
+/// A filter with an article as a trigger's subject, where Oracle names the
+/// controller before the qualities: "a creature you control with power 4
+/// or greater" (elsewhere "a creature with power 4 or greater you
+/// control").
+fn trigger_filter_a(f: &Filter, card: &Card) -> String {
+    controller_first(f, filter_a(f, card))
+}
+
+/// A rendered filter with its "you control" moved before its "with ..."
+/// qualities.
+fn controller_first(f: &Filter, s: String) -> String {
+    let ctl = match f.who {
+        Some(Who::You) => " you control",
+        Some(Who::Opponents) if f.dont_control => " you don't control",
+        Some(Who::Opponents) if f.your_opponents => " your opponents control",
+        Some(Who::Opponents) if !f.defending => " an opponent controls",
+        _ => return s,
+    };
+    if f.or.is_some() {
+        return s;
+    }
+    match (s.strip_suffix(ctl), s.find(" with ")) {
+        (Some(rest), Some(i)) if i < rest.len() => {
+            format!("{}{ctl}{}", &rest[..i], &rest[i..])
+        }
+        _ => s,
     }
 }
 

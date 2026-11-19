@@ -1,0 +1,7 @@
+card "Shadow Alley Denizen" {
+  oracle_id 3dd2f3de-98cc-4263-bd16-b5803e48e892
+  cost {B}
+  type Creature — Vampire Rogue
+  pt 1/1
+  triggered whenever other black creature you control enters: target creature gains intimidate
+}

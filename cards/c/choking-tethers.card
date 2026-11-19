@@ -1,0 +1,8 @@
+card "Choking Tethers" {
+  oracle_id a60348fa-b182-4667-9e38-15bdf3511f82
+  cost {3}{U}
+  type Instant
+  spell: tap up to 4 target creatures
+  cycling {1}{U}
+  triggered when you cycle this: you may tap target creature
+}

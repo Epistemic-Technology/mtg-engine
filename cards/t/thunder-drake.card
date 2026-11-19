@@ -1,0 +1,8 @@
+card "Thunder Drake" {
+  oracle_id a0956c3d-d382-486a-81f1-9aa5cf49b2ab
+  cost {3}{U}
+  type Creature — Elemental Drake
+  pt 2/3
+  keywords flying
+  triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this
+}

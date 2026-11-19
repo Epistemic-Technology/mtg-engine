@@ -1,0 +1,7 @@
+card "Grisly Survivor" {
+  oracle_id 8fe1e619-f827-43f5-acaf-3b79aa671d1d
+  cost {2}{B}
+  type Creature — Minotaur Warrior
+  pt 2/3
+  triggered whenever you cycle or discard a card: this gets +2/+0
+}

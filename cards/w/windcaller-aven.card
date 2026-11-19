@@ -1,0 +1,9 @@
+card "Windcaller Aven" {
+  oracle_id 1da1aa95-b587-4bc3-8bc1-7daa1fc33f00
+  cost {4}{U}{U}
+  type Creature — Bird Wizard
+  pt 4/3
+  keywords flying
+  cycling {U}
+  triggered when you cycle this: target creature gains flying
+}

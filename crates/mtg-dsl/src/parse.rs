@@ -4231,6 +4231,10 @@ impl P {
             && !matches!(self.word_at(1).as_deref(), Some("creature" | "permanent"))
         {
             self.pos += 1;
+            // "this creature or another Ally you control".
+            if self.eat_word("or") {
+                return Ok(TriggerObj::ThisOr(self.filter()?));
+            }
             return Ok(TriggerObj::This);
         }
         Ok(TriggerObj::Filter(self.filter()?))
@@ -4251,8 +4255,53 @@ impl P {
         })
     }
 
-    #[allow(clippy::too_many_lines)]
+    /// A trigger, or two joined by `and` ("When this creature enters and
+    /// whenever you cast ...").
     fn trigger(&mut self) -> R<Trigger> {
+        let first = self.trigger_one()?;
+        if self.at_words(&["and", "when"]) || self.at_words(&["and", "whenever"]) {
+            self.pos += 1;
+            let when = self.at_word("when");
+            let mut second = self.trigger_one()?;
+            if when && !crate::format::natural_when(&second) {
+                second = Trigger::When(Box::new(second));
+            }
+            return Ok(Trigger::Either(Box::new(first), Box::new(second)));
+        }
+        Ok(first)
+    }
+
+    /// The ordinal of `your second spell each turn` and kin, after `you
+    /// cast` / `an opponent casts`.
+    fn spell_ordinal(&mut self) -> R<Option<mtg_core::card::SpellOrdinal>> {
+        use mtg_core::card::SpellOrdinal;
+        if self.eat_words(&["a", "spell", "other", "than"]) {
+            if !(self.eat_word("your") || self.eat_word("their")) {
+                return self.unexpected("`your` or `their`");
+            }
+            self.expect_words(&["first", "spell", "each", "turn"])?;
+            return Ok(Some(SpellOrdinal::NotFirst));
+        }
+        if !(self.at_word("your") || self.at_word("their")) {
+            return Ok(None);
+        }
+        self.pos += 1;
+        let w = self.word()?;
+        self.expect_word("spell")?;
+        let nth = match w.as_str() {
+            "first" if self.eat_words(&["during", "each", "opponent's", "turn"]) => {
+                return Ok(Some(SpellOrdinal::FirstOnOpponentsTurn));
+            }
+            "first" => SpellOrdinal::First,
+            "second" => SpellOrdinal::Second,
+            _ => return self.fail(format!("expected `first` or `second`, found `{w}`")),
+        };
+        self.expect_words(&["each", "turn"])?;
+        Ok(Some(nth))
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn trigger_one(&mut self) -> R<Trigger> {
         if self.eat_word("at") {
             // CR 511.2: "at end of combat" triggers as the end of combat
             // step begins.
@@ -4333,6 +4382,36 @@ impl P {
             self.expect_words(&["card", "each", "turn"])?;
             return Ok(Trigger::DrawsNth { whose, n });
         }
+        // CR 603.2c: "one or more artifacts you control enter".
+        if self.eat_words(&["one", "or", "more"]) {
+            let f = self.filter()?;
+            self.expect_word("enter")?;
+            return Ok(Trigger::EntersBatch(f));
+        }
+        // CR 702.29: "you cycle this card", "you cycle or discard a card".
+        if self.eat_words(&["you", "cycle"]) {
+            if self.eat_word("this") {
+                self.eat_word("card");
+                return Ok(Trigger::Cycles {
+                    this: true,
+                    another: false,
+                    or_discard: false,
+                });
+            }
+            let or_discard = self.eat_words(&["or", "discard"]);
+            let another = if self.eat_word("another") {
+                true
+            } else {
+                self.expect_word("a")?;
+                false
+            };
+            self.expect_word("card")?;
+            return Ok(Trigger::Cycles {
+                this: false,
+                another,
+                or_discard,
+            });
+        }
         if self.at_words(&["you", "cast"])
             || self.at_words(&["an", "opponent", "casts"])
             || self.at_words(&["a", "player", "casts"])
@@ -4345,6 +4424,9 @@ impl P {
                 Who::Any
             };
             self.pos += if whose == Who::You { 2 } else { 3 };
+            if let Some(nth) = self.spell_ordinal()? {
+                return Ok(Trigger::CastsNth { whose, nth });
+            }
             self.eat_word("a");
             self.eat_word("an");
             let simple = self.at_word("spell")

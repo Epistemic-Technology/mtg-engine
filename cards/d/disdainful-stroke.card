@@ -1,0 +1,6 @@
+card "Disdainful Stroke" {
+  oracle_id 11e02134-7b1a-46a4-a89e-7539dd1efada
+  cost {1}{U}
+  type Instant
+  spell: counter target with mana value 4 or greater spell
+}

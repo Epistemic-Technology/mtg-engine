@@ -1,0 +1,7 @@
+card "Oran-Rief Survivalist" {
+  oracle_id 36b4c44a-7682-4876-ae2a-35112cb55ec0
+  cost {1}{G}
+  type Creature — Human Warrior Ally
+  pt 1/1
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

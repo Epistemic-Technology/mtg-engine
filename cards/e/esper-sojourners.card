@@ -1,0 +1,8 @@
+card "Esper Sojourners" {
+  oracle_id 0c59db70-9cb4-4edf-ba6e-12ffa7c06b7b
+  cost {W}{U}{B}
+  type Artifact Creature — Vedalken Wizard
+  pt 2/3
+  triggered when you cycle this and when this dies: you may tap or untap target permanent
+  cycling {2}{U}
+}

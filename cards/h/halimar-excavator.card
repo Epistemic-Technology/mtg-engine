@@ -1,0 +1,7 @@
+card "Halimar Excavator" {
+  oracle_id fd3e37c9-93bf-4f3e-a279-22afbffd8d43
+  cost {1}{U}
+  type Creature — Human Wizard Ally
+  pt 1/3
+  triggered whenever this or Ally you control enters: target player mills count where Ally you control cards
+}

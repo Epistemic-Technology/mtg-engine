@@ -1,0 +1,7 @@
+card "Pitiless Vizier" {
+  oracle_id 340e1078-5158-4199-ab43-976741780b2b
+  cost {3}{B}
+  type Creature — Minotaur Cleric
+  pt 4/2
+  triggered whenever you cycle or discard a card: this gains indestructible
+}

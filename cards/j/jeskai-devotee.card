@@ -1,0 +1,8 @@
+card "Jeskai Devotee" {
+  oracle_id 6dcdd313-6df7-4d44-a4cb-0346a4fdb4e1
+  cost {1}{R}
+  type Creature — Orc Monk
+  pt 2/2
+  label "Flurry" triggered whenever you cast your second spell each turn: this gets +1/+1
+  activated {1}, once: add {U} or {R} or {W}
+}

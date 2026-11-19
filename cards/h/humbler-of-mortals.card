@@ -1,0 +1,7 @@
+card "Humbler of Mortals" {
+  oracle_id 91933f1a-4aad-4f67-8151-a47ab6d0e42c
+  cost {4}{G}{G}
+  type Enchantment Creature — Elemental
+  pt 5/5
+  label "Constellation" triggered whenever this or enchantment you control enters: each creature you control gains trample
+}

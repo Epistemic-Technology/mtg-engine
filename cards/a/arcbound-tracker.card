@@ -1,0 +1,9 @@
+card "Arcbound Tracker" {
+  oracle_id ff86f385-dc3e-4bfe-83e7-9229afab4aa9
+  cost {2}{R}
+  type Artifact Creature — Dog
+  pt 0/0
+  keywords menace
+  modular 2
+  triggered whenever you cast a spell other than your first spell each turn: put 1 +1/+1 counters on this
+}

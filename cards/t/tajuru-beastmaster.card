@@ -1,0 +1,7 @@
+card "Tajuru Beastmaster" {
+  oracle_id cc72ec48-9e8b-4ded-b445-f3a839fd1abe
+  cost {5}{G}
+  type Creature — Elf Warrior Ally
+  pt 5/5
+  label "Rally" triggered whenever this or Ally you control enters: each creature you control gets +1/+1
+}

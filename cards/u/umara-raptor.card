@@ -1,0 +1,8 @@
+card "Umara Raptor" {
+  oracle_id a58ee84f-1d9c-4924-b7b1-14a9b2ba3b98
+  cost {2}{U}
+  type Creature — Bird Ally
+  pt 1/1
+  keywords flying
+  triggered whenever this or Ally you control enters: you may put 1 +1/+1 counters on this
+}

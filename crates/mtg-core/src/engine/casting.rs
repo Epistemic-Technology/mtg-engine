@@ -1410,8 +1410,13 @@ impl GameState {
         if ab.cost.exile_self && self.objects[sa.source].zone == Zone::Graveyard {
             self.move_object(sa.source, Zone::Exile, false);
         }
+        let mut cycled = None;
         if ab.cost.discard_self && self.objects[sa.source].zone == Zone::Hand {
+            let card_def = self.objects[sa.source].def;
             self.discard_card(controller, sa.source);
+            if ab.cycling {
+                cycled = self.current_object(sa.source).map(|c| (c, card_def));
+            }
         }
         self.pay_other_costs(controller, &ab.cost, sa.source, sacrifice, discard);
         self.emit(Event::Activated {
@@ -1419,6 +1424,15 @@ impl GameState {
             source: sa.source,
             def,
         });
+        // CR 702.29d: "when you cycle" triggers as the cycling ability is
+        // activated, so they resolve before it.
+        if let Some((card, def)) = cycled {
+            self.emit(Event::Cycled {
+                player: controller,
+                card,
+                def,
+            });
+        }
         // CR 605.3b: a mana ability doesn't use the stack.
         if ab.is_mana_ability() {
             self.resolve_top();

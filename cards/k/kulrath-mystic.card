@@ -1,0 +1,7 @@
+card "Kulrath Mystic" {
+  oracle_id ed428638-181b-47cb-92f4-379db020e634
+  cost {2}{U}
+  type Creature — Elemental Wizard
+  pt 2/4
+  triggered whenever you cast with mana value 4 or greater spell: this gets +2/+0 and this gains vigilance
+}

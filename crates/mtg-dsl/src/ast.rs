@@ -945,6 +945,27 @@ pub enum Trigger {
     /// A trigger that would print "Whenever" printed "When" ("When this
     /// creature blocks, return it to its owner's hand"): written `when`.
     When(Box<Trigger>),
+    /// `when you cycle this` ("When you cycle this card"), `whenever you
+    /// cycle a card`, `whenever you cycle another card`, `whenever you
+    /// cycle or discard a card` (CR 702.29).
+    Cycles {
+        this: bool,
+        another: bool,
+        or_discard: bool,
+    },
+    /// `whenever you cast your second spell each turn`, `... your first
+    /// spell each turn`, `... a spell other than your first spell each
+    /// turn`, `... your first spell during each opponent's turn`.
+    CastsNth {
+        whose: Who,
+        nth: mtg_core::card::SpellOrdinal,
+    },
+    /// `when this enters and whenever you cast ...`: one ability, two
+    /// trigger events.
+    Either(Box<Trigger>, Box<Trigger>),
+    /// `whenever one or more artifact you control enter`: once for the
+    /// objects entering together (CR 603.2c); `that much` is how many.
+    EntersBatch(Filter),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -952,6 +973,9 @@ pub enum Trigger {
 pub enum TriggerObj {
     This,
     Filter(Filter),
+    /// `this or Ally you control`: "this creature or another Ally you
+    /// control" (the filter, the source included).
+    ThisOr(Filter),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

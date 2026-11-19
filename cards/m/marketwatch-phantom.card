@@ -1,0 +1,7 @@
+card "Marketwatch Phantom" {
+  oracle_id 6b0d4192-bc76-4ef1-92b2-b5fca81970bd
+  cost {1}{W}
+  type Creature — Spirit Detective
+  pt 2/2
+  triggered whenever other creature you control with power 2 or less enters: this gains flying
+}

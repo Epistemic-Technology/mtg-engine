@@ -2530,6 +2530,8 @@ pub const WATCH_TARGETED: u16 = 128;
 pub const WATCH_TAP: u16 = 256;
 pub const WATCH_FACE_UP: u16 = 512;
 pub const WATCH_DRAW: u16 = 1024;
+pub const WATCH_CYCLE: u16 = 2048;
+pub const WATCH_DISCARD: u16 = 4096;
 
 /// Trigger conditions (CR 603.1). Each names the event and, where the
 /// ability's text restricts it, which objects or players it watches.
@@ -2618,6 +2620,56 @@ pub enum TriggerSpec {
     /// "When this creature exploits a creature" (CR 702.110): queued by
     /// the exploit trigger itself, never by an event.
     Exploits,
+    /// "When you cycle this card" (`this`; CR 702.29d: it triggers from
+    /// the graveyard the card was discarded to), "Whenever you cycle a
+    /// card", "Whenever you cycle or discard a card" (`or_discard`: once
+    /// per card discarded, cycling being a discard, CR 702.29a).
+    /// `another` is wording only ("another card"): a permanent on the
+    /// battlefield can't be the card cycled.
+    Cycles {
+        this: bool,
+        another: bool,
+        or_discard: bool,
+    },
+    /// "Whenever you cast your second spell each turn" and kin: the
+    /// spell's place among the spells its caster cast this turn.
+    CastsNth { whose: Who, nth: SpellOrdinal },
+    /// "When this creature enters and whenever you cast ...", "When you
+    /// cycle this card and when this creature dies": one ability with two
+    /// trigger events.
+    Either(Box<(TriggerSpec, TriggerSpec)>),
+    /// "Whenever one or more artifacts you control enter": once for all
+    /// the matching objects that enter together (CR 603.2c), the number
+    /// of them being the trigger's amount ("that much"). Objects entering
+    /// before the next time a player would receive priority count as
+    /// together.
+    EntersBatch(ObjFilter),
+}
+
+/// Which of a player's spells this turn a cast trigger wants.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SpellOrdinal {
+    /// "your first spell each turn".
+    First,
+    /// "your second spell each turn".
+    Second,
+    /// "a spell other than your first spell each turn".
+    NotFirst,
+    /// "your first spell during each opponent's turn".
+    FirstOnOpponentsTurn,
+}
+
+impl SpellOrdinal {
+    /// Whether the `n`th spell its caster cast this turn qualifies, cast
+    /// on its caster's turn or not.
+    pub fn holds(self, n: u8, own_turn: bool) -> bool {
+        match self {
+            SpellOrdinal::First => n == 1,
+            SpellOrdinal::Second => n == 2,
+            SpellOrdinal::NotFirst => n >= 2,
+            SpellOrdinal::FirstOnOpponentsTurn => n == 1 && !own_turn,
+        }
+    }
 }
 
 /// What a damage trigger's damage must be dealt to.
@@ -2630,6 +2682,15 @@ pub enum DamageTo {
 }
 
 impl TriggerSpec {
+    /// "When you cycle this card", alone or as one of two events.
+    pub fn cycles_this(&self) -> bool {
+        match self {
+            TriggerSpec::Cycles { this, .. } => *this,
+            TriggerSpec::Either(pair) => pair.0.cycles_this() || pair.1.cycles_this(),
+            _ => false,
+        }
+    }
+
     /// Whether this kind of trigger can see `event` at all, judged from the
     /// event's kind alone. A cheap filter before the full check.
     pub fn watches(&self, event: &crate::event::Event) -> bool {
@@ -2642,9 +2703,10 @@ impl TriggerSpec {
     /// `&` instead of a walk over abilities.
     pub fn watch_mask(&self) -> u16 {
         match self {
-            TriggerSpec::Enters(_) | TriggerSpec::Dies(_) | TriggerSpec::Leaves(_) => {
-                WATCH_ZONE_CHANGE
-            }
+            TriggerSpec::Enters(_)
+            | TriggerSpec::Dies(_)
+            | TriggerSpec::Leaves(_)
+            | TriggerSpec::EntersBatch(_) => WATCH_ZONE_CHANGE,
             TriggerSpec::AttacksOrBlocks(_) => WATCH_ATTACK | WATCH_BLOCK,
             TriggerSpec::BeginningOfStep { .. } => WATCH_STEP_BEGIN,
             TriggerSpec::Attacks(_) | TriggerSpec::AttacksAlone(_) => WATCH_ATTACK,
@@ -2661,8 +2723,15 @@ impl TriggerSpec {
             TriggerSpec::DrawsNth { .. } => WATCH_DRAW,
             TriggerSpec::Exploits => 0,
             TriggerSpec::GainsLife { .. } => WATCH_LIFE_CHANGE,
-            TriggerSpec::CastsSpell { .. } | TriggerSpec::CastsFiltered { .. } => WATCH_CAST,
+            TriggerSpec::CastsSpell { .. }
+            | TriggerSpec::CastsFiltered { .. }
+            | TriggerSpec::CastsNth { .. } => WATCH_CAST,
             TriggerSpec::BecomesTarget(_) | TriggerSpec::TargetedByOpponent => WATCH_TARGETED,
+            TriggerSpec::Cycles {
+                or_discard: true, ..
+            } => WATCH_DISCARD,
+            TriggerSpec::Cycles { .. } => WATCH_CYCLE,
+            TriggerSpec::Either(pair) => pair.0.watch_mask() | pair.1.watch_mask(),
         }
     }
 }
@@ -2889,6 +2958,10 @@ pub struct ActivatedAbility {
     /// Activated from the hand rather than the battlefield (cycling, CR
     /// 702.29).
     pub from_hand: bool,
+    /// A cycling or typecycling ability (CR 702.29): activating it is
+    /// "cycling" the card, for "when you cycle" triggers.
+    #[serde(default)]
+    pub cycling: bool,
     /// Activated from the graveyard (unearth, CR 702.84).
     pub from_graveyard: bool,
     /// The ability's text, for naming the choice.

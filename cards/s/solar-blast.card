@@ -1,0 +1,8 @@
+card "Solar Blast" {
+  oracle_id ece3e379-c586-48bd-8742-472b5deccc35
+  cost {3}{R}
+  type Instant
+  spell: deal 3 damage to any target
+  cycling {1}{R}{R}
+  triggered when you cycle this: you may deal 1 damage to any target
+}

@@ -1,0 +1,8 @@
+card "Akoum Battlesinger" {
+  oracle_id eb448589-28e1-49d4-ba3e-7ddb4341fdc5
+  cost {1}{R}
+  type Creature — Human Berserker Ally
+  pt 1/1
+  keywords haste
+  triggered whenever this or Ally you control enters: you may each Ally creature you control gets +1/+0
+}

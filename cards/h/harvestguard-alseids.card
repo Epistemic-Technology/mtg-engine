@@ -1,0 +1,7 @@
+card "Harvestguard Alseids" {
+  oracle_id ad88bf37-bbb4-46f0-9994-1863c7c31a2a
+  cost {2}{W}
+  type Enchantment Creature — Nymph
+  pt 2/3
+  label "Constellation" triggered whenever this or enchantment you control enters: prevent all damage to target creature this turn
+}

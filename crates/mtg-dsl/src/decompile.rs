@@ -734,6 +734,24 @@ impl Decompiler<'_> {
             TriggerSpec::BlockedBy(f) => {
                 Trigger::BecomesBlocked(TriggerObj::Filter(self.filter(f)))
             }
+            TriggerSpec::Cycles {
+                this,
+                another,
+                or_discard,
+            } => Trigger::Cycles {
+                this: *this,
+                another: *another,
+                or_discard: *or_discard,
+            },
+            TriggerSpec::CastsNth { whose, nth } => Trigger::CastsNth {
+                whose: *whose,
+                nth: *nth,
+            },
+            TriggerSpec::EntersBatch(f) => Trigger::EntersBatch(self.filter(f)),
+            TriggerSpec::Either(pair) => Trigger::Either(
+                Box::new(self.trigger(&pair.0)),
+                Box::new(self.trigger(&pair.1)),
+            ),
         }
     }
 
@@ -930,7 +948,7 @@ impl Decompiler<'_> {
                     targets: act.targets.iter().map(|t| self.target(*t)).collect(),
                     effects: self.sentences(&act.effects),
                     equip,
-                    cycling: act.from_hand,
+                    cycling: act.cycling,
                 }
             }
             AbilityDef::Triggered(t) => Ability::Triggered {

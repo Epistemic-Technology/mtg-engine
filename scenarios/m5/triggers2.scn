@@ -1,0 +1,348 @@
+# Trigger conditions: cycling (CR 702.29), cast triggers by mana value or
+# by the spell's place among its caster's spells this turn, enters
+# triggers with power and keyword filters, "this creature or another ..."
+# subjects, and one ability with two trigger events.
+#
+# "When you cycle this card" triggers from the card itself as the cycling
+# ability is activated (CR 702.29d), so it resolves before the draw.
+# "Whenever you cycle or discard a card" triggers once per card discarded;
+# cycling is discarding (CR 702.29a).
+
+scenario "when you cycle this card: Choking Tethers taps a creature" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Choking Tethers"
+  turn 1 A: activate "Choking Tethers"
+  turn 1 A: trigger "Choking Tethers" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert tapped "Hill Giant"
+  assert graveyard A contains "Choking Tethers"
+  assert hand A count 1
+}
+
+scenario "when you cycle this card: Resounding Thunder deals 6 damage from the graveyard" {
+  battlefield A: 5 "Mountain", "Swamp", "Forest", "Mountain"
+  hand A: "Resounding Thunder"
+  turn 1 A: activate "Resounding Thunder"
+  turn 1 A: trigger "Resounding Thunder" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 14
+  assert hand A count 1
+}
+
+scenario "when you cycle this card: casting Resounding Thunder doesn't trigger it" {
+  battlefield A: 3 "Mountain"
+  hand A: "Resounding Thunder"
+  turn 1 A: cast "Resounding Thunder" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "when you cycle this card and when this creature dies: Bant Sojourners cycled" {
+  battlefield A: 3 "Plains"
+  hand A: "Bant Sojourners"
+  turn 1 A: activate "Bant Sojourners"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soldier"
+}
+
+scenario "when you cycle this card and when this creature dies: Bant Sojourners dies" {
+  battlefield A: "Bant Sojourners" with 1 -1/-1, "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Bant Sojourners"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Soldier"
+}
+
+scenario "whenever you cycle another card: Drannith Healer gains life" {
+  battlefield A: "Drannith Healer", 2 "Island"
+  hand A: "Choking Tethers"
+  turn 1 A: activate "Choking Tethers"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "whenever you cycle another card: a Drannith Healer cycled from the hand sees nothing" {
+  battlefield A: "Island"
+  hand A: "Drannith Healer"
+  turn 1 A: activate "Drannith Healer"
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert graveyard A contains "Drannith Healer"
+}
+
+scenario "whenever you cycle a card: Prickly Marmoset ignores a plain discard" {
+  battlefield A: "Prickly Marmoset", 2 "Mountain"
+  hand A: "Tormenting Voice", "Grizzly Bears"
+  turn 1 A: cast "Tormenting Voice" discarding "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Prickly Marmoset" 2
+}
+
+scenario "whenever you cycle a card: Prickly Marmoset gets +2/+0" {
+  battlefield A: "Prickly Marmoset", 2 "Island"
+  hand A: "Choking Tethers"
+  turn 1 A: activate "Choking Tethers"
+  run_to turn 1 postcombat_main
+  assert power "Prickly Marmoset" 4
+}
+
+scenario "whenever you cycle or discard a card: Grisly Survivor sees a discard" {
+  battlefield A: "Grisly Survivor", 2 "Mountain"
+  hand A: "Tormenting Voice", "Grizzly Bears"
+  turn 1 A: cast "Tormenting Voice" discarding "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grisly Survivor" 4
+}
+
+scenario "whenever you cycle or discard a card: Grisly Survivor sees a cycle once" {
+  battlefield A: "Grisly Survivor", 2 "Island"
+  hand A: "Choking Tethers"
+  turn 1 A: activate "Choking Tethers"
+  run_to turn 1 postcombat_main
+  assert power "Grisly Survivor" 4
+}
+
+scenario "whenever you cycle or discard a card: an opponent's discard doesn't count" {
+  battlefield A: "Grisly Survivor"
+  battlefield B: 2 "Mountain"
+  hand B: "Tormenting Voice", "Grizzly Bears"
+  turn 2 B: cast "Tormenting Voice" discarding "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert power "Grisly Survivor" 2
+}
+
+scenario "a spell with mana value 4 or greater: Angry Rabble pings" {
+  battlefield A: "Angry Rabble", 4 "Mountain"
+  hand A: "Hill Giant"
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}
+
+scenario "a spell with mana value 4 or greater: a smaller spell does nothing" {
+  battlefield A: "Angry Rabble", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "your second spell each turn: Thunder Drake grows on the second" {
+  battlefield A: "Thunder Drake", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Thunder Drake" +1/+1 1
+}
+
+scenario "your second spell each turn: not on the first" {
+  battlefield A: "Thunder Drake", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Thunder Drake" +1/+1 0
+}
+
+scenario "your first spell each turn: Rodeo Pyromancers pays for the next one" {
+  battlefield A: "Rodeo Pyromancers", "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+scenario "a spell other than your first spell each turn: Arcbound Tracker" {
+  battlefield A: 6 "Mountain"
+  hand A: "Arcbound Tracker", "Shock", "Lightning Bolt", "Shock"
+  turn 1 A: cast "Arcbound Tracker"
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  # Modular 2, then one counter for each spell after the first.
+  assert counters "Arcbound Tracker" +1/+1 5
+}
+
+scenario "your first spell during each opponent's turn: Arena Trickster" {
+  battlefield A: "Arena Trickster", "Mountain"
+  hand A: "Shock"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Shock" targeting player B
+  run_to turn 2 postcombat_main
+  assert counters "Arena Trickster" +1/+1 1
+}
+
+scenario "your first spell during each opponent's turn: not on your own turn" {
+  battlefield A: "Arena Trickster", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert counters "Arena Trickster" +1/+1 0
+}
+
+scenario "when this creature enters and whenever you cast: Flaring Cinder loots on both" {
+  battlefield A: 7 "Mountain"
+  hand A: "Flaring Cinder", "Grizzly Bears", "Shock", "Hill Giant"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: cast "Flaring Cinder"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  # Two loots: each discards a card and draws one.
+  assert graveyard A count 2
+  assert library A count 1
+}
+
+scenario "counter target spell with mana value 4 or greater: Disdainful Stroke" {
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Mountain"
+  hand A: "Disdainful Stroke"
+  hand B: "Hill Giant"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Hill Giant"
+  turn 2 A: cast "Disdainful Stroke" targeting "Hill Giant" in response to "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "counter target spell with mana value 4 or greater: not a smaller spell" {
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Disdainful Stroke"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  illegal turn 2 A: cast "Disdainful Stroke" targeting "Grizzly Bears" in response to "Grizzly Bears"
+  run_to turn 2 postcombat_main
+}
+
+scenario "a creature you control with power 5 or greater enters: Godtracker of Jund" {
+  battlefield A: "Godtracker of Jund", 6 "Forest"
+  hand A: "Craw Wurm"
+  turn 1 A: cast "Craw Wurm"
+  run_to turn 1 postcombat_main
+  assert counters "Godtracker of Jund" +1/+1 1
+}
+
+scenario "a creature you control with power 5 or greater enters: not a smaller one" {
+  battlefield A: "Godtracker of Jund", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Godtracker of Jund" +1/+1 0
+}
+
+scenario "another creature you control with power 2 or less: Marketwatch Phantom flies" {
+  battlefield A: "Marketwatch Phantom", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Marketwatch Phantom" flying
+}
+
+scenario "another creature you control with power 2 or less: not its own entering" {
+  battlefield A: 2 "Plains"
+  hand A: "Marketwatch Phantom"
+  turn 1 A: cast "Marketwatch Phantom"
+  run_to turn 1 postcombat_main
+  assert has not "Marketwatch Phantom" flying
+}
+
+scenario "this creature or another creature you control: Kor Celebrant sees itself" {
+  battlefield A: 3 "Plains"
+  hand A: "Kor Celebrant"
+  turn 1 A: cast "Kor Celebrant"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "this creature or another creature you control: Kor Celebrant sees another" {
+  battlefield A: "Kor Celebrant", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life A 21
+}
+
+scenario "this creature or another creature you control: not an opponent's" {
+  battlefield A: "Kor Celebrant"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+}
+
+scenario "this creature or another Ally you control: Graypelt Hunter and a non-Ally" {
+  battlefield A: "Graypelt Hunter", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert counters "Graypelt Hunter" +1/+1 0
+}
+
+scenario "this creature or another Ally you control: Graypelt Hunter and an Ally" {
+  battlefield A: "Graypelt Hunter", 3 "Island"
+  hand A: "Umara Raptor"
+  turn 1 A: cast "Umara Raptor"
+  run_to turn 1 postcombat_main
+  # Each sees the Raptor enter.
+  assert counters "Graypelt Hunter" +1/+1 1
+  assert counters "Umara Raptor" +1/+1 1
+}
+
+scenario "this creature or another creature with power 4 or greater dies: Warbeast itself" {
+  battlefield A: "Warbeast of Gorgoroth", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting "Warbeast of Gorgoroth"
+  turn 1 A: cast "Shock" targeting "Warbeast of Gorgoroth" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Warbeast of Gorgoroth"
+  assert power "Orc Army" 2
+}
+
+scenario "this creature or another creature with power 4 or greater dies: not a small one" {
+  battlefield A: "Warbeast of Gorgoroth", "Grizzly Bears", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Orc Army"
+}
+
+scenario "one or more artifacts you control enter: once for two Servos, counting both" {
+  battlefield A: "Ingenious Artillerist", 2 "Plains"
+  hand A: "Servo Exhibition"
+  turn 1 A: cast "Servo Exhibition"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains 2 "Servo"
+  assert life B 18
+}
+
+scenario "one or more artifacts you control enter: separate events trigger separately" {
+  battlefield A: "Ingenious Artillerist"
+  hand A: "Ornithopter", "Ornithopter"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "one or more artifacts you control enter: not an opponent's" {
+  battlefield A: "Ingenious Artillerist"
+  battlefield B: 2 "Plains"
+  hand B: "Servo Exhibition"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Servo Exhibition"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

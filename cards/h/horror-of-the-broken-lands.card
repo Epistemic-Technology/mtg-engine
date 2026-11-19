@@ -1,0 +1,8 @@
+card "Horror of the Broken Lands" {
+  oracle_id 6de20c2c-b8a8-4f12-897b-a2f55d7eed87
+  cost {4}{B}
+  type Creature — Horror
+  pt 4/4
+  triggered whenever you cycle or discard another card: this gets +2/+1
+  cycling {B}
+}

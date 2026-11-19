@@ -1,0 +1,9 @@
+card "Quakefoot Cyclops" {
+  oracle_id cbb6139f-827f-490b-b9b7-e8c3ef714d44
+  cost {4}{R}
+  type Creature — Cyclops
+  pt 4/4
+  triggered when this enters: up to 2 target creatures can't block
+  cycling {1}{R}
+  triggered when you cycle this: target creature can't block
+}

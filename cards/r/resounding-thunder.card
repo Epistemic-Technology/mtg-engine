@@ -1,0 +1,8 @@
+card "Resounding Thunder" {
+  oracle_id b0e1d26e-2fa1-4826-bfe9-01b0bd2c138b
+  cost {2}{R}
+  type Instant
+  spell: deal 3 damage to any target
+  cycling {5}{B}{R}{G}
+  triggered when you cycle this: deal 6 damage to any target
+}

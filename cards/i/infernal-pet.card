@@ -1,0 +1,7 @@
+card "Infernal Pet" {
+  oracle_id 831b7dad-ab5a-4980-a52d-65c5633d474a
+  cost {2}{B}
+  type Creature — Imp
+  pt 2/2
+  triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this and this gains flying
+}

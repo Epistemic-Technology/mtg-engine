@@ -1,0 +1,7 @@
+card "Snare Tactician" {
+  oracle_id efee89a6-b730-45b6-bb84-33de0f25ad47
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered whenever you cycle a card: tap target creature an opponent controls
+}

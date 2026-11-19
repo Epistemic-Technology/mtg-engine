@@ -1,0 +1,7 @@
+card "Ondu Cleric" {
+  oracle_id f4232466-dd6a-49bf-be6c-95905c3ded17
+  cost {1}{W}
+  type Creature — Kor Cleric Ally
+  pt 1/1
+  triggered whenever this or Ally you control enters: you may you gain count equal Ally you control life
+}

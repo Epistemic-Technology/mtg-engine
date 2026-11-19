@@ -1,0 +1,8 @@
+card "Renewed Faith" {
+  oracle_id aa4ecefa-808e-4706-af16-4ea5af9743fc
+  cost {2}{W}
+  type Instant
+  spell: you gain 6 life
+  cycling {1}{W}
+  triggered when you cycle this: you may you gain 2 life
+}

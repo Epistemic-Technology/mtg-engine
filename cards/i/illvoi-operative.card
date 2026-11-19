@@ -1,0 +1,7 @@
+card "Illvoi Operative" {
+  oracle_id 2e0b225a-d4b4-4f53-8fea-8c6c37102920
+  cost {1}{U}
+  type Creature — Jellyfish Rogue
+  pt 2/1
+  triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this
+}

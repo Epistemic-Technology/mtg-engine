@@ -1,0 +1,7 @@
+card "Kalastria Healer" {
+  oracle_id b70718c3-a959-402a-a715-7a3c9724a70a
+  cost {1}{B}
+  type Creature — Vampire Cleric Ally
+  pt 1/2
+  label "Rally" triggered whenever this or Ally you control enters: each opponent loses 1 life and you gain 1 life
+}

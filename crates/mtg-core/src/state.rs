@@ -1013,7 +1013,9 @@ impl GameState {
                 || self.eot_grants > 0)
             || ((!self.delayed_triggers.is_empty() || self.suspended_count > 0)
                 && matches!(event, Event::StepBegin { .. }))
-            || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers());
+            || matches!(&event, Event::ZoneChange { def, .. } if self.pool.get(*def).has_triggers())
+            // "When you cycle this card": the card itself watches.
+            || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
             self.detect_triggers(&event);
         }

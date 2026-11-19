@@ -1,0 +1,7 @@
+card "Poised Practitioner" {
+  oracle_id e08debdc-2db5-4562-8a02-4158bfc0db88
+  cost {2}{W}
+  type Creature — Human Monk
+  pt 2/3
+  label "Flurry" triggered whenever you cast your second spell each turn: put 1 +1/+1 counters on this; scry 1
+}
