@@ -1,0 +1,7 @@
+card "Brown Ouphe" {
+  oracle_id 5b42e91a-e3bd-4f69-9abf-ed6273715fff
+  cost {G}
+  type Creature — Ouphe
+  pt 1/1
+  activated {1}{G}, {T}: counter target activated ability from an artifact source
+}

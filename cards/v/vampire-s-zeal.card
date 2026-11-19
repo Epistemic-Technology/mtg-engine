@@ -1,0 +1,6 @@
+card "Vampire's Zeal" {
+  oracle_id cc7dcb89-534b-4e86-abd2-8362855e2f66
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if target 1 is Vampire, target 1 gains first strike
+}

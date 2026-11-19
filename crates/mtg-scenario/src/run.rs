@@ -431,7 +431,10 @@ impl Runner {
             DecisionKind::ChooseSacrifice { .. } => self.choose_cost(d, "sacrifice"),
             DecisionKind::ChooseDiscardCost { .. } => self.choose_cost(d, "discard"),
             DecisionKind::ChooseAttackTarget { attacker } => self.choose_attack_target(d, attacker),
-            DecisionKind::YouMay { def } => Ok(self.you_may(d, pos, def)),
+            // "On their choice of the top or bottom": `accept` is the top.
+            DecisionKind::YouMay { def } | DecisionKind::TopOrBottom { def } => {
+                Ok(self.you_may(d, pos, def))
+            }
             DecisionKind::ChooseCopy => self.choose_copy(d, pos),
             DecisionKind::ChooseColor
             | DecisionKind::ChooseType
@@ -821,7 +824,7 @@ impl Runner {
             }
             return Ok(0);
         }
-        let t = self.resolve_target(line, tr)?;
+        let t = self.target_for(d, line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
             // (a sacrifice, CR 601.2h) must not inherit them.
@@ -1271,7 +1274,7 @@ impl Runner {
             }
             return Ok(0);
         }
-        let t = self.resolve_target(line, tr)?;
+        let t = self.target_for(d, line, tr)?;
         if index + 1 == targets.len() {
             // All chosen: a trigger that fires while the costs are paid
             // (a sacrifice, CR 601.2h) must not inherit them.
@@ -1787,7 +1790,7 @@ impl Runner {
                     if matches!(tr, TargetRef::Auto) {
                         0
                     } else {
-                        let t = self.resolve_target(line, tr)?;
+                        let t = self.target_for(&d, line, tr)?;
                         match index_of(&d, &Choice::Target(t)) {
                             Some(k) => k,
                             None => return Ok(true),
@@ -1802,6 +1805,32 @@ impl Runner {
             }
         }
         Ok(false)
+    }
+
+    /// `resolve_target` for a target decision: when the named object is
+    /// not among the options, an ability on the stack named after its
+    /// source that is ("target activated ability").
+    fn target_for(&self, d: &Decision, line: usize, tr: &TargetRef) -> Res<Target> {
+        let t = self.resolve_target(line, tr)?;
+        if index_of(d, &Choice::Target(t)).is_some() {
+            return Ok(t);
+        }
+        let TargetRef::Object(r) = tr else {
+            return Ok(t);
+        };
+        let st = self.state();
+        Ok(st
+            .stack
+            .iter()
+            .rev()
+            .copied()
+            .find(|id| {
+                st.objects[*id].kind == ObjKind::Ability
+                    && r.player.is_none_or(|p| st.objects[*id].controller == p)
+                    && st.name_of(*id) == r.name
+                    && index_of(d, &Choice::Target(Target::Object(*id))).is_some()
+            })
+            .map_or(t, Target::Object))
     }
 
     fn resolve_target(&self, line: usize, tr: &TargetRef) -> Res<Target> {

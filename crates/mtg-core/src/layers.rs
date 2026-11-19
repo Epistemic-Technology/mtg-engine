@@ -793,7 +793,9 @@ fn per_count(
         | CountExpr::TargetStat { .. }
         | CountExpr::ThisWay(..)
         | CountExpr::LifeLostThisWay
-        | CountExpr::BlockingIt { .. } => 0,
+        | CountExpr::BlockingIt { .. }
+        | CountExpr::TargetManaValue(_)
+        | CountExpr::GreatestPower(_) => 0,
     };
     i32::try_from(n).unwrap_or(i32::MAX)
 }

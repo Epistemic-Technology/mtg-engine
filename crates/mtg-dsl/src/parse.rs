@@ -12,9 +12,9 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, AttachedRef, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem,
-    DamageWording, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, Mechanic, Mod,
-    Mode, OfChosen, Recipient, Replacement, Replaces, Restrict, SacCost, SameRef, Sentence,
-    StaticCond, Target, Trigger, TriggerObj,
+    DamageWording, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
+    LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces, Restrict,
+    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -207,6 +207,51 @@ pub(crate) const TARGETS: &[(&[&str], TargetSpec)] = &[
     (
         &["artifact", "or", "creature"],
         TargetSpec::ArtifactOrCreature,
+    ),
+    (
+        &["spell", "or", "ability"],
+        TargetSpec::OnStack {
+            spells: true,
+            activated: true,
+            triggered: true,
+            source: None,
+        },
+    ),
+    (
+        &["activated", "or", "triggered", "ability"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: true,
+            source: None,
+        },
+    ),
+    (
+        &["activated", "ability", "from", "an", "artifact", "source"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: false,
+            source: Some(CardType::Artifact),
+        },
+    ),
+    (
+        &["activated", "ability"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: true,
+            triggered: false,
+            source: None,
+        },
+    ),
+    (
+        &["triggered", "ability"],
+        TargetSpec::OnStack {
+            spells: false,
+            activated: false,
+            triggered: true,
+            source: None,
+        },
     ),
     (&["noncreature", "spell"], TargetSpec::NoncreatureSpell),
     (&["creature", "spell"], TargetSpec::CreatureSpell),
@@ -2265,17 +2310,34 @@ impl P {
             return self.fail(format!("target {n} has not been declared"));
         }
         if self.eat_word("is") {
-            // `if target 1 is Human, ... instead`: only as an "instead".
+            // `if target 1 is Human, ... instead`: an "instead"; otherwise
+            // the target as it resolves ("If it's a Vampire, it also gains
+            // lifelink until end of turn").
             let filter = self.filter()?;
             self.expect(&Tok::Comma)?;
+            let tense = if that {
+                crate::ast::TargetTense::ThatIs
+            } else {
+                crate::ast::TargetTense::Is
+            };
+            if self.eat_word("also") {
+                let saved = self.subject.take();
+                let s = self.sentence()?;
+                self.subject = saved;
+                let check = crate::ast::TargetCheck { tense, also: true };
+                return Ok(Effect::IfTarget(n - 1, filter, vec![s], check));
+            }
             let cond = InsteadCond::Target {
                 n: n - 1,
                 that,
-                filter,
+                filter: filter.clone(),
             };
             return match self.instead_body(cond)? {
                 Ok(e) => Ok(e),
-                Err(_) => self.fail("`if target 1 is ...` needs `instead`"),
+                Err(s) => {
+                    let check = crate::ast::TargetCheck { tense, also: false };
+                    Ok(Effect::IfTarget(n - 1, filter, vec![s], check))
+                }
             };
         }
         if that {
@@ -2287,7 +2349,12 @@ impl P {
         let saved = self.subject.take();
         let s = self.sentence()?;
         self.subject = saved;
-        Ok(Effect::IfTarget(n - 1, f, vec![s]))
+        Ok(Effect::IfTarget(
+            n - 1,
+            f,
+            vec![s],
+            crate::ast::TargetCheck::default(),
+        ))
     }
 
     /// Whether an `if` here is a "this way" condition: `this way`, or
@@ -3331,17 +3398,56 @@ impl P {
                         .is_some_and(|w| NUMBER_WORDS.contains(&w.as_str()) || w == "x") =>
             {
                 let what = self.recipient()?;
-                self.expect_word("on")?;
-                let top = if self.eat_word("top") {
-                    true
-                } else {
-                    self.expect_word("bottom")?;
-                    false
+                let place = self.library_place(false)?;
+                if matches!(
+                    place,
+                    LibraryPlace::TopOrBottom | LibraryPlace::FromTopOrBottom(_)
+                ) {
+                    return self.fail("the owner chooses: `owner puts ...`");
+                }
+                Ok(Effect::PutInLibrary {
+                    what,
+                    place,
+                    wording: LibraryWording::Put,
+                })
+            }
+            "shuffle" if !self.at_word("library") && !self.at_word("your") => {
+                let what = self.recipient()?;
+                let place = self.library_place(true)?;
+                Ok(Effect::PutInLibrary {
+                    what,
+                    place,
+                    wording: LibraryWording::Put,
+                })
+            }
+            // `owner puts target creature on top or bottom of library`,
+            // `owner of target creature puts it ...`, `owner shuffles this
+            // into library`.
+            "owner" => {
+                let of = self.eat_word("of");
+                let what = if of { Some(self.recipient()?) } else { None };
+                let shuffle = match self.word()?.as_str() {
+                    "puts" => false,
+                    "shuffles" => true,
+                    _ => return self.unexpected("`puts` or `shuffles`"),
                 };
-                self.expect_word("of")?;
-                self.eat_words(&["its", "owner's"]);
-                self.expect_word("library")?;
-                Ok(Effect::PutInLibrary { what, top })
+                let what = match what {
+                    Some(w) => {
+                        self.expect_word("it")?;
+                        w
+                    }
+                    None => self.recipient()?,
+                };
+                let place = self.library_place(shuffle)?;
+                Ok(Effect::PutInLibrary {
+                    what,
+                    place,
+                    wording: if of {
+                        LibraryWording::OwnerOf
+                    } else {
+                        LibraryWording::Owner
+                    },
+                })
             }
 
             "put" => {
@@ -3690,9 +3796,18 @@ impl P {
                 if self.eat_word("unless") {
                     self.expect_words(&["its", "controller", "pays"])?;
                     let mana = self.mana_cost()?;
-                    return Ok(Effect::CounterUnlessPays { to, mana });
+                    // `{X} count each hand`: "{1} for each card in your
+                    // hand"; a bare {X} is the spell's X.
+                    let x = if self.at_word("count") {
+                        self.num()?
+                    } else {
+                        Num::X
+                    };
+                    let dest = self.countered_to();
+                    return Ok(Effect::CounterUnlessPays { to, mana, x, dest });
                 }
-                Ok(Effect::Counter { to })
+                let dest = self.countered_to();
+                Ok(Effect::Counter { to, dest })
             }
             "create" => {
                 if self.eat_word("token") || self.eat_words(&["a", "token"]) {
@@ -3845,6 +3960,59 @@ impl P {
         }
     }
 
+    /// After a counter: `to exile` ("If that spell is countered this way,
+    /// exile it instead ..."), `to library top`, or nothing.
+    fn countered_to(&mut self) -> crate::ast::CounteredTo {
+        use crate::ast::CounteredTo;
+        if self.eat_words(&["to", "exile"]) {
+            return CounteredTo::Exile;
+        }
+        if self.eat_words(&["to", "library", "top"]) {
+            return CounteredTo::LibraryTop;
+        }
+        CounteredTo::Graveyard
+    }
+
+    /// Where in a library: `on top of library`, `on bottom of library`,
+    /// `on top or bottom of library`, `into library 2 from top [or
+    /// bottom]`, or (for a shuffle) `into library`.
+    fn library_place(&mut self, shuffle: bool) -> R<crate::ast::LibraryPlace> {
+        use crate::ast::LibraryPlace;
+        if shuffle {
+            self.expect_words(&["into", "library"])?;
+            return Ok(LibraryPlace::Shuffle);
+        }
+        if self.eat_words(&["into", "library"]) {
+            let n = self.number()?;
+            if n < 2 {
+                return self.fail("`into library N from top` needs N of 2 or more");
+            }
+            let n = u8::try_from(n).map_err(|_| ParseError {
+                line: self.line(),
+                message: "too deep".to_string(),
+            })?;
+            self.expect_words(&["from", "top"])?;
+            return Ok(if self.eat_words(&["or", "bottom"]) {
+                LibraryPlace::FromTopOrBottom(n)
+            } else {
+                LibraryPlace::FromTop(n)
+            });
+        }
+        self.expect_word("on")?;
+        let place = if self.eat_words(&["top", "or", "bottom"]) {
+            LibraryPlace::TopOrBottom
+        } else if self.eat_word("top") {
+            LibraryPlace::Top
+        } else {
+            self.expect_word("bottom")?;
+            LibraryPlace::Bottom
+        };
+        self.expect_word("of")?;
+        self.eat_words(&["its", "owner's"]);
+        self.expect_word("library")?;
+        Ok(place)
+    }
+
     fn num(&mut self) -> R<Num> {
         if self.at_words(&["that", "much"]) {
             self.pos += 2;
@@ -3959,6 +4127,16 @@ impl P {
         }
         if let Some(c) = self.this_way_count()? {
             return Ok(c);
+        }
+        if self.eat_words(&["mana", "value", "of", "target"]) {
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(CountExpr::TargetManaValue(n - 1));
+        }
+        if self.eat_words(&["greatest", "power"]) {
+            return Ok(CountExpr::GreatestPower(self.filter()?));
         }
         if self.eat_word("domain") {
             return Ok(CountExpr::Domain);
@@ -5031,6 +5209,7 @@ impl P {
                         let keep = matches!(
                             raw.as_str(),
                             "Plains"
+                                | "Cyclops"
                                 | "Locus"
                                 | "Homunculus"
                                 | "Fungus"

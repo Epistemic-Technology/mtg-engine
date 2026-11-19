@@ -1,0 +1,6 @@
+card "Thwip!" {
+  oracle_id f7d11254-b48a-4016-a035-c0d6642fdfae
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2 and target 1 gains flying; if target 1 is Spider, you gain 2 life
+}

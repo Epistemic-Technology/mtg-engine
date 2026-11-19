@@ -1,0 +1,6 @@
+card "Yip Yip!" {
+  oracle_id 5453550f-9136-4568-baf8-c3d20e33fbb6
+  cost {W}
+  type Instant — Lesson
+  spell: target creature you control gets +2/+2; if that target 1 is Ally, also target 1 gains flying
+}

@@ -1,0 +1,6 @@
+card "Chronostutter" {
+  oracle_id a7c46e5f-6e3a-405b-86fa-404d3b6971db
+  cost {5}{U}
+  type Instant
+  spell: put target creature into library 2 from top
+}

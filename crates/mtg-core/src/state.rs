@@ -1458,6 +1458,7 @@ impl GameState {
         obj: &GameObject,
         t: &crate::card::SpellTargets,
         you: PlayerId,
+        source: Option<ObjId>,
     ) -> bool {
         obj.targets.iter().any(|x| match *x {
             Target::Player(p) => t.player || (t.you && p == you),
@@ -1466,7 +1467,7 @@ impl GameState {
                     .get(o)
                     .is_some_and(|ob| ob.zone == Zone::Battlefield)
                     && self.characteristics(o).is_some_and(|c| {
-                        f.matches(o, self.objects[o].controller, &c, None, Some(you))
+                        f.matches(o, self.objects[o].controller, &c, source, Some(you))
                     })
                     && self.status_ok(f, o)
             }),
@@ -1530,6 +1531,7 @@ impl GameState {
             | TargetSpec::Spell
             | TargetSpec::CreatureSpell
             | TargetSpec::NoncreatureSpell
+            | TargetSpec::OnStack { .. }
             | TargetSpec::PlayerOrPlaneswalker
             | TargetSpec::OpponentOrPlaneswalker
             | TargetSpec::SpellFiltered(_)
@@ -1954,6 +1956,32 @@ impl GameState {
                         && f.matches(id, obj.owner, &c, source, None)
                         && self.status_ok(&f, id);
                 }
+                if let TargetSpec::OnStack {
+                    spells,
+                    activated,
+                    triggered,
+                    source: source_type,
+                } = spec
+                {
+                    if obj.zone != Zone::Stack {
+                        return false;
+                    }
+                    let Some(sa) = obj.ability else {
+                        return spells;
+                    };
+                    let kind_ok = match self.pool.ability(sa.ability) {
+                        crate::card::AbilityDef::Activated(_) => activated,
+                        crate::card::AbilityDef::Triggered(_) => triggered,
+                        _ => false,
+                    };
+                    // "from an artifact source": the source as it is, or as
+                    // it last existed (CR 113.7a).
+                    return kind_ok
+                        && source_type.is_none_or(|t| {
+                            self.characteristics_or_lki(sa.source)
+                                .is_some_and(|c| c.types.contains(t))
+                        });
+                }
                 if spec.is_spell() {
                     if obj.zone != Zone::Stack || obj.kind == ObjKind::Ability {
                         return false;
@@ -1969,7 +1997,7 @@ impl GameState {
                                 && self.status_ok(f, id)
                                 && f.targeting
                                     .as_ref()
-                                    .is_none_or(|t| self.spell_targets(obj, t, caster))
+                                    .is_none_or(|t| self.spell_targets(obj, t, caster, source))
                         }
                         _ => true,
                     };
@@ -2048,6 +2076,7 @@ impl GameState {
                     | TargetSpec::Spell
                     | TargetSpec::CreatureSpell
                     | TargetSpec::NoncreatureSpell
+                    | TargetSpec::OnStack { .. }
                     | TargetSpec::UpTo(_)
                     | TargetSpec::Many(_)
                     | TargetSpec::CreatureCardInYourGraveyard => false,

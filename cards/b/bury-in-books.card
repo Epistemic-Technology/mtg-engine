@@ -1,0 +1,7 @@
+card "Bury in Books" {
+  oracle_id d5e67016-1740-42f8-8be2-9eb9d4adb142
+  cost {4}{U}
+  type Instant
+  this spell costs {2} less if it targets attacking creature
+  spell: put target creature into library 2 from top
+}

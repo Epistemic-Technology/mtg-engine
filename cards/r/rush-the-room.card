@@ -1,0 +1,6 @@
+card "Rush the Room" {
+  oracle_id 223fefa3-64a7-457f-90a2-89973640f554
+  cost {R}
+  type Instant
+  spell: target creature gets +1/+0 and target 1 gains first strike; if target 1 is Goblin or Orc, also target 1 gains haste
+}

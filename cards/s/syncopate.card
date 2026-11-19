@@ -1,0 +1,6 @@
+card "Syncopate" {
+  oracle_id 318f7f70-e374-40ef-8afb-3389c10461d8
+  cost {X}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} to exile
+}

@@ -1,0 +1,6 @@
+card "Gimli's Fury" {
+  oracle_id 1b550c27-14b0-45fb-b17e-fcb061dc6ad0
+  cost {1}{R}
+  type Instant
+  spell: target creature gets +3/+2; if target 1 is legendary, also target 1 gains trample
+}

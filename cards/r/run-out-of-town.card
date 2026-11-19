@@ -1,0 +1,6 @@
+card "Run Out of Town" {
+  oracle_id 96189b18-8cab-4709-b3b6-c4f2003829eb
+  cost {3}{U}
+  type Instant
+  spell: owner of target nonland permanent puts it on top or bottom of library
+}

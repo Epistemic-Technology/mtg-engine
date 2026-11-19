@@ -1,0 +1,6 @@
+card "Reject" {
+  oracle_id 198fed4c-297e-41c0-a172-e471c7401fbb
+  cost {1}{U}
+  type Instant
+  spell: counter target creature or planeswalker spell unless its controller pays {3} to exile
+}

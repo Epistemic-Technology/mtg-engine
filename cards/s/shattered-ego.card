@@ -1,0 +1,8 @@
+card "Shattered Ego" {
+  oracle_id 829436df-a48b-4535-84ec-64682a16949b
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: -3/-0
+  activated {3}{U}{U}: put enchanted creature into library 3 from top
+}

@@ -1,0 +1,6 @@
+card "Spell Syphon" {
+  oracle_id f30e9371-2c12-496a-80e1-40c3408defed
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each blue permanent you control
+}

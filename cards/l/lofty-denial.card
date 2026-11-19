@@ -1,0 +1,6 @@
+card "Lofty Denial" {
+  oracle_id d799a2c4-628a-45da-b9ca-0337c46e3e14
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {1}; if you control creature with flying, counter that target 1 unless its controller pays {4} instead
+}

@@ -1,0 +1,6 @@
+card "Liquify" {
+  oracle_id dc9ae094-139f-4f28-9d4e-4d6def765744
+  cost {2}{U}
+  type Instant
+  spell: counter target with mana value 3 or less spell to exile
+}

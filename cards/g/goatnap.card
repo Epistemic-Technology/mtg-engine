@@ -1,0 +1,6 @@
+card "Goatnap" {
+  oracle_id 060e7187-0c7d-4022-9a1f-36a6f75314ca
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature; untap that creature; target 1 gains haste; if that target 1 is Goat, also target 1 gets +3/+0
+}

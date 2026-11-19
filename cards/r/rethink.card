@@ -1,0 +1,6 @@
+card "Rethink" {
+  oracle_id ede61683-fa78-4103-8248-e0e64162ed49
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count where mana value of target 1
+}

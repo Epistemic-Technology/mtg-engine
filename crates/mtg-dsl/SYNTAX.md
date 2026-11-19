@@ -305,7 +305,13 @@ In a triggered ability, `it` is the triggering object printed "it"
 of turn."); `that creature` prints "that creature".
 `if target 1 was <filter>, <sentence>`: "If that creature was a Human,
 ...", "If that creature was green or white, ...", "If that land was
-nonbasic, ..." (the target as it last existed).
+nonbasic, ..." (the target as it last existed). Without `instead`, `if
+target 1 is <filter>, <sentence>` is "If it's a Vampire, ..." and `if
+that target 1 is <filter>, ...` is "If that creature is a Goat, ..." (the
+target as it resolves, or last existed); `also` after the comma prints
+"it also gains lifelink". Supertypes alone print bare ("If it's
+legendary"), a keyword prints "has" ("If that creature has infect"), and
+a graveyard card target adds "card" ("If it's a Zombie card").
 Trigger `whenever you draw your second card each turn` (or `an opponent
 draws their second card each turn`).
 Steps: `at beginning of your combat` ("At the beginning of combat on your
@@ -513,7 +519,9 @@ card named ~ in each graveyard"), `plus 2 <expr>` ("2 plus the number of
 ..."; `plus one <expr>` spells the number), `power` (the source's), `power
 of target 1` / `toughness of target 1` ("its power"; `power of that
 target 1` is "that creature's power"; read as the target last existed if
-it has left), or `life`; `this gets +1/+1 count each creature you
+it has left), `mana value of target 1` ("its mana value", X included on
+the stack), `greatest power creature you control` ("the greatest power
+among creatures you control"), or `life`; `this gets +1/+1 count each creature you
 control` scales a pump, and in a static ability `+1/+1 count each
 artifact you control` is "gets +1/+1 for each artifact you control"; "until end of turn" is implied by `gets`,
 `gains`, `becomes`, `has base power and toughness`, and `gain control of`
@@ -550,7 +558,17 @@ on target creature"),
 `return <what> to hand`, `return <what> to battlefield [with 1 +1/+1 counter]`,
 `regenerate <what>`, `exile <what> [and <what>]` (a permanent or a graveyard card),
 `exile all graveyards`, `put <what> on top of library` / `on bottom of
-library`, `<who> sacrifices 1 creature` ("of their choice"), `<what>
+library` / `into library 2 from top` ("Put target creature into its
+owner's library second from the top"; fewer cards, the bottom, CR 401.7),
+`shuffle <what> into library` ("Shuffle enchanted creature into its
+owner's library"), and with the owner as subject, who makes any choice:
+`owner puts target creature on top or bottom of library` ("Target
+creature's owner puts it on their choice of the top or bottom of their
+library"), `owner of target nonland permanent puts it into library 2
+from top or bottom` ("The owner of target nonland permanent puts it into
+their library second from the top or on the bottom"), `owner shuffles
+this into library` ("this creature's owner shuffles it into their
+library"), `<who> sacrifices 1 creature` ("of their choice"), `<what>
 loses flying`, `<who> reveals hand`, `<who> reveals hand discarding
 nonland card` (Duress: you choose the card), `<who> discards 1 card at
 random`,
@@ -574,6 +592,20 @@ print "that card" for "it"; `search up to 3 card named this reveal to hand`,
 `search any number card named this reveal to hand`: "a card named ~",
 "up to three cards named ~", "any number of cards named ~"),
 `counter target spell`, `counter target spell unless its controller pays {3}`,
+`... pays {X}` (the spell's X), `... pays {X} count each hand` ("{1} for
+each card in your hand"; `count each 2 Wizard on battlefield` is "{2} for
+each Wizard on the battlefield", `count each plus 2 Faerie you control`
+is "{2} plus an additional {1} for each Faerie you control", `count where
+mana value of target 1` is "{X}, where X is its mana value"), and after
+either `to exile` / `to library top` ("If that spell is countered this
+way, exile it instead of putting it into its owner's graveyard" / "put it
+on top of its owner's library instead of into that player's graveyard").
+Targets on the stack also include abilities (CR 701.5a: a countered
+ability leaves the stack): `target spell or ability`, `target activated
+or triggered ability`, `target activated ability`, `target triggered
+ability`, `target activated ability from an artifact source`; `target spell that
+targets this` ("that targets this
+creature"),
 `you may <clause>`, `pay {2}` / `pay 2 life` (after `you may`), `if you do,
 <clause>` (only if the optional action before it happened: "You may pay
 {2}. If you do, draw a card."), `<clause> unless you pay {1}` / `unless

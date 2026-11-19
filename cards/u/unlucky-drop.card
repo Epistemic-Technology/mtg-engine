@@ -1,0 +1,6 @@
+card "Unlucky Drop" {
+  oracle_id 98ebde8c-b47d-440b-93cb-a1407b807074
+  cost {3}{U}
+  type Instant
+  spell: owner puts target artifact or creature on top or bottom of library
+}

@@ -1,0 +1,6 @@
+card "Lapse of Certainty" {
+  oracle_id 1b721ad3-d0f6-4eec-9bf0-f57ea9dfa392
+  cost {2}{W}
+  type Instant
+  spell: counter target spell to library top
+}

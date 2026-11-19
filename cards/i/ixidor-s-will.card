@@ -1,0 +1,6 @@
+card "Ixidor's Will" {
+  oracle_id a84c9507-d054-4770-84f3-5a4b5a01d826
+  cost {2}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X} count each 2 Wizard on battlefield
+}

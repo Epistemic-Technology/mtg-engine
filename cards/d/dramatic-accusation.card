@@ -1,0 +1,9 @@
+card "Dramatic Accusation" {
+  oracle_id 677b9c19-4886-4e06-88f8-9afa94e58aa8
+  cost {2}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: tap enchanted creature
+  static enchanted: has doesn't untap
+  activated {U}{U}: shuffle enchanted creature into library
+}

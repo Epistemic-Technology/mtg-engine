@@ -1,0 +1,6 @@
+card "Rust" {
+  oracle_id 597ca66c-6bb1-4661-8ed9-8236f546e536
+  cost {G}
+  type Instant
+  spell: counter target activated ability from an artifact source
+}

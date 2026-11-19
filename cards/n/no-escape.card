@@ -1,0 +1,9 @@
+card "No Escape" {
+  oracle_id 7c6e0198-edd8-42b8-ba1b-549e1713d188
+  cost {2}{U}
+  type Instant
+  spell {
+  counter target creature or planeswalker spell to exile
+  scry 1
+  }
+}

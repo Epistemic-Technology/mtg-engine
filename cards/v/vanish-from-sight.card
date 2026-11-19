@@ -1,0 +1,6 @@
+card "Vanish from Sight" {
+  oracle_id 1056b27c-125c-4daa-a0c8-533efc9ccc32
+  cost {3}{U}
+  type Instant
+  spell: owner puts target nonland permanent on top or bottom of library; surveil 1
+}

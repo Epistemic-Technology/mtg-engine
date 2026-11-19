@@ -71,7 +71,7 @@ game, with the scripted X).
 | `apply "Furnace of Rath"` | any step | When several replacement or prevention effects apply to one event, the affected player chooses which applies first (CR 616.1): apply the effect from that card. Unscripted choices take the engine's first option. |
 | `activate "Prodigal Sorcerer" targeting player B` | `precombat_main` | Activate an ability of a permanent the player controls (CR 602). `ability N` picks the Nth of the permanent's activated abilities (a planeswalker's loyalty abilities, CR 606); `sacrificing "Goblin"` names the permanent paid for a "sacrifice a ..." cost and `discarding "Forest"` the card for a "discard a card" cost; `targeting` gives the ability's targets. A permanent with several activated abilities offers the first whose costs can be paid. Sorcery-speed abilities (equip) wait for an empty stack like sorceries. Mana abilities are not activated this way; the engine taps for mana as part of paying costs. A card's ninjutsu (CR 702.49) is activated from the hand the same way, `sacrificing` naming the unblocked attacker returned. |
 | `keep oldest "Isamaru, Hound of Konda"` / `keep newest ...` | any step | Under the legend rule (CR 704.5j), which of the player's legendary permanents of that name to keep. Unscripted, the oldest is kept. |
-| `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. |
+| `accept "Gravedigger"` / `decline "Gravedigger"` | any step | The answer to that card's "you may" as its spell or ability resolves. Unscripted, yes. Also where an owner puts that card "on their choice of the top or bottom" of their library (or "second from the top or on the bottom"): `accept` is the top. |
 | `wait` | `precombat_main` | Pass priority until the stack is empty before any later action of this player at the same point fires (so a second spell is cast after the first resolves rather than in response to it). |
 | `copy "Serra Angel"` / `copy B "Serra Angel"` / `copy nothing` | any step | What a Clone enters as a copy of (CR 707), or nothing. Unscripted, the engine's first option (a copy). |
 | `choose red`, `choose Island`, `choose Merfolk` (or quoted) | any step | A color or type chosen as a permanent enters ("As this land enters, choose a color") or as an effect resolves ("the color of your choice"); also the color of mana of any color. "The color or colors of your choice" asks a color at a time: `choose blue`, `choose red`, `choose done`. `illegal ... choose Wall` checks that it is not offered. Also what an effect acts on as it resolves ("tap another untapped creature you control", "return up to two lands": `choose "Forest"`, `choose done`), and which alternative of "A or B" (`choose "2"`, 1-based). Unscripted, the engine's first option (white; the first type). |
@@ -96,6 +96,9 @@ targets and assertions must be unambiguous: qualify with `A`/`B` if both
 players control one, and with `oldest`/`newest` if one player controls
 several (`newest A "Serra Angel"`). A name that is not on the battlefield
 is looked up in graveyards, for "target creature card in your graveyard".
+A target that names an object that is not a legal choice falls back to
+an ability on the stack from a source of that name, for "target
+activated ability" (`cast "Rust" targeting "Aeolipile"`).
 
 ## Running
 

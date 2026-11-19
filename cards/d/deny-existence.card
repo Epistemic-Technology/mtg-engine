@@ -1,0 +1,6 @@
+card "Deny Existence" {
+  oracle_id b665a64b-4772-42dd-9fd2-fd8598e689ba
+  cost {2}{U}
+  type Instant
+  spell: counter target creature spell to exile
+}

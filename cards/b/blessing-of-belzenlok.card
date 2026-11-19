@@ -1,0 +1,6 @@
+card "Blessing of Belzenlok" {
+  oracle_id c4a03986-4db6-4114-9a58-5a8a3a7a2461
+  cost {B}
+  type Instant
+  spell: target creature gets +2/+1; if target 1 is legendary, also target 1 gains lifelink
+}

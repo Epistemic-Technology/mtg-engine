@@ -263,6 +263,7 @@ impl GameState {
     }
 
     /// A count's value as an effect happens, judged from its controller.
+    #[allow(clippy::too_many_lines)] // one arm per count
     fn eval_count(&self, expr: &crate::card::CountExpr, ctx: &EffectCtx) -> u32 {
         use crate::card::CountExpr;
         let you = ctx.controller;
@@ -338,6 +339,42 @@ impl GameState {
             CountExpr::BlockingIt { beyond } => {
                 let n = u32::try_from(self.blocking_it(ctx).len()).unwrap_or(u32::MAX);
                 return n.saturating_sub(*beyond);
+            }
+            CountExpr::TargetManaValue(n) => {
+                let Some(Target::Object(id)) = ctx.targets.get(*n) else {
+                    return 0;
+                };
+                let def = self
+                    .objects
+                    .get(*id)
+                    .map(|o| o.def)
+                    .or_else(|| self.lki.get(id).map(|l| l.object.def));
+                // CR 202.3e: on the stack, X is its chosen value.
+                return def.map_or(0, |d| {
+                    let cost = &self.pool.get(d).mana_cost;
+                    let xs = cost
+                        .symbols()
+                        .iter()
+                        .filter(|s| matches!(s, crate::mana::ManaSymbol::X))
+                        .count();
+                    cost.mana_value() + self.x_of(*id) * u32::try_from(xs).unwrap_or(0)
+                });
+            }
+            CountExpr::GreatestPower(f) => {
+                let f = &*self.chosen_filter(f, ctx);
+                let best = self
+                    .battlefield
+                    .iter()
+                    .filter_map(|id| {
+                        let o = &self.objects[*id];
+                        let c = self.characteristics(*id)?;
+                        (f.matches(*id, o.controller, &c, Some(ctx.source), Some(you))
+                            && self.status_ok(f, *id))
+                        .then(|| c.power())
+                    })
+                    .max()
+                    .unwrap_or(0);
+                return u32::try_from(best.max(0)).unwrap_or(0);
             }
         };
         u32::try_from(n).unwrap_or(u32::MAX)
@@ -2452,17 +2489,38 @@ impl GameState {
 
     // ----- resolution -------------------------------------------------------------
 
-    /// CR 701.5: a countered spell goes to its owner's graveyard.
-    pub(super) fn counter_spell(&mut self, id: ObjId) {
+    /// CR 701.5: a countered spell goes to its owner's graveyard, or where
+    /// the effect says ("exile it instead", "put it on top of its owner's
+    /// library instead"); flashback's exile still wins (CR 702.34a).
+    pub(super) fn counter_spell(&mut self, id: ObjId, dest: crate::card::CounteredTo) {
+        use crate::card::CounteredTo;
         let Some(o) = self.objects.get(id) else {
             return;
         };
-        if o.zone != Zone::Stack || o.kind == ObjKind::Ability {
+        if o.zone != Zone::Stack {
+            return;
+        }
+        // CR 701.5a: a countered ability is removed from the stack.
+        if o.kind == ObjKind::Ability {
+            self.emit(Event::Countered {
+                spell: id,
+                def: o.def,
+            });
+            self.remove_from_game(id);
             return;
         }
         let def = o.def;
+        let flashback = o.cast.flashback();
         self.emit(Event::Countered { spell: id, def });
-        self.leave_stack(id);
+        match dest {
+            CounteredTo::Exile if !flashback => {
+                self.move_object(id, Zone::Exile, true);
+            }
+            CounteredTo::LibraryTop if !flashback => {
+                self.move_object(id, Zone::Library, true);
+            }
+            _ => self.leave_stack(id),
+        }
     }
 
     /// Scry (CR 701.18) or surveil (CR 701.42) `n`: the player chooses
@@ -3283,14 +3341,16 @@ impl GameState {
             Effect::CreateEmblem { emblem } => {
                 self.create_emblem(*emblem, ctx.controller);
             }
-            Effect::Counter { to } => {
+            Effect::Counter { to, dest } => {
                 for t in self.recipients(ctx, *to) {
                     if let Target::Object(id) = t {
-                        self.counter_spell(id);
+                        self.counter_spell(id, *dest);
                     }
                 }
             }
-            Effect::CounterUnlessPays { to, mana } => {
+            Effect::CounterUnlessPays { to, mana, x, dest } => {
+                // "{1} for each card in your hand": counted as it resolves.
+                let x = self.eval_num(*x, ctx);
                 for t in self.recipients(ctx, *to) {
                     let Target::Object(id) = t else {
                         continue;
@@ -3302,7 +3362,7 @@ impl GameState {
                         continue;
                     }
                     let (ctl, def) = (o.controller, o.def);
-                    let req = mana.requirements(0);
+                    let req = mana.requirements(x);
                     let can_pay = self.can_pay(ctl, &req);
                     let pays = can_pay
                         && self.choose_mid(
@@ -3313,7 +3373,7 @@ impl GameState {
                     if pays {
                         self.pay(ctl, &req);
                     } else {
-                        self.counter_spell(id);
+                        self.counter_spell(id, *dest);
                     }
                 }
             }
@@ -3745,7 +3805,7 @@ impl GameState {
                     }
                 }
             }
-            Effect::PutInLibrary { what, top } => {
+            Effect::PutInLibrary { what, place } => {
                 for t in self.recipients(ctx, *what) {
                     let Target::Object(id) = t else {
                         continue;
@@ -3755,7 +3815,7 @@ impl GameState {
                     }) {
                         continue;
                     }
-                    self.move_object(id, Zone::Library, *top);
+                    self.put_in_library(id, *place);
                 }
             }
             Effect::SacrificeChosen { who, filter, count }

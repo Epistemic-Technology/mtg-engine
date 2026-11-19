@@ -302,6 +302,7 @@ impl GreedyAgent {
             | DecisionKind::ChooseType
             | DecisionKind::SearchLibrary
             | DecisionKind::PayOrCounter { .. }
+            | DecisionKind::TopOrBottom { .. }
             | DecisionKind::Kicker { .. }
             | DecisionKind::Buyback { .. }
             | DecisionKind::ChooseCard
