@@ -925,6 +925,8 @@ pub enum Ability {
     /// `deck any number`: "A deck can have any number of cards named ~."
     /// (CR 100.2a). A deck-building rule with no meaning in a game.
     DeckAnyNumber,
+    /// `this spell can't be countered`: "This spell can't be countered."
+    Uncounterable,
     /// An ability word (CR 207.2c) printed before the ability: "Landfall —
     /// Whenever a land you control enters, ...". No rules meaning.
     Labeled {
@@ -1304,6 +1306,9 @@ pub enum StaticCond {
     /// `creature card to your graveyard this turn`: "a creature card was
     /// put into your graveyard from anywhere this turn".
     CardToGraveyardThisTurn(Vec<mtg_core::card::CardType>),
+    /// `sacrificed artifact this turn`: "you've sacrificed an artifact this
+    /// turn".
+    SacrificedThisTurn(Vec<mtg_core::card::CardType>),
     /// `more cards in hand than each opponent`.
     MoreCardsInHand,
     /// `opponent poisoned` ("an opponent is poisoned"), `opponent poison 3

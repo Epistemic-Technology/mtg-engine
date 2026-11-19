@@ -1,0 +1,8 @@
+card "Suspicious Detonation" {
+  oracle_id 91f7672c-3090-48f4-8586-0426341c3159
+  cost {4}{R}
+  type Sorcery
+  this spell costs {3} less if sacrificed artifact this turn
+  this spell can't be countered
+  spell: deal 4 damage to target creature
+}

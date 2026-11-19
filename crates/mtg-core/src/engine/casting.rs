@@ -4015,6 +4015,10 @@ impl GameState {
             return;
         }
         let def = o.def;
+        // "This spell can't be countered."
+        if self.pool.get(def).uncounterable {
+            return;
+        }
         let flashback = o.cast.flashback();
         self.emit(Event::Countered { spell: id, def });
         match dest {

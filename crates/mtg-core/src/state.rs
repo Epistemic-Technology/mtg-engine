@@ -1026,6 +1026,8 @@ pub struct TurnLog {
     /// The card types among cards put into each player's graveyard from
     /// anywhere (tokens are no cards).
     pub cards_to_graveyard: [crate::card::TypeSet; 4],
+    /// The card types among permanents each player sacrificed.
+    pub sacrificed: [crate::card::TypeSet; 4],
 }
 
 /// Day and night (CR 731): neither until something makes it day.
@@ -2385,6 +2387,9 @@ impl GameState {
             C::CrimeThisTurn => self.turn_log.crime & (1 << you.index().min(7)) != 0,
             C::LeftGraveyardThisTurn => {
                 self.turn_log.left_graveyard & (1 << you.index().min(7)) != 0
+            }
+            C::SacrificedThisTurn(types) => {
+                self.turn_log.sacrificed[you.index().min(3)].intersects(*types)
             }
             C::CardToGraveyardThisTurn(types) => {
                 self.turn_log.cards_to_graveyard[you.index().min(3)].intersects(*types)

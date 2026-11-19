@@ -1127,6 +1127,11 @@ impl P {
                     generic,
                 })
             }
+            "this" if self.at_words(&["this", "spell", "can't", "be", "countered"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::Uncounterable)
+            }
             "this" if self.at_words(&["this", "spell", "costs"]) => {
                 self.pos += 3;
                 let per = self.mana_cost()?.mana_value();
@@ -2161,6 +2166,21 @@ impl P {
             let n = self.number()?;
             self.expect_words(&["life", "this", "turn"])?;
             return Ok(StaticCond::LifeGainedThisTurn(n));
+        }
+        if self.eat_word("sacrificed") {
+            let mut types = Vec::new();
+            loop {
+                let w = self.word()?;
+                let Some(t) = card_type(&w) else {
+                    return self.fail(format!("expected a card type, found {w}"));
+                };
+                types.push(t);
+                if !self.eat_word("or") {
+                    break;
+                }
+            }
+            self.expect_words(&["this", "turn"])?;
+            return Ok(StaticCond::SacrificedThisTurn(types));
         }
         if self.eat_words(&["committed", "crime", "this", "turn"]) {
             return Ok(StaticCond::CrimeThisTurn);

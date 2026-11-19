@@ -1,0 +1,7 @@
+card "Out Cold" {
+  oracle_id 2d16d51b-47e0-4cdc-83dd-a805ba50bd83
+  cost {3}{U}
+  type Instant
+  this spell can't be countered
+  spell: tap up to 2 target creature and put 1 stun counters on targets 1 to 2; investigate
+}

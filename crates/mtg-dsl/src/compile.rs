@@ -249,6 +249,9 @@ impl Compiler<'_> {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
                 }
+                Ability::Uncounterable => {
+                    b = b.uncounterable();
+                }
                 Ability::CondCost { delta, cond } => {
                     let c = self.static_cond(cond);
                     let i = self.pool.intern_condition(c);
@@ -447,6 +450,7 @@ impl Compiler<'_> {
                 unlabeled(a),
                 Ability::Keyword(_)
                     | Ability::DeckAnyNumber
+                    | Ability::Uncounterable
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
                     | Ability::CondCost { .. }
@@ -798,6 +802,9 @@ impl Compiler<'_> {
             StaticCond::CardToGraveyardThisTurn(t) => StaticCondition::CardToGraveyardThisTurn(
                 mtg_core::card::TypeSet::of(t.iter().copied()),
             ),
+            StaticCond::SacrificedThisTurn(t) => {
+                StaticCondition::SacrificedThisTurn(mtg_core::card::TypeSet::of(t.iter().copied()))
+            }
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
             StaticCond::OwnCardInExile => StaticCondition::OwnCardInExile,
@@ -2163,6 +2170,9 @@ impl Compiler<'_> {
         Ok(match a {
             Ability::Keyword(_) => return self.err("a keyword is not an ability definition"),
             Ability::DeckAnyNumber => return self.err("a deck-building rule is not an ability"),
+            Ability::Uncounterable => {
+                return self.err("\"can't be countered\" is a property of the spell");
+            }
             Ability::Mana(m) => {
                 // One ability per choice; `Ability::Mana` with several
                 // choices is split by the caller through `abilities()`.

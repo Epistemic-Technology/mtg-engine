@@ -3447,7 +3447,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::AddCounters { kind, count, to } => {
             let c = counters(*count, *kind);
-            let o = ctx.obj(*to);
+            // "Tap up to two target creatures and put a stun counter on
+            // each of them."
+            let o = match to {
+                Recipient::Targets(a, n) if *n > 1 && ctx.target_mentioned[*a] => {
+                    "each of them".to_string()
+                }
+                _ => ctx.obj(*to),
+            };
             Clause::imperative(format!("put {c} on {o}"))
         }
         Effect::AddCounterList { counters: cs, to } => {
@@ -7297,6 +7304,13 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::LeftGraveyardThisTurn => {
             "one or more cards left your graveyard this turn".to_string()
         }
+        StaticCond::SacrificedThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
+            format!(
+                "you've sacrificed {} this turn",
+                with_article(&names.join(" or "))
+            )
+        }
         StaticCond::CardToGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
             format!(
@@ -7998,6 +8012,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         Ability::DeckAnyNumber => {
             format!("A deck can have any number of cards named {}.", card.name)
         }
+        Ability::Uncounterable => "This spell can't be countered.".to_string(),
         Ability::ExtraVote { optional: false } => {
             "While voting, you get an additional vote.".to_string()
         }

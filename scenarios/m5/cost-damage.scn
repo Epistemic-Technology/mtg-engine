@@ -395,3 +395,91 @@ scenario "Meteor Shower with X 0 deals 1 damage" {
   run_to turn 1 end
   assert life B 19
 }
+
+# ----- can't be countered -----
+
+scenario "Suspicious Detonation costs {3} less after sacrificing an artifact" {
+  battlefield A: 3 "Mountain", "Aether Spellbomb"
+  battlefield B: "Hill Giant"
+  hand A: "Suspicious Detonation"
+  turn 1 A: activate "Aether Spellbomb" ability 2
+  turn 1 A: wait
+  turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Suspicious Detonation costs full price with nothing sacrificed" {
+  battlefield A: 3 "Mountain", "Aether Spellbomb"
+  battlefield B: "Hill Giant"
+  hand A: "Suspicious Detonation"
+  illegal turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Suspicious Detonation can't be countered" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Suspicious Detonation"
+  hand B: "Cancel"
+  turn 1 A: cast "Suspicious Detonation" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Suspicious Detonation" in response to "Suspicious Detonation"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard B contains "Cancel"
+  assert graveyard A contains "Suspicious Detonation"
+}
+
+scenario "Suspicious Detonation isn't countered by ward" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Cackling Prowler"
+  hand A: "Suspicious Detonation"
+  turn 1 A: cast "Suspicious Detonation" targeting "Cackling Prowler"
+  run_to turn 1 end
+  assert graveyard B contains "Cackling Prowler"
+}
+
+scenario "A spell that can be countered is" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Unleash Shell"
+  hand B: "Cancel"
+  turn 1 A: cast "Unleash Shell" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Unleash Shell" in response to "Unleash Shell"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+  assert graveyard A contains "Unleash Shell"
+}
+
+scenario "Heated Debate can't be countered" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 3 "Island", "Hill Giant"
+  hand A: "Heated Debate"
+  hand B: "Cancel"
+  turn 1 A: cast "Heated Debate" targeting "Hill Giant"
+  turn 1 B: cast "Cancel" targeting "Heated Debate" in response to "Heated Debate"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Out Cold taps two creatures and puts a stun counter on each of them" {
+  battlefield A: 4 "Island"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Out Cold"
+  turn 1 A: cast "Out Cold" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert tapped "Hill Giant"
+  assert tapped "Grizzly Bears"
+  assert counters "Hill Giant" stun 1
+  assert counters "Grizzly Bears" stun 1
+  assert battlefield A contains "Clue"
+}
+
+scenario "Slice from the Shadows gives -X/-X" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Slice from the Shadows"
+  turn 1 A: cast "Slice from the Shadows" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}

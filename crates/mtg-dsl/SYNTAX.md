@@ -398,11 +398,15 @@ life this turn` ("you've gained 3 or more life this turn", in all),
 700.13: a spell or ability you control targeted an opponent, a permanent
 or spell an opponent controls, or a card in an opponent's graveyard),
 `card left your graveyard this turn` ("one or more cards left your
-graveyard this turn"), and `creature card to your graveyard this turn` ("a
+graveyard this turn"), `sacrificed artifact this turn` ("you've
+sacrificed an artifact this turn"), and `creature card to your graveyard this turn` ("a
 creature card was put into your graveyard from anywhere this turn"). A
 count `differently named land you control`: "the number of differently
 named lands you control" (`this spell costs {1} less count where
-differently named land you control`). Triggers `when
+differently named land you control`).
+`this spell can't be countered`: "This spell can't be countered." (CR
+101.2: a spell or ability that would counter it, ward included, does
+nothing to it). Triggers `when
 this leaves the battlefield`, `whenever this attacks or blocks`.
 In a triggered ability, `it` is the triggering object printed "it"
 ("Whenever another creature you control attacks, it gets +0/+1 until end
@@ -1160,7 +1164,8 @@ damage"; also wherever a number goes). The same damage to several targets
 of one phrase prints "each of": `deal 1 damage to up to 2 target creature`
 ("deals 1 damage to each of up to two target creatures"); `those targets`
 names every target declared so far again ("Those creatures can't block
-this turn"). `deal 2 damage to up to 1 another target creature token`:
+this turn"), and counters put on `targets 1 to 2` print "on each of
+them". `deal 2 damage to up to 1 another target creature token`:
 "up to one other target creature token" (not the first target). In a
 filter, `that player 1 controls` is the 1st target, a player, and `that
 player or planeswalker 1 controls` that player or that planeswalker's

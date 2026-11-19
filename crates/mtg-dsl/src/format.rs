@@ -3177,6 +3177,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::LifeGainedThisTurn(n) => format!("gained {n} life this turn"),
         StaticCond::CrimeThisTurn => "committed crime this turn".to_string(),
         StaticCond::LeftGraveyardThisTurn => "card left your graveyard this turn".to_string(),
+        StaticCond::SacrificedThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
+            format!("sacrificed {} this turn", names.join(" or "))
+        }
         StaticCond::CardToGraveyardThisTurn(t) => {
             let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
             format!("{} card to your graveyard this turn", names.join(" or "))
@@ -3688,6 +3692,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::Uncounterable => {
+            let _ = writeln!(out, "{indent}this spell can't be countered");
         }
         Ability::ExtraVote { optional } => {
             let _ = writeln!(

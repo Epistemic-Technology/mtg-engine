@@ -1984,6 +1984,9 @@ pub enum StaticCondition {
     /// "a creature card was put into your graveyard from anywhere this
     /// turn": a card of one of these types, as it is in the graveyard.
     CardToGraveyardThisTurn(TypeSet),
+    /// "you've sacrificed an artifact this turn": a permanent with one of
+    /// these types, as it last existed.
+    SacrificedThisTurn(TypeSet),
     /// "you have more cards in hand than each opponent".
     MoreCardsInHand,
     /// "an opponent is poisoned" (1), "an opponent has three or more poison
@@ -4746,6 +4749,10 @@ pub struct CardDef {
     /// "This spell costs {3} less to cast if a creature died this turn":
     /// generic mana, and the pool's condition index.
     pub cond_cost: Option<(i32, u16)>,
+    /// "This spell can't be countered." (CR 101.2: a spell or ability
+    /// that would counter it does nothing to it).
+    #[serde(default)]
+    pub uncounterable: bool,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -6051,6 +6058,7 @@ impl CardPool {
                     | StaticCondition::CrimeThisTurn
                     | StaticCondition::LeftGraveyardThisTurn
                     | StaticCondition::CardToGraveyardThisTurn(_)
+                    | StaticCondition::SacrificedThisTurn(_)
                     | StaticCondition::SurveilledThisTurn
                     | StaticCondition::OpponentDamagedThisTurn
                     | StaticCondition::OpponentLostLifeThisTurn
@@ -6203,6 +6211,7 @@ impl Builder {
             offspring: None,
             bargain: false,
             target_cost: None,
+            uncounterable: false,
             cond_cost: None,
             madness: None,
             foretell: None,
@@ -6396,6 +6405,12 @@ impl Builder {
     #[must_use]
     pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
         self.0.cond_cost = Some((delta, cond));
+        self
+    }
+
+    /// "This spell can't be countered."
+    pub fn uncounterable(mut self) -> Self {
+        self.0.uncounterable = true;
         self
     }
 
