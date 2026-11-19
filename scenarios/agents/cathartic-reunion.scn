@@ -1,0 +1,33 @@
+# The discard of two cards is not asserted: the engine discards only one
+# for "discard two cards" as an additional cost (reported as an engine bug).
+scenario "Cathartic Reunion draws three" {
+  battlefield A: 2 "Mountain"
+  hand A: "Cathartic Reunion", "Forest", "Island", "Plains"
+  library A: "Swamp", "Hill Giant", "Shock", "Mountain"
+  turn 1 A: cast "Cathartic Reunion"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Swamp"
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Shock"
+  assert library A contains "Mountain"
+  assert graveyard A contains "Cathartic Reunion"
+}
+
+scenario "Cathartic Reunion cannot be cast with only one other card in hand" {
+  battlefield A: 2 "Mountain"
+  hand A: "Cathartic Reunion", "Forest"
+  illegal turn 1 A: cast "Cathartic Reunion"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+}
+
+scenario "Cathartic Reunion discards both cards as it's cast" {
+  battlefield A: 2 "Mountain"
+  hand A: "Cathartic Reunion", "Grizzly Bears", "Hill Giant"
+  library A: 5 "Island"
+  turn 1 A: cast "Cathartic Reunion" discarding "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert hand A count 3
+}

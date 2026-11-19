@@ -1,0 +1,32 @@
+scenario "Kjeldoran Dead sacrifices itself with no other creature" {
+  battlefield A: "Swamp"
+  hand A: "Kjeldoran Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kjeldoran Dead"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Kjeldoran Dead"
+  assert battlefield A lacks "Kjeldoran Dead"
+}
+
+scenario "Kjeldoran Dead sacrifices another creature when it has one" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Kjeldoran Dead"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kjeldoran Dead"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kjeldoran Dead"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Kjeldoran Dead regenerates" {
+  battlefield A: "Kjeldoran Dead", "Swamp"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Kjeldoran Dead"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Kjeldoran Dead"
+  run_to turn 1 end
+  assert battlefield A contains "Kjeldoran Dead"
+  assert tapped "Kjeldoran Dead"
+  assert graveyard B contains "Lightning Bolt"
+}

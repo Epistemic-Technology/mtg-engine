@@ -1,0 +1,8 @@
+card "Ingenious Thief" {
+  oracle_id 73ea2949-5812-478d-8f09-00743ce4d40f
+  cost {1}{U}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords flying
+  triggered when this enters: look at hand of target player
+}

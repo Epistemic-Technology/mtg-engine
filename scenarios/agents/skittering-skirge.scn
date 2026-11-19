@@ -1,0 +1,39 @@
+scenario "Skittering Skirge is sacrificed when you cast a creature spell" {
+  battlefield A: "Skittering Skirge", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Skittering Skirge"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Skittering Skirge stays for a noncreature spell" {
+  battlefield A: "Skittering Skirge", "Mountain"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Skittering Skirge"
+  assert life B 17
+}
+
+scenario "Skittering Skirge ignores an opponent's creature spell" {
+  battlefield A: "Skittering Skirge"
+  battlefield B: 2 "Forest"
+  hand B: "Grizzly Bears"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Skittering Skirge"
+}
+
+scenario "Skittering Skirge flies over a ground blocker" {
+  battlefield A: "Skittering Skirge"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Skittering Skirge"
+  illegal turn 2 B: block "Skittering Skirge" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life B 17
+}

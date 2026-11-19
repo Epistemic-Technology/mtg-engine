@@ -1,0 +1,7 @@
+card "Project Deathlok Soldier" {
+  oracle_id d89aa87a-d59a-41e2-b92f-15c9bc6d3d13
+  cost {B}
+  type Artifact Creature — Zombie Soldier
+  pt 1/2
+  activated {2}{B}, from graveyard: return this to hand
+}

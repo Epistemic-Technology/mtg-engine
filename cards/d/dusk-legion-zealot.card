@@ -1,0 +1,7 @@
+card "Dusk Legion Zealot" {
+  oracle_id ea2dce18-195e-4681-a687-f9819edaf9fc
+  cost {1}{B}
+  type Creature — Vampire Soldier
+  pt 1/1
+  triggered when this enters: you draw 1 card, and you lose 1 life
+}

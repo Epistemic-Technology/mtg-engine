@@ -1,0 +1,18 @@
+scenario "One-Eyed Scarecrow shrinks opposing fliers" {
+  battlefield A: "One-Eyed Scarecrow", "Wind Drake"
+  battlefield B: "Wind Drake", "Grizzly Bears"
+  start turn 1 A precombat_main
+  run_to turn 1 postcombat_main
+  assert power B "Wind Drake" 1
+  assert toughness B "Wind Drake" 2
+  assert power A "Wind Drake" 2
+  assert power "Grizzly Bears" 2
+}
+
+scenario "One-Eyed Scarecrow has defender" {
+  battlefield A: "One-Eyed Scarecrow"
+  start turn 2 A precombat_main
+  illegal turn 2 A: attack "One-Eyed Scarecrow"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

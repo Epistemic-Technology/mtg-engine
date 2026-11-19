@@ -1,0 +1,7 @@
+card "Audacious Thief" {
+  oracle_id 5905c55a-f1d1-4021-a9af-f85b02ae21f3
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/2
+  triggered whenever this attacks: you draw 1 card, and you lose 1 life
+}

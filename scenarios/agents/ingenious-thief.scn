@@ -1,0 +1,12 @@
+scenario "Ingenious Thief looks at a hand as it enters" {
+  battlefield A: 2 "Island"
+  hand A: "Ingenious Thief"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Ingenious Thief"
+  turn 1 A: trigger "Ingenious Thief" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Ingenious Thief"
+  assert has "Ingenious Thief" flying
+  assert hand B contains "Hill Giant"
+}

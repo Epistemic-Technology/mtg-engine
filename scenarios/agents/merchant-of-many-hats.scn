@@ -1,0 +1,18 @@
+scenario "Merchant of Many Hats returns from the graveyard to hand" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Merchant of Many Hats"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Merchant of Many Hats"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Merchant of Many Hats"
+  assert graveyard A lacks "Merchant of Many Hats"
+}
+
+scenario "Merchant of Many Hats can't return without enough mana" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Merchant of Many Hats"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Merchant of Many Hats"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Merchant of Many Hats"
+}

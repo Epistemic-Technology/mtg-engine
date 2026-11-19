@@ -1,0 +1,8 @@
+card "Tainted Well" {
+  oracle_id b35b3ea6-ae9c-4128-a47f-069d88ee49c2
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: draw 1 card
+  static enchanted: set land Swamp
+}

@@ -1,0 +1,6 @@
+card "Gruesome Fate" {
+  oracle_id cf874feb-00fe-4e48-b57a-cf8b9855c057
+  cost {2}{B}
+  type Sorcery
+  spell: each opponent loses count each creature you control life
+}

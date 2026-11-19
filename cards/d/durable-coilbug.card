@@ -1,0 +1,7 @@
+card "Durable Coilbug" {
+  oracle_id a421582a-f673-4f43-beb5-28ee785da11e
+  cost {1}{B}
+  type Creature — Insect
+  pt 2/2
+  activated {4}{B}, from graveyard: return this to hand
+}

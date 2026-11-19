@@ -1,0 +1,11 @@
+scenario "Cower in Fear shrinks only opponents' creatures" {
+  battlefield A: 3 "Swamp", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Cower in Fear"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Cower in Fear"
+  run_to turn 1 postcombat_main
+  assert power "Wind Drake" 1
+  assert toughness "Hill Giant" 2
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,6 @@
+card "Blazing Volley" {
+  oracle_id 3656338d-ca08-465b-b09a-d8d8d1196eec
+  cost {R}
+  type Sorcery
+  spell: deal 1 damage to all creature your opponents control
+}

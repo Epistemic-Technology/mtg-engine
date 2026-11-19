@@ -1,0 +1,6 @@
+card "Lay Bare" {
+  oracle_id 4d3ac460-79ac-4eef-9446-1b9fe0261556
+  cost {2}{U}{U}
+  type Instant
+  spell: counter target spell; look at hand of its controller
+}

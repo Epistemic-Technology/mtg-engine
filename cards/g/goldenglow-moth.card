@@ -1,0 +1,8 @@
+card "Goldenglow Moth" {
+  oracle_id 8dcfa697-5350-43b9-896f-c5eefcc3893a
+  cost {W}
+  type Creature — Insect
+  pt 0/1
+  keywords flying
+  triggered whenever this blocks: you may you gain 4 life
+}

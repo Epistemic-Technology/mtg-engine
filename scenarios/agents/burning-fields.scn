@@ -1,0 +1,11 @@
+scenario "Burning Fields deals 5 to an opponent" {
+  battlefield A: 5 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Burning Fields"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Burning Fields" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 20
+  assert damage "Hill Giant" 0
+}

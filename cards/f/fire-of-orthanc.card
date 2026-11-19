@@ -1,0 +1,6 @@
+card "Fire of Orthanc" {
+  oracle_id 407021e2-4072-4961-95be-f9309c341677
+  cost {3}{R}
+  type Sorcery
+  spell: destroy target artifact or land; each creature without flying can't block
+}

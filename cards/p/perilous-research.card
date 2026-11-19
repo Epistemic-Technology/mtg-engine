@@ -1,0 +1,6 @@
+card "Perilous Research" {
+  oracle_id 9243b539-5f9e-4bb3-9973-3d48366aa7cc
+  cost {1}{U}
+  type Instant
+  spell: draw 2 cards then you sacrifice 1 permanent
+}

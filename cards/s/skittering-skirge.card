@@ -1,0 +1,8 @@
+card "Skittering Skirge" {
+  oracle_id fae1d5d9-a50e-423e-8692-3e41f39df081
+  cost {B}{B}
+  type Creature — Phyrexian Imp
+  pt 3/2
+  keywords flying
+  triggered when you cast creature spell: sacrifice this
+}

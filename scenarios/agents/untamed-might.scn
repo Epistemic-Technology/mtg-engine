@@ -1,0 +1,9 @@
+scenario "Untamed Might gives +X/+X" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  hand A: "Untamed Might"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Untamed Might" x 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 5
+}

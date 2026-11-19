@@ -1,0 +1,9 @@
+scenario "Glasses of Urza taps to look at a hand" {
+  battlefield A: "Glasses of Urza"
+  hand B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Glasses of Urza" targeting player B
+  run_to turn 1 postcombat_main
+  assert tapped "Glasses of Urza"
+  assert hand B contains "Hill Giant"
+}

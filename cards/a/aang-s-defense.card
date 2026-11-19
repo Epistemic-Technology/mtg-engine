@@ -1,0 +1,9 @@
+card "Aang's Defense" {
+  oracle_id 92b617f9-6e6b-42a0-9c45-6ff5f6193051
+  cost {W}
+  type Instant
+  spell {
+    target blocking creature you control gets +2/+2
+    draw 1 card
+  }
+}

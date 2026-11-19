@@ -1,0 +1,6 @@
+card "Salvage" {
+  oracle_id c01a090a-11e4-469e-aded-74203c06fef4
+  cost {G}
+  type Sorcery
+  spell: put target card from your graveyard on top of library
+}

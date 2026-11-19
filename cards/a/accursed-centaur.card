@@ -1,0 +1,7 @@
+card "Accursed Centaur" {
+  oracle_id b1e6921e-e460-4e58-82b0-d98ee31c279d
+  cost {B}
+  type Creature — Zombie Centaur
+  pt 2/2
+  triggered when this enters: you sacrifice 1 creature
+}

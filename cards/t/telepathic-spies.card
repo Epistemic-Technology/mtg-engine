@@ -1,0 +1,7 @@
+card "Telepathic Spies" {
+  oracle_id 8162730e-2573-4bc0-827f-5b7b3dbf3bff
+  cost {2}{U}
+  type Creature — Human Wizard
+  pt 2/2
+  triggered when this enters: look at hand of target opponent
+}

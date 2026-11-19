@@ -1,0 +1,6 @@
+card "Untamed Might" {
+  oracle_id 4b6dd710-f7f2-4fc8-9b66-b48c7737b135
+  cost {X}{G}
+  type Instant
+  spell: target creature gets +1/+1 X
+}

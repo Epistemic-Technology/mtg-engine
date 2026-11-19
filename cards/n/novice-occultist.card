@@ -1,0 +1,7 @@
+card "Novice Occultist" {
+  oracle_id e51f5b41-5465-4b1d-b96a-544762657ca5
+  cost {1}{B}
+  type Creature — Human Wizard
+  pt 1/2
+  triggered when this dies: you draw 1 card, and you lose 1 life
+}

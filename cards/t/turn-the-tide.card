@@ -1,0 +1,6 @@
+card "Turn the Tide" {
+  oracle_id 2546db90-1f6e-43f7-a116-2fefe67d489d
+  cost {1}{U}
+  type Instant
+  spell: all creature your opponents control gets -2/-0
+}

@@ -1,0 +1,13 @@
+scenario "Peek looks at a hand and draws a card" {
+  battlefield A: "Island"
+  hand A: "Peek"
+  hand B: "Grizzly Bears"
+  library A: "Hill Giant", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Peek" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A count 1
+  assert hand B contains "Grizzly Bears"
+  assert graveyard A contains "Peek"
+}

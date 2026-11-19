@@ -1,0 +1,20 @@
+scenario "Hunter's Ambush prevents combat damage from nongreen creatures only" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Hunter's Ambush"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  turn 2 declare_blockers A: cast "Hunter's Ambush"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert graveyard A contains "Hunter's Ambush"
+}
+
+scenario "without Hunter's Ambush all combat damage is dealt" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant", "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 15
+}

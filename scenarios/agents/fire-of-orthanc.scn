@@ -1,0 +1,25 @@
+scenario "Fire of Orthanc destroys a land and creatures without flying can't block" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Fire of Orthanc"
+  battlefield B: "Grizzly Bears", "Forest"
+  turn 1 A: cast "Fire of Orthanc" targeting "Forest"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert graveyard A contains "Fire of Orthanc"
+  assert life B 17
+}
+
+scenario "Fire of Orthanc destroys an artifact; fliers may still block" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Fire of Orthanc"
+  battlefield B: "Sol Ring", "Serra Angel"
+  turn 1 A: cast "Fire of Orthanc" targeting "Sol Ring"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sol Ring"
+  assert life B 20
+  assert graveyard A contains "Hill Giant"
+}

@@ -1,0 +1,9 @@
+card "Sorcerous Sight" {
+  oracle_id 20370c3b-231f-4d9d-8b6e-f1eb25fa4b5d
+  cost {U}
+  type Sorcery
+  spell {
+    look at hand of target opponent
+    draw 1 card
+  }
+}

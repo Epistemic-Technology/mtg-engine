@@ -1,0 +1,20 @@
+scenario "Death Wind gives -X/-X" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Death Wind"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Death Wind" x 3 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Death Wind with small X shrinks a creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Death Wind"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Death Wind" x 1 targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Hill Giant" 2
+}

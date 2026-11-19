@@ -1,0 +1,12 @@
+scenario "Hysterical Blindness gives opponents' creatures -4/-0" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Hysterical Blindness"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Hysterical Blindness"
+  run_to turn 1 postcombat_main
+  assert power "Wind Drake" -2
+  assert power "Hill Giant" -1
+  assert toughness "Hill Giant" 3
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,9 @@
+scenario "Fruition counts every Forest on the battlefield" {
+  battlefield A: 2 "Forest", "Plains"
+  battlefield B: 3 "Forest", "Island"
+  hand A: "Fruition"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fruition"
+  run_to turn 1 postcombat_main
+  assert life A 25
+}

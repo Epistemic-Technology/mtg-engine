@@ -1,0 +1,10 @@
+scenario "Shepherd of Rot drains each player per Zombie" {
+  battlefield A: "Shepherd of Rot", "Scathe Zombies"
+  battlefield B: "Walking Corpse", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Shepherd of Rot"
+  run_to turn 1 postcombat_main
+  assert life A 17
+  assert life B 17
+  assert tapped "Shepherd of Rot"
+}

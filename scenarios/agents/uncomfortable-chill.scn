@@ -1,0 +1,12 @@
+scenario "Uncomfortable Chill shrinks opponents' creatures and draws" {
+  battlefield A: 3 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Uncomfortable Chill"
+  library A: "Serra Angel", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Uncomfortable Chill"
+  run_to turn 1 postcombat_main
+  assert power B "Hill Giant" 1
+  assert power A "Grizzly Bears" 2
+  assert hand A contains "Serra Angel"
+}

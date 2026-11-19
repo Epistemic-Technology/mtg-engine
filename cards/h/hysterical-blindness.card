@@ -1,0 +1,6 @@
+card "Hysterical Blindness" {
+  oracle_id 705531b3-77cc-4d1f-851b-45e03c029991
+  cost {2}{U}
+  type Instant
+  spell: all creature your opponents control gets -4/-0
+}

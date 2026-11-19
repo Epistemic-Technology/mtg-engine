@@ -1,0 +1,12 @@
+scenario "Reclaim puts a graveyard card on top of the library" {
+  battlefield A: "Forest"
+  hand A: "Reclaim"
+  graveyard A: "Hill Giant"
+  library A: "Plains", "Island"
+  start turn 2 B precombat_main
+  turn 2 A: cast "Reclaim" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+  assert graveyard A lacks "Hill Giant"
+  assert graveyard A contains "Reclaim"
+}

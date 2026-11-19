@@ -1,0 +1,7 @@
+card "Orchard Spirit" {
+  oracle_id b6eb56a7-4dfe-4d51-a1df-55f892c1b014
+  cost {2}{G}
+  type Creature — Spirit
+  pt 2/2
+  can't be blocked except by creature with flying or reach
+}

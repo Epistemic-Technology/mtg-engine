@@ -1,0 +1,7 @@
+card "Wanderguard Sentry" {
+  oracle_id cd02e276-3c2d-4177-aa60-294a31bae0db
+  cost {4}{U}
+  type Creature — Drone
+  pt 3/3
+  triggered when this enters: look at hand of target opponent
+}

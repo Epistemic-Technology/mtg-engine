@@ -1,0 +1,14 @@
+scenario "Index looks at the top five and puts them back" {
+  battlefield A: "Island"
+  hand A: "Index"
+  library A: "Forest", "Mountain", "Swamp", "Plains", "Island", "Grizzly Bears"
+  turn 1 A: cast "Index"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Index"
+  assert hand A count 0
+  assert library A contains "Forest"
+  assert library A contains "Grizzly Bears"
+  run_to turn 3 precombat_main
+  assert hand A count 1
+  assert library A contains "Grizzly Bears"
+}

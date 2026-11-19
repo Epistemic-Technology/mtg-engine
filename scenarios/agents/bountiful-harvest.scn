@@ -1,0 +1,9 @@
+scenario "Bountiful Harvest gains 1 life per land you control" {
+  battlefield A: 5 "Forest", 2 "Plains"
+  battlefield B: 3 "Forest"
+  hand A: "Bountiful Harvest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Bountiful Harvest"
+  run_to turn 1 postcombat_main
+  assert life A 27
+}

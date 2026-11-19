@@ -1,0 +1,7 @@
+card "Spire Tracer" {
+  oracle_id 9b38ab81-7ee7-4d89-878b-3507e44836ca
+  cost {G}
+  type Creature — Elf Scout
+  pt 1/1
+  can't be blocked except by creature with flying or reach
+}

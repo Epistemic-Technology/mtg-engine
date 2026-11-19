@@ -1,0 +1,6 @@
+card "Index" {
+  oracle_id 613b824e-39d1-4c6e-a19c-c915abdc860b
+  cost {U}
+  type Sorcery
+  spell: look at top 5
+}

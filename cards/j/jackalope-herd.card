@@ -1,0 +1,7 @@
+card "Jackalope Herd" {
+  oracle_id bcc8ce61-a881-42be-ab2c-64351d17f9f8
+  cost {3}{G}
+  type Creature — Rabbit Beast
+  pt 4/5
+  triggered when you cast a spell: return this to hand
+}

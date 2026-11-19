@@ -1,0 +1,18 @@
+scenario "Blessed Ghoul returns from the graveyard to hand" {
+  battlefield A: 3 "Plains"
+  graveyard A: "Blessed Ghoul"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Blessed Ghoul"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Blessed Ghoul"
+  assert graveyard A lacks "Blessed Ghoul"
+}
+
+scenario "Blessed Ghoul has lifelink" {
+  battlefield A: "Blessed Ghoul"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Blessed Ghoul"
+  run_to turn 2 postcombat_main
+  assert life A 21
+  assert life B 19
+}

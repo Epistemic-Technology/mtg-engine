@@ -1,0 +1,10 @@
+scenario "Audacious Thief draws and loses life when it attacks" {
+  battlefield A: "Audacious Thief"
+  library A: "Grizzly Bears", "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Audacious Thief"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life A 19
+  assert life B 18
+}

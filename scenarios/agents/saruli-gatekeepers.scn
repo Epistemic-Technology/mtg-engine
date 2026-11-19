@@ -1,0 +1,17 @@
+scenario "Saruli Gatekeepers gains 7 life with two Gates" {
+  battlefield A: "Selesnya Guildgate", "Golgari Guildgate", 2 "Forest"
+  hand A: "Saruli Gatekeepers"
+  turn 1 A: cast "Saruli Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saruli Gatekeepers"
+  assert life A 27
+}
+
+scenario "Saruli Gatekeepers gains nothing with one Gate" {
+  battlefield A: "Selesnya Guildgate", 3 "Forest"
+  hand A: "Saruli Gatekeepers"
+  turn 1 A: cast "Saruli Gatekeepers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Saruli Gatekeepers"
+  assert life A 20
+}

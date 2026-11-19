@@ -1,0 +1,9 @@
+card "Uncomfortable Chill" {
+  oracle_id d6596336-8177-4475-95b9-a21858563276
+  cost {2}{U}
+  type Instant
+  spell {
+    all creature your opponents control gets -2/-0
+    draw 1 card
+  }
+}

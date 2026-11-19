@@ -1,0 +1,14 @@
+scenario "Ajani's Mantra gains 1 life each upkeep" {
+  battlefield A: "Ajani's Mantra"
+  start turn 1 A untap
+  run_to turn 1 precombat_main
+  assert life A 21
+}
+
+scenario "Ajani's Mantra life gain is optional" {
+  battlefield A: "Ajani's Mantra"
+  start turn 1 A untap
+  turn 1 upkeep A: decline "Ajani's Mantra"
+  run_to turn 1 precombat_main
+  assert life A 20
+}

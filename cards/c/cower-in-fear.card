@@ -1,0 +1,6 @@
+card "Cower in Fear" {
+  oracle_id f1519fe3-af13-4491-9020-4a8d8f474713
+  cost {1}{B}{B}
+  type Instant
+  spell: all creature your opponents control gets -1/-1
+}

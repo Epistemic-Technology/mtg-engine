@@ -1,0 +1,6 @@
+card "Mana Geyser" {
+  oracle_id a8dba58b-2956-492e-ae30-49db2ae68e53
+  cost {3}{R}{R}
+  type Sorcery
+  spell: add {R} count each tapped land your opponents control
+}

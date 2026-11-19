@@ -1,0 +1,6 @@
+card "Burning Fields" {
+  oracle_id b3b58231-d532-423b-91d0-78d9c0f66f0f
+  cost {4}{R}
+  type Sorcery
+  spell: deal 5 damage to target opponent or planeswalker
+}

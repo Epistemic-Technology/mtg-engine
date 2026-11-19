@@ -1,0 +1,17 @@
+scenario "Sorcerer of the Fang deals 2 damage to an opponent" {
+  battlefield A: "Sorcerer of the Fang", 6 "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Sorcerer of the Fang" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert tapped "Sorcerer of the Fang"
+}
+
+scenario "Sorcerer of the Fang needs six mana" {
+  battlefield A: "Sorcerer of the Fang", 5 "Swamp"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Sorcerer of the Fang" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert untapped "Sorcerer of the Fang"
+}

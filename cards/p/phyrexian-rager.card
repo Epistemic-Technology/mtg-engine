@@ -1,0 +1,7 @@
+card "Phyrexian Rager" {
+  oracle_id e409c9be-0c9a-43c3-adb4-8c47afc1d551
+  cost {2}{B}
+  type Creature — Phyrexian Horror
+  pt 2/2
+  triggered when this enters: you draw 1 card, and you lose 1 life
+}

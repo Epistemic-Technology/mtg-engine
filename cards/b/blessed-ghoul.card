@@ -1,0 +1,8 @@
+card "Blessed Ghoul" {
+  oracle_id fe99d90e-4809-4310-a3f7-ceb540511d55
+  cost {W/B}
+  type Creature — Zombie Cleric
+  pt 1/1
+  keywords lifelink
+  activated {2}{W/B}, from graveyard: return this to hand
+}

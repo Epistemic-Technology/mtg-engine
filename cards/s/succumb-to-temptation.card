@@ -1,0 +1,6 @@
+card "Succumb to Temptation" {
+  oracle_id c8e21bc4-ea57-46d6-9e7e-ad95e17ea0fd
+  cost {1}{B}{B}
+  type Instant
+  spell: you draw 2 cards, and you lose 2 life
+}

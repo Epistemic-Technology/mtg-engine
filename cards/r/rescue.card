@@ -1,0 +1,6 @@
+card "Rescue" {
+  oracle_id f0ae687a-7222-4521-a514-ba10373fed7e
+  cost {U}
+  type Instant
+  spell: return target permanent you control to hand
+}

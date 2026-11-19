@@ -1,0 +1,6 @@
+card "Hunter's Ambush" {
+  oracle_id 1f085891-0d99-46a6-8f09-b84f44d701f8
+  cost {2}{G}
+  type Instant
+  spell: this turn, replace combat damage from nongreen creature to any: prevent
+}

@@ -1,0 +1,18 @@
+scenario "Project Deathlok Soldier returns from the graveyard to hand" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Project Deathlok Soldier"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Project Deathlok Soldier"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Project Deathlok Soldier"
+  assert graveyard A lacks "Project Deathlok Soldier"
+}
+
+scenario "Project Deathlok Soldier can't return without enough mana" {
+  battlefield A: 2 "Swamp"
+  graveyard A: "Project Deathlok Soldier"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Project Deathlok Soldier"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Project Deathlok Soldier"
+}

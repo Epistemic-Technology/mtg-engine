@@ -1,0 +1,6 @@
+card "Fractal Summoning" {
+  oracle_id ce690421-db1d-4177-a2db-338f29aab623
+  cost {X}{G/U}{G/U}
+  type Sorcery — Lesson
+  spell: create 1 "0/0 green and blue Fractal creature"; put X +1/+1 counters on that token
+}

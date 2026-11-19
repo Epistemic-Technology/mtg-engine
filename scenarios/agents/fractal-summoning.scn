@@ -1,0 +1,23 @@
+scenario "Fractal Summoning makes a Fractal with X counters" {
+  battlefield A: 3 "Forest", 2 "Island"
+  hand A: "Fractal Summoning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fractal Summoning" x 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Fractal"
+  assert counters "Fractal" +1/+1 3
+  assert power "Fractal" 3
+  assert toughness "Fractal" 3
+  assert is "Fractal" green
+  assert is "Fractal" blue
+}
+
+scenario "Fractal Summoning with X 0 makes a token that dies" {
+  battlefield A: 2 "Forest"
+  hand A: "Fractal Summoning"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fractal Summoning" x 0
+  run_to turn 1 postcombat_main
+  assert battlefield A lacks "Fractal"
+  assert graveyard A contains "Fractal Summoning"
+}

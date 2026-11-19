@@ -1,0 +1,9 @@
+scenario "Narrow Escape bounces your permanent and gains 4 life" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Narrow Escape"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Narrow Escape" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert life A 24
+}

@@ -1,0 +1,11 @@
+scenario "Foul Spirit makes you sacrifice a land" {
+  battlefield A: 3 "Swamp"
+  hand A: "Foul Spirit"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Foul Spirit"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Foul Spirit"
+  assert battlefield A contains 2 "Swamp"
+  assert graveyard A contains "Swamp"
+  assert has "Foul Spirit" flying
+}

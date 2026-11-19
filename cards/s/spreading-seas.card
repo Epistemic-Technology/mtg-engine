@@ -1,0 +1,8 @@
+card "Spreading Seas" {
+  oracle_id af32757c-9d3c-4f6c-a6fa-d5729a440382
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: draw 1 card
+  static enchanted: set land Island
+}

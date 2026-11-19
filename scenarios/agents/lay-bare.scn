@@ -1,0 +1,23 @@
+scenario "Lay Bare counters a spell" {
+  battlefield A: "Mountain"
+  battlefield B: 4 "Island"
+  hand A: "Lightning Bolt", "Grizzly Bears"
+  hand B: "Lay Bare"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 B: cast "Lay Bare" targeting "Lightning Bolt" in response to "Lightning Bolt"
+  run_to turn 1 postcombat_main
+  assert life B 20
+  assert graveyard A contains "Lightning Bolt"
+  assert graveyard B contains "Lay Bare"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Lay Bare needs a spell to target" {
+  battlefield B: 4 "Island"
+  hand B: "Lay Bare"
+  start turn 1 B precombat_main
+  illegal turn 1 B: cast "Lay Bare" targeting auto
+  run_to turn 1 postcombat_main
+  assert hand B contains "Lay Bare"
+}

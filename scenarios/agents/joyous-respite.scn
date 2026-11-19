@@ -1,0 +1,9 @@
+scenario "Joyous Respite gains 1 life per land you control" {
+  battlefield A: 4 "Forest", 2 "Plains"
+  battlefield B: 3 "Forest"
+  hand A: "Joyous Respite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Joyous Respite"
+  run_to turn 1 postcombat_main
+  assert life A 26
+}

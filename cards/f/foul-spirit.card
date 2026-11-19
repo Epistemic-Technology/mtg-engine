@@ -1,0 +1,8 @@
+card "Foul Spirit" {
+  oracle_id d8177d08-a603-42e9-9350-890eac05e184
+  cost {2}{B}
+  type Creature — Spirit
+  pt 3/2
+  keywords flying
+  triggered when this enters: you sacrifice 1 land
+}

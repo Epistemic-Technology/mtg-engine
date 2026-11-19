@@ -1,0 +1,11 @@
+scenario "Tithebearer Giant draws a card and loses 1 life as it enters" {
+  battlefield A: 6 "Swamp"
+  hand A: "Tithebearer Giant"
+  library A: "Grizzly Bears", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Tithebearer Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tithebearer Giant"
+  assert hand A contains "Grizzly Bears"
+  assert life A 19
+}

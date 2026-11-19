@@ -1,0 +1,8 @@
+card "One-Eyed Scarecrow" {
+  oracle_id 87b61c1f-18e3-446a-a732-cff40adc5e05
+  cost {3}
+  type Artifact Creature — Scarecrow
+  pt 2/3
+  keywords defender
+  static creature with flying your opponents control: -1/-0
+}

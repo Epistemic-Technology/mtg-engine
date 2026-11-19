@@ -1,0 +1,6 @@
+card "Bountiful Harvest" {
+  oracle_id 2dc94a25-4e35-4277-8eba-b8d0b293ff7b
+  cost {4}{G}
+  type Sorcery
+  spell: you gain count each land you control life
+}

@@ -1,0 +1,18 @@
+scenario "Accursed Centaur makes you sacrifice a creature" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  hand A: "Accursed Centaur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Accursed Centaur"
+  run_to turn 1 postcombat_main
+  assert battlefield A count 2
+  assert graveyard A count 1
+}
+
+scenario "Accursed Centaur alone sacrifices itself" {
+  battlefield A: "Swamp"
+  hand A: "Accursed Centaur"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Accursed Centaur"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Accursed Centaur"
+}

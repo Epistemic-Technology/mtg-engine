@@ -1,0 +1,8 @@
+scenario "Razortip Whip pings an opponent" {
+  battlefield A: "Razortip Whip", "Mountain"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Razortip Whip" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert tapped "Razortip Whip"
+}

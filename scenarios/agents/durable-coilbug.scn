@@ -1,0 +1,18 @@
+scenario "Durable Coilbug returns from the graveyard to hand" {
+  battlefield A: 5 "Swamp"
+  graveyard A: "Durable Coilbug"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Durable Coilbug"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Durable Coilbug"
+  assert graveyard A lacks "Durable Coilbug"
+}
+
+scenario "Durable Coilbug can't return without enough mana" {
+  battlefield A: 4 "Swamp"
+  graveyard A: "Durable Coilbug"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Durable Coilbug"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Durable Coilbug"
+}

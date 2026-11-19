@@ -1,0 +1,13 @@
+scenario "Tainted Well draws a card and makes the land a Swamp" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Tainted Well"
+  library A: "Island", "Plains"
+  turn 1 A: cast "Tainted Well" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert attached "Tainted Well" to "Forest"
+  assert is "Forest" swamp
+  assert is not "Forest" forest
+  assert hand A contains "Island"
+  assert hand A count 1
+}

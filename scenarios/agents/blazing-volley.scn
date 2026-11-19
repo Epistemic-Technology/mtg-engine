@@ -1,0 +1,12 @@
+scenario "Blazing Volley damages only the opponents' creatures" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Hill Giant"
+  hand A: "Blazing Volley"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Blazing Volley"
+  run_to turn 1 postcombat_main
+  assert damage "Wind Drake" 1
+  assert damage "Hill Giant" 1
+  assert damage "Grizzly Bears" 0
+  assert life B 20
+}

@@ -1,0 +1,6 @@
+card "Pedal to the Metal" {
+  oracle_id 22196948-9f30-4fcd-b43b-c7f81a0f4f36
+  cost {X}{R}
+  type Instant
+  spell: target creature gets +1/+0 X and gains first strike until end of turn
+}

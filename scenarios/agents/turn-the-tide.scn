@@ -1,0 +1,21 @@
+scenario "Turn the Tide shrinks only opponents' creatures" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Turn the Tide"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Turn the Tide"
+  run_to turn 1 postcombat_main
+  assert power B "Hill Giant" 1
+  assert toughness B "Hill Giant" 3
+  assert power A "Grizzly Bears" 2
+}
+
+scenario "Turn the Tide wears off at end of turn" {
+  battlefield A: 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Turn the Tide"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Turn the Tide"
+  run_to turn 2 precombat_main
+  assert power "Hill Giant" 3
+}

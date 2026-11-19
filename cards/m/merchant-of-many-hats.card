@@ -1,0 +1,7 @@
+card "Merchant of Many Hats" {
+  oracle_id 23820b45-2f3a-4b6e-99ea-d84caccb7e37
+  cost {1}{B}
+  type Creature — Human Peasant Ally
+  pt 2/2
+  activated {2}{B}, from graveyard: return this to hand
+}

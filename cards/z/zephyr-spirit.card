@@ -1,0 +1,7 @@
+card "Zephyr Spirit" {
+  oracle_id ff640343-6980-4668-a41f-0f01b0bbc0f2
+  cost {5}{U}
+  type Creature — Spirit
+  pt 0/6
+  triggered when this blocks: return this to hand
+}

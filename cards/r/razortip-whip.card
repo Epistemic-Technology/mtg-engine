@@ -1,0 +1,6 @@
+card "Razortip Whip" {
+  oracle_id 44cf7fd5-721f-41f4-ae78-cf93afeff5f1
+  cost {2}
+  type Artifact
+  activated {1}, {T}: deal 1 damage to target opponent or planeswalker
+}

@@ -1,0 +1,12 @@
+scenario "Novice Occultist draws and loses 1 life when it dies" {
+  battlefield A: "Novice Occultist"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  library A: "Hill Giant", "Forest"
+  start turn 2 B precombat_main
+  turn 2 B: cast "Lightning Bolt" targeting "Novice Occultist"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Novice Occultist"
+  assert hand A contains "Hill Giant"
+  assert life A 19
+}

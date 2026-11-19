@@ -1,0 +1,29 @@
+scenario "Leonin Elder gains 1 life when an artifact enters" {
+  battlefield A: "Leonin Elder"
+  hand A: "Memnite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memnite"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Memnite"
+  assert life A 21
+}
+
+scenario "Leonin Elder ignores nonartifact permanents" {
+  battlefield A: "Leonin Elder", 2 "Forest"
+  hand A: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert life A 20
+}
+
+scenario "Leonin Elder's gain is optional" {
+  battlefield A: "Leonin Elder"
+  hand A: "Memnite"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Memnite"
+  turn 1 A: decline "Leonin Elder"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

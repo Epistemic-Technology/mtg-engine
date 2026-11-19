@@ -1,0 +1,9 @@
+scenario "Howl from Beyond gives +X/+0" {
+  battlefield A: 4 "Swamp", "Grizzly Bears"
+  hand A: "Howl from Beyond"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Howl from Beyond" x 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+}

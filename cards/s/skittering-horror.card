@@ -1,0 +1,7 @@
+card "Skittering Horror" {
+  oracle_id 4344abeb-47ab-4638-b50f-dd502f14c1af
+  cost {2}{B}
+  type Creature — Phyrexian Horror
+  pt 4/3
+  triggered when you cast creature spell: sacrifice this
+}

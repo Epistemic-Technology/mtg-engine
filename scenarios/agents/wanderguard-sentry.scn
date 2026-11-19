@@ -1,0 +1,12 @@
+scenario "Wanderguard Sentry looks at target opponent's hand as it enters" {
+  battlefield A: 5 "Island"
+  hand A: "Wanderguard Sentry"
+  hand B: "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wanderguard Sentry"
+  turn 1 A: trigger "Wanderguard Sentry" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wanderguard Sentry"
+  assert stack count 0
+  assert hand B contains "Grizzly Bears"
+}

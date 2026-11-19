@@ -1,0 +1,20 @@
+scenario "Jackalope Herd returns to hand when you cast a spell" {
+  battlefield A: "Jackalope Herd", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Jackalope Herd"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Jackalope Herd ignores opponents' spells" {
+  battlefield A: "Jackalope Herd"
+  battlefield B: "Forest", "Grizzly Bears"
+  hand B: "Giant Growth"
+  start turn 1 B precombat_main
+  turn 1 B: cast "Giant Growth" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Jackalope Herd"
+}

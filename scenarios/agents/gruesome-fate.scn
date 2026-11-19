@@ -1,0 +1,10 @@
+scenario "Gruesome Fate drains per creature you control" {
+  battlefield A: 3 "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Wind Drake"
+  hand A: "Gruesome Fate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Gruesome Fate"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert life A 20
+}

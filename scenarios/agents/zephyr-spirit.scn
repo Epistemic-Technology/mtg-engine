@@ -1,0 +1,11 @@
+scenario "Zephyr Spirit returns to hand when it blocks" {
+  battlefield A: "Zephyr Spirit"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Zephyr Spirit"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Zephyr Spirit"
+  assert battlefield A lacks "Zephyr Spirit"
+  assert life A 20
+}

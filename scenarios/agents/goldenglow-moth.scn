@@ -1,0 +1,21 @@
+scenario "Goldenglow Moth gains 4 life when it blocks" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Goldenglow Moth"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Goldenglow Moth"
+  run_to turn 2 postcombat_main
+  assert life B 24
+  assert graveyard B contains "Goldenglow Moth"
+}
+
+scenario "Goldenglow Moth's life gain is optional" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Goldenglow Moth"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Grizzly Bears"
+  turn 2 B: block "Grizzly Bears" with "Goldenglow Moth"
+  turn 2 declare_blockers B: decline "Goldenglow Moth"
+  run_to turn 2 postcombat_main
+  assert life B 20
+}

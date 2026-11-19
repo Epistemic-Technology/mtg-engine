@@ -1,0 +1,6 @@
+card "Howl from Beyond" {
+  oracle_id 403cf6ae-48a9-4ea9-894e-7135cfca4e1b
+  cost {X}{B}
+  type Instant
+  spell: target creature gets +1/+0 X
+}

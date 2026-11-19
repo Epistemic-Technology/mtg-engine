@@ -1,0 +1,6 @@
+card "Joyous Respite" {
+  oracle_id 8dbc1563-63b0-4a13-9fcc-bcd592015189
+  cost {3}{G}
+  type Sorcery — Arcane
+  spell: you gain count each land you control life
+}

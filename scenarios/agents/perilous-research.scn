@@ -1,0 +1,12 @@
+scenario "Perilous Research draws two then sacrifices a permanent" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  hand A: "Perilous Research"
+  library A: "Hill Giant", "Forest", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Perilous Research"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+  assert hand A contains "Forest"
+  assert graveyard A count 2
+  assert graveyard A contains "Perilous Research"
+}

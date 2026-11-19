@@ -1,0 +1,6 @@
+card "Fruition" {
+  oracle_id 5f3ef680-90f4-487f-b44b-db25e29e57ce
+  cost {G}
+  type Sorcery
+  spell: you gain count each Forest on battlefield life
+}

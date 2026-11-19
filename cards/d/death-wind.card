@@ -1,0 +1,6 @@
+card "Death Wind" {
+  oracle_id a636b62a-340b-444d-9161-f6d3367b745c
+  cost {X}{B}
+  type Instant
+  spell: target creature gets -1/-1 X
+}

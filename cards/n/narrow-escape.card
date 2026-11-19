@@ -1,0 +1,6 @@
+card "Narrow Escape" {
+  oracle_id c96803dc-b69b-4fc3-a39b-1aad6d800e86
+  cost {2}{W}
+  type Instant
+  spell: return target permanent you control to hand; you gain 4 life
+}

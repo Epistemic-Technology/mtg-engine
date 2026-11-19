@@ -1,0 +1,13 @@
+scenario "Tunnel Surveyor creates a 1/1 white Glimmer enchantment creature token" {
+  battlefield A: 3 "Island"
+  hand A: "Tunnel Surveyor"
+  turn 1 A: cast "Tunnel Surveyor"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Tunnel Surveyor"
+  assert battlefield A contains 1 "Glimmer"
+  assert is "Glimmer" enchantment
+  assert is "Glimmer" creature
+  assert is "Glimmer" white
+  assert power "Glimmer" 1
+  assert toughness "Glimmer" 1
+}

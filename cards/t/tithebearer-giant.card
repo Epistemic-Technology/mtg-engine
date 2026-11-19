@@ -1,0 +1,7 @@
+card "Tithebearer Giant" {
+  oracle_id 475aaf7c-b0f8-40f3-ad91-3e7d414de933
+  cost {5}{B}
+  type Creature — Giant Warrior
+  pt 4/5
+  triggered when this enters: you draw 1 card, and you lose 1 life
+}

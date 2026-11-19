@@ -1,0 +1,7 @@
+card "Shepherd of Rot" {
+  oracle_id af18e496-fef9-4869-867b-bdac653cafd0
+  cost {1}{B}
+  type Creature — Zombie Cleric
+  pt 1/1
+  activated {T}: each player loses count each Zombie on battlefield life
+}

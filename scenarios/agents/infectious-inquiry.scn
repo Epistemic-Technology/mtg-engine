@@ -1,0 +1,15 @@
+scenario "Infectious Inquiry draws two, costs 2 life, poisons the opponent" {
+  battlefield A: 3 "Swamp"
+  hand A: "Infectious Inquiry"
+  library A: "Forest", "Mountain", "Island"
+  turn 1 A: cast "Infectious Inquiry"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert hand A contains "Forest"
+  assert hand A contains "Mountain"
+  assert life A 18
+  assert life B 20
+  assert poison B 1
+  assert poison A 0
+  assert graveyard A contains "Infectious Inquiry"
+}

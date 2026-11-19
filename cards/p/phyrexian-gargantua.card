@@ -1,0 +1,7 @@
+card "Phyrexian Gargantua" {
+  oracle_id a3925dfd-62b0-44ef-8545-7bee92cad5a2
+  cost {4}{B}{B}
+  type Creature — Phyrexian Horror
+  pt 4/4
+  triggered when this enters: you draw 2 cards, and you lose 2 life
+}

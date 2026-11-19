@@ -1,0 +1,6 @@
+card "Reclaim" {
+  oracle_id 797155cd-faf4-4321-8629-c8c352392748
+  cost {G}
+  type Instant
+  spell: put target card from your graveyard on top of library
+}

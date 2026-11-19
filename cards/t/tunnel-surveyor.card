@@ -1,0 +1,7 @@
+card "Tunnel Surveyor" {
+  oracle_id 7aae54a6-3011-4867-b5ee-21a2111aecc6
+  cost {2}{U}
+  type Creature — Human Detective
+  pt 2/2
+  triggered when this enters: create 1 "1/1 white Glimmer enchantment creature"
+}

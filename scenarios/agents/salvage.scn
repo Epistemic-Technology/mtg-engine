@@ -1,0 +1,22 @@
+scenario "Salvage puts a graveyard card on top of the library" {
+  battlefield A: "Forest"
+  hand A: "Salvage"
+  graveyard A: "Hill Giant"
+  library A: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvage" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert graveyard A lacks "Hill Giant"
+  assert library A count 3
+}
+
+scenario "Salvage then a draw finds the card" {
+  battlefield A: "Forest"
+  hand A: "Salvage"
+  graveyard A: "Hill Giant"
+  library A: "Plains", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Salvage" targeting "Hill Giant"
+  run_to turn 3 precombat_main
+  assert hand A contains "Hill Giant"
+}

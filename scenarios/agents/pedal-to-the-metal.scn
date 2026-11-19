@@ -1,0 +1,20 @@
+scenario "Pedal to the Metal gives +X/+0 and first strike" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Pedal to the Metal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pedal to the Metal" x 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 5
+  assert toughness "Grizzly Bears" 2
+  assert has "Grizzly Bears" first_strike
+}
+
+scenario "Pedal to the Metal wears off at end of turn" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Pedal to the Metal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Pedal to the Metal" x 3 targeting "Grizzly Bears"
+  run_to turn 2 precombat_main
+  assert power "Grizzly Bears" 2
+  assert has not "Grizzly Bears" first_strike
+}

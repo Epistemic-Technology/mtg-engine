@@ -1,0 +1,24 @@
+scenario "Mana Geyser adds red for each tapped opposing land" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 4 "Mountain" tapped, "Forest"
+  hand A: "Mana Geyser", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mana Geyser"
+  turn 1 A: wait
+  turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Hill Giant"
+  assert graveyard A contains "Mana Geyser"
+}
+
+scenario "Mana Geyser ignores untapped opposing lands" {
+  battlefield A: 5 "Mountain"
+  battlefield B: 3 "Mountain" tapped, 4 "Forest"
+  hand A: "Mana Geyser", "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Mana Geyser"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}

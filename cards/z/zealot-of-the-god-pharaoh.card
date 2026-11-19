@@ -1,0 +1,7 @@
+card "Zealot of the God-Pharaoh" {
+  oracle_id 2911d52f-7faf-455a-acdf-77269c9ee8ce
+  cost {3}{R}
+  type Creature — Minotaur Archer
+  pt 4/3
+  activated {4}{R}: deal 2 damage to target opponent or planeswalker
+}

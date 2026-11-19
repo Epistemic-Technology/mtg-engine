@@ -1,0 +1,7 @@
+card "Leonin Elder" {
+  oracle_id f85a1752-c6fa-481b-997d-6b5dd4c6b54b
+  cost {W}
+  type Creature — Cat Cleric
+  pt 1/1
+  triggered whenever artifact enters: you may you gain 1 life
+}

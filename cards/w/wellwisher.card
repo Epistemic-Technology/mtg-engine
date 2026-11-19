@@ -1,0 +1,7 @@
+card "Wellwisher" {
+  oracle_id c3b1b7bd-cff8-4275-b6d3-868f4e4b2cc0
+  cost {1}{G}
+  type Creature — Elf
+  pt 1/1
+  activated {T}: you gain count each Elf on battlefield life
+}

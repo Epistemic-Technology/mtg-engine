@@ -1,0 +1,20 @@
+scenario "Saprazzan Raider returns to hand when blocked" {
+  battlefield A: "Saprazzan Raider"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Saprazzan Raider"
+  turn 2 B: block "Saprazzan Raider" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert hand A contains "Saprazzan Raider"
+  assert damage "Grizzly Bears" 0
+  assert life B 20
+}
+
+scenario "Saprazzan Raider unblocked deals damage" {
+  battlefield A: "Saprazzan Raider"
+  start turn 2 A precombat_main
+  turn 2 A: attack "Saprazzan Raider"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Saprazzan Raider"
+  assert life B 19
+}

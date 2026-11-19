@@ -1,0 +1,9 @@
+scenario "Rescue returns your permanent to hand" {
+  battlefield A: "Grizzly Bears", "Island"
+  hand A: "Rescue"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Rescue" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A lacks "Grizzly Bears"
+}

@@ -1,0 +1,24 @@
+scenario "Spreading Seas draws a card and makes the land an Island" {
+  battlefield A: 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Spreading Seas"
+  library A: "Forest", "Plains"
+  turn 1 A: cast "Spreading Seas" targeting "Mountain"
+  run_to turn 1 postcombat_main
+  assert attached "Spreading Seas" to "Mountain"
+  assert is "Mountain" island
+  assert is not "Mountain" mountain
+  assert hand A contains "Forest"
+  assert hand A count 1
+}
+
+scenario "a land enchanted by Spreading Seas taps for blue" {
+  battlefield A: "Mountain", "Spreading Seas" on "Mountain", "Plains", "Plains"
+  hand A: "Divination"
+  library A: "Forest", "Plains", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Divination"
+  run_to turn 1 postcombat_main
+  assert tapped "Mountain"
+  assert hand A count 2
+}
