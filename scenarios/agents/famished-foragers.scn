@@ -1,0 +1,29 @@
+scenario "famished foragers adds RRR if an opponent lost life this turn" {
+  battlefield A: 5 "Mountain"
+  hand A: "Lightning Bolt", "Famished Foragers", "Forest"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  turn 2 A: wait
+  turn 2 A: cast "Famished Foragers"
+  turn 2 A: wait
+  turn 2 A: activate "Famished Foragers" discarding "Forest"
+  run_to turn 2 postcombat_main
+  assert life B 17
+  assert battlefield A contains "Famished Foragers"
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+}
+
+scenario "famished foragers adds nothing if no opponent lost life" {
+  battlefield A: 4 "Mountain"
+  hand A: "Famished Foragers", "Forest"
+  library A: "Island", "Plains"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Famished Foragers"
+  turn 2 A: wait
+  illegal turn 2 A: activate "Famished Foragers"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Famished Foragers"
+  assert hand A contains "Forest"
+}

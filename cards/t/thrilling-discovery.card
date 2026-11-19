@@ -1,0 +1,6 @@
+card "Thrilling Discovery" {
+  oracle_id c5f5a234-c751-4976-a3e1-fbd52b3255c9
+  cost {R}{W}
+  type Sorcery
+  spell: you gain 2 life; then you may discard 2 cards chosen; if you do, draw 3 cards
+}

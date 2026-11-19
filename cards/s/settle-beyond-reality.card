@@ -1,0 +1,9 @@
+card "Settle Beyond Reality" {
+  oracle_id 2debd9f1-6d3a-4f0a-8488-603447c44490
+  cost {4}{W}
+  type Sorcery
+  choose one or both {
+    mode: exile target creature you don't control
+    mode: exile target creature you control then return target 1 to battlefield
+  }
+}

@@ -1,0 +1,12 @@
+scenario "Loathsome Curator exploits to destroy a cheap creature" {
+  battlefield A: 5 "Swamp", "Grizzly Bears"
+  battlefield B: "Savannah Lions", "Hill Giant"
+  hand A: "Loathsome Curator"
+  turn 1 A: cast "Loathsome Curator"
+  turn 1 A: trigger "Loathsome Curator" targeting "Savannah Lions"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Savannah Lions"
+  assert battlefield B contains "Hill Giant"
+  assert has "Loathsome Curator" menace
+}

@@ -1,0 +1,7 @@
+card "Tah-Crop Skirmisher" {
+  oracle_id 6fab0fa0-d082-414e-9bcf-edc0fc1f6211
+  cost {1}{U}
+  type Creature — Snake Warrior
+  pt 2/1
+  embalm {3}{U}
+}

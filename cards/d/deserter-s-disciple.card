@@ -1,0 +1,7 @@
+card "Deserter's Disciple" {
+  oracle_id 73ca3132-d849-4cf9-beba-75ba09789332
+  cost {1}{R}
+  type Creature — Human Rebel Ally
+  pt 2/2
+  activated {T}: another target creature you control with power 2 or less can't be blocked
+}

@@ -1,0 +1,19 @@
+scenario "contempt returns the attacker and itself at end of combat" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant", "Contempt" on "Hill Giant"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert hand B contains "Hill Giant"
+  assert hand B contains "Contempt"
+  assert battlefield B lacks "Hill Giant"
+}
+
+scenario "contempt does nothing if the creature doesn't attack" {
+  battlefield B: "Hill Giant", "Contempt" on "Hill Giant"
+  start turn 2 B
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert attached "Contempt" to "Hill Giant"
+}

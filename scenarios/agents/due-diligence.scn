@@ -1,0 +1,24 @@
+scenario "due diligence: enchanted creature and another creature get +2/+2 and vigilance" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Elite Vanguard"
+  hand A: "Due Diligence"
+  turn 1 A: cast "Due Diligence" targeting "Grizzly Bears"
+  turn 1 A: trigger "Due Diligence" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert attached "Due Diligence" to "Grizzly Bears"
+  assert power "Grizzly Bears" 4
+  assert has "Grizzly Bears" vigilance
+  assert power "Elite Vanguard" 4
+  assert toughness "Elite Vanguard" 3
+  assert has "Elite Vanguard" vigilance
+}
+
+scenario "due diligence: the trigger's pump ends, the Aura's stays" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Elite Vanguard"
+  hand A: "Due Diligence"
+  turn 1 A: cast "Due Diligence" targeting "Grizzly Bears"
+  turn 1 A: trigger "Due Diligence" targeting "Elite Vanguard"
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 4
+  assert power "Elite Vanguard" 2
+  assert has not "Elite Vanguard" vigilance
+}

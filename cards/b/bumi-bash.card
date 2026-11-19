@@ -1,0 +1,9 @@
+card "Bumi Bash" {
+  oracle_id 629f247c-1e64-4c32-8892-0716ed469d1c
+  cost {3}{R}
+  type Sorcery
+  choose one {
+    mode: deal damage equal land you control to target creature
+    mode: destroy target land creature or nonbasic land
+  }
+}

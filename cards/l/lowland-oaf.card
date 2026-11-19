@@ -1,0 +1,7 @@
+card "Lowland Oaf" {
+  oracle_id c14f973e-b2b0-4d22-87f6-c37f7eb92864
+  cost {3}{R}
+  type Creature — Giant Warrior
+  pt 3/3
+  activated {T}: target Goblin creature you control gets +1/+0 and target 1 gains flying; delayed target 1: sacrifice that creature at beginning of the next end step
+}

@@ -1,0 +1,30 @@
+scenario "blacksmith's skill: artifact creature gets +2/+2" {
+  battlefield A: "Ornithopter", "Plains"
+  hand A: "Blacksmith's Skill"
+  turn 1 A: cast "Blacksmith's Skill" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert power "Ornithopter" 2
+  assert toughness "Ornithopter" 4
+  assert has "Ornithopter" indestructible
+  assert has "Ornithopter" hexproof
+}
+
+scenario "blacksmith's skill: a nonartifact creature gets no pump" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Blacksmith's Skill"
+  turn 1 A: cast "Blacksmith's Skill" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "blacksmith's skill: indestructible survives wrath" {
+  battlefield A: "Grizzly Bears", "Plains", 4 "Plains"
+  hand A: "Blacksmith's Skill", "Wrath of God"
+  turn 1 A: cast "Blacksmith's Skill" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Wrath of God"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard A contains "Wrath of God"
+}

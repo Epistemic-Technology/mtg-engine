@@ -1,0 +1,7 @@
+card "Takenuma Bleeder" {
+  oracle_id ee397a87-6933-4d2d-aac6-8dc4e96d524b
+  cost {2}{B}
+  type Creature — Ogre Shaman
+  pt 3/3
+  triggered whenever this attacks or blocks: you lose 1 life if you don't control Demon
+}

@@ -1,0 +1,32 @@
+scenario "vengeant earth: a land becomes a 4/4 Elemental with haste" {
+  battlefield A: 2 "Forest", "Plains"
+  hand A: "Vengeant Earth"
+  turn 1 A: cast "Vengeant Earth" targeting "Plains"
+  run_to turn 1 begin_combat
+  assert is "Plains" creature
+  assert is "Plains" land
+  assert is "Plains" Elemental
+  assert power "Plains" 4
+  assert has "Plains" haste
+}
+
+scenario "vengeant earth: a creature keeps its types and must be blocked" {
+  battlefield A: 2 "Forest", "Grizzly Bears"
+  battlefield B: "Elite Vanguard"
+  hand A: "Vengeant Earth"
+  turn 1 A: cast "Vengeant Earth" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Grizzly Bears" Bear
+  assert is "Grizzly Bears" Elemental
+  assert graveyard B contains "Elite Vanguard"
+  assert life B 20
+}
+
+scenario "vengeant earth: the effect ends at end of turn" {
+  battlefield A: 2 "Forest", "Plains"
+  hand A: "Vengeant Earth"
+  turn 1 A: cast "Vengeant Earth" targeting "Plains"
+  run_to turn 2 upkeep
+  assert is not "Plains" creature
+}

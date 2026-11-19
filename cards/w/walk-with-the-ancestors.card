@@ -1,0 +1,6 @@
+card "Walk with the Ancestors" {
+  oracle_id ce657a2e-461b-45fd-ab98-35b5c8512777
+  cost {4}{G}
+  type Sorcery
+  spell: return up to 1 target permanent card from your graveyard to hand; discover 4
+}

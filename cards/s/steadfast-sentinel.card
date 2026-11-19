@@ -1,0 +1,8 @@
+card "Steadfast Sentinel" {
+  oracle_id 38bfc0bc-66a6-4d9e-9186-5ccaef773014
+  cost {3}{W}
+  type Creature — Human Cleric
+  pt 2/3
+  keywords vigilance
+  eternalize {4}{W}{W}
+}

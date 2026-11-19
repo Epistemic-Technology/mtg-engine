@@ -1,0 +1,6 @@
+card "Energy Tap" {
+  oracle_id 106ae855-574b-411d-8689-cbb9eeb4f602
+  cost {U}
+  type Sorcery
+  spell: tap target untapped creature you control; if you do, add {C} count equal mana value of that target 1
+}

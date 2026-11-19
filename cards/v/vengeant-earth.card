@@ -1,0 +1,6 @@
+card "Vengeant Earth" {
+  oracle_id 237b8528-a199-45f4-8efc-96d67119f738
+  cost {1}{G}
+  type Instant
+  spell: target creature or land you control becomes 4/4 Elemental creature with haste in addition; target 1 must be blocked if able
+}

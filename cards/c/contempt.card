@@ -1,0 +1,7 @@
+card "Contempt" {
+  oracle_id 811c8364-fafb-49c8-a5bf-7b6cdfceb475
+  cost {1}{U}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature attacks: delayed it: return it and this to hand at end of combat
+}

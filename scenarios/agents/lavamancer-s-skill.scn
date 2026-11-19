@@ -1,0 +1,25 @@
+scenario "lavamancer's skill: enchanted creature pings a creature for 1" {
+  battlefield A: "Grizzly Bears", "Lavamancer's Skill" on "Grizzly Bears"
+  battlefield B: "Elite Vanguard", "Hill Giant"
+  turn 1 A: activate "Grizzly Bears" targeting "Elite Vanguard"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Elite Vanguard"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "lavamancer's skill: a non-Wizard deals only 1" {
+  battlefield A: "Grizzly Bears", "Lavamancer's Skill" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Grizzly Bears" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert damage "Hill Giant" 1
+}
+
+scenario "lavamancer's skill: a Wizard can deal 2 damage" {
+  battlefield A: "Prodigal Sorcerer", "Lavamancer's Skill" on "Prodigal Sorcerer"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: activate "Prodigal Sorcerer" ability 3 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+}

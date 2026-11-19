@@ -1,0 +1,9 @@
+card "Flick a Coin" {
+  oracle_id 990583ef-5bf4-4e14-a8f1-61d32c6a75df
+  cost {2}{R}
+  type Instant
+  spell {
+    deal 1 damage to any target; you create 1 "Treasure"
+    draw 1 card
+  }
+}

@@ -1,0 +1,24 @@
+scenario "tah-crop skirmisher embalms into a white Zombie token copy" {
+  battlefield A: 4 "Island"
+  graveyard A: "Tah-Crop Skirmisher"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Tah-Crop Skirmisher"
+  run_to turn 2 postcombat_main
+  assert exile A contains "Tah-Crop Skirmisher"
+  assert battlefield A contains "Tah-Crop Skirmisher"
+  assert power "Tah-Crop Skirmisher" 2
+  assert toughness "Tah-Crop Skirmisher" 1
+  assert is "Tah-Crop Skirmisher" white
+  assert is not "Tah-Crop Skirmisher" blue
+  assert is "Tah-Crop Skirmisher" Zombie
+  assert is "Tah-Crop Skirmisher" Snake
+}
+
+scenario "tah-crop skirmisher can't embalm at instant speed" {
+  battlefield A: 4 "Island"
+  graveyard A: "Tah-Crop Skirmisher"
+  start turn 2 A precombat_main
+  illegal turn 2 begin_combat A: activate "Tah-Crop Skirmisher"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Tah-Crop Skirmisher"
+}

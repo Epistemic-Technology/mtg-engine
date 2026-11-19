@@ -1,0 +1,28 @@
+scenario "Takenuma Bleeder costs 1 life when it attacks without a Demon" {
+  battlefield A: "Takenuma Bleeder"
+  start turn 2 A
+  turn 2 A: attack "Takenuma Bleeder"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert life B 17
+}
+
+scenario "Takenuma Bleeder costs 1 life when it blocks" {
+  battlefield A: "Takenuma Bleeder"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 A: block "Grizzly Bears" with "Takenuma Bleeder"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Takenuma Bleeder costs nothing with a Demon" {
+  battlefield A: "Takenuma Bleeder", "Halo Hunter"
+  start turn 2 A
+  turn 2 A: attack "Takenuma Bleeder"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 17
+}

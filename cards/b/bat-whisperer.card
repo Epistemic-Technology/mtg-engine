@@ -1,0 +1,7 @@
+card "Bat Whisperer" {
+  oracle_id f20f6da9-d678-486b-99f9-7121669fef81
+  cost {3}{B}
+  type Creature — Vampire
+  pt 4/2
+  triggered when this enters if opponent lost life this turn: create 1 "1/1 black Bat creature with flying"
+}

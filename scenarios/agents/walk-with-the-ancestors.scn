@@ -1,0 +1,10 @@
+scenario "Walk with the Ancestors returns a permanent card and discovers 4" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Grizzly Bears"
+  library A: "Forest", "Hill Giant", "Island"
+  hand A: "Walk with the Ancestors"
+  turn 1 A: cast "Walk with the Ancestors" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Hill Giant"
+}

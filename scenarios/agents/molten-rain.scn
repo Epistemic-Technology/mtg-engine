@@ -1,0 +1,22 @@
+scenario "Molten Rain on a nonbasic land deals 2 to its controller" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Evolving Wilds"
+  hand A: "Molten Rain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Molten Rain" targeting "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Evolving Wilds"
+  assert life B 18
+  assert life A 20
+}
+
+scenario "Molten Rain on a basic land deals no damage" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Forest"
+  hand A: "Molten Rain"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Molten Rain" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 20
+}

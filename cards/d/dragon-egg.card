@@ -1,0 +1,8 @@
+card "Dragon Egg" {
+  oracle_id 8f561498-66e7-4cbf-8cb9-e6fd4717993d
+  cost {2}{R}
+  type Creature — Dragon Egg
+  pt 0/2
+  keywords defender
+  triggered when this dies: create 1 "2/2 red Dragon creature with flying and firebreathing"
+}

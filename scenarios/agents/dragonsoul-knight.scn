@@ -1,0 +1,25 @@
+scenario "dragonsoul knight becomes a 7/5 flying trampling Dragon until end of turn" {
+  battlefield A: "Dragonsoul Knight", "Plains", "Island", "Swamp", "Mountain", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Dragonsoul Knight"
+  run_to turn 2 begin_combat
+  assert power "Dragonsoul Knight" 7
+  assert toughness "Dragonsoul Knight" 5
+  assert has "Dragonsoul Knight" flying
+  assert has "Dragonsoul Knight" trample
+  assert has "Dragonsoul Knight" first_strike
+  assert is "Dragonsoul Knight" Dragon
+  assert is not "Dragonsoul Knight" Knight
+  run_to turn 3 upkeep
+  assert power "Dragonsoul Knight" 2
+  assert has not "Dragonsoul Knight" flying
+  assert is "Dragonsoul Knight" Knight
+}
+
+scenario "dragonsoul knight needs all five colors" {
+  battlefield A: "Dragonsoul Knight", "Plains", "Island", "Swamp", "Mountain", "Mountain"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Dragonsoul Knight"
+  run_to turn 2 postcombat_main
+  assert power "Dragonsoul Knight" 2
+}

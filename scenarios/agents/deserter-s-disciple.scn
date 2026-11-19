@@ -1,0 +1,27 @@
+scenario "deserter's disciple makes a small creature unblockable" {
+  battlefield A: "Deserter's Disciple", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Deserter's Disciple" targeting "Grizzly Bears"
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life B 18
+  assert tapped "Deserter's Disciple"
+}
+
+scenario "deserter's disciple can't target a creature with power 3 or itself" {
+  battlefield A: "Deserter's Disciple", "Hill Giant"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Deserter's Disciple" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert untapped "Deserter's Disciple"
+}
+
+scenario "deserter's disciple can't target itself" {
+  battlefield A: "Deserter's Disciple"
+  start turn 2 A precombat_main
+  illegal turn 2 A: activate "Deserter's Disciple" targeting "Deserter's Disciple"
+  run_to turn 2 postcombat_main
+  assert untapped "Deserter's Disciple"
+}

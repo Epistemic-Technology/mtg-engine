@@ -1,0 +1,17 @@
+scenario "Flensing Raptor pumps another toxic creature" {
+  battlefield A: 3 "Plains", "Blightbelly Rat"
+  hand A: "Flensing Raptor"
+  turn 1 A: cast "Flensing Raptor"
+  turn 1 A: trigger "Flensing Raptor" targeting "Blightbelly Rat"
+  run_to turn 1 postcombat_main
+  assert power "Blightbelly Rat" 3
+  assert has "Blightbelly Rat" flying
+}
+
+scenario "Flensing Raptor deals toxic combat damage" {
+  battlefield A: "Flensing Raptor"
+  turn 1 A: attack "Flensing Raptor"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert poison B 1
+}

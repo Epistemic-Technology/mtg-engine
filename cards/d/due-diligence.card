@@ -1,0 +1,8 @@
+card "Due Diligence" {
+  oracle_id d412150d-3c70-44cf-97cd-965c438e7303
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  triggered when this enters: target creature you control other than enchanted gets +2/+2 and gains vigilance
+  static enchanted: +2/+2, has vigilance
+}

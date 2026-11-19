@@ -1,0 +1,9 @@
+card "Demoralize" {
+  oracle_id d0741810-0772-47f3-a709-4739fbf85576
+  cost {2}{R}
+  type Instant
+  spell {
+    each creature gains menace
+    label "Threshold" if threshold, all creature can't block
+  }
+}

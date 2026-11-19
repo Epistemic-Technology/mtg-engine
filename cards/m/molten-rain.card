@@ -1,0 +1,6 @@
+card "Molten Rain" {
+  oracle_id e9774695-b2f1-4014-8504-04b2339be568
+  cost {1}{R}{R}
+  type Sorcery
+  spell: destroy target land; if target 1 was nonbasic permanent, deal 2 damage to controller of the target 1
+}

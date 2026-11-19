@@ -1,0 +1,31 @@
+scenario "choking sands destroys a nonbasic land and deals 2 to its controller" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Tranquil Cove"
+  hand A: "Choking Sands"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Choking Sands" targeting "Tranquil Cove"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Tranquil Cove"
+  assert life B 18
+}
+
+scenario "choking sands on a basic land deals no damage" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Forest"
+  hand A: "Choking Sands"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Choking Sands" targeting "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life B 20
+}
+
+scenario "choking sands can't target a Swamp" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Swamp"
+  hand A: "Choking Sands"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Choking Sands" targeting B "Swamp"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Swamp"
+}

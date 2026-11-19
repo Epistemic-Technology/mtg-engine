@@ -1,0 +1,6 @@
+card "Trickster's Stratagem" {
+  oracle_id 170ee399-d3cd-40ef-a340-193c0f0f6002
+  cost {3}{U}
+  type Sorcery
+  spell: owner of target creature an opponent controls puts it into library 2 from top or bottom; then up to one target creature you control connives
+}

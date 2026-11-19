@@ -1,0 +1,19 @@
+scenario "Dragon Egg dies and leaves a firebreathing Dragon" {
+  battlefield A: "Dragon Egg", 3 "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Dragon Egg"
+  turn 1 A: wait
+  turn 1 A: activate "Dragon"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Dragon Egg"
+  assert battlefield A contains "Dragon"
+  assert has "Dragon" flying
+  assert power "Dragon" 3
+}
+
+scenario "Dragon Egg can't attack" {
+  battlefield A: "Dragon Egg"
+  illegal turn 1 A: attack "Dragon Egg"
+  run_to turn 1 postcombat_main
+  assert life B 20
+}

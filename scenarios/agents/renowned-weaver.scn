@@ -1,0 +1,10 @@
+scenario "Renowned Weaver sacrifices itself for a Spider" {
+  battlefield A: "Renowned Weaver", 2 "Forest"
+  turn 1 A: activate "Renowned Weaver"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Renowned Weaver"
+  assert battlefield A contains "Spider"
+  assert is "Spider" enchantment
+  assert has "Spider" reach
+  assert toughness "Spider" 3
+}

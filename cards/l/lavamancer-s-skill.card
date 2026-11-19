@@ -1,0 +1,8 @@
+card "Lavamancer's Skill" {
+  oracle_id e7819a6d-a518-4400-8e30-2a528878fd8a
+  cost {1}{R}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has ability { activated {T}: deal 1 damage to target creature }
+  static as long as attached is Wizard, enchanted: has ability { activated {T}: deal 2 damage to target creature }
+}

@@ -1,0 +1,8 @@
+card "Molder Beast" {
+  oracle_id 2b732c6a-f09c-4ac0-ae3a-1d8820b69aba
+  cost {4}{G}
+  type Creature — Beast
+  pt 5/3
+  keywords trample
+  triggered whenever artifact dies: this gets +2/+0
+}

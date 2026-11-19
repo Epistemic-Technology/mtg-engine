@@ -1,0 +1,23 @@
+scenario "molder beast gets +2/+0 when any artifact goes to a graveyard" {
+  battlefield A: "Molder Beast", 2 "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Shatter"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shatter" targeting "Ornithopter"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Ornithopter"
+  assert power "Molder Beast" 7
+  run_to turn 3 upkeep
+  assert power "Molder Beast" 5
+}
+
+scenario "molder beast ignores nonartifact creatures dying" {
+  battlefield A: "Molder Beast", "Mountain"
+  battlefield B: "Llanowar Elves"
+  hand A: "Shock"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Shock" targeting "Llanowar Elves"
+  run_to turn 2 begin_combat
+  assert graveyard B contains "Llanowar Elves"
+  assert power "Molder Beast" 5
+}

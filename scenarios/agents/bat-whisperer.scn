@@ -1,0 +1,20 @@
+scenario "Bat Whisperer makes a Bat after an opponent lost life" {
+  battlefield A: 4 "Swamp", "Mountain"
+  hand A: "Shock", "Bat Whisperer"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Bat Whisperer"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Bat"
+  assert has "Bat" flying
+}
+
+scenario "Bat Whisperer makes nothing if no opponent lost life" {
+  battlefield A: 4 "Swamp"
+  hand A: "Bat Whisperer"
+  turn 1 A: cast "Bat Whisperer"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Bat Whisperer"
+  assert battlefield A lacks "Bat"
+}

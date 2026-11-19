@@ -1,0 +1,7 @@
+card "Corpse Lunge" {
+  oracle_id 1392cfbc-ea8a-4eb3-8680-ddd12a3bbb6d
+  cost {2}{B}
+  type Instant
+  additional cost exile creature card from graveyard
+  spell: deal damage equal power of the exiled card to target creature
+}

@@ -1,0 +1,6 @@
+card "Ashnod's Transmogrant" {
+  oracle_id 1a8072c9-e2b8-4173-af88-ed0dd64d10fe
+  cost {1}
+  type Artifact
+  activated {T}, sacrifice this: put 1 +1/+1 counter on target nonartifact creature; that target 1 becomes artifact in addition indefinitely
+}

@@ -1,0 +1,11 @@
+scenario "Whispersilk Cloak makes the equipped creature unblockable with shroud" {
+  battlefield A: "Whispersilk Cloak", "Grizzly Bears", 2 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Whispersilk Cloak" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert attached "Whispersilk Cloak" to "Grizzly Bears"
+  assert has "Grizzly Bears" shroud
+  assert life B 18
+}

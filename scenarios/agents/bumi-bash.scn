@@ -1,0 +1,29 @@
+scenario "bumi bash: damage equal to lands you control" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Bumi Bash"
+  turn 1 A: cast "Bumi Bash" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+}
+
+scenario "bumi bash: three lands don't kill a 4-toughness creature" {
+  battlefield A: 3 "Mountain", "Lotus Petal"
+  battlefield B: "Serra Angel"
+  hand A: "Bumi Bash"
+  turn 1 A: cast "Bumi Bash" mode 1 targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Serra Angel"
+  assert damage "Serra Angel" 3
+}
+
+scenario "bumi bash: destroy a nonbasic land, not a basic one" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Evolving Wilds", "Forest"
+  hand A: "Bumi Bash"
+  illegal turn 1 A: cast "Bumi Bash" mode 2 targeting "Forest"
+  turn 1 A: cast "Bumi Bash" mode 2 targeting "Evolving Wilds"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Evolving Wilds"
+  assert battlefield B contains "Forest"
+}

@@ -1,0 +1,7 @@
+card "Eardrum Rattler" {
+  oracle_id 25151d18-8e73-4b0d-a8d2-e5fa291e5729
+  cost {1}{R}
+  type Creature — Human Bard
+  pt 2/2
+  activated {1}, {T}: another target creature you control with power 2 or less can't be blocked
+}

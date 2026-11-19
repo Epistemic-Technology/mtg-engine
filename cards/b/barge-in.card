@@ -1,0 +1,6 @@
+card "Barge In" {
+  oracle_id 32eb5d30-f4e7-48ef-b5f6-051ddddd4175
+  cost {R}
+  type Instant
+  spell: target attacking creature gets +2/+2; each single attacking non-Human creature gains trample
+}

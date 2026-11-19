@@ -1,0 +1,30 @@
+scenario "elemental uprising animates a land that must be blocked" {
+  battlefield A: 2 "Forest", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Elemental Uprising"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elemental Uprising" targeting "Mountain"
+  turn 2 A: attack "Mountain"
+  turn 2 B: block "Mountain" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert is "Mountain" creature
+  assert is "Mountain" land
+  assert is "Mountain" Elemental
+  assert power "Mountain" 4
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+  run_to turn 3 upkeep
+  assert is not "Mountain" creature
+}
+
+scenario "elemental uprising's land can't go unblocked when a blocker is able" {
+  battlefield A: 2 "Forest", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Elemental Uprising"
+  start turn 2 A precombat_main
+  turn 2 A: cast "Elemental Uprising" targeting "Mountain"
+  turn 2 A: attack "Mountain"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert life B 20
+}

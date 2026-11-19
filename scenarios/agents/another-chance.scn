@@ -1,0 +1,29 @@
+scenario "another chance mills two then returns up to two creature cards" {
+  battlefield A: 3 "Swamp"
+  hand A: "Another Chance"
+  library A: "Grizzly Bears", "Hill Giant", "Plains", "Plains"
+  graveyard A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Another Chance"
+  turn 1 A: choose "Grizzly Bears"
+  turn 1 A: choose "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Serra Angel"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Another Chance"
+}
+
+scenario "another chance may decline the mill" {
+  battlefield A: 3 "Swamp"
+  hand A: "Another Chance"
+  library A: "Grizzly Bears", "Plains"
+  graveyard A: "Serra Angel"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Another Chance"
+  turn 1 A: decline "Another Chance"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Serra Angel"
+  assert library A contains "Grizzly Bears"
+  assert hand A lacks "Grizzly Bears"
+}

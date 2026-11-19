@@ -1,0 +1,15 @@
+scenario "Ill-Gotten Inheritance drains each upkeep" {
+  battlefield A: "Ill-Gotten Inheritance"
+  run_to turn 1 precombat_main
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Ill-Gotten Inheritance sacrifices for 4 damage and 4 life" {
+  battlefield A: "Ill-Gotten Inheritance", 6 "Swamp"
+  turn 1 A: activate "Ill-Gotten Inheritance" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert life A 25
+  assert graveyard A contains "Ill-Gotten Inheritance"
+}

@@ -1,0 +1,8 @@
+card "Wall of Kelp" {
+  oracle_id 64722c32-975b-43b9-9b4a-9511c75740d9
+  cost {U}{U}
+  type Creature — Plant Wall
+  pt 0/3
+  keywords defender
+  activated {U}{U}, {T}: create 1 "0/1 blue Plant Wall creature with defender named Kelp"
+}

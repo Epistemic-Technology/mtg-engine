@@ -1,0 +1,20 @@
+scenario "cunning geysermage: kicked, bounces another creature" {
+  battlefield A: 3 "Island", 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Cunning Geysermage"
+  turn 1 A: cast "Cunning Geysermage" kicked
+  turn 1 A: trigger "Cunning Geysermage" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand B contains "Hill Giant"
+  assert battlefield A contains "Cunning Geysermage"
+}
+
+scenario "cunning geysermage: unkicked, no bounce" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Cunning Geysermage"
+  turn 1 A: cast "Cunning Geysermage"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+  assert battlefield A contains "Cunning Geysermage"
+}

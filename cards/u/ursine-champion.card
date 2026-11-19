@@ -1,0 +1,7 @@
+card "Ursine Champion" {
+  oracle_id 4f142d99-8146-4b16-a2cc-ac03da19b960
+  cost {1}{G}
+  type Creature — Human Berserker
+  pt 2/2
+  activated {5}{G}, once: this gets +3/+3 and this becomes Bear Berserker
+}

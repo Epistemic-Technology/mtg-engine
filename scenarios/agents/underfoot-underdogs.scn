@@ -1,0 +1,24 @@
+scenario "Underfoot Underdogs makes a Goblin" {
+  battlefield A: 3 "Mountain"
+  hand A: "Underfoot Underdogs"
+  turn 1 A: cast "Underfoot Underdogs"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Goblin"
+}
+
+scenario "Underfoot Underdogs makes a small creature unblockable" {
+  battlefield A: "Underfoot Underdogs", "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Underfoot Underdogs" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Underfoot Underdogs can't target a big creature" {
+  battlefield A: "Underfoot Underdogs", "Serra Angel", "Mountain"
+  illegal turn 1 A: activate "Underfoot Underdogs" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert untapped "Underfoot Underdogs"
+}

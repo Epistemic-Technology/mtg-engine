@@ -1,0 +1,18 @@
+scenario "Revive the Shire returns a permanent card and makes Food" {
+  battlefield A: 2 "Forest"
+  graveyard A: "Grizzly Bears"
+  hand A: "Revive the Shire"
+  turn 1 A: cast "Revive the Shire" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert battlefield A contains "Food"
+}
+
+scenario "Revive the Shire can't return an instant" {
+  battlefield A: 2 "Forest"
+  graveyard A: "Shock"
+  hand A: "Revive the Shire"
+  illegal turn 1 A: cast "Revive the Shire" targeting "Shock"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Shock"
+}
