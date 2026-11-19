@@ -1251,7 +1251,9 @@ impl GameState {
                 .any(|m| self.targets_available(p, &m.targets, Some(card))),
             None => self.targets_available(p, def.cast_targets(), Some(card)),
         };
-        if !targets_ok {
+        // CR 601.2h: casting it without paying its mana cost still pays its
+        // additional costs (Improvised Club's sacrifice).
+        if !targets_ok || !self.additional_payable(p, &def.additional, card) {
             return false;
         }
         let cost = match alt {

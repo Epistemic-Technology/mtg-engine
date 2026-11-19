@@ -88,3 +88,14 @@ scenario "suspend: the creature has haste and attacks the turn it's cast" {
   assert battlefield A contains "Infiltrator il-Kor"
   assert has "Infiltrator il-Kor" haste
 }
+
+scenario "cascade: a card whose additional cost can't be paid isn't cast" {
+  battlefield A: 2 "Forest", 2 "Plains"
+  hand A: "Captured Sunlight"
+  library A: "Improvised Club", "Island"
+  turn 1 A: cast "Captured Sunlight"
+  run_to turn 1 end
+  assert life A 24
+  assert life B 20
+  assert library A count 2
+}
