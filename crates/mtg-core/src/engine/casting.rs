@@ -1351,17 +1351,17 @@ impl GameState {
     /// turned into a Mountain taps for red.
     pub(super) fn mana_sources(&self, p: PlayerId) -> Sources {
         let key = (self.cversion, self.tap_epoch, self.turn_number);
-        let i = p.index().min(1);
+        let slot = p.index().min(1);
         {
             let cache = self.mana_cache.borrow();
-            let (v, t, n, s) = &cache[i];
-            if (*v, *t, *n) == key && *v != 0 {
-                return s.clone();
+            let (cv, taps, turn, cached) = &cache[slot];
+            if (*cv, *taps, *turn) == key && *cv != 0 {
+                return cached.clone();
             }
         }
-        let s = self.mana_sources_uncached(p);
-        self.mana_cache.borrow_mut()[i] = (key.0, key.1, key.2, s.clone());
-        s
+        let fresh = self.mana_sources_uncached(p);
+        self.mana_cache.borrow_mut()[slot] = (key.0, key.1, key.2, fresh.clone());
+        fresh
     }
 
     fn mana_sources_uncached(&self, p: PlayerId) -> Sources {
