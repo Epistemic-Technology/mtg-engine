@@ -1,0 +1,8 @@
+card "Kjeldoran Pride" {
+  oracle_id 515fb257-ec07-4978-af16-47a10a22ba3c
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+2
+  activated {2}{U}: attach to target creature other than enchanted
+}

@@ -243,6 +243,7 @@ impl Engine {
                 state.grant_sources += u32::from(def.flags().grants_abilities());
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
+                state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -510,6 +511,7 @@ impl GameState {
             restricted_mana_sources: 0,
             mana_trigger_sources: 0,
             turn_static_sources: 0,
+            state_trigger_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
@@ -619,6 +621,11 @@ impl GameState {
                     }
                     if self.sba_loop() {
                         continue; // game-over check first, then re-enter
+                    }
+                    // CR 603.8: state triggers check as a player would
+                    // receive priority.
+                    if self.state_trigger_sources > 0 {
+                        self.check_state_triggers();
                     }
                     // CR 603.3, 117.5: triggered abilities go on the stack
                     // before priority; then the SBA check repeats.
@@ -871,6 +878,7 @@ impl GameState {
                         })
                         .map(Choice::Target)
                         .collect();
+                    self.retain_that_player(spell, &specs, spec, &mut options);
                     // "X target cards from a single graveyard", "up to two
                     // target cards from a single graveyard": the rest come
                     // from the first one's graveyard. A variable group's
@@ -946,6 +954,7 @@ impl GameState {
                             .into_iter()
                             .map(Choice::Target)
                             .collect();
+                        self.retain_that_player(spell, &specs, spec, &mut options);
                     }
                     if options.is_empty() {
                         // Moving the card to the stack changed what is

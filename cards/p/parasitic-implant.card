@@ -1,0 +1,7 @@
+card "Parasitic Implant" {
+  oracle_id 4fc0f58c-5f7f-4a32-8f14-cae696672beb
+  cost {3}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered at beginning of your upkeep: controller of enchanted sacrifices attached and you create 1 "1/1 colorless Phyrexian Myr artifact creature"
+}

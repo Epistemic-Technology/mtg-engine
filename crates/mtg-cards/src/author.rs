@@ -1821,6 +1821,19 @@ fn trigger_text(head: &str) -> Option<String> {
             return Some(lowercase_first(head));
         }
         _ => {
+            // "When you control no Islands" (a state trigger, CR 603.8).
+            let none = Regex::new(
+                r"^When you control no (other creatures|Plains|Islands|Swamps|Mountains|Forests)$",
+            )
+            .unwrap();
+            if let Some(c) = none.captures(head) {
+                let what = match cap(&c, 1) {
+                    "other creatures" => "other creature",
+                    "Plains" => "Plains",
+                    w => w.trim_end_matches('s'),
+                };
+                return Some(format!("when you control no {what}"));
+            }
             // "Whenever you cast a spell with mana value 4 or greater".
             let mv =
                 Regex::new(r"^Whenever you cast a spell with mana value (\d+) or (greater|less)$")

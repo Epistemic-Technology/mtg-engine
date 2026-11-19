@@ -1,0 +1,6 @@
+card "Don't Make a Sound" {
+  oracle_id f28a373b-4a8d-40a5-ace1-3bbd8489ad36
+  cost {1}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {2}; if they do, surveil 2
+}

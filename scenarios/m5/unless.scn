@@ -1,0 +1,307 @@
+# Player-relative targets ("target creature that player controls", "from
+# that player's graveyard", "another target creature that player
+# controls", "other than enchanted creature"), "enchanted creature's
+# controller", punishers ("unless any player pays", "unless that player
+# pays {1} or 1 life", "If they do"), and state triggers ("When you control
+# no Islands", CR 603.8).
+
+# ----- that player controls -----
+
+scenario "Sigil of Sleep returns a creature the damaged player controls" {
+  battlefield A: "Grizzly Bears", "Sigil of Sleep" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: trigger "Sigil of Sleep" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Sigil of Sleep can't target a creature its controller controls" {
+  battlefield A: "Grizzly Bears", "Llanowar Elves", "Sigil of Sleep" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 combat_damage A: trigger "Sigil of Sleep" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Llanowar Elves"
+  assert hand B contains "Hill Giant"
+}
+
+scenario "Sigil of Sleep's trigger is removed with no creature that player controls" {
+  battlefield A: "Grizzly Bears", "Llanowar Elves", "Sigil of Sleep" on "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert battlefield A contains "Llanowar Elves"
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Skirk Commando deals 2 damage to a creature the damaged player controls" {
+  battlefield A: "Skirk Commando", "Llanowar Elves"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Skirk Commando"
+  turn 1 combat_damage A: trigger "Skirk Commando" targeting "Grizzly Bears"
+  illegal turn 1 combat_damage A: trigger "Skirk Commando" targeting "Llanowar Elves"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Llanowar Elves"
+}
+
+scenario "Mana Skimmer taps a land that player controls, which doesn't untap" {
+  battlefield A: "Mana Skimmer", "Swamp"
+  battlefield B: "Forest"
+  turn 1 A: attack "Mana Skimmer"
+  illegal turn 1 combat_damage A: trigger "Mana Skimmer" targeting "Swamp"
+  run_to turn 2 precombat_main
+  assert life B 18
+  assert tapped "Forest"
+}
+
+scenario "Latulla's Orders destroys an artifact defending player controls" {
+  battlefield A: "Grizzly Bears", "Latulla's Orders" on "Grizzly Bears"
+  battlefield B: "Ornithopter"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 combat_damage A: trigger "Latulla's Orders" targeting "Ornithopter"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Ornithopter"
+}
+
+scenario "Skullsnatcher exiles cards from the damaged player's graveyard only" {
+  battlefield A: "Skullsnatcher"
+  graveyard A: "Giant Growth"
+  graveyard B: "Lightning Bolt", "Shock"
+  turn 1 A: attack "Skullsnatcher"
+  turn 1 combat_damage A: trigger "Skullsnatcher" targeting "Lightning Bolt", "Shock"
+  run_to turn 1 postcombat_main
+  assert exile B contains "Lightning Bolt"
+  assert exile B contains "Shock"
+  assert graveyard A contains "Giant Growth"
+}
+
+scenario "Skullsnatcher can't target a card in its controller's graveyard" {
+  battlefield A: "Skullsnatcher"
+  graveyard A: "Giant Growth"
+  graveyard B: "Lightning Bolt"
+  turn 1 A: attack "Skullsnatcher"
+  illegal turn 1 combat_damage A: trigger "Skullsnatcher" targeting "Giant Growth"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Giant Growth"
+}
+
+# ----- another target creature that player controls -----
+
+scenario "Mutiny has a creature deal damage to another its controller controls" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Mutiny"
+  turn 1 A: cast "Mutiny" targeting "Hill Giant", "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert damage "Hill Giant" 0
+}
+
+scenario "Mutiny's second target must be controlled by the first one's controller" {
+  battlefield A: "Mountain", "Llanowar Elves"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  hand A: "Mutiny"
+  illegal turn 1 A: cast "Mutiny" targeting "Hill Giant", "Llanowar Elves"
+  run_to turn 1 end
+}
+
+scenario "Mutiny can't be cast when no opponent controls two creatures" {
+  battlefield A: "Mountain", "Llanowar Elves"
+  battlefield B: "Hill Giant"
+  hand A: "Mutiny"
+  illegal turn 1 A: cast "Mutiny" targeting "Hill Giant", "Llanowar Elves"
+  run_to turn 1 end
+  assert hand A contains "Mutiny"
+}
+
+# ----- other than enchanted creature; enchanted creature's controller -----
+
+scenario "Kjeldoran Pride moves to another creature" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Kjeldoran Pride" on "Grizzly Bears", 2 "Island", "Plains"
+  turn 1 A: activate "Kjeldoran Pride" targeting "Hill Giant"
+  run_to turn 1 end
+  assert attached "Kjeldoran Pride" to "Hill Giant"
+  assert toughness "Hill Giant" 5
+}
+
+scenario "Kjeldoran Pride can't target the creature it enchants" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Kjeldoran Pride" on "Grizzly Bears", 2 "Island", "Plains"
+  illegal turn 1 A: activate "Kjeldoran Pride" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Kjeldoran Pride" to "Grizzly Bears"
+}
+
+scenario "Parasitic Implant: enchanted creature's controller sacrifices it, you get a Myr" {
+  battlefield A: "Parasitic Implant" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Phyrexian Myr"
+  assert battlefield B lacks "Phyrexian Myr"
+}
+
+# ----- unless any player pays -----
+
+scenario "Wild Might gets the additional pump when no player pays" {
+  battlefield A: "Grizzly Bears", 2 "Forest"
+  hand A: "Wild Might"
+  turn 1 A: cast "Wild Might" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 7
+  assert toughness "Grizzly Bears" 7
+}
+
+scenario "Wild Might: an opponent who pays stops the additional pump" {
+  battlefield A: "Grizzly Bears", 4 "Forest"
+  battlefield B: 2 "Island"
+  hand A: "Wild Might"
+  turn 1 A: cast "Wild Might" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert tapped B "Island"
+}
+
+scenario "Rhystic Shield: They get an additional +0/+2 unless any player pays" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Island"
+  hand A: "Rhystic Shield"
+  turn 1 A: cast "Rhystic Shield"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 5
+}
+
+scenario "Soul Strings returns two creature cards unless any player pays X" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Soul Strings"
+  turn 1 A: cast "Soul Strings" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Soul Strings: an opponent pays X and the cards stay" {
+  battlefield A: 3 "Swamp"
+  battlefield B: 2 "Island"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Soul Strings"
+  turn 1 A: cast "Soul Strings" x 2 targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert tapped B "Island"
+}
+
+# ----- unless that player pays {1} or 1 life -----
+
+scenario "Erosion: the land's controller pays {1}" {
+  start turn 2 B
+  battlefield A: "Erosion" on "Forest"
+  battlefield B: "Forest"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Forest"
+  assert tapped B "Forest"
+  assert life B 20
+}
+
+scenario "Erosion: without mana, the land's controller pays 1 life" {
+  start turn 2 B
+  battlefield A: "Erosion" on "Maze of Ith"
+  battlefield B: "Maze of Ith"
+  run_to turn 2 precombat_main
+  assert battlefield B contains "Maze of Ith"
+  assert life B 19
+}
+
+# ----- counter unless its controller pays; if they do -----
+
+scenario "Divert Disaster: they pay, and you create a Lander" {
+  start turn 2 B
+  battlefield A: 2 "Island"
+  battlefield B: 4 "Forest"
+  hand A: "Divert Disaster"
+  hand B: "Grizzly Bears"
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Divert Disaster" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert battlefield A contains "Lander"
+}
+
+scenario "Divert Disaster: they can't pay, the spell is countered and there's no Lander" {
+  start turn 2 B
+  battlefield A: 2 "Island"
+  battlefield B: 2 "Forest"
+  hand A: "Divert Disaster"
+  hand B: "Grizzly Bears"
+  turn 2 B: cast "Grizzly Bears"
+  turn 2 A: cast "Divert Disaster" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A lacks "Lander"
+}
+
+# ----- granted upkeep punisher -----
+
+scenario "Aura Flux: other enchantments are sacrificed unless their controller pays" {
+  battlefield A: "Aura Flux", "Glorious Anthem"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Glorious Anthem"
+  assert battlefield A contains "Aura Flux"
+}
+
+scenario "Aura Flux: paying {2} keeps the enchantment" {
+  battlefield A: "Aura Flux", "Glorious Anthem", 2 "Plains"
+  run_to turn 1 precombat_main
+  assert battlefield A contains "Glorious Anthem"
+  assert tapped oldest A "Plains"
+  assert tapped newest A "Plains"
+}
+
+# ----- state triggers -----
+
+scenario "Dandân is sacrificed when its controller controls no Islands" {
+  battlefield A: "Dandân", "Island"
+  battlefield B: 3 "Mountain"
+  hand B: "Stone Rain"
+  start turn 2 B
+  turn 2 B: cast "Stone Rain" targeting "Island"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Dandân"
+}
+
+scenario "Sea Serpent stays while its controller controls an Island" {
+  battlefield A: "Sea Serpent", "Island"
+  run_to turn 1 end
+  assert battlefield A contains "Sea Serpent"
+}
+
+scenario "Barbarian Outcast is sacrificed with no Swamps" {
+  battlefield A: "Barbarian Outcast", "Mountain"
+  run_to turn 1 precombat_main
+  assert graveyard A contains "Barbarian Outcast"
+}
+
+scenario "Emperor Crocodile is sacrificed once it's the only creature" {
+  start turn 2 B
+  battlefield A: "Emperor Crocodile", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  run_to turn 2 upkeep
+  assert battlefield A contains "Emperor Crocodile"
+  turn 2 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A contains "Emperor Crocodile"
+}
+
+scenario "A face-down Slipstream Serpent has no state trigger" {
+  battlefield A: 3 "Plains"
+  hand A: "Slipstream Serpent"
+  turn 1 A: cast "Slipstream Serpent" face_down
+  run_to turn 1 end
+  assert battlefield A contains "face-down creature"
+}

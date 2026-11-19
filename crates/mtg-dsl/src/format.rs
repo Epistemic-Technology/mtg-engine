@@ -239,6 +239,7 @@ impl Fmt {
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::Attached => "attached".to_string(),
+            Recipient::AttachedController => "controller of enchanted".to_string(),
             Recipient::BlockingIt => "each creature blocking it".to_string(),
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
@@ -798,8 +799,10 @@ impl Fmt {
                 token,
                 count,
                 tapped,
+                you,
             } => format!(
-                "create {}{} \"{token}\"",
+                "{}create {}{} \"{token}\"",
+                if *you { "you " } else { "" },
                 num(*count),
                 if *tapped { " tapped" } else { "" }
             ),
@@ -1318,10 +1321,17 @@ impl Fmt {
                 let inner = self.effect(effect, t);
                 let who = if *payer == Recipient::You {
                     "you pay".to_string()
+                } else if *payer == Recipient::EachPlayer {
+                    "any player pays".to_string()
                 } else {
                     format!("{} pays", self.recipient(*payer, t))
                 };
-                format!("{inner} unless {who} {}", pay_amount(mana, *life))
+                let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
+                    format!("{mana} or {life} life")
+                } else {
+                    pay_amount(mana, *life)
+                };
+                format!("{inner} unless {who} {amount}")
             }
             Effect::SetBasePt {
                 to,
@@ -1700,6 +1710,7 @@ fn cmp_suffix(c: mtg_core::card::Cmp) -> &'static str {
 /// graveyard`.
 pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let whose = match who {
+        _ if f.that_player.is_some() => "that player's graveyard",
         Who::You => "your graveyard",
         Who::Opponents => "an opponent's graveyard",
         Who::Any if graveyards => "graveyards",
@@ -1709,6 +1720,7 @@ pub fn graveyard_target(f: &Filter, who: Who, graveyards: bool) -> String {
     let named = if f.same.is_some() { " named this" } else { "" };
     let mut g = f.clone();
     g.same = None;
+    g.that_player = None;
     // "creature card with mana value X or less": the mana value after the
     // noun.
     let mut mv = String::new();
@@ -1904,6 +1916,18 @@ fn filter_one(f: &Filter) -> String {
         }
         Some(Who::Opponents) => words.push("an opponent controls".to_string()),
         Some(Who::Any) | None => {}
+    }
+    match f.that_player {
+        Some(mtg_core::card::ThatPlayer::Triggering) => {
+            words.push("that player controls".to_string());
+        }
+        Some(mtg_core::card::ThatPlayer::ControllerOf(n)) => {
+            words.push(format!("controller of target {} controls", n + 1));
+        }
+        None => {}
+    }
+    if f.not_attached {
+        words.push("other than enchanted".to_string());
     }
     if f.no_abilities {
         words.push("with no abilities".to_string());
@@ -2184,6 +2208,7 @@ pub fn natural_when(t: &Trigger) -> bool {
             | Trigger::When(_)
             | Trigger::BeginningOfStep { .. }
             | Trigger::AttachedStep(_)
+            | Trigger::State(_)
             | Trigger::EveryStep(_)
             | Trigger::Cycles { this: true, .. }
     ) || matches!(t, Trigger::Either(a, _) if natural_when(a))
@@ -2240,6 +2265,7 @@ pub fn trigger_text(t: &Trigger, next: bool) -> String {
 fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
         Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
+        Trigger::State(c) => format!("when {}", static_cond(c)),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
         Trigger::EveryStep(step) => {
@@ -2315,6 +2341,12 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
         Trigger::DealsCombatDamageToPlayer(o) => {
             format!(
                 "whenever {} deals combat damage to a player",
+                trigger_obj(o)
+            )
+        }
+        Trigger::DealsCombatDamageToDefending(o) => {
+            format!(
+                "whenever {} deals combat damage to defending player",
                 trigger_obj(o)
             )
         }

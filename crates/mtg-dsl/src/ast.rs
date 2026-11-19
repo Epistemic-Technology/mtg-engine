@@ -517,6 +517,13 @@ pub struct Filter {
     /// `blocking this`, `blocked by this`, `blocked by it`, `blocking or
     /// blocked by this` (`ObjFilter::combat_with`).
     pub combat_with: Option<CombatRef>,
+    /// `that player controls` / `from that player's graveyard` (the
+    /// triggering player), `that target 1 player controls` (the 1st
+    /// target's controller), all printed "that player" (`ObjFilter::that_player`).
+    pub that_player: Option<mtg_core::card::ThatPlayer>,
+    /// `other than enchanted`: "other than enchanted creature"
+    /// (`ObjFilter::not_attached`).
+    pub not_attached: bool,
 }
 
 /// How a search prints its filter's alternative.
@@ -1326,6 +1333,9 @@ pub enum Affects {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Trigger {
+    /// `when you control no Island`: a state trigger (CR 603.8), "When you
+    /// control no Islands".
+    State(StaticCond),
     Enters(TriggerObj),
     Dies(TriggerObj),
     /// `at beginning of every upkeep`: "At the beginning of each upkeep"
@@ -1370,6 +1380,10 @@ pub enum Trigger {
     Leaves(TriggerObj),
     Blocks(TriggerObj),
     DealsCombatDamageToPlayer(TriggerObj),
+    /// `deals combat damage to defending player`: the same trigger, worded
+    /// with "defending player" (combat damage to a player is dealt to the
+    /// defending player, CR 510.1).
+    DealsCombatDamageToDefending(TriggerObj),
     GainsLife {
         whose: Who,
     },
@@ -1615,6 +1629,8 @@ pub enum Recipient {
     /// `enchanted creature`, `equipped creature`: what the source is
     /// attached to.
     Attached,
+    /// `controller of enchanted`: "enchanted creature's controller".
+    AttachedController,
     /// `target creature and all other creature with same name as target
     /// 1`: the `n`th target and the `g`th group, whose filter relates to
     /// that target.
@@ -1764,6 +1780,9 @@ pub enum Effect {
         token: String,
         count: Num,
         tapped: bool,
+        /// `you create`: worded with its subject ("... sacrifices it and
+        /// you create a 1/1 ... token").
+        you: bool,
     },
     CreateTokenCopy {
         of: Recipient,

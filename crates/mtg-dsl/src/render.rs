@@ -737,6 +737,14 @@ struct Ctx<'a> {
     attached_mentioned: bool,
     /// An `amass` came before: `CreatedObject` is "the amassed Army".
     amassed: bool,
+    /// Recipients of a pump already in the ability: another pump of the
+    /// same one "gets an additional +4/+4".
+    pumped: Vec<Recipient>,
+    /// A spell was just countered unless its controller paid: "If they
+    /// do" follows.
+    they_paid: bool,
+    /// Rendering the effect of "[effect] unless [player] pays".
+    in_unless: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -757,6 +765,9 @@ impl<'a> Ctx<'a> {
             those_tokens: None,
             attached_mentioned: false,
             amassed: false,
+            pumped: Vec::new(),
+            they_paid: false,
+            in_unless: false,
         }
     }
 
@@ -868,12 +879,14 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
                     Who::Any if *graveyards => "graveyards",
                     Who::Any => "a graveyard",
                 };
                 let mut g = filter.clone();
+                g.that_player = None;
                 let tgt = if g.relation == Relation::Other {
                     crate::format::relation_any(&mut g);
                     "another target"
@@ -921,6 +934,13 @@ impl<'a> Ctx<'a> {
             }
             // "When enchanted creature is dealt damage, destroy it."
             Recipient::TriggeringObject if self.trigger_is_enchanted() => "it".to_string(),
+            // "At the beginning of the upkeep of enchanted land's
+            // controller, destroy that land".
+            Recipient::TriggeringObject
+                if matches!(self.trigger, Some(Trigger::AttachedStep(_))) =>
+            {
+                format!("that {}", enchanted_noun(self.card))
+            }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
@@ -957,6 +977,14 @@ impl<'a> Ctx<'a> {
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
                 format!("each {}", self.group_phrase(i, false))
+            }
+            // "enchanted creature's controller sacrifices it".
+            Recipient::AttachedController => {
+                self.attached_mentioned = true;
+                format!(
+                    "{}'s controller",
+                    filter_phrase(&Filter::enchanted(), self.card, false)
+                )
             }
             Recipient::Attached if self.attached_mentioned => "it".to_string(),
             Recipient::Attached => {
@@ -1185,11 +1213,15 @@ impl<'a> Ctx<'a> {
                 graveyards,
             } => {
                 let whose = match who {
+                    _ if filter.that_player.is_some() => "that player's graveyard",
                     Who::You => "your graveyard",
                     Who::Opponents => "an opponent's graveyard",
                     Who::Any if *graveyards => "graveyards",
                     Who::Any => "a single graveyard",
                 };
+                let mut filter = filter.clone();
+                filter.that_player = None;
+                let filter = &filter;
                 if *filter == Filter::default() {
                     format!("cards from {whose}")
                 } else {
@@ -1635,6 +1667,14 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         Some(Who::Opponents) if f.defending => s.push_str(" defending player controls"),
         Some(Who::Opponents) => s.push_str(" an opponent controls"),
         Some(Who::Any) | None => {}
+    }
+    if f.that_player.is_some() {
+        s.push_str(" that player controls");
+    }
+    if f.not_attached {
+        let mut host = Filter::enchanted();
+        host.types.clone_from(&f.types);
+        let _ = write!(s, " other than {}", filter_phrase(&host, card, false));
     }
     if f.no_abilities {
         s.push_str(" with no abilities");
@@ -2732,18 +2772,40 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             toughness,
             to,
         } => {
-            let s = ctx.subj(*to);
+            let mut s = ctx.subj(*to);
             // "Up to two target creatures each get +1/+0".
             let each = if matches!(to, Recipient::Targets(..)) || ctx.is_many(*to) {
                 "each "
             } else {
                 ""
             };
+            // "Target creature gets +1/+1 until end of turn. That creature
+            // gets an additional +4/+4 until end of turn unless any player
+            // pays {2}": a punisher's second pump of the same recipient.
+            let same = |r: Recipient| match r {
+                Recipient::ThatTarget(n) => Recipient::Target(n),
+                r => r,
+            };
+            let additional = if ctx.pumped.contains(&same(*to)) {
+                if ctx.in_unless {
+                    // "Creatures you control get +0/+1 ... They get an
+                    // additional +0/+2".
+                    if *to == Recipient::EachCreatureYouControl {
+                        s = "they".to_string();
+                    }
+                    "an additional "
+                } else {
+                    ""
+                }
+            } else {
+                ctx.pumped.push(same(*to));
+                ""
+            };
             Clause::with_subject(
                 *to,
                 s,
                 format!(
-                    "{each}{} {}",
+                    "{each}{} {additional}{}",
                     ctx.verb(*to, "gets", "get"),
                     pt_mod(*power, *toughness)
                 ),
@@ -3355,6 +3417,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             token,
             count,
             tapped,
+            you,
         } => {
             if !*tapped && ctx.those_tokens.as_deref() == Some(token.as_str()) {
                 return Clause::imperative(format!(
@@ -3363,10 +3426,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ));
             }
             ctx.last_token = Some(token.clone());
-            Clause::imperative(format!(
-                "create {}",
-                token_description(token, *count, *tapped, ctx)
-            ))
+            let text = format!("create {}", token_description(token, *count, *tapped, ctx));
+            if *you {
+                return Clause::with_subject(Recipient::You, "you".to_string(), text);
+            }
+            Clause::imperative(text)
         }
         Effect::CreateTokenCopy { of, except } => {
             let o = ctx.obj(*of);
@@ -3391,6 +3455,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o}"))
         }
         Effect::CounterUnlessPays { to, mana, .. } => {
+            ctx.they_paid = true;
             let o = ctx.obj(*to);
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
@@ -4112,9 +4177,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             ))
         }
         Effect::IfYouDo(inner) => {
+            // "Counter target spell unless its controller pays {2}. If they
+            // do, ...".
+            let who = if std::mem::take(&mut ctx.they_paid) {
+                "they"
+            } else {
+                "you"
+            };
             let body = sentences(inner, ctx);
             let body = lowercase_first(&body);
-            Clause::imperative(format!("if you do, {}", body.trim_end_matches('.')))
+            Clause::imperative(format!("if {who} do, {}", body.trim_end_matches('.')))
         }
         Effect::Pay { mana, life } => Clause::imperative(if *life > 0 {
             format!("pay {life} life")
@@ -4127,14 +4199,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             life,
             effect,
         } => {
+            ctx.in_unless = true;
             let mut c = clause(effect, ctx);
-            let amount = if *life > 0 {
+            ctx.in_unless = false;
+            let amount = if *life > 0 && *mana != mtg_core::mana::ManaCost::default() {
+                format!("{mana} or {life} life")
+            } else if *life > 0 {
                 format!("{life} life")
             } else {
                 mana.to_string()
             };
             let who = match (payer, &c.subject) {
                 (Recipient::You, _) => "you pay".to_string(),
+                (Recipient::EachPlayer, _) => "any player pays".to_string(),
                 (p, Some((s, _))) if p == s => "they pay".to_string(),
                 (p, _) => {
                     let w = ctx.obj(*p);
@@ -4793,6 +4870,7 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
     };
     match t {
         Trigger::When(_) => unreachable!("unwrapped above"),
+        Trigger::State(c) => format!("when {}", static_cond_text(c, ctx.card)),
         Trigger::Either(a, b) => {
             let a = trigger_text(a, ctx, next);
             format!("{a} and {}", trigger_text(b, ctx, next))
@@ -4981,6 +5059,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::DealsCombatDamageToPlayer(TriggerObj::This) => {
             format!("whenever {} deals combat damage to a player", this(ctx))
+        }
+        Trigger::DealsCombatDamageToDefending(o) => {
+            let s = match o {
+                TriggerObj::This => this(ctx),
+                o => trigger_subject(o, ctx),
+            };
+            format!("whenever {s} deals combat damage to defending player")
         }
         Trigger::DealsCombatDamageToPlayer(o @ (TriggerObj::Filter(_) | TriggerObj::ThisOr(_))) => {
             format!(
@@ -5940,6 +6025,10 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                     || (filter.enchanted && enchanted_noun(card) == "land")
                 {
                     CardType::Land
+                } else if filter.types == [CardType::Enchantment] {
+                    // "Other enchantments have 'At the beginning of your
+                    // upkeep, sacrifice this enchantment ...'".
+                    CardType::Enchantment
                 } else {
                     CardType::Creature
                 };

@@ -1,0 +1,8 @@
+card "Mana Skimmer" {
+  oracle_id 713eba2e-d19d-4056-b224-f93857dbdafe
+  cost {3}{B}
+  type Creature — Leech
+  pt 2/2
+  keywords flying
+  triggered whenever this deals damage to a player: tap target land that player controls; that target 1 doesn't untap next untap step
+}

@@ -1,0 +1,7 @@
+card "Sigil of Sleep" {
+  oracle_id 51b47053-d169-4627-982f-f29b8630d75f
+  cost {U}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever enchanted creature deals damage to a player: return target creature that player controls to hand
+}

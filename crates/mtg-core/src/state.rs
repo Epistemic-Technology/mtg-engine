@@ -1102,6 +1102,9 @@ pub struct GameState {
     /// Battlefield permanents with a static ability reading this turn's
     /// history or step (`DefFlags::TURN_STATIC`).
     pub turn_static_sources: u32,
+    /// Battlefield permanents with a state trigger
+    /// (`DefFlags::STATE_TRIGGER`, CR 603.8).
+    pub state_trigger_sources: u32,
     /// Battlefield permanents with an attack or block condition
     /// (`DefFlags::ATTACK_RULE`): declarations check them only then.
     pub attack_rule_sources: u32,
@@ -2246,6 +2249,53 @@ impl GameState {
         self.is_legal_target_x(caster, spec, target, source, None)
     }
 
+    /// Whether target `t` for `spec` answers its filter's "that player"
+    /// (`ObjFilter::that_player`): controlled by (a card in a graveyard,
+    /// owned by) the triggering player or an earlier target's controller,
+    /// as it last existed if it has left. With that player unknown, or no
+    /// such relation, it doesn't restrict.
+    pub fn that_player_ok(
+        &self,
+        spec: crate::card::TargetSpec,
+        t: Target,
+        trigger_player: Option<PlayerId>,
+        targets: &[Target],
+    ) -> bool {
+        use crate::card::{TargetSpec, ThatPlayer};
+        let (TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. }) =
+            self.pool.base_spec(spec)
+        else {
+            return true;
+        };
+        let Some(rel) = self.pool.filter(f).that_player else {
+            return true;
+        };
+        let player = match rel {
+            ThatPlayer::Triggering => trigger_player,
+            ThatPlayer::ControllerOf(n) => match targets.get(usize::from(n)) {
+                Some(Target::Object(id)) => self
+                    .objects
+                    .get(*id)
+                    .map(|o| o.controller)
+                    .or_else(|| self.lki.get(id).map(|l| l.object.controller)),
+                _ => None,
+            },
+        };
+        let Some(player) = player else {
+            return true;
+        };
+        match t {
+            Target::Object(id) => self.objects.get(id).is_some_and(|o| {
+                if o.zone == Zone::Battlefield {
+                    o.controller == player
+                } else {
+                    o.owner == player
+                }
+            }),
+            Target::Player(_) => false,
+        }
+    }
+
     /// `is_legal_target_for` with X taken as `x` ("with mana value X"
     /// while X is being chosen) rather than the spell's chosen X.
     #[allow(clippy::too_many_lines)]
@@ -2411,6 +2461,12 @@ impl GameState {
                         f.matches(id, obj.controller, &c, source, Some(caster))
                             && self.status_ok(&f, id)
                             && self.combat_with_ok(f.combat_with, source, id)
+                            // "other than enchanted creature".
+                            && !(f.not_attached
+                                && source
+                                    .and_then(|s| self.objects.get(s))
+                                    .and_then(|s| s.attached_to)
+                                    == Some(id))
                     }
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }
