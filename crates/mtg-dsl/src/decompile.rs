@@ -251,6 +251,7 @@ impl Decompiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per condition
     fn static_cond(&self, c: &StaticCondition) -> StaticCond {
         let unowned = |f: &ObjFilter| {
             let mut f = self.filter(f);
@@ -347,6 +348,15 @@ impl Decompiler<'_> {
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),
+            StaticCondition::ManaSpent {
+                kind,
+                at_least,
+                that,
+            } => StaticCond::ManaSpent {
+                kind: *kind,
+                at_least: *at_least,
+                that: *that,
+            },
             StaticCondition::CardsInHand { n, at_most } => StaticCond::CardsInHand {
                 n: *n,
                 at_most: *at_most,
@@ -686,6 +696,7 @@ impl Decompiler<'_> {
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),
                 self.sentences(inner),
+                false,
             ),
             CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
             CoreEffect::Reflexive(ability) => {
@@ -1124,6 +1135,8 @@ impl Decompiler<'_> {
                 restriction: crate::ast::ManaRestriction {
                     spells: restriction.spells.as_ref().map(|f| self.filter(f)),
                     abilities: restriction.abilities,
+                    ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
+                    foretell: restriction.foretell,
                     wording: restriction.wording,
                 },
             },

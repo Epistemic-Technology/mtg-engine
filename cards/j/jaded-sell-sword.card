@@ -1,0 +1,7 @@
+card "Jaded Sell-Sword" {
+  oracle_id f666a990-bd9c-4160-9770-4758fd40ca92
+  cost {3}{R}
+  type Creature — Dragon Warrior
+  pt 4/3
+  triggered when this enters if spent treasure: this gains first strike and haste
+}

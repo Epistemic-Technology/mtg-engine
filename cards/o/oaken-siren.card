@@ -1,0 +1,8 @@
+card "Oaken Siren" {
+  oracle_id a06a35a9-a23e-4a0a-90bc-84e7a52d2cef
+  cost {1}{U}
+  type Artifact Creature — Siren Pirate
+  pt 1/2
+  keywords flying, vigilance
+  mana {U} only to cast artifact spell or activate of artifact
+}

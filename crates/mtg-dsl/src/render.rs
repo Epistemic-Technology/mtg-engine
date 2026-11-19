@@ -434,23 +434,35 @@ fn restricted_mana_text(card: &Card, m: Mana, r: &crate::ast::ManaRestriction) -
         Mana::Any => "one mana of any color".to_string(),
         Mana::Chosen => "one mana of the chosen color".to_string(),
     };
-    let spells = r
-        .spells
-        .as_ref()
-        .map(|f| format!("cast {}", a_spell(f, card)));
+    let spells = r.spells.as_ref().map(|f| {
+        let s = format!("cast {}", a_spell(f, card));
+        if r.foretell {
+            format!("foretell a card from your hand or {s}")
+        } else {
+            s
+        }
+    });
+    // "an ability of an artifact source".
+    let ability = match &r.ability_source {
+        Some(f) => format!(
+            "an ability of {} source",
+            with_article(&filter_phrase(f, card, false))
+        ),
+        None => "an ability".to_string(),
+    };
     let rule = match (r.wording, spells) {
         (SpendWording::CantCast, Some(s)) => format!("This mana can't be spent to {s}."),
         (SpendWording::ActivateFirst, Some(s)) => {
-            format!("Spend this mana only to activate an ability or {s}.")
+            format!("Spend this mana only to activate {ability} or {s}.")
         }
         (SpendWording::CastFirstTo, Some(s)) if r.abilities => {
-            format!("Spend this mana only to {s} or to activate an ability.")
+            format!("Spend this mana only to {s} or to activate {ability}.")
         }
         (_, Some(s)) if r.abilities => {
-            format!("Spend this mana only to {s} or activate an ability.")
+            format!("Spend this mana only to {s} or activate {ability}.")
         }
         (_, Some(s)) => format!("Spend this mana only to {s}."),
-        (_, None) => "Spend this mana only to activate an ability.".to_string(),
+        (_, None) => format!("Spend this mana only to activate {ability}."),
     };
     format!("{{T}}: Add {what}. {rule}")
 }
@@ -2077,8 +2089,16 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "cards you've drawn this turn".to_string(),
         ),
         CountExpr::SourceToughness => return "its toughness".to_string(),
-        CountExpr::TargetManaValue { that, .. } => {
-            let whose = if *that { "that creature's" } else { "its" };
+        CountExpr::TargetManaValue {
+            that, the_spell, ..
+        } => {
+            let whose = if *the_spell {
+                "the spell's"
+            } else if *that {
+                "that creature's"
+            } else {
+                "its"
+            };
             return format!("{whose} mana value");
         }
         CountExpr::ColorsAmongPermanents => (
@@ -2106,6 +2126,24 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "creature you attacked with this turn".to_string(),
             "creatures you attacked with this turn".to_string(),
         ),
+        CountExpr::SpentColors | CountExpr::SpentTreasure => {
+            let it = if is_instant_or_sorcery(card) {
+                "this spell"
+            } else {
+                "it"
+            };
+            if matches!(c, CountExpr::SpentColors) {
+                (
+                    format!("color of mana spent to cast {it}"),
+                    format!("colors of mana spent to cast {it}"),
+                )
+            } else {
+                (
+                    format!("mana from a Treasure spent to cast {it}"),
+                    format!("mana from Treasures spent to cast {it}"),
+                )
+            }
+        }
         // "for each artifact and/or creature card in your graveyard".
         CountExpr::AndOr(inner) => {
             return count_phrase(inner, card, each).replacen(" and ", " and/or ", 1);
@@ -3392,16 +3430,31 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {amount}");
             c
         }
-        Effect::IfCondition(c, inner) => {
+        Effect::IfCondition(c, inner, also) => {
             let cond = static_cond_text(c, ctx.card);
+            // "Adamant — If at least three red mana was spent to cast this
+            // spell, Searing Barrage deals 3 damage ...": a spell names
+            // itself again after a condition about itself.
+            if matches!(c, StaticCond::ManaSpent { .. }) && is_spell(ctx.card) {
+                ctx.source_mentioned = false;
+            }
             let body = sentences(inner, ctx);
             // "If that land was nonbasic, Molten Rain deals 2 damage": the
             // card's name keeps its capital.
-            let body = if starts_with_name(&body, ctx.card) {
+            let mut body = if starts_with_name(&body, ctx.card) {
                 body
             } else {
                 lowercase_first(&body)
             };
+            // "this creature also gains double strike".
+            if *also {
+                let this = format!("{} ", this_ref(ctx.card));
+                let subject = ["it ", "they ", this.as_str()]
+                    .into_iter()
+                    .find(|s| body.starts_with(s))
+                    .map_or(0, str::len);
+                body.insert_str(subject, "also ");
+            }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
         }
         Effect::IfTarget(n, f, inner, check) => {
@@ -5159,6 +5212,46 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             "this spell was bargained".to_string()
         }
         StaticCond::Bargained => "it was bargained".to_string(),
+        StaticCond::ManaSpent {
+            kind: mtg_core::card::SpentKind::Total,
+            at_least,
+            that: true,
+        } => format!(
+            "{} or more mana was spent to cast that spell",
+            count_words(Num::N(u32::from(*at_least)), "one")
+        ),
+        StaticCond::ManaSpent {
+            kind,
+            at_least,
+            that,
+        } => {
+            use mtg_core::card::SpentKind;
+            let what = match kind {
+                SpentKind::Color(c) if *at_least <= 2 => {
+                    format!("{{{}}}", c.letter()).repeat(*at_least as usize)
+                }
+                SpentKind::Color(c) => format!(
+                    "at least {} {} mana",
+                    count_words(Num::N(u32::from(*at_least)), "one"),
+                    color_name(*c)
+                ),
+                SpentKind::Treasure => "mana from a Treasure".to_string(),
+                SpentKind::Total => format!(
+                    "at least {} mana",
+                    count_words(Num::N(u32::from(*at_least)), "one")
+                ),
+            };
+            format!(
+                "{what} was spent to cast {}",
+                if *that {
+                    "that spell"
+                } else if is_instant_or_sorcery(card) {
+                    "this spell"
+                } else {
+                    "it"
+                }
+            )
+        }
         StaticCond::Saddled => "it's saddled".to_string(),
         StaticCond::LandEnteredThisTurn => {
             "you had a land enter the battlefield under your control this turn".to_string()
@@ -5616,6 +5709,19 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 Some(crate::ast::TrigCond::Static(StaticCond::Saddled)) => {
                     out.push_str(" while saddled");
                 }
+                // "Whenever you cast a noncreature spell, if at least four
+                // mana was spent to cast it, ...".
+                Some(crate::ast::TrigCond::Static(StaticCond::ManaSpent {
+                    kind: mtg_core::card::SpentKind::Total,
+                    at_least,
+                    that: true,
+                })) => {
+                    let _ = write!(
+                        out,
+                        ", if at least {} mana was spent to cast it",
+                        count_words(Num::N(u32::from(*at_least)), "one")
+                    );
+                }
                 Some(crate::ast::TrigCond::Static(c)) => {
                     out.push_str(", if ");
                     out.push_str(&static_cond_text(c, card));
@@ -5624,7 +5730,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                     // artifacts, this creature gets +3/+3"), and "it" after
                     // one about the source ("if there are no arrowhead
                     // counters on this artifact, sacrifice it").
-                    ctx.source_mentioned = matches!(c, StaticCond::SourceCounters { .. });
+                    ctx.source_mentioned = matches!(
+                        c,
+                        StaticCond::SourceCounters { .. }
+                            | StaticCond::ManaSpent { that: false, .. }
+                    );
                 }
                 None => {}
             }
@@ -6021,4 +6131,14 @@ fn kicked_noun(card: &Card) -> String {
     } else {
         self_noun(card)
     }
+}
+
+/// An instant or sorcery card, whose text calls itself "this spell".
+fn is_instant_or_sorcery(card: &Card) -> bool {
+    card.types.iter().any(|t| {
+        matches!(
+            t,
+            mtg_core::card::CardType::Instant | mtg_core::card::CardType::Sorcery
+        )
+    })
 }

@@ -1,0 +1,9 @@
+card "Searing Barrage" {
+  oracle_id 26c17025-1123-46d9-a8bd-edbad01c4b6e
+  cost {4}{R}
+  type Instant
+  spell {
+  deal 5 damage to target creature
+  label "Adamant" if spent 3 red, deal 3 damage to controller of that target 1
+  }
+}

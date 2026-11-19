@@ -59,7 +59,7 @@ impl GameState {
                     continue;
                 };
                 if let Some(cond) = t.condition
-                    && !self.condition_holds_for(cond, w)
+                    && !self.condition_holds_for(cond, w, trigger_obj)
                 {
                     continue;
                 }
@@ -844,7 +844,7 @@ impl GameState {
         let effects = crate::state::effects_in(&pool, &obj);
         let split = self.mode_split_of(id);
         if let Some(cond) = condition
-            && !self.condition_holds(cond, sa.source)
+            && !self.condition_holds(cond, sa.source, sa.trigger_obj)
         {
             self.emit(Event::TriggerRemoved {
                 source: sa.source,
@@ -889,7 +889,7 @@ impl GameState {
     }
 
     /// An ability's intervening "if", evaluated against the current state.
-    fn condition_holds(&self, cond: Condition, source: ObjId) -> bool {
+    fn condition_holds(&self, cond: Condition, source: ObjId, trigger_obj: Option<ObjId>) -> bool {
         match cond {
             Condition::SourceUntapped => self
                 .objects
@@ -913,14 +913,21 @@ impl GameState {
                     .get(source)
                     .map(|o| o.controller)
                     .or_else(|| self.lki.get(&source).map(|l| l.object.controller));
-                you.is_some_and(|p| self.condition_now(self.pool.condition(i), p, source))
+                you.is_some_and(|p| {
+                    self.condition_for(self.pool.condition(i), p, source, trigger_obj)
+                })
             }
         }
     }
 
     /// The same, as the ability would trigger, for a watcher whose state
     /// was captured with the event.
-    fn condition_holds_for(&self, cond: Condition, w: &Watcher) -> bool {
+    fn condition_holds_for(
+        &self,
+        cond: Condition,
+        w: &Watcher,
+        trigger_obj: Option<ObjId>,
+    ) -> bool {
         match cond {
             Condition::SourceUntapped => !w.tapped,
             Condition::NoCreatures => self.no_creatures(),
@@ -931,7 +938,7 @@ impl GameState {
             Condition::EchoDue => self.objects.get(w.source).is_some_and(|o| o.echo_due),
             Condition::Evoked => self.objects.get(w.source).is_some_and(|o| o.cast.evoked()),
             Condition::Static(i) => {
-                self.condition_now(self.pool.condition(i), w.controller, w.source)
+                self.condition_for(self.pool.condition(i), w.controller, w.source, trigger_obj)
             }
         }
     }

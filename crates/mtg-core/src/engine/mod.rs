@@ -240,6 +240,7 @@ impl Engine {
                 state.turn_static_sources += u32::from(def.flags().has_turn_static());
                 state.attack_rule_sources += u32::from(def.flags().has_attack_rule());
                 state.grant_sources += u32::from(def.flags().grants_abilities());
+                state.spent_watchers += u32::from(def.flags().watches_spent());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -416,6 +417,7 @@ impl Engine {
 impl GameState {
     /// An empty game: players with the given life totals, no objects, turn 0
     /// at the untap step, flow unset (`BeginStep`).
+    #[allow(clippy::too_many_lines)] // one line per state field
     fn blank(
         pool: Arc<CardPool>,
         starting_player: PlayerId,
@@ -507,6 +509,9 @@ impl GameState {
             lki: std::collections::HashMap::default(),
             this_way: None,
             paid_costs: Vec::new(),
+            spent_mana: Vec::new(),
+            spending: None,
+            spent_watchers: 0,
             pending_triggers: Vec::new(),
             delayed_triggers: Vec::new(),
             trigger_sources: 0,
@@ -1345,12 +1350,16 @@ impl GameState {
                 self.give_priority(player);
             }
             (Flow::Priority, Choice::Foretell(id)) => {
-                // CR 702.143a, 116.2h: a special action for {2}.
-                self.pay(
+                // CR 702.143a, 116.2h: a special action for {2}, which
+                // mana restricted to foretelling may pay (CR 106.6).
+                let sources = self.foretell_sources(player);
+                self.pay_from(
                     player,
                     &crate::mana::ManaCost::parse("{2}")
                         .expect("a mana cost")
                         .requirements(0),
+                    &sources,
+                    None,
                 );
                 let new = self.move_object(id, Zone::Exile, true);
                 self.objects[new].alt = crate::state::AltCast::Foretold;
@@ -1918,6 +1927,11 @@ impl GameState {
             self.lki.clear();
             // Costs of spells and abilities that never resolved.
             self.paid_costs.clear();
+            if !self.spent_mana.is_empty() {
+                let objects = &self.objects;
+                self.spent_mana
+                    .retain(|(id, _)| objects.get(*id).is_some_and(|o| o.zone == Zone::Stack));
+            }
             self.loyalty_activated.clear();
             self.activated_once.clear();
             self.attackers_this_turn.clear();

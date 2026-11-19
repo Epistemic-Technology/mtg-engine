@@ -1,0 +1,9 @@
+card "Unexplained Vision" {
+  oracle_id 9f693483-f4df-497a-a6c7-fc269fc60ea8
+  cost {4}{U}
+  type Sorcery
+  spell {
+  draw 3 cards
+  label "Adamant" if spent 3 blue, scry 3
+  }
+}

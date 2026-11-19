@@ -551,6 +551,7 @@ impl Compiler<'_> {
         Ok(out)
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per condition
     fn static_cond(&mut self, c: &StaticCond) -> StaticCondition {
         match c {
             StaticCond::CardsInGraveyard(n) => StaticCondition::CardsInGraveyard(*n),
@@ -648,6 +649,15 @@ impl Compiler<'_> {
             StaticCond::TotalPower(n) => StaticCondition::TotalPower(*n),
             StaticCond::DifferentPowers(n) => StaticCondition::DifferentPowers(*n),
             StaticCond::During(t) => StaticCondition::During(*t),
+            StaticCond::ManaSpent {
+                kind,
+                at_least,
+                that,
+            } => StaticCondition::ManaSpent {
+                kind: *kind,
+                at_least: *at_least,
+                that: *that,
+            },
         }
     }
 
@@ -696,6 +706,8 @@ impl Compiler<'_> {
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
+            A::SpentColors => C::SpentColors,
+            A::SpentTreasure => C::SpentTreasure,
             A::CardsInOpponentsGraveyards(f) => {
                 C::CardsInOpponentsGraveyards(f.as_ref().map(|f| self.filter(f)))
             }
@@ -1240,7 +1252,7 @@ impl Compiler<'_> {
                 let effects = self.sentences(inner)?;
                 out.push(CoreEffect::IfKicked(effects));
             }
-            Effect::IfCondition(cond, inner) => {
+            Effect::IfCondition(cond, inner, _) => {
                 let effects = self.sentences(inner)?;
                 let c = self.static_cond(cond);
                 let i = self.pool.intern_condition(c);
@@ -1799,6 +1811,8 @@ impl Compiler<'_> {
                 restriction: mtg_core::card::ManaRestriction {
                     spells: restriction.spells.as_ref().map(|f| self.filter(f)),
                     abilities: restriction.abilities,
+                    ability_source: restriction.ability_source.as_ref().map(|f| self.filter(f)),
+                    foretell: restriction.foretell,
                     wording: restriction.wording,
                 },
             },

@@ -1,0 +1,7 @@
+card "Steamcore Weird" {
+  oracle_id e8f6caf4-4c6c-468a-9388-88c323ffe30b
+  cost {3}{U}
+  type Creature — Weird
+  pt 1/3
+  triggered when this enters if spent {R}: it deals 2 damage to any target
+}

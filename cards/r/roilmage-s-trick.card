@@ -1,0 +1,9 @@
+card "Roilmage's Trick" {
+  oracle_id 73eaf40a-abc6-486a-958d-374ed6111173
+  cost {3}{U}
+  type Instant
+  spell {
+  label "Converge" all creature your opponents control gets -1/-0 count where colors spent
+  draw 1 card
+  }
+}

@@ -1,0 +1,7 @@
+card "Hired Hexblade" {
+  oracle_id f3a0f155-05d8-465c-b0ef-35aa12e93013
+  cost {1}{B}
+  type Creature — Elf Warlock
+  pt 2/2
+  triggered when this enters if spent treasure: you draw 1 card, and you lose 1 life
+}

@@ -1,0 +1,8 @@
+card "Marut" {
+  oracle_id 4ba37a9e-6b80-4099-bd79-736123d0554b
+  cost {8}
+  type Artifact Creature — Construct
+  pt 7/7
+  keywords trample
+  triggered when this enters if spent treasure: create count each treasure spent "Treasure"
+}

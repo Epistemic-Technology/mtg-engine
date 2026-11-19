@@ -1,0 +1,7 @@
+card "Sahagin" {
+  oracle_id 24310f49-2156-4c0d-b3b1-40ca3182474f
+  cost {1}{U}
+  type Creature — Merfolk Warrior
+  pt 1/3
+  triggered whenever you cast a noncreature spell if that spell spent 4 mana: put 1 +1/+1 counter on this and this gains can't be blocked
+}

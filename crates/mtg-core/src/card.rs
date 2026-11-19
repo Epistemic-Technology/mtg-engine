@@ -618,6 +618,7 @@ impl Subtype {
     /// Interned in `NONCREATURE_SUBTYPES` order after the basic types.
     pub const EQUIPMENT: Subtype = Subtype(5 + 18);
     pub const AURA: Subtype = Subtype(5 + 30);
+    pub const TREASURE: Subtype = Subtype(5 + 27);
 
     /// The color a basic land type produces (CR 305.6), if this is one.
     pub fn basic_color(self) -> Option<Color> {
@@ -1437,6 +1438,12 @@ pub enum CountExpr {
     /// Creatures you attacked with this turn (declared as attackers, CR
     /// 508.1).
     AttackedWithThisTurn,
+    /// Converge: the number of colors of mana spent to cast the source
+    /// (CR 601.2h).
+    SpentColors,
+    /// The mana from Treasures spent to cast the source ("for each mana
+    /// from a Treasure spent to cast it").
+    SpentTreasure,
 }
 
 /// Where a spell countered this way goes (CR 701.5a: its owner's
@@ -1681,6 +1688,49 @@ pub enum StaticCondition {
     /// A part of the turn (CR 602.5b timing restrictions): "during your
     /// upkeep", "before attackers are declared".
     During(TurnTime),
+    /// "If {B} was spent to cast this spell", "if at least three red mana
+    /// was spent to cast it" (adamant), "if mana from a Treasure was spent
+    /// to cast it": at least `at_least` of the mana paid to cast the
+    /// source (CR 601.2h) was of that kind. A spell not cast (a copy, a
+    /// permanent put onto the battlefield) had no mana spent on it. With
+    /// `that`, the spell is the one that triggered the ability ("Whenever
+    /// you cast a noncreature spell, if at least four mana was spent to
+    /// cast it"; "If five or more mana was spent to cast that spell").
+    ManaSpent {
+        kind: SpentKind,
+        at_least: u8,
+        that: bool,
+    },
+}
+
+/// What a "mana spent to cast" condition or count looks at (CR 601.2h).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum SpentKind {
+    /// Mana of this color.
+    Color(Color),
+    /// Mana a Treasure made (CR 111.10a): its mana ability was activated
+    /// while the spell was being paid for.
+    Treasure,
+    /// Any mana.
+    Total,
+}
+
+/// What a definition's own text asks about the mana spent to cast it
+/// (filled in by `CardPool::add`): whether casting it records what was
+/// spent, and what the canonical payment then prefers to spend, so the
+/// rider happens when the player can afford it. All zero for ordinary
+/// cards, whose casts record nothing.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub struct SpentUse {
+    /// Mana of each color (`Color as usize`) a condition wants.
+    pub colors: [u8; 5],
+    /// Treasures to spend first: 0, 1 ("if mana from a Treasure was
+    /// spent"), or `u8::MAX` ("for each mana from a Treasure spent").
+    pub treasure: u8,
+    /// Converge: as many colors as the payment can include.
+    pub converge: bool,
+    /// Anything is read, so the cast records what was spent.
+    pub record: bool,
 }
 
 /// A part of the turn an activation restriction names (CR 602.5b).
@@ -3439,6 +3489,15 @@ pub struct ManaRestriction {
     /// It may be spent to activate abilities (any activated ability, mana
     /// abilities and abilities of objects off the battlefield included).
     pub abilities: bool,
+    /// Only abilities of sources matching this ("activate an ability of
+    /// an artifact source"); `None` for any source.
+    #[serde(default)]
+    pub ability_source: Option<ObjFilter>,
+    /// It may be spent to foretell a card (CR 702.143a): "Spend this mana
+    /// only to foretell a card from your hand or cast an instant or
+    /// sorcery spell."
+    #[serde(default)]
+    pub foretell: bool,
     /// How the sentence reads; `CantCast` also turns `spells` around.
     pub wording: SpendWording,
 }
@@ -3476,9 +3535,16 @@ impl ManaRestriction {
         }
     }
 
-    /// Whether the mana may be spent to activate an ability.
-    pub fn allows_abilities(&self) -> bool {
-        self.abilities || self.wording == SpendWording::CantCast
+    /// Whether the mana may be spent to activate an ability of a source
+    /// with these characteristics (`None`: a source not known, which
+    /// passes only a restriction that names none).
+    pub fn allows_abilities(&self, source: Option<&crate::state::Characteristics>) -> bool {
+        (self.abilities || self.wording == SpendWording::CantCast)
+            && match (&self.ability_source, source) {
+                (None, _) => true,
+                (Some(f), Some(c)) => f.matches_characteristics(c),
+                (Some(_), None) => false,
+            }
     }
 }
 
@@ -3946,6 +4012,10 @@ pub struct CardDef {
     /// of the turn, so step changes refresh the cache.
     #[serde(skip)]
     pub step_static: bool,
+    /// Filled in by `CardPool::add`: what its text asks about the mana
+    /// spent to cast it.
+    #[serde(skip)]
+    pub spent: SpentUse,
 }
 
 /// Precomputed facts about a definition (see `CardDef::has_triggers` and
@@ -3991,6 +4061,10 @@ impl DefFlags {
     /// (`AbilityDef::Activated` adding mana, not `TapForMana`): payment
     /// then looks for such abilities when plain sources fall short.
     const MANA_ABILITY: u32 = 65536;
+    /// A condition on the mana spent to cast the spell that triggered an
+    /// ability (`StaticCondition::ManaSpent` with `that`): casts then
+    /// record what was spent.
+    const SPENT_WATCH: u32 = 131_072;
     /// `MODIFIES_ENTERING`, for callers outside this module.
     pub const MODIFIES_ENTERING_FLAG: u32 = DefFlags::MODIFIES_ENTERING;
 
@@ -4067,6 +4141,10 @@ impl DefFlags {
 
     pub const fn has_mana_ability(self) -> bool {
         self.has(DefFlags::MANA_ABILITY)
+    }
+
+    pub const fn watches_spent(self) -> bool {
+        self.has(DefFlags::SPENT_WATCH)
     }
 
     /// Flags describing a list of abilities (and trigger keywords).
@@ -4689,6 +4767,89 @@ impl CardPool {
         &self.conditions[i as usize]
     }
 
+    /// Whether these abilities ask about the mana spent to cast the spell
+    /// that triggered them.
+    fn watches_spent(&self, abilities: &[AbilityDef]) -> bool {
+        let that = |i: u16| {
+            matches!(
+                self.condition(i),
+                StaticCondition::ManaSpent { that: true, .. }
+            )
+        };
+        abilities.iter().any(|a| {
+            let AbilityDef::Triggered(t) = a else {
+                return false;
+            };
+            matches!(t.condition, Some(Condition::Static(i)) if that(i))
+                || a.all_effects().iter().any(|e| {
+                    matches!(
+                        e,
+                        Effect::IfCondition(i, _)
+                            | Effect::Instead {
+                                cond: EffectCond::Static(i),
+                                ..
+                            } if that(*i)
+                    )
+                })
+        })
+    }
+
+    /// What `def`'s text asks about the mana spent to cast it (see
+    /// `SpentUse`): its intervening "if"s, its "If {B} was spent ..."
+    /// sentences, and its converge and Treasure counts.
+    fn spent_use(&self, def: &CardDef) -> SpentUse {
+        let mut out = SpentUse::default();
+        let mut want = |c: &StaticCondition| {
+            if let StaticCondition::ManaSpent {
+                kind,
+                at_least,
+                that: false,
+            } = *c
+            {
+                out.record = true;
+                match kind {
+                    SpentKind::Color(col) => {
+                        let w = &mut out.colors[col as usize];
+                        *w = (*w).max(at_least);
+                    }
+                    SpentKind::Treasure => out.treasure = out.treasure.max(1),
+                    SpentKind::Total => {}
+                }
+            }
+        };
+        for a in &def.abilities {
+            if let AbilityDef::Triggered(t) = a
+                && let Some(Condition::Static(i)) = t.condition
+            {
+                want(self.condition(i));
+            }
+            for e in a.all_effects() {
+                match e {
+                    Effect::IfCondition(i, _)
+                    | Effect::Instead {
+                        cond: EffectCond::Static(i),
+                        ..
+                    } => want(self.condition(*i)),
+                    _ => {}
+                }
+            }
+        }
+        for c in &def.counts {
+            match c {
+                CountExpr::SpentColors => {
+                    out.record = true;
+                    out.converge = true;
+                }
+                CountExpr::SpentTreasure => {
+                    out.record = true;
+                    out.treasure = u8::MAX;
+                }
+                _ => {}
+            }
+        }
+        out
+    }
+
     /// The spec an optional target must meet; other specs are themselves.
     pub fn base_spec(&self, spec: TargetSpec) -> TargetSpec {
         match spec {
@@ -4803,6 +4964,7 @@ impl CardPool {
         def.step_static = def.abilities.iter().any(|a| {
             matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(StaticCondition::During(_))))
         });
+        def.spent = self.spent_use(&def);
         def.cast_targets = match def.spell_ability() {
             Some((t, _)) => t.to_vec(),
             None => def.enchant().into_iter().collect(),
@@ -4813,6 +4975,7 @@ impl CardPool {
             def.subtypes.iter().any(|s| s == "Equipment"),
         );
         flags.set(DefFlags::TURN_STATIC, def.hand_static || def.step_static);
+        flags.set(DefFlags::SPENT_WATCH, self.watches_spent(&def.abilities));
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
             def: r,
@@ -4902,6 +5065,7 @@ impl Builder {
     pub fn new(name: &str, cost: &str) -> Self {
         Builder(CardDef {
             hand_static: false,
+            spent: SpentUse::default(),
             step_static: false,
             counts: Vec::new(),
             combat_static: false,

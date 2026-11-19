@@ -1,0 +1,7 @@
+card "Tin Street Hooligan" {
+  oracle_id a33073bf-66c1-425b-9f25-748b343f33fe
+  cost {1}{R}
+  type Creature — Goblin Rogue
+  pt 2/1
+  triggered when this enters if spent {G}: destroy target artifact
+}
