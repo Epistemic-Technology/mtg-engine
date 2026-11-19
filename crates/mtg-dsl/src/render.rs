@@ -940,6 +940,7 @@ impl<'a> Ctx<'a> {
     }
 
     /// A recipient as the object of a verb.
+    #[allow(clippy::too_many_lines)] // one arm per recipient
     fn obj(&mut self, r: Recipient) -> String {
         match r {
             Recipient::Targets(a, n) => {
