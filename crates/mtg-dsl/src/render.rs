@@ -889,6 +889,17 @@ impl<'a> Ctx<'a> {
         out
     }
 
+    /// "each of " before a group of targets that each get counters ("put
+    /// a +1/+1 counter on each of up to two target creatures", "... on
+    /// each of them", "... on each of those creatures").
+    fn each_of(&self, r: Recipient) -> &'static str {
+        if matches!(r, Recipient::Targets(..) | Recipient::ThoseTargets(..)) || self.is_many(r) {
+            "each of "
+        } else {
+            ""
+        }
+    }
+
     /// Whether a recipient is a variable target group (CR 601.2c).
     fn is_many(&self, r: Recipient) -> bool {
         matches!(r, Recipient::Target(i) | Recipient::ThatTarget(i)
@@ -1049,6 +1060,7 @@ impl<'a> Ctx<'a> {
             Recipient::TargetAnd(t, i) => self.target_and(t, i),
             Recipient::ExiledCard => "the exiled card".to_string(),
             Recipient::ThoseCards(..) => "those cards".to_string(),
+            Recipient::ThoseTargets(a, _) => format!("those {}", self.plural_target_noun(a)),
         }
     }
 
@@ -1259,8 +1271,13 @@ impl<'a> Ctx<'a> {
                 ""
             };
             let noun = self.plural_target_noun(fresh[0]);
+            // "up to two other target creatures you control" (CR 115.3).
+            let (other, noun) = match noun.strip_prefix("other ") {
+                Some(rest) => ("other ", rest.to_string()),
+                None => ("", noun),
+            };
             return format!(
-                "{up_to}{} target {noun}",
+                "{up_to}{} {other}target {noun}",
                 count_words(Num::N(u32::try_from(fresh.len()).expect("small")), "a")
             );
         }
@@ -3400,13 +3417,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::AddCounters { kind, count, to } => {
             let c = counters(*count, *kind);
+            let each = ctx.each_of(*to);
             let o = ctx.obj(*to);
-            Clause::imperative(format!("put {c} on {o}"))
+            Clause::imperative(format!("put {c} on {each}{o}"))
         }
         Effect::AddCounterList { counters: cs, to } => {
             let c: Vec<String> = cs.iter().map(|(k, n)| counters(*n, *k)).collect();
+            let each = ctx.each_of(*to);
             let o = ctx.obj(*to);
-            Clause::imperative(format!("put {} on {o}", list(&c)))
+            Clause::imperative(format!("put {} on {each}{o}", list(&c)))
         }
         Effect::RemoveCounters { kind, count, to } => {
             let c = counters(*count, *kind);
@@ -4700,6 +4719,14 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {amount}");
             c
         }
+        // "sacrifice it unless you return an artifact you control to its
+        // owner's hand".
+        Effect::UnlessYou { act, effect } => {
+            let mut c = clause(effect, ctx);
+            let a = clause(act, ctx);
+            let _ = write!(c.tail, " unless you {}", a.text);
+            c
+        }
         Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
             let cond = static_cond_text(c, ctx.card);
             let body = sentences(inner, ctx);
@@ -4831,6 +4858,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     format!("you controlled that {noun}")
                 }
                 (TargetTense::Was, _) => format!("that {noun} was {pred}"),
+                // "If an opponent controls that creature".
+                (TargetTense::ThatIs, _)
+                    if *f
+                        == (Filter {
+                            who: Some(Who::Opponents),
+                            ..Filter::default()
+                        }) =>
+                {
+                    format!("an opponent controls that {noun}")
+                }
                 (TargetTense::Is, Some(k)) => format!("it has {k}"),
                 (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
                 (TargetTense::Is, None) => format!("it's {pred}"),
@@ -5639,6 +5676,16 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
         }
         Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
         Trigger::DayNight => "whenever day becomes night or night becomes day".to_string(),
+        // "when you sacrifice it" (after "When this artifact enters and"),
+        // "Whenever you sacrifice another permanent".
+        Trigger::Sacrificed { obj, whose } => {
+            let who = crate::format::sacrifices_words(*whose);
+            match obj {
+                TriggerObj::This if ctx.source_mentioned => format!("when {who} it"),
+                TriggerObj::This => format!("when {who} {}", this(ctx)),
+                o => format!("whenever {who} {}", trigger_subject(o, ctx)),
+            }
+        }
         Trigger::RollsDice { whose } => match whose {
             Who::You => "whenever you roll one or more dice".to_string(),
             _ => "whenever a player rolls one or more dice".to_string(),
@@ -6033,6 +6080,8 @@ fn replacement_text(r: &Replacement, ctx: &mut Ctx, this_turn: bool) -> String {
                 None => "damage",
             };
             let to = match to {
+                // "enchanted creature" is one object (Fylgja).
+                Affects::Objects(f) if f.enchanted => filter_phrase(f, ctx.card, false),
                 Affects::Objects(f) => format!("each {}", filter_phrase(f, ctx.card, false)),
                 other => affects_to(other, ctx),
             };
@@ -6854,6 +6903,12 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         }
         StaticCond::YourTurn | StaticCond::DuringYourTurn => "it's your turn".to_string(),
         StaticCond::AnyPlayerLifeAtMost(n) => format!("a player has {n} or less life"),
+        StaticCond::SourceCountersThere { kind, n } => format!(
+            "there are {} or more {} counters on this {}",
+            count_words(Num::N(*n), "one"),
+            kind.name(),
+            self_noun(card)
+        ),
         StaticCond::SourceCounters { kind, n, at_least } => {
             if *at_least && *n == 1 {
                 // "this creature has a +1/+1 counter on it".

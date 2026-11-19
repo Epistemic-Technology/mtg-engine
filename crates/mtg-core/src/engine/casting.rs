@@ -712,12 +712,19 @@ impl GameState {
             let c = self.base_characteristics(o);
             filter.matches(id, p, &c, Some(ctx.source), Some(p)) && self.status_ok(filter, id)
         };
+        // "return an enchantment to its owner's hand": with no controller
+        // named, any permanent (Drake Familiar); a sacrifice or tap is of
+        // the player's own (CR 701.21a).
+        let any_controller = act == ChooseAct::Bounce && filter.who.is_none();
         match act {
             ChooseAct::Tap
             | ChooseAct::Sacrifice
             | ChooseAct::Bounce
             | ChooseAct::AttachToTarget(_) => self
-                .permanents_of(p)
+                .battlefield
+                .iter()
+                .copied()
+                .filter(|id| any_controller || self.objects[*id].controller == p)
                 .filter(|id| {
                     (act != ChooseAct::Tap || !self.objects[*id].tapped)
                         && self
@@ -921,6 +928,10 @@ impl GameState {
                 ..
             }
             | Effect::HandToLibrary {
+                who: crate::card::Recipient::You,
+                ..
+            }
+            | Effect::DiscardRandom {
                 who: crate::card::Recipient::You,
                 ..
             } => !self.player(ctx.controller).hand.is_empty(),
@@ -5829,6 +5840,11 @@ impl GameState {
                     let Target::Player(p) = t else {
                         continue;
                     };
+                    // "unless you discard a card at random": not with an
+                    // empty hand.
+                    if self.player(p).hand.is_empty() {
+                        ctx.did = false;
+                    }
                     for _ in 0..self.eval_num(*count, ctx) {
                         let n = self.player(p).hand.len();
                         if n == 0 {
@@ -6374,6 +6390,21 @@ impl GameState {
                     }
                 } else {
                     ctx.did = false;
+                }
+            }
+            // "Sacrifice it unless you sacrifice a land": the controller
+            // decides whether to act (CR 608.2d); an act they can't
+            // complete doesn't count (CR 101.3).
+            Effect::UnlessYou { act, effects } => {
+                if act.iter().all(|e| self.can_do(ctx, e)) {
+                    self.apply_effect(ctx, &Effect::YouMay(act.clone()));
+                } else {
+                    ctx.did = false;
+                }
+                if !ctx.did {
+                    for e in effects {
+                        self.apply_effect(ctx, e);
+                    }
                 }
             }
             Effect::IfYouDo(inner) => {
