@@ -1,0 +1,6 @@
+card "Live Fast" {
+  oracle_id 04d02394-e17f-43cd-932f-f58e8cc56629
+  cost {2}{B}
+  type Sorcery
+  spell: you draw 2 cards, lose 2 life and get 2 energy
+}

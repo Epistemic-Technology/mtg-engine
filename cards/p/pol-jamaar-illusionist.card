@@ -1,0 +1,8 @@
+card "Pol Jamaar, Illusionist" {
+  oracle_id 2f200a14-7e5b-4b7c-a283-5cf9abb1f95d
+  cost {4}{U}{U}
+  type Legendary Creature — Human Illusion Wizard
+  pt 4/5
+  keywords flying
+  triggered when this enters: choose creature type; draw count each creature you control of that type cards
+}

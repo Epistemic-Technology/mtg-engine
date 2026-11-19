@@ -689,7 +689,9 @@ impl GameState {
                                 options,
                             });
                         }
-                        if discard.is_none() && add.discard > 0 {
+                        if discard.is_none()
+                            && (add.discard > 0 || (add.discard_x && self.x_of(spell) > 0))
+                        {
                             let options: Vec<Choice> = self
                                 .discard_candidates(caster, add.discard_filter.as_ref(), spell)
                                 .into_iter()
@@ -1546,7 +1548,8 @@ impl GameState {
     }
 
     fn after_buyback(&self, spell: ObjId) -> Flow {
-        if self.pool.get(self.objects[spell].def).mana_cost.has_x() {
+        let def = self.pool.get(self.objects[spell].def);
+        if def.mana_cost.has_x() || def.additional.discard_x {
             Flow::ChoosingX { spell }
         } else {
             Flow::Casting {

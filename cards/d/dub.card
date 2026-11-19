@@ -1,0 +1,7 @@
+card "Dub" {
+  oracle_id e3ca6b70-01d2-44e9-937a-a2d50bbf9d10
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +2/+2, has first strike, add subtype Knight
+}

@@ -1,0 +1,6 @@
+card "Mind Drain" {
+  oracle_id 0a88d1b1-ac3c-41da-b3f5-b689af0e45d7
+  cost {2}{B}
+  type Sorcery
+  spell: target opponent discards 2 cards, mills 1 card and loses 1 life; you gain 1 life
+}

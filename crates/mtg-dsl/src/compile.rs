@@ -644,6 +644,7 @@ impl Compiler<'_> {
             chosen: c.chosen,
             life: c.life,
             discard: c.discard,
+            discard_x: c.discard_x,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: c.loyalty.unwrap_or(0),
             tap: c.tap,
@@ -670,7 +671,9 @@ impl Compiler<'_> {
             ),
             Recipient::You => CoreRecipient::You,
             Recipient::EachOpponent => CoreRecipient::EachOpponent,
-            Recipient::Source => CoreRecipient::Source,
+            Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt => {
+                CoreRecipient::Source
+            }
             Recipient::TriggeringObject | Recipient::TriggeringIt => {
                 CoreRecipient::TriggeringObject
             }
@@ -773,7 +776,7 @@ impl Compiler<'_> {
             Effect::DealDamage { to, .. } if to.is_empty() => {
                 return self.err("`deal N damage` without `to` only in an `instead` sentence");
             }
-            Effect::DealDamage { amount, to } => {
+            Effect::DealDamage { amount, to, .. } => {
                 for t in to {
                     out.push(CoreEffect::DealDamage {
                         amount: *amount,
@@ -1491,6 +1494,9 @@ impl Compiler<'_> {
             ),
             Ability::ModalBoth(modes) => AbilityDef::Modal(self.modes(modes, true, false)?),
             Ability::ModalTwo(modes) => AbilityDef::Modal(self.modes(modes, false, true)?),
+            Ability::Activated { cost, .. } if cost.discard_x => {
+                return self.err("`discard X cards` is only a spell's additional cost");
+            }
             Ability::Activated {
                 cost,
                 targets,

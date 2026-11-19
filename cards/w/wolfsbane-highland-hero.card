@@ -1,0 +1,8 @@
+card "Wolfsbane, Highland Hero" {
+  oracle_id 23d3ff11-bf19-4315-b53b-3e4f20c6a89b
+  cost {1}{G}
+  type Legendary Creature — Mutant Werewolf Hero
+  pt 2/2
+  keywords trample
+  activated {2}{G}, once: this gets +2/+2
+}

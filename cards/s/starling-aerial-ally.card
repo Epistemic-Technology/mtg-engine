@@ -1,0 +1,8 @@
+card "Starling, Aerial Ally" {
+  oracle_id 13fd7ca6-c278-409f-a9c4-57f16051ffce
+  cost {4}{W}
+  type Legendary Creature — Human Hero
+  pt 3/4
+  keywords flying
+  triggered when this enters: another target creature you control gains flying
+}

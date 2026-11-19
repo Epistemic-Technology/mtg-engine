@@ -1,0 +1,7 @@
+card "Petrahydrox" {
+  oracle_id 545c516f-85a4-4a59-8cfa-03da27121a57
+  cost {3}{U/R}
+  type Creature — Weird
+  pt 3/3
+  triggered when this becomes the target of a spell or ability: return this creature to hand
+}

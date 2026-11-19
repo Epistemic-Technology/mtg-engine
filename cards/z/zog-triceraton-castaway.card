@@ -1,0 +1,9 @@
+card "Zog, Triceraton Castaway" {
+  oracle_id d944d33d-0a95-4d0d-96ce-49d02500227d
+  cost {4}{R}
+  type Legendary Creature — Dinosaur Soldier
+  pt 5/4
+  keywords reach, trample
+  triggered when this enters: target creature can't block this turn
+  mountaincycling {2}
+}

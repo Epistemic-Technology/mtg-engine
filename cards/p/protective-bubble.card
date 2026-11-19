@@ -1,0 +1,7 @@
+card "Protective Bubble" {
+  oracle_id 1fba543c-bd22-4f7b-9ff4-0631af8ee814
+  cost {3}{U}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: has can't be blocked, has shroud
+}

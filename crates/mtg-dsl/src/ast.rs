@@ -180,6 +180,9 @@ pub struct Cost {
     pub tap: bool,
     pub life: u32,
     pub discard: u32,
+    /// `discard X cards` (a spell's additional cost): "Discard X cards",
+    /// X announced as the spell is cast (CR 601.2b).
+    pub discard_x: bool,
     /// `discard a creature card`: what the discarded card must match.
     pub discard_filter: Option<Filter>,
     /// A loyalty ability's cost (CR 606).
@@ -875,6 +878,9 @@ pub enum Join {
     /// `, and`: "and" with the subject printed again ("you draw a card and
     /// you lose 1 life").
     AndRepeat,
+    /// `,`: a list of three or more clauses, "A, B, and C" (the last `and`
+    /// takes the serial comma) or "A, B, then C".
+    Comma,
 }
 
 impl Sentence {
@@ -1164,7 +1170,16 @@ pub enum Recipient {
     OwnerOf(usize),
     You,
     EachOpponent,
+    /// `this`: the source, "this creature" (a spell's or a legendary
+    /// permanent's name, CR 201.5) at its first mention, "it" after.
     Source,
+    /// `this creature` (the noun the card uses for itself): the source
+    /// named in full even after a mention ("..., you may sacrifice it. If
+    /// you do, this creature deals 3 damage to that player.").
+    SourceNamed,
+    /// `it` in a spell or an activated ability: the source as "it" even at
+    /// its first mention ("If this spell was kicked, it deals 2 damage").
+    SourceIt,
     TriggeringObject,
     /// The triggering object written `it` in a triggered ability ("Whenever
     /// another creature you control attacks, it gets +0/+1").
@@ -1195,6 +1210,10 @@ pub enum Effect {
     DealDamage {
         amount: Num,
         to: Vec<Recipient>,
+        /// How the source is named as the subject: `deal` is `Source`
+        /// ("Shock deals", then "it deals"); `this creature deals` and
+        /// `it deals` choose the form (`SourceNamed`, `SourceIt`).
+        by: Recipient,
     },
     Pump {
         power: i32,

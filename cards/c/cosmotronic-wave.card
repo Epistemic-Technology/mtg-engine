@@ -1,0 +1,6 @@
+card "Cosmotronic Wave" {
+  oracle_id 079ac521-9414-46c1-acd9-2ff2ff047d22
+  cost {3}{R}
+  type Sorcery
+  spell: deal 1 damage to each creature your opponents control; each creature your opponents control can't block this turn
+}

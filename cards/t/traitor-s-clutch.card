@@ -1,0 +1,7 @@
+card "Traitor's Clutch" {
+  oracle_id 64296644-70f3-4698-923f-0794fe5d0d2b
+  cost {4}{B}
+  type Instant
+  flashback {1}{B}
+  spell: target creature gets +1/+0, becomes black and gains shadow
+}

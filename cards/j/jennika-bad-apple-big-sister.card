@@ -1,0 +1,8 @@
+card "Jennika, Bad Apple Big Sister" {
+  oracle_id b55da4d3-2cad-4c89-ad3f-7d8397b64d52
+  cost {4}{W}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 3/3
+  triggered when this enters: create 1 "2/2 red Mutant creature"
+  plainscycling {2}
+}

@@ -1,0 +1,7 @@
+card "Winter Soldier, Bucky Barnes" {
+  oracle_id 874bbeb2-aa15-41e8-afad-122ab9b555fd
+  cost {W}
+  type Legendary Creature — Human Soldier Hero
+  pt 2/2
+  enters tapped
+}

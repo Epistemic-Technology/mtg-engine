@@ -1,0 +1,9 @@
+card "Stockman, Mad Fly-entist" {
+  oracle_id baa4cb1b-6fb5-46df-9cdd-54421ee0fc88
+  cost {4}{U}
+  type Legendary Creature — Insect Mutant Scientist
+  pt 3/4
+  keywords flying
+  triggered when this enters: draw 1 card then discard 1 card
+  islandcycling {2}
+}

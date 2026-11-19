@@ -1,0 +1,6 @@
+card "Hazardous Blast" {
+  oracle_id ffd666c7-a8ca-4467-8733-878efb127268
+  cost {3}{R}
+  type Sorcery
+  spell: deal 1 damage to each creature your opponents control; each creature your opponents control can't block this turn
+}

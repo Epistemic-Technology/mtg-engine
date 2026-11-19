@@ -1,0 +1,7 @@
+card "Nori, Teller of Tales" {
+  oracle_id 03253076-9add-4efb-9227-b0a062c86534
+  cost {1}{R/W}
+  type Legendary Creature — Dwarf Bard
+  pt 2/2
+  triggered whenever this attacks: target attacking creature gains first strike
+}

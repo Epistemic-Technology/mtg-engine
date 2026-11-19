@@ -1,0 +1,8 @@
+card "April O'Neil, Kunoichi Trainee" {
+  oracle_id 3f166376-2739-411c-8f42-96f2ef28ef86
+  cost {1}{W}
+  type Legendary Creature — Human Ninja
+  pt 2/2
+  triggered when this enters: scry 2
+  can't be blocked by creature with power 3 or greater
+}

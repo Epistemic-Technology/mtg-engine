@@ -1,0 +1,7 @@
+card "Donatello, Turtle Techie" {
+  oracle_id f84850bc-6348-449e-bd82-bb39e2119bec
+  cost {3}{U}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 3/4
+  triggered when this enters if you control artifact: draw 1 card
+}

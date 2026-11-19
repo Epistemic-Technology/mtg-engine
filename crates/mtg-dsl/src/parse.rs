@@ -265,6 +265,21 @@ const RECIPIENTS: &[(&[&str], Recipient)] = &[
     (&["this"], Recipient::Source),
 ];
 
+/// The nouns a card uses for itself (`this creature`; see
+/// `render::self_noun`).
+const SELF_NOUNS: [&str; 10] = [
+    "creature",
+    "land",
+    "artifact",
+    "enchantment",
+    "planeswalker",
+    "permanent",
+    "token",
+    "aura",
+    "equipment",
+    "vehicle",
+];
+
 const NUMBER_WORDS: [&str; 20] = [
     "one",
     "two",
@@ -844,10 +859,17 @@ impl P {
                 break;
             };
             out.push(k);
+            // `, ` and `and` continue the list only when a keyword follows
+            // (`has can't be blocked, has shroud` is two modifications).
+            let at = self.pos;
             if self.peek() == Some(&Tok::Comma) {
                 self.pos += 1;
             }
             self.eat_word("and");
+            if !self.keyword_ahead() {
+                self.pos = at;
+                break;
+            }
         }
         Ok(out)
     }
@@ -1943,6 +1965,23 @@ impl P {
                 }
                 self.pos += 1;
                 joins.push(Join::Then);
+            } else if self.peek() == Some(&Tok::Comma) {
+                // `A, B and C`: a list of clauses, when a clause follows.
+                let at = self.pos;
+                let subject = self.subject;
+                let declared = (self.targets.len(), self.groups.len(), self.counts.len());
+                self.pos += 1;
+                let Ok(c) = self.clause() else {
+                    self.pos = at;
+                    self.subject = subject;
+                    self.targets.truncate(declared.0);
+                    self.groups.truncate(declared.1);
+                    self.counts.truncate(declared.2);
+                    break;
+                };
+                joins.push(Join::Comma);
+                clauses.push(self.unless_suffix(c)?);
+                continue;
             } else {
                 break;
             }
@@ -2300,6 +2339,24 @@ impl P {
     fn subject_verb(&mut self, subject: Recipient, explicit: bool) -> R<Effect> {
         let w = self.word()?;
         match w.as_str() {
+            // `this creature deals 3 damage to that player`, `it deals 2
+            // damage to target creature`: the source named as written.
+            "deal" | "deals"
+                if matches!(
+                    subject,
+                    Recipient::Source | Recipient::SourceNamed | Recipient::SourceIt
+                ) =>
+            {
+                self.pos -= 1;
+                match self.verb_first()? {
+                    Effect::DealDamage { amount, to, .. } => Ok(Effect::DealDamage {
+                        amount,
+                        to,
+                        by: subject,
+                    }),
+                    _ => self.fail("`deals ... divided` takes no subject"),
+                }
+            }
             "gain" | "gains" if self.at_word("ability") => {
                 self.pos += 1;
                 let ability = Box::new(self.nested_ability()?);
@@ -2629,7 +2686,7 @@ impl P {
                         while let Some(c) = self.word_at(0).as_deref().and_then(color) {
                             colors.push(c);
                             self.pos += 1;
-                            self.eat_word("and");
+                            self.eat_and_before_color();
                         }
                     }
                     self.until_end_of_turn();
@@ -2764,11 +2821,16 @@ impl P {
                     return Ok(Effect::DealDamage {
                         amount,
                         to: Vec::new(),
+                        by: Recipient::Source,
                     });
                 }
                 self.expect_word("to")?;
                 let to = self.recipients()?;
-                Ok(Effect::DealDamage { amount, to })
+                Ok(Effect::DealDamage {
+                    amount,
+                    to,
+                    by: Recipient::Source,
+                })
             }
             "destroy" => {
                 let to = self.recipients()?;
@@ -3678,9 +3740,18 @@ impl P {
             if self.in_trigger {
                 return Ok(Recipient::TriggeringIt);
             }
-            return self.fail(
-                "`it` is only meaningful inside a delayed trigger; name the target (`target 1`)",
-            );
+            // In a spell or an activated ability, `it` is the source,
+            // printed "it" ("If this spell was kicked, it deals 2 damage").
+            return Ok(Recipient::SourceIt);
+        }
+        // `this creature`: the source named in full even after a mention.
+        if self.at_word("this")
+            && self
+                .word_at(1)
+                .is_some_and(|w| SELF_NOUNS.contains(&w.as_str()))
+        {
+            self.pos += 2;
+            return Ok(Recipient::SourceNamed);
         }
         if self.eat_word("attached")
             || self.at_words(&["enchanted", "creature"]) && {
@@ -3825,14 +3896,34 @@ impl P {
             self.pos += 2;
             return Ok(Recipient::ThatTarget(self.targets.len() - 1));
         }
+        // Likewise "that player" after a target player ("Target player
+        // discards two cards. ... it deals 3 damage to that player").
+        if !self.in_trigger
+            && self.at_words(&["that", "player"])
+            && self.targets.last().is_some_and(|t| {
+                matches!(
+                    t,
+                    Target::Spec(
+                        TargetSpec::Player
+                            | TargetSpec::Opponent
+                            | TargetSpec::PlayerOrPlaneswalker
+                            | TargetSpec::OpponentOrPlaneswalker
+                    )
+                )
+            })
+        {
+            self.pos += 2;
+            return Ok(Recipient::ThatTarget(self.targets.len() - 1));
+        }
         for (ws, r) in RECIPIENTS {
             if self.at_words(ws) {
                 // "each creature with flying" is a group, not "each creature";
-                // so is "each creature you control of chosen type".
+                // so are "each creature you control of chosen type" and
+                // "each creature your opponents control".
                 let continues = (ws[0] == "each" || ws[0] == "all")
                     && matches!(
                         self.word_at(ws.len()).as_deref(),
-                        Some("with" | "without" | "of" | "named")
+                        Some("with" | "without" | "of" | "named" | "your" | "you" | "defending")
                     );
                 if !continues {
                     self.pos += ws.len();
@@ -4899,6 +4990,10 @@ impl P {
                         if self.eat_word("this") {
                             self.eat_word("card");
                             cost.discard_self = true;
+                        } else if self.at_words(&["x", "cards"]) {
+                            // "Discard X cards" (CR 601.2b: X announced).
+                            self.pos += 2;
+                            cost.discard_x = true;
                         } else if matches!(self.peek(), Some(Tok::Num(_))) {
                             cost.discard = self.count()?;
                             self.cards_word()?;
@@ -5375,13 +5470,21 @@ impl P {
         }
     }
 
+    /// `and` inside a list of colors ("white and blue"), not the `and`
+    /// that starts the next clause ("becomes black and gains shadow").
+    fn eat_and_before_color(&mut self) {
+        if self.at_word("and") && self.word_at(1).as_deref().and_then(color).is_some() {
+            self.pos += 1;
+        }
+    }
+
     fn color_list(&mut self) -> R<Vec<Color>> {
         let mut out = Vec::new();
         while let Some(w) = self.word_at(0) {
             let Some(c) = color(&w) else { break };
             out.push(c);
             self.pos += 1;
-            self.eat_word("and");
+            self.eat_and_before_color();
         }
         if out.is_empty() {
             return self.unexpected("a color");
@@ -5423,7 +5526,8 @@ card "Lightning Bolt" {
                     effects,
                     &[Sentence::new(vec![Effect::DealDamage {
                         amount: Num::N(3),
-                        to: vec![Recipient::Target(0)]
+                        to: vec![Recipient::Target(0)],
+                        by: Recipient::Source,
                     }])]
                 );
             }

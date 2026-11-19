@@ -220,6 +220,7 @@ impl Decompiler<'_> {
             tap: c.tap,
             life: c.life,
             discard: c.discard,
+            discard_x: c.discard_x,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: (c.loyalty != 0).then_some(c.loyalty),
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
@@ -382,6 +383,7 @@ impl Decompiler<'_> {
             CoreEffect::DealDamage { amount, to } => Effect::DealDamage {
                 amount: *amount,
                 to: vec![r(*to)],
+                by: Recipient::Source,
             },
             CoreEffect::Pump {
                 power,

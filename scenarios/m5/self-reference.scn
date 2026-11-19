@@ -1,0 +1,237 @@
+# How a card names itself and how clause lists join: wording only, so
+# these check that each wording compiles to the rules it prints. A
+# legendary permanent's name (CR 201.5) and "this creature" named again
+# both mean the source; "it" in a spell is the spell; "discard X cards"
+# as an additional cost discards the X announced as the spell is cast
+# (CR 601.2b, 107.3).
+
+scenario "Furnace Scamp: sacrificed, this creature still deals its 3 damage" {
+  battlefield A: "Furnace Scamp"
+  turn 1 A: attack "Furnace Scamp"
+  turn 1 A: accept "Furnace Scamp"
+  run_to turn 1 end
+  assert graveyard A contains "Furnace Scamp"
+  assert life B 16
+}
+
+scenario "Furnace Scamp: not sacrificed, no extra damage" {
+  battlefield A: "Furnace Scamp"
+  turn 1 A: attack "Furnace Scamp"
+  turn 1 A: decline "Furnace Scamp"
+  run_to turn 1 end
+  assert battlefield A contains "Furnace Scamp"
+  assert life B 19
+}
+
+scenario "Manticore of the Gauntlet: a counter on your creature, 3 damage to the opponent" {
+  battlefield A: "Grizzly Bears", 5 "Mountain"
+  hand A: "Manticore of the Gauntlet"
+  turn 1 A: cast "Manticore of the Gauntlet"
+  turn 1 A: trigger "Manticore of the Gauntlet" targeting "Grizzly Bears", player B
+  run_to turn 1 end
+  assert counters "Grizzly Bears" -1/-1 1
+  assert life B 17
+}
+
+scenario "Petrahydrox: targeted, it returns to its owner's hand" {
+  battlefield A: "Mountain"
+  battlefield B: "Petrahydrox"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Petrahydrox"
+  run_to turn 1 end
+  assert hand B contains "Petrahydrox"
+  assert graveyard A contains "Shock"
+}
+
+scenario "Ozai's Cruelty: that player is the target player" {
+  battlefield A: 3 "Swamp"
+  hand A: "Ozai's Cruelty"
+  hand B: "Forest", "Island", "Plains"
+  turn 1 A: cast "Ozai's Cruelty" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert hand B count 1
+}
+
+scenario "Aggressive Sabotage unkicked: no damage" {
+  battlefield A: 3 "Swamp", "Mountain"
+  hand A: "Aggressive Sabotage"
+  hand B: "Forest", "Island", "Plains"
+  turn 1 A: cast "Aggressive Sabotage" targeting player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert life B 20
+}
+
+scenario "Aggressive Sabotage kicked: discard two, then it deals 3 damage" {
+  battlefield A: 3 "Swamp", "Mountain"
+  hand A: "Aggressive Sabotage"
+  hand B: "Forest", "Island", "Plains"
+  turn 1 A: cast "Aggressive Sabotage" kicked targeting player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert life B 17
+}
+
+scenario "Lunatic Pandora: sacrifice it to destroy a nonland permanent" {
+  battlefield A: "Lunatic Pandora", 6 "Plains"
+  battlefield B: "Hill Giant"
+  turn 1 A: activate "Lunatic Pandora" ability 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Lunatic Pandora"
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Lunatic Pandora: a land is no target" {
+  battlefield A: "Lunatic Pandora", 6 "Plains"
+  battlefield B: "Forest"
+  illegal turn 1 A: activate "Lunatic Pandora" ability 2 targeting "Forest"
+  run_to turn 1 end
+}
+
+scenario "Hall of Triumph: creatures of the chosen color get +1/+1" {
+  battlefield A: "Grizzly Bears", "Hill Giant", 3 "Mountain"
+  hand A: "Hall of Triumph"
+  turn 1 A: cast "Hall of Triumph"
+  turn 1 A: choose green
+  run_to turn 1 end
+  assert power "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+}
+
+scenario "Pol Jamaar: draw a card for each creature of the chosen type" {
+  battlefield A: 2 "Grizzly Bears", "Hill Giant", 6 "Island"
+  hand A: "Pol Jamaar, Illusionist"
+  turn 1 A: cast "Pol Jamaar, Illusionist"
+  turn 1 A: choose Bear
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Mind Drain: discard two, mill one, lose 1 life; you gain 1" {
+  battlefield A: 3 "Swamp"
+  hand A: "Mind Drain"
+  hand B: "Forest", "Island", "Plains"
+  library B: "Hill Giant", "Mountain"
+  turn 1 A: cast "Mind Drain" targeting player B
+  run_to turn 1 end
+  assert hand B count 1
+  assert graveyard B contains "Hill Giant"
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Funeral Rites: draw two, lose 2 life, then mill two" {
+  battlefield A: 3 "Swamp"
+  hand A: "Funeral Rites"
+  library A: "Forest", "Island", "Hill Giant", "Grizzly Bears", "Plains"
+  turn 1 A: cast "Funeral Rites"
+  run_to turn 1 postcombat_main
+  assert hand A count 2
+  assert life A 18
+  assert graveyard A contains "Hill Giant"
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Kaito's Pursuit: Ninjas and Rogues gain menace, others don't" {
+  battlefield A: "Foot Elite", "Agent of Horizons", "Grizzly Bears", 3 "Swamp"
+  hand A: "Kaito's Pursuit"
+  turn 1 A: cast "Kaito's Pursuit" targeting player B
+  run_to turn 1 declare_attackers
+  assert has "Foot Elite" menace
+  assert has "Agent of Horizons" menace
+  assert has not "Grizzly Bears" menace
+}
+
+scenario "Protective Bubble: enchanted creature has shroud" {
+  battlefield A: "Grizzly Bears", "Protective Bubble" on "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  illegal turn 1 B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Protective Bubble: enchanted creature can't be blocked" {
+  battlefield A: "Grizzly Bears", "Protective Bubble" on "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Restless Dreams: discard X cards, return X creature cards" {
+  battlefield A: "Swamp"
+  hand A: "Restless Dreams", "Forest", "Island", "Plains"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  turn 1 A: cast "Restless Dreams" x 2 discarding "Forest" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand A contains "Hill Giant"
+  assert hand A count 3
+  assert graveyard A contains "Forest"
+}
+
+scenario "Restless Dreams: X can't exceed the other cards in hand" {
+  battlefield A: "Swamp"
+  hand A: "Restless Dreams", "Forest"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  illegal turn 1 A: cast "Restless Dreams" x 2 discarding "Forest" targeting "Grizzly Bears", "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Restless Dreams: X 0 discards nothing" {
+  battlefield A: "Swamp"
+  hand A: "Restless Dreams", "Forest"
+  graveyard A: "Grizzly Bears"
+  turn 1 A: cast "Restless Dreams" x 0
+  run_to turn 1 end
+  assert hand A contains "Forest"
+  assert graveyard A contains "Restless Dreams"
+}
+
+scenario "Cosmotronic Wave: 1 damage to each creature your opponents control, and they can't block" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  battlefield B: "Llanowar Elves", "Grizzly Bears"
+  hand A: "Cosmotronic Wave"
+  turn 1 A: cast "Cosmotronic Wave"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Llanowar Elves"
+  assert damage "Grizzly Bears" 1
+  assert damage "Hill Giant" 0
+  assert life B 17
+}
+
+scenario "Kathari Bomber: two Goblins, and this creature is sacrificed" {
+  battlefield A: "Kathari Bomber"
+  turn 1 A: attack "Kathari Bomber"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Goblin"
+  assert graveyard A contains "Kathari Bomber"
+}
+
+scenario "Raphael: another creature enters, 1 damage to target opponent" {
+  battlefield A: "Raphael, Tough Turtle", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  turn 1 A: trigger "Raphael, Tough Turtle" targeting player B
+  run_to turn 1 end
+  assert life B 19
+}
+
+scenario "Winter Soldier enters tapped" {
+  battlefield A: "Plains"
+  hand A: "Winter Soldier, Bucky Barnes"
+  turn 1 A: cast "Winter Soldier, Bucky Barnes"
+  run_to turn 1 end
+  assert tapped "Winter Soldier, Bucky Barnes"
+}
+
+scenario "Ant-Man puts a +1/+1 counter on himself" {
+  battlefield A: "Ant-Man, Scott Lang", 4 "Plains"
+  turn 1 A: activate "Ant-Man, Scott Lang"
+  run_to turn 1 end
+  assert counters "Ant-Man, Scott Lang" +1/+1 1
+}

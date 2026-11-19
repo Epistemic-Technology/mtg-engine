@@ -1,0 +1,7 @@
+card "Restless Dreams" {
+  oracle_id 65f1dd09-0640-47f8-8bfd-7aceaa5646a6
+  cost {B}
+  type Sorcery
+  additional cost discard X cards
+  spell: return X target creature card from your graveyard to your hand
+}

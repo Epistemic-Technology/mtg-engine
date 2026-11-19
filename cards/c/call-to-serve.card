@@ -1,0 +1,7 @@
+card "Call to Serve" {
+  oracle_id bb4be6b2-507c-4d7c-bea4-010670dce3da
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant nonblack creature
+  static enchanted: +1/+2, has flying, add subtype Angel
+}

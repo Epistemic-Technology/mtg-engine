@@ -19,8 +19,10 @@ use crate::render::{basic_land_name, color_name, keyword_name, target_phrase};
 
 pub fn format(card: &Card) -> String {
     let outer = COUNTS.with(|c| c.replace(card.counts.clone()));
+    let noun = NOUN.with(|n| n.replace(crate::render::self_noun(card)));
     let out = format_inner(card);
     COUNTS.with(|c| c.replace(outer));
+    NOUN.with(|n| n.replace(noun));
     out
 }
 
@@ -202,6 +204,7 @@ impl Fmt {
             Recipient::You => "you".to_string(),
             Recipient::EachOpponent => "each opponent".to_string(),
             Recipient::Source => "this".to_string(),
+            Recipient::SourceNamed => NOUN.with(|n| format!("this {}", n.borrow())),
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
@@ -213,7 +216,9 @@ impl Fmt {
             Recipient::EachPlayer => "each player".to_string(),
             Recipient::EachCreatureYouControl => "each creature you control".to_string(),
             Recipient::EachPermanentYouControl => "each permanent you control".to_string(),
-            Recipient::SameObject | Recipient::TriggeringIt => "it".to_string(),
+            Recipient::SameObject | Recipient::TriggeringIt | Recipient::SourceIt => {
+                "it".to_string()
+            }
             Recipient::CreatedObject => "that token".to_string(),
             // `all`, not `each`: "each creature you control" is the
             // built-in recipient, which prints differently.
@@ -376,6 +381,7 @@ impl Fmt {
                 out.push_str(match s.joins.get(i - 1) {
                     Some(Join::Then) => " then ",
                     Some(Join::AndRepeat) => ", and ",
+                    Some(Join::Comma) => ", ",
                     _ => " and ",
                 });
             }
@@ -394,11 +400,20 @@ impl Fmt {
     #[allow(clippy::too_many_lines)]
     fn effect(&mut self, effect: &Effect, t: &[Target]) -> String {
         match effect {
-            Effect::DealDamage { amount, to } if to.is_empty() => {
-                format!("deal {} damage", num(*amount))
-            }
-            Effect::DealDamage { amount, to } => {
-                format!("deal {} damage to {}", num(*amount), self.recipients(to, t))
+            Effect::DealDamage { amount, to, by } => {
+                let verb = match by {
+                    Recipient::Source => "deal".to_string(),
+                    r => format!("{} deals", self.recipient(*r, t)),
+                };
+                if to.is_empty() {
+                    format!("{verb} {} damage", num(*amount))
+                } else {
+                    format!(
+                        "{verb} {} damage to {}",
+                        num(*amount),
+                        self.recipients(to, t)
+                    )
+                }
             }
             Effect::Pump {
                 power,
@@ -1003,6 +1018,8 @@ thread_local! {
     /// The counts of the card being formatted (`Num::Count` indexes them).
     static COUNTS: std::cell::RefCell<Vec<crate::ast::Count>> =
         const { std::cell::RefCell::new(Vec::new()) };
+    /// The noun the card being formatted uses for itself (`this creature`).
+    static NOUN: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) };
 }
 
 fn pay_amount(mana: &mtg_core::mana::ManaCost, life: u32) -> String {
@@ -1674,6 +1691,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
     }
 }
 
+#[allow(clippy::too_many_lines)] // one branch per cost part
 fn cost_text(c: &Cost) -> String {
     let default_order = [
         CostItem::Mana,
@@ -1728,6 +1746,8 @@ fn cost_text(c: &Cost) -> String {
             CostItem::Discard => {
                 if c.discard_self {
                     parts.push("discard this".to_string());
+                } else if c.discard_x {
+                    parts.push("discard X cards".to_string());
                 } else if let Some(f) = &c.discard_filter {
                     parts.push(format!("discard {} card", filter(f)));
                 } else if c.discard > 0 {

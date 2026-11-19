@@ -2997,6 +2997,7 @@ pub enum SacCost {
 
 /// The cost of an activated ability (CR 118, 602.2b).
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Default)]
+#[allow(clippy::struct_excessive_bools)] // each is one independent cost part
 pub struct Cost {
     pub mana: ManaCost,
     /// "Discard this card" (cycling, CR 702.29): the source leaves the hand
@@ -3021,6 +3022,9 @@ pub struct Cost {
     pub life: u32,
     /// "Discard N cards" (CR 701.8); the cards are chosen as the cost is paid.
     pub discard: u32,
+    /// "Discard X cards" (a spell's additional cost): X is announced as the
+    /// spell is cast (CR 601.2b, 107.3) and that many cards are discarded.
+    pub discard_x: bool,
     /// "Discard a creature card": what the discarded card must match.
     pub discard_filter: Option<ObjFilter>,
     /// A loyalty ability's cost (CR 606): +N puts, −N removes that many
@@ -3046,6 +3050,7 @@ impl Cost {
             chosen: ChosenCost::Sacrifice,
             life: 0,
             discard: 0,
+            discard_x: false,
             discard_filter: None,
             loyalty: 0,
             tap: false,
@@ -3074,7 +3079,7 @@ impl Cost {
     /// Whether paying needs a choice from the player (what to sacrifice or
     /// discard) beyond mana.
     pub fn needs_choice(&self) -> bool {
-        matches!(self.sacrifice, Some(SacCost::Filter(_))) || self.discard > 0
+        matches!(self.sacrifice, Some(SacCost::Filter(_))) || self.discard > 0 || self.discard_x
     }
 
     #[must_use]
