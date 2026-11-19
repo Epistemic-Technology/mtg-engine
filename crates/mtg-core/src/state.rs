@@ -770,9 +770,16 @@ impl Characteristics {
     }
 
     /// Whether this object has protection from something with `source`'s
-    /// colors (CR 702.16b–e).
+    /// colors (CR 702.16b–e). `opposing`: the source's controller is an
+    /// opponent of this object's ("protection from creatures your opponents
+    /// control").
     #[inline]
-    pub fn protected_from(&self, source: &Characteristics, pool: &crate::card::CardPool) -> bool {
+    pub fn protected_from(
+        &self,
+        source: &Characteristics,
+        opposing: bool,
+        pool: &crate::card::CardPool,
+    ) -> bool {
         self.keywords
             .intersects(crate::card::KeywordSet::PROTECTION)
             && (crate::mana::Color::ALL
@@ -781,7 +788,8 @@ impl Characteristics {
                 || self.has(Keyword::ProtectionFromFilter)
                     && self.abilities.iter().any(|a| {
                         matches!(pool.ability(*a),
-                            crate::card::AbilityDef::Protection(f) if f.matches_characteristics(source))
+                            crate::card::AbilityDef::Protection(f) if f.matches_characteristics(source)
+                                && f.who.is_none_or(|w| (w == crate::card::Who::Opponents) == opposing))
                     }))
     }
 
@@ -1922,7 +1930,11 @@ impl GameState {
             self.characteristics(target),
             self.characteristics(attachment),
         ) {
-            (Some(t), Some(a)) => t.protected_from(&a, &self.pool),
+            (Some(t), Some(a)) => t.protected_from(
+                &a,
+                self.objects[attachment].controller != self.objects[target].controller,
+                &self.pool,
+            ),
             _ => false,
         }
     }
@@ -2804,7 +2816,7 @@ impl GameState {
                 let protection_ok = !c.keywords.intersects(crate::card::KeywordSet::PROTECTION)
                     || !source
                         .and_then(|s| self.characteristics_or_lki(s))
-                        .is_some_and(|sc| c.protected_from(&sc, &self.pool));
+                        .is_some_and(|sc| c.protected_from(&sc, caster != obj.controller, &self.pool));
                 type_ok && hexproof_ok && protection_ok
             }
         }

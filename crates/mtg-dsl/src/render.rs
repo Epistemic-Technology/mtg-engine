@@ -3336,6 +3336,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::with_subject(*to, s, text.to_string())
         }
+        Effect::ProtectionOr { to, filter } => {
+            let s = ctx.subj(*to);
+            let p = lowercase_first(&protection_text(filter, ctx.card));
+            Clause::with_subject(
+                *to,
+                s,
+                format!(
+                    "{} {p} or from the color of your choice",
+                    ctx.verb(*to, "gains", "gain")
+                ),
+            )
+            .until_eot()
+        }
         Effect::CreatureTypes { to, all } => {
             let s = ctx.subj(*to);
             let verb = if *all {
@@ -6504,6 +6517,21 @@ fn cda_count_text(c: &crate::ast::CountExpr, card: &Card) -> String {
 }
 
 #[allow(clippy::too_many_lines)] // one case per kind of static
+/// `this: add subtype Cleric, add subtype Rogue, ...`: creature types the
+/// card itself has besides its printed ones, in every zone ("is also a
+/// Cleric, Rogue, Warrior, and Wizard").
+pub(crate) fn also_subtypes(filter: &Filter, mods: &[Mod]) -> Option<Vec<String>> {
+    if filter.relation != Relation::This || mods.len() < 2 {
+        return None;
+    }
+    mods.iter()
+        .map(|m| match m {
+            Mod::AddSubtype(s) => Some(s.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
 fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
     // Characteristic-defining abilities name the card.
     if let Some(Mod::CdaPt {
@@ -6529,6 +6557,14 @@ fn static_text(filter: &Filter, mods: &[Mod], card: &Card) -> String {
                 "{owner} power is equal to {n} and its toughness is equal to that number plus {plus_toughness}."
             )
         };
+    }
+    // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and Wizard."
+    if let Some(subs) = also_subtypes(filter, mods) {
+        return format!(
+            "{} is also {}.",
+            short_name(card),
+            with_article(&list(&subs))
+        );
     }
     if mods.iter().any(|m| matches!(m, Mod::CdaColors(_))) {
         let subject = if card.kind == Kind::Token {

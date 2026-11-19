@@ -220,13 +220,35 @@ impl Compiler<'_> {
             .any(|a| matches!(a, Ability::Mechanic(Mechanic::Evoke(_))))
             .then_some(mtg_core::card::Keyword::Evoke);
         let keywords = keywords.chain(protection).chain(evoke);
+        // "Stonework Packbeast is also a Cleric, Rogue, Warrior, and
+        // Wizard.": the types apply in every zone, so they are the card's
+        // own (its static ability adds them again on the battlefield).
+        let mut subtypes: Vec<&str> = card.subtypes.iter().map(String::as_str).collect();
+        for a in &card.abilities {
+            if let Ability::Static {
+                filter,
+                mods,
+                condition: None,
+                ..
+            } = a
+                && render::also_subtypes(filter, mods).is_some()
+            {
+                for m in mods {
+                    if let Mod::AddSubtype(x) = m
+                        && !subtypes.contains(&x.as_str())
+                    {
+                        subtypes.push(x);
+                    }
+                }
+            }
+        }
         let mut b = Builder::new(
             card.display_name.as_deref().unwrap_or(&card.name),
             &card.cost.to_string(),
         )
         .supertypes(card.supertypes.iter().copied())
         .types(card.types.iter().copied())
-        .subtypes(&card.subtypes.iter().map(String::as_str).collect::<Vec<_>>())
+        .subtypes(&subtypes)
         .keywords(keywords)
         .text(&render::oracle_text(card, self.lookup));
         if let Some((p, t)) = card.pt {
@@ -1694,6 +1716,23 @@ impl Compiler<'_> {
                 out.push(CoreEffect::Modes(modes));
             }
             Effect::SwitchPt { to } => out.push(CoreEffect::SwitchPt { to: r(*to) }),
+            // One or the other, chosen as it resolves (CR 608.2d).
+            Effect::ProtectionOr { to, filter } => {
+                let mut list = Vec::new();
+                self.effect(
+                    &Effect::GrantAbility {
+                        ability: Box::new(Ability::Protection(filter.clone())),
+                        to: *to,
+                    },
+                    &mut list,
+                )?;
+                list.push(CoreEffect::OfChoice {
+                    to: r(*to),
+                    kind: mtg_core::card::ChoiceKind::Color { except: None },
+                    protection: true,
+                });
+                out.push(CoreEffect::OneOf(list));
+            }
             Effect::CreatureTypes { to, all } => out.push(CoreEffect::CreatureTypes {
                 to: r(*to),
                 all: *all,

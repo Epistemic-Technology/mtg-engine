@@ -969,7 +969,13 @@ impl GameState {
                 // CR 702.16d: damage from a source with the quality is
                 // prevented.
                 if let Some(sc) = src.as_ref()
-                    && c.protected_from(sc, &self.pool)
+                    && c.protected_from(
+                        sc,
+                        self.objects
+                            .get(source)
+                            .is_none_or(|s| s.controller != o.controller),
+                        &self.pool,
+                    )
                 {
                     return;
                 }

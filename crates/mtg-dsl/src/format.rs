@@ -645,6 +645,11 @@ impl Fmt {
                 s
             }
             Effect::SwitchPt { to } => format!("switch pt of {}", self.recipient(*to, t)),
+            Effect::ProtectionOr { to, filter: f } => format!(
+                "{} gains protection from {} or from color of choice",
+                self.recipient(*to, t),
+                filter(f)
+            ),
             Effect::CreatureTypes { to, all } => format!(
                 "{} {} all creature types",
                 self.recipient(*to, t),

@@ -2508,6 +2508,14 @@ pub enum Effect {
     SwitchPt {
         to: Recipient,
     },
+    /// `target permanent you control gains protection from artifact or
+    /// from color of choice`: "gains protection from artifacts or from the
+    /// color of your choice until end of turn" (CR 702.16): the controller
+    /// chooses one as it resolves.
+    ProtectionOr {
+        to: Recipient,
+        filter: Filter,
+    },
     /// `target creature gains all creature types` (`all`), `target
     /// creature loses all creature types`, until end of turn (layer 4).
     CreatureTypes {

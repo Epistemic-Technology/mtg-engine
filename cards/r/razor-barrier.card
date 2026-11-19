@@ -1,0 +1,6 @@
+card "Razor Barrier" {
+  oracle_id 669701a5-fd7a-43f8-93f4-da7a8c4dd3dc
+  cost {1}{W}
+  type Instant
+  spell: target permanent you control gains protection from artifact or from color of choice
+}

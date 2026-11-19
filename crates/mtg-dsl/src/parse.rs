@@ -3334,6 +3334,15 @@ impl P {
             }
             "gain" | "gains" if self.at_word("ability") || self.granted_mechanic_ahead() => {
                 let ability = Box::new(if let Some(a) = self.granted_mechanic()? {
+                    if let Ability::Protection(filter) = &a
+                        && self.eat_words(&["or", "from", "color", "of", "choice"])
+                    {
+                        self.until_end_of_turn();
+                        return Ok(Effect::ProtectionOr {
+                            to: subject,
+                            filter: filter.clone(),
+                        });
+                    }
                     a
                 } else {
                     self.pos += 1;

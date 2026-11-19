@@ -420,3 +420,85 @@ scenario "Jaded Analyst: the second card drawn makes it lose defender" {
   assert life B 17
   assert untapped "Jaded Analyst"
 }
+
+# ---- protection of your choice, protection from what opponents control ----
+
+scenario "Razor Barrier: protection from artifacts, chosen over a color" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  hand A: "Razor Barrier"
+  hand B: "Shock"
+  turn 1 A: cast "Razor Barrier" targeting "Grizzly Bears"
+  turn 1 A: choose "1"
+  illegal turn 1 end B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Razor Barrier: protection from the color of your choice" {
+  battlefield A: "Raging Goblin", 2 "Plains"
+  battlefield B: "Rod of Ruin", 4 "Mountain"
+  hand A: "Razor Barrier"
+  hand B: "Shock"
+  turn 1 A: cast "Razor Barrier" targeting "Raging Goblin"
+  turn 1 A: choose "2"
+  turn 1 A: choose red
+  illegal turn 1 end B: cast "Shock" targeting "Raging Goblin"
+  turn 1 end B: activate "Rod of Ruin" targeting "Raging Goblin"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Angelic Intervention: protection from colorless and a +1/+1 counter on a creature" {
+  battlefield A: "Grizzly Bears", 2 "Plains"
+  battlefield B: "Rod of Ruin", 3 "Mountain"
+  hand A: "Angelic Intervention"
+  turn 1 A: cast "Angelic Intervention" targeting "Grizzly Bears"
+  turn 1 A: choose "1"
+  illegal turn 1 end B: activate "Rod of Ruin" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert counters "Grizzly Bears" +1/+1 1
+}
+
+scenario "Crypsis: the opponent's creatures can't block it; it untaps" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Crypsis"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 declare_attackers A: cast "Crypsis" targeting "Grizzly Bears"
+  illegal turn 1 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert untapped "Grizzly Bears"
+}
+
+scenario "Crypsis: a spell the opponent controls is not a creature, so it can still target" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  battlefield B: "Mountain"
+  hand A: "Crypsis"
+  hand B: "Shock"
+  turn 1 A: cast "Crypsis" targeting "Grizzly Bears"
+  turn 1 end B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Crypsis: a creature its controller controls can still target it" {
+  battlefield A: "Raging Goblin", "Prodigal Sorcerer", 2 "Island"
+  battlefield B: "Prodigal Sorcerer"
+  hand A: "Crypsis"
+  turn 1 A: cast "Crypsis" targeting "Raging Goblin"
+  illegal turn 1 end B: activate "Prodigal Sorcerer" targeting "Raging Goblin"
+  turn 1 end A: activate "Prodigal Sorcerer" targeting "Raging Goblin"
+  run_to turn 1 cleanup
+  assert graveyard A contains "Raging Goblin"
+}
+
+scenario "Stonework Packbeast: also a Cleric, Rogue, Warrior, and Wizard" {
+  battlefield A: "Stonework Packbeast"
+  run_to turn 1 precombat_main
+  assert is "Stonework Packbeast" Cleric
+  assert is "Stonework Packbeast" Wizard
+  assert is "Stonework Packbeast" Beast
+}
