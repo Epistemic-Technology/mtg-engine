@@ -4910,12 +4910,11 @@ impl GameState {
             }
             options.push(Choice::Decline);
             let k = self.choose_mid(p, DecisionKind::SearchLibrary, options.clone());
-            match options[k] {
-                Choice::Target(Target::Object(id)) => found.push(id),
-                _ => {
-                    declined = true;
-                    break;
-                }
+            if let Choice::Target(Target::Object(id)) = options[k] {
+                found.push(id);
+            } else {
+                declined = true;
+                break;
             }
         }
         // "may search": declining at once is choosing not to search.
@@ -5818,6 +5817,37 @@ impl GameState {
                         if let Choice::Discard { card, .. } = options[k] {
                             self.move_object(card, Zone::Exile, false);
                         }
+                    }
+                }
+            }
+            Effect::DrawDiscardDrawn { draw, discard } => {
+                let p = ctx.controller;
+                let before = self.player(p).hand.clone();
+                let n = self.eval_num(*draw, ctx);
+                self.apply_effect(
+                    ctx,
+                    &Effect::DrawCards {
+                        count: crate::card::Num::N(n),
+                        who: Recipient::You,
+                    },
+                );
+                for _ in 0..self.eval_num(*discard, ctx) {
+                    let options: Vec<Choice> = self
+                        .player(p)
+                        .hand
+                        .iter()
+                        .filter(|id| !before.contains(id))
+                        .map(|id| Choice::Discard {
+                            card: *id,
+                            def: self.objects[*id].def,
+                        })
+                        .collect();
+                    if options.is_empty() {
+                        break;
+                    }
+                    let k = self.choose_mid(p, DecisionKind::Discard, options.clone());
+                    if let Choice::Discard { card, .. } = options[k] {
+                        self.discard_card(p, card);
                     }
                 }
             }

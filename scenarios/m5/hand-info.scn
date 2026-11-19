@@ -217,3 +217,41 @@ scenario "Land Grant: not with a land card in hand" {
   run_to turn 1 end
   assert hand A contains "Land Grant"
 }
+
+# ---- "Draw two cards, then discard one of them" ----
+
+scenario "Krovikan Sorcerer: discard one of the two cards drawn" {
+  battlefield A: "Krovikan Sorcerer"
+  hand A: "Typhoid Rats", "Grizzly Bears"
+  library A: "Shock", "Forest"
+  turn 1 A: activate "Krovikan Sorcerer" ability 2 discarding "Typhoid Rats"
+  # The cards drawn aren't in hand yet where a scripted discard would name
+  # them; unscripted, the first drawn is discarded.
+  run_to turn 1 end
+  assert graveyard A contains "Typhoid Rats"
+  assert graveyard A contains "Shock"
+  assert hand A contains "Forest"
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Krovikan Sorcerer: a card already in hand can't be the one" {
+  battlefield A: "Krovikan Sorcerer"
+  hand A: "Typhoid Rats", "Grizzly Bears"
+  library A: "Shock", "Forest"
+  turn 1 A: activate "Krovikan Sorcerer" ability 2 discarding "Typhoid Rats"
+  illegal turn 1 precombat_main A: discard "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert hand A count 2
+}
+
+scenario "Krovikan Sorcerer: a nonblack card draws one" {
+  battlefield A: "Krovikan Sorcerer"
+  hand A: "Grizzly Bears"
+  library A: "Shock", "Forest"
+  illegal turn 1 A: activate "Krovikan Sorcerer" ability 2 discarding "Grizzly Bears"
+  turn 1 A: activate "Krovikan Sorcerer" ability 1 discarding "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Shock"
+  assert hand A count 1
+}

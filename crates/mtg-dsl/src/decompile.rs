@@ -787,6 +787,10 @@ impl Decompiler<'_> {
                 who: r(*who),
                 graveyard: *graveyard,
             },
+            CoreEffect::DrawDiscardDrawn { draw, discard } => Effect::DrawDiscardDrawn {
+                draw: *draw,
+                discard: *discard,
+            },
             CoreEffect::ExileFromGraveyardOrHand { who, filter } => {
                 Effect::ExileFromGraveyardOrHand {
                     who: r(*who),

@@ -1429,6 +1429,12 @@ impl Compiler<'_> {
                 who: r(*who),
                 graveyard: *graveyard,
             }),
+            Effect::DrawDiscardDrawn { draw, discard } => {
+                out.push(CoreEffect::DrawDiscardDrawn {
+                    draw: *draw,
+                    discard: *discard,
+                });
+            }
             Effect::ExileFromGraveyardOrHand { who, filter } => {
                 out.push(CoreEffect::ExileFromGraveyardOrHand {
                     who: r(*who),

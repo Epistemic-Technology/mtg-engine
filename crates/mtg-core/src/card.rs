@@ -2723,6 +2723,12 @@ pub enum Effect {
         who: Recipient,
         graveyard: bool,
     },
+    /// "Draw two cards, then discard one of them.": the controller draws
+    /// `draw` cards, then discards `discard` of the cards drawn this way.
+    DrawDiscardDrawn {
+        draw: Num,
+        discard: Num,
+    },
     /// "Target opponent reveals their hand. You choose a nonland card from
     /// that player's graveyard or hand and exile it.": the recipient
     /// reveals their hand, then the controller picks one card matching
@@ -3408,6 +3414,7 @@ impl Effect {
                 | Effect::ExileChosen { .. }
                 | Effect::ExileFromHand { .. }
                 | Effect::ExileFromGraveyardOrHand { .. }
+                | Effect::DrawDiscardDrawn { .. }
                 | Effect::DiscardRandom { .. }
                 | Effect::DiscardChosen { .. }
                 | Effect::Explore { .. }

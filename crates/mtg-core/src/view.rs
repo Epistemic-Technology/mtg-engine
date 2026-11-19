@@ -341,13 +341,13 @@ impl GameState {
             // Seen cards keep their places; the rest of the hand is
             // redrawn into the other slots.
             let hand = self.players[i].hand.clone();
-            let seen: Vec<bool> = hand
+            let known: Vec<bool> = hand
                 .iter()
                 .map(|id| Self::seen_by(&self.objects[*id], viewer))
                 .collect();
             let mut unknown: Vec<ObjId> = hand
                 .iter()
-                .zip(&seen)
+                .zip(&known)
                 .filter(|(_, s)| !**s)
                 .map(|(id, _)| *id)
                 .collect();
@@ -358,7 +358,7 @@ impl GameState {
             let mut drawn = unknown.into_iter();
             let hand: Vec<ObjId> = hand
                 .iter()
-                .zip(&seen)
+                .zip(&known)
                 .map(|(id, s)| if *s { *id } else { drawn.next().unwrap_or(*id) })
                 .collect();
             for id in &hand {

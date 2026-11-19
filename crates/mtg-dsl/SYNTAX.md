@@ -752,7 +752,9 @@ life"). A list of three or more clauses separates them with `,`: `target
 opponent discards 2 cards, mills 1 card and loses 1 life` prints "Target
 opponent discards two cards, mills a card, and loses 1 life." (the last
 `and` takes the serial comma), `you draw 2 cards, lose 2 life, then mill 2
-cards` prints "..., lose 2 life, then mill two cards."
+cards` prints "..., lose 2 life, then mill two cards." `draw 2 cards then discard
+1 of them` is one effect: "Draw two cards, then discard one of them."
+(only a card drawn this way can be the one).
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
 number of ..."), or `count each <expr>` ("... for each ..."), with

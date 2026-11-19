@@ -992,7 +992,7 @@ impl<'a> Ctx<'a> {
                 format!("that {}", enchanted_noun(self.card))
             }
             Recipient::TriggeringObject | Recipient::SameThat => "that creature".to_string(),
-            Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TriggeringCard => "that card".to_string(),
             Recipient::TriggeringController { that: true } => {
                 let noun = if self.trigger_is_enchanted() {
@@ -1008,7 +1008,6 @@ impl<'a> Ctx<'a> {
             Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::TheControllerOf(i) => format!("the {}'s controller", self.target_noun[i]),
             Recipient::OwnerOf(_) => "its owner".to_string(),
-            Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::DefendingPlayerWord => "defending player".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -4038,6 +4037,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
         }
+        Effect::DrawDiscardDrawn { draw, discard } => Clause::imperative(format!(
+            "draw {} {}, then discard {} of them",
+            count_words(*draw, "a"),
+            plural(*draw, "card"),
+            count_words(*discard, "one")
+        )),
         Effect::ExileFromGraveyardOrHand { who, filter } => {
             let what = if *filter == Filter::default() {
                 "a card".to_string()

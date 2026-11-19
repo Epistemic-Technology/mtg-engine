@@ -4789,6 +4789,19 @@ impl P {
             "draw" => {
                 let count = self.num()?;
                 self.cards_word()?;
+                // "Draw two cards, then discard one of them."
+                if self.at_words(&["then", "discard"])
+                    && self.word_at(3).as_deref() == Some("of")
+                    && self.word_at(4).as_deref() == Some("them")
+                {
+                    self.pos += 2;
+                    let discard = self.num()?;
+                    self.expect_words(&["of", "them"])?;
+                    return Ok(Effect::DrawDiscardDrawn {
+                        draw: count,
+                        discard,
+                    });
+                }
                 Ok(Effect::DrawCards { count, who: None })
             }
             "mill" => {

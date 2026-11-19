@@ -231,14 +231,13 @@ impl Fmt {
             Recipient::TriggeringController { that: true } => {
                 "controller of that creature".to_string()
             }
-            Recipient::TriggeringPlayer => "that player".to_string(),
+            Recipient::TriggeringPlayer | Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::DefendingPlayerWord => "that defending player".to_string(),
             Recipient::ControllerOf(_) | Recipient::TriggeringController { that: false } => {
                 "its controller".to_string()
             }
             Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
-            Recipient::ThatOwner(_) => "that player".to_string(),
             Recipient::TheControllerOf(i) => format!("controller of the target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -1018,6 +1017,12 @@ impl Fmt {
                 num(*count),
                 cards(*count),
                 if *graveyard { "graveyard" } else { "hand" }
+            ),
+            Effect::DrawDiscardDrawn { draw, discard } => format!(
+                "draw {} {} then discard {} of them",
+                num(*draw),
+                cards(*draw),
+                num(*discard)
             ),
             Effect::ExileFromGraveyardOrHand { who, filter: f } => {
                 let what = if *f == Filter::default() {

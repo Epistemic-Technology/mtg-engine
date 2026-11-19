@@ -2152,6 +2152,12 @@ pub enum Effect {
     Clash,
     /// `if you win, <sentence>`, after `clash`.
     IfWonClash(Vec<Sentence>),
+    /// `draw 2 cards then discard 1 of them`: "Draw two cards, then
+    /// discard one of them." (only cards drawn this way).
+    DrawDiscardDrawn {
+        draw: Num,
+        discard: Num,
+    },
     /// `target opponent exiles 1 creature they control`: "Target opponent
     /// exiles a creature they control" (the player chooses).
     ExileChosen {
