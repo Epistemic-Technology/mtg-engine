@@ -1,0 +1,12 @@
+scenario "shinra reinforcements mills three and gains 3 life" {
+  battlefield A: 3 "Swamp"
+  hand A: "Shinra Reinforcements"
+  library A: "Forest", "Island", "Mountain", "Plains"
+  turn 1 A: cast "Shinra Reinforcements"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert graveyard A contains "Forest"
+  assert graveyard A contains "Island"
+  assert graveyard A contains "Mountain"
+  assert library A contains "Plains"
+}

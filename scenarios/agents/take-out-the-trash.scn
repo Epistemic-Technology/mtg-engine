@@ -1,0 +1,12 @@
+scenario "take out the trash deals 3 and loots with a raccoon" {
+  battlefield A: "Raccoon Rallier", 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Take Out the Trash", "Forest"
+  library A: "Island"
+  turn 1 A: cast "Take Out the Trash" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+}
+

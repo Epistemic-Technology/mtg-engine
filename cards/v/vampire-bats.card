@@ -1,0 +1,8 @@
+card "Vampire Bats" {
+  oracle_id da66f1db-0fde-4112-ae8e-0e63fc686835
+  cost {B}
+  type Creature — Bat
+  pt 0/1
+  keywords flying
+  activated {B}, 2 times per turn: this gets +1/+0
+}

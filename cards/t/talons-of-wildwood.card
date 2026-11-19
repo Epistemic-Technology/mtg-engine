@@ -1,0 +1,8 @@
+card "Talons of Wildwood" {
+  oracle_id 2ff309e3-90e0-40e7-a277-3df057f8f198
+  cost {1}{G}
+  type Enchantment — Aura
+  enchant creature
+  static enchanted: +1/+1, has trample
+  activated {2}{G}, from graveyard: return this to hand
+}

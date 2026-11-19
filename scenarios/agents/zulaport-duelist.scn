@@ -1,0 +1,14 @@
+scenario "zulaport duelist shrinks a creature and its controller mills two" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  library B: "Forest", "Island", "Plains"
+  hand A: "Zulaport Duelist"
+  start turn 2 B
+  turn 2 B: attack "Hill Giant"
+  turn 2 declare_attackers A: cast "Zulaport Duelist"
+  turn 2 declare_attackers A: trigger "Zulaport Duelist" targeting "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 19
+  assert graveyard B contains "Island"
+  assert graveyard B contains "Plains"
+}

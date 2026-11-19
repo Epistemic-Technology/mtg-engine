@@ -1,0 +1,18 @@
+scenario "sigil blessing pumps the target and the rest" {
+  battlefield A: "Grizzly Bears", "Hill Giant", "Forest", "Plains"
+  hand A: "Sigil Blessing"
+  turn 1 A: cast "Sigil Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 4
+  assert toughness "Hill Giant" 4
+}
+
+scenario "sigil blessing doesn't pump opponent's creatures" {
+  battlefield A: "Grizzly Bears", "Forest", "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Sigil Blessing"
+  illegal turn 1 A: cast "Sigil Blessing" targeting "Hill Giant"
+  turn 1 A: cast "Sigil Blessing" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 3
+}

@@ -1,0 +1,7 @@
+card "Tidal Warrior" {
+  oracle_id 9a1bc869-08a1-4a70-9c9f-2e02e47cd95b
+  cost {U}
+  type Creature — Merfolk Warrior
+  pt 1/1
+  activated {T}: target land becomes Island
+}

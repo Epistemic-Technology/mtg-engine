@@ -1,0 +1,12 @@
+scenario "traitorous instinct steals, untaps, pumps, and hastes" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Traitorous Instinct"
+  turn 1 A: cast "Traitorous Instinct" targeting "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert battlefield A contains "Hill Giant"
+  run_to turn 2 upkeep
+  assert battlefield B contains "Hill Giant"
+}

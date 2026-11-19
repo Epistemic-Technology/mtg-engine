@@ -1,0 +1,6 @@
+card "Strength of Arms" {
+  oracle_id 40ff84c7-cd72-49a6-86ba-a8d23c819ee7
+  cost {W}
+  type Instant
+  spell: target creature gets +2/+2; if you control Equipment, create 1 "1/1 white Human Soldier creature"
+}

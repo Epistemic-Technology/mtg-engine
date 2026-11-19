@@ -1,0 +1,8 @@
+card "Unwilling Ingredient" {
+  oracle_id 40d483fb-0dc7-413e-87f9-8d7cb7883fca
+  cost {B}
+  type Creature — Frog
+  pt 1/1
+  keywords menace
+  activated {2}{B}, exile this from graveyard: you draw 1 card, and you lose 1 life
+}

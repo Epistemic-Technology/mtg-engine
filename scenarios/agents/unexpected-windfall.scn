@@ -1,0 +1,19 @@
+scenario "unexpected windfall discards, draws two, makes two treasures" {
+  battlefield A: 4 "Mountain"
+  hand A: "Unexpected Windfall", "Forest"
+  library A: "Island", "Swamp", "Plains"
+  turn 1 A: cast "Unexpected Windfall" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Forest"
+  assert hand A contains "Island"
+  assert hand A contains "Swamp"
+  assert battlefield A contains 2 "Treasure"
+}
+
+scenario "unexpected windfall needs a card to discard" {
+  battlefield A: 4 "Mountain"
+  hand A: "Unexpected Windfall"
+  illegal turn 1 A: cast "Unexpected Windfall"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Unexpected Windfall"
+}

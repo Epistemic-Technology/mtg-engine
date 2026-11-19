@@ -1,0 +1,19 @@
+scenario "soul kiss pumps for B and 1 life" {
+  battlefield A: "Grizzly Bears", 4 "Swamp", "Soul Kiss" on "Grizzly Bears"
+  turn 1 A: activate "Soul Kiss"
+  turn 1 A: activate "Soul Kiss"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 6
+  assert life A 18
+}
+
+scenario "soul kiss only three times each turn" {
+  battlefield A: "Grizzly Bears", 4 "Swamp", "Soul Kiss" on "Grizzly Bears"
+  turn 1 A: activate "Soul Kiss"
+  turn 1 A: activate "Soul Kiss"
+  turn 1 A: activate "Soul Kiss"
+  illegal turn 1 postcombat_main A: activate "Soul Kiss"
+  run_to turn 1 end
+  assert power "Grizzly Bears" 8
+  assert life A 17
+}

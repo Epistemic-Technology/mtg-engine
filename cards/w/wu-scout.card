@@ -1,0 +1,8 @@
+card "Wu Scout" {
+  oracle_id ef577d7d-7a24-4bd3-b86b-f69e37bb2ce7
+  cost {1}{U}
+  type Creature — Human Soldier Scout
+  pt 1/1
+  keywords horsemanship
+  triggered when this enters: look at hand of target opponent
+}

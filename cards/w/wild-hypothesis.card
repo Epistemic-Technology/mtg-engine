@@ -1,0 +1,9 @@
+card "Wild Hypothesis" {
+  oracle_id 2e56507d-af77-47c8-a29a-410cf14cfe20
+  cost {X}{G}
+  type Sorcery
+  spell {
+    create 1 "0/0 green and blue Fractal creature"; put X +1/+1 counters on that token
+    surveil 2
+  }
+}

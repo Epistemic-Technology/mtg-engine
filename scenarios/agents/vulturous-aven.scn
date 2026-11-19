@@ -1,0 +1,11 @@
+scenario "vulturous aven exploits to draw two and lose 2" {
+  battlefield A: "Grizzly Bears", 4 "Swamp"
+  hand A: "Vulturous Aven"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: cast "Vulturous Aven"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert hand A count 2
+  assert life A 18
+  assert has "Vulturous Aven" flying
+}

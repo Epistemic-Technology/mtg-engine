@@ -1,0 +1,17 @@
+scenario "strength of arms with an equipment makes a soldier" {
+  battlefield A: "Grizzly Bears", "Bonesplitter", "Plains"
+  hand A: "Strength of Arms"
+  turn 1 A: cast "Strength of Arms" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert battlefield A contains "Human Soldier"
+}
+
+scenario "strength of arms without an equipment makes nothing" {
+  battlefield A: "Grizzly Bears", "Plains"
+  hand A: "Strength of Arms"
+  turn 1 A: cast "Strength of Arms" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert toughness "Grizzly Bears" 4
+  assert battlefield A count 2
+}

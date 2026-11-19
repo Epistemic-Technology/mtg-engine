@@ -1,0 +1,17 @@
+scenario "thalakos seer draws a card when it leaves" {
+  battlefield A: "Thalakos Seer", "Mountain"
+  hand A: "Shock"
+  library A: "Island"
+  turn 1 A: cast "Shock" targeting "Thalakos Seer"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Island"
+}
+
+scenario "thalakos seer can't be blocked by non-shadow" {
+  battlefield A: "Thalakos Seer"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Thalakos Seer"
+  illegal turn 1 B: block "Thalakos Seer" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

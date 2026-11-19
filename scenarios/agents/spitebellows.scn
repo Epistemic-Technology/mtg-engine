@@ -1,0 +1,20 @@
+scenario "evoked spitebellows deals 6 to target creature" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Serra Angel"
+  hand A: "Spitebellows"
+  turn 1 A: cast "Spitebellows" evoked
+  turn 1 A: trigger "Spitebellows" targeting "Serra Angel"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert graveyard A contains "Spitebellows"
+}
+
+scenario "spitebellows triggers when it dies" {
+  battlefield A: "Spitebellows", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Spitebellows"
+  turn 1 A: trigger "Spitebellows" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+}

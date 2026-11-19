@@ -1,0 +1,7 @@
+card "Sunspear Shikari" {
+  oracle_id c49db060-2d4b-4dc8-8e54-7606e079c9fe
+  cost {1}{W}
+  type Creature — Cat Soldier
+  pt 2/2
+  static as long as equipped, this: has first strike, lifelink
+}

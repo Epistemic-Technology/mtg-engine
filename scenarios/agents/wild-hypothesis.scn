@@ -1,0 +1,9 @@
+scenario "wild hypothesis makes an X/X fractal and surveils 2" {
+  battlefield A: 4 "Forest"
+  hand A: "Wild Hypothesis"
+  library A: "Island", "Plains", "Swamp"
+  turn 1 A: cast "Wild Hypothesis" x 3
+  run_to turn 1 postcombat_main
+  assert power "Fractal" 3
+  assert counters "Fractal" +1/+1 3
+}

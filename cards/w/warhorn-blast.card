@@ -1,0 +1,7 @@
+card "Warhorn Blast" {
+  oracle_id 8106606c-9a1c-44b2-a9bf-3f189ce050ef
+  cost {4}{W}
+  type Instant
+  spell: each creature you control gets +2/+1
+  foretell {2}{W}
+}

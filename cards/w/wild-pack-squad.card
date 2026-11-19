@@ -1,0 +1,7 @@
+card "Wild Pack Squad" {
+  oracle_id 294b2aa7-cb46-46bd-8241-69b26d73aa2d
+  cost {2}{W}
+  type Creature — Human Mercenary
+  pt 2/3
+  triggered at beginning of your combat: up to 1 target creature gains first strike, vigilance until end of turn
+}

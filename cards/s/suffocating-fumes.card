@@ -1,0 +1,7 @@
+card "Suffocating Fumes" {
+  oracle_id 80c7b1b4-4e37-4aef-9432-d629d71b7045
+  cost {2}{B}
+  type Instant
+  spell: all creature your opponents control gets -1/-1
+  cycling {2}
+}

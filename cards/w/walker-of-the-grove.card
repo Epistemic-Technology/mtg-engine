@@ -1,0 +1,8 @@
+card "Walker of the Grove" {
+  oracle_id 02d69413-e040-46b1-8f58-69bde666329d
+  cost {6}{G}{G}
+  type Creature — Elemental
+  pt 7/7
+  triggered when this leaves the battlefield: create 1 "4/4 green Elemental creature"
+  evoke {4}{G}
+}

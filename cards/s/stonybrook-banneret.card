@@ -1,0 +1,8 @@
+card "Stonybrook Banneret" {
+  oracle_id 0d6202c7-b19c-429a-85c4-332024381dd7
+  cost {1}{U}
+  type Creature — Merfolk Wizard
+  pt 1/1
+  keywords islandwalk
+  spells Merfolk or Wizard you cast cost {1} less
+}

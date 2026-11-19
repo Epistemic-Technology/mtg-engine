@@ -1,0 +1,8 @@
+card "Steelfin Whale" {
+  oracle_id a35ff288-0ba0-47de-9848-4ff4bef6b91b
+  cost {5}{U}
+  type Creature — Whale
+  pt 3/4
+  affinity for artifact
+  triggered whenever artifact you control enters: untap this
+}

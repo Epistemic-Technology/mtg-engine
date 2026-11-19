@@ -1,0 +1,8 @@
+card "Zulaport Duelist" {
+  oracle_id e8237d12-2860-4cc8-85a4-458e4c68e69a
+  cost {U}
+  type Creature — Human Rogue
+  pt 1/1
+  keywords flash
+  triggered when this enters: up to 1 target creature gets -2/-0; its controller mills 2 cards
+}

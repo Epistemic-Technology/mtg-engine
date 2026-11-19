@@ -1,0 +1,10 @@
+scenario "vampire bats pumps at most twice" {
+  battlefield A: "Vampire Bats", 3 "Swamp"
+  turn 1 A: activate "Vampire Bats"
+  turn 1 A: activate "Vampire Bats"
+  illegal turn 1 postcombat_main A: activate "Vampire Bats"
+  turn 1 A: attack "Vampire Bats"
+  run_to turn 1 end
+  assert life B 18
+  assert power "Vampire Bats" 2
+}

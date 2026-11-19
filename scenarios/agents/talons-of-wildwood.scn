@@ -1,0 +1,18 @@
+scenario "talons of wildwood pumps and grants trample" {
+  battlefield A: "Grizzly Bears", "Talons of Wildwood" on "Grizzly Bears"
+  battlefield B: "Wind Drake"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wind Drake"
+  turn 1 A: assign "Grizzly Bears" to "Wind Drake" 2, player B 1
+  run_to turn 1 postcombat_main
+  assert life B 19
+  assert graveyard B contains "Wind Drake"
+}
+
+scenario "talons of wildwood returns from graveyard" {
+  battlefield A: 3 "Forest"
+  graveyard A: "Talons of Wildwood"
+  turn 1 A: activate "Talons of Wildwood"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Talons of Wildwood"
+}

@@ -1,0 +1,7 @@
+card "Shinra Reinforcements" {
+  oracle_id 6cfe63ac-3581-461b-8ed3-3e231851e3f8
+  cost {2}{B}
+  type Creature — Human Soldier
+  pt 2/3
+  triggered when this enters: mill 3 cards and you gain 3 life
+}

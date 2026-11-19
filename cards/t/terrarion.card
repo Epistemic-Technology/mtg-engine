@@ -1,0 +1,8 @@
+card "Terrarion" {
+  oracle_id 9e7ade56-ab68-42ab-8a6f-bc38957f1563
+  cost {1}
+  type Artifact
+  enters tapped
+  activated {2}, {T}, sacrifice this: add 2 mana any combination
+  triggered when this dies: draw 1 cards
+}

@@ -1,0 +1,7 @@
+card "Unexpected Windfall" {
+  oracle_id 498c10c9-253d-4b15-b48c-1509381b17e8
+  cost {2}{R}{R}
+  type Instant
+  additional cost discard 1 card
+  spell: draw 2 cards and create 2 "Treasure"
+}

@@ -1,0 +1,6 @@
+card "Tidal Wave" {
+  oracle_id c5f5b7e5-af1e-4c8a-8d44-3e2152955d4e
+  cost {2}{U}
+  type Instant
+  spell: create 1 "5/5 blue Wall creature with defender"; delayed that token: sacrifice it at beginning of the next end step
+}

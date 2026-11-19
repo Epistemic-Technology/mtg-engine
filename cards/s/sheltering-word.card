@@ -1,0 +1,6 @@
+card "Sheltering Word" {
+  oracle_id 77aaaad5-7960-453d-b024-6dacbca3d606
+  cost {1}{G}
+  type Instant
+  spell: target creature you control gains hexproof; you gain count equal toughness of that target 1 life
+}

@@ -1,0 +1,19 @@
+scenario "unwilling ingredient exiles itself from the graveyard to draw" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Unwilling Ingredient"
+  library A: "Island"
+  turn 1 A: activate "Unwilling Ingredient"
+  run_to turn 1 postcombat_main
+  assert exile A contains "Unwilling Ingredient"
+  assert hand A contains "Island"
+  assert life A 19
+}
+
+scenario "unwilling ingredient has menace" {
+  battlefield A: "Unwilling Ingredient"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Unwilling Ingredient"
+  illegal turn 1 B: block "Unwilling Ingredient" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

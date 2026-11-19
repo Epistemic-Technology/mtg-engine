@@ -1,0 +1,6 @@
+card "Traitorous Instinct" {
+  oracle_id 92d2df7e-9f5c-4c28-a891-b69010bc0001
+  cost {3}{R}
+  type Sorcery
+  spell: gain control of target creature until end of turn; untap that creature; until end of turn, target 1 gets +2/+0 and target 1 gains haste
+}

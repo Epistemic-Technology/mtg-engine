@@ -1,0 +1,10 @@
+scenario "wild pack squad grants first strike and vigilance at combat" {
+  battlefield A: "Wild Pack Squad", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  turn 1 begin_combat A: trigger "Wild Pack Squad" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert has "Grizzly Bears" vigilance
+  assert untapped "Grizzly Bears"
+  assert life B 18
+}

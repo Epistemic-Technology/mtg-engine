@@ -1,0 +1,8 @@
+scenario "undercity dire rat leaves a treasure" {
+  battlefield A: "Undercity Dire Rat", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Undercity Dire Rat"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Undercity Dire Rat"
+  assert battlefield A contains "Treasure"
+}

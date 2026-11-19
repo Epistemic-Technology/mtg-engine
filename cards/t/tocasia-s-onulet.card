@@ -1,0 +1,8 @@
+card "Tocasia's Onulet" {
+  oracle_id 150dd67b-4de2-4fcd-b753-e4096de911a2
+  cost {5}
+  type Artifact Creature — Construct
+  pt 4/4
+  triggered when this leaves the battlefield: you gain 2 life
+  unearth {3}{W}
+}

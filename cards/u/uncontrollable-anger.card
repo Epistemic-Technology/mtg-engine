@@ -1,0 +1,8 @@
+card "Uncontrollable Anger" {
+  oracle_id 6e3befe3-38c1-42d1-8825-c40eb0c6adec
+  cost {2}{R}{R}
+  type Enchantment — Aura
+  keywords flash
+  enchant creature
+  static enchanted: +2/+2, has attacks each combat if able
+}

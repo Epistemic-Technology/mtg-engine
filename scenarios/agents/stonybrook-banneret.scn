@@ -1,0 +1,16 @@
+scenario "stonybrook banneret makes merfolk cheaper" {
+  battlefield A: "Stonybrook Banneret", "Island"
+  hand A: "Merfolk of the Pearl Trident"
+  turn 1 A: cast "Merfolk of the Pearl Trident"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Merfolk of the Pearl Trident"
+}
+
+scenario "stonybrook banneret has islandwalk" {
+  battlefield A: "Stonybrook Banneret"
+  battlefield B: "Island", "Grizzly Bears"
+  turn 1 A: attack "Stonybrook Banneret"
+  illegal turn 1 B: block "Stonybrook Banneret" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

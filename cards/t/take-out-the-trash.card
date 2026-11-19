@@ -1,0 +1,6 @@
+card "Take Out the Trash" {
+  oracle_id e07700e7-218a-45a3-9ee4-de2cc25cdc02
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature or planeswalker; if you control Raccoon, you may discard 1 cards; if you do, draw 1 cards
+}

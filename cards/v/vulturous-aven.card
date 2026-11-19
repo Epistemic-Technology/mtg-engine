@@ -1,0 +1,8 @@
+card "Vulturous Aven" {
+  oracle_id 83c0c648-f000-470d-bcc3-9ec81257d0cd
+  cost {3}{B}
+  type Creature — Bird Shaman
+  pt 2/3
+  keywords flying, exploit
+  triggered when this exploits a creature: you draw 2 cards, and you lose 2 life
+}

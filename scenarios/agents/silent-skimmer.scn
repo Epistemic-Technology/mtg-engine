@@ -1,0 +1,8 @@
+scenario "silent skimmer drains 2 when it attacks" {
+  battlefield A: "Silent Skimmer"
+  turn 1 A: attack "Silent Skimmer"
+  run_to turn 1 postcombat_main
+  assert life B 18
+  assert has "Silent Skimmer" flying
+  assert is not "Silent Skimmer" black
+}

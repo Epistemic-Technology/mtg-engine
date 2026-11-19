@@ -1,0 +1,23 @@
+scenario "tocasia's onulet gains 2 when it leaves" {
+  battlefield A: "Tocasia's Onulet"
+  battlefield B: "Hill Giant", "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Tocasia's Onulet"
+  turn 2 B: block "Tocasia's Onulet" with "Hill Giant"
+  turn 2 combat_damage B: cast "Lightning Bolt" targeting "Tocasia's Onulet"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Tocasia's Onulet"
+  assert life A 22
+}
+
+scenario "unearthed tocasia's onulet is exiled at end step and gains 2" {
+  battlefield A: 4 "Plains"
+  graveyard A: "Tocasia's Onulet"
+  turn 1 A: activate "Tocasia's Onulet"
+  turn 1 A: attack "Tocasia's Onulet"
+  run_to turn 2 upkeep
+  assert life B 16
+  assert exile A contains "Tocasia's Onulet"
+  assert life A 22
+}

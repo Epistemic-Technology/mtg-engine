@@ -1,0 +1,10 @@
+scenario "evoked walker of the grove leaves a 4/4 elemental" {
+  battlefield A: 5 "Forest"
+  hand A: "Walker of the Grove"
+  turn 1 A: cast "Walker of the Grove" evoked
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Walker of the Grove"
+  assert battlefield A contains "Elemental"
+  assert power "Elemental" 4
+  assert is "Elemental" green
+}

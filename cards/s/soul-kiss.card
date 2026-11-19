@@ -1,0 +1,7 @@
+card "Soul Kiss" {
+  oracle_id 8ea941aa-ee0c-4830-912a-0c672546aa0c
+  cost {2}{B}
+  type Enchantment — Aura
+  enchant creature
+  activated {B}, pay 1 life, 3 times per turn: enchanted creature gets +2/+2
+}

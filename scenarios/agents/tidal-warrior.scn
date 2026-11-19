@@ -1,0 +1,11 @@
+scenario "tidal warrior turns a land into an island for islandwalk" {
+  battlefield A: "Tidal Warrior", "Stonybrook Banneret"
+  battlefield B: "Forest", "Grizzly Bears"
+  turn 1 A: activate "Tidal Warrior" targeting "Forest"
+  turn 1 A: attack "Stonybrook Banneret"
+  illegal turn 1 B: block "Stonybrook Banneret" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert is "Forest" island
+  assert is not "Forest" forest
+  assert life B 19
+}

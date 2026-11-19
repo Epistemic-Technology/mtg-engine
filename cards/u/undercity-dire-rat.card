@@ -1,0 +1,7 @@
+card "Undercity Dire Rat" {
+  oracle_id f09811d0-c5da-4061-aaa7-835ccee3b05a
+  cost {1}{B}
+  type Creature — Rat
+  pt 2/2
+  label "Rat Tail" triggered when this dies: create 1 "Treasure"
+}

@@ -1,0 +1,19 @@
+scenario "warhorn blast pumps creatures you control" {
+  battlefield A: "Grizzly Bears", 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Warhorn Blast"
+  turn 1 A: cast "Warhorn Blast"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert toughness "Grizzly Bears" 3
+  assert power "Hill Giant" 3
+}
+
+scenario "warhorn blast foretold then cast for its foretell cost" {
+  battlefield A: "Grizzly Bears", 3 "Plains"
+  hand A: "Warhorn Blast"
+  turn 1 A: foretell "Warhorn Blast"
+  turn 3 A: cast "Warhorn Blast"
+  run_to turn 3 postcombat_main
+  assert power "Grizzly Bears" 4
+}

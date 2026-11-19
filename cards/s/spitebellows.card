@@ -1,0 +1,8 @@
+card "Spitebellows" {
+  oracle_id fee18f57-4ae5-4df8-af3b-f82ed2157ac3
+  cost {5}{R}
+  type Creature — Elemental
+  pt 6/1
+  triggered when this leaves the battlefield: deal 6 damage to target creature
+  evoke {1}{R}{R}
+}

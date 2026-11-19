@@ -1,0 +1,7 @@
+card "Violent Outburst" {
+  oracle_id c0f69063-9079-4e7a-98dc-c29da8171d33
+  cost {1}{R}{G}
+  type Instant
+  keywords cascade
+  spell: each creature you control gets +1/+0
+}

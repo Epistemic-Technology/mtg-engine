@@ -1,0 +1,17 @@
+scenario "equipped sunspear shikari has first strike and lifelink" {
+  battlefield A: "Sunspear Shikari", "Bonesplitter" on "Sunspear Shikari"
+  battlefield B: "Grizzly Bears"
+  start turn 2 A
+  turn 2 A: attack "Sunspear Shikari"
+  turn 2 B: block "Sunspear Shikari" with "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield A contains "Sunspear Shikari"
+  assert life A 24
+}
+
+scenario "unequipped sunspear shikari has neither" {
+  battlefield A: "Sunspear Shikari"
+  run_to turn 1 precombat_main
+  assert has not "Sunspear Shikari" lifelink
+}

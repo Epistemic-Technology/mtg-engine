@@ -1,0 +1,21 @@
+scenario "undying rage pumps, stops blocking, and returns to hand" {
+  battlefield A: "Grizzly Bears", "Mountain"
+  battlefield B: "Hill Giant", "Undying Rage" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 2 A
+  turn 2 A: attack "Grizzly Bears"
+  illegal turn 2 B: block "Grizzly Bears" with "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert power "Hill Giant" 5
+  assert life B 18
+}
+
+scenario "undying rage returns to its owner's hand" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Undying Rage" on "Grizzly Bears"
+  hand A: "Murder"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Grizzly Bears"
+  assert hand B contains "Undying Rage"
+}

@@ -1,0 +1,17 @@
+scenario "sheltering word gains life equal to toughness and grants hexproof" {
+  battlefield A: "Hill Giant", 2 "Forest"
+  hand A: "Sheltering Word"
+  turn 1 A: cast "Sheltering Word" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 23
+  assert has "Hill Giant" hexproof
+}
+
+scenario "sheltering word can't target an opponent's creature" {
+  battlefield A: 2 "Forest"
+  battlefield B: "Hill Giant"
+  hand A: "Sheltering Word"
+  illegal turn 1 A: cast "Sheltering Word" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life A 20
+}

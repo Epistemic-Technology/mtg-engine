@@ -1,0 +1,16 @@
+scenario "valor singer pumps a creature at the beginning of combat" {
+  battlefield A: "Valor Singer", "Grizzly Bears"
+  turn 1 begin_combat A: trigger "Valor Singer" targeting "Grizzly Bears"
+  turn 1 A: attack "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 3
+  assert life B 17
+}
+
+scenario "valor singer doesn't trigger on the opponent's turn" {
+  battlefield A: "Valor Singer", "Grizzly Bears"
+  start turn 2 B
+  run_to turn 2 postcombat_main
+  assert power "Grizzly Bears" 2
+  assert power "Valor Singer" 2
+}

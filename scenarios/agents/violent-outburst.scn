@@ -1,0 +1,11 @@
+scenario "violent outburst cascades and pumps" {
+  battlefield A: "Hill Giant", "Mountain", "Forest", "Forest"
+  battlefield B: "Wind Drake"
+  hand A: "Violent Outburst"
+  library A: "Island", "Grizzly Bears", "Forest"
+  turn 1 A: cast "Violent Outburst"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Grizzly Bears"
+  assert power "Hill Giant" 4
+  assert power "Wind Drake" 2
+}

@@ -1,0 +1,8 @@
+card "Thalakos Seer" {
+  oracle_id 1baec770-0785-4cbc-be18-83572fd8e9c1
+  cost {U}{U}
+  type Creature — Thalakos Wizard
+  pt 1/1
+  keywords shadow
+  triggered when this leaves the battlefield: draw 1 cards
+}

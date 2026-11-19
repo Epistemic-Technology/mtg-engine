@@ -1,0 +1,19 @@
+scenario "terrarion makes two mana, then draws as it goes to the graveyard" {
+  battlefield A: "Terrarion", 2 "Plains"
+  library A: "Island", "Forest"
+  start turn 2 A precombat_main
+  turn 2 A: activate "Terrarion"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Terrarion"
+  assert hand A contains "Island"
+  assert tapped oldest "Plains"
+  assert tapped newest "Plains"
+}
+
+scenario "terrarion enters tapped" {
+  battlefield A: 1 "Plains"
+  hand A: "Terrarion"
+  turn 1 A: cast "Terrarion"
+  run_to turn 1 postcombat_main
+  assert tapped "Terrarion"
+}

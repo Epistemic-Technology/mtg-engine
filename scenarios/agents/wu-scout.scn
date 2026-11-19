@@ -1,0 +1,20 @@
+scenario "wu scout enters and looks at a hand; horsemanship evades" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Wu Scout"
+  hand B: "Forest"
+  turn 1 A: cast "Wu Scout"
+  turn 1 A: trigger "Wu Scout" targeting player B
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wu Scout"
+  assert hand B contains "Forest"
+}
+
+scenario "wu scout can't be blocked by creatures without horsemanship" {
+  battlefield A: "Wu Scout"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: attack "Wu Scout"
+  illegal turn 1 B: block "Wu Scout" with "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 19
+}

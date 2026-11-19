@@ -1,0 +1,8 @@
+card "Silent Skimmer" {
+  oracle_id 92198967-e89b-4213-a0fa-71361c8420dc
+  cost {3}{B}
+  type Creature — Eldrazi Drone
+  pt 0/4
+  keywords devoid, flying
+  triggered whenever this attacks: defending player loses 2 life
+}

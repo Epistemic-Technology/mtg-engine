@@ -1,0 +1,17 @@
+scenario "uncontrollable anger pumps and forces an attack" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Uncontrollable Anger"
+  turn 1 A: cast "Uncontrollable Anger" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert power "Grizzly Bears" 4
+  assert life B 16
+}
+
+scenario "uncontrollable anger has flash" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Uncontrollable Anger"
+  start turn 2 B
+  turn 2 end A: cast "Uncontrollable Anger" targeting "Grizzly Bears"
+  run_to turn 2 cleanup
+  assert toughness "Grizzly Bears" 4
+}

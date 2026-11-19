@@ -1,0 +1,10 @@
+scenario "suffocating fumes shrinks opponent's creatures" {
+  battlefield A: "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant", "Wind Drake"
+  hand A: "Suffocating Fumes"
+  turn 1 A: cast "Suffocating Fumes"
+  run_to turn 1 postcombat_main
+  assert power "Hill Giant" 2
+  assert toughness "Wind Drake" 1
+  assert power "Grizzly Bears" 2
+}

@@ -1,0 +1,17 @@
+scenario "spirit link gains life equal to damage dealt" {
+  battlefield A: "Hill Giant", "Spirit Link" on "Hill Giant"
+  turn 1 A: attack "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+  assert life A 23
+}
+
+scenario "spirit link on an opponent creature: life goes to the aura controller" {
+  battlefield A: "Spirit Link" on "Grizzly Bears"
+  battlefield B: "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert life B 20
+}

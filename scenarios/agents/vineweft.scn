@@ -1,0 +1,14 @@
+scenario "vineweft pumps" {
+  battlefield A: "Grizzly Bears", "Vineweft" on "Grizzly Bears"
+  run_to turn 1 precombat_main
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+}
+
+scenario "vineweft returns from graveyard to hand" {
+  battlefield A: 5 "Forest"
+  graveyard A: "Vineweft"
+  turn 1 A: activate "Vineweft"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Vineweft"
+}

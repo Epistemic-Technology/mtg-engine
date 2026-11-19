@@ -1,0 +1,11 @@
+scenario "tidal wave makes a 5/5 defender wall, sacrificed at end step" {
+  battlefield A: 3 "Island"
+  hand A: "Tidal Wave"
+  turn 1 A: cast "Tidal Wave"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wall"
+  assert power "Wall" 5
+  assert has "Wall" defender
+  run_to turn 2 upkeep
+  assert battlefield A lacks "Wall"
+}

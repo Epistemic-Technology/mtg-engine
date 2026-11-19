@@ -1,0 +1,7 @@
+card "Valor Singer" {
+  oracle_id 3e0d39e2-d99f-4729-899b-c7bcd2b53615
+  cost {2}{R}
+  type Creature — Tiefling Bard
+  pt 2/3
+  label "Combat Inspiration" triggered at beginning of your combat: target creature you control gets +1/+0 until end of turn
+}

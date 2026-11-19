@@ -1,0 +1,17 @@
+scenario "steelfin whale untaps when an artifact enters" {
+  battlefield A: "Steelfin Whale"
+  hand A: "Ornithopter"
+  turn 1 A: attack "Steelfin Whale"
+  turn 1 postcombat_main A: cast "Ornithopter"
+  run_to turn 1 end
+  assert life B 17
+  assert untapped "Steelfin Whale"
+}
+
+scenario "steelfin whale costs less with affinity" {
+  battlefield A: 2 "Ornithopter", 4 "Island"
+  hand A: "Steelfin Whale"
+  turn 1 A: cast "Steelfin Whale"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Steelfin Whale"
+}
