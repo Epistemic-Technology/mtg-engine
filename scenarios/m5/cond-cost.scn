@@ -1,0 +1,19 @@
+# Conditional self cost reductions.
+
+scenario "Bone Picker costs {B} after a creature died" {
+  battlefield A: "Swamp", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Lightning Bolt", "Bone Picker"
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Bone Picker"
+  run_to turn 1 end
+  assert battlefield A contains "Bone Picker"
+}
+
+scenario "Bone Picker costs full price otherwise" {
+  battlefield A: 2 "Swamp"
+  hand A: "Bone Picker"
+  illegal turn 1 A: cast "Bone Picker"
+  run_to turn 1 end
+  assert hand A contains "Bone Picker"
+}

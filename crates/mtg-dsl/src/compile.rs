@@ -190,6 +190,11 @@ impl Compiler<'_> {
                     let f = self.filter(filter);
                     b = b.target_cost(*delta, f);
                 }
+                Ability::CondCost { delta, cond } => {
+                    let c = self.static_cond(cond);
+                    let i = self.pool.intern_condition(c);
+                    b = b.cond_cost(*delta, i);
+                }
                 Ability::Mechanic(Mechanic::Buyback(cost)) => {
                     b = b.buyback(cost.clone());
                 }
@@ -289,6 +294,7 @@ impl Compiler<'_> {
                 Ability::Keyword(_)
                     | Ability::SelfCost { .. }
                     | Ability::TargetCost { .. }
+                    | Ability::CondCost { .. }
                     | Ability::Affinity(_)
                     | Ability::Mechanic(
                         Mechanic::Buyback(_)
@@ -1277,7 +1283,10 @@ impl Compiler<'_> {
                 whose: *whose,
                 delta: *delta,
             },
-            Ability::SelfCost { .. } | Ability::TargetCost { .. } | Ability::Affinity(_) => {
+            Ability::SelfCost { .. }
+            | Ability::TargetCost { .. }
+            | Ability::CondCost { .. }
+            | Ability::Affinity(_) => {
                 return self.err("a cost reduction of the spell itself is not an ability");
             }
         })

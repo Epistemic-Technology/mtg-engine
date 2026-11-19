@@ -1,0 +1,7 @@
+card "Draconic Lore" {
+  oracle_id 440881ad-48cf-4b82-8bb5-f506d1a51755
+  cost {5}{U}
+  type Instant
+  this spell costs {2} less if you control Dragon
+  spell: draw 3 cards
+}

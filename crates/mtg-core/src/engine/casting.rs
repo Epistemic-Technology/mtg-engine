@@ -305,7 +305,7 @@ impl GameState {
             return false;
         }
         let mut req = def.mana_cost.requirements(0);
-        if def.self_cost.is_some() || !changers.is_empty() {
+        if def.self_cost.is_some() || def.cond_cost.is_some() || !changers.is_empty() {
             adjust_generic(&mut req, self.cost_delta(p, def, id, changers));
         }
         // Cheaper with a fitting target: castable if one exists (targets
@@ -544,6 +544,11 @@ impl GameState {
         changers: &[ObjId],
     ) -> i32 {
         let mut d = 0i32;
+        if let Some((delta, cond)) = def.cond_cost
+            && self.condition_now(self.pool.condition(cond), p, id)
+        {
+            d += delta;
+        }
         if let Some(sc) = &def.self_cost {
             let ctx = EffectCtx {
                 source: id,
@@ -711,7 +716,7 @@ impl GameState {
         {
             req.add(&e.requirements(0));
         }
-        if def.self_cost.is_some() || !self.cost_changers().is_empty() {
+        if def.self_cost.is_some() || def.cond_cost.is_some() || !self.cost_changers().is_empty() {
             adjust_generic(
                 &mut req,
                 self.cost_delta(o.controller, def, spell, &self.cost_changers()),

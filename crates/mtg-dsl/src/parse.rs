@@ -837,6 +837,17 @@ impl P {
                         filter,
                     });
                 }
+                if self.at_words(&["less", "if"]) || self.at_words(&["more", "if"]) {
+                    let less = self.at_word("less");
+                    self.pos += 2;
+                    let cond = self.static_cond()?;
+                    self.end_stmt()?;
+                    let n = i32::try_from(per).unwrap_or(0);
+                    return Ok(Ability::CondCost {
+                        delta: if less { -n } else { n },
+                        cond,
+                    });
+                }
                 self.expect_word("less")?;
                 let times = self.num()?;
                 self.end_stmt()?;

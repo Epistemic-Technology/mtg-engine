@@ -179,6 +179,9 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `this becomes 4/4 green Bear artifact creature` (colors before
 subtypes), `target creature becomes blue`, `this becomes colorless`,
 `target land becomes Island` (all until end of turn).
+`this spell costs {3} less if creature died this turn` (any static
+condition): "This spell costs {3} less to cast if a creature died this
+turn." (printed first, before keywords).
 `this spell costs {3} less if it targets tapped creature` (or `more`):
 "This spell costs {3} less to cast if it targets a tapped creature." Its
 targets are then held to ones the caster can pay for. Triggers `when

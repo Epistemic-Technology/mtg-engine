@@ -1,0 +1,8 @@
+card "Bone Picker" {
+  oracle_id 2edf106d-f504-430e-ad9c-50fc95b0ad9c
+  cost {3}{B}
+  type Creature — Bird
+  pt 3/2
+  keywords flying, deathtouch
+  this spell costs {3} less if creature died this turn
+}

@@ -2789,6 +2789,9 @@ pub struct CardDef {
     /// creature" (negative) or "{2} more ... a Dragon": generic mana, and
     /// what the first target must match.
     pub target_cost: Option<Box<(i32, ObjFilter)>>,
+    /// "This spell costs {3} less to cast if a creature died this turn":
+    /// generic mana, and the pool's condition index.
+    pub cond_cost: Option<(i32, u16)>,
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
@@ -3705,6 +3708,7 @@ impl Builder {
             morph: None,
             evoke: None,
             target_cost: None,
+            cond_cost: None,
             madness: None,
             foretell: None,
             suspend: None,
@@ -3822,6 +3826,13 @@ impl Builder {
     #[must_use]
     pub fn evoke(mut self, cost: ManaCost) -> Self {
         self.0.evoke = Some(Box::new(cost));
+        self
+    }
+
+    /// A cost change by a condition (see `CardDef::cond_cost`).
+    #[must_use]
+    pub fn cond_cost(mut self, delta: i32, cond: u16) -> Self {
+        self.0.cond_cost = Some((delta, cond));
         self
     }
 

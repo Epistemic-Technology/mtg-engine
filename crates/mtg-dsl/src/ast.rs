@@ -392,6 +392,11 @@ pub enum Ability {
         delta: i32,
         filter: Filter,
     },
+    /// `this spell costs {3} less if creature died this turn`.
+    CondCost {
+        delta: i32,
+        cond: StaticCond,
+    },
     /// `affinity for artifact`: "Affinity for artifacts" (CR 702.41), this
     /// spell costs {1} less for each such permanent you control.
     Affinity(Filter),

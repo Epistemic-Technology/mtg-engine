@@ -3464,6 +3464,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             )
             .replace("  ", " ")
         }
+        Ability::CondCost { delta, cond } => format!(
+            "This spell costs {{{}}} {} to cast if {}.",
+            delta.unsigned_abs(),
+            if *delta < 0 { "less" } else { "more" },
+            static_cond_text(cond, card)
+        ),
         Ability::TargetCost { delta, filter } => format!(
             "This spell costs {{{}}} {} to cast if it targets {}.",
             delta.unsigned_abs(),
@@ -3598,6 +3604,13 @@ pub fn mode_text(card: &Card, m: &crate::ast::Mode, lookup: &dyn Lookup) -> Stri
 /// The card's full Oracle text.
 pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
     let mut lines: Vec<String> = Vec::new();
+    // "This spell costs {3} less to cast if ..." comes first, before
+    // keywords.
+    let cost_line =
+        |a: &Ability| matches!(a, Ability::TargetCost { .. } | Ability::CondCost { .. });
+    for a in card.abilities.iter().filter(|a| cost_line(a)) {
+        lines.push(ability_text(card, a, lookup));
+    }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
@@ -3637,7 +3650,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             lines.push(ability_text(card, &Ability::Mana(all), lookup));
             continue;
         }
-        lines.push(ability_text(card, &card.abilities[i], lookup));
+        if !cost_line(&card.abilities[i]) {
+            lines.push(ability_text(card, &card.abilities[i], lookup));
+        }
         i += 1;
     }
     if let Some(fb) = &card.flashback {

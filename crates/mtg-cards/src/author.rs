@@ -1672,7 +1672,20 @@ fn control_filter(s: &str) -> Option<String> {
         "legendary creature",
         "Equipment",
     ];
-    OK.contains(&s).then(|| s.to_string())
+    if OK.contains(&s) {
+        return Some(s.to_string());
+    }
+    // "a Treefolk", "an Otter": one subtype.
+    if !s.contains(' ') && s.chars().next().is_some_and(char::is_uppercase) {
+        return Some(s.to_string());
+    }
+    // "a creature with flying".
+    if let Some(k) = s.strip_prefix("creature with ")
+        && KEYWORDS.iter().any(|kw| kw.eq_ignore_ascii_case(k))
+    {
+        return Some(format!("creature with {k}"));
+    }
+    None
 }
 
 /// The modifications of a static ability's predicate ("gets +1/+1 and
@@ -2171,6 +2184,19 @@ impl Builder<'_> {
         if let Some(c) = Regex::new(r"^Affinity for (\w+)$").unwrap().captures(line) {
             self.statements
                 .push(format!("affinity for {}", singular(cap(&c, 1))));
+            return Ok(());
+        }
+        if let Some(c) = Regex::new(r"^This spell costs \{(\d+)\} (less|more) to cast if (.+?)\.?$")
+            .unwrap()
+            .captures(line)
+            && !cap(&c, 3).starts_with("it targets")
+            && let Some(cond) = static_condition(cap(&c, 3))
+        {
+            self.statements.push(format!(
+                "this spell costs {{{}}} {} if {cond}",
+                cap(&c, 1),
+                cap(&c, 2)
+            ));
             return Ok(());
         }
         if let Some(c) =

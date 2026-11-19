@@ -1773,6 +1773,15 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 generic.unsigned_abs()
             );
         }
+        Ability::CondCost { delta, cond } => {
+            let _ = writeln!(
+                out,
+                "{indent}this spell costs {{{}}} {} if {}",
+                delta.unsigned_abs(),
+                if *delta < 0 { "less" } else { "more" },
+                static_cond(cond)
+            );
+        }
         Ability::TargetCost { delta, filter: f } => {
             let _ = writeln!(
                 out,
