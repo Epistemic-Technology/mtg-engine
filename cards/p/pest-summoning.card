@@ -1,0 +1,6 @@
+card "Pest Summoning" {
+  oracle_id f6e0cb77-4115-4948-8e1e-fdb774b1b254
+  cost {1}{B/G}{B/G}
+  type Sorcery — Lesson
+  spell: create 2 "1/1 black and green Pest creature that gains life"
+}

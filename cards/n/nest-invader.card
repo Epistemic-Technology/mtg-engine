@@ -1,0 +1,7 @@
+card "Nest Invader" {
+  oracle_id a7584a28-0829-4897-abf4-6be1a9232347
+  cost {1}{G}
+  type Creature — Eldrazi Drone
+  pt 2/2
+  triggered when this enters: create 1 "Eldrazi Spawn" it has
+}

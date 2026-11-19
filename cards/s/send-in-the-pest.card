@@ -1,0 +1,6 @@
+card "Send in the Pest" {
+  oracle_id 955bfcb8-6477-4ed0-b6e7-8940874ae5e4
+  cost {1}{B}
+  type Sorcery
+  spell: each opponent discards 1 card; you create 1 "1/1 black and green Pest creature that gains life when attacking"
+}

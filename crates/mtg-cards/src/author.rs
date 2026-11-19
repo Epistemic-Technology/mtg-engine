@@ -61,8 +61,9 @@ const KEYWORDS: [&str; 38] = [
 ];
 
 /// Scryfall keyword tags that templates below handle as abilities.
-const TEMPLATED_TAGS: [&str; 76] = [
+const TEMPLATED_TAGS: [&str; 77] = [
     "Transform",
+    "Role token",
     "Landcycling",
     "Basic landcycling",
     "Typecycling",
@@ -898,6 +899,46 @@ impl Templates {
                 token_block(&key)?;
                 Some(format!("create {} \"{key}\"", number(cap(c, 1))?))
             }),
+            // "Its controller creates a Treasure token", "Each player
+            // creates a Treasure token".
+            (
+                r(
+                    r"^(Its controller|Each player|Each opponent) creates (\S+) (Treasure|Food|Clue|Blood|Map|Powerstone) tokens?$",
+                ),
+                |c, t| {
+                    let who = recipient(&lowercase_first(cap(c, 1)), t)?;
+                    Some(format!(
+                        "{who} creates {} \"{}\"",
+                        number(cap(c, 2))?,
+                        cap(c, 3)
+                    ))
+                },
+            ),
+            // "Create a Wicked Role token attached to up to one target
+            // creature you control" (CR 111.10j-r, 303.7).
+            (
+                r(
+                    r"^[Cc]reate an? (Cursed|Monster|Royal|Sorcerer|Virtuous|Wicked|Young Hero) Role token attached to (.+)$",
+                ),
+                |c, t| {
+                    let to = match cap(c, 2) {
+                        "up to one target creature you control" => {
+                            *t += 1;
+                            "up to 1 target creature you control".to_string()
+                        }
+                        "another target creature you control" => {
+                            *t += 1;
+                            "another target creature you control".to_string()
+                        }
+                        "up to one other target creature you control" => {
+                            *t += 1;
+                            "up to 1 another target creature you control".to_string()
+                        }
+                        other => recipient(other, t)?,
+                    };
+                    Some(format!("create 1 \"{} Role\" attached to {to}", cap(c, 1)))
+                },
+            ),
             (r(r"^Mill (\S+) cards?$"), |c, _| {
                 Some(format!("mill {} cards", number(cap(c, 1))?))
             }),

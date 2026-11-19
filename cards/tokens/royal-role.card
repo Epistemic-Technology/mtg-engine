@@ -1,0 +1,6 @@
+token "Royal Role" {
+  name "Royal"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: +1/+1, has ward {1}
+}

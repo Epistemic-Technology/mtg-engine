@@ -1,0 +1,6 @@
+card "Secure the Scene" {
+  oracle_id d6a9746c-eba5-4735-aec1-e70edba2c686
+  cost {4}{W}
+  type Sorcery
+  spell: exile target nonland permanent; its controller creates 1 "1/1 white Soldier creature"
+}

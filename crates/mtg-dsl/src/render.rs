@@ -2144,7 +2144,7 @@ fn keywords_list(ks: &[Keyword]) -> String {
 }
 
 #[allow(clippy::too_many_lines)] // one part of the description after another
-fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String {
+fn token_description(name: &str, count: Num, tapped: bool, it_has: bool, ctx: &Ctx) -> String {
     let tap = if tapped { "tapped " } else { "" };
     let Some(token) = ctx.lookup.get(name) else {
         return format!(
@@ -2156,6 +2156,18 @@ fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String 
     // Predefined tokens (CR 111.10: Treasure, Food, Clue, ...) are named,
     // not described: "create a Treasure token", "create a tapped
     // Powerstone token".
+    // Role tokens (CR 111.10j–r) print by name too: "a Wicked Role token".
+    if token.subtypes.iter().any(|s| s == "Role") {
+        let role = format!(
+            "{} Role",
+            token.display_name.as_deref().unwrap_or(&token.name)
+        );
+        return format!(
+            "{} {tap}{role} {}",
+            count_words(count, if tapped { "a" } else { article(&role) }),
+            plural(count, "token")
+        );
+    }
     if token.pt.is_none()
         && !token.types.contains(&CardType::Creature)
         && token.subtypes.len() == 1
@@ -2256,6 +2268,17 @@ fn token_description(name: &str, count: Num, tapped: bool, ctx: &Ctx) -> String 
         .into_iter()
         .chain(quoted.into_iter().map(|q| format!("\"{q}\"")))
         .collect();
+    if it_has && !parts.is_empty() {
+        // "create a 1/1 colorless Eldrazi Scion creature token. It has
+        // \"Sacrifice this token: Add {C}.\"", "... tokens. They have ...".
+        let they = if count == Num::N(1) {
+            "It has"
+        } else {
+            "They have"
+        };
+        let _ = write!(s, ". {they} {}", list(&parts));
+        return s;
+    }
     if !parts.is_empty() {
         let _ = write!(s, " with {}", list(&parts));
     }
@@ -3477,20 +3500,35 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             token,
             count,
             tapped,
-            you,
+            who,
+            it_has,
+            attached,
         } => {
-            if !*tapped && ctx.those_tokens.as_deref() == Some(token.as_str()) {
+            if !*tapped
+                && who.is_none()
+                && attached.is_none()
+                && ctx.those_tokens.as_deref() == Some(token.as_str())
+            {
                 return Clause::imperative(format!(
                     "create {} of those tokens",
                     count_words(*count, "one")
                 ));
             }
             ctx.last_token = Some(token.clone());
-            let text = format!("create {}", token_description(token, *count, *tapped, ctx));
-            if *you {
-                return Clause::with_subject(Recipient::You, "you".to_string(), text);
+            let mut what = token_description(token, *count, *tapped, *it_has, ctx);
+            // "Create a Wicked Role token attached to up to one target
+            // creature you control", "... attached to it".
+            if let Some(a) = attached {
+                let _ = write!(what, " attached to {}", ctx.obj(*a));
             }
-            Clause::imperative(text)
+            match who {
+                None => Clause::imperative(format!("create {what}")),
+                Some(w) => {
+                    let s = ctx.subj(*w);
+                    let v = ctx.verb(*w, "creates", "create");
+                    Clause::with_subject(*w, s, format!("{v} {what}"))
+                }
+            }
         }
         Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
@@ -3539,10 +3577,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ctx.last_token = None;
                 let body = sentences(&row.effects, ctx);
                 if i == 0 {
-                    first_token = ctx
-                        .last_token
-                        .clone()
-                        .filter(|t| token_description(t, Num::N(1), false, ctx).contains('/'));
+                    first_token = ctx.last_token.clone().filter(|t| {
+                        token_description(t, Num::N(1), false, false, ctx).contains('/')
+                    });
                 }
                 let body = body.strip_suffix('.').unwrap_or(&body);
                 let _ = write!(text, ".\n{range} | {body}");
@@ -5141,6 +5178,13 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             // "When enchanted creature dies", "Whenever a creature dies" on
             // an Aura: the filter can't be the card itself.
             let can_be_self = f.types.iter().all(|t| ctx.card.types.contains(t));
+            // "Whenever an enchantment you control is put into a graveyard
+            // from the battlefield": only creatures die (CR 700.4).
+            let dies = if !f.types.is_empty() && !f.types.contains(&CardType::Creature) {
+                "is put into a graveyard from the battlefield"
+            } else {
+                "dies"
+            };
             // "Whenever a creature dealt damage by this creature this turn
             // dies": not the source.
             if f.relation == Relation::Other
@@ -5148,11 +5192,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 || !can_be_self
                 || f.status.damaged_by_source
             {
-                format!("whenever {} dies", trigger_filter_a(f, ctx.card))
+                format!("whenever {} {dies}", trigger_filter_a(f, ctx.card))
             } else {
                 let t = this(ctx);
                 format!(
-                    "whenever {t} or another {} dies",
+                    "whenever {t} or another {} {dies}",
                     filter_phrase(f, ctx.card, false)
                 )
             }

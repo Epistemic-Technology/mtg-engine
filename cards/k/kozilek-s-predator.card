@@ -1,0 +1,7 @@
+card "Kozilek's Predator" {
+  oracle_id 452ef7d0-1351-40e6-9379-59cd8bb31da5
+  cost {3}{G}
+  type Creature — Eldrazi Drone
+  pt 3/3
+  triggered when this enters: create 2 "Eldrazi Spawn" it has
+}

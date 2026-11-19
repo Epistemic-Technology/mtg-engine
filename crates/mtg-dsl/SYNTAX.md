@@ -32,7 +32,11 @@ keyword abilities bare, their restrictions and other abilities quoted ("a
 \"This token can't block.\""; "a 0/1 colorless Eldrazi Spawn creature
 token with \"Sacrifice this token: Add {C}.\""), and a creature token
 whose name is not its subtypes is named ("a 2/2 colorless Wizard Soldier
-creature token named Cadet"). A token with a characteristic-defining
+creature token named Cadet"). A Role token (CR 111.10j–r: an `Enchantment
+— Aura Role` with `enchant creature` and `name "Wicked"`, keyed `"Wicked
+Role"`) prints by name too: "a Wicked Role token". If one player controls
+more than one Role on a permanent, all but the newest go to the graveyard
+(CR 303.7a, 704.5z). A token with a characteristic-defining
 ability prints its abilities after the sentence ("... token. It has
 \"...\"").
 
@@ -804,6 +808,14 @@ target creature` ("Unattach all Equipment from target creature", CR
 701.3d), `amass Goblins 1 then attach to amassed Army` ("then attach this
 Equipment to the amassed Army"), `create 2 "Soldier"`,
 `create 1 tapped "Powerstone"` ("Create a tapped Powerstone token"),
+`create 1 "Eldrazi Scion" it has` (the token's abilities after the
+sentence: "Create a 1/1 colorless Eldrazi Scion creature token. It has
+\"Sacrifice this token: Add {C}.\""; "They have" for more than one),
+`create 1 "Wicked Role" attached to up to 1 target creature you control`
+(an Aura token, such as a Role, enters attached to it; if there is nothing
+it could enchant, no token is created, CR 303.4f), `<who> creates 2
+"Treasure"` (`its controller creates`, `each player creates`, `you
+create`: "Its controller creates two Treasure tokens"),
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
 `scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate

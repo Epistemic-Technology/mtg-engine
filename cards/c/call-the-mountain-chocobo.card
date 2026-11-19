@@ -1,0 +1,7 @@
+card "Call the Mountain Chocobo" {
+  oracle_id a0dd3eb4-f6f1-4bfb-935c-032dd5af3811
+  cost {3}{R}
+  type Sorcery
+  spell: search Mountain card reveal to hand; create 1 "2/2 green Bird creature with landfall pump"
+  flashback {5}{R}
+}

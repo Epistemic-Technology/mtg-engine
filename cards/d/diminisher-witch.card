@@ -1,0 +1,8 @@
+card "Diminisher Witch" {
+  oracle_id c2283655-f6b8-4399-ba1f-68a7107f9485
+  cost {2}{U}
+  type Creature — Human Warlock
+  pt 3/2
+  bargain
+  triggered when this enters if bargained: create 1 "Cursed Role" attached to target creature an opponent controls
+}

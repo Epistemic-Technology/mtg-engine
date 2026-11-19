@@ -1,0 +1,8 @@
+card "Incubator Drone" {
+  oracle_id 088d63ec-bd5e-4e80-acf9-2af270a9b395
+  cost {3}{U}
+  type Creature — Eldrazi Drone
+  pt 2/3
+  keywords devoid
+  triggered when this enters: create 1 "Eldrazi Scion" it has
+}

@@ -1,0 +1,7 @@
+card "Sparkspitter" {
+  oracle_id 0fbec99f-0e49-4211-a06e-edd783cf47da
+  cost {2}{R}
+  type Creature — Elemental Spellshaper
+  pt 1/3
+  activated {R}, {T}, discard 1 card: create 1 "3/1 red Elemental creature named Spark Elemental" it has
+}

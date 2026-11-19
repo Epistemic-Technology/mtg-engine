@@ -1,0 +1,6 @@
+card "An Offer You Can't Refuse" {
+  oracle_id 234a734b-ba28-4f1b-9d01-3c3e7d516590
+  cost {U}
+  type Instant
+  spell: counter target noncreature spell; its controller creates 2 "Treasure"
+}

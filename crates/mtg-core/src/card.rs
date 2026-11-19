@@ -624,6 +624,7 @@ impl Subtype {
     /// Interned in `NONCREATURE_SUBTYPES` order after the basic types.
     pub const EQUIPMENT: Subtype = Subtype(5 + 18);
     pub const AURA: Subtype = Subtype(5 + 30);
+    pub const ROLE: Subtype = Subtype(5 + 36);
     pub const TREASURE: Subtype = Subtype(5 + 27);
 
     /// The color a basic land type produces (CR 305.6), if this is one.
@@ -2803,6 +2804,11 @@ pub enum Effect {
         /// "create a tapped Powerstone token": it enters tapped (CR
         /// 111.1, 614.1c).
         tapped: bool,
+        /// "Create a Wicked Role token attached to target creature you
+        /// control": an Aura token enters attached to the first object
+        /// of this recipient, and isn't created if there is none it could
+        /// enchant (CR 303.4f).
+        attached: Option<Recipient>,
     },
     /// Attach `what` (an Aura or Equipment; `Source` for the ability's
     /// source, as equip does) to the first object of `to` (CR 701.3).
@@ -5129,6 +5135,7 @@ impl CardPool {
             pool.subtype(name);
         }
         debug_assert_eq!(pool.subtype("Equipment"), Subtype::EQUIPMENT);
+        debug_assert_eq!(pool.subtype("Role"), Subtype::ROLE);
         debug_assert_eq!(pool.subtype("Aura"), Subtype::AURA);
         pool.prowess = pool.register(AbilityDef::Triggered(TriggeredAbility {
             trigger: TriggerSpec::CastsSpell {

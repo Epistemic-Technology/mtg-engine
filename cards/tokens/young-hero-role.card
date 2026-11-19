@@ -1,0 +1,6 @@
+token "Young Hero Role" {
+  name "Young Hero"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: has ability { triggered whenever this attacks if this is with toughness 3 or less: put 1 +1/+1 counter on this }
+}

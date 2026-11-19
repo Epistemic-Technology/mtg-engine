@@ -1,0 +1,6 @@
+card "Monstrous Rage" {
+  oracle_id 646a2371-54c0-4492-ac2f-20f109d6108c
+  cost {R}
+  type Instant
+  spell: target creature gets +2/+0; create 1 "Monster Role" attached to target 1
+}

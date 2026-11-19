@@ -1,0 +1,6 @@
+token "Eldrazi Scion" {
+  type Creature — Eldrazi Scion
+  pt 1/1
+  color
+  activated sacrifice this: add {C}
+}

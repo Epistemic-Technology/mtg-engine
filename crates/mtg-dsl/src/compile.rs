@@ -44,16 +44,26 @@ pub fn compile_all(cards: &[Card]) -> Result<CardPool, CompileError> {
 /// Sort definitions into compile order: tokens, then emblems, then cards,
 /// each group by name.
 pub fn compile_order(cards: &mut [Card]) {
-    let rank = |k: Kind| match k {
-        Kind::Token => 0,
-        Kind::Emblem => 1,
-        Kind::Card => 2,
+    // A token whose ability creates a token ("When this token dies, create
+    // a Food token") comes after the tokens that don't.
+    let makes_tokens = |c: &Card| {
+        c.abilities.iter().any(|a| match a {
+            Ability::Triggered { effects, .. }
+            | Ability::Activated { effects, .. }
+            | Ability::Spell { effects, .. } => effects
+                .iter()
+                .flat_map(|s| &s.effects)
+                .any(|e| matches!(e, Effect::CreateToken { .. })),
+            _ => false,
+        })
     };
-    cards.sort_by(|a, b| {
-        rank(a.kind)
-            .cmp(&rank(b.kind))
-            .then_with(|| a.name.cmp(&b.name))
-    });
+    let rank = |c: &Card| match c.kind {
+        Kind::Token if makes_tokens(c) => 1,
+        Kind::Token => 0,
+        Kind::Emblem => 2,
+        Kind::Card => 3,
+    };
+    cards.sort_by(|a, b| rank(a).cmp(&rank(b)).then_with(|| a.name.cmp(&b.name)));
 }
 
 /// Compile one definition into the pool.
@@ -1176,16 +1186,22 @@ impl Compiler<'_> {
                 token,
                 count,
                 tapped,
+                who,
+                attached,
                 ..
             } => {
                 let Some(token_ref) = self.pool.lookup(token) else {
                     return self.err(format!("unknown token \"{token}\""));
                 };
+                if attached.is_some() && self.pool.get(token_ref).enchant().is_none() {
+                    return self.err(format!("token \"{token}\" created attached is not an Aura"));
+                }
                 out.push(CoreEffect::CreateToken {
                     token: token_ref,
                     count: *count,
-                    who: CoreRecipient::You,
+                    who: who.map_or(CoreRecipient::You, r),
                     tapped: *tapped,
+                    attached: attached.map(r),
                 });
             }
             Effect::CreateTokenCopy { of, except } => out.push(CoreEffect::CreateTokenCopy {
@@ -1343,6 +1359,7 @@ impl Compiler<'_> {
                     count: Num::N(*n),
                     who: CoreRecipient::You,
                     tapped: false,
+                    attached: None,
                 });
             }
             Effect::Surveil(n) => out.push(CoreEffect::Surveil { count: *n }),
@@ -2299,6 +2316,7 @@ impl Compiler<'_> {
                             count: Num::N(1),
                             who: CoreRecipient::You,
                             tapped: false,
+                            attached: None,
                         }],
                     })
                 }
@@ -2375,6 +2393,7 @@ impl Compiler<'_> {
                             count: Num::N(1),
                             who: CoreRecipient::You,
                             tapped: false,
+                            attached: None,
                         }],
                         None,
                     )

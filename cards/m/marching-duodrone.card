@@ -1,0 +1,7 @@
+card "Marching Duodrone" {
+  oracle_id 939b77f1-d7c4-4e52-b487-5866145ace01
+  cost {2}
+  type Artifact Creature — Construct
+  pt 2/2
+  triggered whenever this attacks: each player creates 1 "Treasure"
+}

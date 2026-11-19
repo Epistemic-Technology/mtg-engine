@@ -1,0 +1,6 @@
+card "Spawning Breath" {
+  oracle_id 82ce3682-0514-49a5-a330-2591e9789d36
+  cost {1}{R}
+  type Instant
+  spell: deal 1 damage to any target; create 1 "Eldrazi Spawn" it has
+}

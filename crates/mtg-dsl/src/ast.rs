@@ -1885,9 +1885,19 @@ pub enum Effect {
         token: String,
         count: Num,
         tapped: bool,
-        /// `you create`: worded with its subject ("... sacrifices it and
-        /// you create a 1/1 ... token").
-        you: bool,
+        /// Who creates them, worded with its subject: `you create` ("...
+        /// sacrifices it and you create a 1/1 ... token"), `its controller
+        /// creates` ("Its controller creates a Treasure token"), `each
+        /// player creates`. `None` is "create", by the ability's
+        /// controller.
+        who: Option<Recipient>,
+        /// `it has`: the token's abilities print after the sentence ("...
+        /// creature token. It has \"Sacrifice this token: Add {C}.\"";
+        /// "They have" for more than one) instead of "with ...".
+        it_has: bool,
+        /// `attached to up to 1 target creature you control`: an Aura token
+        /// (a Role, CR 303.7) enters attached to it.
+        attached: Option<Recipient>,
     },
     CreateTokenCopy {
         of: Recipient,

@@ -1,0 +1,8 @@
+card "Cursed Courtier" {
+  oracle_id 17916cf9-1e6c-41bd-96ce-2b050d828838
+  cost {2}{W}
+  type Creature — Human Noble
+  pt 3/3
+  keywords lifelink
+  triggered when this enters: create 1 "Cursed Role" attached to this
+}

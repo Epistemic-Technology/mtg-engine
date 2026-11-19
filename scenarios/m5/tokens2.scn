@@ -1,0 +1,448 @@
+# Tokens with quoted abilities (Eldrazi Spawn and Scion mana tokens),
+# tokens other players create ("Its controller creates ...", "each player
+# creates ..."), and Role tokens (CR 111.10j-r, 303.7): Aura tokens created
+# attached to a creature, one Role per controller on a permanent.
+
+scenario "Nest Invader's Eldrazi Spawn is sacrificed to pay for a spell" {
+  battlefield A: 2 "Forest"
+  hand A: "Nest Invader", "Sol Ring"
+  turn 1 A: cast "Nest Invader"
+  turn 1 postcombat_main A: cast "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Nest Invader"
+  assert battlefield A contains "Sol Ring"
+  assert battlefield A lacks "Eldrazi Spawn"
+}
+
+scenario "an Eldrazi Scion is a 1/1 that sacrifices for colorless mana" {
+  battlefield A: 3 "Forest"
+  hand A: "Scion Summoner", "Sol Ring"
+  turn 1 A: cast "Scion Summoner"
+  run_to turn 1 postcombat_main
+  assert power "Eldrazi Scion" 1
+  assert toughness "Eldrazi Scion" 1
+  assert is "Eldrazi Scion" colorless
+  turn 1 postcombat_main A: cast "Sol Ring"
+  run_to turn 1 end
+  assert battlefield A contains "Sol Ring"
+  assert battlefield A lacks "Eldrazi Scion"
+  assert graveyard A lacks "Eldrazi Scion"
+}
+
+scenario "a Scion's colorless mana can't pay for a colored symbol" {
+  battlefield A: "Eldrazi Scion"
+  hand A: "Llanowar Elves"
+  illegal turn 1 A: cast "Llanowar Elves"
+  run_to turn 1 end
+  assert battlefield A contains "Eldrazi Scion"
+}
+
+scenario "Rapacious One creates that many Spawn" {
+  battlefield A: "Rapacious One"
+  start turn 2 A
+  turn 2 A: attack "Rapacious One"
+  run_to turn 2 postcombat_main
+  assert life B 15
+  assert battlefield A contains 5 "Eldrazi Spawn"
+}
+
+scenario "Generous Gift: the destroyed permanent's controller creates the Elephant" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Generous Gift"
+  turn 1 A: cast "Generous Gift" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Elephant"
+  assert battlefield A lacks "Elephant"
+}
+
+scenario "Generous Gift on your own permanent gives you the Elephant" {
+  battlefield A: 3 "Plains", "Grizzly Bears"
+  hand A: "Generous Gift"
+  turn 1 A: cast "Generous Gift" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Elephant"
+  assert battlefield B lacks "Elephant"
+}
+
+scenario "Buy Your Silence: the exiled permanent's controller creates a Treasure" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Sol Ring"
+  hand A: "Buy Your Silence"
+  turn 1 A: cast "Buy Your Silence" targeting "Sol Ring"
+  run_to turn 1 end
+  assert exile B contains "Sol Ring"
+  assert battlefield B contains "Treasure"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Crib Swap gives the creature's controller a 1/1 Shapeshifter" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Crib Swap"
+  turn 1 A: cast "Crib Swap" targeting "Hill Giant"
+  run_to turn 1 end
+  assert power "Shapeshifter" 1
+  assert is "Shapeshifter" "Elf"
+  assert battlefield B contains "Shapeshifter"
+}
+
+scenario "Marching Duodrone: each player creates a Treasure" {
+  battlefield A: "Marching Duodrone"
+  start turn 2 A
+  turn 2 A: attack "Marching Duodrone"
+  run_to turn 2 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert battlefield B contains "Treasure"
+}
+
+scenario "Wolf's Quarry's Boar makes a Food when it dies" {
+  battlefield A: 4 "Forest", 3 "Mountain"
+  hand A: "Wolf's Quarry", "Lightning Bolt"
+  turn 1 A: cast "Wolf's Quarry"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting oldest "Boar"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Boar"
+  assert battlefield A contains "Food"
+}
+
+scenario "Make Mischief's Devil deals 1 damage when it dies" {
+  battlefield A: 4 "Mountain"
+  hand A: "Make Mischief", "Lightning Bolt"
+  turn 1 A: cast "Make Mischief" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting "Devil"
+  turn 1 A: trigger "Devil" targeting player B
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A lacks "Devil"
+}
+
+scenario "Warehouse Tabby: an enchantment put into a graveyard makes a Rat that can't block" {
+  battlefield A: "Warehouse Tabby", "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  battlefield B: 2 "Plains"
+  hand B: "Disenchant"
+  start turn 2 B
+  turn 2 B: cast "Disenchant" targeting "Holy Strength"
+  run_to turn 2 postcombat_main
+  assert graveyard A contains "Holy Strength"
+  assert battlefield A contains "Rat"
+}
+
+scenario "Witch's Mark puts a Wicked Role on a creature" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  hand A: "Witch's Mark", "Forest"
+  turn 1 A: cast "Witch's Mark" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Wicked" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert toughness "Grizzly Bears" 3
+  assert is "Wicked" colorless
+  assert is "Wicked" "Role"
+}
+
+scenario "a Wicked Role put into a graveyard makes each opponent lose 1 life" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Witch's Mark"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Witch's Mark" targeting "Grizzly Bears"
+  turn 1 A: decline "Witch's Mark"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard A lacks "Wicked"
+  assert life B 19
+}
+
+scenario "with no creature to attach it to, no Role is created" {
+  battlefield A: 5 "Swamp"
+  hand A: "Shatter the Oath"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Shatter the Oath" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield A lacks "Wicked"
+  assert life B 20
+}
+
+scenario "a Role can't be attached to an opponent's creature by Cut In" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Craw Wurm"
+  hand A: "Cut In"
+  illegal turn 1 A: cast "Cut In" targeting "Hill Giant", "Craw Wurm"
+  run_to turn 1 end
+}
+
+scenario "a second Role from the same player replaces the first (CR 303.7a)" {
+  battlefield A: 2 "Mountain", 4 "Swamp", "Grizzly Bears"
+  hand A: "Witch's Mark", "Eriette's Whisper"
+  hand B: "Forest", "Island"
+  turn 1 A: cast "Witch's Mark" targeting "Grizzly Bears"
+  turn 1 A: decline "Witch's Mark"
+  turn 1 A: wait
+  turn 1 A: cast "Eriette's Whisper" targeting player B, "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Wicked"
+  assert power "Grizzly Bears" 3
+  # The replaced Wicked Role went to the graveyard: its trigger.
+  assert life B 19
+}
+
+scenario "a Royal Role replaces a Wicked Role and gives ward {1}" {
+  battlefield A: 5 "Swamp", 3 "Forest", "Grizzly Bears"
+  hand A: "Shatter the Oath", "Redtooth Genealogist"
+  battlefield B: "Wall of Stone"
+  turn 1 A: cast "Shatter the Oath" targeting "Wall of Stone", "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Redtooth Genealogist"
+  turn 1 A: trigger "Redtooth Genealogist" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A lacks "Wicked"
+  assert attached "Royal" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+  assert life B 19
+}
+
+scenario "a Royal Role's ward {1} counters a spell whose controller can't pay" {
+  battlefield A: 3 "Forest", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Mountain"
+  hand A: "Redtooth Genealogist"
+  hand B: "Shock"
+  turn 1 A: cast "Redtooth Genealogist"
+  turn 1 A: trigger "Redtooth Genealogist" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert graveyard B contains "Shock"
+  assert damage "Grizzly Bears" 0
+}
+
+scenario "Roles of different players on one creature both stay" {
+  battlefield A: 2 "Mountain", "Grizzly Bears"
+  battlefield B: 3 "Island", "Ornithopter"
+  hand A: "Witch's Mark"
+  hand B: "Diminisher Witch"
+  turn 1 A: cast "Witch's Mark" targeting "Grizzly Bears"
+  turn 2 B: cast "Diminisher Witch" sacrificing "Ornithopter"
+  turn 2 B: trigger "Diminisher Witch" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield A contains "Wicked"
+  assert battlefield B contains "Cursed"
+  assert attached "Cursed" to "Grizzly Bears"
+  # Cursed sets base 1/1; Wicked's +1/+1 applies after it.
+  assert power "Grizzly Bears" 2
+  assert toughness "Grizzly Bears" 2
+}
+
+scenario "an unbargained Diminisher Witch makes no Cursed Role" {
+  battlefield A: 3 "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Diminisher Witch"
+  turn 1 A: cast "Diminisher Witch"
+  run_to turn 1 end
+  assert battlefield A lacks "Cursed"
+  assert power "Hill Giant" 3
+}
+
+scenario "Charmed Clothier's Royal Role can't go on itself" {
+  battlefield A: 5 "Plains"
+  hand A: "Charmed Clothier"
+  turn 1 A: cast "Charmed Clothier"
+  run_to turn 1 end
+  assert battlefield A contains "Charmed Clothier"
+  assert battlefield A lacks "Royal"
+}
+
+scenario "Unassuming Sage's Sorcerer Role scries when it attacks" {
+  battlefield A: 4 "Plains"
+  hand A: "Unassuming Sage"
+  library A: "Island", "Forest", "Swamp"
+  turn 1 A: cast "Unassuming Sage"
+  turn 1 A: accept "Unassuming Sage"
+  run_to turn 1 end
+  assert attached "Sorcerer" to "Unassuming Sage"
+  assert power "Unassuming Sage" 3
+  turn 3 A: attack "Unassuming Sage"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "Unassuming Sage without paying makes no Role" {
+  battlefield A: 4 "Plains"
+  hand A: "Unassuming Sage"
+  turn 1 A: cast "Unassuming Sage"
+  turn 1 A: decline "Unassuming Sage"
+  run_to turn 1 end
+  assert battlefield A lacks "Sorcerer"
+  assert power "Unassuming Sage" 2
+}
+
+scenario "a Young Hero Role puts a counter on an attacker with toughness 3 or less" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  battlefield B: "Wall of Stone"
+  hand A: "Cut In"
+  turn 1 A: cast "Cut In" targeting "Wall of Stone", "Grizzly Bears"
+  turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert counters "Grizzly Bears" +1/+1 1
+  assert life B 17
+}
+
+scenario "a Young Hero Role does nothing for a creature with toughness 4" {
+  battlefield A: 4 "Mountain", "Craw Wurm"
+  hand A: "Cut In"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Cut In" targeting "Grizzly Bears", "Craw Wurm"
+  turn 3 A: attack "Craw Wurm"
+  run_to turn 3 postcombat_main
+  assert counters "Craw Wurm" +1/+1 0
+  assert life B 14
+}
+
+scenario "Return Triumphant returns a creature with a Young Hero Role" {
+  battlefield A: 2 "Plains"
+  graveyard A: "Grizzly Bears"
+  hand A: "Return Triumphant"
+  turn 1 A: cast "Return Triumphant" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert attached "Young Hero" to "Grizzly Bears"
+}
+
+scenario "Not Dead After All returns the creature tapped with a Wicked Role" {
+  battlefield A: "Swamp", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand A: "Not Dead After All"
+  hand B: "Lightning Bolt"
+  turn 1 A: cast "Not Dead After All" targeting "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+  assert tapped "Grizzly Bears"
+  assert attached "Wicked" to "Grizzly Bears"
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Living Lectern's Role goes on another creature, at sorcery speed" {
+  battlefield A: 2 "Island", "Living Lectern", "Grizzly Bears"
+  library A: "Island", "Forest"
+  turn 1 A: activate "Living Lectern" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard A contains "Living Lectern"
+  assert attached "Sorcerer" to "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "An Offer You Can't Refuse: the countered spell's controller creates two Treasures" {
+  battlefield A: "Island"
+  hand B: "Sol Ring"
+  battlefield B: "Plains"
+  hand A: "An Offer You Can't Refuse"
+  start turn 2 B
+  turn 2 B: cast "Sol Ring"
+  turn 2 A: cast "An Offer You Can't Refuse" targeting "Sol Ring"
+  run_to turn 2 end
+  assert graveyard B contains "Sol Ring"
+  assert battlefield B contains 2 "Treasure"
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "An Offer You Can't Refuse can't counter a creature spell" {
+  battlefield A: "Island"
+  hand B: "Grizzly Bears"
+  battlefield B: 2 "Forest"
+  hand A: "An Offer You Can't Refuse"
+  start turn 2 B
+  turn 2 B: cast "Grizzly Bears"
+  illegal turn 2 A: cast "An Offer You Can't Refuse" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Merry Bards: paying {1} puts a Young Hero Role on a creature" {
+  battlefield A: 4 "Mountain", "Grizzly Bears"
+  hand A: "Merry Bards"
+  turn 1 A: cast "Merry Bards"
+  turn 1 A: accept "Merry Bards"
+  turn 1 A: trigger "Merry Bards" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert attached "Young Hero" to "Grizzly Bears"
+}
+
+scenario "Protective Parents' Role goes on another creature when it dies" {
+  battlefield A: "Protective Parents", "Grizzly Bears"
+  battlefield B: "Mountain"
+  hand B: "Lightning Bolt"
+  start turn 2 B
+  turn 2 B: cast "Lightning Bolt" targeting "Protective Parents"
+  turn 2 A: trigger "Protective Parents" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert attached "Young Hero" to "Grizzly Bears"
+}
+
+scenario "Sparkspitter's Spark Elemental is sacrificed at the end step" {
+  battlefield A: "Sparkspitter", "Mountain"
+  hand A: "Forest"
+  turn 1 A: activate "Sparkspitter" discarding "Forest"
+  run_to turn 1 postcombat_main
+  assert power "Spark Elemental" 3
+  assert has "Spark Elemental" trample
+  assert has "Spark Elemental" haste
+  run_to turn 1 cleanup
+  assert battlefield A lacks "Spark Elemental"
+}
+
+scenario "Send in the Pest's Pest gains life when it attacks" {
+  battlefield A: 2 "Swamp"
+  hand A: "Send in the Pest"
+  hand B: "Forest"
+  turn 1 A: cast "Send in the Pest"
+  turn 3 A: attack "Pest"
+  run_to turn 3 postcombat_main
+  assert graveyard B contains "Forest"
+  assert life A 21
+  assert life B 19
+}
+
+scenario "Charge of the Mites: two Mites that can't block" {
+  battlefield A: 3 "Plains"
+  hand A: "Charge of the Mites"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Charge of the Mites" mode 2
+  run_to turn 1 end
+  assert battlefield A contains 2 "Phyrexian Mite"
+}
+
+scenario "Charge of the Mites deals damage equal to the number of creatures you control" {
+  battlefield A: 3 "Plains", "Grizzly Bears", "Savannah Lions"
+  hand A: "Charge of the Mites"
+  battlefield B: "Hill Giant"
+  turn 1 A: cast "Charge of the Mites" mode 1 targeting "Hill Giant"
+  run_to turn 1 end
+  assert damage "Hill Giant" 2
+}
+
+scenario "Monstrous Rage: +2/+0 and a Monster Role with trample" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  hand A: "Monstrous Rage"
+  turn 1 A: cast "Monstrous Rage" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Monster" to "Grizzly Bears"
+  assert has "Grizzly Bears" trample
+  assert power "Grizzly Bears" 5
+  run_to turn 2 upkeep
+  assert power "Grizzly Bears" 3
+}
+
+scenario "Cursed Courtier enters as a 1/1 under its own Cursed Role" {
+  battlefield A: 3 "Plains"
+  hand A: "Cursed Courtier"
+  turn 1 A: cast "Cursed Courtier"
+  run_to turn 1 end
+  assert attached "Cursed" to "Cursed Courtier"
+  assert power "Cursed Courtier" 1
+  assert toughness "Cursed Courtier" 1
+}

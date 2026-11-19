@@ -1,0 +1,7 @@
+token "Wicked Role" {
+  name "Wicked"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: +1/+1
+  triggered when this dies: each opponent loses 1 life
+}

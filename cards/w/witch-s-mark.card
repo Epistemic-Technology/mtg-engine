@@ -1,0 +1,9 @@
+card "Witch's Mark" {
+  oracle_id 00807825-88e5-4b88-8527-a49f553a91be
+  cost {1}{R}
+  type Sorcery
+  spell {
+    you may discard 1 cards; if you do, draw 2 cards
+    create 1 "Wicked Role" attached to up to 1 target creature you control
+  }
+}

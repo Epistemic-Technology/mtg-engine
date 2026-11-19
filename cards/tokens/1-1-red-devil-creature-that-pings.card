@@ -1,0 +1,7 @@
+token "1/1 red Devil creature that pings" {
+  name "Devil"
+  type Creature — Devil
+  pt 1/1
+  color red
+  triggered when this dies: this deals 1 damage to any target
+}

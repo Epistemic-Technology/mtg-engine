@@ -1,0 +1,6 @@
+card "Return Triumphant" {
+  oracle_id a4814615-ffa2-4692-86bc-3a1b7fc2acc8
+  cost {1}{W}
+  type Sorcery
+  spell: return target creature card with mana value 3 or less from your graveyard to battlefield; create 1 "Young Hero Role" attached to target 1
+}

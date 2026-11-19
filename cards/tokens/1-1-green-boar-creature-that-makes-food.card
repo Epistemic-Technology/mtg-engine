@@ -1,0 +1,7 @@
+token "1/1 green Boar creature that makes Food" {
+  name "Boar"
+  type Creature — Boar
+  pt 1/1
+  color green
+  triggered when this dies: create 1 "Food"
+}

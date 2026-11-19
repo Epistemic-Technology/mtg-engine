@@ -1,0 +1,8 @@
+card "Indoctrination Attendant" {
+  oracle_id 9587bdb3-fb6a-47c0-898d-404bf60fcb6b
+  cost {3}{W}
+  type Creature — Phyrexian Cleric
+  pt 3/4
+  toxic 1
+  triggered when this enters: you may return 1 other permanent you control chosen; if you do, create 1 "Phyrexian Mite"
+}

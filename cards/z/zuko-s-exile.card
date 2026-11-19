@@ -1,0 +1,6 @@
+card "Zuko's Exile" {
+  oracle_id 5cf18398-9552-415e-a61f-2c149e35ec3d
+  cost {5}
+  type Instant — Lesson
+  spell: exile target artifact, creature, or enchantment; its controller creates 1 "Clue"
+}

@@ -1,0 +1,8 @@
+card "Eldrazi Skyspawner" {
+  oracle_id b5661289-a03c-40fc-a1e4-f602adb56f81
+  cost {2}{U}
+  type Creature — Eldrazi Drone
+  pt 2/1
+  keywords devoid, flying
+  triggered when this enters: create 1 "Eldrazi Scion" it has
+}

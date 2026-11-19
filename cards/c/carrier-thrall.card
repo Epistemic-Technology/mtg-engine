@@ -1,0 +1,7 @@
+card "Carrier Thrall" {
+  oracle_id b3e0b8a6-5de4-4988-b042-2641b1ed3e32
+  cost {1}{B}
+  type Creature — Vampire
+  pt 2/1
+  triggered when this dies: create 1 "Eldrazi Scion" it has
+}

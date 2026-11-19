@@ -1,0 +1,6 @@
+token "Sorcerer Role" {
+  name "Sorcerer"
+  type Enchantment — Aura Role
+  enchant creature
+  static enchanted: +1/+1, has ability { triggered whenever this attacks: scry 1 }
+}

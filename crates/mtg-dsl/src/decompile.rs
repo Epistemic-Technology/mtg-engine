@@ -608,12 +608,15 @@ impl Decompiler<'_> {
                 token,
                 count,
                 tapped,
-                ..
+                who,
+                attached,
             } => Effect::CreateToken {
                 token: self.pool.get(*token).name.clone(),
                 count: *count,
                 tapped: *tapped,
-                you: false,
+                who: (*who != CoreRecipient::You).then(|| r(*who)),
+                it_has: false,
+                attached: attached.map(r),
             },
             CoreEffect::CreateTokenCopy { of, except } => Effect::CreateTokenCopy {
                 of: r(*of),
