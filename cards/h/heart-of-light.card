@@ -1,0 +1,7 @@
+card "Heart of Light" {
+  oracle_id 634d0256-849d-4ef7-b070-b6b8f3242e00
+  cost {2}{W}
+  type Enchantment — Aura
+  enchant creature
+  replace damage to and from enchanted: prevent
+}

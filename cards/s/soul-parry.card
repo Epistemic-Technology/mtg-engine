@@ -1,0 +1,6 @@
+card "Soul Parry" {
+  oracle_id 8b36335b-119b-4f90-a5d7-b77d8f47f55f
+  cost {1}{W}
+  type Instant
+  spell: prevent all damage 1 to 2 target creature would deal this turn
+}

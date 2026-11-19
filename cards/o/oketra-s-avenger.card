@@ -1,0 +1,8 @@
+card "Oketra's Avenger" {
+  oracle_id 8f064160-3afe-408a-85b4-b335eae8571c
+  cost {1}{W}
+  type Creature — Human Warrior
+  pt 3/1
+  pt 3/1
+  exert: prevent all combat damage to this this turn
+}

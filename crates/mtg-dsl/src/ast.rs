@@ -1232,6 +1232,9 @@ pub enum DamageWording {
     /// `damage S would deal to A this turn`: "[that] S would deal to A this
     /// turn" (Goblin Furrier; no "that" after a target).
     WouldDeal,
+    /// `damage this turn to A [from S]`: "that would be dealt this turn to
+    /// A [by S]" (Divine Light).
+    TurnFirst,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -1245,9 +1248,15 @@ pub enum Affects {
     Target(usize),
     /// `that target 1`: the same target named again, "that creature".
     ThatTarget(usize),
+    /// `up to 2 target creature`: several targets, each locked by an
+    /// effect of its own.
+    Targets(usize, usize),
     /// `creature except target creature`: "creatures other than target
     /// creature" (Terrifying Presence).
     OtherThanTarget(Filter, usize),
+    /// `chosen red source`: "a red source of your choice", a damage source
+    /// chosen as the effect is created (CR 609.7a).
+    Chosen(Filter),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

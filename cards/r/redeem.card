@@ -1,0 +1,6 @@
+card "Redeem" {
+  oracle_id c2032f88-a000-4ed2-a7e5-61d29723d45e
+  cost {1}{W}
+  type Instant
+  spell: prevent all damage this turn to up to 2 target creature
+}

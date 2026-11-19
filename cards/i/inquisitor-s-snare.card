@@ -1,0 +1,6 @@
+card "Inquisitor's Snare" {
+  oracle_id 55e3dfcb-0999-401a-ae59-9804e12f4cfe
+  cost {1}{W}
+  type Instant
+  spell: prevent all damage target attacking or blocking creature would deal this turn; if that target 1 is black or red, destroy target 1
+}

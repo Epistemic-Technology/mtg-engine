@@ -1,0 +1,8 @@
+card "Enchanted Being" {
+  oracle_id c98b725e-ca16-4576-bf53-653d4028d861
+  cost {1}{W}{W}
+  type Creature — Human
+  pt 2/2
+  pt 2/2
+  replace combat damage from creature with aura to this: prevent
+}

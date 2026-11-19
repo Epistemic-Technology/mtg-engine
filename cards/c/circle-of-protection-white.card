@@ -1,0 +1,6 @@
+card "Circle of Protection: White" {
+  oracle_id 5f46f86a-9779-4ed3-99cb-76a03d380598
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen white source to you: prevent next time
+}

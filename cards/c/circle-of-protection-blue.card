@@ -1,0 +1,6 @@
+card "Circle of Protection: Blue" {
+  oracle_id d7572f17-f85d-45c0-ac64-43aac760eafe
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen blue source to you: prevent next time
+}

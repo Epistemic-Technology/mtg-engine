@@ -1,0 +1,6 @@
+card "Leap of Faith" {
+  oracle_id ecf0b5ad-5989-4b99-9552-c5a24504f983
+  cost {2}{W}
+  type Instant
+  spell: target creature gains flying until end of turn; prevent all damage to that target 1 this turn
+}

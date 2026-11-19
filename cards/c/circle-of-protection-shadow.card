@@ -1,0 +1,6 @@
+card "Circle of Protection: Shadow" {
+  oracle_id 07c42f46-800e-4d2a-b844-c125ab93190d
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen creature with shadow to you: prevent next time
+}

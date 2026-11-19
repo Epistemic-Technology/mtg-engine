@@ -1,0 +1,8 @@
+card "Wellgabber Apothecary" {
+  oracle_id 10cdb0af-a206-4eec-ba9b-634f6ec583d8
+  cost {4}{W}
+  type Creature — Merfolk Cleric
+  pt 2/3
+  pt 2/3
+  activated {1}{W}: prevent all damage to target tapped Merfolk or Kithkin creature this turn
+}

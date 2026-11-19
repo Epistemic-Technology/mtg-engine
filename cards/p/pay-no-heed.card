@@ -1,0 +1,6 @@
+card "Pay No Heed" {
+  oracle_id 71da5acb-78bc-453a-ae28-d22faa5a4e43
+  cost {W}
+  type Instant
+  spell: prevent all damage chosen source would deal this turn
+}

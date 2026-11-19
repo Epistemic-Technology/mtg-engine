@@ -1,0 +1,9 @@
+card "Pilgrim of Virtue" {
+  oracle_id e2f73743-95e7-4f03-9b98-5ab5ebc4b724
+  cost {2}{W}
+  type Creature — Human Cleric
+  pt 1/3
+  pt 1/3
+  keywords protection from black
+  activated {W}, sacrifice this: this turn, replace damage from chosen black source: prevent next time
+}

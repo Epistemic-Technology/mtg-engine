@@ -1,0 +1,9 @@
+card "Haze Frog" {
+  oracle_id d4cbf16d-6da8-4018-8398-8e263ef6c69e
+  cost {3}{G}{G}
+  type Creature — Frog
+  pt 2/1
+  pt 2/1
+  keywords flash
+  triggered when this enters: prevent all combat damage other creature would deal this turn
+}

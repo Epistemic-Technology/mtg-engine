@@ -1,0 +1,8 @@
+card "Prismatic Ward" {
+  oracle_id ad5e2cb0-00d7-4dad-b20e-23bd41ada398
+  cost {1}{W}
+  type Enchantment — Aura
+  enchant creature
+  as this enters choose color
+  replace damage from permanent of chosen color to enchanted: prevent
+}

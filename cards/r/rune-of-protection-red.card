@@ -1,0 +1,7 @@
+card "Rune of Protection: Red" {
+  oracle_id 9b3f6b29-675a-4153-9582-03318851b20e
+  cost {1}{W}
+  type Enchantment
+  activated {W}: this turn, replace damage from chosen red source to you: prevent next time
+  cycling {2}
+}

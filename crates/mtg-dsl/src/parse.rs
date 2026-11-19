@@ -2,7 +2,7 @@
 //! line. See `SYNTAX.md` in this crate.
 
 use mtg_core::card::{
-    CardType, Cmp, ColorCount, Condition, CounterKind, Keyword, Num, PtValue, Relation,
+    CardType, Cmp, ColorCount, Condition, CounterKind, Keyword, Num, PtValue, RedirectTo, Relation,
     Replacement as Outcome, RuleKind, Supertype, TargetSpec, Who,
 };
 use mtg_core::mana::{Color, Mana, ManaCost};
@@ -4064,7 +4064,7 @@ impl P {
                 } else {
                     self.eat_word("the");
                     self.expect_word("next")?;
-                    Some(self.number()?)
+                    Some(self.num()?)
                 };
                 let combat = if self.eat_word("combat") {
                     Some(true)
@@ -4074,7 +4074,25 @@ impl P {
                     None
                 };
                 self.expect_word("damage")?;
-                let event = if next.is_none() {
+                // `damage this turn to A [from S]`: "that would be dealt this
+                // turn to A [by S]".
+                let turn_first = self.at_words(&["this", "turn", "to"]);
+                if turn_first {
+                    self.pos += 2;
+                }
+                let event = if turn_first {
+                    match self.damage_event(combat)? {
+                        Replaces::Damage {
+                            from, to, combat, ..
+                        } => Replaces::Damage {
+                            from,
+                            to,
+                            combat,
+                            wording: DamageWording::TurnFirst,
+                        },
+                        _ => return self.fail("`this turn to` names a recipient".to_string()),
+                    }
+                } else if next.is_none() {
                     let event = self.damage_event(combat)?;
                     self.expect_words(&["this", "turn"])?;
                     match event {
@@ -4100,11 +4118,23 @@ impl P {
                         Affects::Any
                     };
                     self.expect_words(&["this", "turn"])?;
+                    // `... this turn from <source>`: "dealt to A this turn by
+                    // S" (Healing Grace).
+                    let from = if self.eat_word("from") {
+                        Some(self.source()?)
+                    } else {
+                        None
+                    };
+                    let wording = if from.is_some() {
+                        DamageWording::DealtLate
+                    } else {
+                        DamageWording::Dealt
+                    };
                     Replaces::Damage {
-                        from: None,
+                        from,
                         to,
                         combat,
-                        wording: DamageWording::Dealt,
+                        wording,
                     }
                 };
                 Ok(Effect::CreateReplacement(Replacement {
@@ -5764,6 +5794,17 @@ impl P {
                 _ => unreachable!(),
             };
         }
+        // `1 to 2 target creature`, `any number of targets`, `up to 2
+        // target creature`.
+        if self.at_many()
+            || (self.at_words(&["up", "to"]) && self.word_at(3).as_deref() == Some("target"))
+        {
+            return match self.recipient()? {
+                Recipient::Target(i) => Ok(Affects::Target(i)),
+                Recipient::Targets(a, n) => Ok(Affects::Targets(a, n)),
+                _ => self.fail("expected targets".to_string()),
+            };
+        }
         if self.eat_word("any") {
             return Ok(Affects::Any);
         }
@@ -5793,6 +5834,15 @@ impl P {
                 Recipient::ThatTarget(i) => Ok(Affects::ThatTarget(i)),
                 _ => unreachable!(),
             };
+        }
+        // `chosen red source`: "a red source of your choice" (CR 609.7a).
+        if self.eat_word("chosen") {
+            if self.eat_word("source") {
+                return Ok(Affects::Chosen(Filter::default()));
+            }
+            let f = self.filter()?;
+            self.eat_word("source");
+            return Ok(Affects::Chosen(f));
         }
         let f = self.filter()?;
         // `creature except target creature`: "creatures other than target
@@ -6609,8 +6659,10 @@ impl P {
         let w = self.word()?;
         let out = match w.as_str() {
             "prevent" => {
-                if self.eat_word("next") || self.eat_words(&["the", "next"]) {
-                    Outcome::PreventNext(self.number()?)
+                if self.eat_words(&["next", "time"]) {
+                    Outcome::PreventNextTime
+                } else if self.eat_word("next") || self.eat_words(&["the", "next"]) {
+                    Outcome::PreventNext(Num::N(self.number()?))
                 } else {
                     self.eat_word("it");
                     self.eat_words(&["that", "damage"]);
@@ -6643,11 +6695,30 @@ impl P {
             }
             "regenerate" => Outcome::Regenerate,
             "redirect" => {
+                let next = if self.eat_word("next") {
+                    Some(self.number()?)
+                } else {
+                    None
+                };
                 self.expect_word("to")?;
-                if !(self.eat_word("attached") || self.eat_word("enchanted")) {
-                    return self.unexpected("`attached`");
+                if next.is_none() && (self.eat_word("attached") || self.eat_word("enchanted")) {
+                    Outcome::RedirectToAttached
+                } else if self.eat_word("this") {
+                    Outcome::Redirect {
+                        to: RedirectTo::This,
+                        next,
+                    }
+                } else if self.at_word("target") || self.at_words(&["another", "target"]) {
+                    match self.recipient()? {
+                        Recipient::Target(i) => Outcome::Redirect {
+                            to: RedirectTo::Target(i),
+                            next,
+                        },
+                        _ => return self.unexpected("`target N`"),
+                    }
+                } else {
+                    return self.unexpected("`attached`, `this`, or `target N`");
                 }
-                Outcome::RedirectToAttached
             }
             _ => return self.fail(format!("unknown replacement outcome `{w}`")),
         };

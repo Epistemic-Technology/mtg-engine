@@ -1,0 +1,6 @@
+card "Healing Grace" {
+  oracle_id e3b22777-4d5b-4f6c-a339-24d204bd007e
+  cost {W}
+  type Instant
+  spell: prevent next 3 damage to any target this turn from chosen source; you gain 3 life
+}

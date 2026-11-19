@@ -1,0 +1,8 @@
+card "Nomads en-Kor" {
+  oracle_id b8d395a3-0bfe-45c3-bb3a-820d4f235b88
+  cost {W}
+  type Creature — Kor Nomad Soldier
+  pt 1/1
+  pt 1/1
+  activated {0}: this turn, replace damage to this: redirect next 1 to target creature you control
+}

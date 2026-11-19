@@ -1,0 +1,6 @@
+card "Circle of Protection: Red" {
+  oracle_id df2738fe-9cd1-4347-8808-105fcfde1190
+  cost {1}{W}
+  type Enchantment
+  activated {1}: this turn, replace damage from chosen red source to you: prevent next time
+}

@@ -1,0 +1,8 @@
+card "Charm Peddler" {
+  oracle_id c425fe26-0027-4319-80a9-a053925651cb
+  cost {W}
+  type Creature — Human Spellshaper
+  pt 1/1
+  pt 1/1
+  activated {W}, {T}, discard 1 card: this turn, replace damage from chosen source to target creature: prevent next time
+}

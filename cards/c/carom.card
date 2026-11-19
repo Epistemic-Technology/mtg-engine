@@ -1,0 +1,9 @@
+card "Carom" {
+  oracle_id 05775dea-d7f0-4e0b-af4d-ba8d320dc4c0
+  cost {1}{W}
+  type Instant
+  spell {
+    this turn, replace damage to target creature: redirect next 1 to another target creature
+    draw 1 cards
+  }
+}

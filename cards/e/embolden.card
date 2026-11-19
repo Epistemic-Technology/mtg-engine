@@ -1,0 +1,7 @@
+card "Embolden" {
+  oracle_id 9904873c-7669-4485-b380-f28ff529b45c
+  cost {2}{W}
+  type Instant
+  spell: prevent next 4 damage this turn to any number of targets
+  flashback {1}{W}
+}
