@@ -1,0 +1,7 @@
+card "Saprazzan Outrigger" {
+  oracle_id cd57638e-8444-4522-8638-4514dec8b3ed
+  cost {3}{U}
+  type Creature — Merfolk
+  pt 5/5
+  triggered when this attacks or blocks: delayed this: put it on top of library at end of combat
+}

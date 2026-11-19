@@ -1,0 +1,7 @@
+card "Sawtooth Ogre" {
+  oracle_id 473c9f27-2091-4d87-b279-64b3662c9af8
+  cost {2}{R}{R}
+  type Creature — Ogre
+  pt 3/3
+  triggered whenever this blocks or becomes blocked by a creature: delayed that creature: deal 1 damage to that creature at end of combat
+}

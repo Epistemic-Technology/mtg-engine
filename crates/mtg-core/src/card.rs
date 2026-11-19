@@ -2344,6 +2344,18 @@ pub enum TriggerSpec {
     /// "Whenever a creature without flanking blocks this creature": the
     /// blocker is the triggering object.
     BlockedBy(ObjFilter),
+    /// "Whenever this creature blocks a creature" (CR 509.3b), "becomes
+    /// blocked by a creature" (CR 509.3d), or "blocks or becomes blocked
+    /// by a creature": once per blocking pair, so once for each attacker
+    /// it blocks or each creature blocking it. The other creature of the
+    /// pair, which must match `other`, is the triggering object ("that
+    /// creature").
+    BlockPair {
+        what: TriggerObj,
+        other: ObjFilter,
+        blocks: bool,
+        blocked: bool,
+    },
     /// Ward (CR 702.21a): "Whenever this permanent becomes the target of a
     /// spell or ability an opponent controls"; the spell or ability is the
     /// triggering object.
@@ -2407,7 +2419,8 @@ impl TriggerSpec {
             TriggerSpec::Blocks(_)
             | TriggerSpec::BecomesBlocked(_)
             | TriggerSpec::BlocksOrBlocked(_)
-            | TriggerSpec::BlockedBy(_) => WATCH_BLOCK,
+            | TriggerSpec::BlockedBy(_)
+            | TriggerSpec::BlockPair { .. } => WATCH_BLOCK,
             TriggerSpec::DealsCombatDamageToPlayer(_)
             | TriggerSpec::DealtDamage(_)
             | TriggerSpec::DealsDamage { .. } => WATCH_DAMAGE,

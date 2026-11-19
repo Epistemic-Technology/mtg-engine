@@ -1,0 +1,7 @@
+card "Viashino Weaponsmith" {
+  oracle_id f4d17f41-efd6-4173-ab6e-28b6fbcee10d
+  cost {3}{R}
+  type Creature — Lizard
+  pt 2/2
+  triggered whenever this becomes blocked by a creature: this gets +2/+2 until end of turn
+}

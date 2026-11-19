@@ -1,0 +1,7 @@
+card "Kolaghan Aspirant" {
+  oracle_id 334178f6-cf4b-4ea6-a24f-c7375d1b38de
+  cost {1}{R}
+  type Creature — Human Warrior
+  pt 2/1
+  triggered whenever this becomes blocked by a creature: deal 1 damage to that creature
+}

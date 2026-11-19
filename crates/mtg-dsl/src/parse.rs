@@ -43,6 +43,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         groups: Vec::new(),
         counts: Vec::new(),
         in_delayed: false,
+        delayed_that: false,
         in_trigger: false,
         subject: None,
     };
@@ -358,6 +359,9 @@ struct P {
     /// Inside a delayed trigger's effects, where "it" is the object the
     /// trigger is about.
     in_delayed: bool,
+    /// Inside a delayed trigger about the triggering object: "that
+    /// creature" is the object it is about (`it`).
+    delayed_that: bool,
     /// Inside a triggered ability: "that creature" is the triggering
     /// object there, the last target elsewhere.
     in_trigger: bool,
@@ -2631,8 +2635,9 @@ impl P {
                 let about = self.recipient()?;
                 self.expect(&Tok::Colon)?;
                 let saved_subject = self.subject.take();
-                let was = self.in_delayed;
+                let was = (self.in_delayed, self.delayed_that);
                 self.in_delayed = true;
+                self.delayed_that = about == Recipient::TriggeringObject;
                 let (trigger, effects, trigger_first) =
                     if self.at_word("at") || self.at_word("when") || self.at_word("whenever") {
                         let t = self.trigger()?;
@@ -2646,7 +2651,7 @@ impl P {
                         let t = self.trigger()?;
                         (t, e, false)
                     };
-                self.in_delayed = was;
+                (self.in_delayed, self.delayed_that) = was;
                 self.subject = saved_subject;
                 Ok(Effect::Delayed {
                     about,
@@ -2890,6 +2895,7 @@ impl P {
             groups: self.groups.clone(),
             counts: self.counts.clone(),
             in_delayed: self.in_delayed,
+            delayed_that: self.delayed_that,
             in_trigger: self.in_trigger,
             subject: None,
         };
@@ -3105,6 +3111,12 @@ impl P {
         if another {
             return self.unexpected("`target`");
         }
+        // "destroy that creature at end of combat": the object the delayed
+        // trigger is about, only while it is the same object (CR 603.7c).
+        if self.delayed_that && self.at_words(&["that", "creature"]) {
+            self.pos += 2;
+            return Ok(Recipient::SameObject);
+        }
         // In a spell or an activated ability there is no triggering object:
         // "that creature" is the target named before.
         if !self.in_trigger
@@ -3192,6 +3204,7 @@ impl P {
                         groups: Vec::new(),
                         counts: Vec::new(),
                         in_delayed: false,
+                        delayed_that: false,
                         in_trigger: false,
                         subject: None,
                     };
@@ -3639,9 +3652,32 @@ impl P {
         Ok(TriggerObj::Filter(self.filter()?))
     }
 
+    /// The rest of `blocks a creature`, `becomes blocked by a creature`:
+    /// the other creature of the pair.
+    fn block_pair(&mut self, obj: TriggerObj, blocks: bool, blocked: bool) -> R<Trigger> {
+        if !(self.eat_word("a") || self.eat_word("an")) {
+            return self.unexpected("`a` or `an`");
+        }
+        let other = Box::new(self.filter()?);
+        Ok(Trigger::BlockPair {
+            obj,
+            other,
+            blocks,
+            blocked,
+        })
+    }
+
     #[allow(clippy::too_many_lines)]
     fn trigger(&mut self) -> R<Trigger> {
         if self.eat_word("at") {
+            // CR 511.2: "at end of combat" triggers as the end of combat
+            // step begins.
+            if self.eat_words(&["end", "of", "combat"]) {
+                return Ok(Trigger::BeginningOfStep {
+                    step: Step::EndOfCombat,
+                    whose: Who::Any,
+                });
+            }
             self.eat_word("the");
             self.expect_word("beginning")?;
             self.expect_word("of")?;
@@ -3795,7 +3831,13 @@ impl P {
             }
             "blocks" if self.at_words(&["or", "becomes", "blocked"]) => {
                 self.pos += 3;
+                if self.eat_word("by") {
+                    return self.block_pair(obj, true, true);
+                }
                 Ok(Trigger::BlocksOrBlocked(obj))
+            }
+            "blocks" if self.at_word("a") || self.at_word("an") => {
+                self.block_pair(obj, true, false)
             }
             "blocks" => Ok(Trigger::Blocks(obj)),
             "deals" => {
@@ -3829,6 +3871,9 @@ impl P {
             }
             "becomes" if self.at_word("blocked") => {
                 self.pos += 1;
+                if self.eat_word("by") {
+                    return self.block_pair(obj, false, true);
+                }
                 Ok(Trigger::BecomesBlocked(obj))
             }
             "becomes" => {

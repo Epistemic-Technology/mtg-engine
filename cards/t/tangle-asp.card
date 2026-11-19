@@ -1,0 +1,7 @@
+card "Tangle Asp" {
+  oracle_id b9ea2e9c-a83b-40dd-ad52-b16d65989ba3
+  cost {1}{G}
+  type Creature — Snake
+  pt 1/2
+  triggered whenever this blocks or becomes blocked by a creature: delayed that creature: destroy that creature at end of combat
+}

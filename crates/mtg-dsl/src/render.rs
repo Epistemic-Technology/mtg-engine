@@ -533,6 +533,10 @@ struct Ctx<'a> {
     groups_mentioned: HashSet<Recipient>,
     /// Inside a delayed trigger's effects.
     in_delayed: bool,
+    /// Inside a delayed trigger about the triggering object, which its
+    /// effects call "that creature" ("destroy that creature at end of
+    /// combat").
+    delayed_that: bool,
     /// The ability being rendered, for "except it has this ability".
     current: Option<&'a Ability>,
     /// The trigger of the ability, for wording that depends on it.
@@ -550,6 +554,7 @@ impl<'a> Ctx<'a> {
             target_noun: targets.iter().map(target_noun).collect(),
             groups_mentioned: HashSet::new(),
             in_delayed: false,
+            delayed_that: false,
             current: None,
             trigger: None,
         }
@@ -689,6 +694,7 @@ impl<'a> Ctx<'a> {
                 self.groups_mentioned.insert(r);
                 "each permanent you control".to_string()
             }
+            Recipient::SameObject if self.delayed_that => "that creature".to_string(),
             Recipient::SameObject | Recipient::CreatedObject => "it".to_string(),
             Recipient::Group(i) => {
                 self.groups_mentioned.insert(r);
@@ -2488,15 +2494,16 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("you may {}", body.trim_end_matches('.')))
         }
         Effect::Delayed {
-            about: _,
+            about,
             trigger,
             effects,
             trigger_first,
         } => {
-            let was = ctx.in_delayed;
+            let was = (ctx.in_delayed, ctx.delayed_that);
             ctx.in_delayed = true;
+            ctx.delayed_that = *about == Recipient::TriggeringObject;
             let body = sentences(effects, ctx);
-            ctx.in_delayed = was;
+            (ctx.in_delayed, ctx.delayed_that) = was;
             let body = body.trim_end_matches('.').to_string();
             let t = trigger_text(trigger, ctx, true);
             if *trigger_first {
@@ -2755,6 +2762,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 name.trim_start_matches("your ")
             )
         }
+        // CR 511.2.
+        Trigger::BeginningOfStep {
+            step: Step::EndOfCombat,
+            ..
+        } => "at end of combat".to_string(),
         Trigger::BeginningOfStep { step, whose } => {
             if next && *step == Step::Upkeep && *whose == Who::Any {
                 "at the beginning of the next turn's upkeep".to_string()
@@ -2802,6 +2814,23 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             )
         }
         Trigger::Blocks(TriggerObj::This) => format!("whenever {} blocks", this(ctx)),
+        Trigger::BlockPair {
+            obj,
+            other,
+            blocks,
+            blocked,
+        } => {
+            let s = format!(
+                "whenever {} {} {}",
+                trigger_subject(obj, ctx),
+                crate::format::block_pair_verb(*blocks, *blocked),
+                filter_a(other, ctx.card)
+            );
+            // With another creature named, Oracle names the source again
+            // ("..., this creature deals 1 damage to that creature").
+            ctx.source_mentioned = false;
+            s
+        }
         Trigger::Blocks(TriggerObj::Filter(f)) => {
             format!("whenever {} blocks", filter_a(f, ctx.card))
         }

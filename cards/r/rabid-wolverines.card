@@ -1,0 +1,7 @@
+card "Rabid Wolverines" {
+  oracle_id ed076c39-9bfc-424a-8ce8-8572f7c0de73
+  cost {3}{G}{G}
+  type Creature — Wolverine
+  pt 4/4
+  triggered whenever this becomes blocked by a creature: this gets +1/+1 until end of turn
+}

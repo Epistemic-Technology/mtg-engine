@@ -1,0 +1,8 @@
+card "Clockwork Beetle" {
+  oracle_id 7b9ddff4-82f5-4068-8105-116b8a6180d5
+  cost {1}
+  type Artifact Creature — Insect
+  pt 0/0
+  enters with 2 +1/+1 counters
+  triggered whenever this attacks or blocks: delayed this: remove 1 +1/+1 counter from it at end of combat
+}

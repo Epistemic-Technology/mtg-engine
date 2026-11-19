@@ -973,6 +973,17 @@ impl Compiler<'_> {
             Trigger::AttacksOrBlocks(o) => TriggerSpec::AttacksOrBlocks(self.trigger_obj(o)),
             Trigger::Leaves(o) => TriggerSpec::Leaves(self.trigger_obj(o)),
             Trigger::Blocks(o) => TriggerSpec::Blocks(self.trigger_obj(o)),
+            Trigger::BlockPair {
+                obj,
+                other,
+                blocks,
+                blocked,
+            } => TriggerSpec::BlockPair {
+                what: self.trigger_obj(obj),
+                other: self.filter(other),
+                blocks: *blocks,
+                blocked: *blocked,
+            },
             Trigger::DealsCombatDamageToPlayer(o) => {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }

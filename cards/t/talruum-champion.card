@@ -1,0 +1,8 @@
+card "Talruum Champion" {
+  oracle_id 9352e742-9a22-4463-b41f-3117ff1540ed
+  cost {4}{R}
+  type Creature — Minotaur
+  pt 3/3
+  keywords first strike
+  triggered whenever this blocks or becomes blocked by a creature: that creature loses first strike until end of turn
+}

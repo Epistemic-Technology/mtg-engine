@@ -1,0 +1,8 @@
+card "Skewer Slinger" {
+  oracle_id 2e8433a2-ad71-4d30-84fe-12b709197824
+  cost {1}{R}
+  type Creature — Dwarf Knight
+  pt 1/3
+  keywords reach
+  triggered whenever this blocks or becomes blocked by a creature: deal 1 damage to that creature
+}

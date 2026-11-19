@@ -708,6 +708,16 @@ pub enum Trigger {
     BecomesBlocked(TriggerObj),
     /// `whenever this blocks or becomes blocked`.
     BlocksOrBlocked(TriggerObj),
+    /// `whenever this blocks a creature with flying`, `whenever this
+    /// becomes blocked by a creature`, `whenever this blocks or becomes
+    /// blocked by a nonblack creature`: once per blocking pair, the other
+    /// creature being "that creature" (CR 509.3b, 509.3d).
+    BlockPair {
+        obj: TriggerObj,
+        other: Box<Filter>,
+        blocks: bool,
+        blocked: bool,
+    },
     /// `whenever this attacks or blocks`.
     AttacksOrBlocks(TriggerObj),
     /// `when this leaves the battlefield`.

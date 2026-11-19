@@ -605,6 +605,17 @@ impl Decompiler<'_> {
             TriggerSpec::AttacksOrBlocks(o) => Trigger::AttacksOrBlocks(self.trigger_obj(o)),
             TriggerSpec::Leaves(o) => Trigger::Leaves(self.trigger_obj(o)),
             TriggerSpec::Blocks(o) => Trigger::Blocks(self.trigger_obj(o)),
+            TriggerSpec::BlockPair {
+                what,
+                other,
+                blocks,
+                blocked,
+            } => Trigger::BlockPair {
+                obj: self.trigger_obj(what),
+                other: Box::new(self.filter(other)),
+                blocks: *blocks,
+                blocked: *blocked,
+            },
             TriggerSpec::DealsCombatDamageToPlayer(o) => {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
