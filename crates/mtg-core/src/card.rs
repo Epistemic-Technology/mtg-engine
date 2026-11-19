@@ -2676,6 +2676,13 @@ pub enum Effect {
     FlipCoin {
         won: Vec<Effect>,
     },
+    /// "Clash with an opponent. If you win, ..." (CR 701.23): the
+    /// controller and an opponent each reveal the top card of their
+    /// library and put it on the top or bottom; the controller wins if
+    /// their card's mana value is greater, and then `won` happens.
+    Clash {
+        won: Vec<Effect>,
+    },
     /// "You choose a nonland card from it. That player discards that
     /// card.": the effect's controller picks from the player's hand.
     DiscardChosen {
@@ -3224,6 +3231,9 @@ impl Effect {
                 })
                 | Effect::Vote { .. }
                 | Effect::VoteReturn { .. }
+                // Each clashing player puts their card on the top or
+                // bottom (CR 701.23a).
+                | Effect::Clash { .. }
         )
     }
 }
@@ -4383,7 +4393,7 @@ impl AbilityDef {
                     walk(i, out);
                 }
             }
-            if let Effect::FlipCoin { won } = e {
+            if let Effect::FlipCoin { won } | Effect::Clash { won } = e {
                 for i in won {
                     walk(i, out);
                 }
@@ -4495,9 +4505,14 @@ pub struct CardDef {
     /// Buyback (CR 702.27): an optional additional cost; if paid, the
     /// spell goes to its owner's hand as it resolves.
     pub buyback: Option<Box<ManaCost>>,
+    /// "Buyback—Sacrifice a land." (CR 702.27a): a buyback cost that
+    /// sacrifices a matching permanent, chosen as buyback is decided.
+    pub buyback_sacrifice: Option<Box<ObjFilter>>,
     /// Morph, megamorph, or disguise (CR 702.37, 702.168): cast face down
-    /// for {3}, turned face up for this cost.
-    pub morph: Option<Box<(ManaCost, MorphKind)>>,
+    /// for {3}, turned face up for this cost ("Morph—Pay 5 life.",
+    /// "Morph—Discard a card.", "Morph—Return a Bird you control to its
+    /// owner's hand.": CR 702.37a allows any cost).
+    pub morph: Option<Box<(Cost, MorphKind)>>,
     /// Evoke (CR 702.74): an alternative cost; an evoked permanent is
     /// sacrificed as it enters.
     pub evoke: Option<Box<ManaCost>>,
@@ -5717,6 +5732,7 @@ impl Builder {
             kicker: None,
             self_cost: None,
             buyback: None,
+            buyback_sacrifice: None,
             morph: None,
             evoke: None,
             dash: None,
@@ -5843,7 +5859,20 @@ impl Builder {
     /// Morph, megamorph, or disguise (CR 702.37, 702.168).
     #[must_use]
     pub fn morph(mut self, cost: ManaCost, kind: MorphKind) -> Self {
-        self.0.morph = Some(Box::new((cost, kind)));
+        self.0.morph = Some(Box::new((
+            Cost {
+                mana: cost,
+                ..Cost::default()
+            },
+            kind,
+        )));
+        self
+    }
+
+    /// Morph with a cost other than mana ("Morph—Pay 5 life.").
+    #[must_use]
+    pub fn morph_cost(mut self, cost: Cost) -> Self {
+        self.0.morph = Some(Box::new((cost, MorphKind::Morph)));
         self
     }
 
@@ -5949,6 +5978,14 @@ impl Builder {
     #[must_use]
     pub fn buyback(mut self, cost: ManaCost) -> Self {
         self.0.buyback = Some(Box::new(cost));
+        self
+    }
+
+    /// "Buyback—Sacrifice a land." (CR 702.27a).
+    #[must_use]
+    pub fn buyback_sacrifice(mut self, filter: ObjFilter) -> Self {
+        self.0.buyback = Some(Box::default());
+        self.0.buyback_sacrifice = Some(Box::new(filter));
         self
     }
 

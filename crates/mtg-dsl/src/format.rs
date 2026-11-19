@@ -927,6 +927,8 @@ impl Fmt {
             Effect::LookAtHand { who } => format!("look at hand of {}", self.recipient(*who, t)),
             Effect::RollDie { sides, .. } => format!("roll d{sides}"),
             Effect::FlipCoin => "flip coin".to_string(),
+            Effect::Clash => "clash".to_string(),
+            Effect::IfWonClash(inner) => format!("if you win, {}", self.line(inner, t)),
             Effect::Vote(words) => format!("vote {}", words.join(" or ")),
             Effect::VoteReturn(f) => format!("vote return {} card", filter(f)),
             Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
@@ -3168,6 +3170,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                     }
                     _ => "cycling".to_string(),
                 };
+                // `cycling pay 2 life`: a cost other than mana.
+                if cost.mana.is_empty() && word == "cycling" {
+                    let mut c = cost.clone();
+                    c.discard_self = false;
+                    let _ = writeln!(out, "{indent}cycling {}", cost_text(&c));
+                    return;
+                }
                 let _ = writeln!(out, "{indent}{word} {}", cost.mana);
                 return;
             }
@@ -3399,6 +3408,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Afflict(n) => format!("afflict {n}"),
                 crate::ast::Mechanic::Toxic(n) => format!("toxic {n}"),
                 crate::ast::Mechanic::Ward(c) => format!("ward {c}"),
+                crate::ast::Mechanic::WardCost(c) => format!("ward {}", cost_text(c)),
+                crate::ast::Mechanic::MorphCost(c) => format!("morph {}", cost_text(c)),
+                crate::ast::Mechanic::BuybackCost(c) => format!("buyback {}", cost_text(c)),
                 crate::ast::Mechanic::Echo(c) => format!("echo {c}"),
                 crate::ast::Mechanic::Unearth(c) => format!("unearth {c}"),
                 crate::ast::Mechanic::Buyback(c) => format!("buyback {c}"),

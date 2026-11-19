@@ -1,0 +1,8 @@
+card "Dwarven Forge-Chanter" {
+  oracle_id e69a8970-3ead-479d-860a-26ed65f9c846
+  cost {1}{R}
+  type Creature — Dwarf Wizard
+  pt 1/3
+  ward pay 2 life
+  keywords prowess
+}

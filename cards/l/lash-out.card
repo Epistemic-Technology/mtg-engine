@@ -1,0 +1,6 @@
+card "Lash Out" {
+  oracle_id 398d57bb-4653-4652-aa42-7cea4317be0a
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; clash; if you win, deal 3 damage to controller of that target 1
+}

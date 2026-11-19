@@ -905,6 +905,9 @@ pub enum Mechanic {
     /// CR 702.21: becomes the target of an opponent's spell or ability,
     /// counter it unless its controller pays.
     Ward(ManaCost),
+    /// `ward pay 3 life`: "Ward—Pay 3 life." (CR 702.21a): counter it
+    /// unless that player pays the life.
+    WardCost(Cost),
     /// CR 702.30: at your upkeep, if it came under your control since your
     /// last upkeep, sacrifice it unless you pay.
     Echo(ManaCost),
@@ -914,6 +917,8 @@ pub enum Mechanic {
     /// CR 702.27: an optional additional cost; the spell returns to its
     /// owner's hand as it resolves.
     Buyback(ManaCost),
+    /// `buyback sacrifice land`: "Buyback—Sacrifice a land." (CR 702.27a).
+    BuybackCost(Cost),
     /// CR 702.107: "{cost}, {T}: Put a +1/+1 counter on this creature.
     /// Activate only as a sorcery."
     Outlast(ManaCost),
@@ -949,6 +954,9 @@ pub enum Mechanic {
     Bloodthirst(u32),
     /// CR 702.37: cast face down for {3}; turn face up for the cost.
     Morph(ManaCost),
+    /// `morph pay 5 life`, `morph discard 1 card`, `morph return Bird you
+    /// control`: "Morph—Pay 5 life." and kin (CR 702.37a: any cost).
+    MorphCost(Cost),
     /// CR 702.37b: morph, and a +1/+1 counter as it turns face up.
     Megamorph(ManaCost),
     /// CR 702.168: morph with ward {2} while face down.
@@ -2000,6 +2008,11 @@ pub enum Effect {
     FlipCoin,
     /// `if you win the flip, <sentence>`, after `flip coin`.
     IfWonFlip(Vec<Sentence>),
+    /// `clash`: "clash with an opponent" (CR 701.23); what happens if the
+    /// clash is won is the next sentence, `if you win, <sentence>`.
+    Clash,
+    /// `if you win, <sentence>`, after `clash`.
+    IfWonClash(Vec<Sentence>),
     /// `target opponent reveals hand discarding nonland card`: "Target
     /// opponent reveals their hand. You choose a nonland card from it.
     /// That player discards that card."

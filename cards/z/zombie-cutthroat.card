@@ -1,0 +1,7 @@
+card "Zombie Cutthroat" {
+  oracle_id a0b6aa7d-a8cd-4af7-8fb2-d2fa0861e123
+  cost {3}{B}{B}
+  type Creature — Zombie
+  pt 3/4
+  morph pay 5 life
+}

@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use slotmap::SlotMap;
 use thiserror::Error;
 
-use crate::card::{CardPool, CardRef, Keyword, TargetSpec};
+use crate::card::{CardPool, CardRef, Keyword, SacCost, TargetSpec};
 use crate::decision::{Choice, ChoiceId, Decision, DecisionKind, StepResult};
 use crate::event::Event;
 use crate::ids::{ObjId, PlayerId};
@@ -667,6 +667,47 @@ impl GameState {
                         }
                     }
                 }
+                Flow::TurningFaceUp { obj } => {
+                    // The card discarded or permanent returned for a
+                    // morph cost (CR 702.37e, 116.2b).
+                    let Some(cost) = self.face_up_cost(obj) else {
+                        self.flow = Flow::Priority;
+                        continue;
+                    };
+                    let player = self.objects[obj].controller;
+                    let (kind, options): (DecisionKind, Vec<Choice>) = if cost.discard > 0 {
+                        (
+                            DecisionKind::ChooseDiscardCost { spell: obj },
+                            self.discard_candidates(player, cost.discard_filter.as_ref(), obj)
+                                .into_iter()
+                                .map(|id| Choice::Discard {
+                                    card: id,
+                                    def: self.objects[id].def,
+                                })
+                                .collect(),
+                        )
+                    } else {
+                        let Some(SacCost::Filter(f)) = &cost.sacrifice else {
+                            unreachable!("a morph cost choosing nothing");
+                        };
+                        (
+                            DecisionKind::ChooseSacrifice { spell: obj },
+                            self.sacrifice_candidates(player, f, obj)
+                                .into_iter()
+                                .map(Choice::Sacrifice)
+                                .collect(),
+                        )
+                    };
+                    if options.is_empty() {
+                        self.flow = Flow::Priority;
+                        continue;
+                    }
+                    return StepResult::Decision(Decision {
+                        player,
+                        kind,
+                        options,
+                    });
+                }
                 Flow::ChoosingKicker { spell } => {
                     let Some(obj) = self.objects.get(spell) else {
                         self.flow = Flow::Priority;
@@ -685,10 +726,21 @@ impl GameState {
                         continue;
                     };
                     let player = obj.controller;
+                    // "Buyback—Sacrifice a land.": the land, or declining.
+                    let def = self.pool.get(obj.def);
+                    let options = match def.buyback_sacrifice.as_deref() {
+                        Some(f) => self
+                            .sacrifice_candidates(player, f, spell)
+                            .into_iter()
+                            .map(Choice::Sacrifice)
+                            .chain(std::iter::once(Choice::Decline))
+                            .collect(),
+                        None => vec![Choice::Accept, Choice::Decline],
+                    };
                     return StepResult::Decision(Decision {
                         player,
                         kind: DecisionKind::Buyback { spell },
-                        options: vec![Choice::Accept, Choice::Decline],
+                        options,
                     });
                 }
                 Flow::ChoosingOffspring { spell } => {
@@ -784,7 +836,7 @@ impl GameState {
                             _ => self.additional_of(spell),
                         };
                         if sacrifice.is_none()
-                            && let Some(crate::card::SacCost::Filter(f)) = &add.sacrifice
+                            && let Some(SacCost::Filter(f)) = &add.sacrifice
                         {
                             let options: Vec<Choice> = if add.taps_chosen() {
                                 self.tap_first_options(spell, add)
@@ -1367,8 +1419,13 @@ impl GameState {
             (Flow::Priority, Choice::TurnFaceUp(id)) => {
                 // CR 116.2b: a special action; the player keeps priority.
                 if let Some(cost) = self.face_up_cost(id) {
-                    self.pay(player, &cost.requirements(0));
-                    self.turn_face_up(id);
+                    // "Morph—Discard a card.", "Morph—Return a Bird you
+                    // control to its owner's hand.": the player chooses.
+                    if cost.discard > 0 || matches!(cost.sacrifice, Some(SacCost::Filter(_))) {
+                        self.flow = Flow::TurningFaceUp { obj: id };
+                        return;
+                    }
+                    self.pay_face_up(player, id, &cost, None);
                 }
                 self.give_priority(player);
             }
@@ -1474,6 +1531,11 @@ impl GameState {
             }
             (Flow::ChoosingBuyback { spell }, Choice::Accept) => {
                 self.objects[spell].cast.set_bought_back(true);
+                self.flow = self.after_buyback(spell);
+            }
+            (Flow::ChoosingBuyback { spell }, Choice::Sacrifice(s)) => {
+                self.objects[spell].cast.set_bought_back(true);
+                self.bargains.push((spell, s));
                 self.flow = self.after_buyback(spell);
             }
             (Flow::ChoosingBuyback { spell }, Choice::Decline) => {
@@ -1647,6 +1709,16 @@ impl GameState {
                     });
                 }
                 self.flow = Flow::AssignDamage { queue, assigned };
+            }
+            (
+                Flow::TurningFaceUp { obj },
+                Choice::Sacrifice(pick) | Choice::Discard { card: pick, .. },
+            ) => {
+                self.flow = Flow::Priority;
+                if let Some(cost) = self.face_up_cost(obj) {
+                    self.pay_face_up(player, obj, &cost, Some(pick));
+                }
+                self.give_priority(player);
             }
             (Flow::Discarding, Choice::Discard { card: id, .. }) => {
                 self.discard_card(player, id);

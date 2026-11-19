@@ -761,6 +761,9 @@ struct Ctx<'a> {
     they_paid: bool,
     /// Rendering the effect of "[effect] unless [player] pays".
     in_unless: bool,
+    /// Rendering what winning a clash does ("If you win, that creature
+    /// gets an additional +2/+2").
+    in_won: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -783,6 +786,7 @@ impl<'a> Ctx<'a> {
             attached_by_cond: false,
             amassed: false,
             pumped: Vec::new(),
+            in_won: false,
             they_paid: false,
             in_unless: false,
         }
@@ -2845,7 +2849,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 r => r,
             };
             let additional = if ctx.pumped.contains(&same(*to)) {
-                if ctx.in_unless {
+                if ctx.in_unless || ctx.in_won {
                     // "Creatures you control get +0/+1 ... They get an
                     // additional +0/+2".
                     if *to == Recipient::EachCreatureYouControl {
@@ -3494,6 +3498,22 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         }
         Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
         Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
+        Effect::Clash => Clause::imperative("clash with an opponent".to_string()),
+        Effect::IfWonClash(inner) => {
+            // A spell names itself again: "If you win, Lash Out deals 3
+            // damage to that creature's controller."; a permanent is "this
+            // creature" again ("put a +1/+1 counter on this creature").
+            ctx.source_mentioned = false;
+            ctx.in_won = true;
+            let body = sentences(inner, ctx);
+            ctx.in_won = false;
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!("if you win, {}", body.trim_end_matches('.')))
+        }
         Effect::Vote(words) => Clause::imperative(format!(
             "starting with you, each player votes for {}",
             or_list(words)
@@ -7095,6 +7115,13 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
                 if let Some(word) = typecycling_word(effects) {
                     return format!("{word}cycling {}", cost.mana);
                 }
+                // "Cycling—Pay 2 life." (CR 702.29a).
+                if cost.mana.is_empty() {
+                    let mut c = cost.clone();
+                    c.discard_self = false;
+                    let mut ctx = Ctx::new(card, lookup, targets);
+                    return format!("Cycling\u{2014}{}.", cost_text(&c, &mut ctx));
+                }
                 return format!("Cycling {}", cost.mana);
             }
             let mut ctx = Ctx::new(card, lookup, targets);
@@ -7310,6 +7337,26 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             crate::ast::Mechanic::Afflict(n) => format!("Afflict {n}"),
             crate::ast::Mechanic::Toxic(n) => format!("Toxic {n}"),
             crate::ast::Mechanic::Ward(c) => format!("Ward {c}"),
+            // CR 702.21a, 702.37a, 702.27a: a cost other than mana prints
+            // after a dash, as a sentence.
+            crate::ast::Mechanic::WardCost(c) => {
+                format!(
+                    "Ward\u{2014}{}.",
+                    cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
+            crate::ast::Mechanic::MorphCost(c) => {
+                format!(
+                    "Morph\u{2014}{}.",
+                    cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
+            crate::ast::Mechanic::BuybackCost(c) => {
+                format!(
+                    "Buyback\u{2014}{}.",
+                    cost_text(c, &mut Ctx::new(card, lookup, &[]))
+                )
+            }
             crate::ast::Mechanic::Echo(c) => format!("Echo {c}"),
             crate::ast::Mechanic::Unearth(c) => format!("Unearth {c}"),
             crate::ast::Mechanic::Buyback(c) => format!("Buyback {c}"),

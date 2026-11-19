@@ -1,0 +1,8 @@
+card "Bog Hoodlums" {
+  oracle_id c48ce36d-46c3-4432-8711-1b10f12efc90
+  cost {5}{B}
+  type Creature — Goblin Warrior
+  pt 4/1
+  keywords can't block
+  triggered when this enters: clash; if you win, put 1 +1/+1 counters on this
+}

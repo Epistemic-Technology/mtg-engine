@@ -1,0 +1,6 @@
+card "Fistful of Force" {
+  oracle_id 81641cf1-2dcf-4cd3-ab92-7f5e8e20cb84
+  cost {1}{G}
+  type Instant
+  spell: target creature gets +2/+2; clash; if you win, that target 1 gets +2/+2 and gains trample
+}

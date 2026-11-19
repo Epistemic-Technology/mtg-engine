@@ -1,0 +1,6 @@
+card "Broken Ambitions" {
+  oracle_id 4a3fba0c-50b1-4139-834e-c8fc8e1315bb
+  cost {X}{U}
+  type Instant
+  spell: counter target spell unless its controller pays {X}; clash; if you win, controller of that target 1 mills 4 cards
+}
