@@ -1,0 +1,6 @@
+card "Feast of Dreams" {
+  oracle_id e86870b1-4028-4111-9717-7005f86afe85
+  cost {1}{B}
+  type Instant
+  spell: destroy target creature with aura or enchantment creature
+}

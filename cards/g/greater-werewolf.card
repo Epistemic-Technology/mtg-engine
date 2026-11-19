@@ -1,0 +1,7 @@
+card "Greater Werewolf" {
+  oracle_id 02847b0d-03a1-4e30-902e-60bdf6952c58
+  cost {4}{B}
+  type Creature — Werewolf
+  pt 2/4
+  triggered at end of combat: put 1 -0/-2 counter on each creature blocking or blocked by this
+}

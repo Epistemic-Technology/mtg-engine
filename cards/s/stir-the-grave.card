@@ -1,0 +1,6 @@
+card "Stir the Grave" {
+  oracle_id 296dcc57-5651-4cb1-b89c-fcdd3f5311bd
+  cost {X}{B}
+  type Sorcery
+  spell: return target creature card with mana value X or less from your graveyard to battlefield
+}

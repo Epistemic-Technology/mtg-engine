@@ -1,0 +1,8 @@
+card "Wall of Corpses" {
+  oracle_id 16a7895a-ca23-4112-a91f-4b1528e75cea
+  cost {1}{B}
+  type Creature — Wall
+  pt 0/2
+  keywords defender
+  activated {B}, sacrifice this: destroy target creature blocked by this
+}

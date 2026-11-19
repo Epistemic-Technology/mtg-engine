@@ -917,6 +917,9 @@ pub struct ObjFilter {
     /// "that was dealt damage this turn" (damage is marked until the
     /// cleanup step, CR 514.2).
     pub damaged: bool,
+    /// More game-state qualifiers ("blocked", "enchanted", "that entered
+    /// this turn", "with mana value X"), judged by `GameState::status_ok`.
+    pub status: StatusQuals,
     /// An alternative: matches this filter or that one ("creature or
     /// Vehicle", "attacking or blocking creature").
     pub or: Option<Box<ObjFilter>>,
@@ -943,6 +946,64 @@ pub struct ObjFilter {
     /// this. Judged where the source and targets are known (a count, a
     /// group of an effect); elsewhere it doesn't restrict.
     pub attached_to: Option<AttachedTo>,
+    /// "blocking this creature", "it's blocking", "blocking or blocked by
+    /// this creature" (CR 509.1g): a combat relation to the source. Judged
+    /// where the source is known (a group of an effect, a target);
+    /// elsewhere, or once the source has left the battlefield (its last
+    /// known information, CR 113.7a), it doesn't restrict.
+    pub combat_with: Option<CombatWith>,
+}
+
+/// How an object a filter matches must be in combat with the source.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum CombatWith {
+    /// It is blocking the source.
+    Blocking,
+    /// The source is blocking it.
+    BlockedBy,
+    /// Either.
+    BlockingOrBlockedBy,
+}
+
+/// Game-state qualifiers of a filter beyond tapped, attacking, blocking,
+/// and damage marked (`ObjFilter::status`); all are judged by
+/// `GameState::status_ok`, so a filter without them costs nothing more.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)] // independent qualifiers
+pub struct StatusQuals {
+    /// "blocked creature" (`true`) or "unblocked creature" (`false`): an
+    /// attacking creature once blockers are declared (CR 509.1h); before
+    /// then it is neither.
+    pub blocked: Option<bool>,
+    /// "enchanted permanent" (`true`, CR 303.4: an Aura is attached to
+    /// it) or "that isn't enchanted" (`false`).
+    pub enchanted: Option<bool>,
+    /// "that entered this turn": its timestamp, the time it entered (CR
+    /// 613.7e), is from this turn.
+    pub entered_this_turn: bool,
+    /// "that dealt damage this turn": it was the source of damage dealt
+    /// this turn (CR 120.1).
+    pub dealt_damage: bool,
+    /// "that blocked this turn": it was declared as a blocker this turn
+    /// (CR 509.1).
+    pub blocked_this_turn: bool,
+    /// "with mana value X": `ObjFilter::mana_value`'s number is the X of
+    /// the spell (CR 107.3, 601.2b: X is announced before targets are
+    /// chosen), filled in by the engine where X is known; elsewhere the
+    /// mana value doesn't restrict.
+    pub mana_value_x: bool,
+}
+
+impl StatusQuals {
+    /// Whether any qualifier is set.
+    pub const fn any(&self) -> bool {
+        self.blocked.is_some()
+            || self.enchanted.is_some()
+            || self.entered_this_turn
+            || self.dealt_damage
+            || self.blocked_this_turn
+            || self.mana_value_x
+    }
 }
 
 /// What an object a filter matches must be attached to.
@@ -1240,6 +1301,7 @@ impl ObjFilter {
             || self.blocking
             || self.damaged
             || self.mana_value.is_some()
+            || self.status.any()
     }
 }
 

@@ -883,6 +883,12 @@ pub struct GameState {
     /// Creatures declared as attackers this turn (boast, CR 702.142a);
     /// one put onto the battlefield attacking was never declared.
     pub attackers_this_turn: Vec<ObjId>,
+    /// Creatures declared as blockers this turn ("that blocked this
+    /// turn").
+    pub blockers_this_turn: Vec<ObjId>,
+    /// Sources that dealt damage this turn ("that dealt damage this
+    /// turn"), each once.
+    pub dealt_damage_this_turn: Vec<ObjId>,
     /// Mounts saddled this turn (CR 702.171b: until end of turn, or until
     /// it leaves the battlefield, which makes it a new object).
     pub saddled: Vec<ObjId>,
@@ -1448,11 +1454,63 @@ impl GameState {
         {
             return false;
         }
-        if let Some((cmp, n)) = f.mana_value {
+        // An unfilled "with mana value X" doesn't restrict (`source_filter`).
+        if let Some((cmp, n)) = f.mana_value
+            && !f.status.mana_value_x
+        {
             let mv = self.pool.get(o.def).mana_cost.mana_value();
             if !cmp.holds(mv, u32::from(n)) {
                 return false;
             }
+        }
+        !f.status.any() || self.status_quals_ok(f.status, id, o)
+    }
+
+    /// The qualifiers of `StatusQuals` for `id` (`status_ok`).
+    fn status_quals_ok(&self, q: crate::card::StatusQuals, id: ObjId, o: &GameObject) -> bool {
+        if let Some(b) = q.blocked {
+            // CR 509.1h: blocked or unblocked only once blockers are
+            // declared, and only while attacking.
+            let declared = matches!(
+                self.step,
+                crate::turn::Step::DeclareBlockers
+                    | crate::turn::Step::FirstStrikeDamage
+                    | crate::turn::Step::CombatDamage
+                    | crate::turn::Step::EndOfCombat
+            );
+            let ok = declared
+                && self
+                    .combat
+                    .as_ref()
+                    .and_then(|cb| cb.attacker(id))
+                    .is_some_and(|a| a.blocked == b);
+            if !ok {
+                return false;
+            }
+        }
+        if let Some(e) = q.enchanted {
+            // CR 303.4: an Aura attached to it.
+            let enchanted = o.zone == Zone::Battlefield
+                && self.battlefield.iter().any(|a| {
+                    self.objects[*a].attached_to == Some(id)
+                        && self
+                            .characteristics(*a)
+                            .is_some_and(|c| c.has_subtype(crate::card::Subtype::AURA))
+                });
+            if enchanted != e {
+                return false;
+            }
+        }
+        if q.entered_this_turn
+            && (o.zone != Zone::Battlefield || o.timestamp < self.turn_started_at)
+        {
+            return false;
+        }
+        if q.dealt_damage && !self.dealt_damage_this_turn.contains(&id) {
+            return false;
+        }
+        if q.blocked_this_turn && !self.blockers_this_turn.contains(&id) {
+            return false;
         }
         true
     }
@@ -1578,7 +1636,7 @@ impl GameState {
     ) -> bool {
         use crate::card::StaticCondition as C;
         let count = |filter: &crate::card::ObjFilter, whose: PlayerId| {
-            let filter = &*self.source_filter(filter, Some(source));
+            let filter = &*self.source_filter(filter, Some(source), None);
             self.battlefield
                 .iter()
                 .filter(|id| {
@@ -1864,16 +1922,83 @@ impl GameState {
 
     /// A filter with "named ~" filled in from the source ("target
     /// permanent not named ~"); other filters as they are.
+    /// "with mana value X" is filled in from `x`, or else the X chosen for
+    /// the source spell (CR 107.3), if known.
     fn source_filter<'f>(
         &self,
         f: &'f crate::card::ObjFilter,
         source: Option<ObjId>,
+        x: Option<u32>,
     ) -> std::borrow::Cow<'f, crate::card::ObjFilter> {
-        if f.same.is_some() {
+        let x = if f.status.mana_value_x {
+            x.or_else(|| source.and_then(|s| self.x_chosen(s)))
+        } else {
+            None
+        };
+        let mut out = if f.same.is_some() {
             std::borrow::Cow::Owned(self.with_same_of(f, source))
         } else {
             std::borrow::Cow::Borrowed(f)
+        };
+        if f.status.mana_value_x
+            && let Some(x) = x
+        {
+            let g = out.to_mut();
+            g.status.mana_value_x = false;
+            g.mana_value = g
+                .mana_value
+                .map(|(cmp, _)| (cmp, u8::try_from(x).unwrap_or(u8::MAX)));
         }
+        out
+    }
+
+    /// Whether `id` is in combat with `source` as `with` asks (CR
+    /// 509.1g); a source no longer on the battlefield as it last was, so
+    /// the relation doesn't restrict (CR 113.7a).
+    pub fn combat_with_ok(
+        &self,
+        with: Option<crate::card::CombatWith>,
+        source: Option<ObjId>,
+        id: ObjId,
+    ) -> bool {
+        use crate::card::CombatWith;
+        let Some(with) = with else {
+            return true;
+        };
+        let Some(source) = source else {
+            return true;
+        };
+        if self
+            .objects
+            .get(source)
+            .is_none_or(|o| o.zone != Zone::Battlefield)
+        {
+            return true;
+        }
+        let Some(cb) = self.combat.as_ref() else {
+            return false;
+        };
+        let blocking = || {
+            cb.attacker(source)
+                .is_some_and(|a| a.blockers.contains(&id))
+        };
+        let blocked_by = || {
+            cb.attacker(id)
+                .is_some_and(|a| a.blockers.contains(&source))
+        };
+        match with {
+            CombatWith::Blocking => blocking(),
+            CombatWith::BlockedBy => blocked_by(),
+            CombatWith::BlockingOrBlockedBy => blocking() || blocked_by(),
+        }
+    }
+
+    /// X of a spell on the stack if it was chosen (CR 107.3, 601.2b).
+    pub fn x_chosen(&self, spell: ObjId) -> Option<u32> {
+        self.x_values
+            .iter()
+            .find(|(id, _)| *id == spell)
+            .map(|(_, x)| *x)
     }
 
     pub fn characteristics_or_lki(&self, id: ObjId) -> Option<Characteristics> {
@@ -1913,7 +2038,6 @@ impl GameState {
 
     /// `is_legal_target` for an ability of `source` ("another target
     /// creature" excludes it).
-    #[allow(clippy::too_many_lines)]
     pub fn is_legal_target_for(
         &self,
         caster: PlayerId,
@@ -1921,9 +2045,23 @@ impl GameState {
         target: Target,
         source: Option<ObjId>,
     ) -> bool {
+        self.is_legal_target_x(caster, spec, target, source, None)
+    }
+
+    /// `is_legal_target_for` with X taken as `x` ("with mana value X"
+    /// while X is being chosen) rather than the spell's chosen X.
+    #[allow(clippy::too_many_lines)]
+    pub fn is_legal_target_x(
+        &self,
+        caster: PlayerId,
+        spec: crate::card::TargetSpec,
+        target: Target,
+        source: Option<ObjId>,
+        x: Option<u32>,
+    ) -> bool {
         use crate::card::TargetSpec;
         if let TargetSpec::UpTo(_) | TargetSpec::Many(_) = spec {
-            return self.is_legal_target_for(caster, self.pool.base_spec(spec), target, source);
+            return self.is_legal_target_x(caster, self.pool.base_spec(spec), target, source, x);
         }
         match target {
             Target::Player(p) => {
@@ -1956,7 +2094,7 @@ impl GameState {
                     // "another target card": the source's card after it
                     // moved to the graveyard is the source still.
                     let source = source.map(|s| self.current_object(s).unwrap_or(s));
-                    let f = self.source_filter(self.pool.filter(filter), source);
+                    let f = self.source_filter(self.pool.filter(filter), source, x);
                     return obj.zone == Zone::Graveyard
                         && whose
                         && f.matches(id, obj.owner, &c, source, None)
@@ -2071,9 +2209,10 @@ impl GameState {
                                 .is_some_and(|cb| cb.blocked_by(id).is_some())
                     }
                     TargetSpec::Filtered(f) => {
-                        let f = self.source_filter(self.pool.filter(f), source);
+                        let f = self.source_filter(self.pool.filter(f), source, x);
                         f.matches(id, obj.controller, &c, source, Some(caster))
                             && self.status_ok(&f, id)
+                            && self.combat_with_ok(f.combat_with, source, id)
                     }
                     TargetSpec::SpellFiltered(_)
                     | TargetSpec::GraveyardCard { .. }

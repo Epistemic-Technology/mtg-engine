@@ -434,6 +434,10 @@ fn static_condition_holds(work: &Work<'_>, cond: &StaticCondition, source: ObjId
             ) && filter
                 .tapped
                 .is_none_or(|t| state.objects[source].tapped == t)
+                // "As long as this creature entered this turn": a new turn
+                // bumps `cversion`.
+                && (!filter.status.entered_this_turn
+                    || state.objects[source].timestamp >= state.turn_started_at)
         }),
         StaticCondition::AttachedIs(filter) => state.objects[source]
             .attached_to

@@ -472,6 +472,7 @@ impl Compiler<'_> {
             attacking: f.attacking,
             blocking: f.blocking,
             damaged: f.damaged,
+            status: f.status,
             chosen: f.chosen.is_some(),
             attached_to: f.attached_to.map(|a| {
                 use crate::ast::AttachedRef;
@@ -482,6 +483,15 @@ impl Compiler<'_> {
                     AttachedRef::Target(n) | AttachedRef::ThatTarget(n) => {
                         AttachedTo::Target(u8::try_from(n).unwrap_or(u8::MAX))
                     }
+                }
+            }),
+            combat_with: f.combat_with.map(|r| {
+                use crate::ast::CombatRef;
+                use mtg_core::card::CombatWith;
+                match r {
+                    CombatRef::BlockingThis => CombatWith::Blocking,
+                    CombatRef::BlockedByThis | CombatRef::BlockedByIt => CombatWith::BlockedBy,
+                    CombatRef::BlockingOrBlockedByThis => CombatWith::BlockingOrBlockedBy,
                 }
             }),
             or: f.or.as_ref().map(|a| Box::new(self.filter(a))),

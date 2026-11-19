@@ -395,6 +395,15 @@ pub struct Filter {
     pub blocking: bool,
     /// `damaged`: "that was dealt damage this turn".
     pub damaged: bool,
+    /// `damaged` written `dealt damage this turn`: printed "creature dealt
+    /// damage this turn" rather than "creature that was dealt damage this
+    /// turn".
+    pub damaged_short: bool,
+    /// `blocked` / `unblocked`, `with aura` / `without aura` ("enchanted
+    /// permanent", "that isn't enchanted"), `that entered this turn`,
+    /// `that dealt damage this turn`, `that blocked this turn`, `with mana
+    /// value X` (`ObjFilter::status`).
+    pub status: mtg_core::card::StatusQuals,
     /// `creature or Vehicle`: an alternative filter.
     pub or: Option<Box<Filter>>,
     /// `that targets you or a permanent you control` (spells).
@@ -412,6 +421,23 @@ pub struct Filter {
     /// `attached to this`, `attached to attached`, `attached to target 1`
     /// (`ObjFilter::attached_to`).
     pub attached_to: Option<AttachedRef>,
+    /// `blocking this`, `blocked by this`, `blocked by it`, `blocking or
+    /// blocked by this` (`ObjFilter::combat_with`).
+    pub combat_with: Option<CombatRef>,
+}
+
+/// A filter's combat relation to the source, as printed.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub enum CombatRef {
+    /// `blocking this`: "blocking this creature".
+    BlockingThis,
+    /// `blocked by this`: "this creature is blocking".
+    BlockedByThis,
+    /// `blocked by it`: "it's blocking".
+    BlockedByIt,
+    /// `blocking or blocked by this`: "blocking or blocked by this
+    /// creature".
+    BlockingOrBlockedByThis,
 }
 
 /// What a filter's objects must be attached to.

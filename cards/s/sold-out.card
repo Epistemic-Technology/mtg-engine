@@ -1,0 +1,6 @@
+card "Sold Out" {
+  oracle_id 6a69d4b1-72dd-4599-a16d-32299de5b0b9
+  cost {3}{B}
+  type Instant
+  spell: exile target creature; if target 1 was damaged, create 1 "Clue"
+}

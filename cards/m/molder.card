@@ -1,0 +1,6 @@
+card "Molder" {
+  oracle_id 86b98c3e-f568-4bfc-977f-d1be270936e5
+  cost {X}{G}
+  type Instant
+  spell: destroy target artifact or enchantment with mana value X without regeneration; you gain X life
+}

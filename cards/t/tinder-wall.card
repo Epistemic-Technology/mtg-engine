@@ -1,0 +1,9 @@
+card "Tinder Wall" {
+  oracle_id dd2f698c-b3b4-4dc8-9950-9be03ca7dc9e
+  cost {G}
+  type Creature — Plant Wall
+  pt 0/3
+  keywords defender
+  activated sacrifice this: add {R}{R}
+  activated {R}, sacrifice this: it deals 2 damage to target creature blocked by it
+}

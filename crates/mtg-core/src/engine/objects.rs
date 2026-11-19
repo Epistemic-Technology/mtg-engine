@@ -762,6 +762,7 @@ impl GameState {
         match target {
             Target::Player(p) => {
                 self.damaged_this_turn |= 1 << p.index().min(7);
+                self.note_damage_source(source);
                 self.emit(Event::Damage {
                     source,
                     target,
@@ -823,6 +824,7 @@ impl GameState {
                 }
                 self.bump();
                 self.sba_touch();
+                self.note_damage_source(source);
                 self.emit(Event::Damage {
                     source,
                     target,
@@ -838,6 +840,14 @@ impl GameState {
         }
         if lifelink && let Some(c) = controller {
             self.gain_life(c, amount);
+        }
+    }
+
+    /// Remember that `source` dealt damage this turn ("creature that dealt
+    /// damage this turn").
+    fn note_damage_source(&mut self, source: ObjId) {
+        if !self.dealt_damage_this_turn.contains(&source) {
+            self.dealt_damage_this_turn.push(source);
         }
     }
 

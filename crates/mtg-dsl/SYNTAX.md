@@ -430,6 +430,38 @@ your graveyard"). A face-down permanent has no name (CR 708.2). As an effect's
 recipient, `all permanent ...` prints "all permanents ... to their owners'
 hands" where `each` prints "each permanent ... to its owner's hand".
 
+Game-state qualifiers (`ObjFilter::status`, judged with the game state like
+`tapped`): `blocked` and `unblocked` ("target blocked creature": an
+attacking creature once blockers are declared, CR 509.1h; before then it is
+neither), `with aura` and `without aura` ("target enchanted permanent",
+"creature that isn't enchanted": an Aura is attached to it, CR 303.4; the
+word `enchanted` is the permanent this is attached to), `that entered this
+turn` (its timestamp is from this turn, CR 613.7e; `as long as this is that
+entered this turn` prints "As long as this creature entered this turn"),
+`that dealt damage this turn` (it was the source of damage this turn),
+`that blocked this turn` (declared as a blocker this turn), `dealt damage
+this turn` (`damaged` printed "creature dealt damage this turn"), and
+`with mana value X` / `with mana value X or less` (X of the spell, CR
+107.3; X is chosen before targets, CR 601.2b, so only an X some object
+fits is offered; on a card, the mana value prints after the noun: `target
+creature card with mana value X or less from your graveyard`). `creature
+with aura or enchantment creature` is two alternatives: a type followed by
+another starts a filter of its own. In a static ability's subject these
+qualifiers are re-judged only when characteristics change, so they belong
+in targets, groups, and conditions.
+
+Combat relations to the source (`ObjFilter::combat_with`, CR 509.1g):
+`blocking this` ("each creature blocking this creature"), `blocked by this`
+("target creature this creature is blocking"), `blocked by it` ("target
+creature it's blocking"), `blocking or blocked by this`. Judged for targets
+and an effect's groups; once the source has left the battlefield (a
+sacrifice cost), as it last was, so the relation no longer restricts (CR
+113.7a). A group with a combat relation is a subject one at a time: `each
+creature without flanking blocking this gets -1/-1` prints "Each creature
+without flanking blocking this creature gets -1/-1". `if target 1 was
+damaged, ...` prints "If it was dealt damage this turn, ..." (the damage on
+it as it last existed).
+
 ### Modifications (static abilities)
 
 Comma-separated, printed in the order written ("gets +1/+1, has reach,

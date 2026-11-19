@@ -1,0 +1,6 @@
+card "Avenging Arrow" {
+  oracle_id 6c29add6-8524-4a33-9f2e-f792032dd6cd
+  cost {2}{W}
+  type Instant
+  spell: destroy target creature that dealt damage this turn
+}

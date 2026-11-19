@@ -1,0 +1,7 @@
+card "Benalish Missionary" {
+  oracle_id 84fdcfd3-2b22-4570-af34-7e3f55f97466
+  cost {W}
+  type Creature — Human Cleric
+  pt 1/1
+  activated {1}{W}, {T}: prevent all combat damage from target blocked creature this turn
+}

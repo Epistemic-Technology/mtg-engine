@@ -1,0 +1,379 @@
+# Filter qualifiers: blocked and unblocked (CR 509.1h), enchanted (CR
+# 303.4), entered this turn (CR 613.7e), dealt damage and blocked this turn,
+# "with mana value X" (CR 107.3, 601.2b), and combat relations to the
+# source ("this creature is blocking", "blocking or blocked by").
+
+# ----- blocked, unblocked -----
+
+scenario "Smite destroys a blocked creature" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Wall of Wood", "Plains"
+  hand B: "Smite"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wall of Wood"
+  turn 1 declare_blockers B: cast "Smite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Smite can't target an unblocked attacker" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Wall of Wood", "Plains"
+  hand B: "Smite"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_blockers B: cast "Smite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert life B 18
+}
+
+scenario "Smite can't target an attacker before blockers are declared" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Wall of Wood", "Plains"
+  hand B: "Smite"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 declare_attackers B: cast "Smite" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Benalish Missionary prevents a blocked creature's combat damage" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Benalish Missionary", "Grizzly Bears", 2 "Plains"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Grizzly Bears"
+  turn 1 declare_blockers B: activate "Benalish Missionary" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Grizzly Bears"
+  assert damage "Hill Giant" 2
+}
+
+scenario "Benalish Missionary can't target an unblocked creature" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Benalish Missionary", 2 "Plains"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 1 declare_blockers B: activate "Benalish Missionary" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+# ----- enchanted -----
+
+scenario "Cut the Earthly Bond returns an enchanted permanent" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Cut the Earthly Bond"
+  turn 1 A: cast "Cut the Earthly Bond" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+}
+
+scenario "Cut the Earthly Bond can't target a permanent that isn't enchanted" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Hill Giant", "Holy Strength" on "Grizzly Bears"
+  hand A: "Cut the Earthly Bond"
+  illegal turn 1 A: cast "Cut the Earthly Bond" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Venomous Vines destroys an enchanted permanent" {
+  battlefield A: 4 "Forest"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Venomous Vines"
+  turn 1 A: cast "Venomous Vines" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Feast of Dreams destroys an enchanted creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Holy Strength" on "Grizzly Bears"
+  hand A: "Feast of Dreams"
+  turn 1 A: cast "Feast of Dreams" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Feast of Dreams destroys an enchantment creature" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Alseid of Life's Bounty"
+  hand A: "Feast of Dreams"
+  turn 1 A: cast "Feast of Dreams" targeting "Alseid of Life's Bounty"
+  run_to turn 1 end
+  assert graveyard B contains "Alseid of Life's Bounty"
+}
+
+scenario "Feast of Dreams can't target a creature that isn't enchanted" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant", "Alseid of Life's Bounty"
+  hand A: "Feast of Dreams"
+  illegal turn 1 A: cast "Feast of Dreams" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- entered this turn -----
+
+scenario "Cradle to Grave destroys a creature that entered this turn" {
+  start turn 1 B
+  battlefield A: 2 "Swamp"
+  battlefield B: 2 "Forest"
+  hand A: "Cradle to Grave"
+  hand B: "Grizzly Bears"
+  turn 1 B: cast "Grizzly Bears"
+  turn 1 postcombat_main A: cast "Cradle to Grave" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Cradle to Grave can't target a creature that entered earlier" {
+  start turn 1 B
+  battlefield A: 2 "Swamp"
+  battlefield B: "Grizzly Bears", "Forest"
+  hand A: "Cradle to Grave"
+  hand B: "Llanowar Elves"
+  turn 1 B: cast "Llanowar Elves"
+  illegal turn 1 postcombat_main A: cast "Cradle to Grave" targeting "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Keldon Strike Team gives haste the turn it enters" {
+  battlefield A: 3 "Mountain"
+  hand A: "Keldon Strike Team"
+  turn 1 A: cast "Keldon Strike Team"
+  turn 1 A: attack "Keldon Strike Team"
+  run_to turn 1 postcombat_main
+  assert life B 17
+}
+
+scenario "Keldon Strike Team gives no haste on a later turn" {
+  battlefield A: "Keldon Strike Team", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 3 A: cast "Grizzly Bears"
+  illegal turn 3 A: attack "Grizzly Bears"
+  run_to turn 3 postcombat_main
+}
+
+# ----- dealt damage, blocked this turn -----
+
+scenario "Avenging Arrow destroys a creature that dealt damage this turn" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: 3 "Plains"
+  hand B: "Avenging Arrow"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 postcombat_main B: cast "Avenging Arrow" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Avenging Arrow can't target a creature that dealt no damage" {
+  battlefield A: "Grizzly Bears", "Hill Giant"
+  battlefield B: 3 "Plains"
+  hand B: "Avenging Arrow"
+  turn 1 A: attack "Grizzly Bears"
+  illegal turn 1 postcombat_main B: cast "Avenging Arrow" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Executioner's Swing: a creature that dealt damage gets -5/-5" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Plains", "Swamp"
+  hand B: "Executioner's Swing"
+  turn 1 A: attack "Hill Giant"
+  turn 1 postcombat_main B: cast "Executioner's Swing" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard A contains "Hill Giant"
+}
+
+scenario "Executioner's Swing: the damage is from this turn only" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Plains", "Swamp"
+  hand B: "Executioner's Swing"
+  turn 1 A: attack "Hill Giant"
+  illegal turn 2 B: cast "Executioner's Swing" targeting "Hill Giant"
+  run_to turn 2 end
+}
+
+scenario "Sizzling Barrage hits a creature that blocked this turn" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Wall of Wood"
+  hand A: "Sizzling Barrage"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wall of Wood"
+  turn 1 postcombat_main A: cast "Sizzling Barrage" targeting "Wall of Wood"
+  run_to turn 1 end
+  assert graveyard B contains "Wall of Wood"
+}
+
+scenario "Sizzling Barrage can't target a creature that didn't block" {
+  battlefield A: "Grizzly Bears", 2 "Mountain"
+  battlefield B: "Wall of Wood", "Hill Giant"
+  hand A: "Sizzling Barrage"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Wall of Wood"
+  illegal turn 1 postcombat_main A: cast "Sizzling Barrage" targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Inflame damages only creatures dealt damage this turn" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Shock", "Inflame"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Inflame"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Sold Out: a Clue for a creature dealt damage this turn" {
+  battlefield A: 4 "Swamp", "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Sold Out"
+  turn 1 A: cast "Shock" targeting "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Sold Out" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield A contains "Clue"
+}
+
+scenario "Sold Out: no Clue for an undamaged creature" {
+  battlefield A: 4 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Sold Out"
+  turn 1 A: cast "Sold Out" targeting "Hill Giant"
+  run_to turn 1 end
+  assert exile B contains "Hill Giant"
+  assert battlefield A lacks "Clue"
+}
+
+# ----- mana value X -----
+
+scenario "Disembowel destroys a creature with mana value X" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Disembowel"
+  turn 1 A: cast "Disembowel" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Disembowel can't target a creature of another mana value" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Disembowel"
+  illegal turn 1 A: cast "Disembowel" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+scenario "Disembowel isn't cast for an X no creature has" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Disembowel"
+  illegal turn 1 A: cast "Disembowel" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+  assert hand A contains "Disembowel"
+}
+
+scenario "Molder destroys an artifact with mana value X and gains X life" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Rod of Ruin", "Ornithopter"
+  hand A: "Molder"
+  turn 1 A: cast "Molder" x 4 targeting "Rod of Ruin"
+  run_to turn 1 end
+  assert graveyard B contains "Rod of Ruin"
+  assert battlefield B contains "Ornithopter"
+  assert life A 24
+}
+
+scenario "Repeal returns a nonland permanent with mana value X" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Repeal"
+  turn 1 A: cast "Repeal" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Repeal with X 0 returns Ornithopter, not Grizzly Bears" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears", "Ornithopter"
+  hand A: "Repeal"
+  illegal turn 1 A: cast "Repeal" x 0 targeting "Grizzly Bears"
+  turn 1 A: cast "Repeal" x 0 targeting "Ornithopter"
+  run_to turn 1 end
+  assert hand B contains "Ornithopter"
+}
+
+scenario "Stir the Grave returns a creature card with mana value X or less" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Stir the Grave"
+  turn 1 A: cast "Stir the Grave" x 2 targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert battlefield A contains "Grizzly Bears"
+}
+
+scenario "Stir the Grave can't return a card above X" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears", "Hill Giant"
+  hand A: "Stir the Grave"
+  illegal turn 1 A: cast "Stir the Grave" x 2 targeting "Hill Giant"
+  run_to turn 1 end
+}
+
+# ----- combat relations to the source -----
+
+scenario "Wall of Corpses destroys the creature it's blocking" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Wall of Corpses", "Swamp"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Wall of Corpses"
+  turn 1 declare_blockers B: activate "Wall of Corpses" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Wall of Corpses"
+}
+
+scenario "Wall of Corpses can't target a creature it isn't blocking" {
+  battlefield A: "Hill Giant", "Grizzly Bears"
+  battlefield B: "Wall of Corpses", "Swamp"
+  turn 1 A: attack "Hill Giant", "Grizzly Bears"
+  turn 1 B: block "Hill Giant" with "Wall of Corpses"
+  illegal turn 1 declare_blockers B: activate "Wall of Corpses" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+}
+
+scenario "Tinder Wall deals 2 damage to the creature it's blocking" {
+  battlefield A: "Grizzly Bears"
+  battlefield B: "Tinder Wall", "Mountain"
+  turn 1 A: attack "Grizzly Bears"
+  turn 1 B: block "Grizzly Bears" with "Tinder Wall"
+  turn 1 declare_blockers B: activate "Tinder Wall" ability 2 targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert life B 20
+}
+
+scenario "Greater Werewolf puts -0/-2 counters on the creatures in combat with it" {
+  battlefield A: "Hill Giant"
+  battlefield B: "Greater Werewolf", "Grizzly Bears"
+  turn 1 A: attack "Hill Giant"
+  turn 1 B: block "Hill Giant" with "Greater Werewolf"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Hill Giant"
+  assert battlefield B contains "Grizzly Bears"
+  assert counters "Grizzly Bears" -0/-2 0
+}
+
+scenario "Knight of Valor shrinks a creature without flanking blocking it" {
+  battlefield A: "Knight of Valor", "Plains", "Plains"
+  battlefield B: "Hill Giant", "Grizzly Bears"
+  turn 1 A: attack "Knight of Valor"
+  turn 1 B: block "Knight of Valor" with "Hill Giant"
+  turn 1 declare_blockers A: activate "Knight of Valor"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert power "Grizzly Bears" 2
+}

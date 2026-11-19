@@ -1428,10 +1428,28 @@ pub fn graveyard_target(f: &Filter, who: Who) -> String {
     let named = if f.same.is_some() { " named this" } else { "" };
     let mut g = f.clone();
     g.same = None;
+    // "creature card with mana value X or less": the mana value after the
+    // noun.
+    let mut mv = String::new();
+    if f.same.is_none()
+        && f.or.is_none()
+        && let Some((cmp, n)) = g.mana_value.take()
+    {
+        let n = if g.status.mana_value_x {
+            "X".to_string()
+        } else {
+            n.to_string()
+        };
+        g.status.mana_value_x = false;
+        mv = format!(" with mana value {n}{}", cmp_suffix(cmp));
+    }
     if g == Filter::default() {
-        format!("target card{named} from {whose} graveyard")
+        format!("target card{named}{mv} from {whose} graveyard")
     } else {
-        format!("target {} card{named} from {whose} graveyard", filter(&g))
+        format!(
+            "target {} card{named}{mv} from {whose} graveyard",
+            filter(&g)
+        )
     }
 }
 
@@ -1511,7 +1529,10 @@ fn filter_one(f: &Filter) -> String {
     if f.blocking {
         words.push("blocking".to_string());
     }
-    if f.damaged {
+    if let Some(b) = f.status.blocked {
+        words.push(if b { "blocked" } else { "unblocked" }.to_string());
+    }
+    if f.damaged && !f.damaged_short {
         words.push("damaged".to_string());
     }
     if let Some(cc) = f.color_count {
@@ -1545,7 +1566,14 @@ fn filter_one(f: &Filter) -> String {
         }
     }
     if let Some((cmp, n)) = f.mana_value {
-        words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
+        if f.status.mana_value_x {
+            words.push(format!("with mana value X{}", cmp_suffix(cmp)));
+        } else {
+            words.push(format!("with mana value {n}{}", cmp_suffix(cmp)));
+        }
+    }
+    if let Some(e) = f.status.enchanted {
+        words.push(if e { "with aura" } else { "without aura" }.to_string());
     }
     if !f.keywords.is_empty() {
         words.push(format!("with {}", keywords(&f.keywords)));
@@ -1572,6 +1600,29 @@ fn filter_one(f: &Filter) -> String {
     }
     if f.no_abilities {
         words.push("with no abilities".to_string());
+    }
+    if f.damaged_short {
+        words.push("dealt damage this turn".to_string());
+    }
+    if let Some(r) = f.combat_with {
+        words.push(
+            match r {
+                crate::ast::CombatRef::BlockingThis => "blocking this",
+                crate::ast::CombatRef::BlockedByThis => "blocked by this",
+                crate::ast::CombatRef::BlockedByIt => "blocked by it",
+                crate::ast::CombatRef::BlockingOrBlockedByThis => "blocking or blocked by this",
+            }
+            .to_string(),
+        );
+    }
+    if f.status.entered_this_turn {
+        words.push("that entered this turn".to_string());
+    }
+    if f.status.dealt_damage {
+        words.push("that dealt damage this turn".to_string());
+    }
+    if f.status.blocked_this_turn {
+        words.push("that blocked this turn".to_string());
     }
     match f.attached_to {
         Some(crate::ast::AttachedRef::Source) => words.push("attached to this".to_string()),

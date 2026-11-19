@@ -1747,6 +1747,22 @@ impl GameState {
         } else {
             max_x
         };
+        // "with mana value X": only an X some object fits (the targets
+        // that follow must be chosen, CR 601.2c).
+        let x_specs: SmallVec<[TargetSpec; 2]> = self
+            .targets_of(spell)
+            .iter()
+            .copied()
+            .filter(|s| {
+                !matches!(s, TargetSpec::UpTo(_))
+                    && match self.pool.base_spec(*s) {
+                        TargetSpec::Filtered(f) | TargetSpec::GraveyardCard { filter: f, .. } => {
+                            self.pool.filter(f).status.mana_value_x
+                        }
+                        _ => false,
+                    }
+            })
+            .collect();
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
                 self.payable(
@@ -1758,8 +1774,24 @@ impl GameState {
                     None,
                 )
             })
+            .filter(|x| x_specs.iter().all(|s| self.x_fits(caster, *s, spell, *x)))
             .map(Choice::X)
             .collect()
+    }
+
+    /// Whether some object is a legal target for `spec` of `spell` with X
+    /// as `x`.
+    fn x_fits(&self, caster: PlayerId, spec: TargetSpec, spell: ObjId, x: u32) -> bool {
+        let fits = |id: &ObjId| {
+            *id != spell
+                && self.is_legal_target_x(caster, spec, Target::Object(*id), Some(spell), Some(x))
+        };
+        if self.pool.base_spec(spec).is_graveyard() {
+            self.players_in_game()
+                .any(|p| self.player(p).graveyard.iter().any(fits))
+        } else {
+            self.battlefield.iter().any(fits)
+        }
     }
 
     /// The damage or counters `spell` divides among its variable target
@@ -3247,6 +3279,7 @@ impl GameState {
                     self.characteristics(*id).is_some_and(|c| {
                         filter.matches(*id, o.controller, &c, source, Some(ctx.controller))
                     }) && self.status_ok(filter, *id)
+                        && self.combat_with_ok(filter.combat_with, source, *id)
                 })
                 .map(Target::Object),
         );
@@ -5031,6 +5064,23 @@ impl GameState {
             Some(l) if self.characteristics(id).is_none() => l.object.controller,
             _ => self.objects[id].controller,
         };
+        // "If it was dealt damage this turn": the damage marked on it, as
+        // it last existed if it has left (CR 608.2h).
+        if filter.damaged {
+            let damaged = |o: &crate::state::GameObject| o.damage > 0 || o.deathtouch_damage;
+            let on_battlefield = self
+                .objects
+                .get(id)
+                .is_some_and(|o| o.zone == Zone::Battlefield);
+            let was = if on_battlefield {
+                damaged(&self.objects[id])
+            } else {
+                self.lki.get(&id).is_some_and(|l| damaged(&l.object))
+            };
+            if !was {
+                return false;
+            }
+        }
         self.characteristics_or_lki(id).is_some_and(|c| {
             filter.matches(id, controller, &c, Some(ctx.source), Some(ctx.controller))
         })

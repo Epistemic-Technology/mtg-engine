@@ -1,0 +1,6 @@
+card "Venomous Vines" {
+  oracle_id 6a3052a1-7a0b-4364-883d-cd2abca39c06
+  cost {2}{G}{G}
+  type Sorcery
+  spell: destroy target permanent with aura
+}

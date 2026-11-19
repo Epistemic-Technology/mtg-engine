@@ -1,0 +1,6 @@
+card "Sizzling Barrage" {
+  oracle_id 26a55f91-91a1-4a1e-86fe-6551fd64ea87
+  cost {1}{R}
+  type Instant
+  spell: deal 4 damage to target creature that blocked this turn
+}
