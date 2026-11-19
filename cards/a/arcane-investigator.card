@@ -1,0 +1,11 @@
+card "Arcane Investigator" {
+  oracle_id 19b229c4-1c21-4c7c-a25e-4e8c1cd4ed4b
+  cost {1}{U}
+  type Creature — Elf Wizard
+  pt 2/1
+  label "Search the Room" activated {5}{U} {
+    roll d20
+    result 1 to 9: draw 1 card
+    result 10 to 20: dig 3 take card rest bottom
+  }
+}

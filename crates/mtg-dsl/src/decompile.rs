@@ -241,6 +241,7 @@ impl Decompiler<'_> {
             life: c.life,
             discard: c.discard,
             discard_x: c.discard_x,
+            discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: (c.loyalty != 0).then_some(c.loyalty),
             sacrifice: c.sacrifice.as_ref().map(|s| match s {
@@ -398,6 +399,7 @@ impl Decompiler<'_> {
             CoreRecipient::SameObject => Recipient::SameObject,
             CoreRecipient::CreatedObject => Recipient::CreatedObject,
             CoreRecipient::Group(i) => Recipient::Group(i),
+            CoreRecipient::RandomOf(i) => Recipient::RandomOf(i),
             CoreRecipient::TargetAndGroup(t, i) => Recipient::TargetAnd(t, i),
             CoreRecipient::Attached => Recipient::Attached,
             CoreRecipient::BlockingIt => Recipient::BlockingIt,
@@ -431,6 +433,13 @@ impl Decompiler<'_> {
                     label: None,
                     effects: self.sentences(alt),
                 }]));
+                continue;
+            }
+            if let CoreEffect::FlipCoin { won } = e
+                && !won.is_empty()
+            {
+                out.push(Sentence::new(vec![Effect::FlipCoin]));
+                out.push(Sentence::new(vec![Effect::IfWonFlip(self.sentences(won))]));
                 continue;
             }
             out.push(Sentence::new(vec![self.effect(e)]));
@@ -611,9 +620,27 @@ impl Decompiler<'_> {
                 to: r(*to),
             },
             CoreEffect::RevealHand { who } => Effect::RevealHand { who: r(*who) },
+            CoreEffect::RevealRandom { who } => Effect::RevealRandom { who: r(*who) },
             CoreEffect::DiscardRandom { count, who } => Effect::DiscardRandom {
                 count: *count,
-                who: r(*who),
+                who: Some(r(*who)),
+                another: false,
+            },
+            CoreEffect::FlipCoin { .. } => Effect::FlipCoin,
+            CoreEffect::Vote { options } => {
+                Effect::Vote((1..=*options).map(|i| format!("choice{i}")).collect())
+            }
+            CoreEffect::VoteReturn { filter } => Effect::VoteReturn(self.filter(filter)),
+            CoreEffect::RollDie { sides, rows } => Effect::RollDie {
+                sides: u32::from(*sides),
+                rows: rows
+                    .iter()
+                    .map(|row| crate::ast::DieRow {
+                        lo: u32::from(row.lo),
+                        hi: (row.hi != u8::MAX).then_some(u32::from(row.hi)),
+                        effects: self.sentences(&row.effects),
+                    })
+                    .collect(),
             },
             CoreEffect::DiscardChosen {
                 who,
@@ -955,6 +982,8 @@ impl Decompiler<'_> {
                 Trigger::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
+            TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
+            TriggerSpec::WinsFlip { whose } => Trigger::WinsFlip { whose: *whose },
             TriggerSpec::CastsSpell {
                 whose,
                 noncreature,
@@ -1153,6 +1182,9 @@ impl Decompiler<'_> {
             AbilityDef::HandSize { whose, delta } => Ability::HandSize {
                 whose: *whose,
                 delta: *delta,
+            },
+            AbilityDef::ExtraVote { optional } => Ability::ExtraVote {
+                optional: *optional,
             },
             AbilityDef::CostChange(c) => Ability::CostChange {
                 filter: self.filter(&c.spells),

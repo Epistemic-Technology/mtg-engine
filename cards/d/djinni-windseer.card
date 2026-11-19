@@ -1,0 +1,13 @@
+card "Djinni Windseer" {
+  oracle_id f06cecd4-8447-4351-9dfa-861afb84f1e6
+  cost {3}{U}
+  type Creature — Djinn
+  pt 3/3
+  keywords flying
+  triggered when this enters {
+    roll d20
+    result 1 to 9: scry 1
+    result 10 to 19: scry 2
+    result 20: scry 3
+  }
+}

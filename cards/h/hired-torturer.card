@@ -1,0 +1,8 @@
+card "Hired Torturer" {
+  oracle_id b1ad2fd3-9f39-49e7-92c5-57ab0e1da5b7
+  cost {2}{B}
+  type Creature — Human Rogue
+  pt 2/3
+  keywords defender
+  activated {3}{B}, {T}: target opponent loses 2 life then reveals 1 card at random from hand
+}

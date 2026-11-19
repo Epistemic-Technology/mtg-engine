@@ -128,6 +128,17 @@ pub enum Event {
         delta: i32,
         life: i32,
     },
+    /// A player flipped a coin (CR 705) and won or lost the flip.
+    FlippedCoin {
+        player: PlayerId,
+        won: bool,
+    },
+    /// A player rolled a die (CR 706): its number of sides and the result.
+    RolledDie {
+        player: PlayerId,
+        sides: u8,
+        result: u8,
+    },
     Destroyed {
         obj: ObjId,
         def: CardRef,
@@ -281,7 +292,7 @@ impl Event {
     pub fn watch_bit(&self) -> u16 {
         use crate::card::{
             WATCH_ATTACK, WATCH_BLOCK, WATCH_CAST, WATCH_CYCLE, WATCH_DAMAGE, WATCH_DISCARD,
-            WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_STEP_BEGIN, WATCH_TAP,
+            WATCH_DRAW, WATCH_FACE_UP, WATCH_LIFE_CHANGE, WATCH_ROLL, WATCH_STEP_BEGIN, WATCH_TAP,
             WATCH_TARGETED, WATCH_ZONE_CHANGE,
         };
         match self {
@@ -298,6 +309,7 @@ impl Event {
             Event::Draw { .. } => WATCH_DRAW,
             Event::Cycled { .. } => WATCH_CYCLE,
             Event::Discard { .. } => WATCH_DISCARD,
+            Event::RolledDie { .. } | Event::FlippedCoin { .. } => WATCH_ROLL,
             _ => 0,
         }
     }

@@ -1,0 +1,10 @@
+card "Farideh's Fireball" {
+  oracle_id 927d74c4-afe0-4856-9a02-c3fca9535c2f
+  cost {3}{R}{R}
+  type Instant
+  spell {
+    deal 5 damage to target creature or planeswalker; roll d20
+    result 1 to 9: deal 2 damage to each player
+    result 10 to 20: deal 2 damage to each opponent
+  }
+}

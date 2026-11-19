@@ -1,0 +1,11 @@
+card "Contact Other Plane" {
+  oracle_id a352cc67-eae8-4fa5-abba-507821c4cf47
+  cost {3}{U}
+  type Instant
+  spell {
+    roll d20
+    result 1 to 9: draw 2 cards
+    result 10 to 19: scry 2 then draw 2 cards
+    result 20: scry 3 then draw 3 cards
+  }
+}

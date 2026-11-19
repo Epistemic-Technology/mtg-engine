@@ -1,0 +1,7 @@
+card "Ghoulraiser" {
+  oracle_id 614f748b-5d31-440d-a7c0-3ba12dc63c24
+  cost {1}{B}{B}
+  type Creature — Zombie
+  pt 2/2
+  triggered when this enters: return 1 Zombie card from your graveyard to hand at random
+}

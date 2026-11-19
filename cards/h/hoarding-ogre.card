@@ -1,0 +1,12 @@
+card "Hoarding Ogre" {
+  oracle_id faeee3a7-c66c-48d8-a994-12377d3bb729
+  cost {3}{R}
+  type Creature — Ogre
+  pt 3/3
+  triggered whenever this attacks {
+    roll d20
+    result 1 to 9: create 1 "Treasure"
+    result 10 to 19: create 2 "Treasure"
+    result 20: create 3 "Treasure"
+  }
+}

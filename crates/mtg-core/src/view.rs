@@ -294,7 +294,8 @@ impl GameState {
 
     /// Resample everything hidden from `viewer` consistently with what the
     /// viewer knows (design §4.8): the opponent's hand is redrawn from
-    /// their hand and library together, and every library is shuffled.
+    /// their hand and library together, every library is shuffled, and
+    /// the random number generator is reseeded.
     /// Object identities are kept; only zones and orders change. Valid at a
     /// point where the viewer is to act.
     pub fn determinize(&mut self, viewer: PlayerId, seed: u64) {
@@ -321,6 +322,11 @@ impl GameState {
             self.players[i].hand = unknown;
             self.players[i].library = library;
         }
+        // The viewer can't know what later shuffles, die rolls, or random
+        // choices will come up either: the generator they draw on is
+        // resampled too, so a search sees each chance outcome as a draw
+        // from its distribution rather than the real game's next number.
+        self.rng = rand_chacha::ChaCha8Rng::seed_from_u64(rand::Rng::random(&mut rng));
         self.bump();
     }
 }
@@ -354,5 +360,32 @@ mod tests {
         assert!(e.state().visible_to(PlayerId(0), own));
         assert!(!e.state().visible_to(PlayerId(0), theirs));
         assert!(!e.state().visible_to(PlayerId(1), own));
+    }
+
+    /// A search mustn't know the real game's next die roll or coin flip:
+    /// determinizing resamples the random number generator too.
+    #[test]
+    fn determinize_resamples_the_generator() {
+        let pool = Arc::new(test_pool());
+        let forest = pool.lookup("Forest").unwrap();
+        let cfg = GameConfig {
+            decks: vec![vec![forest; 20], vec![forest; 20]],
+            starting_life: 20,
+            seed: 1,
+            logging: false,
+        };
+        let real = Engine::new(pool, &cfg);
+        let mut a = real.clone();
+        let mut b = real.clone();
+        a.determinize(PlayerId(0), 7);
+        b.determinize(PlayerId(0), 7);
+        assert!(
+            a.state().rng == b.state().rng,
+            "the same seed resamples alike"
+        );
+        assert_ne!(a.state().rng, real.state().rng);
+        let mut c = real.clone();
+        c.determinize(PlayerId(0), 8);
+        assert_ne!(a.state().rng, c.state().rng);
     }
 }

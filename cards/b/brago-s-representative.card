@@ -1,0 +1,7 @@
+card "Brago's Representative" {
+  oracle_id 8877b896-8458-4828-9ff6-9e0ecc180cf7
+  cost {2}{W}
+  type Creature — Human Advisor
+  pt 1/4
+  extra vote
+}

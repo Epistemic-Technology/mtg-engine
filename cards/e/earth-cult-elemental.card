@@ -1,0 +1,12 @@
+card "Earth-Cult Elemental" {
+  oracle_id 043d8dee-379f-4706-ad47-0bb562717007
+  cost {4}{R}{R}
+  type Creature — Elemental
+  pt 6/6
+  label "Siege Monster" triggered when this enters {
+    roll d20
+    result 1 to 9: each player sacrifices 1 permanent
+    result 10 to 19: each opponent sacrifices 1 permanent
+    result 20: each opponent sacrifices 2 permanent
+  }
+}

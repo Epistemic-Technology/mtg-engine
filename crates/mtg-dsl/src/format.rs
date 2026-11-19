@@ -239,6 +239,10 @@ impl Fmt {
                 let group = self.recipient(Recipient::Group(i), targets);
                 format!("{first} and {group}")
             }
+            Recipient::RandomOf(i) => match self.groups.get(usize::from(i)) {
+                Some(f) => format!("random {}", filter(f)),
+                None => "random permanent".to_string(),
+            },
             Recipient::Group(i) => {
                 let text = match self.groups.get(usize::from(i)) {
                     Some(f) if f.all => filter(f),
@@ -783,8 +787,33 @@ impl Fmt {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
             }
             Effect::RevealHand { who } => format!("{} reveals hand", self.recipient(*who, t)),
+            Effect::RevealRandom { who } => format!(
+                "{} reveals 1 card at random from hand",
+                self.recipient(*who, t)
+            ),
             Effect::LookAtHand { who } => format!("look at hand of {}", self.recipient(*who, t)),
-            Effect::DiscardRandom { count, who } => format!(
+            Effect::RollDie { sides, .. } => format!("roll d{sides}"),
+            Effect::FlipCoin => "flip coin".to_string(),
+            Effect::Vote(words) => format!("vote {}", words.join(" or ")),
+            Effect::VoteReturn(f) => format!("vote return {} card", filter(f)),
+            Effect::IfWonFlip(inner) => format!("if you win the flip, {}", self.line(inner, t)),
+            Effect::ChooseTarget(r) => format!("choose {}", self.recipient(*r, t)),
+            Effect::DiscardRandom {
+                count, who: None, ..
+            } => format!("discard {} cards at random", num(*count)),
+            Effect::DiscardRandom {
+                who: Some(who),
+                another: true,
+                ..
+            } => format!(
+                "{} discards another card at random",
+                self.recipient(*who, t)
+            ),
+            Effect::DiscardRandom {
+                count,
+                who: Some(who),
+                ..
+            } => format!(
                 "{} discards {} cards at random",
                 self.recipient(*who, t),
                 num(*count)
@@ -1030,6 +1059,9 @@ impl Fmt {
                     }
                     ChooseAct::ReturnFromGraveyard => {
                         format!("return {n} {f} {cs} from your graveyard to hand chosen")
+                    }
+                    ChooseAct::ReturnRandomFromGraveyard => {
+                        format!("return {n} {f} {cs} from your graveyard to hand at random")
                     }
                     ChooseAct::MilledToHand => format!(
                         "put {n} {f} {cs} from among {} into hand chosen",
@@ -1344,6 +1376,7 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
             }
         }
         CountExpr::LifeLostThisWay => "life lost this way".to_string(),
+        CountExpr::Votes { word, .. } => format!("votes for {word}"),
         CountExpr::Domain => "domain".to_string(),
         CountExpr::CardsInHand => "hand".to_string(),
         CountExpr::CardsInGraveyard(None) => "graveyard".to_string(),
@@ -2011,6 +2044,11 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
                 trigger_obj(o)
             )
         }
+        Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
+        Trigger::RollsDice { whose } => match whose {
+            Who::You => "whenever you roll dice".to_string(),
+            _ => "whenever a player rolls dice".to_string(),
+        },
         Trigger::GainsLife { whose } => match whose {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
@@ -2146,9 +2184,10 @@ fn cost_text(c: &Cost) -> String {
                     parts.push(format!("discard {} card", filter(f)));
                 } else if c.discard > 0 {
                     parts.push(format!(
-                        "discard {} {}",
+                        "discard {} {}{}",
                         c.discard,
-                        if c.discard == 1 { "card" } else { "cards" }
+                        if c.discard == 1 { "card" } else { "cards" },
+                        if c.discard_random { " at random" } else { "" }
                     ));
                 }
             }
@@ -2319,7 +2358,11 @@ fn body(
         mentioned: vec![false; targets.len()],
         groups: groups.to_vec(),
     };
-    if ss.iter().any(|s| s.para) {
+    let rows_of = |s: &Sentence| match s.effects.last() {
+        Some(Effect::RollDie { rows, .. }) if !rows.is_empty() => Some(rows.clone()),
+        _ => None,
+    };
+    if ss.iter().any(|s| s.para || rows_of(s).is_some()) {
         let _ = writeln!(out, "{indent}{head} {{");
         let mut line: Vec<String> = Vec::new();
         for s in ss {
@@ -2328,6 +2371,23 @@ fn body(
                 line.clear();
             }
             line.push(f.sentence(s, targets));
+            // A roll's results table: a `result` line per row (CR 706.3).
+            if let Some(rows) = rows_of(s) {
+                let _ = writeln!(out, "{indent}  {}", line.join("; "));
+                line.clear();
+                for row in &rows {
+                    let range = match row.hi {
+                        Some(hi) if hi == row.lo => format!("{hi}"),
+                        Some(hi) => format!("{} to {hi}", row.lo),
+                        None => format!("{} or more", row.lo),
+                    };
+                    let _ = writeln!(
+                        out,
+                        "{indent}  result {range}: {}",
+                        f.line(&row.effects, targets)
+                    );
+                }
+            }
         }
         if !line.is_empty() {
             let _ = writeln!(out, "{indent}  {}", line.join("; "));
@@ -2901,6 +2961,13 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
         }
         Ability::DeckAnyNumber => {
             let _ = writeln!(out, "{indent}deck any number");
+        }
+        Ability::ExtraVote { optional } => {
+            let _ = writeln!(
+                out,
+                "{indent}extra vote{}",
+                if *optional { " may" } else { "" }
+            );
         }
         Ability::HandSize { whose, delta } => {
             let who = if *whose == Who::Opponents {

@@ -1,0 +1,13 @@
+card "Sylvan Shepherd" {
+  oracle_id ae9f4b85-46ed-4a1a-ada4-54ce56f41815
+  cost {2}{G}
+  type Creature — Human Druid
+  pt 2/3
+  keywords vigilance
+  triggered whenever this attacks {
+    roll d20
+    result 1 to 9: you gain 1 life
+    result 10 to 19: you gain 2 life
+    result 20: you gain 5 life
+  }
+}

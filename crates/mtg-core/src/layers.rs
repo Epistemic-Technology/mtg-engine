@@ -803,6 +803,7 @@ fn per_count(
         | CountExpr::TargetStat { .. }
         | CountExpr::ThisWay(..)
         | CountExpr::LifeLostThisWay
+        | CountExpr::Votes(_)
         | CountExpr::BlockingIt { .. }
         | CountExpr::TargetManaValue(_)
         | CountExpr::GreatestPower(_)

@@ -171,6 +171,9 @@ pub enum Chosen {
     Color(crate::mana::Color),
     /// A creature type or basic land type.
     Subtype(crate::card::Subtype),
+    /// A resolution's vote (CR 701.38): the votes for each of its two
+    /// choices.
+    Votes([u8; 2]),
 }
 
 impl Chosen {

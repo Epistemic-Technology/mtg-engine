@@ -1,0 +1,7 @@
+card "Ballot Broker" {
+  oracle_id e8df915f-f509-4c6c-9261-a5a16c3f06c5
+  cost {2}{W}
+  type Creature — Human Advisor
+  pt 2/3
+  extra vote may
+}

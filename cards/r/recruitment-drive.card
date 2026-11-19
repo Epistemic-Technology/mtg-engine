@@ -1,0 +1,11 @@
+card "Recruitment Drive" {
+  oracle_id d37e37d7-ce66-42cb-862e-fc5c414cfeb6
+  cost {2}{W}
+  type Sorcery
+  spell {
+    roll d20
+    result 1 to 9: create 2 "1/1 white Soldier creature"
+    result 10 to 19: create 2 "2/2 white Knight creature"
+    result 20: create 3 "2/2 white Knight creature"
+  }
+}

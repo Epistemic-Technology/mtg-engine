@@ -632,6 +632,20 @@ impl GameState {
         self.bump();
     }
 
+    /// `p` rolls a `sides`-sided die (CR 706.1a): a result from 1 to
+    /// `sides`, equally likely, from the game's random number generator
+    /// (as a shuffle draws on it, so a game replays from its seed and a
+    /// search resamples it with the hidden cards, `GameState::determinize`).
+    pub(super) fn roll_die(&mut self, p: PlayerId, sides: u8) -> u8 {
+        let result = rand::Rng::random_range(&mut self.rng, 1..=sides.max(1));
+        self.emit(Event::RolledDie {
+            player: p,
+            sides,
+            result,
+        });
+        result
+    }
+
     /// Draw a card (CR 121.1), subject to replacement effects (CR 614.11).
     pub(super) fn draw(&mut self, p: PlayerId) {
         self.propose(Proposed::Draw { player: p });

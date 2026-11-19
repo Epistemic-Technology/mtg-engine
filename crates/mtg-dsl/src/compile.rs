@@ -694,6 +694,7 @@ impl Compiler<'_> {
                 C::ThisWay(*verb, filter.as_ref().map(|f| self.filter(f)))
             }
             A::LifeLostThisWay => C::LifeLostThisWay,
+            A::Votes { index, .. } => C::Votes(*index),
             A::BlockingIt { beyond } => C::BlockingIt { beyond: *beyond },
             A::GreatestPower(f) => C::GreatestPower(self.filter(f)),
             A::Party => {
@@ -782,6 +783,7 @@ impl Compiler<'_> {
             life: c.life,
             discard: c.discard,
             discard_x: c.discard_x,
+            discard_random: c.discard_random,
             discard_filter: c.discard_filter.as_ref().map(|f| self.filter(f)),
             loyalty: c.loyalty.unwrap_or(0),
             tap: c.tap,
@@ -796,6 +798,7 @@ impl Compiler<'_> {
     fn recipient(groups: &[u16], many: Option<usize>, r: Recipient) -> CoreRecipient {
         match r {
             Recipient::Group(i) => CoreRecipient::Group(groups[usize::from(i)]),
+            Recipient::RandomOf(i) => CoreRecipient::RandomOf(groups[usize::from(i)]),
             Recipient::TargetAnd(t, i) => CoreRecipient::TargetAndGroup(t, groups[usize::from(i)]),
             // A variable group: its targets to the end of the list.
             Recipient::Target(i) if Some(i) == many => {
@@ -1145,13 +1148,50 @@ impl Compiler<'_> {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
             }),
+            Effect::RevealRandom { who } => out.push(CoreEffect::RevealRandom { who: r(*who) }),
             Effect::RevealHand { who } | Effect::LookAtHand { who } => {
                 out.push(CoreEffect::RevealHand { who: r(*who) });
             }
-            Effect::DiscardRandom { count, who } => out.push(CoreEffect::DiscardRandom {
+            Effect::DiscardRandom { count, who, .. } => out.push(CoreEffect::DiscardRandom {
                 count: *count,
-                who: r(*who),
+                who: r(who.unwrap_or(Recipient::You)),
             }),
+            Effect::RollDie { sides, rows } => {
+                let Ok(sides) = u8::try_from(*sides) else {
+                    return self.err("a die has at most 255 sides");
+                };
+                let mut core_rows = Vec::with_capacity(rows.len());
+                for row in rows {
+                    let byte = |n: u32| u8::try_from(n).unwrap_or(u8::MAX);
+                    core_rows.push(mtg_core::card::DieRow {
+                        lo: byte(row.lo),
+                        hi: row.hi.map_or(u8::MAX, byte),
+                        effects: self.sentences(&row.effects)?,
+                    });
+                }
+                out.push(CoreEffect::RollDie {
+                    sides,
+                    rows: core_rows,
+                });
+            }
+            // Wording: the target is the ability's, chosen as it is put on
+            // the stack.
+            Effect::ChooseTarget(_) => {}
+            Effect::FlipCoin => out.push(CoreEffect::FlipCoin { won: Vec::new() }),
+            Effect::Vote(words) => out.push(CoreEffect::Vote {
+                options: u8::try_from(words.len()).unwrap_or(u8::MAX),
+            }),
+            Effect::VoteReturn(f) => out.push(CoreEffect::VoteReturn {
+                filter: self.filter(f),
+            }),
+            // What winning the flip just before does.
+            Effect::IfWonFlip(inner) => {
+                let then = self.sentences(inner)?;
+                match out.last_mut() {
+                    Some(CoreEffect::FlipCoin { won }) if won.is_empty() => *won = then,
+                    _ => return self.err("`if you win the flip` needs a `flip coin` before it"),
+                }
+            }
             Effect::DiscardChosen {
                 who, filter, may, ..
             } => {
@@ -1523,6 +1563,8 @@ impl Compiler<'_> {
                 TriggerSpec::DealsCombatDamageToPlayer(self.trigger_obj(o))
             }
             Trigger::GainsLife { whose } => TriggerSpec::GainsLife { whose: *whose },
+            Trigger::RollsDice { whose } => TriggerSpec::RollsDice { whose: *whose },
+            Trigger::WinsFlip { whose } => TriggerSpec::WinsFlip { whose: *whose },
             Trigger::CastsSpell {
                 whose,
                 noncreature,
@@ -2146,6 +2188,9 @@ impl Compiler<'_> {
             Ability::HandSize { whose, delta } => AbilityDef::HandSize {
                 whose: *whose,
                 delta: *delta,
+            },
+            Ability::ExtraVote { optional } => AbilityDef::ExtraVote {
+                optional: *optional,
             },
             Ability::SelfCost { .. }
             | Ability::TargetCost { .. }

@@ -547,6 +547,10 @@ impl GameState {
             (TriggerSpec::GainsLife { whose }, Event::LifeChange { player, delta, .. }) => {
                 (*delta > 0 && whose_ok(*whose, *player)).then_some((None, Some(*player)))
             }
+            (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
+            | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
+                whose_ok(*whose, *player).then_some((None, Some(*player)))
+            }
             (TriggerSpec::BecomesTarget(what), Event::Targeted { target: obj, .. })
             | (TriggerSpec::BecomesTapped(what), Event::Tapped { obj })
             | (TriggerSpec::BecomesUntapped(what), Event::Untapped { obj })

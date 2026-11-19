@@ -1,0 +1,6 @@
+card "Molten Birth" {
+  oracle_id aeaae9cc-f30f-4d7e-86f3-3132ef47e987
+  cost {1}{R}{R}
+  type Sorcery
+  spell: create 2 "1/1 red Elemental creature" then flip coin; if you win the flip, return this to its owner's hand
+}

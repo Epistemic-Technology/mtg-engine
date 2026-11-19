@@ -1,0 +1,7 @@
+card "Pardic Swordsmith" {
+  oracle_id 946d770f-0a59-415b-b334-8f7353b96046
+  cost {2}{R}
+  type Creature — Dwarf
+  pt 1/1
+  activated {R}, discard 1 card at random: this gets +2/+0
+}

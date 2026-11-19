@@ -1,0 +1,6 @@
+card "Haunted Fengraf" {
+  oracle_id 7c6143f3-ad2c-4d7f-9041-aa59f01d8fb7
+  type Land
+  mana {C}
+  activated {3}, {T}, sacrifice this: return 1 creature card from your graveyard to hand at random
+}

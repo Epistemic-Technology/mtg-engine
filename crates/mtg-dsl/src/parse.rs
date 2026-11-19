@@ -12,9 +12,9 @@ use thiserror::Error;
 
 use crate::ast::{
     Ability, Affects, AttachedRef, BlockRule, Card, CdaCount, ChoiceKind, Cost, CostItem,
-    DamageWording, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind, LibraryPlace,
-    LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces, Restrict,
-    SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
+    DamageWording, DieRow, Effect, Except, Filter, InsteadCond, InsteadWording, Join, Kind,
+    LibraryPlace, LibraryWording, Mechanic, Mod, Mode, OfChosen, Recipient, Replacement, Replaces,
+    Restrict, SacCost, SameRef, Sentence, StaticCond, Target, Trigger, TriggerObj,
 };
 use crate::lex::{Spanned, Tok, lex};
 
@@ -47,6 +47,7 @@ pub fn parse(text: &str) -> R<Vec<Card>> {
         delayed_that: false,
         in_trigger: false,
         subject: None,
+        votes: Vec::new(),
     };
     let mut cards = Vec::new();
     loop {
@@ -430,6 +431,9 @@ fn step_by_name(w: &str) -> Option<Step> {
 struct P {
     toks: Vec<Spanned>,
     pos: usize,
+    /// The choices of the vote in the ability being parsed, for `votes for
+    /// <choice>` counts.
+    votes: Vec<String>,
     /// Targets declared so far in the ability being parsed.
     targets: Vec<Target>,
     /// Group recipients declared so far in the card being parsed.
@@ -1033,6 +1037,7 @@ impl P {
     #[allow(clippy::too_many_lines)]
     fn ability(&mut self) -> R<Ability> {
         self.targets.clear();
+        self.votes.clear();
         self.subject = None;
         self.in_trigger = false;
         let w = self.word_at(0).unwrap_or_default();
@@ -1121,6 +1126,12 @@ impl P {
                 };
                 self.end_stmt()?;
                 Ok(Ability::Protection(filter))
+            }
+            "extra" if self.word_at(1).as_deref() == Some("vote") => {
+                self.pos += 2;
+                let optional = self.eat_word("may");
+                self.end_stmt()?;
+                Ok(Ability::ExtraVote { optional })
             }
             "deck" if self.at_words(&["deck", "any", "number"]) => {
                 self.pos += 3;
@@ -2137,6 +2148,17 @@ impl P {
                     if self.at_end() {
                         return self.fail("unterminated block");
                     }
+                    // `result 1 to 9: <effects>`: a row of the results
+                    // table of the roll just before (CR 706.3a).
+                    if self.at_word("result") {
+                        let row = self.die_row()?;
+                        match out.last_mut().and_then(|s| s.effects.last_mut()) {
+                            Some(Effect::RollDie { rows, .. }) => rows.push(row),
+                            _ => return self.fail("a `result` line needs a `roll` before it"),
+                        }
+                        self.end_stmt()?;
+                        continue;
+                    }
                     let mut line = self.sentences_inline()?;
                     if !out.is_empty() {
                         line[0].para = true;
@@ -2148,6 +2170,26 @@ impl P {
             }
             _ => self.unexpected("`:` or `{`"),
         }
+    }
+
+    /// `result 1 to 9: <effects>`, `result 20: ...`, `result 20 or more:
+    /// ...`.
+    fn die_row(&mut self) -> R<DieRow> {
+        self.expect_word("result")?;
+        let lo = self.number()?;
+        let hi = if self.eat_word("to") {
+            Some(self.number()?)
+        } else if self.eat_words(&["or", "more"]) {
+            None
+        } else {
+            Some(lo)
+        };
+        if hi.is_some_and(|h| h < lo) {
+            return self.fail("a result range runs low to high");
+        }
+        self.expect(&Tok::Colon)?;
+        let effects = self.sentences_inline()?;
+        Ok(DieRow { lo, hi, effects })
     }
 
     /// Sentences separated by `;` up to the end of the line.
@@ -2686,6 +2728,17 @@ impl P {
             self.subject = saved;
             return Ok(Effect::IfYouDo(vec![s]));
         }
+        // "If you win the flip, ..." after "flip a coin" (CR 705.2).
+        if self.at_words(&["if", "you", "win", "the", "flip"]) {
+            self.pos += 5;
+            if self.peek() == Some(&Tok::Comma) {
+                self.pos += 1;
+            }
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfWonFlip(vec![s]));
+        }
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
         }
@@ -2916,6 +2969,15 @@ impl P {
                     filter,
                 })
             }
+            // "reveals a card at random from their hand".
+            "reveal" | "reveals"
+                if matches!(self.peek(), Some(Tok::Num(1)))
+                    && self.word_at(1).as_deref() == Some("card") =>
+            {
+                self.pos += 1;
+                self.expect_words(&["card", "at", "random", "from", "hand"])?;
+                Ok(Effect::RevealRandom { who: subject })
+            }
             "reveal" | "reveals" => {
                 self.eat_word("their");
                 self.expect_word("hand")?;
@@ -2952,6 +3014,14 @@ impl P {
                 if let Some(e) = self.discard_all(Some(subject))? {
                     return Ok(e);
                 }
+                // "Then that player discards another card at random".
+                if self.eat_words(&["another", "card", "at", "random"]) {
+                    return Ok(Effect::DiscardRandom {
+                        count: Num::N(1),
+                        who: Some(subject),
+                        another: true,
+                    });
+                }
                 let count = self.num()?;
                 self.cards_word()?;
                 if let Some(filter) = self.discard_unless()? {
@@ -2964,7 +3034,8 @@ impl P {
                 if self.eat_words(&["at", "random"]) {
                     return Ok(Effect::DiscardRandom {
                         count,
-                        who: subject,
+                        who: Some(subject),
+                        another: false,
                     });
                 }
                 Ok(Effect::Discard {
@@ -3312,6 +3383,9 @@ impl P {
                 Some("chosen") => {
                     return verb != "return" || hand || self.word_at(1).as_deref() == Some("up");
                 }
+                // `return 1 Zombie card from your graveyard to hand at
+                // random`.
+                Some("random") if verb == "return" && hand => return true,
                 Some("hand") => hand = true,
                 Some(w) if VERBS.contains(&w) => return false,
                 _ => {}
@@ -3376,7 +3450,12 @@ impl P {
                 (ChooseAct::MilledToHand, f)
             }
         };
-        self.expect_word("chosen")?;
+        let act = if act == ChooseAct::ReturnFromGraveyard && self.eat_words(&["at", "random"]) {
+            ChooseAct::ReturnRandomFromGraveyard
+        } else {
+            self.expect_word("chosen")?;
+            act
+        };
         Ok(Effect::ChooseAct {
             act,
             count,
@@ -3474,6 +3553,46 @@ impl P {
                 ) =>
             {
                 Ok(Effect::Choose(self.choice_kind(false)?))
+            }
+            // "Choose target creature, then roll a d20.": the target
+            // named before what acts on it.
+            "choose" if self.at_word("target") => Ok(Effect::ChooseTarget(self.recipient()?)),
+            // "Roll a d20." (CR 706); its results table follows on the
+            // next lines (`result 1 to 9: ...`, see `effects_body`).
+            "flip" => {
+                self.expect_word("coin")?;
+                Ok(Effect::FlipCoin)
+            }
+            // CR 701.38: "starting with you, each player votes for ...".
+            "vote" => {
+                if self.eat_word("return") {
+                    let f = self.filter()?;
+                    self.cards_word()?;
+                    return Ok(Effect::VoteReturn(f));
+                }
+                let mut words = vec![self.word()?];
+                while self.eat_word("or") {
+                    words.push(self.word()?);
+                }
+                if words.len() != 2 {
+                    return self.fail("a vote has two choices (`vote sprout or harvest`)");
+                }
+                self.votes.clone_from(&words);
+                Ok(Effect::Vote(words))
+            }
+            "roll" => {
+                let die = self.word()?;
+                let sides = die
+                    .strip_prefix('d')
+                    .and_then(|n| n.parse::<u32>().ok())
+                    .filter(|n| (1..=255).contains(n));
+                match sides {
+                    Some(sides) => Ok(Effect::RollDie {
+                        sides,
+                        rows: Vec::new(),
+                    }),
+                    None => self.fail(format!("`roll d<N>`, not `roll {die}`")),
+                }
             }
             "deal" | "deals" => {
                 let amount = self.num()?;
@@ -3799,6 +3918,14 @@ impl P {
                         who: None,
                         count,
                         filter,
+                    });
+                }
+                // "discard a card at random": the controller.
+                if self.eat_words(&["at", "random"]) {
+                    return Ok(Effect::DiscardRandom {
+                        count,
+                        who: None,
+                        another: false,
                     });
                 }
                 Ok(Effect::Discard { count, who: None })
@@ -4288,6 +4415,17 @@ impl P {
         if let Some(c) = self.this_way_count()? {
             return Ok(c);
         }
+        // `votes for sprout`: "for each sprout vote".
+        if self.eat_words(&["votes", "for"]) {
+            let word = self.word()?;
+            let Some(index) = self.votes.iter().position(|w| *w == word) else {
+                return self.fail(format!("`{word}` is not a choice of the ability's vote"));
+            };
+            return Ok(CountExpr::Votes {
+                index: u8::try_from(index).unwrap_or(u8::MAX),
+                word,
+            });
+        }
         // `greatest power creature you control`; bare `greatest power` is
         // among creatures you control.
         if self.eat_words(&["greatest", "power"]) {
@@ -4537,6 +4675,7 @@ impl P {
             delayed_that: self.delayed_that,
             in_trigger: self.in_trigger,
             subject: None,
+            votes: self.votes.clone(),
         };
         if !probe.at_recipient() {
             return false;
@@ -4915,6 +5054,22 @@ impl P {
                 break;
             }
         }
+        // "a creature an opponent controls chosen at random".
+        if self.eat_word("random") {
+            let f = self.filter()?;
+            let i = if let Some(i) = self.groups.iter().position(|g| *g == f) {
+                i
+            } else {
+                self.groups.push(f);
+                self.groups.len() - 1
+            };
+            return Ok(Recipient::RandomOf(u16::try_from(i).map_err(|_| {
+                ParseError {
+                    line: self.line(),
+                    message: "too many groups".to_string(),
+                }
+            })?));
+        }
         // "each <filter>" / "all <filter>": every matching permanent.
         if self.at_word("each") || self.at_word("all") {
             // "Return all permanents ... to their owners' hands" against
@@ -4991,6 +5146,7 @@ impl P {
                         delayed_that: false,
                         in_trigger: false,
                         subject: None,
+                        votes: Vec::new(),
                     };
                     probe.keyword().is_some()
                 };
@@ -5784,6 +5940,18 @@ impl P {
             self.pos += 3;
             return Ok(Trigger::GainsLife { whose: Who::You });
         }
+        if self.at_words(&["you", "win", "a", "coin", "flip"]) {
+            self.pos += 5;
+            return Ok(Trigger::WinsFlip { whose: Who::You });
+        }
+        if self.at_words(&["you", "roll", "dice"]) {
+            self.pos += 3;
+            return Ok(Trigger::RollsDice { whose: Who::You });
+        }
+        if self.at_words(&["a", "player", "rolls", "dice"]) {
+            self.pos += 4;
+            return Ok(Trigger::RollsDice { whose: Who::Any });
+        }
         if self.at_words(&["a", "player", "gains", "life"]) {
             self.pos += 4;
             return Ok(Trigger::GainsLife { whose: Who::Any });
@@ -6165,6 +6333,7 @@ impl P {
                         } else if matches!(self.peek(), Some(Tok::Num(_))) {
                             cost.discard = self.count()?;
                             self.cards_word()?;
+                            cost.discard_random = self.eat_words(&["at", "random"]);
                         } else {
                             // "discard a creature card": one card matching
                             // a filter.

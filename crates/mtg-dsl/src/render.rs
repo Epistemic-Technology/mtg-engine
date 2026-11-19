@@ -937,6 +937,10 @@ impl<'a> Ctx<'a> {
                 self.groups_mentioned.insert(r);
                 format!("each {}", self.group_phrase(i, false))
             }
+            Recipient::RandomOf(i) => match self.card.groups.get(usize::from(i)) {
+                Some(f) => format!("{} chosen at random", filter_a(f, self.card)),
+                None => "a permanent chosen at random".to_string(),
+            },
             Recipient::Attached if self.attached_mentioned => "it".to_string(),
             Recipient::Attached => {
                 self.attached_mentioned = true;
@@ -1755,9 +1759,14 @@ fn cost_text(cost: &Cost, ctx: &mut Ctx) -> String {
                     parts.push(format!("Discard {}", card_filter_a(f, ctx.card)));
                 } else if cost.discard > 0 {
                     parts.push(format!(
-                        "Discard {} {}",
+                        "Discard {} {}{}",
                         count_words(Num::N(cost.discard), "a"),
-                        plural(Num::N(cost.discard), "card")
+                        plural(Num::N(cost.discard), "card"),
+                        if cost.discard_random {
+                            " at random"
+                        } else {
+                            ""
+                        }
                     ));
                 }
             }
@@ -2160,6 +2169,7 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             }
         }
         CountExpr::LifeLostThisWay => return "the life lost this way".to_string(),
+        CountExpr::Votes { word, .. } => (format!("{word} vote"), format!("{word} votes")),
         CountExpr::Party => (
             "creature in your party".to_string(),
             "creatures in your party".to_string(),
@@ -2291,6 +2301,16 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                     crate::ast::CountExpr::Times(n, _) => *n,
                     _ => 1,
                 };
+                // "put two +1/+1 counters on this creature for each ...",
+                // "put a +1/+1 counter on ... for each ...".
+                if matches!(e, Effect::AddCounters { .. }) {
+                    c.text =
+                        c.text
+                            .replacen("X ", &format!("{} ", count_words(Num::N(per), "a")), 1);
+                    if per == 1 {
+                        c.text = c.text.replacen(" counters ", " counter ", 1);
+                    }
+                }
                 c.text = c
                     .text
                     .replacen("X life", &format!("{per} life"), 1)
@@ -2877,6 +2897,64 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 token_description(token, *count, *tapped, ctx)
             ))
         }
+        Effect::ChooseTarget(r) => Clause::imperative(format!("choose {}", ctx.obj(*r))),
+        Effect::FlipCoin => Clause::imperative("flip a coin".to_string()),
+        Effect::Vote(words) => Clause::imperative(format!(
+            "starting with you, each player votes for {}",
+            or_list(words)
+        )),
+        Effect::VoteReturn(f) => Clause::imperative(format!(
+            "starting with you, each player votes for {} in your graveyard. Return each card with the most votes or tied for most votes to your hand",
+            card_filter_a(f, ctx.card)
+        )),
+        Effect::IfWonFlip(inner) => {
+            // A spell names itself again: "If you win the flip, return
+            // Molten Birth to its owner's hand."
+            if is_spell(ctx.card) {
+                ctx.source_mentioned = false;
+            }
+            let body = sentences(inner, ctx);
+            let body = if starts_with_name(&body, ctx.card) {
+                body
+            } else {
+                lowercase_first(&body)
+            };
+            Clause::imperative(format!(
+                "if you win the flip, {}",
+                body.trim_end_matches('.')
+            ))
+        }
+        Effect::RollDie { sides, rows } => {
+            // "Roll a d20." then a paragraph per row of the results table
+            // (CR 706.3a): "1—9 | ...", "20 | ...", "20+ | ...".
+            let mut text = format!("roll a d{sides}");
+            let mut first_token: Option<String> = None;
+            for (i, row) in rows.iter().enumerate() {
+                let range = match row.hi {
+                    Some(hi) if hi == row.lo => hi.to_string(),
+                    Some(hi) => format!("{}\u{2014}{hi}", row.lo),
+                    None => format!("{}+", row.lo),
+                };
+                // Each row names the source in full again ("This artifact
+                // deals 5 damage to that creature."), and a later row
+                // making the creature token the first row made prints
+                // "Create two of those tokens.".
+                ctx.source_mentioned = false;
+                ctx.those_tokens.clone_from(&first_token);
+                ctx.last_token = None;
+                let body = sentences(&row.effects, ctx);
+                if i == 0 {
+                    first_token = ctx
+                        .last_token
+                        .clone()
+                        .filter(|t| token_description(t, Num::N(1), false, ctx).contains('/'));
+                }
+                let body = body.strip_suffix('.').unwrap_or(&body);
+                let _ = write!(text, ".\n{range} | {body}");
+            }
+            ctx.those_tokens = None;
+            Clause::imperative(text)
+        }
         Effect::CreateTokenCopy { of, except } => {
             let o = ctx.obj(*of);
             let mut text = format!("create a token that's a copy of {o}");
@@ -3004,6 +3082,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("look at {whose} hand"))
         }
+        Effect::RevealRandom { who } => {
+            let s = ctx.subj(*who);
+            let (verb, their) = if *who == Recipient::You {
+                ("reveal", "your")
+            } else {
+                (ctx.verb(*who, "reveals", "reveal"), "their")
+            };
+            Clause::with_subject(
+                *who,
+                s,
+                format!("{verb} a card at random from {their} hand"),
+            )
+        }
         Effect::RevealHand { who } => {
             let s = ctx.subj(*who);
             Clause::with_subject(
@@ -3012,20 +3103,26 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 format!("{} their hand", ctx.verb(*who, "reveals", "reveal")),
             )
         }
-        Effect::DiscardRandom { count, who } => {
+        Effect::DiscardRandom {
+            count,
+            who,
+            another,
+        } => {
+            let what = if *another {
+                "another card".to_string()
+            } else if *count == Num::N(1) {
+                "a card".to_string()
+            } else {
+                format!("{} cards", count_words(*count, "a"))
+            };
+            let Some(who) = who else {
+                return Clause::imperative(format!("discard {what} at random"));
+            };
             let s = ctx.subj(*who);
             Clause::with_subject(
                 *who,
                 s,
-                format!(
-                    "{} {} at random",
-                    ctx.verb(*who, "discards", "discard"),
-                    if *count == Num::N(1) {
-                        "a card".to_string()
-                    } else {
-                        format!("{} cards", count_words(*count, "a"))
-                    }
-                ),
+                format!("{} {what} at random", ctx.verb(*who, "discards", "discard")),
             )
         }
         Effect::DiscardChosen {
@@ -3117,6 +3214,12 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 ChooseAct::ReturnFromGraveyard => {
                     format!("return {} from your graveyard to your hand", cards())
+                }
+                ChooseAct::ReturnRandomFromGraveyard => {
+                    format!(
+                        "return {} at random from your graveyard to your hand",
+                        cards()
+                    )
                 }
                 ChooseAct::MilledToHand => format!(
                     "put {} from among {} into your hand",
@@ -4357,6 +4460,11 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
                 trigger_subject(o, ctx)
             )
         }
+        Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
+        Trigger::RollsDice { whose } => match whose {
+            Who::You => "whenever you roll one or more dice".to_string(),
+            _ => "whenever a player rolls one or more dice".to_string(),
+        },
         Trigger::GainsLife { whose } => match whose {
             Who::You => "whenever you gain life".to_string(),
             _ => "whenever a player gains life".to_string(),
@@ -6072,6 +6180,12 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
         }
         Ability::DeckAnyNumber => {
             format!("A deck can have any number of cards named {}.", card.name)
+        }
+        Ability::ExtraVote { optional: false } => {
+            "While voting, you get an additional vote.".to_string()
+        }
+        Ability::ExtraVote { optional: true } => {
+            "While voting, you may vote an additional time.".to_string()
         }
         Ability::HandSize { whose, delta } => {
             let (subject, have) = if *whose == Who::Opponents {
