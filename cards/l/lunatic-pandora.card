@@ -1,0 +1,7 @@
+card "Lunatic Pandora" {
+  oracle_id 34c65c7f-33ab-4f91-84ce-d0c8f4fc5832
+  cost {1}
+  type Legendary Artifact
+  activated {2}, {T}: surveil 1
+  activated {6}, {T}, sacrifice this: destroy target nonland permanent
+}

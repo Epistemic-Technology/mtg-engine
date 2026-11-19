@@ -1,0 +1,7 @@
+card "Wall Off" {
+  oracle_id fbde72f6-a8b2-4864-ad6d-b91aa03d290e
+  cost {3}{W}
+  type Instant
+  this spell costs {1} less count each creature your opponents control
+  spell: create 1 "0/4 colorless Wall creature with defender"; you gain 4 life
+}

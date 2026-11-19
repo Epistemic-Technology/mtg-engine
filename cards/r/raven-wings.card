@@ -1,0 +1,7 @@
+card "Raven Wings" {
+  oracle_id 2d668f67-7cde-447a-8eb3-35c0c5c5ab69
+  cost {2}
+  type Artifact — Equipment
+  static equipped creature: +1/+0, has flying, add subtype Bird
+  equip {2}
+}

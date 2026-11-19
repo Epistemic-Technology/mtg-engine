@@ -1189,6 +1189,17 @@ impl GameState {
             }
             _ => MAX_X,
         };
+        // "As an additional cost to cast this spell, discard X cards": X
+        // can't exceed the other cards in hand.
+        let add = &self.pool.get(self.objects[spell].def).additional;
+        let max_x = if add.discard_x {
+            let n = self
+                .discard_candidates(caster, add.discard_filter.as_ref(), spell)
+                .len();
+            max_x.min(u32::try_from(n).unwrap_or(MAX_X))
+        } else {
+            max_x
+        };
         (0..=max_x.min(MAX_X))
             .take_while(|x| {
                 payment_plan_from(
@@ -1848,7 +1859,14 @@ impl GameState {
                 self.move_object(id, Zone::Exile, true);
             }
         }
-        self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
+        if def.additional.discard_x {
+            // "Discard X cards": as many as the X announced (CR 601.2b).
+            let mut add = def.additional.clone();
+            add.discard = x;
+            self.pay_other_costs(caster, &add, spell, sacrifice, discard);
+        } else {
+            self.pay_other_costs(caster, &def.additional, spell, sacrifice, discard);
+        }
         let n = &mut self.spells_this_turn[caster.index().min(3)];
         *n = n.saturating_add(1);
         self.emit(Event::Cast {

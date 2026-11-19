@@ -115,7 +115,9 @@ Comma-separated, printed in the order written: mana symbols (`{1}{R}`),
 `{T}`, `sacrifice this`, `sacrifice Goblin` (a filter: the player chooses
 a matching permanent they control), `discard 1 card`, `discard creature
 card` (a filter: discard one matching card, printed "Discard a creature
-card"), `discard this`, `exile this from graveyard` ("Exile this card from
+card"), `discard X cards` (a spell's additional cost: "As an additional
+cost to cast this spell, discard X cards."; X is announced as the spell
+is cast, at most the other cards in hand, CR 601.2b), `discard this`, `exile this from graveyard` ("Exile this card from
 your graveyard"; the ability is activated from the graveyard), `return
 land you control` ("Return a land you control to its owner's hand") and
 `tap untapped creature you control` ("Tap an untapped creature you
@@ -320,7 +322,10 @@ hands" where `each` prints "each permanent ... to its owner's hand".
 
 ### Modifications (static abilities)
 
-Comma-separated, each in one layer of CR 613: `+1/+1`, `base 1/1`,
+Comma-separated, printed in the order written ("gets +1/+1, has reach,
+and is a Giant in addition to its other types"; `has can't be blocked,
+has shroud` prints "can't be blocked and has shroud"), each in one layer
+of CR 613: `+1/+1`, `base 1/1`,
 `base mv` (base power and toughness each equal to its mana value),
 `has flying, trample`, `loses all abilities`, `add type creature`,
 `loses flying`, `set land Mountain`, `set land Mountain Forest Plains` ("is a
@@ -345,7 +350,11 @@ Effects are clauses. `;` separates sentences; `and` joins clauses into one
 sentence ("target player loses 1 life and you gain 1 life") and `then`
 joins them with ", then" ("draw 1 card then discard 1 card"); a clause
 after `and` may leave its subject implied ("you draw 1 card and lose 1
-life").
+life"). A list of three or more clauses separates them with `,`: `target
+opponent discards 2 cards, mills 1 card and loses 1 life` prints "Target
+opponent discards two cards, mills a card, and loses 1 life." (the last
+`and` takes the serial comma), `you draw 2 cards, lose 2 life, then mill 2
+cards` prints "..., lose 2 life, then mill two cards."
 Numbers are digits, `X`, or a count: `count where <expr>` ("X ...,
 where X is the number of ..."), `count equal <expr>` ("... equal to the
 number of ..."), or `count each <expr>` ("... for each ..."), with
@@ -457,7 +466,8 @@ the ability is about; in one about `that creature` (the triggering object),
 Who and what (`<who>`, `<what>`): `you`, `each opponent`, `each player`,
 `its controller` / `its owner` (of the last target declared),
 `this` (the source), `that player` / `that creature` (what triggered the
-ability), `defending player`, `each creature`, `each creature you control`,
+ability; in a spell or an activated ability, the player or creature
+targeted last), `defending player`, `each creature`, `each creature you control`,
 `those creatures` (the same, mentioned again), `each permanent you control`,
 `enchanted creature` / `equipped creature` / `attached` (what this Aura or
 Equipment is attached to),
@@ -466,7 +476,28 @@ Equipment is attached to),
 creature`, `each creature without flying`, `each white creature you
 control`; written singular, printed "all artifacts" after tap, destroy,
 and exile, "each creature without flying" after deal damage, and "White
-creatures you control get +2/+2" as a subject), and targets.
+creatures you control get +2/+2" as a subject; `each creature your
+opponents control`), and targets. A group is "they" again within its
+sentence and named in full in a later one ("... to each creature your
+opponents control. Creatures your opponents control can't block this
+turn."). Alternatives in the plural join with "and": `each Ninja or Rogue
+you control gains menace` prints "Ninjas and Rogues you control gain
+menace".
+
+How the source names itself (CR 201.5): `this` prints "this creature" (the
+card's own noun: "this land", "this Aura", "this Equipment"), or a spell's
+name, at its first mention in an ability and "it" after. A legendary
+permanent uses its name instead of "this creature", up to the first comma
+of the name ("When Pol Jamaar enters", "Sacrifice Lunatic Pandora", "As
+Hall of Triumph enters"). To choose the form rather than take the default,
+write `this creature` (any of the nouns above; the card's own noun is what
+prints) for the full name again after a mention ("..., you may sacrifice
+it. If you do, this creature deals 3 damage to that player.", "return this
+creature to its owner's hand"), or `it` in a spell or an activated ability
+for "it" at the first mention ("If this spell was kicked, it deals 3
+damage to that player."). Damage takes the source as a subject the same
+way: `this creature deals 3 damage to ...`, `it deals 2 damage to ...`
+(plain `deal` is `this deals`).
 
 ### Targets
 

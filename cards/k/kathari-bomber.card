@@ -1,0 +1,9 @@
+card "Kathari Bomber" {
+  oracle_id 1ad39f85-799a-42ae-852c-9117d689fe65
+  cost {1}{B}{R}
+  type Creature — Bird Shaman
+  pt 2/2
+  keywords flying
+  triggered when this deals combat damage to a player: create 2 "1/1 red Goblin creature" and sacrifice this creature
+  unearth {3}{B}{R}
+}

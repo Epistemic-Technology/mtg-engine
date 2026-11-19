@@ -1,0 +1,8 @@
+card "Songbird, Sonic Screamer" {
+  oracle_id 46f78ae1-fa51-4ef9-9ffa-8a3ed71a39e4
+  cost {1}{B}
+  type Legendary Creature — Human Villain
+  pt 2/1
+  keywords lifelink
+  activated discard 1 card: this gains flying
+}

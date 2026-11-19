@@ -1,0 +1,7 @@
+card "Manticore of the Gauntlet" {
+  oracle_id 3ec1b67a-5ff8-4ce7-8388-d11a23f76f0e
+  cost {4}{R}
+  type Creature — Manticore
+  pt 5/4
+  triggered when this enters: put 1 -1/-1 counter on target creature you control; this creature deals 3 damage to target opponent or planeswalker
+}

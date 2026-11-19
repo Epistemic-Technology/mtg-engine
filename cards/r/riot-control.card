@@ -1,0 +1,6 @@
+card "Riot Control" {
+  oracle_id a189e20f-1072-4608-9e50-da2a9d7a7ee3
+  cost {2}{W}
+  type Instant
+  spell: you gain count each creature your opponents control life; prevent all damage to you this turn
+}

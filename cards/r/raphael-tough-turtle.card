@@ -1,0 +1,7 @@
+card "Raphael, Tough Turtle" {
+  oracle_id 2c72e6d2-bbb0-42de-b465-438d584cbddc
+  cost {1}{R}
+  type Legendary Creature — Mutant Ninja Turtle
+  pt 1/3
+  label "Alliance" triggered whenever other creature you control enters: deal 1 damage to target opponent
+}

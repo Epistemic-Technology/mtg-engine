@@ -1,0 +1,7 @@
+card "Hall of Triumph" {
+  oracle_id 716632dd-2947-4641-a1db-50e0a2b0b4e8
+  cost {3}
+  type Legendary Artifact
+  as this enters choose color
+  static creature you control of chosen color: +1/+1
+}

@@ -1,0 +1,6 @@
+card "Funeral Rites" {
+  oracle_id 771210f7-0f00-4438-a886-a1f716e3d80e
+  cost {2}{B}
+  type Sorcery
+  spell: you draw 2 cards, lose 2 life, then mill 2 cards
+}

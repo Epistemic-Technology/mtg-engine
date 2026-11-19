@@ -1,0 +1,7 @@
+card "Furnace Scamp" {
+  oracle_id d0868a52-5b19-4429-acf1-399f3ae8308c
+  cost {R}
+  type Creature — Phyrexian Beast
+  pt 1/1
+  triggered whenever this deals combat damage to a player: you may sacrifice this; if you do, this creature deals 3 damage to that player
+}

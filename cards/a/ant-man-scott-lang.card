@@ -1,0 +1,7 @@
+card "Ant-Man, Scott Lang" {
+  oracle_id 1e4cf4a4-50a4-4856-bf7e-20899e8affd1
+  cost {1}{W}
+  type Legendary Creature — Human Hero
+  pt 2/2
+  activated {4}: put 1 +1/+1 counter on this
+}

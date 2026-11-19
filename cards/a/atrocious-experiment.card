@@ -1,0 +1,6 @@
+card "Atrocious Experiment" {
+  oracle_id 9f1c5040-ac46-4e8f-a5ff-8205e13a8893
+  cost {2}{B}
+  type Sorcery
+  spell: target player mills 2 cards, draws 2 cards and loses 2 life
+}

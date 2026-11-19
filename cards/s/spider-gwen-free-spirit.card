@@ -1,0 +1,8 @@
+card "Spider-Gwen, Free Spirit" {
+  oracle_id 2648559d-1d96-47d2-a769-cfa2cbca2be5
+  cost {2}{R}
+  type Legendary Creature — Spider Human Hero
+  pt 2/3
+  keywords reach
+  triggered whenever this becomes tapped: you may discard 1 card; if you do, draw 1 card
+}

@@ -1,0 +1,6 @@
+card "Kaito's Pursuit" {
+  oracle_id 23b7fd18-3129-448f-881f-947ba988f98d
+  cost {2}{B}
+  type Sorcery
+  spell: target player discards 2 cards; each Ninja or Rogue you control gains menace until end of turn
+}

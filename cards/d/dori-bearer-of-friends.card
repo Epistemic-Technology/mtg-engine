@@ -1,0 +1,8 @@
+card "Dori, Bearer of Friends" {
+  oracle_id 58acd6b2-730c-4472-a34a-f2784977aca8
+  cost {2}{R}
+  type Legendary Creature — Dwarf Warrior
+  pt 3/2
+  keywords trample
+  triggered when this enters: create 1 "Treasure"
+}
