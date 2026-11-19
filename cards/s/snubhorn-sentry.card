@@ -1,0 +1,8 @@
+card "Snubhorn Sentry" {
+  oracle_id fc8d3933-f7fe-4849-aae7-737ce6f067de
+  cost {W}
+  type Creature — Dinosaur
+  pt 0/3
+  ascend
+  static this: +3/+0 as long as city's blessing
+}

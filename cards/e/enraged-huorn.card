@@ -1,0 +1,8 @@
+card "Enraged Huorn" {
+  oracle_id 8a7dbf4e-f121-40c5-a688-3398e04c1311
+  cost {4}{G}
+  type Creature — Treefolk
+  pt 4/5
+  keywords trample
+  triggered when this enters: the ring tempts you
+}

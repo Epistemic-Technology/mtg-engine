@@ -1,0 +1,8 @@
+card "Rohirrim Lancer" {
+  oracle_id 504fac88-1674-4157-becb-0204ab8844bf
+  cost {R}
+  type Creature — Human Knight
+  pt 1/1
+  keywords menace
+  triggered when this dies: the ring tempts you
+}

@@ -1,0 +1,8 @@
+card "Avenging Hunter" {
+  oracle_id e0aa5e3d-17c0-4ac7-9d76-9ce579d1eb2b
+  cost {4}{G}
+  type Creature — Dragon Ranger
+  pt 5/4
+  keywords trample
+  triggered when this enters: take initiative
+}

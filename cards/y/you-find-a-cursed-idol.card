@@ -1,0 +1,10 @@
+card "You Find a Cursed Idol" {
+  oracle_id aa7b41ba-08eb-40b8-a8d5-e67dc09c88ba
+  cost {1}{G}
+  type Sorcery
+  choose one {
+  mode "Smash It": destroy target artifact
+  mode "Lift the Curse": destroy target enchantment
+  mode "Steal Its Eyes": create 1 "Treasure" and venture
+  }
+}

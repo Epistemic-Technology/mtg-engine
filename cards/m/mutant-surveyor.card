@@ -1,0 +1,9 @@
+card "Mutant Surveyor" {
+  oracle_id f35aace7-57b5-44b8-91d2-4710eb7d5548
+  cost {2}{B}
+  type Creature — Mutant Scout
+  pt 2/3
+  start your engines
+  activated {2}: this gets +1/+1 until end of turn
+  label "Max speed" activated {3}, exile this from graveyard: draw 1 card
+}

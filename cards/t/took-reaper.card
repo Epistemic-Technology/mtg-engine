@@ -1,0 +1,7 @@
+card "Took Reaper" {
+  oracle_id bfd8daa9-029f-41aa-a947-cdfde3f4d6b6
+  cost {1}{W}
+  type Creature — Halfling Peasant
+  pt 2/1
+  triggered when this dies: the ring tempts you
+}

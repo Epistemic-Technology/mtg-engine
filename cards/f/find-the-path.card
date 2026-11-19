@@ -1,0 +1,8 @@
+card "Find the Path" {
+  oracle_id 860eb9eb-c318-4eae-9b54-088f667115ec
+  cost {2}{G}
+  type Enchantment — Aura
+  enchant land
+  triggered when this enters: venture
+  static enchanted land: has ability { activated {T}: add {G}{G} }
+}

@@ -1,0 +1,8 @@
+card "Component Collector" {
+  oracle_id 6950ab0f-f448-4ed1-9dd4-868cc79a5982
+  cost {2}{U}
+  type Creature — Homunculus
+  pt 1/4
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: you may tap or untap target nonland permanent
+}

@@ -1,0 +1,9 @@
+card "Spire Winder" {
+  oracle_id e8cfb24a-7e52-4e39-a9e1-969b4a65b62e
+  cost {3}{U}
+  type Creature — Snake
+  pt 2/3
+  keywords flying
+  ascend
+  static this: +1/+1 as long as city's blessing
+}

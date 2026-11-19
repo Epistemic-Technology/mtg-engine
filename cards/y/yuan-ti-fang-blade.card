@@ -1,0 +1,8 @@
+card "Yuan-Ti Fang-Blade" {
+  oracle_id 8ef06396-861d-4599-9976-6e5c04575456
+  cost {2}{B}
+  type Creature — Snake Rogue
+  pt 2/2
+  keywords deathtouch
+  triggered whenever this deals combat damage to a player: venture
+}

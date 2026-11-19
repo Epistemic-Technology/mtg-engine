@@ -1,0 +1,8 @@
+card "Staunch Throneguard" {
+  oracle_id c8131fb3-3146-4434-9e4b-ac88ab3cbe37
+  cost {5}
+  type Artifact Creature — Construct
+  pt 2/5
+  keywords vigilance
+  triggered when this enters: become monarch
+}

@@ -1,0 +1,6 @@
+card "Fates' Reversal" {
+  oracle_id 8cd88e87-6585-437a-bcad-b494fffc0544
+  cost {1}{B}
+  type Sorcery
+  spell: return up to one target creature card from your graveyard to hand; venture
+}

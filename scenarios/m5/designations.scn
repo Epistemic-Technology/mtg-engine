@@ -1,0 +1,531 @@
+# Player designations and progress tracks: the monarch (CR 725), the
+# initiative (CR 726), the Ring tempting you (CR 701.54), speed (CR
+# 702.179), the city's blessing (CR 702.131), day and night (CR 731), and
+# venturing into dungeons (CR 309, 701.49).
+
+# ----- the monarch -----
+
+scenario "Palace Sentinels: its controller becomes the monarch" {
+  battlefield A: 4 "Plains"
+  hand A: "Palace Sentinels"
+  turn 1 A: cast "Palace Sentinels"
+  run_to turn 1 postcombat_main
+  assert monarch A
+  assert battlefield A contains "Palace Sentinels"
+}
+
+scenario "The monarch draws a card at the beginning of their end step" {
+  battlefield A: 4 "Plains"
+  hand A: "Palace Sentinels"
+  library A: "Island", "Swamp"
+  turn 1 A: cast "Palace Sentinels"
+  run_to turn 1 cleanup
+  assert hand A count 1
+  assert hand A contains "Island"
+}
+
+scenario "Not the monarch's end step: no draw" {
+  battlefield A: 4 "Plains"
+  hand A: "Palace Sentinels"
+  library B: "Island", "Swamp", "Forest"
+  turn 1 A: cast "Palace Sentinels"
+  run_to turn 2 precombat_main
+  # B drew for the turn only.
+  assert hand B count 1
+  assert monarch A
+}
+
+scenario "Combat damage to the monarch makes the attacker's controller the monarch" {
+  battlefield A: 4 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Palace Sentinels"
+  turn 1 A: cast "Palace Sentinels"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert life A 17
+  assert monarch B
+}
+
+scenario "A blocked attacker deals no damage to the monarch" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  hand A: "Palace Sentinels"
+  turn 1 A: cast "Palace Sentinels"
+  turn 2 B: attack "Hill Giant"
+  turn 2 A: block "Hill Giant" with "Palace Sentinels"
+  run_to turn 2 postcombat_main
+  assert monarch A
+}
+
+scenario "Garrulous Sycophant drains only while you're the monarch" {
+  battlefield A: "Garrulous Sycophant", 4 "Plains"
+  hand A: "Palace Sentinels"
+  run_to turn 1 cleanup
+  assert life B 20
+  turn 3 A: cast "Palace Sentinels"
+  run_to turn 3 cleanup
+  assert life B 19
+  assert life A 21
+}
+
+scenario "Throne Warden grows at your end step as the monarch" {
+  battlefield A: "Throne Warden", 4 "Plains"
+  hand A: "Palace Sentinels"
+  turn 1 A: cast "Palace Sentinels"
+  run_to turn 1 cleanup
+  assert counters "Throne Warden" +1/+1 1
+}
+
+scenario "Entourage of Trest blocks two attackers while you're the monarch" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Entourage of Trest"
+  turn 1 A: cast "Entourage of Trest"
+  turn 2 B: attack "Grizzly Bears", "Hill Giant"
+  turn 2 A: block "Grizzly Bears" with "Entourage of Trest"
+  turn 2 A: block "Hill Giant" with "Entourage of Trest"
+  run_to turn 2 postcombat_main
+  assert life A 20
+  assert monarch A
+}
+
+# ----- the Ring -----
+
+scenario "Uruk-hai Berserker: the Ring tempts you; it is the only creature" {
+  battlefield A: 3 "Swamp"
+  hand A: "Uruk-hai Berserker"
+  turn 1 A: cast "Uruk-hai Berserker"
+  run_to turn 1 postcombat_main
+  assert tempted A 1
+  assert ring_bearer A "Uruk-hai Berserker"
+  assert is "Uruk-hai Berserker" legendary
+}
+
+scenario "Claim the Precious: choose the Ring-bearer among your creatures" {
+  battlefield A: 3 "Swamp", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Claim the Precious"
+  turn 1 A: cast "Claim the Precious" targeting "Serra Angel"
+  turn 1 A: choose "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Serra Angel"
+  assert ring_bearer A "Hill Giant"
+  assert is "Hill Giant" legendary
+  assert is not "Grizzly Bears" legendary
+}
+
+scenario "The Ring tempts you with no creatures: the emblem, no Ring-bearer" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Claim the Precious"
+  turn 1 A: cast "Claim the Precious" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert tempted A 1
+  assert ring_bearer A none
+}
+
+scenario "Your Ring-bearer can't be blocked by creatures with greater power" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Serra Angel", "Grizzly Bears"
+  hand A: "Uruk-hai Berserker"
+  turn 1 A: cast "Uruk-hai Berserker"
+  turn 3 A: attack "Uruk-hai Berserker"
+  illegal turn 3 B: block "Uruk-hai Berserker" with "Serra Angel"
+  run_to turn 3 postcombat_main
+  assert life B 17
+}
+
+scenario "A creature with no greater power may block the Ring-bearer" {
+  battlefield A: 3 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Uruk-hai Berserker"
+  turn 1 A: cast "Uruk-hai Berserker"
+  turn 3 A: attack "Uruk-hai Berserker"
+  turn 3 B: block "Uruk-hai Berserker" with "Grizzly Bears"
+  run_to turn 3 postcombat_main
+  assert life B 20
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Tempted twice: the Ring-bearer loots as it attacks" {
+  battlefield A: 6 "Swamp"
+  battlefield B: "Grizzly Bears"
+  hand A: "Uruk-hai Berserker", "Claim the Precious"
+  library A: "Island", "Forest", "Mountain", "Plains"
+  turn 1 A: cast "Uruk-hai Berserker"
+  turn 1 A: cast "Claim the Precious" targeting "Grizzly Bears"
+  turn 3 A: attack "Uruk-hai Berserker"
+  run_to turn 3 postcombat_main
+  assert tempted A 2
+  # Drew Island for the turn and Forest for the loot, then discarded.
+  assert graveyard A count 2
+  assert life B 17
+}
+
+scenario "Tempted once: no loot" {
+  battlefield A: 3 "Swamp"
+  hand A: "Uruk-hai Berserker"
+  library A: "Island", "Forest", "Mountain", "Plains"
+  turn 1 A: cast "Uruk-hai Berserker"
+  turn 3 A: attack "Uruk-hai Berserker"
+  run_to turn 3 postcombat_main
+  assert graveyard A count 0
+  assert hand A count 1
+}
+
+scenario "Tempted three times: a creature blocking the Ring-bearer is sacrificed at end of combat" {
+  battlefield A: 9 "Swamp", "Hill Giant"
+  battlefield B: "Wind Drake", "Wind Drake", "Wind Drake", "Palace Sentinels"
+  hand A: "Claim the Precious", "Claim the Precious", "Claim the Precious"
+  turn 1 A: cast "Claim the Precious" targeting oldest "Wind Drake"
+  turn 1 A: wait
+  turn 1 A: cast "Claim the Precious" targeting oldest "Wind Drake"
+  turn 1 A: wait
+  turn 1 A: cast "Claim the Precious" targeting "Wind Drake"
+  turn 3 A: attack "Hill Giant"
+  turn 3 B: block "Hill Giant" with "Palace Sentinels"
+  run_to turn 3 postcombat_main
+  assert tempted A 3
+  assert graveyard B contains "Palace Sentinels"
+  assert battlefield A contains "Hill Giant"
+}
+
+scenario "Tempted four times: combat damage to a player makes each opponent lose 3 life" {
+  battlefield A: 12 "Swamp", "Hill Giant", "Grizzly Bears"
+  battlefield B: "Wind Drake", "Serra Angel", "Wind Drake", "Wind Drake"
+  hand A: "Claim the Precious", "Claim the Precious", "Claim the Precious", "Claim the Precious"
+  turn 1 A: cast "Claim the Precious" targeting "Serra Angel"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Claim the Precious" targeting oldest "Wind Drake"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Claim the Precious" targeting oldest "Wind Drake"
+  turn 1 A: choose "Hill Giant"
+  turn 1 A: wait
+  turn 1 A: cast "Claim the Precious" targeting "Wind Drake"
+  turn 1 A: choose "Hill Giant"
+  turn 3 A: attack "Hill Giant"
+  run_to turn 3 postcombat_main
+  assert tempted A 4
+  assert ring_bearer A "Hill Giant"
+  assert life B 14
+}
+
+# ----- speed -----
+
+scenario "Start your engines!: a permanent with it gives its controller speed 1" {
+  battlefield A: 2 "Swamp"
+  hand A: "Walking Sarcophagus"
+  turn 1 A: cast "Walking Sarcophagus"
+  run_to turn 1 postcombat_main
+  assert speed A 1
+  assert speed B 0
+}
+
+scenario "Speed increases once each turn an opponent loses life on your turn" {
+  battlefield A: "Walking Sarcophagus", 2 "Mountain"
+  hand A: "Lightning Bolt", "Shock"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+  assert speed A 2
+}
+
+scenario "Life lost on an opponent's turn doesn't increase speed" {
+  battlefield A: "Walking Sarcophagus", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 2 A: cast "Lightning Bolt" targeting player B
+  run_to turn 2 end
+  assert life B 17
+  assert speed A 1
+}
+
+scenario "Max speed: Walking Sarcophagus gets +1/+2" {
+  speed A: 4
+  battlefield A: "Walking Sarcophagus"
+  run_to turn 1 precombat_main
+  assert power "Walking Sarcophagus" 3
+  assert toughness "Walking Sarcophagus" 3
+}
+
+scenario "Below max speed: no bonus" {
+  speed A: 3
+  battlefield A: "Walking Sarcophagus"
+  run_to turn 1 precombat_main
+  assert power "Walking Sarcophagus" 2
+}
+
+scenario "Speed reaches 4 and the bonus starts" {
+  speed A: 3
+  battlefield A: "Walking Sarcophagus", "Mountain"
+  hand A: "Lightning Bolt"
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 postcombat_main
+  assert speed A 4
+  assert toughness "Walking Sarcophagus" 3
+}
+
+scenario "Max speed: an ability from the graveyard" {
+  speed A: 4
+  battlefield A: 3 "Swamp"
+  graveyard A: "Mutant Surveyor"
+  library A: "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Mutant Surveyor" ability 2
+  run_to turn 1 postcombat_main
+  assert exile A contains "Mutant Surveyor"
+  assert hand A contains "Island"
+}
+
+scenario "Below max speed: the graveyard ability can't be activated" {
+  speed A: 3
+  battlefield A: 3 "Swamp"
+  graveyard A: "Mutant Surveyor"
+  start turn 1 A precombat_main
+  illegal turn 1 A: activate "Mutant Surveyor" ability 2
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Mutant Surveyor"
+}
+
+scenario "Max speed: Endrider Catalyzer taps for {R}{R}" {
+  speed A: 4
+  battlefield A: "Endrider Catalyzer"
+  hand A: "Lightning Bolt", "Shock"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 15
+}
+
+# ----- the city's blessing -----
+
+scenario "Ascend: ten permanents give the city's blessing for the rest of the game" {
+  battlefield A: 9 "Island", "Spire Winder"
+  run_to turn 1 precombat_main
+  assert blessing A yes
+  assert power "Spire Winder" 3
+}
+
+scenario "Ascend: nine permanents aren't enough" {
+  battlefield A: 8 "Island", "Spire Winder"
+  run_to turn 1 precombat_main
+  assert blessing A no
+  assert power "Spire Winder" 2
+}
+
+scenario "The blessing stays after the permanents go" {
+  battlefield A: 9 "Swamp", "Dusk Charger"
+  battlefield B: 3 "Swamp"
+  hand B: "Murder"
+  turn 2 B: cast "Murder" targeting "Dusk Charger"
+  run_to turn 2 postcombat_main
+  assert blessing A yes
+  assert graveyard A contains "Dusk Charger"
+}
+
+scenario "Secrets of the Golden City: ascend as it resolves, then three cards" {
+  battlefield A: 10 "Island"
+  hand A: "Secrets of the Golden City"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Secrets of the Golden City"
+  run_to turn 1 postcombat_main
+  assert blessing A yes
+  assert hand A count 3
+}
+
+scenario "Secrets of the Golden City: two cards without the blessing" {
+  battlefield A: 3 "Island"
+  hand A: "Secrets of the Golden City"
+  library A: "Forest", "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Secrets of the Golden City"
+  run_to turn 1 postcombat_main
+  assert blessing A no
+  assert hand A count 2
+}
+
+# ----- day and night -----
+
+scenario "Brimstone Vandal: it becomes day as it enters" {
+  battlefield A: 3 "Mountain"
+  hand A: "Brimstone Vandal"
+  turn 1 A: cast "Brimstone Vandal"
+  run_to turn 1 postcombat_main
+  assert daynight day
+  assert life B 20
+}
+
+scenario "Day becomes night after a turn with no spells; the Vandal pings" {
+  battlefield A: 3 "Mountain"
+  hand A: "Brimstone Vandal"
+  turn 1 A: cast "Brimstone Vandal"
+  run_to turn 2 draw
+  # A cast a spell on turn 1: still day.
+  assert daynight day
+  run_to turn 3 draw
+  # B cast nothing on turn 2.
+  assert daynight night
+  assert life B 19
+}
+
+scenario "Night becomes day after a turn with two spells" {
+  battlefield A: 3 "Mountain"
+  battlefield B: 2 "Mountain"
+  hand A: "Brimstone Vandal"
+  hand B: "Shock", "Shock"
+  turn 1 A: cast "Brimstone Vandal"
+  turn 4 B: cast "Shock" targeting player A
+  turn 4 B: wait
+  turn 4 B: cast "Shock" targeting player A
+  run_to turn 5 draw
+  assert daynight day
+  assert life B 18
+}
+
+scenario "Neither day nor night: no check at the untap step" {
+  battlefield A: "Grizzly Bears"
+  run_to turn 3 upkeep
+  assert daynight neither
+}
+
+# ----- dungeons -----
+
+scenario "Veteran Dungeoneer: the first venture enters a dungeon's topmost room" {
+  battlefield A: 4 "Plains"
+  hand A: "Veteran Dungeoneer"
+  turn 1 A: cast "Veteran Dungeoneer"
+  run_to turn 1 postcombat_main
+  assert dungeon A "Lost Mine of Phandelver" "Cave Entrance"
+  assert completed A 0
+}
+
+scenario "Choosing Tomb of Annihilation: Trapped Entry costs each player 1 life" {
+  battlefield A: 4 "Plains"
+  hand A: "Veteran Dungeoneer"
+  turn 1 A: cast "Veteran Dungeoneer"
+  turn 1 A: choose "3"
+  run_to turn 1 postcombat_main
+  assert dungeon A "Tomb of Annihilation" "Trapped Entry"
+  assert life A 19
+  assert life B 19
+}
+
+scenario "Venturing again follows the arrow chosen: Goblin Lair makes a Goblin" {
+  battlefield A: 10 "Island", "Secret Door"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Secret Door"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  run_to turn 1 postcombat_main
+  assert dungeon A "Lost Mine of Phandelver" "Goblin Lair"
+  assert battlefield A contains "Goblin"
+}
+
+scenario "Mine Tunnels: the other arrow makes a Treasure" {
+  battlefield A: 10 "Island", "Secret Door"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Secret Door"
+  turn 1 A: choose "1"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  turn 1 A: choose "2"
+  run_to turn 1 postcombat_main
+  assert dungeon A "Lost Mine of Phandelver" "Mine Tunnels"
+  assert battlefield A contains "Treasure"
+}
+
+scenario "Completing a dungeon: Gloom Stalker gets double strike" {
+  battlefield A: 20 "Island", "Secret Door", "Gloom Stalker"
+  library A: "Forest", "Forest", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Secret Door"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  run_to turn 1 postcombat_main
+  # Cave Entrance, Goblin Lair, Storeroom, Temple of Dumathoin (a card).
+  assert completed A 1
+  assert dungeon A none
+  assert hand A count 1
+  assert has "Gloom Stalker" double_strike
+}
+
+scenario "Gloom Stalker: no double strike before a dungeon is completed" {
+  battlefield A: "Gloom Stalker"
+  run_to turn 1 precombat_main
+  assert has not "Gloom Stalker" double_strike
+}
+
+scenario "Fungi Cavern: -4/-0 until your next turn" {
+  battlefield A: 15 "Island", "Secret Door"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: activate "Secret Door"
+  turn 1 A: choose "1"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  turn 1 A: choose "2"
+  turn 1 A: wait
+  turn 1 A: activate "Secret Door"
+  turn 1 A: choose "2"
+  turn 1 A: trigger "Lost Mine of Phandelver" targeting "Hill Giant"
+  run_to turn 2 precombat_main
+  assert dungeon A "Lost Mine of Phandelver" "Fungi Cavern"
+  assert power "Hill Giant" -1
+  run_to turn 3 precombat_main
+  assert power "Hill Giant" 3
+}
+
+scenario "You Find a Cursed Idol: Steal Its Eyes ventures" {
+  battlefield A: 2 "Forest"
+  hand A: "You Find a Cursed Idol"
+  start turn 1 A precombat_main
+  turn 1 A: cast "You Find a Cursed Idol" mode 3
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Treasure"
+  assert dungeon A "Lost Mine of Phandelver" "Cave Entrance"
+}
+
+# ----- the initiative -----
+
+scenario "Goliath Paladin: take the initiative and venture into Undercity" {
+  battlefield A: 5 "Plains"
+  hand A: "Goliath Paladin"
+  library A: "Island", "Forest", "Plains"
+  turn 1 A: cast "Goliath Paladin"
+  run_to turn 1 postcombat_main
+  assert initiative A
+  assert dungeon A "Undercity" "Secret Entrance"
+  # Searched out the first basic land offered.
+  assert hand A count 1
+  assert library A count 2
+}
+
+scenario "The initiative ventures again at its holder's upkeep" {
+  battlefield A: 5 "Plains"
+  hand A: "Goliath Paladin"
+  turn 1 A: cast "Goliath Paladin"
+  run_to turn 3 draw
+  assert dungeon A "Undercity" "Forge"
+  assert counters "Goliath Paladin" +1/+1 2
+}
+
+scenario "Combat damage to the initiative's holder takes it" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Goliath Paladin"
+  turn 1 A: cast "Goliath Paladin"
+  turn 2 B: attack "Hill Giant"
+  run_to turn 2 postcombat_main
+  assert initiative B
+  assert dungeon B "Undercity" "Secret Entrance"
+  assert dungeon A "Undercity" "Secret Entrance"
+}

@@ -436,6 +436,19 @@ impl GameState {
         } else {
             self.bump();
         }
+        // "If it's neither day nor night, it becomes day as this creature
+        // enters." (CR 731.1)
+        if to == Zone::Battlefield
+            && self.mark_sources > 0
+            && self.desig.day_night == crate::state::DayNight::Neither
+            && self
+                .pool
+                .get(self.objects[new].def)
+                .marks
+                .has(crate::card::Marks::BECOMES_DAY)
+        {
+            self.set_day_night(true);
+        }
         self.emit(Event::ZoneChange {
             old: id,
             new,
@@ -468,6 +481,7 @@ impl GameState {
             self.spent_watchers += d(flags.watches_spent());
             self.valiant_watchers += d(flags.has_valiant());
             self.state_trigger_sources += d(flags.has_state_trigger());
+            self.mark_sources += d(flags.has_marks());
         } else {
             self.trigger_sources -= d(flags.has_triggers());
             self.replacement_sources -= d(flags.has_replacements());
@@ -485,6 +499,7 @@ impl GameState {
             self.spent_watchers -= d(flags.watches_spent());
             self.valiant_watchers -= d(flags.has_valiant());
             self.state_trigger_sources -= d(flags.has_state_trigger());
+            self.mark_sources -= d(flags.has_marks());
             // Whatever it controlled goes back (CR 611.2c does not apply to
             // static abilities).
             self.control_dirty |= flags.has_control_static();

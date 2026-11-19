@@ -1,0 +1,8 @@
+card "Thorn of the Black Rose" {
+  oracle_id a7894a81-8c0a-4015-8bc1-2698cf5306d1
+  cost {3}{B}
+  type Creature — Human Assassin
+  pt 1/3
+  keywords deathtouch
+  triggered when this enters: become monarch
+}

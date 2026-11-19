@@ -1,0 +1,6 @@
+card "Bar the Gate" {
+  oracle_id 11f55ec5-b9a3-4670-8afb-31d29478fb59
+  cost {2}{U}
+  type Instant
+  spell: counter target creature or planeswalker spell; venture
+}

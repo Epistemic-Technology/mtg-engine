@@ -1,0 +1,6 @@
+card "Birthday Escape" {
+  oracle_id 4f958678-2a32-4a30-8fe7-47df9ada6b2f
+  cost {U}
+  type Sorcery
+  spell: draw 1 card; the ring tempts you
+}

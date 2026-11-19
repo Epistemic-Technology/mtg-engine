@@ -1,0 +1,7 @@
+card "Mirrormere Guardian" {
+  oracle_id 97c188c4-3f27-428e-a4f6-4213f44898fc
+  cost {2}{G}
+  type Creature — Dwarf Soldier
+  pt 4/2
+  triggered when this dies: the ring tempts you
+}

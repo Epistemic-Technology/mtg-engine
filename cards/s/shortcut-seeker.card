@@ -1,0 +1,7 @@
+card "Shortcut Seeker" {
+  oracle_id 27cfa916-282d-476c-8ee9-ca7f0d84f551
+  cost {3}{U}
+  type Creature — Human Rogue
+  pt 2/5
+  triggered whenever this deals combat damage to a player: venture
+}

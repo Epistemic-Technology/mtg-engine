@@ -1,0 +1,9 @@
+card "Streaking Oilgorger" {
+  oracle_id c163a95e-9414-4b8c-b5a2-1e7674530404
+  cost {4}{B}
+  type Creature — Vampire
+  pt 3/3
+  keywords flying, haste
+  start your engines
+  label "Max speed" static this: has lifelink
+}

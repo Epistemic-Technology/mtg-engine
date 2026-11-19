@@ -8,7 +8,7 @@ use mtg_core::card::{CardType, Keyword};
 use mtg_core::decision::{Choice, Decision, DecisionKind};
 use mtg_core::ids::{ObjId, PlayerId};
 use mtg_core::mana::Color;
-use mtg_core::state::{GameState, Target, Zone};
+use mtg_core::state::{DayNight, GameState, Target, Zone};
 use mtg_core::turn::Step;
 
 /// Steps of a turn (CR 500.1), one-hot.
@@ -22,8 +22,12 @@ pub const CARD_F: usize = 2 + 7 + 2 + 5 + 1 + 5 + Keyword::ALL.len();
 pub const HAND_SLOTS: usize = 10;
 pub const BATTLEFIELD_SLOTS: usize = 24;
 pub const STACK_SLOTS: usize = 6;
+/// Designations, for each of you and the opponent: the monarch, the
+/// initiative, the city's blessing, speed / 4, the Ring's temptations / 4,
+/// in a dungeon, dungeons completed; then day, night.
+pub const DESIG_F: usize = 2 * 7 + 2;
 /// Scalars before the card slots.
-pub const GLOBAL_F: usize = 1 + STEPS + 2 + 8 + 1 + 1 + DECISION_KINDS;
+pub const GLOBAL_F: usize = 1 + STEPS + 2 + 8 + 1 + 1 + DESIG_F + DECISION_KINDS;
 pub const OBS_SIZE: usize = GLOBAL_F + (HAND_SLOTS + BATTLEFIELD_SLOTS + STACK_SLOTS) * CARD_F;
 /// Features per option: kind one-hot, source card id, target card id,
 /// target player (0 none, 1 you, 2 opponent), a count, a cost summary.
@@ -306,6 +310,24 @@ pub fn observation(state: &GameState, decision: Option<&Decision>, me: PlayerId)
     i += 1;
     out[i] = state.stack.len() as f32 / 5.0;
     i += 1;
+    let d = &state.desig;
+    for p in [me, opp] {
+        for v in [
+            f32::from(u8::from(d.monarch == Some(p))),
+            f32::from(u8::from(d.initiative == Some(p))),
+            f32::from(u8::from(d.blessed(p))),
+            f32::from(d.speed(p)) / 4.0,
+            f32::from(d.tempted(p).min(4)) / 4.0,
+            f32::from(u8::from(d.dungeon(p).is_some())),
+            f32::from(d.completed(p)),
+        ] {
+            out[i] = v;
+            i += 1;
+        }
+    }
+    out[i] = f32::from(u8::from(d.day_night == DayNight::Day));
+    out[i + 1] = f32::from(u8::from(d.day_night == DayNight::Night));
+    i += 2;
     if let Some(d) = decision {
         out[i + decision_kind_index(d.kind)] = 1.0;
     }

@@ -417,6 +417,10 @@ impl Decompiler<'_> {
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
             StaticCondition::OwnCardInExile => StaticCond::OwnCardInExile,
+            StaticCondition::Monarch => StaticCond::Monarch,
+            StaticCondition::CompletedDungeon => StaticCond::CompletedDungeon,
+            StaticCondition::CityBlessing => StaticCond::CityBlessing,
+            StaticCondition::MaxSpeed => StaticCond::MaxSpeed,
             StaticCondition::TotalPower(n) => StaticCond::TotalPower(*n),
             StaticCondition::DifferentPowers(n) => StaticCond::DifferentPowers(*n),
             StaticCondition::During(t) => StaticCond::During(*t),
@@ -887,6 +891,20 @@ impl Decompiler<'_> {
             },
             CoreEffect::PayEnergy(n) => Effect::PayEnergy(*n),
             CoreEffect::Proliferate => Effect::Proliferate,
+            CoreEffect::RingTempts => Effect::RingTempts,
+            CoreEffect::BecomeMonarch { .. } => Effect::BecomeMonarch,
+            CoreEffect::TakeInitiative { .. } => Effect::TakeInitiative,
+            CoreEffect::Venture { undercity } => Effect::Venture {
+                undercity: *undercity,
+            },
+            CoreEffect::IncreaseSpeed
+            | CoreEffect::UntilYourNextTurn { .. }
+            | CoreEffect::PunishEach { .. }
+            | CoreEffect::DrawCastOne { .. }
+            | CoreEffect::RevealPutCreature { .. } => {
+                unreachable!("built-in abilities and dungeon rooms only")
+            }
+            CoreEffect::Ascend => unreachable!("ascend is decompiled as a keyword line"),
             CoreEffect::Explore { what } => Effect::Explore {
                 what: Self::recipient(*what),
             },
@@ -1083,6 +1101,7 @@ impl Decompiler<'_> {
             }
             TriggerSpec::GainsLife { whose } => Trigger::GainsLife { whose: *whose },
             TriggerSpec::RollsDice { whose } => Trigger::RollsDice { whose: *whose },
+            TriggerSpec::DayNight => Trigger::DayNight,
             TriggerSpec::WinsFlip { whose } => Trigger::WinsFlip { whose: *whose },
             TriggerSpec::CastsSpell {
                 whose,

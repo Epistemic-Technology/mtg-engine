@@ -6,6 +6,7 @@ mod ability_mana;
 mod casting;
 mod combat;
 mod control;
+mod designations;
 mod objects;
 mod replace;
 mod sba;
@@ -77,6 +78,8 @@ pub struct PlayerSetup {
     pub poison: u32,
     /// Starting energy counters (scenarios).
     pub energy: u32,
+    /// Starting speed (scenarios; CR 702.179).
+    pub speed: u8,
     /// Bottom first; the last card is on top. Not shuffled.
     pub library: Vec<CardRef>,
     pub hand: Vec<CardRef>,
@@ -174,6 +177,7 @@ impl Engine {
     /// directly in their zones, there are no mulligans, and play begins with
     /// the turn-based actions of `setup.step`. Permanents placed on the
     /// battlefield count as controlled since the turn began.
+    #[allow(clippy::too_many_lines)] // one line per setup field
     pub fn from_setup(pool: Arc<CardPool>, setup: &Setup) -> Engine {
         assert_eq!(setup.players.len(), 2, "M1 supports exactly two players");
         let lives: Vec<i32> = setup.players.iter().map(|p| p.life).collect();
@@ -182,6 +186,10 @@ impl Engine {
         for (i, p) in setup.players.iter().enumerate() {
             state.players[i].poison = p.poison;
             state.players[i].energy = p.energy;
+            if p.speed > 0 {
+                state.desig.speed[i.min(3)] = p.speed.min(4);
+                state.desig.live = true;
+            }
         }
         let mut attachments: Vec<(ObjId, String)> = Vec::new();
         for (i, ps) in setup.players.iter().enumerate() {
@@ -244,6 +252,7 @@ impl Engine {
                 state.spent_watchers += u32::from(def.flags().watches_spent());
                 state.valiant_watchers += u32::from(def.flags().has_valiant());
                 state.state_trigger_sources += u32::from(def.flags().has_state_trigger());
+                state.mark_sources += u32::from(def.flags().has_marks());
                 if let Some(name) = &perm.attached_to {
                     attachments.push((id, name.clone()));
                 }
@@ -464,6 +473,7 @@ impl GameState {
             discarded_this_turn: 0,
             cast_this_turn: smallvec::SmallVec::new(),
             turn_log: crate::state::TurnLog::default(),
+            desig: crate::state::Designations::default(),
             exile_casts: None,
             suspended_count: 0,
             enters_choice_cards: 0,
@@ -513,6 +523,7 @@ impl GameState {
             mana_trigger_sources: 0,
             turn_static_sources: 0,
             state_trigger_sources: 0,
+            mark_sources: 0,
             attack_rule_sources: 0,
             grant_sources: 0,
             eot_grants: 0,
@@ -611,10 +622,11 @@ impl GameState {
                     if let Some((p, card, alt)) =
                         self.exile_casts.as_mut().and_then(|e| e.pending.pop())
                     {
+                        // From exile, or from the hand (Mad Wizard's Lair).
                         if self
                             .objects
                             .get(card)
-                            .is_some_and(|o| o.zone == Zone::Exile)
+                            .is_some_and(|o| matches!(o.zone, Zone::Exile | Zone::Hand))
                         {
                             self.begin_cast(p, card, alt);
                         }
@@ -1787,7 +1799,11 @@ impl GameState {
         let active = self.active_player;
         match self.step {
             Step::Untap => {
-                // CR 502.2–502.3: untap all permanents of the active player.
+                // CR 502.2, 731.2: day may become night, or night day.
+                if self.desig.day_night != crate::state::DayNight::Neither {
+                    self.day_night_check();
+                }
+                // CR 502.3: untap all permanents of the active player.
                 let perms: Vec<ObjId> = self.permanents_of(active).collect();
                 for id in perms {
                     let o = &mut self.objects[id];
@@ -1994,6 +2010,7 @@ impl GameState {
 
     /// The current step ends (CR 500.2): mana empties, combat clears, and the
     /// next step or turn begins.
+    #[allow(clippy::too_many_lines)] // one line per turn record
     fn end_step(&mut self) {
         for p in &mut self.players {
             p.mana_pool.empty();
@@ -2081,13 +2098,21 @@ impl GameState {
                                 }
                                 pe.own_ends > 0
                             }
-                            crate::card::PlayUntil::YourNextEndStep => true,
+                            crate::card::PlayUntil::YourNextEndStep
+                            | crate::card::PlayUntil::Forever => true,
                         }
                     });
                 }
             }
             self.eot_grants = 0;
+            self.desig.last_active = Some(self.active_player);
+            self.desig.sped = 0;
             self.active_player = self.next_player_in_game(self.active_player);
+            // CR 611.2b: "until your next turn" ends as that turn begins.
+            let ends = Duration::UntilYourNextTurn(self.active_player);
+            if self.effects.iter().any(|e| e.duration == ends) {
+                self.effects.retain(|e| e.duration != ends);
+            }
             // "During your turn" static abilities (CR 611.3a) change with
             // it; nothing a state-based action looks at does.
             self.version += 1;

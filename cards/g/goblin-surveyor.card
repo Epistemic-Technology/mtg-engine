@@ -1,0 +1,9 @@
+card "Goblin Surveyor" {
+  oracle_id 237758f3-84b2-4e5b-a2c7-b28c893e2790
+  cost {2}{R}
+  type Creature — Goblin Scout
+  pt 3/2
+  keywords trample
+  start your engines
+  label "Max speed" activated {3}, exile this from graveyard: draw 1 card
+}

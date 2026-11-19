@@ -368,6 +368,7 @@ pub fn parse(text: &str) -> Result<Vec<Scenario>, ParseError> {
     Ok(scenarios)
 }
 
+#[allow(clippy::too_many_lines)] // one arm per statement
 fn parse_statement(line: &mut Line, sc: &mut Scenario) -> Result<(), ParseError> {
     let head = line.ident()?;
     match head.as_str() {
@@ -388,6 +389,12 @@ fn parse_statement(line: &mut Line, sc: &mut Scenario) -> Result<(), ParseError>
             line.colon()?;
             sc.setup.poison[p.index()] =
                 u32::try_from(line.number()?).or_else(|_| line.fail("poison out of range"))?;
+        }
+        "speed" => {
+            let p = line.player()?;
+            line.colon()?;
+            sc.setup.speed[p.index()] =
+                u8::try_from(line.number()?).or_else(|_| line.fail("speed out of range"))?;
         }
         "energy" => {
             let p = line.player()?;
@@ -769,6 +776,32 @@ fn parse_action(line: &mut Line, illegal: bool) -> Result<ScriptedAction, ParseE
 fn parse_assertion(line: &mut Line) -> Result<Assertion, ParseError> {
     let what = line.ident()?;
     Ok(match what.as_str() {
+        "monarch" | "initiative" | "daynight" => {
+            let Some(Tok::Ident(want) | Tok::Str(want)) = line.next() else {
+                return line.fail("expected A, B, none, day, night, or neither");
+            };
+            Assertion::Designation {
+                key: what,
+                player: None,
+                want,
+            }
+        }
+        "speed" | "tempted" | "ring_bearer" | "blessing" | "dungeon" | "completed" => {
+            let p = line.player()?;
+            let mut parts = Vec::new();
+            while let Some(t) = line.next() {
+                parts.push(match t {
+                    Tok::Ident(s) | Tok::Str(s) => s,
+                    Tok::Num(n) => n.to_string(),
+                    _ => return line.fail("expected a value"),
+                });
+            }
+            Assertion::Designation {
+                key: what,
+                player: Some(p),
+                want: parts.join(" / "),
+            }
+        }
         "energy" => {
             let p = line.player()?;
             Assertion::Energy(

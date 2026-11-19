@@ -586,6 +586,9 @@ impl CombatState {
 pub enum Duration {
     UntilEndOfTurn,
     Permanent,
+    /// Until the given player's next turn begins (CR 611.2b): "until your
+    /// next turn".
+    UntilYourNextTurn(PlayerId),
 }
 
 /// What a stored continuous effect applies to.
@@ -995,6 +998,87 @@ pub struct TurnLog {
     pub to_graveyard: crate::card::TypeSet,
 }
 
+/// Day and night (CR 731): neither until something makes it day.
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum DayNight {
+    #[default]
+    Neither,
+    Day,
+    Night,
+}
+
+/// A player's dungeon in the command zone (CR 309): the dungeon card's
+/// object and the room their venture marker is in (an index into the
+/// definition's `rooms`).
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DungeonMarker {
+    pub obj: ObjId,
+    pub room: u8,
+}
+
+/// Player designations and progress tracks: the monarch (CR 725), the
+/// initiative (CR 726), day and night (CR 731), the city's blessing (CR
+/// 702.131), speed (CR 702.179), the Ring (CR 701.54), and dungeons (CR
+/// 309). Inline and `Copy`, since the state is cloned constantly; `live`
+/// stays false until any designation that has triggered abilities exists,
+/// so event emission pays one test without them.
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash)]
+pub struct Designations {
+    /// Any of the monarch, the initiative, speed, or the Ring exists:
+    /// their inherent triggered abilities may trigger.
+    pub live: bool,
+    pub monarch: Option<PlayerId>,
+    pub initiative: Option<PlayerId>,
+    pub day_night: DayNight,
+    /// The previous turn's active player, for the day/night check at the
+    /// untap step (CR 502.2).
+    pub last_active: Option<PlayerId>,
+    /// Players with the city's blessing, one bit each.
+    pub blessed: u8,
+    /// Each player's speed (CR 702.179b: 0 is "no speed").
+    pub speed: [u8; 4],
+    /// Players whose speed-increasing ability triggered this turn (CR
+    /// 702.179d: "only once each turn"), one bit each.
+    pub sped: u8,
+    /// How many times the Ring has tempted each player (CR 701.54c).
+    pub tempted: [u8; 4],
+    /// Each player's Ring-bearer, as chosen (CR 701.54a); it stops being
+    /// one as it leaves the battlefield or changes control.
+    pub ring_bearer: [Option<ObjId>; 4],
+    /// Each player's emblem named The Ring (CR 701.54c), the source of
+    /// its triggered abilities.
+    pub ring: [Option<ObjId>; 4],
+    pub dungeon: [Option<DungeonMarker>; 4],
+    /// Dungeons each player has completed (CR 309.7).
+    pub completed: [u8; 4],
+    /// The command-zone objects standing for the monarch's, the
+    /// initiative's, and speed's sourceless triggered abilities (CR 725.2,
+    /// 726.2, 702.179d), each made the first time one is needed.
+    pub inherent: [Option<ObjId>; 3],
+}
+
+impl Designations {
+    pub fn blessed(&self, p: PlayerId) -> bool {
+        self.blessed & (1 << p.index().min(7)) != 0
+    }
+
+    pub fn speed(&self, p: PlayerId) -> u8 {
+        self.speed[p.index().min(3)]
+    }
+
+    pub fn tempted(&self, p: PlayerId) -> u8 {
+        self.tempted[p.index().min(3)]
+    }
+
+    pub fn completed(&self, p: PlayerId) -> u8 {
+        self.completed[p.index().min(3)]
+    }
+
+    pub fn dungeon(&self, p: PlayerId) -> Option<DungeonMarker> {
+        self.dungeon[p.index().min(3)]
+    }
+}
+
 #[derive(Clone)]
 // Independent dirty flags and switches, not a state machine.
 #[allow(clippy::struct_excessive_bools)]
@@ -1103,6 +1187,9 @@ pub struct GameState {
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
     /// More of what happened this turn, reset as each turn begins.
     pub turn_log: TurnLog,
+    /// The monarch, the initiative, day and night, speed, the Ring, and
+    /// dungeons.
+    pub desig: Designations,
     /// Casting from exile's bookkeeping, boxed: most games never need it,
     /// and the state is copied for every mid-event snapshot.
     pub exile_casts: Option<Box<ExileCasts>>,
@@ -1166,6 +1253,10 @@ pub struct GameState {
     /// Battlefield permanents with a state trigger
     /// (`DefFlags::STATE_TRIGGER`, CR 603.8).
     pub state_trigger_sources: u32,
+    /// Battlefield permanents with ascend, start your engines!, or
+    /// becoming day as they enter (`DefFlags::MARKS`): state-based
+    /// actions look for them only then.
+    pub mark_sources: u32,
     /// Battlefield permanents with an attack or block condition
     /// (`DefFlags::ATTACK_RULE`): declarations check them only then.
     pub attack_rule_sources: u32,
@@ -1344,6 +1435,11 @@ impl GameState {
             || matches!(&event, Event::Cycled { def, .. } if self.pool.get(*def).has_triggers());
         if may_trigger {
             self.detect_triggers(&event);
+        }
+        // The monarch's, the initiative's, speed's, and the Ring's own
+        // triggered abilities, once any of them exists.
+        if self.desig.live {
+            self.designation_triggers(&event);
         }
         if self.logging {
             self.log.push(event);
@@ -2201,6 +2297,10 @@ impl GameState {
                 .players_in_game()
                 .any(|p| p != you && self.player(p).poison >= *n),
             C::OwnCardInExile => !self.player(you).exile.is_empty(),
+            C::Monarch => self.desig.monarch == Some(you),
+            C::CompletedDungeon => self.desig.completed(you) > 0,
+            C::CityBlessing => self.desig.blessed(you),
+            C::MaxSpeed => self.desig.speed(you) >= 4,
             C::During(t) => t.now(self.step, self.active_player, you),
             _ => false,
         }

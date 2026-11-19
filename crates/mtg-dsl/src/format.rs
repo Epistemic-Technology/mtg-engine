@@ -527,6 +527,11 @@ impl Fmt {
                 format!("{} {v} {} life", self.recipient(*who, t), num(*amount))
             }
             Effect::Proliferate => "proliferate".to_string(),
+            Effect::RingTempts => "the ring tempts you".to_string(),
+            Effect::BecomeMonarch => "become monarch".to_string(),
+            Effect::TakeInitiative => "take initiative".to_string(),
+            Effect::Venture { undercity: false } => "venture".to_string(),
+            Effect::Venture { undercity: true } => "venture into undercity".to_string(),
             Effect::Explore { what } => format!("{} explores", self.recipient(*what, t)),
             Effect::Amass { kind, count } => format!("amass {kind} {}", num(*count)),
             Effect::ClearEcho => "clear echo".to_string(),
@@ -551,6 +556,7 @@ impl Fmt {
                         mtg_core::card::PlayUntil::ThisTurn => "this turn",
                         mtg_core::card::PlayUntil::EndOfYourNextTurn => "next turn",
                         mtg_core::card::PlayUntil::YourNextEndStep => "next end step",
+                        mtg_core::card::PlayUntil::Forever => "forever",
                     }
                 );
                 if *first {
@@ -2438,6 +2444,7 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             )
         }
         Trigger::WinsFlip { .. } => "whenever you win a coin flip".to_string(),
+        Trigger::DayNight => "whenever day becomes night or night becomes day".to_string(),
         Trigger::RollsDice { whose } => match whose {
             Who::You => "whenever you roll dice".to_string(),
             _ => "whenever a player rolls dice".to_string(),
@@ -3008,6 +3015,10 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
+        StaticCond::Monarch => "you are monarch".to_string(),
+        StaticCond::CompletedDungeon => "completed dungeon".to_string(),
+        StaticCond::CityBlessing => "city's blessing".to_string(),
+        StaticCond::MaxSpeed => "max speed".to_string(),
         StaticCond::TotalPower(n) => format!("total power {n} or more"),
         StaticCond::DifferentPowers(n) => format!("{n} different powers"),
         StaticCond::During(t) => {
@@ -3434,6 +3445,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 crate::ast::Mechanic::Offspring(c) => format!("offspring {c}"),
                 crate::ast::Mechanic::Bargain => "bargain".to_string(),
                 crate::ast::Mechanic::Saddle(n) => format!("saddle {n}"),
+                crate::ast::Mechanic::Ascend => "ascend".to_string(),
+                crate::ast::Mechanic::StartYourEngines => "start your engines".to_string(),
+                crate::ast::Mechanic::BecomesDay => "becomes day as this enters".to_string(),
             };
             let _ = writeln!(out, "{indent}{text}");
         }

@@ -1,0 +1,7 @@
+card "Avishkar Raceway" {
+  oracle_id e2c35551-1ba5-4424-baf9-821b49bbcc8c
+  type Land
+  start your engines
+  mana {C}
+  label "Max speed" activated {3}, {T}, discard 1 card: draw 1 card
+}

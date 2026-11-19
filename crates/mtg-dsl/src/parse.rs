@@ -1304,6 +1304,21 @@ impl P {
                 self.end_stmt()?;
                 Ok(Ability::Mechanic(Mechanic::Bargain))
             }
+            "ascend" if self.peek_at(1).is_none_or(|t| *t == Tok::Newline) => {
+                self.pos += 1;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::Ascend))
+            }
+            "start" if self.at_words(&["start", "your", "engines"]) => {
+                self.pos += 3;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::StartYourEngines))
+            }
+            "becomes" if self.at_words(&["becomes", "day", "as", "this", "enters"]) => {
+                self.pos += 5;
+                self.end_stmt()?;
+                Ok(Ability::Mechanic(Mechanic::BecomesDay))
+            }
             "suspend" if matches!(self.peek_at(1), Some(Tok::Num(_))) => {
                 self.pos += 1;
                 let n = self.number()?;
@@ -2095,6 +2110,18 @@ impl P {
             };
             let filter = self.filter()?;
             return Ok(StaticCond::OpponentControls { filter, at_least });
+        }
+        if self.eat_words(&["you", "are", "monarch"]) {
+            return Ok(StaticCond::Monarch);
+        }
+        if self.eat_words(&["completed", "dungeon"]) {
+            return Ok(StaticCond::CompletedDungeon);
+        }
+        if self.eat_words(&["city's", "blessing"]) {
+            return Ok(StaticCond::CityBlessing);
+        }
+        if self.eat_words(&["max", "speed"]) {
+            return Ok(StaticCond::MaxSpeed);
         }
         if self.eat_words(&["you", "own", "card", "in", "exile"]) {
             return Ok(StaticCond::OwnCardInExile);
@@ -2970,6 +2997,27 @@ impl P {
 
     #[allow(clippy::too_many_lines)] // one branch per clause form
     fn clause(&mut self) -> R<Effect> {
+        // Designations (CR 701.54, 725, 726, 701.49).
+        if self.at_words(&["the", "ring", "tempts", "you"]) {
+            self.pos += 4;
+            return Ok(Effect::RingTempts);
+        }
+        if self.at_words(&["become", "monarch"]) {
+            self.pos += 2;
+            return Ok(Effect::BecomeMonarch);
+        }
+        if self.at_words(&["take", "initiative"]) {
+            self.pos += 2;
+            return Ok(Effect::TakeInitiative);
+        }
+        if self.at_words(&["venture", "into", "undercity"]) {
+            self.pos += 3;
+            return Ok(Effect::Venture { undercity: true });
+        }
+        if self.at_word("venture") {
+            self.pos += 1;
+            return Ok(Effect::Venture { undercity: false });
+        }
         // "you may ..." before "you" as a subject.
         if self.at_words(&["you", "may"]) {
             self.pos += 2;
@@ -4308,8 +4356,11 @@ impl P {
                     mtg_core::card::PlayUntil::EndOfYourNextTurn
                 } else if self.eat_words(&["next", "end", "step"]) {
                     mtg_core::card::PlayUntil::YourNextEndStep
+                } else if self.eat_word("forever") {
+                    mtg_core::card::PlayUntil::Forever
                 } else {
-                    return self.unexpected("`this turn`, `next turn`, or `next end step`");
+                    return self
+                        .unexpected("`this turn`, `next turn`, `next end step`, or `forever`");
                 };
                 let first = self.eat_word("first");
                 let it = self.eat_word("it");
@@ -6836,6 +6887,10 @@ impl P {
         if self.at_words(&["you", "roll", "dice"]) {
             self.pos += 3;
             return Ok(Trigger::RollsDice { whose: Who::You });
+        }
+        if self.at_words(&["day", "becomes", "night", "or", "night", "becomes", "day"]) {
+            self.pos += 7;
+            return Ok(Trigger::DayNight);
         }
         if self.at_words(&["a", "player", "rolls", "dice"]) {
             self.pos += 4;

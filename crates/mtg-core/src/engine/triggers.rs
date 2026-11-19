@@ -556,6 +556,9 @@ impl GameState {
                 let p = filter_on_battlefield(f, *obj)?;
                 Some((Some(*obj), Some(p)))
             }
+            // CR 731.1a: day becoming night or night becoming day, not
+            // the first day.
+            (TriggerSpec::DayNight, Event::DayNight { changed: true, .. }) => Some((None, None)),
             (TriggerSpec::WinsFlip { whose }, Event::FlippedCoin { player, won: true })
             | (TriggerSpec::RollsDice { whose }, Event::RolledDie { player, .. }) => {
                 whose_ok(*whose, *player).then_some((None, Some(*player)))

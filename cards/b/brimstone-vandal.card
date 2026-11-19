@@ -1,0 +1,9 @@
+card "Brimstone Vandal" {
+  oracle_id 7af23925-6d32-407d-9a99-a57b2ebb63ac
+  cost {2}{R}
+  type Creature — Devil
+  pt 2/3
+  keywords menace
+  becomes day as this enters
+  triggered whenever day becomes night or night becomes day: this deals 1 damage to each opponent
+}

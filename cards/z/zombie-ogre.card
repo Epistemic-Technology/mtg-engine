@@ -1,0 +1,7 @@
+card "Zombie Ogre" {
+  oracle_id 0898fb77-d304-496c-8f2e-1cfe50cc5507
+  cost {3}{B}{B}
+  type Creature — Zombie Ogre
+  pt 3/5
+  triggered at beginning of your end step if creature died this turn: venture
+}

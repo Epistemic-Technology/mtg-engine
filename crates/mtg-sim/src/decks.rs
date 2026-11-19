@@ -64,7 +64,7 @@ pub fn random_deck(pool: &CardPool, seed: u64) -> Vec<CardRef> {
         .iter()
         .filter(|(_, d)| {
             let basic = d.is_land() && d.supertypes.contains(mtg_core::card::Supertype::Basic);
-            !(d.token || d.emblem || basic)
+            !(d.token || d.emblem || !d.rooms.is_empty() || basic)
                 && d.mana_cost.colors().iter().all(|c| colors.contains(&c))
         })
         .map(|(r, _)| r)

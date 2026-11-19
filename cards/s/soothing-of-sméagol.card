@@ -1,0 +1,6 @@
+card "Soothing of Sméagol" {
+  oracle_id 35a17b42-9d3f-49ef-8218-2780c5ef5f08
+  cost {1}{U}
+  type Instant
+  spell: return target nontoken creature to hand; the ring tempts you
+}

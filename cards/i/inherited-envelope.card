@@ -1,0 +1,7 @@
+card "Inherited Envelope" {
+  oracle_id 2f1ae834-f6b8-458c-ac0d-3510ddb85193
+  cost {3}
+  type Artifact
+  triggered when this enters: the ring tempts you
+  mana any
+}

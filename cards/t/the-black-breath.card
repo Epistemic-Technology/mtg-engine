@@ -1,0 +1,6 @@
+card "The Black Breath" {
+  oracle_id c0afbb32-dc50-436a-bd24-2990c103a4f8
+  cost {2}{B}
+  type Sorcery
+  spell: all creature your opponents control gets -1/-1; the ring tempts you
+}
