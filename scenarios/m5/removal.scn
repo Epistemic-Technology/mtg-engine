@@ -1,0 +1,203 @@
+# Removal variants: alternative costs of a card's own ("You may sacrifice
+# a Mountain rather than pay this spell's mana cost", CR 118.9), token
+# filters (CR 111.1), edicts with two choices or a quality after "of their
+# choice" (CR 701.21), "target ... and all other ... with the same name"
+# for permanents and graveyard cards, "up to one other target", and
+# alternatives each with an article ("another creature or an artifact").
+
+scenario "Crash costs a Mountain instead of its mana" {
+  battlefield A: "Mountain"
+  battlefield B: "Ornithopter"
+  hand A: "Crash"
+  turn 1 A: cast "Crash" alternative sacrificing "Mountain" targeting "Ornithopter"
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert graveyard A contains "Mountain"
+  assert graveyard A contains "Crash"
+}
+
+scenario "Crash without a Mountain can't use its alternative cost" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Ornithopter"
+  hand A: "Crash"
+  illegal turn 1 A: cast "Crash" alternative targeting "Ornithopter"
+  run_to turn 1 end
+}
+
+scenario "Fireblast sacrifices two Mountains" {
+  battlefield A: 2 "Mountain", "Plains"
+  hand A: "Fireblast"
+  turn 1 A: cast "Fireblast" alternative targeting player B
+  run_to turn 1 end
+  assert life B 16
+  assert graveyard A contains 2 "Mountain"
+  assert battlefield A contains "Plains"
+}
+
+scenario "Fireblast with one Mountain can't use its alternative cost" {
+  battlefield A: "Mountain", 4 "Plains"
+  hand A: "Fireblast"
+  illegal turn 1 A: cast "Fireblast" alternative targeting player B
+  run_to turn 1 end
+}
+
+scenario "Mine Collapse's alternative cost is offered on your turn" {
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Mine Collapse"
+  turn 1 A: cast "Mine Collapse" alternative targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Mountain"
+}
+
+scenario "Mine Collapse's alternative cost isn't offered on an opponent's turn" {
+  start turn 2 B upkeep
+  battlefield A: "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Mine Collapse"
+  illegal turn 2 upkeep A: cast "Mine Collapse" alternative targeting "Hill Giant"
+  run_to turn 2 end
+}
+
+scenario "A Borderpost costs {1} and a basic land returned to hand" {
+  battlefield A: "Plains", "Island"
+  hand A: "Fieldmist Borderpost"
+  turn 1 A: cast "Fieldmist Borderpost" alternative sacrificing "Island"
+  run_to turn 1 end
+  assert battlefield A contains "Fieldmist Borderpost"
+  assert tapped "Fieldmist Borderpost"
+  assert hand A contains "Island"
+  assert tapped "Plains"
+}
+
+scenario "Tidal Bore returns an Island to cast for free" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Tidal Bore"
+  turn 1 A: cast "Tidal Bore" alternative targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Island"
+  assert tapped "Grizzly Bears"
+}
+
+scenario "Glimmer Bairn sacrifices a token" {
+  battlefield A: "Glimmer Bairn", 2 "Plains"
+  hand A: "Raise the Alarm"
+  turn 1 A: cast "Raise the Alarm"
+  turn 1 A: wait
+  turn 1 A: activate "Glimmer Bairn" sacrificing "Soldier"
+  run_to turn 1 end
+  assert battlefield A contains 1 "Soldier"
+}
+
+scenario "Glimmer Bairn can't sacrifice a nontoken creature" {
+  battlefield A: "Glimmer Bairn", "Grizzly Bears"
+  illegal turn 1 A: activate "Glimmer Bairn" sacrificing "Grizzly Bears"
+  run_to turn 1 end
+}
+
+scenario "Pinecone Strike destroys an artifact token" {
+  battlefield A: 2 "Mountain"
+  hand A: "Strike It Rich", "Pinecone Strike"
+  battlefield B: "Grizzly Bears"
+  turn 1 A: cast "Strike It Rich"
+  turn 1 A: wait
+  turn 1 A: cast "Pinecone Strike" mode 2 targeting "Treasure"
+  run_to turn 1 end
+  assert battlefield A lacks "Treasure"
+}
+
+scenario "Pinecone Strike can't target a nontoken artifact" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Darksteel Citadel"
+  hand A: "Pinecone Strike"
+  illegal turn 1 A: cast "Pinecone Strike" mode 2 targeting "Darksteel Citadel"
+  run_to turn 1 end
+}
+
+scenario "Run Afoul's opponent sacrifices a creature with flying" {
+  battlefield A: 3 "Forest"
+  battlefield B: "Grizzly Bears", "Serra Angel"
+  hand A: "Run Afoul"
+  turn 1 A: cast "Run Afoul" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Serra Angel"
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Structural Collapse takes an artifact and a land, then 2 damage" {
+  battlefield A: 6 "Mountain"
+  battlefield B: "Ornithopter", "Grizzly Bears", "Forest"
+  hand A: "Structural Collapse"
+  turn 1 A: cast "Structural Collapse" targeting player B
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert graveyard B contains "Forest"
+  assert battlefield B contains "Grizzly Bears"
+  assert life B 18
+}
+
+scenario "Echoing Truth returns every permanent with the target's name" {
+  battlefield A: 2 "Island", "Grizzly Bears"
+  battlefield B: 2 "Grizzly Bears", "Hill Giant"
+  hand A: "Echoing Truth"
+  turn 1 A: cast "Echoing Truth" targeting B "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains 2 "Grizzly Bears"
+  assert hand A contains "Grizzly Bears"
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Echoing Return returns the target and its namesakes from your graveyard" {
+  battlefield A: 3 "Swamp"
+  graveyard A: 3 "Grizzly Bears", "Hill Giant"
+  graveyard B: "Grizzly Bears"
+  hand A: "Echoing Return"
+  turn 1 A: cast "Echoing Return" targeting A "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains 3 "Grizzly Bears"
+  assert graveyard A contains "Hill Giant"
+  assert graveyard B contains "Grizzly Bears"
+}
+
+scenario "Relic Crush destroys two different artifacts" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Ornithopter", "Darksteel Citadel"
+  hand A: "Relic Crush"
+  turn 1 A: cast "Relic Crush" targeting "Ornithopter", "Darksteel Citadel"
+  run_to turn 1 end
+  assert graveyard B contains "Ornithopter"
+  assert battlefield B contains "Darksteel Citadel"
+}
+
+scenario "Relic Crush's second target must be another one" {
+  battlefield A: 5 "Forest"
+  battlefield B: "Ornithopter"
+  hand A: "Relic Crush"
+  illegal turn 1 A: cast "Relic Crush" targeting "Ornithopter", "Ornithopter"
+  run_to turn 1 end
+}
+
+scenario "Mirkwood Nurturer grows only if something returned" {
+  battlefield A: 4 "Forest", "Grizzly Bears"
+  hand A: "Mirkwood Nurturer"
+  turn 1 A: cast "Mirkwood Nurturer"
+  turn 1 A: trigger "Mirkwood Nurturer" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+  assert counters "Mirkwood Nurturer" +1/+1 1
+}
+
+scenario "Mold Folk sacrifices an artifact or another creature" {
+  battlefield A: "Mold Folk", "Ornithopter", "Swamp"
+  turn 1 A: activate "Mold Folk" sacrificing "Ornithopter"
+  run_to turn 1 end
+  assert counters "Mold Folk" +1/+1 1
+}
+
+scenario "Mold Folk can't sacrifice itself" {
+  battlefield A: "Mold Folk", "Swamp"
+  illegal turn 1 A: activate "Mold Folk" sacrificing "Mold Folk"
+  run_to turn 1 end
+}

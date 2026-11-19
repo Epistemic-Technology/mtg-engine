@@ -320,6 +320,23 @@ impl Compiler<'_> {
         if let Some(cost) = &card.additional {
             b = b.additional_cost(self.cost(cost));
         }
+        if let Some(a) = &card.alt_cost {
+            if a.cost.conditions.len() > 1 || a.cost.tap || a.cost.discard > 0 {
+                return self.err("an alternative cost is mana and one kind of permanent");
+            }
+            let condition = match a.cost.conditions.first() {
+                Some(c) => {
+                    let c = self.static_cond(c);
+                    Some(self.pool.intern_condition(c))
+                }
+                None => None,
+            };
+            b = b.alt_cost(mtg_core::card::AltCost {
+                cost: self.cost(&a.cost),
+                count: a.count,
+                condition,
+            });
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
@@ -1153,13 +1170,30 @@ impl Compiler<'_> {
                 what: r(*what),
                 place: *place,
             }),
-            Effect::SacrificeChosen { who, count, filter } => {
+            Effect::SacrificeChosen {
+                who,
+                count,
+                filter,
+                and,
+                ..
+            } => {
                 let filter = self.filter(filter);
                 out.push(CoreEffect::SacrificeChosen {
                     who: r(*who),
                     filter,
                     count: *count,
                 });
+                // "an artifact and a land of their choice": the second
+                // choice after the first (no permanent is both chosen).
+                if let Some(b) = and {
+                    let (count, filter) = &**b;
+                    let filter = self.filter(filter);
+                    out.push(CoreEffect::SacrificeChosen {
+                        who: r(*who),
+                        filter,
+                        count: *count,
+                    });
+                }
             }
             Effect::Strip { keywords, to } => out.push(CoreEffect::Strip {
                 keywords: KeywordSet::of(keywords.iter().copied()),

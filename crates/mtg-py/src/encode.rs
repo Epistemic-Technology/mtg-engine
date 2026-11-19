@@ -169,10 +169,11 @@ pub const fn choice_kind_index(c: &Choice) -> usize {
         Choice::Subtype(_) => 35,
         Choice::Divide(_) => 36,
         Choice::CastDash(_) => 37,
+        Choice::CastAlt(_) => 38,
     }
 }
 
-pub const CHOICE_KIND_NAMES: [&str; 38] = [
+pub const CHOICE_KIND_NAMES: [&str; 39] = [
     "keep",
     "mulligan",
     "bottom",
@@ -211,6 +212,7 @@ pub const CHOICE_KIND_NAMES: [&str; 38] = [
     "subtype",
     "divide",
     "cast_dash",
+    "cast_alt",
 ];
 
 #[allow(clippy::cast_precision_loss)] // ids and counts are small
@@ -358,6 +360,7 @@ pub fn option_features(state: &GameState, decision: &Decision, max: usize) -> (V
             | Choice::TurnFaceUp(id)
             | Choice::CastEvoke(id)
             | Choice::CastDash(id)
+            | Choice::CastAlt(id)
             | Choice::Suspend(id)
             | Choice::Foretell(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 0.0),
             Choice::CastFaceDown(id) => (card_id(state, *id), -1.0, 0.0, 0.0, 3.0),

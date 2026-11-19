@@ -1,0 +1,7 @@
+card "Mirkwood Nurturer" {
+  oracle_id 66630640-9605-44da-afdf-eb9d458d056f
+  cost {2}{G/U}
+  type Creature — Elf Ranger
+  pt 3/2
+  triggered when this enters: return up to 1 another target permanent you control to hand; if you do, put 1 +1/+1 counter on this creature
+}

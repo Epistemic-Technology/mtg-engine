@@ -1,0 +1,8 @@
+card "Exosuit Savior" {
+  oracle_id 8b13ec4d-812a-48b0-8a64-6847a694a03a
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/2
+  keywords flying
+  triggered when this enters: return up to 1 another target permanent you control to hand
+}

@@ -89,6 +89,9 @@ pub struct Card {
     pub keywords: Vec<Keyword>,
     /// "As an additional cost to cast this spell, ..." (CR 601.2b).
     pub additional: Option<Cost>,
+    /// `alternative cost sacrifice Mountain`: "You may sacrifice a
+    /// Mountain rather than pay this spell's mana cost." (CR 118.9).
+    pub alt_cost: Option<AltCost>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -132,6 +135,7 @@ impl Card {
             loyalty: None,
             keywords: Vec::new(),
             additional: None,
+            alt_cost: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -308,6 +312,17 @@ pub struct Except {
 pub enum ReduceBy {
     Each(CountExpr),
     If(StaticCond),
+}
+
+/// `alternative cost {1}, return basic land you control`, `alternative
+/// cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your
+/// turn` (CR 118.9): mana, and `count` permanents sacrificed or returned
+/// (the cost's `sacrifice` filter); the cost's condition says when it's
+/// offered.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct AltCost {
+    pub cost: Cost,
+    pub count: u32,
 }
 
 /// A cost (CR 118): of an activated ability or the additional cost of a
@@ -1754,6 +1769,13 @@ pub enum Effect {
         who: Recipient,
         count: Num,
         filter: Filter,
+        /// `target player sacrifices 1 artifact and 1 land`: "sacrifices an
+        /// artifact and a land of their choice" (two choices, one
+        /// sentence).
+        and: Option<Box<(Num, Filter)>>,
+        /// `sacrifices 1 creature of their choice with flying`: the filter's
+        /// "with" qualities print after "of their choice".
+        choice_first: bool,
     },
     /// `return 1 land you control`: "return a land you control to its
     /// owner's hand" (the controller chooses).

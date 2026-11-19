@@ -1,0 +1,9 @@
+card "Pinecone Strike" {
+  oracle_id 961e3023-39ea-4141-99b6-738280a2815d
+  cost {1}{R}
+  type Instant
+  choose one or both {
+    mode: deal 3 damage to target creature; this turn, replace target 1 dies: exile
+    mode: destroy target artifact token
+  }
+}

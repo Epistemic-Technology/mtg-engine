@@ -85,6 +85,18 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
         loyalty: (def.loyalty > 0).then_some(def.loyalty),
         keywords: keywords(def.keywords),
         additional: (def.additional != CoreCost::default()).then(|| d.cost(&def.additional)),
+        alt_cost: def.alt_cost.as_deref().map(|a| {
+            let mut cost = d.cost(&a.cost);
+            cost.conditions = a
+                .condition
+                .map(|c| d.static_cond(pool.condition(c)))
+                .into_iter()
+                .collect();
+            crate::ast::AltCost {
+                cost,
+                count: a.count,
+            }
+        }),
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
@@ -614,6 +626,8 @@ impl Decompiler<'_> {
                 who: r(*who),
                 count: *count,
                 filter: self.filter(filter),
+                and: None,
+                choice_first: false,
             },
             CoreEffect::Strip { keywords: k, to } => Effect::Strip {
                 keywords: keywords(*k),

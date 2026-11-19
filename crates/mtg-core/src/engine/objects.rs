@@ -775,6 +775,17 @@ impl GameState {
         });
     }
 
+    /// The total toxic N among a source's abilities (CR 702.164c).
+    fn toxic_total(&self, c: &crate::state::Characteristics) -> u32 {
+        c.abilities
+            .iter()
+            .map(|a| match self.pool.ability(*a) {
+                crate::card::AbilityDef::Toxic(n) => *n,
+                _ => 0,
+            })
+            .sum()
+    }
+
     /// The damage itself (CR 120.3). Lifelink applies to the damage dealt
     /// (CR 702.15); deathtouch is remembered for the next SBA check.
     fn deal_damage_now(&mut self, source: ObjId, target: Target, amount: u32, combat: bool) {
@@ -813,14 +824,7 @@ impl GameState {
                 }
                 // CR 702.164c: toxic adds poison counters with combat damage.
                 if combat && let Some(c) = src.as_ref() {
-                    let toxic: u32 = c
-                        .abilities
-                        .iter()
-                        .map(|a| match self.pool.ability(*a) {
-                            crate::card::AbilityDef::Toxic(n) => *n,
-                            _ => 0,
-                        })
-                        .sum();
+                    let toxic = self.toxic_total(c);
                     if toxic > 0 {
                         self.add_poison(p, toxic);
                     }

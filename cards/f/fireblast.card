@@ -1,0 +1,7 @@
+card "Fireblast" {
+  oracle_id 9dd7f27a-e862-47d7-9158-034cf4d353b8
+  cost {4}{R}{R}
+  type Instant
+  alternative cost sacrifice 2 Mountain
+  spell: deal 4 damage to any target
+}

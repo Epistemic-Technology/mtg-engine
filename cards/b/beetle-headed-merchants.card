@@ -1,0 +1,7 @@
+card "Beetle-Headed Merchants" {
+  oracle_id 0e6609b4-f359-4bf1-a06e-f4317a0e7b3c
+  cost {4}{B}
+  type Creature — Human Citizen
+  pt 5/4
+  triggered whenever this attacks: you may sacrifice 1 another creature or artifact chosen; if you do, draw 1 card and put 1 +1/+1 counter on this creature
+}

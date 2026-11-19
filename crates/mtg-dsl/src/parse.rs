@@ -679,6 +679,7 @@ impl P {
             loyalty: None,
             keywords: Vec::new(),
             additional: None,
+            alt_cost: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -824,6 +825,24 @@ impl P {
                 self.pos += 1;
                 self.expect_word("cost")?;
                 card.additional = Some(self.cost()?);
+                self.end_stmt()
+            }
+            "alternative" => {
+                self.pos += 1;
+                self.expect_word("cost")?;
+                // `sacrifice 2 Mountain`: the count, then a cost of one.
+                let mut count = 1;
+                if self.at_word("sacrifice")
+                    && let Some(Tok::Num(n)) = self.peek_at(1)
+                {
+                    count = *n;
+                    self.toks.remove(self.pos + 1);
+                }
+                let cost = self.cost()?;
+                if cost.sacrifice.is_none() && count > 1 {
+                    return self.fail("a count needs a permanent to sacrifice");
+                }
+                card.alt_cost = Some(crate::ast::AltCost { cost, count });
                 self.end_stmt()
             }
             "kicker" => {
@@ -2976,12 +2995,47 @@ impl P {
                 } else {
                     self.num()?
                 };
-                let filter = self.filter()?;
-                self.eat_words(&["of", "their", "choice"]);
+                let mut filter = self.filter()?;
+                let of_choice = self.eat_words(&["of", "their", "choice"]);
+                // "a creature of their choice with flying".
+                let mut choice_first = false;
+                if of_choice && self.at_word("with") {
+                    self.pos += 1;
+                    let Some(k) = self.keyword() else {
+                        return self.unexpected("a keyword after `with`");
+                    };
+                    filter.keywords.push(k);
+                    while self.eat_word("and") {
+                        let Some(k) = self.keyword() else {
+                            return self.unexpected("a keyword after `and`");
+                        };
+                        filter.keywords.push(k);
+                    }
+                    choice_first = true;
+                }
+                // "an artifact and a land of their choice".
+                let and = if self.at_word("and")
+                    && (matches!(self.peek_at(1), Some(Tok::Num(_)))
+                        || matches!(self.word_at(1).as_deref(), Some("a" | "an")))
+                {
+                    self.pos += 1;
+                    let n = if self.eat_word("a") || self.eat_word("an") {
+                        Num::N(1)
+                    } else {
+                        self.num()?
+                    };
+                    let f = self.filter()?;
+                    self.eat_words(&["of", "their", "choice"]);
+                    Some(Box::new((n, f)))
+                } else {
+                    None
+                };
                 Ok(Effect::SacrificeChosen {
                     who: subject,
                     count,
                     filter,
+                    and,
+                    choice_first,
                 })
             }
             "reveal" | "reveals" => {
@@ -4921,9 +4975,17 @@ impl P {
                 || self
                     .word_at(2)
                     .is_some_and(|w| NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())))
-            && self.word_at(3).as_deref() == Some("target");
+            && (self.word_at(3).as_deref() == Some("target")
+                || self.word_at(3).as_deref() == Some("another")
+                    && self.word_at(4).as_deref() == Some("target"));
         if up_to {
             self.pos += 2;
+            // "up to one other target": one only.
+            if self.word_at(1).as_deref() == Some("another")
+                && (matches!(self.peek(), Some(Tok::Num(1))) || self.at_word("one"))
+            {
+                self.pos += 1;
+            }
         }
         let count = match self.peek() {
             Some(Tok::Num(n)) if self.word_at(1).as_deref() == Some("target") => {
@@ -4945,8 +5007,13 @@ impl P {
             _ => 1,
         };
         if count > 1 || up_to {
+            // "up to one other target permanent you control".
+            let another = up_to && self.eat_word("another");
             self.expect_word("target")?;
             let mut spec = self.target_spec()?;
+            if another {
+                spec = another_target(spec);
+            }
             if up_to {
                 spec = Target::UpTo(Box::new(spec));
             }
@@ -4974,7 +5041,9 @@ impl P {
                 || self
                     .word_at(2)
                     .is_some_and(|w| NUMBER_WORDS.contains(&w.to_ascii_lowercase().as_str())))
-            && self.word_at(3).as_deref() == Some("target")
+            && (self.word_at(3).as_deref() == Some("target")
+                || self.word_at(3).as_deref() == Some("another")
+                    && self.word_at(4).as_deref() == Some("target"))
         {
             let g = self.recipient_group()?;
             return match g.as_slice() {
@@ -5106,55 +5175,7 @@ impl P {
             }
             let mut spec = self.target_spec()?;
             if another {
-                spec = match spec {
-                    Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
-                    Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
-                    Target::Spec(TargetSpec::AttackingCreature) => Target::Filter(Filter {
-                        types: vec![CardType::Creature],
-                        attacking: true,
-                        relation: Relation::Other,
-                        ..Default::default()
-                    }),
-                    Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
-                        types: vec![CardType::Artifact],
-                        relation: Relation::Other,
-                        ..Default::default()
-                    }),
-                    Target::Spec(TargetSpec::CreatureYouControl) => Target::Filter(Filter {
-                        types: vec![CardType::Creature],
-                        who: Some(Who::You),
-                        relation: Relation::Other,
-                        ..Default::default()
-                    }),
-                    Target::Filter(mut f) if f.relation == Relation::Any => {
-                        f.relation = Relation::Other;
-                        Target::Filter(f)
-                    }
-                    Target::GraveyardCard {
-                        mut filter,
-                        who,
-                        graveyards,
-                    } => {
-                        filter.relation = Relation::Other;
-                        Target::GraveyardCard {
-                            filter,
-                            who,
-                            graveyards,
-                        }
-                    }
-                    Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => {
-                        Target::GraveyardCard {
-                            filter: Filter {
-                                types: vec![CardType::Creature],
-                                relation: Relation::Other,
-                                ..Default::default()
-                            },
-                            who: Who::You,
-                            graveyards: false,
-                        }
-                    }
-                    other => other,
-                };
+                spec = another_target(spec);
             }
             self.targets.push(spec);
             let t = self.targets.len() - 1;
@@ -5163,7 +5184,26 @@ impl P {
             if self.at_words(&["and", "all", "other"]) || self.at_words(&["and", "each", "other"]) {
                 let save = (self.pos, self.groups.len());
                 self.pos += 1;
-                if let Ok(Recipient::Group(g)) = self.recipient()
+                // `target creature card from your graveyard and all other
+                // card with same name as target 1`: cards in its graveyard.
+                let cards = self.at_words(&["all", "other", "card"])
+                    && matches!(
+                        self.targets[t],
+                        Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                            | Target::GraveyardCard { .. }
+                    );
+                let group = if cards {
+                    self.pos += 3;
+                    self.filter().map(|mut f| {
+                        f.all = true;
+                        f.relation = Relation::Other;
+                        self.groups.push(f);
+                        Recipient::Group(u16::try_from(self.groups.len() - 1).unwrap_or(0))
+                    })
+                } else {
+                    self.recipient()
+                };
+                if let Ok(Recipient::Group(g)) = group
                     && matches!(
                         self.groups[usize::from(g)].same,
                         Some(SameRef::SameNameAs(n) | SameRef::SharesColorWith(n)) if n == t
@@ -5360,6 +5400,8 @@ impl P {
                             Some("ability" | "abilities" | "player" | "players")
                         ))
                     || keyword_after
+                    // "target artifact token".
+                    || matches!(next.as_deref(), Some("token" | "tokens"))
                     || (matches!(next.as_deref(), Some("with"))
                         && matches!(self.peek_at(ws.len() + 1), Some(Tok::Pt { signed: true, .. })))
                     || (matches!(next.as_deref(), Some("with"))
@@ -5696,6 +5738,12 @@ impl P {
                     f.status.modified = true;
                     self.pos += 1;
                 }
+                // "a token", "artifact token", "nontoken creature" (CR
+                // 111.1).
+                "token" | "tokens" | "nontoken" if f.status.token.is_none() => {
+                    f.status.token = Some(w != "nontoken");
+                    self.pos += 1;
+                }
                 // "blocking this creature", "this creature is blocking",
                 // "it's blocking", "blocking or blocked by this creature".
                 "blocking" | "blocked"
@@ -5846,9 +5894,15 @@ impl P {
                 {
                     let save = self.pos;
                     self.pos += 1;
+                    // "another creature or an artifact": the alternative
+                    // with an article of its own doesn't take "another".
+                    let own_article = matches!(self.word_at(0).as_deref(), Some("a" | "an"));
                     match self.filter() {
                         Ok(mut alt) if f.or.is_none() => {
                             crate::format::share_qualifiers(&mut f, &mut alt);
+                            if own_article && f.relation == Relation::Other {
+                                alt.relation = Relation::Any;
+                            }
                             f.or = Some(Box::new(alt));
                             consumed += self.pos - before;
                         }
@@ -7120,6 +7174,63 @@ impl P {
             return self.unexpected("a color");
         }
         Ok(out)
+    }
+}
+
+/// "another target creature": the target spec, excluding the source.
+fn another_target(spec: Target) -> Target {
+    match spec {
+        Target::Spec(TargetSpec::Creature) => Target::Spec(TargetSpec::OtherCreature),
+        Target::Spec(TargetSpec::Permanent) => Target::Spec(TargetSpec::OtherPermanent),
+        Target::Spec(TargetSpec::AttackingCreature) => Target::Filter(Filter {
+            types: vec![CardType::Creature],
+            attacking: true,
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::Artifact) => Target::Filter(Filter {
+            types: vec![CardType::Artifact],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        // "up to one other target artifact or enchantment".
+        Target::Spec(TargetSpec::ArtifactOrEnchantment) => Target::Filter(Filter {
+            any_types: vec![CardType::Artifact, CardType::Enchantment],
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Spec(TargetSpec::CreatureYouControl) => Target::Filter(Filter {
+            types: vec![CardType::Creature],
+            who: Some(Who::You),
+            relation: Relation::Other,
+            ..Default::default()
+        }),
+        Target::Filter(mut f) if f.relation == Relation::Any => {
+            f.relation = Relation::Other;
+            Target::Filter(f)
+        }
+        Target::GraveyardCard {
+            mut filter,
+            who,
+            graveyards,
+        } => {
+            filter.relation = Relation::Other;
+            Target::GraveyardCard {
+                filter,
+                who,
+                graveyards,
+            }
+        }
+        Target::Spec(TargetSpec::CreatureCardInYourGraveyard) => Target::GraveyardCard {
+            filter: Filter {
+                types: vec![CardType::Creature],
+                relation: Relation::Other,
+                ..Default::default()
+            },
+            who: Who::You,
+            graveyards: false,
+        },
+        other => other,
     }
 }
 

@@ -1,0 +1,7 @@
+card "Mine Collapse" {
+  oracle_id 83df0f44-86ca-4adb-9f3a-da1ba6dd7a6d
+  cost {3}{R}
+  type Instant
+  alternative cost sacrifice Mountain, if your turn
+  spell: deal 5 damage to target creature or planeswalker
+}

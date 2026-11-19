@@ -236,6 +236,9 @@ pub enum AltCast {
     /// Cast for its dash cost (CR 702.109a); kept by the permanent, which
     /// has haste.
     Dash,
+    /// Cast for the alternative cost its own text offers (CR 118.9, "rather
+    /// than pay this spell's mana cost").
+    AltCost,
 }
 
 /// The mana spent to cast a spell (CR 601.2h), as much as cards ask
@@ -1636,7 +1639,8 @@ impl GameState {
             Some(crate::card::CounterQual::Kind(k)) if o.counters(k) == 0 => return false,
             _ => {}
         }
-        true
+        q.token
+            .is_none_or(|t| (self.objects[id].kind == ObjKind::Token) == t)
     }
 
     /// Whether the spell `obj` targets what `t` asks for, judged by

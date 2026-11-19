@@ -1,0 +1,6 @@
+card "Structural Collapse" {
+  oracle_id de97ec82-d09d-440e-8c7d-a3f0fb552418
+  cost {5}{R}
+  type Sorcery
+  spell: target player sacrifices 1 artifact and 1 land; this deals 2 damage to that target 1
+}

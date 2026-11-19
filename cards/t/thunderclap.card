@@ -1,0 +1,7 @@
+card "Thunderclap" {
+  oracle_id 02f5ceb4-8b9c-4107-972b-6eec365c4a6c
+  cost {2}{R}
+  type Instant
+  alternative cost sacrifice Mountain
+  spell: deal 3 damage to target creature
+}

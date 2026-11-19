@@ -132,6 +132,9 @@ pub enum Action {
         evoked: bool,
         /// `dashed`: cast for the dash cost (CR 702.109).
         dashed: bool,
+        /// `alternative`: cast for the alternative cost the card's text
+        /// offers (CR 118.9, "rather than pay this spell's mana cost").
+        alternative: bool,
         /// `dividing 2, 1` after the targets: how a divided spell splits
         /// its damage or counters among them, in target order (CR
         /// 601.2d).

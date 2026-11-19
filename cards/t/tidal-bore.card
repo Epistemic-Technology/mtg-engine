@@ -1,0 +1,7 @@
+card "Tidal Bore" {
+  oracle_id 513ad32a-2887-4825-adad-86a87cf1d2cb
+  cost {1}{U}
+  type Instant
+  alternative cost return Island you control
+  spell: you may tap or untap target creature
+}

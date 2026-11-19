@@ -204,6 +204,10 @@ pub enum Choice {
     CastEvoke(ObjId),
     /// Cast a card for its dash cost (CR 702.109a).
     CastDash(ObjId),
+    /// Cast a card for the alternative cost its text offers (CR 118.9):
+    /// "You may sacrifice a Mountain rather than pay this spell's mana
+    /// cost."
+    CastAlt(ObjId),
     /// Suspend a card from hand (CR 702.62a), a special action.
     Suspend(ObjId),
     /// Foretell a card from hand (CR 702.143a), a special action.
@@ -308,6 +312,7 @@ impl Choice {
             ),
             Choice::CastEvoke(id) => format!("cast {} for its evoke cost", name(id)),
             Choice::CastDash(id) => format!("cast {} for its dash cost", name(id)),
+            Choice::CastAlt(id) => format!("cast {} for its alternative cost", name(id)),
             Choice::Suspend(id) => format!("suspend {}", name(id)),
             Choice::Foretell(id) => format!("foretell {}", name(id)),
             Choice::CastFaceDown(id) => {

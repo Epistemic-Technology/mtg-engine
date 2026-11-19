@@ -79,6 +79,13 @@ fn format_inner(card: &Card) -> String {
     if let Some(c) = &card.additional {
         let _ = writeln!(out, "  additional cost {}", cost_text(c));
     }
+    if let Some(a) = &card.alt_cost {
+        let mut text = cost_text(&a.cost);
+        if a.count > 1 {
+            text = text.replacen("sacrifice ", &format!("sacrifice {} ", a.count), 1);
+        }
+        let _ = writeln!(out, "  alternative cost {text}");
+    }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
     }
@@ -161,7 +168,7 @@ impl Fmt {
                         // "target other creature" and a stray "you control".
                         Target::Filter(f) if f.relation == Relation::Other && f.who.is_some() => {
                             let mut g = f.clone();
-                            g.relation = Relation::Any;
+                            crate::format::relation_any(&mut g);
                             format!("another target {}", filter(&g))
                         }
                         Target::Filter(f) => format!("target {}", filter(f)),
@@ -172,7 +179,7 @@ impl Fmt {
                             graveyards,
                         } if f.relation == Relation::Other => {
                             let mut g = f.clone();
-                            g.relation = Relation::Any;
+                            crate::format::relation_any(&mut g);
                             format!("another {}", graveyard_target(&g, *who, *graveyards))
                         }
                         Target::GraveyardCard {
@@ -245,6 +252,16 @@ impl Fmt {
             Recipient::TargetAnd(t, i) => {
                 let first = self.recipient(Recipient::Target(t), targets);
                 let group = self.recipient(Recipient::Group(i), targets);
+                // `... from your graveyard and all other card with same
+                // name as target 1`.
+                if matches!(
+                    targets[t].base(),
+                    Target::Spec(mtg_core::card::TargetSpec::CreatureCardInYourGraveyard)
+                        | Target::GraveyardCard { .. }
+                ) {
+                    let rest = group.strip_prefix("all other").unwrap_or(&group);
+                    return format!("{first} and all other card{rest}");
+                }
                 format!("{first} and {group}")
             }
             Recipient::Group(i) => {
@@ -845,12 +862,25 @@ impl Fmt {
                 who,
                 count,
                 filter: f,
-            } => format!(
-                "{} sacrifices {} {}",
-                self.recipient(*who, t),
-                num(*count),
-                filter(f)
-            ),
+                and,
+                choice_first,
+            } => {
+                let mut s = format!("{} sacrifices {} ", self.recipient(*who, t), num(*count));
+                // `1 creature of their choice with flying`.
+                if *choice_first && !f.keywords.is_empty() && f.or.is_none() {
+                    let mut g = f.clone();
+                    let ks = std::mem::take(&mut g.keywords);
+                    s.push_str(&filter(&g));
+                    s.push_str(" of their choice with ");
+                    s.push_str(&keywords(&ks).replace(", ", " and "));
+                } else {
+                    s.push_str(&filter(f));
+                }
+                if let Some(b) = and {
+                    let _ = write!(s, " and {} {}", num(b.0), filter(&b.1));
+                }
+                s
+            }
             Effect::Strip { keywords: ks, to } => {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
             }
@@ -1688,6 +1718,17 @@ pub fn filter(f: &Filter) -> String {
         if let Some(k) = keyword_alternative(&base, alt) {
             return format!("{} or {}", filter_one(&base), keyword_name(k));
         }
+        // "another creature or an artifact": only the first side is
+        // other.
+        if base.relation == Relation::Other && alt.relation == Relation::Any {
+            let a = filter(alt);
+            let article = if a.starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            };
+            return format!("{} or {article} {a}", filter_one(&base));
+        }
         let (b, a) = factor_qualifiers(&base, alt);
         return format!("{} or {}", filter_one(&b), filter(&a));
     }
@@ -1734,6 +1775,9 @@ fn filter_one(f: &Filter) -> String {
     for c in &f.not_colors {
         words.push(format!("non{}", color_name(*c)));
     }
+    if f.status.token == Some(false) {
+        words.push("nontoken".to_string());
+    }
     if let Some(t) = f.tapped {
         words.push(if t { "tapped" } else { "untapped" }.to_string());
     }
@@ -1766,7 +1810,9 @@ fn filter_one(f: &Filter) -> String {
             .collect();
         words.push(names.join(" or "));
     }
-    if f.subtypes.is_empty()
+    if f.status.token == Some(true) {
+        words.push("token".to_string());
+    } else if f.subtypes.is_empty()
         && f.types.is_empty()
         && f.any_types.is_empty()
         && !f.enchanted
@@ -1973,6 +2019,19 @@ pub fn share_qualifiers(base: &mut Filter, alt: &mut Filter) {
     }
 }
 
+/// The filter without "other", on each side of an `or` ("another Wolf or
+/// Werewolf" printed as "another" and the filter).
+pub fn relation_any(f: &mut Filter) {
+    f.relation = Relation::Any;
+    let mut cur = f.or.as_deref_mut();
+    while let Some(alt) = cur {
+        if alt.relation == Relation::Other {
+            alt.relation = Relation::Any;
+        }
+        cur = alt.or.as_deref_mut();
+    }
+}
+
 /// The two sides of an `or` as printed: shared qualifiers once.
 pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
     let (mut b, mut a) = (base.clone(), alt.clone());
@@ -1987,7 +2046,7 @@ pub fn factor_qualifiers(base: &Filter, alt: &Filter) -> (Filter, Filter) {
     }
     // The relation prints once, before the first side ("another Wolf or
     // Werewolf"), however the caller printed it.
-    if a.relation == Relation::Other && b.relation != Relation::This {
+    if a.relation == Relation::Other && b.relation == Relation::Other {
         a.relation = Relation::Any;
     }
     (b, a)

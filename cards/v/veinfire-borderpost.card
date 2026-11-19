@@ -1,0 +1,8 @@
+card "Veinfire Borderpost" {
+  oracle_id 3f65d1f8-3e46-4e3d-b087-5496a4106e4e
+  cost {1}{B}{R}
+  type Artifact
+  alternative cost {1}, return basic land you control
+  enters tapped
+  mana {B} or {R}
+}

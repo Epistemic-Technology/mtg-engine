@@ -794,7 +794,11 @@ impl<'a> Ctx<'a> {
         }
         let phrase = self.target_phrase_of(i);
         if matches!(self.targets[i], Target::UpTo(_)) {
-            format!("up to one {phrase}")
+            // "up to one other target permanent you control".
+            match phrase.strip_prefix("another ") {
+                Some(rest) => format!("up to one other {rest}"),
+                None => format!("up to one {phrase}"),
+            }
         } else {
             phrase
         }
@@ -833,7 +837,7 @@ impl<'a> Ctx<'a> {
             Target::CreatureOfSubtype(sub) => format!("target {sub} creature"),
             Target::Filter(f) if f.relation == Relation::Other => {
                 let mut g = f.clone();
-                g.relation = Relation::Any;
+                crate::format::relation_any(&mut g);
                 format!(
                     "another target {}",
                     controller_first(&g, filter_phrase(&g, self.card, false))
@@ -858,7 +862,7 @@ impl<'a> Ctx<'a> {
                 };
                 let mut g = filter.clone();
                 let tgt = if g.relation == Relation::Other {
-                    g.relation = Relation::Any;
+                    crate::format::relation_any(&mut g);
                     "another target"
                 } else {
                     "target"
@@ -962,7 +966,15 @@ impl<'a> Ctx<'a> {
         let mut rest = filter.clone();
         rest.same = None;
         let plural_form = filter.all;
-        let phrase = filter_phrase(&rest, self.card, plural_form);
+        let phrase = if matches!(
+            self.targets[target].base(),
+            Target::Spec(TargetSpec::CreatureCardInYourGraveyard) | Target::GraveyardCard { .. }
+        ) {
+            // "and all other cards with the same name as that card".
+            format!("{} cards", card_filter_phrase(&rest, self.card).trim())
+        } else {
+            filter_phrase(&rest, self.card, plural_form)
+        };
         let rel = match filter.same {
             Some(SameRef::SameNameAs(n)) => format!(
                 " with the same name as that {}",
@@ -1493,6 +1505,9 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
     }
     // "noncreature, nonland card", "nonartifact, nonblack creature":
     // several negations are listed, types before colors.
+    if f.status.token == Some(false) {
+        words.push("nontoken".to_string());
+    }
     let mut negs: Vec<String> = f
         .not_types
         .iter()
@@ -1515,6 +1530,10 @@ fn filter_phrase_one(f: &Filter, card: &Card, plural_form: bool) -> String {
         noun.push(type_noun(*t).to_string());
     }
     let any_types = !f.any_types.is_empty();
+    // "a token", "artifact token" (CR 111.1).
+    if f.status.token == Some(true) && !any_types {
+        noun.push("token".to_string());
+    }
     if noun.is_empty() && !any_types {
         noun.push("permanent".to_string());
     }
@@ -1730,7 +1749,53 @@ fn card_filter_a(f: &Filter, card: &Card) -> String {
 }
 
 /// A filter with an article: "a creature you control", "another creature".
+/// "If it's your turn, you may sacrifice a Mountain rather than pay this
+/// spell's mana cost.", "You may pay {1} and return a basic land you
+/// control to its owner's hand rather than pay this spell's mana cost."
+fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
+    let mut parts = Vec::new();
+    let mana = a.cost.mana.to_string();
+    if !mana.is_empty() {
+        parts.push(format!("pay {mana}"));
+    }
+    if let Some(SacCost::Filter(f)) = &a.cost.sacrifice {
+        let what = if a.count > 1 {
+            format!(
+                "{} {}",
+                count_words(Num::N(a.count), "a"),
+                filter_phrase(f, card, true)
+            )
+        } else {
+            filter_a(f, card)
+        };
+        parts.push(match a.cost.chosen {
+            mtg_core::card::ChosenCost::Return => {
+                format!("return {what} to its owner's hand")
+            }
+            mtg_core::card::ChosenCost::Tap => format!("tap {what}"),
+            mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
+        });
+    }
+    let you_may = match a.cost.conditions.first() {
+        Some(c) => format!("If {}, you may", static_cond_text(c, card)),
+        None => "You may".to_string(),
+    };
+    format!(
+        "{you_may} {} rather than pay this spell's mana cost.",
+        parts.join(" and ")
+    )
+}
+
 fn filter_a(f: &Filter, card: &Card) -> String {
+    // "an artifact or another creature", "another creature or an
+    // artifact": one side is other, each with its own article.
+    if let Some(alt) = &f.or
+        && f.relation != alt.relation
+        && alt.or.is_none()
+    {
+        let (b, a) = crate::format::factor_qualifiers(f, alt);
+        return format!("{} or {}", filter_a(&b, card), filter_a(&a, card));
+    }
     let p = filter_phrase(f, card, false);
     // "When enchanted creature dies": the one it's attached to, no article.
     if f.enchanted && f.or.is_none() {
@@ -2975,7 +3040,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 }
                 _ => false,
             };
-            let plural = what.len() > 1 || all;
+            // "target nonland permanent and all other permanents with the
+            // same name as that permanent ... to their owners' hands".
+            let target_and = matches!(what.as_slice(), [Recipient::TargetAnd(..)]);
+            let plural = what.len() > 1 || all || target_and;
+            // "Return target creature card and all other cards with the
+            // same name as that card from your graveyard to your hand."
+            if let [Recipient::TargetAnd(t, _)] = what.as_slice()
+                && let Target::Spec(TargetSpec::CreatureCardInYourGraveyard)
+                | Target::GraveyardCard { who: Who::You, .. } = ctx.targets[*t].base()
+            {
+                let o = ctx.obj(what[0]).replacen(" from your graveyard", "", 1);
+                return Clause::imperative(format!("return {o} from your graveyard to your hand"));
+            }
             let o = if all {
                 ctx.obj_all(what[0])
             } else if what.len() == 1 {
@@ -3232,17 +3309,45 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             };
             Clause::imperative(format!("{owner} {rest}"))
         }
-        Effect::SacrificeChosen { who, count, filter } => {
+        Effect::SacrificeChosen {
+            who,
+            count,
+            filter,
+            and,
+            choice_first,
+        } => {
             let s = ctx.subj(*who);
-            let what = if *count == Num::N(1) {
-                with_article(&filter_phrase(filter, ctx.card, false))
-            } else {
-                format!(
-                    "{} {}",
-                    count_words(*count, "a"),
-                    filter_phrase(filter, ctx.card, true)
-                )
+            let some = |count: Num, filter: &Filter| {
+                if count == Num::N(1) {
+                    with_article(&filter_phrase(filter, ctx.card, false))
+                } else {
+                    format!(
+                        "{} {}",
+                        count_words(count, "a"),
+                        filter_phrase(filter, ctx.card, true)
+                    )
+                }
             };
+            // "a creature of their choice with flying".
+            if *choice_first && *who != Recipient::You {
+                let mut g = filter.clone();
+                let ks = std::mem::take(&mut g.keywords);
+                let what = some(*count, &g);
+                return Clause::with_subject(
+                    *who,
+                    s,
+                    format!(
+                        "{} {what} of their choice with {}",
+                        ctx.verb(*who, "sacrifices", "sacrifice"),
+                        keywords_list(&ks)
+                    ),
+                );
+            }
+            let mut what = some(*count, filter);
+            // "an artifact and a land of their choice".
+            if let Some(b) = and {
+                what = format!("{what} and {}", some(b.0, &b.1));
+            }
             // "Sacrifice a creature.": you choose.
             if *who == Recipient::You {
                 return Clause::imperative(format!("sacrifice {what}"));
@@ -3981,7 +4086,7 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                     // "If that creature is another Hero".
                     let what = if filter.relation == Relation::Other {
                         let mut g = filter.clone();
-                        g.relation = Relation::Any;
+                        crate::format::relation_any(&mut g);
                         let p = target_predicate(&g, ctx.card);
                         let bare = p
                             .strip_prefix("a ")
@@ -5773,7 +5878,7 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
             let what = if *at_least == 1 && f.relation == Relation::Other {
                 // "you control another Goblin".
                 let mut g = f.clone();
-                g.relation = Relation::Any;
+                crate::format::relation_any(&mut g);
                 format!("another {}", filter_phrase(&g, card, false))
             } else if *at_least == 1 {
                 with_article(&filter_phrase(&f, card, false))
@@ -6745,6 +6850,9 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
             "As an additional cost to cast this spell, {}.",
             lowercase_first(&c)
         ));
+    }
+    if let Some(a) = &card.alt_cost {
+        lines.push(alt_cost_line(card, a));
     }
     let mut i = 0;
     while i < card.abilities.len() {

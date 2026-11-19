@@ -971,6 +971,7 @@ impl Runner {
                     face_down,
                     evoked,
                     dashed,
+                    alternative,
                     ..
                 } => {
                     let choice = if *face_down {
@@ -979,6 +980,8 @@ impl Runner {
                         Choice::CastEvoke(self.in_hand(a.line, d.player, name)?)
                     } else if *dashed {
                         Choice::CastDash(self.in_hand(a.line, d.player, name)?)
+                    } else if *alternative {
+                        Choice::CastAlt(self.in_hand(a.line, d.player, name)?)
                     } else if *from_graveyard {
                         Choice::Cast(self.in_graveyard(a.line, d.player, name)?)
                     } else if let Some(c) = self.face_in_hand(d.player, name) {
@@ -1008,7 +1011,8 @@ impl Runner {
             | Choice::CastFace { card: id, .. }
             | Choice::CastFaceDown(id)
             | Choice::CastEvoke(id)
-            | Choice::CastDash(id)) = option
+            | Choice::CastDash(id)
+            | Choice::CastAlt(id)) = option
             else {
                 unreachable!()
             };
@@ -2210,6 +2214,7 @@ impl Runner {
             Choice::CastFaceDown(id) => format!("cast {} face down", self.describe_ids(&[*id])),
             Choice::CastEvoke(id) => format!("cast {} evoked", self.describe_ids(&[*id])),
             Choice::CastDash(id) => format!("cast {} dashed", self.describe_ids(&[*id])),
+            Choice::CastAlt(id) => format!("cast {} alternative", self.describe_ids(&[*id])),
             Choice::Suspend(id) => format!("suspend {}", self.describe_ids(&[*id])),
             Choice::Foretell(id) => format!("foretell {}", self.describe_ids(&[*id])),
             Choice::TurnFaceUp(id) => {

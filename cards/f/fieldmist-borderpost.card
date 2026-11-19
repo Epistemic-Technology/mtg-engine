@@ -1,0 +1,8 @@
+card "Fieldmist Borderpost" {
+  oracle_id a292ca5b-2472-4b02-a26b-d1b5b717a34b
+  cost {1}{W}{U}
+  type Artifact
+  alternative cost {1}, return basic land you control
+  enters tapped
+  mana {W} or {U}
+}
