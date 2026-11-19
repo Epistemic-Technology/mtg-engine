@@ -929,6 +929,7 @@ pub fn filter(f: &Filter) -> String {
     filter_one(f)
 }
 
+#[allow(clippy::too_many_lines)] // one clause per qualifier
 fn filter_one(f: &Filter) -> String {
     let mut words: Vec<String> = Vec::new();
     if f.all {
