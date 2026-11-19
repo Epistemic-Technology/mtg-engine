@@ -1637,6 +1637,7 @@ impl Compiler<'_> {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one arm per trigger
     fn trigger(&mut self, t: &Trigger) -> TriggerSpec {
         match t {
             Trigger::When(inner) => self.trigger(inner),
