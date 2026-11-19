@@ -1,0 +1,8 @@
+card "Savage Gorger" {
+  oracle_id 307d20fd-a9c9-4da9-b990-26c653054640
+  cost {1}{B}{B}
+  type Creature — Vampire
+  pt 1/1
+  keywords flying
+  triggered at beginning of your end step if opponent lost life this turn: put 1 +1/+1 counter on this
+}

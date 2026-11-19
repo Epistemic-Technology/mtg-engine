@@ -461,6 +461,7 @@ impl GameState {
             left_this_turn: 0,
             discarded_this_turn: 0,
             cast_this_turn: smallvec::SmallVec::new(),
+            turn_log: crate::state::TurnLog::default(),
             exile_casts: None,
             suspended_count: 0,
             enters_choice_cards: 0,
@@ -1619,9 +1620,12 @@ impl GameState {
     /// before X, X before targets (CR 601.2b).
     fn begin_cast(&mut self, player: PlayerId, card: ObjId, alt: crate::state::AltCast) -> ObjId {
         self.consecutive_passes = 0;
+        let from = self.objects[card].zone;
         let spell = self.move_object(card, Zone::Stack, true);
         self.objects[spell].controller = player;
         self.objects[spell].alt = alt;
+        // CR 601.2a: "if you cast it from your hand".
+        self.objects[spell].cast.set_cast_from(from);
         let def = self.pool.get(self.objects[spell].def);
         self.flow = if def.modes().is_some() {
             Flow::ChoosingMode { spell }
@@ -2001,6 +2005,7 @@ impl GameState {
             self.left_this_turn = 0;
             self.discarded_this_turn = 0;
             self.cast_this_turn.clear();
+            self.turn_log = crate::state::TurnLog::default();
             if let Some(e) = &mut self.exile_casts {
                 e.foretold_this_turn.clear();
                 if !e.playable.is_empty() {

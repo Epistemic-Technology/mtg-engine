@@ -1,0 +1,6 @@
+card "Ambitious Assault" {
+  oracle_id 3fb399fa-123f-448e-a473-573a1fab2c78
+  cost {2}{R}
+  type Instant
+  spell: each creature you control gets +2/+0; if you control modified creature, draw 1 card
+}

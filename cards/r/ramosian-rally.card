@@ -1,0 +1,7 @@
+card "Ramosian Rally" {
+  oracle_id 2731c237-eda1-4b74-a294-502d574f4435
+  cost {3}{W}
+  type Instant
+  alternative cost tap untapped creature you control, if you control Plains
+  spell: each creature you control gets +1/+1
+}

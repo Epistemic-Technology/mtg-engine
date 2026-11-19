@@ -308,6 +308,33 @@ impl CastInfo {
     /// Cast for its evoke cost (CR 702.74); kept by the permanent.
     const EVOKED: u16 = 0x08;
     const MODE: u16 = 0x07;
+    /// Cast at all, and from where (CR 601.2a); kept by the permanent ("if
+    /// you cast it from your hand").
+    const CAST_MASK: u16 = 0x1C00;
+    const CAST_HAND: u16 = 0x0400;
+    const CAST_GRAVEYARD: u16 = 0x0800;
+    const CAST_ELSEWHERE: u16 = 0x1000;
+
+    /// The zone the spell was cast from, `None` if it wasn't cast (a copy,
+    /// a permanent put onto the battlefield); exile and the library read
+    /// as `Zone::Exile`.
+    pub const fn cast_from(self) -> Option<Zone> {
+        match self.0 & Self::CAST_MASK {
+            Self::CAST_HAND => Some(Zone::Hand),
+            Self::CAST_GRAVEYARD => Some(Zone::Graveyard),
+            Self::CAST_ELSEWHERE => Some(Zone::Exile),
+            _ => None,
+        }
+    }
+
+    pub fn set_cast_from(&mut self, zone: Zone) {
+        let bit = match zone {
+            Zone::Hand => Self::CAST_HAND,
+            Zone::Graveyard => Self::CAST_GRAVEYARD,
+            _ => Self::CAST_ELSEWHERE,
+        };
+        self.0 = (self.0 & !Self::CAST_MASK) | bit;
+    }
 
     pub const fn offspring(self) -> bool {
         self.0 & Self::OFFSPRING != 0
@@ -404,7 +431,14 @@ impl CastInfo {
     /// What a permanent keeps of its spell's cast info (CR 702.33c).
     #[must_use]
     pub const fn kept_by_permanent(self) -> CastInfo {
-        CastInfo(self.0 & (Self::KICKED | Self::EVOKED | Self::OFFSPRING | Self::BARGAINED))
+        CastInfo(
+            self.0
+                & (Self::KICKED
+                    | Self::EVOKED
+                    | Self::OFFSPRING
+                    | Self::BARGAINED
+                    | Self::CAST_MASK),
+        )
     }
 }
 
@@ -916,6 +950,28 @@ pub struct DamageAssignment {
     pub amount: u32,
 }
 
+/// Records of the turn so far that static conditions read, one bit per
+/// player unless noted; `TurnLog::default()` as each turn begins.
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, Hash)]
+pub struct TurnLog {
+    /// Players who gained life ("if you gained life this turn").
+    pub gained_life: u8,
+    /// Players who descended (CR 700.11): a permanent card was put into
+    /// their graveyard from anywhere.
+    pub descended: u8,
+    /// Players who surveilled (CR 701.25).
+    pub surveilled: u8,
+    /// Players who had a +1/+1 counter put on a permanent they control.
+    pub counter_put: u8,
+    /// Creatures that entered the battlefield under each player's control.
+    pub creatures_entered: [u8; 4],
+    /// Nonland permanents that did (celebration).
+    pub nonland_entered: [u8; 4],
+    /// The card types among permanents put into a graveyard from the
+    /// battlefield, as they last existed.
+    pub to_graveyard: crate::card::TypeSet,
+}
+
 #[derive(Clone)]
 // Independent dirty flags and switches, not a state machine.
 #[allow(clippy::struct_excessive_bools)]
@@ -1022,6 +1078,8 @@ pub struct GameState {
     /// The spells cast this turn, by caster ("if you've cast a noncreature
     /// spell this turn"); inline, so copying the state rarely allocates.
     pub cast_this_turn: SmallVec<[(PlayerId, crate::card::CardRef); 4]>,
+    /// More of what happened this turn, reset as each turn begins.
+    pub turn_log: TurnLog,
     /// Casting from exile's bookkeeping, boxed: most games never need it,
     /// and the state is copied for every mid-event snapshot.
     pub exile_casts: Option<Box<ExileCasts>>,
@@ -1988,6 +2046,7 @@ impl GameState {
     /// The conditions that need no characteristics of permanents (zones,
     /// counts, what happened this turn, the step), shared by
     /// `condition_now` and the layer system; `false` for the rest.
+    #[allow(clippy::too_many_lines)] // one arm per condition
     pub fn condition_history(
         &self,
         cond: &crate::card::StaticCondition,
@@ -2034,10 +2093,63 @@ impl GameState {
                 .and_then(|c| c.attacker(source))
                 .is_some_and(|a| !a.blockers.is_empty()),
             C::DrawnThisTurn(n) => u32::from(self.drawn_this_turn[you.index().min(3)]) >= *n,
-            C::CastThisTurn(filter) => self
-                .cast_this_turn
-                .iter()
-                .any(|(p, def)| *p == you && filter.matches_characteristics(&self.printed(*def))),
+            C::CastThisTurn {
+                filter,
+                at_least,
+                other,
+            } => {
+                let matches =
+                    |def: crate::card::CardRef| filter.matches_characteristics(&self.printed(def));
+                let n = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, def)| *p == you && matches(*def))
+                    .count();
+                // "Another": the source's own cast (as a spell, or as the
+                // permanent it became) is not counted.
+                let own = *other
+                    && self
+                        .objects
+                        .get(source)
+                        .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                        .is_some_and(|o| {
+                            o.cast.cast_from().is_some()
+                                && o.controller == you
+                                && (o.zone == Zone::Stack || o.timestamp >= self.turn_started_at)
+                                && matches(o.def)
+                        });
+                n >= *at_least as usize + usize::from(own)
+            }
+            C::CastFrom(zone) => self
+                .objects
+                .get(source)
+                .or_else(|| self.lki.get(&source).map(|l| &l.object))
+                .is_some_and(|o| o.cast.cast_from() == Some(*zone)),
+            C::GainedLifeThisTurn { or_lost } => {
+                let bit = 1 << you.index().min(7);
+                self.turn_log.gained_life & bit != 0
+                    || (*or_lost && self.lost_life_this_turn & bit != 0)
+            }
+            C::DescendedThisTurn => self.turn_log.descended & (1 << you.index().min(7)) != 0,
+            C::SurveilledThisTurn => self.turn_log.surveilled & (1 << you.index().min(7)) != 0,
+            C::CounterPutThisTurn => self.turn_log.counter_put & (1 << you.index().min(7)) != 0,
+            C::CreatureEnteredThisTurn { other } => {
+                let n = self.turn_log.creatures_entered[you.index().min(3)];
+                // "Another creature": the source's own entry this turn is
+                // not counted.
+                let own = *other
+                    && self.objects.get(source).is_some_and(|o| {
+                        o.zone == Zone::Battlefield
+                            && o.controller == you
+                            && o.timestamp >= self.turn_started_at
+                            && self.base_characteristics(o).is_creature()
+                    });
+                n > u8::from(own)
+            }
+            C::PutIntoGraveyardThisTurn(types) => self.turn_log.to_graveyard.intersects(*types),
+            C::NonlandEnteredThisTurn(n) => {
+                u32::from(self.turn_log.nonland_entered[you.index().min(3)]) >= *n
+            }
             C::DiscardedThisTurn => self.discarded_this_turn & (1 << you.index().min(7)) != 0,
             C::MoreCardsInHand => {
                 let mine = self.player(you).hand.len();

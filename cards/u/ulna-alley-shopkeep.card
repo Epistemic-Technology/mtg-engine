@@ -1,0 +1,8 @@
+card "Ulna Alley Shopkeep" {
+  oracle_id 9da7f9ec-872a-471d-8d60-5f4213f0204f
+  cost {2}{B}
+  type Creature — Goblin Warlock
+  pt 2/3
+  keywords menace
+  label "Infusion" static this: +2/+0 as long as gained life this turn
+}

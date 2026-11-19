@@ -823,6 +823,7 @@ fn per_count(
         | CountExpr::GreatestManaValue
         | CountExpr::SourceToughness
         | CountExpr::CardsDrawnThisTurn
+        | CountExpr::SpellsCastThisTurn { .. }
         | CountExpr::OpponentsAttacked
         | CountExpr::AttackedWithThisTurn
         | CountExpr::SpentColors

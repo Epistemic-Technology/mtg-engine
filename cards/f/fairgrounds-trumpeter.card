@@ -1,0 +1,7 @@
+card "Fairgrounds Trumpeter" {
+  oracle_id 3dfc6a52-d58c-4455-96fe-ec193743d67a
+  cost {2}{G}
+  type Creature — Elephant
+  pt 2/2
+  triggered at beginning of every end step if counter put this turn: put 1 +1/+1 counter on this
+}

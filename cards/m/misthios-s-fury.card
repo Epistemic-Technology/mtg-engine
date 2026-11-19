@@ -1,0 +1,6 @@
+card "Misthios's Fury" {
+  oracle_id e99c088e-1326-4844-b932-fb51802656f5
+  cost {1}{R}
+  type Instant
+  spell: deal 3 damage to target creature; if you control Equipment, also deal 2 damage to controller of that target 1
+}

@@ -1,0 +1,9 @@
+card "Wavesifter" {
+  oracle_id d1ec1e4e-faa6-4afc-9e00-a3327105c11b
+  cost {3}{G}{U}
+  type Creature — Elemental
+  pt 3/2
+  keywords flying
+  triggered when this enters: investigate twice
+  evoke {G}{U}
+}

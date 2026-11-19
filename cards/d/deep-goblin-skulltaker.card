@@ -1,0 +1,8 @@
+card "Deep Goblin Skulltaker" {
+  oracle_id b7f56bbb-961a-4641-9446-7292ef188b1d
+  cost {2}{B}
+  type Creature — Goblin Warrior
+  pt 2/2
+  keywords menace
+  triggered at beginning of your end step if descended this turn: put 1 +1/+1 counter on this
+}

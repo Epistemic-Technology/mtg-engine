@@ -216,6 +216,18 @@ impl GameState {
         // Revolt: under its controller's control as it left.
         if old.zone == Zone::Battlefield {
             self.left_this_turn |= 1 << old.controller.index().min(7);
+            if to == Zone::Graveyard {
+                self.turn_log.to_graveyard =
+                    self.turn_log.to_graveyard.union(characteristics.types);
+            }
+        }
+        // CR 700.11: its owner descended if a permanent card went to their
+        // graveyard (a token is no card).
+        if to == Zone::Graveyard
+            && old.kind == crate::state::ObjKind::Card
+            && self.pool.get(old.card).types.is_permanent_type()
+        {
+            self.turn_log.descended |= 1 << old.owner.index().min(7);
         }
         let old_flags = self.flags_of(&old);
         self.lki.insert(
@@ -345,6 +357,14 @@ impl GameState {
             }
             if characteristics_is_artifact {
                 self.artifacts_entered_this_turn |= 1 << controller.index().min(7);
+            }
+            if characteristics.is_creature() {
+                let n = &mut self.turn_log.creatures_entered[controller.index().min(3)];
+                *n = n.saturating_add(1);
+            }
+            if !characteristics_is_land {
+                let n = &mut self.turn_log.nonland_entered[controller.index().min(3)];
+                *n = n.saturating_add(1);
             }
             let flags = self.flags_of(&self.objects[new]);
             self.count_sources(flags, self.pool.get(def).is_legendary(), true);
@@ -730,19 +750,41 @@ impl GameState {
         self.sba_touch();
     }
 
+    /// A record of the turn that static conditions read without a zone
+    /// change ("as long as you gained life this turn") got its first entry
+    /// for some player: refresh characteristics if such a static is on the
+    /// battlefield. At most a few times a turn.
+    pub(super) fn history_bump(&mut self) {
+        if self.turn_static_sources > 0
+            && self
+                .battlefield
+                .iter()
+                .any(|b| self.pool.get(self.objects[*b].def).history_static)
+        {
+            self.cbump();
+        }
+    }
+
     /// Change a life total directly (life loss, or a gain that has passed
     /// through the pipeline).
     pub(super) fn change_life(&mut self, p: PlayerId, delta: i32) {
         if delta == 0 {
             return;
         }
+        let bit = 1 << p.index().min(7);
         if delta < 0 {
             let lost = &mut self.life_lost_this_turn[p.index().min(3)];
             *lost = lost.saturating_add(delta.unsigned_abs());
-            self.lost_life_this_turn |= 1 << p.index().min(7);
+            if self.lost_life_this_turn & bit == 0 {
+                self.lost_life_this_turn |= bit;
+                self.history_bump();
+            }
             if let Some(log) = &mut self.this_way {
                 log.life_lost = log.life_lost.saturating_add(delta.unsigned_abs());
             }
+        } else if self.turn_log.gained_life & bit == 0 {
+            self.turn_log.gained_life |= bit;
+            self.history_bump();
         }
         let ps = self.player_mut(p);
         ps.life += delta;
@@ -807,7 +849,10 @@ impl GameState {
         }
         match target {
             Target::Player(p) => {
-                self.damaged_this_turn |= 1 << p.index().min(7);
+                if self.damaged_this_turn & (1 << p.index().min(7)) == 0 {
+                    self.damaged_this_turn |= 1 << p.index().min(7);
+                    self.history_bump();
+                }
                 self.note_damage_source(source);
                 self.emit(Event::Damage {
                     source,
@@ -944,6 +989,9 @@ impl GameState {
             return;
         }
         o.add_counters(kind, n);
+        if kind == CounterKind::PlusOnePlusOne {
+            self.turn_log.counter_put |= 1 << o.controller.index().min(7);
+        }
         self.cbump();
         self.emit(Event::CountersAdded { obj: id, kind, n });
     }

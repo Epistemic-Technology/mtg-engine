@@ -1,0 +1,8 @@
+card "Lorehold Pledgemage" {
+  oracle_id 2c18d692-612c-4d43-b5dd-bd2bff37bbcb
+  cost {1}{R/W}{R/W}
+  type Creature — Kor Shaman
+  pt 2/2
+  keywords first strike
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: this gets +1/+0
+}

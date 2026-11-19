@@ -1,0 +1,6 @@
+card "Unagi's Spray" {
+  oracle_id 74b8976a-15cb-4604-a65d-ca9735cd6000
+  cost {U}
+  type Instant
+  spell: target creature gets -4/-0; if you control Fish or Octopus or Otter or Seal or Serpent or Whale, draw 1 card
+}

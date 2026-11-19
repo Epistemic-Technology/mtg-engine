@@ -1,0 +1,6 @@
+card "Geistwave" {
+  oracle_id 14d5ed90-0aa7-48f0-9017-83912b9e89d1
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand; if you controlled target 1, draw 1 card
+}

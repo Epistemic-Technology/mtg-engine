@@ -1,0 +1,9 @@
+card "Tenured Concocter" {
+  oracle_id 0ecd4493-dfb4-4d56-a90e-08b74b474f39
+  cost {4}{G}
+  type Creature — Troll Druid
+  pt 4/5
+  keywords vigilance
+  triggered whenever this becomes targeted by opponent: you may draw 1 card
+  label "Infusion" static this: +2/+0 as long as gained life this turn
+}

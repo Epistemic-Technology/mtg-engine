@@ -1,0 +1,7 @@
+card "Armory Mice" {
+  oracle_id 68f7d1bf-48c7-483e-b17f-a60008854b46
+  cost {1}{W}
+  type Creature — Mouse
+  pt 3/1
+  label "Celebration" static this: +0/+2 as long as 2 nonland entered this turn
+}

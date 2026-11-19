@@ -1,0 +1,8 @@
+card "Lashknife" {
+  oracle_id 98d790c0-985f-44a4-b247-0951beea7637
+  cost {1}{W}
+  type Enchantment — Aura
+  alternative cost tap untapped creature you control, if you control Plains
+  enchant creature
+  static enchanted: has first strike
+}

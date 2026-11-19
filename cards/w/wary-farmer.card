@@ -1,0 +1,7 @@
+card "Wary Farmer" {
+  oracle_id 63eed1f5-442f-433d-989c-397b88543162
+  cost {1}{G/W}{G/W}
+  type Creature — Kithkin Citizen
+  pt 3/3
+  triggered at beginning of your end step if another creature entered this turn: surveil 1
+}

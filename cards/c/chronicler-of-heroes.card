@@ -1,0 +1,7 @@
+card "Chronicler of Heroes" {
+  oracle_id c3779271-1186-4754-8b8d-0ee18e585bb6
+  cost {1}{G}{W}
+  type Creature — Centaur Wizard
+  pt 3/3
+  triggered when this enters: draw 1 card if you control creature with +1/+1 counter
+}

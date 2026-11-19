@@ -92,6 +92,9 @@ pub struct Card {
     /// `alternative cost sacrifice Mountain`: "You may sacrifice a
     /// Mountain rather than pay this spell's mana cost." (CR 118.9).
     pub alt_cost: Option<AltCost>,
+    /// `flash as long as you control Merfolk`: "This spell has flash as
+    /// long as you control a Merfolk." (CR 702.8).
+    pub flash_if: Option<StaticCond>,
     /// `kicker {R}` (CR 702.33).
     pub kicker: Option<ManaCost>,
     /// `flashback {4}{R}` or `flashback {1}{U}, pay 3 life` (CR 702.34).
@@ -136,6 +139,7 @@ impl Card {
             keywords: Vec::new(),
             additional: None,
             alt_cost: None,
+            flash_if: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -229,6 +233,11 @@ pub enum CountExpr {
     GreatestManaValue,
     /// `drawn this turn`: "cards you've drawn this turn".
     CardsDrawnThisTurn,
+    /// `spells cast this turn` ("spells you've cast this turn"), `other
+    /// spells cast this turn` ("other spells you've cast this turn").
+    SpellsCastThisTurn {
+        other: bool,
+    },
     /// `toughness`: the source's, "its toughness".
     SourceToughness,
     /// `mana value of target 1` ("its mana value"), `mana value of that
@@ -498,6 +507,16 @@ pub struct Filter {
     pub combat_with: Option<CombatRef>,
 }
 
+impl Filter {
+    /// Anything you control: `if you controlled target 1, ...`.
+    pub fn controlled_by_you() -> Filter {
+        Filter {
+            who: Some(Who::You),
+            ..Filter::default()
+        }
+    }
+}
+
 /// How a search prints its filter's alternative.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub enum OrCard {
@@ -723,6 +742,10 @@ pub enum Ability {
         /// The condition prints first ("As long as seven or more cards are
         /// in your graveyard, this creature gets +1/+1.") rather than last.
         cond_first: bool,
+        /// Written `... if <cond>`: printed "<text> if <cond>." ("This
+        /// creature can't be blocked if you've cast a historic spell this
+        /// turn.") rather than "as long as".
+        cond_if: bool,
     },
     EntersAsCopy(Filter),
     /// `as this enters choose color`: "As this land enters, choose a
@@ -1077,8 +1100,41 @@ pub enum StaticCond {
     /// `drew 2 this turn`: "you've drawn two or more cards this turn".
     DrawnThisTurn(u32),
     /// `cast instant or sorcery spell this turn`: "you've cast an instant
-    /// or sorcery spell this turn".
-    CastThisTurn(Filter),
+    /// or sorcery spell this turn"; `cast 2 spell this turn` ("you've cast
+    /// two or more spells this turn"), `cast another blue spell this turn`
+    /// ("you've cast another blue spell this turn").
+    CastThisTurn {
+        filter: Filter,
+        at_least: u32,
+        other: bool,
+    },
+    /// `cast from hand` ("you cast it from your hand"), `cast from
+    /// graveyard` ("this spell was cast from a graveyard").
+    CastFrom(mtg_core::state::Zone),
+    /// `gained life this turn`, `gained or lost life this turn`.
+    GainedLifeThisTurn {
+        or_lost: bool,
+    },
+    /// `descended this turn`: "you descended this turn".
+    DescendedThisTurn,
+    /// `surveilled this turn`: "you've surveilled this turn".
+    SurveilledThisTurn,
+    /// `counter put this turn`: "a +1/+1 counter was put on a permanent
+    /// under your control this turn".
+    CounterPutThisTurn,
+    /// `creature entered this turn`, `another creature entered this turn`
+    /// ("another creature entered the battlefield under your control this
+    /// turn").
+    CreatureEnteredThisTurn {
+        other: bool,
+    },
+    /// `2 nonland entered this turn` (celebration): "two or more nonland
+    /// permanents entered the battlefield under your control this turn".
+    NonlandEnteredThisTurn(u32),
+    /// `artifact or creature to graveyard this turn`: "an artifact or
+    /// creature was put
+    /// into a graveyard from the battlefield this turn".
+    PutIntoGraveyardThisTurn(Vec<mtg_core::card::CardType>),
     /// `discarded this turn`: "you've discarded a card this turn".
     DiscardedThisTurn,
     /// `more cards in hand than each opponent`.
@@ -1182,6 +1238,18 @@ pub struct Sentence {
     /// How each clause after the first joins the sentence
     /// (`joins.len() == effects.len() - 1`).
     pub joins: Vec<Join>,
+}
+
+/// How a conditional sentence prints its condition.
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum IfWording {
+    /// "If <condition>, <effect>."
+    #[default]
+    Lead,
+    /// "If <condition>, it also <effect>."
+    Also,
+    /// "<Effect> if <condition>."
+    After,
 }
 
 /// How clauses of one sentence connect: "A and B", "A, then B".
@@ -1349,10 +1417,13 @@ pub enum Trigger {
     GainsLife {
         whose: Who,
     },
+    /// `whenever you cast instant or sorcery spell`; `whenever you cast or
+    /// copy instant or sorcery spell` (`or_copy`, magecraft).
     CastsSpell {
         whose: Who,
         noncreature: bool,
         instant_or_sorcery: bool,
+        or_copy: bool,
     },
     BecomesTarget(TriggerObj),
     /// Ward's trigger: "becomes the target of a spell or ability an
@@ -1761,8 +1832,9 @@ pub enum Effect {
         dest: CounteredTo,
     },
     Scry(Num),
-    /// "Investigate" (CR 701.16): create a Clue token.
-    Investigate,
+    /// "Investigate" (CR 701.16): create a Clue token; `investigate
+    /// twice` ("investigate twice") does it two times.
+    Investigate(u32),
     /// `put target creature on top of library`, `on bottom of library`,
     /// `into library 2 from top`; `owner puts target creature on top or
     /// bottom of library` ("Target creature's owner puts it on their
@@ -1948,8 +2020,10 @@ pub enum Effect {
     /// `if you control Treefolk, draw 1 card`: a static condition,
     /// judged as it resolves. With `also` after the comma (`if that spell
     /// spent 5 mana, also this gains double strike`), "this creature also
-    /// gains double strike".
-    IfCondition(StaticCond, Vec<Sentence>, bool),
+    /// gains double strike". `<sentence> if <condition>` prints the
+    /// condition last ("Draw a card if you control a creature with a +1/+1
+    /// counter on it.").
+    IfCondition(StaticCond, Vec<Sentence>, IfWording),
     /// `if kicked, deal 4 damage instead`: the sentence before it happens
     /// unless the condition holds, and these effects happen instead
     /// (CR 608.2c). Always a sentence of its own, after the one it

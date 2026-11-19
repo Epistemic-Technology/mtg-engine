@@ -115,7 +115,7 @@ impl GameState {
             }
             // CR 702.109a: cast for the dash cost instead.
             if let Some(dash) = &def.dash
-                && (sorcery_timing || def.keywords.contains(Keyword::Flash))
+                && (sorcery_timing || self.has_flash(p, def, *id))
                 && self.payable_for(
                     p,
                     &sources,
@@ -148,7 +148,7 @@ impl GameState {
                 if o.alt == AltCast::Foretold {
                     let def = self.pool.get(o.def);
                     let timing_ok =
-                        sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash);
+                        sorcery_timing || def.is_instant() || self.has_flash(p, def, *id);
                     if timing_ok
                         && !self
                             .exile_casts
@@ -262,7 +262,7 @@ impl GameState {
                 let Some(fb) = &def.flashback else {
                     continue;
                 };
-                let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+                let instant_speed = def.is_instant() || self.has_flash(p, def, *id);
                 if !(instant_speed || sorcery_timing) {
                     continue;
                 }
@@ -485,6 +485,19 @@ impl GameState {
             }
             CountExpr::CardsDrawnThisTurn => {
                 return u32::from(self.drawn_this_turn[you.index().min(3)]);
+            }
+            CountExpr::SpellsCastThisTurn { other } => {
+                let n = self
+                    .cast_this_turn
+                    .iter()
+                    .filter(|(p, _)| *p == you)
+                    .count();
+                let own = *other
+                    && self
+                        .objects
+                        .get(ctx.source)
+                        .is_some_and(|o| o.zone == Zone::Stack && o.cast.cast_from().is_some());
+                return u32::try_from(n.saturating_sub(usize::from(own))).unwrap_or(u32::MAX);
             }
             CountExpr::SourceToughness => {
                 return self
@@ -886,7 +899,7 @@ impl GameState {
         pool: &crate::mana::ManaPool,
         changers: &[ObjId],
     ) -> bool {
-        let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        let instant_speed = def.is_instant() || self.has_flash(p, def, id);
         if !(instant_speed || sorcery_timing) {
             return false;
         }
@@ -998,7 +1011,7 @@ impl GameState {
         let ps = self.player(p);
         let def = self.pool.get(self.objects[id].def);
         if let Some((_, cost)) = def.suspend.as_deref()
-            && (sorcery_timing || def.is_instant() || def.keywords.contains(Keyword::Flash))
+            && (sorcery_timing || def.is_instant() || self.has_flash(p, def, id))
             && self.payable(
                 p,
                 sources,
@@ -1222,6 +1235,17 @@ impl GameState {
     /// enough permanents to sacrifice or return, and targets. Additional
     /// costs that also choose a permanent aren't combined with it.
     #[cold]
+    /// Whether `p` may cast `def`'s card `id` as though it had flash: the
+    /// keyword (CR 702.8), or "This spell has flash as long as you control
+    /// a Merfolk" while that holds.
+    #[inline]
+    fn has_flash(&self, p: PlayerId, def: &crate::card::CardDef, id: ObjId) -> bool {
+        def.keywords.contains(Keyword::Flash)
+            || def
+                .flash_if
+                .is_some_and(|c| self.condition_now(self.pool.condition(c), p, id))
+    }
+
     #[inline(never)]
     fn alt_castable(
         &self,
@@ -1234,7 +1258,7 @@ impl GameState {
         let Some(alt) = &def.alt_cost else {
             return false;
         };
-        let instant_speed = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        let instant_speed = def.is_instant() || self.has_flash(p, def, id);
         if !(instant_speed || sorcery_timing) || def.additional.sacrifice.is_some() {
             return false;
         }
@@ -1245,6 +1269,13 @@ impl GameState {
         }
         if let Some(SacCost::Filter(f)) = &alt.cost.sacrifice
             && self.sacrifice_candidates(p, f, id).len() < alt.count.max(1) as usize
+        {
+            return false;
+        }
+        // CR 119.4: life can be paid only if the life total is at least
+        // the amount.
+        if alt.cost.life > 0
+            && self.player(p).life < i32::try_from(alt.cost.life).unwrap_or(i32::MAX)
         {
             return false;
         }
@@ -1456,7 +1487,7 @@ impl GameState {
         let Some((cost, n)) = def.escape.as_deref() else {
             return false;
         };
-        let instant = def.is_instant() || def.keywords.contains(Keyword::Flash);
+        let instant = def.is_instant() || self.has_flash(p, def, card);
         if !(instant || sorcery_timing) || self.player(p).graveyard.len() <= *n as usize {
             return false;
         }
@@ -2994,6 +3025,11 @@ impl GameState {
                 }
                 let mut one = alt.cost.clone();
                 one.mana = crate::mana::ManaCost::default();
+                if chosen.is_empty() {
+                    // "You may pay 4 life rather than pay this spell's
+                    // mana cost": nothing chosen.
+                    s.pay_other_costs(caster, &one, spell, None, None);
+                }
                 for c in chosen {
                     s.pay_other_costs(caster, &one, spell, Some(c), None);
                 }
@@ -3081,6 +3117,12 @@ impl GameState {
     /// which of the top `n` cards go down (to the bottom, or the graveyard),
     /// in their order; the rest stay on top in their order.
     pub(super) fn scry_or_surveil(&mut self, p: PlayerId, n: u32, graveyard: bool) {
+        // "If you've surveilled this turn" (CR 701.25c: surveil 0 is no
+        // surveil).
+        if graveyard && n > 0 && self.turn_log.surveilled & (1 << p.index().min(7)) == 0 {
+            self.turn_log.surveilled |= 1 << p.index().min(7);
+            self.history_bump();
+        }
         let lib = &self.player(p).library;
         let n = (n as usize).min(lib.len()).min(4);
         if n == 0 {

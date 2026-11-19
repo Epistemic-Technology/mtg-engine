@@ -1,0 +1,7 @@
+card "Witherbloom Pledgemage" {
+  oracle_id f10039ae-2695-4b0a-82b2-82ee79a992c7
+  cost {3}{B/G}{B/G}
+  type Creature — Treefolk Warlock
+  pt 5/5
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: you gain 1 life
+}

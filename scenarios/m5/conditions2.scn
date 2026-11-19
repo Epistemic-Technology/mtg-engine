@@ -1,0 +1,573 @@
+# More conditions: where a spell was cast from (CR 601.2a), the spells
+# cast this turn (counted, "another"), records of the turn (life gained,
+# descending, surveilling, counters, creatures entering, permanents put
+# into a graveyard), conditions printed after the effect ("Draw a card if
+# ..."), "if you controlled that permanent", alternative costs of life,
+# a tapped creature, or nothing, and magecraft.
+
+# ---- where it was cast from ----
+
+scenario "Coal Stoker cast from hand adds {R}{R}{R}" {
+  battlefield A: 4 "Mountain"
+  hand A: "Coal Stoker", "Lightning Bolt"
+  turn 1 A: cast "Coal Stoker"
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert life B 17
+}
+
+scenario "Coal Stoker entering without being cast adds nothing" {
+  battlefield A: "Coal Stoker", 2 "Plains"
+  hand A: "Flicker of Fate", "Lightning Bolt"
+  turn 1 A: cast "Flicker of Fate" targeting "Coal Stoker"
+  turn 1 A: wait
+  illegal turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 end
+  assert battlefield A contains "Coal Stoker"
+}
+
+scenario "Plunder the Trollshaws from hand draws one card" {
+  battlefield A: 2 "Island"
+  hand A: "Plunder the Trollshaws"
+  turn 1 A: cast "Plunder the Trollshaws"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Plunder the Trollshaws cast from a graveyard draws two instead" {
+  battlefield A: 4 "Island"
+  graveyard A: "Plunder the Trollshaws"
+  turn 1 A: cast "Plunder the Trollshaws" from graveyard
+  run_to turn 1 end
+  assert hand A count 2
+  assert exile A contains "Plunder the Trollshaws"
+}
+
+scenario "Moment of Glory from a graveyard also counters each other creature" {
+  battlefield A: 5 "Plains", "Grizzly Bears", "Hill Giant"
+  graveyard A: "Moment of Glory"
+  turn 1 A: cast "Moment of Glory" from graveyard targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 1
+}
+
+scenario "Moment of Glory from hand counters only the target" {
+  battlefield A: "Plains", "Grizzly Bears", "Hill Giant"
+  hand A: "Moment of Glory"
+  turn 1 A: cast "Moment of Glory" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Grizzly Bears" +1/+1 1
+  assert counters "Hill Giant" +1/+1 0
+}
+
+scenario "Secrets of the Key from a graveyard investigates twice" {
+  battlefield A: 4 "Island"
+  graveyard A: "Secrets of the Key"
+  turn 1 A: cast "Secrets of the Key" from graveyard
+  run_to turn 1 end
+  assert battlefield A contains 2 "Clue"
+}
+
+# ---- spells cast this turn ----
+
+scenario "Brightspear Zealot gets +2/+0 once two spells were cast" {
+  battlefield A: "Brightspear Zealot", 2 "Mountain"
+  hand A: "Shock", "Lightning Bolt"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Lightning Bolt" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Brightspear Zealot" 4
+}
+
+scenario "Brightspear Zealot after one spell is still 2/4" {
+  battlefield A: "Brightspear Zealot", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Brightspear Zealot" 2
+  run_to turn 3 begin_combat
+  assert power "Brightspear Zealot" 2
+}
+
+scenario "Dream Thief draws after another blue spell" {
+  battlefield A: 6 "Island"
+  hand A: "Divination", "Dream Thief"
+  turn 1 A: cast "Divination"
+  turn 1 A: wait
+  turn 1 A: cast "Dream Thief"
+  run_to turn 1 end
+  # Divination's two cards and Dream Thief's one.
+  assert hand A count 3
+}
+
+scenario "Dream Thief alone: its own cast is not another blue spell" {
+  battlefield A: 3 "Island"
+  hand A: "Dream Thief"
+  turn 1 A: cast "Dream Thief"
+  run_to turn 1 end
+  assert hand A count 0
+}
+
+scenario "Soul Reap: life loss only after another black spell" {
+  battlefield A: 5 "Swamp"
+  battlefield B: "Grizzly Bears", "Hill Giant"
+  hand A: "Murder", "Soul Reap"
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  turn 1 A: wait
+  turn 1 A: cast "Soul Reap" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 17
+}
+
+scenario "Soul Reap alone destroys without life loss" {
+  battlefield A: 2 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Soul Reap"
+  turn 1 A: cast "Soul Reap" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+  assert life B 20
+}
+
+scenario "Thunder Salvo counts the other spells cast this turn" {
+  battlefield A: 3 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Shock", "Thunder Salvo"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  turn 1 A: cast "Thunder Salvo" targeting "Hill Giant"
+  run_to turn 1 end
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Thunder Salvo alone deals 2" {
+  battlefield A: 2 "Mountain"
+  battlefield B: "Hill Giant"
+  hand A: "Thunder Salvo"
+  turn 1 A: cast "Thunder Salvo" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert damage "Hill Giant" 2
+}
+
+scenario "Patrician's Scorn is free after another white spell" {
+  battlefield A: "Plains"
+  battlefield B: "Grizzly Bears", "Flight" on "Grizzly Bears"
+  hand A: "Healing Salve", "Patrician's Scorn"
+  turn 1 A: cast "Healing Salve" mode 1 targeting player A
+  turn 1 A: wait
+  turn 1 A: cast "Patrician's Scorn" alternative
+  run_to turn 1 end
+  assert graveyard B contains "Flight"
+  assert life A 23
+}
+
+scenario "Patrician's Scorn has no free cast without another white spell" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears", "Flight" on "Grizzly Bears"
+  hand A: "Shock", "Patrician's Scorn"
+  turn 1 A: cast "Shock" targeting player B
+  turn 1 A: wait
+  illegal turn 1 A: cast "Patrician's Scorn" alternative
+  run_to turn 1 end
+  assert battlefield B contains "Flight"
+}
+
+# ---- magecraft ----
+
+scenario "Eager First-Year: magecraft on an instant" {
+  battlefield A: "Eager First-Year", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 1 begin_combat
+  assert power "Eager First-Year" 3
+}
+
+scenario "Quandrix Pledgemage: no magecraft for a creature spell" {
+  battlefield A: "Quandrix Pledgemage", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert counters "Quandrix Pledgemage" +1/+1 0
+}
+
+# ---- records of the turn ----
+
+scenario "Tenured Concocter gets +2/+0 as soon as its controller gains life" {
+  battlefield A: "Tenured Concocter", 2 "Plains"
+  hand A: "Sacred Nectar"
+  run_to turn 1 precombat_main
+  assert power "Tenured Concocter" 4
+  turn 1 A: cast "Sacred Nectar"
+  run_to turn 1 begin_combat
+  assert power "Tenured Concocter" 6
+  run_to turn 3 precombat_main
+  assert power "Tenured Concocter" 4
+}
+
+scenario "Tenured Concocter: life gained by an ability, with no card moving" {
+  battlefield A: "Tenured Concocter", "Shu Farmer"
+  run_to turn 1 precombat_main
+  assert power "Tenured Concocter" 4
+  turn 1 A: activate "Shu Farmer"
+  run_to turn 1 begin_combat
+  assert life A 21
+  assert power "Tenured Concocter" 6
+}
+
+scenario "Tenured Concocter: an opponent's life gain doesn't count" {
+  battlefield A: "Tenured Concocter"
+  battlefield B: 2 "Plains"
+  hand B: "Sacred Nectar"
+  start turn 2 B
+  turn 2 B: cast "Sacred Nectar"
+  run_to turn 2 begin_combat
+  assert life B 24
+  assert power "Tenured Concocter" 4
+}
+
+scenario "Starlit Soothsayer triggers after life was lost" {
+  battlefield A: "Starlit Soothsayer"
+  battlefield B: "Mountain"
+  hand B: "Shock"
+  turn 1 B: cast "Shock" targeting player A
+  run_to turn 1 end
+  assert stack top "Starlit Soothsayer"
+}
+
+scenario "Starlit Soothsayer doesn't trigger on a quiet turn" {
+  battlefield A: "Starlit Soothsayer"
+  run_to turn 1 end
+  assert stack count 0
+}
+
+scenario "Savage Gorger grows after an opponent lost life" {
+  battlefield A: "Savage Gorger", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Savage Gorger" +1/+1 1
+}
+
+scenario "Savage Gorger: its controller's own life loss doesn't count" {
+  battlefield A: "Savage Gorger", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player A
+  run_to turn 2 upkeep
+  assert counters "Savage Gorger" +1/+1 0
+}
+
+scenario "Child of the Volcano: a permanent card to the graveyard is descending" {
+  battlefield A: "Child of the Volcano", "Grizzly Bears", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Child of the Volcano" +1/+1 1
+}
+
+scenario "Child of the Volcano: an instant card to the graveyard is not" {
+  battlefield A: "Child of the Volcano", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert graveyard A contains "Shock"
+  assert counters "Child of the Volcano" +1/+1 0
+}
+
+scenario "Deep Goblin Skulltaker: only its controller's graveyard counts" {
+  battlefield A: "Deep Goblin Skulltaker", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Grizzly Bears"
+  assert counters "Deep Goblin Skulltaker" +1/+1 0
+}
+
+scenario "Ichor Shade: any creature put into a graveyard from the battlefield" {
+  battlefield A: "Ichor Shade", "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting "Grizzly Bears"
+  run_to turn 2 upkeep
+  assert counters "Ichor Shade" +1/+1 1
+}
+
+scenario "Ichor Shade: a land put into a graveyard doesn't count" {
+  battlefield A: "Ichor Shade", "Mountain"
+  battlefield B: "Forest"
+  hand A: "Stone Rain"
+  battlefield A: 2 "Mountain"
+  turn 1 A: cast "Stone Rain" targeting "Forest"
+  run_to turn 2 upkeep
+  assert graveyard B contains "Forest"
+  assert counters "Ichor Shade" +1/+1 0
+}
+
+scenario "Fairgrounds Trumpeter: a +1/+1 counter put on a permanent you control" {
+  battlefield A: "Fairgrounds Trumpeter", "Quandrix Pledgemage", "Mountain"
+  hand A: "Shock"
+  turn 1 A: cast "Shock" targeting player B
+  run_to turn 2 upkeep
+  assert counters "Quandrix Pledgemage" +1/+1 1
+  assert counters "Fairgrounds Trumpeter" +1/+1 1
+}
+
+scenario "Fairgrounds Trumpeter: no counter, no trigger" {
+  battlefield A: "Fairgrounds Trumpeter"
+  run_to turn 2 upkeep
+  assert counters "Fairgrounds Trumpeter" +1/+1 0
+}
+
+scenario "Wary Farmer surveils after another creature entered" {
+  battlefield A: "Wary Farmer", 2 "Forest"
+  hand A: "Grizzly Bears"
+  turn 1 A: cast "Grizzly Bears"
+  run_to turn 1 end
+  assert stack top "Wary Farmer"
+}
+
+scenario "Wary Farmer's own entry is not another creature" {
+  battlefield A: 3 "Plains"
+  hand A: "Wary Farmer"
+  turn 1 A: cast "Wary Farmer"
+  run_to turn 1 end
+  assert stack count 0
+}
+
+scenario "Darkblade Agent has deathtouch once its controller surveilled" {
+  battlefield A: "Darkblade Agent", 2 "Island"
+  hand A: "Taigam's Scheming"
+  run_to turn 1 precombat_main
+  assert has not "Darkblade Agent" deathtouch
+  turn 1 A: cast "Taigam's Scheming"
+  run_to turn 1 begin_combat
+  assert has "Darkblade Agent" deathtouch
+  run_to turn 3 precombat_main
+  assert has not "Darkblade Agent" deathtouch
+}
+
+# ---- conditions after the effect, and on the target ----
+
+scenario "Chronicler of Heroes draws with a countered creature" {
+  battlefield A: "Grizzly Bears" with 1 +1/+1, 2 "Forest", "Plains"
+  hand A: "Chronicler of Heroes"
+  turn 1 A: cast "Chronicler of Heroes"
+  run_to turn 1 end
+  assert hand A count 1
+}
+
+scenario "Chronicler of Heroes doesn't draw without one" {
+  battlefield A: "Grizzly Bears", 2 "Forest", "Plains"
+  hand A: "Chronicler of Heroes"
+  turn 1 A: cast "Chronicler of Heroes"
+  run_to turn 1 end
+  assert hand A count 0
+}
+
+scenario "Geistwave draws when its controller controlled the permanent" {
+  battlefield A: "Grizzly Bears", 2 "Island"
+  hand A: "Geistwave"
+  turn 1 A: cast "Geistwave" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A count 2
+}
+
+scenario "Geistwave on an opponent's permanent draws nothing" {
+  battlefield A: 2 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Geistwave"
+  turn 1 A: cast "Geistwave" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 0
+}
+
+scenario "Misthios's Fury also hits the controller with an Equipment" {
+  battlefield A: 2 "Mountain", "Bonesplitter"
+  battlefield B: "Grizzly Bears"
+  hand A: "Misthios's Fury"
+  turn 1 A: cast "Misthios's Fury" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert life B 18
+}
+
+scenario "Swirling Sandstorm without threshold does nothing" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears"
+  hand A: "Swirling Sandstorm"
+  turn 1 A: cast "Swirling Sandstorm"
+  run_to turn 1 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+scenario "Swirling Sandstorm with threshold" {
+  battlefield A: 4 "Mountain"
+  battlefield B: "Grizzly Bears", "Wind Drake"
+  graveyard A: 7 "Forest"
+  hand A: "Swirling Sandstorm"
+  turn 1 A: cast "Swirling Sandstorm"
+  run_to turn 1 end
+  assert graveyard B contains "Grizzly Bears"
+  assert battlefield B contains "Wind Drake"
+}
+
+# ---- alternative costs ----
+
+scenario "Snuff Out for 4 life" {
+  battlefield A: "Swamp" tapped
+  start turn 1 A precombat_main
+  battlefield B: "Hill Giant"
+  hand A: "Snuff Out"
+  turn 1 A: cast "Snuff Out" alternative targeting "Hill Giant"
+  run_to turn 1 end
+  assert life A 16
+  assert graveyard B contains "Hill Giant"
+}
+
+scenario "Snuff Out's alternative cost needs a Swamp" {
+  battlefield A: "Island"
+  battlefield B: "Hill Giant"
+  hand A: "Snuff Out"
+  illegal turn 1 A: cast "Snuff Out" alternative targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Snuff Out's alternative cost needs 4 life" {
+  life A 3
+  battlefield A: "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Snuff Out"
+  illegal turn 1 A: cast "Snuff Out" alternative targeting "Hill Giant"
+  run_to turn 1 end
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Ramosian Rally by tapping an untapped creature" {
+  battlefield A: "Plains" tapped, "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  hand A: "Ramosian Rally"
+  turn 1 A: cast "Ramosian Rally" alternative sacrificing "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert tapped "Grizzly Bears"
+  assert power "Hill Giant" 4
+}
+
+scenario "Ramosian Rally's alternative cost needs an untapped creature" {
+  battlefield A: "Plains" tapped, "Grizzly Bears" tapped
+  start turn 1 A precombat_main
+  hand A: "Ramosian Rally"
+  illegal turn 1 A: cast "Ramosian Rally" alternative
+  run_to turn 1 end
+  assert hand A contains "Ramosian Rally"
+}
+
+scenario "Lashknife: an Aura cast by tapping a creature" {
+  battlefield A: "Plains" tapped, "Grizzly Bears", "Hill Giant"
+  start turn 1 A precombat_main
+  hand A: "Lashknife"
+  turn 1 A: cast "Lashknife" alternative sacrificing "Hill Giant" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert tapped "Hill Giant"
+  assert has "Grizzly Bears" first_strike
+}
+
+# ---- "This spell has flash as long as ..." ----
+
+scenario "Crashing Tide has flash with a Merfolk" {
+  battlefield A: "Coral Merfolk", 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Crashing Tide"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  turn 2 declare_attackers A: cast "Crashing Tide" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert hand B contains "Grizzly Bears"
+  assert hand A count 1
+}
+
+scenario "Crashing Tide without a Merfolk is cast only as a sorcery" {
+  battlefield A: 3 "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Crashing Tide"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  illegal turn 2 declare_attackers A: cast "Crashing Tide" targeting "Grizzly Bears"
+  run_to turn 2 end
+  assert battlefield B contains "Grizzly Bears"
+}
+
+# ---- more records of the turn ----
+
+scenario "Armory Mice: celebration after two nonland permanents entered" {
+  battlefield A: "Armory Mice"
+  hand A: "Ornithopter", "Memnite"
+  turn 1 A: cast "Ornithopter"
+  turn 1 A: wait
+  turn 1 A: cast "Memnite"
+  run_to turn 1 begin_combat
+  assert toughness "Armory Mice" 3
+}
+
+scenario "Armory Mice: a land entering doesn't count" {
+  battlefield A: "Armory Mice"
+  hand A: "Ornithopter", "Plains"
+  turn 1 A: play "Plains"
+  turn 1 A: cast "Ornithopter"
+  run_to turn 1 begin_combat
+  assert toughness "Armory Mice" 1
+}
+
+scenario "Courier Bat returns a creature card after life was gained" {
+  battlefield A: 2 "Plains", 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Sacred Nectar", "Courier Bat"
+  turn 1 A: cast "Sacred Nectar"
+  turn 1 A: wait
+  turn 1 A: cast "Courier Bat"
+  turn 1 A: trigger "Courier Bat" targeting "Grizzly Bears"
+  run_to turn 1 end
+  assert hand A contains "Grizzly Bears"
+}
+
+scenario "Courier Bat without life gained this turn returns nothing" {
+  battlefield A: 3 "Swamp"
+  graveyard A: "Grizzly Bears"
+  hand A: "Courier Bat"
+  turn 1 A: cast "Courier Bat"
+  run_to turn 1 end
+  assert graveyard A contains "Grizzly Bears"
+}
+
+scenario "Wavesifter investigates twice" {
+  battlefield A: 3 "Forest", 2 "Island"
+  hand A: "Wavesifter"
+  turn 1 A: cast "Wavesifter"
+  run_to turn 1 end
+  assert battlefield A contains 2 "Clue"
+}
+
+scenario "Efflorescence: trample and indestructible after life was gained" {
+  battlefield A: "Grizzly Bears", 3 "Forest", 2 "Plains"
+  hand A: "Sacred Nectar", "Efflorescence"
+  turn 1 A: cast "Sacred Nectar"
+  turn 1 A: wait
+  turn 1 A: cast "Efflorescence" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 2
+  assert has "Grizzly Bears" trample
+  assert has "Grizzly Bears" indestructible
+}
+
+scenario "Efflorescence without life gained only adds counters" {
+  battlefield A: "Grizzly Bears", 3 "Forest"
+  hand A: "Efflorescence"
+  turn 1 A: cast "Efflorescence" targeting "Grizzly Bears"
+  run_to turn 1 begin_combat
+  assert counters "Grizzly Bears" +1/+1 2
+  assert has not "Grizzly Bears" trample
+}

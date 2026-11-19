@@ -1,0 +1,7 @@
+card "Ichor Shade" {
+  oracle_id 083ea8b0-ff2a-406e-90f1-668f33443747
+  cost {2}{B}
+  type Creature — Phyrexian Shade
+  pt 2/3
+  triggered at beginning of your end step if artifact or creature to graveyard this turn: put 1 +1/+1 counter on this
+}

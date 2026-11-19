@@ -1,0 +1,7 @@
+card "Silverquill Pledgemage" {
+  oracle_id ff72b900-ce3c-4cc4-a50e-e501e17631ca
+  cost {1}{W/B}{W/B}
+  type Creature — Vampire Cleric
+  pt 3/1
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: this gains choice of flying or lifelink
+}

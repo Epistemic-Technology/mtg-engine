@@ -683,6 +683,7 @@ impl P {
             keywords: Vec::new(),
             additional: None,
             alt_cost: None,
+            flash_if: None,
             kicker: None,
             flashback: None,
             groups: Vec::new(),
@@ -851,6 +852,11 @@ impl P {
             "kicker" => {
                 self.pos += 1;
                 card.kicker = Some(self.mana_cost()?);
+                self.end_stmt()
+            }
+            "flash" if self.at_words(&["flash", "as", "long", "as"]) => {
+                self.pos += 4;
+                card.flash_if = Some(self.static_cond()?);
                 self.end_stmt()
             }
             "flashback" => {
@@ -1716,8 +1722,12 @@ impl P {
                     }
                     break;
                 }
+                let mut cond_if = false;
                 if condition.is_none() && self.eat_words(&["as", "long", "as"]) {
                     condition = Some(self.static_cond()?);
+                } else if condition.is_none() && self.eat_word("if") {
+                    condition = Some(self.static_cond()?);
+                    cond_if = true;
                 }
                 self.end_stmt()?;
                 Ok(Ability::Static {
@@ -1725,6 +1735,7 @@ impl P {
                     mods,
                     condition,
                     cond_first,
+                    cond_if,
                 })
             }
             _ => self.unexpected("a statement"),
@@ -1930,10 +1941,92 @@ impl P {
             });
         }
         if self.eat_word("cast") {
-            let f = self.filter()?;
+            if self.eat_word("from") {
+                let zone = if self.eat_word("hand") {
+                    mtg_core::state::Zone::Hand
+                } else if self.eat_word("graveyard") {
+                    mtg_core::state::Zone::Graveyard
+                } else if self.eat_word("exile") {
+                    mtg_core::state::Zone::Exile
+                } else {
+                    return self.unexpected("`hand`, `graveyard`, or `exile`");
+                };
+                return Ok(StaticCond::CastFrom(zone));
+            }
+            let at_least = if matches!(self.peek(), Some(Tok::Num(_))) {
+                self.number()?
+            } else {
+                1
+            };
+            let other = self.eat_word("another");
+            let filter = if self.at_word("spell") {
+                Filter::default()
+            } else {
+                self.filter()?
+            };
             self.eat_word("spell");
             self.expect_words(&["this", "turn"])?;
-            return Ok(StaticCond::CastThisTurn(f));
+            return Ok(StaticCond::CastThisTurn {
+                filter,
+                at_least,
+                other,
+            });
+        }
+        if self.eat_words(&["gained", "life", "this", "turn"]) {
+            return Ok(StaticCond::GainedLifeThisTurn { or_lost: false });
+        }
+        if self.eat_words(&["gained", "or", "lost", "life", "this", "turn"]) {
+            return Ok(StaticCond::GainedLifeThisTurn { or_lost: true });
+        }
+        if self.eat_words(&["descended", "this", "turn"]) {
+            return Ok(StaticCond::DescendedThisTurn);
+        }
+        if self.eat_words(&["surveilled", "this", "turn"]) {
+            return Ok(StaticCond::SurveilledThisTurn);
+        }
+        if self.eat_words(&["counter", "put", "this", "turn"]) {
+            return Ok(StaticCond::CounterPutThisTurn);
+        }
+        if self.eat_words(&["creature", "entered", "this", "turn"]) {
+            return Ok(StaticCond::CreatureEnteredThisTurn { other: false });
+        }
+        if self.eat_words(&["another", "creature", "entered", "this", "turn"]) {
+            return Ok(StaticCond::CreatureEnteredThisTurn { other: true });
+        }
+        // `2 nonland entered this turn` (celebration).
+        if matches!(self.peek(), Some(Tok::Num(_)))
+            && self.word_at(1).as_deref() == Some("nonland")
+            && self.word_at(2).as_deref() == Some("entered")
+        {
+            let n = self.number()?;
+            self.expect_words(&["nonland", "entered", "this", "turn"])?;
+            return Ok(StaticCond::NonlandEnteredThisTurn(n));
+        }
+        // `artifact or creature to graveyard this turn`.
+        let type_at = |w: Option<String>| {
+            w.and_then(|w| {
+                crate::render::CARD_TYPES
+                    .into_iter()
+                    .find(|t| crate::render::type_noun(*t) == w)
+            })
+        };
+        if type_at(self.word_at(0)).is_some() {
+            let mut k = 0;
+            let mut types = Vec::new();
+            while let Some(t) = type_at(self.word_at(k)) {
+                types.push(t);
+                if self.word_at(k + 1).as_deref() == Some("or") {
+                    k += 2;
+                } else {
+                    k += 1;
+                    break;
+                }
+            }
+            let tail = ["to", "graveyard", "this", "turn"];
+            if (0..4).all(|i| self.word_at(k + i).as_deref() == Some(tail[i])) {
+                self.pos += k + 4;
+                return Ok(StaticCond::PutIntoGraveyardThisTurn(types));
+            }
         }
         if self.eat_words(&["discarded", "this", "turn"]) {
             return Ok(StaticCond::DiscardedThisTurn);
@@ -2379,6 +2472,12 @@ impl P {
             then_first,
             joins,
         };
+        self.condition_suffix(s)
+    }
+
+    /// A condition after a whole sentence: `<sentence> instead if <cond>`
+    /// (CR 608.2c), or `<sentence> if <cond>` ("Draw a card if ...").
+    fn condition_suffix(&mut self, s: Sentence) -> R<Sentence> {
         // `<sentence> instead if <cond>` (CR 608.2c).
         if self.at_words(&["instead", "if"]) {
             self.pos += 2;
@@ -2389,6 +2488,16 @@ impl P {
                 label: None,
                 effects: vec![s],
             }]));
+        }
+        // `<sentence> if <cond>`: "Draw a card if you control ...".
+        if self.at_word("if") {
+            self.pos += 1;
+            let cond = self.static_cond()?;
+            return Ok(Sentence::new(vec![Effect::IfCondition(
+                cond,
+                vec![s],
+                crate::ast::IfWording::After,
+            )]));
         }
         Ok(s)
     }
@@ -2759,7 +2868,12 @@ impl P {
                     Err(s) => vec![s],
                 }
             };
-            return Ok(Some(Effect::IfCondition(cond, inner, also)));
+            let wording = if also {
+                crate::ast::IfWording::Also
+            } else {
+                crate::ast::IfWording::Lead
+            };
+            return Ok(Some(Effect::IfCondition(cond, inner, wording)));
         }
         self.pos = save;
         Ok(None)
@@ -2803,6 +2917,25 @@ impl P {
         }
         if self.at_words(&["if", "target"]) || self.at_words(&["if", "that", "target"]) {
             return self.if_target();
+        }
+        // `if you controlled target 1, ...`: "If you controlled that
+        // permanent, ...", its controller as it last existed (CR 608.2h).
+        if self.at_words(&["if", "you", "controlled", "target"]) {
+            self.pos += 4;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            self.expect(&Tok::Comma)?;
+            let saved = self.subject.take();
+            let s = self.sentence()?;
+            self.subject = saved;
+            return Ok(Effect::IfTarget(
+                n - 1,
+                Filter::controlled_by_you(),
+                vec![s],
+                crate::ast::TargetCheck::default(),
+            ));
         }
         if self.at_word("if") && self.this_way_ahead() {
             self.pos += 1;
@@ -4071,7 +4204,15 @@ impl P {
                 Ok(Effect::Discard { count, who: None })
             }
             "scry" => Ok(Effect::Scry(self.num()?)),
-            "investigate" => Ok(Effect::Investigate),
+            "investigate" => Ok(Effect::Investigate(if self.eat_word("twice") {
+                2
+            } else if matches!(self.peek(), Some(Tok::Num(_))) {
+                let n = self.number()?;
+                self.expect_word("times")?;
+                n
+            } else {
+                1
+            })),
             "transform" => Ok(Effect::Transform {
                 what: self.recipient()?,
             }),
@@ -4756,6 +4897,12 @@ impl P {
         }
         if self.eat_words(&["drawn", "this", "turn"]) {
             return Ok(CountExpr::CardsDrawnThisTurn);
+        }
+        if self.eat_words(&["spells", "cast", "this", "turn"]) {
+            return Ok(CountExpr::SpellsCastThisTurn { other: false });
+        }
+        if self.eat_words(&["other", "spells", "cast", "this", "turn"]) {
+            return Ok(CountExpr::SpellsCastThisTurn { other: true });
         }
         if self.eat_words(&["opponents", "attacked"]) {
             return Ok(CountExpr::OpponentsAttacked);
@@ -6385,6 +6532,14 @@ impl P {
                 Who::Any
             };
             self.pos += if whose == Who::You { 2 } else { 3 };
+            // Magecraft: `you cast or copy instant or sorcery spell`.
+            let or_copy = whose == Who::You && self.eat_words(&["or", "copy"]);
+            if or_copy {
+                self.eat_word("an");
+            }
+            if or_copy && !self.at_words(&["instant", "or", "sorcery", "spell"]) {
+                return self.unexpected("`instant or sorcery spell` after `cast or copy`");
+            }
             if let Some(nth) = self.spell_ordinal()? {
                 return Ok(Trigger::CastsNth { whose, nth });
             }
@@ -6416,6 +6571,7 @@ impl P {
                 whose,
                 noncreature,
                 instant_or_sorcery,
+                or_copy,
             });
         }
         // "Whenever you attack [with three or more creatures]" (CR 508.1m).

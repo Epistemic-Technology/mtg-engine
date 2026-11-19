@@ -337,6 +337,10 @@ impl Compiler<'_> {
                 condition,
             });
         }
+        if let Some(c) = &card.flash_if {
+            let c = self.static_cond(c);
+            b = b.flash_if(self.pool.intern_condition(c));
+        }
         if let Some(k) = &card.kicker {
             b = b.kicker(k.clone());
         }
@@ -670,7 +674,29 @@ impl Compiler<'_> {
             StaticCond::BeingBlocked => StaticCondition::SourceBeingBlocked,
             StaticCond::AttachedIs(filter) => StaticCondition::AttachedIs(self.filter(filter)),
             StaticCond::DrawnThisTurn(n) => StaticCondition::DrawnThisTurn(*n),
-            StaticCond::CastThisTurn(filter) => StaticCondition::CastThisTurn(self.filter(filter)),
+            StaticCond::CastThisTurn {
+                filter,
+                at_least,
+                other,
+            } => StaticCondition::CastThisTurn {
+                filter: self.filter(filter),
+                at_least: *at_least,
+                other: *other,
+            },
+            StaticCond::CastFrom(z) => StaticCondition::CastFrom(*z),
+            StaticCond::GainedLifeThisTurn { or_lost } => {
+                StaticCondition::GainedLifeThisTurn { or_lost: *or_lost }
+            }
+            StaticCond::DescendedThisTurn => StaticCondition::DescendedThisTurn,
+            StaticCond::SurveilledThisTurn => StaticCondition::SurveilledThisTurn,
+            StaticCond::CounterPutThisTurn => StaticCondition::CounterPutThisTurn,
+            StaticCond::CreatureEnteredThisTurn { other } => {
+                StaticCondition::CreatureEnteredThisTurn { other: *other }
+            }
+            StaticCond::NonlandEnteredThisTurn(n) => StaticCondition::NonlandEnteredThisTurn(*n),
+            StaticCond::PutIntoGraveyardThisTurn(t) => StaticCondition::PutIntoGraveyardThisTurn(
+                mtg_core::card::TypeSet::of(t.iter().copied()),
+            ),
             StaticCond::DiscardedThisTurn => StaticCondition::DiscardedThisTurn,
             StaticCond::MoreCardsInHand => StaticCondition::MoreCardsInHand,
             StaticCond::OpponentPoison(n) => StaticCondition::OpponentPoison(*n),
@@ -732,6 +758,7 @@ impl Compiler<'_> {
             }
             A::GreatestManaValue => C::GreatestManaValue,
             A::CardsDrawnThisTurn => C::CardsDrawnThisTurn,
+            A::SpellsCastThisTurn { other } => C::SpellsCastThisTurn { other: *other },
             A::SourceToughness => C::SourceToughness,
             A::TargetManaValue { n, .. } => C::TargetManaValue(*n),
             A::ColorsAmongPermanents => C::ColorsAmongPermanents,
@@ -1228,13 +1255,13 @@ impl Compiler<'_> {
                 count: *count,
                 to: *to,
             }),
-            Effect::Investigate => {
+            Effect::Investigate(n) => {
                 let Some(token) = self.pool.lookup("Clue") else {
                     return self.err("unknown token \"Clue\" (cards/tokens/clue.card)");
                 };
                 out.push(CoreEffect::CreateToken {
                     token,
-                    count: Num::N(1),
+                    count: Num::N(*n),
                     who: CoreRecipient::You,
                     tapped: false,
                 });
@@ -1599,10 +1626,12 @@ impl Compiler<'_> {
                 whose,
                 noncreature,
                 instant_or_sorcery,
+                or_copy,
             } => TriggerSpec::CastsSpell {
                 whose: *whose,
                 noncreature: *noncreature,
                 instant_or_sorcery: *instant_or_sorcery,
+                or_copy: *or_copy,
             },
             Trigger::BecomesTarget(o) | Trigger::BecomesTargetWhenever(o) => {
                 TriggerSpec::BecomesTarget(self.trigger_obj(o))

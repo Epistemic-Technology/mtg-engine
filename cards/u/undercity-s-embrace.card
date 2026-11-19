@@ -1,0 +1,6 @@
+card "Undercity's Embrace" {
+  oracle_id 5b7b1839-2b44-4446-80b4-ddb59e4e835e
+  cost {2}{B}
+  type Instant
+  spell: target opponent sacrifices 1 creature; if you control creature with power 4 or greater, you gain 4 life
+}

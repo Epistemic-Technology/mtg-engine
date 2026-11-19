@@ -1,0 +1,7 @@
+card "Rouse" {
+  oracle_id 475099d9-4743-420a-ada8-3932f5ef9e82
+  cost {1}{B}
+  type Instant
+  alternative cost pay 2 life, if you control Swamp
+  spell: target creature gets +2/+0
+}

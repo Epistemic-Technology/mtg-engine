@@ -707,6 +707,7 @@ impl GameState {
                     whose,
                     noncreature,
                     instant_or_sorcery,
+                    ..
                 },
                 Event::Cast {
                     player, spell, def, ..

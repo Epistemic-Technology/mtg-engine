@@ -1,0 +1,6 @@
+card "Thunder Salvo" {
+  oracle_id d3ce7c83-986f-410a-ae00-6c1c1f918a2b
+  cost {1}{R}
+  type Instant
+  spell: deal count where plus 2 other spells cast this turn damage to target creature
+}

@@ -1,0 +1,7 @@
+card "Eager First-Year" {
+  oracle_id 74788d52-dad7-4c10-8567-a2c86ed90a67
+  cost {1}{W}
+  type Creature — Human Wizard
+  pt 2/2
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: this gets +1/+0
+}
