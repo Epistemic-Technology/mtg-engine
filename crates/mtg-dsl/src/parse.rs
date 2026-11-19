@@ -314,6 +314,8 @@ fn step_by_name(w: &str) -> Option<Step> {
         "draw" => Step::Draw,
         "combat" => Step::BeginningOfCombat,
         "end" => Step::End,
+        "first" | "precombat" => Step::PrecombatMain,
+        "second" | "postcombat" => Step::PostcombatMain,
         _ => return None,
     })
 }
@@ -1596,6 +1598,9 @@ impl P {
         if w == "targets" && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             return true;
         }
+        if self.at_words(&["controller", "of", "that", "target"]) {
+            return true;
+        }
         if w == "up" && self.word_at(1).as_deref() == Some("to") {
             return true;
         }
@@ -2805,6 +2810,15 @@ impl P {
                 _ => self.fail("expected targets"),
             };
         }
+        // `controller of that target 1`: "that creature's controller".
+        if self.at_words(&["controller", "of", "that", "target"]) {
+            self.pos += 4;
+            let n = self.number()? as usize;
+            if n == 0 || n > self.targets.len() {
+                return self.fail(format!("target {n} has not been declared"));
+            }
+            return Ok(Recipient::ThatControllerOf(n - 1));
+        }
         // `targets 1 to 2`: a declared group again.
         if self.at_word("targets") && matches!(self.peek_at(1), Some(Tok::Num(_))) {
             self.pos += 1;
@@ -3471,6 +3485,7 @@ impl P {
                     return self.fail(format!("unknown step `{w}`"));
                 };
                 self.eat_word("step");
+                self.eat_word("main");
                 return Ok(Trigger::EveryStep(step));
             }
             let whose = if self.eat_word("your") {
@@ -3496,6 +3511,8 @@ impl P {
                 return self.fail(format!("unknown step `{w}`"));
             };
             self.eat_word("step");
+            self.eat_word("main");
+            self.eat_word("phase");
             return Ok(Trigger::BeginningOfStep { step, whose });
         }
         let whenever = self.at_word("whenever");

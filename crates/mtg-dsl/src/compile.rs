@@ -526,7 +526,9 @@ impl Compiler<'_> {
             Recipient::TriggeringObject => CoreRecipient::TriggeringObject,
             Recipient::TriggeringPlayer => CoreRecipient::TriggeringPlayer,
             Recipient::DefendingPlayer => CoreRecipient::DefendingPlayer,
-            Recipient::ControllerOf(i) => CoreRecipient::ControllerOf(i),
+            Recipient::ControllerOf(i) | Recipient::ThatControllerOf(i) => {
+                CoreRecipient::ControllerOf(i)
+            }
             Recipient::OwnerOf(i) => CoreRecipient::OwnerOf(i),
             Recipient::EachCreature => CoreRecipient::EachCreature,
             Recipient::EachPlayer => CoreRecipient::EachPlayer,

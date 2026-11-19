@@ -191,6 +191,7 @@ impl Fmt {
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::DefendingPlayer => "defending player".to_string(),
             Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::ThatControllerOf(i) => format!("controller of that target {}", i + 1),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
             Recipient::Attached => "attached".to_string(),
@@ -1162,6 +1163,8 @@ fn step_name(s: Step) -> &'static str {
         Step::Upkeep => "upkeep",
         Step::Draw => "draw",
         Step::BeginningOfCombat => "combat",
+        Step::PrecombatMain => "first main",
+        Step::PostcombatMain => "second main",
         _ => "end",
     }
 }

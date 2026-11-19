@@ -638,6 +638,7 @@ impl<'a> Ctx<'a> {
             Recipient::TriggeringObject => "that creature".to_string(),
             Recipient::TriggeringPlayer => "that player".to_string(),
             Recipient::ControllerOf(_) => "its controller".to_string(),
+            Recipient::ThatControllerOf(i) => format!("that {}'s controller", self.target_noun[i]),
             Recipient::OwnerOf(_) => "its owner".to_string(),
             Recipient::DefendingPlayer => "the player or planeswalker it's attacking".to_string(),
             Recipient::EachCreature => "each creature".to_string(),
@@ -2534,7 +2535,17 @@ fn effects_after(ss: &[Sentence], ctx: &mut Ctx, lowercase: bool) -> String {
 // ---- triggers ----
 
 fn step_name(step: Step, whose: Who) -> String {
+    // "At the beginning of combat on your turn".
+    if step == Step::BeginningOfCombat {
+        return match whose {
+            Who::You => "combat on your turn".to_string(),
+            Who::Opponents => "combat on each opponent's turn".to_string(),
+            Who::Any => "each combat".to_string(),
+        };
+    }
     let name = match step {
+        Step::PrecombatMain => "first main phase",
+        Step::PostcombatMain => "second main phase",
         Step::Untap => "untap step",
         Step::Upkeep => "upkeep",
         Step::Draw => "draw step",

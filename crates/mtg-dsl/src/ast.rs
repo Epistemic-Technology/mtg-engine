@@ -796,6 +796,8 @@ pub enum Recipient {
     /// Targets `first..first + count` as one subject ("up to two target
     /// creatures each get +1/+0").
     Targets(usize, usize),
+    /// `controller of that target 1`: "that creature's controller".
+    ThatControllerOf(usize),
     /// The `n`th target again, printed as "that creature" (Act of
     /// Treason's "Untap that creature").
     ThatTarget(usize),
