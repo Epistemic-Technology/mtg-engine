@@ -1,0 +1,7 @@
+card "Jangling Automaton" {
+  oracle_id b6f67539-9f76-42b2-96a8-575f27ba928e
+  cost {3}
+  type Artifact Creature — Construct
+  pt 3/2
+  triggered whenever this attacks: untap all creature defending player controls
+}

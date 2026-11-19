@@ -1,0 +1,7 @@
+card "Dying Wail" {
+  oracle_id 78a9cb8d-52bb-4182-ad7d-e4f8f0bb9797
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: target player discards 2 cards
+}

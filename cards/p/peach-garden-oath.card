@@ -1,0 +1,6 @@
+card "Peach Garden Oath" {
+  oracle_id ad66a99b-c7e7-4b2c-8525-299d3609d1df
+  cost {W}
+  type Sorcery
+  spell: you gain count each 2 creature you control life
+}

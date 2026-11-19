@@ -1,0 +1,11 @@
+scenario "Yoke of the Damned destroys enchanted creature when a creature dies" {
+  battlefield A: "Mountain", "Grizzly Bears"
+  battlefield B: "Hill Giant"
+  battlefield A: "Yoke of the Damned" on "Hill Giant"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert graveyard B contains "Hill Giant"
+}

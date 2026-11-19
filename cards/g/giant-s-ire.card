@@ -1,0 +1,6 @@
+card "Giant's Ire" {
+  oracle_id 73d175b3-f0dc-4599-8702-2967a8ead06a
+  cost {3}{R}
+  type Kindred Sorcery — Giant
+  spell: deal 4 damage to target player or planeswalker; if you control Giant, draw 1 card
+}

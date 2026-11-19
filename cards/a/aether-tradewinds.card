@@ -1,0 +1,6 @@
+card "Aether Tradewinds" {
+  oracle_id 3a0dd318-9523-4740-b0aa-a911032e3851
+  cost {2}{U}
+  type Instant
+  spell: return target permanent you control and target permanent you don't control to hand
+}

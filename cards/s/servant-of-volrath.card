@@ -1,0 +1,7 @@
+card "Servant of Volrath" {
+  oracle_id 4e389b61-7b31-42ba-a19b-2502f63fd34a
+  cost {2}{B}
+  type Creature — Minion
+  pt 3/3
+  triggered when this leaves the battlefield: you sacrifice 1 creature
+}

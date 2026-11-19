@@ -1,0 +1,7 @@
+card "Kraul Foragers" {
+  oracle_id f414f997-06f3-4741-a9a5-9753c182e862
+  cost {4}{G}
+  type Creature — Insect Scout
+  pt 4/4
+  label "Undergrowth" triggered when this enters: you gain count each graveyard creature life
+}

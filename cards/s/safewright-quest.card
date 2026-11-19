@@ -1,0 +1,6 @@
+card "Safewright Quest" {
+  oracle_id 003c48d4-0303-4970-8637-47ae060385aa
+  cost {G/W}
+  type Sorcery
+  spell: search Forest or Plains card reveal to hand
+}

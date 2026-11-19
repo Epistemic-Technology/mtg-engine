@@ -1,0 +1,6 @@
+card "Congregate" {
+  oracle_id d139294c-36bb-4a1e-800d-50c4a4ae9877
+  cost {3}{W}
+  type Instant
+  spell: target player gains count each 2 creature on battlefield life
+}

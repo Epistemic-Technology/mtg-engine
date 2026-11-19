@@ -1,0 +1,20 @@
+scenario "Giant's Ire deals 4 and draws with a Giant" {
+  battlefield A: "Hill Giant", 4 "Mountain"
+  hand A: "Giant's Ire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant's Ire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert graveyard A contains "Giant's Ire"
+  assert hand A count 1
+}
+
+scenario "Giant's Ire draws nothing without a Giant" {
+  battlefield A: "Grizzly Bears", 4 "Mountain"
+  hand A: "Giant's Ire"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Giant's Ire" targeting player B
+  run_to turn 1 postcombat_main
+  assert life B 16
+  assert hand A count 0
+}

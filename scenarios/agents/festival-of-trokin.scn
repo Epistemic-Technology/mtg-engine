@@ -1,0 +1,9 @@
+scenario "Festival of Trokin gains 2 per creature you control" {
+  battlefield A: "Plains", "Grizzly Bears", "Hill Giant"
+  battlefield B: "Serra Angel"
+  hand A: "Festival of Trokin"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Festival of Trokin"
+  run_to turn 1 postcombat_main
+  assert life A 24
+}

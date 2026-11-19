@@ -1,0 +1,20 @@
+scenario "Congregate counts all creatures" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  battlefield B: "Hill Giant", "Serra Angel"
+  hand A: "Congregate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Congregate" targeting player A
+  run_to turn 1 postcombat_main
+  assert life A 26
+  assert life B 20
+}
+
+scenario "Congregate can target an opponent" {
+  battlefield A: 4 "Plains", "Grizzly Bears"
+  hand A: "Congregate"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Congregate" targeting player B
+  run_to turn 1 postcombat_main
+  assert life A 20
+  assert life B 22
+}

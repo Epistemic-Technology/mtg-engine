@@ -1,0 +1,30 @@
+scenario "Betrayal draws when the enchanted creature attacks" {
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Betrayal" on "Grizzly Bears"
+  start turn 2 B
+  turn 2 B: attack "Grizzly Bears"
+  run_to turn 2 postcombat_main
+  assert life A 18
+  assert hand A count 1
+}
+
+scenario "Betrayal enchants only a creature an opponent controls" {
+  battlefield A: "Island", "Hill Giant"
+  battlefield B: "Grizzly Bears"
+  hand A: "Betrayal"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Betrayal" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Betrayal"
+}
+
+scenario "Betrayal cast on an opponent's creature" {
+  battlefield A: "Island"
+  battlefield B: "Grizzly Bears"
+  hand A: "Betrayal"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Betrayal" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert attached "Betrayal" to "Grizzly Bears"
+  assert hand A count 0
+}

@@ -1,0 +1,7 @@
+card "Flaming Fist Officer" {
+  oracle_id bf06b2a8-2bb5-4eae-8306-d051c5d9f462
+  cost {2}{W}
+  type Creature — Gnome Soldier
+  pt 2/2
+  triggered whenever other creature you control leaves the battlefield: put 1 +1/+1 counter on this
+}

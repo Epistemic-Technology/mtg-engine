@@ -1,0 +1,34 @@
+scenario "Safewright Quest finds a Forest" {
+  battlefield A: "Plains"
+  hand A: "Safewright Quest"
+  library A: "Hill Giant", "Island", "Forest"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Safewright Quest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Forest"
+  assert hand A count 1
+  assert library A count 2
+  assert graveyard A contains "Safewright Quest"
+}
+
+scenario "Safewright Quest finds a Plains" {
+  battlefield A: "Forest"
+  hand A: "Safewright Quest"
+  library A: "Hill Giant", "Island", "Plains"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Safewright Quest"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Plains"
+  assert library A lacks "Plains"
+}
+
+scenario "Safewright Quest finds nothing without a Forest or Plains" {
+  battlefield A: "Forest"
+  hand A: "Safewright Quest"
+  library A: "Hill Giant", "Island"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Safewright Quest"
+  run_to turn 1 postcombat_main
+  assert hand A count 0
+  assert library A count 2
+}

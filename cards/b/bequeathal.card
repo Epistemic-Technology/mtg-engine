@@ -1,0 +1,7 @@
+card "Bequeathal" {
+  oracle_id 2a9054ce-7276-4030-901a-cf6aa18f2b62
+  cost {G}
+  type Enchantment — Aura
+  enchant creature
+  triggered when enchanted creature dies: you draw 2 cards
+}

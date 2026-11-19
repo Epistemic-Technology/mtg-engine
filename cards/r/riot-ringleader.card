@@ -1,0 +1,7 @@
+card "Riot Ringleader" {
+  oracle_id 420d09b5-aced-4f71-914c-90d19f7476dc
+  cost {2}{R}
+  type Creature — Human Warrior
+  pt 2/2
+  triggered whenever this attacks: each Human creature you control gets +1/+0
+}

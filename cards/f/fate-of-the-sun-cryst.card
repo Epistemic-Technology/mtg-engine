@@ -1,0 +1,7 @@
+card "Fate of the Sun-Cryst" {
+  oracle_id 0ffeec93-89d7-42c2-8abf-802e9f6dc992
+  cost {4}{W}
+  type Instant
+  this spell costs {2} less if it targets tapped creature
+  spell: destroy target nonland permanent
+}

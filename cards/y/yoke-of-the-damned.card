@@ -1,0 +1,7 @@
+card "Yoke of the Damned" {
+  oracle_id af08dae2-ba32-4a34-b8c1-b49d45ce0b6b
+  cost {1}{B}
+  type Enchantment — Aura
+  enchant creature
+  triggered when creature dies: destroy enchanted creature
+}

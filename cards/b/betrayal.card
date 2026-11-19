@@ -1,0 +1,7 @@
+card "Betrayal" {
+  oracle_id 9c3d2e1f-a5da-47f4-aea8-5861ef7e1b90
+  cost {U}
+  type Enchantment — Aura
+  enchant creature an opponent controls
+  triggered whenever enchanted creature becomes tapped: you draw 1 card
+}

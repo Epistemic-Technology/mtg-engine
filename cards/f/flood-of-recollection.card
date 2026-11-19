@@ -1,0 +1,6 @@
+card "Flood of Recollection" {
+  oracle_id 02393093-e970-40a0-848b-9cd758450cbb
+  cost {U}{U}
+  type Sorcery
+  spell: return target instant or sorcery card from your graveyard to hand; exile this
+}

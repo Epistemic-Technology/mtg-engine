@@ -1,0 +1,7 @@
+card "Phyrexian Bloodstock" {
+  oracle_id dfeaec62-ca77-46dc-8eae-f627a5e1c02a
+  cost {4}{B}
+  type Creature — Phyrexian Zombie
+  pt 3/3
+  triggered when this leaves the battlefield: destroy target white creature without regeneration
+}

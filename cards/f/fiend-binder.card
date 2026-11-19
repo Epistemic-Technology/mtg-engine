@@ -1,0 +1,7 @@
+card "Fiend Binder" {
+  oracle_id 060c7999-ab81-4e37-af65-7cd219b693c8
+  cost {3}{W}
+  type Creature — Human Soldier
+  pt 3/2
+  triggered whenever this attacks: tap target creature defending player controls
+}

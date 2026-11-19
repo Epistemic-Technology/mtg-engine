@@ -1,0 +1,9 @@
+scenario "Goblin Firebug leaving sacrifices a land" {
+  battlefield A: "Goblin Firebug", "Mountain", "Forest"
+  hand A: "Lightning Bolt"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Goblin Firebug"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Goblin Firebug"
+  assert battlefield A count 1
+}

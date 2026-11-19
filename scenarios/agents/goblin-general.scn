@@ -1,0 +1,12 @@
+scenario "Goblin General pumps Goblins when attacking" {
+  battlefield A: "Goblin General", "Goblin Firebug", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Goblin General"
+  run_to turn 1 declare_blockers
+  assert power "Goblin General" 2
+  assert power "Goblin Firebug" 3
+  assert toughness "Goblin Firebug" 3
+  assert power "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 18
+}

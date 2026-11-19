@@ -1,0 +1,21 @@
+scenario "Ninth Bridge Patrol grows when another creature you control leaves" {
+  battlefield A: "Ninth Bridge Patrol", "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Ninth Bridge Patrol" +1/+1 1
+}
+
+scenario "Ninth Bridge Patrol ignores an opponent's creature leaving" {
+  battlefield A: "Ninth Bridge Patrol", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Ninth Bridge Patrol" +1/+1 0
+}

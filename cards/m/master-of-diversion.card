@@ -1,0 +1,7 @@
+card "Master of Diversion" {
+  oracle_id 3402aa73-5e63-4158-b114-6f1d42ec8992
+  cost {2}{W}
+  type Creature — Human Scout
+  pt 2/2
+  triggered whenever this attacks: tap target creature defending player controls
+}

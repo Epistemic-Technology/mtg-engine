@@ -1,0 +1,7 @@
+card "Goblin General" {
+  oracle_id 5fab0d9c-ccf7-4c6a-94b4-959be139dad8
+  cost {1}{R}{R}
+  type Creature — Goblin Warrior
+  pt 1/1
+  triggered whenever this attacks: each Goblin creature you control gets +1/+1
+}

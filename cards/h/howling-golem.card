@@ -1,0 +1,7 @@
+card "Howling Golem" {
+  oracle_id 75269a31-3819-4410-8bb7-10de16810a5e
+  cost {3}
+  type Artifact Creature — Golem
+  pt 2/3
+  triggered whenever this attacks or blocks: each player draws 1 card
+}

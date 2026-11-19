@@ -1,0 +1,7 @@
+card "Papercraft Decoy" {
+  oracle_id b0494c34-f142-441f-b7f8-e981416f0bad
+  cost {2}
+  type Artifact Creature — Frog
+  pt 2/1
+  triggered when this leaves the battlefield: you may pay {2}; if you do, draw 1 card
+}

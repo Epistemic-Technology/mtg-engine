@@ -1,0 +1,10 @@
+scenario "Jangling Automaton untaps defending player's creatures" {
+  battlefield A: "Jangling Automaton", "Grizzly Bears" tapped
+  battlefield B: "Hill Giant" tapped, "Serra Angel" tapped
+  start turn 1 A precombat_main
+  turn 1 A: attack "Jangling Automaton"
+  run_to turn 1 declare_blockers
+  assert untapped "Hill Giant"
+  assert untapped "Serra Angel"
+  assert tapped "Grizzly Bears"
+}

@@ -1,0 +1,21 @@
+scenario "Flaming Fist Officer grows when another creature you control leaves" {
+  battlefield A: "Flaming Fist Officer", "Grizzly Bears", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Grizzly Bears"
+  run_to turn 1 postcombat_main
+  assert graveyard A contains "Grizzly Bears"
+  assert counters "Flaming Fist Officer" +1/+1 1
+}
+
+scenario "Flaming Fist Officer ignores an opponent's creature leaving" {
+  battlefield A: "Flaming Fist Officer", 3 "Swamp"
+  battlefield B: "Hill Giant"
+  hand A: "Murder"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Murder" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert counters "Flaming Fist Officer" +1/+1 0
+}

@@ -1,0 +1,13 @@
+scenario "Dying Wail makes target player discard two" {
+  battlefield A: "Mountain"
+  battlefield B: "Grizzly Bears"
+  battlefield A: "Dying Wail" on "Grizzly Bears"
+  hand A: "Lightning Bolt"
+  hand B: "Forest", "Island", "Swamp"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Lightning Bolt" targeting "Grizzly Bears"
+  turn 1 A: trigger "Dying Wail" targeting player B
+  run_to turn 1 postcombat_main
+  assert hand B count 1
+  assert graveyard B count 3
+}

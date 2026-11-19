@@ -1,0 +1,12 @@
+scenario "Riot Ringleader pumps Humans when attacking" {
+  battlefield A: "Riot Ringleader", "Fiend Binder", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Riot Ringleader"
+  run_to turn 1 declare_blockers
+  assert power "Riot Ringleader" 3
+  assert power "Fiend Binder" 4
+  assert toughness "Fiend Binder" 2
+  assert power "Grizzly Bears" 2
+  run_to turn 1 postcombat_main
+  assert life B 17
+}

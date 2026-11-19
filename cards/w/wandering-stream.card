@@ -1,0 +1,6 @@
+card "Wandering Stream" {
+  oracle_id 1f592b83-7838-4466-8bcb-093ac7346c55
+  cost {2}{G}
+  type Sorcery
+  label "Domain" spell: you gain count each 2 domain life
+}

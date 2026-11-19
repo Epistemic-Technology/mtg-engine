@@ -1,0 +1,6 @@
+card "Festival of Trokin" {
+  oracle_id a5a3cd2c-20ae-49a8-88fa-e8e3e7cc50db
+  cost {W}
+  type Sorcery
+  spell: you gain count each 2 creature you control life
+}

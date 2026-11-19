@@ -1,0 +1,22 @@
+scenario "Kraul Foragers gains life per creature card in graveyard" {
+  battlefield A: 5 "Forest"
+  hand A: "Kraul Foragers"
+  graveyard A: "Grizzly Bears", "Hill Giant", "Serra Angel", "Lightning Bolt", "Forest"
+  graveyard B: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraul Foragers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kraul Foragers"
+  assert life A 23
+  assert life B 20
+}
+
+scenario "Kraul Foragers with an empty graveyard gains nothing" {
+  battlefield A: 5 "Forest"
+  hand A: "Kraul Foragers"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Kraul Foragers"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Kraul Foragers"
+  assert life A 20
+}

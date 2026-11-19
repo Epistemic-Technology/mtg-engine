@@ -1,0 +1,8 @@
+scenario "Wandering Stream counts basic land types" {
+  battlefield A: 2 "Forest", "Island", "Plains", "Plains"
+  hand A: "Wandering Stream"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wandering Stream"
+  run_to turn 1 postcombat_main
+  assert life A 26
+}

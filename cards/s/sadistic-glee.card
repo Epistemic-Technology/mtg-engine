@@ -1,0 +1,7 @@
+card "Sadistic Glee" {
+  oracle_id 2af22962-8f66-4868-a175-ad5d7f4c9d58
+  cost {B}
+  type Enchantment — Aura
+  enchant creature
+  triggered whenever creature dies: put 1 +1/+1 counter on enchanted creature
+}

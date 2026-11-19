@@ -1,0 +1,30 @@
+scenario "Fate of the Sun-Cryst costs {2} less against a tapped creature" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant" tapped
+  hand A: "Fate of the Sun-Cryst"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fate of the Sun-Cryst" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Hill Giant"
+  assert graveyard A contains "Fate of the Sun-Cryst"
+}
+
+scenario "Fate of the Sun-Cryst costs full price against an untapped creature" {
+  battlefield A: 3 "Plains"
+  battlefield B: "Hill Giant"
+  hand A: "Fate of the Sun-Cryst"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Fate of the Sun-Cryst" targeting "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert battlefield B contains "Hill Giant"
+}
+
+scenario "Fate of the Sun-Cryst destroys an untapped creature at full price" {
+  battlefield A: 5 "Plains"
+  battlefield B: "Sunscape Familiar"
+  hand A: "Fate of the Sun-Cryst"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Fate of the Sun-Cryst" targeting "Sunscape Familiar"
+  run_to turn 1 postcombat_main
+  assert graveyard B contains "Sunscape Familiar"
+}

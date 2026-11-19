@@ -1,0 +1,7 @@
+card "Clockwork Fox" {
+  oracle_id eb73db77-4050-4617-a29b-f9a8c885b424
+  cost {3}
+  type Artifact Creature — Fox
+  pt 3/2
+  triggered when this leaves the battlefield: you draw 2 cards and each opponent draws 1 card
+}

@@ -1,0 +1,7 @@
+card "Star-Crowned Stag" {
+  oracle_id a375b739-6a6c-4e07-9b1c-a304f84ea2cc
+  cost {3}{W}
+  type Creature — Elk
+  pt 3/3
+  triggered whenever this attacks: tap target creature defending player controls
+}

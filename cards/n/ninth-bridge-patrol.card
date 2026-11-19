@@ -1,0 +1,7 @@
+card "Ninth Bridge Patrol" {
+  oracle_id 21ad3d41-54e9-48f9-b150-be65f52ae464
+  cost {1}{W}
+  type Creature — Dwarf Soldier
+  pt 1/1
+  triggered whenever other creature you control leaves the battlefield: put 1 +1/+1 counter on this
+}

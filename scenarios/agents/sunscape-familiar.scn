@@ -1,0 +1,25 @@
+scenario "Sunscape Familiar makes blue spells cost {1} less" {
+  battlefield A: "Sunscape Familiar", "Island", "Plains"
+  hand A: "Wind Drake"
+  start turn 1 A precombat_main
+  turn 1 A: cast "Wind Drake"
+  run_to turn 1 postcombat_main
+  assert battlefield A contains "Wind Drake"
+}
+
+scenario "Sunscape Familiar does not reduce red spells" {
+  battlefield A: "Sunscape Familiar", "Mountain", "Plains", "Plains"
+  hand A: "Hill Giant"
+  start turn 1 A precombat_main
+  illegal turn 1 A: cast "Hill Giant"
+  run_to turn 1 postcombat_main
+  assert hand A contains "Hill Giant"
+}
+
+scenario "Sunscape Familiar has defender" {
+  battlefield A: "Sunscape Familiar"
+  start turn 1 A precombat_main
+  illegal turn 1 A: attack "Sunscape Familiar"
+  run_to turn 1 postcombat_main
+  assert untapped "Sunscape Familiar"
+}

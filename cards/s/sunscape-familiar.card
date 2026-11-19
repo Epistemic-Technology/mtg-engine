@@ -1,0 +1,8 @@
+card "Sunscape Familiar" {
+  oracle_id 615603bb-3899-4419-9444-e4b64c94a438
+  cost {1}{W}
+  type Creature — Wall
+  pt 0/3
+  keywords defender
+  spells green or blue you cast cost {1} less
+}

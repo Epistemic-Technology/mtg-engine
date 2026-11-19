@@ -1,0 +1,17 @@
+scenario "Star-Crowned Stag taps a defending creature when attacking" {
+  battlefield A: "Star-Crowned Stag"
+  battlefield B: "Hill Giant"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Star-Crowned Stag"
+  turn 1 A: trigger "Star-Crowned Stag" targeting "Hill Giant"
+  run_to turn 1 declare_blockers
+  assert tapped "Hill Giant"
+}
+
+scenario "Star-Crowned Stag does not tap its controller's creatures" {
+  battlefield A: "Star-Crowned Stag", "Grizzly Bears"
+  start turn 1 A precombat_main
+  turn 1 A: attack "Star-Crowned Stag"
+  run_to turn 1 postcombat_main
+  assert untapped "Grizzly Bears"
+}

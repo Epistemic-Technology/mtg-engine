@@ -1,0 +1,7 @@
+card "Goblin Firebug" {
+  oracle_id ee337677-d898-40a5-9453-405d07ec12b1
+  cost {1}{R}
+  type Creature — Goblin
+  pt 2/2
+  triggered when this leaves the battlefield: you sacrifice 1 land
+}
