@@ -12,10 +12,10 @@ the event pipeline, the card DSL and authoring pipeline, and the Python,
 MCP, and review tools). M5 (coverage and hardening) is under way: cards
 are text files under `cards/` that compile to the engine's definitions
 and render back to Oracle text, checked against Scryfall by a gate; the
-corpus holds 9,199 cards (65% of Pauper over every layout, 31% of
+corpus holds 9,667 cards (70% of Pauper over every layout, 32% of
 Modern), multi-face cards (adventures, omens, split and transforming
 double-faced cards) included. Random agents play complete games at about
-4,200 games per second per core on effect-free boards. A 3,546-scenario
+4,200 games per second per core on effect-free boards. A 3,900-scenario
 rules corpus passes. An IS-MCTS agent (`--agent1 mcts`) beats the greedy
 agent 62% to 38% over both seats, and `mtg-bench` (see
 [BENCHMARK.md](BENCHMARK.md)) rates language models against the agents.

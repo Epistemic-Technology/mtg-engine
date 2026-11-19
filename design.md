@@ -2581,3 +2581,18 @@ cost increases. A merge that scanned the battlefield on every step was
 gated on a battlefield count (`turn_static_sources`); per-game
 instructions are back below the pre-merge level. Pauper coverage 65.2%;
 3,546 scenarios pass; fuzz clean.
+
+Status 2026-11-19, early morning: two more waves of feature agents
+(attack/block counts and conditional restrictions, Aura and Equipment
+mechanics, optional actions and "this way" results, counterspell variants
+and library placement, delayed and reflexive triggers with scaled counts,
+ninjutsu / scavenge / dash / embalm / eternalize / backup / offspring /
+bargain / saddle, automatic payment through activated mana abilities,
+compound triggers, filter status words, spent-mana riders). Each merge was
+checked for per-game cost by instruction count on a fixed seed: two
+regressions (a per-step battlefield scan, per-set combat rule checks) were
+found by bisecting merges and gated on battlefield counts
+(`turn_static_sources`, `attack_rule_sources`); the engine ends level
+with before the waves. Fuzz found one bug (free casts ignored additional
+costs). Corpus 9,667 cards: 69.5% of Pauper, 32.4% of Modern; 3,900
+scenarios pass.
