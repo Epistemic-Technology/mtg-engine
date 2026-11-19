@@ -98,6 +98,7 @@ pub fn decompile(pool: &CardPool, def: &CardDef) -> Card {
                 count: a.count,
             }
         }),
+        flash_if: def.flash_if.map(|c| d.static_cond(pool.condition(c))),
         kicker: def.kicker.as_deref().cloned(),
         flashback: def.flashback.as_ref().map(|c| d.cost(c)),
         groups: pool.filters().iter().map(|f| d.filter(f)).collect(),
@@ -386,7 +387,32 @@ impl Decompiler<'_> {
             StaticCondition::SourceBeingBlocked => StaticCond::BeingBlocked,
             StaticCondition::AttachedIs(f) => StaticCond::AttachedIs(unowned(f)),
             StaticCondition::DrawnThisTurn(n) => StaticCond::DrawnThisTurn(*n),
-            StaticCondition::CastThisTurn(f) => StaticCond::CastThisTurn(unowned(f)),
+            StaticCondition::CastThisTurn {
+                filter,
+                at_least,
+                other,
+            } => StaticCond::CastThisTurn {
+                filter: unowned(filter),
+                at_least: *at_least,
+                other: *other,
+            },
+            StaticCondition::CastFrom(z) => StaticCond::CastFrom(*z),
+            StaticCondition::GainedLifeThisTurn { or_lost } => {
+                StaticCond::GainedLifeThisTurn { or_lost: *or_lost }
+            }
+            StaticCondition::DescendedThisTurn => StaticCond::DescendedThisTurn,
+            StaticCondition::SurveilledThisTurn => StaticCond::SurveilledThisTurn,
+            StaticCondition::CounterPutThisTurn => StaticCond::CounterPutThisTurn,
+            StaticCondition::CreatureEnteredThisTurn { other } => {
+                StaticCond::CreatureEnteredThisTurn { other: *other }
+            }
+            StaticCondition::NonlandEnteredThisTurn(n) => StaticCond::NonlandEnteredThisTurn(*n),
+            StaticCondition::PutIntoGraveyardThisTurn(t) => StaticCond::PutIntoGraveyardThisTurn(
+                crate::render::CARD_TYPES
+                    .into_iter()
+                    .filter(|c| t.contains(*c))
+                    .collect(),
+            ),
             StaticCondition::DiscardedThisTurn => StaticCond::DiscardedThisTurn,
             StaticCondition::MoreCardsInHand => StaticCond::MoreCardsInHand,
             StaticCondition::OpponentPoison(n) => StaticCond::OpponentPoison(*n),
@@ -793,7 +819,7 @@ impl Decompiler<'_> {
             CoreEffect::IfCondition(i, inner) => Effect::IfCondition(
                 self.static_cond(self.pool.condition(*i)),
                 self.sentences(inner),
-                false,
+                crate::ast::IfWording::Lead,
             ),
             CoreEffect::IfYouDo(inner) => Effect::IfYouDo(self.sentences(inner)),
             CoreEffect::Reflexive(ability) => {
@@ -1062,10 +1088,12 @@ impl Decompiler<'_> {
                 whose,
                 noncreature,
                 instant_or_sorcery,
+                or_copy,
             } => Trigger::CastsSpell {
                 whose: *whose,
                 noncreature: *noncreature,
                 instant_or_sorcery: *instant_or_sorcery,
+                or_copy: *or_copy,
             },
             TriggerSpec::BecomesTarget(o) => Trigger::BecomesTarget(self.trigger_obj(o)),
             TriggerSpec::TargetedByOpponent => Trigger::TargetedByOpponent,
@@ -1430,6 +1458,7 @@ impl Decompiler<'_> {
                 mods: s.parts.iter().map(|m| self.modification(m)).collect(),
                 condition: s.condition.as_ref().map(|c| self.static_cond(c)),
                 cond_first: false,
+                cond_if: false,
             },
             AbilityDef::EntersAsCopy(f) => Ability::EntersAsCopy(self.filter(f)),
             AbilityDef::AsEntersChoose(k) => Ability::AsEntersChoose {

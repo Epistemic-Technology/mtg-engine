@@ -1,0 +1,9 @@
+card "Force Away" {
+  oracle_id 4770ec88-bc7b-457e-8f67-ae46e2cf4caa
+  cost {1}{U}
+  type Instant
+  spell {
+    return target creature to hand
+    label "Ferocious" if you control creature with power 4 or greater, you may draw 1 card; if you do, discard 1 card
+  }
+}

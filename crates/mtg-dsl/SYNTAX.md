@@ -64,7 +64,8 @@ double-faced permanent to its other face (CR 701.27).
 | `keywords flying, deathtouch, lifelink` | Keyword abilities, in printed order: `deathtouch`, `defender`, `double strike`, `first strike`, `flash`, `flying`, `haste`, `hexproof`, `indestructible`, `lifelink`, `menace`, `prowess`, `reach`, `trample`, `vigilance`, and the landwalks `plainswalk`, `islandwalk`, `swampwalk`, `mountainwalk`, `forestwalk` (CR 702.14), `protection from white` (and the other colors, CR 702.16), `devoid` (CR 702.114), `changeling` (CR 702.73), `shroud`, `fear`, `intimidate`, `shadow`, `horsemanship`, `skulk`, `wither`, `infect` (damage to players as poison counters; ten lose, CR 704.5c), `exalted`, `persist`, `undying`, `flanking`, `convoke` (CR 702.51: untapped creatures may be tapped to pay {1} or one mana of their color), and `improvise` (CR 702.126: artifacts pay {1}). The restrictions `can't attack`, `can't block`, `attacks each combat if able`, `can't be blocked`, `can't attack alone`, and `can't block alone` (both together print "can't attack or block alone", CR 506.5), `doesn't untap` ("This creature doesn't untap during your untap step."; granted, "Enchanted creature doesn't untap during its controller's untap step."), `can't become untapped` (no effect or untap step untaps it, and a stun counter stays on it; granted, "Enchanted creature loses all abilities and can't become untapped."), and the blocking requirements and allowances (CR 509.1a, 509.1c) `blocks each combat if able`, `must be blocked if able`, `lure` ("All creatures able to block this creature do so."), `can block an additional creature each combat`, and `can block any number of creatures`, and `can attack as though it didn't have defender` (CR 702.3b; granted to a group, "... as though they didn't have defender"; with `can't be blocked` after it, "... and it can't be blocked") are written as keywords too and print as sentences ("This creature can't block."). A `keyword` line after an ability line prints in that place instead of first (a bridge land's "Indestructible" after "enters tapped"). |
 | `additional cost sacrifice creature` | "As an additional cost to cast this spell, ..." (CR 601.2b). Same syntax as an activated ability's cost. |
 | `additional cost sacrifice creature` then `additional cost or {3}{B}` | "As an additional cost to cast this spell, sacrifice a creature or pay {3}{B}." (CR 601.2b): two additional costs, of which the caster pays one, chosen as the spell is cast (before the kicker and X); only those that can be paid are offered. A mana part prints "pay {3}{B}", and the total cost includes it (CR 601.2f). |
-| `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, or returned with `return`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. |
+| `alternative cost sacrifice Mountain`, `alternative cost sacrifice 2 Mountain`, `alternative cost sacrifice Mountain, if your turn`, `alternative cost {1}, return basic land you control` | An alternative cost of the card's own (CR 118.9): "You may sacrifice a Mountain rather than pay this spell's mana cost.", "You may sacrifice two Mountains ...", "If it's your turn, you may ...", "You may pay {1} and return a basic land you control to its owner's hand ...". Mana and one kind of permanent (sacrificed, returned with `return`, or tapped with `tap untapped creature you control`), offered while the condition holds; the chosen permanent is the first and the engine picks the rest. Not combined with an additional cost that also chooses a permanent. `alternative cost pay 4 life, if you control Swamp` pays life (offered only with that much life, CR 119.4); `alternative cost if cast another white spell this turn`, with no cost at all, prints "If you've cast another white spell this turn, you may cast this spell without paying its mana cost." |
+| `flash as long as you control Merfolk` | "This spell has flash as long as you control a Merfolk." (CR 702.8): the card may be cast as though it had flash while the condition holds. |
 | `kicker {1}{U}` | Kicker (CR 702.33): an optional additional mana cost, chosen as the spell is cast. Prints "Kicker {1}{U}" after the keywords. Effects that depend on it: `if kicked, <clause>` in a spell, `if kicked` as a trigger condition. |
 | `flashback {4}{R}` / `flashback {1}{U}, pay 3 life` | Flashback (CR 702.34): the card may be cast from the graveyard for this cost (mana and life only) and is exiled as it leaves the stack. Prints last, as "Flashback {4}{R}" or "Flashback—{1}{U}, Pay 3 life." |
 | `oracle_mismatch "reason"` | The rendered text is allowed to differ from Oracle; the gate reports it as allowed. Use it for cards whose text includes an ability the engine does not implement. |
@@ -93,7 +94,7 @@ double-faced permanent to its other face (CR 701.27).
 | `replace <event>: <outcome>` | A replacement or prevention effect while on the battlefield (CR 614, 615). Add `{ <effects> }` for effects that happen when it applies (Phantom Tiger). |
 | `enters tapped` / `enters with 2 +1/+1 counters` | How this permanent enters (CR 614.1c). `enters with 2 +1/+1 counters if creature died this turn` (any static condition, judged as it enters) prints "This creature enters with two +1/+1 counters on it if a creature died this turn."; `enters with count equal graveyard creature +1/+1 counters` prints "... enters with a number of +1/+1 counters on it equal to the number of creature cards in your graveyard" (counted as it enters). Both, in that order, print as one sentence: "This land enters tapped with two depletion counters on it." (the order they apply in changes nothing, so it isn't asked). |
 | `static <filter>: <modifications>` | A static ability generating a continuous effect (CR 604, 611.3). `static each creature you control with +1/+1 counter: has trample` prints the subject one at a time: "Each creature you control with a +1/+1 counter on it has trample." |
-| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last. `static during your turn, this: has first strike` prints "During your turn, ...". |
+| `static as long as <condition>, <filter>: <modifications>` | A conditional static ability (CR 611.3a), printed "As long as <condition>, ...". Write the condition last (`static this: +2/+2 as long as metalcraft`) to print it last; `static this: has can't be blocked if cast historic spell this turn` prints "if" ("This creature can't be blocked if ..."). `static during your turn, this: has first strike` prints "During your turn, ...". |
 | `label "Landfall" <ability line>` | An ability word (CR 207.2c) printed before the ability: "Landfall — Whenever a land you control enters, ...". It has no rules meaning. |
 | `can't be blocked by Wall`, `can't be blocked except by creature with flying`, `can't be blocked by more than one creature`, `can block only creature with flying`, `can't block creature with flying` | Blocking restrictions on this creature (CR 509.1b–c). Alternatives print with "and/or" ("can't be blocked except by artifact creatures and/or white creatures", `black or red creature`: "black and/or red creatures"). Granted, they print unquoted: `static enchanted: has ability { can't be blocked except by Wall }` is "Enchanted creature can't be blocked except by Walls."; `this gains ability { can't be blocked by creature with power 2 or less }` is "This creature can't be blocked by creatures with power 2 or less this turn." ("can't be blocked this turn except by ..."). |
 | `enters as copy of creature` | "You may have ~ enter as a copy of ..." (CR 707). |
@@ -201,6 +202,7 @@ includes `discard this` is activated from the hand (cycling, channel).
 | `whenever this blocks a creature with flying`, `whenever this becomes blocked by a creature`, `whenever this blocks or becomes blocked by a nonblack creature` | once for each attacker it blocks (CR 509.3b) or each creature blocking it (CR 509.3d); the other creature, which must match the filter, is "that creature" |
 | `at end of combat` | as the end of combat step begins (CR 511.2); also a delayed trigger: `delayed that creature: destroy that creature at end of combat` |
 | `whenever you cast a spell`, `... a noncreature spell`, `... an instant or sorcery spell`, `whenever a player casts a spell` | |
+| `label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: ...` | "Magecraft — Whenever you cast or copy an instant or sorcery spell, ..." (a copy would trigger it too, CR 707.10; nothing copies spells yet) |
 | `label "Heroic" triggered whenever you cast a spell that targets this: ...` | "Heroic — Whenever you cast a spell that targets this creature, ..." (any spell filter: `whenever you cast red spell that targets this`): the spell's targets as it is cast (CR 601.2c), so copies and abilities don't trigger it. The spell is the triggering object, but `it` in the effects is this creature, as Oracle has it ("put a +1/+1 counter on it"). |
 | `label "Valiant" triggered whenever this becomes targeted by you first time each turn: ...` | "Valiant — Whenever this creature becomes the target of a spell or ability you control for the first time each turn, ...": once a turn, the first time its controller's spell or ability targets it. |
 | `when this becomes targeted` | becomes the target of a spell or ability |
@@ -271,7 +273,24 @@ or more +1/+1 counters` ("this creature has a +1/+1 counter on it"),
 `artifact entered this turn` ("an artifact entered the battlefield under
 your control this turn"), `drew 2 this
 turn` ("you've drawn two or more cards this turn"), `cast instant or sorcery
-spell this turn`, `discarded this turn`, `more cards in hand than each
+spell this turn`, `cast 2 spell this turn` ("you've cast two or more
+spells this turn"), `cast another blue spell this turn` ("you've cast
+another blue spell this turn": the source's own cast, as a spell or as the
+permanent it became, doesn't count), `cast from hand` ("you cast it from
+your hand", kept by the permanent the spell becomes), `cast from
+graveyard` ("this spell was cast from a graveyard"; CR 601.2a), `gained
+life this turn`, `gained or lost life this turn`, `descended this turn`
+("you descended this turn", CR 700.11: a permanent card was put into your
+graveyard from anywhere), `surveilled this turn` ("you've surveilled this
+turn"), `counter put this turn` ("a +1/+1 counter was put on a permanent
+under your control this turn"), `another creature entered this turn`
+("another creature entered the battlefield under your control this
+turn"; `creature entered this turn` without "another"), `2 nonland
+entered this turn` (celebration: "two or more nonland permanents entered
+the battlefield under your control this turn"), `artifact or creature to
+graveyard this turn` ("an artifact or creature was put into a graveyard
+from the battlefield this turn"; any card types joined by `or`),
+`discarded this turn`, `more cards in hand than each
 opponent`, `opponent poisoned` ("an opponent is poisoned"), `opponent poison
 3 or more`, `you own card in exile`, `total power 8 or more` ("creatures you
 control have total power 8 or greater", formidable), `3 different powers`
@@ -398,7 +417,16 @@ creature blocking it"). A count of attacking or blocking creatures omits
 control"); filter `defending player controls` (two players: the
 attacker's opponent).
 `if you control Treefolk, draw 1 card`: a static condition judged as the
-effect resolves ("If you control a Treefolk, draw a card."). A sentence may
+effect resolves ("If you control a Treefolk, draw a card."); written after
+the sentence, it prints after it: `draw 1 card if you control creature
+with +1/+1 counter` ("Draw a card if you control a creature with a +1/+1
+counter on it."), `its controller loses 3 life if cast another black
+spell this turn`. After any such condition a spell names itself again,
+and `also` goes after its subject ("If you control an Equipment,
+Misthios's Fury also deals 2 damage ...", "that creature also gains
+trample"). `if you controlled target 1, draw 1 card`: "If you controlled
+that permanent, draw a card.", its controller as it last existed (CR
+608.2h). A sentence may
 start with an ability word: `label "Spell mastery" if 2 instant or sorcery
 cards in your graveyard, scry 2` ("Spell mastery — If there are two or more
 instant and/or sorcery cards in your graveyard, scry 2."). `that target
@@ -684,7 +712,9 @@ it has left), `mana value of target 1` ("its mana value"), `toughness`
 each of Cleric, Rogue, Warrior, and Wizard at most), `greatest power`
 ("the greatest power among creatures you control"), `greatest mana value`
 ("... among permanents you control"), `drawn this turn` ("cards you've
-drawn this turn"), `colors among permanents` ("colors among permanents
+drawn this turn"), `spells cast this turn`, `other spells cast this turn`
+("the number of other spells you've cast this turn": not the resolving
+spell itself), `colors among permanents` ("colors among permanents
 you control"), `colors spent` (converge: "the number of colors of mana
 spent to cast this spell"), `treasure spent` ("for each mana from a
 Treasure spent to cast it"), `opponents graveyards [<filter>]` ("creature cards in your
@@ -776,7 +806,8 @@ Equipment to the amassed Army"), `create 2 "Soldier"`,
 `create 1 tapped "Powerstone"` ("Create a tapped Powerstone token"),
 `create token copy of <what> [with exceptions]`, `emblem "Name"`,
 `draw 2 cards` (you), `discard 1 card` (you), `mill 2 cards` (you),
-`scry 2`, `surveil 1`, `investigate` (create a Clue token), `transform
+`scry 2`, `surveil 1`, `investigate` (create a Clue token; `investigate
+twice`), `transform
 this`,
 `add {B}{B}` / `add any` ("Add {B}{B}.", "Add one mana of any color."; an
 activated ability that only adds mana is a mana ability and resolves at

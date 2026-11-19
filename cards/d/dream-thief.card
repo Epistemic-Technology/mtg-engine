@@ -1,0 +1,8 @@
+card "Dream Thief" {
+  oracle_id 55be0fd0-b371-4b9e-920f-3123bb37a1e0
+  cost {2}{U}
+  type Creature — Faerie Rogue
+  pt 2/1
+  keywords flying
+  triggered when this enters: draw 1 card if cast another blue spell this turn
+}

@@ -1,0 +1,7 @@
+card "Orim's Cure" {
+  oracle_id 61eacaab-625b-499c-8602-f37ad5dda138
+  cost {1}{W}
+  type Instant
+  alternative cost tap untapped creature you control, if you control Plains
+  spell: prevent next 4 damage to any target this turn
+}

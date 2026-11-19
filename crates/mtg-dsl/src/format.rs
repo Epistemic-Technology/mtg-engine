@@ -26,6 +26,7 @@ pub fn format(card: &Card) -> String {
     out
 }
 
+#[allow(clippy::too_many_lines)] // one line per header field
 fn format_inner(card: &Card) -> String {
     let mut out = String::new();
     let kind = match card.kind {
@@ -88,6 +89,9 @@ fn format_inner(card: &Card) -> String {
             text = text.replacen("sacrifice ", &format!("sacrifice {} ", a.count), 1);
         }
         let _ = writeln!(out, "  alternative cost {text}");
+    }
+    if let Some(c) = &card.flash_if {
+        let _ = writeln!(out, "  flash as long as {}", static_cond(c));
     }
     if let Some(k) = &card.kicker {
         let _ = writeln!(out, "  kicker {k}");
@@ -849,7 +853,9 @@ impl Fmt {
                 countered_to(*dest)
             ),
             Effect::Scry(n) => format!("scry {}", num(*n)),
-            Effect::Investigate => "investigate".to_string(),
+            Effect::Investigate(1) => "investigate".to_string(),
+            Effect::Investigate(2) => "investigate twice".to_string(),
+            Effect::Investigate(n) => format!("investigate {n} times"),
             Effect::PumpVar {
                 power,
                 toughness,
@@ -1214,6 +1220,16 @@ impl Fmt {
             }
             Effect::YouMay(inner) => format!("you may {}", self.line(inner, t)),
             Effect::IfKicked(inner) => format!("if kicked, {}", self.line(inner, t)),
+            Effect::IfTarget(n, f, inner, check)
+                if check.tense == crate::ast::TargetTense::Was
+                    && *f == Filter::controlled_by_you() =>
+            {
+                format!(
+                    "if you controlled target {}, {}",
+                    n + 1,
+                    self.line(inner, t)
+                )
+            }
             Effect::IfTarget(n, f, inner, check) => {
                 use crate::ast::TargetTense;
                 let (that, verb) = match check.tense {
@@ -1229,10 +1245,17 @@ impl Fmt {
                     self.line(inner, t)
                 )
             }
+            Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
+                format!("{} if {}", self.line(inner, t), static_cond(c))
+            }
             Effect::IfCondition(c, inner, also) => format!(
                 "if {}, {}{}",
                 static_cond(c),
-                if *also { "also " } else { "" },
+                if *also == crate::ast::IfWording::Also {
+                    "also "
+                } else {
+                    ""
+                },
                 self.line(inner, t)
             ),
             Effect::IfYouDo(inner) => format!("if you do, {}", self.line(inner, t)),
@@ -1650,6 +1673,8 @@ fn count_expr_text(e: &crate::ast::CountExpr) -> String {
         CountExpr::Party => "party".to_string(),
         CountExpr::GreatestManaValue => "greatest mana value".to_string(),
         CountExpr::CardsDrawnThisTurn => "drawn this turn".to_string(),
+        CountExpr::SpellsCastThisTurn { other: false } => "spells cast this turn".to_string(),
+        CountExpr::SpellsCastThisTurn { other: true } => "other spells cast this turn".to_string(),
         CountExpr::SourceToughness => "toughness".to_string(),
         CountExpr::TargetManaValue { n, that, the_spell } => format!(
             "mana value of {}target {}",
@@ -2425,8 +2450,10 @@ fn trigger_text_one(t: &Trigger, next: bool) -> String {
             whose,
             noncreature,
             instant_or_sorcery,
+            or_copy,
         } => {
             let who = match whose {
+                Who::You if *or_copy => "you cast or copy",
                 Who::You => "you cast",
                 Who::Opponents => "an opponent casts",
                 Who::Any => "a player casts",
@@ -2937,7 +2964,47 @@ fn static_cond(c: &StaticCond) -> String {
         StaticCond::BeingBlocked => "being blocked".to_string(),
         StaticCond::AttachedIs(fl) => format!("attached is {}", filter(fl)),
         StaticCond::DrawnThisTurn(n) => format!("drew {n} this turn"),
-        StaticCond::CastThisTurn(fl) => format!("cast {} spell this turn", filter(fl)),
+        StaticCond::CastThisTurn {
+            filter: fl,
+            at_least,
+            other,
+        } => {
+            let mut s = "cast ".to_string();
+            if *at_least != 1 {
+                let _ = write!(s, "{at_least} ");
+            }
+            if *other {
+                s.push_str("another ");
+            }
+            if *fl != Filter::default() {
+                s.push_str(&filter(fl));
+                s.push(' ');
+            }
+            s.push_str("spell this turn");
+            s
+        }
+        StaticCond::CastFrom(z) => match z {
+            mtg_core::state::Zone::Hand => "cast from hand",
+            mtg_core::state::Zone::Graveyard => "cast from graveyard",
+            _ => "cast from exile",
+        }
+        .to_string(),
+        StaticCond::GainedLifeThisTurn { or_lost: false } => "gained life this turn".to_string(),
+        StaticCond::GainedLifeThisTurn { or_lost: true } => {
+            "gained or lost life this turn".to_string()
+        }
+        StaticCond::DescendedThisTurn => "descended this turn".to_string(),
+        StaticCond::SurveilledThisTurn => "surveilled this turn".to_string(),
+        StaticCond::CounterPutThisTurn => "counter put this turn".to_string(),
+        StaticCond::CreatureEnteredThisTurn { other } => format!(
+            "{}creature entered this turn",
+            if *other { "another " } else { "" }
+        ),
+        StaticCond::NonlandEnteredThisTurn(n) => format!("{n} nonland entered this turn"),
+        StaticCond::PutIntoGraveyardThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| crate::render::type_noun(*c)).collect();
+            format!("{} to graveyard this turn", names.join(" or "))
+        }
         StaticCond::DiscardedThisTurn => "discarded this turn".to_string(),
         StaticCond::MoreCardsInHand => "more cards in hand than each opponent".to_string(),
         StaticCond::OwnCardInExile => "you own card in exile".to_string(),
@@ -3199,6 +3266,7 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
             mods,
             condition,
             cond_first,
+            cond_if,
         } => {
             let mods = mods
                 .iter()
@@ -3230,8 +3298,9 @@ fn ability(out: &mut String, ability: &Ability, indent: &str, groups: &[Filter])
                 Some(c) => {
                     let _ = writeln!(
                         out,
-                        "{indent}static {}: {mods} as long as {}",
+                        "{indent}static {}: {mods} {} {}",
                         filter(fl),
+                        if *cond_if { "if" } else { "as long as" },
                         static_cond(c)
                     );
                 }

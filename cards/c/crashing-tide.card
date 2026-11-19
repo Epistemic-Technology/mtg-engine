@@ -1,0 +1,10 @@
+card "Crashing Tide" {
+  oracle_id 4c3f87d7-a632-4b8c-9052-b4055ea88771
+  cost {2}{U}
+  type Sorcery
+  flash as long as you control Merfolk
+  spell {
+    return target creature to hand
+    draw 1 card
+  }
+}

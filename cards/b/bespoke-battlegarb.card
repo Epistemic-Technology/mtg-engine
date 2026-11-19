@@ -1,0 +1,8 @@
+card "Bespoke Battlegarb" {
+  oracle_id b2ff15b8-1be4-4f94-b4cc-aa959a50288e
+  cost {1}{R}
+  type Artifact — Equipment
+  static equipped: +2/+0
+  label "Celebration" triggered at beginning of your combat if 2 nonland entered this turn: attach to up to 1 target creature you control
+  equip {2}
+}

@@ -368,7 +368,20 @@ pub fn basic_land_name(c: Color) -> &'static str {
     }
 }
 
-fn type_noun(t: CardType) -> &'static str {
+/// Every card type, in the order rules text lists them.
+pub(crate) const CARD_TYPES: [CardType; 9] = [
+    CardType::Artifact,
+    CardType::Battle,
+    CardType::Creature,
+    CardType::Enchantment,
+    CardType::Instant,
+    CardType::Kindred,
+    CardType::Land,
+    CardType::Planeswalker,
+    CardType::Sorcery,
+];
+
+pub(crate) fn type_noun(t: CardType) -> &'static str {
     match t {
         CardType::Artifact => "artifact",
         CardType::Battle => "battle",
@@ -1887,10 +1900,18 @@ fn alt_cost_line(card: &Card, a: &crate::ast::AltCost) -> String {
             mtg_core::card::ChosenCost::Sacrifice => format!("sacrifice {what}"),
         });
     }
+    if a.cost.life > 0 {
+        parts.push(format!("pay {} life", a.cost.life));
+    }
     let you_may = match a.cost.conditions.first() {
         Some(c) => format!("If {}, you may", static_cond_text(c, card)),
         None => "You may".to_string(),
     };
+    // "If you've cast another white spell this turn, you may cast this
+    // spell without paying its mana cost."
+    if parts.is_empty() {
+        return format!("{you_may} cast this spell without paying its mana cost.");
+    }
     format!(
         "{you_may} {} rather than pay this spell's mana cost.",
         parts.join(" and ")
@@ -2475,6 +2496,13 @@ fn count_phrase(c: &crate::ast::CountExpr, card: &Card, each: bool) -> String {
             "card you've drawn this turn".to_string(),
             "cards you've drawn this turn".to_string(),
         ),
+        CountExpr::SpellsCastThisTurn { other } => {
+            let o = if *other { "other " } else { "" };
+            (
+                format!("{o}spell you've cast this turn"),
+                format!("{o}spells you've cast this turn"),
+            )
+        }
         CountExpr::SourceToughness => return "its toughness".to_string(),
         CountExpr::TargetManaValue {
             that, the_spell, ..
@@ -2712,10 +2740,6 @@ fn clause(e: &Effect, ctx: &mut Ctx) -> Clause {
                 // "create a 2/2 black Zombie creature token for each ...".
                 if matches!(e, Effect::CreateToken { .. }) {
                     c.text = c.text.replacen(" tokens", " token", 1);
-                }
-                // "put a +1/+1 counter on this creature for each ...".
-                if matches!(e, Effect::AddCounters { .. }) {
-                    c.text = c.text.replacen(" counters on ", " counter on ", 1);
                 }
                 let _ = write!(c.tail, " {}", count_phrase(&count.expr, ctx.card, true));
             }
@@ -3554,7 +3578,11 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             Clause::imperative(format!("counter {o} unless its controller pays {mana}"))
         }
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
-        Effect::Investigate => Clause::imperative("investigate".to_string()),
+        Effect::Investigate(n) => Clause::imperative(match n {
+            1 => "investigate".to_string(),
+            2 => "investigate twice".to_string(),
+            n => format!("investigate {} times", count_words(Num::N(*n), "one")),
+        }),
         Effect::PutInLibrary {
             what,
             place,
@@ -4369,12 +4397,19 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
             let _ = write!(c.tail, " unless {who} {amount}");
             c
         }
+        Effect::IfCondition(c, inner, crate::ast::IfWording::After) => {
+            let cond = static_cond_text(c, ctx.card);
+            let body = sentences(inner, ctx);
+            Clause::imperative(format!("{} if {cond}", body.trim_end_matches('.')))
+        }
         Effect::IfCondition(c, inner, also) => {
+            let also = *also == crate::ast::IfWording::Also;
             let cond = static_cond_text(c, ctx.card);
             // "Adamant — If at least three red mana was spent to cast this
             // spell, Searing Barrage deals 3 damage ...": a spell names
-            // itself again after a condition about itself.
-            if matches!(c, StaticCond::ManaSpent { .. }) && is_spell(ctx.card) {
+            // itself again after a condition ("If you control an
+            // Equipment, Misthios's Fury also deals ...").
+            if is_spell(ctx.card) {
                 ctx.source_mentioned = false;
             }
             let body = sentences(inner, ctx);
@@ -4386,12 +4421,28 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 lowercase_first(&body)
             };
             // "this creature also gains double strike".
-            if *also {
+            if also {
                 let this = format!("{} ", this_ref(ctx.card));
-                let subject = ["it ", "they ", this.as_str()]
-                    .into_iter()
-                    .find(|s| body.starts_with(s))
-                    .map_or(0, str::len);
+                // "Misthios's Fury also deals 2 damage".
+                let name = format!("{} ", ctx.card.name);
+                let short = format!("{} ", short_name(ctx.card));
+                // "that creature also gains trample".
+                let that = body
+                    .strip_prefix("that ")
+                    .and_then(|r| r.split_once(' '))
+                    .map(|(noun, _)| format!("that {noun} "))
+                    .unwrap_or_default();
+                let subject = [
+                    "it ",
+                    "they ",
+                    this.as_str(),
+                    name.as_str(),
+                    short.as_str(),
+                    that.as_str(),
+                ]
+                .into_iter()
+                .find(|s| !s.is_empty() && body.starts_with(s))
+                .map_or(0, str::len);
                 body.insert_str(subject, "also ");
             }
             Clause::imperative(format!("if {cond}, {}", body.trim_end_matches('.')))
@@ -4458,6 +4509,9 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 && f.damaged;
             let cond = match (check.tense, has) {
                 _ if damaged_only => "it was dealt damage this turn".to_string(),
+                (TargetTense::Was, _) if *f == Filter::controlled_by_you() => {
+                    format!("you controlled that {noun}")
+                }
                 (TargetTense::Was, _) => format!("that {noun} was {pred}"),
                 (TargetTense::Is, Some(k)) => format!("it has {k}"),
                 (TargetTense::ThatIs, Some(k)) => format!("that {noun} has {k}"),
@@ -5243,8 +5297,10 @@ fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
             whose,
             noncreature,
             instant_or_sorcery,
+            or_copy,
         } => {
             let who = match whose {
+                Who::You if *or_copy => "you cast or copy",
                 Who::You => "you cast",
                 Who::Opponents => "an opponent casts",
                 Who::Any => "a player casts",
@@ -6673,10 +6729,73 @@ fn static_cond_text(c: &StaticCond, card: &Card) -> String {
         StaticCond::DrawnThisTurn(n) => {
             format!("you've drawn {} cards this turn", or_more(*n))
         }
-        StaticCond::CastThisTurn(f) => format!(
-            "you've cast {} this turn",
-            with_article(&format!("{} spell", card_filter_phrase(f, card)))
+        StaticCond::CastThisTurn {
+            filter: f,
+            at_least,
+            other,
+        } => {
+            let p = card_filter_phrase(f, card);
+            let noun = if p.is_empty() {
+                "spell".to_string()
+            } else {
+                format!("{p} spell")
+            };
+            if *at_least <= 1 {
+                let what = if *other {
+                    format!("another {noun}")
+                } else {
+                    with_article(&noun)
+                };
+                format!("you've cast {what} this turn")
+            } else {
+                format!(
+                    "you've cast {} {}{noun}s this turn",
+                    or_more(*at_least),
+                    if *other { "other " } else { "" }
+                )
+            }
+        }
+        StaticCond::CastFrom(z) => match z {
+            mtg_core::state::Zone::Hand => "you cast it from your hand".to_string(),
+            z => format!(
+                "{} was cast from {}",
+                if is_instant_or_sorcery(card) {
+                    "this spell"
+                } else {
+                    "it"
+                },
+                if *z == mtg_core::state::Zone::Graveyard {
+                    "a graveyard"
+                } else {
+                    "exile"
+                }
+            ),
+        },
+        StaticCond::GainedLifeThisTurn { or_lost } => format!(
+            "you gained {}life this turn",
+            if *or_lost { "or lost " } else { "" }
         ),
+        StaticCond::DescendedThisTurn => "you descended this turn".to_string(),
+        StaticCond::SurveilledThisTurn => "you've surveilled this turn".to_string(),
+        StaticCond::CounterPutThisTurn => {
+            "a +1/+1 counter was put on a permanent under your control this turn".to_string()
+        }
+        StaticCond::CreatureEnteredThisTurn { other } => format!(
+            "{} creature entered the battlefield under your control this turn",
+            if *other { "another" } else { "a" }
+        ),
+        StaticCond::NonlandEnteredThisTurn(n) => format!(
+            "{} nonland permanents entered the battlefield under your control this turn",
+            or_more(*n)
+        ),
+        StaticCond::PutIntoGraveyardThisTurn(t) => {
+            let names: Vec<&str> = t.iter().map(|c| type_noun(*c)).collect();
+            let list = names.join(" or ");
+            format!(
+                "{} was put into a graveyard from the battlefield this turn",
+                with_article(&list)
+            )
+        }
         StaticCond::DiscardedThisTurn => "you've discarded a card this turn".to_string(),
         StaticCond::MoreCardsInHand => "you have more cards in hand than each opponent".to_string(),
         StaticCond::OpponentPoison(1) => "an opponent is poisoned".to_string(),
@@ -7094,6 +7213,7 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             mods,
             condition,
             cond_first,
+            cond_if,
         } => {
             let mut body = static_text(filter, mods, card);
             // "Threshold — Enchanted creature gets an additional +2/-2 as
@@ -7113,6 +7233,11 @@ pub fn ability_text(card: &Card, a: &Ability, lookup: &dyn Lookup) -> String {
             }
             match condition {
                 None => body,
+                Some(c) if *cond_if => format!(
+                    "{} if {}.",
+                    body.strip_suffix('.').unwrap_or(&body),
+                    static_cond_text(c, card)
+                ),
                 Some(c) => conditional_static(&body, c, *cond_first, card),
             }
         }
@@ -7374,6 +7499,12 @@ pub fn oracle_text(card: &Card, lookup: &dyn Lookup) -> String {
         lines.push(ability_text(card, a, lookup));
     }
     // Oracle prints kicker before keywords ("Kicker {2}{G}\nReach").
+    if let Some(c) = &card.flash_if {
+        lines.push(format!(
+            "This spell has flash as long as {}.",
+            static_cond_text(c, card)
+        ));
+    }
     if let Some(k) = &card.kicker {
         lines.push(format!("Kicker {k}"));
     }

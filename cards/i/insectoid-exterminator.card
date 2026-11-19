@@ -1,0 +1,8 @@
+card "Insectoid Exterminator" {
+  oracle_id 3d081701-514b-4611-b5a1-239b8f335fb6
+  cost {2}{B}
+  type Creature — Insect Mutant
+  pt 2/2
+  keywords flying
+  label "Disappear" triggered at beginning of your end step if permanent left this turn: scry 1
+}

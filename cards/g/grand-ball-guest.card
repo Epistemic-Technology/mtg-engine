@@ -1,0 +1,7 @@
+card "Grand Ball Guest" {
+  oracle_id 0b0fdb28-f7b1-4c30-9f2c-14a9074da22d
+  cost {1}{R}
+  type Creature — Human Peasant
+  pt 2/2
+  label "Celebration" static this: +1/+1, has trample as long as 2 nonland entered this turn
+}

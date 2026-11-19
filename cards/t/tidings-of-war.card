@@ -1,0 +1,7 @@
+card "Tidings of War" {
+  oracle_id 5753f4d6-08d0-4e12-85c5-875ee6441626
+  cost {R}
+  type Sorcery
+  spell: amass Goblins 1; if cast from graveyard, amass Goblins 3 instead
+  flashback {3}{R}
+}

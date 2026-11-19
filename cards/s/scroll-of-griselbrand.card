@@ -1,0 +1,6 @@
+card "Scroll of Griselbrand" {
+  oracle_id c961373a-be0e-467c-92e0-33a0c953736a
+  cost {1}
+  type Artifact
+  activated {1}, sacrifice this: target opponent discards 1 card; if you control Demon, that player loses 3 life
+}

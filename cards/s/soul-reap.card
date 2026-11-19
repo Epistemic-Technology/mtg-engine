@@ -1,0 +1,6 @@
+card "Soul Reap" {
+  oracle_id d65f701d-31a1-4275-a580-3e1799ebf8b9
+  cost {1}{B}
+  type Sorcery
+  spell: destroy target nongreen creature; its controller loses 3 life if cast another black spell this turn
+}

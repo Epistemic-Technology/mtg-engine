@@ -1,0 +1,9 @@
+card "Dispatch" {
+  oracle_id 133c99c0-3652-410f-8100-68015a47af9f
+  cost {W}
+  type Instant
+  spell {
+    tap target creature
+    label "Metalcraft" if metalcraft, exile that target 1
+  }
+}

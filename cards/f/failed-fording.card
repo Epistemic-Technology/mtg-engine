@@ -1,0 +1,6 @@
+card "Failed Fording" {
+  oracle_id fe4bbe82-1d6b-4f3d-8cc0-f6df22d9e9fb
+  cost {1}{U}
+  type Instant
+  spell: return target nonland permanent to hand; if you control Desert, surveil 1
+}

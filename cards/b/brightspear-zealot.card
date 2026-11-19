@@ -1,0 +1,8 @@
+card "Brightspear Zealot" {
+  oracle_id 31a0c9a2-c9bd-47f7-872b-a43fb64d873c
+  cost {2}{W}
+  type Creature — Human Soldier
+  pt 2/4
+  keywords vigilance
+  static this: +2/+0 as long as cast 2 spell this turn
+}

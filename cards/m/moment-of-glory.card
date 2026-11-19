@@ -1,0 +1,7 @@
+card "Moment of Glory" {
+  oracle_id 3d39db09-67b7-4a4e-9667-4e1b806f51a5
+  cost {W}
+  type Sorcery
+  spell: put 1 +1/+1 counter on target creature you control; if cast from graveyard, also put 1 +1/+1 counter on each other creature you control
+  flashback {4}{W}
+}

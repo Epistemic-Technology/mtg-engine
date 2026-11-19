@@ -1552,6 +1552,10 @@ pub enum CountExpr {
     GreatestManaValue,
     /// Cards you've drawn this turn.
     CardsDrawnThisTurn,
+    /// Spells you've cast this turn; with `other`, not counting the
+    /// source's own cast ("the number of other spells you've cast this
+    /// turn").
+    SpellsCastThisTurn { other: bool },
     /// The source's toughness ("where X is its toughness").
     SourceToughness,
     /// Colors among permanents you control (vivid).
@@ -1865,9 +1869,45 @@ pub enum StaticCondition {
     AttachedIs(ObjFilter),
     /// "you've drawn two or more cards this turn".
     DrawnThisTurn(u32),
-    /// "you've cast an instant or sorcery spell this turn", judged on the
-    /// spells' characteristics as they were cast.
-    CastThisTurn(ObjFilter),
+    /// "you've cast an instant or sorcery spell this turn", "you've cast
+    /// two or more spells this turn" (`at_least`), "you've cast another
+    /// blue spell this turn" (`other`: not counting the source's own cast,
+    /// if it was cast), judged on the spells' characteristics as they were
+    /// cast.
+    CastThisTurn {
+        filter: ObjFilter,
+        at_least: u32,
+        other: bool,
+    },
+    /// "if you cast it from your hand", "if this spell was cast from a
+    /// graveyard" (CR 601.2a): where the source was cast from; a
+    /// permanent remembers it from its spell.
+    CastFrom(crate::state::Zone),
+    /// "you gained life this turn"; with `or_lost`, "you gained or lost
+    /// life this turn".
+    GainedLifeThisTurn {
+        or_lost: bool,
+    },
+    /// "you descended this turn" (CR 700.11): a permanent card was put
+    /// into your graveyard from anywhere.
+    DescendedThisTurn,
+    /// "you've surveilled this turn" (CR 701.25).
+    SurveilledThisTurn,
+    /// "a +1/+1 counter was put on a permanent under your control this
+    /// turn".
+    CounterPutThisTurn,
+    /// "another creature entered the battlefield under your control this
+    /// turn" (`other`: not counting the source's own entry).
+    CreatureEnteredThisTurn {
+        other: bool,
+    },
+    /// Celebration: "two or more nonland permanents entered the
+    /// battlefield under your control this turn".
+    NonlandEnteredThisTurn(u32),
+    /// "an artifact or creature was put into a graveyard from the
+    /// battlefield this turn": a permanent with one of these types, as it
+    /// last existed, under any player's control.
+    PutIntoGraveyardThisTurn(TypeSet),
     /// "you've discarded a card this turn".
     DiscardedThisTurn,
     /// "you have more cards in hand than each opponent".
@@ -3539,11 +3579,15 @@ pub enum TriggerSpec {
     /// "Whenever you win a coin flip" (CR 705.2).
     WinsFlip { whose: Who },
     /// "Whenever you cast a spell"; `noncreature` or `instant_or_sorcery`
-    /// restrict it.
+    /// restrict it. `or_copy` is magecraft's "Whenever you cast or copy an
+    /// instant or sorcery spell" (CR 207.2c): a copy of a spell made on
+    /// the stack would trigger it too (CR 707.10), though no effect here
+    /// copies spells yet.
     CastsSpell {
         whose: Who,
         noncreature: bool,
         instant_or_sorcery: bool,
+        or_copy: bool,
     },
     /// "When ~ becomes the target of a spell or ability" (CR 115.4?; Phantasmal
     /// Image).
@@ -4463,6 +4507,10 @@ pub struct CardDef {
     /// "You may sacrifice a Mountain rather than pay this spell's mana
     /// cost." (CR 118.9): an alternative cost the card itself offers.
     pub alt_cost: Option<Box<AltCost>>,
+    /// "This spell has flash as long as you control a Merfolk." (CR
+    /// 702.8): the pool condition under which the card may be cast as
+    /// though it had flash.
+    pub flash_if: Option<u16>,
     /// Offspring (CR 702.175): an optional additional cost; if paid, a 1/1
     /// token copy is created as the permanent enters.
     pub offspring: Option<Box<ManaCost>>,
@@ -4516,6 +4564,14 @@ pub struct CardDef {
     /// of the turn, so step changes refresh the cache.
     #[serde(skip)]
     pub step_static: bool,
+    /// Filled in by `CardPool::add`: a static whose condition reads a
+    /// record of the turn that changes without a zone change ("as long as
+    /// you gained life this turn", "an opponent was dealt damage this
+    /// turn"), so the record's first entry each turn refreshes the cache.
+    /// (Records kept as objects change zones or gain counters need no
+    /// flag: those changes refresh it anyway.)
+    #[serde(skip)]
+    pub history_static: bool,
     /// Filled in by `CardPool::add`: what its text asks about the mana
     /// spent to cast it.
     #[serde(skip)]
@@ -5079,6 +5135,7 @@ impl CardPool {
                 whose: Who::You,
                 noncreature: true,
                 instant_or_sorcery: false,
+                or_copy: false,
             },
             condition: None,
             targets: Vec::new(),
@@ -5451,6 +5508,7 @@ impl CardPool {
         }
     }
 
+    #[allow(clippy::too_many_lines)] // one flag per kind of definition
     pub fn add(&mut self, mut def: CardDef) -> CardRef {
         let r = CardRef(u32::try_from(self.defs.len()).expect("card pool too large"));
         def.subtype_ids = def
@@ -5509,7 +5567,7 @@ impl CardPool {
                 StaticCondition::CardsInHand { .. }
                     | StaticCondition::MoreCardsInHand
                     | StaticCondition::DrawnThisTurn(_)
-                    | StaticCondition::CastThisTurn(_)
+                    | StaticCondition::CastThisTurn { .. }
                     | StaticCondition::DiscardedThisTurn
             )))
         });
@@ -5526,7 +5584,18 @@ impl CardPool {
             DefFlags::EQUIPMENT,
             def.subtypes.iter().any(|s| s == "Equipment"),
         );
-        flags.set(DefFlags::TURN_STATIC, def.hand_static || def.step_static);
+        def.history_static = def.abilities.iter().any(|a| {
+            matches!(a, AbilityDef::Static(sa) if matches!(sa.condition, Some(
+                StaticCondition::GainedLifeThisTurn { .. }
+                    | StaticCondition::SurveilledThisTurn
+                    | StaticCondition::OpponentDamagedThisTurn
+                    | StaticCondition::OpponentLostLifeThisTurn
+            )))
+        });
+        flags.set(
+            DefFlags::TURN_STATIC,
+            def.hand_static || def.step_static || def.history_static,
+        );
         flags.set(DefFlags::SPENT_WATCH, self.watches_spent(&def.abilities));
         def.flags = flags;
         def.printed = Some(crate::state::Characteristics {
@@ -5619,6 +5688,7 @@ impl Builder {
             hand_static: false,
             spent: SpentUse::default(),
             step_static: false,
+            history_static: false,
             counts: Vec::new(),
             combat_static: false,
             layout: Layout::Normal,
@@ -5652,6 +5722,7 @@ impl Builder {
             dash: None,
             alt_cost: None,
             additional_or: None,
+            flash_if: None,
             offspring: None,
             bargain: false,
             target_cost: None,
@@ -5787,6 +5858,13 @@ impl Builder {
     #[must_use]
     pub fn dash(mut self, cost: ManaCost) -> Self {
         self.0.dash = Some(Box::new(cost));
+        self
+    }
+
+    /// "This spell has flash as long as ..." (CR 702.8).
+    #[must_use]
+    pub fn flash_if(mut self, condition: u16) -> Self {
+        self.0.flash_if = Some(condition);
         self
     }
 

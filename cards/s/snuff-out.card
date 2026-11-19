@@ -1,0 +1,7 @@
+card "Snuff Out" {
+  oracle_id 324824cb-f938-401c-b9b5-d8908b431ef0
+  cost {3}{B}
+  type Instant
+  alternative cost pay 4 life, if you control Swamp
+  spell: destroy target nonblack creature without regeneration
+}

@@ -1,0 +1,7 @@
+card "Plunder the Trollshaws" {
+  oracle_id 526f520e-b4bb-4215-9c6b-afc298744f06
+  cost {1}{U}
+  type Instant
+  spell: draw 1 card; if cast from graveyard, draw 2 cards instead
+  flashback {3}{U}
+}

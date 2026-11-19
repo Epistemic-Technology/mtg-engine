@@ -1,0 +1,7 @@
+card "Druid of the Spade" {
+  oracle_id 9740ce6d-ef6b-4d70-839a-8bd5e0e1e0a1
+  cost {2}{G}
+  type Creature — Rabbit Druid
+  pt 2/3
+  static as long as you control token, this: +2/+0, has trample
+}

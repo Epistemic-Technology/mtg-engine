@@ -1,0 +1,8 @@
+card "Child of the Volcano" {
+  oracle_id 701c8624-70d8-49df-84b1-d7b2a8e83552
+  cost {3}{R}
+  type Creature — Elemental
+  pt 3/3
+  keywords trample
+  triggered at beginning of your end step if descended this turn: put 1 +1/+1 counter on this
+}

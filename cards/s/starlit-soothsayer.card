@@ -1,0 +1,8 @@
+card "Starlit Soothsayer" {
+  oracle_id 0c0940c6-8126-4d58-809e-871cf8588ef9
+  cost {2}{B}
+  type Creature — Bat Cleric
+  pt 2/2
+  keywords flying
+  triggered at beginning of your end step if gained or lost life this turn: surveil 1
+}

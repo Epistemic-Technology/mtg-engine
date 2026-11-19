@@ -1,0 +1,7 @@
+card "Coal Stoker" {
+  oracle_id 7f3f7fb0-da18-467b-bf57-2ded458fda4d
+  cost {3}{R}
+  type Creature — Elemental
+  pt 3/3
+  triggered when this enters if cast from hand: add {R}{R}{R}
+}

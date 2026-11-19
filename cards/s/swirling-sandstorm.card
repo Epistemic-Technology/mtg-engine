@@ -1,0 +1,6 @@
+card "Swirling Sandstorm" {
+  oracle_id dc5cb229-82c9-4a87-9a10-490350cbdfc0
+  cost {3}{R}
+  type Sorcery
+  spell: label "Threshold" deal 5 damage to each creature without flying if threshold
+}

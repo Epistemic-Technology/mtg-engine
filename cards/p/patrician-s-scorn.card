@@ -1,0 +1,7 @@
+card "Patrician's Scorn" {
+  oracle_id 0dc9acfb-3f8b-4a34-b44c-5cc62689904b
+  cost {3}{W}
+  type Instant
+  alternative cost if cast another white spell this turn
+  spell: destroy each enchantment
+}

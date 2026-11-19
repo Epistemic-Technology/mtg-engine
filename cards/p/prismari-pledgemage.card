@@ -1,0 +1,8 @@
+card "Prismari Pledgemage" {
+  oracle_id 47ecedec-7bf7-4a3b-ac33-2bf203fa50d9
+  cost {U/R}{U/R}
+  type Creature — Orc Wizard
+  pt 3/3
+  keywords defender
+  label "Magecraft" triggered whenever you cast or copy instant or sorcery spell: this can attack this turn as though it didn't have defender
+}

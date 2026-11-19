@@ -1,0 +1,6 @@
+card "Pack's Betrayal" {
+  oracle_id 5b7abe71-0be3-4dd4-880e-88b65b47ea4d
+  cost {2}{R}
+  type Sorcery
+  spell: gain control of target creature until end of turn; untap that target 1; target 1 gains haste; if you control Wolf or Werewolf, scry 2
+}
