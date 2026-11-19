@@ -577,6 +577,7 @@ impl Fmt {
                 format!("{} loses {}", self.recipient(*to, t), keywords(ks))
             }
             Effect::RevealHand { who } => format!("{} reveals hand", self.recipient(*who, t)),
+            Effect::LookAtHand { who } => format!("look at hand of {}", self.recipient(*who, t)),
             Effect::DiscardRandom { count, who } => format!(
                 "{} discards {} cards at random",
                 self.recipient(*who, t),
@@ -1098,8 +1099,31 @@ fn step_name(s: Step) -> &'static str {
     }
 }
 
-fn trigger_text(t: &Trigger, next: bool) -> String {
+/// Triggers Oracle words "When" (the rest "Whenever", or "At").
+pub fn natural_when(t: &Trigger) -> bool {
+    matches!(
+        t,
+        Trigger::Enters(TriggerObj::This)
+            | Trigger::Dies(TriggerObj::This)
+            | Trigger::TurnedFaceUp
+            | Trigger::Exploits
+            | Trigger::BecomesTarget(TriggerObj::This)
+            | Trigger::When(_)
+            | Trigger::BeginningOfStep { .. }
+            | Trigger::EveryStep(_)
+    )
+}
+
+pub fn trigger_text(t: &Trigger, next: bool) -> String {
+    if let Trigger::When(inner) = t {
+        return trigger_text(inner, next).replacen("whenever", "when", 1);
+    }
+    trigger_text_one(t, next)
+}
+
+fn trigger_text_one(t: &Trigger, next: bool) -> String {
     match t {
+        Trigger::When(_) => unreachable!("unwrapped by trigger_text"),
         Trigger::Enters(o) => format!("whenever {} enters", trigger_obj(o)),
         Trigger::Dies(o) => format!("whenever {} dies", trigger_obj(o)),
         Trigger::EveryStep(step) => {

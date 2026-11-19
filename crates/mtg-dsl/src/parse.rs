@@ -1118,7 +1118,11 @@ impl P {
             }
             "triggered" => {
                 self.pos += 1;
-                let trigger = self.trigger()?;
+                let when = self.at_word("when");
+                let mut trigger = self.trigger()?;
+                if when && !crate::format::natural_when(&trigger) {
+                    trigger = Trigger::When(Box::new(trigger));
+                }
                 let condition = if self.eat_word("if") {
                     let at = self.pos;
                     if let Ok(c) = self.condition() {
@@ -1929,7 +1933,7 @@ impl P {
                     power,
                     toughness,
                     signed: true,
-                }) if self.at_word("count") => {
+                }) if self.at_word("count") || self.at_word("x") => {
                     let times = self.num()?;
                     self.until_end_of_turn();
                     Ok(Effect::PumpVar {
@@ -2185,6 +2189,12 @@ impl P {
                     rest_graveyard,
                     reveal_top,
                     revealing,
+                })
+            }
+            "look" if self.at_words(&["at", "hand", "of"]) => {
+                self.pos += 3;
+                Ok(Effect::LookAtHand {
+                    who: self.recipient()?,
                 })
             }
             "look" if self.at_words(&["at", "top"]) => {

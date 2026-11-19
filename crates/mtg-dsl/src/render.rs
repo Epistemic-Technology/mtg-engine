@@ -1903,13 +1903,18 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
         Effect::Scry(n) => Clause::imperative(format!("scry {}", digits(*n))),
         Effect::Investigate => Clause::imperative("investigate".to_string()),
         Effect::PutInLibrary { what, top } => {
+            // A card from your own graveyard goes to "your library".
+            let yours = matches!(*what, Recipient::Target(i)
+                if matches!(ctx.targets.get(i).map(Target::base),
+                    Some(Target::GraveyardCard { who: Who::You, .. })));
             let o = ctx.obj(*what);
             let place = if *top {
                 "on top of"
             } else {
                 "on the bottom of"
             };
-            Clause::imperative(format!("put {o} {place} its owner's library"))
+            let whose = if yours { "your" } else { "its owner's" };
+            Clause::imperative(format!("put {o} {place} {whose} library"))
         }
         Effect::SacrificeChosen { who, count, filter } => {
             let s = ctx.subj(*who);
@@ -1947,6 +1952,15 @@ fn clause_inner(e: &Effect, ctx: &mut Ctx) -> Clause {
                 ),
             )
             .until_eot()
+        }
+        Effect::LookAtHand { who } => {
+            let o = ctx.obj(*who);
+            let whose = match o.as_str() {
+                "you" => "your".to_string(),
+                "it" | "them" => "their".to_string(),
+                o => format!("{o}'s"),
+            };
+            Clause::imperative(format!("look at {whose} hand"))
         }
         Effect::RevealHand { who } => {
             let s = ctx.subj(*who);
@@ -2317,11 +2331,15 @@ fn step_name(step: Step, whose: Who) -> String {
 /// trigger's "the next end step".
 #[allow(clippy::too_many_lines)] // one arm per trigger kind
 fn trigger_text(t: &Trigger, ctx: &mut Ctx, next: bool) -> String {
+    if let Trigger::When(inner) = t {
+        return trigger_text(inner, ctx, next).replacen("whenever", "when", 1);
+    }
     let this = |ctx: &mut Ctx| {
         ctx.source_mentioned = true;
         format!("this {}", self_noun(ctx.card))
     };
     match t {
+        Trigger::When(_) => unreachable!("unwrapped above"),
         Trigger::Enters(TriggerObj::This) => format!("when {} enters", this(ctx)),
         Trigger::Enters(TriggerObj::Filter(f)) => {
             format!("whenever {} enters", filter_a(f, ctx.card))

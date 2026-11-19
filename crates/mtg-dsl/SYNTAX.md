@@ -176,6 +176,10 @@ instead of untapping), `charge`, `oil`, `spore`, `depletion`, `quest`,
 `indestructible` (CR 122.1b: the permanent has the keyword). A cost may
 `remove 1 charge counter from this`.
 
+`triggered when ...` on a trigger Oracle words "Whenever" prints "When"
+("When this creature blocks, ..."). `look at hand of target player`
+("Look at target player's hand."). `gets +1/+1 X` is "+X/+X".
+
 Energy (CR 107.14): `you get 2 energy` ("you get {E}{E}"), `pay 2
 energy` inside `may` and as a cost ("Pay {E}{E}").
 

@@ -688,7 +688,9 @@ impl Compiler<'_> {
                 keywords: KeywordSet::of(keywords.iter().copied()),
                 to: r(*to),
             }),
-            Effect::RevealHand { who } => out.push(CoreEffect::RevealHand { who: r(*who) }),
+            Effect::RevealHand { who } | Effect::LookAtHand { who } => {
+                out.push(CoreEffect::RevealHand { who: r(*who) });
+            }
             Effect::DiscardRandom { count, who } => out.push(CoreEffect::DiscardRandom {
                 count: *count,
                 who: r(*who),
@@ -894,6 +896,7 @@ impl Compiler<'_> {
 
     fn trigger(&mut self, t: &Trigger) -> TriggerSpec {
         match t {
+            Trigger::When(inner) => self.trigger(inner),
             Trigger::Enters(o) => TriggerSpec::Enters(self.trigger_obj(o)),
             Trigger::Dies(o) => TriggerSpec::Dies(self.trigger_obj(o)),
             Trigger::EveryStep(step) => TriggerSpec::BeginningOfStep {
